@@ -70,7 +70,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.Formatting
             {
                 return false;
             }
-            
+
             if (ch == '}' && !options.GetOption(FeatureOnOffOptions.AutoFormattingOnCloseBrace, LanguageNames.CSharp))
             {
                 return false;
@@ -97,7 +97,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.Formatting
 
             var span = textSpan ?? new TextSpan(0, root.FullSpan.Length);
             var formattingSpan = CommonFormattingHelpers.GetFormattingSpan(root, span);
-            return Formatter.GetFormattedTextChanges(root, 
+            return Formatter.GetFormattedTextChanges(root,
                 SpecializedCollections.SingletonEnumerable(formattingSpan),
                 document.Project.Solution.Workspace, options, cancellationToken);
         }
@@ -120,11 +120,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.Formatting
             return Formatter.GetFormattedTextChanges(root, SpecializedCollections.SingletonEnumerable(formattingSpan), document.Project.Solution.Workspace, options, rules, cancellationToken);
         }
 
-        private IEnumerable<IFormattingRule> GetFormattingRules(Document document, int position)
+        private IEnumerable<IFormattingRule> GetFormattingRules(Document document, SyntaxNode root, int position)
         {
             var workspace = document.Project.Solution.Workspace;
             var formattingRuleFactory = workspace.Services.GetService<IHostDependentFormattingRuleFactoryService>();
-            return formattingRuleFactory.CreateRule(document, position).Concat(Formatter.GetDefaultFormattingRules(document));
+            return formattingRuleFactory.CreateRule(document, position).Concat(GetTypingRule(document, root, position)).Concat(Formatter.GetDefaultFormattingRules(document));
         }
 
         public async Task<IList<TextChange>> GetFormattingChangesOnReturnAsync(Document document, int caretPosition, CancellationToken cancellationToken)
@@ -135,15 +135,15 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.Formatting
                 return null;
             }
 
-            var formattingRules = this.GetFormattingRules(document, caretPosition);
-
             // first, find the token user just typed.
             SyntaxToken token = await GetTokenBeforeTheCaretAsync(document, caretPosition, cancellationToken).ConfigureAwait(false);
-
             if (token.IsMissing)
             {
                 return null;
             }
+
+            var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+            var formattingRules = this.GetFormattingRules(document, root, caretPosition);
 
             string text = null;
             if (IsInvalidToken(token, ref text))
@@ -208,17 +208,17 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.Formatting
 
         public async Task<IList<TextChange>> GetFormattingChangesAsync(Document document, char typedChar, int caretPosition, CancellationToken cancellationToken)
         {
-            var formattingRules = this.GetFormattingRules(document, caretPosition);
-
             // first, find the token user just typed.
             var token = await GetTokenBeforeTheCaretAsync(document, caretPosition, cancellationToken).ConfigureAwait(false);
-
             if (token.IsMissing ||
                 !ValidSingleOrMultiCharactersTokenKind(typedChar, token.Kind()) ||
                 token.IsKind(SyntaxKind.EndOfFileToken, SyntaxKind.None))
             {
                 return null;
             }
+
+            var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+            var formattingRules = this.GetFormattingRules(document, root, caretPosition);
 
             var service = document.GetLanguageService<ISyntaxFactsService>();
             if (service != null && service.IsInNonUserCode(token.SyntaxTree, caretPosition, cancellationToken))
@@ -312,6 +312,20 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.Formatting
 
             var changes = formatter.FormatRange(document.Project.Solution.Workspace, tokenRange.Value.Item1, tokenRange.Value.Item2, cancellationToken);
             return changes;
+        }
+
+        private IEnumerable<IFormattingRule> GetTypingRule(Document document, SyntaxNode root, int position)
+        {
+            // make auto formatting on typing around missing brace case better
+            var token = root.FindToken(position);
+
+            if (token.Kind() == SyntaxKind.CloseBraceToken ||
+                token.Kind() == SyntaxKind.EndOfFileToken)
+            {
+                return SpecializedCollections.EmptyEnumerable<IFormattingRule>();
+            }
+
+            return SpecializedCollections.SingletonEnumerable(TypingFormattingRule.Instance);
         }
 
         private bool IsEndToken(SyntaxToken endToken)

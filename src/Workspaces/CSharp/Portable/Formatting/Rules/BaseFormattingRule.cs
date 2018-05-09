@@ -1,13 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
 using System.Collections.Generic;
-using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.CSharp.Utilities;
-using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Formatting.Rules;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text;
@@ -179,13 +173,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
 
             var firstTokenOfNode = node.GetFirstToken(includeZeroWidth: true);
 
+            if (node is MemberDeclarationSyntax memberDeclNode)
+            {
+                var firstAndLastTokens = memberDeclNode.GetFirstAndLastMemberDeclarationTokensAfterAttributes();
+                firstTokenOfNode = firstAndLastTokens.Item1;
+            }
+
             if (node.IsLambdaBodyBlock())
             {
                 // include lambda itself.
                 firstTokenOfNode = node.Parent.GetFirstToken(includeZeroWidth: true);
             }
 
-            // suppress wrapping on whole construct that owns braces and also brace pair itself if it is on same line
+            // suppress wrapping on whole construct that owns braces and also brace pair itself if 
+            // it is on same line
             AddSuppressWrappingIfOnSingleLineOperation(list, firstTokenOfNode, bracePair.Item2);
             AddSuppressWrappingIfOnSingleLineOperation(list, bracePair.Item1, bracePair.Item2);
         }
