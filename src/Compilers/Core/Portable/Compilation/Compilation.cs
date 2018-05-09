@@ -1094,9 +1094,11 @@ namespace Microsoft.CodeAnalysis
 
         /// <summary>
         /// Returns true if there is an implicit (C#) or widening (VB) conversion from
-        /// <paramref name="fromType"/> to <paramref name="toType"/>.
+        /// <paramref name="fromType"/> to <paramref name="toType"/>. Returns false if
+        /// either <paramref name="fromType"/> or <paramref name="toType"/> is null, or
+        /// if no such conversion exists.
         /// </summary>
-        public abstract bool IsAssignableTo(ITypeSymbol fromType, ITypeSymbol toType);
+        public abstract bool IsImplicitConversion(ITypeSymbol fromType, ITypeSymbol toType);
 
         #endregion
 

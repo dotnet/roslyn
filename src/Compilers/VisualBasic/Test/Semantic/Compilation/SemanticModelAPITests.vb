@@ -2090,7 +2090,7 @@ Module M
             Assert.True(conv.IsWidening)
             Assert.False(conv.IsNarrowing)
             Assert.True(conv.IsIdentity)
-            Assert.True(compilation.IsAssignableTo(listOfInt32_1, listOfInt32_2))
+            Assert.True(compilation.IsImplicitConversion(listOfInt32_1, listOfInt32_2))
 
             ' Convert List(Of Integer) -> Integer : Should be no conversion
             conv = compilation.ClassifyConversion(listOfInt32_1, int32)
@@ -2098,7 +2098,7 @@ Module M
             Assert.False(conv.Exists)
             Assert.False(conv.IsWidening)
             Assert.False(conv.IsNarrowing)
-            Assert.False(compilation.IsAssignableTo(listOfInt32_1, int32))
+            Assert.False(compilation.IsImplicitConversion(listOfInt32_1, int32))
 
             ' Convert String -> Integer: Should be narrowing string conversion
             conv = compilation.ClassifyConversion(str, int32)
@@ -2108,7 +2108,7 @@ Module M
             Assert.True(conv.IsNarrowing)
             Assert.True(conv.IsString)
             Assert.Equal("NarrowingString", conv.ToString())
-            Assert.False(compilation.IsAssignableTo(str, int32))
+            Assert.False(compilation.IsImplicitConversion(str, int32))
 
             ' Convert Enum -> Integer: Should be  widening numeric conversion
             conv = compilation.ClassifyConversion(enumType, int32)
@@ -2118,7 +2118,7 @@ Module M
             Assert.False(conv.IsNarrowing)
             Assert.True(conv.IsNumeric)
             Assert.Equal("WideningNumeric, InvolvesEnumTypeConversions", conv.ToString())
-            Assert.True(compilation.IsAssignableTo(enumType, int32))
+            Assert.True(compilation.IsImplicitConversion(enumType, int32))
 
             ' Convert Enum -> String: Should be  narrowing string conversion
             conv = compilation.ClassifyConversion(enumType, str)
@@ -2127,7 +2127,7 @@ Module M
             Assert.False(conv.IsWidening)
             Assert.True(conv.IsNarrowing)
             Assert.True(conv.IsString)
-            Assert.False(compilation.IsAssignableTo(enumType, str))
+            Assert.False(compilation.IsImplicitConversion(enumType, str))
 
             ' Convert Long -> Integer: Should be narrowing numeric conversion
             conv = compilation.ClassifyConversion(int64, int32)
@@ -2136,7 +2136,7 @@ Module M
             Assert.False(conv.IsWidening)
             Assert.True(conv.IsNarrowing)
             Assert.True(conv.IsNumeric)
-            Assert.False(compilation.IsAssignableTo(int64, int32))
+            Assert.False(compilation.IsImplicitConversion(int64, int32))
 
             ' Convert Boolean -> Enum: Should be narrowing boolean conversion
             conv = compilation.ClassifyConversion(bool, enumType)
@@ -2146,7 +2146,7 @@ Module M
             Assert.True(conv.IsNarrowing)
             Assert.True(conv.IsBoolean)
             Assert.Equal("NarrowingBoolean, InvolvesEnumTypeConversions", conv.ToString())
-            Assert.False(compilation.IsAssignableTo(bool, enumType))
+            Assert.False(compilation.IsImplicitConversion(bool, enumType))
 
             ' Convert List(Of Integer) -> Object: Should be widening reference conversion
             conv = compilation.ClassifyConversion(listOfInt32_1, objType)
@@ -2156,7 +2156,7 @@ Module M
             Assert.False(conv.IsNarrowing)
             Assert.True(conv.IsReference)
             Assert.Equal("WideningReference", conv.ToString())
-            Assert.True(compilation.IsAssignableTo(listOfInt32_1, objType))
+            Assert.True(compilation.IsImplicitConversion(listOfInt32_1, objType))
 
             ' Convert Object -> List(Of Integer): Should be narrow reference conversion
             conv = compilation.ClassifyConversion(objType, listOfInt32_1)
@@ -2165,7 +2165,7 @@ Module M
             Assert.False(conv.IsWidening)
             Assert.True(conv.IsNarrowing)
             Assert.True(conv.IsReference)
-            Assert.False(compilation.IsAssignableTo(objType, listOfInt32_1))
+            Assert.False(compilation.IsImplicitConversion(objType, listOfInt32_1))
 
             ' Convert AAA -> System.ICloneable: SHould be widening reference conversion
             conv = compilation.ClassifyConversion(classAAA, cloneableType)
@@ -2174,7 +2174,7 @@ Module M
             Assert.True(conv.IsWidening)
             Assert.False(conv.IsNarrowing)
             Assert.True(conv.IsReference)
-            Assert.True(compilation.IsAssignableTo(classAAA, cloneableType))
+            Assert.True(compilation.IsImplicitConversion(classAAA, cloneableType))
 
             ' Convert AAA() -> Object(): SHould be widening array conversion
             conv = compilation.ClassifyConversion(aaaArray, objArray)
@@ -2183,7 +2183,7 @@ Module M
             Assert.True(conv.IsWidening)
             Assert.False(conv.IsNarrowing)
             Assert.True(conv.IsArray)
-            Assert.True(compilation.IsAssignableTo(aaaArray, objArray))
+            Assert.True(compilation.IsImplicitConversion(aaaArray, objArray))
 
             ' Convert Object() -> AAA(): SHould be narrowing array conversion
             conv = compilation.ClassifyConversion(objArray, aaaArray)
@@ -2193,7 +2193,7 @@ Module M
             Assert.True(conv.IsNarrowing)
             Assert.True(conv.IsArray)
             Assert.Equal("NarrowingArray", conv.ToString())
-            Assert.False(compilation.IsAssignableTo(objArray, aaaArray))
+            Assert.False(compilation.IsImplicitConversion(objArray, aaaArray))
 
             ' Convert Short -> Integer?: Should be widening nullable value type conversion
             conv = compilation.ClassifyConversion(int16, nullInt32)
@@ -2203,7 +2203,7 @@ Module M
             Assert.False(conv.IsNarrowing)
             Assert.True(conv.IsNullableValueType)
             Assert.Equal("WideningNullable", conv.ToString())
-            Assert.True(compilation.IsAssignableTo(int16, nullInt32))
+            Assert.True(compilation.IsImplicitConversion(int16, nullInt32))
 
             ' Convert Integer? -> Integer: Should be narrowing nullable value type conversion
             conv = compilation.ClassifyConversion(nullInt32, int32)
@@ -2212,7 +2212,7 @@ Module M
             Assert.False(conv.IsWidening)
             Assert.True(conv.IsNarrowing)
             Assert.True(conv.IsNullableValueType)
-            Assert.False(compilation.IsAssignableTo(nullInt32, int32))
+            Assert.False(compilation.IsImplicitConversion(nullInt32, int32))
 
             ' Convert T -> Object: Widening type parameter conversion
             conv = compilation.ClassifyConversion(typeParam, objType)
@@ -2221,7 +2221,7 @@ Module M
             Assert.True(conv.IsWidening)
             Assert.False(conv.IsNarrowing)
             Assert.True(conv.IsTypeParameter)
-            Assert.True(compilation.IsAssignableTo(typeParam, objType))
+            Assert.True(compilation.IsImplicitConversion(typeParam, objType))
 
             ' Convert Object -> T : Narrowing type parameter conversion
             conv = compilation.ClassifyConversion(objType, typeParam)
@@ -2231,7 +2231,7 @@ Module M
             Assert.True(conv.IsNarrowing)
             Assert.True(conv.IsTypeParameter)
             Assert.Equal("NarrowingTypeParameter", conv.ToString())
-            Assert.False(compilation.IsAssignableTo(objType, typeParam))
+            Assert.False(compilation.IsImplicitConversion(objType, typeParam))
 
             ' Check equality, hash code.
             Dim conv2 = compilation.ClassifyConversion(objType, typeParam)

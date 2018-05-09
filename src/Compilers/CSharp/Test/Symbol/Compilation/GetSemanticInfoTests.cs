@@ -641,7 +641,7 @@ class C {
         {
             var info = model.GetTypeInfo(syntax);
             var conversion = info.Type != null && info.ConvertedType != null ? model.Compilation.ClassifyConversion(info.Type, info.ConvertedType) : Conversion.NoConversion;
-            Assert.Equal(conversion.IsImplicit, model.Compilation.IsAssignableTo(info.Type, info.ConvertedType));
+            Assert.Equal(conversion.IsImplicit, model.Compilation.IsImplicitConversion(info.Type, info.ConvertedType));
         }
 
         [Fact, WorkItem(544151, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544151")]
