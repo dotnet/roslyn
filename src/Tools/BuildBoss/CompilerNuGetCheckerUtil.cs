@@ -36,11 +36,27 @@ namespace BuildBoss
                 @"Exes\Csc\net46",
                 @"Exes\Vbc\net46",
                 @"Exes\Csi\net46",
-                @"Exes\VBCSCompiler\net46");
+                @"Exes\VBCSCompiler\net46",
+                @"Dlls\MSBuildTask\net46");
             if (!allGood)
             {
                 return false;
             }
+
+            // These are the core MSBuild dlls that will always be present / redirected when running
+            // inside of desktop MSBuild. Even though they are in our output directories they should
+            // not be a part of our deployment
+            // need to be 
+            var unneededDllFileNames = new[]
+            {
+                "Microsoft.Build.dll",
+                "Microsoft.Build.Framework.dll",
+                "Microsoft.Build.Tasks.Core.dll",
+                "Microsoft.Build.Utilities.Core.dll",
+            };
+            dllFileNames = dllFileNames
+                .Where(x => !unneededDllFileNames.Contains(x, StringComparer.OrdinalIgnoreCase))
+                .ToList();
 
             allGood &= VerifySwrFile(textWriter, dllFileNames);
 
