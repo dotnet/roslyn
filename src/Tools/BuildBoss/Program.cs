@@ -28,9 +28,11 @@ namespace BuildBoss
         private static int MainCore(string[] args)
         { 
             if (args.Length == 0)
-            { 
-                Usage();
-                return 1;
+            {
+                // TEMP DO NOT CHECK IN
+                return (new CompilerNuGetCheckerUtil(@"c:\users\jaredpar\code\roslyn", @"c:\users\jaredpar\code\roslyn\Binaries\Debug").Check(Console.Out)) ? 0 : 1;
+                // Usage();
+                // return 1;
             }
 
             var allGood = true;
@@ -91,6 +93,12 @@ namespace BuildBoss
         {
             var util = new StructuredLoggerCheckerUtil(logFilePath);
             return CheckCore(util, $"Structured log {logFilePath}");
+        }
+
+        private static bool ProcessCompilerNuGet(string repositoryDirectory, string configDirectory)
+        {
+            var util = new CompilerNuGetCheckerUtil(repositoryDirectory, configDirectory);
+            return CheckCore(util, $"Compiler NuGets");
         }
 
         private static void Usage()

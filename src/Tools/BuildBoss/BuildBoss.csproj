@@ -20,6 +20,7 @@
     <Reference Include="WindowsBase" />
     <PackageReference Include="Newtonsoft.Json" Version="$(NewtonsoftJsonVersion)" />
     <PackageReference Include="System.Collections.Immutable" Version="$(SystemCollectionsImmutableVersion)" />
+    <PackageReference Include="System.ValueTuple" Version="$(SystemValueTupleVersion)" />
     <PackageReference Include="Microsoft.Build.Logging.StructuredLogger" Version="$(MicrosoftBuildLoggingStructuredLoggerVersion)" />
   </ItemGroup>
   <ItemGroup>
