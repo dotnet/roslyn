@@ -397,6 +397,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                     if (!propertySymbol.IsReadOnly &&
                         !propertySymbol.IsWriteOnly &&
                         !propertySymbol.IsStatic &&
+                        !propertySymbol.IsAbstract &&
                         propertySymbol.GetMethod != null &&
                         propertySymbol.SetMethod != null &&
                         propertySymbol.GetMethod.IsAccessibleWithin(within) &&
