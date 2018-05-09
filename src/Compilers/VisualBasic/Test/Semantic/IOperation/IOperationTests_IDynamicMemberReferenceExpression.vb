@@ -452,12 +452,12 @@ IDynamicInvocationOperation (OperationKind.DynamicInvocation, Type: System.Objec
 
         <CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)>
         <Fact()>
-        Public Sub DynamicMemberReference_ControlFlowInSimpleMemberAccess()
+        Public Sub DynamicMemberReference_NoControlFlow()
             Dim source = <![CDATA[
 Option Strict Off
 Class C
-    Private Sub M(c As Object, p As Object)'BIND:"Private Sub M(c As Object, p As Object)"
-        p = c?.Prop1
+    Private Sub M(d As Object, p As Object)'BIND:"Private Sub M(d As Object, p As Object)"
+        p = d.Prop1
     End Sub
 End Class
 ]]>.Value
@@ -468,220 +468,92 @@ Block[B0] - Entry
     Next (Regular) Block[B1]
 Block[B1] - Block
     Predecessors: [B0]
-    Statements (2)
-        IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'p')
-          Value: 
-            IParameterReferenceOperation: p (OperationKind.ParameterReference, Type: System.Object) (Syntax: 'p')
-
-        IFlowCaptureOperation: 1 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'c')
-          Value: 
-            IParameterReferenceOperation: c (OperationKind.ParameterReference, Type: System.Object) (Syntax: 'c')
-
-    Jump if True (Regular) to Block[B3]
-        IIsNullOperation (OperationKind.IsNull, Type: System.Boolean, IsImplicit) (Syntax: 'c')
-          Operand: 
-            IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: System.Object, IsImplicit) (Syntax: 'c')
-
-    Next (Regular) Block[B2]
-Block[B2] - Block
-    Predecessors: [B1]
     Statements (1)
-        IFlowCaptureOperation: 2 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: '.Prop1')
-          Value: 
-            IDynamicMemberReferenceOperation (Member Name: "Prop1", Containing Type: null) (OperationKind.DynamicMemberReference, Type: System.Object) (Syntax: '.Prop1')
-              Type Arguments(0)
-              Instance Receiver: 
-                IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: System.Object, IsImplicit) (Syntax: 'c')
-
-    Next (Regular) Block[B4]
-Block[B3] - Block
-    Predecessors: [B1]
-    Statements (1)
-        IFlowCaptureOperation: 2 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'c')
-          Value: 
-            IDefaultValueOperation (OperationKind.DefaultValue, Type: System.Object, Constant: null, IsImplicit) (Syntax: 'c')
-
-    Next (Regular) Block[B4]
-Block[B4] - Block
-    Predecessors: [B2] [B3]
-    Statements (1)
-        IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'p = c?.Prop1')
+        IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'p = d.Prop1')
           Expression: 
-            ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Object, IsImplicit) (Syntax: 'p = c?.Prop1')
+            ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Object, IsImplicit) (Syntax: 'p = d.Prop1')
               Left: 
-                IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.Object, IsImplicit) (Syntax: 'p')
+                IParameterReferenceOperation: p (OperationKind.ParameterReference, Type: System.Object) (Syntax: 'p')
               Right: 
-                IFlowCaptureReferenceOperation: 2 (OperationKind.FlowCaptureReference, Type: System.Object, IsImplicit) (Syntax: 'c?.Prop1')
-
-    Next (Regular) Block[B5]
-Block[B5] - Exit
-    Predecessors: [B4]
-    Statements (0)
-]]>.Value
-
-            Dim expectedDiagnostics = String.Empty
-
-            VerifyFlowGraphAndDiagnosticsForTest(Of MethodBlockSyntax)(source, expectedFlowGraph, expectedDiagnostics)
-        End Sub
-
-        <CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)>
-        <Fact()>
-        Public Sub DynamicMemberReference_ControlFlowInNestedMemberAccess()
-            Dim source = <![CDATA[
-Option Strict Off
-Class C
-    Private Sub M(c As Object, p As Object)'BIND:"Private Sub M(c As Object, p As Object)"
-        p = c?.Prop1?.Prop2
-    End Sub
-End Class
-]]>.Value
-
-            Dim expectedFlowGraph = <![CDATA[
-Block[B0] - Entry
-    Statements (0)
-    Next (Regular) Block[B1]
-Block[B1] - Block
-    Predecessors: [B0]
-    Statements (2)
-        IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'p')
-          Value: 
-            IParameterReferenceOperation: p (OperationKind.ParameterReference, Type: System.Object) (Syntax: 'p')
-
-        IFlowCaptureOperation: 1 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'c')
-          Value: 
-            IParameterReferenceOperation: c (OperationKind.ParameterReference, Type: System.Object) (Syntax: 'c')
-
-    Jump if True (Regular) to Block[B4]
-        IIsNullOperation (OperationKind.IsNull, Type: System.Boolean, IsImplicit) (Syntax: 'c')
-          Operand: 
-            IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: System.Object, IsImplicit) (Syntax: 'c')
-
-    Next (Regular) Block[B2]
-Block[B2] - Block
-    Predecessors: [B1]
-    Statements (1)
-        IFlowCaptureOperation: 2 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: '.Prop1')
-          Value: 
-            IDynamicMemberReferenceOperation (Member Name: "Prop1", Containing Type: null) (OperationKind.DynamicMemberReference, Type: System.Object) (Syntax: '.Prop1')
-              Type Arguments(0)
-              Instance Receiver: 
-                IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: System.Object, IsImplicit) (Syntax: 'c')
-
-    Jump if True (Regular) to Block[B4]
-        IIsNullOperation (OperationKind.IsNull, Type: System.Boolean, IsImplicit) (Syntax: '.Prop1')
-          Operand: 
-            IFlowCaptureReferenceOperation: 2 (OperationKind.FlowCaptureReference, Type: System.Object, IsImplicit) (Syntax: '.Prop1')
-
-    Next (Regular) Block[B3]
-Block[B3] - Block
-    Predecessors: [B2]
-    Statements (1)
-        IFlowCaptureOperation: 3 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: '.Prop2')
-          Value: 
-            IDynamicMemberReferenceOperation (Member Name: "Prop2", Containing Type: null) (OperationKind.DynamicMemberReference, Type: System.Object) (Syntax: '.Prop2')
-              Type Arguments(0)
-              Instance Receiver: 
-                IFlowCaptureReferenceOperation: 2 (OperationKind.FlowCaptureReference, Type: System.Object, IsImplicit) (Syntax: '.Prop1')
-
-    Next (Regular) Block[B5]
-Block[B4] - Block
-    Predecessors: [B1] [B2]
-    Statements (1)
-        IFlowCaptureOperation: 3 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'c?.Prop1?.Prop2')
-          Value: 
-            IDefaultValueOperation (OperationKind.DefaultValue, Type: System.Object, Constant: null, IsImplicit) (Syntax: 'c?.Prop1?.Prop2')
-
-    Next (Regular) Block[B5]
-Block[B5] - Block
-    Predecessors: [B3] [B4]
-    Statements (1)
-        IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'p = c?.Prop1?.Prop2')
-          Expression: 
-            ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Object, IsImplicit) (Syntax: 'p = c?.Prop1?.Prop2')
-              Left: 
-                IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.Object, IsImplicit) (Syntax: 'p')
-              Right: 
-                IFlowCaptureReferenceOperation: 3 (OperationKind.FlowCaptureReference, Type: System.Object, IsImplicit) (Syntax: 'c?.Prop1?.Prop2')
-
-    Next (Regular) Block[B6]
-Block[B6] - Exit
-    Predecessors: [B5]
-    Statements (0)
-]]>.Value
-
-            Dim expectedDiagnostics = String.Empty
-
-            VerifyFlowGraphAndDiagnosticsForTest(Of MethodBlockSyntax)(source, expectedFlowGraph, expectedDiagnostics)
-        End Sub
-
-        <CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)>
-        <Fact()>
-        Public Sub DynamicMemberReference_ControlFlowInGenericInvocation()
-            Dim source = <![CDATA[
-Option Strict Off
-Class C
-    Private Sub M(c As Object, p As Object)'BIND:"Private Sub M(c As Object, p As Object)"
-        p = c?.GetValue(Of String)()
-    End Sub
-End Class
-]]>.Value
-
-            Dim expectedFlowGraph = <![CDATA[
-Block[B0] - Entry
-    Statements (0)
-    Next (Regular) Block[B1]
-Block[B1] - Block
-    Predecessors: [B0]
-    Statements (2)
-        IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'p')
-          Value: 
-            IParameterReferenceOperation: p (OperationKind.ParameterReference, Type: System.Object) (Syntax: 'p')
-
-        IFlowCaptureOperation: 1 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'c')
-          Value: 
-            IParameterReferenceOperation: c (OperationKind.ParameterReference, Type: System.Object) (Syntax: 'c')
-
-    Jump if True (Regular) to Block[B3]
-        IIsNullOperation (OperationKind.IsNull, Type: System.Boolean, IsImplicit) (Syntax: 'c')
-          Operand: 
-            IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: System.Object, IsImplicit) (Syntax: 'c')
-
-    Next (Regular) Block[B2]
-Block[B2] - Block
-    Predecessors: [B1]
-    Statements (1)
-        IFlowCaptureOperation: 2 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: '.GetValue(Of String)()')
-          Value: 
-            IDynamicInvocationOperation (OperationKind.DynamicInvocation, Type: System.Object) (Syntax: '.GetValue(Of String)()')
-              Expression: 
-                IDynamicMemberReferenceOperation (Member Name: "GetValue", Containing Type: null) (OperationKind.DynamicMemberReference, Type: System.Object) (Syntax: '.GetValue(Of String)')
-                  Type Arguments(1):
-                    Symbol: System.String
+                IDynamicMemberReferenceOperation (Member Name: "Prop1", Containing Type: null) (OperationKind.DynamicMemberReference, Type: System.Object) (Syntax: 'd.Prop1')
+                  Type Arguments(0)
                   Instance Receiver: 
-                    IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: System.Object, IsImplicit) (Syntax: 'c')
-              Arguments(0)
-              ArgumentNames(0)
-              ArgumentRefKinds: null
+                    IParameterReferenceOperation: d (OperationKind.ParameterReference, Type: System.Object) (Syntax: 'd')
+
+    Next (Regular) Block[B2]
+Block[B2] - Exit
+    Predecessors: [B1]
+    Statements (0)
+]]>.Value
+
+            Dim expectedDiagnostics = String.Empty
+
+            VerifyFlowGraphAndDiagnosticsForTest(Of MethodBlockSyntax)(source, expectedFlowGraph, expectedDiagnostics)
+        End Sub
+
+
+        <CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)>
+        <Fact()>
+        Public Sub DynamicMemberReference_ControlFlowInReceiver()
+            Dim source = <![CDATA[
+Option Strict Off
+Class C
+    Private Sub M(d1 As Object, d2 As Object, p As Object)'BIND:"Private Sub M(d1 As Object, d2 As Object, p As Object)"
+        p = If(d1, d2).Prop1
+    End Sub
+End Class
+]]>.Value
+
+            Dim expectedFlowGraph = <![CDATA[
+Block[B0] - Entry
+    Statements (0)
+    Next (Regular) Block[B1]
+Block[B1] - Block
+    Predecessors: [B0]
+    Statements (2)
+        IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'p')
+          Value: 
+            IParameterReferenceOperation: p (OperationKind.ParameterReference, Type: System.Object) (Syntax: 'p')
+
+        IFlowCaptureOperation: 1 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'd1')
+          Value: 
+            IParameterReferenceOperation: d1 (OperationKind.ParameterReference, Type: System.Object) (Syntax: 'd1')
+
+    Jump if True (Regular) to Block[B3]
+        IIsNullOperation (OperationKind.IsNull, Type: System.Boolean, IsImplicit) (Syntax: 'd1')
+          Operand: 
+            IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: System.Object, IsImplicit) (Syntax: 'd1')
+
+    Next (Regular) Block[B2]
+Block[B2] - Block
+    Predecessors: [B1]
+    Statements (1)
+        IFlowCaptureOperation: 2 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'd1')
+          Value: 
+            IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: System.Object, IsImplicit) (Syntax: 'd1')
 
     Next (Regular) Block[B4]
 Block[B3] - Block
     Predecessors: [B1]
     Statements (1)
-        IFlowCaptureOperation: 2 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'c')
+        IFlowCaptureOperation: 2 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'd2')
           Value: 
-            IDefaultValueOperation (OperationKind.DefaultValue, Type: System.Object, Constant: null, IsImplicit) (Syntax: 'c')
+            IParameterReferenceOperation: d2 (OperationKind.ParameterReference, Type: System.Object) (Syntax: 'd2')
 
     Next (Regular) Block[B4]
 Block[B4] - Block
     Predecessors: [B2] [B3]
     Statements (1)
-        IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'p = c?.GetV ... f String)()')
+        IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'p = If(d1, d2).Prop1')
           Expression: 
-            ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Object, IsImplicit) (Syntax: 'p = c?.GetV ... f String)()')
+            ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Object, IsImplicit) (Syntax: 'p = If(d1, d2).Prop1')
               Left: 
                 IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.Object, IsImplicit) (Syntax: 'p')
               Right: 
-                IFlowCaptureReferenceOperation: 2 (OperationKind.FlowCaptureReference, Type: System.Object, IsImplicit) (Syntax: 'c?.GetValue(Of String)()')
+                IDynamicMemberReferenceOperation (Member Name: "Prop1", Containing Type: null) (OperationKind.DynamicMemberReference, Type: System.Object) (Syntax: 'If(d1, d2).Prop1')
+                  Type Arguments(0)
+                  Instance Receiver: 
+                    IFlowCaptureReferenceOperation: 2 (OperationKind.FlowCaptureReference, Type: System.Object, IsImplicit) (Syntax: 'If(d1, d2)')
 
     Next (Regular) Block[B5]
 Block[B5] - Exit

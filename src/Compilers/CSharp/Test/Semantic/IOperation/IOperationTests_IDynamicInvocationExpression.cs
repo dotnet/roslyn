@@ -494,6 +494,131 @@ IDynamicInvocationOperation (OperationKind.DynamicInvocation, Type: dynamic) (Sy
 
         [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
         [Fact]
+        public void DynamicInvocation_NoControlFlow()
+        {
+            string source = @"
+class C
+{
+    void M(C c, dynamic d)
+    /*<bind>*/{
+        c.M2(d);
+    }/*</bind>*/
+
+    public void M2(int i)
+    {
+    }
+}
+";
+            string expectedFlowGraph = @"
+Block[B0] - Entry
+    Statements (0)
+    Next (Regular) Block[B1]
+Block[B1] - Block
+    Predecessors: [B0]
+    Statements (1)
+        IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'c.M2(d);')
+          Expression: 
+            IDynamicInvocationOperation (OperationKind.DynamicInvocation, Type: dynamic) (Syntax: 'c.M2(d)')
+              Expression: 
+                IDynamicMemberReferenceOperation (Member Name: ""M2"", Containing Type: null) (OperationKind.DynamicMemberReference, Type: null) (Syntax: 'c.M2')
+                  Type Arguments(0)
+                  Instance Receiver: 
+                    IParameterReferenceOperation: c (OperationKind.ParameterReference, Type: C) (Syntax: 'c')
+              Arguments(1):
+                  IParameterReferenceOperation: d (OperationKind.ParameterReference, Type: dynamic) (Syntax: 'd')
+              ArgumentNames(0)
+              ArgumentRefKinds(0)
+
+    Next (Regular) Block[B2]
+Block[B2] - Exit
+    Predecessors: [B1]
+    Statements (0)
+";
+            var expectedDiagnostics = DiagnosticDescription.None;
+
+            VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedFlowGraph, expectedDiagnostics);
+        }
+
+        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+        [Fact]
+        public void DynamicInvocation_ControlFlowNullReceiver()
+        {
+            // Also tests non-zero TypeArguments and non-null ContainingType for IDynamicMemberReferenceOperation
+            string source = @"
+class C
+{
+    void M(dynamic d1, dynamic d2)
+    /*<bind>*/{
+        C.M2<int>(d1 ?? d2);
+    }/*</bind>*/
+
+    public static void M2<T>(int i)
+    {
+    }
+}
+";
+            string expectedFlowGraph = @"
+Block[B0] - Entry
+    Statements (0)
+    Next (Regular) Block[B1]
+Block[B1] - Block
+    Predecessors: [B0]
+    Statements (1)
+        IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'd1')
+          Value: 
+            IParameterReferenceOperation: d1 (OperationKind.ParameterReference, Type: dynamic) (Syntax: 'd1')
+
+    Jump if True (Regular) to Block[B3]
+        IIsNullOperation (OperationKind.IsNull, Type: System.Boolean, IsImplicit) (Syntax: 'd1')
+          Operand: 
+            IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: dynamic, IsImplicit) (Syntax: 'd1')
+
+    Next (Regular) Block[B2]
+Block[B2] - Block
+    Predecessors: [B1]
+    Statements (1)
+        IFlowCaptureOperation: 1 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'd1')
+          Value: 
+            IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: dynamic, IsImplicit) (Syntax: 'd1')
+
+    Next (Regular) Block[B4]
+Block[B3] - Block
+    Predecessors: [B1]
+    Statements (1)
+        IFlowCaptureOperation: 1 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'd2')
+          Value: 
+            IParameterReferenceOperation: d2 (OperationKind.ParameterReference, Type: dynamic) (Syntax: 'd2')
+
+    Next (Regular) Block[B4]
+Block[B4] - Block
+    Predecessors: [B2] [B3]
+    Statements (1)
+        IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'C.M2<int>(d1 ?? d2);')
+          Expression: 
+            IDynamicInvocationOperation (OperationKind.DynamicInvocation, Type: dynamic) (Syntax: 'C.M2<int>(d1 ?? d2)')
+              Expression: 
+                IDynamicMemberReferenceOperation (Member Name: ""M2"", Containing Type: C) (OperationKind.DynamicMemberReference, Type: null) (Syntax: 'C.M2<int>')
+                  Type Arguments(1):
+                    Symbol: System.Int32
+                  Instance Receiver: 
+                    null
+              Arguments(1):
+                  IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: dynamic, IsImplicit) (Syntax: 'd1 ?? d2')
+              ArgumentNames(0)
+              ArgumentRefKinds(0)
+
+    Next (Regular) Block[B5]
+Block[B5] - Exit
+    Predecessors: [B4]
+    Statements (0)
+";
+            var expectedDiagnostics = DiagnosticDescription.None;
+
+            VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedFlowGraph, expectedDiagnostics);
+        }
+
+        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+        [Fact]
         public void DynamicInvocation_ControlFlowInReceiver()
         {
             string source = @"
@@ -570,6 +695,81 @@ Block[B5] - Exit
 
         [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
         [Fact]
+        public void DynamicInvocation_ControlFlowInReceiverEmptyArgList()
+        {
+            string source = @"
+class C
+{
+    void M(dynamic d1, dynamic d2)
+    /*<bind>*/{
+        (d1 ?? d2).M2();
+    }/*</bind>*/
+
+    public void M2()
+    {
+    }
+}
+";
+            string expectedFlowGraph = @"
+Block[B0] - Entry
+    Statements (0)
+    Next (Regular) Block[B1]
+Block[B1] - Block
+    Predecessors: [B0]
+    Statements (1)
+        IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'd1')
+          Value: 
+            IParameterReferenceOperation: d1 (OperationKind.ParameterReference, Type: dynamic) (Syntax: 'd1')
+
+    Jump if True (Regular) to Block[B3]
+        IIsNullOperation (OperationKind.IsNull, Type: System.Boolean, IsImplicit) (Syntax: 'd1')
+          Operand: 
+            IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: dynamic, IsImplicit) (Syntax: 'd1')
+
+    Next (Regular) Block[B2]
+Block[B2] - Block
+    Predecessors: [B1]
+    Statements (1)
+        IFlowCaptureOperation: 1 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'd1')
+          Value: 
+            IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: dynamic, IsImplicit) (Syntax: 'd1')
+
+    Next (Regular) Block[B4]
+Block[B3] - Block
+    Predecessors: [B1]
+    Statements (1)
+        IFlowCaptureOperation: 1 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'd2')
+          Value: 
+            IParameterReferenceOperation: d2 (OperationKind.ParameterReference, Type: dynamic) (Syntax: 'd2')
+
+    Next (Regular) Block[B4]
+Block[B4] - Block
+    Predecessors: [B2] [B3]
+    Statements (1)
+        IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: '(d1 ?? d2).M2();')
+          Expression: 
+            IDynamicInvocationOperation (OperationKind.DynamicInvocation, Type: dynamic) (Syntax: '(d1 ?? d2).M2()')
+              Expression: 
+                IDynamicMemberReferenceOperation (Member Name: ""M2"", Containing Type: null) (OperationKind.DynamicMemberReference, Type: dynamic) (Syntax: '(d1 ?? d2).M2')
+                  Type Arguments(0)
+                  Instance Receiver: 
+                    IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: dynamic, IsImplicit) (Syntax: 'd1 ?? d2')
+              Arguments(0)
+              ArgumentNames(0)
+              ArgumentRefKinds(0)
+
+    Next (Regular) Block[B5]
+Block[B5] - Exit
+    Predecessors: [B4]
+    Statements (0)
+";
+            var expectedDiagnostics = DiagnosticDescription.None;
+
+            VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedFlowGraph, expectedDiagnostics);
+        }
+
+        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+        [Fact]
         public void DynamicInvocation_ControlFlowInFirstArgument()
         {
             string source = @"
@@ -596,12 +796,9 @@ Block[B0] - Entry
 Block[B1] - Block
     Predecessors: [B0]
     Statements (2)
-        IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'c.M2')
+        IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'c')
           Value: 
-            IDynamicMemberReferenceOperation (Member Name: ""M2"", Containing Type: null) (OperationKind.DynamicMemberReference, Type: null) (Syntax: 'c.M2')
-              Type Arguments(0)
-              Instance Receiver: 
-                IParameterReferenceOperation: c (OperationKind.ParameterReference, Type: C) (Syntax: 'c')
+            IParameterReferenceOperation: c (OperationKind.ParameterReference, Type: C) (Syntax: 'c')
 
         IFlowCaptureOperation: 1 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'd1')
           Value: 
@@ -636,7 +833,10 @@ Block[B4] - Block
           Expression: 
             IDynamicInvocationOperation (OperationKind.DynamicInvocation, Type: dynamic) (Syntax: 'c.M2(d1 ?? d2, ch)')
               Expression: 
-                IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: null, IsImplicit) (Syntax: 'c.M2')
+                IDynamicMemberReferenceOperation (Member Name: ""M2"", Containing Type: null) (OperationKind.DynamicMemberReference, Type: null) (Syntax: 'c.M2')
+                  Type Arguments(0)
+                  Instance Receiver: 
+                    IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: C, IsImplicit) (Syntax: 'c')
               Arguments(2):
                   IFlowCaptureReferenceOperation: 2 (OperationKind.FlowCaptureReference, Type: dynamic, IsImplicit) (Syntax: 'd1 ?? d2')
                   IParameterReferenceOperation: ch (OperationKind.ParameterReference, Type: System.Char) (Syntax: 'ch')
@@ -681,12 +881,9 @@ Block[B0] - Entry
 Block[B1] - Block
     Predecessors: [B0]
     Statements (3)
-        IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'c.M2')
+        IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'c')
           Value: 
-            IDynamicMemberReferenceOperation (Member Name: ""M2"", Containing Type: null) (OperationKind.DynamicMemberReference, Type: null) (Syntax: 'c.M2')
-              Type Arguments(0)
-              Instance Receiver: 
-                IParameterReferenceOperation: c (OperationKind.ParameterReference, Type: C) (Syntax: 'c')
+            IParameterReferenceOperation: c (OperationKind.ParameterReference, Type: C) (Syntax: 'c')
 
         IFlowCaptureOperation: 1 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'd1')
           Value: 
@@ -728,7 +925,10 @@ Block[B4] - Block
           Expression: 
             IDynamicInvocationOperation (OperationKind.DynamicInvocation, Type: dynamic) (Syntax: 'c.M2(d1, ch1 ?? ch2)')
               Expression: 
-                IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: null, IsImplicit) (Syntax: 'c.M2')
+                IDynamicMemberReferenceOperation (Member Name: ""M2"", Containing Type: null) (OperationKind.DynamicMemberReference, Type: null) (Syntax: 'c.M2')
+                  Type Arguments(0)
+                  Instance Receiver: 
+                    IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: C, IsImplicit) (Syntax: 'c')
               Arguments(2):
                   IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: dynamic, IsImplicit) (Syntax: 'd1')
                   IFlowCaptureReferenceOperation: 3 (OperationKind.FlowCaptureReference, Type: System.Char, IsImplicit) (Syntax: 'ch1 ?? ch2')
@@ -773,12 +973,9 @@ Block[B0] - Entry
 Block[B1] - Block
     Predecessors: [B0]
     Statements (2)
-        IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'c.M2')
+        IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'c')
           Value: 
-            IDynamicMemberReferenceOperation (Member Name: ""M2"", Containing Type: null) (OperationKind.DynamicMemberReference, Type: null) (Syntax: 'c.M2')
-              Type Arguments(0)
-              Instance Receiver: 
-                IParameterReferenceOperation: c (OperationKind.ParameterReference, Type: C) (Syntax: 'c')
+            IParameterReferenceOperation: c (OperationKind.ParameterReference, Type: C) (Syntax: 'c')
 
         IFlowCaptureOperation: 1 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'd1')
           Value: 
@@ -836,7 +1033,10 @@ Block[B7] - Block
           Expression: 
             IDynamicInvocationOperation (OperationKind.DynamicInvocation, Type: dynamic) (Syntax: 'c.M2(d1 ??  ...  ch1 : ch2)')
               Expression: 
-                IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: null, IsImplicit) (Syntax: 'c.M2')
+                IDynamicMemberReferenceOperation (Member Name: ""M2"", Containing Type: null) (OperationKind.DynamicMemberReference, Type: null) (Syntax: 'c.M2')
+                  Type Arguments(0)
+                  Instance Receiver: 
+                    IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: C, IsImplicit) (Syntax: 'c')
               Arguments(2):
                   IFlowCaptureReferenceOperation: 2 (OperationKind.FlowCaptureReference, Type: dynamic, IsImplicit) (Syntax: 'd1 ?? d2')
                   IFlowCaptureReferenceOperation: 3 (OperationKind.FlowCaptureReference, Type: System.Char, IsImplicit) (Syntax: 'flag ? ch1 : ch2')
@@ -853,7 +1053,7 @@ Block[B8] - Exit
             VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedFlowGraph, expectedDiagnostics);
         }
 
-        [CompilerTrait(CompilerFeature.IOperation)]
+        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
         [Fact]
         public void DynamicInvocation_ControlFlowInReceiverAndArgument()
         {
@@ -911,40 +1111,33 @@ Block[B3] - Block
     Next (Regular) Block[B4]
 Block[B4] - Block
     Predecessors: [B2] [B3]
-    Statements (3)
-        IFlowCaptureOperation: 2 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: '(c1 ?? c2).M2')
-          Value: 
-            IDynamicMemberReferenceOperation (Member Name: ""M2"", Containing Type: null) (OperationKind.DynamicMemberReference, Type: null) (Syntax: '(c1 ?? c2).M2')
-              Type Arguments(0)
-              Instance Receiver: 
-                IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: C, IsImplicit) (Syntax: 'c1 ?? c2')
-
-        IFlowCaptureOperation: 3 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'i')
+    Statements (2)
+        IFlowCaptureOperation: 2 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'i')
           Value: 
             IParameterReferenceOperation: i (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'i')
 
-        IFlowCaptureOperation: 4 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'd1')
+        IFlowCaptureOperation: 3 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'd1')
           Value: 
             IParameterReferenceOperation: d1 (OperationKind.ParameterReference, Type: dynamic) (Syntax: 'd1')
 
     Jump if True (Regular) to Block[B6]
         IIsNullOperation (OperationKind.IsNull, Type: System.Boolean, IsImplicit) (Syntax: 'd1')
           Operand: 
-            IFlowCaptureReferenceOperation: 4 (OperationKind.FlowCaptureReference, Type: dynamic, IsImplicit) (Syntax: 'd1')
+            IFlowCaptureReferenceOperation: 3 (OperationKind.FlowCaptureReference, Type: dynamic, IsImplicit) (Syntax: 'd1')
 
     Next (Regular) Block[B5]
 Block[B5] - Block
     Predecessors: [B4]
     Statements (1)
-        IFlowCaptureOperation: 5 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'd1')
+        IFlowCaptureOperation: 4 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'd1')
           Value: 
-            IFlowCaptureReferenceOperation: 4 (OperationKind.FlowCaptureReference, Type: dynamic, IsImplicit) (Syntax: 'd1')
+            IFlowCaptureReferenceOperation: 3 (OperationKind.FlowCaptureReference, Type: dynamic, IsImplicit) (Syntax: 'd1')
 
     Next (Regular) Block[B7]
 Block[B6] - Block
     Predecessors: [B4]
     Statements (1)
-        IFlowCaptureOperation: 5 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'd2')
+        IFlowCaptureOperation: 4 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'd2')
           Value: 
             IParameterReferenceOperation: d2 (OperationKind.ParameterReference, Type: dynamic) (Syntax: 'd2')
 
@@ -956,10 +1149,13 @@ Block[B7] - Block
           Expression: 
             IDynamicInvocationOperation (OperationKind.DynamicInvocation, Type: dynamic) (Syntax: '(c1 ?? c2). ... : d1 ?? d2)')
               Expression: 
-                IFlowCaptureReferenceOperation: 2 (OperationKind.FlowCaptureReference, Type: null, IsImplicit) (Syntax: '(c1 ?? c2).M2')
+                IDynamicMemberReferenceOperation (Member Name: ""M2"", Containing Type: null) (OperationKind.DynamicMemberReference, Type: null) (Syntax: '(c1 ?? c2).M2')
+                  Type Arguments(0)
+                  Instance Receiver: 
+                    IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: C, IsImplicit) (Syntax: 'c1 ?? c2')
               Arguments(2):
-                  IFlowCaptureReferenceOperation: 3 (OperationKind.FlowCaptureReference, Type: System.Int32, IsImplicit) (Syntax: 'i')
-                  IFlowCaptureReferenceOperation: 5 (OperationKind.FlowCaptureReference, Type: dynamic, IsImplicit) (Syntax: 'd1 ?? d2')
+                  IFlowCaptureReferenceOperation: 2 (OperationKind.FlowCaptureReference, Type: System.Int32, IsImplicit) (Syntax: 'i')
+                  IFlowCaptureReferenceOperation: 4 (OperationKind.FlowCaptureReference, Type: dynamic, IsImplicit) (Syntax: 'd1 ?? d2')
               ArgumentNames(2):
                 ""null""
                 ""c""
@@ -970,6 +1166,85 @@ Block[B7] - Block
     Next (Regular) Block[B8]
 Block[B8] - Exit
     Predecessors: [B7]
+    Statements (0)
+";
+            var expectedDiagnostics = DiagnosticDescription.None;
+
+            VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedFlowGraph, expectedDiagnostics);
+        }
+
+        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+        [Fact]
+        public void DynamicInvocation_ControlFlowWithDynamicTypedMemberReceiver()
+        {
+            string source = @"
+class C
+{
+    dynamic M2 = null;
+    void M(C c, int? i1, int i2)
+    /*<bind>*/{
+        c.M2(i1 ?? i2);
+    }/*</bind>*/
+}
+";
+            string expectedFlowGraph = @"
+Block[B0] - Entry
+    Statements (0)
+    Next (Regular) Block[B1]
+Block[B1] - Block
+    Predecessors: [B0]
+    Statements (2)
+        IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'c.M2')
+          Value: 
+            IFieldReferenceOperation: dynamic C.M2 (OperationKind.FieldReference, Type: dynamic) (Syntax: 'c.M2')
+              Instance Receiver: 
+                IParameterReferenceOperation: c (OperationKind.ParameterReference, Type: C) (Syntax: 'c')
+
+        IFlowCaptureOperation: 1 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'i1')
+          Value: 
+            IParameterReferenceOperation: i1 (OperationKind.ParameterReference, Type: System.Int32?) (Syntax: 'i1')
+
+    Jump if True (Regular) to Block[B3]
+        IIsNullOperation (OperationKind.IsNull, Type: System.Boolean, IsImplicit) (Syntax: 'i1')
+          Operand: 
+            IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: System.Int32?, IsImplicit) (Syntax: 'i1')
+
+    Next (Regular) Block[B2]
+Block[B2] - Block
+    Predecessors: [B1]
+    Statements (1)
+        IFlowCaptureOperation: 2 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'i1')
+          Value: 
+            IInvocationOperation ( System.Int32 System.Int32?.GetValueOrDefault()) (OperationKind.Invocation, Type: System.Int32, IsImplicit) (Syntax: 'i1')
+              Instance Receiver: 
+                IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: System.Int32?, IsImplicit) (Syntax: 'i1')
+              Arguments(0)
+
+    Next (Regular) Block[B4]
+Block[B3] - Block
+    Predecessors: [B1]
+    Statements (1)
+        IFlowCaptureOperation: 2 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'i2')
+          Value: 
+            IParameterReferenceOperation: i2 (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'i2')
+
+    Next (Regular) Block[B4]
+Block[B4] - Block
+    Predecessors: [B2] [B3]
+    Statements (1)
+        IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'c.M2(i1 ?? i2);')
+          Expression: 
+            IDynamicInvocationOperation (OperationKind.DynamicInvocation, Type: dynamic) (Syntax: 'c.M2(i1 ?? i2)')
+              Expression: 
+                IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: dynamic, IsImplicit) (Syntax: 'c.M2')
+              Arguments(1):
+                  IFlowCaptureReferenceOperation: 2 (OperationKind.FlowCaptureReference, Type: System.Int32, IsImplicit) (Syntax: 'i1 ?? i2')
+              ArgumentNames(0)
+              ArgumentRefKinds(0)
+
+    Next (Regular) Block[B5]
+Block[B5] - Exit
+    Predecessors: [B4]
     Statements (0)
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
