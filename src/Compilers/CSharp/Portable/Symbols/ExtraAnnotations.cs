@@ -156,7 +156,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         // displaying tuple syntax causes to load the members of ValueTuple, which can cause a cycle, so we use long-hand format instead
                         .WithCompilerInternalOptions(SymbolDisplayCompilerInternalOptions.IncludeNullableReferenceTypeModifier | SymbolDisplayCompilerInternalOptions.UseValueTuple)));
 
-        internal static ImmutableArray<AttributeDescription> GetExtraAttributes(string key, int index)
+        /// <summary>
+        /// index 0 is used for return type
+        /// other parameters follow
+        /// </summary>
+        internal static ImmutableArray<AttributeDescription> GetExtraAttributes(string key, int parameterIndex)
         {
             if (key is null)
             {
@@ -169,7 +173,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return default;
             }
 
-            return extraAttributes[index];
+            return extraAttributes[parameterIndex + 1];
         }
     }
 }

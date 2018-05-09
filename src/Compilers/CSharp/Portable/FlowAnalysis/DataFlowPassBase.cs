@@ -116,7 +116,16 @@ namespace Microsoft.CodeAnalysis.CSharp
                 variableBySlot[slot] = identifier;
             }
 
-            Normalize(ref this.State);
+            if (IsConditionalState)
+            {
+                Normalize(ref this.StateWhenTrue);
+                Normalize(ref this.StateWhenFalse);
+            }
+            else
+            {
+                Normalize(ref this.State);
+            }
+
             return slot;
         }
 

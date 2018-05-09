@@ -1617,10 +1617,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// For each argument, figure out if its corresponding parameter is annotated with NotNullWhenFalse or
         /// EnsuresNotNull.
         /// </summary>
-        private ImmutableArray<(bool notNullWhenFalse, bool ensuresNotNull)> GetAnnotations(int numArguments,
+        private static ImmutableArray<(bool NotNullWhenFalse, bool EnsuresNotNull)> GetAnnotations(int numArguments,
             bool expanded, ImmutableArray<ParameterSymbol> parameters, ImmutableArray<int> argsToParamsOpt)
         {
-            ArrayBuilder<(bool notNullWhenFalse, bool ensuresNotNull)> builder = null;
+            ArrayBuilder<(bool NotNullWhenFalse, bool EnsuresNotNull)> builder = null;
 
             for (int i = 0; i < numArguments; i++)
             {
@@ -1794,22 +1794,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             Debug.Assert(annotations.Length == arguments.Length);
 
-            // Since we may be splitting states to represent the method returning true/false,
-            // we'll prepare all the slots ahead of time.
-            var slots = ArrayBuilder<int?>.GetInstance(arguments.Length);
-            for (int i = 0; i < arguments.Length; i++)
-            {
-                var argument = arguments[i];
-                int slot = MakeSlot(argument);
-                if (slot <= 0)
-                {
-                    slots.Add(null);
-                    continue;
-                }
-                if (slot >= this.State.Capacity) Normalize(ref this.State);
-                slots.Add(slot);
-            }
-
             for (int i = 0; i < arguments.Length; i++)
             {
                 if (this.IsConditionalState)
@@ -1817,7 +1801,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // We could be in a conditional state because of NotNullWhenFalse annotation
                     // Then WhenTrue/False states correspond to the invocation returning true/false
 
-                    // We'll successively assume that we're in the unconditional state where the method returns true,
+                    // We'll assume that we're in the unconditional state where the method returns true,
                     // then we'll repeat assuming the method returns false.
 
                     LocalState whenTrue = this.StateWhenTrue.Clone();
@@ -1826,10 +1810,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                     this.SetState(whenTrue);
                     VisitArgumentEvaluate(arguments, refKindsOpt, i);
                     Debug.Assert(!IsConditionalState);
+                    whenTrue = this.State; // LocalState may be a struct
 
                     this.SetState(whenFalse);
                     VisitArgumentEvaluate(arguments, refKindsOpt, i);
                     Debug.Assert(!IsConditionalState);
+                    whenFalse = this.State; // LocalState may be a struct
 
                     this.SetConditionalState(whenTrue, whenFalse);
                 }
@@ -1839,12 +1825,17 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 var argument = arguments[i];
-                if (argument.Type?.IsReferenceType != true || slots[i] == null)
+                if (argument.Type?.IsReferenceType != true)
                 {
                     continue;
                 }
 
-                int slot = slots[i].Value;
+                int slot = MakeSlot(argument);
+                if (slot <= 0)
+                {
+                    continue;
+                }
+
                 (bool notNullWhenFalse, bool ensuresNotNull) = annotations[i];
 
                 if (ensuresNotNull)
@@ -1870,7 +1861,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            slots.Free();
             _disableDiagnostics = saveDisableDiagnostics;
         }
 
@@ -3243,7 +3233,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode VisitArgListOperator(BoundArgListOperator node)
         {
-            VisitArgumentsEvaluate(node.Arguments, node.ArgumentRefKindsOpt, parameters: default, argsToParamsOpt: default, expanded: false);
+            VisitArgumentsEvaluate(node.Arguments, node.ArgumentRefKindsOpt, expanded: false);
             Debug.Assert((object)node.Type == null);
             SetResult(node);
             return null;
@@ -3323,7 +3313,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override BoundNode VisitDynamicInvocation(BoundDynamicInvocation node)
         {
             VisitRvalue(node.Expression);
-            VisitArgumentsEvaluate(node.Arguments, node.ArgumentRefKindsOpt, parameters: default, argsToParamsOpt: default, expanded: false);
+            VisitArgumentsEvaluate(node.Arguments, node.ArgumentRefKindsOpt, expanded: false);
 
             Debug.Assert(node.Type.IsDynamic());
             Debug.Assert(node.Type.IsReferenceType);
@@ -3351,7 +3341,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override BoundNode VisitDynamicObjectCreationExpression(BoundDynamicObjectCreationExpression node)
         {
             Debug.Assert(!IsConditionalState);
-            VisitArgumentsEvaluate(node.Arguments, node.ArgumentRefKindsOpt, parameters: default, argsToParamsOpt: default, expanded: false);
+            VisitArgumentsEvaluate(node.Arguments, node.ArgumentRefKindsOpt, expanded: false);
             VisitObjectOrDynamicObjectCreation(node, node.InitializerExpressionOpt);
             return null;
         }
@@ -3430,7 +3420,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var receiver = node.ReceiverOpt;
             VisitRvalue(receiver);
             CheckPossibleNullReceiver(receiver);
-            VisitArgumentsEvaluate(node.Arguments, node.ArgumentRefKindsOpt, parameters: default, argsToParamsOpt: default, expanded: false);
+            VisitArgumentsEvaluate(node.Arguments, node.ArgumentRefKindsOpt, expanded: false);
 
             Debug.Assert(node.Type.IsDynamic());
 

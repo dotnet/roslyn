@@ -406,12 +406,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             string key = ExtraAnnotations.MakeMethodKey(containingMethod);
-
-            // index 0 is used for return type
-            // `this` parameter is at index 1
-            // other parameters follow
-            int index = this.Ordinal + (containingMethod.IsExtensionMethod ? 2 : 1);
-            ImmutableArray<AttributeDescription> extraAttributes = ExtraAnnotations.GetExtraAttributes(key, index);
+            ImmutableArray<AttributeDescription> extraAttributes = ExtraAnnotations.GetExtraAttributes(key, this.Ordinal);
 
             if (!extraAttributes.IsDefault)
             {

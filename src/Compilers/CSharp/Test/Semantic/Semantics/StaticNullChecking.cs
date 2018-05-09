@@ -5799,6 +5799,24 @@ class C
         }
 
         [Fact]
+        public void NotNullWhenFalse_WithNullLiteral()
+        {
+            CSharpCompilation c = CreateCompilation(@"
+using System.Runtime.CompilerServices;
+class C
+{
+    void Main(string? s)
+    {
+        _ = MyIsNullOrEmpty(null);
+    }
+    static bool MyIsNullOrEmpty([NotNullWhenFalse] string? s) => throw null;
+}
+" + NotNullWhenFalseAttributeDefinition, parseOptions: TestOptions.Regular8);
+
+            c.VerifyDiagnostics();
+        }
+
+        [Fact]
         public void NotNullWhenFalse_InstanceMethod()
         {
             CSharpCompilation c = CreateCompilation(@"
@@ -6244,6 +6262,47 @@ class C
             c.VerifyDiagnostics();
 
             VerifyEnsuresNotNull(c, "C.ThrowIfNull", false, true);
+        }
+
+        [Fact]
+        public void EnsuresNotNull_GenericMethod()
+        {
+            CSharpCompilation c = CreateCompilation(@"
+using System.Runtime.CompilerServices;
+class C
+{
+    void Main(string? s)
+    {
+        ThrowIfNull(s);
+        s.ToString(); // ok
+    }
+    static void ThrowIfNull<T>([EnsuresNotNull] T s) => throw null;
+}
+" + EnsuresNotNullAttributeDefinition, parseOptions: TestOptions.Regular8);
+
+            c.VerifyDiagnostics();
+
+            VerifyEnsuresNotNull(c, "C.ThrowIfNull", true);
+        }
+
+        [Fact]
+        public void EnsuresNotNull_ConditionalMethodInReleaseMode()
+        {
+            CSharpCompilation c = CreateCompilation(@"
+using System.Runtime.CompilerServices;
+class C
+{
+    void Main(string? s)
+    {
+        ThrowIfNull(42, s);
+        s.ToString(); // ok
+    }
+    [System.Diagnostics.Conditional(""DEBUG"")]
+    static void ThrowIfNull(int x, [EnsuresNotNull] string? s) => throw null;
+}
+" + EnsuresNotNullAttributeDefinition, parseOptions: TestOptions.Regular8, options: TestOptions.ReleaseDll);
+
+            c.VerifyDiagnostics();
         }
 
         [Fact]
