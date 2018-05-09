@@ -733,10 +733,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                     var loadedSyntaxTreeMap = syntaxAndDeclarations.GetLazyState().LoadedSyntaxTreeMap;
                     if (SyntaxAndDeclarationManager.IsLoadedSyntaxTree(tree, loadedSyntaxTreeMap))
                     {
-                        throw new ArgumentException(string.Format(CSharpResources.SyntaxTreeFromLoadNoRemoveReplace), $"{nameof(trees)}[{i}]");
+                        throw new ArgumentException(CSharpResources.SyntaxTreeFromLoadNoRemoveReplace, $"{nameof(trees)}[{i}]");
                     }
 
-                    throw new ArgumentException(string.Format(CSharpResources.SyntaxTreeNotFoundToRemove), $"{nameof(trees)}[{i}]");
+                    throw new ArgumentException(CSharpResources.SyntaxTreeNotFoundToRemove, $"{nameof(trees)}[{i}]");
                 }
 
                 removeSet.Add(tree);
@@ -801,10 +801,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var loadedSyntaxTreeMap = syntaxAndDeclarations.GetLazyState().LoadedSyntaxTreeMap;
                 if (SyntaxAndDeclarationManager.IsLoadedSyntaxTree(oldTree, loadedSyntaxTreeMap))
                 {
-                    throw new ArgumentException(string.Format(CSharpResources.SyntaxTreeFromLoadNoRemoveReplace), nameof(oldTree));
+                    throw new ArgumentException(CSharpResources.SyntaxTreeFromLoadNoRemoveReplace, nameof(oldTree));
                 }
 
-                throw new ArgumentException(string.Format(CSharpResources.SyntaxTreeNotFoundToRemove), nameof(oldTree));
+                throw new ArgumentException(CSharpResources.SyntaxTreeNotFoundToRemove, nameof(oldTree));
             }
 
             if (externalSyntaxTrees.Contains(newTree))
@@ -1788,7 +1788,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (!_syntaxAndDeclarations.GetLazyState().RootNamespaces.ContainsKey(syntaxTree))
             {
-                throw new ArgumentException(string.Format(CSharpResources.SyntaxTreeNotFound), nameof(syntaxTree));
+                throw new ArgumentException(CSharpResources.SyntaxTreeNotFound, nameof(syntaxTree));
             }
 
             return new SyntaxTreeSemanticModel(this, (SyntaxTree)syntaxTree, ignoreAccessibility);
