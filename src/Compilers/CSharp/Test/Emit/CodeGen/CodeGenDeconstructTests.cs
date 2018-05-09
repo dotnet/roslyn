@@ -5718,7 +5718,7 @@ class C
         }
 
         [Fact, WorkItem(25829, "https://github.com/dotnet/roslyn/issues/25829")]
-        public void SameTypeDiscardsAreEqual()
+        public void SameTypeDiscardsAreEqual01()
         {
             var source =
 @"
@@ -5757,13 +5757,63 @@ class C
 
                 // Test to show that reference-unequal discards are equal by type.
                 IDiscardSymbol symbolClone = DiscardSymbol.CreateForTest(symbol.Type);
-                Assert.True(symbol != (object)symbolClone);
+                Assert.NotSame(symbol, symbolClone);
                 Assert.Equal(SymbolKind.Discard, symbolClone.Kind);
                 Assert.Equal("int _", symbolClone.ToDisplayString(SymbolDisplayFormat.MinimallyQualifiedFormat));
                 Assert.Equal(symbol.Type, symbolClone.Type);
                 Assert.Equal(symbol0, symbolClone);
                 Assert.Equal(symbol, symbolClone);
+                Assert.Same(symbol.Type, symbolClone.Type); // original symbol for System.Int32 has identity.
                 Assert.Equal(symbol.GetHashCode(), symbolClone.GetHashCode());
+            }
+
+            Assert.Equal(1, set.Count);
+        }
+
+        [Fact, WorkItem(25829, "https://github.com/dotnet/roslyn/issues/25829")]
+        public void SameTypeDiscardsAreEqual02()
+        {
+            var source =
+@"using System.Collections.Generic;
+class C
+{
+    static void Main()
+    {
+        (_, _) = (new List<int>(), new List<int>());
+        _ = new List<int>();
+        M(out _);
+    }
+    static void M(out List<int> x) => x = new List<int>();
+}
+";
+
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics();
+
+            var tree = comp.SyntaxTrees.First();
+            var model = comp.GetSemanticModel(tree);
+
+            var discards = GetDiscardIdentifiers(tree).ToArray();
+            Assert.Equal(4, discards.Length);
+            var symbol0 = (IDiscardSymbol)model.GetSymbolInfo(discards[0]).Symbol;
+            Assert.Equal(symbol0, symbol0);
+            var set = new HashSet<ISymbol>();
+            foreach (var discard in discards)
+            {
+                var symbol = (IDiscardSymbol)model.GetSymbolInfo(discard).Symbol;
+                set.Add(symbol);
+                Assert.Equal(SymbolKind.Discard, symbol.Kind);
+                Assert.Equal("List<int> _", symbol.ToDisplayString(SymbolDisplayFormat.MinimallyQualifiedFormat));
+                Assert.Equal(symbol0, symbol);
+                Assert.Equal(symbol0.Type, symbol.Type);
+                Assert.Equal(symbol, symbol);
+                Assert.Equal(symbol.GetHashCode(), symbol0.GetHashCode());
+                if (discard != discards[0])
+                {
+                    // Although it is not part of the compiler's contract, at the moment distinct constructions are distinct
+                    Assert.NotSame(symbol.Type, symbol0.Type);
+                    Assert.NotSame(symbol, symbol0);
+                }
             }
 
             Assert.Equal(1, set.Count);
