@@ -131,13 +131,18 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             Assert.Equal(OperationKind.SwitchCase, operation.Kind);
             VisitLocals(operation.Locals);
             AssertEx.Equal(operation.Clauses.Concat(operation.Body), operation.Children);
-            IOperation condition = ((BaseSwitchCase)operation).Condition;
 
-            if (condition != null)
+            VerifySubTree(((BaseSwitchCase)operation).Condition);
+        }
+
+        private static void VerifySubTree(IOperation root)
+        {
+            if (root != null)
             {
+                Assert.Null(root.Parent);
                 var explictNodeMap = new Dictionary<SyntaxNode, IOperation>();
 
-                foreach (IOperation descendant in condition.DescendantsAndSelf())
+                foreach (IOperation descendant in root.DescendantsAndSelf())
                 {
                     if (!descendant.IsImplicit)
                     {
@@ -255,6 +260,16 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         {
             VisitLoop(operation);
             Assert.Equal(LoopKind.ForTo, operation.LoopKind);
+            _ = operation.IsChecked;
+            (ILocalSymbol loopObject, ForToLoopOperationUserDefinedInfo userDefinedInfo) = ((BaseForToLoopStatement)operation).Info;
+
+            if (userDefinedInfo != null)
+            {
+                VerifySubTree(userDefinedInfo.Addition.Value);
+                VerifySubTree(userDefinedInfo.Subtraction.Value);
+                VerifySubTree(userDefinedInfo.LessThanOrEqual.Value);
+                VerifySubTree(userDefinedInfo.GreaterThanOrEqual.Value);
+            }
 
             IEnumerable<IOperation> children;
 

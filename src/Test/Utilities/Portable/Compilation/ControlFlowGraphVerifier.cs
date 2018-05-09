@@ -542,6 +542,7 @@ endRegion:
                 case OperationKind.Throw:
                 case OperationKind.End:
                 case OperationKind.Empty:
+                case OperationKind.NameOf:
                     return false;
 
                 case OperationKind.BinaryOperator:
@@ -583,7 +584,6 @@ endRegion:
                 case OperationKind.EventAssignment:
                 case OperationKind.InterpolatedString:
                 case OperationKind.AnonymousObjectCreation:
-                case OperationKind.NameOf:
                 case OperationKind.Tuple:
                 case OperationKind.DynamicObjectCreation:
                 case OperationKind.DynamicMemberReference:

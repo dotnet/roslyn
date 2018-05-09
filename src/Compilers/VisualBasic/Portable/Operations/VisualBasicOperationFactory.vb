@@ -955,6 +955,15 @@ Namespace Microsoft.CodeAnalysis.Operations
 
                     Case BoundKind.SelectStatement
                         placeholderKind = PlaceholderKind.SwitchOperationExpression
+
+                    Case BoundKind.ForToStatement
+                        Dim operators As BoundForToUserDefinedOperators = DirectCast(knownParent, BoundForToStatement).OperatorsOpt
+                        If boundRValuePlaceholder Is operators.LeftOperandPlaceholder Then
+                            placeholderKind = PlaceholderKind.ForToLoopBinaryOperatorLeftOperand
+                        Else
+                            Debug.Assert(boundRValuePlaceholder Is operators.RightOperandPlaceholder)
+                            placeholderKind = PlaceholderKind.ForToLoopBinaryOperatorRightOperand
+                        End If
                 End Select
             End If
 
@@ -1096,7 +1105,27 @@ Namespace Microsoft.CodeAnalysis.Operations
             Dim type As ITypeSymbol = Nothing
             Dim constantValue As [Optional](Of Object) = New [Optional](Of Object)()
             Dim isImplicit As Boolean = boundForToStatement.WasCompilerGenerated
-            Return New LazyForToLoopStatement(locals, continueLabel, exitLabel, loopControlVariable, initialValue, limitValue, stepValue, body, nextVariables, _semanticModel, syntax, type, constantValue, isImplicit)
+            Dim loopObj = If(boundForToStatement.ControlVariable.Type.IsObjectType,
+                             New SynthesizedLocal(DirectCast(_semanticModel.GetEnclosingSymbol(boundForToStatement.Syntax.SpanStart), Symbol), boundForToStatement.ControlVariable.Type,
+                                                  SynthesizedLocalKind.ForInitialValue, boundForToStatement.Syntax),
+                             Nothing)
+
+            Dim userDefinedInfo As ForToLoopOperationUserDefinedInfo = Nothing
+            Dim operatorsOpt As BoundForToUserDefinedOperators = boundForToStatement.OperatorsOpt
+            If operatorsOpt IsNot Nothing Then
+                RecordParent(operatorsOpt.LeftOperandPlaceholder, boundForToStatement)
+                RecordParent(operatorsOpt.RightOperandPlaceholder, boundForToStatement)
+                userDefinedInfo = New ForToLoopOperationUserDefinedInfo(New Lazy(Of IBinaryOperation)(Function() DirectCast(Operation.SetParentOperation(Create(operatorsOpt.Addition), Nothing),
+                                                                                                                            IBinaryOperation)),
+                                                                        New Lazy(Of IBinaryOperation)(Function() DirectCast(Operation.SetParentOperation(Create(operatorsOpt.Subtraction), Nothing),
+                                                                                                                            IBinaryOperation)),
+                                                                        New Lazy(Of IOperation)(Function() Operation.SetParentOperation(Create(operatorsOpt.LessThanOrEqual), Nothing)),
+                                                                        New Lazy(Of IOperation)(Function() Operation.SetParentOperation(Create(operatorsOpt.GreaterThanOrEqual), Nothing)))
+            End If
+
+            Return New LazyForToLoopStatement(locals, boundForToStatement.Checked, (loopObj, userDefinedInfo), continueLabel, exitLabel,
+                                              loopControlVariable, initialValue, limitValue, stepValue, body, nextVariables, _semanticModel,
+                                              syntax, type, constantValue, isImplicit)
         End Function
 
         Private Function CreateBoundForEachStatementOperation(boundForEachStatement As BoundForEachStatement) As IForEachLoopOperation
