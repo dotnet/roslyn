@@ -124,7 +124,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.Formatting
         {
             var workspace = document.Project.Solution.Workspace;
             var formattingRuleFactory = workspace.Services.GetService<IHostDependentFormattingRuleFactoryService>();
-            return formattingRuleFactory.CreateRule(document, position).Concat(GetTypingRule(document, root, position)).Concat(Formatter.GetDefaultFormattingRules(document));
+            return formattingRuleFactory.CreateRule(document, position).Concat(GetTypingRules(document, root, position)).Concat(Formatter.GetDefaultFormattingRules(document));
         }
 
         public async Task<IList<TextChange>> GetFormattingChangesOnReturnAsync(Document document, int caretPosition, CancellationToken cancellationToken)
@@ -314,7 +314,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.Formatting
             return changes;
         }
 
-        private IEnumerable<IFormattingRule> GetTypingRule(Document document, SyntaxNode root, int position)
+        private IEnumerable<IFormattingRule> GetTypingRules(Document document, SyntaxNode root, int position)
         {
             // make auto formatting on typing around missing brace case better
             var token = root.FindToken(position);
