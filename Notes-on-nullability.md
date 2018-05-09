@@ -124,6 +124,14 @@ We will do some validation on constraints, so as to complain for nullability mis
 ----
 ### Null tests
 
-We should list the expressions that inform the flow state.
+We should list the expressions that inform the flow state:
+- `expr == null`, `null == expr`, `expr != null`, `null != expr`
 
-No warning for testing something that is already expected to be non-null. This allows for checking input parameters, regardless of annotations.
+No warning for testing something that is already expected to be non-null. This allows for defensively checking input parameters, regardless of annotations.
+
+#### Attribute annotations
+- `[EnsuresNotNull]`: `void ThrowsIfNull([EnsuresNotNull] object? o)`
+- `[NotNullWhenFalse]`: `bool IsNullOrEmpty([NotNullWhenFalse] string? s)`
+- `[EnsuresTrue]`: `void Debug.Assert([EnsuresTrue] bool condition)`
+- `[EnsuresFalse]`
+- other attributes are being discussed: `[NotNullWhenTrue]` (for `TryGetValue`), null-in null-out, "trust me" fields, equality methods, ref parameters that only set
