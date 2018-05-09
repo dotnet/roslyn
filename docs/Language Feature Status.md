@@ -6,22 +6,6 @@ and will be updated as work progresses, features are added / removed, and as wor
 This is not an exhaustive list of our features but rather the ones which have active development
 efforts behind them.
 
-# C# 7.3
-
-| Feature | Branch | State | Developers | Reviewer | LDM Champ |
-| ------- | ------ | ----- | ---------- | -------- | --------- |
-| [blittable](https://github.com/dotnet/csharplang/pull/206) | None | Merged | None | | [jaredpar](https://github.com/jaredpar) |
-| [Support == and != for tuples](https://github.com/dotnet/csharplang/issues/190) | [tuple-equality](https://github.com/dotnet/roslyn/tree/features/tuple-equality) | Merged | [jcouv](https://github.com/jcouv) | [AlekseyTs](https://github.com/AlekseyTs) | [jcouv](https://github.com/jcouv) |
-| strongname | master | Merged | [tyoverby](https://github.com/tyoverby) | [agocke](https://github.com/agocke) | [jaredpar](https://github.com/jaredpar) |
-| [Attribute on backing field](https://github.com/dotnet/csharplang/issues/42) | features/compiler | Merged | [jcouv](https://github.com/jcouv) | [AlekseyTs](https://github.com/AlekseyTs) | [jcouv](https://github.com/jcouv) |
-| Ref Reassignment | [ref-reassignment](https://github.com/dotnet/roslyn/tree/features/ref-reassignment) | Merged | [agocke](https://github.com/agocke) | [vsadov](https://github.com/vsadov) | [jarepdar](https://github.com/jaredpar) |
-| Constraints | [constraints](https://github.com/dotnet/roslyn/tree/features/constraints) | Merged | [OmarTawfik](https://github.com/OmarTawfik) | [vsadov](https://github.com/vsadov) | [jarepdar](https://github.com/jaredpar) |
-| [Stackalloc initializers](https://github.com/dotnet/csharplang/issues/1286) | [stackalloc-init](https://github.com/dotnet/roslyn/tree/features/stackalloc-init) | Merged | [alrz](https://github.com/alrz) | [vsadov](https://github.com/vsadov) | [jcouv](https://github.com/jcouv) |
-| [Custom fixed](https://github.com/dotnet/csharplang/issues/1314) | [custom-fixed](https://github.com/dotnet/roslyn/tree/features/custom-fixed) | Merged | [vsadov](https://github.com/vsadov) | [jcouv](https://github.com/jcouv) | [jarepdar](https://github.com/jaredpar) |
-| [Indexing movable fixed buffers](https://github.com/dotnet/csharplang/blob/master/proposals/csharp-7.3/indexing-movable-fixed-fields.md) |  | Merged | [vsadov](https://github.com/vsadov) | [jcouv](https://github.com/jcouv) | [jarepdar](https://github.com/jaredpar) |
-| [Improved overload candidates](https://github.com/dotnet/csharplang/issues/98) | features/compiler | Merged | [gafter](https://github.com/gafter) | [cston](https://github.com/cston) | [mattwar](https://github.com/mattwar) |
-| [Expression variables](https://github.com/dotnet/csharplang/blob/master/proposals/csharp-7.3/expression-variables-in-initializers.md) | [features/ExpressionVariables](https://github.com/dotnet/roslyn/tree/features/ExpressionVariables) | Merged | [AlekseyTs](https://github.com/AlekseyTs) | [gafter](https://github.com/gafter) | [gafter](https://github.com/gafter) |
-
 # C# 8.0
 
 | Feature | Branch | State | Developers | Reviewer | LDM Champ |
@@ -63,6 +47,23 @@ efforts behind them.
 | ------- | ------ | ----- | ---------- | -------- | --------- |
 | [`ref` and `this` ordering in ref extension](https://github.com/dotnet/roslyn/pull/23643) |  | Merged | [alrz](https://github.com/alrz) |  |  |
 | [Tiebreaker for by-val and `in` overloads](https://github.com/dotnet/roslyn/pull/23122) | master | Merged | [OmarTawfik](https://github.com/OmarTawfik) |  | |
+
+
+# C# 7.3
+
+| Feature | Branch | State | Developers | Reviewer | LDM Champ |
+| ------- | ------ | ----- | ---------- | -------- | --------- |
+| [blittable](https://github.com/dotnet/csharplang/pull/206) | None | Merged | None | | [jaredpar](https://github.com/jaredpar) |
+| [Support == and != for tuples](https://github.com/dotnet/csharplang/issues/190) | [tuple-equality](https://github.com/dotnet/roslyn/tree/features/tuple-equality) | Merged | [jcouv](https://github.com/jcouv) | [AlekseyTs](https://github.com/AlekseyTs) | [jcouv](https://github.com/jcouv) |
+| strongname | master | Merged | [tyoverby](https://github.com/tyoverby) | [agocke](https://github.com/agocke) | [jaredpar](https://github.com/jaredpar) |
+| [Attribute on backing field](https://github.com/dotnet/csharplang/issues/42) | features/compiler | Merged | [jcouv](https://github.com/jcouv) | [AlekseyTs](https://github.com/AlekseyTs) | [jcouv](https://github.com/jcouv) |
+| Ref Reassignment | [ref-reassignment](https://github.com/dotnet/roslyn/tree/features/ref-reassignment) | Merged | [agocke](https://github.com/agocke) | [vsadov](https://github.com/vsadov) | [jarepdar](https://github.com/jaredpar) |
+| Constraints | [constraints](https://github.com/dotnet/roslyn/tree/features/constraints) | Merged | [OmarTawfik](https://github.com/OmarTawfik) | [vsadov](https://github.com/vsadov) | [jarepdar](https://github.com/jaredpar) |
+| [Stackalloc initializers](https://github.com/dotnet/csharplang/issues/1286) | [stackalloc-init](https://github.com/dotnet/roslyn/tree/features/stackalloc-init) | Merged | [alrz](https://github.com/alrz) | [vsadov](https://github.com/vsadov) | [jcouv](https://github.com/jcouv) |
+| [Custom fixed](https://github.com/dotnet/csharplang/issues/1314) | [custom-fixed](https://github.com/dotnet/roslyn/tree/features/custom-fixed) | Merged | [vsadov](https://github.com/vsadov) | [jcouv](https://github.com/jcouv) | [jarepdar](https://github.com/jaredpar) |
+| [Indexing movable fixed buffers](https://github.com/dotnet/csharplang/blob/master/proposals/csharp-7.3/indexing-movable-fixed-fields.md) |  | Merged | [vsadov](https://github.com/vsadov) | [jcouv](https://github.com/jcouv) | [jarepdar](https://github.com/jaredpar) |
+| [Improved overload candidates](https://github.com/dotnet/csharplang/issues/98) | features/compiler | Merged | [gafter](https://github.com/gafter) | [cston](https://github.com/cston) | [mattwar](https://github.com/mattwar) |
+| [Expression variables](https://github.com/dotnet/csharplang/blob/master/proposals/csharp-7.3/expression-variables-in-initializers.md) | [features/ExpressionVariables](https://github.com/dotnet/roslyn/tree/features/ExpressionVariables) | Merged | [AlekseyTs](https://github.com/AlekseyTs) | [gafter](https://github.com/gafter) | [gafter](https://github.com/gafter) |
 
 # FAQ
 
