@@ -824,8 +824,8 @@ public class C {}",
             // We allow John to access Paul's internal Goo even though strong-named John should not be referencing weak-named Paul.
             // Paul has, after all, specifically granted access to John.
 
-            // TODO: During emit time we should produce an error that says that a strong-named assembly cannot reference
-            // TODO: a weak-named assembly.
+            // During emit time we should produce an error that says that a strong-named assembly cannot reference
+            // a weak-named assembly. But the C# compiler doesn't currently do that. See https://github.com/dotnet/roslyn/issues/26722
             requestor.VerifyDiagnostics();
         }
 
@@ -863,8 +863,8 @@ public class C {}",
             // We allow John to access Paul's internal Goo even though strong-named John should not be referencing weak-named Paul.
             // Paul has, after all, specifically granted access to John.
 
-            // TODO: During emit time we should produce an error that says that a strong-named assembly cannot reference
-            // TODO: a weak-named assembly.
+            // During emit time we should produce an error that says that a strong-named assembly cannot reference
+            // a weak-named assembly. But the C# compiler doesn't currently do that. See https://github.com/dotnet/roslyn/issues/26722
             requestor.VerifyDiagnostics();
         }
 
