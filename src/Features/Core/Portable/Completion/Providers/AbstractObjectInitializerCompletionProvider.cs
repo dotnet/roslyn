@@ -62,8 +62,9 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 
             foreach (var uninitializedMember in uninitializedMembers)
             {
+                var displayText = uninitializedMember.GetParameters().Length == 0 ? uninitializedMember.ToNameDisplayString() : uninitializedMember.Name;
                 context.AddItem(SymbolCompletionItem.CreateWithSymbolId(
-                    displayText: uninitializedMember.ToNameDisplayString(),
+                    displayText: displayText,
                     insertionText: null,
                     symbols: ImmutableArray.Create(uninitializedMember),
                     contextPosition: initializerLocation.SourceSpan.Start,
