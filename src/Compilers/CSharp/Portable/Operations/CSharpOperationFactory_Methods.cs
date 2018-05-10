@@ -113,6 +113,16 @@ namespace Microsoft.CodeAnalysis.Operations
             return new Lazy<IOperation>(() => Create(instance));
         }
 
+        private bool IsCallVirtual(MethodSymbol targetMethod, BoundExpression receiver)
+        {
+            return (object)targetMethod != null && receiver != null &&
+                   (targetMethod.IsVirtual || targetMethod.IsAbstract || targetMethod.IsOverride) &&
+                   !receiver.SuppressVirtualCalls;
+        }
+
+        private bool IsMethodInvalid(LookupResultKind resultKind, MethodSymbol targetMethod) =>
+            resultKind == LookupResultKind.OverloadResolutionFailure || targetMethod?.OriginalDefinition is ErrorMethodSymbol;
+
         private IEventReferenceOperation CreateBoundEventAccessOperation(BoundEventAssignmentOperator boundEventAssignmentOperator)
         {
             SyntaxNode syntax = boundEventAssignmentOperator.Syntax;

@@ -2566,11 +2566,13 @@ class C : List<int>
 		var z = new C()         //-typeExpression: C
 		{
 			{ d },              //-fieldAccess: dynamic
+                                //-implicitReceiver: C
                                 //-dynamicCollectionElementInitializer: dynamic
 
 			{ d, d, d },        //-fieldAccess: dynamic
                                 //-fieldAccess: dynamic
                                 //-fieldAccess: dynamic
+                                //-implicitReceiver: C
                                 //-dynamicCollectionElementInitializer: dynamic
 
 		};                      //-collectionInitializerExpression: C

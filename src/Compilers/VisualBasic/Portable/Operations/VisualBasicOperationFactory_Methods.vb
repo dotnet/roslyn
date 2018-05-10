@@ -144,13 +144,13 @@ Namespace Microsoft.CodeAnalysis.Operations
             Return GetChildOfBadExpressionBoundNode([operator].UnderlyingExpression, index)
         End Function
 
-        Friend Function DeriveArguments(boundArguments As ImmutableArray(Of BoundExpression), parameters As ImmutableArray(Of VisualBasic.Symbols.ParameterSymbol), invocationWasCompilerGenerated As Boolean) As ImmutableArray(Of IArgumentOperation)
+        Friend Function DeriveArguments(boundArguments As ImmutableArray(Of BoundExpression), parameters As ImmutableArray(Of VisualBasic.Symbols.ParameterSymbol), ByRef defaultArguments As BitVector) As ImmutableArray(Of IArgumentOperation)
             Dim argumentsLength As Integer = boundArguments.Length
             Debug.Assert(argumentsLength = parameters.Length)
 
             Dim arguments As ArrayBuilder(Of IArgumentOperation) = ArrayBuilder(Of IArgumentOperation).GetInstance(argumentsLength)
             For index As Integer = 0 To argumentsLength - 1 Step 1
-                arguments.Add(DeriveArgument(index, boundArguments(index), parameters, invocationWasCompilerGenerated))
+                arguments.Add(DeriveArgument(index, boundArguments(index), parameters, defaultArguments(index)))
             Next
 
             Return arguments.ToImmutableAndFree()
@@ -160,7 +160,7 @@ Namespace Microsoft.CodeAnalysis.Operations
             index As Integer,
             argument As BoundExpression,
             parameters As ImmutableArray(Of VisualBasic.Symbols.ParameterSymbol),
-            invocationWasCompilerGenerated As Boolean
+            isDefault As Boolean
         ) As IArgumentOperation
             Dim isImplicit As Boolean = argument.WasCompilerGenerated AndAlso argument.Syntax.Kind <> SyntaxKind.OmittedArgument
             Select Case argument.Kind
@@ -180,22 +180,11 @@ Namespace Microsoft.CodeAnalysis.Operations
                     Dim lastParameterIndex = parameters.Length - 1
                     Dim kind As ArgumentKind = ArgumentKind.Explicit
 
-                    If argument.WasCompilerGenerated AndAlso Not invocationWasCompilerGenerated Then
-
-                        If index = lastParameterIndex AndAlso ParameterIsParamArray(parameters(lastParameterIndex)) Then
-                            ' TODO: figure out if this is true:
-                            '       a compiler generated argument for a ParamArray parameter is created iff
-                            '       a list of arguments (including 0 argument) is provided for ParamArray parameter in source
-                            '       https://github.com/dotnet/roslyn/issues/18550
-                            If argument.Kind = BoundKind.ArrayCreation Then
-                                kind = ArgumentKind.ParamArray
-                            End If
-                        Else
-                            ' TODO: figure our if this is true:
-                            '       a compiler generated argument for an Optional parameter is created iff
-                            '       the argument is omitted from the source
-                            '       https://github.com/dotnet/roslyn/issues/18550
+                    If argument.WasCompilerGenerated Then
+                        If isDefault Then
                             kind = ArgumentKind.DefaultValue
+                        ElseIf argument.Kind = BoundKind.ArrayCreation AndAlso DirectCast(argument, BoundArrayCreation).IsParamArrayArgument Then
+                            kind = ArgumentKind.ParamArray
                         End If
                     End If
 

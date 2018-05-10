@@ -257,6 +257,8 @@ Namespace Microsoft.CodeAnalysis.Operations
                     Return CreateBoundWithRValueExpressionPlaceholder(DirectCast(boundNode, BoundWithRValueExpressionPlaceholder))
                 Case BoundKind.QueryExpression
                     Return CreateBoundQueryExpressionOperation(DirectCast(boundNode, BoundQueryExpression))
+                Case BoundKind.LValueToRValueWrapper
+                    Return CreateBoundLValueToRValueWrapper(DirectCast(boundNode, BoundLValueToRValueWrapper))
                 Case BoundKind.QueryClause
                     ' Query clause has no special representation in the IOperation tree
                     Return Create(DirectCast(boundNode, BoundQueryClause).UnderlyingExpression)
@@ -402,15 +404,14 @@ Namespace Microsoft.CodeAnalysis.Operations
 
             Dim instance As Lazy(Of IOperation) = CreateReceiverOperation(If(boundCall.ReceiverOpt, boundCall.MethodGroupOpt?.ReceiverOpt), targetMethod)
             Dim isVirtual As Boolean =
-                targetMethod IsNot Nothing AndAlso
-                instance IsNot Nothing AndAlso
-                (targetMethod.IsVirtual OrElse targetMethod.IsAbstract OrElse targetMethod.IsOverride) AndAlso
-                If(boundCall.ReceiverOpt?.Kind <> BoundKind.MyBaseReference, False) AndAlso
-                If(boundCall.ReceiverOpt?.Kind <> BoundKind.MyClassReference, False)
+                   targetMethod IsNot Nothing AndAlso
+                   (targetMethod.IsVirtual OrElse targetMethod.IsAbstract OrElse targetMethod.IsOverride) AndAlso
+                   If(boundCall.ReceiverOpt?.Kind <> BoundKind.MyBaseReference, False) AndAlso
+                   If(boundCall.ReceiverOpt?.Kind <> BoundKind.MyClassReference, False)
 
             Dim arguments As Lazy(Of ImmutableArray(Of IArgumentOperation)) = New Lazy(Of ImmutableArray(Of IArgumentOperation))(
                 Function()
-                    Return DeriveArguments(boundCall.Arguments, boundCall.Method.Parameters, boundCall.WasCompilerGenerated)
+                    Return DeriveArguments(boundCall.Arguments, boundCall.Method.Parameters, boundCall.DefaultArguments)
                 End Function)
 
             Dim syntax As SyntaxNode = boundCall.Syntax
@@ -712,7 +713,7 @@ Namespace Microsoft.CodeAnalysis.Operations
                 Function()
                     Return If(boundObjectCreationExpression.ConstructorOpt Is Nothing,
                         ImmutableArray(Of IArgumentOperation).Empty,
-                        DeriveArguments(boundObjectCreationExpression.Arguments, boundObjectCreationExpression.ConstructorOpt.Parameters, boundObjectCreationExpression.WasCompilerGenerated))
+                        DeriveArguments(boundObjectCreationExpression.Arguments, boundObjectCreationExpression.ConstructorOpt.Parameters, boundObjectCreationExpression.DefaultArguments))
                 End Function)
 
             Dim syntax As SyntaxNode = boundObjectCreationExpression.Syntax
@@ -732,28 +733,12 @@ Namespace Microsoft.CodeAnalysis.Operations
         End Function
 
         Private Function CreateBoundCollectionInitializerExpressionOperation(boundCollectionInitializerExpression As BoundCollectionInitializerExpression) As IObjectOrCollectionInitializerOperation
-            Dim initializers As Lazy(Of ImmutableArray(Of IOperation)) = New Lazy(Of ImmutableArray(Of IOperation))(Function() boundCollectionInitializerExpression.Initializers.SelectAsArray(Function(n) CreateBoundCollectionElementInitializerOperation(n)))
+            Dim initializers As Lazy(Of ImmutableArray(Of IOperation)) = New Lazy(Of ImmutableArray(Of IOperation))(Function() boundCollectionInitializerExpression.Initializers.SelectAsArray(Function(n) Create(n)))
             Dim syntax As SyntaxNode = boundCollectionInitializerExpression.Syntax
             Dim type As ITypeSymbol = boundCollectionInitializerExpression.Type
             Dim constantValue As [Optional](Of Object) = ConvertToOptional(boundCollectionInitializerExpression.ConstantValueOpt)
             Dim isImplicit As Boolean = boundCollectionInitializerExpression.WasCompilerGenerated
             Return New LazyObjectOrCollectionInitializerExpression(initializers, _semanticModel, syntax, type, constantValue, isImplicit)
-        End Function
-
-        Private Function CreateBoundCollectionElementInitializerOperation(boundExpression As BoundExpression) As IOperation
-            If boundExpression.Kind <> BoundKind.Call Then
-                ' Error case, not an Add method call for collection element initializer
-                Return Create(boundExpression)
-            End If
-            Dim boundCall = DirectCast(boundExpression, BoundCall)
-            Dim addMethod As IMethodSymbol = boundCall.Method
-            Dim arguments As Lazy(Of ImmutableArray(Of IOperation)) = New Lazy(Of ImmutableArray(Of IOperation))(Function() boundCall.Arguments.SelectAsArray(Function(n) Create(n)))
-            Dim isDynamic As Boolean = addMethod Is Nothing
-            Dim syntax As SyntaxNode = boundExpression.Syntax
-            Dim type As ITypeSymbol = boundExpression.Type
-            Dim constantValue As [Optional](Of Object) = ConvertToOptional(boundExpression.ConstantValueOpt)
-            Dim isImplicit As Boolean = boundExpression.WasCompilerGenerated
-            Return New LazyCollectionElementInitializerExpression(addMethod, isDynamic, arguments, _semanticModel, syntax, type, constantValue, isImplicit)
         End Function
 
         Private Function CreateBoundNewTOperation(boundNewT As BoundNewT) As ITypeParameterObjectCreationOperation
@@ -792,7 +777,7 @@ Namespace Microsoft.CodeAnalysis.Operations
                 Function()
                     Return If(boundPropertyAccess.Arguments.Length = 0,
                         ImmutableArray(Of IArgumentOperation).Empty,
-                        DeriveArguments(boundPropertyAccess.Arguments, boundPropertyAccess.PropertySymbol.Parameters, boundPropertyAccess.WasCompilerGenerated))
+                        DeriveArguments(boundPropertyAccess.Arguments, boundPropertyAccess.PropertySymbol.Parameters, boundPropertyAccess.DefaultArguments))
                 End Function)
             Dim syntax As SyntaxNode = boundPropertyAccess.Syntax
             Dim type As ITypeSymbol = boundPropertyAccess.Type
@@ -937,6 +922,13 @@ Namespace Microsoft.CodeAnalysis.Operations
             Dim constantValue As [Optional](Of Object) = New [Optional](Of Object)()
             Dim isImplicit As Boolean = boundParameterEqualsValue.WasCompilerGenerated
             Return New LazyParameterInitializer(ImmutableArray(Of ILocalSymbol).Empty, parameter, value, kind, _semanticModel, syntax, type, constantValue, isImplicit)
+        End Function
+
+        Private Function CreateBoundLValueToRValueWrapper(boundNode As BoundLValueToRValueWrapper) As IOperation
+            ' This is created in cases like collection initializers, where the implicit receiver is wrapped
+            ' by this node. The node itself doesn't have anything interesting we want to expose, so we
+            ' just pass through.
+            Return Create(boundNode.UnderlyingLValue)
         End Function
 
         Private Function CreateBoundRValuePlaceholderOperation(boundRValuePlaceholder As BoundRValuePlaceholder) As IOperation
@@ -1150,13 +1142,16 @@ Namespace Microsoft.CodeAnalysis.Operations
             Dim collection As Lazy(Of IOperation) = New Lazy(Of IOperation)(Function() Create(boundForEachStatement.Collection))
             Dim body As Lazy(Of IOperation) = New Lazy(Of IOperation)(Function() Create(boundForEachStatement.Body))
             Dim getEnumeratorArguments As ImmutableArray(Of BoundExpression) = Nothing
+            Dim getEnumeratorDefaultArguments As BitVector = BitVector.Null
             Dim moveNextArguments As ImmutableArray(Of BoundExpression) = Nothing
+            Dim moveNextDefaultArguments As BitVector = BitVector.Null
             Dim currentArguments As ImmutableArray(Of BoundExpression) = Nothing
+            Dim currentDefaultArguments As BitVector = BitVector.Null
             Dim statementInfo As ForEachStatementInfo = MemberSemanticModel.GetForEachStatementInfo(boundForEachStatement,
                                                                                                     DirectCast(_semanticModel.Compilation, VisualBasicCompilation),
-                                                                                                    getEnumeratorArguments,
-                                                                                                    moveNextArguments,
-                                                                                                    currentArguments)
+                                                                                                    getEnumeratorArguments, getEnumeratorDefaultArguments,
+                                                                                                    moveNextArguments, moveNextDefaultArguments,
+                                                                                                    currentArguments, currentDefaultArguments)
             Dim useSiteDiagnostics As HashSet(Of DiagnosticInfo) = Nothing
             Dim info As New ForEachLoopOperationInfo(statementInfo.ElementType,
                                                      statementInfo.GetEnumeratorMethod,
@@ -1173,7 +1168,7 @@ Namespace Microsoft.CodeAnalysis.Operations
                                                                 Return Operation.SetParentOperation(
                                                                            DeriveArguments(getEnumeratorArguments,
                                                                                        DirectCast(statementInfo.GetEnumeratorMethod, MethodSymbol).Parameters,
-                                                                                       invocationWasCompilerGenerated:=True),
+                                                                                       getEnumeratorDefaultArguments),
                                                                            Nothing)
                                                             End Function)),
                                                      If(moveNextArguments.IsDefaultOrEmpty, Nothing,
@@ -1182,7 +1177,7 @@ Namespace Microsoft.CodeAnalysis.Operations
                                                                 Return Operation.SetParentOperation(
                                                                            DeriveArguments(moveNextArguments,
                                                                                        DirectCast(statementInfo.MoveNextMethod, MethodSymbol).Parameters,
-                                                                                       invocationWasCompilerGenerated:=True),
+                                                                                       moveNextDefaultArguments),
                                                                            Nothing)
                                                             End Function)),
                                                      If(currentArguments.IsDefaultOrEmpty, Nothing,
@@ -1191,7 +1186,7 @@ Namespace Microsoft.CodeAnalysis.Operations
                                                                 Return Operation.SetParentOperation(
                                                                            DeriveArguments(currentArguments,
                                                                                        DirectCast(statementInfo.CurrentProperty, PropertySymbol).Parameters,
-                                                                                       invocationWasCompilerGenerated:=True),
+                                                                                       currentDefaultArguments),
                                                                            Nothing)
                                                             End Function)))
 
@@ -1513,7 +1508,7 @@ Namespace Microsoft.CodeAnalysis.Operations
 
             Dim arguments As Lazy(Of ImmutableArray(Of IArgumentOperation)) = New Lazy(Of ImmutableArray(Of IArgumentOperation))(
                 Function()
-                    Return DeriveArguments(eventInvocation.Arguments, eventInvocation.Method.Parameters, invocationWasCompilerGenerated:=False)
+                    Return DeriveArguments(eventInvocation.Arguments, eventInvocation.Method.Parameters, eventInvocation.DefaultArguments)
                 End Function)
 
             Return New LazyRaiseEventStatement(eventReference, arguments, _semanticModel, syntax, type, constantValue, isImplicit)

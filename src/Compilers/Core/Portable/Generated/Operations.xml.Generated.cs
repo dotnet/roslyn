@@ -5163,7 +5163,7 @@ namespace Microsoft.CodeAnalysis.Operations
     }
 
     /// <remarks>
-    /// Represents a dynamically bound new/New expression.
+    /// Represents a dynamically bound expression that can have argument names or refkinds.
     /// </remarks>
     internal abstract partial class HasDynamicArgumentsExpression : Operation
     {
@@ -6463,82 +6463,6 @@ namespace Microsoft.CodeAnalysis.Operations
 
         public override IOperation InitializedMember => SetParentOperation(_lazyInitializedMember.Value, this);
         public override IObjectOrCollectionInitializerOperation Initializer => SetParentOperation(_lazyInitializer.Value, this);
-    }
-
-    /// <summary>
-    /// Represents a C# nested collection element initializer expression within a collection initializer.
-    /// </summary>
-    internal abstract partial class BaseCollectionElementInitializerExpression : Operation, ICollectionElementInitializerOperation
-    {
-        protected BaseCollectionElementInitializerExpression(IMethodSymbol addMethod, bool isDynamic, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
-            base(OperationKind.CollectionElementInitializer, semanticModel, syntax, type, constantValue, isImplicit)
-        {
-            AddMethod = addMethod;
-            IsDynamic = isDynamic;
-        }
-        /// <summary>
-        /// Add method invoked on collection. Might be null for dynamic invocation.
-        /// </summary>
-        public IMethodSymbol AddMethod { get; }
-        /// <summary>
-        /// Flag indicating if this is a dynamic invocation.
-        /// </summary>
-        public bool IsDynamic { get; }
-        public override IEnumerable<IOperation> Children
-        {
-            get
-            {
-                foreach (var argument in Arguments)
-                {
-                    if (argument != null)
-                    {
-                        yield return argument;
-                    }
-                }
-            }
-        }
-        /// <summary>
-        /// Arguments passed to add method invocation.
-        /// </summary>
-        public abstract ImmutableArray<IOperation> Arguments { get; }
-        public override void Accept(OperationVisitor visitor)
-        {
-            visitor.VisitCollectionElementInitializer(this);
-        }
-        public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
-        {
-            return visitor.VisitCollectionElementInitializer(this, argument);
-        }
-    }
-
-    /// <summary>
-    /// Represents a C# nested collection element initializer expression within a collection initializer.
-    /// </summary>
-    internal sealed partial class CollectionElementInitializerExpression : BaseCollectionElementInitializerExpression, ICollectionElementInitializerOperation
-    {
-        public CollectionElementInitializerExpression(IMethodSymbol addMethod, bool isDynamic, ImmutableArray<IOperation> arguments, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
-            base(addMethod, isDynamic, semanticModel, syntax, type, constantValue, isImplicit)
-        {
-            Arguments = SetParentOperation(arguments, this);
-        }
-
-        public override ImmutableArray<IOperation> Arguments { get; }
-    }
-
-    /// <summary>
-    /// Represents a C# nested collection element initializer expression within a collection initializer.
-    /// </summary>
-    internal sealed partial class LazyCollectionElementInitializerExpression : BaseCollectionElementInitializerExpression, ICollectionElementInitializerOperation
-    {
-        private readonly Lazy<ImmutableArray<IOperation>> _lazyArguments;
-
-        public LazyCollectionElementInitializerExpression(IMethodSymbol addMethod, bool isDynamic, Lazy<ImmutableArray<IOperation>> arguments, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
-            base(addMethod, isDynamic, semanticModel, syntax, type, constantValue, isImplicit)
-        {
-            _lazyArguments = arguments ?? throw new System.ArgumentNullException(nameof(arguments));
-        }
-
-        public override ImmutableArray<IOperation> Arguments => SetParentOperation(_lazyArguments.Value, this);
     }
 
     /// <summary>

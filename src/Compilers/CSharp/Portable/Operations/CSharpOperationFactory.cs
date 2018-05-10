@@ -339,16 +339,13 @@ namespace Microsoft.CodeAnalysis.Operations
             Optional<object> constantValue = ConvertToOptional(boundCall.ConstantValue);
             bool isImplicit = boundCall.WasCompilerGenerated;
 
-            if (!boundCall.OriginalMethodsOpt.IsDefault || boundCall.ResultKind == LookupResultKind.OverloadResolutionFailure || targetMethod == null || targetMethod.OriginalDefinition is ErrorMethodSymbol)
+            if (!boundCall.OriginalMethodsOpt.IsDefault || IsMethodInvalid(boundCall.ResultKind, targetMethod))
             {
                 return CreateInvalidExpressionForHasArgumentsExpression(boundCall.ReceiverOpt, boundCall.Arguments, null, syntax, type, constantValue, isImplicit);
             }
 
             Lazy<IOperation> instance = CreateReceiverOperation(boundCall.ReceiverOpt, targetMethod);
-            bool isVirtual = (object)targetMethod != null &&
-                        boundCall.ReceiverOpt != null &&
-                        (targetMethod.IsVirtual || targetMethod.IsAbstract || targetMethod.IsOverride) &&
-                        !boundCall.ReceiverOpt.SuppressVirtualCalls;
+            bool isVirtual = IsCallVirtual(targetMethod, boundCall.ReceiverOpt);
             Lazy<ImmutableArray<IArgumentOperation>> arguments = new Lazy<ImmutableArray<IArgumentOperation>>(() =>
             {
                 return DeriveArguments(
@@ -696,16 +693,37 @@ namespace Microsoft.CodeAnalysis.Operations
             }
         }
 
-        private ICollectionElementInitializerOperation CreateBoundCollectionElementInitializerOperation(BoundCollectionElementInitializer boundCollectionElementInitializer)
+        private IOperation CreateBoundCollectionElementInitializerOperation(BoundCollectionElementInitializer boundCollectionElementInitializer)
         {
-            IMethodSymbol addMethod = boundCollectionElementInitializer.AddMethod;
-            Lazy<ImmutableArray<IOperation>> arguments = new Lazy<ImmutableArray<IOperation>>(() => boundCollectionElementInitializer.Arguments.SelectAsArray(n => Create(n)));
-            bool isDynamic = false;
+            MethodSymbol addMethod = boundCollectionElementInitializer.AddMethod;
             SyntaxNode syntax = boundCollectionElementInitializer.Syntax;
             ITypeSymbol type = boundCollectionElementInitializer.Type;
             Optional<object> constantValue = ConvertToOptional(boundCollectionElementInitializer.ConstantValue);
             bool isImplicit = boundCollectionElementInitializer.WasCompilerGenerated;
-            return new LazyCollectionElementInitializerExpression(addMethod, isDynamic, arguments, _semanticModel, syntax, type, constantValue, isImplicit);
+
+            if (IsMethodInvalid(boundCollectionElementInitializer.ResultKind, addMethod))
+            {
+                return CreateInvalidExpressionForHasArgumentsExpression(boundCollectionElementInitializer.ImplicitReceiverOpt, boundCollectionElementInitializer.Arguments, null, syntax, type, constantValue, isImplicit);
+            }
+
+            Lazy<IOperation> receiver = CreateReceiverOperation(boundCollectionElementInitializer.ImplicitReceiverOpt, addMethod);
+
+            Lazy<ImmutableArray<IArgumentOperation>> arguments = new Lazy<ImmutableArray<IArgumentOperation>>(() =>
+                DeriveArguments(
+                    boundCollectionElementInitializer,
+                    boundCollectionElementInitializer.BinderOpt,
+                    boundCollectionElementInitializer.AddMethod,
+                    boundCollectionElementInitializer.AddMethod,
+                    boundCollectionElementInitializer.Arguments,
+                    argumentNamesOpt: default,
+                    boundCollectionElementInitializer.ArgsToParamsOpt,
+                    argumentRefKindsOpt: default,
+                    boundCollectionElementInitializer.AddMethod.Parameters,
+                    boundCollectionElementInitializer.Expanded,
+                    boundCollectionElementInitializer.Syntax,
+                    boundCollectionElementInitializer.InvokedAsExtensionMethod));
+            bool isVirtual = IsCallVirtual(addMethod, boundCollectionElementInitializer.ImplicitReceiverOpt);
+            return new LazyInvocationExpression(addMethod, receiver, isVirtual, arguments, _semanticModel, syntax, type, constantValue, isImplicit);
         }
 
         private IDynamicMemberReferenceOperation CreateBoundDynamicMemberAccessOperation(BoundDynamicMemberAccess boundDynamicMemberAccess)
@@ -737,16 +755,15 @@ namespace Microsoft.CodeAnalysis.Operations
             return new LazyDynamicMemberReferenceExpression(instance, memberName, typeArguments, containingType, _semanticModel, syntaxNode, type, constantValue, isImplicit);
         }
 
-        private ICollectionElementInitializerOperation CreateBoundDynamicCollectionElementInitializerOperation(BoundDynamicCollectionElementInitializer boundCollectionElementInitializer)
+        private IDynamicInvocationOperation CreateBoundDynamicCollectionElementInitializerOperation(BoundDynamicCollectionElementInitializer boundCollectionElementInitializer)
         {
-            IMethodSymbol addMethod = null;
+            Lazy<IOperation> operation = new Lazy<IOperation>(() => Create(boundCollectionElementInitializer.ImplicitReceiver));
             Lazy<ImmutableArray<IOperation>> arguments = new Lazy<ImmutableArray<IOperation>>(() => boundCollectionElementInitializer.Arguments.SelectAsArray(n => Create(n)));
-            bool isDynamic = true;
             SyntaxNode syntax = boundCollectionElementInitializer.Syntax;
             ITypeSymbol type = boundCollectionElementInitializer.Type;
             Optional<object> constantValue = ConvertToOptional(boundCollectionElementInitializer.ConstantValue);
             bool isImplicit = boundCollectionElementInitializer.WasCompilerGenerated;
-            return new LazyCollectionElementInitializerExpression(addMethod, isDynamic, arguments, _semanticModel, syntax, type, constantValue, isImplicit);
+            return new LazyDynamicInvocationExpression(operation, arguments, argumentNames: ImmutableArray<string>.Empty, argumentRefKinds: ImmutableArray<RefKind>.Empty, _semanticModel, syntax, type, constantValue, isImplicit);
         }
 
         private IOperation CreateUnboundLambdaOperation(UnboundLambda unboundLambda)

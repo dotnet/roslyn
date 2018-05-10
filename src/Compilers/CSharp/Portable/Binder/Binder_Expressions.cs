@@ -4407,6 +4407,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return new BoundDynamicCollectionElementInitializer(
                     elementInitializer,
                     arguments: boundElementInitializerExpressions,
+                    implicitReceiver,
                     applicableMethods: ImmutableArray<MethodSymbol>.Empty,
                     type: GetSpecialType(SpecialType.System_Void, diagnostics, elementInitializer),
                     hasErrors: hasErrors);
@@ -4427,6 +4428,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return new BoundDynamicCollectionElementInitializer(
                     elementInitializer,
                     dynamicInvocation.Arguments,
+                    implicitReceiver,
                     dynamicInvocation.ApplicableMethods,
                     dynamicInvocation.Type,
                     hasErrors: dynamicInvocation.HasAnyErrors);
@@ -4448,10 +4450,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                     elementInitializer,
                     boundCall.Method,
                     boundCall.Arguments,
+                    boundCall.ReceiverOpt,
                     boundCall.Expanded,
                     boundCall.ArgsToParamsOpt,
                     boundCall.InvokedAsExtensionMethod,
                     boundCall.ResultKind,
+                    binderOpt: boundCall.BinderOpt,
                     boundCall.Type,
                     boundCall.HasAnyErrors)
                 { WasCompilerGenerated = true };

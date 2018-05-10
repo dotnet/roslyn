@@ -4453,6 +4453,9 @@ oneMoreTime:
 
         public override IOperation VisitInvocation(IInvocationOperation operation, int? captureIdForResult)
         {
+            // PROTOTYPE(dataflow): It looks like there is a bug in IOperation tree generation for non-error scenario in 
+            //                      Microsoft.CodeAnalysis.CSharp.UnitTests.SemanticModelGetSemanticInfoTests.ObjectCreation3
+            //                      We have ICollectionElementInitializerOperation, but not IObjectCreationOperation.
             IOperation instance = operation.TargetMethod.IsStatic ? null : operation.Instance;
             (IOperation visitedInstance, ImmutableArray<IArgumentOperation> visitedArguments) = VisitInstanceWithArguments(instance, operation.Arguments);
             return new InvocationExpression(operation.TargetMethod, visitedInstance, operation.IsVirtual, visitedArguments, semanticModel: null, operation.Syntax,
@@ -4520,7 +4523,8 @@ oneMoreTime:
                         AddStatement(handleSimpleAssignment((ISimpleAssignmentOperation)innerInitializer));
                         return;
 
-                    case OperationKind.CollectionElementInitializer:
+                    case OperationKind.Invocation:
+                    case OperationKind.DynamicInvocation:
                         // PROTOTYPE(dataflow): support collection initializers
                         //                      Just drop it for now to enable other test scenarios.
                         return;
@@ -5439,14 +5443,6 @@ oneMoreTime:
         public override IOperation VisitAnonymousObjectCreation(IAnonymousObjectCreationOperation operation, int? captureIdForResult)
         {
             return new AnonymousObjectCreationExpression(VisitArray(operation.Initializers), semanticModel: null, operation.Syntax, operation.Type, operation.ConstantValue, IsImplicit(operation));
-        }
-
-        public override IOperation VisitCollectionElementInitializer(ICollectionElementInitializerOperation operation, int? captureIdForResult)
-        {
-            // PROTOTYPE(dataflow): It looks like there is a bug in IOperation tree generation for non-error scenario in 
-            //                      Microsoft.CodeAnalysis.CSharp.UnitTests.SemanticModelGetSemanticInfoTests.ObjectCreation3
-            //                      We have ICollectionElementInitializerOperation, but not IObjectCreationOperation.
-            return new CollectionElementInitializerExpression(operation.AddMethod, operation.IsDynamic, VisitArray(operation.Arguments), semanticModel: null, operation.Syntax, operation.Type, operation.ConstantValue, IsImplicit(operation));
         }
 
         public override IOperation VisitDynamicObjectCreation(IDynamicObjectCreationOperation operation, int? captureIdForResult)

@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using Microsoft.CodeAnalysis.Operations;
 
 namespace Microsoft.CodeAnalysis
@@ -112,6 +113,7 @@ namespace Microsoft.CodeAnalysis
         /// <summary>Indicates an <see cref="IMemberInitializerOperation"/>.</summary>
         MemberInitializer = 0x33,
         /// <summary>Indicates an <see cref="ICollectionElementInitializerOperation"/>.</summary>
+        [Obsolete("ICollectionElementInitializerOperation has been replaced with " + nameof(IInvocationOperation) + " and " + nameof(IDynamicInvocationOperation), error: true)]
         CollectionElementInitializer = 0x34,
         /// <summary>Indicates an <see cref="INameOfOperation"/>.</summary>
         NameOf = 0x35,

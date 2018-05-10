@@ -885,15 +885,6 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             AssertEx.Equal(new[] { operation.InitializedMember, operation.Initializer }, operation.Children);
         }
 
-        public override void VisitCollectionElementInitializer(ICollectionElementInitializerOperation operation)
-        {
-            Assert.Equal(OperationKind.CollectionElementInitializer, operation.Kind);
-            var addMethod = operation.AddMethod;
-            var isDynamic = operation.IsDynamic;
-
-            AssertEx.Equal(operation.Arguments, operation.Children);
-        }
-
         private void VisitSymbolInitializer(ISymbolInitializerOperation operation)
         {
             VisitLocals(operation.Locals);

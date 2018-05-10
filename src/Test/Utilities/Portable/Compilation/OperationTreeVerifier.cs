@@ -1313,17 +1313,12 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             Visit(operation.Initializer, "Initializer");
         }
 
+        [Obsolete("ICollectionElementInitializerOperation has been replaced with IInvocationOperation and IDynamicInvocationOperation", error: true)]
         public override void VisitCollectionElementInitializer(ICollectionElementInitializerOperation operation)
-        {
-            LogString(nameof(ICollectionElementInitializerOperation));
-            if (operation.AddMethod != null)
-            {
-                LogString($" (AddMethod: {operation.AddMethod.ToTestDisplayString()})");
-            }
-            LogString($" (IsDynamic: {operation.IsDynamic})");
-            LogCommonPropertiesAndNewLine(operation);
 
-            VisitArray(operation.Arguments, "Arguments", logElementCount: true);
+        {
+            // Kept to ensure that it's never called, as we can't override DefaultVisit in this visitor
+            throw ExceptionUtilities.Unreachable;
         }
 
         public override void VisitFieldInitializer(IFieldInitializerOperation operation)
