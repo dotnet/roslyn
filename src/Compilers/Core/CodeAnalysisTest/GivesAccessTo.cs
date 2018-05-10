@@ -53,7 +53,6 @@ End Class
             Assert.True(VB.ContainingAssembly.GivesAccessTo(VB2.ContainingAssembly));
             Assert.True(VB.ContainingAssembly.GivesAccessTo(CS.ContainingAssembly));
             Assert.False(VB.ContainingAssembly.GivesAccessTo(CS2.ContainingAssembly));
-
         }
     }
 }

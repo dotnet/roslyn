@@ -95,6 +95,6 @@ namespace Microsoft.CodeAnalysis
         }
 
         internal static bool IsNetModule(this IAssemblySymbol assembly) =>
-            assembly is ISourceAssemblySymbol sourceAssembly && sourceAssembly.Compilation.Options.OutputKind == OutputKind.NetModule;
+            assembly is ISourceAssemblySymbol sourceAssembly && sourceAssembly.Compilation.Options.OutputKind.IsNetModule();
     }
 }
