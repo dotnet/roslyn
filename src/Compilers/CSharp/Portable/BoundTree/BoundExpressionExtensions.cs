@@ -247,16 +247,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                         var conversion = (BoundConversion)expr;
                         if (conversion.ExplicitCastInCode)
                         {
-                            if (conversion.IsExplicitlyNullable)
-                            {
-                                return true;
-                            }
-                            else if (expr.ConstantValue == null)
-                            {
-                                return false;
-                            }
+                            return conversion.IsExplicitlyNullable;
                         }
-                        break;
+                        Debug.Assert(!conversion.IsExplicitlyNullable);
+                        return null;
                     }
                 case BoundKind.BinaryOperator:
                     return ((BoundBinaryOperator)expr).MethodOpt?.ReturnType.IsNullable;

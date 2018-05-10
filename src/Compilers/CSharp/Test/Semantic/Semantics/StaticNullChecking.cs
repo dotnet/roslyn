@@ -18033,7 +18033,7 @@ F(v).ToString();";
     static void F0(string s = null!) { }
     static void F1(string x = (string)null!, string y = ((string)null)!) { }
     static void F2(string x = default!, string y = default(string)!) { }
-    static void F3(string s = S0!) { }
+    static void F3(string s = (S0!)!) { }
     static void M()
     {
         F0();
