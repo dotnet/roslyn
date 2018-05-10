@@ -142,7 +142,6 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
                     </Project>
                 </Workspace>,
                 CreateLazyProviders(extraCompletionProviders, LanguageNames.CSharp, roles:=Nothing), ' Add in the Editor Completion mef components; Get the completion iolecommandtarget to send commands to and do normal assertions based on the old (/current) CompletionBroker
-                CreateLazyProviders(extraSignatureHelpProviders, LanguageNames.CSharp),
                 excludedTypes,
                 extraExportedTypes,
                 includeFormatCommandHandler)
