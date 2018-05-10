@@ -535,7 +535,8 @@ Public Class BuildDevDivInsertionFiles
                    packageName = "stdole" OrElse
                    packageName.StartsWith("Microsoft.Build") OrElse
                    packageName = "Microsoft.Composition" OrElse
-                   packageName = "System.Net.Http" Then
+                   packageName = "System.Net.Http" OrElse
+                   packageName = "System.Diagnostics.DiagnosticSource" Then
                     Continue For
                 End If
 
@@ -563,9 +564,7 @@ Public Class BuildDevDivInsertionFiles
                                                                 packageName,
                                                                 packageVersion,
                                                                 isNative:=native IsNot Nothing,
-                                                                isFacade:=frameworkAssemblies IsNot Nothing AndAlso packageName <> "Microsoft.Build" OrElse
-                                                                    packageName = "System.IO.Pipes.AccessControl" OrElse
-                                                                    packageName = "System.Diagnostics.DiagnosticSource"))
+                                                                isFacade:=frameworkAssemblies IsNot Nothing AndAlso packageName <> "Microsoft.Build" OrElse packageName = "System.IO.Pipes.AccessControl"))
                     End If
                 Next
             Next
