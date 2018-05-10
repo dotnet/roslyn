@@ -356,6 +356,32 @@ class D
             await TestAsync(markup, expectedOrderedItems, usePreviousCharAsTrigger: false);
         }
 
+        [Fact]
+        [WorkItem(23664, "https://github.com/dotnet/roslyn/issues/23664")]
+        public async Task TestAttributeWithInvalidPropertyAbstract()
+        {
+            var markup = @"
+abstract class SomethingAttribute : System.Attribute
+{
+    public abstract int goo { get; set; }
+}
+
+class DerivedAttribute : SomethingAttribute
+{
+    public override int goo { get => 0; set { } }
+}
+
+[[|Derived($$|])]
+class D
+{
+}";
+
+            var expectedOrderedItems = new List<SignatureHelpTestItem>();
+            expectedOrderedItems.Add(new SignatureHelpTestItem($"DerivedAttribute({CSharpFeaturesResources.Properties}: [goo = int])", string.Empty, null, currentParameterIndex: 0));
+
+            await TestAsync(markup, expectedOrderedItems);
+        }
+
         [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
         public async Task TestAttributeWithInvalidPropertyStatic()
         {
