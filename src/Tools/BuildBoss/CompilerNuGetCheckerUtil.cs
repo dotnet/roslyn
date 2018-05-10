@@ -9,6 +9,22 @@ using System.Text.RegularExpressions;
 
 namespace BuildBoss
 {
+    /// <summary>
+    /// Verifies the contents of our compiler toolset NuPkg, and related, files are correct. 
+    /// 
+    /// The compiler toolset is a particularly difficult package to get correct. In essense it is 
+    /// merging the output of three different exes into a single directory. That causes a number 
+    /// of issues during pack time:
+    /// 
+    ///     - The dependencies are not necessarily equal between all exes
+    ///     - The dependencies can change based on subtle changes to the code
+    ///     - There is no project which is guaranteed to have a superset of dependencies 
+    ///     - There is no syntax for using the union of DLLs in a NuSpec file
+    ///     - There is no way to use a NuSpec file as input to a SWR file
+    ///
+    /// The least crazy solution that could be decided on was to manage the list of dependencies 
+    /// by hand in the NuSpec file and then rigorously verify the solution here.
+    /// </summary>
     internal sealed class CompilerNuGetCheckerUtil : ICheckerUtil
     {
         internal string ConfigDirectory { get; }
@@ -35,10 +51,11 @@ namespace BuildBoss
             }
         }
 
+        /// <summary>
+        /// Verify the contents of our desktop targeting compiler packages are correct.
+        /// </summary>
         private bool CheckDesktop(TextWriter textWriter)
         {
-            // TODO: MSBuild task dependencies need to be checked here as well since they are included in
-            // the same directory
             var (allGood, dllFileNames) = GetDllFileNames(
                 textWriter,
                 @"Exes\Csc\net46",
@@ -68,25 +85,23 @@ namespace BuildBoss
 
             allGood &= VerifySwrFile(textWriter, dllFileNames);
 
-            var ignoreExtraDllFileNames = new[] { "Microsoft.Build.Tasks.CodeAnalysis.dll" };
-
-            // TODO: Don't hard code the nupkg names
             allGood &= VerifyNuPackage(
                         textWriter,
                         FindNuGetPackage(@"NuGet\PreRelease", "Microsoft.Net.Compilers"),
                         @"tools",
-                        dllFileNames,
-                        ignoreExtraDllFileNames: ignoreExtraDllFileNames);
+                        dllFileNames);
 
             allGood &= VerifyNuPackage(
                         textWriter,
                         FindNuGetPackage(@"DevDivPackages\Roslyn", "VS.Tools.Roslyn"),
                         string.Empty,
-                        dllFileNames,
-                        ignoreExtraDllFileNames: ignoreExtraDllFileNames);
+                        dllFileNames);
             return allGood;
         }
 
+        /// <summary>
+        /// Verify the contents of our desktop targeting compiler packages are correct.
+        /// </summary>
         private bool CheckCoreClr(TextWriter textWriter)
         {
             var (allGood, dllFileNames) = GetDllFileNames(
@@ -170,11 +185,9 @@ namespace BuildBoss
             TextWriter textWriter, 
             string nupkgFilePath, 
             string folderRelativePath, 
-            IEnumerable<string> dllFileNames,
-            IEnumerable<string> ignoreExtraDllFileNames = null)
+            IEnumerable<string> dllFileNames)
         {
             Debug.Assert(string.IsNullOrEmpty(folderRelativePath) || folderRelativePath[0] != '\\');
-            ignoreExtraDllFileNames = ignoreExtraDllFileNames ?? Array.Empty<string>();
 
             // Get all of the DLL parts that are in the specified folder. Will exclude items that
             // are in any child folder
@@ -231,7 +244,7 @@ namespace BuildBoss
                         map[relativeName] = true;
                     }
                 }
-                else if (!ignoreExtraDllFileNames.Contains(name, StringComparer.OrdinalIgnoreCase))
+                else
                 {
                     textWriter.WriteLine($"\tFound unexpected dll {relativeName}");
                     allGood = false;
