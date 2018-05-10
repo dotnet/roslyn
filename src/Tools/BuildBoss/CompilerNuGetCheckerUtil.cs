@@ -22,9 +22,17 @@ namespace BuildBoss
 
         public bool Check(TextWriter textWriter)
         {
-            var allGood = CheckDesktop(textWriter);
-            allGood &= CheckCoreClr(textWriter);
-            return allGood;
+            try
+            {
+                var allGood = CheckDesktop(textWriter);
+                allGood &= CheckCoreClr(textWriter);
+                return allGood;
+            }
+            catch (Exception ex)
+            {
+                textWriter.WriteLine($"Error verifying NuPkg files: {ex.Message}");
+                return false;
+            }
         }
 
         private bool CheckDesktop(TextWriter textWriter)
@@ -65,14 +73,14 @@ namespace BuildBoss
             // TODO: Don't hard code the nupkg names
             allGood &= VerifyNuPackage(
                         textWriter,
-                        Path.Combine(ConfigDirectory, @"NuGet\PreRelease\Microsoft.Net.Compilers.2.9.0-dev.nupkg"),
+                        FindNuGetPackage(@"NuGet\PreRelease", "Microsoft.Net.Compilers"),
                         @"tools",
                         dllFileNames,
                         ignoreExtraDllFileNames: ignoreExtraDllFileNames);
 
             allGood &= VerifyNuPackage(
                         textWriter,
-                        Path.Combine(ConfigDirectory, @"DevDivPackages\Roslyn\VS.Tools.Roslyn.2.9.0-dev-65535-01.nupkg"),
+                        FindNuGetPackage(@"DevDivPackages\Roslyn", "VS.Tools.Roslyn"),
                         string.Empty,
                         dllFileNames,
                         ignoreExtraDllFileNames: ignoreExtraDllFileNames);
@@ -93,7 +101,7 @@ namespace BuildBoss
 
             return VerifyNuPackage(
                         textWriter,
-                        Path.Combine(ConfigDirectory, @"NuGet\PreRelease\Microsoft.NETCore.Compilers.2.9.0-dev.nupkg"),
+                        FindNuGetPackage(@"NuGet\PreRelease", "Microsoft.NETCore.Compilers"),
                         @"tools\bincore",
                         dllFileNames);
         }
@@ -157,7 +165,6 @@ namespace BuildBoss
             var dllFileNames = dllToChecksumMap.Keys.OrderBy(x => x).ToList();
             return (allGood, dllFileNames);
         }
-
 
         private static bool VerifyNuPackage(
             TextWriter textWriter, 
@@ -295,6 +302,19 @@ namespace BuildBoss
             }
 
             return allGood;
+        }
+
+        private string FindNuGetPackage(string directory, string partialName)
+        {
+            var file = Directory
+                .EnumerateFiles(Path.Combine(ConfigDirectory, directory), partialName + "*.nupkg")
+                .SingleOrDefault();
+            if (file == null)
+            {
+                throw new Exception($"Unable to find NuPgk {partialName} in {directory}");
+            }
+
+            return file;
         }
     }
 }

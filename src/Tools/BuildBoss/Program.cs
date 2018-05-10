@@ -30,7 +30,7 @@ namespace BuildBoss
             if (args.Length == 0)
             {
                 // TEMP DO NOT CHECK IN
-                return (new CompilerNuGetCheckerUtil(@"c:\users\jaredpar\code\roslyn", @"c:\users\jaredpar\code\roslyn\Binaries\Debug").Check(Console.Out)) ? 0 : 1;
+                return (new CompilerNuGetCheckerUtil(@"e:\code\roslyn", @"e:\code\roslyn\Binaries\Debug").Check(Console.Out)) ? 0 : 1;
                 // Usage();
                 // return 1;
             }
