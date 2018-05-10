@@ -8716,7 +8716,6 @@ tryAgain:
                 case SyntaxKind.IfKeyword:
                 case SyntaxKind.LockKeyword:
                 case SyntaxKind.ReturnKeyword:
-                case SyntaxKind.SwitchKeyword:
                 case SyntaxKind.TryKeyword:
                 case SyntaxKind.UsingKeyword:
                 case SyntaxKind.WhileKeyword:
@@ -10231,6 +10230,7 @@ tryAgain:
                 case SyntaxKind.MinusGreaterThanToken:
                 case SyntaxKind.QuestionQuestionToken:
                 case SyntaxKind.EndOfFileToken:
+                case SyntaxKind.SwitchKeyword:
                     return false;
                 default:
                     return true;
