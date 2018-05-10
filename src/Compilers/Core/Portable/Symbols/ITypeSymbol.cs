@@ -95,13 +95,38 @@ namespace Microsoft.CodeAnalysis
         ISymbol FindImplementationForInterfaceMember(ISymbol interfaceMember);
     }
 
+    // Intentionally not extension methods. We don't want them ever be called for symbol classes
+    // Once Default Interface Implementations are supported, we can move these methods into the interface. 
     static internal class ITypeSymbolHelpers
     {
-        // Intentionally not an extension method. We don't want it ever be called for symbol classes
-        // Once Default Interface Implementations are supported, we can move this method into the interface. 
         internal static bool IsNullableType(ITypeSymbol typeOpt)
         {
             return typeOpt?.OriginalDefinition.SpecialType == SpecialType.System_Nullable_T;
+        }
+
+        internal static bool IsSignedIntegralType(ITypeSymbol type)
+        {
+            return type.SpecialType.IsSignedIntegralType();
+        }
+
+        internal static bool IsUnsignedIntegralType(ITypeSymbol type)
+        {
+            return type.SpecialType.IsUnsignedIntegralType();
+        }
+
+        internal static bool IsNumericType(ITypeSymbol type)
+        {
+            return type.SpecialType.IsNumericType();
+        }
+
+        internal static ITypeSymbol GetEnumUnderlyingType(ITypeSymbol type)
+        {
+            return (type as INamedTypeSymbol)?.EnumUnderlyingType;
+        }
+
+        internal static ITypeSymbol GetEnumUnderlyingTypeOrSelf(ITypeSymbol type)
+        {
+            return GetEnumUnderlyingType(type) ?? type;
         }
     }
 }

@@ -8,6 +8,8 @@ namespace Microsoft.CodeAnalysis.Operations
     {
         Unspecified = 0,
         SwitchOperationExpression = 1,
+        ForToLoopBinaryOperatorLeftOperand = 2,
+        ForToLoopBinaryOperatorRightOperand = 3,
     }
 
     /// <summary>

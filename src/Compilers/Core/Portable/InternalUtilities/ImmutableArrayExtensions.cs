@@ -42,5 +42,10 @@ namespace Roslyn.Utilities
 
             return ~low;
         }
+
+        internal static ImmutableArray<TDerived> CastDown<TOriginal, TDerived>(this ImmutableArray<TOriginal> array) where TDerived : class, TOriginal
+        {
+            return array.CastArray<TDerived>();
+        }
     }
 }

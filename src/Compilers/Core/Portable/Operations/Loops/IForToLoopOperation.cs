@@ -38,6 +38,11 @@ namespace Microsoft.CodeAnalysis.Operations
         IOperation StepValue { get; }
 
         /// <summary>
+        /// <code>true</code> if arithmetic operations behind this loop are 'checked'.
+        /// </summary>
+        bool IsChecked { get; }
+
+        /// <summary>
         /// Optional list of comma separated next variables at loop bottom.
         /// </summary>
         ImmutableArray<IOperation> NextVariables { get; }
