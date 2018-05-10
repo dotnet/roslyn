@@ -117,16 +117,13 @@ namespace Microsoft.CodeAnalysis.Interactive
             internal void Dispose(bool joinThreads)
             {
                 // There can be a call from host initiated from OnProcessExit. 
-                // This check on the beginning helps to avoid a reentrancy.
-                if (_processExitHandlerStatus == ProcessExitHandlerStatus.Hooked)
+                // We should not proceed with disposing if _disposeSemaphore is locked.
+                using (_disposeSemaphore.DisposableWait())
                 {
-                    using (_disposeSemaphore.DisposableWait())
+                    if (_processExitHandlerStatus == ProcessExitHandlerStatus.Hooked)
                     {
-                        if (_processExitHandlerStatus == ProcessExitHandlerStatus.Hooked)
-                        {
-                            Process.Exited -= ProcessExitedHandler;
-                            _processExitHandlerStatus = ProcessExitHandlerStatus.Handled;
-                        }
+                       Process.Exited -= ProcessExitedHandler;
+                       _processExitHandlerStatus = ProcessExitHandlerStatus.Handled;
                     }
                 }
 
