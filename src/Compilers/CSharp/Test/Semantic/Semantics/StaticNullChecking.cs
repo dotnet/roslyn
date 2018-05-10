@@ -12875,7 +12875,7 @@ class F : C<F?>, I1<C<B?>>, I2<C<B>?>
 
             Assert.Equal("String? D1()", compilation.GetTypeByMetadataName("D1")
                 .ToDisplayString(new SymbolDisplayFormat(delegateStyle: SymbolDisplayDelegateStyle.NameAndSignature,
-                    compilerInternalOptions: SymbolDisplayCompilerInternalOptions.IncludeNullableReferenceTypeModifier)));
+                    miscellaneousOptions: SymbolDisplayMiscellaneousOptions.IncludeNullableReferenceTypeModifier)));
 
             var f = compilation.GetTypeByMetadataName("F");
             Assert.Equal("C<F?>", f.BaseType().ToTestDisplayString());
@@ -12963,7 +12963,7 @@ public class F : C<F?>, I1<C<B?>>, I2<C<B>?>
 
                                     Assert.Equal("String? D1()", compilation.GetTypeByMetadataName("D1")
                                         .ToDisplayString(new SymbolDisplayFormat(delegateStyle: SymbolDisplayDelegateStyle.NameAndSignature,
-                                            compilerInternalOptions: SymbolDisplayCompilerInternalOptions.IncludeNullableReferenceTypeModifier)));
+                                            miscellaneousOptions: SymbolDisplayMiscellaneousOptions.IncludeNullableReferenceTypeModifier)));
 
                                     var f = ((PEModuleSymbol)m).GlobalNamespace.GetTypeMember("F");
                                     Assert.Equal("C<F?>", f.BaseType().ToTestDisplayString());
@@ -17271,9 +17271,9 @@ class B5 : A<int>
                 source,
                 parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
-                // (5,11): error CS1503: Argument 1: cannot convert from 'method group!' to 'object'
+                // (5,11): error CS1503: Argument 1: cannot convert from 'method group' to 'object'
                 //         G(F!);
-                Diagnostic(ErrorCode.ERR_BadArgType, "F!").WithArguments("1", "method group!", "object").WithLocation(5, 11),
+                Diagnostic(ErrorCode.ERR_BadArgType, "F!").WithArguments("1", "method group", "object").WithLocation(5, 11),
                 // (6,11): error CS0154: The property or indexer 'C.P' cannot be used in this context because it lacks the get accessor
                 //         G(c.P!);
                 Diagnostic(ErrorCode.ERR_PropertyLacksGet, "c.P").WithArguments("C.P").WithLocation(6, 11));
@@ -17916,39 +17916,9 @@ F(v).ToString();";
         /// Default value for non-nullable parameter
         /// should not result in a warning at the call site.
         /// </summary>
+        [WorkItem(26626, "https://github.com/dotnet/roslyn/issues/26626")]
         [Fact]
-        public void NullDefaultValueFromSource()
-        {
-            var source =
-@"class C
-{
-    public static void F(object o = null)
-    {
-    }
-}
-class Program
-{
-    static void Main()
-    {
-        C.F();
-        C.F(null);
-    }
-}";
-            var comp = CreateCompilation(
-                source,
-                parseOptions: TestOptions.Regular8);
-            comp.VerifyDiagnostics(
-                // (12,13): warning CS8625: Cannot convert null literal to non-nullable reference or unconstrained type parameter.
-                //         C.F(null);
-                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(12, 13));
-        }
-
-        /// <summary>
-        /// Default value for non-nullable parameter
-        /// should not result in a warning at the call site.
-        /// </summary>
-        [Fact]
-        public void NullDefaultValueFromMetadata()
+        public void ParameterDefaultValue_FromMetadata()
         {
             var source0 =
 @"public class C
@@ -17960,7 +17930,10 @@ class Program
             var comp0 = CreateCompilation(
                 source0,
                 parseOptions: TestOptions.Regular8);
-            comp0.VerifyDiagnostics();
+            comp0.VerifyDiagnostics(
+                // (3,37): warning CS8625: Cannot convert null literal to non-nullable reference or unconstrained type parameter.
+                //     public static void F(object o = null)
+                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(3, 37));
             var ref0 = comp0.EmitToImageReference();
 
             var source1 =
@@ -17982,6 +17955,301 @@ class Program
                 Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(6, 13));
         }
 
+        [WorkItem(26626, "https://github.com/dotnet/roslyn/issues/26626")]
+        [Fact]
+        public void ParameterDefaultValue_01()
+        {
+            var source =
+@"class C
+{
+    const string? S0 = null;
+    const string? S1 = """";
+    static string? F() => string.Empty;
+    static void F0(string s = null) { }
+    static void F1(string s = default) { }
+    static void F2(string s = default(string)) { }
+    static void F3(string x = (string)null, string y = (string?)null) { }
+    static void F4(string s = S0) { }
+    static void F5(string s = S1) { }
+    static void F6(string s = F()) { }
+    static void M()
+    {
+        F0();
+        F1();
+        F2();
+        F3();
+        F4();
+        F5();
+        F6();
+        F0(null);
+        F0(string.Empty);
+    }
+}";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
+            comp.VerifyDiagnostics(
+                // (6,31): warning CS8625: Cannot convert null literal to non-nullable reference or unconstrained type parameter.
+                //     static void F0(string s = null) { }
+                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(6, 31),
+                // (7,31): warning CS8625: Cannot convert null literal to non-nullable reference or unconstrained type parameter.
+                //     static void F1(string s = default) { }
+                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "default").WithLocation(7, 31),
+                // (8,31): warning CS8625: Cannot convert null literal to non-nullable reference or unconstrained type parameter.
+                //     static void F2(string s = default(string)) { }
+                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "default(string)").WithLocation(8, 31),
+                // (9,31): warning CS8625: Cannot convert null literal to non-nullable reference or unconstrained type parameter.
+                //     static void F3(string x = (string)null, string y = (string?)null) { }
+                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "(string)null").WithLocation(9, 31),
+                // (9,56): warning CS8625: Cannot convert null literal to non-nullable reference or unconstrained type parameter.
+                //     static void F3(string x = (string)null, string y = (string?)null) { }
+                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "(string?)null").WithLocation(9, 56),
+                // (10,31): warning CS8625: Cannot convert null literal to non-nullable reference or unconstrained type parameter.
+                //     static void F4(string s = S0) { }
+                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "S0").WithLocation(10, 31),
+                // (12,31): error CS1736: Default parameter value for 's' must be a compile-time constant
+                //     static void F6(string s = F()) { }
+                Diagnostic(ErrorCode.ERR_DefaultValueMustBeConstant, "F()").WithArguments("s").WithLocation(12, 31),
+                // (22,12): warning CS8625: Cannot convert null literal to non-nullable reference or unconstrained type parameter.
+                //         F0(null);
+                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(22, 12));
+        }
+
+        [WorkItem(26626, "https://github.com/dotnet/roslyn/issues/26626")]
+        [Fact]
+        public void ParameterDefaultValue_02()
+        {
+            var source =
+@"class C
+{
+    const string? S0 = null;
+    static void F0(string s = null!) { }
+    static void F1(string x = (string)null!, string y = ((string)null)!) { }
+    static void F2(string x = default!, string y = default(string)!) { }
+    static void F3(string s = (S0!)!) { }
+    static void M()
+    {
+        F0();
+        F1();
+        F2();
+        F3();
+        F1(x: null);
+        F1(y: null);
+        F2(null!, null);
+    }
+}";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
+            comp.VerifyDiagnostics(
+                // (14,15): warning CS8625: Cannot convert null literal to non-nullable reference or unconstrained type parameter.
+                //         F1(x: null);
+                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(14, 15),
+                // (15,15): warning CS8625: Cannot convert null literal to non-nullable reference or unconstrained type parameter.
+                //         F1(y: null);
+                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(15, 15),
+                // (16,19): warning CS8625: Cannot convert null literal to non-nullable reference or unconstrained type parameter.
+                //         F2(null!, null);
+                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(16, 19));
+        }
+
+        [WorkItem(26626, "https://github.com/dotnet/roslyn/issues/26626")]
+        [Fact]
+        public void ParameterDefaultValue_03()
+        {
+            var source =
+@"interface I { }
+class C : I { }
+class P
+{
+    static void F0<T>(T t = default) { }
+    static void F1<T>(T t = null) where T : class { }
+    static void F2<T>(T t = default) where T : struct { }
+    static void F3<T>(T t = default) where T : new() { }
+    static void F4<T>(T t = null) where T : C { }
+    static void F5<T>(T t = default) where T : I { }
+    static void F6<T, U>(T t = default) where T : U { }
+    static void G0()
+    {
+        F0<object>();
+        F0<object>(default);
+        F0(new object());
+        F1<object>();
+        F1<object>(default);
+        F1(new object());
+        F2<int>();
+        F2<int>(default);
+        F2(2);
+        F3<object>();
+        F3<object>(default);
+        F3(new object());
+        F4<C>();
+        F4<C>(default);
+        F4(new C());
+        F5<I>();
+        F5<I>(default);
+        F5(new C());
+        F6<object, object>();
+        F6<object, object>(default);
+        F6<object, object>(new object());
+    }
+    static void G0<T>()
+    {
+        F0<T>(); // 0
+        F0<T>(default); // 0
+        F6<T, T>(); // 0
+        F6<T, T>(default); // 0
+    }
+    static void G1<T>() where T : class
+    {
+        F0<T>(); // 1
+        F0<T>(default); // 1
+        F1<T>(); // 1
+        F1<T>(default); // 1
+        F6<T, T>(); // 1
+        F6<T, T>(default); // 1
+    }
+    static void G2<T>() where T : struct
+    {
+        F0<T>(); // 2
+        F0<T>(default); // 2
+        F2<T>(); // 2
+        F2<T>(default); // 2
+        F3<T>(); // 2
+        F3<T>(default); // 2
+        F6<T, T>(); // 2
+        F6<T, T>(default); // 2
+    }
+    static void G3<T>() where T : new()
+    {
+        F0<T>(); // 3
+        F0<T>(default); // 3
+        F0<T>(new T()); // 3
+        F3<T>(); // 3
+        F3<T>(default); // 3
+        F3<T>(new T()); // 3
+        F6<T, T>(); // 3
+        F6<T, T>(default); // 3
+        F6<T, T>(new T()); // 3
+    }
+    static void G4<T>() where T : C
+    {
+        F0<T>(); // 4
+        F0<T>(default); // 4
+        F1<T>(); // 4
+        F1<T>(default); // 4
+        F4<T>(); // 4
+        F4<T>(default); // 4
+        F5<T>(); // 4
+        F5<T>(default); // 4
+        F6<T, T>(); // 4
+        F6<T, T>(default); // 4
+    }
+    static void G5<T>() where T : I
+    {
+        F0<T>(); // 5
+        F0<T>(default); // 5
+        F5<T>(); // 5
+        F5<T>(default); // 5
+        F6<T, T>(); // 5
+        F6<T, T>(default); // 5
+    }
+    static void G6<T, U>() where T : U
+    {
+        F0<T>(); // 6
+        F0<T>(default); // 6
+        F6<T, U>(); // 6
+        F6<T, U>(default); // 6
+    }
+}";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
+            comp.VerifyDiagnostics(
+                // (6,29): warning CS8625: Cannot convert null literal to non-nullable reference or unconstrained type parameter.
+                //     static void F1<T>(T t = null) where T : class { }
+                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(6, 29),
+                // (9,29): warning CS8625: Cannot convert null literal to non-nullable reference or unconstrained type parameter.
+                //     static void F4<T>(T t = null) where T : C { }
+                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(9, 29),
+                // (15,20): warning CS8625: Cannot convert null literal to non-nullable reference or unconstrained type parameter.
+                //         F0<object>(default);
+                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "default").WithLocation(15, 20),
+                // (18,20): warning CS8625: Cannot convert null literal to non-nullable reference or unconstrained type parameter.
+                //         F1<object>(default);
+                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "default").WithLocation(18, 20),
+                // (24,20): warning CS8625: Cannot convert null literal to non-nullable reference or unconstrained type parameter.
+                //         F3<object>(default);
+                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "default").WithLocation(24, 20),
+                // (27,15): warning CS8625: Cannot convert null literal to non-nullable reference or unconstrained type parameter.
+                //         F4<C>(default);
+                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "default").WithLocation(27, 15),
+                // (30,15): warning CS8625: Cannot convert null literal to non-nullable reference or unconstrained type parameter.
+                //         F5<I>(default);
+                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "default").WithLocation(30, 15),
+                // (33,28): warning CS8625: Cannot convert null literal to non-nullable reference or unconstrained type parameter.
+                //         F6<object, object>(default);
+                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "default").WithLocation(33, 28),
+                // (46,15): warning CS8625: Cannot convert null literal to non-nullable reference or unconstrained type parameter.
+                //         F0<T>(default); // 1
+                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "default").WithLocation(46, 15),
+                // (48,15): warning CS8625: Cannot convert null literal to non-nullable reference or unconstrained type parameter.
+                //         F1<T>(default); // 1
+                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "default").WithLocation(48, 15),
+                // (50,18): warning CS8625: Cannot convert null literal to non-nullable reference or unconstrained type parameter.
+                //         F6<T, T>(default); // 1
+                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "default").WithLocation(50, 18),
+                // (78,15): warning CS8625: Cannot convert null literal to non-nullable reference or unconstrained type parameter.
+                //         F0<T>(default); // 4
+                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "default").WithLocation(78, 15),
+                // (80,15): warning CS8625: Cannot convert null literal to non-nullable reference or unconstrained type parameter.
+                //         F1<T>(default); // 4
+                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "default").WithLocation(80, 15),
+                // (82,15): warning CS8625: Cannot convert null literal to non-nullable reference or unconstrained type parameter.
+                //         F4<T>(default); // 4
+                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "default").WithLocation(82, 15),
+                // (84,15): warning CS8625: Cannot convert null literal to non-nullable reference or unconstrained type parameter.
+                //         F5<T>(default); // 4
+                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "default").WithLocation(84, 15),
+                // (86,18): warning CS8625: Cannot convert null literal to non-nullable reference or unconstrained type parameter.
+                //         F6<T, T>(default); // 4
+                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "default").WithLocation(86, 18));
+
+            // No warnings with C#7.3.
+            comp = CreateCompilation(source, parseOptions: TestOptions.Regular7_3);
+            comp.VerifyDiagnostics();
+        }
+
+        [WorkItem(26626, "https://github.com/dotnet/roslyn/issues/26626")]
+        [Fact]
+        public void ParameterDefaultValue_04()
+        {
+            var source =
+@"partial class C
+{
+    static partial void F(object? x = null, object y = null);
+    static partial void F(object? x, object y) { }
+    static partial void G(object x, object? y);
+    static partial void G(object x = null, object? y = null) { }
+    static void M()
+    {
+        F();
+        G();
+    }
+}";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
+            comp.VerifyDiagnostics(
+                // (6,34): warning CS1066: The default value specified for parameter 'x' will have no effect because it applies to a member that is used in contexts that do not allow optional arguments
+                //     static partial void G(object x = null, object? y = null) { }
+                Diagnostic(ErrorCode.WRN_DefaultValueForUnconsumedLocation, "x").WithArguments("x").WithLocation(6, 34),
+                // (6,38): warning CS8625: Cannot convert null literal to non-nullable reference or unconstrained type parameter.
+                //     static partial void G(object x = null, object? y = null) { }
+                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(6, 38),
+                // (6,52): warning CS1066: The default value specified for parameter 'y' will have no effect because it applies to a member that is used in contexts that do not allow optional arguments
+                //     static partial void G(object x = null, object? y = null) { }
+                Diagnostic(ErrorCode.WRN_DefaultValueForUnconsumedLocation, "y").WithArguments("y").WithLocation(6, 52),
+                // (3,56): warning CS8625: Cannot convert null literal to non-nullable reference or unconstrained type parameter.
+                //     static partial void F(object? x = null, object y = null);
+                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(3, 56),
+                // (10,9): error CS7036: There is no argument given that corresponds to the required formal parameter 'x' of 'C.G(object, object)'
+                //         G();
+                Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "G").WithArguments("x", "C.G(object, object?)").WithLocation(10, 9));
+        }
+
         [Fact]
         public void InvalidThrowTerm()
         {
@@ -17999,6 +18267,7 @@ class Program
                 Diagnostic(ErrorCode.ERR_InvalidExprTerm, "throw new System.Exception()").WithArguments("throw").WithLocation(3, 38));
         }
 
+        // PROTOTYPE(NullableReferenceTypes): Should not report WRN_NullabilityMismatchInAssignment.
         [Fact]
         public void UnboxingConversion()
         {
@@ -18014,7 +18283,10 @@ class Program
             comp.VerifyDiagnostics(
                 // (4,37): error CS0266: Cannot implicitly convert type 'T' to 'System.Collections.Generic.IEnumerator<T>'. An explicit conversion exists (are you missing a cast?)
                 //     static IEnumerator<T> M<T>() => default(T);
-                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "default(T)").WithArguments("T", "System.Collections.Generic.IEnumerator<T>").WithLocation(4, 37));
+                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "default(T)").WithArguments("T", "System.Collections.Generic.IEnumerator<T>").WithLocation(4, 37),
+                // (4,37): warning CS8619: Nullability of reference types in value of type 'T' doesn't match target type 'IEnumerator<T>'.
+                //     static IEnumerator<T> M<T>() => default(T);
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "default(T)").WithArguments("T", "System.Collections.Generic.IEnumerator<T>").WithLocation(4, 37));
         }
 
         // PROTOTYPE(NullableReferenceTypes): Should not report WRN_NullabilityMismatchInAssignment.
@@ -18485,6 +18757,103 @@ namespace System
 }";
             var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8, options: TestOptions.UnsafeReleaseDll);
             comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void TaskMethodReturningNull()
+        {
+            var source =
+@"using System.Threading.Tasks;
+class C
+{
+    static Task F0() => null;
+    static Task<string> F1() => null;
+    static Task<string?> F2() { return null; }
+    static Task<T> F3<T>() { return default; }
+    static Task<T> F4<T>() { return default(Task<T>); }
+    static Task<T> F5<T>() where T : class { return null; }
+    static Task<T?> F6<T>() where T : class => null;
+    static Task? G0() => null;
+    static Task<string>? G1() => null;
+    static Task<T>? G3<T>() { return default; }
+    static Task<T?>? G6<T>() where T : class => null;
+}";
+            var comp = CreateCompilationWithMscorlib46(source, parseOptions: TestOptions.Regular8);
+            comp.VerifyDiagnostics(
+                // (4,25): warning CS8625: Cannot convert null literal to non-nullable reference or unconstrained type parameter.
+                //     static Task F0() => null;
+                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(4, 25),
+                // (5,33): warning CS8625: Cannot convert null literal to non-nullable reference or unconstrained type parameter.
+                //     static Task<string> F1() => null;
+                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(5, 33),
+                // (6,40): warning CS8625: Cannot convert null literal to non-nullable reference or unconstrained type parameter.
+                //     static Task<string?> F2() { return null; }
+                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(6, 40),
+                // (7,37): warning CS8625: Cannot convert null literal to non-nullable reference or unconstrained type parameter.
+                //     static Task<T> F3<T>() { return default; }
+                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "default").WithLocation(7, 37),
+                // (8,37): warning CS8625: Cannot convert null literal to non-nullable reference or unconstrained type parameter.
+                //     static Task<T> F4<T>() { return default(Task<T>); }
+                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "default(Task<T>)").WithLocation(8, 37),
+                // (9,53): warning CS8625: Cannot convert null literal to non-nullable reference or unconstrained type parameter.
+                //     static Task<T> F5<T>() where T : class { return null; }
+                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(9, 53),
+                // (10,48): warning CS8625: Cannot convert null literal to non-nullable reference or unconstrained type parameter.
+                //     static Task<T?> F6<T>() where T : class => null;
+                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(10, 48));
+        }
+
+        // PROTOTYPE(NullableReferenceTypes): Should not report WRN_NullAsNonNullable for F0.
+        [WorkItem(23275, "https://github.com/dotnet/roslyn/issues/23275")]
+        [Fact]
+        public void AsyncTaskMethodReturningNull()
+        {
+            var source =
+@"#pragma warning disable 1998
+using System.Threading.Tasks;
+class C
+{
+    static async Task F0() { return null; }
+    static async Task<string> F1() => null;
+    static async Task<string?> F2() { return null; }
+    static async Task<T> F3<T>() { return default; }
+    static async Task<T> F4<T>() { return default(T); }
+    static async Task<T> F5<T>() where T : class { return null; }
+    static async Task<T?> F6<T>() where T : class => null;
+    static async Task? G0() { return null; }
+    static async Task<string>? G1() => null;
+    static async Task<T>? G3<T>() { return default; }
+    static async Task<T?>? G6<T>() where T : class => null;
+}";
+            var comp = CreateCompilationWithMscorlib46(source, parseOptions: TestOptions.Regular8);
+            comp.VerifyDiagnostics(
+                // (5,30): error CS1997: Since 'C.F0()' is an async method that returns 'Task', a return keyword must not be followed by an object expression. Did you intend to return 'Task<T>'?
+                //     static async Task F0() { return null; }
+                Diagnostic(ErrorCode.ERR_TaskRetNoObjectRequired, "return").WithArguments("C.F0()").WithLocation(5, 30),
+                // (5,37): warning CS8625: Cannot convert null literal to non-nullable reference or unconstrained type parameter.
+                //     static async Task F0() { return null; }
+                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(5, 37),
+                // (6,39): warning CS8625: Cannot convert null literal to non-nullable reference or unconstrained type parameter.
+                //     static async Task<string> F1() => null;
+                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(6, 39),
+                // (8,43): warning CS8625: Cannot convert null literal to non-nullable reference or unconstrained type parameter.
+                //     static async Task<T> F3<T>() { return default; }
+                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "default").WithLocation(8, 43),
+                // (9,43): warning CS8625: Cannot convert null literal to non-nullable reference or unconstrained type parameter.
+                //     static async Task<T> F4<T>() { return default(T); }
+                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "default(T)").WithLocation(9, 43),
+                // (10,59): warning CS8625: Cannot convert null literal to non-nullable reference or unconstrained type parameter.
+                //     static async Task<T> F5<T>() where T : class { return null; }
+                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(10, 59),
+                // (12,31): error CS1997: Since 'C.G0()' is an async method that returns 'Task', a return keyword must not be followed by an object expression. Did you intend to return 'Task<T>'?
+                //     static async Task? G0() { return null; }
+                Diagnostic(ErrorCode.ERR_TaskRetNoObjectRequired, "return").WithArguments("C.G0()").WithLocation(12, 31),
+                // (13,40): warning CS8625: Cannot convert null literal to non-nullable reference or unconstrained type parameter.
+                //     static async Task<string>? G1() => null;
+                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(13, 40),
+                // (14,44): warning CS8625: Cannot convert null literal to non-nullable reference or unconstrained type parameter.
+                //     static async Task<T>? G3<T>() { return default; }
+                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "default").WithLocation(14, 44));
         }
 
         [Fact]
@@ -19433,6 +19802,275 @@ class C
                 // (4,36): error CS0716: Cannot convert to static type 'C'
                 //     static object? G(object? y) => (C?)y;
                 Diagnostic(ErrorCode.ERR_ConvertToStaticClass, "(C?)y").WithArguments("C").WithLocation(4, 36));
+        }
+
+        [Fact]
+        public void ForEach_01()
+        {
+            var source =
+@"class Enumerable
+{
+    public Enumerator GetEnumerator() => new Enumerator();
+}
+class Enumerator
+{
+    public object Current => throw null;
+    public bool MoveNext() => false;
+}
+class C
+{
+    static void F(Enumerable e)
+    {
+        foreach (var x in e)
+            x.ToString();
+        foreach (string y in e)
+            y.ToString();
+        foreach (string? z in e)
+            z.ToString();
+    }
+}";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void ForEach_02()
+        {
+            var source =
+@"class Enumerable
+{
+    public Enumerator GetEnumerator() => new Enumerator();
+}
+class Enumerator
+{
+    public object? Current => throw null;
+    public bool MoveNext() => false;
+}
+class C
+{
+    static void F(Enumerable e)
+    {
+        foreach (var x in e)
+            x.ToString();
+        foreach (object y in e)
+            y.ToString();
+    }
+}";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
+            comp.VerifyDiagnostics(
+                // (15,13): warning CS8602: Possible dereference of a null reference.
+                //             x.ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "x").WithLocation(15, 13),
+                // (17,13): warning CS8602: Possible dereference of a null reference.
+                //             y.ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "y").WithLocation(17, 13));
+        }
+
+        [Fact]
+        public void ForEach_03()
+        {
+            var source =
+@"using System.Collections;
+namespace System
+{
+    public class Object
+    {
+        public string ToString() => throw null;
+    }
+    public abstract class ValueType { }
+    public struct Void { }
+    public struct Boolean { }
+    public class String { }
+}
+namespace System.Collections
+{
+    public interface IEnumerable
+    {
+        IEnumerator GetEnumerator();
+    }
+    public interface IEnumerator
+    {
+        object? Current { get; }
+        bool MoveNext();
+    }
+}
+class Enumerable : IEnumerable
+{
+    IEnumerator IEnumerable.GetEnumerator() => throw null;
+}
+class C
+{
+    static void F(Enumerable e)
+    {
+        foreach (var x in e)
+            x.ToString();
+        foreach (object y in e)
+            y.ToString();
+    }
+    static void G(IEnumerable e)
+    {
+        foreach (var z in e)
+            z.ToString();
+        foreach (object w in e)
+            w.ToString();
+    }
+}";
+            var comp = CreateEmptyCompilation(source, parseOptions: TestOptions.Regular8);
+            comp.VerifyDiagnostics(
+                // (34,13): warning CS8602: Possible dereference of a null reference.
+                //             x.ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "x").WithLocation(34, 13),
+                // (36,13): warning CS8602: Possible dereference of a null reference.
+                //             y.ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "y").WithLocation(36, 13),
+                // (41,13): warning CS8602: Possible dereference of a null reference.
+                //             z.ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "z").WithLocation(41, 13),
+                // (43,13): warning CS8602: Possible dereference of a null reference.
+                //             w.ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "w").WithLocation(43, 13));
+        }
+
+        // z.ToString() should warn if IEnumerator.Current is annotated as `object?`.
+        [Fact]
+        public void ForEach_04()
+        {
+            var source =
+@"using System.Collections;
+using System.Collections.Generic;
+class C
+{
+    static void F(IEnumerable<object?> cx, object?[] cy)
+    {
+        foreach (var x in cx)
+            x.ToString();
+        foreach (object? y in cy)
+            y.ToString();
+        foreach (object? z in (IEnumerable)cx)
+            z.ToString();
+    }
+}";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
+            comp.VerifyDiagnostics(
+                // (8,13): warning CS8602: Possible dereference of a null reference.
+                //             x.ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "x").WithLocation(8, 13),
+                // (10,13): warning CS8602: Possible dereference of a null reference.
+                //             y.ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "y").WithLocation(10, 13));
+        }
+
+        [Fact]
+        public void ForEach_05()
+        {
+            var source =
+@"class C
+{
+    static void F1(dynamic c)
+    {
+        foreach (var x in c)
+            x.ToString();
+        foreach (object? y in c)
+            y.ToString();
+    }
+}";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void ForEach_06()
+        {
+            var source =
+@"using System.Collections;
+using System.Collections.Generic;
+class C<T> : IEnumerable<T> where T : class
+{
+    IEnumerator<T> IEnumerable<T>.GetEnumerator() => throw null;
+    IEnumerator IEnumerable.GetEnumerator() => throw null;
+}
+class P
+{
+    static void F<T>(C<T?> c) where T : class
+    {
+        foreach (var x in c)
+            x.ToString();
+        foreach (T? y in c)
+            y.ToString();
+        foreach (T z in c)
+            z.ToString();
+        foreach (object w in c)
+            w.ToString();
+    }
+}";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
+            comp.VerifyDiagnostics(
+                // (13,13): warning CS8602: Possible dereference of a null reference.
+                //             x.ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "x").WithLocation(13, 13),
+                // (15,13): warning CS8602: Possible dereference of a null reference.
+                //             y.ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "y").WithLocation(15, 13),
+                // (17,13): warning CS8602: Possible dereference of a null reference.
+                //             z.ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "z").WithLocation(17, 13),
+                // (19,13): warning CS8602: Possible dereference of a null reference.
+                //             w.ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "w").WithLocation(19, 13));
+        }
+
+        [Fact]
+        public void ForEach_07()
+        {
+            var source =
+@"struct S<T> where T : class
+{
+    public E<T> GetEnumerator() => new E<T>();
+}
+struct E<T> where T : class
+{
+    public T Current => throw null;
+    public bool MoveNext() => false;
+}
+class P
+{
+    static void F1<T>() where T : class
+    {
+        foreach (var x1 in new S<T>())
+            x1.ToString();
+        foreach (T y1 in new S<T>())
+            y1.ToString();
+        foreach (T? z1 in new S<T>())
+            z1.ToString();
+        foreach (object? w1 in new S<T>())
+            w1.ToString();
+    }
+    static void F2<T>() where T : class
+    {
+        foreach (var x2 in new S<T?>())
+            x2.ToString();
+        foreach (T y2 in new S<T?>())
+            y2.ToString();
+        foreach (T? z2 in new S<T?>())
+            z2.ToString();
+        foreach (object? w2 in new S<T?>())
+            w2.ToString();
+    }
+}";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
+            comp.VerifyDiagnostics(
+                // (26,13): warning CS8602: Possible dereference of a null reference.
+                //             x2.ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "x2").WithLocation(26, 13),
+                // (28,13): warning CS8602: Possible dereference of a null reference.
+                //             y2.ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "y2").WithLocation(28, 13),
+                // (30,13): warning CS8602: Possible dereference of a null reference.
+                //             z2.ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "z2").WithLocation(30, 13),
+                // (32,13): warning CS8602: Possible dereference of a null reference.
+                //             w2.ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "w2").WithLocation(32, 13));
         }
 
         [Fact]

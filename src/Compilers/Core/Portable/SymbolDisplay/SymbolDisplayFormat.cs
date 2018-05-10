@@ -25,14 +25,14 @@ namespace Microsoft.CodeAnalysis
                 parameterOptions:
                     SymbolDisplayParameterOptions.IncludeParamsRefOut |
                     SymbolDisplayParameterOptions.IncludeType,
-                compilerInternalOptions: SymbolDisplayCompilerInternalOptions.IncludeNullableReferenceTypeModifier,
                 // Not showing the name is important because we visit parameters to display their
                 // types.  If we visited their types directly, we wouldn't get ref/out/params.
                 miscellaneousOptions:
                     SymbolDisplayMiscellaneousOptions.EscapeKeywordIdentifiers |
                     SymbolDisplayMiscellaneousOptions.UseSpecialTypes |
                     SymbolDisplayMiscellaneousOptions.UseAsterisksInMultiDimensionalArrays |
-                    SymbolDisplayMiscellaneousOptions.UseErrorTypeSymbolName);
+                    SymbolDisplayMiscellaneousOptions.UseErrorTypeSymbolName |
+                    SymbolDisplayMiscellaneousOptions.IncludeNullableReferenceTypeModifier);
 
         /// <summary>
         /// Formats a symbol description as in a C# compiler short error message.
@@ -50,14 +50,14 @@ namespace Microsoft.CodeAnalysis
                 parameterOptions:
                     SymbolDisplayParameterOptions.IncludeParamsRefOut |
                     SymbolDisplayParameterOptions.IncludeType,
-                compilerInternalOptions: SymbolDisplayCompilerInternalOptions.IncludeNullableReferenceTypeModifier,
                 // Not showing the name is important because we visit parameters to display their
                 // types.  If we visited their types directly, we wouldn't get ref/out/params.
                 miscellaneousOptions:
                     SymbolDisplayMiscellaneousOptions.EscapeKeywordIdentifiers |
                     SymbolDisplayMiscellaneousOptions.UseSpecialTypes |
                     SymbolDisplayMiscellaneousOptions.UseAsterisksInMultiDimensionalArrays |
-                    SymbolDisplayMiscellaneousOptions.UseErrorTypeSymbolName);
+                    SymbolDisplayMiscellaneousOptions.UseErrorTypeSymbolName |
+                    SymbolDisplayMiscellaneousOptions.IncludeNullableReferenceTypeModifier);
 
         /// <summary>
         /// Formats a symbol description as in a Visual Basic compiler error message.
@@ -157,10 +157,10 @@ namespace Microsoft.CodeAnalysis
                     SymbolDisplayParameterOptions.IncludeParamsRefOut |
                     SymbolDisplayParameterOptions.IncludeDefaultValue,
                 localOptions: SymbolDisplayLocalOptions.IncludeType,
-                compilerInternalOptions: SymbolDisplayCompilerInternalOptions.IncludeNullableReferenceTypeModifier,
                 miscellaneousOptions:
                     SymbolDisplayMiscellaneousOptions.EscapeKeywordIdentifiers |
-                    SymbolDisplayMiscellaneousOptions.UseSpecialTypes);
+                    SymbolDisplayMiscellaneousOptions.UseSpecialTypes |
+                    SymbolDisplayMiscellaneousOptions.IncludeNullableReferenceTypeModifier);
 
         /// <summary>
         /// A verbose format for displaying symbols (useful for testing).
@@ -189,13 +189,13 @@ namespace Microsoft.CodeAnalysis
                     SymbolDisplayParameterOptions.IncludeName,
                 miscellaneousOptions:
                     SymbolDisplayMiscellaneousOptions.EscapeKeywordIdentifiers |
-                    SymbolDisplayMiscellaneousOptions.UseErrorTypeSymbolName,
+                    SymbolDisplayMiscellaneousOptions.UseErrorTypeSymbolName |
+                    SymbolDisplayMiscellaneousOptions.IncludeNullableReferenceTypeModifier,
                 compilerInternalOptions:
                     SymbolDisplayCompilerInternalOptions.IncludeScriptType |
                     SymbolDisplayCompilerInternalOptions.UseMetadataMethodNames |
                     SymbolDisplayCompilerInternalOptions.FlagMissingMetadataTypes |
-                    SymbolDisplayCompilerInternalOptions.IncludeCustomModifiers |
-                    SymbolDisplayCompilerInternalOptions.IncludeNullableReferenceTypeModifier);
+                    SymbolDisplayCompilerInternalOptions.IncludeCustomModifiers);
 
         /// <summary>
         /// this.QualifiedNameOnly = containingSymbol.QualifiedNameOnly + "." + this.Name
@@ -223,10 +223,10 @@ namespace Microsoft.CodeAnalysis
                 typeQualificationStyle: SymbolDisplayTypeQualificationStyle.NameOnly,
                 propertyStyle: SymbolDisplayPropertyStyle.NameOnly,
                 parameterOptions: SymbolDisplayParameterOptions.IncludeName,
-                compilerInternalOptions: SymbolDisplayCompilerInternalOptions.IncludeNullableReferenceTypeModifier,
                 miscellaneousOptions:
                     SymbolDisplayMiscellaneousOptions.EscapeKeywordIdentifiers |
-                    SymbolDisplayMiscellaneousOptions.UseSpecialTypes);
+                    SymbolDisplayMiscellaneousOptions.UseSpecialTypes |
+                    SymbolDisplayMiscellaneousOptions.IncludeNullableReferenceTypeModifier);
 
         /// <summary>
         /// The format used for displaying symbols when visualizing IL.
@@ -398,7 +398,7 @@ namespace Microsoft.CodeAnalysis
             SymbolDisplayMiscellaneousOptions miscellaneousOptions = default(SymbolDisplayMiscellaneousOptions))
         {
             // If we want to display `!`, then we surely also want to display `?`
-            Debug.Assert(compilerInternalOptions.IncludesOption(SymbolDisplayCompilerInternalOptions.IncludeNullableReferenceTypeModifier)
+            Debug.Assert(miscellaneousOptions.IncludesOption(SymbolDisplayMiscellaneousOptions.IncludeNullableReferenceTypeModifier)
                 || !compilerInternalOptions.IncludesOption(SymbolDisplayCompilerInternalOptions.IncludeNonNullableTypeModifier));
 
             this.GlobalNamespaceStyle = globalNamespaceStyle;

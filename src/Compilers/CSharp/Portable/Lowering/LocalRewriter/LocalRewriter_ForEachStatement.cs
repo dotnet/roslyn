@@ -106,7 +106,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundStatement rewrittenBody = (BoundStatement)Visit(node.Body);
 
             TypeSymbol enumeratorType = enumeratorInfo.GetEnumeratorMethod.ReturnType.TypeSymbol;
-            TypeSymbol elementType = enumeratorInfo.ElementType;
+            TypeSymbol elementType = enumeratorInfo.ElementType.TypeSymbol;
 
             // E e
             LocalSymbol enumeratorVar = _factory.SynthesizedLocal(enumeratorType, syntax: forEachSyntax, kind: SynthesizedLocalKind.ForEachEnumerator);

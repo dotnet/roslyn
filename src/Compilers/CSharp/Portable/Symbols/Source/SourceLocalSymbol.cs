@@ -623,8 +623,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             protected override TypeSymbolWithAnnotations InferTypeOfVarVariable(DiagnosticBag diagnostics)
             {
-                var type = ForEachLoopBinder.InferCollectionElementType(diagnostics, _collection);
-                return type == null ? null : TypeSymbolWithAnnotations.Create(type);
+                return ForEachLoopBinder.InferCollectionElementType(diagnostics, _collection);
             }
 
             /// <summary>
