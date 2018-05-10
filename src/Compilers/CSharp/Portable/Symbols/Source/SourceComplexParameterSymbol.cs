@@ -128,11 +128,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                                   && HasCallerMemberNameAttribute;
 
         internal override bool NotNullWhenFalse
-            => GetEarlyDecodedWellKnownAttributeData()?.HasNotNullWhenFalseAttribute == true ||
+            => GetDecodedWellKnownAttributeData()?.HasNotNullWhenFalseAttribute == true ||
             HasExtraAttribute(AttributeDescription.NotNullWhenFalseAttribute);
 
         internal override bool EnsuresNotNull
-            => GetEarlyDecodedWellKnownAttributeData()?.HasEnsuresNotNullAttribute == true ||
+            => GetDecodedWellKnownAttributeData()?.HasEnsuresNotNullAttribute == true ||
             HasExtraAttribute(AttributeDescription.EnsuresNotNullAttribute);
 
         private ConstantValue DefaultSyntaxValue
@@ -481,14 +481,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 {
                     arguments.GetOrCreateData<ParameterEarlyWellKnownAttributeData>().HasCallerMemberNameAttribute = true;
                 }
-                else if (CSharpAttributeData.IsTargetEarlyAttribute(arguments.AttributeType, arguments.AttributeSyntax, AttributeDescription.NotNullWhenFalseAttribute))
-                {
-                    arguments.GetOrCreateData<ParameterEarlyWellKnownAttributeData>().HasNotNullWhenFalseAttribute = true;
-                }
-                else if (CSharpAttributeData.IsTargetEarlyAttribute(arguments.AttributeType, arguments.AttributeSyntax, AttributeDescription.EnsuresNotNullAttribute))
-                {
-                    arguments.GetOrCreateData<ParameterEarlyWellKnownAttributeData>().HasEnsuresNotNullAttribute = true;
-                }
             }
 
             return base.EarlyDecodeWellKnownAttribute(ref arguments);
@@ -620,6 +612,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 // NullableAttribute should not be set explicitly.
                 arguments.Diagnostics.Add(ErrorCode.ERR_ExplicitNullableAttribute, arguments.AttributeSyntaxOpt.Location);
+            }
+            else if (attribute.IsTargetAttribute(this, AttributeDescription.NotNullWhenFalseAttribute))
+            {
+                if (this.ContainingSymbol.GetTypeOrReturnType().SpecialType == SpecialType.System_Boolean)
+                {
+                    arguments.GetOrCreateData<CommonParameterWellKnownAttributeData>().HasNotNullWhenFalseAttribute = true;
+                }
+                else
+                {
+                    arguments.Diagnostics.Add(ErrorCode.ERR_NotNullWhenFalseRequiresBoolReturn, arguments.AttributeSyntaxOpt.Location);
+                }
+            }
+            else if (attribute.IsTargetAttribute(this, AttributeDescription.EnsuresNotNullAttribute))
+            {
+                arguments.GetOrCreateData<CommonParameterWellKnownAttributeData>().HasEnsuresNotNullAttribute = true;
             }
         }
 

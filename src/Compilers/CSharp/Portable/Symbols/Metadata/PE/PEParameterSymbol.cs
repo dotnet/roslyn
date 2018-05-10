@@ -657,9 +657,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 if (!_packedFlags.TryGetWellKnownAttribute(flag, out value))
                 {
                     value = _packedFlags.SetWellKnownAttribute(flag,
-                        _moduleSymbol.Module.HasAttribute(_handle, AttributeDescription.NotNullWhenFalseAttribute));
+                        _moduleSymbol.Module.HasAttribute(_handle, AttributeDescription.NotNullWhenFalseAttribute) ||
+                        HasExtraAttribute(AttributeDescription.NotNullWhenFalseAttribute));
                 }
-                return value || HasExtraAttribute(AttributeDescription.NotNullWhenFalseAttribute);
+                return value;
             }
         }
 
@@ -673,9 +674,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 if (!_packedFlags.TryGetWellKnownAttribute(flag, out value))
                 {
                     value = _packedFlags.SetWellKnownAttribute(flag,
-                        _moduleSymbol.Module.HasAttribute(_handle, AttributeDescription.EnsuresNotNullAttribute));
+                        _moduleSymbol.Module.HasAttribute(_handle, AttributeDescription.EnsuresNotNullAttribute) ||
+                        HasExtraAttribute(AttributeDescription.EnsuresNotNullAttribute));
                 }
-                return value || HasExtraAttribute(AttributeDescription.EnsuresNotNullAttribute);
+                return value;
             }
         }
 

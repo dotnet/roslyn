@@ -1626,7 +1626,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 (ParameterSymbol parameter, _) = GetCorrespondingParameter(i, parameters, argsToParamsOpt, expanded);
 
-                bool notNullWhenFalse = parameter?.NotNullWhenFalse == true;
+                // We'll ignore NotNullWhenFalse that is misused in metadata
+                bool notNullWhenFalse = parameter?.NotNullWhenFalse == true &&
+                    parameter.ContainingSymbol.GetTypeOrReturnType().SpecialType == SpecialType.System_Boolean;
+
                 bool ensuresNotNull = parameter?.EnsuresNotNull == true;
 
                 if ((notNullWhenFalse || ensuresNotNull) && builder == null)
@@ -1724,8 +1727,14 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // We do a second pass through the arguments, ignoring any diagnostics produced, but honoring the annotations,
             // to get the proper result state.
-            this.SetState(savedState);
-            VisitArgumentsEvaluateHonoringAnnotations(arguments, refKindsOpt, parameters, argsToParamsOpt, expanded);
+            ImmutableArray<(bool notNullWhenFalse, bool ensuresNotNull)> annotations = GetAnnotations(arguments.Length,
+               expanded, parameters, argsToParamsOpt);
+
+            if (!annotations.IsDefault)
+            {
+                this.SetState(savedState);
+                VisitArgumentsEvaluateHonoringAnnotations(arguments, refKindsOpt, annotations);
+            }
 
             return results;
         }
@@ -1775,19 +1784,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         private void VisitArgumentsEvaluateHonoringAnnotations(
             ImmutableArray<BoundExpression> arguments,
             ImmutableArray<RefKind> refKindsOpt,
-            ImmutableArray<ParameterSymbol> parameters,
-            ImmutableArray<int> argsToParamsOpt,
-            bool expanded)
+            ImmutableArray<(bool notNullWhenFalse, bool ensuresNotNull)> annotations)
         {
             Debug.Assert(!IsConditionalState);
-
-            ImmutableArray<(bool notNullWhenFalse, bool ensuresNotNull)> annotations = GetAnnotations(arguments.Length,
-               expanded, parameters, argsToParamsOpt);
-
-            if (annotations.IsDefault)
-            {
-                return;
-            }
 
             bool saveDisableDiagnostics = _disableDiagnostics;
             _disableDiagnostics = true;

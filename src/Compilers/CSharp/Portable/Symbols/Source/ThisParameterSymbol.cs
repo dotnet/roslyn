@@ -116,12 +116,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal override bool NotNullWhenFalse
         {
-            get { return HasExtraAttribute(AttributeDescription.NotNullWhenFalseAttribute); }
+            get { return false; }
         }
 
         internal override bool EnsuresNotNull
         {
-            get { return HasExtraAttribute(AttributeDescription.EnsuresNotNullAttribute); }
+            get { return false;  }
         }
 
         public override int Ordinal

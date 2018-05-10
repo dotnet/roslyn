@@ -5489,9 +5489,9 @@ class Test
         {
             CSharpCompilation c = CreateCompilation(@"
 using System.Runtime.CompilerServices;
-class C
+public class C
 {
-    void Main(string? s)
+    public void Main(string? s)
     {
         if (MyIsNullOrEmpty(s))
         {
@@ -5504,7 +5504,7 @@ class C
 
         s.ToString(); // warn 2
     }
-    static bool MyIsNullOrEmpty([NotNullWhenFalse] string? s) => throw null;
+    public static bool MyIsNullOrEmpty([NotNullWhenFalse] string? s) => throw null;
 }
 " + NotNullWhenFalseAttributeDefinition, parseOptions: TestOptions.Regular8);
 
@@ -5522,11 +5522,31 @@ class C
         }
 
         [Fact]
+        public void NotNullWhenFalse_RequiresBoolReturn()
+        {
+            CSharpCompilation c = CreateCompilation(@"
+using System.Runtime.CompilerServices;
+public class C
+{
+    public static object MyIsNullOrEmpty([NotNullWhenFalse] string? s) => throw null;
+}
+" + NotNullWhenFalseAttributeDefinition, parseOptions: TestOptions.Regular8);
+
+            c.VerifyDiagnostics(
+                // (5,43): error CS8627: The NotNullWhenFalse attribute is only applicable on members that return a boolean type.
+                //     public static object MyIsNullOrEmpty([NotNullWhenFalse] string? s) => throw null;
+                Diagnostic(ErrorCode.ERR_NotNullWhenFalseRequiresBoolReturn, "NotNullWhenFalse").WithLocation(5, 43)
+                );
+
+            VerifyNotNullWhenFalseInSource(c, "C.MyIsNullOrEmpty", false);
+        }
+
+        [Fact]
         public void NotNullWhenFalse_OnTwoParameters()
         {
             CSharpCompilation c = CreateCompilation(@"
 using System.Runtime.CompilerServices;
-class C
+public class C
 {
     void Main(string? s, string? s2)
     {
@@ -5544,7 +5564,7 @@ class C
         s.ToString(); // warn 3
         s2.ToString(); // warn 4
     }
-    static bool MyIsNullOrEmpty([NotNullWhenFalse] string? s, [NotNullWhenFalse] string? s2) => throw null;
+    public static bool MyIsNullOrEmpty([NotNullWhenFalse] string? s, [NotNullWhenFalse] string? s2) => throw null;
 }
 " + NotNullWhenFalseAttributeDefinition, parseOptions: TestOptions.Regular8);
 
@@ -5705,23 +5725,41 @@ class C
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "s").WithLocation(15, 9)
                 );
 
-            VerifyNotNullWhenFalse(c, "C.MyIsNullOrEmpty", false);
+            VerifyNotNullWhenFalseInSource(c, "C.MyIsNullOrEmpty", false);
         }
 
-        private void VerifyNotNullWhenFalse(Compilation compilation, string memberName, params bool[] hasNotNullWhenFalse)
+        private static void VerifyNotNullWhenFalseInSource(Compilation compilation, string memberName, params bool[] hasNotNullWhenFalse)
+        {
+            Func<ParameterSymbol, bool> valueGetter = p => p.NotNullWhenFalse;
+            VerifyParameterProperties(compilation, memberName, valueGetter, hasNotNullWhenFalse);
+        }
+
+        private static void VerifyNotNullWhenFalse(Compilation compilation, string memberName, params bool[] hasNotNullWhenFalse)
+        {
+            Func<ParameterSymbol, bool> valueGetter = p => p.NotNullWhenFalse;
+            VerifyParameterProperties(compilation, memberName, valueGetter, hasNotNullWhenFalse);
+
+            // Also verify from metadata
+            var compilation2 = CreateCompilation("", references: new[] { compilation.EmitToImageReference() });
+            VerifyParameterProperties(compilation2, memberName, valueGetter, hasNotNullWhenFalse);
+        }
+
+        private static void VerifyParameterProperties(Compilation compilation, string memberName, Func<ParameterSymbol, bool> valueGetter, params bool[] expected)
         {
             var method = compilation.GetMember<MethodSymbol>(memberName);
             Assert.True((object)method != null, $"Could not find method '{memberName}'");
-            var actual = method.Parameters.Select(p => p.NotNullWhenFalse);
-            Assert.Equal(hasNotNullWhenFalse, actual);
+            var actual = method.Parameters.Select(valueGetter);
+            Assert.Equal(expected, actual);
         }
 
         private void VerifyEnsuresNotNull(Compilation compilation, string memberName, params bool[] hasEnsuresNotNull)
         {
-            var method = compilation.GetMember<MethodSymbol>(memberName);
-            Assert.True((object)method != null, $"Could not find method '{memberName}'");
-            var actual = method.Parameters.Select(p => p.EnsuresNotNull);
-            Assert.Equal(hasEnsuresNotNull, actual);
+            Func<ParameterSymbol, bool> valueGetter = p => p.EnsuresNotNull;
+            VerifyParameterProperties(compilation, memberName, valueGetter, hasEnsuresNotNull);
+
+            // Also verify from metadata
+            var compilation2 = CreateCompilation("", references: new[] { compilation.EmitToImageReference() });
+            VerifyParameterProperties(compilation2, memberName, valueGetter, hasEnsuresNotNull);
         }
 
         [Fact]
@@ -5729,7 +5767,7 @@ class C
         {
             CSharpCompilation c = CreateCompilation(@"
 using System.Runtime.CompilerServices;
-class C
+public class C
 {
     void Main(string? s)
     {
@@ -5742,7 +5780,7 @@ class C
             s.ToString(); // warn 2
         }
     }
-    static bool MyIsNullOrEmpty([NotNullWhenFalse(true)] string? s) => throw null;
+    public static bool MyIsNullOrEmpty([NotNullWhenFalse(true)] string? s) => throw null;
 }
 namespace System.Runtime.CompilerServices
 {
@@ -5772,7 +5810,7 @@ namespace System.Runtime.CompilerServices
         {
             CSharpCompilation c = CreateCompilation(@"
 using System.Runtime.CompilerServices;
-class C
+public class C
 {
     void Main(string? s)
     {
@@ -5785,7 +5823,7 @@ class C
             s.ToString(); // warn
         }
     }
-    static bool MyIsNullOrEmpty([NotNullWhenFalse] string? s) => throw null;
+    public static bool MyIsNullOrEmpty([NotNullWhenFalse] string? s) => throw null;
 }
 " + NotNullWhenFalseAttributeDefinition, parseOptions: TestOptions.Regular8);
 
@@ -5821,7 +5859,7 @@ class C
         {
             CSharpCompilation c = CreateCompilation(@"
 using System.Runtime.CompilerServices;
-class C
+public class C
 {
     void Main(string? s)
     {
@@ -5834,7 +5872,7 @@ class C
             s.ToString(); // ok
         }
     }
-    bool MyIsNullOrEmpty([NotNullWhenFalse] string? s) => throw null;
+    public bool MyIsNullOrEmpty([NotNullWhenFalse] string? s) => throw null;
 }
 " + NotNullWhenFalseAttributeDefinition, parseOptions: TestOptions.Regular8);
 
@@ -5950,7 +5988,7 @@ namespace System
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "s").WithLocation(8, 13)
                 );
 
-            VerifyNotNullWhenFalse(c, "System.String.IsNullOrEmpty", true);
+            VerifyNotNullWhenFalseInSource(c, "System.String.IsNullOrEmpty", true);
         }
 
         [Fact]
@@ -5993,7 +6031,7 @@ namespace System
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "s").WithLocation(8, 13)
                 );
 
-            VerifyNotNullWhenFalse(c, "System.String.IsNullOrWhiteSpace", true);
+            VerifyNotNullWhenFalseInSource(c, "System.String.IsNullOrWhiteSpace", true);
         }
 
         [Fact]
@@ -6119,14 +6157,23 @@ public partial class C
 " + NotNullWhenFalseAttributeDefinition, parseOptions: TestOptions.Regular8);
 
             c.VerifyDiagnostics(
+                // (8,22): error CS8627: The NotNullWhenFalse attribute is only applicable on members that return a boolean type.
+                //     partial void M2([NotNullWhenFalse] string? s);
+                Diagnostic(ErrorCode.ERR_NotNullWhenFalseRequiresBoolReturn, "NotNullWhenFalse").WithLocation(8, 22),
+                // (12,22): error CS8627: The NotNullWhenFalse attribute is only applicable on members that return a boolean type.
+                //     partial void M3([NotNullWhenFalse] string? s) => throw null;
+                Diagnostic(ErrorCode.ERR_NotNullWhenFalseRequiresBoolReturn, "NotNullWhenFalse").WithLocation(12, 22),
                 // (11,22): error CS0579: Duplicate 'NotNullWhenFalse' attribute
                 //     partial void M3([NotNullWhenFalse] string? s);
-                Diagnostic(ErrorCode.ERR_DuplicateAttribute, "NotNullWhenFalse").WithArguments("NotNullWhenFalse").WithLocation(11, 22)
+                Diagnostic(ErrorCode.ERR_DuplicateAttribute, "NotNullWhenFalse").WithArguments("NotNullWhenFalse").WithLocation(11, 22),
+                // (6,22): error CS8627: The NotNullWhenFalse attribute is only applicable on members that return a boolean type.
+                //     partial void M1([NotNullWhenFalse] string? s) => throw null;
+                Diagnostic(ErrorCode.ERR_NotNullWhenFalseRequiresBoolReturn, "NotNullWhenFalse").WithLocation(6, 22)
                 );
 
-            VerifyNotNullWhenFalse(c, "C.M1", false);
-            VerifyNotNullWhenFalse(c, "C.M2", true);
-            VerifyNotNullWhenFalse(c, "C.M3", true);
+            VerifyNotNullWhenFalseInSource(c, "C.M1", false);
+            VerifyNotNullWhenFalseInSource(c, "C.M2", false);
+            VerifyNotNullWhenFalseInSource(c, "C.M3", false);
         }
 
         [Fact]
@@ -6134,7 +6181,7 @@ public partial class C
         {
             CSharpCompilation c = CreateCompilation(@"
 using System.Runtime.CompilerServices;
-class C
+public class C
 {
     void Main(string? s)
     {
@@ -6147,17 +6194,104 @@ class C
             s.ToString(); // ok
         }
     }
-    dynamic MyIsNullOrEmpty([NotNullWhenFalse] string? s) => throw null;
+    public dynamic MyIsNullOrEmpty([NotNullWhenFalse] string? s) => throw null;
 }
 " + NotNullWhenFalseAttributeDefinition, parseOptions: TestOptions.Regular8);
 
             c.VerifyDiagnostics(
+                // (16,37): error CS8627: The NotNullWhenFalse attribute is only applicable on members that return a boolean type.
+                //     public dynamic MyIsNullOrEmpty([NotNullWhenFalse] string? s) => throw null;
+                Diagnostic(ErrorCode.ERR_NotNullWhenFalseRequiresBoolReturn, "NotNullWhenFalse").WithLocation(16, 37),
                 // (9,13): warning CS8602: Possible dereference of a null reference.
                 //             s.ToString(); // warn
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "s").WithLocation(9, 13)
                 );
 
-            VerifyNotNullWhenFalse(c, "C.MyIsNullOrEmpty", true);
+            VerifyNotNullWhenFalseInSource(c, "C.MyIsNullOrEmpty", false);
+        }
+
+        [Fact]
+        public void NotNullWhenFalse_ReturningObject_FromMetadata()
+        {
+            string il = @"
+.class private auto ansi sealed beforefieldinit System.Runtime.CompilerServices.NullableAttribute
+    extends [mscorlib]System.Attribute
+{
+    .method public hidebysig specialname rtspecialname
+        instance void .ctor () cil managed
+    {
+        IL_0000: ldnull
+        IL_0001: throw
+    }
+}
+
+.class public auto ansi beforefieldinit C
+    extends [mscorlib]System.Object
+{
+    .method public hidebysig
+        instance object MyIsNullOrEmpty (string s) cil managed
+    {
+        .param [1]
+        .custom instance void System.Runtime.CompilerServices.NullableAttribute::.ctor() = (
+            01 00 00 00
+        )
+        .custom instance void System.Runtime.CompilerServices.NotNullWhenFalseAttribute::.ctor() = (
+            01 00 00 00
+        )
+
+        IL_0000: ldnull
+        IL_0001: throw
+    }
+
+    .method public hidebysig specialname rtspecialname
+        instance void .ctor () cil managed
+    {
+        IL_0000: ldnull
+        IL_0001: throw
+    }
+}
+
+.class public auto ansi beforefieldinit System.Runtime.CompilerServices.NotNullWhenFalseAttribute
+    extends [mscorlib]System.Attribute
+{
+    .custom instance void [mscorlib]System.AttributeUsageAttribute::.ctor(valuetype [mscorlib]System.AttributeTargets) = (
+        01 00 00 08 00 00 01 00 54 02 0d 41 6c 6c 6f 77 4d 75 6c 74 69 70 6c 65 00
+    )
+    .method public hidebysig specialname rtspecialname
+        instance void .ctor () cil managed
+    {
+        IL_0000: ldnull
+        IL_0001: throw
+    }
+}
+";
+            string source = @"
+public class D
+{
+    void Main(C c, string? s)
+    {
+        if ((bool)c.MyIsNullOrEmpty(s))
+        {
+            s.ToString(); // warn 1
+        }
+        else
+        {
+            s.ToString(); // warn 2
+        }
+    }
+}
+";
+            var compilation = CreateCompilationWithIL(source, il, parseOptions: TestOptions.Regular8);
+            compilation.VerifyDiagnostics(
+                // (8,13): warning CS8602: Possible dereference of a null reference.
+                //             s.ToString(); // warn 1
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "s").WithLocation(8, 13),
+                // (12,13): warning CS8602: Possible dereference of a null reference.
+                //             s.ToString(); // warn 2
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "s").WithLocation(12, 13)
+                );
+
+            VerifyNotNullWhenFalseInSource(compilation, "C.MyIsNullOrEmpty", true);
         }
 
         [Fact]
@@ -6177,6 +6311,9 @@ class C
 " + NotNullWhenFalseAttributeDefinition, parseOptions: TestOptions.Regular8);
 
             c.VerifyDiagnostics(
+                // (10,29): error CS8627: The NotNullWhenFalse attribute is only applicable on members that return a boolean type.
+                //     object MyIsNullOrEmpty([NotNullWhenFalse] string? s) => throw null;
+                Diagnostic(ErrorCode.ERR_NotNullWhenFalseRequiresBoolReturn, "NotNullWhenFalse").WithLocation(10, 29),
                 // (8,9): warning CS8602: Possible dereference of a null reference.
                 //         s.ToString(); // warn
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "s").WithLocation(8, 9)
@@ -6188,7 +6325,7 @@ class C
         {
             CSharpCompilation c = CreateCompilation(@"
 using System.Runtime.CompilerServices;
-class C
+public class C
 {
     void Main(string? s)
     {
@@ -6203,7 +6340,7 @@ class C
 
         s.ToString(); // ok
     }
-    static bool MyIsNullOrEmpty([NotNullWhenFalse] string? s, [EnsuresNotNull] string? s2) => throw null;
+    public static bool MyIsNullOrEmpty([NotNullWhenFalse] string? s, [EnsuresNotNull] string? s2) => throw null;
 }
 " + NotNullWhenFalseAttributeDefinition + EnsuresNotNullAttributeDefinition, parseOptions: TestOptions.Regular8);
 
@@ -6218,7 +6355,7 @@ class C
         {
             CSharpCompilation c = CreateCompilation(@"
 using System.Runtime.CompilerServices;
-class C
+public class C
 {
     void Main(string? s)
     {
@@ -6233,7 +6370,7 @@ class C
 
         s.ToString(); // ok
     }
-    static bool MyIsNullOrEmpty([NotNullWhenFalse, EnsuresNotNull] string? s) => throw null;
+    public static bool MyIsNullOrEmpty([NotNullWhenFalse, EnsuresNotNull] string? s) => throw null;
 }
 " + NotNullWhenFalseAttributeDefinition + EnsuresNotNullAttributeDefinition, parseOptions: TestOptions.Regular8);
 
@@ -6248,14 +6385,14 @@ class C
         {
             CSharpCompilation c = CreateCompilation(@"
 using System.Runtime.CompilerServices;
-class C
+public class C
 {
     void Main(string? s)
     {
         ThrowIfNull(42, s);
         s.ToString(); // ok
     }
-    static void ThrowIfNull(int x, [EnsuresNotNull] string? s) => throw null;
+    public static void ThrowIfNull(int x, [EnsuresNotNull] string? s) => throw null;
 }
 " + EnsuresNotNullAttributeDefinition, parseOptions: TestOptions.Regular8);
 
@@ -6269,14 +6406,14 @@ class C
         {
             CSharpCompilation c = CreateCompilation(@"
 using System.Runtime.CompilerServices;
-class C
+public class C
 {
     void Main(string? s)
     {
         ThrowIfNull(s);
         s.ToString(); // ok
     }
-    static void ThrowIfNull<T>([EnsuresNotNull] T s) => throw null;
+    public static void ThrowIfNull<T>([EnsuresNotNull] T s) => throw null;
 }
 " + EnsuresNotNullAttributeDefinition, parseOptions: TestOptions.Regular8);
 
@@ -6310,14 +6447,14 @@ class C
         {
             CSharpCompilation c = CreateCompilation(@"
 using System.Runtime.CompilerServices;
-class C
+public class C
 {
     void Main(string? s)
     {
         ThrowIfNull(s, s.ToString()); // warn
         s.ToString(); // ok
     }
-    static void ThrowIfNull([EnsuresNotNull] string? s, string s2) => throw null;
+    public static void ThrowIfNull([EnsuresNotNull] string? s, string s2) => throw null;
 }
 " + EnsuresNotNullAttributeDefinition, parseOptions: TestOptions.Regular8);
 
