@@ -1636,7 +1636,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 // We'll ignore EnsuresNotNull that is misused in metadata
                 if ((annotations & AttributeAnnotations.EnsuresNotNull) != 0 &&
-                    parameter.Type?.IsValueType != false)
+                    (parameter.Type?.IsValueType != false || parameter.IsParams))
                 {
                     annotations &= ~AttributeAnnotations.EnsuresNotNull;
                 }

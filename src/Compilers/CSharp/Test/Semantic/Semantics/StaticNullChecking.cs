@@ -6507,20 +6507,29 @@ public class C
         a.ToString(); // warn 1
 
         EnsuresNotNull(a);
-        a.ToString(); // ok
+        a.ToString(); // warn 2
 
         EnsuresNotNull(x, y);
-        x.ToString(); // warn 2
-        y.ToString(); // warn 3
+        x.ToString(); // warn 3
+        y.ToString(); // warn 4
     }
 }
 " + EnsuresNotNullAttributeDefinition, parseOptions: TestOptions.Regular8);
 
-            // PROTOTYPE(NullableReferenceTypes): bug on x and y
+            // PROTOTYPE(NullableReferenceTypes): Consider allowing EnsuresNotNull on params parameter
             c.VerifyDiagnostics(
                 // (9,9): warning CS8602: Possible dereference of a null reference.
                 //         a.ToString(); // warn 1
-                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "a").WithLocation(9, 9)
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "a").WithLocation(9, 9),
+                // (12,9): warning CS8602: Possible dereference of a null reference.
+                //         a.ToString(); // warn 2
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "a").WithLocation(12, 9),
+                // (15,9): warning CS8602: Possible dereference of a null reference.
+                //         x.ToString(); // warn 3
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "x").WithLocation(15, 9),
+                // (16,9): warning CS8602: Possible dereference of a null reference.
+                //         y.ToString(); // warn 4
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "y").WithLocation(16, 9)
                 );
         }
 
