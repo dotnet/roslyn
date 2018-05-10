@@ -27,12 +27,12 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionSe
         protected override Task VerifyWorkerAsync(
             string code, int position, string expectedItemOrNull, string expectedDescriptionOrNull,
             SourceCodeKind sourceCodeKind, bool usePreviousCharAsTrigger, bool checkForAbsence,
-            int? glyph, int? matchPriority, bool? hasSuggestionItem)
+            int? glyph, int? matchPriority, bool? hasSuggestionItem, string displayTextSuffix)
         {
             return base.VerifyWorkerAsync(code, position,
                 expectedItemOrNull, expectedDescriptionOrNull,
                 SourceCodeKind.Regular, usePreviousCharAsTrigger, checkForAbsence,
-                glyph, matchPriority, hasSuggestionItem);
+                glyph, matchPriority, hasSuggestionItem, displayTextSuffix);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]

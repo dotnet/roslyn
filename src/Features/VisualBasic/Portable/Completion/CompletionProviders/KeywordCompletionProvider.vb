@@ -35,6 +35,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
 
             Return CommonCompletionItem.Create(
                 displayText:=keyword.Keyword,
+                displayTextSuffix:="",
                 description:=keyword.DescriptionFactory(CancellationToken.None),
                 glyph:=Glyph.Keyword,
                 tags:=s_Tags,

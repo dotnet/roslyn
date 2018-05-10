@@ -123,7 +123,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
                 case EnterKeyRule.Always:
                     return true;
                 case EnterKeyRule.AfterFullyTypedWord:
-                    return item.DisplayText == textTypedSoFar;
+                    return item.DisplayText + item.DisplayTextSuffix == textTypedSoFar;
             }
         }
     }

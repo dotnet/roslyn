@@ -31,31 +31,32 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
             string code, int position,
             string expectedItemOrNull, string expectedDescriptionOrNull,
             SourceCodeKind sourceCodeKind, bool usePreviousCharAsTrigger, bool checkForAbsence,
-            int? glyph, int? matchPriority, bool? hasSuggestionItem)
+            int? glyph, int? matchPriority, bool? hasSuggestionItem, string displayTextSuffix)
         {
             return base.VerifyWorkerAsync(
                 code, position, expectedItemOrNull, expectedDescriptionOrNull,
                 sourceCodeKind, usePreviousCharAsTrigger, checkForAbsence,
-                glyph, matchPriority, hasSuggestionItem);
+                glyph, matchPriority, hasSuggestionItem, displayTextSuffix);
         }
 
         protected override async Task VerifyWorkerAsync(
             string code, int position, 
             string expectedItemOrNull, string expectedDescriptionOrNull, 
             SourceCodeKind sourceCodeKind, bool usePreviousCharAsTrigger, 
-            bool checkForAbsence, int? glyph, int? matchPriority, bool? hasSuggestionItem)
+            bool checkForAbsence, int? glyph, int? matchPriority, 
+            bool? hasSuggestionItem, string displayTextSuffix)
         {
-            await VerifyAtPositionAsync(code, position, usePreviousCharAsTrigger, expectedItemOrNull, expectedDescriptionOrNull, sourceCodeKind, checkForAbsence, glyph, matchPriority, hasSuggestionItem);
-            await VerifyInFrontOfCommentAsync(code, position, usePreviousCharAsTrigger, expectedItemOrNull, expectedDescriptionOrNull, sourceCodeKind, checkForAbsence, glyph, matchPriority, hasSuggestionItem);
-            await VerifyAtEndOfFileAsync(code, position, usePreviousCharAsTrigger, expectedItemOrNull, expectedDescriptionOrNull, sourceCodeKind, checkForAbsence, glyph, matchPriority, hasSuggestionItem);
+            await VerifyAtPositionAsync(code, position, usePreviousCharAsTrigger, expectedItemOrNull, expectedDescriptionOrNull, sourceCodeKind, checkForAbsence, glyph, matchPriority, hasSuggestionItem, displayTextSuffix);
+            await VerifyInFrontOfCommentAsync(code, position, usePreviousCharAsTrigger, expectedItemOrNull, expectedDescriptionOrNull, sourceCodeKind, checkForAbsence, glyph, matchPriority, hasSuggestionItem, displayTextSuffix);
+            await VerifyAtEndOfFileAsync(code, position, usePreviousCharAsTrigger, expectedItemOrNull, expectedDescriptionOrNull, sourceCodeKind, checkForAbsence, glyph, matchPriority, hasSuggestionItem, displayTextSuffix);
 
             // Items cannot be partially written if we're checking for their absence,
             // or if we're verifying that the list will show up (without specifying an actual item)
             if (!checkForAbsence && expectedItemOrNull != null)
             {
-                await VerifyAtPosition_ItemPartiallyWrittenAsync(code, position, usePreviousCharAsTrigger, expectedItemOrNull, expectedDescriptionOrNull, sourceCodeKind, checkForAbsence, glyph, matchPriority, hasSuggestionItem);
-                await VerifyInFrontOfComment_ItemPartiallyWrittenAsync(code, position, usePreviousCharAsTrigger, expectedItemOrNull, expectedDescriptionOrNull, sourceCodeKind, checkForAbsence, glyph, matchPriority, hasSuggestionItem);
-                await VerifyAtEndOfFile_ItemPartiallyWrittenAsync(code, position, usePreviousCharAsTrigger, expectedItemOrNull, expectedDescriptionOrNull, sourceCodeKind, checkForAbsence, glyph, matchPriority, hasSuggestionItem);
+                await VerifyAtPosition_ItemPartiallyWrittenAsync(code, position, usePreviousCharAsTrigger, expectedItemOrNull, expectedDescriptionOrNull, sourceCodeKind, checkForAbsence, glyph, matchPriority, hasSuggestionItem, displayTextSuffix);
+                await VerifyInFrontOfComment_ItemPartiallyWrittenAsync(code, position, usePreviousCharAsTrigger, expectedItemOrNull, expectedDescriptionOrNull, sourceCodeKind, checkForAbsence, glyph, matchPriority, hasSuggestionItem, displayTextSuffix);
+                await VerifyAtEndOfFile_ItemPartiallyWrittenAsync(code, position, usePreviousCharAsTrigger, expectedItemOrNull, expectedDescriptionOrNull, sourceCodeKind, checkForAbsence, glyph, matchPriority, hasSuggestionItem, displayTextSuffix);
             }
         }
 
@@ -68,7 +69,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
             string code, int position, string insertText, bool usePreviousCharAsTrigger,
             string expectedItemOrNull, string expectedDescriptionOrNull,
             SourceCodeKind sourceCodeKind, bool checkForAbsence, int? glyph, 
-            int? matchPriority, bool? hasSuggestionItem)
+            int? matchPriority, bool? hasSuggestionItem, string displayTextSuffix)
         {
             code = code.Substring(0, position) + insertText + "/**/" + code.Substring(position);
             position += insertText.Length;
@@ -76,31 +77,31 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
             return base.VerifyWorkerAsync(
                 code, position, expectedItemOrNull, expectedDescriptionOrNull,
                 sourceCodeKind, usePreviousCharAsTrigger, checkForAbsence, glyph,
-                matchPriority, hasSuggestionItem);
+                matchPriority, hasSuggestionItem, displayTextSuffix);
         }
 
         private Task VerifyInFrontOfCommentAsync(
             string code, int position, bool usePreviousCharAsTrigger,
             string expectedItemOrNull, string expectedDescriptionOrNull,
             SourceCodeKind sourceCodeKind, bool checkForAbsence, int? glyph, 
-            int? matchPriority, bool? hasSuggestionItem)
+            int? matchPriority, bool? hasSuggestionItem, string displayTextSuffix)
         {
             return VerifyInFrontOfCommentAsync(
                 code, position, string.Empty, usePreviousCharAsTrigger,
                 expectedItemOrNull, expectedDescriptionOrNull, sourceCodeKind, 
-                checkForAbsence, glyph, matchPriority, hasSuggestionItem);
+                checkForAbsence, glyph, matchPriority, hasSuggestionItem, displayTextSuffix);
         }
 
         protected Task VerifyInFrontOfComment_ItemPartiallyWrittenAsync(
             string code, int position, bool usePreviousCharAsTrigger,
             string expectedItemOrNull, string expectedDescriptionOrNull,
             SourceCodeKind sourceCodeKind, bool checkForAbsence, int? glyph,
-            int? matchPriority, bool? hasSuggestionItem)
+            int? matchPriority, bool? hasSuggestionItem, string displayTextSuffix)
         {
             return VerifyInFrontOfCommentAsync(
                 code, position, ItemPartiallyWritten(expectedItemOrNull), usePreviousCharAsTrigger,
                 expectedItemOrNull, expectedDescriptionOrNull, sourceCodeKind,
-                checkForAbsence, glyph, matchPriority, hasSuggestionItem);
+                checkForAbsence, glyph, matchPriority, hasSuggestionItem, displayTextSuffix);
         }
 
         protected string AddInsideMethod(string text)
@@ -142,7 +143,7 @@ text;
 
                 var service = GetCompletionService(workspace);
                 var completionList = await GetCompletionListAsync(service, document, position, CompletionTrigger.Invoke);
-                var item = completionList.Items.First(i => i.DisplayText.StartsWith(textTypedSoFar));
+                var item = completionList.Items.First(i => (i.DisplayText + i.DisplayTextSuffix).StartsWith(textTypedSoFar));
 
                 Assert.Equal(expected, Controller.SendEnterThroughToEditor(service.GetRules(), item, textTypedSoFar));
             }

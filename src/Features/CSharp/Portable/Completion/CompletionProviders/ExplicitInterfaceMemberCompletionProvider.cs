@@ -98,6 +98,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 
                     var item = SymbolCompletionItem.CreateWithSymbolId(
                         displayText,
+                        displayTextSuffix: "",
                         insertionText: insertionText,
                         symbols: ImmutableArray.Create(member),
                         contextPosition: position,

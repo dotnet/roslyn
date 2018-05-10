@@ -25,13 +25,14 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
         protected abstract CompletionItemRules GetCompletionItemRules(IReadOnlyList<ISymbol> symbols, bool preselect);
 
         protected override CompletionItem CreateItem(
-            string displayText, string insertionText, List<ISymbol> symbols,
+            string displayText, string displayTextSuffix, string insertionText, List<ISymbol> symbols,
             SyntaxContext context, bool preselect,
             SupportedPlatformData supportedPlatformData)
         {
 
             return SymbolCompletionItem.CreateWithSymbolId(
                 displayText: displayText,
+                displayTextSuffix: displayTextSuffix,
                 symbols: symbols,
                 // Always preselect
                 rules: GetCompletionItemRules(symbols, preselect).WithMatchPriority(MatchPriority.Preselect),
@@ -132,12 +133,12 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             return Task.FromResult(ImmutableArray.Create((ISymbol)type));
         }
 
-        protected override(string displayText, string insertionText) GetDisplayAndInsertionText(
+        protected override (string displayText, string suffix, string insertionText) GetDisplayAndSuffixAndInsertionText(
             ISymbol symbol, SyntaxContext context)
         {
             var displayService = context.GetLanguageService<ISymbolDisplayService>();
             var displayString = displayService.ToMinimalDisplayString(context.SemanticModel, context.Position, symbol);
-            return (displayString, displayString);
+            return (displayString, "", displayString);
         }
     }
 }

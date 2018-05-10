@@ -375,6 +375,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 
             return SymbolCompletionItem.CreateWithNameAndKind(
                 displayText: insertionText,
+                displayTextSuffix: "",
                 insertionText: insertionText,
                 symbols: ImmutableArray.Create(symbol),
                 contextPosition: position,

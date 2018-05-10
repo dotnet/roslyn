@@ -64,6 +64,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             {
                 context.AddItem(SymbolCompletionItem.CreateWithSymbolId(
                     displayText: uninitializedMember.Name,
+                    displayTextSuffix: "",
                     insertionText: null,
                     symbols: ImmutableArray.Create(uninitializedMember),
                     contextPosition: initializerLocation.SourceSpan.Start,

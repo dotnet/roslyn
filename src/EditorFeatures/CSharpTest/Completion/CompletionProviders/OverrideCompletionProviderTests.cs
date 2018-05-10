@@ -707,8 +707,8 @@ public class SomeClass : Base
 }";
             MarkupTestFile.GetPosition(markup, out var code, out int position);
 
-            await BaseVerifyWorkerAsync(code, position, "@class()", "void Base.@class()", SourceCodeKind.Regular, false, false, null, null, null);
-            await BaseVerifyWorkerAsync(code, position, "@class()", "void Base.@class()", SourceCodeKind.Script, false, false, null, null, null);
+            await BaseVerifyWorkerAsync(code, position, "@class()", "void Base.@class()", SourceCodeKind.Regular, false, false, null, null, null, null);
+            await BaseVerifyWorkerAsync(code, position, "@class()", "void Base.@class()", SourceCodeKind.Script, false, false, null, null, null, null);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
@@ -725,8 +725,8 @@ public class SomeClass : Base
 }";
             MarkupTestFile.GetPosition(markup, out var code, out int position);
 
-            await BaseVerifyWorkerAsync(code, position, "@class", "int Base.@class { get; set; }", SourceCodeKind.Regular, false, false, null, null, null);
-            await BaseVerifyWorkerAsync(code, position, "@class", "int Base.@class { get; set; }", SourceCodeKind.Script, false, false, null, null, null);
+            await BaseVerifyWorkerAsync(code, position, "@class", "int Base.@class { get; set; }", SourceCodeKind.Regular, false, false, null, null, null, null);
+            await BaseVerifyWorkerAsync(code, position, "@class", "int Base.@class { get; set; }", SourceCodeKind.Script, false, false, null, null, null, null);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]

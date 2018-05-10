@@ -10,6 +10,7 @@ namespace Microsoft.CodeAnalysis.Completion
     {
         public static CompletionItem Create(
             string displayText,
+            string displayTextSuffix,
             CompletionItemRules rules,
             Glyph? glyph = null,
             ImmutableArray<SymbolDisplayPart> description = default,
@@ -40,6 +41,7 @@ namespace Microsoft.CodeAnalysis.Completion
 
             return CompletionItem.Create(
                 displayText: displayText,
+                displayTextSuffix: displayTextSuffix,
                 filterText: filterText,
                 sortText: sortText,
                 properties: properties,

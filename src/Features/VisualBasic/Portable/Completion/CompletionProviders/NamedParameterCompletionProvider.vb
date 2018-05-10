@@ -69,7 +69,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
 
                 For Each parameter In unspecifiedParameters
                     context.AddItem(SymbolCompletionItem.CreateWithSymbolId(
-                        displayText:=parameter.Name & s_colonEquals,
+                        displayText:=parameter.Name,
+                        displayTextSuffix:=s_colonEquals,
                         insertionText:=parameter.Name.ToIdentifierToken().ToString() & s_colonEquals,
                         symbols:=ImmutableArray.Create(parameter),
                         contextPosition:=position,

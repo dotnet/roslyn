@@ -177,6 +177,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 
             return CommonCompletionItem.Create(
                 displayText: keyword.Keyword,
+                displayTextSuffix: "",
                 description: keyword.DescriptionFactory(CancellationToken.None),
                 glyph: Glyph.Keyword,
                 rules: rules.WithMatchPriority(keyword.MatchPriority)

@@ -40,7 +40,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 
                     const string T = nameof(T);
                     context.AddItem(CommonCompletionItem.Create(
-                        T, CompletionItemRules.Default, glyph: Glyph.TypeParameter));
+                        T, displayTextSuffix: "", CompletionItemRules.Default, glyph: Glyph.TypeParameter));
                 }
             }
             catch (Exception e) when (FatalError.ReportWithoutCrashUnlessCanceled(e))

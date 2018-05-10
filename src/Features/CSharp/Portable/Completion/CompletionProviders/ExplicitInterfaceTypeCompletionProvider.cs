@@ -24,8 +24,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
         internal override bool IsInsertionTrigger(SourceText text, int insertedCharacterPosition, OptionSet options)
             => CompletionUtilities.IsTriggerAfterSpaceOrStartOfWordCharacter(text, insertedCharacterPosition, options);
 
-        protected override (string displayText, string insertionText) GetDisplayAndInsertionText(ISymbol symbol, SyntaxContext context)
-            => CompletionUtilities.GetDisplayAndInsertionText(symbol, context);
+        protected override (string displayText, string suffix, string insertionText) GetDisplayAndSuffixAndInsertionText(ISymbol symbol, SyntaxContext context)
+            => CompletionUtilities.GetDisplayAndSuffixAndInsertionText(symbol, context);
 
         protected override async Task<SyntaxContext> CreateContext(
             Document document, int position, CancellationToken cancellationToken)

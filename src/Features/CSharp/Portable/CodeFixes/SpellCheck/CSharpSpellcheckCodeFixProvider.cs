@@ -38,9 +38,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.Spellcheck
         }
 
         protected override bool IsGeneric(CompletionItem completionItem)
-        {
-            return completionItem.DisplayText.Contains("<>");
-        }
+            => completionItem.DisplayTextSuffix == "<>";
 
         protected override SyntaxToken CreateIdentifier(SimpleNameSyntax nameNode, string newName)
         {
