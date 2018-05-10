@@ -22,11 +22,13 @@
     <ProjectReference Include="..\..\Compilers\VisualBasic\Portable\BasicCodeAnalysis.vbproj" />
 
     <ProjectReference Include="..\..\Workspaces\Core\Portable\Workspaces.csproj" />
+    <ProjectReference Include="..\..\Workspaces\Core\Desktop\Workspaces.Desktop.csproj" />
     <ProjectReference Include="..\..\Workspaces\Core\MSBuild\Workspaces.MSBuild.csproj" />
     <ProjectReference Include="..\..\Workspaces\CSharp\Portable\CSharpWorkspace.csproj" />
     <ProjectReference Include="..\..\Workspaces\VisualBasic\Portable\BasicWorkspace.vbproj" />
 
     <ProjectReference Include="..\..\Features\Core\Portable\Features.csproj" />
+    <ProjectReference Include="..\..\EditorFeatures\Text\TextEditorFeatures.csproj" />
 
     <!-- These aren't used by the build, but it allows the tool to locate dependencies of the built-in analyzers. -->
     <ProjectReference Include="..\..\EditorFeatures\Core\EditorFeatures.csproj" />
