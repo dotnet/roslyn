@@ -3681,25 +3681,11 @@ oneMoreTime:
 
         public override IOperation VisitDynamicInvocation(IDynamicInvocationOperation operation, int? captureIdForResult)
         {
-            (IOperation rewrittenOperation, ImmutableArray<IOperation> rewrittenArguments) = VisitDynamicOperationWithArguments(operation.Operation, operation.Arguments);
-            return new DynamicInvocationExpression(rewrittenOperation, rewrittenArguments, ((HasDynamicArgumentsExpression)operation).ArgumentNames,
-                ((HasDynamicArgumentsExpression)operation).ArgumentRefKinds, semanticModel: null, operation.Syntax, operation.Type, operation.ConstantValue, operation.IsImplicit);
-        }
-
-        public override IOperation VisitDynamicIndexerAccess(IDynamicIndexerAccessOperation operation, int? captureIdForResult)
-        {
-            (IOperation rewrittenOperation, ImmutableArray<IOperation> rewrittenArguments) = VisitDynamicOperationWithArguments(operation.Operation, operation.Arguments);
-            return new DynamicIndexerAccessExpression(rewrittenOperation, rewrittenArguments, ((HasDynamicArgumentsExpression)operation).ArgumentNames,
-                ((HasDynamicArgumentsExpression)operation).ArgumentRefKinds, semanticModel: null, operation.Syntax, operation.Type, operation.ConstantValue, operation.IsImplicit);
-        }
-
-        private (IOperation, ImmutableArray<IOperation>) VisitDynamicOperationWithArguments(IOperation operation, ImmutableArray<IOperation> arguments)
-        {
-            if (operation != null)
+            if (operation.Operation != null)
             {
-                if (operation.Kind == OperationKind.DynamicMemberReference)
+                if (operation.Operation.Kind == OperationKind.DynamicMemberReference)
                 {
-                    var instance = ((IDynamicMemberReferenceOperation)operation).Instance;
+                    var instance = ((IDynamicMemberReferenceOperation)operation.Operation).Instance;
                     if (instance != null)
                     {
                         _evalStack.Push(Visit(instance));
@@ -3707,20 +3693,21 @@ oneMoreTime:
                 }
                 else
                 {
-                    _evalStack.Push(Visit(operation));
+                    _evalStack.Push(Visit(operation.Operation));
                 }
             }
 
-            PushArray(arguments);
-            ImmutableArray<IOperation> rewrittenArguments = PopArray(arguments);
+            PushArray(operation.Arguments);
+            ImmutableArray<IOperation> rewrittenArguments = PopArray(operation.Arguments);
+
             IOperation rewrittenOperation;
-            if (operation == null)
+            if (operation.Operation == null)
             {
                 rewrittenOperation = null;
             }
-            else if (operation.Kind == OperationKind.DynamicMemberReference)
+            else if (operation.Operation.Kind == OperationKind.DynamicMemberReference)
             {
-                var dynamicMemberReference = (IDynamicMemberReferenceOperation)operation;
+                var dynamicMemberReference = (IDynamicMemberReferenceOperation)operation.Operation;
                 IOperation rewrittenInstance = dynamicMemberReference.Instance != null ? _evalStack.Pop() : null;
                 rewrittenOperation = new DynamicMemberReferenceExpression(rewrittenInstance, dynamicMemberReference.MemberName, dynamicMemberReference.TypeArguments,
                     dynamicMemberReference.ContainingType, semanticModel: null, dynamicMemberReference.Syntax, dynamicMemberReference.Type, dynamicMemberReference.ConstantValue, dynamicMemberReference.IsImplicit);
@@ -3730,7 +3717,23 @@ oneMoreTime:
                 rewrittenOperation = _evalStack.Pop();
             }
 
-            return (rewrittenOperation, rewrittenArguments);
+            return new DynamicInvocationExpression(rewrittenOperation, rewrittenArguments, ((HasDynamicArgumentsExpression)operation).ArgumentNames,
+                ((HasDynamicArgumentsExpression)operation).ArgumentRefKinds, semanticModel: null, operation.Syntax, operation.Type, operation.ConstantValue, operation.IsImplicit);
+        }
+
+        public override IOperation VisitDynamicIndexerAccess(IDynamicIndexerAccessOperation operation, int? captureIdForResult)
+        {
+            if (operation.Operation != null)
+            {
+                _evalStack.Push(Visit(operation.Operation));
+            }
+
+            PushArray(operation.Arguments);
+            ImmutableArray<IOperation> rewrittenArguments = PopArray(operation.Arguments);
+            IOperation rewrittenOperation = operation.Operation != null ? _evalStack.Pop() : null;
+
+            return new DynamicIndexerAccessExpression(rewrittenOperation, rewrittenArguments, ((HasDynamicArgumentsExpression)operation).ArgumentNames,
+                ((HasDynamicArgumentsExpression)operation).ArgumentRefKinds, semanticModel: null, operation.Syntax, operation.Type, operation.ConstantValue, operation.IsImplicit);
         }
 
         public override IOperation VisitDynamicMemberReference(IDynamicMemberReferenceOperation operation, int? captureIdForResult)
