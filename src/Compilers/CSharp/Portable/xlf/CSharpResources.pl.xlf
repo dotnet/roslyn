@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
   <file datatype="xml" source-language="en" target-language="pl" original="../CSharpResources.resx">
     <body>
@@ -370,6 +370,16 @@
       <trans-unit id="IDS_FeatureTypeVariance">
         <source>type variance</source>
         <target state="translated">typ wariancji</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="SyntaxTreeNotFound">
+        <source>SyntaxTree is not part of the compilation</source>
+        <target state="new">SyntaxTree is not part of the compilation</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="SyntaxTreeNotFoundToRemove">
+        <source>SyntaxTree is not part of the compilation, so it cannot be removed</source>
+        <target state="new">SyntaxTree is not part of the compilation, so it cannot be removed</target>
         <note />
       </trans-unit>
       <trans-unit id="XML_InvalidToken">
@@ -6943,11 +6953,6 @@ Aby usunąć ostrzeżenie, możesz zamiast tego użyć opcji /reference (ustaw w
         <target state="translated">Przesłanie może mieć co najwyżej jedno drzewo składni.</target>
         <note />
       </trans-unit>
-      <trans-unit id="SyntaxTreeNotFoundTo">
-        <source>SyntaxTree '{0}' not found to remove</source>
-        <target state="translated">Nie znaleziono elementu SyntaxTree „{0}” do usunięcia</target>
-        <note />
-      </trans-unit>
       <trans-unit id="TreeMustHaveARootNodeWith">
         <source>tree must have a root node with SyntaxKind.CompilationUnit</source>
         <target state="translated">drzewo musi zawierać węzeł główny z elementem SyntaxKind.CompilationUnit</target>
@@ -7806,8 +7811,8 @@ Aby usunąć ostrzeżenie, możesz zamiast tego użyć opcji /reference (ustaw w
         <note>File path referenced in source (#load) could not be resolved.</note>
       </trans-unit>
       <trans-unit id="SyntaxTreeFromLoadNoRemoveReplace">
-        <source>SyntaxTree '{0}' resulted from a #load directive and cannot be removed or replaced directly.</source>
-        <target state="translated">Drzewo SyntaxTree „{0}” jest wynikiem dyrektywy #load i nie można go bezpośrednio usunąć ani zastąpić.</target>
+        <source>SyntaxTree resulted from a #load directive and cannot be removed or replaced directly.</source>
+        <target state="needs-review-translation">Drzewo SyntaxTree „{0}” jest wynikiem dyrektywy #load i nie można go bezpośrednio usunąć ani zastąpić.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_SourceFileReferencesNotSupported">
