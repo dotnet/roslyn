@@ -135,7 +135,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             VerifySubTree(((BaseSwitchCase)operation).Condition);
         }
 
-        private static void VerifySubTree(IOperation root)
+        internal static void VerifySubTree(IOperation root)
         {
             if (root != null)
             {
@@ -272,16 +272,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             }
 
             IEnumerable<IOperation> children;
-
-            if (operation.StepValue != null)
-            {
-                children = new[] { operation.LoopControlVariable, operation.InitialValue, operation.LimitValue, operation.StepValue, operation.Body };
-            }
-            else
-            {
-                children = new[] { operation.LoopControlVariable, operation.InitialValue, operation.LimitValue, operation.Body };
-            }
-
+            children = new[] { operation.LoopControlVariable, operation.InitialValue, operation.LimitValue, operation.StepValue, operation.Body };
             children = children.Concat(operation.NextVariables);
             AssertEx.Equal(children, operation.Children);
         }
@@ -293,7 +284,21 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
             IEnumerable<IOperation> children = new[] { operation.Collection, operation.LoopControlVariable, operation.Body }.Concat(operation.NextVariables);
             AssertEx.Equal(children, operation.Children);
-            _ = ((BaseForEachLoopStatement)operation).Info;
+            ForEachLoopOperationInfo info = ((BaseForEachLoopStatement)operation).Info;
+            visitArguments(info.GetEnumeratorArguments);
+            visitArguments(info.MoveNextArguments);
+            visitArguments(info.CurrentArguments);
+
+            void visitArguments(Lazy<ImmutableArray<IArgumentOperation>> arguments)
+            {
+                if (arguments != null)
+                {
+                    foreach (IArgumentOperation arg in arguments.Value)
+                    {
+                        VerifySubTree(arg);
+                    }
+                }
+            }
         }
 
         private static void VisitLoop(ILoopOperation operation)
@@ -621,7 +626,6 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         {
             Assert.Equal(OperationKind.None, operation.Kind);
             Assert.Empty(operation.Children);
-            Assert.Equal(PlaceholderKind.Unspecified, operation.PlaceholderKind);
         }
 
         public override void VisitUnaryOperator(IUnaryOperation operation)
