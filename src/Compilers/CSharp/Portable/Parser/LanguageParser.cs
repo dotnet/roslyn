@@ -8716,6 +8716,7 @@ tryAgain:
                 case SyntaxKind.IfKeyword:
                 case SyntaxKind.LockKeyword:
                 case SyntaxKind.ReturnKeyword:
+                case SyntaxKind.SwitchKeyword:
                 case SyntaxKind.TryKeyword:
                 case SyntaxKind.UsingKeyword:
                 case SyntaxKind.WhileKeyword:
