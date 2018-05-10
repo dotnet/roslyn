@@ -1,23 +1,29 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Text;
 using Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE;
 using Microsoft.CodeAnalysis.PooledObjects;
+using static Microsoft.CodeAnalysis.CSharp.Symbols.AttributeAnnotations;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
+    [Flags]
+    internal enum AttributeAnnotations
+    {
+        None = 0,
+        NotNullWhenFalse,
+        EnsuresNotNull,
+    }
+
     // PROTOTYPE(NullableReferenceTypes): external annotations should be removed or fully designed/productized
     //  If we choose to stick with an ad-hoc key (rather than annotations as source or as PE/ref assembly),
     //  we should consider the assembly qualified name format used in metadata (with backticks and such).
     internal static class ExtraAnnotations
     {
-        private static readonly ImmutableArray<AttributeDescription> EnsuresNotNull = ImmutableArray.Create(AttributeDescription.EnsuresNotNullAttribute);
-
-        private static readonly ImmutableArray<AttributeDescription> NotNullWhenFalse = ImmutableArray.Create(AttributeDescription.NotNullWhenFalseAttribute);
-
         // APIs that are useful to annotate:
         //   1) don't accept null input
         //   2) return a reference type
@@ -37,8 +43,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 { "System.String System.String.Concat(System.String, System.String)", Array(Nullable(false), Nullable(true), Nullable(true)) },
             }.ToImmutableDictionary();
 
-        private static readonly ImmutableDictionary<string, ImmutableArray<ImmutableArray<AttributeDescription>>> Attributes =
-            new Dictionary<string, ImmutableArray<ImmutableArray<AttributeDescription>>>
+        private static readonly ImmutableDictionary<string, ImmutableArray<AttributeAnnotations>> Attributes =
+            new Dictionary<string, ImmutableArray<AttributeAnnotations>>
             {
                 { "System.Boolean System.String.IsNullOrEmpty(System.String)", Array(default, NotNullWhenFalse) },
                 { "System.Boolean System.String.IsNullOrWhiteSpace(System.String)", Array(default, NotNullWhenFalse) },
@@ -123,7 +129,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private static ImmutableArray<ImmutableArray<bool>> Array(params ImmutableArray<bool>[] values)
             => values.ToImmutableArray();
 
-        private static ImmutableArray<ImmutableArray<AttributeDescription>> Array(params ImmutableArray<AttributeDescription>[] values)
+        private static ImmutableArray<AttributeAnnotations> Array(params AttributeAnnotations[] values)
             => values.ToImmutableArray();
 
         private static ImmutableArray<bool> Nullable(params bool[] values)
@@ -160,20 +166,37 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// index 0 is used for return type
         /// other parameters follow
         /// </summary>
-        internal static ImmutableArray<AttributeDescription> GetExtraAttributes(string key, int parameterIndex)
+        internal static (bool hasAny, AttributeAnnotations annotations) GetExtraAttributes(string key, int parameterIndex)
         {
             if (key is null)
             {
-                return default;
+                return (false, default);
             }
 
-            _ = Attributes.TryGetValue(key, out var extraAttributes);
-            if (extraAttributes.IsDefault)
+            if (!Attributes.TryGetValue(key, out var extraAttributes))
             {
-                return default;
+                return (false, default);
             }
 
-            return extraAttributes[parameterIndex + 1];
+            return (true, extraAttributes[parameterIndex + 1]);
+        }
+    }
+
+    internal static class ParameterAnnotationsExtensions
+    {
+        internal static AttributeAnnotations With(this AttributeAnnotations value, bool notNullWhenFalse, bool ensuresNotNull)
+        {
+            if (notNullWhenFalse)
+            {
+                value |= NotNullWhenFalse;
+            }
+
+            if (ensuresNotNull)
+            {
+                value |= EnsuresNotNull;
+            }
+
+            return value;
         }
     }
 }

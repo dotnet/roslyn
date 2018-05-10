@@ -153,14 +153,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return _underlyingParameter.IsCallerMemberName; }
         }
 
-        internal override bool NotNullWhenFalse
+        internal override AttributeAnnotations FlowAnalysisAnnotations
         {
-            get { return _underlyingParameter.NotNullWhenFalse; }
-        }
-
-        internal override bool EnsuresNotNull
-        {
-            get { return _underlyingParameter.EnsuresNotNull; }
+            get { return _underlyingParameter.FlowAnalysisAnnotations; }
         }
 
         public override string GetDocumentationCommentXml(CultureInfo preferredCulture = null, bool expandIncludes = false, CancellationToken cancellationToken = default)

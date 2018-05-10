@@ -647,37 +647,41 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             }
         }
 
-        internal override bool NotNullWhenFalse
+        internal override AttributeAnnotations FlowAnalysisAnnotations
         {
             get
             {
-                const WellKnownAttributeFlags flag = WellKnownAttributeFlags.NotNullWhenFalse;
+                const WellKnownAttributeFlags notNullWhenFalse = WellKnownAttributeFlags.NotNullWhenFalse;
+                const WellKnownAttributeFlags ensuresNotNull = WellKnownAttributeFlags.EnsuresNotNull;
 
-                bool value;
-                if (!_packedFlags.TryGetWellKnownAttribute(flag, out value))
+                // PROTOTYPE(NullableReferenceTypes): the flags could be packed more
+                if (!_packedFlags.TryGetWellKnownAttribute(notNullWhenFalse, out bool hasNotNullWhenFalse) ||
+                    !_packedFlags.TryGetWellKnownAttribute(ensuresNotNull, out bool hasEnsuresNotNull))
                 {
-                    value = _packedFlags.SetWellKnownAttribute(flag,
-                        _moduleSymbol.Module.HasAttribute(_handle, AttributeDescription.NotNullWhenFalseAttribute) ||
-                        HasExtraAttribute(AttributeDescription.NotNullWhenFalseAttribute));
-                }
-                return value;
-            }
-        }
+                    (bool memberHasAny, AttributeAnnotations annotations) = TryGetExtraAttributeAnnotations();
 
-        internal override bool EnsuresNotNull
-        {
-            get
-            {
-                const WellKnownAttributeFlags flag = WellKnownAttributeFlags.EnsuresNotNull;
+                    if (memberHasAny)
+                    {
+                        // External annotations win, if any is present on the member
+                        hasNotNullWhenFalse = (annotations & AttributeAnnotations.NotNullWhenFalse) != 0;
+                        hasEnsuresNotNull = (annotations & AttributeAnnotations.EnsuresNotNull) != 0;
+                    }
+                    else
+                    {
+                        hasNotNullWhenFalse = _moduleSymbol.Module.HasAttribute(_handle, AttributeDescription.NotNullWhenFalseAttribute);
+                        hasEnsuresNotNull = _moduleSymbol.Module.HasAttribute(_handle, AttributeDescription.EnsuresNotNullAttribute);
+                    }
 
-                bool value;
-                if (!_packedFlags.TryGetWellKnownAttribute(flag, out value))
-                {
-                    value = _packedFlags.SetWellKnownAttribute(flag,
-                        _moduleSymbol.Module.HasAttribute(_handle, AttributeDescription.EnsuresNotNullAttribute) ||
-                        HasExtraAttribute(AttributeDescription.EnsuresNotNullAttribute));
+                    _packedFlags.SetWellKnownAttribute(notNullWhenFalse, hasNotNullWhenFalse);
+                    _packedFlags.SetWellKnownAttribute(ensuresNotNull, hasEnsuresNotNull);
+
+                    if (memberHasAny)
+                    {
+                        return annotations;
+                    }
                 }
-                return value;
+
+                return AttributeAnnotations.None.With(notNullWhenFalse: hasNotNullWhenFalse, ensuresNotNull: hasEnsuresNotNull);
             }
         }
 

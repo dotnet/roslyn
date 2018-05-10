@@ -10,6 +10,7 @@ using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
+using static Microsoft.CodeAnalysis.CSharp.Symbols.AttributeAnnotations;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics
 {
@@ -5485,7 +5486,7 @@ class Test
         }
 
         [Fact]
-        public void NotNullWhenFalse()
+        public void NotNullWhenFalse_Simple()
         {
             CSharpCompilation c = CreateCompilation(@"
 using System.Runtime.CompilerServices;
@@ -5517,8 +5518,8 @@ public class C
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "s").WithLocation(16, 9)
                 );
 
-            VerifyNotNullWhenFalse(c, "C.Main", false);
-            VerifyNotNullWhenFalse(c, "C.MyIsNullOrEmpty", true);
+            VerifyAnnotations(c, "C.Main", None);
+            VerifyAnnotations(c, "C.MyIsNullOrEmpty", NotNullWhenFalse);
         }
 
         [Fact]
@@ -5538,7 +5539,7 @@ public class C
                 Diagnostic(ErrorCode.ERR_NotNullWhenFalseRequiresBoolReturn, "NotNullWhenFalse").WithLocation(5, 43)
                 );
 
-            VerifyNotNullWhenFalseInSource(c, "C.MyIsNullOrEmpty", false);
+            VerifyAnnotationsInSource(c, "C.MyIsNullOrEmpty", None);
         }
 
         [Fact]
@@ -5583,7 +5584,7 @@ public class C
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "s2").WithLocation(19, 9)
                 );
 
-            VerifyNotNullWhenFalse(c, "C.MyIsNullOrEmpty", true, true);
+            VerifyAnnotations(c, "C.MyIsNullOrEmpty", NotNullWhenFalse, NotNullWhenFalse);
         }
 
         [Fact]
@@ -5725,41 +5726,24 @@ class C
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "s").WithLocation(15, 9)
                 );
 
-            VerifyNotNullWhenFalseInSource(c, "C.MyIsNullOrEmpty", false);
+            VerifyAnnotationsInSource(c, "C.MyIsNullOrEmpty", None);
         }
 
-        private static void VerifyNotNullWhenFalseInSource(Compilation compilation, string memberName, params bool[] hasNotNullWhenFalse)
-        {
-            Func<ParameterSymbol, bool> valueGetter = p => p.NotNullWhenFalse;
-            VerifyParameterProperties(compilation, memberName, valueGetter, hasNotNullWhenFalse);
-        }
-
-        private static void VerifyNotNullWhenFalse(Compilation compilation, string memberName, params bool[] hasNotNullWhenFalse)
-        {
-            Func<ParameterSymbol, bool> valueGetter = p => p.NotNullWhenFalse;
-            VerifyParameterProperties(compilation, memberName, valueGetter, hasNotNullWhenFalse);
-
-            // Also verify from metadata
-            var compilation2 = CreateCompilation("", references: new[] { compilation.EmitToImageReference() });
-            VerifyParameterProperties(compilation2, memberName, valueGetter, hasNotNullWhenFalse);
-        }
-
-        private static void VerifyParameterProperties(Compilation compilation, string memberName, Func<ParameterSymbol, bool> valueGetter, params bool[] expected)
+        private static void VerifyAnnotationsInSource(Compilation compilation, string memberName, params AttributeAnnotations[] expected)
         {
             var method = compilation.GetMember<MethodSymbol>(memberName);
             Assert.True((object)method != null, $"Could not find method '{memberName}'");
-            var actual = method.Parameters.Select(valueGetter);
+            var actual = method.Parameters.Select(p => p.FlowAnalysisAnnotations);
             Assert.Equal(expected, actual);
         }
 
-        private void VerifyEnsuresNotNull(Compilation compilation, string memberName, params bool[] hasEnsuresNotNull)
+        private void VerifyAnnotations(Compilation compilation, string memberName, params AttributeAnnotations[] expected)
         {
-            Func<ParameterSymbol, bool> valueGetter = p => p.EnsuresNotNull;
-            VerifyParameterProperties(compilation, memberName, valueGetter, hasEnsuresNotNull);
+            VerifyAnnotationsInSource(compilation, memberName, expected);
 
             // Also verify from metadata
             var compilation2 = CreateCompilation("", references: new[] { compilation.EmitToImageReference() });
-            VerifyParameterProperties(compilation2, memberName, valueGetter, hasEnsuresNotNull);
+            VerifyAnnotationsInSource(compilation2, memberName, expected);
         }
 
         [Fact]
@@ -5802,7 +5786,7 @@ namespace System.Runtime.CompilerServices
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "s").WithLocation(13, 13)
                 );
 
-            VerifyNotNullWhenFalse(c, "C.MyIsNullOrEmpty", false);
+            VerifyAnnotations(c, "C.MyIsNullOrEmpty", None);
         }
 
         [Fact]
@@ -5833,7 +5817,7 @@ public class C
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "s").WithLocation(13, 13)
                 );
 
-            VerifyNotNullWhenFalse(c, "C.MyIsNullOrEmpty", true);
+            VerifyAnnotations(c, "C.MyIsNullOrEmpty", NotNullWhenFalse);
         }
 
         [Fact]
@@ -5882,7 +5866,7 @@ public class C
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "s").WithLocation(9, 13)
                 );
 
-            VerifyNotNullWhenFalse(c, "C.MyIsNullOrEmpty", true);
+            VerifyAnnotations(c, "C.MyIsNullOrEmpty", NotNullWhenFalse);
         }
 
         [Fact]
@@ -5916,7 +5900,7 @@ public static class Extension
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "s").WithLocation(9, 13)
                 );
 
-            VerifyNotNullWhenFalse(c, "Extension.MyIsNullOrEmpty", false, true);
+            VerifyAnnotations(c, "Extension.MyIsNullOrEmpty", None, NotNullWhenFalse);
         }
 
         [Fact]
@@ -5945,7 +5929,7 @@ class C
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "s").WithLocation(8, 13)
                 );
 
-            VerifyNotNullWhenFalse(c, "System.String.IsNullOrEmpty", true);
+            VerifyAnnotations(c, "System.String.IsNullOrEmpty", NotNullWhenFalse);
         }
 
         [Fact]
@@ -5988,7 +5972,7 @@ namespace System
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "s").WithLocation(8, 13)
                 );
 
-            VerifyNotNullWhenFalseInSource(c, "System.String.IsNullOrEmpty", true);
+            VerifyAnnotationsInSource(c, "System.String.IsNullOrEmpty", NotNullWhenFalse);
         }
 
         [Fact]
@@ -6031,7 +6015,7 @@ namespace System
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "s").WithLocation(8, 13)
                 );
 
-            VerifyNotNullWhenFalseInSource(c, "System.String.IsNullOrWhiteSpace", true);
+            VerifyAnnotationsInSource(c, "System.String.IsNullOrWhiteSpace", NotNullWhenFalse);
         }
 
         [Fact]
@@ -6060,7 +6044,7 @@ class C
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "s").WithLocation(12, 13)
                 );
 
-            VerifyNotNullWhenFalse(c, "System.String.IsNullOrEmpty", true);
+            VerifyAnnotations(c, "System.String.IsNullOrEmpty", NotNullWhenFalse);
         }
 
         [Fact]
@@ -6135,7 +6119,7 @@ class C
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "s").WithLocation(8, 13)
                 );
 
-            VerifyNotNullWhenFalse(c, "System.String.IsNullOrWhiteSpace", true);
+            VerifyAnnotations(c, "System.String.IsNullOrWhiteSpace", NotNullWhenFalse);
         }
 
         [Fact]
@@ -6171,9 +6155,9 @@ public partial class C
                 Diagnostic(ErrorCode.ERR_NotNullWhenFalseRequiresBoolReturn, "NotNullWhenFalse").WithLocation(6, 22)
                 );
 
-            VerifyNotNullWhenFalseInSource(c, "C.M1", false);
-            VerifyNotNullWhenFalseInSource(c, "C.M2", false);
-            VerifyNotNullWhenFalseInSource(c, "C.M3", false);
+            VerifyAnnotationsInSource(c, "C.M1", None);
+            VerifyAnnotationsInSource(c, "C.M2", None);
+            VerifyAnnotationsInSource(c, "C.M3", None);
         }
 
         [Fact]
@@ -6207,7 +6191,7 @@ public class C
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "s").WithLocation(9, 13)
                 );
 
-            VerifyNotNullWhenFalseInSource(c, "C.MyIsNullOrEmpty", false);
+            VerifyAnnotationsInSource(c, "C.MyIsNullOrEmpty", None);
         }
 
         [Fact]
@@ -6291,7 +6275,7 @@ public class D
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "s").WithLocation(12, 13)
                 );
 
-            VerifyNotNullWhenFalseInSource(compilation, "C.MyIsNullOrEmpty", true);
+            VerifyAnnotationsInSource(compilation, "C.MyIsNullOrEmpty", NotNullWhenFalse);
         }
 
         [Fact]
@@ -6346,8 +6330,7 @@ public class C
 
             c.VerifyDiagnostics();
 
-            VerifyNotNullWhenFalse(c, "C.MyIsNullOrEmpty", true, false);
-            VerifyEnsuresNotNull(c, "C.MyIsNullOrEmpty", false, true);
+            VerifyAnnotations(c, "C.MyIsNullOrEmpty", NotNullWhenFalse, EnsuresNotNull);
         }
 
         [Fact]
@@ -6376,12 +6359,11 @@ public class C
 
             c.VerifyDiagnostics();
 
-            VerifyNotNullWhenFalse(c, "C.MyIsNullOrEmpty", true);
-            VerifyEnsuresNotNull(c, "C.MyIsNullOrEmpty", true);
+            VerifyAnnotations(c, "C.MyIsNullOrEmpty", NotNullWhenFalse | EnsuresNotNull);
         }
 
         [Fact]
-        public void EnsuresNotNull()
+        public void EnsuresNotNull_Simple()
         {
             CSharpCompilation c = CreateCompilation(@"
 using System.Runtime.CompilerServices;
@@ -6398,7 +6380,7 @@ public class C
 
             c.VerifyDiagnostics();
 
-            VerifyEnsuresNotNull(c, "C.ThrowIfNull", false, true);
+            VerifyAnnotations(c, "C.ThrowIfNull", None, EnsuresNotNull);
         }
 
         [Fact]
@@ -6419,7 +6401,7 @@ public class C
 
             c.VerifyDiagnostics();
 
-            VerifyEnsuresNotNull(c, "C.ThrowIfNull", true);
+            VerifyAnnotations(c, "C.ThrowIfNull", EnsuresNotNull);
         }
 
         [Fact]
@@ -6464,7 +6446,7 @@ public class C
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "s").WithLocation(7, 24)
                 );
 
-            VerifyEnsuresNotNull(c, "C.ThrowIfNull", true, false);
+            VerifyAnnotations(c, "C.ThrowIfNull", EnsuresNotNull, None);
         }
 
         [Fact]
@@ -6506,7 +6488,7 @@ class C
 
             c.VerifyDiagnostics();
 
-            VerifyEnsuresNotNull(c, "System.String.Contains", true);
+            VerifyAnnotations(c, "System.String.Contains", EnsuresNotNull);
         }
 
         [Fact]

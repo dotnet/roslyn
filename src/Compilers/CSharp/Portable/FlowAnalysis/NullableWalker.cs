@@ -1617,30 +1617,39 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// For each argument, figure out if its corresponding parameter is annotated with NotNullWhenFalse or
         /// EnsuresNotNull.
         /// </summary>
-        private static ImmutableArray<(bool NotNullWhenFalse, bool EnsuresNotNull)> GetAnnotations(int numArguments,
+        private static ImmutableArray<AttributeAnnotations> GetAnnotations(int numArguments,
             bool expanded, ImmutableArray<ParameterSymbol> parameters, ImmutableArray<int> argsToParamsOpt)
         {
-            ArrayBuilder<(bool NotNullWhenFalse, bool EnsuresNotNull)> builder = null;
+            ArrayBuilder<AttributeAnnotations> builder = null;
 
             for (int i = 0; i < numArguments; i++)
             {
                 (ParameterSymbol parameter, _) = GetCorrespondingParameter(i, parameters, argsToParamsOpt, expanded);
+                AttributeAnnotations annotations = parameter?.FlowAnalysisAnnotations ?? AttributeAnnotations.None;
 
                 // We'll ignore NotNullWhenFalse that is misused in metadata
-                bool notNullWhenFalse = parameter?.NotNullWhenFalse == true &&
-                    parameter.ContainingSymbol.GetTypeOrReturnType().SpecialType == SpecialType.System_Boolean;
-
-                bool ensuresNotNull = parameter?.EnsuresNotNull == true;
-
-                if ((notNullWhenFalse || ensuresNotNull) && builder == null)
+                if ((annotations & AttributeAnnotations.NotNullWhenFalse) != 0 &&
+                    parameter.ContainingSymbol.GetTypeOrReturnType().SpecialType != SpecialType.System_Boolean)
                 {
-                    builder = ArrayBuilder<(bool, bool)>.GetInstance(numArguments);
-                    builder.AddMany((false, false), i);
+                    annotations &= ~AttributeAnnotations.NotNullWhenFalse;
+                }
+
+                // We'll ignore EnsuresNotNull that is misused in metadata
+                if ((annotations & AttributeAnnotations.EnsuresNotNull) != 0 &&
+                    parameter.Type?.IsReferenceType == false)
+                {
+                    annotations &= ~AttributeAnnotations.EnsuresNotNull;
+                }
+
+                if (annotations != AttributeAnnotations.None && builder == null)
+                {
+                    builder = ArrayBuilder<AttributeAnnotations>.GetInstance(numArguments);
+                    builder.AddMany(AttributeAnnotations.None, i);
                 }
 
                 if (builder != null)
                 {
-                    builder.Add((notNullWhenFalse, ensuresNotNull));
+                    builder.Add(annotations);
                 }
             }
 
@@ -1727,7 +1736,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // We do a second pass through the arguments, ignoring any diagnostics produced, but honoring the annotations,
             // to get the proper result state.
-            ImmutableArray<(bool notNullWhenFalse, bool ensuresNotNull)> annotations = GetAnnotations(arguments.Length,
+            ImmutableArray<AttributeAnnotations> annotations = GetAnnotations(arguments.Length,
                expanded, parameters, argsToParamsOpt);
 
             if (!annotations.IsDefault)
@@ -1784,7 +1793,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private void VisitArgumentsEvaluateHonoringAnnotations(
             ImmutableArray<BoundExpression> arguments,
             ImmutableArray<RefKind> refKindsOpt,
-            ImmutableArray<(bool notNullWhenFalse, bool ensuresNotNull)> annotations)
+            ImmutableArray<AttributeAnnotations> annotations)
         {
             Debug.Assert(!IsConditionalState);
 
@@ -1835,7 +1844,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                     continue;
                 }
 
-                (bool notNullWhenFalse, bool ensuresNotNull) = annotations[i];
+                AttributeAnnotations annotation = annotations[i];
+                bool notNullWhenFalse = (annotation & AttributeAnnotations.NotNullWhenFalse) != 0;
+                bool ensuresNotNull = (annotation & AttributeAnnotations.EnsuresNotNull) != 0;
 
                 if (ensuresNotNull)
                 {
@@ -3585,7 +3596,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return result;
         }
 
-#endregion Visitors
+        #endregion Visitors
 
         protected override string Dump(LocalState state)
         {

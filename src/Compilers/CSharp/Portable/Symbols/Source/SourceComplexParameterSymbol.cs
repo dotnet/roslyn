@@ -127,13 +127,23 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                                   && !HasCallerFilePathAttribute
                                                   && HasCallerMemberNameAttribute;
 
-        internal override bool NotNullWhenFalse
-            => GetDecodedWellKnownAttributeData()?.HasNotNullWhenFalseAttribute == true ||
-            HasExtraAttribute(AttributeDescription.NotNullWhenFalseAttribute);
+        internal override AttributeAnnotations FlowAnalysisAnnotations
+        {
+            get
+            {
+                (bool memberHasAny, AttributeAnnotations annotations) = TryGetExtraAttributeAnnotations();
+                if (memberHasAny)
+                {
+                    return annotations;
+                }
 
-        internal override bool EnsuresNotNull
-            => GetDecodedWellKnownAttributeData()?.HasEnsuresNotNullAttribute == true ||
-            HasExtraAttribute(AttributeDescription.EnsuresNotNullAttribute);
+                CommonParameterWellKnownAttributeData attributeData = GetDecodedWellKnownAttributeData();
+
+                return AttributeAnnotations.None
+                    .With(notNullWhenFalse: attributeData?.HasNotNullWhenFalseAttribute == true,
+                        ensuresNotNull: attributeData?.HasEnsuresNotNullAttribute == true);
+            }
+        }
 
         private ConstantValue DefaultSyntaxValue
         {

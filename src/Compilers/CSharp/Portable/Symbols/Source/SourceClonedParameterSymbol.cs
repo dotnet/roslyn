@@ -151,14 +151,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return _originalParam.IsCallerMemberName; }
         }
 
-        internal override bool NotNullWhenFalse
+        internal override AttributeAnnotations FlowAnalysisAnnotations
         {
-            get { return _originalParam.NotNullWhenFalse; }
-        }
-
-        internal override bool EnsuresNotNull
-        {
-            get { return _originalParam.EnsuresNotNull; }
+            get { return _originalParam.FlowAnalysisAnnotations; }
         }
 
         #endregion

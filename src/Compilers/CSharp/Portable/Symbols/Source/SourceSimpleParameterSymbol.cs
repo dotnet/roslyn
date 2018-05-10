@@ -82,14 +82,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return false; }
         }
 
-        internal override bool NotNullWhenFalse
+        internal override AttributeAnnotations FlowAnalysisAnnotations
         {
-            get { return HasExtraAttribute(AttributeDescription.NotNullWhenFalseAttribute); }
-        }
-
-        internal override bool EnsuresNotNull
-        {
-            get { return HasExtraAttribute(AttributeDescription.EnsuresNotNullAttribute); }
+            get
+            {
+                (_, AttributeAnnotations annotations) = TryGetExtraAttributeAnnotations();
+                return annotations;
+            }
         }
 
         internal override MarshalPseudoCustomAttributeData MarshallingInformation

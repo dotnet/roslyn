@@ -385,49 +385,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal abstract bool IsCallerMemberName { get; }
 
-        /// <summary>
-        /// If the method returns false, then we can infer that the argument used for this parameter was not null.
-        /// </summary>
-        internal abstract bool NotNullWhenFalse { get; }
+        internal abstract AttributeAnnotations FlowAnalysisAnnotations { get; }
 
-        /// <summary>
-        /// When the method returns, then we can infer that the argument used for this parameter was not null.
-        /// </summary>
-        internal abstract bool EnsuresNotNull { get; }
-
-        protected bool HasExtraAttribute(AttributeDescription description)
+        protected (bool memberHasExtra, AttributeAnnotations annotations) TryGetExtraAttributeAnnotations()
         {
             ParameterSymbol originalParameter = this.OriginalDefinition;
             var containingMethod = originalParameter.ContainingSymbol as MethodSymbol;
 
             if (containingMethod is null)
             {
-                return false;
+                return (false, AttributeAnnotations.None);
             }
 
             string key = ExtraAnnotations.MakeMethodKey(containingMethod);
-            ImmutableArray<AttributeDescription> extraAttributes = ExtraAnnotations.GetExtraAttributes(key, this.Ordinal);
-
-            if (!extraAttributes.IsDefault)
-            {
-                foreach (var attribute in extraAttributes)
-                {
-                    if (equals(attribute, description))
-                    {
-                        return true;
-                    }
-                }
-            }
-
-            return false;
-
-            bool equals(AttributeDescription first, AttributeDescription second)
-            {
-                return first.Namespace == second.Namespace &&
-                    first.Name == second.Name &&
-                    ReferenceEquals(first.Signatures, second.Signatures) &&
-                    first.MatchIgnoringCase == second.MatchIgnoringCase;
-            }
+            return ExtraAnnotations.GetExtraAttributes(key, this.Ordinal);
         }
 
         protected sealed override int HighestPriorityUseSiteError
