@@ -9000,9 +9000,14 @@ Per rimuovere l'avviso, è invece possibile usare /reference (impostare la propr
         <target state="new">Converting null literal or possible null value to non-nullable type.</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_NotNullWhenFalseRequiresBoolReturn">
-        <source>The NotNullWhenFalse attribute is only applicable on members that return a boolean type.</source>
-        <target state="new">The NotNullWhenFalse attribute is only applicable on members that return a boolean type.</target>
+      <trans-unit id="ERR_AttributeRequiresBoolReturn">
+        <source>The '{0}' attribute is only applicable on members that return a boolean type.</source>
+        <target state="new">The '{0}' attribute is only applicable on members that return a boolean type.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_AttributeNotApplicableOnValueType">
+        <source>The '{0}' attribute is not applicable on a value type.</source>
+        <target state="new">The '{0}' attribute is not applicable on a value type.</target>
         <note />
       </trans-unit>
     </body>

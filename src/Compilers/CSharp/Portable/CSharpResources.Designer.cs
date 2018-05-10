@@ -701,6 +701,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The &apos;{0}&apos; attribute is not applicable on a value type..
+        /// </summary>
+        internal static string ERR_AttributeNotApplicableOnValueType {
+            get {
+                return ResourceManager.GetString("ERR_AttributeNotApplicableOnValueType", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Attribute &apos;{0}&apos; is not valid on property or event accessors. It is only valid on &apos;{1}&apos; declarations..
         /// </summary>
         internal static string ERR_AttributeNotOnAccessor {
@@ -733,6 +742,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string ERR_AttributeParameterRequired2 {
             get {
                 return ResourceManager.GetString("ERR_AttributeParameterRequired2", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The &apos;{0}&apos; attribute is only applicable on members that return a boolean type..
+        /// </summary>
+        internal static string ERR_AttributeRequiresBoolReturn {
+            get {
+                return ResourceManager.GetString("ERR_AttributeRequiresBoolReturn", resourceCulture);
             }
         }
         
@@ -7330,15 +7348,6 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string ERR_NotNullRefDefaultParameter {
             get {
                 return ResourceManager.GetString("ERR_NotNullRefDefaultParameter", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to The NotNullWhenFalse attribute is only applicable on members that return a boolean type..
-        /// </summary>
-        internal static string ERR_NotNullWhenFalseRequiresBoolReturn {
-            get {
-                return ResourceManager.GetString("ERR_NotNullWhenFalseRequiresBoolReturn", resourceCulture);
             }
         }
         

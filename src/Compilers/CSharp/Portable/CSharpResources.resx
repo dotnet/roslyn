@@ -5357,8 +5357,11 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_ExplicitNullableAttribute" xml:space="preserve">
     <value>Explicit application of 'System.Runtime.CompilerServices.NullableAttribute' is not allowed.</value>
   </data>
-  <data name="ERR_NotNullWhenFalseRequiresBoolReturn" xml:space="preserve">
-    <value>The NotNullWhenFalse attribute is only applicable on members that return a boolean type.</value>
+  <data name="ERR_AttributeRequiresBoolReturn" xml:space="preserve">
+    <value>The '{0}' attribute is only applicable on members that return a boolean type.</value>
+  </data>
+  <data name="ERR_AttributeNotApplicableOnValueType" xml:space="preserve">
+    <value>The '{0}' attribute is not applicable on a value type.</value>
   </data>
   <data name="ERR_NotNullableOperatorNotReferenceType" xml:space="preserve">
     <value>The ! operator can only be applied to reference types.</value>

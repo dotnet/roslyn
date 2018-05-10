@@ -5536,7 +5536,7 @@ public class C
             c.VerifyDiagnostics(
                 // (5,43): error CS8627: The NotNullWhenFalse attribute is only applicable on members that return a boolean type.
                 //     public static object MyIsNullOrEmpty([NotNullWhenFalse] string? s) => throw null;
-                Diagnostic(ErrorCode.ERR_NotNullWhenFalseRequiresBoolReturn, "NotNullWhenFalse").WithLocation(5, 43)
+                Diagnostic(ErrorCode.ERR_AttributeRequiresBoolReturn, "NotNullWhenFalse").WithLocation(5, 43)
                 );
 
             VerifyAnnotationsInSource(c, "C.MyIsNullOrEmpty", None);
@@ -6141,18 +6141,18 @@ public partial class C
 " + NotNullWhenFalseAttributeDefinition, parseOptions: TestOptions.Regular8);
 
             c.VerifyDiagnostics(
-                // (8,22): error CS8627: The NotNullWhenFalse attribute is only applicable on members that return a boolean type.
+                // (8,22): error CS8627: The 'NotNullWhenFalseAttribute' attribute is only applicable on members that return a boolean type.
                 //     partial void M2([NotNullWhenFalse] string? s);
-                Diagnostic(ErrorCode.ERR_NotNullWhenFalseRequiresBoolReturn, "NotNullWhenFalse").WithLocation(8, 22),
-                // (12,22): error CS8627: The NotNullWhenFalse attribute is only applicable on members that return a boolean type.
+                Diagnostic(ErrorCode.ERR_AttributeRequiresBoolReturn, "NotNullWhenFalse").WithArguments("NotNullWhenFalseAttribute").WithLocation(8, 22),
+                // (12,22): error CS8627: The 'NotNullWhenFalseAttribute' attribute is only applicable on members that return a boolean type.
                 //     partial void M3([NotNullWhenFalse] string? s) => throw null;
-                Diagnostic(ErrorCode.ERR_NotNullWhenFalseRequiresBoolReturn, "NotNullWhenFalse").WithLocation(12, 22),
+                Diagnostic(ErrorCode.ERR_AttributeRequiresBoolReturn, "NotNullWhenFalse").WithArguments("NotNullWhenFalseAttribute").WithLocation(12, 22),
                 // (11,22): error CS0579: Duplicate 'NotNullWhenFalse' attribute
                 //     partial void M3([NotNullWhenFalse] string? s);
                 Diagnostic(ErrorCode.ERR_DuplicateAttribute, "NotNullWhenFalse").WithArguments("NotNullWhenFalse").WithLocation(11, 22),
-                // (6,22): error CS8627: The NotNullWhenFalse attribute is only applicable on members that return a boolean type.
+                // (6,22): error CS8627: The 'NotNullWhenFalseAttribute' attribute is only applicable on members that return a boolean type.
                 //     partial void M1([NotNullWhenFalse] string? s) => throw null;
-                Diagnostic(ErrorCode.ERR_NotNullWhenFalseRequiresBoolReturn, "NotNullWhenFalse").WithLocation(6, 22)
+                Diagnostic(ErrorCode.ERR_AttributeRequiresBoolReturn, "NotNullWhenFalse").WithArguments("NotNullWhenFalseAttribute").WithLocation(6, 22)
                 );
 
             VerifyAnnotationsInSource(c, "C.M1", None);
@@ -6185,7 +6185,7 @@ public class C
             c.VerifyDiagnostics(
                 // (16,37): error CS8627: The NotNullWhenFalse attribute is only applicable on members that return a boolean type.
                 //     public dynamic MyIsNullOrEmpty([NotNullWhenFalse] string? s) => throw null;
-                Diagnostic(ErrorCode.ERR_NotNullWhenFalseRequiresBoolReturn, "NotNullWhenFalse").WithLocation(16, 37),
+                Diagnostic(ErrorCode.ERR_AttributeRequiresBoolReturn, "NotNullWhenFalse").WithLocation(16, 37),
                 // (9,13): warning CS8602: Possible dereference of a null reference.
                 //             s.ToString(); // warn
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "s").WithLocation(9, 13)
@@ -6297,7 +6297,7 @@ class C
             c.VerifyDiagnostics(
                 // (10,29): error CS8627: The NotNullWhenFalse attribute is only applicable on members that return a boolean type.
                 //     object MyIsNullOrEmpty([NotNullWhenFalse] string? s) => throw null;
-                Diagnostic(ErrorCode.ERR_NotNullWhenFalseRequiresBoolReturn, "NotNullWhenFalse").WithLocation(10, 29),
+                Diagnostic(ErrorCode.ERR_AttributeRequiresBoolReturn, "NotNullWhenFalse").WithLocation(10, 29),
                 // (8,9): warning CS8602: Possible dereference of a null reference.
                 //         s.ToString(); // warn
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "s").WithLocation(8, 9)
@@ -6381,6 +6381,28 @@ public class C
             c.VerifyDiagnostics();
 
             VerifyAnnotations(c, "C.ThrowIfNull", None, EnsuresNotNull);
+        }
+
+        [Fact]
+        public void EnsuresNotNull_OnDifferentTypes()
+        {
+            CSharpCompilation c = CreateCompilation(@"
+using System.Runtime.CompilerServices;
+public class C
+{
+    public static void Bad<T>([EnsuresNotNull] int i) => throw null;
+    public static void ThrowIfNull<T>([EnsuresNotNull] T t) => throw null;
+}
+" + EnsuresNotNullAttributeDefinition, parseOptions: TestOptions.Regular8);
+
+            c.VerifyDiagnostics(
+                // (5,32): error CS8628: The 'EnsuresNotNullAttribute' attribute is not applicable on a value type.
+                //     public static void Bad<T>([EnsuresNotNull] int i) => throw null;
+                Diagnostic(ErrorCode.ERR_AttributeNotApplicableOnValueType, "EnsuresNotNull").WithArguments("EnsuresNotNullAttribute").WithLocation(5, 32)
+                );
+
+            VerifyAnnotationsInSource(c, "C.Bad", None);
+            VerifyAnnotationsInSource(c, "C.ThrowIfNull", EnsuresNotNull);
         }
 
         [Fact]

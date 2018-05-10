@@ -631,12 +631,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
                 else
                 {
-                    arguments.Diagnostics.Add(ErrorCode.ERR_NotNullWhenFalseRequiresBoolReturn, arguments.AttributeSyntaxOpt.Location);
+                    arguments.Diagnostics.Add(ErrorCode.ERR_AttributeRequiresBoolReturn, arguments.AttributeSyntaxOpt.Location, AttributeDescription.NotNullWhenFalseAttribute.Name);
                 }
             }
             else if (attribute.IsTargetAttribute(this, AttributeDescription.EnsuresNotNullAttribute))
             {
-                arguments.GetOrCreateData<CommonParameterWellKnownAttributeData>().HasEnsuresNotNullAttribute = true;
+                if (this.Type.IsValueType)
+                {
+                    arguments.Diagnostics.Add(ErrorCode.ERR_AttributeNotApplicableOnValueType, arguments.AttributeSyntaxOpt.Location, AttributeDescription.EnsuresNotNullAttribute.Name);
+                }
+                else
+                {
+                    arguments.GetOrCreateData<CommonParameterWellKnownAttributeData>().HasEnsuresNotNullAttribute = true;
+                }
             }
         }
 
