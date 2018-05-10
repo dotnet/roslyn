@@ -449,6 +449,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ' multiple viable results, instead produce an ambiguity between all of them.
         Public Sub MergeAmbiguous(other As LookupResult,
                                   generateAmbiguityDiagnostic As Func(Of ImmutableArray(Of Symbol), AmbiguousSymbolDiagnostic))
+            If other Is Nothing Then
+                Return
+            End If
+
             If Me.IsGoodOrAmbiguous AndAlso other.IsGoodOrAmbiguous Then
                 ' Two viable or ambiguous results. Produce ambiguity.
                 Dim ambiguousResults = ArrayBuilder(Of Symbol).GetInstance()
