@@ -534,7 +534,8 @@ Public Class BuildDevDivInsertionFiles
                    packageName = "EnvDTE" OrElse
                    packageName = "stdole" OrElse
                    packageName.StartsWith("Microsoft.Build") OrElse
-                   packageName = "Microsoft.Composition" Then
+                   packageName = "Microsoft.Composition" OrElse
+                   packageName = "System.Net.Http" Then
                     Continue For
                 End If
 
