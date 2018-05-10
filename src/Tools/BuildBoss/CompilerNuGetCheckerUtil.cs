@@ -114,6 +114,16 @@ namespace BuildBoss
                 return false;
             }
 
+            // TODO: waiting to hear back from CLI about why this is done. 
+            var unneededDllFileNames = new[]
+            {
+                "Microsoft.DiaSymReader.Native.amd64.dll",
+                "Microsoft.DiaSymReader.Native.x86.dll",
+            };
+            dllFileNames = dllFileNames
+                .Where(x => !unneededDllFileNames.Contains(x, StringComparer.OrdinalIgnoreCase))
+                .ToList();
+
             return VerifyNuPackage(
                         textWriter,
                         FindNuGetPackage(@"NuGet\PreRelease", "Microsoft.NETCore.Compilers"),

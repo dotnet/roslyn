@@ -1042,17 +1042,16 @@ Public Class BuildDevDivInsertionFiles
         Directory.CreateDirectory(outputDir)
 
         ' First copy over all the files from the compilers toolset. 
-        For Each fileRelativePath In GetCompilerToolsetNuspecFiles()
-            Dim fileName = Path.GetFileName(fileRelativePath)
+        For Each fileFullPath In GetCompilerToolsetNuspecFiles()
+            Dim fileName = Path.GetFileName(fileFullPath)
 
             ' Skip satellite assemblies; we don't need these for the compiler insertion
             If fileName.EndsWith(".resources.dll", StringComparison.OrdinalIgnoreCase) Then
                 Continue For
             End If
 
-            Dim filePath = Path.Combine(_binDirectory, fileRelativePath)
             Dim destFilepath = Path.Combine(outputDir, fileName)
-            File.Copy(filePath, destFilepath)
+            File.Copy(fileFullPath, destFilepath)
             nuspecFiles.Add(fileName)
 
             ' A bug in VS forces all of our exes to use the prefer 32 bit mode. Mark the copies added 
@@ -1154,7 +1153,19 @@ set DEVPATH=%RoslynToolsRoot%;%DEVPATH%"
         Dim document = XDocument.Load(nuspecFilePath)
         For Each fileElement In document.<package>.<files>.<file>
             If fileElement.Attribute("target").Value = "tools" Then
-                files.Add(fileElement.Attribute("src").Value)
+                Dim fileRelativePath = fileElement.Attribute("src").Value
+                Dim fileFullPath = Path.Combine(_binDirectory, fileRelativePath)
+                If fileRelativePath.Contains("**") Then
+                    Continue For
+                ElseIf fileRelativePath.Contains("*") Then
+                    Dim dir = Path.GetDirectoryName(fileRelativePath)
+                    dir = Path.Combine(_binDirectory, dir)
+                    For Each f In Directory.EnumerateFiles(dir, Path.GetFileName(fileRelativePath))
+                        files.Add(f)
+                    Next
+                Else
+                    files.Add(fileFullPath)
+                End If
             End If
         Next
 

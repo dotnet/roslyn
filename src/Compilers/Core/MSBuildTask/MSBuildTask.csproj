@@ -71,8 +71,8 @@
     <PackageReference Include="Microsoft.Build" Version="$(MicrosoftBuildFixedVersion)" />
     <PackageReference Include="Microsoft.Build.Tasks.Core" Version="$(MicrosoftBuildTasksCoreFixedVersion)" />
     <!-- TODO: condition these on netcore -->
-    <PackageReference Include="System.IO.Pipes.AccessControl" Version="$(SystemIOPipesAccessControlVersion)" />
-    <PackageReference Include="System.Security.AccessControl" Version="$(SystemSecurityAccessControlVersion)" />
+    <PackageReference Include="System.IO.Pipes.AccessControl" Version="$(SystemIOPipesAccessControlVersion)" Condition="'$(TargetFramework)' == 'netcoreapp2.0'" />
+    <PackageReference Include="System.Security.AccessControl" Version="$(SystemSecurityAccessControlVersion)" Condition="'$(TargetFramework)' == 'netcoreapp2.0'" />
   </ItemGroup>
   <ItemGroup>
     <InternalsVisibleToTest Include="Microsoft.Build.Tasks.CodeAnalysis.UnitTests" />
