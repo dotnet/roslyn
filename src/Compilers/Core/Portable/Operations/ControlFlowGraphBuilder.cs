@@ -3515,7 +3515,7 @@ oneMoreTime:
 
             IOperation handleSimpleAssignment(ISimpleAssignmentOperation assignmentOperation)
             {
-                (bool pushSuccess, ImmutableArray<IArgumentOperation> arguments) = tryPushTarget(assignmentOperation.Target);
+                (bool pushSuccess, ImmutableArray<IOperation> arguments) = tryPushTarget(assignmentOperation.Target);
 
                 if (!pushSuccess)
                 {
@@ -3574,12 +3574,12 @@ oneMoreTime:
                 // We therefore visit the InitializedMember to get the implicit receiver for the contained initializer, and that implicit receiver will be cloned everywhere it encounters
                 // an IInstanceReferenceOperation with ReferenceKind InstanceReferenceKind.ImplicitReceiver
 
-                (bool pushSuccess, ImmutableArray<IArgumentOperation> arguments) = tryPushTarget(memberInitializer.InitializedMember);
+                (bool pushSuccess, ImmutableArray<IOperation> arguments) = tryPushTarget(memberInitializer.InitializedMember);
                 IOperation instance = pushSuccess ? popTarget(memberInitializer.InitializedMember, arguments) : Visit(memberInitializer.InitializedMember);
                 HandleObjectOrCollectionInitializer(memberInitializer.Initializer, instance);
             }
 
-            (bool success, ImmutableArray<IArgumentOperation> arguments) tryPushTarget(IOperation instance)
+            (bool success, ImmutableArray<IOperation> arguments) tryPushTarget(IOperation instance)
             {
                 switch (instance.Kind)
                 {
@@ -3619,21 +3619,27 @@ oneMoreTime:
                         // the value has been evaluated. So we assemble the reference after visiting the value.
 
                         _evalStack.Push(Visit(memberReference.Instance));
-                        return (success: true, propertyArguments);
-
+                        return (success: true, ImmutableArray<IOperation>.CastUp(propertyArguments));
 
                     case OperationKind.ArrayElementReference:
-                    // PROTOTYPE(dataflow): Add support
+                        var arrayReference = (IArrayElementReferenceOperation)instance;
+                        ImmutableArray<IOperation> indicies = arrayReference.Indices.SelectAsArray(indexExpr =>
+                        {
+                            int captureId = VisitAndCapture(indexExpr);
+                            return (IOperation)new FlowCaptureReference(captureId, indexExpr.Syntax, indexExpr.Type, indexExpr.ConstantValue);
+                        });
+                        _evalStack.Push(Visit(arrayReference.ArrayReference));
+                        return (success: true, indicies);
 
                     case OperationKind.Invalid:
-                        return (success: false, arguments: ImmutableArray<IArgumentOperation>.Empty);
+                        return (success: false, arguments: ImmutableArray<IOperation>.Empty);
 
                     default:
                         throw ExceptionUtilities.UnexpectedValue(instance.Kind);
                 }
             }
 
-            IOperation popTarget(IOperation originalTarget, ImmutableArray<IArgumentOperation> arguments)
+            IOperation popTarget(IOperation originalTarget, ImmutableArray<IOperation> arguments)
             {
                 IOperation instance = _evalStack.Pop();
                 switch (originalTarget.Kind)
@@ -3649,12 +3655,12 @@ oneMoreTime:
                     case OperationKind.PropertyReference:
                         var propertyReference = (IPropertyReferenceOperation)originalTarget;
                         Debug.Assert(propertyReference.Arguments.Length == arguments.Length);
-                        return new PropertyReferenceExpression(propertyReference.Property, instance, arguments, semanticModel: null, propertyReference.Syntax,
+                        var castArguments = arguments.CastDown<IOperation, IArgumentOperation>();
+                        return new PropertyReferenceExpression(propertyReference.Property, instance, castArguments, semanticModel: null, propertyReference.Syntax,
                                                                propertyReference.Type, propertyReference.ConstantValue, propertyReference.IsImplicit);
-
                     case OperationKind.ArrayElementReference:
-                    // PROTOTYPE(dataflow): add support
-
+                        Debug.Assert(((IArrayElementReferenceOperation)originalTarget).Indices.Length == arguments.Length);
+                        return new ArrayElementReferenceExpression(instance, arguments, semanticModel: null, originalTarget.Syntax, originalTarget.Type, originalTarget.ConstantValue, originalTarget.IsImplicit);
                     default:
                         throw ExceptionUtilities.UnexpectedValue(originalTarget.Kind);
                 }
@@ -3880,6 +3886,11 @@ oneMoreTime:
             return new LiteralExpression(semanticModel: null, operation.Syntax, operation.Type, operation.ConstantValue, operation.IsImplicit);
         }
 
+        public override IOperation VisitLiteral(ILiteralOperation operation, int? captureIdForResult)
+        {
+            return new LiteralExpression(semanticModel: null, operation.Syntax, operation.Type, operation.ConstantValue, operation.IsImplicit);
+        }
+        
         public override IOperation VisitTypeOf(ITypeOfOperation operation, int? captureIdForResult)
         {
             return new TypeOfExpression(operation.TypeOperand, semanticModel: null, operation.Syntax, operation.Type, operation.ConstantValue, operation.IsImplicit);
@@ -4093,11 +4104,6 @@ oneMoreTime:
         public override IOperation VisitDelegateCreation(IDelegateCreationOperation operation, int? captureIdForResult)
         {
             return new DelegateCreationExpression(Visit(operation.Target), semanticModel: null, operation.Syntax, operation.Type, operation.ConstantValue, operation.IsImplicit);
-        }
-
-        public override IOperation VisitLiteral(ILiteralOperation operation, int? captureIdForResult)
-        {
-            return new LiteralExpression(semanticModel: null, operation.Syntax, operation.Type, operation.ConstantValue, operation.IsImplicit);
         }
 
         public override IOperation VisitAwait(IAwaitOperation operation, int? captureIdForResult)
