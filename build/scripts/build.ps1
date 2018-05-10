@@ -266,6 +266,7 @@ function Build-Artifacts() {
 
     if ($build -and (-not $skipBuildExtras) -and (-not $buildCoreClr)) {
         Build-InsertionItems
+        Build-Installer
     }
 }
 
@@ -353,6 +354,64 @@ function Build-InsertionItems() {
     finally {
         Pop-Location
     }
+}
+
+function Build-Installer () {
+    #  Copying Artifacts
+    $installerDir = Join-Path $configDir "Installer"
+    if (-not (Test-Path $installerDir)) {
+        New-Item -ItemType Directory -Force -Path $installerDir
+    }
+    
+    $intermidateDirectory = Join-Path $env:TEMP "InstallerTemp"
+    if(Test-Path $intermidateDirectory)
+    {
+        Remove-Item -Path $intermidateDirectory -Recurse -Force
+    }
+    New-Item -ItemType Directory -Force -Path $intermidateDirectory
+
+    ## Copying VsixExpInstaller.exe
+    $vsixExpInstallerDir = Get-PackageDir "RoslynTools.Microsoft.VSIXExpInstaller"
+    $vsixExpInstallerExe = Join-Path $vsixExpInstallerDir "tools\VsixExpInstaller.exe"
+    $vsixExpInstallerExeDestination = Join-Path $intermidateDirectory "tools\vsixexpinstaller"
+    if (-not (Test-Path $vsixExpInstallerExeDestination)) {
+        New-Item -ItemType Directory -Force -Path $vsixExpInstallerExeDestination
+    }
+    Copy-Item -Path $vsixExpInstallerExe -Destination $vsixExpInstallerExeDestination
+    
+    ## Copying VsWhere.exe
+    $vswhere = Join-Path (Ensure-BasicTool "vswhere") "tools\vswhere.exe"
+    $vswhereDestination = Join-Path $intermidateDirectory "tools\vswhere"
+    if (-not (Test-Path $vswhereDestination)) {
+        New-Item -ItemType Directory -Force -Path $vswhereDestination
+    }
+    Copy-Item -Path $vswhere -Destination $vswhereDestination
+
+    ## Copying powershell scripts
+    $installerScriptsFolder = Join-Path $repoDir "src\Setup\InstallerScripts"
+    Copy-Item $installerScriptsFolder -Destination $intermidateDirectory -Recurse
+
+    ## Copying VSIXes
+    $vsixDir = Join-Path $configDir "Vsix"
+    $vsixDirDestination = Join-Path $intermidateDirectory "vsix"
+    if (-not (Test-Path $vsixDirDestination)) {
+        New-Item -ItemType Directory -Force -Path $vsixDirDestination
+    }
+    $expressionEvaluatorPackageVsix = Join-Path $vsixDir "ExpressionEvaluatorPackage\ExpressionEvaluatorPackage.vsix"
+    Copy-Item $expressionEvaluatorPackageVsix -Destination $vsixDirDestination
+    
+    $compilerExtensionVsix = Join-Path $vsixDir "CompilerExtension\Roslyn.Compilers.Extension.vsix"
+    Copy-Item $compilerExtensionVsix -Destination $vsixDirDestination
+    
+    $interactiveComponentsVsix = Join-Path $vsixDir "VisualStudioInteractiveComponents\Roslyn.VisualStudio.InteractiveComponents.vsix"
+    Copy-Item $interactiveComponentsVsix -Destination $vsixDirDestination
+    
+    $visualStudioSetupVsix = Join-Path $vsixDir "VisualStudioSetup\Roslyn.VisualStudio.Setup.vsix"
+    Copy-Item $visualStudioSetupVsix -Destination $vsixDirDestination
+    
+    #  Zip Folder
+    $installerZip = Join-Path $installerDir "Roslyn_Preview"
+    Compress-Archive -Path $intermidateDirectory -DestinationPath $installerZip
 }
 
 function Pack-One([string]$nuspecFilePath, [string]$packageKind, [string]$packageOutDir = "", [string]$extraArgs = "", [string]$basePath = "", [switch]$useConsole = $true) { 
