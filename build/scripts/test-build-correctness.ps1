@@ -20,6 +20,9 @@ $ErrorActionPreference="Stop"
 try {
     . (Join-Path $PSScriptRoot "build-utils.ps1")
     Push-Location $repoDir
+    $buildConfiguration = if ($release) { "Release" } else { "Debug" }
+    $releaseArg = if ($release) { "-release" } else { "" }
+    $configDir = Join-Path $binariesDir $buildConfiguration
 
     Write-Host "Building Roslyn"
     Exec-Block { & (Join-Path $PSScriptRoot "build.ps1") -restore -build -cibuild:$cibuild -release:$release -pack -binaryLog }
@@ -28,7 +31,7 @@ try {
     # Verify the state of our various build artifacts
     Write-Host "Running BuildBoss"
     $buildBossPath = Join-Path $configDir "Exes\BuildBoss\BuildBoss.exe"
-    Exec-Console $buildBossPath "Roslyn.sln Compilers.sln SourceBuild.sln build\Targets -r $repoDir"
+    Exec-Console $buildBossPath "Roslyn.sln Compilers.sln SourceBuild.sln -r $repoDir $releaseArg"
     Write-Host ""
 
     # Verify the state of our generated syntax files
