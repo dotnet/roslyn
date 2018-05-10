@@ -76,11 +76,8 @@
     <MicrosoftVisualStudioCodeAnalysisSdkUIVersion>15.0.26730-alpha</MicrosoftVisualStudioCodeAnalysisSdkUIVersion>
     <MicrosoftVisualStudioComponentModelHostVersion>15.0.26730-alpha</MicrosoftVisualStudioComponentModelHostVersion>
     <MicrosoftVisualStudioCompositionVersion>15.5.23</MicrosoftVisualStudioCompositionVersion>
-<<<<<<< HEAD
-=======
     <MicrosoftVisualStudioDebuggerEngineVersion>15.0.27309-vsucorediag</MicrosoftVisualStudioDebuggerEngineVersion>
     <MicrosoftVisualStudioDebuggerMetadataVersion>15.0.27309-vsucorediag</MicrosoftVisualStudioDebuggerMetadataVersion>
->>>>>>> 80763b15c7... Update Editor NuGet references
     <MicrosoftVisualStudioDebuggerUIInterfacesVersion>15.0.27309-vsucorediag</MicrosoftVisualStudioDebuggerUIInterfacesVersion>
     <MicrosoftVisualStudioCoreUtilityVersion>15.7.413-preview-gfe081ad9e1</MicrosoftVisualStudioCoreUtilityVersion>
     <MicrosoftVisualStudioDebuggerInterop100Version>10.0.30319</MicrosoftVisualStudioDebuggerInterop100Version>
@@ -93,42 +90,10 @@
     <MicrosoftVisualStudioImagingInterop140DesignTimeVersion>15.0.25726-Preview5</MicrosoftVisualStudioImagingInterop140DesignTimeVersion>
     <MicrosoftVisualStudioInteractiveWindowVersion>2.0.0-rc3-61304-01</MicrosoftVisualStudioInteractiveWindowVersion>
     <MicrosoftVisualStudioLanguageCallHierarchyVersion>15.3.1710.203</MicrosoftVisualStudioLanguageCallHierarchyVersion>
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-    <MicrosoftVisualStudioLanguageVersion>15.7.272-preview-g0de2faf761</MicrosoftVisualStudioLanguageVersion>
-<<<<<<< HEAD
-    <MicrosoftVisualStudioLanguageIntellisenseVersion>15.6.281-preview</MicrosoftVisualStudioLanguageIntellisenseVersion>
-    <MicrosoftVisualStudioLanguageNavigateToInterfacesVersion>15.6.281-preview</MicrosoftVisualStudioLanguageNavigateToInterfacesVersion>
-    <MicrosoftVisualStudioLanguageStandardClassificationVersion>15.6.281-preview</MicrosoftVisualStudioLanguageStandardClassificationVersion>
-    <MicrosoftVisualStudioLanguageIntellisenseVersion>15.7.272-preview-g0de2faf761</MicrosoftVisualStudioLanguageIntellisenseVersion>
-=======
-    <MicrosoftVisualStudioLanguageIntellisenseVersion>15.7.272-preview-g0de2faf761</MicrosoftVisualStudioLanguageIntellisenseVersion>
-=======
-    <MicrosoftVisualStudioLanguageVersion>15.7.301-preview-g66192ffa43</MicrosoftVisualStudioLanguageVersion>
-    <MicrosoftVisualStudioLanguageIntellisenseVersion>15.7.301-preview-g66192ffa43</MicrosoftVisualStudioLanguageIntellisenseVersion>
->>>>>>> 0edd0b8821... Actually update editor nugets
-=======
-    <MicrosoftVisualStudioLanguageVersion>15.7.337-preview-g3ac2340f82</MicrosoftVisualStudioLanguageVersion>
-    <MicrosoftVisualStudioLanguageIntellisenseVersion>15.7.337-preview-g3ac2340f82</MicrosoftVisualStudioLanguageIntellisenseVersion>
->>>>>>> ce8ebece6a... New NuGets
-=======
-    <MicrosoftVisualStudioLanguageVersion>15.7.349-preview-g6c1bb2ecc2</MicrosoftVisualStudioLanguageVersion>
-    <MicrosoftVisualStudioLanguageIntellisenseVersion>15.7.349-preview-g6c1bb2ecc2</MicrosoftVisualStudioLanguageIntellisenseVersion>
->>>>>>> e16fe3f271... Newer NuGets
-=======
-    <MicrosoftVisualStudioLanguageVersion>15.7.404-preview-g605488d753</MicrosoftVisualStudioLanguageVersion>
-    <MicrosoftVisualStudioLanguageIntellisenseVersion>15.7.404-preview-g605488d753</MicrosoftVisualStudioLanguageIntellisenseVersion>
->>>>>>> ed39043344... Update NuGets
-=======
     <MicrosoftVisualStudioLanguageVersion>15.7.413-preview-gfe081ad9e1</MicrosoftVisualStudioLanguageVersion>
     <MicrosoftVisualStudioLanguageIntellisenseVersion>15.7.413-preview-gfe081ad9e1</MicrosoftVisualStudioLanguageIntellisenseVersion>
->>>>>>> abf091d306... Newer NuGets
     <MicrosoftVisualStudioLanguageNavigateToInterfacesVersion>15.7.153-preview-g7d0635149a</MicrosoftVisualStudioLanguageNavigateToInterfacesVersion>
     <MicrosoftVisualStudioLanguageStandardClassificationVersion>15.7.153-preview-g7d0635149a</MicrosoftVisualStudioLanguageStandardClassificationVersion>
->>>>>>> 80763b15c7... Update Editor NuGet references
     <MicrosoftVisualStudioOLEInteropVersion>7.10.6070</MicrosoftVisualStudioOLEInteropVersion>
     <MicrosoftVisualStudioPlatformVSEditorVersion>15.6.253-preview</MicrosoftVisualStudioPlatformVSEditorVersion>
     <MicrosoftVisualStudioProgressionCodeSchemaVersion>15.0.26730-alpha</MicrosoftVisualStudioProgressionCodeSchemaVersion>
