@@ -5518,8 +5518,8 @@ public class C
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "s").WithLocation(16, 9)
                 );
 
-            VerifyAnnotations(c, "C.Main", None);
-            VerifyAnnotations(c, "C.MyIsNullOrEmpty", NotNullWhenFalse);
+            VerifyAnnotationsAndMetadata(c, "C.Main", None);
+            VerifyAnnotationsAndMetadata(c, "C.MyIsNullOrEmpty", NotNullWhenFalse);
         }
 
         [Fact]
@@ -5534,12 +5534,12 @@ public class C
 " + NotNullWhenFalseAttributeDefinition, parseOptions: TestOptions.Regular8);
 
             c.VerifyDiagnostics(
-                // (5,43): error CS8627: The NotNullWhenFalse attribute is only applicable on members that return a boolean type.
+                // (5,43): error CS8627: The 'NotNullWhenFalseAttribute' attribute is only applicable on members that return a boolean type.
                 //     public static object MyIsNullOrEmpty([NotNullWhenFalse] string? s) => throw null;
-                Diagnostic(ErrorCode.ERR_AttributeRequiresBoolReturn, "NotNullWhenFalse").WithLocation(5, 43)
+                Diagnostic(ErrorCode.ERR_AttributeRequiresBoolReturn, "NotNullWhenFalse").WithArguments("NotNullWhenFalseAttribute").WithLocation(5, 43)
                 );
 
-            VerifyAnnotationsInSource(c, "C.MyIsNullOrEmpty", None);
+            VerifyAnnotations(c, "C.MyIsNullOrEmpty", None);
         }
 
         [Fact]
@@ -5584,7 +5584,7 @@ public class C
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "s2").WithLocation(19, 9)
                 );
 
-            VerifyAnnotations(c, "C.MyIsNullOrEmpty", NotNullWhenFalse, NotNullWhenFalse);
+            VerifyAnnotationsAndMetadata(c, "C.MyIsNullOrEmpty", NotNullWhenFalse, NotNullWhenFalse);
         }
 
         [Fact]
@@ -5699,10 +5699,10 @@ class C
         }
         else
         {
-            s.ToString(); // ok
+            s.ToString(); // warn 2
         }
 
-        s.ToString(); // warn 2
+        s.ToString(); // warn 3
     }
     static bool MyIsNullOrEmpty([NotNullWhenFalse] string? s) => throw null;
 }
@@ -5719,17 +5719,17 @@ class C
                 //             s.ToString(); // warn
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "s").WithLocation(8, 13),
                 // (12,13): warning CS8602: Possible dereference of a null reference.
-                //             s.ToString(); // ok
+                //             s.ToString(); // warn 2
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "s").WithLocation(12, 13),
                 // (15,9): warning CS8602: Possible dereference of a null reference.
-                //         s.ToString(); // warn 2
+                //         s.ToString(); // warn 3
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "s").WithLocation(15, 9)
                 );
 
-            VerifyAnnotationsInSource(c, "C.MyIsNullOrEmpty", None);
+            VerifyAnnotations(c, "C.MyIsNullOrEmpty", None);
         }
 
-        private static void VerifyAnnotationsInSource(Compilation compilation, string memberName, params AttributeAnnotations[] expected)
+        private static void VerifyAnnotations(Compilation compilation, string memberName, params AttributeAnnotations[] expected)
         {
             var method = compilation.GetMember<MethodSymbol>(memberName);
             Assert.True((object)method != null, $"Could not find method '{memberName}'");
@@ -5737,13 +5737,13 @@ class C
             Assert.Equal(expected, actual);
         }
 
-        private void VerifyAnnotations(Compilation compilation, string memberName, params AttributeAnnotations[] expected)
+        private void VerifyAnnotationsAndMetadata(Compilation compilation, string memberName, params AttributeAnnotations[] expected)
         {
-            VerifyAnnotationsInSource(compilation, memberName, expected);
+            VerifyAnnotations(compilation, memberName, expected);
 
             // Also verify from metadata
             var compilation2 = CreateCompilation("", references: new[] { compilation.EmitToImageReference() });
-            VerifyAnnotationsInSource(compilation2, memberName, expected);
+            VerifyAnnotations(compilation2, memberName, expected);
         }
 
         [Fact]
@@ -5786,7 +5786,7 @@ namespace System.Runtime.CompilerServices
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "s").WithLocation(13, 13)
                 );
 
-            VerifyAnnotations(c, "C.MyIsNullOrEmpty", None);
+            VerifyAnnotationsAndMetadata(c, "C.MyIsNullOrEmpty", None);
         }
 
         [Fact]
@@ -5817,7 +5817,7 @@ public class C
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "s").WithLocation(13, 13)
                 );
 
-            VerifyAnnotations(c, "C.MyIsNullOrEmpty", NotNullWhenFalse);
+            VerifyAnnotationsAndMetadata(c, "C.MyIsNullOrEmpty", NotNullWhenFalse);
         }
 
         [Fact]
@@ -5866,7 +5866,7 @@ public class C
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "s").WithLocation(9, 13)
                 );
 
-            VerifyAnnotations(c, "C.MyIsNullOrEmpty", NotNullWhenFalse);
+            VerifyAnnotationsAndMetadata(c, "C.MyIsNullOrEmpty", NotNullWhenFalse);
         }
 
         [Fact]
@@ -5900,7 +5900,7 @@ public static class Extension
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "s").WithLocation(9, 13)
                 );
 
-            VerifyAnnotations(c, "Extension.MyIsNullOrEmpty", None, NotNullWhenFalse);
+            VerifyAnnotationsAndMetadata(c, "Extension.MyIsNullOrEmpty", None, NotNullWhenFalse);
         }
 
         [Fact]
@@ -5929,7 +5929,7 @@ class C
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "s").WithLocation(8, 13)
                 );
 
-            VerifyAnnotations(c, "System.String.IsNullOrEmpty", NotNullWhenFalse);
+            VerifyAnnotationsAndMetadata(c, "System.String.IsNullOrEmpty", NotNullWhenFalse);
         }
 
         [Fact]
@@ -5972,7 +5972,7 @@ namespace System
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "s").WithLocation(8, 13)
                 );
 
-            VerifyAnnotationsInSource(c, "System.String.IsNullOrEmpty", NotNullWhenFalse);
+            VerifyAnnotations(c, "System.String.IsNullOrEmpty", NotNullWhenFalse);
         }
 
         [Fact]
@@ -6015,7 +6015,7 @@ namespace System
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "s").WithLocation(8, 13)
                 );
 
-            VerifyAnnotationsInSource(c, "System.String.IsNullOrWhiteSpace", NotNullWhenFalse);
+            VerifyAnnotations(c, "System.String.IsNullOrWhiteSpace", NotNullWhenFalse);
         }
 
         [Fact]
@@ -6044,7 +6044,7 @@ class C
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "s").WithLocation(12, 13)
                 );
 
-            VerifyAnnotations(c, "System.String.IsNullOrEmpty", NotNullWhenFalse);
+            VerifyAnnotationsAndMetadata(c, "System.String.IsNullOrEmpty", NotNullWhenFalse);
         }
 
         [Fact]
@@ -6119,7 +6119,7 @@ class C
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "s").WithLocation(8, 13)
                 );
 
-            VerifyAnnotations(c, "System.String.IsNullOrWhiteSpace", NotNullWhenFalse);
+            VerifyAnnotationsAndMetadata(c, "System.String.IsNullOrWhiteSpace", NotNullWhenFalse);
         }
 
         [Fact]
@@ -6155,9 +6155,9 @@ public partial class C
                 Diagnostic(ErrorCode.ERR_AttributeRequiresBoolReturn, "NotNullWhenFalse").WithArguments("NotNullWhenFalseAttribute").WithLocation(6, 22)
                 );
 
-            VerifyAnnotationsInSource(c, "C.M1", None);
-            VerifyAnnotationsInSource(c, "C.M2", None);
-            VerifyAnnotationsInSource(c, "C.M3", None);
+            VerifyAnnotations(c, "C.M1", None);
+            VerifyAnnotations(c, "C.M2", None);
+            VerifyAnnotations(c, "C.M3", None);
         }
 
         [Fact]
@@ -6169,13 +6169,13 @@ public class C
 {
     void Main(string? s)
     {
-        if (string.IsNullOrWhiteSpace(s))
+        if (MyIsNullOrEmpty(s))
         {
             s.ToString(); // warn
         }
         else
         {
-            s.ToString(); // ok
+            s.ToString(); // warn 2
         }
     }
     public dynamic MyIsNullOrEmpty([NotNullWhenFalse] string? s) => throw null;
@@ -6183,15 +6183,18 @@ public class C
 " + NotNullWhenFalseAttributeDefinition, parseOptions: TestOptions.Regular8);
 
             c.VerifyDiagnostics(
-                // (16,37): error CS8627: The NotNullWhenFalse attribute is only applicable on members that return a boolean type.
+                // (16,37): error CS8627: The 'NotNullWhenFalseAttribute' attribute is only applicable on members that return a boolean type.
                 //     public dynamic MyIsNullOrEmpty([NotNullWhenFalse] string? s) => throw null;
-                Diagnostic(ErrorCode.ERR_AttributeRequiresBoolReturn, "NotNullWhenFalse").WithLocation(16, 37),
+                Diagnostic(ErrorCode.ERR_AttributeRequiresBoolReturn, "NotNullWhenFalse").WithArguments("NotNullWhenFalseAttribute").WithLocation(16, 37),
                 // (9,13): warning CS8602: Possible dereference of a null reference.
                 //             s.ToString(); // warn
-                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "s").WithLocation(9, 13)
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "s").WithLocation(9, 13),
+                // (13,13): warning CS8602: Possible dereference of a null reference.
+                //             s.ToString(); // warn 2
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "s").WithLocation(13, 13)
                 );
 
-            VerifyAnnotationsInSource(c, "C.MyIsNullOrEmpty", None);
+            VerifyAnnotations(c, "C.MyIsNullOrEmpty", None);
         }
 
         [Fact]
@@ -6275,7 +6278,7 @@ public class D
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "s").WithLocation(12, 13)
                 );
 
-            VerifyAnnotationsInSource(compilation, "C.MyIsNullOrEmpty", NotNullWhenFalse);
+            VerifyAnnotations(compilation, "C.MyIsNullOrEmpty", NotNullWhenFalse);
         }
 
         [Fact]
@@ -6287,7 +6290,7 @@ class C
 {
     void Main(string? s)
     {
-        string.IsNullOrWhiteSpace(s);
+        MyIsNullOrEmpty(s);
         s.ToString(); // warn
     }
     object MyIsNullOrEmpty([NotNullWhenFalse] string? s) => throw null;
@@ -6295,9 +6298,9 @@ class C
 " + NotNullWhenFalseAttributeDefinition, parseOptions: TestOptions.Regular8);
 
             c.VerifyDiagnostics(
-                // (10,29): error CS8627: The NotNullWhenFalse attribute is only applicable on members that return a boolean type.
+                // (10,29): error CS8627: The 'NotNullWhenFalseAttribute' attribute is only applicable on members that return a boolean type.
                 //     object MyIsNullOrEmpty([NotNullWhenFalse] string? s) => throw null;
-                Diagnostic(ErrorCode.ERR_AttributeRequiresBoolReturn, "NotNullWhenFalse").WithLocation(10, 29),
+                Diagnostic(ErrorCode.ERR_AttributeRequiresBoolReturn, "NotNullWhenFalse").WithArguments("NotNullWhenFalseAttribute").WithLocation(10, 29),
                 // (8,9): warning CS8602: Possible dereference of a null reference.
                 //         s.ToString(); // warn
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "s").WithLocation(8, 9)
@@ -6330,7 +6333,7 @@ public class C
 
             c.VerifyDiagnostics();
 
-            VerifyAnnotations(c, "C.MyIsNullOrEmpty", NotNullWhenFalse, EnsuresNotNull);
+            VerifyAnnotationsAndMetadata(c, "C.MyIsNullOrEmpty", NotNullWhenFalse, EnsuresNotNull);
         }
 
         [Fact]
@@ -6359,7 +6362,7 @@ public class C
 
             c.VerifyDiagnostics();
 
-            VerifyAnnotations(c, "C.MyIsNullOrEmpty", NotNullWhenFalse | EnsuresNotNull);
+            VerifyAnnotationsAndMetadata(c, "C.MyIsNullOrEmpty", NotNullWhenFalse | EnsuresNotNull);
         }
 
         [Fact]
@@ -6380,7 +6383,172 @@ public class C
 
             c.VerifyDiagnostics();
 
-            VerifyAnnotations(c, "C.ThrowIfNull", None, EnsuresNotNull);
+            VerifyAnnotationsAndMetadata(c, "C.ThrowIfNull", None, EnsuresNotNull);
+        }
+
+        [Fact]
+        public void EnsuresNotNull_OnInterface()
+        {
+            CSharpCompilation c = CreateCompilation(@"
+using System.Runtime.CompilerServices;
+public class C
+{
+    void Main(string? s, Interface i)
+    {
+        i.ThrowIfNull(42, s);
+        s.ToString(); // ok
+    }
+}
+public interface Interface
+{
+    void ThrowIfNull(int x, [EnsuresNotNull] string? s);
+}
+" + EnsuresNotNullAttributeDefinition, parseOptions: TestOptions.Regular8);
+
+            c.VerifyDiagnostics();
+
+            VerifyAnnotationsAndMetadata(c, "Interface.ThrowIfNull", None, EnsuresNotNull);
+        }
+
+        [Fact]
+        public void EnsuresNotNull_OnInterface_ImplementedWithoutAttribute()
+        {
+            CSharpCompilation c = CreateCompilation(@"
+using System.Runtime.CompilerServices;
+public class C : Interface
+{
+    void Main(string? s)
+    {
+        this.ThrowIfNull(42, s);
+        s.ToString(); // warn
+        ((Interface)this).ThrowIfNull(42, s);
+        s.ToString(); // ok
+    }
+    public void ThrowIfNull(int x, string? s) => throw null;
+}
+public interface Interface
+{
+    void ThrowIfNull(int x, [EnsuresNotNull] string? s);
+}
+" + EnsuresNotNullAttributeDefinition, parseOptions: TestOptions.Regular8);
+
+            c.VerifyDiagnostics(
+                // (8,9): warning CS8602: Possible dereference of a null reference.
+                //         s.ToString(); // warn
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "s").WithLocation(8, 9)
+                );
+
+            VerifyAnnotationsAndMetadata(c, "Interface.ThrowIfNull", None, EnsuresNotNull);
+            VerifyAnnotationsAndMetadata(c, "C.ThrowIfNull", None, None);
+        }
+
+        [Fact]
+        public void EnsuresNotNull_OnInterface_ImplementedWithAttribute()
+        {
+            CSharpCompilation c = CreateCompilation(@"
+using System.Runtime.CompilerServices;
+public class C : Interface
+{
+    void Main(string? s)
+    {
+        ((Interface)this).ThrowIfNull(42, s);
+        s.ToString(); // warn
+        this.ThrowIfNull(42, s);
+        s.ToString(); // ok
+    }
+    public void ThrowIfNull(int x, [EnsuresNotNull] string? s) => throw null;
+}
+public interface Interface
+{
+    void ThrowIfNull(int x, string? s);
+}
+" + EnsuresNotNullAttributeDefinition, parseOptions: TestOptions.Regular8);
+
+            c.VerifyDiagnostics(
+                // (8,9): warning CS8602: Possible dereference of a null reference.
+                //         s.ToString(); // warn
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "s").WithLocation(8, 9)
+                );
+
+            VerifyAnnotationsAndMetadata(c, "Interface.ThrowIfNull", None, None);
+            VerifyAnnotationsAndMetadata(c, "C.ThrowIfNull", None, EnsuresNotNull);
+        }
+
+        [Fact]
+        public void EnsuresNotNull_OnDelegate()
+        {
+            CSharpCompilation c = CreateCompilation(@"
+using System.Runtime.CompilerServices;
+delegate void D([EnsuresNotNull] object? o);
+public class C
+{
+    void Main(string? s, D d)
+    {
+        d(s);
+        s.ToString(); // ok
+    }
+}
+" + EnsuresNotNullAttributeDefinition, parseOptions: TestOptions.Regular8);
+
+            c.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void EnsuresNotNull_WithParams()
+        {
+            CSharpCompilation c = CreateCompilation(@"
+using System.Runtime.CompilerServices;
+public class C
+{
+    static void EnsuresNotNull([EnsuresNotNull] params object?[]? args) { }
+    static void F(object? x, object? y, object[]? a)
+    {
+        EnsuresNotNull();
+        a.ToString(); // warn 1
+
+        EnsuresNotNull(a);
+        a.ToString(); // ok
+
+        EnsuresNotNull(x, y);
+        x.ToString(); // warn 2
+        y.ToString(); // warn 3
+    }
+}
+" + EnsuresNotNullAttributeDefinition, parseOptions: TestOptions.Regular8);
+
+            // PROTOTYPE(NullableReferenceTypes): bug on x and y
+            c.VerifyDiagnostics(
+                // (9,9): warning CS8602: Possible dereference of a null reference.
+                //         a.ToString(); // warn 1
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "a").WithLocation(9, 9)
+                );
+        }
+
+        [Fact]
+        public void EnsuresNotNull_WithNamedArguments()
+        {
+            CSharpCompilation c = CreateCompilation(@"
+using System.Runtime.CompilerServices;
+public class C
+{
+    static void EnsuresNotNull1([EnsuresNotNull] object? x = null, object? y = null) { }
+    static void EnsuresNotNull2(object? x = null, [EnsuresNotNull] object? y = null) { }
+    static void F(object? x)
+    {
+        EnsuresNotNull1();
+        EnsuresNotNull1(y: x);
+        x.ToString(); // warn
+        EnsuresNotNull2(y: x);
+        x.ToString(); // ok
+    }
+}
+" + EnsuresNotNullAttributeDefinition, parseOptions: TestOptions.Regular8);
+
+            c.VerifyDiagnostics(
+                // (11,9): warning CS8602: Possible dereference of a null reference.
+                //         x.ToString(); // warn
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "x").WithLocation(11, 9)
+                );
         }
 
         [Fact]
@@ -6401,8 +6569,8 @@ public class C
                 Diagnostic(ErrorCode.ERR_AttributeNotApplicableOnValueType, "EnsuresNotNull").WithArguments("EnsuresNotNullAttribute").WithLocation(5, 32)
                 );
 
-            VerifyAnnotationsInSource(c, "C.Bad", None);
-            VerifyAnnotationsInSource(c, "C.ThrowIfNull", EnsuresNotNull);
+            VerifyAnnotations(c, "C.Bad", None);
+            VerifyAnnotations(c, "C.ThrowIfNull", EnsuresNotNull);
         }
 
         [Fact]
@@ -6412,18 +6580,27 @@ public class C
 using System.Runtime.CompilerServices;
 public class C
 {
-    void Main(string? s)
+   void M<T>(T t)
     {
-        ThrowIfNull(s);
-        s.ToString(); // ok
+        t.ToString(); // warn
+        ThrowIfNull(t);
+        t.ToString(); // ok
     }
     public static void ThrowIfNull<T>([EnsuresNotNull] T s) => throw null;
 }
 " + EnsuresNotNullAttributeDefinition, parseOptions: TestOptions.Regular8);
 
-            c.VerifyDiagnostics();
+            // PROTOTYPE(NullableReferenceTypes): We're not tracking unconstrained generic types
+            c.VerifyDiagnostics(
+                // (7,9): warning CS8602: Possible dereference of a null reference.
+                //         t.ToString(); // warn
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "t").WithLocation(7, 9),
+                // (9,9): warning CS8602: Possible dereference of a null reference.
+                //         t.ToString(); // ok
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "t").WithLocation(9, 9)
+                );
 
-            VerifyAnnotations(c, "C.ThrowIfNull", EnsuresNotNull);
+            VerifyAnnotationsAndMetadata(c, "C.ThrowIfNull", EnsuresNotNull);
         }
 
         [Fact]
@@ -6468,7 +6645,7 @@ public class C
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "s").WithLocation(7, 24)
                 );
 
-            VerifyAnnotations(c, "C.ThrowIfNull", EnsuresNotNull, None);
+            VerifyAnnotationsAndMetadata(c, "C.ThrowIfNull", EnsuresNotNull, None);
         }
 
         [Fact]
@@ -6510,7 +6687,7 @@ class C
 
             c.VerifyDiagnostics();
 
-            VerifyAnnotations(c, "System.String.Contains", EnsuresNotNull);
+            VerifyAnnotationsAndMetadata(c, "System.String.Contains", EnsuresNotNull);
         }
 
         [Fact]

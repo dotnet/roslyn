@@ -1636,7 +1636,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 // We'll ignore EnsuresNotNull that is misused in metadata
                 if ((annotations & AttributeAnnotations.EnsuresNotNull) != 0 &&
-                    parameter.Type?.IsReferenceType == false)
+                    parameter.Type?.IsValueType != false)
                 {
                     annotations &= ~AttributeAnnotations.EnsuresNotNull;
                 }
@@ -1871,6 +1871,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
+            _result = _invalidType;
             _disableDiagnostics = saveDisableDiagnostics;
         }
 
@@ -3749,7 +3750,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-#if DEBUG
             public override string ToString()
             {
                 var pooledBuilder = PooledStringBuilder.GetInstance();
@@ -3757,12 +3757,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 builder.Append(" ");
                 for (int i = this.Capacity - 1; i >= 0; i--)
                 {
-                    builder.Append(_knownNullState[i] ? (_notNull[i] ? "! " : "? ") : ". ");
+                    builder.Append(_knownNullState[i] ? (_notNull[i] ? "!" : "?") : "_");
                 }
 
                 return pooledBuilder.ToStringAndFree();
             }
-#endif
         }
     }
 }
