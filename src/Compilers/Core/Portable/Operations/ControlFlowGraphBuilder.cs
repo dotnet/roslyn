@@ -4022,17 +4022,23 @@ oneMoreTime:
 
         public override IOperation VisitInvocation(IInvocationOperation operation, int? captureIdForResult)
         {
-            if (operation.Instance != null)
-            {
-                // PROTOTYPE(dataflow): drop instance for a static method
-                _evalStack.Push(Visit(operation.Instance));
-            }
-
-            ImmutableArray<IArgumentOperation> visitedArguments = VisitArguments(operation.Arguments);
-            IOperation visitedInstance = operation.Instance == null ? null : _evalStack.Pop();
-
+            (IOperation visitedInstance, ImmutableArray<IArgumentOperation> visitedArguments) = VisitInstanceWithArguments(operation.Instance, operation.Arguments);
             return new InvocationExpression(operation.TargetMethod, visitedInstance, operation.IsVirtual, visitedArguments, semanticModel: null, operation.Syntax,
                                             operation.Type, operation.ConstantValue, IsImplicit(operation));
+        }
+
+        private (IOperation, ImmutableArray<IArgumentOperation>) VisitInstanceWithArguments(IOperation instance, ImmutableArray<IArgumentOperation> arguments)
+        {
+            if (instance != null)
+            {
+                // PROTOTYPE(dataflow): drop instance for a static method
+                _evalStack.Push(Visit(instance));
+            }
+
+            ImmutableArray<IArgumentOperation> visitedArguments = VisitArguments(arguments);
+            IOperation visitedInstance = instance == null ? null : _evalStack.Pop();
+
+            return (visitedInstance, visitedArguments);
         }
 
         public override IOperation VisitObjectCreation(IObjectCreationOperation operation, int? captureIdForResult)
@@ -4538,7 +4544,46 @@ oneMoreTime:
         {
             return new LiteralExpression(semanticModel: null, operation.Syntax, operation.Type, operation.ConstantValue, IsImplicit(operation));
         }
-        
+
+        public override IOperation VisitLocalReference(ILocalReferenceOperation operation, int? captureIdForResult)
+        {
+            return new LocalReferenceExpression(operation.Local, operation.IsDeclaration, semanticModel: null, operation.Syntax,
+                                                operation.Type, operation.ConstantValue, IsImplicit(operation));
+        }
+
+        public override IOperation VisitParameterReference(IParameterReferenceOperation operation, int? captureIdForResult)
+        {
+            return new ParameterReferenceExpression(operation.Parameter, semanticModel: null, operation.Syntax,
+                                                    operation.Type, operation.ConstantValue, IsImplicit(operation));
+        }
+
+        public override IOperation VisitFieldReference(IFieldReferenceOperation operation, int? captureIdForResult)
+        {
+            // PROTOTYPE(dataflow): drop instance for a static field
+            return new FieldReferenceExpression(operation.Field, operation.IsDeclaration, Visit(operation.Instance), semanticModel: null,
+                                                operation.Syntax, operation.Type, operation.ConstantValue, IsImplicit(operation));
+        }
+
+        public override IOperation VisitMethodReference(IMethodReferenceOperation operation, int? captureIdForResult)
+        {
+            // PROTOTYPE(dataflow): drop instance for a static method
+            return new MethodReferenceExpression(operation.Method, operation.IsVirtual, Visit(operation.Instance), semanticModel: null,
+                                                 operation.Syntax, operation.Type, operation.ConstantValue, IsImplicit(operation));
+        }
+
+        public override IOperation VisitPropertyReference(IPropertyReferenceOperation operation, int? captureIdForResult)
+        {
+            (IOperation visitedInstance, ImmutableArray<IArgumentOperation> visitedArguments) = VisitInstanceWithArguments(operation.Instance, operation.Arguments);
+            return new PropertyReferenceExpression(operation.Property, visitedInstance, visitedArguments, semanticModel: null,
+                                                   operation.Syntax, operation.Type, operation.ConstantValue, IsImplicit(operation));
+        }
+
+        public override IOperation VisitEventReference(IEventReferenceOperation operation, int? captureIdForResult)
+        {
+            return new EventReferenceExpression(operation.Event, Visit(operation.Instance), semanticModel: null,
+                                                operation.Syntax, operation.Type, operation.ConstantValue, IsImplicit(operation));
+        }
+
         public override IOperation VisitTypeOf(ITypeOfOperation operation, int? captureIdForResult)
         {
             return new TypeOfExpression(operation.TypeOperand, semanticModel: null, operation.Syntax, operation.Type, operation.ConstantValue, IsImplicit(operation));
@@ -4605,39 +4650,6 @@ oneMoreTime:
         internal override IOperation VisitPointerIndirectionReference(IPointerIndirectionReferenceOperation operation, int? captureIdForResult)
         {
             return new PointerIndirectionReferenceExpression(Visit(operation.Pointer), semanticModel: null, operation.Syntax, operation.Type, operation.ConstantValue, IsImplicit(operation));
-        }
-
-        public override IOperation VisitLocalReference(ILocalReferenceOperation operation, int? captureIdForResult)
-        {
-            return new LocalReferenceExpression(operation.Local, operation.IsDeclaration, semanticModel: null, operation.Syntax, operation.Type, operation.ConstantValue, IsImplicit(operation));
-        }
-
-        public override IOperation VisitParameterReference(IParameterReferenceOperation operation, int? captureIdForResult)
-        {
-            return new ParameterReferenceExpression(operation.Parameter, semanticModel: null, operation.Syntax, operation.Type, operation.ConstantValue, IsImplicit(operation));
-        }
-
-        public override IOperation VisitFieldReference(IFieldReferenceOperation operation, int? captureIdForResult)
-        {
-            // PROTOTYPE(dataflow): drop instance for a static field
-            return new FieldReferenceExpression(operation.Field, operation.IsDeclaration, Visit(operation.Instance), semanticModel: null, operation.Syntax, operation.Type, operation.ConstantValue, IsImplicit(operation));
-        }
-
-        public override IOperation VisitMethodReference(IMethodReferenceOperation operation, int? captureIdForResult)
-        {
-            // PROTOTYPE(dataflow): drop instance for a static method
-            return new MethodReferenceExpression(operation.Method, operation.IsVirtual, Visit(operation.Instance), semanticModel: null, operation.Syntax, operation.Type, operation.ConstantValue, IsImplicit(operation));
-        }
-
-        public override IOperation VisitPropertyReference(IPropertyReferenceOperation operation, int? captureIdForResult)
-        {
-            // PROTOTYPE(dataflow): drop instance for a static property
-            return new PropertyReferenceExpression(operation.Property, Visit(operation.Instance), VisitArray(operation.Arguments), semanticModel: null, operation.Syntax, operation.Type, operation.ConstantValue, IsImplicit(operation));
-        }
-
-        public override IOperation VisitEventReference(IEventReferenceOperation operation, int? captureIdForResult)
-        {
-            return new EventReferenceExpression(operation.Event, Visit(operation.Instance), semanticModel: null, operation.Syntax, operation.Type, operation.ConstantValue, IsImplicit(operation));
         }
 
         public override IOperation VisitEventAssignment(IEventAssignmentOperation operation, int? captureIdForResult)

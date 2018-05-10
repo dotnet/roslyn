@@ -420,5 +420,152 @@ public class Test
             // Verify we return null operation for child nodes of member access expression.
             Assert.Null(model.GetOperation(expr.Name));
         }
+
+        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+        [Fact]
+        public void MethodReference_NoControlFlow()
+        {
+            // Verify method references with different kinds of instance references.
+            string source = @"
+class C
+{
+    public virtual int M1() => 0;
+    public static int M2() => 0;
+    void M(C c, System.Func<int> m1, System.Func<int> m2, System.Func<int> m3)
+    /*<bind>*/{
+        m1 = this.M1;
+        m2 = c.M1;
+        m3 = M2;
+    }/*</bind>*/
+}
+";
+            string expectedFlowGraph = @"
+Block[B0] - Entry
+    Statements (0)
+    Next (Regular) Block[B1]
+Block[B1] - Block
+    Predecessors: [B0]
+    Statements (3)
+        IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'm1 = this.M1;')
+          Expression: 
+            ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Func<System.Int32>) (Syntax: 'm1 = this.M1')
+              Left: 
+                IParameterReferenceOperation: m1 (OperationKind.ParameterReference, Type: System.Func<System.Int32>) (Syntax: 'm1')
+              Right: 
+                IDelegateCreationOperation (OperationKind.DelegateCreation, Type: System.Func<System.Int32>, IsImplicit) (Syntax: 'this.M1')
+                  Target: 
+                    IMethodReferenceOperation: System.Int32 C.M1() (IsVirtual) (OperationKind.MethodReference, Type: null) (Syntax: 'this.M1')
+                      Instance Receiver: 
+                        IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: C) (Syntax: 'this')
+
+        IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'm2 = c.M1;')
+          Expression: 
+            ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Func<System.Int32>) (Syntax: 'm2 = c.M1')
+              Left: 
+                IParameterReferenceOperation: m2 (OperationKind.ParameterReference, Type: System.Func<System.Int32>) (Syntax: 'm2')
+              Right: 
+                IDelegateCreationOperation (OperationKind.DelegateCreation, Type: System.Func<System.Int32>, IsImplicit) (Syntax: 'c.M1')
+                  Target: 
+                    IMethodReferenceOperation: System.Int32 C.M1() (IsVirtual) (OperationKind.MethodReference, Type: null) (Syntax: 'c.M1')
+                      Instance Receiver: 
+                        IParameterReferenceOperation: c (OperationKind.ParameterReference, Type: C) (Syntax: 'c')
+
+        IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'm3 = M2;')
+          Expression: 
+            ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Func<System.Int32>) (Syntax: 'm3 = M2')
+              Left: 
+                IParameterReferenceOperation: m3 (OperationKind.ParameterReference, Type: System.Func<System.Int32>) (Syntax: 'm3')
+              Right: 
+                IDelegateCreationOperation (OperationKind.DelegateCreation, Type: System.Func<System.Int32>, IsImplicit) (Syntax: 'M2')
+                  Target: 
+                    IMethodReferenceOperation: System.Int32 C.M2() (Static) (OperationKind.MethodReference, Type: null) (Syntax: 'M2')
+                      Instance Receiver: 
+                        null
+
+    Next (Regular) Block[B2]
+Block[B2] - Exit
+    Predecessors: [B1]
+    Statements (0)
+";
+            var expectedDiagnostics = DiagnosticDescription.None;
+
+            VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedFlowGraph, expectedDiagnostics);
+        }
+
+        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+        [Fact]
+        public void MethodReference_ControlFlowInReceiver()
+        {
+            string source = @"
+class C
+{
+    public int M1() => 0;
+    void M(C c1, C c2, System.Func<int> m)
+    /*<bind>*/{
+        m = (c1 ?? c2).M1;
+    }/*</bind>*/
+}
+";
+            string expectedFlowGraph = @"
+Block[B0] - Entry
+    Statements (0)
+    Next (Regular) Block[B1]
+Block[B1] - Block
+    Predecessors: [B0]
+    Statements (2)
+        IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'm')
+          Value: 
+            IParameterReferenceOperation: m (OperationKind.ParameterReference, Type: System.Func<System.Int32>) (Syntax: 'm')
+
+        IFlowCaptureOperation: 1 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'c1')
+          Value: 
+            IParameterReferenceOperation: c1 (OperationKind.ParameterReference, Type: C) (Syntax: 'c1')
+
+    Jump if True (Regular) to Block[B3]
+        IIsNullOperation (OperationKind.IsNull, Type: System.Boolean, IsImplicit) (Syntax: 'c1')
+          Operand: 
+            IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: C, IsImplicit) (Syntax: 'c1')
+
+    Next (Regular) Block[B2]
+Block[B2] - Block
+    Predecessors: [B1]
+    Statements (1)
+        IFlowCaptureOperation: 2 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'c1')
+          Value: 
+            IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: C, IsImplicit) (Syntax: 'c1')
+
+    Next (Regular) Block[B4]
+Block[B3] - Block
+    Predecessors: [B1]
+    Statements (1)
+        IFlowCaptureOperation: 2 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'c2')
+          Value: 
+            IParameterReferenceOperation: c2 (OperationKind.ParameterReference, Type: C) (Syntax: 'c2')
+
+    Next (Regular) Block[B4]
+Block[B4] - Block
+    Predecessors: [B2] [B3]
+    Statements (1)
+        IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'm = (c1 ?? c2).M1;')
+          Expression: 
+            ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Func<System.Int32>) (Syntax: 'm = (c1 ?? c2).M1')
+              Left: 
+                IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.Func<System.Int32>, IsImplicit) (Syntax: 'm')
+              Right: 
+                IDelegateCreationOperation (OperationKind.DelegateCreation, Type: System.Func<System.Int32>, IsImplicit) (Syntax: '(c1 ?? c2).M1')
+                  Target: 
+                    IMethodReferenceOperation: System.Int32 C.M1() (OperationKind.MethodReference, Type: null) (Syntax: '(c1 ?? c2).M1')
+                      Instance Receiver: 
+                        IFlowCaptureReferenceOperation: 2 (OperationKind.FlowCaptureReference, Type: C, IsImplicit) (Syntax: 'c1 ?? c2')
+
+    Next (Regular) Block[B5]
+Block[B5] - Exit
+    Predecessors: [B4]
+    Statements (0)
+";
+            var expectedDiagnostics = DiagnosticDescription.None;
+
+            VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedFlowGraph, expectedDiagnostics);
+        }
     }
 }

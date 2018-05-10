@@ -127,5 +127,146 @@ BC30469: Reference to a non-shared member requires an object reference.
 
             VerifyOperationTreeAndDiagnosticsForTest(Of MemberAccessExpressionSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
+
+        <CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)>
+        <Fact>
+        Public Sub EventReference_NoControlFlow()
+            ' Verify event references with different kinds of instance references.
+            Dim source = <![CDATA[
+Option Strict On
+Imports System
+
+Class C1
+    Public Event Event1 As EventHandler
+    Public Shared Event Event2 As EventHandler
+
+    Public Sub M1(c As C1, handler1 As EventHandler, handler2 As EventHandler, handler3 As EventHandler)'BIND:"Public Sub M1(c As C1, handler1 As EventHandler, handler2 As EventHandler, handler3 As EventHandler)"
+        AddHandler Me.Event1, handler1
+        AddHandler c.Event1, handler2
+        AddHandler Event2, handler3
+    End Sub
+End Class
+]]>.Value
+
+            Dim expectedFlowGraph = <![CDATA[
+Block[B0] - Entry
+    Statements (0)
+    Next (Regular) Block[B1]
+Block[B1] - Block
+    Predecessors: [B0]
+    Statements (3)
+        IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'AddHandler  ... 1, handler1')
+          Expression: 
+            IEventAssignmentOperation (EventAdd) (OperationKind.EventAssignment, Type: null, IsImplicit) (Syntax: 'AddHandler  ... 1, handler1')
+              Event Reference: 
+                IEventReferenceOperation: Event C1.Event1 As System.EventHandler (OperationKind.EventReference, Type: System.EventHandler) (Syntax: 'Me.Event1')
+                  Instance Receiver: 
+                    IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: C1) (Syntax: 'Me')
+              Handler: 
+                IParameterReferenceOperation: handler1 (OperationKind.ParameterReference, Type: System.EventHandler) (Syntax: 'handler1')
+
+        IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'AddHandler  ... 1, handler2')
+          Expression: 
+            IEventAssignmentOperation (EventAdd) (OperationKind.EventAssignment, Type: null, IsImplicit) (Syntax: 'AddHandler  ... 1, handler2')
+              Event Reference: 
+                IEventReferenceOperation: Event C1.Event1 As System.EventHandler (OperationKind.EventReference, Type: System.EventHandler) (Syntax: 'c.Event1')
+                  Instance Receiver: 
+                    IParameterReferenceOperation: c (OperationKind.ParameterReference, Type: C1) (Syntax: 'c')
+              Handler: 
+                IParameterReferenceOperation: handler2 (OperationKind.ParameterReference, Type: System.EventHandler) (Syntax: 'handler2')
+
+        IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'AddHandler  ... 2, handler3')
+          Expression: 
+            IEventAssignmentOperation (EventAdd) (OperationKind.EventAssignment, Type: null, IsImplicit) (Syntax: 'AddHandler  ... 2, handler3')
+              Event Reference: 
+                IEventReferenceOperation: Event C1.Event2 As System.EventHandler (Static) (OperationKind.EventReference, Type: System.EventHandler) (Syntax: 'Event2')
+                  Instance Receiver: 
+                    null
+              Handler: 
+                IParameterReferenceOperation: handler3 (OperationKind.ParameterReference, Type: System.EventHandler) (Syntax: 'handler3')
+
+    Next (Regular) Block[B2]
+Block[B2] - Exit
+    Predecessors: [B1]
+    Statements (0)
+]]>.Value
+
+            Dim expectedDiagnostics = String.Empty
+
+            VerifyFlowGraphAndDiagnosticsForTest(Of MethodBlockSyntax)(source, expectedFlowGraph, expectedDiagnostics)
+        End Sub
+
+        <CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)>
+        <Fact>
+        Public Sub EventReference_ControlFlowInReceiver()
+            Dim source = <![CDATA[
+Option Strict On
+Imports System
+
+Class C1
+    Public Event Event1 As EventHandler
+
+    Public Sub M1(c1 As C1, c2 As C1, handler As EventHandler) 'BIND:"Public Sub M1(c1 As C1, c2 As C1, handler As EventHandler)"
+        AddHandler If(c1, c2).Event1, handler
+    End Sub
+End Class
+]]>.Value
+
+            Dim expectedFlowGraph = <![CDATA[
+Block[B0] - Entry
+    Statements (0)
+    Next (Regular) Block[B1]
+Block[B1] - Block
+    Predecessors: [B0]
+    Statements (1)
+        IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'c1')
+          Value: 
+            IParameterReferenceOperation: c1 (OperationKind.ParameterReference, Type: C1) (Syntax: 'c1')
+
+    Jump if True (Regular) to Block[B3]
+        IIsNullOperation (OperationKind.IsNull, Type: System.Boolean, IsImplicit) (Syntax: 'c1')
+          Operand: 
+            IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: C1, IsImplicit) (Syntax: 'c1')
+
+    Next (Regular) Block[B2]
+Block[B2] - Block
+    Predecessors: [B1]
+    Statements (1)
+        IFlowCaptureOperation: 1 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'c1')
+          Value: 
+            IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: C1, IsImplicit) (Syntax: 'c1')
+
+    Next (Regular) Block[B4]
+Block[B3] - Block
+    Predecessors: [B1]
+    Statements (1)
+        IFlowCaptureOperation: 1 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'c2')
+          Value: 
+            IParameterReferenceOperation: c2 (OperationKind.ParameterReference, Type: C1) (Syntax: 'c2')
+
+    Next (Regular) Block[B4]
+Block[B4] - Block
+    Predecessors: [B2] [B3]
+    Statements (1)
+        IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'AddHandler  ... t1, handler')
+          Expression: 
+            IEventAssignmentOperation (EventAdd) (OperationKind.EventAssignment, Type: null, IsImplicit) (Syntax: 'AddHandler  ... t1, handler')
+              Event Reference: 
+                IEventReferenceOperation: Event C1.Event1 As System.EventHandler (OperationKind.EventReference, Type: System.EventHandler) (Syntax: 'If(c1, c2).Event1')
+                  Instance Receiver: 
+                    IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: C1, IsImplicit) (Syntax: 'If(c1, c2)')
+              Handler: 
+                IParameterReferenceOperation: handler (OperationKind.ParameterReference, Type: System.EventHandler) (Syntax: 'handler')
+
+    Next (Regular) Block[B5]
+Block[B5] - Exit
+    Predecessors: [B4]
+    Statements (0)
+]]>.Value
+
+            Dim expectedDiagnostics = String.Empty
+
+            VerifyFlowGraphAndDiagnosticsForTest(Of MethodBlockSyntax)(source, expectedFlowGraph, expectedDiagnostics)
+        End Sub
     End Class
 End Namespace
