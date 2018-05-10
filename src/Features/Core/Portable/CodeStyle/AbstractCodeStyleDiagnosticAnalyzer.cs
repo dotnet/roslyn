@@ -126,6 +126,5 @@ namespace Microsoft.CodeAnalysis.CodeStyle
         protected abstract void InitializeWorker(AnalysisContext context);
 
         public abstract DiagnosticAnalyzerCategory GetAnalyzerCategory();
-        public abstract bool OpenFileOnly(Workspace workspace);
     }
 }

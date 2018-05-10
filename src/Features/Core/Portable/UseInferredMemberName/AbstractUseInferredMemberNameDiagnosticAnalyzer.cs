@@ -20,9 +20,6 @@ namespace Microsoft.CodeAnalysis.UseInferredMemberName
         public override DiagnosticAnalyzerCategory GetAnalyzerCategory()
             => DiagnosticAnalyzerCategory.SemanticSpanAnalysis;
 
-        public override bool OpenFileOnly(Workspace workspace)
-            => false;
-
         protected void AnalyzeSyntax(SyntaxNodeAnalysisContext context)
         {
             var cancellationToken = context.CancellationToken;

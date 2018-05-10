@@ -47,7 +47,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnnecessaryImports
                                              DiagnosticCategory.Style,
                                              DiagnosticSeverity.Hidden,
                                              isEnabledByDefault: true,
-                                             customTags: DiagnosticCustomTags.Unnecessary);
+                                             customTags: new[] { WellKnownDiagnosticTags.Unnecessary, WellKnownDiagnosticTags.Telemetry, WellKnownDiagnosticTags.NotConfigurable });
 
                 _classificationIdDescriptor =
                     new DiagnosticDescriptor(IDEDiagnosticIds.RemoveUnnecessaryImportsDiagnosticId,
@@ -55,7 +55,8 @@ namespace Microsoft.CodeAnalysis.RemoveUnnecessaryImports
                                              titleAndMessageFormat,
                                              DiagnosticCategory.Style,
                                              DiagnosticSeverity.Hidden,
-                                             isEnabledByDefault: true);
+                                             isEnabledByDefault: true,
+                                             customTags: new[] { WellKnownDiagnosticTags.Telemetry, WellKnownDiagnosticTags.NotConfigurable });
             }
         }
 
@@ -67,8 +68,6 @@ namespace Microsoft.CodeAnalysis.RemoveUnnecessaryImports
                 return ImmutableArray.Create(s_fixableIdDescriptor, _unnecessaryClassificationIdDescriptor, _classificationIdDescriptor);
             }
         }
-
-        public bool OpenFileOnly(Workspace workspace) => true;
 
         public override void Initialize(AnalysisContext context)
         {

@@ -1,8 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
 using System.Collections.Immutable;
-using System.Diagnostics;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Options;
 
@@ -45,17 +43,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics.PreferFrameworkType
 
         private PerLanguageOption<CodeStyleOption<bool>> GetOptionForMemberAccessContext =>
             CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInMemberAccess;
-
-        public bool OpenFileOnly(Workspace workspace)
-        {
-            var preferTypeKeywordInDeclarationOption = workspace.Options.GetOption(
-                CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInDeclaration, GetLanguageName()).Notification;
-            var preferTypeKeywordInMemberAccessOption = workspace.Options.GetOption(
-                CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInMemberAccess, GetLanguageName()).Notification;
-
-            return !(preferTypeKeywordInDeclarationOption == NotificationOption.Warning || preferTypeKeywordInDeclarationOption == NotificationOption.Error ||
-                     preferTypeKeywordInMemberAccessOption == NotificationOption.Warning || preferTypeKeywordInMemberAccessOption == NotificationOption.Error);
-        }
 
         protected abstract string GetLanguageName();
 

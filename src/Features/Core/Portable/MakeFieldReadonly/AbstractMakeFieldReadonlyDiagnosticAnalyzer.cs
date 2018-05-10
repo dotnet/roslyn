@@ -27,8 +27,6 @@ namespace Microsoft.CodeAnalysis.MakeFieldReadonly
 
         protected abstract void AddCandidateTypesInCompilationUnit(SemanticModel semanticModel, SyntaxNode compilationUnit, PooledHashSet<(ITypeSymbol, SyntaxNode)> candidateTypes, CancellationToken cancellationToken);
 
-        public override bool OpenFileOnly(Workspace workspace) => false;
-
         public override DiagnosticAnalyzerCategory GetAnalyzerCategory() => DiagnosticAnalyzerCategory.SemanticDocumentAnalysis;
 
         protected sealed override void InitializeWorker(AnalysisContext context)
