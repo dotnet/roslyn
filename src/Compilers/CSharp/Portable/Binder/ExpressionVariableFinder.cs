@@ -257,7 +257,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        public override void VisitDeconstructionPattern(DeconstructionPatternSyntax node)
+        public override void VisitRecursivePattern(RecursivePatternSyntax node)
         {
             TFieldOrLocalSymbol variable = MakePatternVariable(node, _nodeToBind);
             if ((object)variable != null)
@@ -265,23 +265,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 _variablesBuilder.Add(variable);
             }
 
-            base.VisitDeconstructionPattern(node);
-        }
-
-        public override void VisitPropertyPattern(PropertyPatternSyntax node)
-        {
-            TFieldOrLocalSymbol variable = MakePatternVariable(node, _nodeToBind);
-            if ((object)variable != null)
-            {
-                _variablesBuilder.Add(variable);
-            }
-
-            base.VisitPropertyPattern(node);
+            base.VisitRecursivePattern(node);
         }
 
         protected abstract TFieldOrLocalSymbol MakePatternVariable(TypeSyntax type, SingleVariableDesignationSyntax designation, SyntaxNode nodeToBind);
-        protected abstract TFieldOrLocalSymbol MakePatternVariable(DeconstructionPatternSyntax node, SyntaxNode nodeToBind);
-        protected abstract TFieldOrLocalSymbol MakePatternVariable(PropertyPatternSyntax node, SyntaxNode nodeToBind);
+        protected abstract TFieldOrLocalSymbol MakePatternVariable(RecursivePatternSyntax node, SyntaxNode nodeToBind);
 
         public override void VisitParenthesizedLambdaExpression(ParenthesizedLambdaExpressionSyntax node) { }
         public override void VisitSimpleLambdaExpression(SimpleLambdaExpressionSyntax node) { }
@@ -526,12 +514,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return MakePatternVariable(type, designation, nodeToBind);
         }
 
-        protected override LocalSymbol MakePatternVariable(DeconstructionPatternSyntax node, SyntaxNode nodeToBind)
-        {
-            return MakePatternVariable(node.Type, node.Designation, nodeToBind);
-        }
-
-        protected override LocalSymbol MakePatternVariable(PropertyPatternSyntax node, SyntaxNode nodeToBind)
+        protected override LocalSymbol MakePatternVariable(RecursivePatternSyntax node, SyntaxNode nodeToBind)
         {
             return MakePatternVariable(node.Type, node.Designation, nodeToBind);
         }
@@ -659,12 +642,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 _containingFieldOpt, nodeToBind);
         }
 
-        protected override Symbol MakePatternVariable(DeconstructionPatternSyntax node, SyntaxNode nodeToBind)
-        {
-            return MakePatternVariable(node.Type, node.Designation as SingleVariableDesignationSyntax, nodeToBind);
-        }
-
-        protected override Symbol MakePatternVariable(PropertyPatternSyntax node, SyntaxNode nodeToBind)
+        protected override Symbol MakePatternVariable(RecursivePatternSyntax node, SyntaxNode nodeToBind)
         {
             return MakePatternVariable(node.Type, node.Designation as SingleVariableDesignationSyntax, nodeToBind);
         }

@@ -328,10 +328,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             // Put a space between the type and a positional pattern
             // ex: `e is Type ( /*positional*/ )`
             if (currentToken.IsKind(SyntaxKind.OpenParenToken) &&
-                currentParentKind == SyntaxKind.DeconstructionPattern)
+                currentParentKind == SyntaxKind.DeconstructionSubpattern)
             {
-                var deconstructionPattern = (DeconstructionPatternSyntax)currentToken.Parent;
-                if (deconstructionPattern.Type != null)
+                var recursivePattern = (RecursivePatternSyntax)currentToken.Parent.Parent;
+                if (recursivePattern.Type != null)
                 {
                     return CreateAdjustSpacesOperation(1, AdjustSpacesOption.ForceSpaces);
                 }

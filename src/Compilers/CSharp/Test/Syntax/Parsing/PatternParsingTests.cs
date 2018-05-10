@@ -1856,38 +1856,41 @@ case KeyValuePair<String, DateTime>[] pairs2:
                     N(SyntaxKind.CasePatternSwitchLabel);
                     {
                         N(SyntaxKind.CaseKeyword);
-                        N(SyntaxKind.DeconstructionPattern);
+                        N(SyntaxKind.RecursivePattern);
                         {
-                            N(SyntaxKind.OpenParenToken);
-                            N(SyntaxKind.SubpatternElement);
+                            N(SyntaxKind.DeconstructionSubpattern);
                             {
-                                N(SyntaxKind.NameColon);
+                                N(SyntaxKind.OpenParenToken);
+                                N(SyntaxKind.SubpatternElement);
                                 {
-                                    N(SyntaxKind.IdentifierName);
+                                    N(SyntaxKind.NameColon);
                                     {
-                                        N(SyntaxKind.IdentifierToken, "x");
+                                        N(SyntaxKind.IdentifierName);
+                                        {
+                                            N(SyntaxKind.IdentifierToken, "x");
+                                        }
+                                        N(SyntaxKind.ColonToken);
                                     }
-                                    N(SyntaxKind.ColonToken);
-                                }
-                                N(SyntaxKind.ConstantPattern);
-                                {
-                                    N(SyntaxKind.ParenthesizedExpression);
+                                    N(SyntaxKind.ConstantPattern);
                                     {
-                                        N(SyntaxKind.OpenParenToken);
                                         N(SyntaxKind.ParenthesizedExpression);
                                         {
                                             N(SyntaxKind.OpenParenToken);
-                                            N(SyntaxKind.NumericLiteralExpression);
+                                            N(SyntaxKind.ParenthesizedExpression);
                                             {
-                                                N(SyntaxKind.NumericLiteralToken, "3");
+                                                N(SyntaxKind.OpenParenToken);
+                                                N(SyntaxKind.NumericLiteralExpression);
+                                                {
+                                                    N(SyntaxKind.NumericLiteralToken, "3");
+                                                }
+                                                N(SyntaxKind.CloseParenToken);
                                             }
                                             N(SyntaxKind.CloseParenToken);
                                         }
-                                        N(SyntaxKind.CloseParenToken);
                                     }
                                 }
+                                N(SyntaxKind.CloseParenToken);
                             }
-                            N(SyntaxKind.CloseParenToken);
                         }
                         N(SyntaxKind.ColonToken);
                     }
@@ -1933,44 +1936,53 @@ case KeyValuePair<String, DateTime>[] pairs2:
                     N(SyntaxKind.CasePatternSwitchLabel);
                     {
                         N(SyntaxKind.CaseKeyword);
-                        N(SyntaxKind.DeconstructionPattern);
+                        N(SyntaxKind.RecursivePattern);
                         {
-                            N(SyntaxKind.OpenParenToken);
-                            N(SyntaxKind.SubpatternElement);
+                            N(SyntaxKind.DeconstructionSubpattern);
                             {
-                                N(SyntaxKind.DeconstructionPattern);
+                                N(SyntaxKind.OpenParenToken);
+                                N(SyntaxKind.SubpatternElement);
                                 {
-                                    N(SyntaxKind.OpenParenToken);
-                                    N(SyntaxKind.SubpatternElement);
+                                    N(SyntaxKind.RecursivePattern);
                                     {
-                                        N(SyntaxKind.DeconstructionPattern);
+                                        N(SyntaxKind.DeconstructionSubpattern);
                                         {
                                             N(SyntaxKind.OpenParenToken);
                                             N(SyntaxKind.SubpatternElement);
                                             {
-                                                N(SyntaxKind.NameColon);
+                                                N(SyntaxKind.RecursivePattern);
                                                 {
-                                                    N(SyntaxKind.IdentifierName);
+                                                    N(SyntaxKind.DeconstructionSubpattern);
                                                     {
-                                                        N(SyntaxKind.IdentifierToken, "x");
-                                                    }
-                                                    N(SyntaxKind.ColonToken);
-                                                }
-                                                N(SyntaxKind.ConstantPattern);
-                                                {
-                                                    N(SyntaxKind.NumericLiteralExpression);
-                                                    {
-                                                        N(SyntaxKind.NumericLiteralToken, "3");
+                                                        N(SyntaxKind.OpenParenToken);
+                                                        N(SyntaxKind.SubpatternElement);
+                                                        {
+                                                            N(SyntaxKind.NameColon);
+                                                            {
+                                                                N(SyntaxKind.IdentifierName);
+                                                                {
+                                                                    N(SyntaxKind.IdentifierToken, "x");
+                                                                }
+                                                                N(SyntaxKind.ColonToken);
+                                                            }
+                                                            N(SyntaxKind.ConstantPattern);
+                                                            {
+                                                                N(SyntaxKind.NumericLiteralExpression);
+                                                                {
+                                                                    N(SyntaxKind.NumericLiteralToken, "3");
+                                                                }
+                                                            }
+                                                        }
+                                                        N(SyntaxKind.CloseParenToken);
                                                     }
                                                 }
                                             }
                                             N(SyntaxKind.CloseParenToken);
                                         }
                                     }
-                                    N(SyntaxKind.CloseParenToken);
                                 }
+                                N(SyntaxKind.CloseParenToken);
                             }
-                            N(SyntaxKind.CloseParenToken);
                         }
                         N(SyntaxKind.ColonToken);
                     }
@@ -2007,51 +2019,54 @@ case KeyValuePair<String, DateTime>[] pairs2:
                     N(SyntaxKind.CasePatternSwitchLabel);
                     {
                         N(SyntaxKind.CaseKeyword);
-                        N(SyntaxKind.DeconstructionPattern);
+                        N(SyntaxKind.RecursivePattern);
                         {
                             N(SyntaxKind.IdentifierName);
                             {
                                 N(SyntaxKind.IdentifierToken, "T");
                             }
-                            N(SyntaxKind.OpenParenToken);
-                            N(SyntaxKind.SubpatternElement);
+                            N(SyntaxKind.DeconstructionSubpattern);
                             {
-                                N(SyntaxKind.NameColon);
+                                N(SyntaxKind.OpenParenToken);
+                                N(SyntaxKind.SubpatternElement);
                                 {
-                                    N(SyntaxKind.IdentifierName);
+                                    N(SyntaxKind.NameColon);
                                     {
-                                        N(SyntaxKind.IdentifierToken, "X");
+                                        N(SyntaxKind.IdentifierName);
+                                        {
+                                            N(SyntaxKind.IdentifierToken, "X");
+                                        }
+                                        N(SyntaxKind.ColonToken);
                                     }
-                                    N(SyntaxKind.ColonToken);
+                                    N(SyntaxKind.ConstantPattern);
+                                    {
+                                        N(SyntaxKind.NumericLiteralExpression);
+                                        {
+                                            N(SyntaxKind.NumericLiteralToken, "3");
+                                        }
+                                    }
                                 }
-                                N(SyntaxKind.ConstantPattern);
+                                N(SyntaxKind.CommaToken);
+                                N(SyntaxKind.SubpatternElement);
                                 {
-                                    N(SyntaxKind.NumericLiteralExpression);
+                                    N(SyntaxKind.NameColon);
                                     {
-                                        N(SyntaxKind.NumericLiteralToken, "3");
+                                        N(SyntaxKind.IdentifierName);
+                                        {
+                                            N(SyntaxKind.IdentifierToken, "Y");
+                                        }
+                                        N(SyntaxKind.ColonToken);
+                                    }
+                                    N(SyntaxKind.ConstantPattern);
+                                    {
+                                        N(SyntaxKind.NumericLiteralExpression);
+                                        {
+                                            N(SyntaxKind.NumericLiteralToken, "4");
+                                        }
                                     }
                                 }
+                                N(SyntaxKind.CloseParenToken);
                             }
-                            N(SyntaxKind.CommaToken);
-                            N(SyntaxKind.SubpatternElement);
-                            {
-                                N(SyntaxKind.NameColon);
-                                {
-                                    N(SyntaxKind.IdentifierName);
-                                    {
-                                        N(SyntaxKind.IdentifierToken, "Y");
-                                    }
-                                    N(SyntaxKind.ColonToken);
-                                }
-                                N(SyntaxKind.ConstantPattern);
-                                {
-                                    N(SyntaxKind.NumericLiteralExpression);
-                                    {
-                                        N(SyntaxKind.NumericLiteralToken, "4");
-                                    }
-                                }
-                            }
-                            N(SyntaxKind.CloseParenToken);
                             N(SyntaxKind.PropertySubpattern);
                             {
                                 N(SyntaxKind.OpenBraceToken);
@@ -2124,10 +2139,13 @@ case KeyValuePair<String, DateTime>[] pairs2:
                     N(SyntaxKind.CasePatternSwitchLabel);
                     {
                         N(SyntaxKind.CaseKeyword);
-                        N(SyntaxKind.DeconstructionPattern);
+                        N(SyntaxKind.RecursivePattern);
                         {
-                            N(SyntaxKind.OpenParenToken);
-                            M(SyntaxKind.CloseParenToken);
+                            N(SyntaxKind.DeconstructionSubpattern);
+                            {
+                                N(SyntaxKind.OpenParenToken);
+                                M(SyntaxKind.CloseParenToken);
+                            }
                         }
                         M(SyntaxKind.ColonToken);
                     }
@@ -2183,10 +2201,13 @@ case KeyValuePair<String, DateTime>[] pairs2:
                     N(SyntaxKind.CasePatternSwitchLabel);
                     {
                         N(SyntaxKind.CaseKeyword);
-                        N(SyntaxKind.DeconstructionPattern);
+                        N(SyntaxKind.RecursivePattern);
                         {
-                            N(SyntaxKind.OpenParenToken);
-                            N(SyntaxKind.CloseParenToken);
+                            N(SyntaxKind.DeconstructionSubpattern);
+                            {
+                                N(SyntaxKind.OpenParenToken);
+                                N(SyntaxKind.CloseParenToken);
+                            }
                         }
                         N(SyntaxKind.ColonToken);
                     }
@@ -2241,28 +2262,31 @@ case KeyValuePair<String, DateTime>[] pairs2:
                     N(SyntaxKind.CasePatternSwitchLabel);
                     {
                         N(SyntaxKind.CaseKeyword);
-                        N(SyntaxKind.DeconstructionPattern);
+                        N(SyntaxKind.RecursivePattern);
                         {
-                            N(SyntaxKind.OpenParenToken);
-                            N(SyntaxKind.SubpatternElement);
+                            N(SyntaxKind.DeconstructionSubpattern);
                             {
-                                N(SyntaxKind.NameColon);
+                                N(SyntaxKind.OpenParenToken);
+                                N(SyntaxKind.SubpatternElement);
                                 {
-                                    N(SyntaxKind.IdentifierName);
+                                    N(SyntaxKind.NameColon);
                                     {
-                                        N(SyntaxKind.IdentifierToken, "x");
+                                        N(SyntaxKind.IdentifierName);
+                                        {
+                                            N(SyntaxKind.IdentifierToken, "x");
+                                        }
+                                        N(SyntaxKind.ColonToken);
                                     }
-                                    N(SyntaxKind.ColonToken);
-                                }
-                                M(SyntaxKind.ConstantPattern);
-                                {
-                                    M(SyntaxKind.IdentifierName);
+                                    M(SyntaxKind.ConstantPattern);
                                     {
-                                        M(SyntaxKind.IdentifierToken);
+                                        M(SyntaxKind.IdentifierName);
+                                        {
+                                            M(SyntaxKind.IdentifierToken);
+                                        }
                                     }
                                 }
+                                N(SyntaxKind.CloseParenToken);
                             }
-                            N(SyntaxKind.CloseParenToken);
                         }
                         N(SyntaxKind.ColonToken);
                     }
@@ -2430,42 +2454,45 @@ case KeyValuePair<String, DateTime>[] pairs2:
                 N(SyntaxKind.OpenBraceToken);
                 N(SyntaxKind.SwitchExpressionArm);
                 {
-                    N(SyntaxKind.DeconstructionPattern);
+                    N(SyntaxKind.RecursivePattern);
                     {
-                        N(SyntaxKind.OpenParenToken);
-                        N(SyntaxKind.SubpatternElement);
+                        N(SyntaxKind.DeconstructionSubpattern);
                         {
-                            N(SyntaxKind.ConstantPattern);
+                            N(SyntaxKind.OpenParenToken);
+                            N(SyntaxKind.SubpatternElement);
                             {
-                                N(SyntaxKind.IdentifierName);
+                                N(SyntaxKind.ConstantPattern);
                                 {
-                                    N(SyntaxKind.IdentifierToken, "a");
+                                    N(SyntaxKind.IdentifierName);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "a");
+                                    }
                                 }
                             }
-                        }
-                        N(SyntaxKind.CommaToken);
-                        N(SyntaxKind.SubpatternElement);
-                        {
-                            N(SyntaxKind.ConstantPattern);
+                            N(SyntaxKind.CommaToken);
+                            N(SyntaxKind.SubpatternElement);
                             {
-                                N(SyntaxKind.IdentifierName);
+                                N(SyntaxKind.ConstantPattern);
                                 {
-                                    N(SyntaxKind.IdentifierToken, "b");
+                                    N(SyntaxKind.IdentifierName);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "b");
+                                    }
                                 }
                             }
-                        }
-                        N(SyntaxKind.CommaToken);
-                        N(SyntaxKind.SubpatternElement);
-                        {
-                            N(SyntaxKind.ConstantPattern);
+                            N(SyntaxKind.CommaToken);
+                            N(SyntaxKind.SubpatternElement);
                             {
-                                N(SyntaxKind.IdentifierName);
+                                N(SyntaxKind.ConstantPattern);
                                 {
-                                    N(SyntaxKind.IdentifierToken, "c");
+                                    N(SyntaxKind.IdentifierName);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "c");
+                                    }
                                 }
                             }
+                            N(SyntaxKind.CloseParenToken);
                         }
-                        N(SyntaxKind.CloseParenToken);
                     }
                     N(SyntaxKind.EqualsGreaterThanToken);
                     N(SyntaxKind.IdentifierName);
@@ -2518,39 +2545,42 @@ case KeyValuePair<String, DateTime>[] pairs2:
                     N(SyntaxKind.CasePatternSwitchLabel);
                     {
                         N(SyntaxKind.CaseKeyword);
-                        N(SyntaxKind.DeconstructionPattern);
+                        N(SyntaxKind.RecursivePattern);
                         {
                             N(SyntaxKind.IdentifierName);
                             {
                                 N(SyntaxKind.IdentifierToken, "T");
                             }
-                            N(SyntaxKind.OpenParenToken);
-                            N(SyntaxKind.SubpatternElement);
+                            N(SyntaxKind.DeconstructionSubpattern);
                             {
-                                N(SyntaxKind.DeclarationPattern);
+                                N(SyntaxKind.OpenParenToken);
+                                N(SyntaxKind.SubpatternElement);
                                 {
-                                    N(SyntaxKind.IdentifierName);
+                                    N(SyntaxKind.DeclarationPattern);
                                     {
-                                        N(SyntaxKind.IdentifierToken, "Q");
-                                    }
-                                    N(SyntaxKind.SingleVariableDesignation);
-                                    {
-                                        N(SyntaxKind.IdentifierToken, "x");
+                                        N(SyntaxKind.IdentifierName);
+                                        {
+                                            N(SyntaxKind.IdentifierToken, "Q");
+                                        }
+                                        N(SyntaxKind.SingleVariableDesignation);
+                                        {
+                                            N(SyntaxKind.IdentifierToken, "x");
+                                        }
                                     }
                                 }
-                            }
-                            M(SyntaxKind.CommaToken);
-                            N(SyntaxKind.SubpatternElement);
-                            {
-                                N(SyntaxKind.ConstantPattern);
+                                M(SyntaxKind.CommaToken);
+                                N(SyntaxKind.SubpatternElement);
                                 {
-                                    N(SyntaxKind.IdentifierName);
+                                    N(SyntaxKind.ConstantPattern);
                                     {
-                                        N(SyntaxKind.IdentifierToken, "n");
+                                        N(SyntaxKind.IdentifierName);
+                                        {
+                                            N(SyntaxKind.IdentifierToken, "n");
+                                        }
                                     }
                                 }
+                                M(SyntaxKind.CloseParenToken);
                             }
-                            M(SyntaxKind.CloseParenToken);
                         }
                         M(SyntaxKind.ColonToken);
                     }

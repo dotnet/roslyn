@@ -14880,7 +14880,7 @@ class C
                 Diagnostic(ErrorCode.ERR_InvalidExprTerm, "int").WithArguments("int").WithLocation(6, 24),
                 // (6,18): error CS8129: No suitable Deconstruct instance or extension method was found for type 'object', with 2 out parameters and a void return type.
                 //         if (o is (int, int) t) { }
-                Diagnostic(ErrorCode.ERR_MissingDeconstruct, "(int, int) t").WithArguments("object", "2").WithLocation(6, 18),
+                Diagnostic(ErrorCode.ERR_MissingDeconstruct, "(int, int)").WithArguments("object", "2").WithLocation(6, 18),
                 // (6,19): error CS0150: A constant value is expected
                 //         if (o is (int, int) t) { }
                 Diagnostic(ErrorCode.ERR_ConstantExpected, "int").WithLocation(6, 19),
@@ -14985,7 +14985,7 @@ class C
                 Diagnostic(ErrorCode.ERR_InvalidExprTerm, "int").WithArguments("int").WithLocation(7, 24),
                 // (7,18): error CS8129: No suitable Deconstruct instance or extension method was found for type 'object', with 2 out parameters and a void return type.
                 //             case (int, int) tuple: return;
-                Diagnostic(ErrorCode.ERR_MissingDeconstruct, "(int, int) tuple").WithArguments("object", "2").WithLocation(7, 18),
+                Diagnostic(ErrorCode.ERR_MissingDeconstruct, "(int, int)").WithArguments("object", "2").WithLocation(7, 18),
                 // (7,19): error CS0150: A constant value is expected
                 //             case (int, int) tuple: return;
                 Diagnostic(ErrorCode.ERR_ConstantExpected, "int").WithLocation(7, 19),
@@ -15040,10 +15040,10 @@ class C
             comp.VerifyDiagnostics(
                 // (7,18): error CS1061: 'object' does not contain a definition for 'Deconstruct' and no extension method 'Deconstruct' accepting a first argument of type 'object' could be found (are you missing a using directive or an assembly reference?)
                 //             case (1, 1) t: return;
-                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "(1, 1) t").WithArguments("object", "Deconstruct").WithLocation(7, 18),
+                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "(1, 1)").WithArguments("object", "Deconstruct").WithLocation(7, 18),
                 // (7,18): error CS8129: No suitable Deconstruct instance or extension method was found for type 'object', with 2 out parameters and a void return type.
                 //             case (1, 1) t: return;
-                Diagnostic(ErrorCode.ERR_MissingDeconstruct, "(1, 1) t").WithArguments("object", "2").WithLocation(7, 18)
+                Diagnostic(ErrorCode.ERR_MissingDeconstruct, "(1, 1)").WithArguments("object", "2").WithLocation(7, 18)
                );
         }
 

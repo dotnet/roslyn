@@ -24,9 +24,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         {
             switch (node.Kind)
             {
-                case SyntaxKind.DeconstructionPattern:
+                case SyntaxKind.RecursivePattern:
                 case SyntaxKind.DiscardPattern:
-                case SyntaxKind.PropertyPattern:
                 case SyntaxKind.VarPattern when ((VarPatternSyntax)node).Designation.Kind == SyntaxKind.ParenthesizedVariableDesignation:
                     return this.CheckFeatureAvailability(node, MessageID.IDS_FeatureRecursivePatterns);
                 default:
@@ -502,7 +501,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                     }
                 }
 
-                var result = _syntaxFactory.DeconstructionPattern(type, openParenToken, subPatterns, closeParenToken, propertySubpattern0, designation0);
+                var deconstructSubpattern = _syntaxFactory.DeconstructionSubpattern(openParenToken, subPatterns, closeParenToken);
+                var result = _syntaxFactory.RecursivePattern(type, deconstructSubpattern, propertySubpattern0, designation0);
 
                 // 2017-11-20 LDM decision is to disallow a deconstruction pattern that contains just a
                 // single subpattern but for which the type is omitted.
@@ -514,7 +514,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             if (parsePropertySubpattern(out PropertySubpatternSyntax propertySubpattern))
             {
                 parseDesignation(out VariableDesignationSyntax designation0);
-                return _syntaxFactory.PropertyPattern(type, propertySubpattern, designation0);
+                return _syntaxFactory.RecursivePattern(type, deconstructionSubpattern: null, propertySubpattern, designation0);
             }
 
             if (type != null && parseDesignation(out VariableDesignationSyntax designation))
