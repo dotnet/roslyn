@@ -40,5 +40,10 @@
     <file src="Dlls\BasicEditorFeatures\Microsoft.CodeAnalysis.VisualBasic.EditorFeatures.dll" target="lib\net46" />
     <file src="Dlls\BasicEditorFeatures\Microsoft.CodeAnalysis.VisualBasic.EditorFeatures.xml" target="lib\net46" />
     <file src="Dlls\BasicEditorFeatures\Microsoft.CodeAnalysis.VisualBasic.EditorFeatures.pdb*" target="lib\net46" />
+
+    <!-- Satellite assemblies -->
+    <file src="Dlls\EditorFeatures\**\Microsoft.CodeAnalysis.EditorFeatures.resources.dll" target="lib\net46" />
+    <file src="Dlls\CSharpEditorFeatures\**\Microsoft.CodeAnalysis.CSharp.EditorFeatures.resources.dll" target="lib\net46" />
+    <file src="Dlls\BasicEditorFeatures\**\Microsoft.CodeAnalysis.VisualBasic.EditorFeatures.resources.dll" target="lib\net46" />**\
   </files>
 </package>

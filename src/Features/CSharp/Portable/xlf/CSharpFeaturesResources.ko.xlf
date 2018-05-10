@@ -72,16 +72,6 @@
         <target state="translated">범위 변수가 선언될 수 있어 자동 선택을 사용하지 않도록 설정했습니다.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Remove_Unnecessary_Cast">
-        <source>Remove Unnecessary Cast</source>
-        <target state="translated">불필요한 캐스트 제거</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Cast_is_redundant">
-        <source>Cast is redundant</source>
-        <target state="translated">캐스팅이 중복됩니다.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Simplify_name_0">
         <source>Simplify name '{0}'</source>
         <target state="translated">{0}' 이름 단순화</target>
