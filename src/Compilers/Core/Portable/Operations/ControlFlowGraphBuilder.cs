@@ -4240,10 +4240,10 @@ oneMoreTime:
                         Debug.Assert(propertyReference.Arguments.Length == arguments.Length);
                         var castArguments = arguments.CastDown<IOperation, IArgumentOperation>();
                         return new PropertyReferenceExpression(propertyReference.Property, instance, castArguments, semanticModel: null, propertyReference.Syntax,
-                                                               propertyReference.Type, propertyReference.ConstantValue, propertyReference.IsImplicit);
+                                                               propertyReference.Type, propertyReference.ConstantValue, IsImplicit(propertyReference));
                     case OperationKind.ArrayElementReference:
                         Debug.Assert(((IArrayElementReferenceOperation)originalTarget).Indices.Length == arguments.Length);
-                        return new ArrayElementReferenceExpression(instance, arguments, semanticModel: null, originalTarget.Syntax, originalTarget.Type, originalTarget.ConstantValue, originalTarget.IsImplicit);
+                        return new ArrayElementReferenceExpression(instance, arguments, semanticModel: null, originalTarget.Syntax, originalTarget.Type, originalTarget.ConstantValue, IsImplicit(originalTarget));
                     default:
                         throw ExceptionUtilities.UnexpectedValue(originalTarget.Kind);
                 }
