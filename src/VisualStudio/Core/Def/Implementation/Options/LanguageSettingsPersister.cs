@@ -12,9 +12,7 @@ using Microsoft.CodeAnalysis.Editor.Options;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Options;
-using Microsoft.CodeAnalysis.Options.Providers;
 using Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService;
-using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
 using Microsoft.VisualStudio.TextManager.Interop;
 using Roslyn.Utilities;
 using SVsServiceProvider = Microsoft.VisualStudio.Shell.SVsServiceProvider;
@@ -31,7 +29,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
         private readonly IVsTextManager4 _textManager;
         private readonly IGlobalOptionService _optionService;
 
-        private readonly IComEventSink _textManagerEvents2Sink;
+        private readonly ComEventSink _textManagerEvents2Sink;
 
         /// <summary>
         /// The mapping between language names and Visual Studio language service GUIDs.

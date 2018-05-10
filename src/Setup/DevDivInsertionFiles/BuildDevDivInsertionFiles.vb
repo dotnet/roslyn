@@ -25,6 +25,7 @@ Public Class BuildDevDivInsertionFiles
     Private ReadOnly _nugetPackageRoot As String
     Private ReadOnly _nuspecDirectory As String
     Private ReadOnly _pathMap As Dictionary(Of String, String)
+    Private ReadOnly _verbose As Boolean
 
     Private Sub New(args As String())
         _binDirectory = Path.GetFullPath(args(0))
@@ -33,14 +34,15 @@ Public Class BuildDevDivInsertionFiles
         _setupDirectory = Path.Combine(repoDirectory, "src\Setup")
         _nuspecDirectory = Path.Combine(repoDirectory, "src\Nuget")
         _nugetPackageRoot = Path.GetFullPath(args(2))
+        _verbose = args.Last() = "/verbose"
         _outputDirectory = Path.Combine(_binDirectory, DevDivInsertionFilesDirName)
         _outputPackageDirectory = Path.Combine(_binDirectory, DevDivPackagesDirName)
         _pathMap = CreatePathMap()
     End Sub
 
     Public Shared Function Main(args As String()) As Integer
-        If args.Length <> 3 Then
-            Console.WriteLine("Expected arguments: <bin dir> <setup dir> <nuget root dir>")
+        If args.Length < 3 Then
+            Console.WriteLine("Expected arguments: <bin dir> <setup dir> <nuget root dir> [/verbose]")
             Console.WriteLine($"Actual argument count is {args.Length}")
             Return 1
         End If
@@ -531,7 +533,8 @@ Public Class BuildDevDivInsertionFiles
                 If packageName.StartsWith("Microsoft.VisualStudio.") OrElse
                    packageName = "EnvDTE" OrElse
                    packageName = "stdole" OrElse
-                   packageName.StartsWith("Microsoft.Build") Then
+                   packageName.StartsWith("Microsoft.Build") OrElse
+                   packageName = "Microsoft.Composition" Then
                     Continue For
                 End If
 
@@ -559,7 +562,9 @@ Public Class BuildDevDivInsertionFiles
                                                                 packageName,
                                                                 packageVersion,
                                                                 isNative:=native IsNot Nothing,
-                                                                isFacade:=frameworkAssemblies IsNot Nothing AndAlso packageName <> "Microsoft.Build" OrElse packageName = "System.IO.Pipes.AccessControl"))
+                                                                isFacade:=frameworkAssemblies IsNot Nothing AndAlso packageName <> "Microsoft.Build" OrElse
+                                                                    packageName = "System.IO.Pipes.AccessControl" OrElse
+                                                                    packageName = "System.Diagnostics.DiagnosticSource"))
                     End If
                 Next
             Next
@@ -821,6 +826,7 @@ Public Class BuildDevDivInsertionFiles
         add("Vsix\VisualStudioSetup\System.Composition.Convention.dll")
         add("Vsix\VisualStudioSetup\System.Composition.Hosting.dll")
         add("Vsix\VisualStudioSetup\System.Composition.TypedParts.dll")
+        add("Vsix\VisualStudioSetup\System.Threading.Tasks.Extensions.dll")
         add("Vsix\VisualStudioSetup\Mono.Cecil.dll")
         add("Vsix\VisualStudioSetup\Mono.Cecil.Mdb.dll")
         add("Vsix\VisualStudioSetup\Mono.Cecil.Pdb.dll")
@@ -905,6 +911,8 @@ Public Class BuildDevDivInsertionFiles
         ' We build our language service authoring by cracking our .vsixes and pulling out the bits that matter
         For Each vsixFileName In VsixesToInstall
             Dim vsixName As String = Path.GetFileNameWithoutExtension(vsixFileName)
+            WriteLineIfVerbose($"Processing {vsixName}")
+
             Using vsix = Package.Open(Path.Combine(_binDirectory, vsixFileName), FileMode.Open, FileAccess.Read, FileShare.Read)
                 For Each vsixPart In vsix.GetParts()
 
@@ -916,12 +924,16 @@ Public Class BuildDevDivInsertionFiles
                     Dim partRelativePath = GetPartRelativePath(vsixPart)
                     Dim partFileName = Path.GetFileName(partRelativePath)
 
+                    WriteLineIfVerbose($"     Processing {partFileName}")
+
                     ' If this is something that we don't need to ship, skip it
                     If VsixContentsToSkip.Contains(partFileName) Then
+                        WriteLineIfVerbose($"        Skipping because {partFileName} is in {NameOf(VsixContentsToSkip)}")
                         Continue For
                     End If
 
                     If IsLanguageServiceRegistrationFile(partFileName) Then
+                        WriteLineIfVerbose($"        Skipping because {partFileName} is a language service registration file that doesn't need to be processed")
                         Continue For
                     End If
 
@@ -931,6 +943,7 @@ Public Class BuildDevDivInsertionFiles
                     End If
 
                     If dependencies.ContainsKey(partFileName) Then
+                        WriteLineIfVerbose($"        Skipping because {partFileName} is a dependency that is coming from NuGet package {dependencies(partFileName).PackageName}")
                         Continue For
                     End If
 
@@ -1030,8 +1043,14 @@ Public Class BuildDevDivInsertionFiles
 
         ' First copy over all the files from the compilers toolset. 
         For Each fileRelativePath In GetCompilerToolsetNuspecFiles()
-            Dim filePath = Path.Combine(_binDirectory, fileRelativePath)
             Dim fileName = Path.GetFileName(fileRelativePath)
+
+            ' Skip satellite assemblies; we don't need these for the compiler insertion
+            If fileName.EndsWith(".resources.dll", StringComparison.OrdinalIgnoreCase) Then
+                Continue For
+            End If
+
+            Dim filePath = Path.Combine(_binDirectory, fileRelativePath)
             Dim destFilepath = Path.Combine(outputDir, fileName)
             File.Copy(filePath, destFilepath)
             nuspecFiles.Add(fileName)
@@ -1149,6 +1168,10 @@ set DEVPATH=%RoslynToolsRoot%;%DEVPATH%"
         Return GetCompilerToolsetNuspecFiles().
             Select(AddressOf Path.GetFileName).
             Where(Function(f)
+                      ' Skip satellite assemblies; we don't need these for the compiler insertion
+                      Return Not f.EndsWith(".resources.dll", StringComparison.OrdinalIgnoreCase)
+                  End Function).
+            Where(Function(f)
                       Select Case f
                           ' These files are inserted by MSBuild setup 
                           Case "Microsoft.DiaSymReader.Native.amd64.dll", "Microsoft.DiaSymReader.Native.x86.dll"
@@ -1161,4 +1184,10 @@ set DEVPATH=%RoslynToolsRoot%;%DEVPATH%"
                       End Select
                   End Function)
     End Function
+
+    Private Sub WriteLineIfVerbose(s As String)
+        If _verbose Then
+            Console.WriteLine(s)
+        End If
+    End Sub
 End Class

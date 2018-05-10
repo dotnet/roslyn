@@ -6084,7 +6084,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             this.LookupExtensionMethodsInSingleBinder(scope, lookupResult, rightName, arity, options, ref useSiteDiagnostics);
             diagnostics.Add(node, useSiteDiagnostics);
 
-            if (!lookupResult.IsClear)
+            if (lookupResult.IsMultiViable)
             {
                 Debug.Assert(lookupResult.Symbols.Any());
                 var members = ArrayBuilder<Symbol>.GetInstance();
