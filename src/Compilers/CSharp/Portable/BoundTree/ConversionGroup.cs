@@ -8,11 +8,15 @@ namespace Microsoft.CodeAnalysis.CSharp
     [DebuggerDisplay("{GetDebuggerDisplay(), nq}")]
     internal sealed class ConversionGroup
     {
-        internal ConversionGroup(TypeSymbolWithAnnotations explicitType = null)
+        internal ConversionGroup(Conversion conversion, TypeSymbolWithAnnotations explicitType = null)
         {
+            Conversion = conversion;
             ExplicitType = explicitType;
         }
 
+        internal bool IsExplicitConversion => (object)ExplicitType != null;
+
+        internal readonly Conversion Conversion;
         internal readonly TypeSymbolWithAnnotations ExplicitType;
 
 #if DEBUG
@@ -21,7 +25,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal string GetDebuggerDisplay()
         {
-            return "#" + _id;
+            return $"#{_id} {Conversion}";
         }
 #endif
     }

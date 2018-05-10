@@ -111,7 +111,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (conversion.IsUserDefined)
             {
-                return CreateUserDefinedConversion(syntax, source, conversion, isCast: isCast, conversionGroup ?? new ConversionGroup(), destination, diagnostics);
+                return CreateUserDefinedConversion(syntax, source, conversion, isCast: isCast, conversionGroup ?? new ConversionGroup(conversion), destination, diagnostics);
             }
 
             ConstantValue constantValue = this.FoldConstantConversion(syntax, source, conversion, destination, diagnostics);
@@ -428,7 +428,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var argument = arguments[i];
                 var destType = targetElementTypes[i];
                 var elementConversion = underlyingConversions[i];
-                var elementGroupId = isCast ? new ConversionGroup(destType) : null;
+                var elementGroupId = isCast ? new ConversionGroup(elementConversion, destType) : null;
                 convertedArguments.Add(CreateConversion(argument.Syntax, argument, elementConversion, isCast: isCast, elementGroupId, destType.TypeSymbol, diagnostics));
             }
 

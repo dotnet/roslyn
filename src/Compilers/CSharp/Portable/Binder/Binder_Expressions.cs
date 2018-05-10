@@ -1896,7 +1896,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Conversion conversion = this.Conversions.ClassifyConversionFromExpression(operand, targetType, ref useSiteDiagnostics, forCast: true);
             diagnostics.Add(node, useSiteDiagnostics);
 
-            var conversionGroup = new ConversionGroup(targetTypeWithNullability);
+            var conversionGroup = new ConversionGroup(conversion, targetTypeWithNullability);
             if (operand.HasAnyErrors || targetType.IsErrorType() || !conversion.IsValid || targetType.IsStatic)
             {
                 GenerateExplicitConversionErrors(diagnostics, node, conversion, operand, targetType);
@@ -2061,7 +2061,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // Section 6.2.3 of the spec only applies when the non-null version of the types involved have a
             // built in conversion.
-            var conversionGroup = new ConversionGroup(targetType);
             HashSet<DiagnosticInfo> unused = null;
             var underlyingTargetType = targetType.GetNullableUnderlyingType();
             var underlyingConversion = Conversions.ClassifyBuiltInConversion(operand.Type, underlyingTargetType.TypeSymbol, ref unused);
@@ -2084,7 +2083,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         Conversion.NoConversion,
                         @checked: CheckOverflowAtRuntime,
                         explicitCastInCode: true,
-                        conversionGroup,
+                        conversionGroup: null,
                         constantValueOpt: ConstantValue.NotAvailable,
                         type: targetType.TypeSymbol,
                         hasErrors: true);

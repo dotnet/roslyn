@@ -1897,7 +1897,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private Conversion ClassifyExplicitTupleConversion(TypeSymbol source, TypeSymbol destination, ref HashSet<DiagnosticInfo> useSiteDiagnostics, bool forCast)
         {
-            Debug.Assert(!IncludeNullability); // PROTOTYPE(NullableReferenceTypes): Should NullableWalker call ClassifyExplicitTupleConversion?
             return ClassifyTupleConversion(
                 source,
                 destination,
