@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             var tree = await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
 
             var token = TryGetOpenBraceOrCommaInPropertySubpattern(tree, position, cancellationToken);
-            if (token == default)
+            if (token == default || !(token.Parent.Parent is PatternSyntax))
             {
                 return;
             }
@@ -46,7 +46,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 !m.IsImplicitlyDeclared);
 
             // Filter out those members that have already been typed
-            var alreadyTestedMembers = GetTestedMembers((PropertySubpatternSyntax)token.Parent);
+            var propertySubpattern = (PropertySubpatternSyntax)token.Parent;
+
+            // List the members that are already tested in this property sub-pattern
+            var alreadyTestedMembers = new HashSet<string>(propertySubpattern.SubPatterns.Select(
+                p => p.NameColon?.Name.Identifier.ValueText).Where(s => !string.IsNullOrEmpty(s)));
+
             var untestedMembers = members.Where(m => !alreadyTestedMembers.Contains(m.Name) &&
                 m.IsEditorBrowsable(document.ShouldHideAdvancedMembers(), semanticModel.Compilation));
 
@@ -100,13 +105,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             }
 
             return token.Parent.IsKind(SyntaxKind.PropertySubpattern) ? token : default;
-        }
-
-        // List the members that are already tested in this property sub-pattern
-        private static HashSet<string> GetTestedMembers(PropertySubpatternSyntax propertySubpattern)
-        {
-            return new HashSet<string>(propertySubpattern.SubPatterns.Select(
-                p => p.NameColon?.Name.Identifier.ValueText).Where(s => !string.IsNullOrEmpty(s)));
         }
     }
 }

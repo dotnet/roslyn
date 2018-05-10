@@ -549,6 +549,27 @@ public class Program
         }
 
         [Fact]
+        public async Task PropertiesInRecursivePattern_InPositional_Incomplete_WithoutClosingBrace()
+        {
+            var markup =
+@"
+public class Program
+{
+    public int P1 { get; set; }
+
+    void M()
+    {
+        _ = this is ({ $$  // no deconstruction into 1 element
+    }
+
+    public void Deconstruct(out Program x, out Program y) => throw null;
+}
+";
+            // PROTOTYPE(patterns2): Like for typing arguments in methods, we should fall back to best overload resolution candidate
+            await VerifyNoItemsExistAsync(markup);
+        }
+
+        [Fact]
         public async Task PropertiesInRecursivePattern_InPositional_Incomplete_WithTwoTypes()
         {
             var markup =
@@ -648,7 +669,8 @@ class Program
     }
 }
 ";
-            await VerifyItemExistsAsync(markup, "P1"); // PROTOTYPE(patterns2): Need to review and confirm
+            // Ignore browsability limiting attributes if the symbol is declared in source.
+            await VerifyItemExistsAsync(markup, "P1");
             await VerifyItemExistsAsync(markup, "P2");
         }
     }
