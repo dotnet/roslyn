@@ -251,10 +251,14 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.DeclareAsNu
         [WorkItem(26626, "https://github.com/dotnet/roslyn/issues/26626")]
         public async Task FixOptionalParameter()
         {
-            await TestMissingInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"class Program
 {
     static void M(string x = [|null|]) { }
+}",
+@"class Program
+{
+    static void M(string? x = null) { }
 }", parameters: s_nullableFeature);
         }
     }

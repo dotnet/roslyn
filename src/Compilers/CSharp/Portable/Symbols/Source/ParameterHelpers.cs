@@ -492,10 +492,25 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             //
             // Also when valuetype S has a parameterless constructor, 
             // new S() is clearly not a constant expression and should produce an error
-            return (expression.ConstantValue != null) ||
-                   (expression.Kind == BoundKind.DefaultExpression) ||
-                   (expression.Kind == BoundKind.ObjectCreationExpression &&
-                       IsValidDefaultValue((BoundObjectCreationExpression)expression));
+            if (expression.ConstantValue != null)
+            {
+                return true;
+            }
+            while (true)
+            {
+                switch (expression.Kind)
+                {
+                    case BoundKind.DefaultExpression:
+                        return true;
+                    case BoundKind.ObjectCreationExpression:
+                        return IsValidDefaultValue((BoundObjectCreationExpression)expression);
+                    case BoundKind.SuppressNullableWarningExpression:
+                        expression = ((BoundSuppressNullableWarningExpression)expression).Expression;
+                        break;
+                    default:
+                        return false;
+                }
+            }
         }
 
         private static bool IsValidDefaultValue(BoundObjectCreationExpression expression)

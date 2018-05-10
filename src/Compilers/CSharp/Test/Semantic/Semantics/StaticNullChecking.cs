@@ -17925,39 +17925,9 @@ F(v).ToString();";
         /// Default value for non-nullable parameter
         /// should not result in a warning at the call site.
         /// </summary>
+        [WorkItem(26626, "https://github.com/dotnet/roslyn/issues/26626")]
         [Fact]
-        public void NullDefaultValueFromSource()
-        {
-            var source =
-@"class C
-{
-    public static void F(object o = null)
-    {
-    }
-}
-class Program
-{
-    static void Main()
-    {
-        C.F();
-        C.F(null);
-    }
-}";
-            var comp = CreateCompilation(
-                source,
-                parseOptions: TestOptions.Regular8);
-            comp.VerifyDiagnostics(
-                // (12,13): warning CS8625: Cannot convert null literal to non-nullable reference or unconstrained type parameter.
-                //         C.F(null);
-                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(12, 13));
-        }
-
-        /// <summary>
-        /// Default value for non-nullable parameter
-        /// should not result in a warning at the call site.
-        /// </summary>
-        [Fact]
-        public void NullDefaultValueFromMetadata()
+        public void ParameterDefaultValue_FromMetadata()
         {
             var source0 =
 @"public class C
@@ -17969,7 +17939,10 @@ class Program
             var comp0 = CreateCompilation(
                 source0,
                 parseOptions: TestOptions.Regular8);
-            comp0.VerifyDiagnostics();
+            comp0.VerifyDiagnostics(
+                // (3,37): warning CS8625: Cannot convert null literal to non-nullable reference or unconstrained type parameter.
+                //     public static void F(object o = null)
+                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(3, 37));
             var ref0 = comp0.EmitToImageReference();
 
             var source1 =
@@ -17989,6 +17962,301 @@ class Program
                 // (6,13): warning CS8625: Cannot convert null literal to non-nullable reference or unconstrained type parameter.
                 //         C.F(null);
                 Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(6, 13));
+        }
+
+        [WorkItem(26626, "https://github.com/dotnet/roslyn/issues/26626")]
+        [Fact]
+        public void ParameterDefaultValue_01()
+        {
+            var source =
+@"class C
+{
+    const string? S0 = null;
+    const string? S1 = """";
+    static string? F() => string.Empty;
+    static void F0(string s = null) { }
+    static void F1(string s = default) { }
+    static void F2(string s = default(string)) { }
+    static void F3(string x = (string)null, string y = (string?)null) { }
+    static void F4(string s = S0) { }
+    static void F5(string s = S1) { }
+    static void F6(string s = F()) { }
+    static void M()
+    {
+        F0();
+        F1();
+        F2();
+        F3();
+        F4();
+        F5();
+        F6();
+        F0(null);
+        F0(string.Empty);
+    }
+}";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
+            comp.VerifyDiagnostics(
+                // (6,31): warning CS8625: Cannot convert null literal to non-nullable reference or unconstrained type parameter.
+                //     static void F0(string s = null) { }
+                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(6, 31),
+                // (7,31): warning CS8625: Cannot convert null literal to non-nullable reference or unconstrained type parameter.
+                //     static void F1(string s = default) { }
+                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "default").WithLocation(7, 31),
+                // (8,31): warning CS8625: Cannot convert null literal to non-nullable reference or unconstrained type parameter.
+                //     static void F2(string s = default(string)) { }
+                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "default(string)").WithLocation(8, 31),
+                // (9,31): warning CS8625: Cannot convert null literal to non-nullable reference or unconstrained type parameter.
+                //     static void F3(string x = (string)null, string y = (string?)null) { }
+                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "(string)null").WithLocation(9, 31),
+                // (9,56): warning CS8625: Cannot convert null literal to non-nullable reference or unconstrained type parameter.
+                //     static void F3(string x = (string)null, string y = (string?)null) { }
+                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "(string?)null").WithLocation(9, 56),
+                // (10,31): warning CS8625: Cannot convert null literal to non-nullable reference or unconstrained type parameter.
+                //     static void F4(string s = S0) { }
+                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "S0").WithLocation(10, 31),
+                // (12,31): error CS1736: Default parameter value for 's' must be a compile-time constant
+                //     static void F6(string s = F()) { }
+                Diagnostic(ErrorCode.ERR_DefaultValueMustBeConstant, "F()").WithArguments("s").WithLocation(12, 31),
+                // (22,12): warning CS8625: Cannot convert null literal to non-nullable reference or unconstrained type parameter.
+                //         F0(null);
+                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(22, 12));
+        }
+
+        [WorkItem(26626, "https://github.com/dotnet/roslyn/issues/26626")]
+        [Fact]
+        public void ParameterDefaultValue_02()
+        {
+            var source =
+@"class C
+{
+    const string? S0 = null;
+    static void F0(string s = null!) { }
+    static void F1(string x = (string)null!, string y = ((string)null)!) { }
+    static void F2(string x = default!, string y = default(string)!) { }
+    static void F3(string s = (S0!)!) { }
+    static void M()
+    {
+        F0();
+        F1();
+        F2();
+        F3();
+        F1(x: null);
+        F1(y: null);
+        F2(null!, null);
+    }
+}";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
+            comp.VerifyDiagnostics(
+                // (14,15): warning CS8625: Cannot convert null literal to non-nullable reference or unconstrained type parameter.
+                //         F1(x: null);
+                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(14, 15),
+                // (15,15): warning CS8625: Cannot convert null literal to non-nullable reference or unconstrained type parameter.
+                //         F1(y: null);
+                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(15, 15),
+                // (16,19): warning CS8625: Cannot convert null literal to non-nullable reference or unconstrained type parameter.
+                //         F2(null!, null);
+                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(16, 19));
+        }
+
+        [WorkItem(26626, "https://github.com/dotnet/roslyn/issues/26626")]
+        [Fact]
+        public void ParameterDefaultValue_03()
+        {
+            var source =
+@"interface I { }
+class C : I { }
+class P
+{
+    static void F0<T>(T t = default) { }
+    static void F1<T>(T t = null) where T : class { }
+    static void F2<T>(T t = default) where T : struct { }
+    static void F3<T>(T t = default) where T : new() { }
+    static void F4<T>(T t = null) where T : C { }
+    static void F5<T>(T t = default) where T : I { }
+    static void F6<T, U>(T t = default) where T : U { }
+    static void G0()
+    {
+        F0<object>();
+        F0<object>(default);
+        F0(new object());
+        F1<object>();
+        F1<object>(default);
+        F1(new object());
+        F2<int>();
+        F2<int>(default);
+        F2(2);
+        F3<object>();
+        F3<object>(default);
+        F3(new object());
+        F4<C>();
+        F4<C>(default);
+        F4(new C());
+        F5<I>();
+        F5<I>(default);
+        F5(new C());
+        F6<object, object>();
+        F6<object, object>(default);
+        F6<object, object>(new object());
+    }
+    static void G0<T>()
+    {
+        F0<T>(); // 0
+        F0<T>(default); // 0
+        F6<T, T>(); // 0
+        F6<T, T>(default); // 0
+    }
+    static void G1<T>() where T : class
+    {
+        F0<T>(); // 1
+        F0<T>(default); // 1
+        F1<T>(); // 1
+        F1<T>(default); // 1
+        F6<T, T>(); // 1
+        F6<T, T>(default); // 1
+    }
+    static void G2<T>() where T : struct
+    {
+        F0<T>(); // 2
+        F0<T>(default); // 2
+        F2<T>(); // 2
+        F2<T>(default); // 2
+        F3<T>(); // 2
+        F3<T>(default); // 2
+        F6<T, T>(); // 2
+        F6<T, T>(default); // 2
+    }
+    static void G3<T>() where T : new()
+    {
+        F0<T>(); // 3
+        F0<T>(default); // 3
+        F0<T>(new T()); // 3
+        F3<T>(); // 3
+        F3<T>(default); // 3
+        F3<T>(new T()); // 3
+        F6<T, T>(); // 3
+        F6<T, T>(default); // 3
+        F6<T, T>(new T()); // 3
+    }
+    static void G4<T>() where T : C
+    {
+        F0<T>(); // 4
+        F0<T>(default); // 4
+        F1<T>(); // 4
+        F1<T>(default); // 4
+        F4<T>(); // 4
+        F4<T>(default); // 4
+        F5<T>(); // 4
+        F5<T>(default); // 4
+        F6<T, T>(); // 4
+        F6<T, T>(default); // 4
+    }
+    static void G5<T>() where T : I
+    {
+        F0<T>(); // 5
+        F0<T>(default); // 5
+        F5<T>(); // 5
+        F5<T>(default); // 5
+        F6<T, T>(); // 5
+        F6<T, T>(default); // 5
+    }
+    static void G6<T, U>() where T : U
+    {
+        F0<T>(); // 6
+        F0<T>(default); // 6
+        F6<T, U>(); // 6
+        F6<T, U>(default); // 6
+    }
+}";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
+            comp.VerifyDiagnostics(
+                // (6,29): warning CS8625: Cannot convert null literal to non-nullable reference or unconstrained type parameter.
+                //     static void F1<T>(T t = null) where T : class { }
+                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(6, 29),
+                // (9,29): warning CS8625: Cannot convert null literal to non-nullable reference or unconstrained type parameter.
+                //     static void F4<T>(T t = null) where T : C { }
+                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(9, 29),
+                // (15,20): warning CS8625: Cannot convert null literal to non-nullable reference or unconstrained type parameter.
+                //         F0<object>(default);
+                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "default").WithLocation(15, 20),
+                // (18,20): warning CS8625: Cannot convert null literal to non-nullable reference or unconstrained type parameter.
+                //         F1<object>(default);
+                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "default").WithLocation(18, 20),
+                // (24,20): warning CS8625: Cannot convert null literal to non-nullable reference or unconstrained type parameter.
+                //         F3<object>(default);
+                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "default").WithLocation(24, 20),
+                // (27,15): warning CS8625: Cannot convert null literal to non-nullable reference or unconstrained type parameter.
+                //         F4<C>(default);
+                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "default").WithLocation(27, 15),
+                // (30,15): warning CS8625: Cannot convert null literal to non-nullable reference or unconstrained type parameter.
+                //         F5<I>(default);
+                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "default").WithLocation(30, 15),
+                // (33,28): warning CS8625: Cannot convert null literal to non-nullable reference or unconstrained type parameter.
+                //         F6<object, object>(default);
+                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "default").WithLocation(33, 28),
+                // (46,15): warning CS8625: Cannot convert null literal to non-nullable reference or unconstrained type parameter.
+                //         F0<T>(default); // 1
+                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "default").WithLocation(46, 15),
+                // (48,15): warning CS8625: Cannot convert null literal to non-nullable reference or unconstrained type parameter.
+                //         F1<T>(default); // 1
+                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "default").WithLocation(48, 15),
+                // (50,18): warning CS8625: Cannot convert null literal to non-nullable reference or unconstrained type parameter.
+                //         F6<T, T>(default); // 1
+                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "default").WithLocation(50, 18),
+                // (78,15): warning CS8625: Cannot convert null literal to non-nullable reference or unconstrained type parameter.
+                //         F0<T>(default); // 4
+                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "default").WithLocation(78, 15),
+                // (80,15): warning CS8625: Cannot convert null literal to non-nullable reference or unconstrained type parameter.
+                //         F1<T>(default); // 4
+                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "default").WithLocation(80, 15),
+                // (82,15): warning CS8625: Cannot convert null literal to non-nullable reference or unconstrained type parameter.
+                //         F4<T>(default); // 4
+                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "default").WithLocation(82, 15),
+                // (84,15): warning CS8625: Cannot convert null literal to non-nullable reference or unconstrained type parameter.
+                //         F5<T>(default); // 4
+                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "default").WithLocation(84, 15),
+                // (86,18): warning CS8625: Cannot convert null literal to non-nullable reference or unconstrained type parameter.
+                //         F6<T, T>(default); // 4
+                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "default").WithLocation(86, 18));
+
+            // No warnings with C#7.3.
+            comp = CreateCompilation(source, parseOptions: TestOptions.Regular7_3);
+            comp.VerifyDiagnostics();
+        }
+
+        [WorkItem(26626, "https://github.com/dotnet/roslyn/issues/26626")]
+        [Fact]
+        public void ParameterDefaultValue_04()
+        {
+            var source =
+@"partial class C
+{
+    static partial void F(object? x = null, object y = null);
+    static partial void F(object? x, object y) { }
+    static partial void G(object x, object? y);
+    static partial void G(object x = null, object? y = null) { }
+    static void M()
+    {
+        F();
+        G();
+    }
+}";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
+            comp.VerifyDiagnostics(
+                // (6,34): warning CS1066: The default value specified for parameter 'x' will have no effect because it applies to a member that is used in contexts that do not allow optional arguments
+                //     static partial void G(object x = null, object? y = null) { }
+                Diagnostic(ErrorCode.WRN_DefaultValueForUnconsumedLocation, "x").WithArguments("x").WithLocation(6, 34),
+                // (6,38): warning CS8625: Cannot convert null literal to non-nullable reference or unconstrained type parameter.
+                //     static partial void G(object x = null, object? y = null) { }
+                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(6, 38),
+                // (6,52): warning CS1066: The default value specified for parameter 'y' will have no effect because it applies to a member that is used in contexts that do not allow optional arguments
+                //     static partial void G(object x = null, object? y = null) { }
+                Diagnostic(ErrorCode.WRN_DefaultValueForUnconsumedLocation, "y").WithArguments("y").WithLocation(6, 52),
+                // (3,56): warning CS8625: Cannot convert null literal to non-nullable reference or unconstrained type parameter.
+                //     static partial void F(object? x = null, object y = null);
+                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(3, 56),
+                // (10,9): error CS7036: There is no argument given that corresponds to the required formal parameter 'x' of 'C.G(object, object)'
+                //         G();
+                Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "G").WithArguments("x", "C.G(object, object?)").WithLocation(10, 9));
         }
 
         [Fact]
