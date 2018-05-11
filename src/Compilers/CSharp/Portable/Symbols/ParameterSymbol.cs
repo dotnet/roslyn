@@ -106,7 +106,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public abstract int Ordinal { get; }
 
         /// <summary>
-        /// Returns true if the parameter was declared as a parameter array. 
+        /// Returns true if the parameter was declared as a parameter array.
+        /// Note: it is possible for any parameter to have the [ParamArray] attribute (for instance, in IL),
+        ///     even if it is not the last parameter. So check for that.
         /// </summary>
         public abstract bool IsParams { get; }
 
@@ -388,22 +390,22 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal abstract AttributeAnnotations FlowAnalysisAnnotations { get; }
 
         /// <summary>
-        /// If there are any annotations on the member (not just that parameter), then memberHasExtra is true. The purpose is to ensure
+        /// If there are no annotations on the member (not just that parameter), then returns null. The purpose is to ensure
         /// that if some annotations are present on the member, then annotations win over the attributes on the member in all positions.
         /// That could mean removing an attribute.
         /// </summary>
-        protected (bool memberHasExtra, AttributeAnnotations annotations) TryGetExtraAttributeAnnotations()
+        protected AttributeAnnotations? TryGetExtraAttributeAnnotations()
         {
             ParameterSymbol originalParameter = this.OriginalDefinition;
             var containingMethod = originalParameter.ContainingSymbol as MethodSymbol;
 
             if (containingMethod is null)
             {
-                return (false, AttributeAnnotations.None);
+                return null;
             }
 
             string key = ExtraAnnotations.MakeMethodKey(containingMethod);
-            return ExtraAnnotations.GetExtraAttributes(key, this.Ordinal);
+            return ExtraAnnotations.TryGetExtraAttributes(key, this.Ordinal);
         }
 
         protected sealed override int HighestPriorityUseSiteError

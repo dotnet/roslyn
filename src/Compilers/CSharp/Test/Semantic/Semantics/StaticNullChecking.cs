@@ -73,6 +73,18 @@ namespace System.Runtime.CompilerServices
 }
 ";
 
+        private const string NotNullWhenTrueAttributeDefinition = @"
+namespace System.Runtime.CompilerServices
+{
+    [AttributeUsage(AttributeTargets.Parameter,
+                   AllowMultiple = false)]
+    public class NotNullWhenTrueAttribute : Attribute
+    {
+        public NotNullWhenTrueAttribute() { }
+    }
+}
+";
+
         private const string NotNullWhenFalseAttributeDefinition = @"
 namespace System.Runtime.CompilerServices
 {
@@ -5486,43 +5498,6 @@ class Test
         }
 
         [Fact]
-        public void NotNullWhenFalse_Simple()
-        {
-            CSharpCompilation c = CreateCompilation(@"
-using System.Runtime.CompilerServices;
-public class C
-{
-    public void Main(string? s)
-    {
-        if (MyIsNullOrEmpty(s))
-        {
-            s.ToString(); // warn
-        }
-        else
-        {
-            s.ToString(); // ok
-        }
-
-        s.ToString(); // warn 2
-    }
-    public static bool MyIsNullOrEmpty([NotNullWhenFalse] string? s) => throw null;
-}
-" + NotNullWhenFalseAttributeDefinition, parseOptions: TestOptions.Regular8);
-
-            c.VerifyDiagnostics(
-                // (9,13): warning CS8602: Possible dereference of a null reference.
-                //             s.ToString(); // warn
-                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "s").WithLocation(9, 13),
-                // (16,9): warning CS8602: Possible dereference of a null reference.
-                //         s.ToString(); // warn 2
-                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "s").WithLocation(16, 9)
-                );
-
-            VerifyAnnotationsAndMetadata(c, "C.Main", None);
-            VerifyAnnotationsAndMetadata(c, "C.MyIsNullOrEmpty", NotNullWhenFalse);
-        }
-
-        [Fact]
         public void NotNullWhenFalse_EqualsTrue()
         {
             CSharpCompilation c = CreateCompilation(@"
@@ -5682,6 +5657,1093 @@ public class C
         }
 
         [Fact]
+        public void MethodWithOutNullableParameter_AfterNotNullWhenTrue()
+        {
+            CSharpCompilation c = CreateCompilation(@"
+using System.Runtime.CompilerServices;
+public class C
+{
+    public void Main(string? s)
+    {
+        if (M(s, out string? s2))
+        {
+            s.ToString(); // ok
+            s2.ToString(); // warn
+        }
+        else
+        {
+            s.ToString(); // warn 2
+            s2.ToString(); // warn 3
+        }
+
+        s.ToString(); // warn 4
+        s2.ToString(); // warn 5
+    }
+    public static bool M([NotNullWhenTrue] string? s, out string? s2) => throw null;
+}
+" + NotNullWhenTrueAttributeDefinition, parseOptions: TestOptions.Regular8);
+
+            c.VerifyDiagnostics(
+                // (10,13): warning CS8602: Possible dereference of a null reference.
+                //             s2.ToString(); // warn
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "s2").WithLocation(10, 13),
+                // (14,13): warning CS8602: Possible dereference of a null reference.
+                //             s.ToString(); // warn 2
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "s").WithLocation(14, 13),
+                // (15,13): warning CS8602: Possible dereference of a null reference.
+                //             s2.ToString(); // warn 3
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "s2").WithLocation(15, 13),
+                // (18,9): warning CS8602: Possible dereference of a null reference.
+                //         s.ToString(); // warn 4
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "s").WithLocation(18, 9),
+                // (19,9): warning CS8602: Possible dereference of a null reference.
+                //         s2.ToString(); // warn 5
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "s2").WithLocation(19, 9)
+                );
+        }
+
+        [Fact]
+        public void MethodWithOutNullableParameter_AfterEnsuresNotNull()
+        {
+            CSharpCompilation c = CreateCompilation(@"
+using System.Runtime.CompilerServices;
+public class C
+{
+    public void Main(string? s)
+    {
+        if (M(s, out string? s2))
+        {
+            s.ToString(); // ok
+            s2.ToString(); // warn
+        }
+        else
+        {
+            s.ToString(); // ok
+            s2.ToString(); // warn 2
+        }
+
+        s.ToString(); // ok
+        s2.ToString(); // warn 3
+    }
+    public static bool M([EnsuresNotNull] string? s, out string? s2) => throw null;
+}
+" + EnsuresNotNullAttributeDefinition, parseOptions: TestOptions.Regular8);
+
+            c.VerifyDiagnostics(
+                // (10,13): warning CS8602: Possible dereference of a null reference.
+                //             s2.ToString(); // warn
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "s2").WithLocation(10, 13),
+                // (15,13): warning CS8602: Possible dereference of a null reference.
+                //             s2.ToString(); // warn 2
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "s2").WithLocation(15, 13),
+                // (19,9): warning CS8602: Possible dereference of a null reference.
+                //         s2.ToString(); // warn 3
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "s2").WithLocation(19, 9)
+                );
+        }
+
+        [Fact]
+        public void MethodWithOutNonNullableParameter()
+        {
+            CSharpCompilation c = CreateCompilation(@"
+public class C
+{
+    public void Main()
+    {
+        M(out string s);
+        s.ToString(); // ok
+    }
+    public static void M(out string value) => throw null;
+}
+", parseOptions: TestOptions.Regular8);
+
+            c.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void MethodWithOutNonNullableParameter_WithNullableOutArgument()
+        {
+            CSharpCompilation c = CreateCompilation(@"
+public class C
+{
+    public void Main()
+    {
+        M(out string? s);
+        s.ToString(); // ok
+    }
+    public static void M(out string value) => throw null;
+}
+", parseOptions: TestOptions.Regular8);
+
+            c.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void MethodWithRefNonNullableParameter()
+        {
+            CSharpCompilation c = CreateCompilation(@"
+public class C
+{
+    public void Main()
+    {
+        string s = ""hello"";
+        M(ref s);
+        s.ToString(); // ok
+    }
+    public static void M(ref string value) => throw null;
+}
+", parseOptions: TestOptions.Regular8);
+
+            c.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void MethodWithRefNonNullableParameter_WithNullableRefArgument()
+        {
+            CSharpCompilation c = CreateCompilation(@"
+public class C
+{
+    public void Main(string? s)
+    {
+        M(ref s); // warn
+        s.ToString();
+    }
+    public static void M(ref string value) => throw null;
+}
+", parseOptions: TestOptions.Regular8);
+
+            c.VerifyDiagnostics(
+                // (6,15): warning CS8604: Possible null reference argument for parameter 'value' in 'void C.M(ref string value)'.
+                //         M(ref s); // warn
+                Diagnostic(ErrorCode.WRN_NullReferenceArgument, "s").WithArguments("value", "void C.M(ref string value)").WithLocation(6, 15)
+                );
+        }
+
+        [Fact]
+        public void MethodWithRefNonNullableParameter_WithNonNullRefArgument()
+        {
+            CSharpCompilation c = CreateCompilation(@"
+public class C
+{
+    public void Main()
+    {
+        string? s = ""hello"";
+        M(ref s);
+        s.ToString();
+    }
+    public static void M(ref string value) => throw null;
+}
+", parseOptions: TestOptions.Regular8);
+
+            c.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void MethodWithRefNullableParameter()
+        {
+            CSharpCompilation c = CreateCompilation(@"
+public class C
+{
+    public void Main()
+    {
+        string? s = ""hello"";
+        M(ref s); // warn 1
+        s.ToString(); // warn 2
+    }
+    public static void M(ref string? value) => throw null;
+}
+", parseOptions: TestOptions.Regular8);
+
+            c.VerifyDiagnostics(
+                // (7,15): warning CS8600: Converting null literal or possible null value to non-nullable type.
+                //         M(ref s); // warn 1
+                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "s").WithLocation(7, 15),
+                // (8,9): warning CS8602: Possible dereference of a null reference.
+                //         s.ToString(); // warn 2
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "s").WithLocation(8, 9)
+                );
+        }
+
+        [Fact]
+        public void MethodWithRefNullableParameter_WithNonNullableRefArgument()
+        {
+            CSharpCompilation c = CreateCompilation(@"
+public class C
+{
+    public void Main(string s)
+    {
+        M(ref s); // warn 1
+        s.ToString(); // warn 2
+    }
+    public static void M(ref string? value) => throw null;
+}
+", parseOptions: TestOptions.Regular8);
+
+            c.VerifyDiagnostics(
+                // (6,15): warning CS8600: Converting null literal or possible null value to non-nullable type.
+                //         M(ref s); // warn 1
+                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "s").WithLocation(6, 15),
+                // (7,9): warning CS8602: Possible dereference of a null reference.
+                //         s.ToString(); // warn 2
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "s").WithLocation(7, 9)
+                );
+        }
+        [Fact]
+        public void MethodWithRefNullableParameter_WithNonNullableLocal()
+        {
+            CSharpCompilation c = CreateCompilation(@"
+public class C
+{
+    public void Main()
+    {
+        string s = ""hello"";
+        M(ref s); // warn 1
+        s.ToString(); // warn 2
+    }
+    public static void M(ref string? value) => throw null;
+}
+", parseOptions: TestOptions.Regular8);
+
+            c.VerifyDiagnostics(
+                // (7,15): warning CS8600: Converting null literal or possible null value to non-nullable type.
+                //         M(ref s); // warn 1
+                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "s").WithLocation(7, 15),
+                // (8,9): warning CS8602: Possible dereference of a null reference.
+                //         s.ToString(); // warn 2
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "s").WithLocation(8, 9)
+                );
+        }
+
+        [Fact]
+        public void MethodWithOutParameter_WithNullableOut()
+        {
+            CSharpCompilation c = CreateCompilation(@"
+public class C
+{
+    public void Main(string key)
+    {
+        if (TryGetValue(key, out var s))
+        {
+            s/*T:string?*/.ToString(); // warn
+        }
+        else
+        {
+            s/*T:string?*/.ToString(); // warn 2
+        }
+
+        s.ToString(); // warn 3
+    }
+    public static bool TryGetValue(string key, out string? value) => throw null;
+}
+", parseOptions: TestOptions.Regular8);
+
+            VerifyOutVar(c, "string!"); // PROTOTYPE(NullableReferenceTypes): expecting string?
+            c.VerifyTypes();
+            c.VerifyDiagnostics(
+                // (8,13): warning CS8602: Possible dereference of a null reference.
+                //             s.ToString(); // warn
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "s").WithLocation(8, 13),
+                // (12,13): warning CS8602: Possible dereference of a null reference.
+                //             s.ToString(); // warn 2
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "s").WithLocation(12, 13),
+                // (15,9): warning CS8602: Possible dereference of a null reference.
+                //         s.ToString(); // warn 3
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "s").WithLocation(15, 9)
+                );
+        }
+
+        /// <summary>
+        /// Check the inferred type of var from the semantic model, which currently means from initial binding.
+        /// </summary>
+        private static void VerifyOutVar(CSharpCompilation compilation, string expectedType)
+        {
+            var tree = compilation.SyntaxTrees.Single();
+            var model = compilation.GetSemanticModel(tree);
+            var outVar = tree.GetRoot().DescendantNodes().OfType<DeclarationExpressionSyntax>().Single();
+            var symbol = (LocalSymbol)model.GetSymbolInfo(outVar).Symbol;
+            Assert.Equal(expectedType, symbol.Type.ToDisplayString(TypeSymbolWithAnnotations.DebuggerDisplayFormat));
+            Assert.Null(model.GetDeclaredSymbol(outVar));
+        }
+
+        /// <summary>
+        /// Check the inferred type of var from the semantic model, which currently means from initial binding.
+        /// </summary>
+        private static void VerifyVarLocal(CSharpCompilation compilation, string expectedType)
+        {
+            var tree = compilation.SyntaxTrees.Single();
+            var model = compilation.GetSemanticModel(tree);
+            var varDecl = tree.GetRoot().DescendantNodes().OfType<LocalDeclarationStatementSyntax>().Where(d => d.Declaration.Type.IsVar).Single();
+            var variable = varDecl.Declaration.Variables.Single();
+            var symbol = (LocalSymbol)model.GetDeclaredSymbol(variable);
+            Assert.Equal(expectedType, symbol.Type.ToDisplayString(TypeSymbolWithAnnotations.DebuggerDisplayFormat));
+            Assert.Null(model.GetSymbolInfo(variable).Symbol);
+        }
+
+        [Fact]
+        public void MethodWithGenericOutParameter()
+        {
+            CSharpCompilation c = CreateCompilation(@"
+public class C
+{
+    public void Main(string? key)
+    {
+        Copy(key, out var s);
+        s/*T:string?*/.ToString(); // warn
+    }
+    public static void Copy<T>(T key, out T value) => throw null;
+}
+", parseOptions: TestOptions.Regular8);
+
+            VerifyOutVar(c, "string!"); // PROTOTYPE(NullableReferenceTypes): expecting string?
+            c.VerifyTypes();
+            c.VerifyDiagnostics(
+                // (7,9): warning CS8602: Possible dereference of a null reference.
+                //         s/*T:string?*/.ToString(); // warn
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "s").WithLocation(7, 9)
+                );
+        }
+
+        [Fact]
+        public void MethodWithGenericOutParameter_WithUnnecessarySuppression()
+        {
+            CSharpCompilation c = CreateCompilation(@"
+public class C
+{
+    public void Main(string? key)
+    {
+        Copy(key!, out var s);
+        s/*T:string*/.ToString();
+    }
+    public static void Copy<T>(T key, out T value) => throw null;
+}
+", parseOptions: TestOptions.Regular8);
+
+            VerifyOutVar(c, "string!");
+            c.VerifyTypes(); // PROTOTOYPE(NullableReferenceTypes): Should this be string!
+            c.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void VarLocal_FromGenericMethod_WithUnnecessarySuppression()
+        {
+            CSharpCompilation c = CreateCompilation(@"
+public class C
+{
+    public void Main(string? key)
+    {
+        var s = Copy(key!);
+        s/*T:string*/.ToString();
+    }
+    public static T Copy<T>(T key) => throw null;
+}
+", parseOptions: TestOptions.Regular8);
+
+            VerifyVarLocal(c, "string!");
+            c.VerifyTypes(); // PROTOTOYPE(NullableReferenceTypes): Should this be string!
+            c.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void VarLocal_FromGenericMethod()
+        {
+            CSharpCompilation c = CreateCompilation(@"
+public class C
+{
+    public void Main(string? key)
+    {
+        var s = Copy(key);
+        s/*T:string?*/.ToString(); // warn
+    }
+    public static T Copy<T>(T key) => throw null;
+}
+", parseOptions: TestOptions.Regular8);
+
+            VerifyVarLocal(c, "string!"); // PROTOTYPE(NullableReferenceTypes): expecting string?
+            c.VerifyTypes();
+            c.VerifyDiagnostics(
+                // (7,9): warning CS8602: Possible dereference of a null reference.
+                //         s/*T:string?*/.ToString(); // warn
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "s").WithLocation(7, 9)
+                );
+        }
+
+        [Fact]
+        public void MethodWithGenericOutParameter_WithNonNullArgument()
+        {
+            CSharpCompilation c = CreateCompilation(@"
+public class C
+{
+    public void Main(string? key)
+    {
+        key = ""hello"";
+        CopyOrDefault(key, out var s);
+        s/*T:string!*/.ToString(); // ok
+    }
+    public static void CopyOrDefault<T>(T key, out T value) => throw null;
+}
+", parseOptions: TestOptions.Regular8);
+
+            VerifyOutVar(c, "string!");
+            c.VerifyTypes();
+            c.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void MethodWithGenericNullableOutParameter()
+        {
+            CSharpCompilation c = CreateCompilation(@"
+public class C
+{
+    public void Main(string key)
+    {
+        CopyOrDefault(key, out var s);
+        s/*T:string?*/.ToString(); // warn
+    }
+    public static void CopyOrDefault<T>(T key, out T? value) => throw null;
+}
+", parseOptions: TestOptions.Regular8);
+
+            VerifyOutVar(c, "string!"); // PROTOTYPE(NullableReferenceTypes): expecting string?
+            c.VerifyTypes();
+            c.VerifyDiagnostics(
+                // (7,9): warning CS8602: Possible dereference of a null reference.
+                //         s/*T:*/.ToString(); // warn
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "s").WithLocation(7, 9)
+                );
+        }
+
+        [Fact]
+        public void MethodWithGenericNullableOutParameter_WithNullableArgument()
+        {
+            CSharpCompilation c = CreateCompilation(@"
+public class C
+{
+    public void Main(string? key)
+    {
+        CopyOrDefault(key, out var s);
+        s/*T:string?*/.ToString(); // warn
+    }
+    public static void CopyOrDefault<T>(T key, out T? value) => throw null;
+}
+", parseOptions: TestOptions.Regular8);
+
+            VerifyOutVar(c, "string!");// PROTOTYPE(NullableReferenceTypes): expecting string?
+            c.VerifyTypes();
+            c.VerifyDiagnostics(
+                // (7,9): warning CS8602: Possible dereference of a null reference.
+                //         s/*T:string?*/.ToString(); // warn
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "s").WithLocation(7, 9)
+                );
+        }
+
+        [Fact]
+        public void MethodWithGenericNullableOutParameter_WithNonNullArgument()
+        {
+            CSharpCompilation c = CreateCompilation(@"
+public class C
+{
+    public void Main(string? key)
+    {
+        key = ""hello"";
+        CopyOrDefault(key, out var s);
+        s/*T:string?*/.ToString(); // warn
+    }
+    public static void CopyOrDefault<T>(T key, out T? value) => throw null;
+}
+", parseOptions: TestOptions.Regular8);
+
+            VerifyOutVar(c, "string!"); // PROTOTYPE(NullableReferenceTypes): expecting string?
+            c.VerifyTypes();
+            c.VerifyDiagnostics(
+                // (8,9): warning CS8602: Possible dereference of a null reference.
+                //         s/*T:string?*/.ToString(); // warn
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "s").WithLocation(8, 9)
+                );
+        }
+
+        [Fact]
+        public void MethodWithGenericNullableArrayOutParameter()
+        {
+            CSharpCompilation c = CreateCompilation(@"
+public class C
+{
+    public void Main(string key)
+    {
+        CopyOrDefault(key, out var s);
+        s/*T:string?[]*/[0].ToString(); // warn
+    }
+    public static void CopyOrDefault<T>(T key, out T?[] value) => throw null;
+}
+", parseOptions: TestOptions.Regular8);
+
+            VerifyOutVar(c, "string?[]!"); // PROTOTYPE(NullableReferenceTypes): expecting string?[]
+            c.VerifyTypes();
+            c.VerifyDiagnostics(
+                // (7,9): warning CS8602: Possible dereference of a null reference.
+                //         s/*T:string?[]*/[0].ToString(); // warn
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "s/*T:string?[]*/[0]").WithLocation(7, 9)
+                );
+        }
+
+        [Fact]
+        public void MethodWithGenericNullableArrayOutParameter_WithNullableArgument()
+        {
+            CSharpCompilation c = CreateCompilation(@"
+public class C
+{
+    public void Main(string? key)
+    {
+        CopyOrDefault(key, out var s);
+        s/*T:string?[]*/[0].ToString(); // warn
+    }
+    public static void CopyOrDefault<T>(T key, out T?[] value) => throw null;
+}
+", parseOptions: TestOptions.Regular8);
+
+            VerifyOutVar(c, "string?[]!"); // PROTOTYPE(NullableReferenceTypes): expecting string?[]
+            c.VerifyTypes();
+            c.VerifyDiagnostics(
+                // (7,9): warning CS8602: Possible dereference of a null reference.
+                //         s/*T:string?[]*/[0].ToString(); // warn
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "s/*T:string?[]*/[0]").WithLocation(7, 9)
+                );
+        }
+
+        [Fact]
+        public void MethodWithGenericArrayOutParameter_WithNonNullableArgument()
+        {
+            CSharpCompilation c = CreateCompilation(@"
+public class C
+{
+    public void Main(string key)
+    {
+        CopyOrDefault(key, out var s);
+        s/*T:string![]*/[0].ToString(); // ok
+    }
+    public static void CopyOrDefault<T>(T key, out T[] value) => throw null;
+}
+", parseOptions: TestOptions.Regular8);
+
+            VerifyOutVar(c, "string![]!"); // PROTOTYPE(NullableReferenceTypes): expecting string![]
+            c.VerifyTypes();
+            c.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void MethodWithGenericArrayOutParameter_WithNonNullArgument()
+        {
+            CSharpCompilation c = CreateCompilation(@"
+public class C
+{
+    public void Main(string? key)
+    {
+        key = ""hello"";
+        CopyOrDefault(key, out var s);
+        s/*T:string![]*/[0].ToString(); // ok
+    }
+    public static void CopyOrDefault<T>(T key, out T[] value) => throw null;
+}
+", parseOptions: TestOptions.Regular8);
+
+            VerifyOutVar(c, "string![]!"); // PROTOTYPE(NullableReferenceTypes): expecting string?[]
+            c.VerifyTypes();
+            c.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void MethodWithGenericOutParameter_WithEnsuresNotNull()
+        {
+            CSharpCompilation c = CreateCompilation(@"
+using System.Runtime.CompilerServices;
+public class C
+{
+    public void Main(string? key)
+    {
+        Copy(key, out var s); // ok
+        s/*T:string!*/.ToString(); // ok
+    }
+    public static void Copy<T>(T key, [EnsuresNotNull] out T value) => throw null;
+}
+" + EnsuresNotNullAttributeDefinition, parseOptions: TestOptions.Regular8);
+
+            VerifyOutVar(c, "string!"); // PROTOTYPE(NullableReferenceTypes): expecting string?
+            c.VerifyTypes();
+            c.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void MethodWithGenericNullableOutParameter_WithEnsuresNotNull()
+        {
+            CSharpCompilation c = CreateCompilation(@"
+using System.Runtime.CompilerServices;
+public class C
+{
+    public void Main(string? key)
+    {
+        Copy(key, out var s); // ok
+        s/*T:string!*/.ToString(); // ok
+    }
+    public static void Copy<T>(T key, [EnsuresNotNull] out T? value) => throw null;
+}
+" + EnsuresNotNullAttributeDefinition, parseOptions: TestOptions.Regular8);
+
+            VerifyOutVar(c, "string!"); // PROTOTYPE(NullableReferenceTypes): expecting string?
+            c.VerifyTypes();
+            c.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void MethodWithGenericOutParameter_WithNullLiteralArgument_WithNonNullableString()
+        {
+            CSharpCompilation c = CreateCompilation(@"
+public class C
+{
+    public void Main()
+    {
+        Copy(null, out string s); // warn
+        s/*T:string!*/.ToString(); // ok
+    }
+    public static void Copy<T>(T key, out T value) => throw null;
+}
+", parseOptions: TestOptions.Regular8);
+
+            VerifyOutVar(c, "string!");
+            c.VerifyTypes();
+            c.VerifyDiagnostics(
+                // (6,14): warning CS8625: Cannot convert null literal to non-nullable reference or unconstrained type parameter.
+                //         Copy(null, out string s); // warn
+                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(6, 14)
+                );
+        }
+
+        [Fact]
+        public void MethodWithGenericOutParameter_WithNonNullableArgument_WithNonNullableString()
+        {
+            CSharpCompilation c = CreateCompilation(@"
+public class C
+{
+    public void Main(string key)
+    {
+        Copy(key, out string s);
+        s/*T:string!*/.ToString();
+    }
+    public static void Copy<T>(T key, out T value) => throw null;
+}
+", parseOptions: TestOptions.Regular8);
+
+            VerifyOutVar(c, "string!");
+            c.VerifyTypes();
+            c.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void MethodWithGenericOutParameter_WithNullableArgument_WithNonNullableString()
+        {
+            CSharpCompilation c = CreateCompilation(@"
+public class C
+{
+    public void Main(string? key)
+    {
+        Copy(key, out string s);
+        s/*T:string!*/.ToString();
+    }
+    public static void Copy<T>(T key, out T value) => throw null;
+}
+", parseOptions: TestOptions.Regular8);
+
+            VerifyOutVar(c, "string!");
+            c.VerifyTypes(); // PROTOTYPE(NullableReferenceTypes): is string! correct?
+            c.VerifyDiagnostics(
+                // (6,14): warning CS8604: Possible null reference argument for parameter 'key' in 'void C.Copy<string>(string key, out string value)'.
+                //         Copy(key, out string s);
+                Diagnostic(ErrorCode.WRN_NullReferenceArgument, "key").WithArguments("key", "void C.Copy<string>(string key, out string value)").WithLocation(6, 14)
+                );
+        }
+
+        [Fact]
+        public void MethodWithGenericOutParameter_WithNonNullableArgument_WithNullableString()
+        {
+            CSharpCompilation c = CreateCompilation(@"
+public class C
+{
+    public void Main(string key)
+    {
+        Copy(key, out string? s);
+        s/*T:string?*/.ToString();
+    }
+    public static void Copy<T>(T key, out T value) => throw null;
+}
+", parseOptions: TestOptions.Regular8);
+
+            VerifyOutVar(c, "string?");
+            c.VerifyTypes();
+            c.VerifyDiagnostics(
+                // (7,9): warning CS8602: Possible dereference of a null reference.
+                //         s/*T:string?*/.ToString(); // warn
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "s").WithLocation(7, 9)
+                );
+        }
+
+        [Fact]
+        public void MethodWithGenericOutParameter_WithNullableArgument_WithNullableString()
+        {
+            CSharpCompilation c = CreateCompilation(@"
+public class C
+{
+    public void Main(string? key)
+    {
+        Copy(key, out string? s);
+        s/*T:string?*/.ToString(); // warn
+    }
+    public static void Copy<T>(T key, out T value) => throw null;
+}
+", parseOptions: TestOptions.Regular8);
+
+            VerifyOutVar(c, "string?");
+            c.VerifyTypes();
+            c.VerifyDiagnostics(
+                // (7,9): warning CS8602: Possible dereference of a null reference.
+                //         s/*T:string?*/.ToString(); // warn
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "s").WithLocation(7, 9)
+                );
+        }
+
+        [Fact]
+        public void VarLocalFromGenericMethod()
+        {
+            CSharpCompilation c = CreateCompilation(@"
+public class C
+{
+    public void Main(string key)
+    {
+        var s = Copy(key);
+        s/*T:string!*/.ToString(); // ok
+    }
+    public T Copy<T>(T key) => throw null;
+}
+", parseOptions: TestOptions.Regular8);
+
+            VerifyVarLocal(c, "string!");
+            c.VerifyTypes();
+            c.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void VarLocalFromGenericMethod_WithNullableArgument()
+        {
+            CSharpCompilation c = CreateCompilation(@"
+public class C
+{
+    public void Main(string? key)
+    {
+        var s = Copy(key);
+        s/*T:string?*/.ToString(); // warn
+    }
+    public T Copy<T>(T key) => throw null;
+}
+", parseOptions: TestOptions.Regular8);
+
+            VerifyVarLocal(c, "string!"); // PROTOTYPE(NullableReferenceTypes): expecting string?
+            c.VerifyTypes();
+            c.VerifyDiagnostics(
+                // (7,9): warning CS8602: Possible dereference of a null reference.
+                //         s/*T:string?*/.ToString(); // warn
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "s").WithLocation(7, 9)
+                );
+        }
+
+        [Fact]
+        public void VarLocalFromGenericMethod_WithNonNullArgument()
+        {
+            CSharpCompilation c = CreateCompilation(@"
+public class C
+{
+    public void Main(string? key)
+    {
+        key = ""hello"";
+        var s = Copy(key);
+        s/*T:string!*/.ToString(); // ok
+    }
+    public T Copy<T>(T key) => throw null;
+}
+", parseOptions: TestOptions.Regular8);
+
+            VerifyVarLocal(c, "string!");
+            c.VerifyTypes();
+            c.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void VarLocalFromGenericMethod_WithNullableReturn()
+        {
+            CSharpCompilation c = CreateCompilation(@"
+public class C
+{
+    public void Main(string? key)
+    {
+        var s = Copy(key);
+        s/*T:string?*/.ToString(); // warn
+    }
+    public T? Copy<T>(T key) => throw null;
+}
+", parseOptions: TestOptions.Regular8);
+
+            VerifyVarLocal(c, "string?");
+            c.VerifyTypes();
+            c.VerifyDiagnostics(
+                // (7,9): warning CS8602: Possible dereference of a null reference.
+                //         s/*T:string?*/.ToString(); // warn
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "s").WithLocation(7, 9)
+                );
+        }
+
+        [Fact]
+        public void VarLocalFromGenericMethod_WithNullableReturn_WithNonNullArgument()
+        {
+            CSharpCompilation c = CreateCompilation(@"
+public class C
+{
+    public void Main(string? key)
+    {
+        key = ""hello"";
+        var s = Copy(key);
+        s/*T:string?*/.ToString(); // warn
+    }
+    public T? Copy<T>(T key) => throw null;
+}
+", parseOptions: TestOptions.Regular8);
+
+            VerifyVarLocal(c, "string?");
+            c.VerifyTypes();
+            c.VerifyDiagnostics(
+                // (8,9): warning CS8602: Possible dereference of a null reference.
+                //         s/*T:string?*/.ToString(); // warn
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "s").WithLocation(8, 9)
+                );
+        }
+
+        [Fact]
+        public void GenericMethod_WithEnsuresNotNullOnReturnType()
+        {
+            CSharpCompilation c = CreateCompilation(@"
+using System.Runtime.CompilerServices;
+public class C
+{
+    [EnsuresNotNull]
+    public static T Copy<T>(T key) => throw null;
+}
+" + EnsuresNotNullAttributeDefinition, parseOptions: TestOptions.Regular8);
+
+            c.VerifyDiagnostics(
+                // (5,6): error CS0592: Attribute 'EnsuresNotNull' is not valid on this declaration type. It is only valid on 'parameter' declarations.
+                //     [EnsuresNotNull]
+                Diagnostic(ErrorCode.ERR_AttributeOnBadSymbolType, "EnsuresNotNull").WithArguments("EnsuresNotNull", "parameter").WithLocation(5, 6)
+                );
+            // PROTOTYPE(NullableReferenceTypes): Need to confirm if this would be useful
+        }
+
+        [Fact]
+        public void SuppressedNullGivesNonNullResult()
+        {
+            CSharpCompilation c = CreateCompilation(@"
+public class C
+{
+    public void Main(string s)
+    {
+        s = null!; // null! returns a non-null result
+        var s2 = s;
+        s2/*T:string!*/.ToString(); // ok
+    }
+}
+", parseOptions: TestOptions.Regular8);
+
+            VerifyVarLocal(c, "string!");
+            c.VerifyTypes();
+            c.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void SuppressedDefaultGivesNonNullResult()
+        {
+            CSharpCompilation c = CreateCompilation(@"
+public class C
+{
+    public void Main(string s)
+    {
+        s = default!; // default! returns a non-null result
+        var s2 = s;
+        s2/*T:string!*/.ToString(); // ok
+    }
+}
+", parseOptions: TestOptions.Regular8);
+
+            VerifyVarLocal(c, "string!");
+            c.VerifyTypes();
+            c.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void AssignNull()
+        {
+            CSharpCompilation c = CreateCompilation(@"
+public class C
+{
+    public void Main(string s)
+    {
+        s = null; // warn
+        s.ToString(); // warn 2
+    }
+}
+", parseOptions: TestOptions.Regular8);
+
+            c.VerifyDiagnostics(
+                // (6,13): warning CS8600: Converting null literal or possible null value to non-nullable type.
+                //         s = null; // warn
+                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "null").WithLocation(6, 13),
+                // (7,9): warning CS8602: Possible dereference of a null reference.
+                //         s.ToString(); // warn 2
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "s").WithLocation(7, 9)
+                );
+        }
+
+        [Fact]
+        public void AssignDefault()
+        {
+            CSharpCompilation c = CreateCompilation(@"
+public class C
+{
+    public void Main(string s)
+    {
+        s = default; // warn
+        s.ToString(); // warn 2
+    }
+}
+", parseOptions: TestOptions.Regular8);
+
+            c.VerifyDiagnostics(
+                // (6,13): warning CS8600: Converting null literal or possible null value to non-nullable type.
+                //         s = default; // warn
+                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "default").WithLocation(6, 13),
+                // (7,9): warning CS8602: Possible dereference of a null reference.
+                //         s.ToString(); // warn 2
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "s").WithLocation(7, 9)
+                );
+        }
+
+        [Fact]
+        public void NotNullWhenTrue_Simple()
+        {
+            CSharpCompilation c = CreateCompilation(@"
+using System.Runtime.CompilerServices;
+public class C
+{
+    public void Main(string key)
+    {
+        if (TryGetValue(key, out string? s))
+        {
+            s.ToString(); // ok
+        }
+        else
+        {
+            s.ToString(); // warn
+        }
+
+        s.ToString(); // warn 2
+    }
+    public static bool TryGetValue(string key, [NotNullWhenTrue] out string? value) => throw null;
+}
+" + NotNullWhenTrueAttributeDefinition, parseOptions: TestOptions.Regular8);
+
+            c.VerifyDiagnostics(
+                // (13,13): warning CS8602: Possible dereference of a null reference.
+                //             s.ToString(); // warn
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "s").WithLocation(13, 13),
+                // (16,9): warning CS8602: Possible dereference of a null reference.
+                //         s.ToString(); // warn 2
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "s").WithLocation(16, 9)
+                );
+
+            VerifyAnnotationsAndMetadata(c, "C.Main", None);
+            VerifyAnnotationsAndMetadata(c, "C.TryGetValue", None, NotNullWhenTrue);
+        }
+
+        [Fact]
+        public void NotNullWhenTrue_WithNotNullWhenFalse_WithVoidReturn()
+        {
+            // When both NotNullWhenTrue and NotNullWhenFalse are applied, it's the same as EnsuresNotNull,
+            // even if the method doesn't return bool.
+            CSharpCompilation c = CreateCompilation(@"
+using System.Runtime.CompilerServices;
+public class C
+{
+    public void Main()
+    {
+        M(out string? s);
+        s.ToString(); // ok
+    }
+    public static void M([NotNullWhenTrue, NotNullWhenFalse] out string? value) => throw null;
+}
+" + NotNullWhenTrueAttributeDefinition + NotNullWhenFalseAttributeDefinition, parseOptions: TestOptions.Regular8);
+
+            c.VerifyDiagnostics();
+
+            VerifyAnnotationsAndMetadata(c, "C.M", EnsuresNotNull);
+        }
+
+        [Fact]
+        public void NotNullWhenFalse_Simple()
+        {
+            CSharpCompilation c = CreateCompilation(@"
+using System.Runtime.CompilerServices;
+public class C
+{
+    public void Main(string? s)
+    {
+        if (MyIsNullOrEmpty(s))
+        {
+            s.ToString(); // warn
+        }
+        else
+        {
+            s.ToString(); // ok
+        }
+
+        s.ToString(); // warn 2
+    }
+    public static bool MyIsNullOrEmpty([NotNullWhenFalse] string? s) => throw null;
+}
+" + NotNullWhenFalseAttributeDefinition, parseOptions: TestOptions.Regular8);
+
+            c.VerifyDiagnostics(
+                // (9,13): warning CS8602: Possible dereference of a null reference.
+                //             s.ToString(); // warn
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "s").WithLocation(9, 13),
+                // (16,9): warning CS8602: Possible dereference of a null reference.
+                //         s.ToString(); // warn 2
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "s").WithLocation(16, 9)
+                );
+
+            VerifyAnnotationsAndMetadata(c, "C.Main", None);
+            VerifyAnnotationsAndMetadata(c, "C.MyIsNullOrEmpty", NotNullWhenFalse);
+        }
+
+        [Fact]
+        public void NotNullWhenFalse_BoolReturn()
+        {
+            CSharpCompilation c = CreateCompilation(@"
+using System.Runtime.CompilerServices;
+public class C
+{
+    public static object MyIsNullOrEmpty([NotNullWhenFalse] string? s) => throw null;
+}
+" + NotNullWhenFalseAttributeDefinition, parseOptions: TestOptions.Regular8);
+
+            c.VerifyDiagnostics();
+
+            VerifyAnnotations(c, "C.MyIsNullOrEmpty", NotNullWhenFalse);
+        }
+
+        [Fact]
         public void NotNullWhenFalse_OnTwoParameters()
         {
             CSharpCompilation c = CreateCompilation(@"
@@ -5724,6 +6786,51 @@ public class C
                 );
 
             VerifyAnnotationsAndMetadata(c, "C.MyIsNullOrEmpty", NotNullWhenFalse, NotNullWhenFalse);
+        }
+
+        [Fact]
+        public void NotNullWhenFalse_WithNotNullWhenTrueOnSecondParameter()
+        {
+            CSharpCompilation c = CreateCompilation(@"
+using System.Runtime.CompilerServices;
+public class C
+{
+    void Main(string? s, string? s2)
+    {
+        if (MyIsNullOrEmpty(s, s2))
+        {
+            s.ToString(); // warn 1
+            s2.ToString(); // ok
+        }
+        else
+        {
+            s.ToString(); // ok
+            s2.ToString(); // warn 2
+        }
+
+        s.ToString(); // warn 3
+        s2.ToString(); // warn 4
+    }
+    public static bool MyIsNullOrEmpty([NotNullWhenFalse] string? s, [NotNullWhenTrue] string? s2) => throw null;
+}
+" + NotNullWhenFalseAttributeDefinition + NotNullWhenTrueAttributeDefinition, parseOptions: TestOptions.Regular8);
+
+            c.VerifyDiagnostics(
+                // (9,13): warning CS8602: Possible dereference of a null reference.
+                //             s.ToString(); // warn 1
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "s").WithLocation(9, 13),
+                // (15,13): warning CS8602: Possible dereference of a null reference.
+                //             s2.ToString(); // warn 2
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "s2").WithLocation(15, 13),
+                // (18,9): warning CS8602: Possible dereference of a null reference.
+                //         s.ToString(); // warn 3
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "s").WithLocation(18, 9),
+                // (19,9): warning CS8602: Possible dereference of a null reference.
+                //         s2.ToString(); // warn 4
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "s2").WithLocation(19, 9)
+                );
+
+            VerifyAnnotationsAndMetadata(c, "C.MyIsNullOrEmpty", NotNullWhenFalse, NotNullWhenTrue);
         }
 
         [Fact]
@@ -6114,6 +7221,63 @@ namespace System
             VerifyAnnotations(c, "System.String.IsNullOrEmpty", NotNullWhenFalse);
         }
 
+        // PROTOTYPE(NullableReferenceTypes): add a similar test for Debug.Assert or any method with more than one parameter
+        [Fact]
+        public void NotNullWhenFalse_String_IsNullOrEmpty_WithoutCorlib_RemovingAnnotations()
+        {
+            CSharpCompilation c = CreateEmptyCompilation(@"
+using System.Runtime.CompilerServices;
+class C
+{
+    void Main(string? s)
+    {
+        if (string.IsNullOrEmpty(s))
+        {
+            s.ToString(); // warn
+        }
+        else
+        {
+            s.ToString(); // ok
+        }
+    }
+}
+namespace System
+{
+    public class Object
+    {
+        public virtual string ToString() => throw null;
+    }
+    public class String
+    {
+        public static bool IsNullOrEmpty([NotNullWhenTrue] string? s) => throw null;
+    }
+    public struct Void { }
+    public struct Boolean { }
+    public class ValueType { }
+    public class Enum { }
+    public struct Int32 { }
+    public class Attribute { }
+    public class AttributeUsageAttribute : Attribute
+    {
+        public AttributeUsageAttribute(AttributeTargets validOn) => throw null;
+        public bool AllowMultiple { get; set; }
+    }
+    public enum AttributeTargets { Assembly = 1, Module = 2, Class = 4, Struct = 8,
+        Enum = 16, Constructor = 32, Method = 64, Property = 128, Field = 256,
+        Event = 512, Interface = 1024, Parameter = 2048, Delegate = 4096, ReturnValue = 8192,
+        GenericParameter = 16384, All = 32767 }
+}
+" + NotNullWhenTrueAttributeDefinition, parseOptions: TestOptions.Regular8);
+
+            c.VerifyDiagnostics(
+                // (9,13): warning CS8602: Possible dereference of a null reference.
+                //             s.ToString(); // warn
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "s").WithLocation(9, 13)
+                );
+
+            VerifyAnnotations(c, "System.String.IsNullOrEmpty", NotNullWhenFalse);
+        }
+
         [Fact]
         public void NotNullWhenFalse_String_IsNullOrWhiteSpace_WithoutCorlib()
         {
@@ -6486,7 +7650,7 @@ public class C
 
             c.VerifyDiagnostics();
 
-            VerifyAnnotationsAndMetadata(c, "C.MyIsNullOrEmpty", NotNullWhenFalse | EnsuresNotNull);
+            VerifyAnnotationsAndMetadata(c, "C.MyIsNullOrEmpty", EnsuresNotNull);
         }
 
         [Fact]
@@ -6508,6 +7672,77 @@ public class C
             c.VerifyDiagnostics();
 
             VerifyAnnotationsAndMetadata(c, "C.ThrowIfNull", None, EnsuresNotNull);
+        }
+
+        [Fact]
+        public void EnsuresNotNull_ResettingStateMatters()
+        {
+            CSharpCompilation c = CreateCompilation(@"
+using System.Runtime.CompilerServices;
+public class C
+{
+    void Main(string? s, string? s2)
+    {
+        ThrowIfNull(s = s2, s2 = ""hello"");
+        s.ToString(); // warn
+        s2.ToString(); // ok
+    }
+    public static void ThrowIfNull(string? s1, [EnsuresNotNull] string? s2) => throw null;
+}
+" + EnsuresNotNullAttributeDefinition, parseOptions: TestOptions.Regular8);
+
+            c.VerifyDiagnostics(
+                // (8,9): warning CS8602: Possible dereference of a null reference.
+                //         s.ToString(); // warn
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "s").WithLocation(8, 9)
+                );
+        }
+
+        [Fact]
+        public void EnsuresNotNull_ResettingStateMatters_InIndexer()
+        {
+            CSharpCompilation c = CreateCompilation(@"
+using System.Runtime.CompilerServices;
+public class C
+{
+    void Main(string? s, string? s2)
+    {
+        _ = this[s = s2, s2 = ""hello""];
+        s.ToString(); // warn
+        s2.ToString(); // ok
+    }
+    public int this[string? s1, [EnsuresNotNull] string? s2] { get { throw null; } }
+}
+" + EnsuresNotNullAttributeDefinition, parseOptions: TestOptions.Regular8);
+
+            c.VerifyDiagnostics(
+                // (8,9): warning CS8602: Possible dereference of a null reference.
+                //         s.ToString(); // warn
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "s").WithLocation(8, 9)
+                );
+        }
+
+        [Fact]
+        public void EnsuresNotNull_NoDuplicateDiagnosticsWhenResettingState()
+        {
+            CSharpCompilation c = CreateCompilation(@"
+using System.Runtime.CompilerServices;
+public interface I<T> { }
+public class C
+{
+    void Main(string? s, I<object> i)
+    {
+        ThrowIfNull(i, s); // single warning on conversion failure
+    }
+    public static void ThrowIfNull(I<object?> x, [EnsuresNotNull] string? s) => throw null;
+}
+" + EnsuresNotNullAttributeDefinition, parseOptions: TestOptions.Regular8);
+
+            c.VerifyDiagnostics(
+                // (8,21): warning CS8620: Nullability of reference types in argument of type 'I<object>' doesn't match target type 'I<object?>' for parameter 'x' in 'void C.ThrowIfNull(I<object?> x, string? s)'.
+                //         ThrowIfNull(i, s); // single warning on conversion failure
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInArgument, "i").WithArguments("I<object>", "I<object?>", "x", "void C.ThrowIfNull(I<object?> x, string? s)").WithLocation(8, 21)
+                );
         }
 
         [Fact]
@@ -6691,30 +7926,130 @@ public class C
         EnsuresNotNull();
         a.ToString(); // warn 1
 
-        EnsuresNotNull(a);
-        a.ToString(); // warn 2
-
         EnsuresNotNull(x, y);
-        x.ToString(); // warn 3
-        y.ToString(); // warn 4
+        x.ToString(); // warn 2
+        y.ToString(); // warn 3
+
+        EnsuresNotNull(a);
+        a.ToString(); // ok
     }
 }
 " + EnsuresNotNullAttributeDefinition, parseOptions: TestOptions.Regular8);
 
-            // PROTOTYPE(NullableReferenceTypes): Consider allowing EnsuresNotNull on params parameter
             c.VerifyDiagnostics(
                 // (9,9): warning CS8602: Possible dereference of a null reference.
                 //         a.ToString(); // warn 1
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "a").WithLocation(9, 9),
                 // (12,9): warning CS8602: Possible dereference of a null reference.
-                //         a.ToString(); // warn 2
-                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "a").WithLocation(12, 9),
-                // (15,9): warning CS8602: Possible dereference of a null reference.
-                //         x.ToString(); // warn 3
-                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "x").WithLocation(15, 9),
-                // (16,9): warning CS8602: Possible dereference of a null reference.
-                //         y.ToString(); // warn 4
-                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "y").WithLocation(16, 9)
+                //         x.ToString(); // warn 2
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "x").WithLocation(12, 9),
+                // (13,9): warning CS8602: Possible dereference of a null reference.
+                //         y.ToString(); // warn 3
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "y").WithLocation(13, 9)
+                );
+        }
+
+        [Fact]
+        public void EnsuresNotNull_WithParamsOnFirstParameter()
+        {
+            CSharpCompilation c = CreateCompilationWithIL(@"
+public class D
+{
+    static void F(object[]? a, object? b, object? c)
+    {
+        C.EnsuresNotNull(a, b, c);
+        a.ToString(); // ok
+        b.ToString(); // warn 1
+        c.ToString(); // warn 2
+    }
+}
+", @"
+.class private auto ansi sealed beforefieldinit System.Runtime.CompilerServices.NullableAttribute
+    extends [mscorlib]System.Attribute
+{
+    .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+        01 00 00 00
+    )
+    .method public hidebysig specialname rtspecialname instance void .ctor () cil managed
+    {
+        IL_0000: ldarg.0
+        IL_0001: call instance void [mscorlib]System.Attribute::.ctor()
+        IL_0006: nop
+        IL_0007: ret
+    }
+
+    .method public hidebysig specialname rtspecialname instance void .ctor ( bool[] '' ) cil managed
+    {
+        IL_0000: ldarg.0
+        IL_0001: call instance void [mscorlib]System.Attribute::.ctor()
+        IL_0006: nop
+        IL_0007: ret
+    }
+}
+
+.class public auto ansi beforefieldinit C
+    extends [mscorlib]System.Object
+{
+    .method public hidebysig static void EnsuresNotNull ( object[] args, object[] args2 ) cil managed
+    {
+        .param [1]
+        .custom instance void [mscorlib]System.ParamArrayAttribute::.ctor() = (
+            01 00 00 00
+        )
+        .custom instance void System.Runtime.CompilerServices.NullableAttribute::.ctor(bool[]) = (
+            01 00 02 00 00 00 01 01 00 00
+        )
+        .custom instance void System.Runtime.CompilerServices.EnsuresNotNullAttribute::.ctor() = (
+            01 00 00 00
+        )
+        .param [2]
+        .custom instance void [mscorlib]System.ParamArrayAttribute::.ctor() = (
+            01 00 00 00
+        )
+        .custom instance void System.Runtime.CompilerServices.NullableAttribute::.ctor(bool[]) = (
+            01 00 02 00 00 00 01 01 00 00
+        )
+        .custom instance void System.Runtime.CompilerServices.EnsuresNotNullAttribute::.ctor() = (
+            01 00 00 00
+        )
+
+        IL_0000: nop
+        IL_0001: ret
+    }
+
+    .method public hidebysig specialname rtspecialname instance void .ctor () cil managed
+    {
+        IL_0000: ldarg.0
+        IL_0001: call instance void [mscorlib]System.Object::.ctor()
+        IL_0006: nop
+        IL_0007: ret
+    }
+}
+
+.class public auto ansi beforefieldinit System.Runtime.CompilerServices.EnsuresNotNullAttribute
+    extends [mscorlib]System.Attribute
+{
+    .custom instance void [mscorlib]System.AttributeUsageAttribute::.ctor(valuetype [mscorlib]System.AttributeTargets) = (
+        01 00 00 08 00 00 01 00 54 02 0d 41 6c 6c 6f 77 4d 75 6c 74 69 70 6c 65 00
+    )
+    .method public hidebysig specialname rtspecialname instance void .ctor () cil managed
+    {
+        IL_0000: ldarg.0
+        IL_0001: call instance void [mscorlib]System.Attribute::.ctor()
+        IL_0006: nop
+        IL_0007: nop
+        IL_0008: ret
+    }
+}
+", parseOptions: TestOptions.Regular8);
+
+            c.VerifyDiagnostics(
+                // (8,9): warning CS8602: Possible dereference of a null reference.
+                //         b.ToString(); // warn 1
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "b").WithLocation(8, 9),
+                // (9,9): warning CS8602: Possible dereference of a null reference.
+                //         c.ToString(); // warn 2
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "c").WithLocation(9, 9)
                 );
         }
 
@@ -6919,7 +8254,6 @@ public class C
         public void EnsuresNotNull_TypeInference()
         {
             // PROTOTYPE(NullableReferenceTypes): This test raises the question of flowing information from annotations into the inferred type
-            // But the issue is currently masked by a broader problem with `out var` and nullability
             CSharpCompilation c = CreateCompilation(@"
 using System.Runtime.CompilerServices;
 public class C
@@ -6927,7 +8261,7 @@ public class C
     void M(string? s1)
     {
         ThrowIfNull(s1, out var s2);
-        s2/*T:string!*/.ToString();
+        s2/*T:string?*/.ToString();
     }
     public static void ThrowIfNull<T>([EnsuresNotNull] T x1, out T x2) => throw null;
 }
@@ -6935,9 +8269,9 @@ public class C
 
             c.VerifyTypes();
             c.VerifyDiagnostics(
-                // (7,21): warning CS8604: Possible null reference argument for parameter 'x1' in 'void C.ThrowIfNull<string>(string x1, out string x2)'.
-                //         ThrowIfNull(s1, out var s2);
-                Diagnostic(ErrorCode.WRN_NullReferenceArgument, "s1").WithArguments("x1", "void C.ThrowIfNull<string>(string x1, out string x2)").WithLocation(7, 21)
+                // (8,9): warning CS8602: Possible dereference of a null reference.
+                //         s2/*T:string?*/.ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "s2").WithLocation(8, 9)
                 );
         }
 

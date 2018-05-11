@@ -1588,13 +1588,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 ImmutableArray<RefKind> refKindsOpt = node.ArgumentRefKindsOpt;
                 ImmutableArray<BoundExpression> arguments = RemoveArgumentConversions(node.Arguments, refKindsOpt);
                 ImmutableArray<int> argsToParamsOpt = node.ArgsToParamsOpt;
-                ImmutableArray<Result> results = VisitArgumentsEvaluate(arguments, refKindsOpt, method.Parameters, argsToParamsOpt, node.Expanded);
 
-                if (method.IsGenericMethod && HasImplicitTypeArguments(node))
-                {
-                    method = InferMethod(node, method, results.SelectAsArray(r => r.Type));
-                }
-                VisitArgumentsWarn(arguments, refKindsOpt, method.Parameters, argsToParamsOpt, node.Expanded, results);
+                method = VisitArguments(node, arguments, refKindsOpt, method.Parameters, argsToParamsOpt, node.Expanded, method);
             }
 
             UpdateStateForCall(node);
@@ -1627,19 +1622,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 (ParameterSymbol parameter, _) = GetCorrespondingParameter(i, parameters, argsToParamsOpt, expanded);
                 AttributeAnnotations annotations = parameter?.FlowAnalysisAnnotations ?? AttributeAnnotations.None;
 
-                // We'll ignore NotNullWhenFalse that is misused in metadata
-                if ((annotations & AttributeAnnotations.NotNullWhenFalse) != 0 &&
-                    parameter.ContainingSymbol.GetTypeOrReturnType().SpecialType != SpecialType.System_Boolean)
-                {
-                    annotations &= ~AttributeAnnotations.NotNullWhenFalse;
-                }
+                // Ignore NotNullWhenTrue that is inapplicable
+                annotations = removeInapplicableNotNullWhenSense(parameter, annotations, sense: true);
 
-                // We'll ignore EnsuresNotNull that is misused in metadata
-                if ((annotations & AttributeAnnotations.EnsuresNotNull) != 0 &&
-                    (parameter.Type?.IsValueType != false || parameter.IsParams))
-                {
-                    annotations &= ~AttributeAnnotations.EnsuresNotNull;
-                }
+                // Ignore NotNullWhenFalse that is inapplicable
+                annotations = removeInapplicableNotNullWhenSense(parameter, annotations, sense: false);
 
                 if (annotations != AttributeAnnotations.None && builder == null)
                 {
@@ -1654,12 +1641,40 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             return builder == null ? default : builder.ToImmutableAndFree();
+
+            AttributeAnnotations removeInapplicableNotNullWhenSense(ParameterSymbol parameter, AttributeAnnotations annotations, bool sense)
+            {
+                var whenSense = sense ? AttributeAnnotations.NotNullWhenTrue : AttributeAnnotations.NotNullWhenFalse;
+                var whenNotSense = sense ? AttributeAnnotations.NotNullWhenFalse : AttributeAnnotations.NotNullWhenTrue;
+
+                // NotNullWhenSense (without NotNullWhenNotSense) must be applied on a bool-returning member
+                if ((annotations & whenSense) != 0 &&
+                    (annotations & whenNotSense) == 0 &&
+                    parameter.ContainingSymbol.GetTypeOrReturnType().SpecialType != SpecialType.System_Boolean)
+                {
+                    annotations &= ~whenSense;
+                }
+
+                // NotNullWhenSense must be applied to a reference or unconstrained generic type
+                if ((annotations & whenSense) != 0 && parameter.Type.IsValueType != false)
+                {
+                    annotations &= ~whenSense;
+                }
+
+                // NotNullWhenSense is inapplicable when argument corresponds to params parameter and we're in expanded form
+                if ((annotations & whenSense) != 0 && expanded && ReferenceEquals(parameter, parameters.Last()))
+                {
+                    annotations &= ~whenSense;
+                }
+
+                return annotations;
+            }
         }
 
         // PROTOTYPE(NullableReferenceTypes): Record in the node whether type
         // arguments were implicit, to allow for cases where the syntax is not an
         // invocation (such as a synthesized call from a query interpretation).
-        private static bool HasImplicitTypeArguments(BoundCall node)
+        private static bool HasImplicitTypeArguments(BoundExpression node)
         {
             var syntax = node.Syntax;
             if (syntax.Kind() != SyntaxKind.InvocationExpression)
@@ -1705,47 +1720,57 @@ namespace Microsoft.CodeAnalysis.CSharp
             VisitArguments(node, arguments, refKindsOpt, property is null ? default : property.Parameters, argsToParamsOpt, expanded);
         }
 
-        private void VisitArguments(
+        /// <summary>
+        /// If you pass in a method symbol, its types will be re-inferred and the re-inferred method will be returned.
+        /// </summary>
+        private MethodSymbol VisitArguments(
             BoundExpression node,
             ImmutableArray<BoundExpression> arguments,
             ImmutableArray<RefKind> refKindsOpt,
             ImmutableArray<ParameterSymbol> parameters,
             ImmutableArray<int> argsToParamsOpt,
-            bool expanded)
+            bool expanded,
+            MethodSymbol method = null)
         {
             Debug.Assert(!arguments.IsDefault);
-            ImmutableArray<Result> results = VisitArgumentsEvaluate(arguments, refKindsOpt, parameters, argsToParamsOpt, expanded);
+            var savedState = this.State.Clone();
+
+            // We do a first pass to work through the arguments without making any assumptions
+            ImmutableArray<Result> results = VisitArgumentsEvaluate(arguments, refKindsOpt);
+
+            if ((object)method != null && method.IsGenericMethod && HasImplicitTypeArguments(node))
+            {
+                method = InferMethod((BoundCall)node, method, results.SelectAsArray(r => r.Type));
+                parameters = method.Parameters;
+            }
+
             // PROTOTYPE(NullableReferenceTypes): Can we handle some error cases?
             // (Compare with CSharpOperationFactory.CreateBoundCallOperation.)
             if (!node.HasErrors && !parameters.IsDefault)
             {
-                VisitArgumentsWarn(arguments, refKindsOpt, parameters, argsToParamsOpt, expanded, results);
+                VisitArgumentConversions(arguments, refKindsOpt, parameters, argsToParamsOpt, expanded, results);
             }
-        }
-
-        private ImmutableArray<Result> VisitArgumentsEvaluate(
-            ImmutableArray<BoundExpression> arguments,
-            ImmutableArray<RefKind> refKindsOpt,
-            ImmutableArray<ParameterSymbol> parameters,
-            ImmutableArray<int> argsToParamsOpt,
-            bool expanded)
-        {
-            var savedState = this.State.Clone();
-            // We do a first pass to work through the arguments without making any assumptions
-            var results = VisitArgumentsEvaluate(arguments, refKindsOpt);
 
             // We do a second pass through the arguments, ignoring any diagnostics produced, but honoring the annotations,
             // to get the proper result state.
-            ImmutableArray<AttributeAnnotations> annotations = GetAnnotations(arguments.Length,
-               expanded, parameters, argsToParamsOpt);
+            ImmutableArray<AttributeAnnotations> annotations = GetAnnotations(arguments.Length, expanded, parameters, argsToParamsOpt);
 
             if (!annotations.IsDefault)
             {
                 this.SetState(savedState);
+
+                bool saveDisableDiagnostics = _disableDiagnostics;
+                _disableDiagnostics = true;
+                if (!node.HasErrors && !parameters.IsDefault)
+                {
+                    VisitArgumentConversions(arguments, refKindsOpt, parameters, argsToParamsOpt, expanded, results); // recompute out vars after state was reset
+                }
                 VisitArgumentsEvaluateHonoringAnnotations(arguments, refKindsOpt, annotations);
+
+                _disableDiagnostics = saveDisableDiagnostics;
             }
 
-            return results;
+            return method;
         }
 
         private ImmutableArray<Result> VisitArgumentsEvaluate(
@@ -1787,7 +1812,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         /// <summary>
         /// Visit all the arguments for the purpose of computing the exit state of the method,
-        /// given the annotations, but disabling warnings.
+        /// given the annotations.
         /// </summary>
         private void VisitArgumentsEvaluateHonoringAnnotations(
             ImmutableArray<BoundExpression> arguments,
@@ -1795,17 +1820,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             ImmutableArray<AttributeAnnotations> annotations)
         {
             Debug.Assert(!IsConditionalState);
-
-            bool saveDisableDiagnostics = _disableDiagnostics;
-            _disableDiagnostics = true;
-
             Debug.Assert(annotations.Length == arguments.Length);
+            Debug.Assert(_disableDiagnostics);
 
             for (int i = 0; i < arguments.Length; i++)
             {
                 if (this.IsConditionalState)
                 {
-                    // We could be in a conditional state because of NotNullWhenFalse annotation
+                    // We could be in a conditional state because of a conditional annotation (like NotNullWhenFalse)
                     // Then WhenTrue/False states correspond to the invocation returning true/false
 
                     // We'll assume that we're in the unconditional state where the method returns true,
@@ -1844,38 +1866,26 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 AttributeAnnotations annotation = annotations[i];
+                bool notNullWhenTrue = (annotation & AttributeAnnotations.NotNullWhenTrue) != 0;
                 bool notNullWhenFalse = (annotation & AttributeAnnotations.NotNullWhenFalse) != 0;
-                bool ensuresNotNull = (annotation & AttributeAnnotations.EnsuresNotNull) != 0;
-
-                if (ensuresNotNull)
+                // The WhenTrue/False states correspond to the invocation returning true/false
+                bool wasPreviouslySplit = this.IsConditionalState;
+                Split();
+                if (notNullWhenTrue)
                 {
-                    // The variable in this slot is not null
-                    if (this.IsConditionalState)
-                    {
-                        this.StateWhenTrue[slot] = true;
-                        this.StateWhenFalse[slot] = true;
-                    }
-                    else
-                    {
-                        this.State[slot] = true;
-                    }
+                    this.StateWhenTrue[slot] = true;
                 }
-                else if (notNullWhenFalse)
+                if (notNullWhenFalse)
                 {
-                    // We'll use the WhenTrue/False states to represent whether the invocation returns true/false
-                    // PROTOTYPE(NullableReferenceTypes): Consider splitting for the entire method, not just once the first annotated argument is encountered
-                    Split();
-
-                    // The variable in this slot is not null when the method returns false
                     this.StateWhenFalse[slot] = true;
+                    if (notNullWhenTrue && !wasPreviouslySplit) Unsplit();
                 }
             }
 
             _result = _invalidType;
-            _disableDiagnostics = saveDisableDiagnostics;
         }
 
-        private void VisitArgumentsWarn(
+        private void VisitArgumentConversions(
             ImmutableArray<BoundExpression> arguments,
             ImmutableArray<RefKind> refKindsOpt,
             ImmutableArray<ParameterSymbol> parameters,
@@ -1890,7 +1900,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     continue;
                 }
-                VisitArgumentWarn(
+                VisitArgumentConversion(
                     arguments[i],
                     GetRefKind(refKindsOpt, i),
                     parameter,
@@ -1902,7 +1912,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// Report warnings for an argument corresponding to a specific parameter.
         /// </summary>
-        private void VisitArgumentWarn(
+        private void VisitArgumentConversion(
             BoundExpression argument,
             RefKind refKind,
             ParameterSymbol parameter,
@@ -1926,6 +1936,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                     break;
                 case RefKind.Out:
+                    if (argument is BoundLocal local && local.DeclarationKind == BoundLocalDeclarationKind.WithInferredType)
+                    {
+                        _variableTypes[local.LocalSymbol] = parameterType;
+                        resultType = parameterType;
+                    }
                     if (!ReportNullReferenceAssignmentIfNecessary(argument, resultType, parameterType, useLegacyWarnings: UseLegacyWarnings(argument)))
                     {
                         HashSet<DiagnosticInfo> useSiteDiagnostics = null;
@@ -2050,7 +2065,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             // By using a generic BoundValuePlaceholder, we're losing inference in those cases.
             // PROTOTYPE(NullableReferenceTypes): Inference should be based on
             // unconverted arguments. Consider cases such as `default`, lambdas, tuples.
-            ImmutableArray<BoundExpression> arguments = argumentTypes.ZipAsArray(node.Arguments, (t, a) => ((object)t == null) ? a : new BoundValuePlaceholder(a.Syntax, t.IsNullable, t.TypeSymbol));
+            ImmutableArray<BoundExpression> arguments = argumentTypes.ZipAsArray(node.Arguments, s_makePlaceholderForArgumentFunc);
+
             var refKinds = ArrayBuilder<RefKind>.GetInstance();
             if (node.ArgumentRefKindsOpt != null)
             {
@@ -2088,6 +2104,23 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             return method;
         }
+
+        private static readonly Func<TypeSymbolWithAnnotations, BoundExpression, BoundExpression> s_makePlaceholderForArgumentFunc =
+            (TypeSymbolWithAnnotations argumentType, BoundExpression argument) =>
+            {
+                if (argumentType is null)
+                {
+                    return argument;
+                }
+
+                if (argument is BoundLocal local && local.DeclarationKind == BoundLocalDeclarationKind.WithInferredType)
+                {
+                    // 'out var' doesn't contribute to inference
+                    return new BoundValuePlaceholder(argument.Syntax, isNullable: null, type: null);
+                }
+
+                return new BoundValuePlaceholder(argument.Syntax, argumentType.IsNullable, argumentType.TypeSymbol);
+            };
 
         private void ReplayReadsAndWrites(LocalFunctionSymbol localFunc,
                                   SyntaxNode syntax,
@@ -2269,20 +2302,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                 }
 
-                TypeSymbolWithAnnotations resultType;
-                if (operand.Kind == BoundKind.Literal && (object)operand.Type == null && operand.ConstantValue.IsNull)
-                {
-                    resultType = TypeSymbolWithAnnotations.Create(targetType, true);
-                }
-                else if (node.ConversionKind == ConversionKind.Identity && !node.ExplicitCastInCode)
-                {
-                    resultType = operandType;
-                }
-                else
-                {
-                    resultType = InferResultNullability(operand, node.Conversion, targetType, operandType, fromConversionNode: true);
-                }
-                _result = resultType;
+                _result = InferResultNullability(operand, node.Conversion, targetType, operandType, fromConversionNode: true);
             }
 
             return null;
@@ -3693,6 +3713,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
+        [DebuggerDisplay("{GetDebuggerDisplay(), nq}")]
 #if REFERENCE_STATE
         internal class LocalState : AbstractLocalState
 #else
@@ -3750,7 +3771,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            public override string ToString()
+            internal string GetDebuggerDisplay()
             {
                 var pooledBuilder = PooledStringBuilder.GetInstance();
                 var builder = pooledBuilder.Builder;
