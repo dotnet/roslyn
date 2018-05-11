@@ -595,7 +595,10 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             Visit(operation.Collection, "Collection");
             Visit(operation.Body, "Body");
             VisitArray(operation.NextVariables, "NextVariables", logElementCount: true);
-            _ = ((BaseForEachLoopStatement)operation).Info;
+            ForEachLoopOperationInfo info = ((BaseForEachLoopStatement)operation).Info;
+            _ = info.GetEnumeratorArguments?.Value;
+            _ = info.MoveNextArguments?.Value;
+            _ = info.CurrentArguments?.Value;
         }
 
         public override void VisitLabeled(ILabeledOperation operation)

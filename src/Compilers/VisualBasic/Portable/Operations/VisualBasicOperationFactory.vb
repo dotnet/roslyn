@@ -21,6 +21,12 @@ Namespace Microsoft.CodeAnalysis.Operations
             _semanticModel = semanticModel
         End Sub
 
+        Private Function Clone() As VisualBasicOperationFactory
+            Dim factory As New VisualBasicOperationFactory(_semanticModel)
+            factory._lazyPlaceholderToParentMap = _lazyPlaceholderToParentMap
+            Return factory
+        End Function
+
         ''' <summary>
         ''' Returns <code>Nothing</code> if parent is not known.
         ''' </summary>
@@ -568,7 +574,7 @@ Namespace Microsoft.CodeAnalysis.Operations
         Private Function CreateBoundConversionOperation(boundConversion As BoundConversion) As IOperation
             Dim syntax As SyntaxNode = boundConversion.Syntax
 
-            If syntax.IsMissing Then
+            If syntax.IsMissing AndAlso boundConversion.Operand.Kind = BoundKind.BadExpression Then
                 ' If the underlying syntax IsMissing, then that means we're in case where the compiler generated a piece of syntax to fill in for
                 ' an error, such as this case:
                 '
@@ -577,7 +583,6 @@ Namespace Microsoft.CodeAnalysis.Operations
                 ' Semantic model has a special case here that we match: if the underlying syntax is missing, don't create a conversion expression,
                 ' and instead directly return the operand, which will be a BoundBadExpression. When we generate a node for the BoundBadExpression,
                 ' the resulting IOperation will also have a null Type.
-                Debug.Assert(boundConversion.Operand.Kind = BoundKind.BadExpression)
                 Return Create(boundConversion.Operand)
             End If
 
@@ -1019,7 +1024,11 @@ Namespace Microsoft.CodeAnalysis.Operations
             Dim constantValue As [Optional](Of Object) = New [Optional](Of Object)()
             Dim isImplicit As Boolean = boundCaseBlock.WasCompilerGenerated
 
-            Dim condition As Lazy(Of IOperation) = New Lazy(Of IOperation)(Function() Create(boundCaseBlock.CaseStatement.ConditionOpt))
+            ' Some bound nodes used by the boundCaseBlock.CaseStatement.CaseClauses are also going to be used in boundCaseBlock.CaseStatement.ConditionOpt.
+            ' If we simply create another tree based on boundCaseBlock.CaseStatement.ConditionOpt, due to the caching we will end up with the same
+            ' IOperation nodes in two trees, and two parents will compete for assigning itself as the parent - trouble. To avoid that, we simply use
+            ' a new factory to create IOperation tree for the condition.
+            Dim condition As Lazy(Of IOperation) = New Lazy(Of IOperation)(Function() Clone().Create(boundCaseBlock.CaseStatement.ConditionOpt))
 
             Return New LazySwitchCase(ImmutableArray(Of ILocalSymbol).Empty, condition, clauses, body, _semanticModel, syntax, type, constantValue, isImplicit)
         End Function

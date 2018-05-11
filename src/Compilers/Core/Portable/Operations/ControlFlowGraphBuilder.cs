@@ -28,6 +28,8 @@ namespace Microsoft.CodeAnalysis.Operations
         private ArrayBuilder<IOperation> _evalStack;
         private IOperation _currentConditionalAccessInstance;
         private IOperation _currentSwitchOperationExpression;
+        private IOperation _forToLoopBinaryOperatorLeftOperand;
+        private IOperation _forToLoopBinaryOperatorRightOperand;
         private bool _forceImplicit; // Force all rewritten nodes to be marked as implicit regardless of their original state.
 
         // PROTOTYPE(dataflow): does the public API IFlowCaptureOperation.Id specify how identifiers are created or assigned?
@@ -3037,46 +3039,41 @@ oneMoreTime:
                 else
                 {
                     int captureId = _availableCaptureId++;
-                    IOperation controlVarReferenceForInitialization = getLoopControlVariableRefernce(forceImplicit: false, captureId);
+                    IOperation controlVarReferenceForInitialization = getLoopControlVariableReference(forceImplicit: false, captureId);
                     CaptureResultIfNotAlready(controlVarReferenceForInitialization.Syntax, captureId, controlVarReferenceForInitialization);
 
                     int initialValueId = VisitAndCapture(operation.InitialValue);
                     limitValueId = VisitAndCapture(operation.LimitValue);
                     stepValueId = VisitAndCapture(operation.StepValue);
+                    IOperation stepValue = getCaptureReference(stepValueId, operation.StepValue);
 
                     if (userDefinedInfo != null)
                     {
-                        // PROTOTYPE(dataflow): Handle "user-defined" loops
-                        throw new NotImplementedException();
+                        Debug.Assert(_forToLoopBinaryOperatorLeftOperand == null);
+                        Debug.Assert(_forToLoopBinaryOperatorRightOperand == null);
 
-                        //        ' calculate and cache result of a positive check := step >= (step - step).
-                        //AddPlaceholderReplacement(forStatement.OperatorsOpt.LeftOperandPlaceholder, rewrittenStep)
-                        //AddPlaceholderReplacement(forStatement.OperatorsOpt.RightOperandPlaceholder, rewrittenStep)
+                        // calculate and cache result of a positive check := step >= (step - step).
+                        _forToLoopBinaryOperatorLeftOperand = getCaptureReference(stepValueId, operation.StepValue);
+                        _forToLoopBinaryOperatorRightOperand = getCaptureReference(stepValueId, operation.StepValue);
 
-                        //Dim subtraction = VisitExpressionNode(forStatement.OperatorsOpt.Subtraction)
+                        IOperation subtraction = Visit(userDefinedInfo.Subtraction.Value);
 
-                        //UpdatePlaceholderReplacement(forStatement.OperatorsOpt.RightOperandPlaceholder, subtraction)
+                        _forToLoopBinaryOperatorLeftOperand = stepValue;
+                        _forToLoopBinaryOperatorRightOperand = subtraction;
 
-                        //Dim greaterThanOrEqual = VisitExpressionNode(forStatement.OperatorsOpt.GreaterThanOrEqual)
+                        IOperation greaterThanOrEqual = Visit(userDefinedInfo.GreaterThanOrEqual.Value);
 
-                        //positiveFlag = New SynthesizedLocal(_currentMethodOrLambda, greaterThanOrEqual.Type, SynthesizedLocalKind.ForDirection, blockSyntax)
-                        //locals.Add(positiveFlag)
+                        int positiveFlagId = _availableCaptureId++;
+                        AddStatement(new FlowCapture(positiveFlagId, greaterThanOrEqual.Syntax, greaterThanOrEqual));
+                        positiveFlag = new FlowCaptureReference(positiveFlagId, greaterThanOrEqual.Syntax, greaterThanOrEqual.Type, constantValue: default);
 
-                        //cacheAssignments.Add(New BoundAssignmentOperator(forStatement.OperatorsOpt.Syntax,
-                        //                                                 New BoundLocal(forStatement.OperatorsOpt.Syntax,
-                        //                                                                positiveFlag,
-                        //                                                                positiveFlag.Type),
-                        //                                                 greaterThanOrEqual,
-                        //                                                 suppressObjectClone:= True, type:= positiveFlag.Type))
-
-                        //RemovePlaceholderReplacement(forStatement.OperatorsOpt.LeftOperandPlaceholder)
-                        //RemovePlaceholderReplacement(forStatement.OperatorsOpt.RightOperandPlaceholder)
+                        _forToLoopBinaryOperatorLeftOperand = null;
+                        _forToLoopBinaryOperatorRightOperand = null;
                     }
                     else if (!operation.StepValue.ConstantValue.HasValue &&
                              !ITypeSymbolHelpers.IsSignedIntegralType(stepEnumUnderlyingTypeOrSelf) &&
                              !ITypeSymbolHelpers.IsUnsignedIntegralType(stepEnumUnderlyingTypeOrSelf))
                     {
-                        IOperation stepValue = getCaptureReference(stepValueId, operation.StepValue);
                         IOperation stepValueIsNull = null;
 
                         if (ITypeSymbolHelpers.IsNullableType(stepValue.Type))
@@ -3164,29 +3161,43 @@ oneMoreTime:
                 }
                 else if (userDefinedInfo != null)
                 {
-                    // PROTOTYPE(dataflow): Handle "user-defined" loops
-                    throw new NotImplementedException();
+                    Debug.Assert(_forToLoopBinaryOperatorLeftOperand == null);
+                    Debug.Assert(_forToLoopBinaryOperatorRightOperand == null);
 
-                    //    ' Generate If(positiveFlag, controlVariable <= limit, controlVariable >= limit)
-                    //AddPlaceholderReplacement(operatorsOpt.LeftOperandPlaceholder, controlVariable.MakeRValue())
-                    //AddPlaceholderReplacement(operatorsOpt.RightOperandPlaceholder, limit)
+                    // Generate If(positiveFlag, controlVariable <= limit, controlVariable >= limit)
 
-                    //Dim result = MakeTernaryConditionalExpression(operatorsOpt.Syntax,
-                    //                                                   New BoundLocal(operatorsOpt.Syntax,
-                    //                                                                  positiveFlag,
-                    //                                                                  isLValue:= False,
-                    //                                                                  type:= positiveFlag.Type),
-                    //                                                   VisitExpressionNode(operatorsOpt.LessThanOrEqual),
-                    //                                                   VisitExpressionNode(operatorsOpt.GreaterThanOrEqual))
+                    // Spill control variable reference, we are going to have branches here.
+                    int captureId = _availableCaptureId++;
+                    IOperation controlVariableReferenceforCondition = getLoopControlVariableReference(forceImplicit: true, captureId); // Yes we are going to reevaluate it again
+                    CaptureResultIfNotAlready(controlVariableReferenceforCondition.Syntax, captureId, controlVariableReferenceforCondition);
+                    controlVariableReferenceforCondition = getCaptureReference(captureId, controlVariableReferenceforCondition);
 
-                    //RemovePlaceholderReplacement(operatorsOpt.LeftOperandPlaceholder)
-                    //RemovePlaceholderReplacement(operatorsOpt.RightOperandPlaceholder)
+                    var notPositive = new BasicBlock(BasicBlockKind.Block);
+                    LinkBlocks(CurrentBasicBlock, (Operation.SetParentOperation(positiveFlag, null), JumpIfTrue: false, RegularBranch(notPositive)));
+                    _currentBasicBlock = null;
 
-                    //Return result
+                    _forToLoopBinaryOperatorLeftOperand = controlVariableReferenceforCondition;
+                    _forToLoopBinaryOperatorRightOperand = getCaptureReference(limitValueId, operation.LimitValue);
+
+                    VisitConditionalBranch(userDefinedInfo.LessThanOrEqual.Value, ref @break, sense: false);
+                    LinkBlocks(CurrentBasicBlock, bodyBlock);
+
+                    AppendNewBlock(notPositive);
+
+                    _forToLoopBinaryOperatorLeftOperand = OperationCloner.CloneOperation(_forToLoopBinaryOperatorLeftOperand);
+                    _forToLoopBinaryOperatorRightOperand = OperationCloner.CloneOperation(_forToLoopBinaryOperatorRightOperand);
+
+                    VisitConditionalBranch(userDefinedInfo.GreaterThanOrEqual.Value, ref @break, sense: false);
+                    LinkBlocks(CurrentBasicBlock, bodyBlock);
+                    _currentBasicBlock = null;
+
+                    _forToLoopBinaryOperatorLeftOperand = null;
+                    _forToLoopBinaryOperatorRightOperand = null;
+                    return;
                 }
                 else
                 {
-                    IOperation controlVariableReferenceforCondition = getLoopControlVariableRefernce(forceImplicit: true); // Yes we are going to reevaluate it again
+                    IOperation controlVariableReferenceforCondition = getLoopControlVariableReference(forceImplicit: true); // Yes we are going to reevaluate it again
                     IOperation limitReference = getCaptureReference(limitValueId, operation.LimitValue);
                     var comparisonKind = BinaryOperatorKind.None;
 
@@ -3283,7 +3294,7 @@ oneMoreTime:
                         LinkBlocks(CurrentBasicBlock, @break);
                         AppendNewBlock(whenBothNotNull);
 
-                        controlVariableReferenceforCondition = getLoopControlVariableRefernce(forceImplicit: true); // Yes we are going to reevaluate it again
+                        controlVariableReferenceforCondition = getLoopControlVariableReference(forceImplicit: true); // Yes we are going to reevaluate it again
                         limitReference = getCaptureReference(limitValueId, operation.LimitValue);
 
                         controlVariableReferenceforCondition = TryUnwrapNullableValue(controlVariableReferenceforCondition, compilation) ??
@@ -3393,17 +3404,32 @@ oneMoreTime:
                 }
                 else if (userDefinedInfo != null)
                 {
-                    // PROTOTYPE(dataflow): Handle "user-defined" loops
-                    throw new NotImplementedException();
+                    Debug.Assert(_forToLoopBinaryOperatorLeftOperand == null);
+                    Debug.Assert(_forToLoopBinaryOperatorRightOperand == null);
 
-                    //    ' Generate: controlVariable + stepValue
-                    //AddPlaceholderReplacement(operatorsOpt.LeftOperandPlaceholder, controlVariable.MakeRValue())
-                    //AddPlaceholderReplacement(operatorsOpt.RightOperandPlaceholder, stepValue)
+                    IOperation controlVariableReferenceForAssignment = getLoopControlVariableReference(forceImplicit: true); // Yes we are going to reevaluate it again
 
-                    //newValue = VisitExpressionNode(operatorsOpt.Addition)
+                    // We are going to reevaluate control variable again and that might require branches
+                    _evalStack.Push(controlVariableReferenceForAssignment);
 
-                    //RemovePlaceholderReplacement(operatorsOpt.LeftOperandPlaceholder)
-                    //RemovePlaceholderReplacement(operatorsOpt.RightOperandPlaceholder)
+                    // Generate: controlVariable + stepValue
+                    _forToLoopBinaryOperatorLeftOperand = getLoopControlVariableReference(forceImplicit: true); // Yes we are going to reevaluate it again
+                    _forToLoopBinaryOperatorRightOperand = getCaptureReference(stepValueId, operation.StepValue);
+
+                    IOperation increment = Visit(userDefinedInfo.Addition.Value);
+
+                    _forToLoopBinaryOperatorLeftOperand = null;
+                    _forToLoopBinaryOperatorRightOperand = null;
+
+                    controlVariableReferenceForAssignment = _evalStack.Pop();
+                    AddStatement(new SimpleAssignmentExpression(controlVariableReferenceForAssignment,
+                                                                isRef: false,
+                                                                increment,
+                                                                semanticModel: null,
+                                                                controlVariableReferenceForAssignment.Syntax,
+                                                                type: null,
+                                                                constantValue: default,
+                                                                isImplicit: true));
                 }
                 else
                 {
@@ -3415,7 +3441,7 @@ oneMoreTime:
                     {
                         // Spill control variable reference, we are going to have branches here.
                         int captureId = _availableCaptureId++;
-                        controlVariableReferenceForAssignment = getLoopControlVariableRefernce(forceImplicit: true, captureId); // Yes we are going to reevaluate it again
+                        controlVariableReferenceForAssignment = getLoopControlVariableReference(forceImplicit: true, captureId); // Yes we are going to reevaluate it again
                         CaptureResultIfNotAlready(controlVariableReferenceForAssignment.Syntax, captureId, controlVariableReferenceForAssignment);
                         controlVariableReferenceForAssignment = getCaptureReference(captureId, controlVariableReferenceForAssignment);
 
@@ -3423,7 +3449,7 @@ oneMoreTime:
 
                         IOperation condition = new BinaryOperatorExpression(BinaryOperatorKind.Or,
                                                                             MakeIsNullOperation(getCaptureReference(stepValueId, operation.StepValue), booleanType),
-                                                                            MakeIsNullOperation(getLoopControlVariableRefernce(forceImplicit: true), // Yes we are going to reevaluate it again
+                                                                            MakeIsNullOperation(getLoopControlVariableReference(forceImplicit: true), // Yes we are going to reevaluate it again
                                                                                                 booleanType),
                                                                             isLifted: false,
                                                                             isChecked: false,
@@ -3460,13 +3486,13 @@ oneMoreTime:
                     }
                     else
                     {
-                        controlVariableReferenceForAssignment = getLoopControlVariableRefernce(forceImplicit: true); // Yes we are going to reevaluate it again
+                        controlVariableReferenceForAssignment = getLoopControlVariableReference(forceImplicit: true); // Yes we are going to reevaluate it again
                     }
 
                     // We are going to reevaluate control variable again and that might require branches
                     _evalStack.Push(controlVariableReferenceForAssignment);
 
-                    IOperation controlVariableReferenceForIncrement = getLoopControlVariableRefernce(forceImplicit: true); // Yes we are going to reevaluate it again
+                    IOperation controlVariableReferenceForIncrement = getLoopControlVariableReference(forceImplicit: true); // Yes we are going to reevaluate it again
                     IOperation stepValueForIncrement = getCaptureReference(stepValueId, operation.StepValue);
 
                     if (isNullable)
@@ -3510,7 +3536,7 @@ oneMoreTime:
                 }
             }
 
-            IOperation getLoopControlVariableRefernce(bool forceImplicit, int? captureIdForReference = null)
+            IOperation getLoopControlVariableReference(bool forceImplicit, int? captureIdForReference = null)
             {
                 switch (operation.LoopControlVariable.Kind)
                 {
@@ -3592,6 +3618,7 @@ oneMoreTime:
                 if (condition != null)
                 {
                     Debug.Assert(section.Clauses.All(c => c.Label == null));
+                    Debug.Assert(_currentSwitchOperationExpression == null);
                     _currentSwitchOperationExpression = getSwitchValue();
                     VisitConditionalBranch(condition, ref nextSection, sense: false);
                     _currentSwitchOperationExpression = null;
@@ -4647,9 +4674,26 @@ oneMoreTime:
 
         internal override IOperation VisitPlaceholder(IPlaceholderOperation operation, int? captureIdForResult)
         {
-            if (operation.PlaceholderKind == PlaceholderKind.SwitchOperationExpression && _currentSwitchOperationExpression != null)
+            switch (operation.PlaceholderKind)
             {
-                return OperationCloner.CloneOperation(_currentSwitchOperationExpression);
+                case PlaceholderKind.SwitchOperationExpression:
+                    if (_currentSwitchOperationExpression != null)
+                    {
+                        return OperationCloner.CloneOperation(_currentSwitchOperationExpression);
+                    }
+                    break;
+                case PlaceholderKind.ForToLoopBinaryOperatorLeftOperand:
+                    if (_forToLoopBinaryOperatorLeftOperand != null)
+                    {
+                        return _forToLoopBinaryOperatorLeftOperand;
+                    }
+                    break;
+                case PlaceholderKind.ForToLoopBinaryOperatorRightOperand:
+                    if (_forToLoopBinaryOperatorRightOperand != null)
+                    {
+                        return _forToLoopBinaryOperatorRightOperand;
+                    }
+                    break;
             }
 
             return new PlaceholderExpression(operation.PlaceholderKind, semanticModel: null, operation.Syntax, operation.Type, operation.ConstantValue, IsImplicit(operation));

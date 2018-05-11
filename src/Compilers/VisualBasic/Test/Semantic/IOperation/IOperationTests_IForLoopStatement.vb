@@ -4787,5 +4787,1666 @@ Block[B6] - Exit
 
             VerifyFlowGraphAndDiagnosticsForTest(Of MethodBlockSyntax)(source, expectedFlowGraph, expectedDiagnostics, TestOptions.ReleaseDll.WithOverflowChecks(False))
         End Sub
+
+        <CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)>
+        <Fact()>
+        Public Sub ForToFlow_21()
+            Dim source = <![CDATA[
+Imports System
+Public Class C
+    Sub M(i As C, init As C, limit As C, [step] As C, result As C) 'BIND:"Sub M"
+        For i = init To limit Step [step]
+            result = i
+        Next
+    End Sub
+
+    Public Shared Operator <=(x As C, y As C) As Boolean
+        Return False
+    End Operator
+
+    Public Shared Operator -(x As C, y As C) As C
+        Return Nothing
+    End Operator
+
+    Public Shared Operator +(x As C, y As C) As C
+        Return Nothing
+    End Operator
+End Class
+]]>.Value
+
+            Dim expectedDiagnostics = <![CDATA[
+BC33038: Type 'C' must define operator '>=' to be used in a 'For' statement.
+        For i = init To limit Step [step]
+        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+BC33033: Matching '>=' operator is required for 'Public Shared Operator <=(x As C, y As C) As Boolean'.
+    Public Shared Operator <=(x As C, y As C) As Boolean
+                           ~~
+]]>.Value
+
+            Dim expectedFlowGraph = <![CDATA[
+Block[B0] - Entry
+    Statements (0)
+    Next (Regular) Block[B1]
+Block[B1] - Block
+    Predecessors: [B0]
+    Statements (5)
+        IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsInvalid, IsImplicit) (Syntax: 'i')
+          Value: 
+            IParameterReferenceOperation: i (OperationKind.ParameterReference, Type: C, IsInvalid) (Syntax: 'i')
+
+        IFlowCaptureOperation: 1 (OperationKind.FlowCapture, Type: null, IsInvalid, IsImplicit) (Syntax: 'init')
+          Value: 
+            IParameterReferenceOperation: init (OperationKind.ParameterReference, Type: C, IsInvalid) (Syntax: 'init')
+
+        IFlowCaptureOperation: 2 (OperationKind.FlowCapture, Type: null, IsInvalid, IsImplicit) (Syntax: 'limit')
+          Value: 
+            IParameterReferenceOperation: limit (OperationKind.ParameterReference, Type: C, IsInvalid) (Syntax: 'limit')
+
+        IFlowCaptureOperation: 3 (OperationKind.FlowCapture, Type: null, IsInvalid, IsImplicit) (Syntax: '[step]')
+          Value: 
+            IParameterReferenceOperation: step (OperationKind.ParameterReference, Type: C, IsInvalid) (Syntax: '[step]')
+
+        ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: null, IsInvalid, IsImplicit) (Syntax: 'init')
+          Left: 
+            IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: C, IsInvalid, IsImplicit) (Syntax: 'i')
+          Right: 
+            IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: C, IsInvalid, IsImplicit) (Syntax: 'init')
+
+    Next (Regular) Block[B2]
+Block[B2] - Block
+    Predecessors: [B1] [B3]
+    Statements (0)
+    Jump if False (Regular) to Block[B4]
+        IInvalidOperation (OperationKind.Invalid, Type: System.Boolean, IsInvalid, IsImplicit) (Syntax: 'limit')
+          Children(2):
+              IParameterReferenceOperation: i (OperationKind.ParameterReference, Type: C, IsInvalid, IsImplicit) (Syntax: 'i')
+              IFlowCaptureReferenceOperation: 2 (OperationKind.FlowCaptureReference, Type: C, IsInvalid, IsImplicit) (Syntax: 'limit')
+
+    Next (Regular) Block[B3]
+Block[B3] - Block
+    Predecessors: [B2]
+    Statements (2)
+        IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'result = i')
+          Expression: 
+            ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: C, IsImplicit) (Syntax: 'result = i')
+              Left: 
+                IParameterReferenceOperation: result (OperationKind.ParameterReference, Type: C) (Syntax: 'result')
+              Right: 
+                IParameterReferenceOperation: i (OperationKind.ParameterReference, Type: C) (Syntax: 'i')
+
+        ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: null, IsInvalid, IsImplicit) (Syntax: 'i')
+          Left: 
+            IParameterReferenceOperation: i (OperationKind.ParameterReference, Type: C, IsInvalid, IsImplicit) (Syntax: 'i')
+          Right: 
+            IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperator, Type: C, IsInvalid, IsImplicit) (Syntax: '[step]')
+              Left: 
+                IParameterReferenceOperation: i (OperationKind.ParameterReference, Type: C, IsInvalid, IsImplicit) (Syntax: 'i')
+              Right: 
+                IFlowCaptureReferenceOperation: 3 (OperationKind.FlowCaptureReference, Type: C, IsInvalid, IsImplicit) (Syntax: '[step]')
+
+    Next (Regular) Block[B2]
+Block[B4] - Exit
+    Predecessors: [B2]
+    Statements (0)
+]]>.Value
+
+            VerifyFlowGraphAndDiagnosticsForTest(Of MethodBlockSyntax)(source, expectedFlowGraph, expectedDiagnostics)
+        End Sub
+
+        <CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)>
+        <Fact()>
+        Public Sub ForToFlow_22()
+            Dim source = <![CDATA[
+Imports System
+Public Class C
+    Sub M(i As C, init As C, limit As C, [step] As C, result As C) 'BIND:"Sub M"
+        For i = init To limit Step [step]
+            result = i
+        Next
+    End Sub
+
+    Public Shared Operator >=(x As C, y As C) As Boolean
+        Return False
+    End Operator
+
+    Public Shared Operator -(x As C, y As C) As C
+        Return Nothing
+    End Operator
+
+    Public Shared Operator +(x As C, y As C) As C
+        Return Nothing
+    End Operator
+End Class
+]]>.Value
+
+            Dim expectedDiagnostics = <![CDATA[
+BC33038: Type 'C' must define operator '<=' to be used in a 'For' statement.
+        For i = init To limit Step [step]
+        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+BC33033: Matching '<=' operator is required for 'Public Shared Operator >=(x As C, y As C) As Boolean'.
+    Public Shared Operator >=(x As C, y As C) As Boolean
+                           ~~
+]]>.Value
+
+            Dim expectedFlowGraph = <![CDATA[
+Block[B0] - Entry
+    Statements (0)
+    Next (Regular) Block[B1]
+Block[B1] - Block
+    Predecessors: [B0]
+    Statements (5)
+        IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsInvalid, IsImplicit) (Syntax: 'i')
+          Value: 
+            IParameterReferenceOperation: i (OperationKind.ParameterReference, Type: C, IsInvalid) (Syntax: 'i')
+
+        IFlowCaptureOperation: 1 (OperationKind.FlowCapture, Type: null, IsInvalid, IsImplicit) (Syntax: 'init')
+          Value: 
+            IParameterReferenceOperation: init (OperationKind.ParameterReference, Type: C, IsInvalid) (Syntax: 'init')
+
+        IFlowCaptureOperation: 2 (OperationKind.FlowCapture, Type: null, IsInvalid, IsImplicit) (Syntax: 'limit')
+          Value: 
+            IParameterReferenceOperation: limit (OperationKind.ParameterReference, Type: C, IsInvalid) (Syntax: 'limit')
+
+        IFlowCaptureOperation: 3 (OperationKind.FlowCapture, Type: null, IsInvalid, IsImplicit) (Syntax: '[step]')
+          Value: 
+            IParameterReferenceOperation: step (OperationKind.ParameterReference, Type: C, IsInvalid) (Syntax: '[step]')
+
+        ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: null, IsInvalid, IsImplicit) (Syntax: 'init')
+          Left: 
+            IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: C, IsInvalid, IsImplicit) (Syntax: 'i')
+          Right: 
+            IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: C, IsInvalid, IsImplicit) (Syntax: 'init')
+
+    Next (Regular) Block[B2]
+Block[B2] - Block
+    Predecessors: [B1] [B3]
+    Statements (0)
+    Jump if False (Regular) to Block[B4]
+        IInvalidOperation (OperationKind.Invalid, Type: System.Boolean, IsInvalid, IsImplicit) (Syntax: 'limit')
+          Children(2):
+              IParameterReferenceOperation: i (OperationKind.ParameterReference, Type: C, IsInvalid, IsImplicit) (Syntax: 'i')
+              IFlowCaptureReferenceOperation: 2 (OperationKind.FlowCaptureReference, Type: C, IsInvalid, IsImplicit) (Syntax: 'limit')
+
+    Next (Regular) Block[B3]
+Block[B3] - Block
+    Predecessors: [B2]
+    Statements (2)
+        IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'result = i')
+          Expression: 
+            ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: C, IsImplicit) (Syntax: 'result = i')
+              Left: 
+                IParameterReferenceOperation: result (OperationKind.ParameterReference, Type: C) (Syntax: 'result')
+              Right: 
+                IParameterReferenceOperation: i (OperationKind.ParameterReference, Type: C) (Syntax: 'i')
+
+        ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: null, IsInvalid, IsImplicit) (Syntax: 'i')
+          Left: 
+            IParameterReferenceOperation: i (OperationKind.ParameterReference, Type: C, IsInvalid, IsImplicit) (Syntax: 'i')
+          Right: 
+            IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperator, Type: C, IsInvalid, IsImplicit) (Syntax: '[step]')
+              Left: 
+                IParameterReferenceOperation: i (OperationKind.ParameterReference, Type: C, IsInvalid, IsImplicit) (Syntax: 'i')
+              Right: 
+                IFlowCaptureReferenceOperation: 3 (OperationKind.FlowCaptureReference, Type: C, IsInvalid, IsImplicit) (Syntax: '[step]')
+
+    Next (Regular) Block[B2]
+Block[B4] - Exit
+    Predecessors: [B2]
+    Statements (0)
+]]>.Value
+
+            VerifyFlowGraphAndDiagnosticsForTest(Of MethodBlockSyntax)(source, expectedFlowGraph, expectedDiagnostics)
+        End Sub
+
+        <CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)>
+        <Fact()>
+        Public Sub ForToFlow_23()
+            Dim source = <![CDATA[
+Imports System
+Public Class C
+    Sub M(i As C, init As C, limit As C, [step] As C, result As C) 'BIND:"Sub M"
+        For i = init To limit Step [step]
+            result = i
+        Next
+    End Sub
+
+    Public Shared Operator >=(x As C, y As C) As Boolean
+        Return False
+    End Operator
+
+    Public Shared Operator <=(x As C, y As C) As Boolean
+        Return False
+    End Operator
+
+    Public Shared Operator +(x As C, y As C) As C
+        Return Nothing
+    End Operator
+End Class
+]]>.Value
+
+            Dim expectedDiagnostics = <![CDATA[
+BC33038: Type 'C' must define operator '-' to be used in a 'For' statement.
+        For i = init To limit Step [step]
+        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+]]>.Value
+
+            Dim expectedFlowGraph = <![CDATA[
+Block[B0] - Entry
+    Statements (0)
+    Next (Regular) Block[B1]
+Block[B1] - Block
+    Predecessors: [B0]
+    Statements (5)
+        IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsInvalid, IsImplicit) (Syntax: 'i')
+          Value: 
+            IParameterReferenceOperation: i (OperationKind.ParameterReference, Type: C, IsInvalid) (Syntax: 'i')
+
+        IFlowCaptureOperation: 1 (OperationKind.FlowCapture, Type: null, IsInvalid, IsImplicit) (Syntax: 'init')
+          Value: 
+            IParameterReferenceOperation: init (OperationKind.ParameterReference, Type: C, IsInvalid) (Syntax: 'init')
+
+        IFlowCaptureOperation: 2 (OperationKind.FlowCapture, Type: null, IsInvalid, IsImplicit) (Syntax: 'limit')
+          Value: 
+            IParameterReferenceOperation: limit (OperationKind.ParameterReference, Type: C, IsInvalid) (Syntax: 'limit')
+
+        IFlowCaptureOperation: 3 (OperationKind.FlowCapture, Type: null, IsInvalid, IsImplicit) (Syntax: '[step]')
+          Value: 
+            IParameterReferenceOperation: step (OperationKind.ParameterReference, Type: C, IsInvalid) (Syntax: '[step]')
+
+        ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: null, IsInvalid, IsImplicit) (Syntax: 'init')
+          Left: 
+            IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: C, IsInvalid, IsImplicit) (Syntax: 'i')
+          Right: 
+            IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: C, IsInvalid, IsImplicit) (Syntax: 'init')
+
+    Next (Regular) Block[B2]
+Block[B2] - Block
+    Predecessors: [B1] [B3]
+    Statements (0)
+    Jump if False (Regular) to Block[B4]
+        IInvalidOperation (OperationKind.Invalid, Type: System.Boolean, IsInvalid, IsImplicit) (Syntax: 'limit')
+          Children(2):
+              IParameterReferenceOperation: i (OperationKind.ParameterReference, Type: C, IsInvalid, IsImplicit) (Syntax: 'i')
+              IFlowCaptureReferenceOperation: 2 (OperationKind.FlowCaptureReference, Type: C, IsInvalid, IsImplicit) (Syntax: 'limit')
+
+    Next (Regular) Block[B3]
+Block[B3] - Block
+    Predecessors: [B2]
+    Statements (2)
+        IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'result = i')
+          Expression: 
+            ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: C, IsImplicit) (Syntax: 'result = i')
+              Left: 
+                IParameterReferenceOperation: result (OperationKind.ParameterReference, Type: C) (Syntax: 'result')
+              Right: 
+                IParameterReferenceOperation: i (OperationKind.ParameterReference, Type: C) (Syntax: 'i')
+
+        ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: null, IsInvalid, IsImplicit) (Syntax: 'i')
+          Left: 
+            IParameterReferenceOperation: i (OperationKind.ParameterReference, Type: C, IsInvalid, IsImplicit) (Syntax: 'i')
+          Right: 
+            IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperator, Type: C, IsInvalid, IsImplicit) (Syntax: '[step]')
+              Left: 
+                IParameterReferenceOperation: i (OperationKind.ParameterReference, Type: C, IsInvalid, IsImplicit) (Syntax: 'i')
+              Right: 
+                IFlowCaptureReferenceOperation: 3 (OperationKind.FlowCaptureReference, Type: C, IsInvalid, IsImplicit) (Syntax: '[step]')
+
+    Next (Regular) Block[B2]
+Block[B4] - Exit
+    Predecessors: [B2]
+    Statements (0)
+]]>.Value
+
+            VerifyFlowGraphAndDiagnosticsForTest(Of MethodBlockSyntax)(source, expectedFlowGraph, expectedDiagnostics)
+        End Sub
+
+        <CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)>
+        <Fact()>
+        Public Sub ForToFlow_24()
+            Dim source = <![CDATA[
+Imports System
+Public Class C
+    Sub M(i As C, init As C, limit As C, [step] As C, result As C) 'BIND:"Sub M"
+        For i = init To limit Step [step]
+            result = i
+        Next
+    End Sub
+
+    Public Shared Operator >=(x As C, y As C) As Boolean
+        Return False
+    End Operator
+
+    Public Shared Operator <=(x As C, y As C) As Boolean
+        Return False
+    End Operator
+
+    Public Shared Operator -(x As C, y As C) As C
+        Return Nothing
+    End Operator
+End Class
+]]>.Value
+
+            Dim expectedDiagnostics = <![CDATA[
+BC33038: Type 'C' must define operator '+' to be used in a 'For' statement.
+        For i = init To limit Step [step]
+        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+]]>.Value
+
+            Dim expectedFlowGraph = <![CDATA[
+Block[B0] - Entry
+    Statements (0)
+    Next (Regular) Block[B1]
+Block[B1] - Block
+    Predecessors: [B0]
+    Statements (5)
+        IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsInvalid, IsImplicit) (Syntax: 'i')
+          Value: 
+            IParameterReferenceOperation: i (OperationKind.ParameterReference, Type: C, IsInvalid) (Syntax: 'i')
+
+        IFlowCaptureOperation: 1 (OperationKind.FlowCapture, Type: null, IsInvalid, IsImplicit) (Syntax: 'init')
+          Value: 
+            IParameterReferenceOperation: init (OperationKind.ParameterReference, Type: C, IsInvalid) (Syntax: 'init')
+
+        IFlowCaptureOperation: 2 (OperationKind.FlowCapture, Type: null, IsInvalid, IsImplicit) (Syntax: 'limit')
+          Value: 
+            IParameterReferenceOperation: limit (OperationKind.ParameterReference, Type: C, IsInvalid) (Syntax: 'limit')
+
+        IFlowCaptureOperation: 3 (OperationKind.FlowCapture, Type: null, IsInvalid, IsImplicit) (Syntax: '[step]')
+          Value: 
+            IParameterReferenceOperation: step (OperationKind.ParameterReference, Type: C, IsInvalid) (Syntax: '[step]')
+
+        ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: null, IsInvalid, IsImplicit) (Syntax: 'init')
+          Left: 
+            IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: C, IsInvalid, IsImplicit) (Syntax: 'i')
+          Right: 
+            IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: C, IsInvalid, IsImplicit) (Syntax: 'init')
+
+    Next (Regular) Block[B2]
+Block[B2] - Block
+    Predecessors: [B1] [B3]
+    Statements (0)
+    Jump if False (Regular) to Block[B4]
+        IInvalidOperation (OperationKind.Invalid, Type: System.Boolean, IsInvalid, IsImplicit) (Syntax: 'limit')
+          Children(2):
+              IParameterReferenceOperation: i (OperationKind.ParameterReference, Type: C, IsInvalid, IsImplicit) (Syntax: 'i')
+              IFlowCaptureReferenceOperation: 2 (OperationKind.FlowCaptureReference, Type: C, IsInvalid, IsImplicit) (Syntax: 'limit')
+
+    Next (Regular) Block[B3]
+Block[B3] - Block
+    Predecessors: [B2]
+    Statements (2)
+        IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'result = i')
+          Expression: 
+            ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: C, IsImplicit) (Syntax: 'result = i')
+              Left: 
+                IParameterReferenceOperation: result (OperationKind.ParameterReference, Type: C) (Syntax: 'result')
+              Right: 
+                IParameterReferenceOperation: i (OperationKind.ParameterReference, Type: C) (Syntax: 'i')
+
+        ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: null, IsInvalid, IsImplicit) (Syntax: 'i')
+          Left: 
+            IParameterReferenceOperation: i (OperationKind.ParameterReference, Type: C, IsInvalid, IsImplicit) (Syntax: 'i')
+          Right: 
+            IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperator, Type: C, IsInvalid, IsImplicit) (Syntax: '[step]')
+              Left: 
+                IParameterReferenceOperation: i (OperationKind.ParameterReference, Type: C, IsInvalid, IsImplicit) (Syntax: 'i')
+              Right: 
+                IFlowCaptureReferenceOperation: 3 (OperationKind.FlowCaptureReference, Type: C, IsInvalid, IsImplicit) (Syntax: '[step]')
+
+    Next (Regular) Block[B2]
+Block[B4] - Exit
+    Predecessors: [B2]
+    Statements (0)
+]]>.Value
+
+            VerifyFlowGraphAndDiagnosticsForTest(Of MethodBlockSyntax)(source, expectedFlowGraph, expectedDiagnostics)
+        End Sub
+
+        <CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)>
+        <Fact()>
+        Public Sub ForToFlow_25()
+            Dim source = <![CDATA[
+Imports System
+Public Class C
+    Sub M(i As C, init As C, limit As C, [step] As C, result As C) 'BIND:"Sub M"
+        For i = init To limit Step [step]
+            result = i
+        Next
+    End Sub
+
+    Public Shared Operator >=(x As C, y As C) As Boolean
+        Return False
+    End Operator
+
+    Public Shared Operator <=(x As C, y As C) As Boolean
+        Return False
+    End Operator
+
+    Public Shared Operator -(x As C, y As C) As C
+        Return Nothing
+    End Operator
+
+    Public Shared Operator +(x As C, y As C) As C
+        Return Nothing
+    End Operator
+End Class
+]]>.Value
+
+            Dim expectedDiagnostics = String.Empty
+
+            Dim expectedFlowGraph = <![CDATA[
+Block[B0] - Entry
+    Statements (0)
+    Next (Regular) Block[B1]
+Block[B1] - Block
+    Predecessors: [B0]
+    Statements (6)
+        IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'i')
+          Value: 
+            IParameterReferenceOperation: i (OperationKind.ParameterReference, Type: C) (Syntax: 'i')
+
+        IFlowCaptureOperation: 1 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'init')
+          Value: 
+            IParameterReferenceOperation: init (OperationKind.ParameterReference, Type: C) (Syntax: 'init')
+
+        IFlowCaptureOperation: 2 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'limit')
+          Value: 
+            IParameterReferenceOperation: limit (OperationKind.ParameterReference, Type: C) (Syntax: 'limit')
+
+        IFlowCaptureOperation: 3 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: '[step]')
+          Value: 
+            IParameterReferenceOperation: step (OperationKind.ParameterReference, Type: C) (Syntax: '[step]')
+
+        IFlowCaptureOperation: 4 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'For i = ini ... Step [step]')
+          Value: 
+            IBinaryOperation (BinaryOperatorKind.GreaterThanOrEqual, Checked) (OperatorMethod: Function C.op_GreaterThanOrEqual(x As C, y As C) As System.Boolean) (OperationKind.BinaryOperator, Type: System.Boolean, IsImplicit) (Syntax: 'For i = ini ... Step [step]')
+              Left: 
+                IFlowCaptureReferenceOperation: 3 (OperationKind.FlowCaptureReference, Type: C, IsImplicit) (Syntax: '[step]')
+              Right: 
+                IBinaryOperation (BinaryOperatorKind.Subtract, Checked) (OperatorMethod: Function C.op_Subtraction(x As C, y As C) As C) (OperationKind.BinaryOperator, Type: C, IsImplicit) (Syntax: 'For i = ini ... Step [step]')
+                  Left: 
+                    IFlowCaptureReferenceOperation: 3 (OperationKind.FlowCaptureReference, Type: C, IsImplicit) (Syntax: '[step]')
+                  Right: 
+                    IFlowCaptureReferenceOperation: 3 (OperationKind.FlowCaptureReference, Type: C, IsImplicit) (Syntax: '[step]')
+
+        ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: null, IsImplicit) (Syntax: 'init')
+          Left: 
+            IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: C, IsImplicit) (Syntax: 'i')
+          Right: 
+            IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: C, IsImplicit) (Syntax: 'init')
+
+    Next (Regular) Block[B2]
+Block[B2] - Block
+    Predecessors: [B1] [B5]
+    Statements (1)
+        IFlowCaptureOperation: 5 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'i')
+          Value: 
+            IParameterReferenceOperation: i (OperationKind.ParameterReference, Type: C, IsImplicit) (Syntax: 'i')
+
+    Jump if False (Regular) to Block[B4]
+        IFlowCaptureReferenceOperation: 4 (OperationKind.FlowCaptureReference, Type: System.Boolean, IsImplicit) (Syntax: 'For i = ini ... Step [step]')
+
+    Next (Regular) Block[B3]
+Block[B3] - Block
+    Predecessors: [B2]
+    Statements (0)
+    Jump if False (Regular) to Block[B6]
+        IBinaryOperation (BinaryOperatorKind.LessThanOrEqual, Checked) (OperatorMethod: Function C.op_LessThanOrEqual(x As C, y As C) As System.Boolean) (OperationKind.BinaryOperator, Type: System.Boolean, IsImplicit) (Syntax: 'For i = ini ... Step [step]')
+          Left: 
+            IFlowCaptureReferenceOperation: 5 (OperationKind.FlowCaptureReference, Type: C, IsImplicit) (Syntax: 'i')
+          Right: 
+            IFlowCaptureReferenceOperation: 2 (OperationKind.FlowCaptureReference, Type: C, IsImplicit) (Syntax: 'limit')
+
+    Next (Regular) Block[B5]
+Block[B4] - Block
+    Predecessors: [B2]
+    Statements (0)
+    Jump if False (Regular) to Block[B6]
+        IBinaryOperation (BinaryOperatorKind.GreaterThanOrEqual, Checked) (OperatorMethod: Function C.op_GreaterThanOrEqual(x As C, y As C) As System.Boolean) (OperationKind.BinaryOperator, Type: System.Boolean, IsImplicit) (Syntax: 'For i = ini ... Step [step]')
+          Left: 
+            IFlowCaptureReferenceOperation: 5 (OperationKind.FlowCaptureReference, Type: C, IsImplicit) (Syntax: 'i')
+          Right: 
+            IFlowCaptureReferenceOperation: 2 (OperationKind.FlowCaptureReference, Type: C, IsImplicit) (Syntax: 'limit')
+
+    Next (Regular) Block[B5]
+Block[B5] - Block
+    Predecessors: [B3] [B4]
+    Statements (2)
+        IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'result = i')
+          Expression: 
+            ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: C, IsImplicit) (Syntax: 'result = i')
+              Left: 
+                IParameterReferenceOperation: result (OperationKind.ParameterReference, Type: C) (Syntax: 'result')
+              Right: 
+                IParameterReferenceOperation: i (OperationKind.ParameterReference, Type: C) (Syntax: 'i')
+
+        ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: null, IsImplicit) (Syntax: 'i')
+          Left: 
+            IParameterReferenceOperation: i (OperationKind.ParameterReference, Type: C, IsImplicit) (Syntax: 'i')
+          Right: 
+            IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperatorMethod: Function C.op_Addition(x As C, y As C) As C) (OperationKind.BinaryOperator, Type: C, IsImplicit) (Syntax: 'For i = ini ... Step [step]')
+              Left: 
+                IParameterReferenceOperation: i (OperationKind.ParameterReference, Type: C, IsImplicit) (Syntax: 'i')
+              Right: 
+                IFlowCaptureReferenceOperation: 3 (OperationKind.FlowCaptureReference, Type: C, IsImplicit) (Syntax: '[step]')
+
+    Next (Regular) Block[B2]
+Block[B6] - Exit
+    Predecessors: [B3] [B4]
+    Statements (0)
+]]>.Value
+
+            VerifyFlowGraphAndDiagnosticsForTest(Of MethodBlockSyntax)(source, expectedFlowGraph, expectedDiagnostics)
+        End Sub
+
+        <CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)>
+        <Fact()>
+        Public Sub ForToFlow_26()
+            Dim source = <![CDATA[
+Imports System
+Public Class C
+    Sub M(i As C, init As C, limit As C, [step] As C, result As C) 'BIND:"Sub M"
+        For i = init To limit Step [step]
+            result = i
+        Next
+    End Sub
+
+    Public Shared Operator >=(x As C, y As C) As C
+        Return Nothing
+    End Operator
+
+    Public Shared Operator <=(x As C, y As C) As C
+        Return Nothing
+    End Operator
+
+    Public Shared Operator -(x As C, y As C) As C
+        Return Nothing
+    End Operator
+
+    Public Shared Operator +(x As C, y As C) As C
+        Return Nothing
+    End Operator
+End Class
+]]>.Value
+
+            Dim expectedDiagnostics = <![CDATA[
+BC30311: Value of type 'C' cannot be converted to 'Boolean'.
+        For i = init To limit Step [step]
+        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+]]>.Value
+
+            Dim expectedFlowGraph = <![CDATA[
+Block[B0] - Entry
+    Statements (0)
+    Next (Regular) Block[B1]
+Block[B1] - Block
+    Predecessors: [B0]
+    Statements (6)
+        IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsInvalid, IsImplicit) (Syntax: 'i')
+          Value: 
+            IParameterReferenceOperation: i (OperationKind.ParameterReference, Type: C, IsInvalid) (Syntax: 'i')
+
+        IFlowCaptureOperation: 1 (OperationKind.FlowCapture, Type: null, IsInvalid, IsImplicit) (Syntax: 'init')
+          Value: 
+            IParameterReferenceOperation: init (OperationKind.ParameterReference, Type: C, IsInvalid) (Syntax: 'init')
+
+        IFlowCaptureOperation: 2 (OperationKind.FlowCapture, Type: null, IsInvalid, IsImplicit) (Syntax: 'limit')
+          Value: 
+            IParameterReferenceOperation: limit (OperationKind.ParameterReference, Type: C, IsInvalid) (Syntax: 'limit')
+
+        IFlowCaptureOperation: 3 (OperationKind.FlowCapture, Type: null, IsInvalid, IsImplicit) (Syntax: '[step]')
+          Value: 
+            IParameterReferenceOperation: step (OperationKind.ParameterReference, Type: C, IsInvalid) (Syntax: '[step]')
+
+        IFlowCaptureOperation: 4 (OperationKind.FlowCapture, Type: null, IsInvalid, IsImplicit) (Syntax: 'For i = ini ... Step [step]')
+          Value: 
+            IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Boolean, IsInvalid, IsImplicit) (Syntax: 'For i = ini ... Step [step]')
+              Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                (DelegateRelaxationLevelNone)
+              Operand: 
+                IBinaryOperation (BinaryOperatorKind.GreaterThanOrEqual, Checked) (OperatorMethod: Function C.op_GreaterThanOrEqual(x As C, y As C) As C) (OperationKind.BinaryOperator, Type: C, IsInvalid, IsImplicit) (Syntax: 'For i = ini ... Step [step]')
+                  Left: 
+                    IFlowCaptureReferenceOperation: 3 (OperationKind.FlowCaptureReference, Type: C, IsInvalid, IsImplicit) (Syntax: '[step]')
+                  Right: 
+                    IBinaryOperation (BinaryOperatorKind.Subtract, Checked) (OperatorMethod: Function C.op_Subtraction(x As C, y As C) As C) (OperationKind.BinaryOperator, Type: C, IsInvalid, IsImplicit) (Syntax: 'For i = ini ... Step [step]')
+                      Left: 
+                        IFlowCaptureReferenceOperation: 3 (OperationKind.FlowCaptureReference, Type: C, IsInvalid, IsImplicit) (Syntax: '[step]')
+                      Right: 
+                        IFlowCaptureReferenceOperation: 3 (OperationKind.FlowCaptureReference, Type: C, IsInvalid, IsImplicit) (Syntax: '[step]')
+
+        ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: null, IsInvalid, IsImplicit) (Syntax: 'init')
+          Left: 
+            IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: C, IsInvalid, IsImplicit) (Syntax: 'i')
+          Right: 
+            IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: C, IsInvalid, IsImplicit) (Syntax: 'init')
+
+    Next (Regular) Block[B2]
+Block[B2] - Block
+    Predecessors: [B1] [B5]
+    Statements (1)
+        IFlowCaptureOperation: 5 (OperationKind.FlowCapture, Type: null, IsInvalid, IsImplicit) (Syntax: 'i')
+          Value: 
+            IParameterReferenceOperation: i (OperationKind.ParameterReference, Type: C, IsInvalid, IsImplicit) (Syntax: 'i')
+
+    Jump if False (Regular) to Block[B4]
+        IFlowCaptureReferenceOperation: 4 (OperationKind.FlowCaptureReference, Type: System.Boolean, IsInvalid, IsImplicit) (Syntax: 'For i = ini ... Step [step]')
+
+    Next (Regular) Block[B3]
+Block[B3] - Block
+    Predecessors: [B2]
+    Statements (0)
+    Jump if False (Regular) to Block[B6]
+        IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Boolean, IsInvalid, IsImplicit) (Syntax: 'For i = ini ... Step [step]')
+          Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+            (DelegateRelaxationLevelNone)
+          Operand: 
+            IBinaryOperation (BinaryOperatorKind.LessThanOrEqual, Checked) (OperatorMethod: Function C.op_LessThanOrEqual(x As C, y As C) As C) (OperationKind.BinaryOperator, Type: C, IsInvalid, IsImplicit) (Syntax: 'For i = ini ... Step [step]')
+              Left: 
+                IFlowCaptureReferenceOperation: 5 (OperationKind.FlowCaptureReference, Type: C, IsInvalid, IsImplicit) (Syntax: 'i')
+              Right: 
+                IFlowCaptureReferenceOperation: 2 (OperationKind.FlowCaptureReference, Type: C, IsInvalid, IsImplicit) (Syntax: 'limit')
+
+    Next (Regular) Block[B5]
+Block[B4] - Block
+    Predecessors: [B2]
+    Statements (0)
+    Jump if False (Regular) to Block[B6]
+        IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Boolean, IsInvalid, IsImplicit) (Syntax: 'For i = ini ... Step [step]')
+          Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+            (DelegateRelaxationLevelNone)
+          Operand: 
+            IBinaryOperation (BinaryOperatorKind.GreaterThanOrEqual, Checked) (OperatorMethod: Function C.op_GreaterThanOrEqual(x As C, y As C) As C) (OperationKind.BinaryOperator, Type: C, IsInvalid, IsImplicit) (Syntax: 'For i = ini ... Step [step]')
+              Left: 
+                IFlowCaptureReferenceOperation: 5 (OperationKind.FlowCaptureReference, Type: C, IsInvalid, IsImplicit) (Syntax: 'i')
+              Right: 
+                IFlowCaptureReferenceOperation: 2 (OperationKind.FlowCaptureReference, Type: C, IsInvalid, IsImplicit) (Syntax: 'limit')
+
+    Next (Regular) Block[B5]
+Block[B5] - Block
+    Predecessors: [B3] [B4]
+    Statements (2)
+        IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'result = i')
+          Expression: 
+            ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: C, IsImplicit) (Syntax: 'result = i')
+              Left: 
+                IParameterReferenceOperation: result (OperationKind.ParameterReference, Type: C) (Syntax: 'result')
+              Right: 
+                IParameterReferenceOperation: i (OperationKind.ParameterReference, Type: C) (Syntax: 'i')
+
+        ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: null, IsInvalid, IsImplicit) (Syntax: 'i')
+          Left: 
+            IParameterReferenceOperation: i (OperationKind.ParameterReference, Type: C, IsInvalid, IsImplicit) (Syntax: 'i')
+          Right: 
+            IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperatorMethod: Function C.op_Addition(x As C, y As C) As C) (OperationKind.BinaryOperator, Type: C, IsInvalid, IsImplicit) (Syntax: 'For i = ini ... Step [step]')
+              Left: 
+                IParameterReferenceOperation: i (OperationKind.ParameterReference, Type: C, IsInvalid, IsImplicit) (Syntax: 'i')
+              Right: 
+                IFlowCaptureReferenceOperation: 3 (OperationKind.FlowCaptureReference, Type: C, IsInvalid, IsImplicit) (Syntax: '[step]')
+
+    Next (Regular) Block[B2]
+Block[B6] - Exit
+    Predecessors: [B3] [B4]
+    Statements (0)
+]]>.Value
+
+            VerifyFlowGraphAndDiagnosticsForTest(Of MethodBlockSyntax)(source, expectedFlowGraph, expectedDiagnostics)
+        End Sub
+
+        <CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)>
+        <Fact()>
+        Public Sub ForToFlow_27()
+            Dim source = <![CDATA[
+Imports System
+Public Class C
+    Sub M(i As C, init As C, limit As C, [step] As C, result As C) 'BIND:"Sub M"
+        For i = init To limit Step [step]
+            result = i
+        Next
+    End Sub
+
+    Public Shared Operator >=(x As C, y As C) As C
+        Return Nothing
+    End Operator
+
+    Public Shared Operator <=(x As C, y As C) As C
+        Return Nothing
+    End Operator
+
+    Public Shared Operator -(x As C, y As C) As C
+        Return Nothing
+    End Operator
+
+    Public Shared Operator +(x As C, y As C) As C
+        Return Nothing
+    End Operator
+
+    Public Shared Operator IsTrue(x As C) As Boolean
+        Return Nothing
+    End Operator
+
+    Public Shared Operator IsFalse(x As C) As Boolean
+        Return Nothing
+    End Operator
+End Class
+]]>.Value
+
+            Dim expectedDiagnostics = String.Empty
+
+            Dim expectedFlowGraph = <![CDATA[
+Block[B0] - Entry
+    Statements (0)
+    Next (Regular) Block[B1]
+Block[B1] - Block
+    Predecessors: [B0]
+    Statements (6)
+        IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'i')
+          Value: 
+            IParameterReferenceOperation: i (OperationKind.ParameterReference, Type: C) (Syntax: 'i')
+
+        IFlowCaptureOperation: 1 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'init')
+          Value: 
+            IParameterReferenceOperation: init (OperationKind.ParameterReference, Type: C) (Syntax: 'init')
+
+        IFlowCaptureOperation: 2 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'limit')
+          Value: 
+            IParameterReferenceOperation: limit (OperationKind.ParameterReference, Type: C) (Syntax: 'limit')
+
+        IFlowCaptureOperation: 3 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: '[step]')
+          Value: 
+            IParameterReferenceOperation: step (OperationKind.ParameterReference, Type: C) (Syntax: '[step]')
+
+        IFlowCaptureOperation: 4 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'For i = ini ... Step [step]')
+          Value: 
+            IUnaryOperation (UnaryOperatorKind.True) (OperatorMethod: Function C.op_True(x As C) As System.Boolean) (OperationKind.UnaryOperator, Type: System.Boolean, IsImplicit) (Syntax: 'For i = ini ... Step [step]')
+              Operand: 
+                IBinaryOperation (BinaryOperatorKind.GreaterThanOrEqual, Checked) (OperatorMethod: Function C.op_GreaterThanOrEqual(x As C, y As C) As C) (OperationKind.BinaryOperator, Type: C, IsImplicit) (Syntax: 'For i = ini ... Step [step]')
+                  Left: 
+                    IFlowCaptureReferenceOperation: 3 (OperationKind.FlowCaptureReference, Type: C, IsImplicit) (Syntax: '[step]')
+                  Right: 
+                    IBinaryOperation (BinaryOperatorKind.Subtract, Checked) (OperatorMethod: Function C.op_Subtraction(x As C, y As C) As C) (OperationKind.BinaryOperator, Type: C, IsImplicit) (Syntax: 'For i = ini ... Step [step]')
+                      Left: 
+                        IFlowCaptureReferenceOperation: 3 (OperationKind.FlowCaptureReference, Type: C, IsImplicit) (Syntax: '[step]')
+                      Right: 
+                        IFlowCaptureReferenceOperation: 3 (OperationKind.FlowCaptureReference, Type: C, IsImplicit) (Syntax: '[step]')
+
+        ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: null, IsImplicit) (Syntax: 'init')
+          Left: 
+            IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: C, IsImplicit) (Syntax: 'i')
+          Right: 
+            IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: C, IsImplicit) (Syntax: 'init')
+
+    Next (Regular) Block[B2]
+Block[B2] - Block
+    Predecessors: [B1] [B5]
+    Statements (1)
+        IFlowCaptureOperation: 5 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'i')
+          Value: 
+            IParameterReferenceOperation: i (OperationKind.ParameterReference, Type: C, IsImplicit) (Syntax: 'i')
+
+    Jump if False (Regular) to Block[B4]
+        IFlowCaptureReferenceOperation: 4 (OperationKind.FlowCaptureReference, Type: System.Boolean, IsImplicit) (Syntax: 'For i = ini ... Step [step]')
+
+    Next (Regular) Block[B3]
+Block[B3] - Block
+    Predecessors: [B2]
+    Statements (0)
+    Jump if False (Regular) to Block[B6]
+        IUnaryOperation (UnaryOperatorKind.True) (OperatorMethod: Function C.op_True(x As C) As System.Boolean) (OperationKind.UnaryOperator, Type: System.Boolean, IsImplicit) (Syntax: 'For i = ini ... Step [step]')
+          Operand: 
+            IBinaryOperation (BinaryOperatorKind.LessThanOrEqual, Checked) (OperatorMethod: Function C.op_LessThanOrEqual(x As C, y As C) As C) (OperationKind.BinaryOperator, Type: C, IsImplicit) (Syntax: 'For i = ini ... Step [step]')
+              Left: 
+                IFlowCaptureReferenceOperation: 5 (OperationKind.FlowCaptureReference, Type: C, IsImplicit) (Syntax: 'i')
+              Right: 
+                IFlowCaptureReferenceOperation: 2 (OperationKind.FlowCaptureReference, Type: C, IsImplicit) (Syntax: 'limit')
+
+    Next (Regular) Block[B5]
+Block[B4] - Block
+    Predecessors: [B2]
+    Statements (0)
+    Jump if False (Regular) to Block[B6]
+        IUnaryOperation (UnaryOperatorKind.True) (OperatorMethod: Function C.op_True(x As C) As System.Boolean) (OperationKind.UnaryOperator, Type: System.Boolean, IsImplicit) (Syntax: 'For i = ini ... Step [step]')
+          Operand: 
+            IBinaryOperation (BinaryOperatorKind.GreaterThanOrEqual, Checked) (OperatorMethod: Function C.op_GreaterThanOrEqual(x As C, y As C) As C) (OperationKind.BinaryOperator, Type: C, IsImplicit) (Syntax: 'For i = ini ... Step [step]')
+              Left: 
+                IFlowCaptureReferenceOperation: 5 (OperationKind.FlowCaptureReference, Type: C, IsImplicit) (Syntax: 'i')
+              Right: 
+                IFlowCaptureReferenceOperation: 2 (OperationKind.FlowCaptureReference, Type: C, IsImplicit) (Syntax: 'limit')
+
+    Next (Regular) Block[B5]
+Block[B5] - Block
+    Predecessors: [B3] [B4]
+    Statements (2)
+        IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'result = i')
+          Expression: 
+            ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: C, IsImplicit) (Syntax: 'result = i')
+              Left: 
+                IParameterReferenceOperation: result (OperationKind.ParameterReference, Type: C) (Syntax: 'result')
+              Right: 
+                IParameterReferenceOperation: i (OperationKind.ParameterReference, Type: C) (Syntax: 'i')
+
+        ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: null, IsImplicit) (Syntax: 'i')
+          Left: 
+            IParameterReferenceOperation: i (OperationKind.ParameterReference, Type: C, IsImplicit) (Syntax: 'i')
+          Right: 
+            IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperatorMethod: Function C.op_Addition(x As C, y As C) As C) (OperationKind.BinaryOperator, Type: C, IsImplicit) (Syntax: 'For i = ini ... Step [step]')
+              Left: 
+                IParameterReferenceOperation: i (OperationKind.ParameterReference, Type: C, IsImplicit) (Syntax: 'i')
+              Right: 
+                IFlowCaptureReferenceOperation: 3 (OperationKind.FlowCaptureReference, Type: C, IsImplicit) (Syntax: '[step]')
+
+    Next (Regular) Block[B2]
+Block[B6] - Exit
+    Predecessors: [B3] [B4]
+    Statements (0)
+]]>.Value
+
+            VerifyFlowGraphAndDiagnosticsForTest(Of MethodBlockSyntax)(source, expectedFlowGraph, expectedDiagnostics)
+        End Sub
+
+        <CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)>
+        <Fact()>
+        Public Sub ForToFlow_28()
+            Dim source = <![CDATA[
+Imports System
+Public Structure C
+    Sub M(i As C?, init As C?, limit As C?, [step] As C?, result As C?) 'BIND:"Sub M"
+        For i = init To limit Step [step]
+            result = i
+        Next
+    End Sub
+
+    Public Shared Operator >=(x As C, y As C) As Boolean
+        Return False
+    End Operator
+
+    Public Shared Operator <=(x As C, y As C) As Boolean
+        Return False
+    End Operator
+
+    Public Shared Operator -(x As C, y As C) As C
+        Return Nothing
+    End Operator
+
+    Public Shared Operator +(x As C, y As C) As C
+        Return Nothing
+    End Operator
+End Structure
+]]>.Value
+
+            Dim expectedDiagnostics = String.Empty
+
+            Dim expectedFlowGraph = <![CDATA[
+Block[B0] - Entry
+    Statements (0)
+    Next (Regular) Block[B1]
+Block[B1] - Block
+    Predecessors: [B0]
+    Statements (6)
+        IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'i')
+          Value: 
+            IParameterReferenceOperation: i (OperationKind.ParameterReference, Type: System.Nullable(Of C)) (Syntax: 'i')
+
+        IFlowCaptureOperation: 1 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'init')
+          Value: 
+            IParameterReferenceOperation: init (OperationKind.ParameterReference, Type: System.Nullable(Of C)) (Syntax: 'init')
+
+        IFlowCaptureOperation: 2 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'limit')
+          Value: 
+            IParameterReferenceOperation: limit (OperationKind.ParameterReference, Type: System.Nullable(Of C)) (Syntax: 'limit')
+
+        IFlowCaptureOperation: 3 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: '[step]')
+          Value: 
+            IParameterReferenceOperation: step (OperationKind.ParameterReference, Type: System.Nullable(Of C)) (Syntax: '[step]')
+
+        IFlowCaptureOperation: 4 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'For i = ini ... Step [step]')
+          Value: 
+            IInvocationOperation ( Function System.Nullable(Of System.Boolean).GetValueOrDefault() As System.Boolean) (OperationKind.Invocation, Type: System.Boolean, IsImplicit) (Syntax: 'For i = ini ... Step [step]')
+              Instance Receiver: 
+                IBinaryOperation (BinaryOperatorKind.GreaterThanOrEqual, IsLifted, Checked) (OperatorMethod: Function C.op_GreaterThanOrEqual(x As C, y As C) As System.Boolean) (OperationKind.BinaryOperator, Type: System.Nullable(Of System.Boolean), IsImplicit) (Syntax: 'For i = ini ... Step [step]')
+                  Left: 
+                    IFlowCaptureReferenceOperation: 3 (OperationKind.FlowCaptureReference, Type: System.Nullable(Of C), IsImplicit) (Syntax: '[step]')
+                  Right: 
+                    IBinaryOperation (BinaryOperatorKind.Subtract, IsLifted, Checked) (OperatorMethod: Function C.op_Subtraction(x As C, y As C) As C) (OperationKind.BinaryOperator, Type: System.Nullable(Of C), IsImplicit) (Syntax: 'For i = ini ... Step [step]')
+                      Left: 
+                        IFlowCaptureReferenceOperation: 3 (OperationKind.FlowCaptureReference, Type: System.Nullable(Of C), IsImplicit) (Syntax: '[step]')
+                      Right: 
+                        IFlowCaptureReferenceOperation: 3 (OperationKind.FlowCaptureReference, Type: System.Nullable(Of C), IsImplicit) (Syntax: '[step]')
+              Arguments(0)
+
+        ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: null, IsImplicit) (Syntax: 'init')
+          Left: 
+            IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.Nullable(Of C), IsImplicit) (Syntax: 'i')
+          Right: 
+            IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: System.Nullable(Of C), IsImplicit) (Syntax: 'init')
+
+    Next (Regular) Block[B2]
+Block[B2] - Block
+    Predecessors: [B1] [B5]
+    Statements (1)
+        IFlowCaptureOperation: 5 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'i')
+          Value: 
+            IParameterReferenceOperation: i (OperationKind.ParameterReference, Type: System.Nullable(Of C), IsImplicit) (Syntax: 'i')
+
+    Jump if False (Regular) to Block[B4]
+        IFlowCaptureReferenceOperation: 4 (OperationKind.FlowCaptureReference, Type: System.Boolean, IsImplicit) (Syntax: 'For i = ini ... Step [step]')
+
+    Next (Regular) Block[B3]
+Block[B3] - Block
+    Predecessors: [B2]
+    Statements (0)
+    Jump if False (Regular) to Block[B6]
+        IInvocationOperation ( Function System.Nullable(Of System.Boolean).GetValueOrDefault() As System.Boolean) (OperationKind.Invocation, Type: System.Boolean, IsImplicit) (Syntax: 'For i = ini ... Step [step]')
+          Instance Receiver: 
+            IBinaryOperation (BinaryOperatorKind.LessThanOrEqual, IsLifted, Checked) (OperatorMethod: Function C.op_LessThanOrEqual(x As C, y As C) As System.Boolean) (OperationKind.BinaryOperator, Type: System.Nullable(Of System.Boolean), IsImplicit) (Syntax: 'For i = ini ... Step [step]')
+              Left: 
+                IFlowCaptureReferenceOperation: 5 (OperationKind.FlowCaptureReference, Type: System.Nullable(Of C), IsImplicit) (Syntax: 'i')
+              Right: 
+                IFlowCaptureReferenceOperation: 2 (OperationKind.FlowCaptureReference, Type: System.Nullable(Of C), IsImplicit) (Syntax: 'limit')
+          Arguments(0)
+
+    Next (Regular) Block[B5]
+Block[B4] - Block
+    Predecessors: [B2]
+    Statements (0)
+    Jump if False (Regular) to Block[B6]
+        IInvocationOperation ( Function System.Nullable(Of System.Boolean).GetValueOrDefault() As System.Boolean) (OperationKind.Invocation, Type: System.Boolean, IsImplicit) (Syntax: 'For i = ini ... Step [step]')
+          Instance Receiver: 
+            IBinaryOperation (BinaryOperatorKind.GreaterThanOrEqual, IsLifted, Checked) (OperatorMethod: Function C.op_GreaterThanOrEqual(x As C, y As C) As System.Boolean) (OperationKind.BinaryOperator, Type: System.Nullable(Of System.Boolean), IsImplicit) (Syntax: 'For i = ini ... Step [step]')
+              Left: 
+                IFlowCaptureReferenceOperation: 5 (OperationKind.FlowCaptureReference, Type: System.Nullable(Of C), IsImplicit) (Syntax: 'i')
+              Right: 
+                IFlowCaptureReferenceOperation: 2 (OperationKind.FlowCaptureReference, Type: System.Nullable(Of C), IsImplicit) (Syntax: 'limit')
+          Arguments(0)
+
+    Next (Regular) Block[B5]
+Block[B5] - Block
+    Predecessors: [B3] [B4]
+    Statements (2)
+        IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'result = i')
+          Expression: 
+            ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Nullable(Of C), IsImplicit) (Syntax: 'result = i')
+              Left: 
+                IParameterReferenceOperation: result (OperationKind.ParameterReference, Type: System.Nullable(Of C)) (Syntax: 'result')
+              Right: 
+                IParameterReferenceOperation: i (OperationKind.ParameterReference, Type: System.Nullable(Of C)) (Syntax: 'i')
+
+        ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: null, IsImplicit) (Syntax: 'i')
+          Left: 
+            IParameterReferenceOperation: i (OperationKind.ParameterReference, Type: System.Nullable(Of C), IsImplicit) (Syntax: 'i')
+          Right: 
+            IBinaryOperation (BinaryOperatorKind.Add, IsLifted, Checked) (OperatorMethod: Function C.op_Addition(x As C, y As C) As C) (OperationKind.BinaryOperator, Type: System.Nullable(Of C), IsImplicit) (Syntax: 'For i = ini ... Step [step]')
+              Left: 
+                IParameterReferenceOperation: i (OperationKind.ParameterReference, Type: System.Nullable(Of C), IsImplicit) (Syntax: 'i')
+              Right: 
+                IFlowCaptureReferenceOperation: 3 (OperationKind.FlowCaptureReference, Type: System.Nullable(Of C), IsImplicit) (Syntax: '[step]')
+
+    Next (Regular) Block[B2]
+Block[B6] - Exit
+    Predecessors: [B3] [B4]
+    Statements (0)
+]]>.Value
+
+            VerifyFlowGraphAndDiagnosticsForTest(Of MethodBlockSyntax)(source, expectedFlowGraph, expectedDiagnostics)
+        End Sub
+
+        <CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)>
+        <Fact()>
+        Public Sub ForToFlow_29()
+            Dim source = <![CDATA[
+Imports System
+Public Class C
+    Sub M(c1 As C, c2 As C, bInit As Boolean, init1 As C, init2 As C, bLimit As Boolean, limit1 As C, limit2 As C, bStep As Boolean, step1 As C, step2 As C, result As Boolean) 'BIND:"Sub M"
+        For If(c1, c2).i = If(bInit, init1, init2) To If(bLimit, limit1, limit2) Step If(bStep, step1, step2)
+            result = true
+        Next
+    End Sub
+
+    Public i As C
+
+    Public Shared Operator >=(x As C, y As C) As Boolean
+        Return False
+    End Operator
+
+    Public Shared Operator <=(x As C, y As C) As Boolean
+        Return False
+    End Operator
+
+    Public Shared Operator -(x As C, y As C) As C
+        Return Nothing
+    End Operator
+
+    Public Shared Operator +(x As C, y As C) As C
+        Return Nothing
+    End Operator
+End Class
+]]>.Value
+
+            Dim expectedDiagnostics = String.Empty
+
+            Dim expectedFlowGraph = <![CDATA[
+Block[B0] - Entry
+    Statements (0)
+    Next (Regular) Block[B1]
+Block[B1] - Block
+    Predecessors: [B0]
+    Statements (1)
+        IFlowCaptureOperation: 1 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'c1')
+          Value: 
+            IParameterReferenceOperation: c1 (OperationKind.ParameterReference, Type: C) (Syntax: 'c1')
+
+    Jump if True (Regular) to Block[B3]
+        IIsNullOperation (OperationKind.IsNull, Type: System.Boolean, IsImplicit) (Syntax: 'c1')
+          Operand: 
+            IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: C, IsImplicit) (Syntax: 'c1')
+
+    Next (Regular) Block[B2]
+Block[B2] - Block
+    Predecessors: [B1]
+    Statements (1)
+        IFlowCaptureOperation: 2 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'c1')
+          Value: 
+            IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: C, IsImplicit) (Syntax: 'c1')
+
+    Next (Regular) Block[B4]
+Block[B3] - Block
+    Predecessors: [B1]
+    Statements (1)
+        IFlowCaptureOperation: 2 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'c2')
+          Value: 
+            IParameterReferenceOperation: c2 (OperationKind.ParameterReference, Type: C) (Syntax: 'c2')
+
+    Next (Regular) Block[B4]
+Block[B4] - Block
+    Predecessors: [B2] [B3]
+    Statements (1)
+        IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'If(c1, c2).i')
+          Value: 
+            IFieldReferenceOperation: C.i As C (OperationKind.FieldReference, Type: C) (Syntax: 'If(c1, c2).i')
+              Instance Receiver: 
+                IFlowCaptureReferenceOperation: 2 (OperationKind.FlowCaptureReference, Type: C, IsImplicit) (Syntax: 'If(c1, c2)')
+
+    Jump if False (Regular) to Block[B6]
+        IParameterReferenceOperation: bInit (OperationKind.ParameterReference, Type: System.Boolean) (Syntax: 'bInit')
+
+    Next (Regular) Block[B5]
+Block[B5] - Block
+    Predecessors: [B4]
+    Statements (1)
+        IFlowCaptureOperation: 3 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'init1')
+          Value: 
+            IParameterReferenceOperation: init1 (OperationKind.ParameterReference, Type: C) (Syntax: 'init1')
+
+    Next (Regular) Block[B7]
+Block[B6] - Block
+    Predecessors: [B4]
+    Statements (1)
+        IFlowCaptureOperation: 3 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'init2')
+          Value: 
+            IParameterReferenceOperation: init2 (OperationKind.ParameterReference, Type: C) (Syntax: 'init2')
+
+    Next (Regular) Block[B7]
+Block[B7] - Block
+    Predecessors: [B5] [B6]
+    Statements (0)
+    Jump if False (Regular) to Block[B9]
+        IParameterReferenceOperation: bLimit (OperationKind.ParameterReference, Type: System.Boolean) (Syntax: 'bLimit')
+
+    Next (Regular) Block[B8]
+Block[B8] - Block
+    Predecessors: [B7]
+    Statements (1)
+        IFlowCaptureOperation: 4 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'limit1')
+          Value: 
+            IParameterReferenceOperation: limit1 (OperationKind.ParameterReference, Type: C) (Syntax: 'limit1')
+
+    Next (Regular) Block[B10]
+Block[B9] - Block
+    Predecessors: [B7]
+    Statements (1)
+        IFlowCaptureOperation: 4 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'limit2')
+          Value: 
+            IParameterReferenceOperation: limit2 (OperationKind.ParameterReference, Type: C) (Syntax: 'limit2')
+
+    Next (Regular) Block[B10]
+Block[B10] - Block
+    Predecessors: [B8] [B9]
+    Statements (0)
+    Jump if False (Regular) to Block[B12]
+        IParameterReferenceOperation: bStep (OperationKind.ParameterReference, Type: System.Boolean) (Syntax: 'bStep')
+
+    Next (Regular) Block[B11]
+Block[B11] - Block
+    Predecessors: [B10]
+    Statements (1)
+        IFlowCaptureOperation: 5 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'step1')
+          Value: 
+            IParameterReferenceOperation: step1 (OperationKind.ParameterReference, Type: C) (Syntax: 'step1')
+
+    Next (Regular) Block[B13]
+Block[B12] - Block
+    Predecessors: [B10]
+    Statements (1)
+        IFlowCaptureOperation: 5 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'step2')
+          Value: 
+            IParameterReferenceOperation: step2 (OperationKind.ParameterReference, Type: C) (Syntax: 'step2')
+
+    Next (Regular) Block[B13]
+Block[B13] - Block
+    Predecessors: [B11] [B12]
+    Statements (2)
+        IFlowCaptureOperation: 6 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'For If(c1,  ... ep1, step2)')
+          Value: 
+            IBinaryOperation (BinaryOperatorKind.GreaterThanOrEqual, Checked) (OperatorMethod: Function C.op_GreaterThanOrEqual(x As C, y As C) As System.Boolean) (OperationKind.BinaryOperator, Type: System.Boolean, IsImplicit) (Syntax: 'For If(c1,  ... ep1, step2)')
+              Left: 
+                IFlowCaptureReferenceOperation: 5 (OperationKind.FlowCaptureReference, Type: C, IsImplicit) (Syntax: 'If(bStep, step1, step2)')
+              Right: 
+                IBinaryOperation (BinaryOperatorKind.Subtract, Checked) (OperatorMethod: Function C.op_Subtraction(x As C, y As C) As C) (OperationKind.BinaryOperator, Type: C, IsImplicit) (Syntax: 'For If(c1,  ... ep1, step2)')
+                  Left: 
+                    IFlowCaptureReferenceOperation: 5 (OperationKind.FlowCaptureReference, Type: C, IsImplicit) (Syntax: 'If(bStep, step1, step2)')
+                  Right: 
+                    IFlowCaptureReferenceOperation: 5 (OperationKind.FlowCaptureReference, Type: C, IsImplicit) (Syntax: 'If(bStep, step1, step2)')
+
+        ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: null, IsImplicit) (Syntax: 'If(bInit, init1, init2)')
+          Left: 
+            IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: C, IsImplicit) (Syntax: 'If(c1, c2).i')
+          Right: 
+            IFlowCaptureReferenceOperation: 3 (OperationKind.FlowCaptureReference, Type: C, IsImplicit) (Syntax: 'If(bInit, init1, init2)')
+
+    Next (Regular) Block[B14]
+Block[B14] - Block
+    Predecessors: [B13] [B26]
+    Statements (1)
+        IFlowCaptureOperation: 8 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'c1')
+          Value: 
+            IParameterReferenceOperation: c1 (OperationKind.ParameterReference, Type: C, IsImplicit) (Syntax: 'c1')
+
+    Jump if True (Regular) to Block[B16]
+        IIsNullOperation (OperationKind.IsNull, Type: System.Boolean, IsImplicit) (Syntax: 'c1')
+          Operand: 
+            IFlowCaptureReferenceOperation: 8 (OperationKind.FlowCaptureReference, Type: C, IsImplicit) (Syntax: 'c1')
+
+    Next (Regular) Block[B15]
+Block[B15] - Block
+    Predecessors: [B14]
+    Statements (1)
+        IFlowCaptureOperation: 9 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'c1')
+          Value: 
+            IFlowCaptureReferenceOperation: 8 (OperationKind.FlowCaptureReference, Type: C, IsImplicit) (Syntax: 'c1')
+
+    Next (Regular) Block[B17]
+Block[B16] - Block
+    Predecessors: [B14]
+    Statements (1)
+        IFlowCaptureOperation: 9 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'c2')
+          Value: 
+            IParameterReferenceOperation: c2 (OperationKind.ParameterReference, Type: C, IsImplicit) (Syntax: 'c2')
+
+    Next (Regular) Block[B17]
+Block[B17] - Block
+    Predecessors: [B15] [B16]
+    Statements (1)
+        IFlowCaptureOperation: 7 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'If(c1, c2).i')
+          Value: 
+            IFieldReferenceOperation: C.i As C (OperationKind.FieldReference, Type: C, IsImplicit) (Syntax: 'If(c1, c2).i')
+              Instance Receiver: 
+                IFlowCaptureReferenceOperation: 9 (OperationKind.FlowCaptureReference, Type: C, IsImplicit) (Syntax: 'If(c1, c2)')
+
+    Jump if False (Regular) to Block[B19]
+        IFlowCaptureReferenceOperation: 6 (OperationKind.FlowCaptureReference, Type: System.Boolean, IsImplicit) (Syntax: 'For If(c1,  ... ep1, step2)')
+
+    Next (Regular) Block[B18]
+Block[B18] - Block
+    Predecessors: [B17]
+    Statements (0)
+    Jump if False (Regular) to Block[B27]
+        IBinaryOperation (BinaryOperatorKind.LessThanOrEqual, Checked) (OperatorMethod: Function C.op_LessThanOrEqual(x As C, y As C) As System.Boolean) (OperationKind.BinaryOperator, Type: System.Boolean, IsImplicit) (Syntax: 'For If(c1,  ... ep1, step2)')
+          Left: 
+            IFlowCaptureReferenceOperation: 7 (OperationKind.FlowCaptureReference, Type: C, IsImplicit) (Syntax: 'If(c1, c2).i')
+          Right: 
+            IFlowCaptureReferenceOperation: 4 (OperationKind.FlowCaptureReference, Type: C, IsImplicit) (Syntax: 'If(bLimit,  ... t1, limit2)')
+
+    Next (Regular) Block[B20]
+Block[B19] - Block
+    Predecessors: [B17]
+    Statements (0)
+    Jump if False (Regular) to Block[B27]
+        IBinaryOperation (BinaryOperatorKind.GreaterThanOrEqual, Checked) (OperatorMethod: Function C.op_GreaterThanOrEqual(x As C, y As C) As System.Boolean) (OperationKind.BinaryOperator, Type: System.Boolean, IsImplicit) (Syntax: 'For If(c1,  ... ep1, step2)')
+          Left: 
+            IFlowCaptureReferenceOperation: 7 (OperationKind.FlowCaptureReference, Type: C, IsImplicit) (Syntax: 'If(c1, c2).i')
+          Right: 
+            IFlowCaptureReferenceOperation: 4 (OperationKind.FlowCaptureReference, Type: C, IsImplicit) (Syntax: 'If(bLimit,  ... t1, limit2)')
+
+    Next (Regular) Block[B20]
+Block[B20] - Block
+    Predecessors: [B18] [B19]
+    Statements (2)
+        IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'result = true')
+          Expression: 
+            ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Boolean, IsImplicit) (Syntax: 'result = true')
+              Left: 
+                IParameterReferenceOperation: result (OperationKind.ParameterReference, Type: System.Boolean) (Syntax: 'result')
+              Right: 
+                ILiteralOperation (OperationKind.Literal, Type: System.Boolean, Constant: True) (Syntax: 'true')
+
+        IFlowCaptureOperation: 10 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'c1')
+          Value: 
+            IParameterReferenceOperation: c1 (OperationKind.ParameterReference, Type: C, IsImplicit) (Syntax: 'c1')
+
+    Jump if True (Regular) to Block[B22]
+        IIsNullOperation (OperationKind.IsNull, Type: System.Boolean, IsImplicit) (Syntax: 'c1')
+          Operand: 
+            IFlowCaptureReferenceOperation: 10 (OperationKind.FlowCaptureReference, Type: C, IsImplicit) (Syntax: 'c1')
+
+    Next (Regular) Block[B21]
+Block[B21] - Block
+    Predecessors: [B20]
+    Statements (1)
+        IFlowCaptureOperation: 11 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'c1')
+          Value: 
+            IFlowCaptureReferenceOperation: 10 (OperationKind.FlowCaptureReference, Type: C, IsImplicit) (Syntax: 'c1')
+
+    Next (Regular) Block[B23]
+Block[B22] - Block
+    Predecessors: [B20]
+    Statements (1)
+        IFlowCaptureOperation: 11 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'c2')
+          Value: 
+            IParameterReferenceOperation: c2 (OperationKind.ParameterReference, Type: C, IsImplicit) (Syntax: 'c2')
+
+    Next (Regular) Block[B23]
+Block[B23] - Block
+    Predecessors: [B21] [B22]
+    Statements (2)
+        IFlowCaptureOperation: 12 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'If(c1, c2).i')
+          Value: 
+            IFieldReferenceOperation: C.i As C (OperationKind.FieldReference, Type: C, IsImplicit) (Syntax: 'If(c1, c2).i')
+              Instance Receiver: 
+                IFlowCaptureReferenceOperation: 11 (OperationKind.FlowCaptureReference, Type: C, IsImplicit) (Syntax: 'If(c1, c2)')
+
+        IFlowCaptureOperation: 13 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'c1')
+          Value: 
+            IParameterReferenceOperation: c1 (OperationKind.ParameterReference, Type: C, IsImplicit) (Syntax: 'c1')
+
+    Jump if True (Regular) to Block[B25]
+        IIsNullOperation (OperationKind.IsNull, Type: System.Boolean, IsImplicit) (Syntax: 'c1')
+          Operand: 
+            IFlowCaptureReferenceOperation: 13 (OperationKind.FlowCaptureReference, Type: C, IsImplicit) (Syntax: 'c1')
+
+    Next (Regular) Block[B24]
+Block[B24] - Block
+    Predecessors: [B23]
+    Statements (1)
+        IFlowCaptureOperation: 14 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'c1')
+          Value: 
+            IFlowCaptureReferenceOperation: 13 (OperationKind.FlowCaptureReference, Type: C, IsImplicit) (Syntax: 'c1')
+
+    Next (Regular) Block[B26]
+Block[B25] - Block
+    Predecessors: [B23]
+    Statements (1)
+        IFlowCaptureOperation: 14 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'c2')
+          Value: 
+            IParameterReferenceOperation: c2 (OperationKind.ParameterReference, Type: C, IsImplicit) (Syntax: 'c2')
+
+    Next (Regular) Block[B26]
+Block[B26] - Block
+    Predecessors: [B24] [B25]
+    Statements (1)
+        ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: null, IsImplicit) (Syntax: 'If(c1, c2).i')
+          Left: 
+            IFlowCaptureReferenceOperation: 12 (OperationKind.FlowCaptureReference, Type: C, IsImplicit) (Syntax: 'If(c1, c2).i')
+          Right: 
+            IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperatorMethod: Function C.op_Addition(x As C, y As C) As C) (OperationKind.BinaryOperator, Type: C, IsImplicit) (Syntax: 'For If(c1,  ... ep1, step2)')
+              Left: 
+                IFieldReferenceOperation: C.i As C (OperationKind.FieldReference, Type: C, IsImplicit) (Syntax: 'If(c1, c2).i')
+                  Instance Receiver: 
+                    IFlowCaptureReferenceOperation: 14 (OperationKind.FlowCaptureReference, Type: C, IsImplicit) (Syntax: 'If(c1, c2)')
+              Right: 
+                IFlowCaptureReferenceOperation: 5 (OperationKind.FlowCaptureReference, Type: C, IsImplicit) (Syntax: 'If(bStep, step1, step2)')
+
+    Next (Regular) Block[B14]
+Block[B27] - Exit
+    Predecessors: [B18] [B19]
+    Statements (0)
+]]>.Value
+
+            VerifyFlowGraphAndDiagnosticsForTest(Of MethodBlockSyntax)(source, expectedFlowGraph, expectedDiagnostics)
+        End Sub
+
+        <CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)>
+        <Fact()>
+        Public Sub ForToFlow_30()
+            Dim source = <![CDATA[
+Imports System
+Public Class C1
+    Sub M(c1 As C1, c2 As C1, bInit As Boolean, init1 As C?, init2 As C?, bLimit As Boolean, limit1 As C?, limit2 As C?, bStep As Boolean, step1 As C?, step2 As C?, result As Boolean) 'BIND:"Sub M"
+        For If(c1, c2).i = If(bInit, init1, init2) To If(bLimit, limit1, limit2) Step If(bStep, step1, step2)
+            result = true
+        Next
+    End Sub
+
+    Public i As C?
+End Class
+
+Public Structure C
+
+    Public Shared Operator >=(x As C, y As C) As Boolean
+        Return False
+    End Operator
+
+    Public Shared Operator <=(x As C, y As C) As Boolean
+        Return False
+    End Operator
+
+    Public Shared Operator -(x As C, y As C) As C
+        Return Nothing
+    End Operator
+
+    Public Shared Operator +(x As C, y As C) As C
+        Return Nothing
+    End Operator
+End Structure
+]]>.Value
+
+            Dim expectedDiagnostics = String.Empty
+
+            Dim expectedFlowGraph = <![CDATA[
+Block[B0] - Entry
+    Statements (0)
+    Next (Regular) Block[B1]
+Block[B1] - Block
+    Predecessors: [B0]
+    Statements (1)
+        IFlowCaptureOperation: 1 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'c1')
+          Value: 
+            IParameterReferenceOperation: c1 (OperationKind.ParameterReference, Type: C1) (Syntax: 'c1')
+
+    Jump if True (Regular) to Block[B3]
+        IIsNullOperation (OperationKind.IsNull, Type: System.Boolean, IsImplicit) (Syntax: 'c1')
+          Operand: 
+            IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: C1, IsImplicit) (Syntax: 'c1')
+
+    Next (Regular) Block[B2]
+Block[B2] - Block
+    Predecessors: [B1]
+    Statements (1)
+        IFlowCaptureOperation: 2 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'c1')
+          Value: 
+            IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: C1, IsImplicit) (Syntax: 'c1')
+
+    Next (Regular) Block[B4]
+Block[B3] - Block
+    Predecessors: [B1]
+    Statements (1)
+        IFlowCaptureOperation: 2 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'c2')
+          Value: 
+            IParameterReferenceOperation: c2 (OperationKind.ParameterReference, Type: C1) (Syntax: 'c2')
+
+    Next (Regular) Block[B4]
+Block[B4] - Block
+    Predecessors: [B2] [B3]
+    Statements (1)
+        IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'If(c1, c2).i')
+          Value: 
+            IFieldReferenceOperation: C1.i As System.Nullable(Of C) (OperationKind.FieldReference, Type: System.Nullable(Of C)) (Syntax: 'If(c1, c2).i')
+              Instance Receiver: 
+                IFlowCaptureReferenceOperation: 2 (OperationKind.FlowCaptureReference, Type: C1, IsImplicit) (Syntax: 'If(c1, c2)')
+
+    Jump if False (Regular) to Block[B6]
+        IParameterReferenceOperation: bInit (OperationKind.ParameterReference, Type: System.Boolean) (Syntax: 'bInit')
+
+    Next (Regular) Block[B5]
+Block[B5] - Block
+    Predecessors: [B4]
+    Statements (1)
+        IFlowCaptureOperation: 3 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'init1')
+          Value: 
+            IParameterReferenceOperation: init1 (OperationKind.ParameterReference, Type: System.Nullable(Of C)) (Syntax: 'init1')
+
+    Next (Regular) Block[B7]
+Block[B6] - Block
+    Predecessors: [B4]
+    Statements (1)
+        IFlowCaptureOperation: 3 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'init2')
+          Value: 
+            IParameterReferenceOperation: init2 (OperationKind.ParameterReference, Type: System.Nullable(Of C)) (Syntax: 'init2')
+
+    Next (Regular) Block[B7]
+Block[B7] - Block
+    Predecessors: [B5] [B6]
+    Statements (0)
+    Jump if False (Regular) to Block[B9]
+        IParameterReferenceOperation: bLimit (OperationKind.ParameterReference, Type: System.Boolean) (Syntax: 'bLimit')
+
+    Next (Regular) Block[B8]
+Block[B8] - Block
+    Predecessors: [B7]
+    Statements (1)
+        IFlowCaptureOperation: 4 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'limit1')
+          Value: 
+            IParameterReferenceOperation: limit1 (OperationKind.ParameterReference, Type: System.Nullable(Of C)) (Syntax: 'limit1')
+
+    Next (Regular) Block[B10]
+Block[B9] - Block
+    Predecessors: [B7]
+    Statements (1)
+        IFlowCaptureOperation: 4 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'limit2')
+          Value: 
+            IParameterReferenceOperation: limit2 (OperationKind.ParameterReference, Type: System.Nullable(Of C)) (Syntax: 'limit2')
+
+    Next (Regular) Block[B10]
+Block[B10] - Block
+    Predecessors: [B8] [B9]
+    Statements (0)
+    Jump if False (Regular) to Block[B12]
+        IParameterReferenceOperation: bStep (OperationKind.ParameterReference, Type: System.Boolean) (Syntax: 'bStep')
+
+    Next (Regular) Block[B11]
+Block[B11] - Block
+    Predecessors: [B10]
+    Statements (1)
+        IFlowCaptureOperation: 5 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'step1')
+          Value: 
+            IParameterReferenceOperation: step1 (OperationKind.ParameterReference, Type: System.Nullable(Of C)) (Syntax: 'step1')
+
+    Next (Regular) Block[B13]
+Block[B12] - Block
+    Predecessors: [B10]
+    Statements (1)
+        IFlowCaptureOperation: 5 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'step2')
+          Value: 
+            IParameterReferenceOperation: step2 (OperationKind.ParameterReference, Type: System.Nullable(Of C)) (Syntax: 'step2')
+
+    Next (Regular) Block[B13]
+Block[B13] - Block
+    Predecessors: [B11] [B12]
+    Statements (2)
+        IFlowCaptureOperation: 6 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'For If(c1,  ... ep1, step2)')
+          Value: 
+            IInvocationOperation ( Function System.Nullable(Of System.Boolean).GetValueOrDefault() As System.Boolean) (OperationKind.Invocation, Type: System.Boolean, IsImplicit) (Syntax: 'For If(c1,  ... ep1, step2)')
+              Instance Receiver: 
+                IBinaryOperation (BinaryOperatorKind.GreaterThanOrEqual, IsLifted, Checked) (OperatorMethod: Function C.op_GreaterThanOrEqual(x As C, y As C) As System.Boolean) (OperationKind.BinaryOperator, Type: System.Nullable(Of System.Boolean), IsImplicit) (Syntax: 'For If(c1,  ... ep1, step2)')
+                  Left: 
+                    IFlowCaptureReferenceOperation: 5 (OperationKind.FlowCaptureReference, Type: System.Nullable(Of C), IsImplicit) (Syntax: 'If(bStep, step1, step2)')
+                  Right: 
+                    IBinaryOperation (BinaryOperatorKind.Subtract, IsLifted, Checked) (OperatorMethod: Function C.op_Subtraction(x As C, y As C) As C) (OperationKind.BinaryOperator, Type: System.Nullable(Of C), IsImplicit) (Syntax: 'For If(c1,  ... ep1, step2)')
+                      Left: 
+                        IFlowCaptureReferenceOperation: 5 (OperationKind.FlowCaptureReference, Type: System.Nullable(Of C), IsImplicit) (Syntax: 'If(bStep, step1, step2)')
+                      Right: 
+                        IFlowCaptureReferenceOperation: 5 (OperationKind.FlowCaptureReference, Type: System.Nullable(Of C), IsImplicit) (Syntax: 'If(bStep, step1, step2)')
+              Arguments(0)
+
+        ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: null, IsImplicit) (Syntax: 'If(bInit, init1, init2)')
+          Left: 
+            IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.Nullable(Of C), IsImplicit) (Syntax: 'If(c1, c2).i')
+          Right: 
+            IFlowCaptureReferenceOperation: 3 (OperationKind.FlowCaptureReference, Type: System.Nullable(Of C), IsImplicit) (Syntax: 'If(bInit, init1, init2)')
+
+    Next (Regular) Block[B14]
+Block[B14] - Block
+    Predecessors: [B13] [B26]
+    Statements (1)
+        IFlowCaptureOperation: 8 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'c1')
+          Value: 
+            IParameterReferenceOperation: c1 (OperationKind.ParameterReference, Type: C1, IsImplicit) (Syntax: 'c1')
+
+    Jump if True (Regular) to Block[B16]
+        IIsNullOperation (OperationKind.IsNull, Type: System.Boolean, IsImplicit) (Syntax: 'c1')
+          Operand: 
+            IFlowCaptureReferenceOperation: 8 (OperationKind.FlowCaptureReference, Type: C1, IsImplicit) (Syntax: 'c1')
+
+    Next (Regular) Block[B15]
+Block[B15] - Block
+    Predecessors: [B14]
+    Statements (1)
+        IFlowCaptureOperation: 9 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'c1')
+          Value: 
+            IFlowCaptureReferenceOperation: 8 (OperationKind.FlowCaptureReference, Type: C1, IsImplicit) (Syntax: 'c1')
+
+    Next (Regular) Block[B17]
+Block[B16] - Block
+    Predecessors: [B14]
+    Statements (1)
+        IFlowCaptureOperation: 9 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'c2')
+          Value: 
+            IParameterReferenceOperation: c2 (OperationKind.ParameterReference, Type: C1, IsImplicit) (Syntax: 'c2')
+
+    Next (Regular) Block[B17]
+Block[B17] - Block
+    Predecessors: [B15] [B16]
+    Statements (1)
+        IFlowCaptureOperation: 7 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'If(c1, c2).i')
+          Value: 
+            IFieldReferenceOperation: C1.i As System.Nullable(Of C) (OperationKind.FieldReference, Type: System.Nullable(Of C), IsImplicit) (Syntax: 'If(c1, c2).i')
+              Instance Receiver: 
+                IFlowCaptureReferenceOperation: 9 (OperationKind.FlowCaptureReference, Type: C1, IsImplicit) (Syntax: 'If(c1, c2)')
+
+    Jump if False (Regular) to Block[B19]
+        IFlowCaptureReferenceOperation: 6 (OperationKind.FlowCaptureReference, Type: System.Boolean, IsImplicit) (Syntax: 'For If(c1,  ... ep1, step2)')
+
+    Next (Regular) Block[B18]
+Block[B18] - Block
+    Predecessors: [B17]
+    Statements (0)
+    Jump if False (Regular) to Block[B27]
+        IInvocationOperation ( Function System.Nullable(Of System.Boolean).GetValueOrDefault() As System.Boolean) (OperationKind.Invocation, Type: System.Boolean, IsImplicit) (Syntax: 'For If(c1,  ... ep1, step2)')
+          Instance Receiver: 
+            IBinaryOperation (BinaryOperatorKind.LessThanOrEqual, IsLifted, Checked) (OperatorMethod: Function C.op_LessThanOrEqual(x As C, y As C) As System.Boolean) (OperationKind.BinaryOperator, Type: System.Nullable(Of System.Boolean), IsImplicit) (Syntax: 'For If(c1,  ... ep1, step2)')
+              Left: 
+                IFlowCaptureReferenceOperation: 7 (OperationKind.FlowCaptureReference, Type: System.Nullable(Of C), IsImplicit) (Syntax: 'If(c1, c2).i')
+              Right: 
+                IFlowCaptureReferenceOperation: 4 (OperationKind.FlowCaptureReference, Type: System.Nullable(Of C), IsImplicit) (Syntax: 'If(bLimit,  ... t1, limit2)')
+          Arguments(0)
+
+    Next (Regular) Block[B20]
+Block[B19] - Block
+    Predecessors: [B17]
+    Statements (0)
+    Jump if False (Regular) to Block[B27]
+        IInvocationOperation ( Function System.Nullable(Of System.Boolean).GetValueOrDefault() As System.Boolean) (OperationKind.Invocation, Type: System.Boolean, IsImplicit) (Syntax: 'For If(c1,  ... ep1, step2)')
+          Instance Receiver: 
+            IBinaryOperation (BinaryOperatorKind.GreaterThanOrEqual, IsLifted, Checked) (OperatorMethod: Function C.op_GreaterThanOrEqual(x As C, y As C) As System.Boolean) (OperationKind.BinaryOperator, Type: System.Nullable(Of System.Boolean), IsImplicit) (Syntax: 'For If(c1,  ... ep1, step2)')
+              Left: 
+                IFlowCaptureReferenceOperation: 7 (OperationKind.FlowCaptureReference, Type: System.Nullable(Of C), IsImplicit) (Syntax: 'If(c1, c2).i')
+              Right: 
+                IFlowCaptureReferenceOperation: 4 (OperationKind.FlowCaptureReference, Type: System.Nullable(Of C), IsImplicit) (Syntax: 'If(bLimit,  ... t1, limit2)')
+          Arguments(0)
+
+    Next (Regular) Block[B20]
+Block[B20] - Block
+    Predecessors: [B18] [B19]
+    Statements (2)
+        IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'result = true')
+          Expression: 
+            ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Boolean, IsImplicit) (Syntax: 'result = true')
+              Left: 
+                IParameterReferenceOperation: result (OperationKind.ParameterReference, Type: System.Boolean) (Syntax: 'result')
+              Right: 
+                ILiteralOperation (OperationKind.Literal, Type: System.Boolean, Constant: True) (Syntax: 'true')
+
+        IFlowCaptureOperation: 10 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'c1')
+          Value: 
+            IParameterReferenceOperation: c1 (OperationKind.ParameterReference, Type: C1, IsImplicit) (Syntax: 'c1')
+
+    Jump if True (Regular) to Block[B22]
+        IIsNullOperation (OperationKind.IsNull, Type: System.Boolean, IsImplicit) (Syntax: 'c1')
+          Operand: 
+            IFlowCaptureReferenceOperation: 10 (OperationKind.FlowCaptureReference, Type: C1, IsImplicit) (Syntax: 'c1')
+
+    Next (Regular) Block[B21]
+Block[B21] - Block
+    Predecessors: [B20]
+    Statements (1)
+        IFlowCaptureOperation: 11 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'c1')
+          Value: 
+            IFlowCaptureReferenceOperation: 10 (OperationKind.FlowCaptureReference, Type: C1, IsImplicit) (Syntax: 'c1')
+
+    Next (Regular) Block[B23]
+Block[B22] - Block
+    Predecessors: [B20]
+    Statements (1)
+        IFlowCaptureOperation: 11 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'c2')
+          Value: 
+            IParameterReferenceOperation: c2 (OperationKind.ParameterReference, Type: C1, IsImplicit) (Syntax: 'c2')
+
+    Next (Regular) Block[B23]
+Block[B23] - Block
+    Predecessors: [B21] [B22]
+    Statements (2)
+        IFlowCaptureOperation: 12 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'If(c1, c2).i')
+          Value: 
+            IFieldReferenceOperation: C1.i As System.Nullable(Of C) (OperationKind.FieldReference, Type: System.Nullable(Of C), IsImplicit) (Syntax: 'If(c1, c2).i')
+              Instance Receiver: 
+                IFlowCaptureReferenceOperation: 11 (OperationKind.FlowCaptureReference, Type: C1, IsImplicit) (Syntax: 'If(c1, c2)')
+
+        IFlowCaptureOperation: 13 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'c1')
+          Value: 
+            IParameterReferenceOperation: c1 (OperationKind.ParameterReference, Type: C1, IsImplicit) (Syntax: 'c1')
+
+    Jump if True (Regular) to Block[B25]
+        IIsNullOperation (OperationKind.IsNull, Type: System.Boolean, IsImplicit) (Syntax: 'c1')
+          Operand: 
+            IFlowCaptureReferenceOperation: 13 (OperationKind.FlowCaptureReference, Type: C1, IsImplicit) (Syntax: 'c1')
+
+    Next (Regular) Block[B24]
+Block[B24] - Block
+    Predecessors: [B23]
+    Statements (1)
+        IFlowCaptureOperation: 14 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'c1')
+          Value: 
+            IFlowCaptureReferenceOperation: 13 (OperationKind.FlowCaptureReference, Type: C1, IsImplicit) (Syntax: 'c1')
+
+    Next (Regular) Block[B26]
+Block[B25] - Block
+    Predecessors: [B23]
+    Statements (1)
+        IFlowCaptureOperation: 14 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'c2')
+          Value: 
+            IParameterReferenceOperation: c2 (OperationKind.ParameterReference, Type: C1, IsImplicit) (Syntax: 'c2')
+
+    Next (Regular) Block[B26]
+Block[B26] - Block
+    Predecessors: [B24] [B25]
+    Statements (1)
+        ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: null, IsImplicit) (Syntax: 'If(c1, c2).i')
+          Left: 
+            IFlowCaptureReferenceOperation: 12 (OperationKind.FlowCaptureReference, Type: System.Nullable(Of C), IsImplicit) (Syntax: 'If(c1, c2).i')
+          Right: 
+            IBinaryOperation (BinaryOperatorKind.Add, IsLifted, Checked) (OperatorMethod: Function C.op_Addition(x As C, y As C) As C) (OperationKind.BinaryOperator, Type: System.Nullable(Of C), IsImplicit) (Syntax: 'For If(c1,  ... ep1, step2)')
+              Left: 
+                IFieldReferenceOperation: C1.i As System.Nullable(Of C) (OperationKind.FieldReference, Type: System.Nullable(Of C), IsImplicit) (Syntax: 'If(c1, c2).i')
+                  Instance Receiver: 
+                    IFlowCaptureReferenceOperation: 14 (OperationKind.FlowCaptureReference, Type: C1, IsImplicit) (Syntax: 'If(c1, c2)')
+              Right: 
+                IFlowCaptureReferenceOperation: 5 (OperationKind.FlowCaptureReference, Type: System.Nullable(Of C), IsImplicit) (Syntax: 'If(bStep, step1, step2)')
+
+    Next (Regular) Block[B14]
+Block[B27] - Exit
+    Predecessors: [B18] [B19]
+    Statements (0)
+]]>.Value
+
+            VerifyFlowGraphAndDiagnosticsForTest(Of MethodBlockSyntax)(source, expectedFlowGraph, expectedDiagnostics)
+        End Sub
     End Class
 End Namespace
