@@ -2354,12 +2354,6 @@ oneMoreTime:
             return null;
         }
 
-        public override IOperation VisitEmpty(IEmptyOperation operation, int? captureIdForResult)
-        {
-            Debug.Assert(_currentStatement == operation);
-            return null;
-        }
-
         public override IOperation VisitThrow(IThrowOperation operation, int? captureIdForResult)
         {
             bool isStatement = (_currentStatement == operation);
@@ -4542,6 +4536,12 @@ oneMoreTime:
         public override IOperation VisitTypeOf(ITypeOfOperation operation, int? captureIdForResult)
         {
             return new TypeOfExpression(operation.TypeOperand, semanticModel: null, operation.Syntax, operation.Type, operation.ConstantValue, IsImplicit(operation));
+        }
+
+        public override IOperation VisitEmpty(IEmptyOperation operation, int? captureIdForResult)
+        {
+            Debug.Assert(_currentStatement == operation);
+            return null;
         }
 
         private T Visit<T>(T node) where T : IOperation
