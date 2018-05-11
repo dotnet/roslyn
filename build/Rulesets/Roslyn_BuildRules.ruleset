@@ -153,4 +153,8 @@
     <Rule Id="xUnit2018" Action="None" /> <!-- "do not compare an object's exact type to the abstract class" is a valid assert, but very noisy right now -->
 collection.
   </Rules>
+  <Rules AnalyzerId="Microsoft.VisualStudio.SDK.Analyzers" RuleNamespace="Microsoft.VisualStudio.SDK.Analyzers">
+    <Rule Id="VSSDK001" Action="Warning" />
+    <Rule Id="VSSDK003" Action="Warning" />
+  </Rules>
 </RuleSet>
