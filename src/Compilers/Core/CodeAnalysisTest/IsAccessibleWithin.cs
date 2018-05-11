@@ -439,16 +439,17 @@ End Class
             var vbc2 = VisualBasicCompilation.Create("VB2", new[] { vbTree2 }, new MetadataReference[] { TestBase.MscorlibRef });
             var VB2 = vbc2.GlobalNamespace.GetMembers("VB2")[0] as INamedTypeSymbol;
 
+            // Same language
             Assert.True(CS.ContainingAssembly.GivesAccessTo(CS2.ContainingAssembly));
             Assert.True(VB.ContainingAssembly.GivesAccessTo(VB2.ContainingAssembly));
             Assert.True(CS.IsAccessibleWithin(CS2));
             Assert.True(VB.IsAccessibleWithin(VB2));
 
-            // The following results are incorrect; See https://github.com/dotnet/roslyn/issues/26459
-            Assert.False(CS.ContainingAssembly.GivesAccessTo(VB.ContainingAssembly)); // should be Assert.True
-            Assert.False(VB.ContainingAssembly.GivesAccessTo(CS.ContainingAssembly)); // should be Assert.True
-            Assert.False(CS.IsAccessibleWithin(VB)); // should be Assert.True
-            Assert.False(VB.IsAccessibleWithin(CS)); // should be Assert.True
+            // Cross language
+            Assert.True(CS.ContainingAssembly.GivesAccessTo(VB.ContainingAssembly));
+            Assert.True(VB.ContainingAssembly.GivesAccessTo(CS.ContainingAssembly));
+            Assert.True(CS.IsAccessibleWithin(VB));
+            Assert.True(VB.IsAccessibleWithin(CS));
         }
 
         private abstract class Symbol : ISymbol
