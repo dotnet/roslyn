@@ -94,22 +94,24 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic
                 Dim workspace = Me.ComponentModel.GetService(Of VisualStudioWorkspaceImpl)()
                 RegisterService(Of IVbTempPECompilerFactory)(Function() New TempPECompilerFactory(workspace))
 
-                Await RegisterObjectBrowserLibraryManagerAsync().ConfigureAwait(True)
+                Await RegisterObjectBrowserLibraryManagerAsync(cancellationToken).ConfigureAwait(True)
             Catch ex As Exception When FatalError.Report(ex)
             End Try
         End Function
 
         Protected Overrides Sub Dispose(disposing As Boolean)
             If disposing Then
-                JoinableTaskFactory.Run(AddressOf UnregisterObjectBrowserLibraryManagerAsync)
+                JoinableTaskFactory.Run(Function() UnregisterObjectBrowserLibraryManagerAsync(CancellationToken.None))
             End If
 
             MyBase.Dispose(disposing)
         End Sub
 
-        Private Async Function RegisterObjectBrowserLibraryManagerAsync() As Task
+        Private Async Function RegisterObjectBrowserLibraryManagerAsync(cancellationToken As CancellationToken) As Task
             Dim objectManager = TryCast(Await GetServiceAsync(GetType(SVsObjectManager)).ConfigureAwait(True), IVsObjectManager2)
             If objectManager IsNot Nothing Then
+                Await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken)
+
                 Me._libraryManager = New ObjectBrowserLibraryManager(Me)
 
                 If ErrorHandler.Failed(objectManager.RegisterSimpleLibrary(Me._libraryManager, Me._libraryManagerCookie)) Then
@@ -118,8 +120,10 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic
             End If
         End Function
 
-        Private Async Function UnregisterObjectBrowserLibraryManagerAsync() As Task
+        Private Async Function UnregisterObjectBrowserLibraryManagerAsync(cancellationToken As CancellationToken) As Task
             If _libraryManagerCookie <> 0 Then
+                Await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken)
+
                 Dim objectManager = TryCast(Await GetServiceAsync(GetType(SVsObjectManager)).ConfigureAwait(True), IVsObjectManager2)
                 If objectManager IsNot Nothing Then
                     objectManager.UnregisterLibrary(Me._libraryManagerCookie)

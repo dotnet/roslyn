@@ -82,7 +82,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.LanguageService
 
                 this.RegisterService<ICSharpTempPECompilerService>(() => new TempPECompilerService(this.Workspace.Services.GetService<IMetadataService>()));
 
-                await RegisterObjectBrowserLibraryManagerAsync().ConfigureAwait(true);
+                await RegisterObjectBrowserLibraryManagerAsync(cancellationToken).ConfigureAwait(true);
             }
             catch (Exception e) when (FatalError.Report(e))
             {
@@ -98,16 +98,18 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.LanguageService
         {
             if (disposing)
             {
-                JoinableTaskFactory.Run(UnregisterObjectBrowserLibraryManagerAsync);
+                JoinableTaskFactory.Run(() => UnregisterObjectBrowserLibraryManagerAsync(CancellationToken.None));
             }
 
             base.Dispose(disposing);
         }
 
-        private async Task RegisterObjectBrowserLibraryManagerAsync()
+        private async Task RegisterObjectBrowserLibraryManagerAsync(CancellationToken cancellationToken)
         {
             if (await GetServiceAsync(typeof(SVsObjectManager)).ConfigureAwait(true) is IVsObjectManager2 objectManager)
             {
+                await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+
                 _libraryManager = new ObjectBrowserLibraryManager(this);
 
                 if (ErrorHandler.Failed(objectManager.RegisterSimpleLibrary(_libraryManager, out _libraryManagerCookie)))
@@ -117,10 +119,12 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.LanguageService
             }
         }
 
-        private async Task UnregisterObjectBrowserLibraryManagerAsync()
+        private async Task UnregisterObjectBrowserLibraryManagerAsync(CancellationToken cancellationToken)
         {
             if (_libraryManagerCookie != 0)
             {
+                await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+
                 if (await GetServiceAsync(typeof(SVsObjectManager)).ConfigureAwait(true) is IVsObjectManager2 objectManager)
                 {
                     objectManager.UnregisterLibrary(_libraryManagerCookie);
