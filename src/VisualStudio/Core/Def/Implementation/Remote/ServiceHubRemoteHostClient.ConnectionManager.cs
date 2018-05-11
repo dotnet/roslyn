@@ -24,7 +24,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
             private readonly int _maxPoolConnections;
 
             // keyed to serviceName. each connection is for specific service such as CodeAnalysisService
-            private readonly ConcurrentDictionary<string, ConcurrentQueue<JsonRpcConnection>> _pools;
+            private readonly ConcurrentDictionary<string, ConcurrentQueue<OwnedDisposable<Connection>>> _pools;
 
             // indicate whether pool should be used.
             private readonly bool _enableConnectionPool;
@@ -51,13 +51,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
 
                 // initial value 4 is chosen to stop concurrent dictionary creating too many locks.
                 // and big enough for all our services such as codeanalysis, remotehost, snapshot and etc services
-                _pools = new ConcurrentDictionary<string, ConcurrentQueue<JsonRpcConnection>>(concurrencyLevel: 4, capacity: 4);
+                _pools = new ConcurrentDictionary<string, ConcurrentQueue<OwnedDisposable<Connection>>>(concurrencyLevel: 4, capacity: 4);
 
                 _enableConnectionPool = enableConnectionPool;
                 _shutdownLock = new ReaderWriterLockSlim(LockRecursionPolicy.NoRecursion);
             }
 
-            public Task<Connection> TryCreateConnectionAsync(string serviceName, object callbackTarget, CancellationToken cancellationToken)
+            public Task<OwnedDisposable<Connection>> TryCreateConnectionAsync(string serviceName, object callbackTarget, CancellationToken cancellationToken)
             {
                 // pool is not enabled by option
                 if (!_enableConnectionPool)
@@ -87,25 +87,39 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
                 return TryGetConnectionFromPoolAsync(serviceName, cancellationToken);
             }
 
-            private async Task<Connection> TryGetConnectionFromPoolAsync(string serviceName, CancellationToken cancellationToken)
+            private async Task<OwnedDisposable<Connection>> TryGetConnectionFromPoolAsync(string serviceName, CancellationToken cancellationToken)
             {
-                var queue = _pools.GetOrAdd(serviceName, _ => new ConcurrentQueue<JsonRpcConnection>());
+                var queue = _pools.GetOrAdd(serviceName, _ => new ConcurrentQueue<OwnedDisposable<Connection>>());
                 if (queue.TryDequeue(out var connection))
                 {
-                    return new PooledConnection(this, serviceName, connection);
+                    try
+                    {
+                        return new OwnedDisposable<Connection>(() => new PooledConnection(this, serviceName, ref connection));
+                    }
+                    finally
+                    {
+                        connection.Dispose();
+                    }
                 }
 
-                var newConnection = (JsonRpcConnection)await TryCreateNewConnectionAsync(serviceName, callbackTarget: null, cancellationToken).ConfigureAwait(false);
-                if (newConnection == null)
+                var newConnection = await TryCreateNewConnectionAsync(serviceName, callbackTarget: null, cancellationToken).ConfigureAwait(false);
+                try
                 {
-                    // we might not get new connection if we are either shutdown explicitly or due to OOP terminated
-                    return null;
-                }
+                    if (newConnection == null)
+                    {
+                        // we might not get new connection if we are either shutdown explicitly or due to OOP terminated
+                        return default;
+                    }
 
-                return new PooledConnection(this, serviceName, newConnection);
+                    return new OwnedDisposable<Connection>(() => new PooledConnection(this, serviceName, ref newConnection));
+                }
+                finally
+                {
+                    newConnection.Dispose();
+                }
             }
 
-            private async Task<Connection> TryCreateNewConnectionAsync(string serviceName, object callbackTarget, CancellationToken cancellationToken)
+            private async Task<OwnedDisposable<Connection>> TryCreateNewConnectionAsync(string serviceName, object callbackTarget, CancellationToken cancellationToken)
             {
                 var dataRpc = _remotableDataRpc.TryAddReference();
                 if (dataRpc == null)
@@ -114,17 +128,17 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
                     // no other one holding the data connection.
                     // in those error case, don't crash but return null. this method is TryCreate since caller expects it to return null
                     // on such error situation.
-                    return null;
+                    return default;
                 }
 
                 // get stream from service hub to communicate service specific information
                 // this is what consumer actually use to communicate information
                 var serviceStream = await Connections.RequestServiceAsync(dataRpc.Target.Workspace, _hubClient, serviceName, _hostGroup, _timeout, cancellationToken).ConfigureAwait(false);
 
-                return new JsonRpcConnection(_hubClient.Logger, callbackTarget, serviceStream, dataRpc);
+                return new OwnedDisposable<Connection>(() => new JsonRpcConnection(_hubClient.Logger, callbackTarget, serviceStream, dataRpc));
             }
 
-            private void Free(string serviceName, JsonRpcConnection connection)
+            private void Free(string serviceName, ref OwnedDisposable<Connection> connection)
             {
                 using (_shutdownLock.DisposableRead())
                 {
@@ -146,7 +160,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
                     }
 
                     // pool the connection
-                    queue.Enqueue(connection);
+                    queue.Enqueue(connection.Move());
                 }
             }
 

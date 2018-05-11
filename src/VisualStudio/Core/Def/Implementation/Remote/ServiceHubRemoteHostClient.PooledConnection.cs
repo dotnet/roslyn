@@ -6,6 +6,7 @@ using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Remote;
+using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Remote
 {
@@ -17,9 +18,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
             {
                 private readonly ConnectionManager _connectionManager;
                 private readonly string _serviceName;
-                private readonly JsonRpcConnection _connection;
+                private OwnedDisposable<Connection> _connection;
 
-                public PooledConnection(ConnectionManager pools, string serviceName, JsonRpcConnection connection)
+                public PooledConnection(ConnectionManager pools, string serviceName, ref OwnedDisposable<Connection> connection)
                 {
                     _connectionManager = pools;
                     _serviceName = serviceName;
@@ -27,26 +28,26 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
                 }
 
                 public override Task InvokeAsync(string targetName, IReadOnlyList<object> arguments, CancellationToken cancellationToken) =>
-                    _connection.InvokeAsync(targetName, arguments, cancellationToken);
+                    _connection.Target.InvokeAsync(targetName, arguments, cancellationToken);
 
                 public override Task<T> InvokeAsync<T>(string targetName, IReadOnlyList<object> arguments, CancellationToken cancellationToken) =>
-                    _connection.InvokeAsync<T>(targetName, arguments, cancellationToken);
+                    _connection.Target.InvokeAsync<T>(targetName, arguments, cancellationToken);
 
                 public override Task InvokeAsync(
                     string targetName, IReadOnlyList<object> arguments,
                     Func<Stream, CancellationToken, Task> funcWithDirectStreamAsync, CancellationToken cancellationToken) =>
-                    _connection.InvokeAsync(targetName, arguments, funcWithDirectStreamAsync, cancellationToken);
+                    _connection.Target.InvokeAsync(targetName, arguments, funcWithDirectStreamAsync, cancellationToken);
 
                 public override Task<T> InvokeAsync<T>(
                     string targetName, IReadOnlyList<object> arguments,
                     Func<Stream, CancellationToken, Task<T>> funcWithDirectStreamAsync, CancellationToken cancellationToken) =>
-                    _connection.InvokeAsync<T>(targetName, arguments, funcWithDirectStreamAsync, cancellationToken);
+                    _connection.Target.InvokeAsync<T>(targetName, arguments, funcWithDirectStreamAsync, cancellationToken);
 
                 protected override void Dispose(bool disposing)
                 {
                     if (disposing)
                     {
-                        _connectionManager.Free(_serviceName, _connection);
+                        _connectionManager.Free(_serviceName, ref _connection);
                     }
 
                     base.Dispose(disposing);

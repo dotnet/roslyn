@@ -133,7 +133,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
             _rpc.StartListening();
         }
 
-        public override Task<Connection> TryCreateConnectionAsync(string serviceName, object callbackTarget, CancellationToken cancellationToken)
+        public override Task<OwnedDisposable<Connection>> TryCreateConnectionAsync(string serviceName, object callbackTarget, CancellationToken cancellationToken)
         {
             return _connectionManager.TryCreateConnectionAsync(serviceName, callbackTarget, cancellationToken);
         }

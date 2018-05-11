@@ -76,14 +76,14 @@ namespace Roslyn.Test.Utilities.Remote
             _inprocServices.RegisterService(name, serviceCreator);
         }
 
-        public override async Task<Connection> TryCreateConnectionAsync(
+        public override async Task<OwnedDisposable<Connection>> TryCreateConnectionAsync(
             string serviceName, object callbackTarget, CancellationToken cancellationToken)
         {
             // get stream from service hub to communicate service specific information 
             // this is what consumer actually use to communicate information
             var serviceStream = await _inprocServices.RequestServiceAsync(serviceName, cancellationToken).ConfigureAwait(false);
 
-            return new JsonRpcConnection(_inprocServices.Logger, callbackTarget, serviceStream, _remotableDataRpc.TryAddReference());
+            return new OwnedDisposable<Connection>(new JsonRpcConnection(_inprocServices.Logger, callbackTarget, serviceStream, _remotableDataRpc.TryAddReference()));
         }
 
         protected override void OnStarted()
