@@ -8327,8 +8327,8 @@ partial class C
     }
 }";
             var c = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugDll);
-            CompileAndVerify(c).VerifyIL("Program.M",
-@"{
+            CompileAndVerify(c).VerifyIL(qualifiedMethodName: "Program.M", sequencePoints: "Program.M", source: source,
+expectedIL: @"{
   // Code size      123 (0x7b)
   .maxstack  2
   .locals init (object V_0,
@@ -8339,17 +8339,22 @@ partial class C
                 object V_5,
                 object V_6,
                 object V_7)
+  // sequence point: {
   IL_0000:  nop
+  // sequence point: switch (o)
   IL_0001:  ldarg.0
   IL_0002:  stloc.2
+  // sequence point: <hidden>
   IL_0003:  ldloc.2
   IL_0004:  stloc.0
+  // sequence point: <hidden>
   IL_0005:  ldloc.0
   IL_0006:  isinst     ""int""
   IL_000b:  brfalse.s  IL_004a
   IL_000d:  ldloc.0
   IL_000e:  unbox.any  ""int""
   IL_0013:  stloc.1
+  // sequence point: <hidden>
   IL_0014:  ldloc.1
   IL_0015:  ldc.i4.1
   IL_0016:  sub
@@ -8360,44 +8365,67 @@ partial class C
         IL_003c,
         IL_0048)
   IL_0030:  br.s       IL_004a
+  // sequence point: when o == null
   IL_0032:  ldarg.0
   IL_0033:  brfalse.s  IL_003c
+  // sequence point: <hidden>
   IL_0035:  br.s       IL_003e
+  // sequence point: when o == null
   IL_0037:  ldarg.0
   IL_0038:  brfalse.s  IL_003c
+  // sequence point: <hidden>
   IL_003a:  br.s       IL_004a
+  // sequence point: break;
   IL_003c:  br.s       IL_004e
+  // sequence point: when o != null
   IL_003e:  ldarg.0
   IL_003f:  brtrue.s   IL_0048
+  // sequence point: <hidden>
   IL_0041:  br.s       IL_004c
+  // sequence point: when o != null
   IL_0043:  ldarg.0
   IL_0044:  brtrue.s   IL_0048
+  // sequence point: <hidden>
   IL_0046:  br.s       IL_004a
+  // sequence point: break;
   IL_0048:  br.s       IL_004e
+  // sequence point: break;
   IL_004a:  br.s       IL_004e
+  // sequence point: break;
   IL_004c:  br.s       IL_004e
+  // sequence point: switch (o)
   IL_004e:  ldarg.0
   IL_004f:  stloc.s    V_5
+  // sequence point: <hidden>
   IL_0051:  ldloc.s    V_5
   IL_0053:  stloc.3
+  // sequence point: <hidden>
   IL_0054:  ldloc.3
   IL_0055:  isinst     ""int""
   IL_005a:  brfalse.s  IL_006d
   IL_005c:  ldloc.3
   IL_005d:  unbox.any  ""int""
   IL_0062:  stloc.s    V_4
+  // sequence point: <hidden>
   IL_0064:  ldc.i4.1
   IL_0065:  ldloc.s    V_4
   IL_0067:  beq.s      IL_006b
   IL_0069:  br.s       IL_006d
+  // sequence point: break;
   IL_006b:  br.s       IL_006f
+  // sequence point: break;
   IL_006d:  br.s       IL_006f
+  // sequence point: switch (o)
   IL_006f:  ldarg.0
   IL_0070:  stloc.s    V_7
+  // sequence point: <hidden>
   IL_0072:  ldloc.s    V_7
   IL_0074:  stloc.s    V_6
+  // sequence point: <hidden>
   IL_0076:  br.s       IL_0078
+  // sequence point: break;
   IL_0078:  br.s       IL_007a
+  // sequence point: }
   IL_007a:  ret
 }");
             c.VerifyPdb(
