@@ -300,12 +300,6 @@ namespace Microsoft.CodeAnalysis.Interactive
             return new LazyRemoteService(this, options, Interlocked.Increment(ref _remoteServiceInstanceId), skipInitialization);
         }
 
-        private Task OnProcessExited(Process process)
-        {
-            ReportProcessExited(process);
-            return TryGetOrCreateRemoteServiceAsync(processPendingOutput: true);
-        }
-
         private void ReportProcessExited(Process process)
         {
             int? exitCode;
