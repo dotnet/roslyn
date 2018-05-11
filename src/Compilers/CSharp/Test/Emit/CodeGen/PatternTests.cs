@@ -454,8 +454,8 @@ class Program
 @"{
   // Code size       13 (0xd)
   .maxstack  2
-  IL_0000:  ldc.r8     3.14
-  IL_0009:  ldarg.0
+  IL_0000:  ldarg.0
+  IL_0001:  ldc.r8     3.14
   IL_000a:  ceq
   IL_000c:  ret
 }");
@@ -463,8 +463,8 @@ class Program
 @"{
   // Code size        9 (0x9)
   .maxstack  2
-  IL_0000:  ldc.r4     3.14
-  IL_0005:  ldarg.0
+  IL_0000:  ldarg.0
+  IL_0001:  ldc.r4     3.14
   IL_0006:  ceq
   IL_0008:  ret
 }");
@@ -491,8 +491,8 @@ class Program
   IL_0014:  ldloc.1
   IL_0015:  call       ""bool double.IsNaN(double)""
   IL_001a:  brtrue.s   IL_004b
-  IL_001c:  ldc.r8     3.14
-  IL_0025:  ldloc.1
+  IL_001c:  ldloc.1
+  IL_001d:  ldc.r8     3.14
   IL_0026:  beq.s      IL_0055
   IL_0028:  br.s       IL_005f
   IL_002a:  ldloc.0
@@ -504,8 +504,8 @@ class Program
   IL_0039:  ldloc.2
   IL_003a:  call       ""bool float.IsNaN(float)""
   IL_003f:  brtrue.s   IL_0050
-  IL_0041:  ldc.r4     3.14
-  IL_0046:  ldloc.2
+  IL_0041:  ldloc.2
+  IL_0042:  ldc.r4     3.14
   IL_0047:  beq.s      IL_005a
   IL_0049:  br.s       IL_005f
   IL_004b:  ldc.i4.1
@@ -569,7 +569,7 @@ public class C
             compVerifier.VerifyIL("C.M1",
 @"{
   // Code size       39 (0x27)
-  .maxstack  5
+  .maxstack  6
   .locals init (bool V_0,
                 decimal V_1,
                 int V_2)
@@ -577,13 +577,13 @@ public class C
   IL_0001:  ldarg.0
   IL_0002:  call       ""decimal C.M(decimal)""
   IL_0007:  stloc.1
-  IL_0008:  ldc.i4.s   10
-  IL_000a:  ldc.i4.0
+  IL_0008:  ldloc.1
+  IL_0009:  ldc.i4.s   10
   IL_000b:  ldc.i4.0
   IL_000c:  ldc.i4.0
-  IL_000d:  ldc.i4.1
-  IL_000e:  newobj     ""decimal..ctor(int, int, int, bool, byte)""
-  IL_0013:  ldloc.1
+  IL_000d:  ldc.i4.0
+  IL_000e:  ldc.i4.1
+  IL_000f:  newobj     ""decimal..ctor(int, int, int, bool, byte)""
   IL_0014:  call       ""bool decimal.op_Equality(decimal, decimal)""
   IL_0019:  stloc.0
   IL_001a:  ldloc.0
@@ -631,25 +631,22 @@ public class C
             compVerifier = CompileAndVerify(compilation, expectedOutput: expectedOutput);
             compVerifier.VerifyIL("C.M1",
 @"{
-  // Code size       30 (0x1e)
-  .maxstack  5
-  .locals init (decimal V_0)
+  // Code size       28 (0x1c)
+  .maxstack  6
   IL_0000:  ldarg.0
   IL_0001:  call       ""decimal C.M(decimal)""
-  IL_0006:  stloc.0
-  IL_0007:  ldc.i4.s   10
+  IL_0006:  ldc.i4.s   10
+  IL_0008:  ldc.i4.0
   IL_0009:  ldc.i4.0
   IL_000a:  ldc.i4.0
-  IL_000b:  ldc.i4.0
-  IL_000c:  ldc.i4.1
-  IL_000d:  newobj     ""decimal..ctor(int, int, int, bool, byte)""
-  IL_0012:  ldloc.0
-  IL_0013:  call       ""bool decimal.op_Equality(decimal, decimal)""
-  IL_0018:  brfalse.s  IL_001c
-  IL_001a:  ldc.i4.1
+  IL_000b:  ldc.i4.1
+  IL_000c:  newobj     ""decimal..ctor(int, int, int, bool, byte)""
+  IL_0011:  call       ""bool decimal.op_Equality(decimal, decimal)""
+  IL_0016:  brfalse.s  IL_001a
+  IL_0018:  ldc.i4.1
+  IL_0019:  ret
+  IL_001a:  ldc.i4.0
   IL_001b:  ret
-  IL_001c:  ldc.i4.0
-  IL_001d:  ret
 }");
             compVerifier.VerifyIL("C.M2",
 @"{
@@ -770,8 +767,8 @@ public class C
 @"{
   // Code size        6 (0x6)
   .maxstack  2
-  IL_0000:  ldc.i4.s   42
-  IL_0002:  ldarg.0
+  IL_0000:  ldarg.0
+  IL_0001:  ldc.i4.s   42
   IL_0003:  ceq
   IL_0005:  ret
 }");
@@ -1233,8 +1230,8 @@ Closed Open -> Opened
         IL_001c,
         IL_0025)
   IL_0014:  br.s       IL_0039
-  IL_0016:  ldc.i4.1
-  IL_0017:  ldarg.1
+  IL_0016:  ldarg.1
+  IL_0017:  ldc.i4.1
   IL_0018:  beq.s      IL_002b
   IL_001a:  br.s       IL_0039
   IL_001c:  ldarg.1
@@ -1243,8 +1240,8 @@ Closed Open -> Opened
   IL_0020:  ldc.i4.2
   IL_0021:  beq.s      IL_002f
   IL_0023:  br.s       IL_0039
-  IL_0025:  ldc.i4.3
-  IL_0026:  ldarg.1
+  IL_0025:  ldarg.1
+  IL_0026:  ldc.i4.3
   IL_0027:  beq.s      IL_0034
   IL_0029:  br.s       IL_0039
   IL_002b:  ldc.i4.1
@@ -1273,8 +1270,8 @@ Closed Open -> Opened
         IL_001a,
         IL_0023)
   IL_0012:  br.s       IL_003f
-  IL_0014:  ldc.i4.1
-  IL_0015:  ldarg.1
+  IL_0014:  ldarg.1
+  IL_0015:  ldc.i4.1
   IL_0016:  beq.s      IL_0029
   IL_0018:  br.s       IL_003f
   IL_001a:  ldarg.1
@@ -1283,8 +1280,8 @@ Closed Open -> Opened
   IL_001e:  ldc.i4.2
   IL_001f:  beq.s      IL_0031
   IL_0021:  br.s       IL_003f
-  IL_0023:  ldc.i4.3
-  IL_0024:  ldarg.1
+  IL_0023:  ldarg.1
+  IL_0024:  ldc.i4.3
   IL_0025:  beq.s      IL_0038
   IL_0027:  br.s       IL_003f
   IL_0029:  ldc.i4.1
@@ -1547,23 +1544,20 @@ False
 }");
             compVerifier.VerifyIL("Program.Test2<T>(T)",
 @"{
-  // Code size       32 (0x20)
+  // Code size       30 (0x1e)
   .maxstack  2
-  .locals init (int V_0)
   IL_0000:  ldarg.0
   IL_0001:  box        ""T""
   IL_0006:  isinst     ""int""
-  IL_000b:  brfalse.s  IL_001e
+  IL_000b:  brfalse.s  IL_001c
   IL_000d:  ldarg.0
   IL_000e:  box        ""T""
   IL_0013:  unbox.any  ""int""
-  IL_0018:  stloc.0
-  IL_0019:  ldloc.0
-  IL_001a:  ldc.i4.0
-  IL_001b:  ceq
+  IL_0018:  ldc.i4.0
+  IL_0019:  ceq
+  IL_001b:  ret
+  IL_001c:  ldc.i4.0
   IL_001d:  ret
-  IL_001e:  ldc.i4.0
-  IL_001f:  ret
 }");
             compVerifier.VerifyIL("Program.Test3<T>(T)",
 @"{
@@ -1576,8 +1570,8 @@ False
   IL_000b:  stloc.0
   IL_000c:  ldloc.0
   IL_000d:  brfalse.s  IL_001b
-  IL_000f:  ldstr      ""frog""
-  IL_0014:  ldloc.0
+  IL_000f:  ldloc.0
+  IL_0010:  ldstr      ""frog""
   IL_0015:  call       ""bool string.op_Equality(string, string)""
   IL_001a:  ret
   IL_001b:  ldc.i4.0
@@ -1604,23 +1598,20 @@ False
             var compVerifier = CompileAndVerify(compilation);
             compVerifier.VerifyIL("C<T>.Test(C<T>.S)",
 @"{
-  // Code size       32 (0x20)
+  // Code size       30 (0x1e)
   .maxstack  2
-  .locals init (int V_0)
   IL_0000:  ldarg.0
   IL_0001:  box        ""C<T>.S""
   IL_0006:  isinst     ""int""
-  IL_000b:  brfalse.s  IL_001e
+  IL_000b:  brfalse.s  IL_001c
   IL_000d:  ldarg.0
   IL_000e:  box        ""C<T>.S""
   IL_0013:  unbox.any  ""int""
-  IL_0018:  stloc.0
-  IL_0019:  ldc.i4.1
-  IL_001a:  ldloc.0
-  IL_001b:  ceq
+  IL_0018:  ldc.i4.1
+  IL_0019:  ceq
+  IL_001b:  ret
+  IL_001c:  ldc.i4.0
   IL_001d:  ret
-  IL_001e:  ldc.i4.0
-  IL_001f:  ret
 }");
         }
 

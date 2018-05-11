@@ -2573,9 +2573,9 @@ class Program
   IL_0010:  ldarg.0
   IL_0011:  ldc.i4.m1
   IL_0012:  stfld      ""int Program.<Iter1>d__1.<>1__state""
-  IL_0017:  ldc.i4.1
-  IL_0018:  ldarg.0
-  IL_0019:  ldfld      ""int Program.<Iter1>d__1.i""
+  IL_0017:  ldarg.0
+  IL_0018:  ldfld      ""int Program.<Iter1>d__1.i""
+  IL_001d:  ldc.i4.1
   IL_001e:  bne.un.s   IL_0024
   IL_0020:  ldc.i4.1
   IL_0021:  stloc.1
