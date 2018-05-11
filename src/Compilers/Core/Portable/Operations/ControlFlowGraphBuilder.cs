@@ -3898,6 +3898,8 @@ oneMoreTime:
 
         public override IOperation VisitParameterInitializer(IParameterInitializerOperation operation, int? captureIdForResult)
         {
+            Debug.Assert(_currentStatement == operation);
+
             var parameterRef = new ParameterReferenceExpression(operation.Parameter, semanticModel: null,
                 operation.Syntax, operation.Parameter.Type, constantValue: default, isImplicit: true);
             VisitInitializer(rewrittenTarget: parameterRef, initializer: operation);
@@ -3906,15 +3908,16 @@ oneMoreTime:
 
         public override IOperation VisitFieldInitializer(IFieldInitializerOperation operation, int? captureIdForResult)
         {
+            Debug.Assert(_currentStatement == operation);
+
             foreach (IFieldSymbol fieldSymbol in operation.InitializedFields)
             {
                 IInstanceReferenceOperation instance = fieldSymbol.IsStatic ?
                     null :
                     new InstanceReferenceExpression(InstanceReferenceKind.ContainingTypeInstance, semanticModel: null,
                         operation.Syntax, fieldSymbol.ContainingType, constantValue: default, isImplicit: true);
-                Optional<object> constantValue = fieldSymbol.HasConstantValue ? new Optional<object>(fieldSymbol.ConstantValue) : default;
                 var fieldRef = new FieldReferenceExpression(fieldSymbol, isDeclaration: false, instance, semanticModel: null,
-                    operation.Syntax, fieldSymbol.Type, constantValue, isImplicit: true);
+                    operation.Syntax, fieldSymbol.Type, constantValue: default, isImplicit: true);
                 VisitInitializer(rewrittenTarget: fieldRef, initializer: operation);
             }
 
@@ -3923,14 +3926,22 @@ oneMoreTime:
 
         public override IOperation VisitPropertyInitializer(IPropertyInitializerOperation operation, int? captureIdForResult)
         {
+            Debug.Assert(_currentStatement == operation);
+
             foreach (IPropertySymbol propertySymbol in operation.InitializedProperties)
             {
                 var instance = propertySymbol.IsStatic ?
                     null :
                     new InstanceReferenceExpression(InstanceReferenceKind.ContainingTypeInstance, semanticModel: null,
                         operation.Syntax, propertySymbol.ContainingType, constantValue: default, isImplicit: true);
-                var propertyRef = new PropertyReferenceExpression(propertySymbol, instance, arguments: ImmutableArray<IArgumentOperation>.Empty,
-                    semanticModel: null, operation.Syntax, operation.Type, constantValue: default, isImplicit: true);
+                IOperation propertyRef = new PropertyReferenceExpression(propertySymbol, instance, arguments: ImmutableArray<IArgumentOperation>.Empty,
+                    semanticModel: null, operation.Syntax, propertySymbol.Type, constantValue: default, isImplicit: true);
+                if (!propertySymbol.Parameters.IsEmpty)
+                {
+                    // Must be an error case of initializing a property with parameters.
+                    propertyRef = MakeInvalidOperation(propertyRef.Type, propertyRef);
+                }
+
                 VisitInitializer(rewrittenTarget: propertyRef, initializer: operation);
             }
 
@@ -3945,13 +3956,9 @@ oneMoreTime:
                 EnterRegion(new RegionBuilder(ControlFlowGraph.RegionKind.Locals, locals: initializer.Locals));
             }
 
-            // We skip constants in the control flow graph, as they're not actually involved in any control flow.
-            if (!rewrittenTarget.ConstantValue.HasValue && initializer.Value != null)
-            {
-                var assignment = new SimpleAssignmentExpression(rewrittenTarget, isRef: false, Visit(initializer.Value), semanticModel: null,
+            var assignment = new SimpleAssignmentExpression(rewrittenTarget, isRef: false, Visit(initializer.Value), semanticModel: null,
                     initializer.Syntax, rewrittenTarget.Type, constantValue: default, isImplicit: true);
-                AddStatement(assignment);
-            }
+            AddStatement(assignment);
 
             if (haveLocals)
             {

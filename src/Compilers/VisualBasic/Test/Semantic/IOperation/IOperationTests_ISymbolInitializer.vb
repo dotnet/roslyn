@@ -505,8 +505,20 @@ End Class]]>.Value
 Block[B0] - Entry
     Statements (0)
     Next (Regular) Block[B1]
-Block[B1] - Exit
+Block[B1] - Block
     Predecessors: [B0]
+    Statements (1)
+        ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32, IsImplicit) (Syntax: '= 1')
+          Left: 
+            IFieldReferenceOperation: C.s1 As System.Int32 (Static) (OperationKind.FieldReference, Type: System.Int32, IsImplicit) (Syntax: '= 1')
+              Instance Receiver: 
+                null
+          Right: 
+            ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
+
+    Next (Regular) Block[B2]
+Block[B2] - Exit
+    Predecessors: [B1]
     Statements (0)
 ]]>.Value
 
@@ -702,6 +714,8 @@ Class C
 End Class
 ]]>.Value
 
+            ' Expected Flow graph should also include the implicit array initializer (10).
+            ' This is tracked by https://github.com/dotnet/roslyn/issues/26780
             Dim expectedFlowGraph = <![CDATA[
 Block[B0] - Entry
     Statements (0)
@@ -732,6 +746,63 @@ Block[B2] - Exit
     Private s1(10) As Integer = Nothing'BIND:"= Nothing"
             ~~~~~~
 ]]>.Value
+
+            VerifyFlowGraphAndDiagnosticsForTest(Of EqualsValueSyntax)(source, expectedFlowGraph, expectedDiagnostics)
+        End Sub
+
+        <CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)>
+        <Fact>
+        Public Sub ControlFlow_ConstantInitializer_ConstantField()
+            Dim source = <![CDATA[
+Class C
+    Const s1 As Integer = If(True, 1, 2)'BIND:"= If(True, 1, 2)"
+End Class]]>.Value
+
+            Dim expectedFlowGraph = <![CDATA[
+Block[B0] - Entry
+    Statements (0)
+    Next (Regular) Block[B1]
+Block[B1] - Block
+    Predecessors: [B0]
+    Statements (0)
+    Jump if False (Regular) to Block[B3]
+        ILiteralOperation (OperationKind.Literal, Type: System.Boolean, Constant: True) (Syntax: 'True')
+
+    Next (Regular) Block[B2]
+Block[B2] - Block
+    Predecessors: [B1]
+    Statements (1)
+        IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: '1')
+          Value: 
+            ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
+
+    Next (Regular) Block[B4]
+Block[B3] - Block [UnReachable]
+    Predecessors: [B1]
+    Statements (1)
+        IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: '2')
+          Value: 
+            ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2) (Syntax: '2')
+
+    Next (Regular) Block[B4]
+Block[B4] - Block
+    Predecessors: [B2] [B3]
+    Statements (1)
+        ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32, IsImplicit) (Syntax: '= If(True, 1, 2)')
+          Left: 
+            IFieldReferenceOperation: C.s1 As System.Int32 (Static) (OperationKind.FieldReference, Type: System.Int32, IsImplicit) (Syntax: '= If(True, 1, 2)')
+              Instance Receiver: 
+                null
+          Right: 
+            IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.Int32, Constant: 1, IsImplicit) (Syntax: 'If(True, 1, 2)')
+
+    Next (Regular) Block[B5]
+Block[B5] - Exit
+    Predecessors: [B4]
+    Statements (0)
+]]>.Value
+
+            Dim expectedDiagnostics = String.Empty
 
             VerifyFlowGraphAndDiagnosticsForTest(Of EqualsValueSyntax)(source, expectedFlowGraph, expectedDiagnostics)
         End Sub
@@ -1165,9 +1236,9 @@ Block[B0] - Entry
 Block[B1] - Block
     Predecessors: [B0]
     Statements (1)
-        ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: null, IsImplicit) (Syntax: '= 1')
+        ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32, IsImplicit) (Syntax: '= 1')
           Left: 
-            IPropertyReferenceOperation: Property C.P1 As System.Int32 (Static) (OperationKind.PropertyReference, Type: null, IsImplicit) (Syntax: '= 1')
+            IPropertyReferenceOperation: Property C.P1 As System.Int32 (Static) (OperationKind.PropertyReference, Type: System.Int32, IsImplicit) (Syntax: '= 1')
               Instance Receiver: 
                 null
           Right: 
@@ -1199,9 +1270,9 @@ Block[B0] - Entry
 Block[B1] - Block
     Predecessors: [B0]
     Statements (1)
-        ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: null, IsImplicit) (Syntax: '= 1')
+        ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32, IsImplicit) (Syntax: '= 1')
           Left: 
-            IPropertyReferenceOperation: Property C.P1 As System.Int32 (OperationKind.PropertyReference, Type: null, IsImplicit) (Syntax: '= 1')
+            IPropertyReferenceOperation: Property C.P1 As System.Int32 (OperationKind.PropertyReference, Type: System.Int32, IsImplicit) (Syntax: '= 1')
               Instance Receiver: 
                 IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: C, IsImplicit) (Syntax: '= 1')
           Right: 
@@ -1236,9 +1307,9 @@ Block[B0] - Entry
 Block[B1] - Block
     Predecessors: [B0]
     Statements (1)
-        ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: null, IsImplicit) (Syntax: '= M()')
+        ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32, IsImplicit) (Syntax: '= M()')
           Left: 
-            IPropertyReferenceOperation: Property C.P1 As System.Int32 (Static) (OperationKind.PropertyReference, Type: null, IsImplicit) (Syntax: '= M()')
+            IPropertyReferenceOperation: Property C.P1 As System.Int32 (Static) (OperationKind.PropertyReference, Type: System.Int32, IsImplicit) (Syntax: '= M()')
               Instance Receiver: 
                 null
           Right: 
@@ -1276,9 +1347,9 @@ Block[B0] - Entry
 Block[B1] - Block
     Predecessors: [B0]
     Statements (1)
-        ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: null, IsImplicit) (Syntax: '= M()')
+        ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32, IsImplicit) (Syntax: '= M()')
           Left: 
-            IPropertyReferenceOperation: Property C.P1 As System.Int32 (OperationKind.PropertyReference, Type: null, IsImplicit) (Syntax: '= M()')
+            IPropertyReferenceOperation: Property C.P1 As System.Int32 (OperationKind.PropertyReference, Type: System.Int32, IsImplicit) (Syntax: '= M()')
               Instance Receiver: 
                 IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: C, IsImplicit) (Syntax: '= M()')
           Right: 
@@ -1300,9 +1371,47 @@ Block[B2] - Exit
 
         <CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)>
         <Fact>
+        Public Sub NoControlFlow_PropertyInitializerWithArguments()
+            Dim source = <![CDATA[
+Class C
+    Shared Property P1(i As Integer) As Integer = 1'BIND:"= 1"
+End Class]]>.Value
+
+            Dim expectedFlowGraph = <![CDATA[
+Block[B0] - Entry
+    Statements (0)
+    Next (Regular) Block[B1]
+Block[B1] - Block
+    Predecessors: [B0]
+    Statements (1)
+        ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32, IsImplicit) (Syntax: '= 1')
+          Left: 
+            IInvalidOperation (OperationKind.Invalid, Type: System.Int32, IsImplicit) (Syntax: '= 1')
+              Children(1):
+                  IPropertyReferenceOperation: Property C.P1(i As System.Int32) As System.Int32 (Static) (OperationKind.PropertyReference, Type: System.Int32, IsImplicit) (Syntax: '= 1')
+                    Instance Receiver: 
+                      null
+          Right: 
+            ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
+
+    Next (Regular) Block[B2]
+Block[B2] - Exit
+    Predecessors: [B1]
+    Statements (0)
+]]>.Value
+
+            Dim expectedDiagnostics = <![CDATA[
+BC36759: Auto-implemented properties cannot have parameters.
+    Shared Property P1(i As Integer) As Integer = 1'BIND:"= 1"
+                      ~~~~~~~~~~~~~~
+]]>.Value
+
+            VerifyFlowGraphAndDiagnosticsForTest(Of EqualsValueSyntax)(source, expectedFlowGraph, expectedDiagnostics)
+        End Sub
+
+        <CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)>
+        <Fact>
         Public Sub NoControlFlow_AsNewPropertyInitializer()
-            ' Note: As New cannot be applied to multiple properties, and leads to parse error with no AsNewClauseSyntax node in the tree.
-            ' Hence this test verifies As New applied to single property.
             Dim source = <![CDATA[
 Class C
     Private ReadOnly Property P1 As New Integer()'BIND:"As New Integer()"
@@ -1316,13 +1425,62 @@ Block[B0] - Entry
 Block[B1] - Block
     Predecessors: [B0]
     Statements (1)
-        ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: null, IsImplicit) (Syntax: 'As New Integer()')
+        ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32, IsImplicit) (Syntax: 'As New Integer()')
           Left: 
-            IPropertyReferenceOperation: ReadOnly Property C.P1 As System.Int32 (OperationKind.PropertyReference, Type: null, IsImplicit) (Syntax: 'As New Integer()')
+            IPropertyReferenceOperation: ReadOnly Property C.P1 As System.Int32 (OperationKind.PropertyReference, Type: System.Int32, IsImplicit) (Syntax: 'As New Integer()')
               Instance Receiver: 
                 IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: C, IsImplicit) (Syntax: 'As New Integer()')
           Right: 
             IObjectCreationOperation (Constructor: Sub System.Int32..ctor()) (OperationKind.ObjectCreation, Type: System.Int32) (Syntax: 'New Integer()')
+              Arguments(0)
+              Initializer: 
+                null
+
+    Next (Regular) Block[B2]
+Block[B2] - Exit
+    Predecessors: [B1]
+    Statements (0)
+]]>.Value
+
+            Dim expectedDiagnostics = String.Empty
+
+            VerifyFlowGraphAndDiagnosticsForTest(Of AsNewClauseSyntax)(source, expectedFlowGraph, expectedDiagnostics)
+        End Sub
+
+        <CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)>
+        <Fact>
+        Public Sub NoControlFlow_WithEventsAsNewPropertyInitializer()
+            Dim source = <![CDATA[
+Class C
+    WithEvents e, f As New C() 'BIND:"As New C()"
+End Class
+]]>.Value
+
+            Dim expectedFlowGraph = <![CDATA[
+Block[B0] - Entry
+    Statements (0)
+    Next (Regular) Block[B1]
+Block[B1] - Block
+    Predecessors: [B0]
+    Statements (2)
+        ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: C, IsImplicit) (Syntax: 'As New C()')
+          Left: 
+            IPropertyReferenceOperation: WithEvents C.e As C (OperationKind.PropertyReference, Type: C, IsImplicit) (Syntax: 'As New C()')
+              Instance Receiver: 
+                IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: C, IsImplicit) (Syntax: 'As New C()')
+          Right: 
+            IObjectCreationOperation (Constructor: Sub C..ctor()) (OperationKind.ObjectCreation, Type: C) (Syntax: 'New C()')
+              Arguments(0)
+              Initializer: 
+                null
+
+        ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: C, IsImplicit) (Syntax: 'As New C()')
+          Left: 
+            IPropertyReferenceOperation: WithEvents C.f As C (OperationKind.PropertyReference, Type: C, IsImplicit) (Syntax: 'As New C()')
+              Instance Receiver: 
+                IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: C, IsImplicit) (Syntax: 'As New C()')
+          Right: 
+            IObjectCreationOperation (Constructor: Sub C..ctor()) (OperationKind.ObjectCreation, Type: C) (Syntax: 'New C()')
               Arguments(0)
               Initializer: 
                 null
@@ -1397,9 +1555,9 @@ Block[B3] - Block
 Block[B4] - Block
     Predecessors: [B2] [B3]
     Statements (1)
-        ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: null, IsImplicit) (Syntax: '= If(M(), M2())')
+        ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32, IsImplicit) (Syntax: '= If(M(), M2())')
           Left: 
-            IPropertyReferenceOperation: Property C.P1 As System.Int32 (Static) (OperationKind.PropertyReference, Type: null, IsImplicit) (Syntax: '= If(M(), M2())')
+            IPropertyReferenceOperation: Property C.P1 As System.Int32 (Static) (OperationKind.PropertyReference, Type: System.Int32, IsImplicit) (Syntax: '= If(M(), M2())')
               Instance Receiver: 
                 null
           Right: 
@@ -1475,9 +1633,9 @@ Block[B3] - Block
 Block[B4] - Block
     Predecessors: [B2] [B3]
     Statements (1)
-        ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: null, IsImplicit) (Syntax: '= If(M(), M2())')
+        ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32, IsImplicit) (Syntax: '= If(M(), M2())')
           Left: 
-            IPropertyReferenceOperation: Property C.P1 As System.Int32 (OperationKind.PropertyReference, Type: null, IsImplicit) (Syntax: '= If(M(), M2())')
+            IPropertyReferenceOperation: Property C.P1 As System.Int32 (OperationKind.PropertyReference, Type: System.Int32, IsImplicit) (Syntax: '= If(M(), M2())')
               Instance Receiver: 
                 IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: C, IsImplicit) (Syntax: '= If(M(), M2())')
           Right: 
@@ -1497,8 +1655,6 @@ Block[B5] - Exit
         <CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)>
         <Fact>
         Public Sub ControlFlow_AsNewPropertyInitializer()
-            ' Note: As New cannot be applied to multiple properties, and leads to parse error with no AsNewClauseSyntax node in the tree.
-            ' Hence this test verifies As New applied to single property.
             Dim source = <![CDATA[
 Class C
     Private ReadOnly Property P1 As New C(If(a, b))'BIND:"As New C(If(a, b))"
@@ -1552,9 +1708,9 @@ Block[B3] - Block
 Block[B4] - Block
     Predecessors: [B2] [B3]
     Statements (1)
-        ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: null, IsImplicit) (Syntax: 'As New C(If(a, b))')
+        ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: C, IsImplicit) (Syntax: 'As New C(If(a, b))')
           Left: 
-            IPropertyReferenceOperation: ReadOnly Property C.P1 As C (OperationKind.PropertyReference, Type: null, IsImplicit) (Syntax: 'As New C(If(a, b))')
+            IPropertyReferenceOperation: ReadOnly Property C.P1 As C (OperationKind.PropertyReference, Type: C, IsImplicit) (Syntax: 'As New C(If(a, b))')
               Instance Receiver: 
                 IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: C, IsImplicit) (Syntax: 'As New C(If(a, b))')
           Right: 
@@ -1580,6 +1736,139 @@ Block[B5] - Exit
 
         <CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)>
         <Fact>
+        Public Sub ControlFlow_WithEventsAsNewPropertyInitializer()
+            Dim source = <![CDATA[
+Class C
+    WithEvents e, f As New C(If(a, b)) 'BIND:"As New C(If(a, b))"
+    Private Shared a As Integer? = 1
+    Private Shared b As Integer = 1
+    Public Sub New(a As Integer)
+    End Sub
+End Class
+]]>.Value
+
+            Dim expectedFlowGraph = <![CDATA[
+Block[B0] - Entry
+    Statements (0)
+    Next (Regular) Block[B1]
+Block[B1] - Block
+    Predecessors: [B0]
+    Statements (1)
+        IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'a')
+          Value: 
+            IFieldReferenceOperation: C.a As System.Nullable(Of System.Int32) (Static) (OperationKind.FieldReference, Type: System.Nullable(Of System.Int32)) (Syntax: 'a')
+              Instance Receiver: 
+                null
+
+    Jump if True (Regular) to Block[B3]
+        IIsNullOperation (OperationKind.IsNull, Type: System.Boolean, IsImplicit) (Syntax: 'a')
+          Operand: 
+            IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.Nullable(Of System.Int32), IsImplicit) (Syntax: 'a')
+
+    Next (Regular) Block[B2]
+Block[B2] - Block
+    Predecessors: [B1]
+    Statements (1)
+        IFlowCaptureOperation: 1 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'a')
+          Value: 
+            IInvocationOperation ( Function System.Nullable(Of System.Int32).GetValueOrDefault() As System.Int32) (OperationKind.Invocation, Type: System.Int32, IsImplicit) (Syntax: 'a')
+              Instance Receiver: 
+                IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.Nullable(Of System.Int32), IsImplicit) (Syntax: 'a')
+              Arguments(0)
+
+    Next (Regular) Block[B4]
+Block[B3] - Block
+    Predecessors: [B1]
+    Statements (1)
+        IFlowCaptureOperation: 1 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'b')
+          Value: 
+            IFieldReferenceOperation: C.b As System.Int32 (Static) (OperationKind.FieldReference, Type: System.Int32) (Syntax: 'b')
+              Instance Receiver: 
+                null
+
+    Next (Regular) Block[B4]
+Block[B4] - Block
+    Predecessors: [B2] [B3]
+    Statements (2)
+        ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: C, IsImplicit) (Syntax: 'As New C(If(a, b))')
+          Left: 
+            IPropertyReferenceOperation: WithEvents C.e As C (OperationKind.PropertyReference, Type: C, IsImplicit) (Syntax: 'As New C(If(a, b))')
+              Instance Receiver: 
+                IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: C, IsImplicit) (Syntax: 'As New C(If(a, b))')
+          Right: 
+            IObjectCreationOperation (Constructor: Sub C..ctor(a As System.Int32)) (OperationKind.ObjectCreation, Type: C) (Syntax: 'New C(If(a, b))')
+              Arguments(1):
+                  IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: a) (OperationKind.Argument, Type: null) (Syntax: 'If(a, b)')
+                    IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: System.Int32, IsImplicit) (Syntax: 'If(a, b)')
+                    InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                    OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+              Initializer: 
+                null
+
+        IFlowCaptureOperation: 2 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'a')
+          Value: 
+            IFieldReferenceOperation: C.a As System.Nullable(Of System.Int32) (Static) (OperationKind.FieldReference, Type: System.Nullable(Of System.Int32)) (Syntax: 'a')
+              Instance Receiver: 
+                null
+
+    Jump if True (Regular) to Block[B6]
+        IIsNullOperation (OperationKind.IsNull, Type: System.Boolean, IsImplicit) (Syntax: 'a')
+          Operand: 
+            IFlowCaptureReferenceOperation: 2 (OperationKind.FlowCaptureReference, Type: System.Nullable(Of System.Int32), IsImplicit) (Syntax: 'a')
+
+    Next (Regular) Block[B5]
+Block[B5] - Block
+    Predecessors: [B4]
+    Statements (1)
+        IFlowCaptureOperation: 3 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'a')
+          Value: 
+            IInvocationOperation ( Function System.Nullable(Of System.Int32).GetValueOrDefault() As System.Int32) (OperationKind.Invocation, Type: System.Int32, IsImplicit) (Syntax: 'a')
+              Instance Receiver: 
+                IFlowCaptureReferenceOperation: 2 (OperationKind.FlowCaptureReference, Type: System.Nullable(Of System.Int32), IsImplicit) (Syntax: 'a')
+              Arguments(0)
+
+    Next (Regular) Block[B7]
+Block[B6] - Block
+    Predecessors: [B4]
+    Statements (1)
+        IFlowCaptureOperation: 3 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'b')
+          Value: 
+            IFieldReferenceOperation: C.b As System.Int32 (Static) (OperationKind.FieldReference, Type: System.Int32) (Syntax: 'b')
+              Instance Receiver: 
+                null
+
+    Next (Regular) Block[B7]
+Block[B7] - Block
+    Predecessors: [B5] [B6]
+    Statements (1)
+        ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: C, IsImplicit) (Syntax: 'As New C(If(a, b))')
+          Left: 
+            IPropertyReferenceOperation: WithEvents C.f As C (OperationKind.PropertyReference, Type: C, IsImplicit) (Syntax: 'As New C(If(a, b))')
+              Instance Receiver: 
+                IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: C, IsImplicit) (Syntax: 'As New C(If(a, b))')
+          Right: 
+            IObjectCreationOperation (Constructor: Sub C..ctor(a As System.Int32)) (OperationKind.ObjectCreation, Type: C) (Syntax: 'New C(If(a, b))')
+              Arguments(1):
+                  IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: a) (OperationKind.Argument, Type: null) (Syntax: 'If(a, b)')
+                    IFlowCaptureReferenceOperation: 3 (OperationKind.FlowCaptureReference, Type: System.Int32, IsImplicit) (Syntax: 'If(a, b)')
+                    InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                    OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+              Initializer: 
+                null
+
+    Next (Regular) Block[B8]
+Block[B8] - Exit
+    Predecessors: [B7]
+    Statements (0)
+]]>.Value
+
+            Dim expectedDiagnostics = String.Empty
+
+            VerifyFlowGraphAndDiagnosticsForTest(Of AsNewClauseSyntax)(source, expectedFlowGraph, expectedDiagnostics)
+        End Sub
+
+        <CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)>
+        <Fact>
         Public Sub NoControlFlow_MissingPropertyInitializerValue()
             Dim source = <![CDATA[
 Class C
@@ -1593,9 +1882,9 @@ Block[B0] - Entry
 Block[B1] - Block
     Predecessors: [B0]
     Statements (1)
-        ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: null, IsInvalid, IsImplicit) (Syntax: '=')
+        ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32, IsInvalid, IsImplicit) (Syntax: '=')
           Left: 
-            IPropertyReferenceOperation: Property C.P1 As System.Int32 (OperationKind.PropertyReference, Type: null, IsInvalid, IsImplicit) (Syntax: '=')
+            IPropertyReferenceOperation: Property C.P1 As System.Int32 (OperationKind.PropertyReference, Type: System.Int32, IsInvalid, IsImplicit) (Syntax: '=')
               Instance Receiver: 
                 IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: C, IsInvalid, IsImplicit) (Syntax: '=')
           Right: 

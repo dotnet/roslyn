@@ -477,8 +477,20 @@ class C
 Block[B0] - Entry
     Statements (0)
     Next (Regular) Block[B1]
-Block[B1] - Exit
+Block[B1] - Block
     Predecessors: [B0]
+    Statements (1)
+        ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32, IsImplicit) (Syntax: '= 1')
+          Left: 
+            IFieldReferenceOperation: System.Int32 C.c1 (Static) (OperationKind.FieldReference, Type: System.Int32, IsImplicit) (Syntax: '= 1')
+              Instance Receiver: 
+                null
+          Right: 
+            ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
+
+    Next (Regular) Block[B2]
+Block[B2] - Exit
+    Predecessors: [B1]
     Statements (0)
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
@@ -604,6 +616,104 @@ Block[B2] - Exit
                 //     public const int c1 /*<bind>*/= M()/*</bind>*/;
                 Diagnostic(ErrorCode.ERR_NotConstantExpression, "M()").WithArguments("C.c1").WithLocation(4, 37)
             };
+
+            VerifyFlowGraphAndDiagnosticsForTest<EqualsValueClauseSyntax>(source, expectedFlowGraph, expectedDiagnostics);
+        }
+
+        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+        [Fact]
+        public void NoControlFlow_NonConstantInitializer_FieldLikeEvent()
+        {
+            string source = @"
+class C
+{
+    static event System.Action e /*<bind>*/= M()/*</bind>*/;
+
+    static System.Action M() { return null; }
+}
+";
+            string expectedFlowGraph = @"
+Block[B0] - Entry
+    Statements (0)
+    Next (Regular) Block[B1]
+Block[B1] - Block
+    Predecessors: [B0]
+    Statements (1)
+        ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Action, IsImplicit) (Syntax: '= M()')
+          Left: 
+            IFieldReferenceOperation: System.Action C.e (Static) (OperationKind.FieldReference, Type: System.Action, IsImplicit) (Syntax: '= M()')
+              Instance Receiver: 
+                null
+          Right: 
+            IInvocationOperation (System.Action C.M()) (OperationKind.Invocation, Type: System.Action) (Syntax: 'M()')
+              Instance Receiver: 
+                null
+              Arguments(0)
+
+    Next (Regular) Block[B2]
+Block[B2] - Exit
+    Predecessors: [B1]
+    Statements (0)
+";
+            var expectedDiagnostics = DiagnosticDescription.None;
+
+            VerifyFlowGraphAndDiagnosticsForTest<EqualsValueClauseSyntax>(source, expectedFlowGraph, expectedDiagnostics);
+        }
+
+        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+        [Fact]
+        public void ControlFlow_ConstantInitializer_ConstantField()
+        {
+            string source = @"
+class C
+{
+    public const int c1 /*<bind>*/= true ? 1 : 2/*</bind>*/;
+}
+";
+            string expectedFlowGraph = @"
+Block[B0] - Entry
+    Statements (0)
+    Next (Regular) Block[B1]
+Block[B1] - Block
+    Predecessors: [B0]
+    Statements (0)
+    Jump if False (Regular) to Block[B3]
+        ILiteralOperation (OperationKind.Literal, Type: System.Boolean, Constant: True) (Syntax: 'true')
+
+    Next (Regular) Block[B2]
+Block[B2] - Block
+    Predecessors: [B1]
+    Statements (1)
+        IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: '1')
+          Value: 
+            ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
+
+    Next (Regular) Block[B4]
+Block[B3] - Block [UnReachable]
+    Predecessors: [B1]
+    Statements (1)
+        IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: '2')
+          Value: 
+            ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2) (Syntax: '2')
+
+    Next (Regular) Block[B4]
+Block[B4] - Block
+    Predecessors: [B2] [B3]
+    Statements (1)
+        ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32, IsImplicit) (Syntax: '= true ? 1 : 2')
+          Left: 
+            IFieldReferenceOperation: System.Int32 C.c1 (Static) (OperationKind.FieldReference, Type: System.Int32, IsImplicit) (Syntax: '= true ? 1 : 2')
+              Instance Receiver: 
+                null
+          Right: 
+            IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.Int32, Constant: 1, IsImplicit) (Syntax: 'true ? 1 : 2')
+
+    Next (Regular) Block[B5]
+Block[B5] - Exit
+    Predecessors: [B4]
+    Statements (0)
+";
+            var expectedDiagnostics = DiagnosticDescription.None;
 
             VerifyFlowGraphAndDiagnosticsForTest<EqualsValueClauseSyntax>(source, expectedFlowGraph, expectedDiagnostics);
         }
@@ -1042,9 +1152,9 @@ Block[B0] - Entry
 Block[B1] - Block
     Predecessors: [B0]
     Statements (1)
-        ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: null, IsImplicit) (Syntax: '= 1')
+        ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32, IsImplicit) (Syntax: '= 1')
           Left: 
-            IPropertyReferenceOperation: System.Int32 C.P1 { get; } (Static) (OperationKind.PropertyReference, Type: null, IsImplicit) (Syntax: '= 1')
+            IPropertyReferenceOperation: System.Int32 C.P1 { get; } (Static) (OperationKind.PropertyReference, Type: System.Int32, IsImplicit) (Syntax: '= 1')
               Instance Receiver: 
                 null
           Right: 
@@ -1077,9 +1187,9 @@ Block[B0] - Entry
 Block[B1] - Block
     Predecessors: [B0]
     Statements (1)
-        ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: null, IsImplicit) (Syntax: '= 1')
+        ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32, IsImplicit) (Syntax: '= 1')
           Left: 
-            IPropertyReferenceOperation: System.Int32 C.P1 { get; } (OperationKind.PropertyReference, Type: null, IsImplicit) (Syntax: '= 1')
+            IPropertyReferenceOperation: System.Int32 C.P1 { get; } (OperationKind.PropertyReference, Type: System.Int32, IsImplicit) (Syntax: '= 1')
               Instance Receiver: 
                 IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: C, IsImplicit) (Syntax: '= 1')
           Right: 
@@ -1113,9 +1223,9 @@ Block[B0] - Entry
 Block[B1] - Block
     Predecessors: [B0]
     Statements (1)
-        ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: null, IsImplicit) (Syntax: '= M()')
+        ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32, IsImplicit) (Syntax: '= M()')
           Left: 
-            IPropertyReferenceOperation: System.Int32 C.P1 { get; } (Static) (OperationKind.PropertyReference, Type: null, IsImplicit) (Syntax: '= M()')
+            IPropertyReferenceOperation: System.Int32 C.P1 { get; } (Static) (OperationKind.PropertyReference, Type: System.Int32, IsImplicit) (Syntax: '= M()')
               Instance Receiver: 
                 null
           Right: 
@@ -1152,9 +1262,9 @@ Block[B0] - Entry
 Block[B1] - Block
     Predecessors: [B0]
     Statements (1)
-        ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: null, IsImplicit) (Syntax: '= M()')
+        ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32, IsImplicit) (Syntax: '= M()')
           Left: 
-            IPropertyReferenceOperation: System.Int32 C.P1 { get; } (OperationKind.PropertyReference, Type: null, IsImplicit) (Syntax: '= M()')
+            IPropertyReferenceOperation: System.Int32 C.P1 { get; } (OperationKind.PropertyReference, Type: System.Int32, IsImplicit) (Syntax: '= M()')
               Instance Receiver: 
                 IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: C, IsImplicit) (Syntax: '= M()')
           Right: 
@@ -1230,9 +1340,9 @@ Block[B3] - Block
 Block[B4] - Block
     Predecessors: [B2] [B3]
     Statements (1)
-        ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: null, IsImplicit) (Syntax: '= M() ?? M2()')
+        ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32, IsImplicit) (Syntax: '= M() ?? M2()')
           Left: 
-            IPropertyReferenceOperation: System.Int32 C.P1 { get; } (Static) (OperationKind.PropertyReference, Type: null, IsImplicit) (Syntax: '= M() ?? M2()')
+            IPropertyReferenceOperation: System.Int32 C.P1 { get; } (Static) (OperationKind.PropertyReference, Type: System.Int32, IsImplicit) (Syntax: '= M() ?? M2()')
               Instance Receiver: 
                 null
           Right: 
@@ -1305,9 +1415,9 @@ Block[B3] - Block
 Block[B4] - Block
     Predecessors: [B2] [B3]
     Statements (1)
-        ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: null, IsImplicit) (Syntax: '= M() ?? M2()')
+        ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32, IsImplicit) (Syntax: '= M() ?? M2()')
           Left: 
-            IPropertyReferenceOperation: System.Int32 C.P1 { get; } (OperationKind.PropertyReference, Type: null, IsImplicit) (Syntax: '= M() ?? M2()')
+            IPropertyReferenceOperation: System.Int32 C.P1 { get; } (OperationKind.PropertyReference, Type: System.Int32, IsImplicit) (Syntax: '= M() ?? M2()')
               Instance Receiver: 
                 IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: C, IsImplicit) (Syntax: '= M() ?? M2()')
           Right: 
@@ -1350,9 +1460,9 @@ Block[B0] - Entry
     Block[B1] - Block
         Predecessors: [B0]
         Statements (1)
-            ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: null, IsImplicit) (Syntax: '= M(out int local)')
+            ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32, IsImplicit) (Syntax: '= M(out int local)')
               Left: 
-                IPropertyReferenceOperation: System.Int32 C.P1 { get; } (OperationKind.PropertyReference, Type: null, IsImplicit) (Syntax: '= M(out int local)')
+                IPropertyReferenceOperation: System.Int32 C.P1 { get; } (OperationKind.PropertyReference, Type: System.Int32, IsImplicit) (Syntax: '= M(out int local)')
                   Instance Receiver: 
                     IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: C, IsImplicit) (Syntax: '= M(out int local)')
               Right: 
@@ -1450,9 +1560,9 @@ Block[B0] - Entry
     Block[B4] - Block
         Predecessors: [B2] [B3]
         Statements (1)
-            ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: null, IsImplicit) (Syntax: '= M(out int ... al) ?? M2()')
+            ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32, IsImplicit) (Syntax: '= M(out int ... al) ?? M2()')
               Left: 
-                IPropertyReferenceOperation: System.Int32 C.P1 { get; } (OperationKind.PropertyReference, Type: null, IsImplicit) (Syntax: '= M(out int ... al) ?? M2()')
+                IPropertyReferenceOperation: System.Int32 C.P1 { get; } (OperationKind.PropertyReference, Type: System.Int32, IsImplicit) (Syntax: '= M(out int ... al) ?? M2()')
                   Instance Receiver: 
                     IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: C, IsImplicit) (Syntax: '= M(out int ... al) ?? M2()')
               Right: 
@@ -1488,9 +1598,9 @@ Block[B0] - Entry
 Block[B1] - Block
     Predecessors: [B0]
     Statements (1)
-        ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: null, IsInvalid, IsImplicit) (Syntax: '= /*</bind>*/')
+        ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32, IsInvalid, IsImplicit) (Syntax: '= /*</bind>*/')
           Left: 
-            IPropertyReferenceOperation: System.Int32 C.P1 { get; } (OperationKind.PropertyReference, Type: null, IsInvalid, IsImplicit) (Syntax: '= /*</bind>*/')
+            IPropertyReferenceOperation: System.Int32 C.P1 { get; } (OperationKind.PropertyReference, Type: System.Int32, IsInvalid, IsImplicit) (Syntax: '= /*</bind>*/')
               Instance Receiver: 
                 IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: C, IsInvalid, IsImplicit) (Syntax: '= /*</bind>*/')
           Right: 
