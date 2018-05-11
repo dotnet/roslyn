@@ -4,15 +4,15 @@ using System;
 using System.ComponentModel;
 using System.ComponentModel.Design;
 using System.Runtime.InteropServices;
+using System.Threading;
 using Microsoft.CodeAnalysis.Options;
-using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.LanguageServices;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Options;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
-using Roslyn.Utilities;
 using Roslyn.VisualStudio.DiagnosticsWindow.OptionsPages;
+using Task = System.Threading.Tasks.Task;
 
 namespace Roslyn.VisualStudio.DiagnosticsWindow
 {
@@ -28,7 +28,7 @@ namespace Roslyn.VisualStudio.DiagnosticsWindow
     /// </summary>
     // This attribute tells the PkgDef creation utility (CreatePkgDef.exe) that this class is
     // a package.
-    [PackageRegistration(UseManagedResourcesOnly = true)]
+    [PackageRegistration(UseManagedResourcesOnly = true, AllowsBackgroundLoading = true)]
     // This attribute is needed to let the shell know that this package exposes some menus.
     [ProvideMenuResource("Menus.ctmenu", version: 1)]
     // These attributes specify the menu structure to be used in Tools | Options. These are not
@@ -44,7 +44,7 @@ namespace Roslyn.VisualStudio.DiagnosticsWindow
     [Guid(GuidList.guidVisualStudioDiagnosticsWindowPkgString)]
     [Description("Roslyn Diagnostics Window")]
     [ProvideAutoLoad(UIContextGuids80.SolutionExists, PackageAutoLoadFlags.BackgroundLoad)]
-    public sealed class VisualStudioDiagnosticsWindowPackage : Package
+    public sealed class VisualStudioDiagnosticsWindowPackage : AsyncPackage
     {
         private ForceLowMemoryMode _forceLowMemoryMode;
 
@@ -75,17 +75,19 @@ namespace Roslyn.VisualStudio.DiagnosticsWindow
         /// Initialization of the package; this method is called right after the package is sited, so this is the place
         /// where you can put all the initialization code that rely on services provided by VisualStudio.
         /// </summary>
-        protected override void Initialize()
+        protected override async Task InitializeAsync(CancellationToken cancellationToken, IProgress<ServiceProgressData> progress)
         {
-            base.Initialize();
+            await base.InitializeAsync(cancellationToken, progress).ConfigureAwait(true);
 
-            var componentModel = (IComponentModel)GetService(typeof(SComponentModel));
+            await JoinableTaskFactory.SwitchToMainThreadAsync();
+
+            var componentModel = (IComponentModel)await GetServiceAsync(typeof(SComponentModel)).ConfigureAwait(true);
 
             var workspace = componentModel.GetService<VisualStudioWorkspace>();
             _forceLowMemoryMode = new ForceLowMemoryMode(workspace.Services.GetService<IOptionService>());
 
             // Add our command handlers for menu (commands must exist in the .vsct file)
-            if (GetService(typeof(IMenuCommandService)) is OleMenuCommandService mcs)
+            if (await GetServiceAsync(typeof(IMenuCommandService)).ConfigureAwait(true) is OleMenuCommandService mcs)
             {
                 // Create the command for the tool window
                 CommandID toolwndCommandID = new CommandID(GuidList.guidVisualStudioDiagnosticsWindowCmdSet, (int)PkgCmdIDList.CmdIDRoslynDiagnosticWindow);

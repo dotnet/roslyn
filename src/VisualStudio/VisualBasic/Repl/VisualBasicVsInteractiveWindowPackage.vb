@@ -10,7 +10,7 @@ Imports LanguageServiceGuids = Microsoft.VisualStudio.LanguageServices.Guids
 Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Interactive
 
     <Guid(LanguageServiceGuids.VisualBasicReplPackageIdString)>
-    <PackageRegistration(UseManagedResourcesOnly:=True)>
+    <PackageRegistration(UseManagedResourcesOnly:=True, AllowsBackgroundLoading:=True)>
     <ProvideMenuResource("Menus.ctmenu", 17)>
     <ProvideInteractiveWindow(
         VisualBasicVsInteractiveWindowPackage.IdString,

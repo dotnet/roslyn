@@ -1,10 +1,9 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Runtime.InteropServices
+Imports System.Threading
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.ErrorReporting
-Imports Microsoft.CodeAnalysis.Options
-Imports Microsoft.CodeAnalysis.VisualBasic
 Imports Microsoft.VisualStudio.LanguageServices.CSharp.Options.Formatting
 Imports Microsoft.VisualStudio.LanguageServices.Implementation
 Imports Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
@@ -16,6 +15,7 @@ Imports Microsoft.VisualStudio.LanguageServices.VisualBasic.ProjectSystemShim
 Imports Microsoft.VisualStudio.LanguageServices.VisualBasic.ProjectSystemShim.Interop
 Imports Microsoft.VisualStudio.Shell
 Imports Microsoft.VisualStudio.Shell.Interop
+Imports Task = System.Threading.Tasks.Task
 
 ' NOTE(DustinCa): The EditorFactory registration is in VisualStudioComponents\VisualBasicPackageRegistration.pkgdef.
 ' The reason for this is because the ProvideEditorLogicalView does not allow a name value to specified in addition to
@@ -38,7 +38,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic
     '       Naming
 
     <Guid(Guids.VisualBasicPackageIdString)>
-    <PackageRegistration(UseManagedResourcesOnly:=True)>
+    <PackageRegistration(UseManagedResourcesOnly:=True, AllowsBackgroundLoading:=True)>
     <ProvideRoslynVersionRegistration(Guids.VisualBasicPackageIdString, "Microsoft Visual Basic", 113, 114)>
     <ProvideLanguageExtension(GetType(VisualBasicLanguageService), ".bas")>
     <ProvideLanguageExtension(GetType(VisualBasicLanguageService), ".cls")>
@@ -55,9 +55,9 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic
     <ProvideLanguageEditorOptionPage(GetType(IntelliSenseOptionPage), "Basic", Nothing, "IntelliSense", "#112", 312)>
     <ProvideAutomationProperties("TextEditor", "Basic", Guids.TextManagerPackageString, 103, 105, Guids.VisualBasicPackageIdString)>
     <ProvideAutomationProperties("TextEditor", "Basic-Specific", Guids.VisualBasicPackageIdString, 104, 106)>
-    <ProvideService(GetType(VisualBasicLanguageService), ServiceName:="Visual Basic Language Service")>
-    <ProvideService(GetType(IVbCompilerService), ServiceName:="Visual Basic Project System Shim")>
-    <ProvideService(GetType(IVbTempPECompilerFactory), ServiceName:="Visual Basic TempPE Compiler Factory Service")>
+    <ProvideService(GetType(VisualBasicLanguageService), ServiceName:="Visual Basic Language Service", IsAsyncQueryable:=True)>
+    <ProvideService(GetType(IVbCompilerService), ServiceName:="Visual Basic Project System Shim", IsAsyncQueryable:=True)>
+    <ProvideService(GetType(IVbTempPECompilerFactory), ServiceName:="Visual Basic TempPE Compiler Factory Service", IsAsyncQueryable:=True)>
     Friend Class VisualBasicPackage
         Inherits AbstractPackage(Of VisualBasicPackage, VisualBasicLanguageService)
         Implements IVbCompilerService
@@ -84,28 +84,31 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic
             Return Me.ComponentModel.GetService(Of VisualStudioWorkspaceImpl)
         End Function
 
-        Protected Overrides Sub Initialize()
+        Protected Overrides Async Function InitializeAsync(cancellationToken As CancellationToken, progress As IProgress(Of ServiceProgressData)) As Task
             Try
-                MyBase.Initialize()
+                Await MyBase.InitializeAsync(cancellationToken, progress).ConfigureAwait(True)
+                Await JoinableTaskFactory.SwitchToMainThreadAsync()
 
                 RegisterLanguageService(GetType(IVbCompilerService), Function() _comAggregate)
 
                 Dim workspace = Me.ComponentModel.GetService(Of VisualStudioWorkspaceImpl)()
                 RegisterService(Of IVbTempPECompilerFactory)(Function() New TempPECompilerFactory(workspace))
 
-                RegisterObjectBrowserLibraryManager()
+                Await RegisterObjectBrowserLibraryManagerAsync().ConfigureAwait(True)
             Catch ex As Exception When FatalError.Report(ex)
             End Try
-        End Sub
+        End Function
 
         Protected Overrides Sub Dispose(disposing As Boolean)
-            UnregisterObjectBrowserLibraryManager()
+            If disposing Then
+                JoinableTaskFactory.Run(AddressOf UnregisterObjectBrowserLibraryManagerAsync)
+            End If
 
             MyBase.Dispose(disposing)
         End Sub
 
-        Private Sub RegisterObjectBrowserLibraryManager()
-            Dim objectManager = TryCast(Me.GetService(GetType(SVsObjectManager)), IVsObjectManager2)
+        Private Async Function RegisterObjectBrowserLibraryManagerAsync() As Task
+            Dim objectManager = TryCast(Await GetServiceAsync(GetType(SVsObjectManager)).ConfigureAwait(True), IVsObjectManager2)
             If objectManager IsNot Nothing Then
                 Me._libraryManager = New ObjectBrowserLibraryManager(Me)
 
@@ -113,11 +116,11 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic
                     Me._libraryManagerCookie = 0
                 End If
             End If
-        End Sub
+        End Function
 
-        Private Sub UnregisterObjectBrowserLibraryManager()
+        Private Async Function UnregisterObjectBrowserLibraryManagerAsync() As Task
             If _libraryManagerCookie <> 0 Then
-                Dim objectManager = TryCast(Me.GetService(GetType(SVsObjectManager)), IVsObjectManager2)
+                Dim objectManager = TryCast(Await GetServiceAsync(GetType(SVsObjectManager)).ConfigureAwait(True), IVsObjectManager2)
                 If objectManager IsNot Nothing Then
                     objectManager.UnregisterLibrary(Me._libraryManagerCookie)
                     Me._libraryManagerCookie = 0
@@ -126,7 +129,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic
                 Me._libraryManager.Dispose()
                 Me._libraryManager = Nothing
             End If
-        End Sub
+        End Function
 
         Public Function NeedExport(pageID As String, <Out> ByRef needExportParam As Integer) As Integer Implements IVsUserSettingsQuery.NeedExport
             ' We need to override MPF's definition of NeedExport since it doesn't know about our automation object

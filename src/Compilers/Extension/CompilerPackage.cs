@@ -4,25 +4,30 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
+using System.Threading;
 using EnvDTE;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
+using Task = System.Threading.Tasks.Task;
 
 namespace Roslyn.Compilers.Extension
 {
-    [ProvideAutoLoad(UIContextGuids.SolutionExists)]
-    public sealed class CompilerPackage : Package
+    [ProvideAutoLoad(UIContextGuids.SolutionExists, PackageAutoLoadFlags.BackgroundLoad)]
+    [PackageRegistration(UseManagedResourcesOnly = true, AllowsBackgroundLoading = true)]
+    public sealed class CompilerPackage : AsyncPackage
     {
         public static string RoslynHive = null;
         
-        protected override void Initialize()
+        protected override async Task InitializeAsync(CancellationToken cancellationToken, IProgress<ServiceProgressData> progress)
         {
-            base.Initialize();
+            await base.InitializeAsync(cancellationToken, progress).ConfigureAwait(true);
+
+            await JoinableTaskFactory.SwitchToMainThreadAsync();
 
             var packagePath = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
 
             string localRegistryRoot;
-            var reg = (ILocalRegistry2)this.GetService(typeof(SLocalRegistry));
+            var reg = (ILocalRegistry2)await GetServiceAsync(typeof(SLocalRegistry)).ConfigureAwait(true);
             reg.GetLocalRegistryRoot(out localRegistryRoot);
             var registryParts = localRegistryRoot.Split('\\');
 
