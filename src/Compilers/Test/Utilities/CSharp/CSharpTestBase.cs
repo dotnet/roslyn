@@ -1048,7 +1048,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
             var model = compilation.GetSemanticModel(tree);
             SyntaxNode syntaxNode = GetSyntaxNodeOfTypeForBinding<TSyntaxNode>(GetSyntaxNodeList(tree));
 
-            Operations.ControlFlowGraph graph = SemanticModel.GetControlFlowGraph((Operations.IBlockOperation)model.GetOperation(syntaxNode));
+            var body = (Operations.IBlockOperation)model.GetOperation(syntaxNode);
+            TestOperationVisitor.VerifySubTree(body.Parent ?? body);
+            Operations.ControlFlowGraph graph = SemanticModel.GetControlFlowGraph(body);
             ControlFlowGraphVerifier.VerifyGraph(compilation, expectedFlowGraph, graph);
         }
 

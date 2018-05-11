@@ -33,7 +33,8 @@ namespace Microsoft.CodeAnalysis.Operations
         IOperation LimitValue { get; }
 
         /// <summary>
-        /// Optional operation for the step value of the loop control variable. This comes from the expression after the 'Step' keyword.
+        /// Operation for the step value of the loop control variable. This comes from the expression after the 'Step' keyword,
+        /// or inferred by the compiler if 'Step' clause is omitted.
         /// </summary>
         IOperation StepValue { get; }
 
