@@ -160,7 +160,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         .RemoveMiscellaneousOptions(SymbolDisplayMiscellaneousOptions.UseSpecialTypes)
                         .AddMiscellaneousOptions(SymbolDisplayMiscellaneousOptions.IncludeNullableReferenceTypeModifier)
                         // displaying tuple syntax causes to load the members of ValueTuple, which can cause a cycle, so we use long-hand format instead
-                        .WithCompilerInternalOptions(SymbolDisplayCompilerInternalOptions.IncludeNullableReferenceTypeModifier | SymbolDisplayCompilerInternalOptions.UseValueTuple)));
+                        .WithCompilerInternalOptions(SymbolDisplayCompilerInternalOptions.UseValueTuple)));
 
         /// <summary>
         /// index 0 is used for return type
