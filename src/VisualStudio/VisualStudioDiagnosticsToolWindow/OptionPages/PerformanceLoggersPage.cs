@@ -12,6 +12,7 @@ using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.LanguageServices;
 using Microsoft.VisualStudio.LanguageServices.Implementation;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Options;
+using ThreadHelper = Microsoft.VisualStudio.Shell.ThreadHelper;
 
 namespace Roslyn.VisualStudio.DiagnosticsWindow.OptionsPages
 {
@@ -47,7 +48,7 @@ namespace Roslyn.VisualStudio.DiagnosticsWindow.OptionsPages
             SetRoslynLogger(loggerTypes, () => new TraceLogger(options));
 
             // second set RemoteHost options
-            var client = _remoteHostClientService.TryGetRemoteHostClientAsync(CancellationToken.None).Result;
+            var client = ThreadHelper.JoinableTaskFactory.Run(() => _remoteHostClientService.TryGetRemoteHostClientAsync(CancellationToken.None));
             if (client == null)
             {
                 // Remote host is disabled
@@ -55,11 +56,11 @@ namespace Roslyn.VisualStudio.DiagnosticsWindow.OptionsPages
             }
 
             var functionIds = GetFunctionIds(options).ToList();
-            var unused = client.TryRunRemoteAsync(
+            _ = ThreadHelper.JoinableTaskFactory.Run(() => client.TryRunRemoteAsync(
                 WellKnownRemoteHostServices.RemoteHostService,
                 nameof(IRemoteHostService.SetLoggingFunctionIds),
                 new object[] { loggerTypes, functionIds },
-                CancellationToken.None).Result;
+                CancellationToken.None));
         }
 
         private static IEnumerable<string> GetFunctionIds(Func<FunctionId, bool> options)
