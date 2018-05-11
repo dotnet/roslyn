@@ -46,7 +46,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 // If this is an exact query, we can speed things up by just calling into the
                 // compilation entrypoints that take a string directly.
                 //
-                // the search is 'exact' it's either an exact-case-sensitive search,
+                // the search is 'exact' if it's either an exact-case-sensitive search,
                 // or it's an exact-case-insensitive search and we're in a case-insensitive
                 // language.
                 var isExactNameSearch = query.Kind == SearchKind.Exact ||
