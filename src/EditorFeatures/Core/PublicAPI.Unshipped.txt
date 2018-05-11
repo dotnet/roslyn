@@ -1,1 +1,2 @@
-
+Microsoft.CodeAnalysis.Editor.Implementation.Formatting.ICodeStyleConfigureService
+Microsoft.CodeAnalysis.Editor.Implementation.Formatting.ICodeStyleConfigureService.ShowFormattingOptionPage() -> void

@@ -848,4 +848,13 @@ Do you want to proceed?</value>
   <data name="Xml_Tag_Completion_Command_Handler" xml:space="preserve">
     <value>XML Tag Completion Command Handler</value>
   </data>
+  <data name="Code_cleanup_is_not_configured" xml:space="preserve">
+    <value>Code cleanup is not configured</value>
+  </data>
+  <data name="Config_it_now" xml:space="preserve">
+    <value>Config it now</value>
+  </data>
+  <data name="Donot_show_this_again" xml:space="preserve">
+    <value>Don't show this again</value>
+  </data>
 </root>

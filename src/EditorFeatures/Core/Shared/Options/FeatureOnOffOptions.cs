@@ -56,9 +56,9 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Options
             nameof(FeatureOnOffOptions), nameof(AutoFormattingOnSemicolon), defaultValue: true,
             storageLocations: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.Auto Formatting On Semicolon"));
 
-        public static readonly PerLanguageOption<bool> AllFormattingRules = new PerLanguageOption<bool>(
-            nameof(FeatureOnOffOptions), nameof(AllFormattingRules), defaultValue: true,
-            storageLocations: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.All Formatting Rules"));
+        public static readonly PerLanguageOption<bool> IsCodeCleanupRulesConfigured = new PerLanguageOption<bool>(
+            nameof(FeatureOnOffOptions), nameof(IsCodeCleanupRulesConfigured), defaultValue: false,
+            storageLocations: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Is Code Cleanup Rules Configured"));
 
         public static readonly PerLanguageOption<bool> RemoveUnusedUsings = new PerLanguageOption<bool>(
             nameof(FeatureOnOffOptions), nameof(RemoveUnusedUsings), defaultValue: true,

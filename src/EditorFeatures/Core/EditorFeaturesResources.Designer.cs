@@ -495,6 +495,15 @@ namespace Microsoft.CodeAnalysis.Editor {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Code cleanup is not configured.
+        /// </summary>
+        internal static string Code_cleanup_is_not_configured {
+            get {
+                return ResourceManager.GetString("Code_cleanup_is_not_configured", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Comment Selection.
         /// </summary>
         internal static string Comment_Selection {
@@ -554,6 +563,15 @@ namespace Microsoft.CodeAnalysis.Editor {
         internal static string Computing_Rename_information {
             get {
                 return ResourceManager.GetString("Computing_Rename_information", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Config it now.
+        /// </summary>
+        internal static string Config_it_now {
+            get {
+                return ResourceManager.GetString("Config_it_now", resourceCulture);
             }
         }
         
@@ -635,6 +653,15 @@ namespace Microsoft.CodeAnalysis.Editor {
         internal static string Documentation_Comment_Command_Handler {
             get {
                 return ResourceManager.GetString("Documentation_Comment_Command_Handler", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Don&apos;t show this again.
+        /// </summary>
+        internal static string Donot_show_this_again {
+            get {
+                return ResourceManager.GetString("Donot_show_this_again", resourceCulture);
             }
         }
         
@@ -1970,18 +1997,16 @@ namespace Microsoft.CodeAnalysis.Editor {
                 return ResourceManager.GetString("User_Types_Structures", resourceCulture);
             }
         }
-
+        
         /// <summary>
         ///   Looks up a localized string similar to User Types - Type Parameters.
         /// </summary>
-        internal static string User_Types_Type_Parameters
-        {
-            get
-            {
+        internal static string User_Types_Type_Parameters {
+            get {
                 return ResourceManager.GetString("User_Types_Type_Parameters", resourceCulture);
             }
         }
-
+        
         /// <summary>
         ///   Looks up a localized string similar to VB XML Literals - Attribute Name.
         /// </summary>

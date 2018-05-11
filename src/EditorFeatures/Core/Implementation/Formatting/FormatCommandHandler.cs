@@ -5,7 +5,6 @@ using System.Collections.Generic;
 using System.ComponentModel.Composition;
 using System.Linq;
 using System.Threading;
-using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Formatting.Rules;
@@ -40,7 +39,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Formatting
     {
         private readonly ITextUndoHistoryRegistry _undoHistoryRegistry;
         private readonly IEditorOperationsFactoryService _editorOperationsFactoryService;
-        private readonly ICodeFixService _codeFixService;
+        private readonly ICodeCleanupService _codeCleanupService;
 
         public string DisplayName => EditorFeaturesResources.Format_Command_Handler;
 
@@ -49,11 +48,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Formatting
         public FormatCommandHandler(
             ITextUndoHistoryRegistry undoHistoryRegistry,
             IEditorOperationsFactoryService editorOperationsFactoryService,
-            ICodeFixService codeFixService)
+            ICodeCleanupService codeCleanupService)
         {
             _undoHistoryRegistry = undoHistoryRegistry;
             _editorOperationsFactoryService = editorOperationsFactoryService;
-            _codeFixService = codeFixService;
+            _codeCleanupService = codeCleanupService;
         }
 
         private void Format(ITextView textView, Document document, TextSpan? selectionOpt, CancellationToken cancellationToken)

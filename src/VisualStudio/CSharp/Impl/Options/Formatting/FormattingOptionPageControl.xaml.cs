@@ -48,12 +48,14 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
             FixObjectCollectionInitializationCheckBox.Content = CSharpVSResources.Fix_object_collection_initialization;
             FixLanguageFeaturesCheckBox.Content = CSharpVSResources.Fix_language_features;
 
-            BindToOption(AllCSharpFormattingRulesCheckBox, FeatureOnOffOptions.AllFormattingRules, LanguageNames.CSharp);
+            // IsCodeCleanupConfiguredCheckBox is hidden all the time, and it tracks if the user ever configured the code cleanup
+            BindToOption(IsCodeCleanupConfiguredCheckBox, FeatureOnOffOptions.IsCodeCleanupRulesConfigured, LanguageNames.CSharp);
+
             BindToOption(RemoveUnusedUsingsCheckBox, FeatureOnOffOptions.RemoveUnusedUsings, LanguageNames.CSharp);
             BindToOption(SortUsingsCheckBox, FeatureOnOffOptions.SortUsings, LanguageNames.CSharp);
             BindToOption(FixImplicitExplicitTypeCheckBox, FeatureOnOffOptions.FixImplicitExplicitType, LanguageNames.CSharp);
-            BindToOption(FixThisQualificationCheckBox, FeatureOnOffOptions.FixThisQualification, LanguageNames.CSharp);
             BindToOption(FixFrameworkTypesCheckBox, FeatureOnOffOptions.FixFrameworkTypes, LanguageNames.CSharp);
+            BindToOption(FixThisQualificationCheckBox, FeatureOnOffOptions.FixThisQualification, LanguageNames.CSharp);
             BindToOption(FixAddRemoveBracesCheckBox, FeatureOnOffOptions.FixAddRemoveBraces, LanguageNames.CSharp);
             BindToOption(FixAccessibilityModifiersCheckBox, FeatureOnOffOptions.FixAccessibilityModifiers, LanguageNames.CSharp);
             BindToOption(SortAccessibilityModifiersCheckBox, FeatureOnOffOptions.SortAccessibilityModifiers, LanguageNames.CSharp);
@@ -86,6 +88,15 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
         {
             FormatOnCloseBraceCheckBox.IsEnabled = FormatWhenTypingCheckBox.IsChecked == true;
             FormatOnSemicolonCheckBox.IsEnabled = FormatWhenTypingCheckBox.IsChecked == true;
+        }
+
+        internal void SetCodeCleanupAsConfigured()
+        {
+            // IsCodeCleanupConfiguredCheckBox is hidden all the time, and it tracks if the user ever configured the code cleanup
+            if (!IsCodeCleanupConfiguredCheckBox.IsChecked.HasValue || IsCodeCleanupConfiguredCheckBox.IsChecked.Value == false)
+            {
+                IsCodeCleanupConfiguredCheckBox.IsChecked = true;
+            }
         }
     }
 }
