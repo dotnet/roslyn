@@ -2,6 +2,7 @@
 
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UsePatternMatching
@@ -109,6 +110,102 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UsePatternMatching
         var use = symbol;
     }
 }
+}");
+        }
+
+        [WorkItem(26679, "https://github.com/dotnet/roslyn/issues/26679")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTypeCheck)]
+        public async Task FixAllInDocument3()
+        {
+            await TestInRegularAndScriptAsync(
+@"class Test
+{
+    void M()
+    {
+        {|FixAllInDocument:IMethodSymbol|} methodSymbol;
+        IPropertySymbol propertySymbol;
+        IEventSymbol eventSymbol;
+        bool isImplementingExplicitly;
+
+        // Only methods, properties and events can implement an interface member
+        if ((methodSymbol = memberSymbol as IMethodSymbol) != null)
+        {
+            // Check if the member is implementing an interface explicitly
+            isImplementingExplicitly = methodSymbol.ExplicitInterfaceImplementations.Any();
+        }
+        else if ((propertySymbol = memberSymbol as IPropertySymbol) != null)
+        {
+            // Check if the member is implementing an interface explicitly
+            isImplementingExplicitly = propertySymbol.ExplicitInterfaceImplementations.Any();
+        }
+        else if ((eventSymbol = memberSymbol as IEventSymbol) != null)
+        {
+            // Check if the member is implementing an interface explicitly
+            isImplementingExplicitly = eventSymbol.ExplicitInterfaceImplementations.Any();
+        }
+        else
+        {
+            return false;
+        }
+    }
+}",
+@"class Test
+{
+    void M()
+    {
+        bool isImplementingExplicitly;
+
+        // Only methods, properties and events can implement an interface member
+        if (memberSymbol is IMethodSymbol methodSymbol)
+        {
+            // Check if the member is implementing an interface explicitly
+            isImplementingExplicitly = methodSymbol.ExplicitInterfaceImplementations.Any();
+        }
+        else if (memberSymbol is IPropertySymbol propertySymbol)
+        {
+            // Check if the member is implementing an interface explicitly
+            isImplementingExplicitly = propertySymbol.ExplicitInterfaceImplementations.Any();
+        }
+        else if (memberSymbol is IEventSymbol eventSymbol)
+        {
+            // Check if the member is implementing an interface explicitly
+            isImplementingExplicitly = eventSymbol.ExplicitInterfaceImplementations.Any();
+        }
+        else
+        {
+            return false;
+        }
+    }
+}");
+        }
+
+        [WorkItem(26680, "https://github.com/dotnet/roslyn/issues/26680")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTypeCheck)]
+        public async Task FixAllInDocument4()
+        {
+            await TestInRegularAndScriptAsync(
+@"class Test
+{
+    void M()
+    {
+        {|FixAllInDocument:var|} firstTextPartSyntax = summaryElement.Content[0] as XmlTextSyntax;
+        var classReferencePart = summaryElement.Content[1] as XmlEmptyElementSyntax;
+        var secondTextPartSyntax = summaryElement.Content[2] as XmlTextSyntax;
+
+        if (firstTextPartSyntax != null && classReferencePart != null && secondTextPartSyntax != null)
+        {
+        }
+    }
+}",
+@"class Test
+{
+    void M()
+    {
+
+        if (summaryElement.Content[0] is XmlTextSyntax firstTextPartSyntax && summaryElement.Content[1] is XmlEmptyElementSyntax classReferencePart && summaryElement.Content[2] is XmlTextSyntax secondTextPartSyntax)
+        {
+        }
+    }
 }");
         }
     }
