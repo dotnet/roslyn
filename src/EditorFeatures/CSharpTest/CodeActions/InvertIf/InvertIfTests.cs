@@ -9,7 +9,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.InvertIf
 {
-    public class InvertIfTests : AbstractCSharpCodeActionTest
+    public partial class InvertIfTests : AbstractCSharpCodeActionTest
     {
         private async Task TestFixOneAsync(
             string initial,
