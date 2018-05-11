@@ -421,5 +421,444 @@ IEventAssignmentOperation (EventAdd) (OperationKind.EventAssignment, Type: Syste
 
             VerifyOperationTreeAndDiagnosticsForTest<AssignmentExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
+
+        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+        [Fact]
+        public void EventAssignment_NoControlFlow()
+        {
+            string source = @"
+using System;
+
+class C
+{
+#pragma warning disable CS0067 // Event is unused.
+    public event EventHandler MyEvent;
+
+    void M(C c, EventHandler handler1, EventHandler handler2)
+    /*<bind>*/{
+        c.MyEvent += handler1;
+        MyEvent -= handler2;
+    }/*</bind>*/
+}
+";
+            string expectedFlowGraph = @"
+Block[B0] - Entry
+    Statements (0)
+    Next (Regular) Block[B1]
+Block[B1] - Block
+    Predecessors: [B0]
+    Statements (2)
+        IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'c.MyEvent += handler1;')
+          Expression: 
+            IEventAssignmentOperation (EventAdd) (OperationKind.EventAssignment, Type: System.Void) (Syntax: 'c.MyEvent += handler1')
+              Event Reference: 
+                IEventReferenceOperation: event System.EventHandler C.MyEvent (OperationKind.EventReference, Type: System.EventHandler) (Syntax: 'c.MyEvent')
+                  Instance Receiver: 
+                    IParameterReferenceOperation: c (OperationKind.ParameterReference, Type: C) (Syntax: 'c')
+              Handler: 
+                IParameterReferenceOperation: handler1 (OperationKind.ParameterReference, Type: System.EventHandler) (Syntax: 'handler1')
+
+        IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'MyEvent -= handler2;')
+          Expression: 
+            IEventAssignmentOperation (EventRemove) (OperationKind.EventAssignment, Type: System.Void) (Syntax: 'MyEvent -= handler2')
+              Event Reference: 
+                IEventReferenceOperation: event System.EventHandler C.MyEvent (OperationKind.EventReference, Type: System.EventHandler) (Syntax: 'MyEvent')
+                  Instance Receiver: 
+                    IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: C, IsImplicit) (Syntax: 'MyEvent')
+              Handler: 
+                IParameterReferenceOperation: handler2 (OperationKind.ParameterReference, Type: System.EventHandler) (Syntax: 'handler2')
+
+    Next (Regular) Block[B2]
+Block[B2] - Exit
+    Predecessors: [B1]
+    Statements (0)
+";
+            var expectedDiagnostics = DiagnosticDescription.None;
+
+            VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedFlowGraph, expectedDiagnostics);
+        }
+
+        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+        [Fact]
+        public void EventAssignment_ControlFlowInEventReference()
+        {
+            string source = @"
+using System;
+
+class C
+{
+#pragma warning disable CS0067 // Event is unused.
+    public event EventHandler MyEvent;
+
+    void M(C c1, C c2, EventHandler handler)
+    /*<bind>*/
+    {
+        (c1 ?? c2).MyEvent += handler;
+    }/*</bind>*/
+}
+";
+            string expectedFlowGraph = @"
+Block[B0] - Entry
+    Statements (0)
+    Next (Regular) Block[B1]
+Block[B1] - Block
+    Predecessors: [B0]
+    Statements (1)
+        IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'c1')
+          Value: 
+            IParameterReferenceOperation: c1 (OperationKind.ParameterReference, Type: C) (Syntax: 'c1')
+
+    Jump if True (Regular) to Block[B3]
+        IIsNullOperation (OperationKind.IsNull, Type: System.Boolean, IsImplicit) (Syntax: 'c1')
+          Operand: 
+            IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: C, IsImplicit) (Syntax: 'c1')
+
+    Next (Regular) Block[B2]
+Block[B2] - Block
+    Predecessors: [B1]
+    Statements (1)
+        IFlowCaptureOperation: 1 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'c1')
+          Value: 
+            IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: C, IsImplicit) (Syntax: 'c1')
+
+    Next (Regular) Block[B4]
+Block[B3] - Block
+    Predecessors: [B1]
+    Statements (1)
+        IFlowCaptureOperation: 1 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'c2')
+          Value: 
+            IParameterReferenceOperation: c2 (OperationKind.ParameterReference, Type: C) (Syntax: 'c2')
+
+    Next (Regular) Block[B4]
+Block[B4] - Block
+    Predecessors: [B2] [B3]
+    Statements (1)
+        IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: '(c1 ?? c2). ... += handler;')
+          Expression: 
+            IEventAssignmentOperation (EventAdd) (OperationKind.EventAssignment, Type: System.Void) (Syntax: '(c1 ?? c2). ...  += handler')
+              Event Reference: 
+                IEventReferenceOperation: event System.EventHandler C.MyEvent (OperationKind.EventReference, Type: System.EventHandler) (Syntax: '(c1 ?? c2).MyEvent')
+                  Instance Receiver: 
+                    IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: C, IsImplicit) (Syntax: 'c1 ?? c2')
+              Handler: 
+                IParameterReferenceOperation: handler (OperationKind.ParameterReference, Type: System.EventHandler) (Syntax: 'handler')
+
+    Next (Regular) Block[B5]
+Block[B5] - Exit
+    Predecessors: [B4]
+    Statements (0)
+";
+            var expectedDiagnostics = DiagnosticDescription.None;
+
+            VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedFlowGraph, expectedDiagnostics);
+        }
+
+        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+        [Fact]
+        public void EventAssignment_ControlFlowInEventReference_StaticEvent()
+        {
+            string source = @"
+using System;
+
+class C
+{
+#pragma warning disable CS0067 // Event is unused.
+    public static event EventHandler MyEvent;
+
+    void M(C c1, C c2, EventHandler handler)
+    /*<bind>*/
+    {
+        (c1 ?? c2).MyEvent += handler;
+    }/*</bind>*/
+}
+";
+            string expectedFlowGraph = @"
+Block[B0] - Entry
+    Statements (0)
+    Next (Regular) Block[B1]
+Block[B1] - Block
+    Predecessors: [B0]
+    Statements (1)
+        IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null, IsInvalid) (Syntax: '(c1 ?? c2). ... += handler;')
+          Expression: 
+            IEventAssignmentOperation (EventAdd) (OperationKind.EventAssignment, Type: System.Void, IsInvalid) (Syntax: '(c1 ?? c2). ...  += handler')
+              Event Reference: 
+                IEventReferenceOperation: event System.EventHandler C.MyEvent (Static) (OperationKind.EventReference, Type: System.EventHandler, IsInvalid) (Syntax: '(c1 ?? c2).MyEvent')
+                  Instance Receiver: 
+                    null
+              Handler: 
+                IParameterReferenceOperation: handler (OperationKind.ParameterReference, Type: System.EventHandler) (Syntax: 'handler')
+
+    Next (Regular) Block[B2]
+Block[B2] - Exit
+    Predecessors: [B1]
+    Statements (0)
+";
+            var expectedDiagnostics = new DiagnosticDescription[] {                
+                // file.cs(12,9): error CS0176: Member 'C.MyEvent' cannot be accessed with an instance reference; qualify it with a type name instead
+                //         (c1 ?? c2).MyEvent += handler;
+                Diagnostic(ErrorCode.ERR_ObjectProhibited, "(c1 ?? c2).MyEvent").WithArguments("C.MyEvent").WithLocation(12, 9)
+            };
+
+            VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedFlowGraph, expectedDiagnostics);
+        }
+
+        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+        [Fact]
+        public void EventAssignment_ControlFlowInHandler_InstanceReceiver()
+        {
+            string source = @"
+using System;
+
+class C
+{
+#pragma warning disable CS0067 // Event is unused.
+    public event EventHandler MyEvent;
+
+    void M(EventHandler handler1, EventHandler handler2)
+    /*<bind>*/
+    {
+        MyEvent -= handler1 ?? handler2;
+    }/*</bind>*/
+}
+";
+            string expectedFlowGraph = @"
+Block[B0] - Entry
+    Statements (0)
+    Next (Regular) Block[B1]
+Block[B1] - Block
+    Predecessors: [B0]
+    Statements (2)
+        IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'MyEvent')
+          Value: 
+            IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: C, IsImplicit) (Syntax: 'MyEvent')
+
+        IFlowCaptureOperation: 1 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'handler1')
+          Value: 
+            IParameterReferenceOperation: handler1 (OperationKind.ParameterReference, Type: System.EventHandler) (Syntax: 'handler1')
+
+    Jump if True (Regular) to Block[B3]
+        IIsNullOperation (OperationKind.IsNull, Type: System.Boolean, IsImplicit) (Syntax: 'handler1')
+          Operand: 
+            IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: System.EventHandler, IsImplicit) (Syntax: 'handler1')
+
+    Next (Regular) Block[B2]
+Block[B2] - Block
+    Predecessors: [B1]
+    Statements (1)
+        IFlowCaptureOperation: 2 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'handler1')
+          Value: 
+            IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: System.EventHandler, IsImplicit) (Syntax: 'handler1')
+
+    Next (Regular) Block[B4]
+Block[B3] - Block
+    Predecessors: [B1]
+    Statements (1)
+        IFlowCaptureOperation: 2 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'handler2')
+          Value: 
+            IParameterReferenceOperation: handler2 (OperationKind.ParameterReference, Type: System.EventHandler) (Syntax: 'handler2')
+
+    Next (Regular) Block[B4]
+Block[B4] - Block
+    Predecessors: [B2] [B3]
+    Statements (1)
+        IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'MyEvent -=  ... ? handler2;')
+          Expression: 
+            IEventAssignmentOperation (EventRemove) (OperationKind.EventAssignment, Type: System.Void) (Syntax: 'MyEvent -=  ... ?? handler2')
+              Event Reference: 
+                IEventReferenceOperation: event System.EventHandler C.MyEvent (OperationKind.EventReference, Type: System.EventHandler) (Syntax: 'MyEvent')
+                  Instance Receiver: 
+                    IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: C, IsImplicit) (Syntax: 'MyEvent')
+              Handler: 
+                IFlowCaptureReferenceOperation: 2 (OperationKind.FlowCaptureReference, Type: System.EventHandler, IsImplicit) (Syntax: 'handler1 ?? handler2')
+
+    Next (Regular) Block[B5]
+Block[B5] - Exit
+    Predecessors: [B4]
+    Statements (0)
+";
+            var expectedDiagnostics = DiagnosticDescription.None;
+
+            VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedFlowGraph, expectedDiagnostics);
+        }
+
+        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+        [Fact]
+        public void EventAssignment_ControlFlowInHandler_NullReceiver()
+        {
+            string source = @"
+using System;
+
+class C
+{
+#pragma warning disable CS0067 // Event is unused.
+    public static event EventHandler MyEvent;
+
+    void M(EventHandler handler1, EventHandler handler2)
+    /*<bind>*/
+    {
+        MyEvent -= handler1 ?? handler2;
+    }/*</bind>*/
+}
+";
+            string expectedFlowGraph = @"
+Block[B0] - Entry
+    Statements (0)
+    Next (Regular) Block[B1]
+Block[B1] - Block
+    Predecessors: [B0]
+    Statements (1)
+        IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'handler1')
+          Value: 
+            IParameterReferenceOperation: handler1 (OperationKind.ParameterReference, Type: System.EventHandler) (Syntax: 'handler1')
+
+    Jump if True (Regular) to Block[B3]
+        IIsNullOperation (OperationKind.IsNull, Type: System.Boolean, IsImplicit) (Syntax: 'handler1')
+          Operand: 
+            IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.EventHandler, IsImplicit) (Syntax: 'handler1')
+
+    Next (Regular) Block[B2]
+Block[B2] - Block
+    Predecessors: [B1]
+    Statements (1)
+        IFlowCaptureOperation: 1 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'handler1')
+          Value: 
+            IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.EventHandler, IsImplicit) (Syntax: 'handler1')
+
+    Next (Regular) Block[B4]
+Block[B3] - Block
+    Predecessors: [B1]
+    Statements (1)
+        IFlowCaptureOperation: 1 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'handler2')
+          Value: 
+            IParameterReferenceOperation: handler2 (OperationKind.ParameterReference, Type: System.EventHandler) (Syntax: 'handler2')
+
+    Next (Regular) Block[B4]
+Block[B4] - Block
+    Predecessors: [B2] [B3]
+    Statements (1)
+        IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'MyEvent -=  ... ? handler2;')
+          Expression: 
+            IEventAssignmentOperation (EventRemove) (OperationKind.EventAssignment, Type: System.Void) (Syntax: 'MyEvent -=  ... ?? handler2')
+              Event Reference: 
+                IEventReferenceOperation: event System.EventHandler C.MyEvent (Static) (OperationKind.EventReference, Type: System.EventHandler) (Syntax: 'MyEvent')
+                  Instance Receiver: 
+                    null
+              Handler: 
+                IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: System.EventHandler, IsImplicit) (Syntax: 'handler1 ?? handler2')
+
+    Next (Regular) Block[B5]
+Block[B5] - Exit
+    Predecessors: [B4]
+    Statements (0)
+";
+            var expectedDiagnostics = DiagnosticDescription.None;
+
+            VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedFlowGraph, expectedDiagnostics);
+        }
+
+        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+        [Fact]
+        public void EventAssignment_ControlFlowInEventReferenceAndHandler()
+        {
+            string source = @"
+using System;
+
+class C
+{
+#pragma warning disable CS0067 // Event is unused.
+    public event EventHandler MyEvent;
+
+    void M(C c1, C c2, EventHandler handler1, EventHandler handler2)
+    /*<bind>*/
+    {
+        (c1 ?? c2).MyEvent += handler1 ?? handler2;
+    }/*</bind>*/
+}
+";
+            string expectedFlowGraph = @"
+Block[B0] - Entry
+    Statements (0)
+    Next (Regular) Block[B1]
+Block[B1] - Block
+    Predecessors: [B0]
+    Statements (1)
+        IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'c1')
+          Value: 
+            IParameterReferenceOperation: c1 (OperationKind.ParameterReference, Type: C) (Syntax: 'c1')
+
+    Jump if True (Regular) to Block[B3]
+        IIsNullOperation (OperationKind.IsNull, Type: System.Boolean, IsImplicit) (Syntax: 'c1')
+          Operand: 
+            IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: C, IsImplicit) (Syntax: 'c1')
+
+    Next (Regular) Block[B2]
+Block[B2] - Block
+    Predecessors: [B1]
+    Statements (1)
+        IFlowCaptureOperation: 1 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'c1')
+          Value: 
+            IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: C, IsImplicit) (Syntax: 'c1')
+
+    Next (Regular) Block[B4]
+Block[B3] - Block
+    Predecessors: [B1]
+    Statements (1)
+        IFlowCaptureOperation: 1 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'c2')
+          Value: 
+            IParameterReferenceOperation: c2 (OperationKind.ParameterReference, Type: C) (Syntax: 'c2')
+
+    Next (Regular) Block[B4]
+Block[B4] - Block
+    Predecessors: [B2] [B3]
+    Statements (1)
+        IFlowCaptureOperation: 2 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'handler1')
+          Value: 
+            IParameterReferenceOperation: handler1 (OperationKind.ParameterReference, Type: System.EventHandler) (Syntax: 'handler1')
+
+    Jump if True (Regular) to Block[B6]
+        IIsNullOperation (OperationKind.IsNull, Type: System.Boolean, IsImplicit) (Syntax: 'handler1')
+          Operand: 
+            IFlowCaptureReferenceOperation: 2 (OperationKind.FlowCaptureReference, Type: System.EventHandler, IsImplicit) (Syntax: 'handler1')
+
+    Next (Regular) Block[B5]
+Block[B5] - Block
+    Predecessors: [B4]
+    Statements (1)
+        IFlowCaptureOperation: 3 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'handler1')
+          Value: 
+            IFlowCaptureReferenceOperation: 2 (OperationKind.FlowCaptureReference, Type: System.EventHandler, IsImplicit) (Syntax: 'handler1')
+
+    Next (Regular) Block[B7]
+Block[B6] - Block
+    Predecessors: [B4]
+    Statements (1)
+        IFlowCaptureOperation: 3 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'handler2')
+          Value: 
+            IParameterReferenceOperation: handler2 (OperationKind.ParameterReference, Type: System.EventHandler) (Syntax: 'handler2')
+
+    Next (Regular) Block[B7]
+Block[B7] - Block
+    Predecessors: [B5] [B6]
+    Statements (1)
+        IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: '(c1 ?? c2). ... ? handler2;')
+          Expression: 
+            IEventAssignmentOperation (EventAdd) (OperationKind.EventAssignment, Type: System.Void) (Syntax: '(c1 ?? c2). ... ?? handler2')
+              Event Reference: 
+                IEventReferenceOperation: event System.EventHandler C.MyEvent (OperationKind.EventReference, Type: System.EventHandler) (Syntax: '(c1 ?? c2).MyEvent')
+                  Instance Receiver: 
+                    IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: C, IsImplicit) (Syntax: 'c1 ?? c2')
+              Handler: 
+                IFlowCaptureReferenceOperation: 3 (OperationKind.FlowCaptureReference, Type: System.EventHandler, IsImplicit) (Syntax: 'handler1 ?? handler2')
+
+    Next (Regular) Block[B8]
+Block[B8] - Exit
+    Predecessors: [B7]
+    Statements (0)
+";
+            var expectedDiagnostics = DiagnosticDescription.None;
+
+            VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedFlowGraph, expectedDiagnostics);
+        }
     }
 }
