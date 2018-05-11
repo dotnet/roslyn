@@ -2364,10 +2364,20 @@ namespace Microsoft.CodeAnalysis.Operations
     /// </summary>
     internal abstract partial class BaseForToLoopStatement : LoopStatement, IForToLoopOperation
     {
-        public BaseForToLoopStatement(ImmutableArray<ILocalSymbol> locals, ILabelSymbol continueLabel, ILabelSymbol exitLabel, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
+        public BaseForToLoopStatement(ImmutableArray<ILocalSymbol> locals, bool isChecked,
+                                      (ILocalSymbol LoopObject, ForToLoopOperationUserDefinedInfo UserDefinedInfo) info,
+                                      ILabelSymbol continueLabel, ILabelSymbol exitLabel, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
             base(LoopKind.ForTo, locals, continueLabel, exitLabel, OperationKind.Loop, semanticModel, syntax, type, constantValue, isImplicit)
         {
+            Debug.Assert(info.LoopObject == null || info.LoopObject.Type.SpecialType == SpecialType.System_Object);
+
+            IsChecked = isChecked;
+            Info = info;
         }
+
+        public bool IsChecked { get; }
+
+        public (ILocalSymbol LoopObject, ForToLoopOperationUserDefinedInfo UserDefinedInfo) Info { get; }
 
         public override IEnumerable<IOperation> Children
         {
@@ -2442,8 +2452,13 @@ namespace Microsoft.CodeAnalysis.Operations
     /// </summary>
     internal sealed partial class ForToLoopStatement : BaseForToLoopStatement, IForToLoopOperation
     {
-        public ForToLoopStatement(ImmutableArray<ILocalSymbol> locals, ILabelSymbol continueLabel, ILabelSymbol exitLabel, IOperation loopControlVariable, IOperation initialValue, IOperation limitValue, IOperation stepValue, IOperation body, ImmutableArray<IOperation> nextVariables, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
-            base(locals, continueLabel, exitLabel, semanticModel, syntax, type, constantValue, isImplicit)
+        public ForToLoopStatement(ImmutableArray<ILocalSymbol> locals, bool isChecked,
+                                  (ILocalSymbol LoopObject, ForToLoopOperationUserDefinedInfo UserDefinedInfo) info, 
+                                  ILabelSymbol continueLabel, ILabelSymbol exitLabel, IOperation loopControlVariable, 
+                                  IOperation initialValue, IOperation limitValue, IOperation stepValue, IOperation body, 
+                                  ImmutableArray<IOperation> nextVariables, SemanticModel semanticModel, SyntaxNode syntax, 
+                                  ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
+            base(locals, isChecked, info, continueLabel, exitLabel, semanticModel, syntax, type, constantValue, isImplicit)
         {
             LoopControlVariable = SetParentOperation(loopControlVariable, this);
             InitialValue = SetParentOperation(initialValue, this);
@@ -2473,8 +2488,13 @@ namespace Microsoft.CodeAnalysis.Operations
         private readonly Lazy<IOperation> _lazyBody;
         private readonly Lazy<ImmutableArray<IOperation>> _lazyNextVariables;
 
-        public LazyForToLoopStatement(ImmutableArray<ILocalSymbol> locals, ILabelSymbol continueLabel, ILabelSymbol exitLabel, Lazy<IOperation> loopControlVariable, Lazy<IOperation> initialValue, Lazy<IOperation> limitValue, Lazy<IOperation> stepValue, Lazy<IOperation> body, Lazy<ImmutableArray<IOperation>> nextVariables, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
-            base(locals, continueLabel, exitLabel, semanticModel, syntax, type, constantValue, isImplicit)
+        public LazyForToLoopStatement(ImmutableArray<ILocalSymbol> locals, bool isChecked,
+                                      (ILocalSymbol LoopObject, ForToLoopOperationUserDefinedInfo UserDefinedInfo) info, 
+                                      ILabelSymbol continueLabel, ILabelSymbol exitLabel, Lazy<IOperation> loopControlVariable, 
+                                      Lazy<IOperation> initialValue, Lazy<IOperation> limitValue, Lazy<IOperation> stepValue, Lazy<IOperation> body, 
+                                      Lazy<ImmutableArray<IOperation>> nextVariables, SemanticModel semanticModel, SyntaxNode syntax, 
+                                      ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
+            base(locals, isChecked, info, continueLabel, exitLabel, semanticModel, syntax, type, constantValue, isImplicit)
         {
             _lazyLoopControlVariable = loopControlVariable ?? throw new System.ArgumentNullException(nameof(loopControlVariable));
             _lazyInitialValue = initialValue ?? throw new System.ArgumentNullException(nameof(initialValue));

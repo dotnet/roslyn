@@ -131,13 +131,18 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             Assert.Equal(OperationKind.SwitchCase, operation.Kind);
             VisitLocals(operation.Locals);
             AssertEx.Equal(operation.Clauses.Concat(operation.Body), operation.Children);
-            IOperation condition = ((BaseSwitchCase)operation).Condition;
 
-            if (condition != null)
+            VerifySubTree(((BaseSwitchCase)operation).Condition);
+        }
+
+        internal static void VerifySubTree(IOperation root)
+        {
+            if (root != null)
             {
+                Assert.Null(root.Parent);
                 var explictNodeMap = new Dictionary<SyntaxNode, IOperation>();
 
-                foreach (IOperation descendant in condition.DescendantsAndSelf())
+                foreach (IOperation descendant in root.DescendantsAndSelf())
                 {
                     if (!descendant.IsImplicit)
                     {
@@ -255,18 +260,19 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         {
             VisitLoop(operation);
             Assert.Equal(LoopKind.ForTo, operation.LoopKind);
+            _ = operation.IsChecked;
+            (ILocalSymbol loopObject, ForToLoopOperationUserDefinedInfo userDefinedInfo) = ((BaseForToLoopStatement)operation).Info;
+
+            if (userDefinedInfo != null)
+            {
+                VerifySubTree(userDefinedInfo.Addition.Value);
+                VerifySubTree(userDefinedInfo.Subtraction.Value);
+                VerifySubTree(userDefinedInfo.LessThanOrEqual.Value);
+                VerifySubTree(userDefinedInfo.GreaterThanOrEqual.Value);
+            }
 
             IEnumerable<IOperation> children;
-
-            if (operation.StepValue != null)
-            {
-                children = new[] { operation.LoopControlVariable, operation.InitialValue, operation.LimitValue, operation.StepValue, operation.Body };
-            }
-            else
-            {
-                children = new[] { operation.LoopControlVariable, operation.InitialValue, operation.LimitValue, operation.Body };
-            }
-
+            children = new[] { operation.LoopControlVariable, operation.InitialValue, operation.LimitValue, operation.StepValue, operation.Body };
             children = children.Concat(operation.NextVariables);
             AssertEx.Equal(children, operation.Children);
         }
@@ -278,7 +284,21 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
             IEnumerable<IOperation> children = new[] { operation.Collection, operation.LoopControlVariable, operation.Body }.Concat(operation.NextVariables);
             AssertEx.Equal(children, operation.Children);
-            _ = ((BaseForEachLoopStatement)operation).Info;
+            ForEachLoopOperationInfo info = ((BaseForEachLoopStatement)operation).Info;
+            visitArguments(info.GetEnumeratorArguments);
+            visitArguments(info.MoveNextArguments);
+            visitArguments(info.CurrentArguments);
+
+            void visitArguments(Lazy<ImmutableArray<IArgumentOperation>> arguments)
+            {
+                if (arguments != null)
+                {
+                    foreach (IArgumentOperation arg in arguments.Value)
+                    {
+                        VerifySubTree(arg);
+                    }
+                }
+            }
         }
 
         private static void VisitLoop(ILoopOperation operation)
@@ -606,7 +626,6 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         {
             Assert.Equal(OperationKind.None, operation.Kind);
             Assert.Empty(operation.Children);
-            Assert.Equal(PlaceholderKind.Unspecified, operation.PlaceholderKind);
         }
 
         public override void VisitUnaryOperator(IUnaryOperation operation)

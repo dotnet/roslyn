@@ -523,7 +523,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         public override void VisitForToLoop(IForToLoopOperation operation)
         {
             LogString(nameof(IForToLoopOperation));
-            LogLoopStatementHeader(operation);
+            LogLoopStatementHeader(operation, operation.IsChecked);
 
             Visit(operation.LoopControlVariable, "LoopControlVariable");
             Visit(operation.InitialValue, "InitialValue");
@@ -531,6 +531,16 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             Visit(operation.StepValue, "StepValue");
             Visit(operation.Body, "Body");
             VisitArray(operation.NextVariables, "NextVariables", logElementCount: true);
+
+            (ILocalSymbol loopObject, ForToLoopOperationUserDefinedInfo userDefinedInfo) = ((BaseForToLoopStatement)operation).Info;
+
+            if (userDefinedInfo != null)
+            {
+                _ = userDefinedInfo.Addition.Value;
+                _ = userDefinedInfo.Subtraction.Value;
+                _ = userDefinedInfo.LessThanOrEqual.Value;
+                _ = userDefinedInfo.GreaterThanOrEqual.Value;
+            }
         }
 
         private void LogLocals(IEnumerable<ILocalSymbol> locals, string header = "Locals")
@@ -556,7 +566,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             Unindent();
         }
 
-        private void LogLoopStatementHeader(ILoopOperation operation)
+        private void LogLoopStatementHeader(ILoopOperation operation, bool? isChecked = null)
         {
             Assert.Equal(OperationKind.Loop, operation.Kind);
             var propertyStringBuilder = new StringBuilder();
@@ -564,6 +574,10 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             propertyStringBuilder.Append($"{nameof(LoopKind)}.{operation.LoopKind}");
             propertyStringBuilder.Append($", Continue Label Id: {GetLabelId(operation.ContinueLabel)}");
             propertyStringBuilder.Append($", Exit Label Id: {GetLabelId(operation.ExitLabel)}");
+            if (isChecked.GetValueOrDefault())
+            {
+                propertyStringBuilder.Append($", Checked");
+            }
             propertyStringBuilder.Append(")");
             LogString(propertyStringBuilder.ToString());
             LogCommonPropertiesAndNewLine(operation);
@@ -581,7 +595,10 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             Visit(operation.Collection, "Collection");
             Visit(operation.Body, "Body");
             VisitArray(operation.NextVariables, "NextVariables", logElementCount: true);
-            _ = ((BaseForEachLoopStatement)operation).Info;
+            ForEachLoopOperationInfo info = ((BaseForEachLoopStatement)operation).Info;
+            _ = info.GetEnumeratorArguments?.Value;
+            _ = info.MoveNextArguments?.Value;
+            _ = info.CurrentArguments?.Value;
         }
 
         public override void VisitLabeled(ILabeledOperation operation)

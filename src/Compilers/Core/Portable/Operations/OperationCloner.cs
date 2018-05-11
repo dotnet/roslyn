@@ -117,7 +117,10 @@ namespace Microsoft.CodeAnalysis.Operations
 
         public override IOperation VisitForToLoop(IForToLoopOperation operation, object argument)
         {
-            return new ForToLoopStatement(operation.Locals, operation.ContinueLabel, operation.ExitLabel, Visit(operation.LoopControlVariable), Visit(operation.InitialValue), Visit(operation.LimitValue), Visit(operation.StepValue), Visit(operation.Body), VisitArray(operation.NextVariables), ((Operation)operation).SemanticModel, operation.Syntax, operation.Type, operation.ConstantValue, operation.IsImplicit);
+            return new ForToLoopStatement(operation.Locals, operation.IsChecked, ((BaseForToLoopStatement)operation).Info, operation.ContinueLabel, operation.ExitLabel, 
+                                          Visit(operation.LoopControlVariable), Visit(operation.InitialValue), Visit(operation.LimitValue), Visit(operation.StepValue), 
+                                          Visit(operation.Body), VisitArray(operation.NextVariables), ((Operation)operation).SemanticModel, operation.Syntax, operation.Type, 
+                                          operation.ConstantValue, operation.IsImplicit);
         }
 
         public override IOperation VisitForEachLoop(IForEachLoopOperation operation, object argument)

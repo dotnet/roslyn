@@ -86,6 +86,7 @@ Microsoft.CodeAnalysis.Operations.IFlowCaptureOperation.Value.get -> Microsoft.C
 Microsoft.CodeAnalysis.Operations.IFlowCaptureReferenceOperation
 Microsoft.CodeAnalysis.Operations.IFlowCaptureReferenceOperation.Id.get -> int
 Microsoft.CodeAnalysis.Operations.IForLoopOperation.ConditionLocals.get -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.ILocalSymbol>
+Microsoft.CodeAnalysis.Operations.IForToLoopOperation.IsChecked.get -> bool
 Microsoft.CodeAnalysis.Operations.IInstanceReferenceOperation.ReferenceKind.get -> Microsoft.CodeAnalysis.Operations.InstanceReferenceKind
 Microsoft.CodeAnalysis.Operations.IIsNullOperation
 Microsoft.CodeAnalysis.Operations.IIsNullOperation.Operand.get -> Microsoft.CodeAnalysis.IOperation

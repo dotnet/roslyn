@@ -14,10 +14,10 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 {
     public static class ControlFlowGraphVerifier
     {
-        public static ControlFlowGraph GetControlFlowGraph(SyntaxNode syntaxNode, SemanticModel model)
+        public static ControlFlowGraph GetControlFlowGraph(SyntaxNode syntaxNode, SemanticModel model, out IOperation operationRoot)
         {
-            IOperation operation = model.GetOperation(syntaxNode);
-            switch (operation)
+            operationRoot = model.GetOperation(syntaxNode);
+            switch (operationRoot)
             {
                 case IBlockOperation blockOperation:
                     return SemanticModel.GetControlFlowGraph(blockOperation);
@@ -564,6 +564,7 @@ endRegion:
                 case OperationKind.Throw:
                 case OperationKind.End:
                 case OperationKind.Empty:
+                case OperationKind.NameOf:
                     return false;
 
                 case OperationKind.BinaryOperator:
@@ -605,7 +606,6 @@ endRegion:
                 case OperationKind.EventAssignment:
                 case OperationKind.InterpolatedString:
                 case OperationKind.AnonymousObjectCreation:
-                case OperationKind.NameOf:
                 case OperationKind.Tuple:
                 case OperationKind.DynamicObjectCreation:
                 case OperationKind.DynamicMemberReference:
