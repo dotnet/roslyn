@@ -55,7 +55,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeGeneration
             {
                 var typeSymbol = type != null ? type(context.SemanticModel) : null;
                 var field = CodeGenerationSymbolFactory.CreateFieldSymbol(
-                    default,
+                    attributes: default,
                     accessibility,
                     modifiers,
                     typeSymbol,
@@ -90,7 +90,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeGeneration
             {
                 var parameterSymbols = GetParameterSymbols(parameters, context);
                 var ctor = CodeGenerationSymbolFactory.CreateConstructorSymbol(
-                    default,
+                    attributes: default,
                     accessibility,
                     modifiers,
                     name,
@@ -127,7 +127,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeGeneration
                 var parsedStatements = context.ParseStatements(statements);
                 var explicitInterfaceImplementations = GetMethodSymbols(getExplicitInterfaces, context);
                 var method = CodeGenerationSymbolFactory.CreateMethodSymbol(
-                    default,
+                    attributes: default,
                     accessibility,
                     modifiers,
                     GetTypeSymbol(returnType)(context.SemanticModel),
@@ -167,7 +167,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeGeneration
                 var parsedStatements = context.ParseStatements(statements);
 
                 var methods = operatorKinds.Select(kind => CodeGenerationSymbolFactory.CreateOperatorSymbol(
-                    default,
+                    attributes: default,
                     accessibility,
                     modifiers,
                     GetTypeSymbol(returnType)(context.SemanticModel),
@@ -195,7 +195,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeGeneration
                 var parsedStatements = context.ParseStatements(statements);
 
                 var method = CodeGenerationSymbolFactory.CreateOperatorSymbol(
-                    default,
+                    attributes: default,
                     accessibility,
                     modifiers,
                     GetTypeSymbol(returnType)(context.SemanticModel),
@@ -239,7 +239,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeGeneration
             {
                 var parsedStatements = context.ParseStatements(statements);
                 var method = CodeGenerationSymbolFactory.CreateConversionSymbol(
-                    default,
+                    attributes: default,
                     accessibility,
                     modifiers,
                     GetTypeSymbol(toType)(context.SemanticModel),
@@ -301,7 +301,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeGeneration
             {
                 var parameterSymbols = GetParameterSymbols(parameters, context);
                 var type = CodeGenerationSymbolFactory.CreateDelegateTypeSymbol(
-                    default,
+                    attributes: default,
                     accessibility,
                     modifiers,
                     GetTypeSymbol(returnType)(context.SemanticModel),
@@ -391,25 +391,25 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeGeneration
                     ? default
                     : getParameterSymbols.Add(Parameter(type, "value")(context.SemanticModel));
                 IMethodSymbol getAccessor = CodeGenerationSymbolFactory.CreateMethodSymbol(
-                    default,
+                    attributes: default,
                     defaultAccessibility,
                     new Editing.DeclarationModifiers(isAbstract: getStatements == null),
                     typeSymbol,
                     RefKind.None,
-                    default,
+                    explicitInterfaceImplementations: default,
                     "get_" + name,
-                    default,
+                    typeParameters: default,
                     getParameterSymbols,
                     statements: context.ParseStatements(getStatements));
                 IMethodSymbol setAccessor = CodeGenerationSymbolFactory.CreateMethodSymbol(
-                    default,
+                    attributes: default,
                     setterAccessibility,
                     new Editing.DeclarationModifiers(isAbstract: setStatements == null),
                     GetTypeSymbol(typeof(void))(context.SemanticModel),
                     RefKind.None,
-                    default,
+                    explicitInterfaceImplementations: default,
                     "set_" + name,
-                    default,
+                    typeParameters: default,
                     setParameterSymbols,
                     statements: context.ParseStatements(setStatements));
 
@@ -426,7 +426,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeGeneration
                 }
 
                 var property = CodeGenerationSymbolFactory.CreatePropertySymbol(
-                    default,
+                    attributes: default,
                     defaultAccessibility,
                     modifiers,
                     typeSymbol,
@@ -459,7 +459,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeGeneration
             {
                 var memberSymbols = GetSymbols(members, context);
                 var type = CodeGenerationSymbolFactory.CreateNamedTypeSymbol(
-                    default, accessibility, modifiers, typeKind, name,
+                    attributes: default, accessibility, modifiers, typeKind, name,
                     typeParameters, baseType, interfaces, specialType, memberSymbols);
                 context.Result = await context.Service.AddNamedTypeAsync(context.Solution, (INamespaceSymbol)context.GetDestination(), type, codeGenerationOptions);
             }
@@ -591,14 +591,14 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeGeneration
         internal static Func<SemanticModel, IParameterSymbol> Parameter(Type type, string name, bool hasDefaultValue = false, object defaultValue = null, bool isParams = false)
         {
             return s => CodeGenerationSymbolFactory.CreateParameterSymbol(
-                default, RefKind.None, isParams, GetTypeSymbol(s.Compilation, type), name,
+                attributes: default, RefKind.None, isParams, GetTypeSymbol(s.Compilation, type), name,
                 isOptional: hasDefaultValue, hasDefaultValue: hasDefaultValue, defaultValue: defaultValue);
         }
 
         internal static Func<SemanticModel, IParameterSymbol> Parameter(string typeFullName, string parameterName, bool hasDefaultValue = false, object defaultValue = null, bool isParams = false, int typeArrayRank = 0)
         {
             return s => CodeGenerationSymbolFactory.CreateParameterSymbol(
-                default, RefKind.None, isParams, GetTypeSymbol(s.Compilation, typeFullName, typeArrayRank), parameterName,
+                attributes: default, RefKind.None, isParams, GetTypeSymbol(s.Compilation, typeFullName, typeArrayRank), parameterName,
                 isOptional: hasDefaultValue, hasDefaultValue: hasDefaultValue, defaultValue: defaultValue);
         }
 
@@ -645,14 +645,14 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeGeneration
         private static Func<SemanticModel, ISymbol> CreateEnumField(string name, object value)
         {
             return s => CodeGenerationSymbolFactory.CreateFieldSymbol(
-                default, Accessibility.Public,
+                attributes: default, Accessibility.Public,
                 new Editing.DeclarationModifiers(), GetTypeSymbol(typeof(int))(s), name, value != null, value);
         }
 
         internal static Func<SemanticModel, ISymbol> CreateField(Accessibility accessibility, Editing.DeclarationModifiers modifiers, Type type, string name)
         {
             return s => CodeGenerationSymbolFactory.CreateFieldSymbol(
-                default, accessibility,
+                attributes: default, accessibility,
                 modifiers, GetTypeSymbol(type)(s), name);
         }
 
