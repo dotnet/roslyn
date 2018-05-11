@@ -198,15 +198,15 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         public static int VBForToShiftBits(this SpecialType specialType)
         {
-            switch (SpecialTypes.GetTypeCode(specialType))
+            switch (specialType)
             {
-                case Microsoft.Cci.PrimitiveTypeCode.Int8:
+                case SpecialType.System_SByte:
                     return 7;
-                case Microsoft.Cci.PrimitiveTypeCode.Int16:
+                case SpecialType.System_Int16:
                     return 15;
-                case Microsoft.Cci.PrimitiveTypeCode.Int32:
+                case SpecialType.System_Int32:
                     return 31;
-                case Microsoft.Cci.PrimitiveTypeCode.Int64:
+                case SpecialType.System_Int64:
                     return 63;
                 default:
                     throw Roslyn.Utilities.ExceptionUtilities.UnexpectedValue(specialType);

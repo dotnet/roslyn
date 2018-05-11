@@ -592,6 +592,7 @@ namespace Microsoft.CodeAnalysis.Operations
                         BasicBlock predecessor;
                         if (predecessors.Count == 1 &&
                             (predecessor = predecessors.Single()).InternalConditional.Condition == null &&
+                            predecessor.Ordinal < block.Ordinal &&
                             predecessor.Kind != BasicBlockKind.Entry &&
                             predecessor.InternalNext.Branch.Destination == block &&
                             regionMap[predecessor] == regionMap[block])
@@ -601,6 +602,7 @@ namespace Microsoft.CodeAnalysis.Operations
 
                             predecessor.AddStatements(block.Statements);
                             block.RemoveStatements();
+                            retry = true;
                         }
                         else
                         {
@@ -1828,7 +1830,12 @@ oneMoreTime:
 
         private static IOperation MakeInvalidOperation(SyntaxNode syntax, ITypeSymbol type, IOperation child1, IOperation child2)
         {
-            return new InvalidOperation(ImmutableArray.Create<IOperation>(child1, child2),
+            return MakeInvalidOperation(syntax, type, ImmutableArray.Create<IOperation>(child1, child2));
+        }
+
+        private static IOperation MakeInvalidOperation(SyntaxNode syntax, ITypeSymbol type, ImmutableArray<IOperation> children)
+        {
+            return new InvalidOperation(children,
                                         semanticModel: null, syntax, type,
                                         constantValue: default, isImplicit: true);
         }
@@ -2981,33 +2988,40 @@ oneMoreTime:
         public override IOperation VisitForToLoop(IForToLoopOperation operation, int? captureIdForResult)
         {
             Debug.Assert(_currentStatement == operation);
-            bool haveLocals = !operation.Locals.IsEmpty;
+
+            (ILocalSymbol loopObject, ForToLoopOperationUserDefinedInfo userDefinedInfo) = ((BaseForToLoopStatement)operation).Info;
+            bool isObjectLoop = (loopObject != null);
+            ImmutableArray<ILocalSymbol> locals = operation.Locals;
+
+            if (isObjectLoop)
+            {
+                locals = locals.Insert(0, loopObject);
+            }
+
+            bool haveLocals = !locals.IsEmpty;
 
             Compilation compilation = ((Operation)operation).SemanticModel.Compilation;
             ITypeSymbol booleanType = compilation.GetSpecialType(SpecialType.System_Boolean);
-            var @continue = GetLabeledOrNewBlock(operation.ContinueLabel);
-            var @break = GetLabeledOrNewBlock(operation.ExitLabel);
+            BasicBlock @continue = GetLabeledOrNewBlock(operation.ContinueLabel);
+            BasicBlock @break = GetLabeledOrNewBlock(operation.ExitLabel);
+            BasicBlock checkConditionBlock = new BasicBlock(BasicBlockKind.Block);
+            BasicBlock bodyBlock = new BasicBlock(BasicBlockKind.Block);
 
             if (haveLocals)
             {
-                EnterRegion(new RegionBuilder(ControlFlowGraph.RegionKind.Locals, locals: operation.Locals));
+                EnterRegion(new RegionBuilder(ControlFlowGraph.RegionKind.Locals, locals: locals));
             }
 
             // Handle loop initialization
             int limitValueId = -1;
             int stepValueId = -1;
             IFlowCaptureReferenceOperation positiveFlag = null;
-            (ILocalSymbol loopObject, ForToLoopOperationUserDefinedInfo userDefinedInfo) = ((BaseForToLoopStatement)operation).Info;
-            bool isObjectLoop = (loopObject != null);
             ITypeSymbol stepEnumUnderlyingTypeOrSelf = ITypeSymbolHelpers.GetEnumUnderlyingTypeOrSelf(operation.StepValue.Type);
 
             initializeLoop();
 
             // Now check condition
-            BasicBlock checkConditionBlock = new BasicBlock(BasicBlockKind.Block);
-            BasicBlock bodyBlock = new BasicBlock(BasicBlockKind.Block);
             AppendNewBlock(checkConditionBlock);
-
             checkLoopCondition();
 
             // Handle body
@@ -3033,8 +3047,88 @@ oneMoreTime:
             {
                 if (isObjectLoop)
                 {
-                    // PROTOTYPE(dataflow): Handle loops over object
-                    throw new NotImplementedException();
+                    // For i as Object = 3 To 6 step 2
+                    //    body
+                    // Next
+                    //
+                    // becomes ==>
+                    //
+                    // {
+                    //   Dim loopObj        ' mysterious object that holds the loop state
+                    //
+                    //   ' helper does internal initialization and tells if we need to do any iterations
+                    //   if Not ObjectFlowControl.ForLoopControl.ForLoopInitObj(ctrl, init, limit, step, ref loopObj, ref ctrl) 
+                    //                               goto exit:
+                    //   start:
+                    //       body
+                    //
+                    //   continue:
+                    //       ' helper updates loop state and tells if we need to do another iteration.
+                    //       if ObjectFlowControl.ForLoopControl.ForNextCheckObj(ctrl, loopObj, ref ctrl) 
+                    //                               GoTo start
+                    // }
+                    // exit:
+
+                    IOperation condition;
+#if DEBUG
+                    int stackSize = _evalStack.Count;
+#endif
+                    _evalStack.Push(getLoopControlVariableReference(forceImplicit: false));
+                    _evalStack.Push(Visit(operation.InitialValue));
+                    _evalStack.Push(Visit(operation.LimitValue));
+                    _evalStack.Push(Visit(operation.StepValue));
+                    var loopObjectReference = new LocalReferenceExpression(loopObject, isDeclaration: true, semanticModel: null,
+                                                                           operation.LoopControlVariable.Syntax, loopObject.Type, 
+                                                                           constantValue: default, isImplicit: true);
+
+                    var initMethod = (IMethodSymbol)compilation.CommonGetWellKnownTypeMember(WellKnownMember.Microsoft_VisualBasic_CompilerServices_ObjectFlowControl_ForLoopControl__ForLoopInitObj);
+                    if (initMethod is null)
+                    {
+                        // PROTOTYPE(dataflow): The scenario with missing ObjectFlowControl.ForLoopControl.ForLoopInitObj is not covered by unit-tests.
+
+                        var builder = ArrayBuilder<IOperation>.GetInstance(5, fillWithValue: null);
+                        builder[4] = loopObjectReference;
+                        builder[3] = _evalStack.Pop();
+                        builder[2] = _evalStack.Pop();
+                        builder[1] = _evalStack.Pop();
+                        builder[0] = _evalStack.Pop();
+
+                        condition = MakeInvalidOperation(operation.LimitValue.Syntax, booleanType, builder.ToImmutableAndFree());
+                    }
+                    else
+                    {
+
+                        var builder = ArrayBuilder<IArgumentOperation>.GetInstance(6, fillWithValue: null);
+
+                        builder[5] = new ArgumentOperation(getLoopControlVariableReference(forceImplicit: true), // Yes we are going to evaluate it again
+                                                           ArgumentKind.Explicit, initMethod.Parameters[5],
+                                                           ConvertibleConversion.Instance, ConvertibleConversion.Instance,
+                                                           semanticModel: null, operation.LoopControlVariable.Syntax, isImplicit: true);
+
+                        builder[4] = new ArgumentOperation(loopObjectReference, 
+                                                           ArgumentKind.Explicit, initMethod.Parameters[4],
+                                                           ConvertibleConversion.Instance, ConvertibleConversion.Instance,
+                                                           semanticModel: null, operation.LoopControlVariable.Syntax, isImplicit: true);
+
+                        for (int i = 3; i >= 0; i--)
+                        {
+                            IOperation value = _evalStack.Pop();
+                            builder[i] = new ArgumentOperation(value,
+                                                               ArgumentKind.Explicit, initMethod.Parameters[i],
+                                                               ConvertibleConversion.Instance, ConvertibleConversion.Instance,
+                                                               semanticModel: null, value.Syntax, isImplicit: true);
+                        }
+
+                        condition = new InvocationExpression(initMethod, instance: null, isVirtual: false, builder.ToImmutableAndFree(),
+                                                             semanticModel: null, operation.LimitValue.Syntax, initMethod.ReturnType, 
+                                                             constantValue: default, isImplicit: true);
+                    }
+#if DEBUG
+                    Debug.Assert(stackSize == _evalStack.Count);
+#endif
+                    LinkBlocks(CurrentBasicBlock, (Operation.SetParentOperation(condition, null), JumpIfTrue: false, RegularBranch(@break)));
+                    LinkBlocks(CurrentBasicBlock, bodyBlock);
+                    _currentBasicBlock = null;
                 }
                 else
                 {
@@ -3156,8 +3250,71 @@ oneMoreTime:
             {
                 if (isObjectLoop)
                 {
-                    // PROTOTYPE(dataflow): Handle loops over object
-                    throw new NotImplementedException();
+                    // For i as Object = 3 To 6 step 2
+                    //    body
+                    // Next
+                    //
+                    // becomes ==>
+                    //
+                    // {
+                    //   Dim loopObj        ' mysterious object that holds the loop state
+                    //
+                    //   ' helper does internal initialization and tells if we need to do any iterations
+                    //   if Not ObjectFlowControl.ForLoopControl.ForLoopInitObj(ctrl, init, limit, step, ref loopObj, ref ctrl) 
+                    //                               goto exit:
+                    //   start:
+                    //       body
+                    //
+                    //   continue:
+                    //       ' helper updates loop state and tells if we need to do another iteration.
+                    //       if ObjectFlowControl.ForLoopControl.ForNextCheckObj(ctrl, loopObj, ref ctrl) 
+                    //                               GoTo start
+                    // }
+                    // exit:
+
+                    IOperation condition;
+                    var loopObjectReference = new LocalReferenceExpression(loopObject, isDeclaration: false, semanticModel: null,
+                                                                           operation.LoopControlVariable.Syntax, loopObject.Type,
+                                                                           constantValue: default, isImplicit: true);
+
+                    var checkMethod = (IMethodSymbol)compilation.CommonGetWellKnownTypeMember(WellKnownMember.Microsoft_VisualBasic_CompilerServices_ObjectFlowControl_ForLoopControl__ForNextCheckObj);
+                    if (checkMethod is null)
+                    {
+                        // PROTOTYPE(dataflow): The scenario with missing ObjectFlowControl.ForLoopControl.ForNextCheckObj is not covered by unit-tests.
+                        condition = MakeInvalidOperation(operation.LimitValue.Syntax, booleanType, 
+                                                         getLoopControlVariableReference(forceImplicit: true), // Yes we are going to evaluate it again
+                                                         loopObjectReference);
+                    }
+                    else
+                    {
+                        _evalStack.Push(getLoopControlVariableReference(forceImplicit: true)); // Yes we are going to evaluate it again
+
+                        var builder = ArrayBuilder<IArgumentOperation>.GetInstance(3, fillWithValue: null);
+
+                        builder[2] = new ArgumentOperation(getLoopControlVariableReference(forceImplicit: true), // Yes we are going to evaluate it again
+                                                           ArgumentKind.Explicit, checkMethod.Parameters[2],
+                                                           ConvertibleConversion.Instance, ConvertibleConversion.Instance,
+                                                           semanticModel: null, operation.LimitValue.Syntax, isImplicit: true);
+
+                        builder[1] = new ArgumentOperation(loopObjectReference,
+                                                           ArgumentKind.Explicit, checkMethod.Parameters[1],
+                                                           ConvertibleConversion.Instance, ConvertibleConversion.Instance,
+                                                           semanticModel: null, operation.LimitValue.Syntax, isImplicit: true);
+
+                        builder[0] = new ArgumentOperation(_evalStack.Pop(),
+                                                           ArgumentKind.Explicit, checkMethod.Parameters[0],
+                                                           ConvertibleConversion.Instance, ConvertibleConversion.Instance,
+                                                           semanticModel: null, operation.LimitValue.Syntax, isImplicit: true);
+
+                        condition = new InvocationExpression(checkMethod, instance: null, isVirtual: false, builder.ToImmutableAndFree(),
+                                                             semanticModel: null, operation.LimitValue.Syntax, checkMethod.ReturnType,
+                                                             constantValue: default, isImplicit: true);
+                    }
+
+                    LinkBlocks(CurrentBasicBlock, (Operation.SetParentOperation(condition, null), JumpIfTrue: false, RegularBranch(@break)));
+                    LinkBlocks(CurrentBasicBlock, bodyBlock);
+                    _currentBasicBlock = null;
+                    return;
                 }
                 else if (userDefinedInfo != null)
                 {
@@ -3168,15 +3325,15 @@ oneMoreTime:
 
                     // Spill control variable reference, we are going to have branches here.
                     int captureId = _availableCaptureId++;
-                    IOperation controlVariableReferenceforCondition = getLoopControlVariableReference(forceImplicit: true, captureId); // Yes we are going to reevaluate it again
-                    CaptureResultIfNotAlready(controlVariableReferenceforCondition.Syntax, captureId, controlVariableReferenceforCondition);
-                    controlVariableReferenceforCondition = getCaptureReference(captureId, controlVariableReferenceforCondition);
+                    IOperation controlVariableReferenceForCondition = getLoopControlVariableReference(forceImplicit: true, captureId); // Yes we are going to evaluate it again
+                    CaptureResultIfNotAlready(controlVariableReferenceForCondition.Syntax, captureId, controlVariableReferenceForCondition);
+                    controlVariableReferenceForCondition = getCaptureReference(captureId, controlVariableReferenceForCondition);
 
                     var notPositive = new BasicBlock(BasicBlockKind.Block);
                     LinkBlocks(CurrentBasicBlock, (Operation.SetParentOperation(positiveFlag, null), JumpIfTrue: false, RegularBranch(notPositive)));
                     _currentBasicBlock = null;
 
-                    _forToLoopBinaryOperatorLeftOperand = controlVariableReferenceforCondition;
+                    _forToLoopBinaryOperatorLeftOperand = controlVariableReferenceForCondition;
                     _forToLoopBinaryOperatorRightOperand = getCaptureReference(limitValueId, operation.LimitValue);
 
                     VisitConditionalBranch(userDefinedInfo.LessThanOrEqual.Value, ref @break, sense: false);
@@ -3197,7 +3354,7 @@ oneMoreTime:
                 }
                 else
                 {
-                    IOperation controlVariableReferenceforCondition = getLoopControlVariableReference(forceImplicit: true); // Yes we are going to reevaluate it again
+                    IOperation controlVariableReferenceforCondition = getLoopControlVariableReference(forceImplicit: true); // Yes we are going to evaluate it again
                     IOperation limitReference = getCaptureReference(limitValueId, operation.LimitValue);
                     var comparisonKind = BinaryOperatorKind.None;
 
@@ -3294,7 +3451,7 @@ oneMoreTime:
                         LinkBlocks(CurrentBasicBlock, @break);
                         AppendNewBlock(whenBothNotNull);
 
-                        controlVariableReferenceforCondition = getLoopControlVariableReference(forceImplicit: true); // Yes we are going to reevaluate it again
+                        controlVariableReferenceforCondition = getLoopControlVariableReference(forceImplicit: true); // Yes we are going to evaluate it again
                         limitReference = getCaptureReference(limitValueId, operation.LimitValue);
 
                         controlVariableReferenceforCondition = TryUnwrapNullableValue(controlVariableReferenceforCondition, compilation) ??
@@ -3399,21 +3556,21 @@ oneMoreTime:
             {
                 if (isObjectLoop)
                 {
-                    // PROTOTYPE(dataflow): Handle loops over object
-                    throw new NotImplementedException();
+                    // there is nothing interesting to do here, increment is folded into the condition check
+                    return;
                 }
                 else if (userDefinedInfo != null)
                 {
                     Debug.Assert(_forToLoopBinaryOperatorLeftOperand == null);
                     Debug.Assert(_forToLoopBinaryOperatorRightOperand == null);
 
-                    IOperation controlVariableReferenceForAssignment = getLoopControlVariableReference(forceImplicit: true); // Yes we are going to reevaluate it again
+                    IOperation controlVariableReferenceForAssignment = getLoopControlVariableReference(forceImplicit: true); // Yes we are going to evaluate it again
 
-                    // We are going to reevaluate control variable again and that might require branches
+                    // We are going to evaluate control variable again and that might require branches
                     _evalStack.Push(controlVariableReferenceForAssignment);
 
                     // Generate: controlVariable + stepValue
-                    _forToLoopBinaryOperatorLeftOperand = getLoopControlVariableReference(forceImplicit: true); // Yes we are going to reevaluate it again
+                    _forToLoopBinaryOperatorLeftOperand = getLoopControlVariableReference(forceImplicit: true); // Yes we are going to evaluate it again
                     _forToLoopBinaryOperatorRightOperand = getCaptureReference(stepValueId, operation.StepValue);
 
                     IOperation increment = Visit(userDefinedInfo.Addition.Value);
@@ -3441,7 +3598,7 @@ oneMoreTime:
                     {
                         // Spill control variable reference, we are going to have branches here.
                         int captureId = _availableCaptureId++;
-                        controlVariableReferenceForAssignment = getLoopControlVariableReference(forceImplicit: true, captureId); // Yes we are going to reevaluate it again
+                        controlVariableReferenceForAssignment = getLoopControlVariableReference(forceImplicit: true, captureId); // Yes we are going to evaluate it again
                         CaptureResultIfNotAlready(controlVariableReferenceForAssignment.Syntax, captureId, controlVariableReferenceForAssignment);
                         controlVariableReferenceForAssignment = getCaptureReference(captureId, controlVariableReferenceForAssignment);
 
@@ -3449,7 +3606,7 @@ oneMoreTime:
 
                         IOperation condition = new BinaryOperatorExpression(BinaryOperatorKind.Or,
                                                                             MakeIsNullOperation(getCaptureReference(stepValueId, operation.StepValue), booleanType),
-                                                                            MakeIsNullOperation(getLoopControlVariableReference(forceImplicit: true), // Yes we are going to reevaluate it again
+                                                                            MakeIsNullOperation(getLoopControlVariableReference(forceImplicit: true), // Yes we are going to evaluate it again
                                                                                                 booleanType),
                                                                             isLifted: false,
                                                                             isChecked: false,
@@ -3486,13 +3643,13 @@ oneMoreTime:
                     }
                     else
                     {
-                        controlVariableReferenceForAssignment = getLoopControlVariableReference(forceImplicit: true); // Yes we are going to reevaluate it again
+                        controlVariableReferenceForAssignment = getLoopControlVariableReference(forceImplicit: true); // Yes we are going to evaluate it again
                     }
 
-                    // We are going to reevaluate control variable again and that might require branches
+                    // We are going to evaluate control variable again and that might require branches
                     _evalStack.Push(controlVariableReferenceForAssignment);
 
-                    IOperation controlVariableReferenceForIncrement = getLoopControlVariableReference(forceImplicit: true); // Yes we are going to reevaluate it again
+                    IOperation controlVariableReferenceForIncrement = getLoopControlVariableReference(forceImplicit: true); // Yes we are going to evaluate it again
                     IOperation stepValueForIncrement = getCaptureReference(stepValueId, operation.StepValue);
 
                     if (isNullable)
