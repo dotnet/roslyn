@@ -119,7 +119,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             }
 
             if (this.RuleSetFile != null &&
-                this.RuleSetFile.FilePath.Equals(ruleSetFileFullPath, StringComparison.OrdinalIgnoreCase))
+                this.RuleSetFile.Target.FilePath.Equals(ruleSetFileFullPath, StringComparison.OrdinalIgnoreCase))
             {
                 return;
             }
@@ -171,8 +171,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         {
             if (ruleSetFileFullPath.Length != 0)
             {
-                this.RuleSetFile = this.ProjectTracker.RuleSetFileProvider.GetOrCreateRuleSet(ruleSetFileFullPath);
-                this.RuleSetFile.UpdatedOnDisk += OnRuleSetFileUpdateOnDisk;
+                this.RuleSetFile = this.ProjectTracker.RuleSetFileManager.GetOrCreateRuleSet(ruleSetFileFullPath);
+                this.RuleSetFile.Target.UpdatedOnDisk += OnRuleSetFileUpdateOnDisk;
             }
         }
 
@@ -180,7 +180,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         {
             if (this.RuleSetFile != null)
             {
-                this.RuleSetFile.UpdatedOnDisk -= OnRuleSetFileUpdateOnDisk;
+                this.RuleSetFile.Target.UpdatedOnDisk -= OnRuleSetFileUpdateOnDisk;
+                this.RuleSetFile.Dispose();
                 this.RuleSetFile = null;
             }
         }
@@ -190,7 +191,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         {
             AssertIsForeground();
 
-            var filePath = this.RuleSetFile.FilePath;
+            var filePath = this.RuleSetFile.Target.FilePath;
 
             ResetAnalyzerRuleSet(filePath);
         }
