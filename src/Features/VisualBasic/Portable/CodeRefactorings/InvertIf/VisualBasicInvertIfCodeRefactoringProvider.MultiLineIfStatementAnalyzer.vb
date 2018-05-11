@@ -65,7 +65,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings.InvertIf
             End Function
 
             Protected Overrides Function IsElselessIfStatement(ifStatement As MultiLineIfBlockSyntax) As Boolean?
-                Return If(ifStatement.ElseIfBlocks.IsEmpty, ifStatement.ElseBlock Is Nothing, Nothing)
+                Return If(ifStatement.ElseIfBlocks.IsEmpty, ifStatement.ElseBlock Is Nothing, New Boolean?)
             End Function
 
         End Class
