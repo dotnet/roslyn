@@ -23,7 +23,6 @@ namespace Microsoft.CodeAnalysis.ConvertLinq
             TForEachStatement forEachStatement,
             Workspace workspace,
             SemanticModel semanticModel,
-            ISemanticFactsService semanticFacts,
             CancellationToken cancellationToken,
             out SyntaxEditor editor);
 
@@ -42,9 +41,8 @@ namespace Microsoft.CodeAnalysis.ConvertLinq
             }
 
             var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-            var semanticFacts = document.GetLanguageService<ISemanticFactsService>();
 
-            if (TryConvert(forEachStatement,document.Project.Solution.Workspace, semanticModel, semanticFacts, cancellationToken, out SyntaxEditor editor) &&
+            if (TryConvert(forEachStatement,document.Project.Solution.Workspace, semanticModel, cancellationToken, out SyntaxEditor editor) &&
                 !semanticModel.GetDiagnostics(forEachStatement.Span, cancellationToken).Any(diagnostic => diagnostic.DefaultSeverity == DiagnosticSeverity.Error))
             {
                 context.RegisterRefactoring(
