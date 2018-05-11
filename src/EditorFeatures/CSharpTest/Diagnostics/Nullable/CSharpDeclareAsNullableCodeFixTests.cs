@@ -261,5 +261,25 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.DeclareAsNu
     static void M(string? x = null) { }
 }", parameters: s_nullableFeature);
         }
+
+        [Fact]
+        public async Task FixLocalWithAs()
+        {
+            await TestInRegularAndScript1Async(
+@"class Program
+{
+    static void M(object o)
+    {
+        string x = [|o as string|];
+    }
+}",
+@"class Program
+{
+    static void M(object o)
+    {
+        string? x = o as string;
+    }
+}", parameters: s_nullableFeature);
+        }
     }
 }
