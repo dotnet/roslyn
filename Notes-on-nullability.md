@@ -135,3 +135,25 @@ No warning for testing something that is already expected to be non-null. This a
 - `[EnsuresTrue]`: `void Debug.Assert([EnsuresTrue] bool condition)`
 - `[EnsuresFalse]`
 - other attributes are being discussed: `[NotNullWhenTrue]` (for `TryGetValue`), null-in null-out, "trust me" fields, equality methods, ref parameters that only set
+
+
+----
+### Flow analysis
+
+In a general sense, flow analysis visits a bound tree and updates some state. In the case of nullability analysis, the state is tracking nullability information at this point of the code for each variable.
+It tracks whether a given variable is maybe-null (nullability `true`), not-null (nullability `false`) or oblivious (nullability `null`).
+As the `NullableWalker` visits the bound tree, it not only updates the null-state, it also produces diagnostics and returns the nullability of each visited expression.
+
+As described in the earlier sections of this document, for each kind of bound node the visitor has to decide:
+1. how to update the state,
+2. whether to produce diagnostics,
+3. what result to return.
+
+Let's illustrate each one in turn:
+- If you have an assignment `x = "hello"`, the visitor should **update the state** with `x` marked as not-null. Conversely, if you have an assignment `x = null`, the visitor should return with `x` marked as maybe-null (and it may also produce a warning if `x` is declared with a non-nullable type).
+- If you have an invocation `x.M()`, the visitor should check the incoming state of `x` and **produce a warning** if it is maybe-null. If the invocation included arguments, such as `x.M(expr1, expr2)`, then the process of visiting the invocation will also visit the arguments, as all three kinds of effects could happen there too (consider `x.M(maybeNull.M2())` or `x.M(x = null)`).
+- If you have a field access in an invocation `x.field.M()`, the visitor for `x.field` **returns a result** representing the nullability of that expression, so that the visitor for the invocation may warn if `x.field` is maybe-null.
+
+TODO conditional states `if (condition) { ... } else { ... }` and split state for `condition`
+
+TODO attributes
