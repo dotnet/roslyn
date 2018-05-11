@@ -1386,11 +1386,15 @@ Block[B1] - Block
     Statements (1)
         ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32, IsImplicit) (Syntax: '= 1')
           Left: 
-            IInvalidOperation (OperationKind.Invalid, Type: System.Int32, IsImplicit) (Syntax: '= 1')
-              Children(1):
-                  IPropertyReferenceOperation: Property C.P1(i As System.Int32) As System.Int32 (Static) (OperationKind.PropertyReference, Type: System.Int32, IsImplicit) (Syntax: '= 1')
-                    Instance Receiver: 
-                      null
+            IPropertyReferenceOperation: Property C.P1(i As System.Int32) As System.Int32 (Static) (OperationKind.PropertyReference, Type: System.Int32, IsImplicit) (Syntax: '= 1')
+              Instance Receiver: 
+                null
+              Arguments(1):
+                  IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: i) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: '= 1')
+                    IInvalidOperation (OperationKind.Invalid, Type: System.Int32, IsImplicit) (Syntax: '= 1')
+                      Children(0)
+                    InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                    OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
           Right: 
             ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
 

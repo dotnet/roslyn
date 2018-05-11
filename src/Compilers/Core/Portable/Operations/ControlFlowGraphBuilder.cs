@@ -3934,14 +3934,30 @@ oneMoreTime:
                     null :
                     new InstanceReferenceExpression(InstanceReferenceKind.ContainingTypeInstance, semanticModel: null,
                         operation.Syntax, propertySymbol.ContainingType, constantValue: default, isImplicit: true);
-                IOperation propertyRef = new PropertyReferenceExpression(propertySymbol, instance, arguments: ImmutableArray<IArgumentOperation>.Empty,
-                    semanticModel: null, operation.Syntax, propertySymbol.Type, constantValue: default, isImplicit: true);
+
+                ImmutableArray<IArgumentOperation> arguments;
                 if (!propertySymbol.Parameters.IsEmpty)
                 {
                     // Must be an error case of initializing a property with parameters.
-                    propertyRef = MakeInvalidOperation(propertyRef.Type, propertyRef);
+                    var builder = ArrayBuilder<IArgumentOperation>.GetInstance(propertySymbol.Parameters.Length);
+                    foreach (var parameter in propertySymbol.Parameters)
+                    {
+                        var value = new InvalidOperation(ImmutableArray<IOperation>.Empty, semanticModel: null,
+                            operation.Syntax, parameter.Type, constantValue: default, isImplicit: true);
+                        var argument = new ArgumentOperation(value, ArgumentKind.Explicit, parameter, inConversionOpt: null,
+                            outConversionOpt: null, semanticModel: null, operation.Syntax, isImplicit: true);
+                        builder.Add(argument);
+                    }
+
+                    arguments = builder.ToImmutableAndFree();
+                }
+                else
+                {
+                    arguments = ImmutableArray<IArgumentOperation>.Empty;
                 }
 
+                IOperation propertyRef = new PropertyReferenceExpression(propertySymbol, instance, arguments,
+                    semanticModel: null, operation.Syntax, propertySymbol.Type, constantValue: default, isImplicit: true);
                 VisitInitializer(rewrittenTarget: propertyRef, initializer: operation);
             }
 
