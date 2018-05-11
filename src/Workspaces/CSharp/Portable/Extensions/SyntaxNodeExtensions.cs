@@ -679,7 +679,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                     return (anonymousObjectCreationExpression.OpenBraceToken, anonymousObjectCreationExpression.CloseBraceToken);
                 case InitializerExpressionSyntax initializeExpressionNode:
                     return (initializeExpressionNode.OpenBraceToken, initializeExpressionNode.CloseBraceToken);
-                case PropertySubpatternSyntax propertySubpattern:
+                case PropertyPatternClauseSyntax propertySubpattern:
                     return (propertySubpattern.OpenBraceToken, propertySubpattern.CloseBraceToken);
                 case SwitchExpressionSyntax switchExpression:
                     return (switchExpression.OpenBraceToken, switchExpression.CloseBraceToken);

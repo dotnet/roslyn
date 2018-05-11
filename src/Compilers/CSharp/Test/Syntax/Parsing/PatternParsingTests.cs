@@ -1858,7 +1858,7 @@ case KeyValuePair<String, DateTime>[] pairs2:
                         N(SyntaxKind.CaseKeyword);
                         N(SyntaxKind.RecursivePattern);
                         {
-                            N(SyntaxKind.DeconstructionSubpattern);
+                            N(SyntaxKind.DeconstructionPatternClause);
                             {
                                 N(SyntaxKind.OpenParenToken);
                                 N(SyntaxKind.SubpatternElement);
@@ -1938,21 +1938,21 @@ case KeyValuePair<String, DateTime>[] pairs2:
                         N(SyntaxKind.CaseKeyword);
                         N(SyntaxKind.RecursivePattern);
                         {
-                            N(SyntaxKind.DeconstructionSubpattern);
+                            N(SyntaxKind.DeconstructionPatternClause);
                             {
                                 N(SyntaxKind.OpenParenToken);
                                 N(SyntaxKind.SubpatternElement);
                                 {
                                     N(SyntaxKind.RecursivePattern);
                                     {
-                                        N(SyntaxKind.DeconstructionSubpattern);
+                                        N(SyntaxKind.DeconstructionPatternClause);
                                         {
                                             N(SyntaxKind.OpenParenToken);
                                             N(SyntaxKind.SubpatternElement);
                                             {
                                                 N(SyntaxKind.RecursivePattern);
                                                 {
-                                                    N(SyntaxKind.DeconstructionSubpattern);
+                                                    N(SyntaxKind.DeconstructionPatternClause);
                                                     {
                                                         N(SyntaxKind.OpenParenToken);
                                                         N(SyntaxKind.SubpatternElement);
@@ -2025,7 +2025,7 @@ case KeyValuePair<String, DateTime>[] pairs2:
                             {
                                 N(SyntaxKind.IdentifierToken, "T");
                             }
-                            N(SyntaxKind.DeconstructionSubpattern);
+                            N(SyntaxKind.DeconstructionPatternClause);
                             {
                                 N(SyntaxKind.OpenParenToken);
                                 N(SyntaxKind.SubpatternElement);
@@ -2067,7 +2067,7 @@ case KeyValuePair<String, DateTime>[] pairs2:
                                 }
                                 N(SyntaxKind.CloseParenToken);
                             }
-                            N(SyntaxKind.PropertySubpattern);
+                            N(SyntaxKind.PropertyPatternClause);
                             {
                                 N(SyntaxKind.OpenBraceToken);
                                 N(SyntaxKind.SubpatternElement);
@@ -2141,7 +2141,7 @@ case KeyValuePair<String, DateTime>[] pairs2:
                         N(SyntaxKind.CaseKeyword);
                         N(SyntaxKind.RecursivePattern);
                         {
-                            N(SyntaxKind.DeconstructionSubpattern);
+                            N(SyntaxKind.DeconstructionPatternClause);
                             {
                                 N(SyntaxKind.OpenParenToken);
                                 M(SyntaxKind.CloseParenToken);
@@ -2203,7 +2203,7 @@ case KeyValuePair<String, DateTime>[] pairs2:
                         N(SyntaxKind.CaseKeyword);
                         N(SyntaxKind.RecursivePattern);
                         {
-                            N(SyntaxKind.DeconstructionSubpattern);
+                            N(SyntaxKind.DeconstructionPatternClause);
                             {
                                 N(SyntaxKind.OpenParenToken);
                                 N(SyntaxKind.CloseParenToken);
@@ -2264,7 +2264,7 @@ case KeyValuePair<String, DateTime>[] pairs2:
                         N(SyntaxKind.CaseKeyword);
                         N(SyntaxKind.RecursivePattern);
                         {
-                            N(SyntaxKind.DeconstructionSubpattern);
+                            N(SyntaxKind.DeconstructionPatternClause);
                             {
                                 N(SyntaxKind.OpenParenToken);
                                 N(SyntaxKind.SubpatternElement);
@@ -2456,7 +2456,7 @@ case KeyValuePair<String, DateTime>[] pairs2:
                 {
                     N(SyntaxKind.RecursivePattern);
                     {
-                        N(SyntaxKind.DeconstructionSubpattern);
+                        N(SyntaxKind.DeconstructionPatternClause);
                         {
                             N(SyntaxKind.OpenParenToken);
                             N(SyntaxKind.SubpatternElement);
@@ -2551,7 +2551,7 @@ case KeyValuePair<String, DateTime>[] pairs2:
                             {
                                 N(SyntaxKind.IdentifierToken, "T");
                             }
-                            N(SyntaxKind.DeconstructionSubpattern);
+                            N(SyntaxKind.DeconstructionPatternClause);
                             {
                                 N(SyntaxKind.OpenParenToken);
                                 N(SyntaxKind.SubpatternElement);
@@ -4117,6 +4117,1063 @@ case KeyValuePair<String, DateTime>[] pairs2:
                     }
                 }
                 N(SyntaxKind.CloseBraceToken);
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void RecursivePattern_00()
+        {
+            UsingStatement("var x = o is Type (Param: 3, Param2: 4) { Prop : 3 } x;");
+            N(SyntaxKind.LocalDeclarationStatement);
+            {
+                N(SyntaxKind.VariableDeclaration);
+                {
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "var");
+                    }
+                    N(SyntaxKind.VariableDeclarator);
+                    {
+                        N(SyntaxKind.IdentifierToken, "x");
+                        N(SyntaxKind.EqualsValueClause);
+                        {
+                            N(SyntaxKind.EqualsToken);
+                            N(SyntaxKind.IsPatternExpression);
+                            {
+                                N(SyntaxKind.IdentifierName);
+                                {
+                                    N(SyntaxKind.IdentifierToken, "o");
+                                }
+                                N(SyntaxKind.IsKeyword);
+                                N(SyntaxKind.RecursivePattern);
+                                {
+                                    N(SyntaxKind.IdentifierName);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "Type");
+                                    }
+                                    N(SyntaxKind.DeconstructionPatternClause);
+                                    {
+                                        N(SyntaxKind.OpenParenToken);
+                                        N(SyntaxKind.SubpatternElement);
+                                        {
+                                            N(SyntaxKind.NameColon);
+                                            {
+                                                N(SyntaxKind.IdentifierName);
+                                                {
+                                                    N(SyntaxKind.IdentifierToken, "Param");
+                                                }
+                                                N(SyntaxKind.ColonToken);
+                                            }
+                                            N(SyntaxKind.ConstantPattern);
+                                            {
+                                                N(SyntaxKind.NumericLiteralExpression);
+                                                {
+                                                    N(SyntaxKind.NumericLiteralToken, "3");
+                                                }
+                                            }
+                                        }
+                                        N(SyntaxKind.CommaToken);
+                                        N(SyntaxKind.SubpatternElement);
+                                        {
+                                            N(SyntaxKind.NameColon);
+                                            {
+                                                N(SyntaxKind.IdentifierName);
+                                                {
+                                                    N(SyntaxKind.IdentifierToken, "Param2");
+                                                }
+                                                N(SyntaxKind.ColonToken);
+                                            }
+                                            N(SyntaxKind.ConstantPattern);
+                                            {
+                                                N(SyntaxKind.NumericLiteralExpression);
+                                                {
+                                                    N(SyntaxKind.NumericLiteralToken, "4");
+                                                }
+                                            }
+                                        }
+                                        N(SyntaxKind.CloseParenToken);
+                                    }
+                                    N(SyntaxKind.PropertyPatternClause);
+                                    {
+                                        N(SyntaxKind.OpenBraceToken);
+                                        N(SyntaxKind.SubpatternElement);
+                                        {
+                                            N(SyntaxKind.NameColon);
+                                            {
+                                                N(SyntaxKind.IdentifierName);
+                                                {
+                                                    N(SyntaxKind.IdentifierToken, "Prop");
+                                                }
+                                                N(SyntaxKind.ColonToken);
+                                            }
+                                            N(SyntaxKind.ConstantPattern);
+                                            {
+                                                N(SyntaxKind.NumericLiteralExpression);
+                                                {
+                                                    N(SyntaxKind.NumericLiteralToken, "3");
+                                                }
+                                            }
+                                        }
+                                        N(SyntaxKind.CloseBraceToken);
+                                    }
+                                    N(SyntaxKind.SingleVariableDesignation);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "x");
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+                N(SyntaxKind.SemicolonToken);
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void RecursivePattern_02()
+        {
+            UsingStatement("var x = o is (Param: 3, Param2: 4) { Prop : 3 } x;");
+            N(SyntaxKind.LocalDeclarationStatement);
+            {
+                N(SyntaxKind.VariableDeclaration);
+                {
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "var");
+                    }
+                    N(SyntaxKind.VariableDeclarator);
+                    {
+                        N(SyntaxKind.IdentifierToken, "x");
+                        N(SyntaxKind.EqualsValueClause);
+                        {
+                            N(SyntaxKind.EqualsToken);
+                            N(SyntaxKind.IsPatternExpression);
+                            {
+                                N(SyntaxKind.IdentifierName);
+                                {
+                                    N(SyntaxKind.IdentifierToken, "o");
+                                }
+                                N(SyntaxKind.IsKeyword);
+                                N(SyntaxKind.RecursivePattern);
+                                {
+                                    N(SyntaxKind.DeconstructionPatternClause);
+                                    {
+                                        N(SyntaxKind.OpenParenToken);
+                                        N(SyntaxKind.SubpatternElement);
+                                        {
+                                            N(SyntaxKind.NameColon);
+                                            {
+                                                N(SyntaxKind.IdentifierName);
+                                                {
+                                                    N(SyntaxKind.IdentifierToken, "Param");
+                                                }
+                                                N(SyntaxKind.ColonToken);
+                                            }
+                                            N(SyntaxKind.ConstantPattern);
+                                            {
+                                                N(SyntaxKind.NumericLiteralExpression);
+                                                {
+                                                    N(SyntaxKind.NumericLiteralToken, "3");
+                                                }
+                                            }
+                                        }
+                                        N(SyntaxKind.CommaToken);
+                                        N(SyntaxKind.SubpatternElement);
+                                        {
+                                            N(SyntaxKind.NameColon);
+                                            {
+                                                N(SyntaxKind.IdentifierName);
+                                                {
+                                                    N(SyntaxKind.IdentifierToken, "Param2");
+                                                }
+                                                N(SyntaxKind.ColonToken);
+                                            }
+                                            N(SyntaxKind.ConstantPattern);
+                                            {
+                                                N(SyntaxKind.NumericLiteralExpression);
+                                                {
+                                                    N(SyntaxKind.NumericLiteralToken, "4");
+                                                }
+                                            }
+                                        }
+                                        N(SyntaxKind.CloseParenToken);
+                                    }
+                                    N(SyntaxKind.PropertyPatternClause);
+                                    {
+                                        N(SyntaxKind.OpenBraceToken);
+                                        N(SyntaxKind.SubpatternElement);
+                                        {
+                                            N(SyntaxKind.NameColon);
+                                            {
+                                                N(SyntaxKind.IdentifierName);
+                                                {
+                                                    N(SyntaxKind.IdentifierToken, "Prop");
+                                                }
+                                                N(SyntaxKind.ColonToken);
+                                            }
+                                            N(SyntaxKind.ConstantPattern);
+                                            {
+                                                N(SyntaxKind.NumericLiteralExpression);
+                                                {
+                                                    N(SyntaxKind.NumericLiteralToken, "3");
+                                                }
+                                            }
+                                        }
+                                        N(SyntaxKind.CloseBraceToken);
+                                    }
+                                    N(SyntaxKind.SingleVariableDesignation);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "x");
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+                N(SyntaxKind.SemicolonToken);
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void RecursivePattern_03()
+        {
+            UsingStatement("var x = o is Type { Prop : 3 } x;");
+            N(SyntaxKind.LocalDeclarationStatement);
+            {
+                N(SyntaxKind.VariableDeclaration);
+                {
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "var");
+                    }
+                    N(SyntaxKind.VariableDeclarator);
+                    {
+                        N(SyntaxKind.IdentifierToken, "x");
+                        N(SyntaxKind.EqualsValueClause);
+                        {
+                            N(SyntaxKind.EqualsToken);
+                            N(SyntaxKind.IsPatternExpression);
+                            {
+                                N(SyntaxKind.IdentifierName);
+                                {
+                                    N(SyntaxKind.IdentifierToken, "o");
+                                }
+                                N(SyntaxKind.IsKeyword);
+                                N(SyntaxKind.RecursivePattern);
+                                {
+                                    N(SyntaxKind.IdentifierName);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "Type");
+                                    }
+                                    N(SyntaxKind.PropertyPatternClause);
+                                    {
+                                        N(SyntaxKind.OpenBraceToken);
+                                        N(SyntaxKind.SubpatternElement);
+                                        {
+                                            N(SyntaxKind.NameColon);
+                                            {
+                                                N(SyntaxKind.IdentifierName);
+                                                {
+                                                    N(SyntaxKind.IdentifierToken, "Prop");
+                                                }
+                                                N(SyntaxKind.ColonToken);
+                                            }
+                                            N(SyntaxKind.ConstantPattern);
+                                            {
+                                                N(SyntaxKind.NumericLiteralExpression);
+                                                {
+                                                    N(SyntaxKind.NumericLiteralToken, "3");
+                                                }
+                                            }
+                                        }
+                                        N(SyntaxKind.CloseBraceToken);
+                                    }
+                                    N(SyntaxKind.SingleVariableDesignation);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "x");
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+                N(SyntaxKind.SemicolonToken);
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void RecursivePattern_04()
+        {
+            UsingStatement("var x = o is { Prop : 3 } x;");
+            N(SyntaxKind.LocalDeclarationStatement);
+            {
+                N(SyntaxKind.VariableDeclaration);
+                {
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "var");
+                    }
+                    N(SyntaxKind.VariableDeclarator);
+                    {
+                        N(SyntaxKind.IdentifierToken, "x");
+                        N(SyntaxKind.EqualsValueClause);
+                        {
+                            N(SyntaxKind.EqualsToken);
+                            N(SyntaxKind.IsPatternExpression);
+                            {
+                                N(SyntaxKind.IdentifierName);
+                                {
+                                    N(SyntaxKind.IdentifierToken, "o");
+                                }
+                                N(SyntaxKind.IsKeyword);
+                                N(SyntaxKind.RecursivePattern);
+                                {
+                                    N(SyntaxKind.PropertyPatternClause);
+                                    {
+                                        N(SyntaxKind.OpenBraceToken);
+                                        N(SyntaxKind.SubpatternElement);
+                                        {
+                                            N(SyntaxKind.NameColon);
+                                            {
+                                                N(SyntaxKind.IdentifierName);
+                                                {
+                                                    N(SyntaxKind.IdentifierToken, "Prop");
+                                                }
+                                                N(SyntaxKind.ColonToken);
+                                            }
+                                            N(SyntaxKind.ConstantPattern);
+                                            {
+                                                N(SyntaxKind.NumericLiteralExpression);
+                                                {
+                                                    N(SyntaxKind.NumericLiteralToken, "3");
+                                                }
+                                            }
+                                        }
+                                        N(SyntaxKind.CloseBraceToken);
+                                    }
+                                    N(SyntaxKind.SingleVariableDesignation);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "x");
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+                N(SyntaxKind.SemicolonToken);
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void RecursivePattern_05()
+        {
+            UsingStatement("var x = o is Type (Param: 3, Param2: 4) x;");
+            N(SyntaxKind.LocalDeclarationStatement);
+            {
+                N(SyntaxKind.VariableDeclaration);
+                {
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "var");
+                    }
+                    N(SyntaxKind.VariableDeclarator);
+                    {
+                        N(SyntaxKind.IdentifierToken, "x");
+                        N(SyntaxKind.EqualsValueClause);
+                        {
+                            N(SyntaxKind.EqualsToken);
+                            N(SyntaxKind.IsPatternExpression);
+                            {
+                                N(SyntaxKind.IdentifierName);
+                                {
+                                    N(SyntaxKind.IdentifierToken, "o");
+                                }
+                                N(SyntaxKind.IsKeyword);
+                                N(SyntaxKind.RecursivePattern);
+                                {
+                                    N(SyntaxKind.IdentifierName);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "Type");
+                                    }
+                                    N(SyntaxKind.DeconstructionPatternClause);
+                                    {
+                                        N(SyntaxKind.OpenParenToken);
+                                        N(SyntaxKind.SubpatternElement);
+                                        {
+                                            N(SyntaxKind.NameColon);
+                                            {
+                                                N(SyntaxKind.IdentifierName);
+                                                {
+                                                    N(SyntaxKind.IdentifierToken, "Param");
+                                                }
+                                                N(SyntaxKind.ColonToken);
+                                            }
+                                            N(SyntaxKind.ConstantPattern);
+                                            {
+                                                N(SyntaxKind.NumericLiteralExpression);
+                                                {
+                                                    N(SyntaxKind.NumericLiteralToken, "3");
+                                                }
+                                            }
+                                        }
+                                        N(SyntaxKind.CommaToken);
+                                        N(SyntaxKind.SubpatternElement);
+                                        {
+                                            N(SyntaxKind.NameColon);
+                                            {
+                                                N(SyntaxKind.IdentifierName);
+                                                {
+                                                    N(SyntaxKind.IdentifierToken, "Param2");
+                                                }
+                                                N(SyntaxKind.ColonToken);
+                                            }
+                                            N(SyntaxKind.ConstantPattern);
+                                            {
+                                                N(SyntaxKind.NumericLiteralExpression);
+                                                {
+                                                    N(SyntaxKind.NumericLiteralToken, "4");
+                                                }
+                                            }
+                                        }
+                                        N(SyntaxKind.CloseParenToken);
+                                    }
+                                    N(SyntaxKind.SingleVariableDesignation);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "x");
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+                N(SyntaxKind.SemicolonToken);
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void RecursivePattern_06()
+        {
+            UsingStatement("var x = o is (Param: 3, Param2: 4) x;");
+            N(SyntaxKind.LocalDeclarationStatement);
+            {
+                N(SyntaxKind.VariableDeclaration);
+                {
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "var");
+                    }
+                    N(SyntaxKind.VariableDeclarator);
+                    {
+                        N(SyntaxKind.IdentifierToken, "x");
+                        N(SyntaxKind.EqualsValueClause);
+                        {
+                            N(SyntaxKind.EqualsToken);
+                            N(SyntaxKind.IsPatternExpression);
+                            {
+                                N(SyntaxKind.IdentifierName);
+                                {
+                                    N(SyntaxKind.IdentifierToken, "o");
+                                }
+                                N(SyntaxKind.IsKeyword);
+                                N(SyntaxKind.RecursivePattern);
+                                {
+                                    N(SyntaxKind.DeconstructionPatternClause);
+                                    {
+                                        N(SyntaxKind.OpenParenToken);
+                                        N(SyntaxKind.SubpatternElement);
+                                        {
+                                            N(SyntaxKind.NameColon);
+                                            {
+                                                N(SyntaxKind.IdentifierName);
+                                                {
+                                                    N(SyntaxKind.IdentifierToken, "Param");
+                                                }
+                                                N(SyntaxKind.ColonToken);
+                                            }
+                                            N(SyntaxKind.ConstantPattern);
+                                            {
+                                                N(SyntaxKind.NumericLiteralExpression);
+                                                {
+                                                    N(SyntaxKind.NumericLiteralToken, "3");
+                                                }
+                                            }
+                                        }
+                                        N(SyntaxKind.CommaToken);
+                                        N(SyntaxKind.SubpatternElement);
+                                        {
+                                            N(SyntaxKind.NameColon);
+                                            {
+                                                N(SyntaxKind.IdentifierName);
+                                                {
+                                                    N(SyntaxKind.IdentifierToken, "Param2");
+                                                }
+                                                N(SyntaxKind.ColonToken);
+                                            }
+                                            N(SyntaxKind.ConstantPattern);
+                                            {
+                                                N(SyntaxKind.NumericLiteralExpression);
+                                                {
+                                                    N(SyntaxKind.NumericLiteralToken, "4");
+                                                }
+                                            }
+                                        }
+                                        N(SyntaxKind.CloseParenToken);
+                                    }
+                                    N(SyntaxKind.SingleVariableDesignation);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "x");
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+                N(SyntaxKind.SemicolonToken);
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void RecursivePattern_07()
+        {
+            UsingStatement("var x = o is Type x;");
+            N(SyntaxKind.LocalDeclarationStatement);
+            {
+                N(SyntaxKind.VariableDeclaration);
+                {
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "var");
+                    }
+                    N(SyntaxKind.VariableDeclarator);
+                    {
+                        N(SyntaxKind.IdentifierToken, "x");
+                        N(SyntaxKind.EqualsValueClause);
+                        {
+                            N(SyntaxKind.EqualsToken);
+                            N(SyntaxKind.IsPatternExpression);
+                            {
+                                N(SyntaxKind.IdentifierName);
+                                {
+                                    N(SyntaxKind.IdentifierToken, "o");
+                                }
+                                N(SyntaxKind.IsKeyword);
+                                N(SyntaxKind.DeclarationPattern);
+                                {
+                                    N(SyntaxKind.IdentifierName);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "Type");
+                                    }
+                                    N(SyntaxKind.SingleVariableDesignation);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "x");
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+                N(SyntaxKind.SemicolonToken);
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void RecursivePattern_08()
+        {
+            UsingStatement("var x = o is Type (Param: 3, Param2: 4) { Prop : 3 };");
+            N(SyntaxKind.LocalDeclarationStatement);
+            {
+                N(SyntaxKind.VariableDeclaration);
+                {
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "var");
+                    }
+                    N(SyntaxKind.VariableDeclarator);
+                    {
+                        N(SyntaxKind.IdentifierToken, "x");
+                        N(SyntaxKind.EqualsValueClause);
+                        {
+                            N(SyntaxKind.EqualsToken);
+                            N(SyntaxKind.IsPatternExpression);
+                            {
+                                N(SyntaxKind.IdentifierName);
+                                {
+                                    N(SyntaxKind.IdentifierToken, "o");
+                                }
+                                N(SyntaxKind.IsKeyword);
+                                N(SyntaxKind.RecursivePattern);
+                                {
+                                    N(SyntaxKind.IdentifierName);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "Type");
+                                    }
+                                    N(SyntaxKind.DeconstructionPatternClause);
+                                    {
+                                        N(SyntaxKind.OpenParenToken);
+                                        N(SyntaxKind.SubpatternElement);
+                                        {
+                                            N(SyntaxKind.NameColon);
+                                            {
+                                                N(SyntaxKind.IdentifierName);
+                                                {
+                                                    N(SyntaxKind.IdentifierToken, "Param");
+                                                }
+                                                N(SyntaxKind.ColonToken);
+                                            }
+                                            N(SyntaxKind.ConstantPattern);
+                                            {
+                                                N(SyntaxKind.NumericLiteralExpression);
+                                                {
+                                                    N(SyntaxKind.NumericLiteralToken, "3");
+                                                }
+                                            }
+                                        }
+                                        N(SyntaxKind.CommaToken);
+                                        N(SyntaxKind.SubpatternElement);
+                                        {
+                                            N(SyntaxKind.NameColon);
+                                            {
+                                                N(SyntaxKind.IdentifierName);
+                                                {
+                                                    N(SyntaxKind.IdentifierToken, "Param2");
+                                                }
+                                                N(SyntaxKind.ColonToken);
+                                            }
+                                            N(SyntaxKind.ConstantPattern);
+                                            {
+                                                N(SyntaxKind.NumericLiteralExpression);
+                                                {
+                                                    N(SyntaxKind.NumericLiteralToken, "4");
+                                                }
+                                            }
+                                        }
+                                        N(SyntaxKind.CloseParenToken);
+                                    }
+                                    N(SyntaxKind.PropertyPatternClause);
+                                    {
+                                        N(SyntaxKind.OpenBraceToken);
+                                        N(SyntaxKind.SubpatternElement);
+                                        {
+                                            N(SyntaxKind.NameColon);
+                                            {
+                                                N(SyntaxKind.IdentifierName);
+                                                {
+                                                    N(SyntaxKind.IdentifierToken, "Prop");
+                                                }
+                                                N(SyntaxKind.ColonToken);
+                                            }
+                                            N(SyntaxKind.ConstantPattern);
+                                            {
+                                                N(SyntaxKind.NumericLiteralExpression);
+                                                {
+                                                    N(SyntaxKind.NumericLiteralToken, "3");
+                                                }
+                                            }
+                                        }
+                                        N(SyntaxKind.CloseBraceToken);
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+                N(SyntaxKind.SemicolonToken);
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void RecursivePattern_09()
+        {
+            UsingStatement("var x = o is (Param: 3, Param2: 4) { Prop : 3 };");
+            N(SyntaxKind.LocalDeclarationStatement);
+            {
+                N(SyntaxKind.VariableDeclaration);
+                {
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "var");
+                    }
+                    N(SyntaxKind.VariableDeclarator);
+                    {
+                        N(SyntaxKind.IdentifierToken, "x");
+                        N(SyntaxKind.EqualsValueClause);
+                        {
+                            N(SyntaxKind.EqualsToken);
+                            N(SyntaxKind.IsPatternExpression);
+                            {
+                                N(SyntaxKind.IdentifierName);
+                                {
+                                    N(SyntaxKind.IdentifierToken, "o");
+                                }
+                                N(SyntaxKind.IsKeyword);
+                                N(SyntaxKind.RecursivePattern);
+                                {
+                                    N(SyntaxKind.DeconstructionPatternClause);
+                                    {
+                                        N(SyntaxKind.OpenParenToken);
+                                        N(SyntaxKind.SubpatternElement);
+                                        {
+                                            N(SyntaxKind.NameColon);
+                                            {
+                                                N(SyntaxKind.IdentifierName);
+                                                {
+                                                    N(SyntaxKind.IdentifierToken, "Param");
+                                                }
+                                                N(SyntaxKind.ColonToken);
+                                            }
+                                            N(SyntaxKind.ConstantPattern);
+                                            {
+                                                N(SyntaxKind.NumericLiteralExpression);
+                                                {
+                                                    N(SyntaxKind.NumericLiteralToken, "3");
+                                                }
+                                            }
+                                        }
+                                        N(SyntaxKind.CommaToken);
+                                        N(SyntaxKind.SubpatternElement);
+                                        {
+                                            N(SyntaxKind.NameColon);
+                                            {
+                                                N(SyntaxKind.IdentifierName);
+                                                {
+                                                    N(SyntaxKind.IdentifierToken, "Param2");
+                                                }
+                                                N(SyntaxKind.ColonToken);
+                                            }
+                                            N(SyntaxKind.ConstantPattern);
+                                            {
+                                                N(SyntaxKind.NumericLiteralExpression);
+                                                {
+                                                    N(SyntaxKind.NumericLiteralToken, "4");
+                                                }
+                                            }
+                                        }
+                                        N(SyntaxKind.CloseParenToken);
+                                    }
+                                    N(SyntaxKind.PropertyPatternClause);
+                                    {
+                                        N(SyntaxKind.OpenBraceToken);
+                                        N(SyntaxKind.SubpatternElement);
+                                        {
+                                            N(SyntaxKind.NameColon);
+                                            {
+                                                N(SyntaxKind.IdentifierName);
+                                                {
+                                                    N(SyntaxKind.IdentifierToken, "Prop");
+                                                }
+                                                N(SyntaxKind.ColonToken);
+                                            }
+                                            N(SyntaxKind.ConstantPattern);
+                                            {
+                                                N(SyntaxKind.NumericLiteralExpression);
+                                                {
+                                                    N(SyntaxKind.NumericLiteralToken, "3");
+                                                }
+                                            }
+                                        }
+                                        N(SyntaxKind.CloseBraceToken);
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+                N(SyntaxKind.SemicolonToken);
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void RecursivePattern_10()
+        {
+            UsingStatement("var x = o is Type { Prop : 3 };");
+            N(SyntaxKind.LocalDeclarationStatement);
+            {
+                N(SyntaxKind.VariableDeclaration);
+                {
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "var");
+                    }
+                    N(SyntaxKind.VariableDeclarator);
+                    {
+                        N(SyntaxKind.IdentifierToken, "x");
+                        N(SyntaxKind.EqualsValueClause);
+                        {
+                            N(SyntaxKind.EqualsToken);
+                            N(SyntaxKind.IsPatternExpression);
+                            {
+                                N(SyntaxKind.IdentifierName);
+                                {
+                                    N(SyntaxKind.IdentifierToken, "o");
+                                }
+                                N(SyntaxKind.IsKeyword);
+                                N(SyntaxKind.RecursivePattern);
+                                {
+                                    N(SyntaxKind.IdentifierName);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "Type");
+                                    }
+                                    N(SyntaxKind.PropertyPatternClause);
+                                    {
+                                        N(SyntaxKind.OpenBraceToken);
+                                        N(SyntaxKind.SubpatternElement);
+                                        {
+                                            N(SyntaxKind.NameColon);
+                                            {
+                                                N(SyntaxKind.IdentifierName);
+                                                {
+                                                    N(SyntaxKind.IdentifierToken, "Prop");
+                                                }
+                                                N(SyntaxKind.ColonToken);
+                                            }
+                                            N(SyntaxKind.ConstantPattern);
+                                            {
+                                                N(SyntaxKind.NumericLiteralExpression);
+                                                {
+                                                    N(SyntaxKind.NumericLiteralToken, "3");
+                                                }
+                                            }
+                                        }
+                                        N(SyntaxKind.CloseBraceToken);
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+                N(SyntaxKind.SemicolonToken);
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void RecursivePattern_11()
+        {
+            UsingStatement("var x = o is { Prop : 3 };");
+            N(SyntaxKind.LocalDeclarationStatement);
+            {
+                N(SyntaxKind.VariableDeclaration);
+                {
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "var");
+                    }
+                    N(SyntaxKind.VariableDeclarator);
+                    {
+                        N(SyntaxKind.IdentifierToken, "x");
+                        N(SyntaxKind.EqualsValueClause);
+                        {
+                            N(SyntaxKind.EqualsToken);
+                            N(SyntaxKind.IsPatternExpression);
+                            {
+                                N(SyntaxKind.IdentifierName);
+                                {
+                                    N(SyntaxKind.IdentifierToken, "o");
+                                }
+                                N(SyntaxKind.IsKeyword);
+                                N(SyntaxKind.RecursivePattern);
+                                {
+                                    N(SyntaxKind.PropertyPatternClause);
+                                    {
+                                        N(SyntaxKind.OpenBraceToken);
+                                        N(SyntaxKind.SubpatternElement);
+                                        {
+                                            N(SyntaxKind.NameColon);
+                                            {
+                                                N(SyntaxKind.IdentifierName);
+                                                {
+                                                    N(SyntaxKind.IdentifierToken, "Prop");
+                                                }
+                                                N(SyntaxKind.ColonToken);
+                                            }
+                                            N(SyntaxKind.ConstantPattern);
+                                            {
+                                                N(SyntaxKind.NumericLiteralExpression);
+                                                {
+                                                    N(SyntaxKind.NumericLiteralToken, "3");
+                                                }
+                                            }
+                                        }
+                                        N(SyntaxKind.CloseBraceToken);
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+                N(SyntaxKind.SemicolonToken);
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void RecursivePattern_12()
+        {
+            UsingStatement("var x = o is Type (Param: 3, Param2: 4);");
+            N(SyntaxKind.LocalDeclarationStatement);
+            {
+                N(SyntaxKind.VariableDeclaration);
+                {
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "var");
+                    }
+                    N(SyntaxKind.VariableDeclarator);
+                    {
+                        N(SyntaxKind.IdentifierToken, "x");
+                        N(SyntaxKind.EqualsValueClause);
+                        {
+                            N(SyntaxKind.EqualsToken);
+                            N(SyntaxKind.IsPatternExpression);
+                            {
+                                N(SyntaxKind.IdentifierName);
+                                {
+                                    N(SyntaxKind.IdentifierToken, "o");
+                                }
+                                N(SyntaxKind.IsKeyword);
+                                N(SyntaxKind.RecursivePattern);
+                                {
+                                    N(SyntaxKind.IdentifierName);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "Type");
+                                    }
+                                    N(SyntaxKind.DeconstructionPatternClause);
+                                    {
+                                        N(SyntaxKind.OpenParenToken);
+                                        N(SyntaxKind.SubpatternElement);
+                                        {
+                                            N(SyntaxKind.NameColon);
+                                            {
+                                                N(SyntaxKind.IdentifierName);
+                                                {
+                                                    N(SyntaxKind.IdentifierToken, "Param");
+                                                }
+                                                N(SyntaxKind.ColonToken);
+                                            }
+                                            N(SyntaxKind.ConstantPattern);
+                                            {
+                                                N(SyntaxKind.NumericLiteralExpression);
+                                                {
+                                                    N(SyntaxKind.NumericLiteralToken, "3");
+                                                }
+                                            }
+                                        }
+                                        N(SyntaxKind.CommaToken);
+                                        N(SyntaxKind.SubpatternElement);
+                                        {
+                                            N(SyntaxKind.NameColon);
+                                            {
+                                                N(SyntaxKind.IdentifierName);
+                                                {
+                                                    N(SyntaxKind.IdentifierToken, "Param2");
+                                                }
+                                                N(SyntaxKind.ColonToken);
+                                            }
+                                            N(SyntaxKind.ConstantPattern);
+                                            {
+                                                N(SyntaxKind.NumericLiteralExpression);
+                                                {
+                                                    N(SyntaxKind.NumericLiteralToken, "4");
+                                                }
+                                            }
+                                        }
+                                        N(SyntaxKind.CloseParenToken);
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+                N(SyntaxKind.SemicolonToken);
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void RecursivePattern_13()
+        {
+            UsingStatement("var x = o is (Param: 3, Param2: 4);");
+            N(SyntaxKind.LocalDeclarationStatement);
+            {
+                N(SyntaxKind.VariableDeclaration);
+                {
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "var");
+                    }
+                    N(SyntaxKind.VariableDeclarator);
+                    {
+                        N(SyntaxKind.IdentifierToken, "x");
+                        N(SyntaxKind.EqualsValueClause);
+                        {
+                            N(SyntaxKind.EqualsToken);
+                            N(SyntaxKind.IsPatternExpression);
+                            {
+                                N(SyntaxKind.IdentifierName);
+                                {
+                                    N(SyntaxKind.IdentifierToken, "o");
+                                }
+                                N(SyntaxKind.IsKeyword);
+                                N(SyntaxKind.RecursivePattern);
+                                {
+                                    N(SyntaxKind.DeconstructionPatternClause);
+                                    {
+                                        N(SyntaxKind.OpenParenToken);
+                                        N(SyntaxKind.SubpatternElement);
+                                        {
+                                            N(SyntaxKind.NameColon);
+                                            {
+                                                N(SyntaxKind.IdentifierName);
+                                                {
+                                                    N(SyntaxKind.IdentifierToken, "Param");
+                                                }
+                                                N(SyntaxKind.ColonToken);
+                                            }
+                                            N(SyntaxKind.ConstantPattern);
+                                            {
+                                                N(SyntaxKind.NumericLiteralExpression);
+                                                {
+                                                    N(SyntaxKind.NumericLiteralToken, "3");
+                                                }
+                                            }
+                                        }
+                                        N(SyntaxKind.CommaToken);
+                                        N(SyntaxKind.SubpatternElement);
+                                        {
+                                            N(SyntaxKind.NameColon);
+                                            {
+                                                N(SyntaxKind.IdentifierName);
+                                                {
+                                                    N(SyntaxKind.IdentifierToken, "Param2");
+                                                }
+                                                N(SyntaxKind.ColonToken);
+                                            }
+                                            N(SyntaxKind.ConstantPattern);
+                                            {
+                                                N(SyntaxKind.NumericLiteralExpression);
+                                                {
+                                                    N(SyntaxKind.NumericLiteralToken, "4");
+                                                }
+                                            }
+                                        }
+                                        N(SyntaxKind.CloseParenToken);
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+                N(SyntaxKind.SemicolonToken);
             }
             EOF();
         }

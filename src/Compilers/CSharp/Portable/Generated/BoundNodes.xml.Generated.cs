@@ -6716,16 +6716,16 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal sealed partial class BoundRecursivePattern : BoundPattern
     {
-        public BoundRecursivePattern(SyntaxNode syntax, BoundTypeExpression declaredType, MethodSymbol deconstructMethodOpt, ImmutableArray<BoundSubpattern> deconstruction, ImmutableArray<BoundSubpattern> propertiesOpt, Symbol variable, BoundExpression variableAccess, TypeSymbol inputType, bool hasErrors = false)
-            : base(BoundKind.RecursivePattern, syntax, inputType, hasErrors || declaredType.HasErrors() || deconstruction.HasErrors() || propertiesOpt.HasErrors() || variableAccess.HasErrors())
+        public BoundRecursivePattern(SyntaxNode syntax, BoundTypeExpression declaredType, MethodSymbol deconstructMethod, ImmutableArray<BoundSubpattern> deconstruction, ImmutableArray<BoundSubpattern> properties, Symbol variable, BoundExpression variableAccess, TypeSymbol inputType, bool hasErrors = false)
+            : base(BoundKind.RecursivePattern, syntax, inputType, hasErrors || declaredType.HasErrors() || deconstruction.HasErrors() || properties.HasErrors() || variableAccess.HasErrors())
         {
 
             Debug.Assert(inputType != null, "Field 'inputType' cannot be null (use Null=\"allow\" in BoundNodes.xml to remove this check)");
 
             this.DeclaredType = declaredType;
-            this.DeconstructMethodOpt = deconstructMethodOpt;
+            this.DeconstructMethod = deconstructMethod;
             this.Deconstruction = deconstruction;
-            this.PropertiesOpt = propertiesOpt;
+            this.Properties = properties;
             this.Variable = variable;
             this.VariableAccess = variableAccess;
         }
@@ -6733,11 +6733,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public BoundTypeExpression DeclaredType { get; }
 
-        public MethodSymbol DeconstructMethodOpt { get; }
+        public MethodSymbol DeconstructMethod { get; }
 
         public ImmutableArray<BoundSubpattern> Deconstruction { get; }
 
-        public ImmutableArray<BoundSubpattern> PropertiesOpt { get; }
+        public ImmutableArray<BoundSubpattern> Properties { get; }
 
         public Symbol Variable { get; }
 
@@ -6748,11 +6748,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             return visitor.VisitRecursivePattern(this);
         }
 
-        public BoundRecursivePattern Update(BoundTypeExpression declaredType, MethodSymbol deconstructMethodOpt, ImmutableArray<BoundSubpattern> deconstruction, ImmutableArray<BoundSubpattern> propertiesOpt, Symbol variable, BoundExpression variableAccess, TypeSymbol inputType)
+        public BoundRecursivePattern Update(BoundTypeExpression declaredType, MethodSymbol deconstructMethod, ImmutableArray<BoundSubpattern> deconstruction, ImmutableArray<BoundSubpattern> properties, Symbol variable, BoundExpression variableAccess, TypeSymbol inputType)
         {
-            if (declaredType != this.DeclaredType || deconstructMethodOpt != this.DeconstructMethodOpt || deconstruction != this.Deconstruction || propertiesOpt != this.PropertiesOpt || variable != this.Variable || variableAccess != this.VariableAccess || inputType != this.InputType)
+            if (declaredType != this.DeclaredType || deconstructMethod != this.DeconstructMethod || deconstruction != this.Deconstruction || properties != this.Properties || variable != this.Variable || variableAccess != this.VariableAccess || inputType != this.InputType)
             {
-                var result = new BoundRecursivePattern(this.Syntax, declaredType, deconstructMethodOpt, deconstruction, propertiesOpt, variable, variableAccess, inputType, this.HasErrors);
+                var result = new BoundRecursivePattern(this.Syntax, declaredType, deconstructMethod, deconstruction, properties, variable, variableAccess, inputType, this.HasErrors);
                 result.WasCompilerGenerated = this.WasCompilerGenerated;
                 return result;
             }
@@ -9608,7 +9608,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             this.Visit(node.DeclaredType);
             this.VisitList(node.Deconstruction);
-            this.VisitList(node.PropertiesOpt);
+            this.VisitList(node.Properties);
             this.Visit(node.VariableAccess);
             return null;
         }
@@ -10623,10 +10623,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             BoundTypeExpression declaredType = (BoundTypeExpression)this.Visit(node.DeclaredType);
             ImmutableArray<BoundSubpattern> deconstruction = (ImmutableArray<BoundSubpattern>)this.VisitList(node.Deconstruction);
-            ImmutableArray<BoundSubpattern> propertiesOpt = (ImmutableArray<BoundSubpattern>)this.VisitList(node.PropertiesOpt);
+            ImmutableArray<BoundSubpattern> properties = (ImmutableArray<BoundSubpattern>)this.VisitList(node.Properties);
             BoundExpression variableAccess = (BoundExpression)this.Visit(node.VariableAccess);
             TypeSymbol inputType = this.VisitType(node.InputType);
-            return node.Update(declaredType, node.DeconstructMethodOpt, deconstruction, propertiesOpt, node.Variable, variableAccess, inputType);
+            return node.Update(declaredType, node.DeconstructMethod, deconstruction, properties, node.Variable, variableAccess, inputType);
         }
         public override BoundNode VisitSubpattern(BoundSubpattern node)
         {
@@ -12374,9 +12374,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             return new TreeDumperNode("recursivePattern", null, new TreeDumperNode[]
             {
                 new TreeDumperNode("declaredType", null, new TreeDumperNode[] { Visit(node.DeclaredType, null) }),
-                new TreeDumperNode("deconstructMethodOpt", node.DeconstructMethodOpt, null),
+                new TreeDumperNode("deconstructMethod", node.DeconstructMethod, null),
                 new TreeDumperNode("deconstruction", null, node.Deconstruction.IsDefault ? Array.Empty<TreeDumperNode>() : from x in node.Deconstruction select Visit(x, null)),
-                new TreeDumperNode("propertiesOpt", null, node.PropertiesOpt.IsDefault ? Array.Empty<TreeDumperNode>() : from x in node.PropertiesOpt select Visit(x, null)),
+                new TreeDumperNode("properties", null, node.Properties.IsDefault ? Array.Empty<TreeDumperNode>() : from x in node.Properties select Visit(x, null)),
                 new TreeDumperNode("variable", node.Variable, null),
                 new TreeDumperNode("variableAccess", null, new TreeDumperNode[] { Visit(node.VariableAccess, null) }),
                 new TreeDumperNode("inputType", node.InputType, null)

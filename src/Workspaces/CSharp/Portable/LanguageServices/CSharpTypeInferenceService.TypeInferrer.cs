@@ -169,7 +169,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     case PostfixUnaryExpressionSyntax postfixUnary: return InferTypeInPostfixUnaryExpression(postfixUnary);
                     case PrefixUnaryExpressionSyntax prefixUnary: return InferTypeInPrefixUnaryExpression(prefixUnary);
                     case RecursivePatternSyntax propertyPattern: return InferTypeInRecursivePattern(propertyPattern);
-                    case PropertySubpatternSyntax propertySubpattern: return InferTypeInPropertySubpattern(propertySubpattern, node);
+                    case PropertyPatternClauseSyntax propertySubpattern: return InferTypeInPropertyPatternClause(propertySubpattern, node);
                     case RefExpressionSyntax refExpression: return InferTypeInRefExpression(refExpression);
                     case ReturnStatementSyntax returnStatement: return InferTypeForReturnStatement(returnStatement);
                     case SimpleLambdaExpressionSyntax simpleLambdaExpression: return InferTypeInSimpleLambdaExpression(simpleLambdaExpression);
@@ -1437,8 +1437,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return InferTypes(constantPattern);
             }
 
-            private IEnumerable<TypeInferenceInfo> InferTypeInPropertySubpattern(
-                PropertySubpatternSyntax propertySubpattern,
+            private IEnumerable<TypeInferenceInfo> InferTypeInPropertyPatternClause(
+                PropertyPatternClauseSyntax propertySubpattern,
                 SyntaxNode child)
             {
                 return InferTypes(propertySubpattern);
@@ -1513,17 +1513,17 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // If it's of the form (...) then infer that the type should be a 
                 // tuple, whose elements are inferred from the individual patterns
                 // in the deconstruction.
-                var deconstructionPart = recursivePattern.DeconstructionSubpattern;
+                var deconstructionPart = recursivePattern.DeconstructionPatternClause;
                 if (deconstructionPart != null)
                 {
-                    var subPatternCount = deconstructionPart.SubPatterns.Count;
+                    var subPatternCount = deconstructionPart.Subpatterns.Count;
                     if (subPatternCount >= 2)
                     {
                         // infer a tuple type for this deconstruction.
                         var elementTypesBuilder = ArrayBuilder<ITypeSymbol>.GetInstance(subPatternCount);
                         var elementNamesBuilder = ArrayBuilder<string>.GetInstance(subPatternCount);
 
-                        foreach (var subPattern in deconstructionPart.SubPatterns)
+                        foreach (var subPattern in deconstructionPart.Subpatterns)
                         {
                             elementNamesBuilder.Add(subPattern.NameColon?.Name.Identifier.ValueText);
 

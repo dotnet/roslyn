@@ -1757,9 +1757,9 @@
 
   <Node Name="BoundRecursivePattern" Base="BoundPattern">
     <Field Name="DeclaredType" Type="BoundTypeExpression" Null="allow"/>
-    <Field Name="DeconstructMethodOpt" Type="MethodSymbol" Null="allow"/>
+    <Field Name="DeconstructMethod" Type="MethodSymbol" Null="allow"/>
     <Field Name="Deconstruction" Type="ImmutableArray&lt;BoundSubpattern&gt;" Null="allow"/>
-    <Field Name="PropertiesOpt" Type="ImmutableArray&lt;BoundSubpattern&gt;" Null="allow"/>
+    <Field Name="Properties" Type="ImmutableArray&lt;BoundSubpattern&gt;" Null="allow"/>
     <!-- Variable is a local symbol, or in the case of top-level code in scripts and interactive,
          a field that is a member of the script class. Variable is null if `_` is used or if the identifier is omitted. -->
     <Field Name="Variable" Type="Symbol" Null="allow"/>

@@ -399,14 +399,14 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             return Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.SyntaxFactory.RecursivePattern(null, null, null, null);
         }
         
-        private static Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.DeconstructionSubpatternSyntax GenerateDeconstructionSubpattern()
+        private static Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.DeconstructionPatternClauseSyntax GenerateDeconstructionPatternClause()
         {
-            return Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.SyntaxFactory.DeconstructionSubpattern(Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.SyntaxFactory.Token(SyntaxKind.OpenParenToken), new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList<Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.SubpatternElementSyntax>(), Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.SyntaxFactory.Token(SyntaxKind.CloseParenToken));
+            return Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.SyntaxFactory.DeconstructionPatternClause(Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.SyntaxFactory.Token(SyntaxKind.OpenParenToken), new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList<Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.SubpatternElementSyntax>(), Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.SyntaxFactory.Token(SyntaxKind.CloseParenToken));
         }
         
-        private static Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.PropertySubpatternSyntax GeneratePropertySubpattern()
+        private static Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.PropertyPatternClauseSyntax GeneratePropertyPatternClause()
         {
-            return Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.SyntaxFactory.PropertySubpattern(Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.SyntaxFactory.Token(SyntaxKind.OpenBraceToken), new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList<Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.SubpatternElementSyntax>(), Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.SyntaxFactory.Token(SyntaxKind.CloseBraceToken));
+            return Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.SyntaxFactory.PropertyPatternClause(Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.SyntaxFactory.Token(SyntaxKind.OpenBraceToken), new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList<Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.SubpatternElementSyntax>(), Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.SyntaxFactory.Token(SyntaxKind.CloseBraceToken));
         }
         
         private static Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.SubpatternElementSyntax GenerateSubpatternElement()
@@ -1992,32 +1992,32 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var node = GenerateRecursivePattern();
             
             Assert.Null(node.Type);
-            Assert.Null(node.DeconstructionSubpattern);
-            Assert.Null(node.PropertySubpattern);
+            Assert.Null(node.DeconstructionPatternClause);
+            Assert.Null(node.PropertyPatternClause);
             Assert.Null(node.Designation);
             
             AttachAndCheckDiagnostics(node);
         }
         
         [Fact]
-        public void TestDeconstructionSubpatternFactoryAndProperties()
+        public void TestDeconstructionPatternClauseFactoryAndProperties()
         {
-            var node = GenerateDeconstructionSubpattern();
+            var node = GenerateDeconstructionPatternClause();
             
             Assert.Equal(SyntaxKind.OpenParenToken, node.OpenParenToken.Kind);
-            Assert.NotNull(node.SubPatterns);
+            Assert.NotNull(node.Subpatterns);
             Assert.Equal(SyntaxKind.CloseParenToken, node.CloseParenToken.Kind);
             
             AttachAndCheckDiagnostics(node);
         }
         
         [Fact]
-        public void TestPropertySubpatternFactoryAndProperties()
+        public void TestPropertyPatternClauseFactoryAndProperties()
         {
-            var node = GeneratePropertySubpattern();
+            var node = GeneratePropertyPatternClause();
             
             Assert.Equal(SyntaxKind.OpenBraceToken, node.OpenBraceToken.Kind);
-            Assert.NotNull(node.SubPatterns);
+            Assert.NotNull(node.Subpatterns);
             Assert.Equal(SyntaxKind.CloseBraceToken, node.CloseBraceToken.Kind);
             
             AttachAndCheckDiagnostics(node);
@@ -5803,9 +5803,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
         
         [Fact]
-        public void TestDeconstructionSubpatternTokenDeleteRewriter()
+        public void TestDeconstructionPatternClauseTokenDeleteRewriter()
         {
-            var oldNode = GenerateDeconstructionSubpattern();
+            var oldNode = GenerateDeconstructionPatternClause();
             var rewriter = new TokenDeleteRewriter();
             var newNode = rewriter.Visit(oldNode);
             
@@ -5819,9 +5819,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
         
         [Fact]
-        public void TestDeconstructionSubpatternIdentityRewriter()
+        public void TestDeconstructionPatternClauseIdentityRewriter()
         {
-            var oldNode = GenerateDeconstructionSubpattern();
+            var oldNode = GenerateDeconstructionPatternClause();
             var rewriter = new IdentityRewriter();
             var newNode = rewriter.Visit(oldNode);
             
@@ -5829,9 +5829,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
         
         [Fact]
-        public void TestPropertySubpatternTokenDeleteRewriter()
+        public void TestPropertyPatternClauseTokenDeleteRewriter()
         {
-            var oldNode = GeneratePropertySubpattern();
+            var oldNode = GeneratePropertyPatternClause();
             var rewriter = new TokenDeleteRewriter();
             var newNode = rewriter.Visit(oldNode);
             
@@ -5845,9 +5845,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
         
         [Fact]
-        public void TestPropertySubpatternIdentityRewriter()
+        public void TestPropertyPatternClauseIdentityRewriter()
         {
-            var oldNode = GeneratePropertySubpattern();
+            var oldNode = GeneratePropertyPatternClause();
             var rewriter = new IdentityRewriter();
             var newNode = rewriter.Visit(oldNode);
             
@@ -9704,17 +9704,17 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         
         private static RecursivePatternSyntax GenerateRecursivePattern()
         {
-            return SyntaxFactory.RecursivePattern(default(TypeSyntax), default(DeconstructionSubpatternSyntax), default(PropertySubpatternSyntax), default(VariableDesignationSyntax));
+            return SyntaxFactory.RecursivePattern(default(TypeSyntax), default(DeconstructionPatternClauseSyntax), default(PropertyPatternClauseSyntax), default(VariableDesignationSyntax));
         }
         
-        private static DeconstructionSubpatternSyntax GenerateDeconstructionSubpattern()
+        private static DeconstructionPatternClauseSyntax GenerateDeconstructionPatternClause()
         {
-            return SyntaxFactory.DeconstructionSubpattern(SyntaxFactory.Token(SyntaxKind.OpenParenToken), new SeparatedSyntaxList<SubpatternElementSyntax>(), SyntaxFactory.Token(SyntaxKind.CloseParenToken));
+            return SyntaxFactory.DeconstructionPatternClause(SyntaxFactory.Token(SyntaxKind.OpenParenToken), new SeparatedSyntaxList<SubpatternElementSyntax>(), SyntaxFactory.Token(SyntaxKind.CloseParenToken));
         }
         
-        private static PropertySubpatternSyntax GeneratePropertySubpattern()
+        private static PropertyPatternClauseSyntax GeneratePropertyPatternClause()
         {
-            return SyntaxFactory.PropertySubpattern(SyntaxFactory.Token(SyntaxKind.OpenBraceToken), new SeparatedSyntaxList<SubpatternElementSyntax>(), SyntaxFactory.Token(SyntaxKind.CloseBraceToken));
+            return SyntaxFactory.PropertyPatternClause(SyntaxFactory.Token(SyntaxKind.OpenBraceToken), new SeparatedSyntaxList<SubpatternElementSyntax>(), SyntaxFactory.Token(SyntaxKind.CloseBraceToken));
         }
         
         private static SubpatternElementSyntax GenerateSubpatternElement()
@@ -11300,34 +11300,34 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var node = GenerateRecursivePattern();
             
             Assert.Null(node.Type);
-            Assert.Null(node.DeconstructionSubpattern);
-            Assert.Null(node.PropertySubpattern);
+            Assert.Null(node.DeconstructionPatternClause);
+            Assert.Null(node.PropertyPatternClause);
             Assert.Null(node.Designation);
-            var newNode = node.WithType(node.Type).WithDeconstructionSubpattern(node.DeconstructionSubpattern).WithPropertySubpattern(node.PropertySubpattern).WithDesignation(node.Designation);
+            var newNode = node.WithType(node.Type).WithDeconstructionPatternClause(node.DeconstructionPatternClause).WithPropertyPatternClause(node.PropertyPatternClause).WithDesignation(node.Designation);
             Assert.Equal(node, newNode);
         }
         
         [Fact]
-        public void TestDeconstructionSubpatternFactoryAndProperties()
+        public void TestDeconstructionPatternClauseFactoryAndProperties()
         {
-            var node = GenerateDeconstructionSubpattern();
+            var node = GenerateDeconstructionPatternClause();
             
             Assert.Equal(SyntaxKind.OpenParenToken, node.OpenParenToken.Kind());
-            Assert.NotNull(node.SubPatterns);
+            Assert.NotNull(node.Subpatterns);
             Assert.Equal(SyntaxKind.CloseParenToken, node.CloseParenToken.Kind());
-            var newNode = node.WithOpenParenToken(node.OpenParenToken).WithSubPatterns(node.SubPatterns).WithCloseParenToken(node.CloseParenToken);
+            var newNode = node.WithOpenParenToken(node.OpenParenToken).WithSubpatterns(node.Subpatterns).WithCloseParenToken(node.CloseParenToken);
             Assert.Equal(node, newNode);
         }
         
         [Fact]
-        public void TestPropertySubpatternFactoryAndProperties()
+        public void TestPropertyPatternClauseFactoryAndProperties()
         {
-            var node = GeneratePropertySubpattern();
+            var node = GeneratePropertyPatternClause();
             
             Assert.Equal(SyntaxKind.OpenBraceToken, node.OpenBraceToken.Kind());
-            Assert.NotNull(node.SubPatterns);
+            Assert.NotNull(node.Subpatterns);
             Assert.Equal(SyntaxKind.CloseBraceToken, node.CloseBraceToken.Kind());
-            var newNode = node.WithOpenBraceToken(node.OpenBraceToken).WithSubPatterns(node.SubPatterns).WithCloseBraceToken(node.CloseBraceToken);
+            var newNode = node.WithOpenBraceToken(node.OpenBraceToken).WithSubpatterns(node.Subpatterns).WithCloseBraceToken(node.CloseBraceToken);
             Assert.Equal(node, newNode);
         }
         
@@ -15111,9 +15111,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
         
         [Fact]
-        public void TestDeconstructionSubpatternTokenDeleteRewriter()
+        public void TestDeconstructionPatternClauseTokenDeleteRewriter()
         {
-            var oldNode = GenerateDeconstructionSubpattern();
+            var oldNode = GenerateDeconstructionPatternClause();
             var rewriter = new TokenDeleteRewriter();
             var newNode = rewriter.Visit(oldNode);
             
@@ -15127,9 +15127,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
         
         [Fact]
-        public void TestDeconstructionSubpatternIdentityRewriter()
+        public void TestDeconstructionPatternClauseIdentityRewriter()
         {
-            var oldNode = GenerateDeconstructionSubpattern();
+            var oldNode = GenerateDeconstructionPatternClause();
             var rewriter = new IdentityRewriter();
             var newNode = rewriter.Visit(oldNode);
             
@@ -15137,9 +15137,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
         
         [Fact]
-        public void TestPropertySubpatternTokenDeleteRewriter()
+        public void TestPropertyPatternClauseTokenDeleteRewriter()
         {
-            var oldNode = GeneratePropertySubpattern();
+            var oldNode = GeneratePropertyPatternClause();
             var rewriter = new TokenDeleteRewriter();
             var newNode = rewriter.Visit(oldNode);
             
@@ -15153,9 +15153,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
         
         [Fact]
-        public void TestPropertySubpatternIdentityRewriter()
+        public void TestPropertyPatternClauseIdentityRewriter()
         {
-            var oldNode = GeneratePropertySubpattern();
+            var oldNode = GeneratePropertyPatternClause();
             var rewriter = new IdentityRewriter();
             var newNode = rewriter.Visit(oldNode);
             

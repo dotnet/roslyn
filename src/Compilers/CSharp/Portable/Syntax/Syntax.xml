@@ -1779,29 +1779,29 @@
   <Node Name="RecursivePatternSyntax" Base="PatternSyntax">
     <Kind Name="RecursivePattern" />
     <Field Name="Type" Type="TypeSyntax" Optional="true" />
-    <Field Name="DeconstructionSubpattern" Type="DeconstructionSubpatternSyntax" Optional="true" />
-    <Field Name="PropertySubpattern" Type="PropertySubpatternSyntax" Optional="true" />
+    <Field Name="DeconstructionPatternClause" Type="DeconstructionPatternClauseSyntax" Optional="true" />
+    <Field Name="PropertyPatternClause" Type="PropertyPatternClauseSyntax" Optional="true" />
     <Field Name="Designation" Type="VariableDesignationSyntax" Optional="true">
       <Kind Name="SingleVariableDesignation"/>
       <Kind Name="DiscardDesignation"/>
     </Field>
   </Node>
-  <Node Name="DeconstructionSubpatternSyntax" Base="CSharpSyntaxNode">
-    <Kind Name="DeconstructionSubpattern"/>
+  <Node Name="DeconstructionPatternClauseSyntax" Base="CSharpSyntaxNode">
+    <Kind Name="DeconstructionPatternClause"/>
     <Field Name="OpenParenToken" Type="SyntaxToken">
       <Kind Name="OpenParenToken"/>
     </Field>
-    <Field Name="SubPatterns" Type="SeparatedSyntaxList&lt;SubpatternElementSyntax&gt;"/>
+    <Field Name="Subpatterns" Type="SeparatedSyntaxList&lt;SubpatternElementSyntax&gt;"/>
     <Field Name="CloseParenToken" Type="SyntaxToken">
       <Kind Name="CloseParenToken"/>
     </Field>
   </Node>
-  <Node Name="PropertySubpatternSyntax" Base="CSharpSyntaxNode">
-    <Kind Name="PropertySubpattern"/>
+  <Node Name="PropertyPatternClauseSyntax" Base="CSharpSyntaxNode">
+    <Kind Name="PropertyPatternClause"/>
     <Field Name="OpenBraceToken" Type="SyntaxToken">
       <Kind Name="OpenBraceToken"/>
     </Field>
-    <Field Name="SubPatterns" Type="SeparatedSyntaxList&lt;SubpatternElementSyntax&gt;"/>
+    <Field Name="Subpatterns" Type="SeparatedSyntaxList&lt;SubpatternElementSyntax&gt;"/>
     <Field Name="CloseBraceToken" Type="SyntaxToken">
       <Kind Name="CloseBraceToken"/>
     </Field>

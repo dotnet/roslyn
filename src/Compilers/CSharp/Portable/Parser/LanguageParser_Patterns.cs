@@ -414,12 +414,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
         private PatternSyntax ParsePatternContinued(TypeSyntax type, bool whenIsKeyword)
         {
-            bool parsePropertySubpattern(out PropertySubpatternSyntax propertySubpatternResult)
+            bool parsePropertyPatternClause(out PropertyPatternClauseSyntax propertyPatternClauseResult)
             {
-                propertySubpatternResult = null;
+                propertyPatternClauseResult = null;
                 if (this.CurrentToken.Kind == SyntaxKind.OpenBraceToken)
                 {
-                    propertySubpatternResult = ParsePropertySubpattern();
+                    propertyPatternClauseResult = ParsePropertyPatternClause();
                     return true;
                 }
 
@@ -483,11 +483,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                     openKind: SyntaxKind.OpenParenToken,
                     closeKind: SyntaxKind.CloseParenToken);
 
-                parsePropertySubpattern(out PropertySubpatternSyntax propertySubpattern0);
+                parsePropertyPatternClause(out PropertyPatternClauseSyntax propertyPatternClause0);
                 parseDesignation(out VariableDesignationSyntax designation0);
 
                 if (type == null &&
-                    propertySubpattern0 == null &&
+                    propertyPatternClause0 == null &&
                     designation0 == null &&
                     subPatterns.Count == 1 &&
                     subPatterns[0].NameColon == null)
@@ -501,8 +501,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                     }
                 }
 
-                var deconstructSubpattern = _syntaxFactory.DeconstructionSubpattern(openParenToken, subPatterns, closeParenToken);
-                var result = _syntaxFactory.RecursivePattern(type, deconstructSubpattern, propertySubpattern0, designation0);
+                var deconstructopnPatternClause = _syntaxFactory.DeconstructionPatternClause(openParenToken, subPatterns, closeParenToken);
+                var result = _syntaxFactory.RecursivePattern(type, deconstructopnPatternClause, propertyPatternClause0, designation0);
 
                 // 2017-11-20 LDM decision is to disallow a deconstruction pattern that contains just a
                 // single subpattern but for which the type is omitted.
@@ -511,10 +511,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 return (type == null && subPatterns.Count == 1) ? this.AddError(result, ErrorCode.ERR_SingleElementPositionalPatternRequiresType) : result;
             }
 
-            if (parsePropertySubpattern(out PropertySubpatternSyntax propertySubpattern))
+            if (parsePropertyPatternClause(out PropertyPatternClauseSyntax propertyPatternClause))
             {
                 parseDesignation(out VariableDesignationSyntax designation0);
-                return _syntaxFactory.RecursivePattern(type, deconstructionSubpattern: null, propertySubpattern, designation0);
+                return _syntaxFactory.RecursivePattern(type, deconstructionPatternClause: null, propertyPatternClause, designation0);
             }
 
             if (type != null && parseDesignation(out VariableDesignationSyntax designation))
@@ -540,7 +540,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             }
         }
 
-        private PropertySubpatternSyntax ParsePropertySubpattern()
+        private PropertyPatternClauseSyntax ParsePropertyPatternClause()
         {
             ParseSubpatternList(
                 openToken: out SyntaxToken openBraceToken,
@@ -548,7 +548,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 closeToken: out SyntaxToken closeBraceToken,
                 openKind: SyntaxKind.OpenBraceToken,
                 closeKind: SyntaxKind.CloseBraceToken);
-            return _syntaxFactory.PropertySubpattern(openBraceToken, subPatterns, closeBraceToken);
+            return _syntaxFactory.PropertyPatternClause(openBraceToken, subPatterns, closeBraceToken);
         }
 
         private void ParseSubpatternList(

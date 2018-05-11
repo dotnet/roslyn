@@ -559,9 +559,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         // added along with recursive patterns
         RecursivePattern = 9020,
-        PropertySubpattern = 9021,
+        PropertyPatternClause = 9021,
         SubpatternElement = 9022,
-        DeconstructionSubpattern = 9023,
+        DeconstructionPatternClause = 9023,
         DiscardPattern = 9024,
         SwitchExpression = 9025,
         SwitchExpressionArm = 9026,

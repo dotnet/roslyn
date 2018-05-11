@@ -782,8 +782,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                node.IsParentKind(SyntaxKind.NameColon) &&
                node.Parent.IsParentKind(SyntaxKind.SubpatternElement);
 
-        public bool IsPropertySubpattern(SyntaxNode node)
-            => node.Kind() == SyntaxKind.PropertySubpattern;
+        public bool IsPropertyPatternClause(SyntaxNode node)
+            => node.Kind() == SyntaxKind.PropertyPatternClause;
 
         public bool IsObjectInitializerNamedAssignmentIdentifier(SyntaxNode node)
             => IsObjectInitializerNamedAssignmentIdentifier(node, out var unused);

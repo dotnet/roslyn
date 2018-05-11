@@ -46,8 +46,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             // ex: `e is Type ( /* positional */ )`
             if (node is RecursivePatternSyntax recursivePattern)
             {
-                var deconstruct = recursivePattern.DeconstructionSubpattern;
-                var property = recursivePattern.PropertySubpattern;
+                var deconstruct = recursivePattern.DeconstructionPatternClause;
+                var property = recursivePattern.PropertyPatternClause;
                 if (deconstruct != null)
                 {
                     // Formatting should refrain from inserting new lines, unless the user already split across multiple lines
@@ -110,9 +110,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                     // _ = expr is { }$$
                     // M();
                     // ```
-                    if (recursionInIsPattern.PropertySubpattern != null)
+                    if (recursionInIsPattern.PropertyPatternClause != null)
                     {
-                        AddSuppressWrappingIfOnSingleLineOperation(list, isPattern.IsKeyword, recursionInIsPattern.PropertySubpattern.GetLastToken());
+                        AddSuppressWrappingIfOnSingleLineOperation(list, isPattern.IsKeyword, recursionInIsPattern.PropertyPatternClause.GetLastToken());
                     }
                 }
 

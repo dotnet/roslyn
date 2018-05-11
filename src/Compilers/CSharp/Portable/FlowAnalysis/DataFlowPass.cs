@@ -1549,9 +1549,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 AssignPatternVariables(subpat.Pattern);
                             }
                         }
-                        if (!pat.PropertiesOpt.IsDefaultOrEmpty)
+                        if (!pat.Properties.IsDefaultOrEmpty)
                         {
-                            foreach (BoundSubpattern sub in pat.PropertiesOpt)
+                            foreach (BoundSubpattern sub in pat.Properties)
                             {
                                 AssignPatternVariables(sub.Pattern);
                             }
