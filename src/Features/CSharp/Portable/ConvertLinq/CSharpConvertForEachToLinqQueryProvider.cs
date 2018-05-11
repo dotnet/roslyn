@@ -37,46 +37,41 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertLinq
             ForEachStatementSyntax forEachStatement,
             Workspace workspace,
             SemanticModel semanticModel,
-            ISemanticFactsService semanticFacts,
             CancellationToken cancellationToken,
             out SyntaxEditor editor)
-                => new Converter(semanticModel, semanticFacts, forEachStatement, workspace, cancellationToken).TryConvert(out editor);
+                => new Converter(semanticModel,  workspace, cancellationToken).TryConvert(forEachStatement, out editor);
 
         private class Converter
         {
             private readonly SemanticModel _semanticModel;
-            private readonly ISemanticFactsService _semanticFacts;
             private readonly CancellationToken _cancellationToken;
             private readonly Workspace _workspace;
-            private readonly ForEachStatementSyntax _forEachStatement;
 
             // TODO adjust parameters order in this method and the method in the parent class
-            public Converter(SemanticModel semanticModel, ISemanticFactsService semanticFacts, ForEachStatementSyntax forEachStatement, Workspace workspace, CancellationToken cancellationToken)
+            public Converter(SemanticModel semanticModel, Workspace workspace, CancellationToken cancellationToken)
             {
                 _semanticModel = semanticModel;
-                _semanticFacts = semanticFacts;
-                _forEachStatement = forEachStatement;
                 _workspace = workspace;
                 _cancellationToken = cancellationToken;
             }
 
-            public bool TryConvert(out SyntaxEditor editor)
+            public bool TryConvert(ForEachStatementSyntax forEachStatement, out SyntaxEditor editor)
             {
                 // Do not try refactoring queries with comments or conditional compilation in them.
                 // We can consider supporting queries with comments in the future.
-                if (_forEachStatement.DescendantTrivia().Any(trivia => trivia.MatchesKind(
+                if (forEachStatement.DescendantTrivia().Any(trivia => trivia.MatchesKind(
                         SyntaxKind.SingleLineCommentTrivia,
                         SyntaxKind.MultiLineCommentTrivia,
                         SyntaxKind.MultiLineDocumentationCommentTrivia) ||
-                    _forEachStatement.ContainsDirectives))
+                    forEachStatement.ContainsDirectives))
                 {
                     editor = default;
                     return false;
                 }
 
-                var (queryClauses, identifiers, statements) = CreateForEachInfo(_forEachStatement);
+                var (queryClauses, identifiers, statements) = CreateForEachInfo(forEachStatement);
 
-                if (statements.Length == 1 && TryConvertToSpecificCase(statements.Single(), queryClauses, out editor))
+                if (statements.Length == 1 && TryConvertToSpecificCase(forEachStatement, statements.Single(), queryClauses, out editor))
                 {
                     return true;
                 }
@@ -87,7 +82,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertLinq
                     var symbolNames = new HashSet<string>(statements.SelectMany(statement => _semanticModel.AnalyzeDataFlow(statement).ReadInside).Select(symbol => symbol.Name));
                     var identifiersUsedInBody = identifiers.Where(identifier => symbolNames.Contains(identifier.ValueText));
                     editor = CreateDefaultEditor();
-                    editor.ReplaceNode(_forEachStatement, ConvertToDefault(_forEachStatement, queryClauses, identifiersUsedInBody, statements));
+                    editor.ReplaceNode(forEachStatement, CreateDefaultReplacementStatement(forEachStatement, queryClauses, identifiersUsedInBody, statements));
                     return true;
                 }
 
@@ -101,10 +96,10 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertLinq
                 identifiers.Add(forEachStatement.Identifier);
                 var queryClauses = new List<QueryClauseSyntax>();
                 var current = forEachStatement.Statement;
-                StatementSyntax[] statements = null;
+                IEnumerable<StatementSyntax> statements = null;
 
-                var flag = true;
-                while (flag)
+                // Setting statements mean that we stop processing.
+                while (statements == null)
                 {
                     switch (current.Kind())
                     {
@@ -125,8 +120,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertLinq
                                 }
                                 else
                                 {
-                                    statements = array.Skip(i).ToArray();
-                                    flag = false;
+                                    statements = array.Skip(i);
                                     break;
                                 }
                             }
@@ -139,7 +133,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertLinq
                             var currentForEachStatement = (ForEachStatementSyntax)current;
                             identifiers.Add(currentForEachStatement.Identifier);
                             queryClauses.Add(CreateFromClause(currentForEachStatement));
-                            current = forEachStatement.Statement;
+                            current = currentForEachStatement.Statement;
                             break;
 
                         case SyntaxKind.IfStatement:
@@ -153,13 +147,11 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertLinq
                             else
                             {
                                 statements = new[] { current };
-                                flag = false;
                                 break;
                             }
 
                         default:
                             statements = new[] { current };
-                            flag = false;
                             break;
                     }
                 }
@@ -167,35 +159,44 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertLinq
                 return (queryClauses.ToImmutableArray(), identifiers.ToImmutableArray(), statements.ToImmutableArray());
             }
 
+            // TODO try to split check vs build
             private SyntaxEditor CreateDefaultEditor() => new SyntaxEditor(_semanticModel.SyntaxTree.GetRoot(_cancellationToken), _workspace);
 
-            private bool TryConvertToSpecificCase(StatementSyntax residuaryStatement, IEnumerable<QueryClauseSyntax> queryClauses, out SyntaxEditor editor)
+            private bool TryConvertToSpecificCase(ForEachStatementSyntax forEachStatement, StatementSyntax residuaryStatement, IEnumerable<QueryClauseSyntax> queryClauses, out SyntaxEditor editor)
             {
+                // TODO AbstractConvertToMethodSyntaxEditor is weird
+                SyntaxEditor CreateSpecificCaseEditor(
+                    AbstractConvertToMethodSyntaxEditor convertToMethodSyntaxEditor,
+                    ExpressionSyntax selectExpression,
+                    ExpressionSyntax expressionAssigning)
+                {
+                    var localEditor = CreateDefaultEditor();
+                    var queryExpression = CreateQueryExpression(forEachStatement, queryClauses, selectExpression);
+                    convertToMethodSyntaxEditor.Convert(forEachStatement, queryExpression, expressionAssigning, localEditor);
+                    return localEditor;
+                }
+
                 switch (residuaryStatement.Kind())
                 {
                     case SyntaxKind.ExpressionStatement:
-                        var experessionStatement = (ExpressionStatementSyntax)residuaryStatement;
-                        switch (experessionStatement.Expression.Kind())
+                        var expressionStatement = (ExpressionStatementSyntax)residuaryStatement;
+                        switch (expressionStatement.Expression.Kind())
                         {
                             // TODO should we consider a = a + 1;?
                             case SyntaxKind.PostIncrementExpression:
-                                editor = CreateDefaultEditor();
                                 // No matter what can be used as the last select statement for the case of Count. We use SyntaxFactory.IdentifierName(_forEachStatement.Identifier).
-                                new ConvertToCountSyntaxEditor(_semanticModel, _forEachStatement, _cancellationToken).
-                                    Convert(experessionStatement, SyntaxFactory.IdentifierName(_forEachStatement.Identifier), queryClauses, ((PostfixUnaryExpressionSyntax)experessionStatement.Expression).Operand, editor);
+                                editor = CreateSpecificCaseEditor(new ConvertToCountSyntaxEditor(_semanticModel, _cancellationToken), SyntaxFactory.IdentifierName(forEachStatement.Identifier), ((PostfixUnaryExpressionSyntax)expressionStatement.Expression).Operand);
                                 return true;
 
                             case SyntaxKind.InvocationExpression:
-                                var invocationExpression = (InvocationExpressionSyntax)experessionStatement.Expression;
+                                var invocationExpression = (InvocationExpressionSyntax)expressionStatement.Expression;
                                 if (invocationExpression.Expression is MemberAccessExpressionSyntax memberAccessExpression &&
                                     _semanticModel.GetSymbolInfo(memberAccessExpression, _cancellationToken).Symbol is IMethodSymbol methodSymbol &&
                                     IsList(methodSymbol.ContainingType) &&
                                     methodSymbol.Name.Equals(nameof(IList.Add)) &&
                                     methodSymbol.Parameters.Length == 1)
                                 {
-                                    editor = CreateDefaultEditor();
-                                    new ConvertToListSyntaxEditor(_semanticModel, _forEachStatement, _cancellationToken).
-                                        Convert(experessionStatement, invocationExpression.ArgumentList.Arguments.Single().Expression, queryClauses, memberAccessExpression.Expression, editor);
+                                    editor = CreateSpecificCaseEditor(new ConvertToListSyntaxEditor(_semanticModel, _cancellationToken), invocationExpression.ArgumentList.Arguments.Single().Expression, memberAccessExpression.Expression);
                                     return true;
                                 }
 
@@ -205,17 +206,25 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertLinq
                         break;
 
                     case SyntaxKind.YieldReturnStatement:
-                        var memberDeclaration = FindParentMemberDeclarationNode(_forEachStatement, out _);
+                        SyntaxEditor CreateReplaceYieldReturn()
+                        {
+                            var localEditor = CreateDefaultEditor();
+                            var queryExpression = CreateQueryExpression(forEachStatement, queryClauses, ((YieldStatementSyntax)residuaryStatement).Expression);
+                            localEditor.ReplaceNode(forEachStatement, SyntaxFactory.ReturnStatement(queryExpression).WithAdditionalAnnotations(Formatter.Annotation));
+                            return localEditor;
+                        }
+
+                        var memberDeclaration = FindParentMemberDeclarationNode(forEachStatement, out _);
                         var yieldStatements = memberDeclaration.DescendantNodes().OfType<YieldStatementSyntax>();
 
-                        if (_forEachStatement.IsParentKind(SyntaxKind.Block) &&
-                            _forEachStatement.Parent.Parent == memberDeclaration)
+                        if (forEachStatement.IsParentKind(SyntaxKind.Block) &&
+                            forEachStatement.Parent.Parent == memberDeclaration)
                         {
-                            var statementsOnBlockWithForEach = ((BlockSyntax)_forEachStatement.Parent).Statements;
+                            var statementsOnBlockWithForEach = ((BlockSyntax)forEachStatement.Parent).Statements;
                             var lastStatement = statementsOnBlockWithForEach.Last();
-                            if (yieldStatements.Count() == 1 && lastStatement == _forEachStatement)
+                            if (yieldStatements.Count() == 1 && lastStatement == forEachStatement)
                             {
-                                editor = CreateReplaceYieldReturn(residuaryStatement, queryClauses);
+                                editor = CreateReplaceYieldReturn();
                                 return true;
                             }
 
@@ -227,9 +236,9 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertLinq
                             // end of member
                             if (yieldStatements.Count() == 2 &&
                                 lastStatement.Kind() == SyntaxKind.YieldBreakStatement &&
-                                statementsOnBlockWithForEach.ElementAt(statementsOnBlockWithForEach.Count - 2) == _forEachStatement)
+                                statementsOnBlockWithForEach.ElementAt(statementsOnBlockWithForEach.Count - 2) == forEachStatement)
                             {
-                                editor = CreateReplaceYieldReturn(residuaryStatement, queryClauses);
+                                editor = CreateReplaceYieldReturn();
                                 // remove yield break
                                 editor.RemoveNode(lastStatement);
                                 return true;
@@ -243,46 +252,31 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertLinq
                 return false;
             }
 
-            private SyntaxEditor CreateReplaceYieldReturn(StatementSyntax residuaryStatement, IEnumerable<QueryClauseSyntax> queryClauses)
-            {
-                var editor = CreateDefaultEditor();
-                var queryExpression = CreateQueryExpression(_forEachStatement, queryClauses, ((YieldStatementSyntax)residuaryStatement).Expression);
-                editor.ReplaceNode(_forEachStatement, SyntaxFactory.ReturnStatement(queryExpression).WithAdditionalAnnotations(Formatter.Annotation));
-                return editor;
-            }
-
-            private static StatementSyntax ConvertToDefault(
-                ForEachStatementSyntax forEachStatement, 
-                IEnumerable<QueryClauseSyntax> queryClauses, 
-                IEnumerable<SyntaxToken> identifiers, 
+            private static StatementSyntax CreateDefaultReplacementStatement(
+                ForEachStatementSyntax forEachStatement,
+                IEnumerable<QueryClauseSyntax> queryClauses,
+                IEnumerable<SyntaxToken> identifiers,
                 IEnumerable<StatementSyntax> lastStatements)
             {
-                var identifiersCount = identifiers.Count();
                 var block = WrapWithBlockIfNecessary(lastStatements.Select(statement => statement.WithoutTrivia().WithTrailingTrivia(SyntaxFactory.ElasticEndOfLine(Environment.NewLine))));
 
+                var identifiersCount = identifiers.Count();
                 if (identifiersCount == 0)
                 {
                     // Generate foreach(var _ ... select (a,b))
-                    var queryExpression1 = CreateQueryExpression(forEachStatement, queryClauses, SyntaxFactory.AnonymousObjectCreationExpression());
-                    return SyntaxFactory.ForEachStatement(VarNameIdentifier, SyntaxFactory.Identifier("_"), queryExpression1, block);
+                    return SyntaxFactory.ForEachStatement(VarNameIdentifier, SyntaxFactory.Identifier("_"), CreateQueryExpression(forEachStatement, queryClauses, SyntaxFactory.AnonymousObjectCreationExpression()), block);
                 }
                 else if (identifiersCount == 1)
                 {
-                    return
-                        SyntaxFactory.ForEachStatement(
-                            VarNameIdentifier,
-                            identifiers.Single(),
-                            CreateQueryExpression(forEachStatement, queryClauses, SyntaxFactory.IdentifierName(identifiers.Single())),
-                            block);
+                    return SyntaxFactory.ForEachStatement(VarNameIdentifier, identifiers.Single(), CreateQueryExpression(forEachStatement, queryClauses, SyntaxFactory.IdentifierName(identifiers.Single())), block);
                 }
                 else
                 {
                     var selectExpression = SyntaxFactory.TupleExpression(SyntaxFactory.SeparatedList(identifiers.Select(identifier => SyntaxFactory.Argument(SyntaxFactory.IdentifierName(identifier)))));
-                    var queryExpression = CreateQueryExpression(forEachStatement, queryClauses, selectExpression);
                     var declaration = SyntaxFactory.DeclarationExpression(VarNameIdentifier, SyntaxFactory.ParenthesizedVariableDesignation(
                         SyntaxFactory.SeparatedList<VariableDesignationSyntax>(identifiers.Select(identifier => SyntaxFactory.SingleVariableDesignation(identifier)))));
 
-                    return SyntaxFactory.ForEachVariableStatement(declaration, queryExpression, block);
+                    return SyntaxFactory.ForEachVariableStatement(declaration, CreateQueryExpression(forEachStatement, queryClauses, selectExpression), block);
                 }
             }
 
@@ -321,58 +315,55 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertLinq
             {
                 protected readonly SemanticModel _semanticModel;
                 protected readonly CancellationToken _cancellationToken;
-                protected readonly ForEachStatementSyntax _forEachStatement;
 
-                public AbstractConvertToMethodSyntaxEditor(SemanticModel semanticModel, ForEachStatementSyntax forEachStatement, CancellationToken cancellationToken)
+                public AbstractConvertToMethodSyntaxEditor(SemanticModel semanticModel, CancellationToken cancellationToken)
                 {
                     _semanticModel = semanticModel;
-                    _forEachStatement = forEachStatement;
                     _cancellationToken = cancellationToken;
                 }
 
                 protected abstract string MethodName { get; }
 
-                protected abstract bool CanReplaceInitializion(ExpressionSyntax expressionSyntax);
+                protected abstract bool CanReplaceInitialization(ExpressionSyntax expressionSyntax);
 
-                protected abstract void ConvertToDefault(QueryExpressionSyntax queryExpression, ExpressionSyntax expression, SyntaxEditor editor);
+                protected abstract StatementSyntax CreateDefaultStatement(QueryExpressionSyntax queryExpression, ExpressionSyntax expression);
 
                 public void Convert(
-                    ExpressionStatementSyntax expressionStatement,
-                    ExpressionSyntax selectExpression,
-                    IEnumerable<QueryClauseSyntax> queryClauses,
-                    //                    QueryExpressionSyntax queryExpression,
-                    ExpressionSyntax expression,
+                    ForEachStatementSyntax forEachStatement,
+                    QueryExpressionSyntax queryExpression,
+                    ExpressionSyntax expressionAssigning,
                     SyntaxEditor editor)
                 {
-                    var queryExpression = CreateQueryExpression(_forEachStatement, queryClauses, selectExpression);
-                    var previous = FindPreviousStatementInBlock(_forEachStatement);
+                    // TODO weird argument names
+                    // TODO check function name
+                    void LocalConvert(ExpressionSyntax replacingExpression, SyntaxNode declarationOrAssignmentNode)
+                    {
+                        // Check if expressionAssigning is followed by a return statement.
+                        var expresisonSymbol = _semanticModel.GetSymbolInfo(expressionAssigning, _cancellationToken).Symbol;
+                        if (expresisonSymbol is ILocalSymbol &&
+                            FindNextStatementInBlock(forEachStatement) is ReturnStatementSyntax returnStatement &&
+                            SymbolEquivalenceComparer.Instance.Equals(expresisonSymbol, _semanticModel.GetSymbolInfo(returnStatement.Expression, _cancellationToken).Symbol))
+                        {
+                            replacingExpression = returnStatement.Expression;
+                            editor.RemoveNode(declarationOrAssignmentNode);
+                        }
+
+                        editor.ReplaceNode(replacingExpression, CreateInvocationExpression(queryExpression));
+                        editor.RemoveNode(forEachStatement);
+                    }
+
+                    var previous = FindPreviousStatementInBlock(forEachStatement);
 
                     switch (previous?.Kind())
                     {
                         case SyntaxKind.LocalDeclarationStatement:
                             var variables = ((LocalDeclarationStatementSyntax)previous).Declaration.Variables;
                             var lastDeclaration = variables.Last();
-                            if (expression is IdentifierNameSyntax identifierName &&
+                            if (expressionAssigning is IdentifierNameSyntax identifierName &&
                                 lastDeclaration.Identifier.ValueText.Equals(identifierName.Identifier.ValueText) &&
-                                CanReplaceInitializion(lastDeclaration.Initializer.Value))
+                                CanReplaceInitialization(lastDeclaration.Initializer.Value))
                             {
-                                if (IsFollowedByReturnOfLocal(expression, out var returnStatement))
-                                {
-                                    ConvertToMethodAndReturn(queryExpression, returnStatement, editor);
-
-                                    if (variables.Count == 1)
-                                    {
-                                        editor.RemoveNode(previous);
-                                    }
-                                    else
-                                    {
-                                        editor.RemoveNode(lastDeclaration);
-                                    }
-
-                                    return;
-                                }
-
-                                ConvertToMemberAccess(lastDeclaration.Initializer.Value, queryExpression, editor);
+                                LocalConvert(lastDeclaration.Initializer.Value, variables.Count == 1 ? (SyntaxNode)previous : lastDeclaration);
                                 return;
                             }
 
@@ -380,67 +371,25 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertLinq
 
                         case SyntaxKind.ExpressionStatement:
                             if (((ExpressionStatementSyntax)previous).Expression is AssignmentExpressionSyntax assignmentExpression &&
-                                SymbolEquivalenceComparer.Instance.Equals(_semanticModel.GetSymbolInfo(assignmentExpression.Left, _cancellationToken).Symbol, _semanticModel.GetSymbolInfo(expression, _cancellationToken).Symbol) &&
-                                CanReplaceInitializion(assignmentExpression.Right))
+                                SymbolEquivalenceComparer.Instance.Equals(_semanticModel.GetSymbolInfo(assignmentExpression.Left, _cancellationToken).Symbol, _semanticModel.GetSymbolInfo(expressionAssigning, _cancellationToken).Symbol) &&
+                                CanReplaceInitialization(assignmentExpression.Right))
                             {
-                                var nextStatement = FindNextStatementInBlock(_forEachStatement);
-                                if (IsFollowedByReturnOfLocal(expression, out var returnStatement))
-                                {
-                                    ConvertToMethodAndReturn(queryExpression, returnStatement, editor);
-                                    editor.RemoveNode(previous);
-                                    return;
-                                }
-
-                                ConvertToMemberAccess(assignmentExpression.Right, queryExpression, editor);
+                                LocalConvert(assignmentExpression.Right, previous);
                                 return;
                             }
 
                             break;
                     }
 
-                    ConvertToDefault(queryExpression, expression, editor);
+                    editor.ReplaceNode(forEachStatement, CreateDefaultStatement(queryExpression, expressionAssigning).WithAdditionalAnnotations(Formatter.Annotation));
                 }
 
-                private void ConvertToMemberAccess(ExpressionSyntax expressionToReplace, QueryExpressionSyntax queryExpression, SyntaxEditor editor)
-                {
-                    editor.ReplaceNode(
-                        expressionToReplace,
-                        SyntaxFactory.InvocationExpression(
+                protected InvocationExpressionSyntax CreateInvocationExpression(QueryExpressionSyntax queryExpression)
+                    => SyntaxFactory.InvocationExpression(
                             SyntaxFactory.MemberAccessExpression(
                                 SyntaxKind.SimpleMemberAccessExpression,
                                 SyntaxFactory.ParenthesizedExpression(queryExpression),
-                                SyntaxFactory.IdentifierName(MethodName))).WithAdditionalAnnotations(Formatter.Annotation));
-                    editor.RemoveNode(_forEachStatement);
-                }
-
-                protected void ConvertToMethodAndReturn(QueryExpressionSyntax queryExpression, ReturnStatementSyntax returnStatement, SyntaxEditor editor)
-                {
-                    editor.RemoveNode(_forEachStatement);
-                    editor.ReplaceNode(returnStatement.Expression,
-                        SyntaxFactory.InvocationExpression(
-                            SyntaxFactory.MemberAccessExpression(
-                                SyntaxKind.SimpleMemberAccessExpression,
-                                SyntaxFactory.ParenthesizedExpression(queryExpression),
-                                SyntaxFactory.IdentifierName(MethodName))).WithAdditionalAnnotations(Formatter.Annotation));
-                }
-
-                private bool IsFollowedByReturnOfLocal(ExpressionSyntax expression, out ReturnStatementSyntax returnStatement)
-                {
-                    var expresisonSymbol = _semanticModel.GetSymbolInfo(expression, _cancellationToken).Symbol;
-                    if (expresisonSymbol is ILocalSymbol)
-                    {
-                        var nextStatement = FindNextStatementInBlock(_forEachStatement);
-                        if (nextStatement is ReturnStatementSyntax returnStatementCandidate &&
-                            SymbolEquivalenceComparer.Instance.Equals(expresisonSymbol, _semanticModel.GetSymbolInfo(returnStatementCandidate.Expression, _cancellationToken).Symbol))
-                        {
-                            returnStatement = returnStatementCandidate;
-                            return true;
-                        }
-                    }
-
-                    returnStatement = default;
-                    return false;
-                }
+                                SyntaxFactory.IdentifierName(MethodName))).WithAdditionalAnnotations(Formatter.Annotation);
 
                 private static StatementSyntax FindPreviousStatementInBlock(StatementSyntax statement)
                 {
@@ -473,29 +422,24 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertLinq
 
             private sealed class ConvertToListSyntaxEditor : AbstractConvertToMethodSyntaxEditor
             {
-                public ConvertToListSyntaxEditor(SemanticModel semanticModel, ForEachStatementSyntax forEachStatement, CancellationToken cancellationToken)
-                    : base(semanticModel, forEachStatement, cancellationToken) { }
+                public ConvertToListSyntaxEditor(SemanticModel semanticModel, CancellationToken cancellationToken) : base(semanticModel, cancellationToken) { }
 
                 protected override string MethodName => nameof(Enumerable.ToList);
 
-                protected override bool CanReplaceInitializion(ExpressionSyntax expression)
+                protected override bool CanReplaceInitialization(ExpressionSyntax expression)
                     => expression is ObjectCreationExpressionSyntax objectCreationExpression &&
                     _semanticModel.GetSymbolInfo(objectCreationExpression.Type, _cancellationToken).Symbol is ITypeSymbol typeSymbol &&
                     IsList(typeSymbol);
 
-                protected override void ConvertToDefault(QueryExpressionSyntax queryExpression, ExpressionSyntax expression, SyntaxEditor editor)
-                {
-                    editor.ReplaceNode(
-                        _forEachStatement,
-                        SyntaxFactory.ExpressionStatement(
-                            SyntaxFactory.InvocationExpression(
-                                SyntaxFactory.MemberAccessExpression(
-                                    SyntaxKind.SimpleMemberAccessExpression,
-                                    expression,
-                                    SyntaxFactory.IdentifierName(nameof(List<object>.AddRange))),
-                                SyntaxFactory.ArgumentList(SyntaxFactory.SingletonSeparatedList(SyntaxFactory.Argument(queryExpression)))))
-                                .WithAdditionalAnnotations(Formatter.Annotation));
-                }
+                protected override StatementSyntax CreateDefaultStatement(QueryExpressionSyntax queryExpression, ExpressionSyntax expression)
+                    => SyntaxFactory.ExpressionStatement(
+                        SyntaxFactory.InvocationExpression(
+                            SyntaxFactory.MemberAccessExpression(
+                                SyntaxKind.SimpleMemberAccessExpression,
+                                expression,
+                                SyntaxFactory.IdentifierName(nameof(List<object>.AddRange))),
+                            SyntaxFactory.ArgumentList(SyntaxFactory.SingletonSeparatedList(SyntaxFactory.Argument(queryExpression)))));
+
 
                 // Borrowed from another provider. Share?
                 private bool IsList(ITypeSymbol typeSymbol)
@@ -504,29 +448,20 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertLinq
 
             private sealed class ConvertToCountSyntaxEditor : AbstractConvertToMethodSyntaxEditor
             {
-                public ConvertToCountSyntaxEditor(SemanticModel semanticModel, ForEachStatementSyntax forEachStatement, CancellationToken cancellationToken)
-                    : base(semanticModel, forEachStatement, cancellationToken) { }
+                public ConvertToCountSyntaxEditor(SemanticModel semanticModel, CancellationToken cancellationToken)
+                    : base(semanticModel, cancellationToken) { }
 
                 protected override string MethodName => nameof(Enumerable.Count);
 
-                protected override bool CanReplaceInitializion(ExpressionSyntax expression)
+                protected override bool CanReplaceInitialization(ExpressionSyntax expression)
                     => expression is LiteralExpressionSyntax literalExpression && literalExpression.Token.ValueText == "0";
 
-                protected override void ConvertToDefault(QueryExpressionSyntax queryExpression, ExpressionSyntax expression, SyntaxEditor editor)
-                {
-                    editor.ReplaceNode(
-                        _forEachStatement,
-                        SyntaxFactory.ExpressionStatement(
-                            SyntaxFactory.AssignmentExpression(
-                                SyntaxKind.AddAssignmentExpression,
-                                expression,
-                                SyntaxFactory.InvocationExpression(
-                                    SyntaxFactory.MemberAccessExpression(
-                                        SyntaxKind.SimpleMemberAccessExpression,
-                                        SyntaxFactory.ParenthesizedExpression(queryExpression),
-                                        SyntaxFactory.IdentifierName(MethodName)))))
-                                .WithAdditionalAnnotations(Formatter.Annotation));
-                }
+                protected override StatementSyntax CreateDefaultStatement(QueryExpressionSyntax queryExpression, ExpressionSyntax expression)
+                    => SyntaxFactory.ExpressionStatement(
+                        SyntaxFactory.AssignmentExpression(
+                            SyntaxKind.AddAssignmentExpression,
+                            expression,
+                            CreateInvocationExpression(queryExpression)));
             }
         }
     }
