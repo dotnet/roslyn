@@ -27,6 +27,9 @@ namespace BuildBoss
     /// </summary>
     internal sealed class CompilerNuGetCheckerUtil : ICheckerUtil
     {
+        internal static StringComparer PathComparer { get; } = StringComparer.OrdinalIgnoreCase;
+        internal static StringComparison PathComparison { get; } = StringComparison.OrdinalIgnoreCase;
+
         internal string ConfigDirectory { get; }
         internal string RepositoryDirectory { get; }
 
@@ -80,7 +83,7 @@ namespace BuildBoss
                 "Microsoft.Build.Utilities.Core.dll",
             };
             dllRelativeNames = dllRelativeNames
-                .Where(x => !unneededDllFileNames.Contains(x, StringComparer.OrdinalIgnoreCase))
+                .Where(x => !unneededDllFileNames.Contains(x, PathComparer))
                 .ToList();
 
             allGood &= VerifySwrFile(textWriter, dllRelativeNames);
@@ -121,7 +124,7 @@ namespace BuildBoss
                 "Microsoft.DiaSymReader.Native.x86.dll",
             };
             dllRelativeNames = dllRelativeNames
-                .Where(x => !unneededDllFileNames.Contains(x, StringComparer.OrdinalIgnoreCase))
+                .Where(x => !unneededDllFileNames.Contains(x, PathComparer))
                 .ToList();
 
             return VerifyNuPackage(
@@ -136,7 +139,7 @@ namespace BuildBoss
         /// </summary>
         private (bool succeeded, List<string> dllRelativeNames) GetDllRelativeNames(TextWriter textWriter, params string[] directoryPaths)
         {
-            var dllToChecksumMap = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+            var dllToChecksumMap = new Dictionary<string, string>(PathComparer);
             var allGood = true;
 
             // This will record all of the DLL files in a directory. The name of the DLL and the checksum of the contents will 
@@ -240,10 +243,9 @@ namespace BuildBoss
                             relativeName = relativeName.Substring(1);
                         }
 
-                        var comparison = StringComparison.OrdinalIgnoreCase;
-                        if (!relativeName.StartsWith(folderRelativePath, comparison) ||
-                            !relativeName.EndsWith(".dll", comparison) ||
-                            relativeName.EndsWith(".resources.dll", comparison))
+                        if (!relativeName.StartsWith(folderRelativePath, PathComparison) ||
+                            !relativeName.EndsWith(".dll", PathComparison) ||
+                            relativeName.EndsWith(".resources.dll", PathComparison))
                         {
                             continue;
                         }
@@ -257,7 +259,7 @@ namespace BuildBoss
                 .ToDictionary(
                     keySelector: x => Path.Combine(folderRelativePath, x),
                     elementSelector: _ => false,
-                    comparer: StringComparer.OrdinalIgnoreCase);
+                    comparer: PathComparer);
             var allGood = true;
             var nupkgFileName = Path.GetFileName(nupkgFilePath);
 
@@ -302,11 +304,11 @@ namespace BuildBoss
         {
             var nativeDlls = new[] { "Microsoft.DiaSymReader.Native.amd64.dll", "Microsoft.DiaSymReader.Native.x86.dll" };
             var map = dllFileNames
-                .Where(x => !nativeDlls.Contains(x, StringComparer.OrdinalIgnoreCase))
+                .Where(x => !nativeDlls.Contains(x, PathComparer))
                 .ToDictionary(
                     keySelector: x => x,
                     elementSelector: _ => false,
-                    comparer: StringComparer.OrdinalIgnoreCase);
+                    comparer: PathComparer);
             var swrRelativeFilePath = @"src\Setup\DevDivVsix\CompilersPackage\Microsoft.CodeAnalysis.Compilers.swr";
             var swrFilePath = Path.Combine(RepositoryDirectory, swrRelativeFilePath);
 
@@ -322,6 +324,7 @@ namespace BuildBoss
                 return false;
             }
 
+            var allGood = false;
             var regex = new Regex(@"^\s*file source=(.*) vs.file.*$", RegexOptions.IgnoreCase);
             foreach (var line in allLines)
             {
@@ -334,10 +337,14 @@ namespace BuildBoss
                     {
                         map[fileName] = true;
                     }
+                    else if (fileName.EndsWith(".dll", PathComparison))
+                    {
+                        textWriter.WriteLine($"Unexpected dll {fileName}");
+                        allGood = false;
+                    }
                 }
             }
 
-            var allGood = false;
             foreach (var pair in map.OrderBy(x => x.Key))
             {
                 if (!pair.Value)
