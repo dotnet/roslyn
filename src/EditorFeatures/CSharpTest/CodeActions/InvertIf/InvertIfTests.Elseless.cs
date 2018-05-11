@@ -563,5 +563,40 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.Invert
     }
 }");
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)]
+        public async Task TestElseless16()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    void M()
+    {
+        [||]if (c)
+        {
+            f();
+        }
+
+        g();
+        g();
+    }
+}",
+@"class C
+{
+    void M()
+    {
+        if (!c)
+        {
+        }
+        else
+        {
+            f();
+        }
+
+        g();
+        g();
+    }
+}");
+        }
     }
 }
