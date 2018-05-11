@@ -79,7 +79,7 @@ namespace Roslyn.VisualStudio.DiagnosticsWindow
         {
             await base.InitializeAsync(cancellationToken, progress).ConfigureAwait(true);
 
-            await JoinableTaskFactory.SwitchToMainThreadAsync();
+            await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
             var componentModel = (IComponentModel)await GetServiceAsync(typeof(SComponentModel)).ConfigureAwait(true);
 

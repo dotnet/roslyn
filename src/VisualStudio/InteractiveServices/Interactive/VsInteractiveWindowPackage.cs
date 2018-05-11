@@ -32,7 +32,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Interactive
         {
             await base.InitializeAsync(cancellationToken, progress).ConfigureAwait(true);
 
-            await JoinableTaskFactory.SwitchToMainThreadAsync();
+            await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
             // Load the Roslyn package so that its FatalError handlers are hooked up.
             var shell = (IVsShell)await GetServiceAsync(typeof(SVsShell)).ConfigureAwait(true);

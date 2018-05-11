@@ -19,7 +19,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Setup
         protected override async Task InitializeAsync(CancellationToken cancellationToken, IProgress<ServiceProgressData> progress)
         {
             await base.InitializeAsync(cancellationToken, progress).ConfigureAwait(true);
-            await JoinableTaskFactory.SwitchToMainThreadAsync();
+            await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
             IntegrationTestServiceCommands.Initialize(this);
         }

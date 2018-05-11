@@ -18,7 +18,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
         {
             await base.InitializeAsync(cancellationToken, progress).ConfigureAwait(true);
 
-            await JoinableTaskFactory.SwitchToMainThreadAsync();
+            await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
             // Assume that we are being initialized on the UI thread at this point, and setup our foreground state
             var kind = ForegroundThreadDataInfo.CreateDefault(ForegroundThreadDataKind.ForcedByPackageInitialize);

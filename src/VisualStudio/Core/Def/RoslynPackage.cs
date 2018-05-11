@@ -44,7 +44,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Setup
         {
             await base.InitializeAsync(cancellationToken, progress).ConfigureAwait(true);
 
-            await JoinableTaskFactory.SwitchToMainThreadAsync();
+            await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
             FatalError.Handler = FailFast.OnFatalException;
             FatalError.NonFatalHandler = WatsonReporter.Report;

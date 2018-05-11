@@ -41,7 +41,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
         {
             await base.InitializeAsync(cancellationToken, progress).ConfigureAwait(true);
 
-            await JoinableTaskFactory.SwitchToMainThreadAsync();
+            await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
             foreach (var editorFactory in CreateEditorFactories())
             {

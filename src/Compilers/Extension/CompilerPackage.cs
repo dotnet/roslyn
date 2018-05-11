@@ -22,7 +22,7 @@ namespace Roslyn.Compilers.Extension
         {
             await base.InitializeAsync(cancellationToken, progress).ConfigureAwait(true);
 
-            await JoinableTaskFactory.SwitchToMainThreadAsync();
+            await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
             var packagePath = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
 

@@ -78,7 +78,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.LanguageService
             {
                 await base.InitializeAsync(cancellationToken, progress).ConfigureAwait(true);
 
-                await JoinableTaskFactory.SwitchToMainThreadAsync();
+                await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
                 this.RegisterService<ICSharpTempPECompilerService>(() => new TempPECompilerService(this.Workspace.Services.GetService<IMetadataService>()));
 
