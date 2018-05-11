@@ -226,7 +226,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.InvertIf
                         document, semanticModel, ifStatement, invertIfStyle, generatedJumpStatementRawKindOpt, subsequenceSingleExitPointOpt, cancellationToken));
             }
 
-            internal abstract SyntaxNode GetRootWithInvertIfStatement(
+            protected abstract SyntaxNode GetRootWithInvertIfStatement(
                 Document document,
                 SemanticModel semanticModel,
                 TIfStatementSyntax ifStatement,

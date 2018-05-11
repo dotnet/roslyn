@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InvertIf
                 return CSharpFeaturesResources.Invert_if;
             }
 
-            internal override SyntaxNode GetRootWithInvertIfStatement(
+            protected override SyntaxNode GetRootWithInvertIfStatement(
                 Document document,
                 SemanticModel semanticModel,
                 IfStatementSyntax ifStatement,
@@ -147,8 +147,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InvertIf
                                     return SyntaxFactory.BreakStatement();
                                 case SyntaxKind.ReturnStatement:
                                     return SyntaxFactory.ReturnStatement();
-                                case var syntaxKind:
-                                    throw ExceptionUtilities.UnexpectedValue(syntaxKind);
+                                default:
+                                    throw ExceptionUtilities.UnexpectedValue(generatedJumpStatementRawKindOpt);
                             }
                         }
 

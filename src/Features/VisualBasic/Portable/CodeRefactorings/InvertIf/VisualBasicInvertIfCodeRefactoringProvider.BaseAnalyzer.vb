@@ -17,7 +17,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings.InvertIf
                 Return VBFeaturesResources.Invert_If
             End Function
 
-            Friend Overrides Function GetRootWithInvertIfStatement(document As Document,
+            Protected Overrides Function GetRootWithInvertIfStatement(document As Document,
                                                                    semanticModel As SemanticModel,
                                                                    ifStatement As TIfStatementSyntax,
                                                                    invertIfStyle As InvertIfStyle,
