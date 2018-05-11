@@ -69,7 +69,8 @@ namespace Microsoft.CodeAnalysis
             => GlobalSection.Properties.TryGetValue("root", out string val) && val == "true";
 
         /// <summary>
-        /// Parses an editor config file text located within the given parent directory.
+        /// Parses an editor config file text located within the given parent directory. No parsing
+        /// errors are reported. If any line contains a parse error, it is dropped.
         /// </summary>
         public static EditorConfig Parse(string text, string parentDirectory)
         {
