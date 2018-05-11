@@ -27,7 +27,22 @@ Ex: spacing in method declaration is affected by options.
 `CreateAdjustSpacesOperation(1, AdjustSpacesOption.ForceSpacesIfOnSingleLine)`
 `CreateAdjustSpacesOperation(space: 0, option: AdjustSpacesOption.PreserveSpaces)`
 
+### Newlines
 
+Example of typing `if () {}`.
+Preserving lines (ie. requiring a minimum, but allowing user-input spaces), with minimum 0 or minimum 1
+
+Suppressions
+Effect of newlines on indentations
+
+## Troubleshooting
+
+My experience has been that it's not worth it to try and debug through the engine itself (it's very easy to get lost in the chain of rules), except for a few strategic locations. Also, conditional breakpoints are your friend, as you can choose to break only when the rule is considering a token of interest (for example, you can use `currentToken.ToString == "{"`).
+
+Unittest vs. IDE (relates to the different things that can trigger formatting)
+From what I've seen so far, issues that I found while manually testing in the IDE fell into typing categories:
+- formatting (those are issues where you tweak some code, invoke formatting, and don't like the result). Those can be repro'ed in `FormattingTests.cs`.
+- typing (braces and cursor placement). Those can be repro'ed in `AutomaticBraceCompletionTests.cs` (simulates typing `{` and getting a completion, then typing `enter` and getting a new formatted output as well as a cursor placement).
 
 
 ### TODO
@@ -37,4 +52,5 @@ indentation (and the relation to newlines)
 gif for anchoring
 Triggers for formatting (user can trigger, brace completion, end-of-line or other special characters?)
 brace completion
+note that in some scenarios, there isn't a need for formatting the whole document, so some operations that are deemed irrelevant will be discarded.
 smart token formatter (place the cursor in the right default position after enter is pressed)
