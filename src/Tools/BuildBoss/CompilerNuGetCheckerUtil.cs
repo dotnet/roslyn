@@ -56,7 +56,7 @@ namespace BuildBoss
         /// </summary>
         private bool CheckDesktop(TextWriter textWriter)
         {
-            var (allGood, dllFileNames) = GetDllFileNames(
+            var (allGood, dllRelativeNames) = GetDllRelativeNames(
                 textWriter,
                 @"Exes\Csc\net46",
                 @"Exes\Vbc\net46",
@@ -79,23 +79,23 @@ namespace BuildBoss
                 "Microsoft.Build.Tasks.Core.dll",
                 "Microsoft.Build.Utilities.Core.dll",
             };
-            dllFileNames = dllFileNames
+            dllRelativeNames = dllRelativeNames
                 .Where(x => !unneededDllFileNames.Contains(x, StringComparer.OrdinalIgnoreCase))
                 .ToList();
 
-            allGood &= VerifySwrFile(textWriter, dllFileNames);
+            allGood &= VerifySwrFile(textWriter, dllRelativeNames);
 
             allGood &= VerifyNuPackage(
                         textWriter,
                         FindNuGetPackage(@"NuGet\PreRelease", "Microsoft.Net.Compilers"),
                         @"tools",
-                        dllFileNames);
+                        dllRelativeNames);
 
             allGood &= VerifyNuPackage(
                         textWriter,
                         FindNuGetPackage(@"DevDivPackages\Roslyn", "VS.Tools.Roslyn"),
                         string.Empty,
-                        dllFileNames);
+                        dllRelativeNames);
             return allGood;
         }
 
@@ -104,11 +104,11 @@ namespace BuildBoss
         /// </summary>
         private bool CheckCoreClr(TextWriter textWriter)
         {
-            var (allGood, dllFileNames) = GetDllFileNames(
+            var (allGood, dllRelativeNames) = GetDllRelativeNames(
                 textWriter,
-                @"Exes\Csc\netcoreapp2.0",
-                @"Exes\Vbc\netcoreapp2.0",
-                @"Exes\VBCSCompiler\netcoreapp2.0");
+                @"Exes\Csc\netcoreapp2.0\publish",
+                @"Exes\Vbc\netcoreapp2.0\publish",
+                @"Exes\VBCSCompiler\netcoreapp2.0\publish");
             if (!allGood)
             {
                 return false;
@@ -120,7 +120,7 @@ namespace BuildBoss
                 "Microsoft.DiaSymReader.Native.amd64.dll",
                 "Microsoft.DiaSymReader.Native.x86.dll",
             };
-            dllFileNames = dllFileNames
+            dllRelativeNames = dllRelativeNames
                 .Where(x => !unneededDllFileNames.Contains(x, StringComparer.OrdinalIgnoreCase))
                 .ToList();
 
@@ -128,13 +128,13 @@ namespace BuildBoss
                         textWriter,
                         FindNuGetPackage(@"NuGet\PreRelease", "Microsoft.NETCore.Compilers"),
                         @"tools\bincore",
-                        dllFileNames);
+                        dllRelativeNames);
         }
 
         /// <summary>
         /// Get all of the dependencies in the specified directory set. 
         /// </summary>
-        private (bool succeeded, List<string> dllFileNames) GetDllFileNames(TextWriter textWriter, params string[] directoryPaths)
+        private (bool succeeded, List<string> dllRelativeNames) GetDllRelativeNames(TextWriter textWriter, params string[] directoryPaths)
         {
             var dllToChecksumMap = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
             var allGood = true;
@@ -143,23 +143,45 @@ namespace BuildBoss
             // be added to the map
             void recordDependencies(MD5 md5, string directory)
             {
+                // Need to consider the files in the immediate directory and those in the runtimes directory. The resource dlls
+                // are unique and simple to include hence we don't go through the process of verifying them.
+                IEnumerable<string> enumerateFiles()
+                {
+                    foreach (var filePath in Directory.EnumerateFiles(directory, "*.dll"))
+                    {
+                        yield return filePath;
+                    }
+
+                    var runtimeDirectory = Path.Combine(directory, "runtimes");
+                    if (Directory.Exists(runtimeDirectory))
+                    {
+                        foreach (var filePath in Directory.EnumerateFiles(Path.Combine(runtimeDirectory), "*.dll", SearchOption.AllDirectories))
+                        {
+                            yield return filePath;
+                        }
+                    }
+                }
+
+                var normalizedDirectoryName = (directory[directory.Length - 1] == '\\') ? directory : directory + @"\";
+                string getRelativeName(string filePath) => filePath.Substring(normalizedDirectoryName.Length);
+
                 var foundOne = false;
-                foreach (var dllFilePath in Directory.EnumerateFiles(directory, "*.dll"))
+                foreach (var dllFilePath in enumerateFiles())
                 {
                     foundOne = true;
+                    var dllRelativeName = getRelativeName(dllFilePath);
                     using (var stream = File.Open(dllFilePath, FileMode.Open, FileAccess.Read, FileShare.Read))
                     {
                         var hash = md5.ComputeHash(stream);
                         var hashString = BitConverter.ToString(hash);
-                        var dllFileName = Path.GetFileName(dllFilePath);
-                        if (dllToChecksumMap.TryGetValue(dllFileName, out string existingHashString))
+                        if (dllToChecksumMap.TryGetValue(dllRelativeName, out string existingHashString))
                         {
                             // Make sure that all copies of the DLL have the same contents. The DLLs are being merged into
                             // a single directory in the resulting NuGet. If the contents are different then our merge is 
                             // invalid.
                             if (existingHashString != hashString)
                             {
-                                textWriter.WriteLine($"Dll {dllFileName} exists at two different versions");
+                                textWriter.WriteLine($"Dll {dllRelativeName} exists at two different versions");
                                 textWriter.WriteLine($"\tHash 1: {hashString}");
                                 textWriter.WriteLine($"\tHash 2: {existingHashString}");
                                 allGood = false;
@@ -167,7 +189,7 @@ namespace BuildBoss
                         }
                         else
                         {
-                            dllToChecksumMap.Add(dllFileName, hashString);
+                            dllToChecksumMap.Add(dllRelativeName, hashString);
                         }
                     }
                 }
@@ -218,9 +240,10 @@ namespace BuildBoss
                             relativeName = relativeName.Substring(1);
                         }
 
-                        var comparer = StringComparer.OrdinalIgnoreCase;
-                        if (!comparer.Equals(folderRelativePath, Path.GetDirectoryName(relativeName)) ||
-                            !comparer.Equals(".dll", Path.GetExtension(relativeName)))
+                        var comparison = StringComparison.OrdinalIgnoreCase;
+                        if (!relativeName.StartsWith(folderRelativePath, comparison) ||
+                            !relativeName.EndsWith(".dll", comparison) ||
+                            relativeName.EndsWith(".resources.dll", comparison))
                         {
                             continue;
                         }
