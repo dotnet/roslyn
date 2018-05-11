@@ -156,13 +156,13 @@ namespace Microsoft.CodeAnalysis.GenerateMember
             }
             else if (syntaxFacts.IsNameOfSubpatternElement(expression))
             {
-                var propertySubpattern = expression.Ancestors().FirstOrDefault(syntaxFacts.IsPropertySubpattern); ;
+                var propertyPatternClause = expression.Ancestors().FirstOrDefault(syntaxFacts.IsPropertyPatternClause);
 
-                if (propertySubpattern != null)
+                if (propertyPatternClause != null)
                 {
                     // something like: { [|X|]: int i } or like: Blah { [|X|]: int i }
                     var inferenceService = document.Document.GetLanguageService<ITypeInferenceService>();
-                    typeToGenerateIn = inferenceService.InferType(semanticModel, propertySubpattern, objectAsDefault: true, cancellationToken) as INamedTypeSymbol;
+                    typeToGenerateIn = inferenceService.InferType(semanticModel, propertyPatternClause, objectAsDefault: true, cancellationToken) as INamedTypeSymbol;
 
                     isStatic = false;
                     return;
