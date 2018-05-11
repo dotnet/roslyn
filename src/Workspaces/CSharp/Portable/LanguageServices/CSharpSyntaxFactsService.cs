@@ -270,9 +270,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         public bool IsLockStatement(SyntaxNode node)
-        {
-            return node is LockStatementSyntax;
-        }
+            => node is LockStatementSyntax;
 
         public bool IsUsingStatement(SyntaxNode node)
             => node.Kind() == SyntaxKind.UsingStatement;
@@ -833,9 +831,16 @@ namespace Microsoft.CodeAnalysis.CSharp
             return name.ToIdentifierToken();
         }
 
-        public SyntaxNode Parenthesize(SyntaxNode expression, bool includeElasticTrivia)
+        public SyntaxNode Parenthesize(SyntaxNode expression, bool includeElasticTrivia, bool addSimplifierAnnotation)
+            => ((ExpressionSyntax)expression).Parenthesize(includeElasticTrivia, addSimplifierAnnotation);
+
+        public void GetPartsOfParenthesizedExpression(
+            SyntaxNode node, out SyntaxToken openParen, out SyntaxNode expression, out SyntaxToken closeParen)
         {
-            return ((ExpressionSyntax)expression).Parenthesize(includeElasticTrivia);
+            var parenthesizedExpression = (ParenthesizedExpressionSyntax)node;
+            openParen = parenthesizedExpression.OpenParenToken;
+            expression = parenthesizedExpression.Expression;
+            closeParen = parenthesizedExpression.CloseParenToken;
         }
 
         public bool IsIndexerMemberCRef(SyntaxNode node)
@@ -1618,16 +1623,13 @@ namespace Microsoft.CodeAnalysis.CSharp
         public bool IsBinaryExpression(SyntaxNode node)
             => node is BinaryExpressionSyntax;
 
-        public void GetPartsOfBinaryExpression(SyntaxNode node, out SyntaxNode left, out SyntaxToken token, out SyntaxNode right)
+        public void GetPartsOfBinaryExpression(SyntaxNode node, out SyntaxNode left, out SyntaxToken operatorToken, out SyntaxNode right)
         {
             var binaryExpression = (BinaryExpressionSyntax)node;
             left = binaryExpression.Left;
+            operatorToken = binaryExpression.OperatorToken;
             right = binaryExpression.Right;
-            token = binaryExpression.OperatorToken;
         }
-
-        public SyntaxToken GetOperatorTokenOfBinaryExpression(SyntaxNode node)
-            => ((BinaryExpressionSyntax)node).OperatorToken;
 
         public void GetPartsOfConditionalExpression(SyntaxNode node, out SyntaxNode condition, out SyntaxNode whenTrue, out SyntaxNode whenFalse)
         {

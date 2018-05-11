@@ -767,8 +767,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return name.ToIdentifierToken()
         End Function
 
-        Public Function Parenthesize(expression As SyntaxNode, Optional includeElasticTrivia As Boolean = True) As SyntaxNode Implements ISyntaxFactsService.Parenthesize
-            Return DirectCast(expression, ExpressionSyntax).Parenthesize()
+        Public Sub GetPartsOfParenthesizedExpression(
+            node As SyntaxNode, ByRef openParen As SyntaxToken, ByRef expression As SyntaxNode, ByRef closeParen As SyntaxToken) Implements ISyntaxFactsService.GetPartsOfParenthesizedExpression
+
+            Dim parenthesizedExpression = DirectCast(node, ParenthesizedExpressionSyntax)
+            openParen = parenthesizedExpression.OpenParenToken
+            expression = parenthesizedExpression.Expression
+            closeParen = parenthesizedExpression.CloseParenToken
+        End Sub
+
+        Public Function Parenthesize(expression As SyntaxNode, Optional includeElasticTrivia As Boolean = True, Optional addSimplifierAnnotation As Boolean = True) As SyntaxNode Implements ISyntaxFactsService.Parenthesize
+            Return DirectCast(expression, ExpressionSyntax).Parenthesize(addSimplifierAnnotation)
         End Function
 
         Public Function IsTypeNamedVarInVariableOrFieldDeclaration(token As SyntaxToken, parent As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsTypeNamedVarInVariableOrFieldDeclaration
@@ -1553,11 +1562,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return TypeOf node Is BinaryExpressionSyntax
         End Function
 
-        Public Sub GetPartsOfBinaryExpression(node As SyntaxNode, ByRef left As SyntaxNode, ByRef token As SyntaxToken, ByRef right As SyntaxNode) Implements ISyntaxFactsService.GetPartsOfBinaryExpression
+        Public Sub GetPartsOfBinaryExpression(node As SyntaxNode, ByRef left As SyntaxNode, ByRef operatorToken As SyntaxToken, ByRef right As SyntaxNode) Implements ISyntaxFactsService.GetPartsOfBinaryExpression
             Dim binaryExpression = DirectCast(node, BinaryExpressionSyntax)
             left = binaryExpression.Left
+            operatorToken = binaryExpression.OperatorToken
             right = binaryExpression.Right
-            token = binaryExpression.OperatorToken
         End Sub
 
         Public Sub GetPartsOfConditionalExpression(node As SyntaxNode, ByRef condition As SyntaxNode, ByRef whenTrue As SyntaxNode, ByRef whenFalse As SyntaxNode) Implements ISyntaxFactsService.GetPartsOfConditionalExpression

@@ -733,10 +733,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                     var loadedSyntaxTreeMap = syntaxAndDeclarations.GetLazyState().LoadedSyntaxTreeMap;
                     if (SyntaxAndDeclarationManager.IsLoadedSyntaxTree(tree, loadedSyntaxTreeMap))
                     {
-                        throw new ArgumentException(string.Format(CSharpResources.SyntaxTreeFromLoadNoRemoveReplace, tree), $"{nameof(trees)}[{i}]");
+                        throw new ArgumentException(CSharpResources.SyntaxTreeFromLoadNoRemoveReplace, $"{nameof(trees)}[{i}]");
                     }
 
-                    throw new ArgumentException(string.Format(CSharpResources.SyntaxTreeNotFoundTo, tree), $"{nameof(trees)}[{i}]");
+                    throw new ArgumentException(CSharpResources.SyntaxTreeNotFoundToRemove, $"{nameof(trees)}[{i}]");
                 }
 
                 removeSet.Add(tree);
@@ -801,10 +801,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var loadedSyntaxTreeMap = syntaxAndDeclarations.GetLazyState().LoadedSyntaxTreeMap;
                 if (SyntaxAndDeclarationManager.IsLoadedSyntaxTree(oldTree, loadedSyntaxTreeMap))
                 {
-                    throw new ArgumentException(string.Format(CSharpResources.SyntaxTreeFromLoadNoRemoveReplace, oldTree), nameof(oldTree));
+                    throw new ArgumentException(CSharpResources.SyntaxTreeFromLoadNoRemoveReplace, nameof(oldTree));
                 }
 
-                throw new ArgumentException(string.Format(CSharpResources.SyntaxTreeNotFoundTo, oldTree), nameof(oldTree));
+                throw new ArgumentException(CSharpResources.SyntaxTreeNotFoundToRemove, nameof(oldTree));
             }
 
             if (externalSyntaxTrees.Contains(newTree))
@@ -1788,7 +1788,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (!_syntaxAndDeclarations.GetLazyState().RootNamespaces.ContainsKey(syntaxTree))
             {
-                throw new ArgumentException(string.Format(CSharpResources.SyntaxTreeNotFoundTo, syntaxTree), nameof(syntaxTree));
+                throw new ArgumentException(CSharpResources.SyntaxTreeNotFound, nameof(syntaxTree));
             }
 
             return new SyntaxTreeSemanticModel(this, (SyntaxTree)syntaxTree, ignoreAccessibility);
@@ -1883,14 +1883,14 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal override void ReportUnusedImports(SyntaxTree filterTree, DiagnosticBag diagnostics, CancellationToken cancellationToken)
         {
-            if (_lazyImportInfos != null)
+            if (_lazyImportInfos != null && filterTree?.Options.DocumentationMode != DocumentationMode.None)
             {
                 foreach (ImportInfo info in _lazyImportInfos)
                 {
                     cancellationToken.ThrowIfCancellationRequested();
 
                     SyntaxTree infoTree = info.Tree;
-                    if (filterTree == null || filterTree == infoTree)
+                    if ((filterTree == null || filterTree == infoTree) && infoTree.Options.DocumentationMode != DocumentationMode.None)
                     {
                         TextSpan infoSpan = info.Span;
                         if (!this.IsImportDirectiveUsed(infoTree, infoSpan.Start))
