@@ -3102,12 +3102,12 @@ oneMoreTime:
 
                         builder[5] = new ArgumentOperation(getLoopControlVariableReference(forceImplicit: true), // Yes we are going to evaluate it again
                                                            ArgumentKind.Explicit, initMethod.Parameters[5],
-                                                           ConvertibleConversion.Instance, ConvertibleConversion.Instance,
+                                                           inConversionOpt: null, outConversionOpt: null,
                                                            semanticModel: null, operation.LoopControlVariable.Syntax, isImplicit: true);
 
                         builder[4] = new ArgumentOperation(loopObjectReference, 
                                                            ArgumentKind.Explicit, initMethod.Parameters[4],
-                                                           ConvertibleConversion.Instance, ConvertibleConversion.Instance,
+                                                           inConversionOpt: null, outConversionOpt: null,
                                                            semanticModel: null, operation.LoopControlVariable.Syntax, isImplicit: true);
 
                         for (int i = 3; i >= 0; i--)
@@ -3115,7 +3115,7 @@ oneMoreTime:
                             IOperation value = _evalStack.Pop();
                             builder[i] = new ArgumentOperation(value,
                                                                ArgumentKind.Explicit, initMethod.Parameters[i],
-                                                               ConvertibleConversion.Instance, ConvertibleConversion.Instance,
+                                                               inConversionOpt: null, outConversionOpt: null,
                                                                semanticModel: null, value.Syntax, isImplicit: true);
                         }
 
@@ -3293,17 +3293,17 @@ oneMoreTime:
 
                         builder[2] = new ArgumentOperation(getLoopControlVariableReference(forceImplicit: true), // Yes we are going to evaluate it again
                                                            ArgumentKind.Explicit, checkMethod.Parameters[2],
-                                                           ConvertibleConversion.Instance, ConvertibleConversion.Instance,
+                                                           inConversionOpt: null, outConversionOpt: null,
                                                            semanticModel: null, operation.LimitValue.Syntax, isImplicit: true);
 
                         builder[1] = new ArgumentOperation(loopObjectReference,
                                                            ArgumentKind.Explicit, checkMethod.Parameters[1],
-                                                           ConvertibleConversion.Instance, ConvertibleConversion.Instance,
+                                                           inConversionOpt: null, outConversionOpt: null,
                                                            semanticModel: null, operation.LimitValue.Syntax, isImplicit: true);
 
                         builder[0] = new ArgumentOperation(_evalStack.Pop(),
                                                            ArgumentKind.Explicit, checkMethod.Parameters[0],
-                                                           ConvertibleConversion.Instance, ConvertibleConversion.Instance,
+                                                           inConversionOpt: null, outConversionOpt: null,
                                                            semanticModel: null, operation.LimitValue.Syntax, isImplicit: true);
 
                         condition = new InvocationExpression(checkMethod, instance: null, isVirtual: false, builder.ToImmutableAndFree(),
