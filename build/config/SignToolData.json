@@ -216,6 +216,7 @@
     "System.Composition.Runtime.dll",
     "System.Composition.TypedParts.dll",
     "System.Console.dll",
+    "System.Diagnostics.DiagnosticSource.dll",
     "System.Diagnostics.FileVersionInfo.dll",
     "System.Diagnostics.Process.dll",
     "System.Diagnostics.StackTrace.dll",

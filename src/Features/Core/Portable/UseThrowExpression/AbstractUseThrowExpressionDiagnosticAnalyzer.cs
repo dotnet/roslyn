@@ -43,7 +43,7 @@ namespace Microsoft.CodeAnalysis.UseThrowExpression
         }
 
         public override DiagnosticAnalyzerCategory GetAnalyzerCategory()
-            => DiagnosticAnalyzerCategory.SemanticDocumentAnalysis;
+            => DiagnosticAnalyzerCategory.SemanticSpanAnalysis;
 
         public override bool OpenFileOnly(Workspace workspace) => false;
 
