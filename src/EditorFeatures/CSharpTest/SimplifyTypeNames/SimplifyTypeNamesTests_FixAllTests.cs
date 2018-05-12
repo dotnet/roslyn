@@ -937,7 +937,7 @@ class D
                 initialMarkup: input,
                 expectedMarkup: expected,
                 options: options,
-                fixAllActionEquivalenceKey: CSharpFeaturesResources.Remove_this_qualification);
+                fixAllActionEquivalenceKey: IDEDiagnosticIds.RemoveQualificationDiagnosticId);
         }
 
         #endregion
