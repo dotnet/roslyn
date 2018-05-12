@@ -19,10 +19,8 @@ namespace Microsoft.CodeAnalysis.CodeFixes
     /// This provider batches all the simplifier annotation actions within a document into a single code action,
     /// instead of creating separate code actions for each added annotation.
     /// </summary>
-    internal class BatchSimplificationFixAllProvider : BatchFixAllProvider
+    internal abstract class BatchSimplificationFixAllProvider : BatchFixAllProvider
     {
-        public static new readonly FixAllProvider Instance = new BatchSimplificationFixAllProvider();
-
         protected BatchSimplificationFixAllProvider() { }
 
         protected override async Task AddDocumentFixesAsync(
