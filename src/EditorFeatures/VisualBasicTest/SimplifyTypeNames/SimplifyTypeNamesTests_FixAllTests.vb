@@ -794,7 +794,7 @@ End Class]]>
                 initialMarkup:=input,
                 expectedMarkup:=expected,
                 options:=options,
-                fixAllActionEquivalenceKey:=VBFeaturesResources.Remove_Me_qualification)
+                fixAllActionEquivalenceKey:=IDEDiagnosticIds.RemoveQualificationDiagnosticId)
         End Function
 
     End Class
