@@ -1,9 +1,12 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CodeRefactorings.InvertIf
 {
@@ -11,7 +14,6 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.InvertIf
     {
         protected enum InvertIfStyle
         {
-            None,
             // swap if and else
             Normal,
             // swap subsequent statements and if body
@@ -52,46 +54,38 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.InvertIf
                     return;
                 }
 
-                int? generatedJumpStatementRawKindOpt = null;
-                SyntaxNode subsequenceSingleExitPointOpt = null;
-
-                var invertIfStyle = GetInvertIfStyle(
-                    ifStatement,
-                    await document.GetSemanticModelAsync().ConfigureAwait(false),
-                    ref subsequenceSingleExitPointOpt,
-                    ref generatedJumpStatementRawKindOpt);
-
-                if (invertIfStyle == InvertIfStyle.None)
+                if (!CanInvert(ifStatement))
                 {
                     return;
+                }
+
+                SyntaxNode subsequenceSingleExitPointOpt = null;
+
+                InvertIfStyle invertIfStyle;
+                if (IsElselessIfStatement(ifStatement))
+                {
+                    invertIfStyle = GetInvertIfStyle(
+                        ifStatement,
+                        await document.GetSemanticModelAsync().ConfigureAwait(false),
+                        ref subsequenceSingleExitPointOpt);
+                }
+                else
+                {
+                    invertIfStyle = InvertIfStyle.Normal;
                 }
 
                 context.RegisterRefactoring(
                     new MyCodeAction(
                         GetTitle(),
-                        c => InvertIfAsync(document, ifStatement, invertIfStyle, generatedJumpStatementRawKindOpt, subsequenceSingleExitPointOpt, c)));
+                        c => InvertIfAsync(document, ifStatement, invertIfStyle, subsequenceSingleExitPointOpt, c)));
             }
 
             private InvertIfStyle GetInvertIfStyle(
                 TIfStatementSyntax ifStatement,
                 SemanticModel semanticModel,
-                ref SyntaxNode subsequenceSingleExitPointOpt,
-                ref int? generatedJumpStatementRawKindOpt)
+                ref SyntaxNode subsequenceSingleExitPointOpt)
             {
-                switch (IsElselessIfStatement(ifStatement))
-                {
-                    case null:
-                        return InvertIfStyle.None;
-                    case false:
-                        return InvertIfStyle.Normal;
-                }
-
-                AnalyzeIfBody(semanticModel, ifStatement,
-                    out var ifBodyStatementCount,
-                    out var ifBodyEndPointIsReachable,
-                    out var ifBodySingleExitPointOpt);
-
-                if (ifBodyStatementCount == 0)
+                if (IsEmptyIfBody(ifStatement))
                 {
                     // An empty if-statement: just negate the condition
                     //  
@@ -104,14 +98,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.InvertIf
                     return InvertIfStyle.WithNegatedCondition;
                 }
 
-                AnalyzeSubsequence(semanticModel, ifStatement,
-                    out var subsequenceStatementCount,
-                    out var subsequenceEndPointIsReachable,
-                    out var subsequenceIsInSameBlock,
-                    out subsequenceSingleExitPointOpt,
-                    out generatedJumpStatementRawKindOpt);
-
-                if (subsequenceStatementCount == 0)
+                if (IsEmptySubsequence(ifStatement))
                 {
                     // No statements if-statement, return with nearmost jump-statement
                     //
@@ -133,7 +120,17 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.InvertIf
                     return InvertIfStyle.WithNearmostJump;
                 }
 
-                if (subsequenceEndPointIsReachable)
+                AnalyzeIfBodyControlFlow(
+                    semanticModel, ifStatement,
+                    out var ifBodyEndPointIsReachable,
+                    out var ifBodySingleExitPointOpt);
+
+                AnalyzeSubsequenceControlFlow(
+                    semanticModel, ifStatement,
+                    out var subsequenceEndPontIsReachable,
+                    out subsequenceSingleExitPointOpt);
+
+                if (subsequenceEndPontIsReachable)
                 {
                     if (ifBodyEndPointIsReachable)
                     {
@@ -141,8 +138,9 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.InvertIf
                     }
                     else
                     {
-                        if (ifBodyStatementCount == 1 && subsequenceIsInSameBlock &&
-                            ifBodySingleExitPointOpt?.RawKind == generatedJumpStatementRawKindOpt)
+                        if (SingleIfBodyStatement(ifStatement) &&
+                            SubsequentStatementsAreInTheSameBlock(ifStatement) &&
+                            ifBodySingleExitPointOpt?.RawKind == GetNearmostParentJumpStatementRawKind(ifStatement))
                         {
                             return InvertIfStyle.MoveSubsequenceToElseBody;
                         }
@@ -157,7 +155,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.InvertIf
                     if (ifBodyEndPointIsReachable)
                     {
                         if (subsequenceSingleExitPointOpt != null &&
-                            subsequenceStatementCount == 1)
+                            SingleSubsequenceStatement(ifStatement))
                         {
                             return InvertIfStyle.WithSubsequenceExitPoint;
                         }
@@ -168,7 +166,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.InvertIf
                     }
                     else
                     {
-                        if (subsequenceIsInSameBlock)
+                        if (SubsequentStatementsAreInTheSameBlock(ifStatement))
                         {
                             return InvertIfStyle.SwapIfBodyWithSubsequence;
                         }
@@ -180,33 +178,35 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.InvertIf
                 }
             }
 
-            private void AnalyzeIfBody(
-                SemanticModel semanticModel,
-                TIfStatementSyntax ifStatement,
-                out int ifBodyStatementCount,
-                out bool ifBodyEndPointIsReachable,
-                out SyntaxNode ifBodySingleExitPointOpt)
+            private bool IsEmptySubsequence(TIfStatementSyntax ifStatement)
             {
-                ifBodyStatementCount = GetIfBodyStatementCount(ifStatement);
-
-                if (ifBodyStatementCount == 0)
+                foreach (var range in GetSubsequentStatementRange(ifStatement))
                 {
-                    ifBodySingleExitPointOpt = null;
-                    ifBodyEndPointIsReachable = true;
-                    return;
+                    if (!IsEmptyStatementRange(range))
+                    {
+                        return false;
+                    }
                 }
 
-                var controlFlow = AnalyzeIfBodyControlFlow(semanticModel, ifStatement);
-                if (controlFlow.EndPointIsReachable)
+                return true;
+            }
+
+            private bool IsEmptyIfBody(TIfStatementSyntax ifStatement)
+            {
+                return IsEmptyStatementRange(GetIfBodyStatementRange(ifStatement));
+            }
+
+            private bool SingleIfBodyStatement(TIfStatementSyntax ifStatement)
+            {
+                var range = GetIfBodyStatementRange(ifStatement);
+                return range.first == range.last;
+            }
+
+            private bool SingleSubsequenceStatement(TIfStatementSyntax ifStatement)
+            {
+                using (var e = GetSubsequentStatementRange(ifStatement).GetEnumerator())
                 {
-                    ifBodySingleExitPointOpt = null;
-                    ifBodyEndPointIsReachable = true;
-                }
-                else
-                {
-                    var exitPoints = controlFlow.ExitPoints;
-                    ifBodySingleExitPointOpt = exitPoints.Length == 1 ? exitPoints[0] : null;
-                    ifBodyEndPointIsReachable = false;
+                    return e.MoveNext() && e.Current.first == e.Current.last && !e.MoveNext();
                 }
             }
 
@@ -214,7 +214,6 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.InvertIf
                 Document document,
                 TIfStatementSyntax ifStatement,
                 InvertIfStyle invertIfStyle,
-                int? generatedJumpStatementRawKindOpt,
                 SyntaxNode subsequenceSingleExitPointOpt,
                 CancellationToken cancellationToken)
             {
@@ -223,35 +222,77 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.InvertIf
                 return document.WithSyntaxRoot(
                     // this returns the root because VB requires changing context around if statement
                     GetRootWithInvertIfStatement(
-                        document, semanticModel, ifStatement, invertIfStyle, generatedJumpStatementRawKindOpt, subsequenceSingleExitPointOpt, cancellationToken));
+                        document, semanticModel, ifStatement, invertIfStyle, subsequenceSingleExitPointOpt, cancellationToken));
             }
+
+            private void AnalyzeSubsequenceControlFlow(
+                SemanticModel semanticModel,
+                TIfStatementSyntax ifStatement,
+                out bool subsequenceEndPontIsReachable,
+                out SyntaxNode subsequenceSingleExitPointOpt)
+            {
+                subsequenceEndPontIsReachable = true;
+                subsequenceSingleExitPointOpt = null;
+
+                foreach (var range in GetSubsequentStatementRange(ifStatement))
+                {
+                    AnalyzeControlFlow(semanticModel, range, out subsequenceEndPontIsReachable, out subsequenceSingleExitPointOpt);
+                    if (!subsequenceEndPontIsReachable)
+                    {
+                        return;
+                    }
+                }
+            }
+
+            private void AnalyzeIfBodyControlFlow(
+                SemanticModel semanticModel,
+                TIfStatementSyntax ifStatement,
+                out bool ifBodyEndPointIsReachable,
+                out SyntaxNode ifBodySingleExitPointOpt)
+            {
+                AnalyzeControlFlow(
+                    semanticModel,
+                    GetIfBodyStatementRange(ifStatement),
+                    out ifBodyEndPointIsReachable,
+                    out ifBodySingleExitPointOpt);
+            }
+
+            private static void AnalyzeControlFlow(
+                SemanticModel semanticModel,
+                (SyntaxNode first, SyntaxNode last) range,
+                out bool endPointIsReachable,
+                out SyntaxNode singleExitPointOpt)
+            {
+                var flow = semanticModel.AnalyzeControlFlow(range.first, range.last);
+                endPointIsReachable = flow.EndPointIsReachable;
+                singleExitPointOpt = flow.ExitPoints.Length == 1 ? flow.ExitPoints[0] : null;
+            }
+
+            private bool SubsequentStatementsAreInTheSameBlock(TIfStatementSyntax ifStatement)
+            {
+                var (start, _) = GetSubsequentStatementRange(ifStatement).First();
+                return ifStatement.Parent == start.Parent;
+            }
+
+            protected abstract bool CanInvert(TIfStatementSyntax ifStatement);
+            protected abstract bool IsElselessIfStatement(TIfStatementSyntax ifStatement);
+
+            protected abstract int GetNearmostParentJumpStatementRawKind(TIfStatementSyntax ifStatement);
+            protected abstract bool IsEmptyStatementRange((SyntaxNode first, SyntaxNode last) range);
+
+            protected abstract (SyntaxNode first, SyntaxNode last) GetIfBodyStatementRange(TIfStatementSyntax ifStatement);
+            protected abstract IEnumerable<(SyntaxNode first, SyntaxNode last)> GetSubsequentStatementRange(TIfStatementSyntax ifStatement);
+
+            protected abstract TextSpan GetHeaderSpan(TIfStatementSyntax ifStatement);
+            protected abstract string GetTitle();
 
             protected abstract SyntaxNode GetRootWithInvertIfStatement(
                 Document document,
                 SemanticModel semanticModel,
                 TIfStatementSyntax ifStatement,
                 InvertIfStyle invertIfStyle,
-                int? generatedJumpStatementRawKindOpt,
                 SyntaxNode subsequenceSingleExitPointOpt,
                 CancellationToken cancellationToken);
-
-            protected abstract void AnalyzeSubsequence(
-                SemanticModel semanticModel,
-                TIfStatementSyntax ifStatement,
-                out int subsequenceStatementCount,
-                out bool subsequenceEndPontIsReachable,
-                out bool subsequenceIsInSameBlock,
-                out SyntaxNode subsequenceSingleExitPointOpt,
-                out int? jumpStatementRawKindOpt);
-
-            protected abstract ControlFlowAnalysis AnalyzeIfBodyControlFlow(
-                SemanticModel semanticModel,
-                TIfStatementSyntax ifStatement);
-
-            protected abstract int GetIfBodyStatementCount(TIfStatementSyntax ifStatement);
-            protected abstract bool? IsElselessIfStatement(TIfStatementSyntax ifStatement);
-            protected abstract TextSpan GetHeaderSpan(TIfStatementSyntax ifStatement);
-            protected abstract string GetTitle();
         }
     }
 }

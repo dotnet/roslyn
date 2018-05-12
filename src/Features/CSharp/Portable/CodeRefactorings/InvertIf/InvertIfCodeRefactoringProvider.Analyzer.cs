@@ -1,7 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
@@ -27,7 +26,6 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InvertIf
                 SemanticModel semanticModel,
                 IfStatementSyntax ifStatement,
                 InvertIfStyle invertIfStyle,
-                int? generatedJumpStatementRawKindOpt,
                 SyntaxNode subsequenceSingleExitPointOpt,
                 CancellationToken cancellationToken)
             {
@@ -139,7 +137,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InvertIf
 
                         StatementSyntax GetNearmostAncestorJumpStatement()
                         {
-                            switch ((SyntaxKind)generatedJumpStatementRawKindOpt)
+                            switch ((SyntaxKind)GetNearmostParentJumpStatementRawKind(ifStatement))
                             {
                                 case SyntaxKind.ContinueStatement:
                                     return SyntaxFactory.ContinueStatement();
@@ -148,7 +146,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InvertIf
                                 case SyntaxKind.ReturnStatement:
                                     return SyntaxFactory.ReturnStatement();
                                 default:
-                                    throw ExceptionUtilities.UnexpectedValue(generatedJumpStatementRawKindOpt);
+                                    throw ExceptionUtilities.Unreachable;
                             }
                         }
 
@@ -264,110 +262,24 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InvertIf
                     ifStatement.CloseParenToken.Span.End);
             }
 
-            protected override bool? IsElselessIfStatement(IfStatementSyntax ifStatement)
+            protected override bool IsElselessIfStatement(IfStatementSyntax ifStatement)
             {
-                switch (ifStatement.Parent?.Kind())
-                {
-                    case SyntaxKind.Block:
-                    case SyntaxKind.SwitchSection:
-                        return ifStatement.Else == null;
-                    default:
-                        return null;
-                }
+                return ifStatement.Else == null;
             }
 
-            private static void AnalyzeStatements(
-               in SyntaxList<StatementSyntax> statements,
-               SemanticModel semanticModel,
-               StatementSyntax innerStatement,
-               bool isOuterBlock,
-               ref bool subsequenceEndPointIsReachable,
-               ref SyntaxNode subsequenceSingleExitPointOpt,
-               ref int subsequenceStatementCount,
-               ref bool subsequenceIsInSameBlock)
+            protected override bool CanInvert(IfStatementSyntax ifStatement)
             {
-                var nextIndex = statements.IndexOf(innerStatement) + 1;
-
-                Debug.Assert(subsequenceSingleExitPointOpt == null);
-                Debug.Assert(nextIndex > 0);
-
-                var currentStatementCount = GetStatementCount(statements, nextIndex);
-                subsequenceStatementCount += currentStatementCount;
-
-                if (nextIndex >= statements.Count || subsequenceStatementCount == 0)
-                {
-                    subsequenceSingleExitPointOpt = null;
-                    subsequenceEndPointIsReachable = true;
-                }
-                else
-                {
-                    var controlFlow = semanticModel.AnalyzeControlFlow(statements[nextIndex], statements.Last());
-                    if (controlFlow.EndPointIsReachable)
-                    {
-                        subsequenceSingleExitPointOpt = null;
-                        subsequenceEndPointIsReachable = true;
-                    }
-                    else
-                    {
-                        var exitPoints = controlFlow.ExitPoints;
-                        subsequenceSingleExitPointOpt = exitPoints.Length == 1 ? exitPoints[0] : null;
-                        subsequenceEndPointIsReachable = false;
-                    }
-                }
-
-                if (currentStatementCount != 0 && isOuterBlock)
-                {
-                    subsequenceIsInSameBlock = false;
-                }
+                return ifStatement.IsParentKind(SyntaxKind.Block, SyntaxKind.SwitchSection);
             }
 
-            protected override void AnalyzeSubsequence(
-                SemanticModel semanticModel,
-                IfStatementSyntax ifStatement,
-                out int subsequenceStatementCount,
-                out bool subsequenceEndPontIsReachable,
-                out bool subsequenceIsInSameBlock,
-                out SyntaxNode subsequenceSingleExitPointOpt,
-                out int? jumpStatementRawKindOpt)
+            protected override int GetNearmostParentJumpStatementRawKind(IfStatementSyntax ifStatement)
             {
-                subsequenceStatementCount = 0;
-                subsequenceEndPontIsReachable = true;
-                subsequenceSingleExitPointOpt = null;
-                subsequenceIsInSameBlock = true;
-
-                var innerStatement = (StatementSyntax)ifStatement;
-                var isOuterBlock = false;
-
                 foreach (var node in ifStatement.Ancestors())
                 {
                     switch (node.Kind())
                     {
-                        case SyntaxKind.Block:
-                            if (subsequenceEndPontIsReachable)
-                            {
-                                AnalyzeStatements(((BlockSyntax)node).Statements,
-                                    semanticModel, innerStatement, isOuterBlock,
-                                    ref subsequenceEndPontIsReachable, 
-                                    ref subsequenceSingleExitPointOpt,
-                                    ref subsequenceStatementCount,
-                                    ref subsequenceIsInSameBlock);
-                            }
-
-                            break;
-
                         case SyntaxKind.SwitchSection:
-                            if (subsequenceEndPontIsReachable)
-                            {
-                                AnalyzeStatements(((SwitchSectionSyntax)node).Statements,
-                                    semanticModel, innerStatement, isOuterBlock,
-                                    ref subsequenceEndPontIsReachable,
-                                    ref subsequenceSingleExitPointOpt,
-                                    ref subsequenceStatementCount,
-                                    ref subsequenceIsInSameBlock);
-                            }
-
-                            jumpStatementRawKindOpt = (int)SyntaxKind.BreakStatement;
-                            return;
+                            return (int)SyntaxKind.BreakStatement;
 
                         case SyntaxKind.LocalFunctionStatement:
                         case SyntaxKind.SetAccessorDeclaration:
@@ -382,85 +294,71 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InvertIf
                         case SyntaxKind.AnonymousMethodExpression:
                         case SyntaxKind.SimpleLambdaExpression:
                         case SyntaxKind.ParenthesizedLambdaExpression:
-                            jumpStatementRawKindOpt = (int)SyntaxKind.ReturnStatement;
-                            return;
+                            return (int)SyntaxKind.ReturnStatement;
 
                         case SyntaxKind.DoStatement:
                         case SyntaxKind.WhileStatement:
                         case SyntaxKind.ForStatement:
                         case SyntaxKind.ForEachStatement:
                         case SyntaxKind.ForEachVariableStatement:
-                            jumpStatementRawKindOpt = (int)SyntaxKind.ContinueStatement;
-                            return;
+                            return (int)SyntaxKind.ContinueStatement;
                     }
+                }
 
-                    isOuterBlock = true;
+                return -1;
+            }
+
+            protected override (SyntaxNode first, SyntaxNode last) GetIfBodyStatementRange(IfStatementSyntax ifStatement)
+            {
+                var statement = ifStatement.Statement;
+                return (statement, statement);
+            }
+
+            protected override IEnumerable<(SyntaxNode first, SyntaxNode last)> GetSubsequentStatementRange(IfStatementSyntax ifStatement)
+            {
+                StatementSyntax innerStatement = ifStatement;
+                foreach (var node in ifStatement.Ancestors())
+                {
+                    var nextStatement = innerStatement.GetNextStatement();
+                    switch (node.Kind())
+                    {
+                        case SyntaxKind.Block:
+                            if (nextStatement != null) yield return (nextStatement, ((BlockSyntax)node).Statements.Last());
+                            break;
+                        case SyntaxKind.SwitchSection:
+                            if (nextStatement != null) yield return (nextStatement, ((SwitchSectionSyntax)node).Statements.Last());
+                            yield break;
+                        case SyntaxKind.LocalFunctionStatement:
+                        case SyntaxKind.SetAccessorDeclaration:
+                        case SyntaxKind.GetAccessorDeclaration:
+                        case SyntaxKind.AddAccessorDeclaration:
+                        case SyntaxKind.RemoveAccessorDeclaration:
+                        case SyntaxKind.MethodDeclaration:
+                        case SyntaxKind.ConstructorDeclaration:
+                        case SyntaxKind.DestructorDeclaration:
+                        case SyntaxKind.OperatorDeclaration:
+                        case SyntaxKind.ConversionOperatorDeclaration:
+                        case SyntaxKind.AnonymousMethodExpression:
+                        case SyntaxKind.SimpleLambdaExpression:
+                        case SyntaxKind.ParenthesizedLambdaExpression:
+                        case SyntaxKind.DoStatement:
+                        case SyntaxKind.WhileStatement:
+                        case SyntaxKind.ForStatement:
+                        case SyntaxKind.ForEachStatement:
+                        case SyntaxKind.ForEachVariableStatement:
+                            yield break;
+                    }
 
                     if (node is StatementSyntax statement)
                     {
                         innerStatement = statement;
                     }
                 }
-
-                jumpStatementRawKindOpt = null;
             }
 
-            protected override ControlFlowAnalysis AnalyzeIfBodyControlFlow(SemanticModel semanticModel, IfStatementSyntax ifStatement)
+            protected override bool IsEmptyStatementRange((SyntaxNode first, SyntaxNode last) range)
             {
-                return semanticModel.AnalyzeControlFlow(ifStatement.Statement);
-            }
-
-            protected override int GetIfBodyStatementCount(IfStatementSyntax ifStatement)
-            {
-                return GetStatementCount(ifStatement.Statement);
-            }
-
-            private static int GetStatementCount(StatementSyntax statement)
-            {
-                switch (statement.Kind())
-                {
-                    case SyntaxKind.EmptyStatement:
-                        return 0;
-                    case SyntaxKind.Block:
-                        return GetStatementCount(((BlockSyntax)statement).Statements);
-                    default:
-                        return 1;
-                }
-            }
-
-            private static int GetStatementCount(in SyntaxList<StatementSyntax> statements, int startIndex = 0)
-            {
-                bool sawOneStatement = false;
-                for (int i = startIndex, n = statements.Count; i < n; ++i)
-                {
-                    var statement = statements[i];
-                    switch (statement.Kind())
-                    {
-                        case SyntaxKind.EmptyStatement:
-                            continue;
-                        case SyntaxKind.Block:
-                            switch (GetStatementCount(((BlockSyntax)statement).Statements))
-                            {
-                                case 0:
-                                    continue;
-                                case 1:
-                                    break;
-                                default:
-                                    return 2;
-                            }
-
-                            break;
-                    }
-
-                    if (sawOneStatement)
-                    {
-                        return 2;
-                    }
-
-                    sawOneStatement = true;
-                }
-
-                return sawOneStatement ? 1 : 0;
+                return range.first == range.last && range.first.IsKind(SyntaxKind.EmptyStatement);
             }
         }
     }

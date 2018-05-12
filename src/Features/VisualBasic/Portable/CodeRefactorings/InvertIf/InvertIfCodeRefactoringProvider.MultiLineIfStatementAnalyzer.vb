@@ -11,10 +11,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings.InvertIf
         Private NotInheritable Class MultiLineIfStatementAnalyzer
             Inherits BaseAnalyzer(Of MultiLineIfBlockSyntax)
 
-            Protected Overrides Sub AnalyzeSubsequence(semanticModel As SemanticModel, ifStatement As MultiLineIfBlockSyntax, ByRef subsequenceCount As Integer, ByRef subsequenceEndPontIsReachable As Boolean, ByRef subsequenceIsInSameBlock As Boolean, ByRef subsequenceSingleExitPointOpt As SyntaxNode, ByRef jumpStatementRawKindOpt As Integer?)
-                Throw New NotImplementedException()
-            End Sub
-
             Private Shared Function GetInvertedIfNode(
                 ifNode As MultiLineIfBlockSyntax,
                 document As Document,
@@ -45,7 +41,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings.InvertIf
 
             Protected Overrides Function InvertIfStatement(originalIfNode As MultiLineIfBlockSyntax, document As Document, generator As SyntaxGenerator, syntaxFacts As ISyntaxFactsService, model As SemanticModel, cancellationToken As CancellationToken) As SemanticModel
                 Dim invertedIfNode = GetInvertedIfNode(originalIfNode, document, generator, syntaxFacts, model, cancellationToken)
-
                 Dim result = UpdateSemanticModel(model, model.SyntaxTree.GetRoot().ReplaceNode(originalIfNode, invertedIfNode), cancellationToken)
                 Return result.Model
             End Function
@@ -56,18 +51,29 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings.InvertIf
                     ifStatement.IfStatement.Condition.Span.End)
             End Function
 
-            Protected Overrides Function AnalyzeIfBodyControlFlow(semanticModel As SemanticModel, ifStatement As MultiLineIfBlockSyntax) As ControlFlowAnalysis
+            Protected Overrides Function IsElselessIfStatement(ifStatement As MultiLineIfBlockSyntax) As Boolean
+                Return ifStatement.ElseBlock Is Nothing
+            End Function
+
+            Protected Overrides Function CanInvert(ifStatement As MultiLineIfBlockSyntax) As Boolean
+                Return ifStatement.ElseIfBlocks.IsEmpty
+            End Function
+
+            Protected Overrides Function GetNearmostParentJumpStatementRawKind(ifStatement As MultiLineIfBlockSyntax) As Integer
                 Throw New NotImplementedException()
             End Function
 
-            Protected Overrides Function GetIfBodyStatementCount(ifStatement As MultiLineIfBlockSyntax) As Integer
+            Protected Overrides Function IsEmptyStatementRange(range As (first As SyntaxNode, last As SyntaxNode)) As Boolean
                 Throw New NotImplementedException()
             End Function
 
-            Protected Overrides Function IsElselessIfStatement(ifStatement As MultiLineIfBlockSyntax) As Boolean?
-                Return If(ifStatement.ElseIfBlocks.IsEmpty, ifStatement.ElseBlock Is Nothing, New Boolean?)
+            Protected Overrides Function GetIfBodyStatementRange(ifStatement As MultiLineIfBlockSyntax) As (first As SyntaxNode, last As SyntaxNode)
+                Throw New NotImplementedException()
             End Function
 
+            Protected Overrides Function GetSubsequentStatementRange(ifStatement As MultiLineIfBlockSyntax) As IEnumerable(Of (first As SyntaxNode, last As SyntaxNode))
+                Throw New NotImplementedException()
+            End Function
         End Class
     End Class
 End Namespace

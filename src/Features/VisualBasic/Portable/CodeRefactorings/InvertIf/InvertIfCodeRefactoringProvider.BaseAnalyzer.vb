@@ -21,7 +21,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings.InvertIf
                                                                    semanticModel As SemanticModel,
                                                                    ifStatement As TIfStatementSyntax,
                                                                    invertIfStyle As InvertIfStyle,
-                                                                   generatedJumpStatementRawKindOpt As Integer?,
                                                                    subsequenceSingleExitPointOpt As SyntaxNode,
                                                                    cancellationToken As CancellationToken) As SyntaxNode
                 Dim generator = SyntaxGenerator.GetGenerator(document)

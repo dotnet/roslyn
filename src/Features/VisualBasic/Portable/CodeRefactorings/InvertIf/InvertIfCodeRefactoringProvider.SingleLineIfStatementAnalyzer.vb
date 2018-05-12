@@ -101,20 +101,28 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings.InvertIf
                     ifStatement.Condition.Span.End)
             End Function
 
-            Protected Overrides Sub AnalyzeSubsequence(semanticModel As SemanticModel, ifStatement As SingleLineIfStatementSyntax, ByRef subsequenceCount As Integer, ByRef subsequenceEndPontIsReachable As Boolean, ByRef subsequenceIsInSameBlock As Boolean, ByRef subsequenceSingleExitPointOpt As SyntaxNode, ByRef jumpStatementRawKindOpt As Integer?)
-                Throw New NotImplementedException()
-            End Sub
-
-            Protected Overrides Function AnalyzeIfBodyControlFlow(semanticModel As SemanticModel, ifStatement As SingleLineIfStatementSyntax) As ControlFlowAnalysis
-                Throw New NotImplementedException()
-            End Function
-
-            Protected Overrides Function GetIfBodyStatementCount(ifStatement As SingleLineIfStatementSyntax) As Integer
-                Throw New NotImplementedException()
-            End Function
-
-            Protected Overrides Function IsElselessIfStatement(ifStatement As SingleLineIfStatementSyntax) As Boolean?
+            Protected Overrides Function IsElselessIfStatement(ifStatement As SingleLineIfStatementSyntax) As Boolean
                 Return ifStatement.ElseClause Is Nothing
+            End Function
+
+            Protected Overrides Function CanInvert(ifStatement As SingleLineIfStatementSyntax) As Boolean
+                Throw New NotImplementedException()
+            End Function
+
+            Protected Overrides Function GetNearmostParentJumpStatementRawKind(ifStatement As SingleLineIfStatementSyntax) As Integer
+                Throw New NotImplementedException()
+            End Function
+
+            Protected Overrides Function IsEmptyStatementRange(range As (first As SyntaxNode, last As SyntaxNode)) As Boolean
+                Throw New NotImplementedException()
+            End Function
+
+            Protected Overrides Function GetIfBodyStatementRange(ifStatement As SingleLineIfStatementSyntax) As (first As SyntaxNode, last As SyntaxNode)
+                Throw New NotImplementedException()
+            End Function
+
+            Protected Overrides Function GetSubsequentStatementRange(ifStatement As SingleLineIfStatementSyntax) As IEnumerable(Of (first As SyntaxNode, last As SyntaxNode))
+                Throw New NotImplementedException()
             End Function
         End Class
     End Class
