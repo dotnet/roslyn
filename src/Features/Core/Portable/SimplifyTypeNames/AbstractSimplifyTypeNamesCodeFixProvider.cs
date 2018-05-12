@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.SimplifyTypeNames
         protected abstract string GetTitle(string diagnosticId, string nodeText);
         protected abstract bool CanSimplifyTypeNameExpression(SemanticModel model, SyntaxNode node, OptionSet optionSet, out TextSpan issueSpan, out string diagnosticId, CancellationToken cancellationToken);
         protected abstract bool IsCandidate(SyntaxNode node);
-        protected abstract Task<Document> SimplifyTypeNameAsync(Document document, SyntaxNode node, CancellationToken cancellationToken);
+        protected abstract SyntaxNode AddSimplificationAnnotationTo(SyntaxNode node);
 
         public sealed override ImmutableArray<string> FixableDiagnosticIds { get; } =
             ImmutableArray.Create(
@@ -79,6 +79,14 @@ namespace Microsoft.CodeAnalysis.SimplifyTypeNames
                 title, c => SimplifyTypeNameAsync(document, node, c), diagnosticId);
 
             context.RegisterCodeFix(codeAction, context.Diagnostics);
+        }
+
+        private async Task<Document> SimplifyTypeNameAsync(Document document, SyntaxNode node, CancellationToken cancellationToken)
+        {
+            var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+
+            return document.WithSyntaxRoot(
+                root.ReplaceNode(node, AddSimplificationAnnotationTo(node)));
         }
 
         private bool CanSimplifyTypeNameExpression(SemanticModel model, SyntaxNode node, OptionSet optionSet, TextSpan span, out string diagnosticId, CancellationToken cancellationToken)

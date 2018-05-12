@@ -2,7 +2,6 @@
 
 using System.Composition;
 using System.Threading;
-using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp.Diagnostics.SimplifyTypeNames;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -46,9 +45,8 @@ namespace Microsoft.CodeAnalysis.CSharp.SimplifyTypeNames
             }
         }
 
-        protected override async Task<Document> SimplifyTypeNameAsync(Document document, SyntaxNode node, CancellationToken cancellationToken)
+        protected override SyntaxNode AddSimplificationAnnotationTo(SyntaxNode expressionSyntax)
         {
-            var expressionSyntax = node;
             var annotatedexpressionSyntax = expressionSyntax.WithAdditionalAnnotations(Simplifier.Annotation, Formatter.Annotation);
 
             if (annotatedexpressionSyntax.Kind() == SyntaxKind.IsExpression || annotatedexpressionSyntax.Kind() == SyntaxKind.AsExpression)
@@ -57,13 +55,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SimplifyTypeNames
                 annotatedexpressionSyntax = annotatedexpressionSyntax.ReplaceNode(right, right.WithAdditionalAnnotations(Simplifier.Annotation));
             }
 
-            SyntaxNode oldNode = expressionSyntax;
-            SyntaxNode newNode = annotatedexpressionSyntax;
-
-            var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-            var newRoot = root.ReplaceNode(oldNode, newNode);
-
-            return document.WithSyntaxRoot(newRoot);
+            return annotatedexpressionSyntax;
         }
     }
 }

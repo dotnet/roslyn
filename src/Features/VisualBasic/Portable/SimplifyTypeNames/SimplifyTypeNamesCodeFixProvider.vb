@@ -43,14 +43,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SimplifyTypeNames
             Return VisualBasicSimplifyTypeNamesDiagnosticAnalyzer.CanSimplifyTypeNameExpression(model, node, optionSet, issueSpan, diagnosticId, cancellationToken)
         End Function
 
-        Protected Overrides Async Function SimplifyTypeNameAsync(document As Document, node As SyntaxNode, cancellationToken As CancellationToken) As Task(Of Document)
-            Dim expression = node
-            Dim annotatedExpression = expression.WithAdditionalAnnotations(Simplifier.Annotation)
-
-            Dim newRoot = Await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(False)
-            newRoot = newRoot.ReplaceNode(expression, annotatedExpression)
-
-            Return document.WithSyntaxRoot(newRoot)
+        Protected Overrides Function AddSimplificationAnnotationTo(expression As SyntaxNode) As SyntaxNode
+            Return expression.WithAdditionalAnnotations(Simplifier.Annotation)
         End Function
     End Class
 End Namespace
