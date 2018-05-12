@@ -37,8 +37,8 @@ namespace Microsoft.CodeAnalysis.SemanticModelWorkspaceService
 
             public async Task<SemanticModel> GetSemanticModelForNodeAsync(Document document, SyntaxNode node, CancellationToken cancellationToken = default)
             {
-                var syntaxFactsService = document.Project.LanguageServices.GetService<ISyntaxFactsService>();
-                var semanticFactsService = document.Project.LanguageServices.GetService<ISemanticFactsService>();
+                var syntaxFactsService = document.GetLanguageService<ISyntaxFactsService>();
+                var semanticFactsService = document.GetLanguageService<ISemanticFactsService>();
 
                 if (syntaxFactsService == null || semanticFactsService == null || node == null)
                 {
