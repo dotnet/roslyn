@@ -118,7 +118,8 @@ namespace Microsoft.CodeAnalysis.ConvertToInterpolatedString
                 if (currentContentIsStringLiteral)
                 {
                     var text = piece.GetFirstToken().Text;
-                    var textWithoutQuotes = GetTextWithoutQuotes(text, isVerbatimStringLiteral);
+                    var textWithEscapedBraces = text.Replace("{", "{{").Replace("}", "}}");
+                    var textWithoutQuotes = GetTextWithoutQuotes(textWithEscapedBraces, isVerbatimStringLiteral);
                     if (previousContentWasStringLiteralExpression)
                     {
                         // Last part we added to the content list was also an interpolated-string-text-node.
