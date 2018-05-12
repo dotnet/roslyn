@@ -3,12 +3,12 @@
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.CodeAnalysis.CSharp.CodeFixes.SimplifyTypeNames;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Xunit;
 
-namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.SimplifyTypeNames
+namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SimplifyTypeNames
 {
     public partial class SimplifyTypeNamesTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest
     {
@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.SimplifyTyp
         [Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)]
         public async Task TestFixAllInDocument()
         {
-            var fixAllActionId = SimplifyTypeNamesCodeFixProvider.GetCodeActionId(IDEDiagnosticIds.SimplifyNamesDiagnosticId, "System.Int32");
+            var fixAllActionId = IDEDiagnosticIds.PreferIntrinsicPredefinedTypeInDeclarationsDiagnosticId;
 
             var input = @"
 <Workspace>
@@ -79,10 +79,10 @@ using System;
 
 class Program
 {
-    static int F(int x, System.Int16 y)
+    static int F(int x, short y)
     {
         int i1 = 0;
-        System.Int16 s1 = 0;
+        short s1 = 0;
         int i2 = 0;
         return i1 + s1 + i2;
     }
@@ -129,7 +129,7 @@ class Program2
         [Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)]
         public async Task TestFixAllInProject()
         {
-            var fixAllActionId = SimplifyTypeNamesCodeFixProvider.GetCodeActionId(IDEDiagnosticIds.SimplifyNamesDiagnosticId, "System.Int32");
+            var fixAllActionId = IDEDiagnosticIds.PreferIntrinsicPredefinedTypeInDeclarationsDiagnosticId;
 
             var input = @"
 <Workspace>
@@ -189,10 +189,10 @@ using System;
 
 class Program
 {
-    static int F(int x, System.Int16 y)
+    static int F(int x, short y)
     {
         int i1 = 0;
-        System.Int16 s1 = 0;
+        short s1 = 0;
         int i2 = 0;
         return i1 + s1 + i2;
     }
@@ -203,10 +203,10 @@ using System;
 
 class Program2
 {
-    static int F(int x, System.Int16 y)
+    static int F(int x, short y)
     {
         int i1 = 0;
-        System.Int16 s1 = 0;
+        short s1 = 0;
         int i2 = 0;
         return i1 + s1 + i2;
     }
@@ -239,7 +239,7 @@ class Program2
         [Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)]
         public async Task TestFixAllInSolution()
         {
-            var fixAllActionId = SimplifyTypeNamesCodeFixProvider.GetCodeActionId(IDEDiagnosticIds.SimplifyNamesDiagnosticId, "System.Int32");
+            var fixAllActionId = IDEDiagnosticIds.PreferIntrinsicPredefinedTypeInDeclarationsDiagnosticId;
 
             var input = @"
 <Workspace>
@@ -299,10 +299,10 @@ using System;
 
 class Program
 {
-    static int F(int x, System.Int16 y)
+    static int F(int x, short y)
     {
         int i1 = 0;
-        System.Int16 s1 = 0;
+        short s1 = 0;
         int i2 = 0;
         return i1 + s1 + i2;
     }
@@ -313,10 +313,10 @@ using System;
 
 class Program2
 {
-    static int F(int x, System.Int16 y)
+    static int F(int x, short y)
     {
         int i1 = 0;
-        System.Int16 s1 = 0;
+        short s1 = 0;
         int i2 = 0;
         return i1 + s1 + i2;
     }
@@ -329,10 +329,10 @@ using System;
 
 class Program2
 {
-    static int F(int x, System.Int16 y)
+    static int F(int x, short y)
     {
         int i1 = 0;
-        System.Int16 s1 = 0;
+        short s1 = 0;
         int i2 = 0;
         return i1 + s1 + i2;
     }
@@ -349,7 +349,7 @@ class Program2
         [Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)]
         public async Task TestFixAllInSolution_RemoveThis()
         {
-            var fixAllActionId = SimplifyTypeNamesCodeFixProvider.GetCodeActionId(IDEDiagnosticIds.RemoveQualificationDiagnosticId, null);
+            var fixAllActionId = IDEDiagnosticIds.RemoveQualificationDiagnosticId;
 
             var input = @"
 <Workspace>
@@ -603,7 +603,7 @@ class ProgramB3
         [Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)]
         public async Task TestFixAllInSolution_SimplifyMemberAccess()
         {
-            var fixAllActionId = SimplifyTypeNamesCodeFixProvider.GetCodeActionId(IDEDiagnosticIds.SimplifyMemberAccessDiagnosticId, "System.Console");
+            var fixAllActionId = IDEDiagnosticIds.SimplifyMemberAccessDiagnosticId;
 
             var input = @"
 <Workspace>
