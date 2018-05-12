@@ -3,6 +3,7 @@
 Imports System.Threading
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.LanguageServices
+Imports Microsoft.CodeAnalysis.Shared.Extensions
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic
 Imports Microsoft.CodeAnalysis.VisualBasic.Extensions
@@ -26,7 +27,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Venus
                 Where(Function(m) m.CanBeReferencedByName AndAlso m.Kind = SymbolKind.Method).
                 Cast(Of IMethodSymbol)()
 
-            Dim syntaxFacts = document.Project.LanguageServices.GetService(Of ISyntaxFactsService)()
+            Dim syntaxFacts = document.GetLanguageService(Of ISyntaxFactsService)()
             Dim methodAndMethodSyntaxesWithHandles = methods.
                 Select(Function(m) Tuple.Create(m, GetMethodStatement(syntaxFacts, m))).
                 Where(Function(t) t.Item2.HandlesClause IsNot Nothing).

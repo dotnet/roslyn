@@ -798,7 +798,7 @@ public class C {}",
         }
 
         [Fact]
-        public void IVTErrorNotBothSigned()
+        public void IVTNotBothSigned_CStoCS()
         {
             string s = @"[assembly: System.Runtime.CompilerServices.InternalsVisibleTo(""John, PublicKey=00240000048000009400000006020000002400005253413100040000010001002b986f6b5ea5717d35c72d38561f413e267029efa9b5f107b9331d83df657381325b3a67b75812f63a9436ceccb49494de8f574f8e639d4d26c0fcf8b0e9a1a196b80b6f6ed053628d10d027e032df2ed1d60835e5f47d32c9ef6da10d0366a319573362c821b5f8fa5abc5bb22241de6f666a85d82d6ba8c3090d01636bd2bb"")]
             public class C { internal void Goo() {} }";
@@ -824,8 +824,47 @@ public class C {}",
             // We allow John to access Paul's internal Goo even though strong-named John should not be referencing weak-named Paul.
             // Paul has, after all, specifically granted access to John.
 
-            // TODO: During emit time we should produce an error that says that a strong-named assembly cannot reference
-            // TODO: a weak-named assembly.
+            // During emit time we should produce an error that says that a strong-named assembly cannot reference
+            // a weak-named assembly. But the C# compiler doesn't currently do that. See https://github.com/dotnet/roslyn/issues/26722
+            requestor.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void IVTNotBothSigned_VBtoCS()
+        {
+            string s = @"<assembly: System.Runtime.CompilerServices.InternalsVisibleTo(""John, PublicKey=00240000048000009400000006020000002400005253413100040000010001002b986f6b5ea5717d35c72d38561f413e267029efa9b5f107b9331d83df657381325b3a67b75812f63a9436ceccb49494de8f574f8e639d4d26c0fcf8b0e9a1a196b80b6f6ed053628d10d027e032df2ed1d60835e5f47d32c9ef6da10d0366a319573362c821b5f8fa5abc5bb22241de6f666a85d82d6ba8c3090d01636bd2bb"")>
+            Public Class C
+                Friend Sub Goo()
+                End Sub
+            End Class";
+
+            var other = VisualBasic.VisualBasicCompilation.Create(
+                syntaxTrees: new[] { VisualBasic.VisualBasicSyntaxTree.ParseText(s) },
+                references: new[] { MscorlibRef_v4_0_30316_17626 },
+                assemblyName: "Paul",
+                options: new VisualBasic.VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary).WithStrongNameProvider(s_defaultDesktopProvider));
+            other.VerifyDiagnostics();
+
+            var requestor = CreateCompilation(
+    @"public class A
+{
+    internal class B
+    {
+        protected B(C o)
+        {
+            o.Goo();
+        }
+    }
+}",
+                references: new[] { MetadataReference.CreateFromImage(other.EmitToArray()) },
+                assemblyName: "John",
+                options: TestOptions.ReleaseDll.WithCryptoKeyFile(s_keyPairFile).WithStrongNameProvider(s_defaultDesktopProvider));
+
+            // We allow John to access Paul's internal Goo even though strong-named John should not be referencing weak-named Paul.
+            // Paul has, after all, specifically granted access to John.
+
+            // During emit time we should produce an error that says that a strong-named assembly cannot reference
+            // a weak-named assembly. But the C# compiler doesn't currently do that. See https://github.com/dotnet/roslyn/issues/26722
             requestor.VerifyDiagnostics();
         }
 
@@ -2315,12 +2354,12 @@ public class C
             }
         }
 
-        [Fact, WorkItem(769840, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/769840")]
-        public void Bug769840()
+        [Fact, WorkItem(781312, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/781312")]
+        public void Bug781312()
         {
             var ca = CreateCompilation(
     @"
-[assembly: System.Runtime.CompilerServices.InternalsVisibleTo(""Bug769840_B, PublicKey = 0024000004800000940000000602000000240000525341310004000001000100458a131798af87d9e33088a3ab1c6101cbd462760f023d4f41d97f691033649e60b42001e94f4d79386b5e087b0a044c54b7afce151b3ad19b33b332b83087e3b8b022f45b5e4ff9b9a1077b0572ff0679ce38f884c7bd3d9b4090e4a7ee086b7dd292dc20f81a3b1b8a0b67ee77023131e59831c709c81d11c6856669974cc4"")]
+[assembly: System.Runtime.CompilerServices.InternalsVisibleTo(""Bug781312_B, PublicKey = 0024000004800000940000000602000000240000525341310004000001000100458a131798af87d9e33088a3ab1c6101cbd462760f023d4f41d97f691033649e60b42001e94f4d79386b5e087b0a044c54b7afce151b3ad19b33b332b83087e3b8b022f45b5e4ff9b9a1077b0572ff0679ce38f884c7bd3d9b4090e4a7ee086b7dd292dc20f81a3b1b8a0b67ee77023131e59831c709c81d11c6856669974cc4"")]
 
 internal class A
 {
@@ -2340,7 +2379,7 @@ internal class B
     }
 }",
                 options: TestOptions.ReleaseModule.WithStrongNameProvider(s_defaultDesktopProvider),
-                assemblyName: "Bug769840_B",
+                assemblyName: "Bug781312_B",
                 references: new[] { new CSharpCompilationReference(ca) });
 
             CompileAndVerify(cb, verify: Verification.Fails).Diagnostics.Verify();

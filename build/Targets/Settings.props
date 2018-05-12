@@ -287,7 +287,7 @@
     <When Condition="'$(MSBuildProjectExtension)' == '.csproj' OR '$(Language)' == 'C#' OR '$(ProjectLanguage)' == 'CSharp'">
       <PropertyGroup>
         <ProjectLanguage>CSharp</ProjectLanguage>
-        <LangVersion>7.2</LangVersion>
+        <LangVersion>7.3</LangVersion>
         <WarningLevel>4</WarningLevel>
         <ErrorReport>prompt</ErrorReport>
 
