@@ -7,24 +7,20 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.Editing;
-using Microsoft.CodeAnalysis.LanguageServices;
-using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.ConvertLinq
 {
-    internal abstract class AbstractConvertForEachToLinqQueryProvider<TForEachStatement, TQueryExpression> : CodeRefactoringProvider
+    internal abstract class AbstractConvertForEachToLinqQueryProvider<TForEachStatement> : CodeRefactoringProvider
         where TForEachStatement : SyntaxNode
-        where TQueryExpression : SyntaxNode
     {
         protected abstract string Title { get; }
 
         protected abstract bool TryConvert(
             TForEachStatement forEachStatement,
-            Workspace workspace,
             SemanticModel semanticModel,
             CancellationToken cancellationToken,
-            out SyntaxEditor editor);
+            out IConverter converter);
 
         protected abstract TForEachStatement FindNodeToRefactor(SyntaxNode root, TextSpan span);
 
@@ -42,23 +38,26 @@ namespace Microsoft.CodeAnalysis.ConvertLinq
 
             var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
 
-            if (TryConvert(forEachStatement,document.Project.Solution.Workspace, semanticModel, cancellationToken, out SyntaxEditor editor) &&
+            if (TryConvert(forEachStatement, semanticModel, cancellationToken, out IConverter converter) &&
                 !semanticModel.GetDiagnostics(forEachStatement.Span, cancellationToken).Any(diagnostic => diagnostic.DefaultSeverity == DiagnosticSeverity.Error))
             {
-                context.RegisterRefactoring(
-                    new ForEachToLinqQueryCodeAction(
-                        Title,
-                        c => Task.FromResult(document.WithSyntaxRoot(editor.GetChangedRoot()))));
+                context.RegisterRefactoring(new ForEachToLinqQueryCodeAction(Title, c =>
+                {
+                    var editor = new SyntaxEditor(semanticModel.SyntaxTree.GetRoot(c), document.Project.Solution.Workspace);
+                    converter.Convert(editor, semanticModel, c);
+                    return Task.FromResult(document.WithSyntaxRoot(editor.GetChangedRoot()));
+                }));
             }
+        }
+
+        protected interface IConverter
+        {
+            void Convert(SyntaxEditor editor, SemanticModel semanticModel, CancellationToken cancellationToken);
         }
 
         private class ForEachToLinqQueryCodeAction : CodeAction.DocumentChangeAction
         {
-            public ForEachToLinqQueryCodeAction(
-                string title,
-                Func<CancellationToken, Task<Document>> createChangedDocument) : base(title, createChangedDocument)
-            {
-            }
+            public ForEachToLinqQueryCodeAction(string title, Func<CancellationToken, Task<Document>> createChangedDocument) : base(title, createChangedDocument) { }
         }
     }
 }
