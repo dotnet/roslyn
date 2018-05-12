@@ -4,19 +4,24 @@ using System.Threading;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.Options;
 
-namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.SimplifyTypeNames
+namespace Microsoft.CodeAnalysis.SimplifyTypeNames
 {
-    internal partial class SimplifyTypeNamesCodeFixProvider : CodeFixProvider
+    internal abstract partial class AbstractSimplifyTypeNamesCodeFixProvider
     {
         private class SimplifyTypeNamesFixAllProvider : BatchSimplificationFixAllProvider
         {
-            internal static new readonly SimplifyTypeNamesFixAllProvider Instance = new SimplifyTypeNamesFixAllProvider();
+            private readonly AbstractSimplifyTypeNamesCodeFixProvider _provider;
+
+            public SimplifyTypeNamesFixAllProvider(AbstractSimplifyTypeNamesCodeFixProvider provider)
+            {
+                _provider = provider;
+            }
 
             protected override SyntaxNode GetNodeToSimplify(
                 SyntaxNode root, SemanticModel model, Diagnostic diagnostic, 
                 DocumentOptionSet options, CancellationToken cancellationToken)
             {
-                return SimplifyTypeNamesCodeFixProvider.GetNodeToSimplify(
+                return _provider.GetNodeToSimplify(
                     root, model, diagnostic.Location.SourceSpan, options, out _, cancellationToken);
             }
         }

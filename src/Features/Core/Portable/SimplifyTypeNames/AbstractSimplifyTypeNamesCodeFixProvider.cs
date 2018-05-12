@@ -1,0 +1,96 @@
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
+using System.Collections.Immutable;
+using System.Threading;
+using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.CodeFixes;
+using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Simplification;
+using Microsoft.CodeAnalysis.Text;
+
+namespace Microsoft.CodeAnalysis.SimplifyTypeNames
+{
+    internal abstract partial class AbstractSimplifyTypeNamesCodeFixProvider : CodeFixProvider
+    {
+        private readonly SimplifyTypeNamesFixAllProvider _fixAllProvider;
+
+        protected AbstractSimplifyTypeNamesCodeFixProvider()
+        {
+            _fixAllProvider = new SimplifyTypeNamesFixAllProvider(this);
+        }
+
+        protected abstract string GetTitle(string diagnosticId, string nodeText);
+        protected abstract bool CanSimplifyTypeNameExpression(SemanticModel model, SyntaxNode node, OptionSet optionSet, out TextSpan issueSpan, out string diagnosticId, CancellationToken cancellationToken);
+        protected abstract bool IsCandidate(SyntaxNode node);
+        protected abstract Task<Document> SimplifyTypeNameAsync(Document document, SyntaxNode node, CancellationToken cancellationToken);
+
+        public sealed override ImmutableArray<string> FixableDiagnosticIds { get; } =
+            ImmutableArray.Create(
+                IDEDiagnosticIds.SimplifyNamesDiagnosticId,
+                IDEDiagnosticIds.SimplifyMemberAccessDiagnosticId,
+                IDEDiagnosticIds.RemoveQualificationDiagnosticId,
+                IDEDiagnosticIds.PreferIntrinsicPredefinedTypeInDeclarationsDiagnosticId,
+                IDEDiagnosticIds.PreferIntrinsicPredefinedTypeInMemberAccessDiagnosticId);
+
+        public sealed override FixAllProvider GetFixAllProvider()
+            => _fixAllProvider;
+
+        private SyntaxNode GetNodeToSimplify(SyntaxNode root, SemanticModel model, TextSpan span, OptionSet optionSet, out string diagnosticId, CancellationToken cancellationToken)
+        {
+            diagnosticId = null;
+            var token = root.FindToken(span.Start, findInsideTrivia: true);
+            if (!token.Span.IntersectsWith(span))
+            {
+                return null;
+            }
+
+            foreach (var n in token.GetAncestors<SyntaxNode>())
+            {
+                if (n.Span.IntersectsWith(span) && CanSimplifyTypeNameExpression(model, n, optionSet, span, out diagnosticId, cancellationToken))
+                {
+                    return n;
+                }
+            }
+
+            return null;
+        }
+
+        public sealed override async Task RegisterCodeFixesAsync(CodeFixContext context)
+        {
+            var document = context.Document;
+            var span = context.Span;
+            var cancellationToken = context.CancellationToken;
+
+            var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+            var model = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+            var documentOptions = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
+            var node = GetNodeToSimplify(root, model, span, documentOptions, out var diagnosticId, cancellationToken);
+            if (node == null)
+            {
+                return;
+            }
+
+            var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
+            var title = GetTitle(diagnosticId, syntaxFacts.ConvertToSingleLine(node).ToString());
+            var codeAction = new SimplifyTypeNameCodeAction(
+                title, c => SimplifyTypeNameAsync(document, node, c), diagnosticId);
+
+            context.RegisterCodeFix(codeAction, context.Diagnostics);
+        }
+
+        private bool CanSimplifyTypeNameExpression(SemanticModel model, SyntaxNode node, OptionSet optionSet, TextSpan span, out string diagnosticId, CancellationToken cancellationToken)
+        {
+            diagnosticId = null;
+            if (!IsCandidate(node) ||
+                !CanSimplifyTypeNameExpression(model, node, optionSet, out var issueSpan, out diagnosticId, cancellationToken))
+            {
+                return false;
+            }
+
+            return issueSpan.Equals(span);
+        }
+    }
+}
