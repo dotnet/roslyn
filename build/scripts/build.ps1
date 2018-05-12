@@ -29,6 +29,7 @@ param (
     [switch]$packAll = $false,
     [switch]$binaryLog = $false,
     [switch]$deployExtensions = $false,
+    [switch]$procdump = $false,
     [string]$signType = "",
     [switch]$skipBuildExtras = $false,
     [switch]$skipAnalyzers = $false,
@@ -63,6 +64,7 @@ function Print-Usage() {
     Write-Host "  -pack                     Create our NuGet packages"
     Write-Host "  -deployExtensions         Deploy built vsixes"
     Write-Host "  -binaryLog                Create binary log for every MSBuild invocation"
+    Write-Host "  -procdump                 Monitor test runs with procdump" 
     Write-Host "  -skipAnalyzers            Do not run analyzers during build operations"
     Write-Host "  -skipBuildExtras          Do not build insertion items"
     Write-Host "" 
@@ -548,7 +550,9 @@ function Test-XUnit() {
     if ($cibuild -or $official) {
         # Use a 50 minute timeout on CI
         $args += " -xml -timeout:50"
+    }
 
+    if ($procdump) {
         $procdumpPath = Ensure-ProcDump
         $args += " -procdumppath:$procDumpPath"
     }

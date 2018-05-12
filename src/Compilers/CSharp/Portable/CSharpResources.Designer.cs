@@ -11547,7 +11547,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to SyntaxTree &apos;{0}&apos; resulted from a #load directive and cannot be removed or replaced directly..
+        ///   Looks up a localized string similar to SyntaxTree resulted from a #load directive and cannot be removed or replaced directly..
         /// </summary>
         internal static string SyntaxTreeFromLoadNoRemoveReplace {
             get {
@@ -11565,11 +11565,20 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to SyntaxTree &apos;{0}&apos; not found to remove.
+        ///   Looks up a localized string similar to SyntaxTree is not part of the compilation.
         /// </summary>
-        internal static string SyntaxTreeNotFoundTo {
+        internal static string SyntaxTreeNotFound {
             get {
-                return ResourceManager.GetString("SyntaxTreeNotFoundTo", resourceCulture);
+                return ResourceManager.GetString("SyntaxTreeNotFound", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to SyntaxTree is not part of the compilation, so it cannot be removed.
+        /// </summary>
+        internal static string SyntaxTreeNotFoundToRemove {
+            get {
+                return ResourceManager.GetString("SyntaxTreeNotFoundToRemove", resourceCulture);
             }
         }
         
