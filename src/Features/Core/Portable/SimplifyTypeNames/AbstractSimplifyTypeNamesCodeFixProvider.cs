@@ -1,8 +1,10 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editing;
@@ -69,7 +71,7 @@ namespace Microsoft.CodeAnalysis.SimplifyTypeNames
             var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
             var title = GetTitle(diagnosticId, syntaxFacts.ConvertToSingleLine(node).ToString());
 
-            context.RegisterCodeFix(new SimplifyTypeNameCodeAction(
+            context.RegisterCodeFix(new MyCodeAction(
                 title, 
                 c => this.FixAsync(context.Document, context.Diagnostics[0], c),
                 diagnosticId), context.Diagnostics);
@@ -118,6 +120,15 @@ namespace Microsoft.CodeAnalysis.SimplifyTypeNames
             }
 
             return issueSpan.Equals(span);
+        }
+
+        private class MyCodeAction : CodeAction.DocumentChangeAction
+        {
+            public MyCodeAction(
+                string title, Func<CancellationToken, Task<Document>> createChangedDocument, string equivalenceKey)
+                : base(title, createChangedDocument, equivalenceKey)
+            {
+            }
         }
     }
 }
