@@ -3618,6 +3618,28 @@ class SomeAttribute : Attribute
                 Documentation("ctor comment"));
         }
 
+        [WorkItem(26768, "https://github.com/dotnet/roslyn/issues/26768")]
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        public async Task AttributeConstructorShadowedMemberType()
+        {
+            await TestAsync(
+@"class SomethingAttribute : System.Attribute
+{
+    public int Goo { get; set; }
+}
+
+class DerivedAttribute : SomethingAttribute
+{
+    new public long Goo { get; set; }
+}
+
+[Derived($$Goo = )]
+class C
+{
+}",
+                MainDescription("long DerivedAttribute.Goo { get; set; }"));
+        }
+
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public async Task TestLabel()
         {
