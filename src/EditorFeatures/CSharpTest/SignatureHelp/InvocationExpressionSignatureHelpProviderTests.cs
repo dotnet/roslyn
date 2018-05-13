@@ -206,6 +206,28 @@ class C
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        [WorkItem(26713, "https://github.com/dotnet/roslyn/issues/26713")]
+        public async Task TestDelegateParameterWithXmlComment()
+        {
+            var markup = @"
+class C
+{
+    /// <param name=""a"">Parameter docs</param>
+    delegate void SomeDelegate(int a);
+
+    void M(SomeDelegate theDelegate)
+    {
+        [|theDelegate($$|]);
+    }
+}";
+
+            var expectedOrderedItems = new List<SignatureHelpTestItem>();
+            expectedOrderedItems.Add(new SignatureHelpTestItem("void SomeDelegate(int a)", parameterDocumentation: "Parameter docs", currentParameterIndex: 0));
+
+            await TestAsync(markup, expectedOrderedItems);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
         public async Task TestInvocationWithoutClosingParen()
         {
             var markup = @"

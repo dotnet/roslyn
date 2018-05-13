@@ -182,12 +182,25 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         {
             switch (symbol)
             {
-                case IParameterSymbol parameter: return parameter.ContainingSymbol.OriginalDefinition.GetDocumentationComment(cancellationToken: cancellationToken).GetParameterText(symbol.Name);
+                case IParameterSymbol parameter: return GetParameterDocumentation(parameter, cancellationToken);
                 case ITypeParameterSymbol typeParam: return typeParam.ContainingSymbol.GetDocumentationComment(cancellationToken: cancellationToken).GetTypeParameterText(symbol.Name);
                 case IMethodSymbol method: return GetMethodDocumentation(method);
                 case IAliasSymbol alias: return alias.Target.GetDocumentationComment(cancellationToken: cancellationToken).SummaryText;
                 default: return symbol.GetDocumentationComment(cancellationToken: cancellationToken).SummaryText;
             }
+        }
+
+        private static string GetParameterDocumentation(IParameterSymbol parameter, CancellationToken cancellationToken)
+        {
+            var containingSymbol = parameter.ContainingSymbol;
+            if (containingSymbol.ContainingSymbol.IsDelegateType())
+            {
+                // containingSymbol is the Invoke method of the delegate, so we need to go one level up and take the method's containing symbol.
+                containingSymbol = containingSymbol.ContainingSymbol;
+            }
+
+            // Get the comments from the original definition of the containing symbol.
+            return containingSymbol.OriginalDefinition.GetDocumentationComment(cancellationToken: cancellationToken).GetParameterText(parameter.Name);
         }
 
         public static Func<CancellationToken, IEnumerable<TaggedText>> GetDocumentationPartsFactory(
