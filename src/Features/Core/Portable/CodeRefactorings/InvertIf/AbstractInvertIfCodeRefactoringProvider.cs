@@ -16,6 +16,26 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.InvertIf
     internal abstract partial class AbstractInvertIfCodeRefactoringProvider<TIfStatementSyntax> : CodeRefactoringProvider
         where TIfStatementSyntax : SyntaxNode
     {
+        protected enum InvertIfStyle
+        {
+            // swap if and else
+            Normal,
+            // swap subsequent statements and if body
+            SwapIfBodyWithSubsequentStatements,
+            // move subsequent statements to if body
+            MoveSubsequentStatementsToElseBody,
+            // invert and generete else
+            WithElseClause,
+            // invert and generate else, keep if-body empty
+            MoveIfBodyToElseClause,
+            // invert and copy the exit point statement
+            WithSubsequentExitPointStatement,
+            // invert and generate return, break, continue
+            WithNearmostJumpStatement,
+            // just invert the condition
+            WithNegatedCondition,
+        }
+
         public sealed override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
         {
             var textSpan = context.Span;
@@ -24,8 +44,9 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.InvertIf
                 return;
             }
 
+            var document = context.Document;
             var cancellationToken = context.CancellationToken;
-            var root = await context.Document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+            var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var token = root.FindToken(textSpan.Start);
 
             var ifNode = token.GetAncestor<TIfStatementSyntax>();
@@ -55,46 +76,17 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.InvertIf
                 return;
             }
 
-            var document = context.Document;
             SyntaxNode subsequentSingleExitPointOpt = null;
-
-            InvertIfStyle invertIfStyle;
-            if (IsElseless(ifNode))
-            {
-                invertIfStyle = GetInvertIfStyle(
+            var semanticModel = await document.GetSemanticModelAsync().ConfigureAwait(false);
+            var invertIfStyle = IsElseless(ifNode)
+                ? GetInvertIfStyle(
                     ifNode,
-                    await document.GetSemanticModelAsync().ConfigureAwait(false),
-                    ref subsequentSingleExitPointOpt);
-            }
-            else
-            {
-                invertIfStyle = InvertIfStyle.Normal;
-            }
+                    semanticModel,
+                    ref subsequentSingleExitPointOpt)
+                : InvertIfStyle.Normal;
 
-            context.RegisterRefactoring(
-                new MyCodeAction(
-                    GetTitle(),
-                    c => InvertIfAsync(document, ifNode, invertIfStyle, subsequentSingleExitPointOpt, c)));
-        }
-
-        protected enum InvertIfStyle
-        {
-            // swap if and else
-            Normal,
-            // swap subsequent statements and if body
-            SwapIfBodyWithSubsequentStatements,
-            // move subsequent statements to if body
-            MoveSubsequentStatementsToElseBody,
-            // invert and generete else
-            WithElseClause,
-            // invert and generate else, keep if-body empty
-            MoveIfBodyToElseClause,
-            // invert and copy the exit point statement
-            WithSubsequentExitPointStatement,
-            // invert and generate return, break, continue
-            WithNearmostJumpStatement,
-            // just invert the condition
-            WithNegatedCondition,
+            context.RegisterRefactoring(new MyCodeAction(GetTitle(),
+                c => InvertIfAsync(document, semanticModel, ifNode, invertIfStyle, subsequentSingleExitPointOpt, c)));
         }
 
         private InvertIfStyle GetInvertIfStyle(
@@ -227,29 +219,29 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.InvertIf
             }
         }
 
-        private async Task<Document> InvertIfAsync(
+        private Task<Document> InvertIfAsync(
             Document document,
+            SemanticModel semanticModel,
             TIfStatementSyntax ifNode,
             InvertIfStyle invertIfStyle,
             SyntaxNode subsequentSingleExitPointOpt,
             CancellationToken cancellationToken)
         {
-            var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-            var negatedExpression = Negate(
-                GetCondition(ifNode),
-                document.GetLanguageService<SyntaxGenerator>(),
-                document.GetLanguageService<ISyntaxFactsService>(),
-                semanticModel,
-                cancellationToken);
-            return document.WithSyntaxRoot(
-                GetRootWithInvertIfStatement(
-                    document,
-                    semanticModel,
-                    ifNode,
-                    invertIfStyle,
-                    subsequentSingleExitPointOpt,
-                    negatedExpression,
-                    cancellationToken));
+            return Task.FromResult(
+                document.WithSyntaxRoot(
+                    GetRootWithInvertIfStatement(
+                        document,
+                        semanticModel,
+                        ifNode,
+                        invertIfStyle,
+                        subsequentSingleExitPointOpt,
+                        negatedExpression: Negate(
+                            GetCondition(ifNode),
+                            document.GetLanguageService<SyntaxGenerator>(),
+                            document.GetLanguageService<ISyntaxFactsService>(),
+                            semanticModel,
+                            cancellationToken),
+                        cancellationToken)));
         }
 
         private void AnalyzeSubsequentControlFlow(
