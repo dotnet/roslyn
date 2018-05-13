@@ -141,11 +141,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.InvertIf
 
             if (subsequentEndPontIsReachable)
             {
-                if (ifBodyEndPointIsReachable)
-                {
-                    return InvertIfStyle.MoveIfBodyToElseClause;
-                }
-                else
+                if (!ifBodyEndPointIsReachable)
                 {
                     if (SingleIfBodyStatement(ifNode) &&
                         SubsequentStatementsAreInTheSameBlock(ifNode) &&
@@ -159,32 +155,20 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.InvertIf
                     }
                 }
             }
-            else
+            else if (ifBodyEndPointIsReachable)
             {
-                if (ifBodyEndPointIsReachable)
+                if (subsequentSingleExitPointOpt != null &&
+                    SingleSubsequentStatement(ifNode))
                 {
-                    if (subsequentSingleExitPointOpt != null &&
-                        SingleSubsequentStatement(ifNode))
-                    {
-                        return InvertIfStyle.WithSubsequentExitPointStatement;
-                    }
-                    else
-                    {
-                        return InvertIfStyle.MoveIfBodyToElseClause;
-                    }
-                }
-                else
-                {
-                    if (SubsequentStatementsAreInTheSameBlock(ifNode))
-                    {
-                        return InvertIfStyle.SwapIfBodyWithSubsequentStatements;
-                    }
-                    else
-                    {
-                        return InvertIfStyle.MoveIfBodyToElseClause;
-                    }
+                    return InvertIfStyle.WithSubsequentExitPointStatement;
                 }
             }
+            else if (SubsequentStatementsAreInTheSameBlock(ifNode))
+            {
+                return InvertIfStyle.SwapIfBodyWithSubsequentStatements;
+            }
+
+            return InvertIfStyle.MoveIfBodyToElseClause;
         }
 
         private bool NoSubsequentStatements(TIfStatementSyntax ifNode)
