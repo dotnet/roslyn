@@ -351,6 +351,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         {
             var systemAttributeType = compilation.AttributeType();
 
+            var suggestedMembers = new HashSet<string>();
             foreach (var type in attributeSymbol.GetBaseTypesAndThis())
             {
                 if (type.Equals(systemAttributeType))
@@ -361,8 +362,11 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 foreach (var member in type.GetMembers())
                 {
                     var namedParameter = IsAttributeNamedParameter(member, within ?? compilation.Assembly);
-                    if (namedParameter != null)
+                    if (namedParameter != null && !suggestedMembers.Contains(namedParameter.Name))
                     {
+                        // Remember this type. Any named parameter with the same name we encounter further down the
+                        // inheritance chain will be less overriden than the one we already picked, so we can ignore them.
+                        suggestedMembers.Add(namedParameter.Name);
                         yield return namedParameter;
                     }
                 }
