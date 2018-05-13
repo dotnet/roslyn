@@ -8,6 +8,8 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.CodeAnalysis.Editing;
+using Microsoft.CodeAnalysis.LanguageServices;
 
 namespace Microsoft.CodeAnalysis.CodeRefactorings.InvertIf
 {
@@ -233,11 +235,23 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.InvertIf
             CancellationToken cancellationToken)
         {
             var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-
+            var negatedExpression = Negate(
+                GetIfCondition(ifStatement),
+                document.GetLanguageService<SyntaxGenerator>(),
+                document.GetLanguageService<ISyntaxFactsService>(),
+                semanticModel,
+                cancellationToken);
             return document.WithSyntaxRoot(
                 GetRootWithInvertIfStatement(
-                    document, semanticModel, ifStatement, invertIfStyle, subsequenceSingleExitPointOpt, cancellationToken));
+                    document,
+                    semanticModel,
+                    ifStatement,
+                    invertIfStyle,
+                    subsequenceSingleExitPointOpt,
+                    negatedExpression,
+                    cancellationToken));
         }
+
 
         private void AnalyzeSubsequenceControlFlow(
             SemanticModel semanticModel,
@@ -290,6 +304,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.InvertIf
 
         protected abstract bool CanInvert(TIfStatementSyntax ifStatement);
         protected abstract bool IsElselessIfStatement(TIfStatementSyntax ifStatement);
+        protected abstract SyntaxNode GetIfCondition(TIfStatementSyntax ifStatement);
 
         protected abstract int GetNearmostParentJumpStatementRawKind(TIfStatementSyntax ifStatement);
         protected abstract bool IsEmptyStatementRange((SyntaxNode first, SyntaxNode last) range);
@@ -306,6 +321,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.InvertIf
             TIfStatementSyntax ifStatement,
             InvertIfStyle invertIfStyle,
             SyntaxNode subsequenceSingleExitPointOpt,
+            SyntaxNode negatedExpression,
             CancellationToken cancellationToken);
 
         private sealed class MyCodeAction : CodeAction.DocumentChangeAction

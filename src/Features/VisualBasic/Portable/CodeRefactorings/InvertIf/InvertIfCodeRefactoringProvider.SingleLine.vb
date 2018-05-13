@@ -21,6 +21,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings.InvertIf
                 generator As SyntaxGenerator,
                 syntaxFacts As ISyntaxFactsService,
                 semanticModel As SemanticModel,
+                negatedExpression As ExpressionSyntax,
                 cancellationToken As CancellationToken) As SingleLineIfStatementSyntax
 
             Dim elseClause = ifNode.ElseClause
@@ -59,7 +60,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings.InvertIf
                 End If
             End If
 
-            Return ifNode.WithCondition(DirectCast(Negator.Negate(ifNode.Condition, generator, syntaxFacts, semanticModel, cancellationToken), ExpressionSyntax)) _
+            Return ifNode.WithCondition(negatedExpression) _
                          .WithStatements(newIfStatements) _
                          .WithElseClause(elseClause.WithStatements(ifNode.Statements).WithTrailingTrivia(elseClause.GetTrailingTrivia()))
         End Function
@@ -70,10 +71,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings.InvertIf
                 generator As SyntaxGenerator,
                 syntaxFacts As ISyntaxFactsService,
                 model As SemanticModel,
+                negatedExpression As ExpressionSyntax,
                 cancellationToken As CancellationToken) As SemanticModel
 
             Dim root = model.SyntaxTree.GetRoot()
-            Dim invertedIfNode = GetInvertedIfNode(originalIfNode, document, generator, syntaxFacts, model, cancellationToken)
+            Dim invertedIfNode = GetInvertedIfNode(originalIfNode, document, generator, syntaxFacts, model, negatedExpression, cancellationToken)
             Dim result = UpdateSemanticModel(model, root.ReplaceNode(originalIfNode, invertedIfNode), cancellationToken)
 
             ' Complexify the next statement if there is one.
@@ -124,6 +126,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings.InvertIf
         End Function
 
         Protected Overrides Function GetSubsequentStatementRange(ifStatement As SingleLineIfStatementSyntax) As IEnumerable(Of (first As SyntaxNode, last As SyntaxNode))
+            Throw New NotImplementedException()
+        End Function
+
+        Protected Overrides Function GetIfCondition(ifStatement As SingleLineIfStatementSyntax) As SyntaxNode
             Throw New NotImplementedException()
         End Function
     End Class

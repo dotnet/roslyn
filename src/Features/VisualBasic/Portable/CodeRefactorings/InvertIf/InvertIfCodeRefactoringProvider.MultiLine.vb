@@ -19,6 +19,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings.InvertIf
                 generator As SyntaxGenerator,
                 syntaxFacts As ISyntaxFactsService,
                 semanticModel As SemanticModel,
+                negatedExpression As ExpressionSyntax,
                 cancellationToken As CancellationToken) As MultiLineIfBlockSyntax
 
             Dim ifPart = ifNode
@@ -32,7 +33,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings.InvertIf
             Dim endifLeadingTrivia = ifNode.EndIfStatement.GetLeadingTrivia()
 
             ifNode = ifNode.Update(
-                    ifStatement:=ifStatement.WithCondition(DirectCast(Negator.Negate(ifStatement.Condition, generator, syntaxFacts, semanticModel, cancellationToken), ExpressionSyntax)),
+                    ifStatement:=ifStatement.WithCondition(DirectCast(negatedExpression, ExpressionSyntax)),
                     statements:=elseBlock.Statements,
                     elseIfBlocks:=Nothing,
                     elseBlock:=elseBlock.WithStatements(ifPart.Statements).WithLeadingTrivia(endifLeadingTrivia),
@@ -41,8 +42,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings.InvertIf
             Return ifNode.WithLeadingTrivia(ifLeadingTrivia)
         End Function
 
-        Protected Overrides Function InvertIfStatement(originalIfNode As MultiLineIfBlockSyntax, document As Document, generator As SyntaxGenerator, syntaxFacts As ISyntaxFactsService, model As SemanticModel, cancellationToken As CancellationToken) As SemanticModel
-            Dim invertedIfNode = GetInvertedIfNode(originalIfNode, document, generator, syntaxFacts, model, cancellationToken)
+        Protected Overrides Function InvertIfStatement(originalIfNode As MultiLineIfBlockSyntax, document As Document, generator As SyntaxGenerator, syntaxFacts As ISyntaxFactsService, model As SemanticModel, negatedExpression As ExpressionSyntax, cancellationToken As CancellationToken) As SemanticModel
+            Dim invertedIfNode = GetInvertedIfNode(originalIfNode, document, generator, syntaxFacts, model, negatedExpression, cancellationToken)
             Dim result = UpdateSemanticModel(model, model.SyntaxTree.GetRoot().ReplaceNode(originalIfNode, invertedIfNode), cancellationToken)
             Return result.Model
         End Function
@@ -74,6 +75,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings.InvertIf
         End Function
 
         Protected Overrides Function GetSubsequentStatementRange(ifStatement As MultiLineIfBlockSyntax) As IEnumerable(Of (first As SyntaxNode, last As SyntaxNode))
+            Throw New NotImplementedException()
+        End Function
+
+        Protected Overrides Function GetIfCondition(ifStatement As MultiLineIfBlockSyntax) As SyntaxNode
             Throw New NotImplementedException()
         End Function
     End Class

@@ -22,6 +22,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings.InvertIf
                                                                   ifStatement As TIfStatementSyntax,
                                                                   invertIfStyle As InvertIfStyle,
                                                                   subsequenceSingleExitPointOpt As SyntaxNode,
+                                                                  negatedExpression As SyntaxNode,
                                                                   cancellationToken As CancellationToken) As SyntaxNode
             Dim generator = SyntaxGenerator.GetGenerator(document)
             Dim syntaxFacts = VisualBasicSyntaxFactsService.Instance
@@ -43,7 +44,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings.InvertIf
                 End If
             End If
 
-            semanticModel = InvertIfStatement((ifNode), document, generator, syntaxFacts, result.Model, cancellationToken)
+            semanticModel = InvertIfStatement((ifNode), document, generator, syntaxFacts, result.Model, DirectCast(negatedExpression, ExpressionSyntax), cancellationToken)
 
             ' Complexify the inverted if node.
             result = (semanticModel, semanticModel.SyntaxTree.GetRoot())
@@ -61,6 +62,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings.InvertIf
                                                           generator As SyntaxGenerator,
                                                           syntaxFacts As ISyntaxFactsService,
                                                           model As SemanticModel,
+                                                          negatedExpression As ExpressionSyntax,
                                                           cancellationToken As CancellationToken) As SemanticModel
 
         Protected Shared Function UpdateSemanticModel(model As SemanticModel, root As SyntaxNode, cancellationToken As CancellationToken) As (Model As SemanticModel, Root As SyntaxNode)

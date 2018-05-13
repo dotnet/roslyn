@@ -28,6 +28,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InvertIf
                 IfStatementSyntax ifStatement,
                 InvertIfStyle invertIfStyle,
                 SyntaxNode subsequenceSingleExitPointOpt,
+                SyntaxNode negatedExpression,
                 CancellationToken cancellationToken)
         {
             var generator = SyntaxGenerator.GetGenerator(document);
@@ -35,7 +36,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InvertIf
 
             var ifNode = ifStatement;
 
-            var negatedCondition = (ExpressionSyntax)Negator.Negate(ifStatement.Condition, generator, syntaxFacts, semanticModel, cancellationToken);
+            var negatedCondition = (ExpressionSyntax)negatedExpression;
             var root = semanticModel.SyntaxTree.GetRoot(cancellationToken);
 
             switch (invertIfStyle)
@@ -278,6 +279,11 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InvertIf
             return (int)GetNearmostParentJumpStatementKind(ifStatement);
         }
 
+        protected override SyntaxNode GetIfCondition(IfStatementSyntax ifStatement)
+        {
+            return ifStatement.Condition;
+        }
+
         private static SyntaxKind GetNearmostParentJumpStatementKind(IfStatementSyntax ifStatement)
         {
             foreach (var node in ifStatement.Ancestors())
@@ -311,7 +317,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InvertIf
                 }
             }
 
-            return SyntaxKind.None;
+            throw ExceptionUtilities.Unreachable;
         }
 
         protected override (SyntaxNode first, SyntaxNode last) GetIfBodyStatementRange(IfStatementSyntax ifStatement)
