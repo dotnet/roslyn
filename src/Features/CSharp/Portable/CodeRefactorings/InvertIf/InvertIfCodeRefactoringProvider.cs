@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InvertIf
         protected override SyntaxNode GetRootWithInvertIfStatement(
                 Document document,
                 SemanticModel semanticModel,
-                IfStatementSyntax ifStatement,
+                IfStatementSyntax ifNode,
                 InvertIfStyle invertIfStyle,
                 SyntaxNode subsequentSingleExitPointOpt,
                 SyntaxNode negatedExpression,
@@ -33,8 +33,6 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InvertIf
         {
             var generator = SyntaxGenerator.GetGenerator(document);
             var syntaxFacts = CSharpSyntaxFactsService.Instance;
-
-            var ifNode = ifStatement;
 
             var negatedCondition = (ExpressionSyntax)negatedExpression;
             var root = semanticModel.SyntaxTree.GetRoot(cancellationToken);
@@ -46,7 +44,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InvertIf
                         // For single line statement, we swap the TrailingTrivia to preserve the single line
                         StatementSyntax newIfNodeStatement = null;
                         ElseClauseSyntax newElseStatement = null;
-                        IfStatementSyntax oldIfStatement = ifStatement;
+                        IfStatementSyntax oldIfStatement = ifNode;
 
                         var hasNewLineAfterClosingBrace = oldIfStatement.Statement.GetTrailingTrivia().Any(trivia => trivia.Kind() == SyntaxKind.EndOfLineTrivia);
                         if (hasNewLineAfterClosingBrace)
@@ -139,7 +137,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InvertIf
 
                     StatementSyntax GetNearmostAncestorJumpStatement()
                     {
-                        switch ((SyntaxKind)GetNearmostParentJumpStatementRawKind(ifStatement))
+                        switch ((SyntaxKind)GetNearmostParentJumpStatementRawKind(ifNode))
                         {
                             case SyntaxKind.ContinueStatement:
                                 return SyntaxFactory.ContinueStatement();
@@ -257,36 +255,36 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InvertIf
             }
         }
 
-        protected override TextSpan GetHeaderSpan(IfStatementSyntax ifStatement)
+        protected override TextSpan GetHeaderSpan(IfStatementSyntax ifNode)
         {
             return TextSpan.FromBounds(
-                ifStatement.IfKeyword.SpanStart,
-                ifStatement.CloseParenToken.Span.End);
+                ifNode.IfKeyword.SpanStart,
+                ifNode.CloseParenToken.Span.End);
         }
 
-        protected override bool IsElselessIfStatement(IfStatementSyntax ifStatement)
+        protected override bool IsElselessIfStatement(IfStatementSyntax ifNode)
         {
-            return ifStatement.Else == null;
+            return ifNode.Else == null;
         }
 
-        protected override bool CanInvert(IfStatementSyntax ifStatement)
+        protected override bool CanInvert(IfStatementSyntax ifNode)
         {
-            return ifStatement.IsParentKind(SyntaxKind.Block, SyntaxKind.SwitchSection);
+            return ifNode.IsParentKind(SyntaxKind.Block, SyntaxKind.SwitchSection);
         }
 
-        protected override int GetNearmostParentJumpStatementRawKind(IfStatementSyntax ifStatement)
+        protected override int GetNearmostParentJumpStatementRawKind(IfStatementSyntax ifNode)
         {
-            return (int)GetNearmostParentJumpStatementKind(ifStatement);
+            return (int)GetNearmostParentJumpStatementKind(ifNode);
         }
 
-        protected override SyntaxNode GetIfCondition(IfStatementSyntax ifStatement)
+        protected override SyntaxNode GetIfCondition(IfStatementSyntax ifNode)
         {
-            return ifStatement.Condition;
+            return ifNode.Condition;
         }
 
-        private static SyntaxKind GetNearmostParentJumpStatementKind(IfStatementSyntax ifStatement)
+        private static SyntaxKind GetNearmostParentJumpStatementKind(IfStatementSyntax ifNode)
         {
-            foreach (var node in ifStatement.Ancestors())
+            foreach (var node in ifNode.Ancestors())
             {
                 switch (node.Kind())
                 {
@@ -320,9 +318,9 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InvertIf
             throw ExceptionUtilities.Unreachable;
         }
 
-        protected override (SyntaxNode first, SyntaxNode last) GetIfBodyStatementRange(IfStatementSyntax ifStatement)
+        protected override (SyntaxNode first, SyntaxNode last) GetIfBodyStatementRange(IfStatementSyntax ifNode)
         {
-            var statement = ifStatement.Statement;
+            var statement = ifNode.Statement;
             return (statement, statement);
         }
 
@@ -338,10 +336,10 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InvertIf
         }
 #endif
 
-        protected override IEnumerable<(SyntaxNode first, SyntaxNode last)> GetSubsequentStatementRanges(IfStatementSyntax ifStatement)
+        protected override IEnumerable<(SyntaxNode first, SyntaxNode last)> GetSubsequentStatementRanges(IfStatementSyntax ifNode)
         {
-            StatementSyntax innerStatement = ifStatement;
-            foreach (var node in ifStatement.Ancestors())
+            StatementSyntax innerStatement = ifNode;
+            foreach (var node in ifNode.Ancestors())
             {
                 var nextStatement = innerStatement.GetNextStatement();
                 switch (node.Kind())

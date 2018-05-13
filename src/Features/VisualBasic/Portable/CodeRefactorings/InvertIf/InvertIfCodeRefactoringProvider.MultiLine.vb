@@ -48,21 +48,21 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings.InvertIf
             Return result.Model
         End Function
 
-        Protected Overrides Function GetHeaderSpan(ifStatement As MultiLineIfBlockSyntax) As TextSpan
+        Protected Overrides Function GetHeaderSpan(ifNode As MultiLineIfBlockSyntax) As TextSpan
             Return TextSpan.FromBounds(
-                    ifStatement.IfStatement.IfKeyword.SpanStart,
-                    ifStatement.IfStatement.Condition.Span.End)
+                    ifNode.IfStatement.IfKeyword.SpanStart,
+                    ifNode.IfStatement.Condition.Span.End)
         End Function
 
-        Protected Overrides Function IsElselessIfStatement(ifStatement As MultiLineIfBlockSyntax) As Boolean
-            Return ifStatement.ElseBlock Is Nothing
+        Protected Overrides Function IsElselessIfStatement(ifNode As MultiLineIfBlockSyntax) As Boolean
+            Return ifNode.ElseBlock Is Nothing
         End Function
 
-        Protected Overrides Function CanInvert(ifStatement As MultiLineIfBlockSyntax) As Boolean
-            Return ifStatement.ElseIfBlocks.IsEmpty
+        Protected Overrides Function CanInvert(ifNode As MultiLineIfBlockSyntax) As Boolean
+            Return ifNode.ElseIfBlocks.IsEmpty
         End Function
 
-        Protected Overrides Function GetNearmostParentJumpStatementRawKind(ifStatement As MultiLineIfBlockSyntax) As Integer
+        Protected Overrides Function GetNearmostParentJumpStatementRawKind(ifNode As MultiLineIfBlockSyntax) As Integer
             Throw New NotImplementedException()
         End Function
 
@@ -70,15 +70,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings.InvertIf
             Throw New NotImplementedException()
         End Function
 
-        Protected Overrides Function GetIfBodyStatementRange(ifStatement As MultiLineIfBlockSyntax) As (first As SyntaxNode, last As SyntaxNode)
+        Protected Overrides Function GetIfBodyStatementRange(ifNode As MultiLineIfBlockSyntax) As (first As SyntaxNode, last As SyntaxNode)
+
             Throw New NotImplementedException()
         End Function
 
-        Protected Overrides Function GetSubsequentStatementRanges(ifStatement As MultiLineIfBlockSyntax) As IEnumerable(Of (first As SyntaxNode, last As SyntaxNode))
+        Protected Overrides Function GetSubsequentStatementRanges(ifNode As MultiLineIfBlockSyntax) As IEnumerable(Of (first As SyntaxNode, last As SyntaxNode))
             Throw New NotImplementedException()
         End Function
 
-        Protected Overrides Function GetIfCondition(ifStatement As MultiLineIfBlockSyntax) As SyntaxNode
+        Protected Overrides Function GetIfCondition(ifNode As MultiLineIfBlockSyntax) As SyntaxNode
             Throw New NotImplementedException()
         End Function
     End Class

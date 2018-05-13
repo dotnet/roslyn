@@ -28,29 +28,29 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.InvertIf
             var root = await context.Document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var token = root.FindToken(textSpan.Start);
 
-            var ifStatement = token.GetAncestor<TIfStatementSyntax>();
-            if (ifStatement == null)
+            var ifNode = token.GetAncestor<TIfStatementSyntax>();
+            if (ifNode == null)
             {
                 return;
             }
 
-            if (ifStatement.OverlapsHiddenPosition(cancellationToken))
+            if (ifNode.OverlapsHiddenPosition(cancellationToken))
             {
                 return;
             }
 
-            var headerSpan = GetHeaderSpan(ifStatement);
+            var headerSpan = GetHeaderSpan(ifNode);
             if (!headerSpan.IntersectsWith(textSpan))
             {
                 return;
             }
 
-            if (ifStatement.OverlapsHiddenPosition(cancellationToken))
+            if (ifNode.OverlapsHiddenPosition(cancellationToken))
             {
                 return;
             }
 
-            if (!CanInvert(ifStatement))
+            if (!CanInvert(ifNode))
             {
                 return;
             }
@@ -59,10 +59,10 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.InvertIf
             SyntaxNode subsequentSingleExitPointOpt = null;
 
             InvertIfStyle invertIfStyle;
-            if (IsElselessIfStatement(ifStatement))
+            if (IsElselessIfStatement(ifNode))
             {
                 invertIfStyle = GetInvertIfStyle(
-                    ifStatement,
+                    ifNode,
                     await document.GetSemanticModelAsync().ConfigureAwait(false),
                     ref subsequentSingleExitPointOpt);
             }
@@ -74,7 +74,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.InvertIf
             context.RegisterRefactoring(
                 new MyCodeAction(
                     GetTitle(),
-                    c => InvertIfAsync(document, ifStatement, invertIfStyle, subsequentSingleExitPointOpt, c)));
+                    c => InvertIfAsync(document, ifNode, invertIfStyle, subsequentSingleExitPointOpt, c)));
         }
 
         protected enum InvertIfStyle
@@ -98,11 +98,11 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.InvertIf
         }
 
         private InvertIfStyle GetInvertIfStyle(
-            TIfStatementSyntax ifStatement,
+            TIfStatementSyntax ifNode,
             SemanticModel semanticModel,
             ref SyntaxNode subsequentSingleExitPointOpt)
         {
-            if (IsEmptyIfBody(ifStatement))
+            if (IsEmptyIfBody(ifNode))
             {
                 // An empty if-statement: just negate the condition
                 //  
@@ -115,7 +115,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.InvertIf
                 return InvertIfStyle.WithNegatedCondition;
             }
 
-            if (NoSubsequentStatements(ifStatement))
+            if (NoSubsequentStatements(ifNode))
             {
                 // No statements if-statement, return with nearmost jump-statement
                 //
@@ -138,12 +138,12 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.InvertIf
             }
 
             AnalyzeIfBodyControlFlow(
-                semanticModel, ifStatement,
+                semanticModel, ifNode,
                 out var ifBodyEndPointIsReachable,
                 out var ifBodySingleExitPointOpt);
 
             AnalyzeSubsequentControlFlow(
-                semanticModel, ifStatement,
+                semanticModel, ifNode,
                 out var subsequentEndPontIsReachable,
                 out subsequentSingleExitPointOpt);
 
@@ -155,9 +155,9 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.InvertIf
                 }
                 else
                 {
-                    if (SingleIfBodyStatement(ifStatement) &&
-                        SubsequentStatementsAreInTheSameBlock(ifStatement) &&
-                        ifBodySingleExitPointOpt?.RawKind == GetNearmostParentJumpStatementRawKind(ifStatement))
+                    if (SingleIfBodyStatement(ifNode) &&
+                        SubsequentStatementsAreInTheSameBlock(ifNode) &&
+                        ifBodySingleExitPointOpt?.RawKind == GetNearmostParentJumpStatementRawKind(ifNode))
                     {
                         return InvertIfStyle.MoveSubsequentStatementsToElseBody;
                     }
@@ -172,7 +172,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.InvertIf
                 if (ifBodyEndPointIsReachable)
                 {
                     if (subsequentSingleExitPointOpt != null &&
-                        SingleSubsequentStatement(ifStatement))
+                        SingleSubsequentStatement(ifNode))
                     {
                         return InvertIfStyle.WithSubsequentExitPointStatement;
                     }
@@ -183,7 +183,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.InvertIf
                 }
                 else
                 {
-                    if (SubsequentStatementsAreInTheSameBlock(ifStatement))
+                    if (SubsequentStatementsAreInTheSameBlock(ifNode))
                     {
                         return InvertIfStyle.SwapIfBodyWithSubsequentStatements;
                     }
@@ -195,9 +195,9 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.InvertIf
             }
         }
 
-        private bool NoSubsequentStatements(TIfStatementSyntax ifStatement)
+        private bool NoSubsequentStatements(TIfStatementSyntax ifNode)
         {
-            foreach (var range in GetSubsequentStatementRanges(ifStatement))
+            foreach (var range in GetSubsequentStatementRanges(ifNode))
             {
                 if (!IsEmptyStatementRange(range))
                 {
@@ -208,20 +208,20 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.InvertIf
             return true;
         }
 
-        private bool IsEmptyIfBody(TIfStatementSyntax ifStatement)
+        private bool IsEmptyIfBody(TIfStatementSyntax ifNode)
         {
-            return IsEmptyStatementRange(GetIfBodyStatementRange(ifStatement));
+            return IsEmptyStatementRange(GetIfBodyStatementRange(ifNode));
         }
 
-        private bool SingleIfBodyStatement(TIfStatementSyntax ifStatement)
+        private bool SingleIfBodyStatement(TIfStatementSyntax ifNode)
         {
-            var range = GetIfBodyStatementRange(ifStatement);
+            var range = GetIfBodyStatementRange(ifNode);
             return range.first == range.last;
         }
 
-        private bool SingleSubsequentStatement(TIfStatementSyntax ifStatement)
+        private bool SingleSubsequentStatement(TIfStatementSyntax ifNode)
         {
-            using (var e = GetSubsequentStatementRanges(ifStatement).GetEnumerator())
+            using (var e = GetSubsequentStatementRanges(ifNode).GetEnumerator())
             {
                 return e.MoveNext() && e.Current.first == e.Current.last && !e.MoveNext();
             }
@@ -229,14 +229,14 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.InvertIf
 
         private async Task<Document> InvertIfAsync(
             Document document,
-            TIfStatementSyntax ifStatement,
+            TIfStatementSyntax ifNode,
             InvertIfStyle invertIfStyle,
             SyntaxNode subsequentSingleExitPointOpt,
             CancellationToken cancellationToken)
         {
             var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
             var negatedExpression = Negate(
-                GetIfCondition(ifStatement),
+                GetIfCondition(ifNode),
                 document.GetLanguageService<SyntaxGenerator>(),
                 document.GetLanguageService<ISyntaxFactsService>(),
                 semanticModel,
@@ -245,7 +245,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.InvertIf
                 GetRootWithInvertIfStatement(
                     document,
                     semanticModel,
-                    ifStatement,
+                    ifNode,
                     invertIfStyle,
                     subsequentSingleExitPointOpt,
                     negatedExpression,
@@ -254,14 +254,14 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.InvertIf
 
         private void AnalyzeSubsequentControlFlow(
             SemanticModel semanticModel,
-            TIfStatementSyntax ifStatement,
+            TIfStatementSyntax ifNode,
             out bool subsequentEndPontIsReachable,
             out SyntaxNode subsequentSingleExitPointOpt)
         {
             subsequentEndPontIsReachable = true;
             subsequentSingleExitPointOpt = null;
 
-            foreach (var range in GetSubsequentStatementRanges(ifStatement))
+            foreach (var range in GetSubsequentStatementRanges(ifNode))
             {
                 AnalyzeControlFlow(semanticModel, range, out subsequentEndPontIsReachable, out subsequentSingleExitPointOpt);
                 if (!subsequentEndPontIsReachable)
@@ -273,13 +273,13 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.InvertIf
 
         private void AnalyzeIfBodyControlFlow(
             SemanticModel semanticModel,
-            TIfStatementSyntax ifStatement,
+            TIfStatementSyntax ifNode,
             out bool ifBodyEndPointIsReachable,
             out SyntaxNode ifBodySingleExitPointOpt)
         {
             AnalyzeControlFlow(
                 semanticModel,
-                GetIfBodyStatementRange(ifStatement),
+                GetIfBodyStatementRange(ifNode),
                 out ifBodyEndPointIsReachable,
                 out ifBodySingleExitPointOpt);
         }
@@ -295,29 +295,29 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.InvertIf
             singleExitPointOpt = flow.ExitPoints.Length == 1 ? flow.ExitPoints[0] : null;
         }
 
-        private bool SubsequentStatementsAreInTheSameBlock(TIfStatementSyntax ifStatement)
+        private bool SubsequentStatementsAreInTheSameBlock(TIfStatementSyntax ifNode)
         {
-            var (start, _) = GetSubsequentStatementRanges(ifStatement).First();
-            return ifStatement.Parent == start.Parent;
+            var (start, _) = GetSubsequentStatementRanges(ifNode).First();
+            return ifNode.Parent == start.Parent;
         }
 
-        protected abstract bool CanInvert(TIfStatementSyntax ifStatement);
-        protected abstract bool IsElselessIfStatement(TIfStatementSyntax ifStatement);
-        protected abstract SyntaxNode GetIfCondition(TIfStatementSyntax ifStatement);
+        protected abstract bool CanInvert(TIfStatementSyntax ifNode);
+        protected abstract bool IsElselessIfStatement(TIfStatementSyntax ifNode);
+        protected abstract SyntaxNode GetIfCondition(TIfStatementSyntax ifNode);
 
-        protected abstract int GetNearmostParentJumpStatementRawKind(TIfStatementSyntax ifStatement);
+        protected abstract int GetNearmostParentJumpStatementRawKind(TIfStatementSyntax ifNode);
         protected abstract bool IsEmptyStatementRange((SyntaxNode first, SyntaxNode last) range);
 
-        protected abstract (SyntaxNode first, SyntaxNode last) GetIfBodyStatementRange(TIfStatementSyntax ifStatement);
-        protected abstract IEnumerable<(SyntaxNode first, SyntaxNode last)> GetSubsequentStatementRanges(TIfStatementSyntax ifStatement);
+        protected abstract (SyntaxNode first, SyntaxNode last) GetIfBodyStatementRange(TIfStatementSyntax ifNode);
+        protected abstract IEnumerable<(SyntaxNode first, SyntaxNode last)> GetSubsequentStatementRanges(TIfStatementSyntax ifNode);
 
-        protected abstract TextSpan GetHeaderSpan(TIfStatementSyntax ifStatement);
+        protected abstract TextSpan GetHeaderSpan(TIfStatementSyntax ifNode);
         protected abstract string GetTitle();
 
         protected abstract SyntaxNode GetRootWithInvertIfStatement(
             Document document,
             SemanticModel semanticModel,
-            TIfStatementSyntax ifStatement,
+            TIfStatementSyntax ifNode,
             InvertIfStyle invertIfStyle,
             SyntaxNode subsequentSingleExitPointOpt,
             SyntaxNode negatedExpression,
