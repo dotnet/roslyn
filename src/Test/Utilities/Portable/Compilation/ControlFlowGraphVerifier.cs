@@ -14,6 +14,28 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 {
     public static class ControlFlowGraphVerifier
     {
+        public static ControlFlowGraph GetControlFlowGraph(SyntaxNode syntaxNode, SemanticModel model, out IOperation operationRoot)
+        {
+            operationRoot = model.GetOperation(syntaxNode);
+            switch (operationRoot)
+            {
+                case IBlockOperation blockOperation:
+                    return SemanticModel.GetControlFlowGraph(blockOperation);
+
+                case IFieldInitializerOperation fieldInitializerOperation:
+                    return SemanticModel.GetControlFlowGraph(fieldInitializerOperation);
+
+                case IPropertyInitializerOperation propertyInitializerOperation:
+                    return SemanticModel.GetControlFlowGraph(propertyInitializerOperation);
+
+                case IParameterInitializerOperation parameterInitializerOperation:
+                    return SemanticModel.GetControlFlowGraph(parameterInitializerOperation);
+
+                default:
+                    return null;
+            }
+        }
+
         public static void VerifyGraph(Compilation compilation, string expectedFlowGraph, ControlFlowGraph graph)
         {
             var actualFlowGraph = GetFlowGraph(compilation, graph);

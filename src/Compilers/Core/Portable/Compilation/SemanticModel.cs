@@ -88,7 +88,7 @@ namespace Microsoft.CodeAnalysis
         protected abstract IOperation GetOperationCore(SyntaxNode node, CancellationToken cancellationToken);
 
         /// <summary>
-        /// PROTOTYPE(dataflow): Add documentation. Also, we should guard this API with a feature flag before we merge it to master.
+        /// PROTOTYPE(dataflow): Add documentation.
         /// </summary>
         public static Operations.ControlFlowGraph GetControlFlowGraph(Operations.IBlockOperation body)
         {
@@ -97,14 +97,58 @@ namespace Microsoft.CodeAnalysis
                 throw new ArgumentNullException(nameof(body));
             }
 
-            if (!body.Syntax.SyntaxTree.Options.Features.ContainsKey("flow-analysis"))
+            return GetControlFlowGraphCore(body);
+        }
+
+        /// <summary>
+        /// PROTOTYPE(dataflow): Add documentation.
+        /// </summary>
+        public static Operations.ControlFlowGraph GetControlFlowGraph(Operations.IFieldInitializerOperation initializer)
+        {
+            if (initializer == null)
+            {
+                throw new ArgumentNullException(nameof(initializer));
+            }
+
+            return GetControlFlowGraphCore(initializer);
+        }
+
+        /// <summary>
+        /// PROTOTYPE(dataflow): Add documentation.
+        /// </summary>
+        public static Operations.ControlFlowGraph GetControlFlowGraph(Operations.IPropertyInitializerOperation initializer)
+        {
+            if (initializer == null)
+            {
+                throw new ArgumentNullException(nameof(initializer));
+            }
+
+            return GetControlFlowGraphCore(initializer);
+        }
+
+        /// <summary>
+        /// PROTOTYPE(dataflow): Add documentation.
+        /// </summary>
+        public static Operations.ControlFlowGraph GetControlFlowGraph(Operations.IParameterInitializerOperation initializer)
+        {
+            if (initializer == null)
+            {
+                throw new ArgumentNullException(nameof(initializer));
+            }
+
+            return GetControlFlowGraphCore(initializer);
+        }
+
+        private static Operations.ControlFlowGraph GetControlFlowGraphCore(IOperation operation)
+        {
+            if (!operation.Syntax.SyntaxTree.Options.Features.ContainsKey("flow-analysis"))
             {
                 throw new InvalidOperationException(CodeAnalysisResources.FlowAnalysisFeatureDisabled);
             }
 
             try
             {
-                return Operations.ControlFlowGraphBuilder.Create(body);
+                return Operations.ControlFlowGraphBuilder.Create(operation);
             }
             catch (Exception e) when (FatalError.ReportWithoutCrashUnlessCanceled(e))
             {

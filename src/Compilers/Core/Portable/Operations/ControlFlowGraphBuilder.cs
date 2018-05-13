@@ -50,11 +50,18 @@ namespace Microsoft.CodeAnalysis.Operations
             return _forceImplicit || operation.IsImplicit;
         }
 
-        public static ControlFlowGraph Create(IBlockOperation body)
+        public static ControlFlowGraph Create(IOperation body)
         {
             // PROTOTYPE(dataflow): Consider getting the SemanticModel and Compilation from the root node, 
             //                      storing them in readonly fields in ControlFlowGraphBuilder, and reusing
             //                      throughout the process rather than getting them from individual nodes.
+
+            Debug.Assert(body != null);
+            Debug.Assert(body.Kind == OperationKind.Block ||
+                body.Kind == OperationKind.FieldInitializer ||
+                body.Kind == OperationKind.PropertyInitializer ||
+                body.Kind == OperationKind.ParameterInitializer,
+                $"Unexpected root operation kind: {body.Kind}");
 
             var builder = new ControlFlowGraphBuilder();
             var blocks = ArrayBuilder<BasicBlock>.GetInstance();
@@ -4576,6 +4583,92 @@ oneMoreTime:
             return new ParenthesizedExpression(Visit(operation.Operand), semanticModel: null, operation.Syntax, operation.Type, operation.ConstantValue, IsImplicit(operation));
         }
 
+        public override IOperation VisitParameterInitializer(IParameterInitializerOperation operation, int? captureIdForResult)
+        {
+            Debug.Assert(_currentStatement == operation);
+
+            var parameterRef = new ParameterReferenceExpression(operation.Parameter, semanticModel: null,
+                operation.Syntax, operation.Parameter.Type, constantValue: default, isImplicit: true);
+            VisitInitializer(rewrittenTarget: parameterRef, initializer: operation);
+            return null;
+        }
+
+        public override IOperation VisitFieldInitializer(IFieldInitializerOperation operation, int? captureIdForResult)
+        {
+            Debug.Assert(_currentStatement == operation);
+
+            foreach (IFieldSymbol fieldSymbol in operation.InitializedFields)
+            {
+                IInstanceReferenceOperation instance = fieldSymbol.IsStatic ?
+                    null :
+                    new InstanceReferenceExpression(InstanceReferenceKind.ContainingTypeInstance, semanticModel: null,
+                        operation.Syntax, fieldSymbol.ContainingType, constantValue: default, isImplicit: true);
+                var fieldRef = new FieldReferenceExpression(fieldSymbol, isDeclaration: false, instance, semanticModel: null,
+                    operation.Syntax, fieldSymbol.Type, constantValue: default, isImplicit: true);
+                VisitInitializer(rewrittenTarget: fieldRef, initializer: operation);
+            }
+
+            return null;
+        }
+
+        public override IOperation VisitPropertyInitializer(IPropertyInitializerOperation operation, int? captureIdForResult)
+        {
+            Debug.Assert(_currentStatement == operation);
+
+            foreach (IPropertySymbol propertySymbol in operation.InitializedProperties)
+            {
+                var instance = propertySymbol.IsStatic ?
+                    null :
+                    new InstanceReferenceExpression(InstanceReferenceKind.ContainingTypeInstance, semanticModel: null,
+                        operation.Syntax, propertySymbol.ContainingType, constantValue: default, isImplicit: true);
+
+                ImmutableArray<IArgumentOperation> arguments;
+                if (!propertySymbol.Parameters.IsEmpty)
+                {
+                    // Must be an error case of initializing a property with parameters.
+                    var builder = ArrayBuilder<IArgumentOperation>.GetInstance(propertySymbol.Parameters.Length);
+                    foreach (var parameter in propertySymbol.Parameters)
+                    {
+                        var value = new InvalidOperation(ImmutableArray<IOperation>.Empty, semanticModel: null,
+                            operation.Syntax, parameter.Type, constantValue: default, isImplicit: true);
+                        var argument = new ArgumentOperation(value, ArgumentKind.Explicit, parameter, inConversionOpt: null,
+                            outConversionOpt: null, semanticModel: null, operation.Syntax, isImplicit: true);
+                        builder.Add(argument);
+                    }
+
+                    arguments = builder.ToImmutableAndFree();
+                }
+                else
+                {
+                    arguments = ImmutableArray<IArgumentOperation>.Empty;
+                }
+
+                IOperation propertyRef = new PropertyReferenceExpression(propertySymbol, instance, arguments,
+                    semanticModel: null, operation.Syntax, propertySymbol.Type, constantValue: default, isImplicit: true);
+                VisitInitializer(rewrittenTarget: propertyRef, initializer: operation);
+            }
+
+            return null;
+        }
+
+        private void VisitInitializer(IOperation rewrittenTarget, ISymbolInitializerOperation initializer)
+        {
+            bool haveLocals = !initializer.Locals.IsEmpty;
+            if (haveLocals)
+            {
+                EnterRegion(new RegionBuilder(ControlFlowGraph.RegionKind.Locals, locals: initializer.Locals));
+            }
+
+            var assignment = new SimpleAssignmentExpression(rewrittenTarget, isRef: false, Visit(initializer.Value), semanticModel: null,
+                    initializer.Syntax, rewrittenTarget.Type, constantValue: default, isImplicit: true);
+            AddStatement(assignment);
+
+            if (haveLocals)
+            {
+                LeaveRegion();
+            }
+        }
+
         private T Visit<T>(T node) where T : IOperation
         {
             return (T)Visit(node, argument: null);
@@ -4753,21 +4846,6 @@ oneMoreTime:
         public override IOperation VisitCollectionElementInitializer(ICollectionElementInitializerOperation operation, int? captureIdForResult)
         {
             return new CollectionElementInitializerExpression(operation.AddMethod, operation.IsDynamic, VisitArray(operation.Arguments), semanticModel: null, operation.Syntax, operation.Type, operation.ConstantValue, IsImplicit(operation));
-        }
-
-        public override IOperation VisitFieldInitializer(IFieldInitializerOperation operation, int? captureIdForResult)
-        {
-            return new FieldInitializer(operation.Locals, operation.InitializedFields, Visit(operation.Value), operation.Kind, semanticModel: null, operation.Syntax, operation.Type, operation.ConstantValue, IsImplicit(operation));
-        }
-
-        public override IOperation VisitPropertyInitializer(IPropertyInitializerOperation operation, int? captureIdForResult)
-        {
-            return new PropertyInitializer(operation.Locals, operation.InitializedProperties, Visit(operation.Value), operation.Kind, semanticModel: null, operation.Syntax, operation.Type, operation.ConstantValue, IsImplicit(operation));
-        }
-
-        public override IOperation VisitParameterInitializer(IParameterInitializerOperation operation, int? captureIdForResult)
-        {
-            return new ParameterInitializer(operation.Locals, operation.Parameter, Visit(operation.Value), operation.Kind, semanticModel: null, operation.Syntax, operation.Type, operation.ConstantValue, IsImplicit(operation));
         }
 
         public override IOperation VisitArrayCreation(IArrayCreationOperation operation, int? captureIdForResult)

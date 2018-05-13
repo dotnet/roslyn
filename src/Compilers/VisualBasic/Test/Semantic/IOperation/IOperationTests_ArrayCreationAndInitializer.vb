@@ -1292,5 +1292,69 @@ BC30512: Option Strict On disallows implicit conversions from 'Double' to 'Integ
 
             VerifyOperationTreeAndDiagnosticsForTest(Of ArrayCreationExpressionSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
+
+        <Fact>
+        Public Sub SimpleArrayCreation_WithImplicitArrayInitializer()
+            Dim source = <![CDATA[
+Class C
+    Private s1(10) As Integer'BIND:"10"
+End Class
+    ]]>.Value
+
+            Dim expectedOperationTree = <![CDATA[
+ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 10) (Syntax: '10')
+]]>.Value
+
+            Dim expectedDiagnostics = String.Empty
+
+            VerifyOperationTreeAndDiagnosticsForTest(Of LiteralExpressionSyntax)(source, expectedOperationTree, expectedDiagnostics)
+        End Sub
+
+        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/26794")>
+        Public Sub SimpleArrayCreation_WithImplicitArrayInitializer_02()
+            Dim source = <![CDATA[
+Class C
+    Private s1(10) As Integer'BIND:"s1(10)"
+End Class
+    ]]>.Value
+
+            Dim expectedOperationTree = <![CDATA[
+IFieldInitializerOperation (Field: C.s1 As System.Int32()) (OperationKind.FieldInitializer, Type: null) (Syntax: 's1(10)')
+  IArrayCreationOperation (OperationKind.ArrayCreation, Type: System.Int32(), IsImplicit) (Syntax: 's1(10)')
+    Dimension Sizes(1):
+        IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperator, Type: System.Int32, Constant: 11, IsImplicit) (Syntax: '10')
+          Left: 
+            ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 10) (Syntax: '10')
+          Right: 
+            ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1, IsImplicit) (Syntax: '10')
+    Initializer: 
+      null
+]]>.Value
+
+            Dim expectedDiagnostics = String.Empty
+
+            VerifyOperationTreeAndDiagnosticsForTest(Of ModifiedIdentifierSyntax)(source, expectedOperationTree, expectedDiagnostics)
+        End Sub
+
+        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/26780")>
+        Public Sub SimpleArrayCreation_WithImplicitArrayInitializerAndExplicitInitializer()
+            Dim source = <![CDATA[
+Class C
+    Private s1(10) As Integer = Nothing'BIND:"10"
+End Class
+    ]]>.Value
+
+            Dim expectedOperationTree = <![CDATA[
+ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 10) (Syntax: '10')
+]]>.Value
+
+            Dim expectedDiagnostics = <![CDATA[
+BC30672: Explicit initialization is not permitted for arrays declared with explicit bounds.
+    Private s1(10) As Integer = Nothing'BIND:"10"
+            ~~~~~~
+]]>.Value
+
+            VerifyOperationTreeAndDiagnosticsForTest(Of LiteralExpressionSyntax)(source, expectedOperationTree, expectedDiagnostics)
+        End Sub
     End Class
 End Namespace
