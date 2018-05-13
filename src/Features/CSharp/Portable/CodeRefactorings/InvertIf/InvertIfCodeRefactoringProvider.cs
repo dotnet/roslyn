@@ -1,7 +1,9 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
 using System.Composition;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.CodeRefactorings;
@@ -273,12 +275,17 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InvertIf
 
         protected override int GetNearmostParentJumpStatementRawKind(IfStatementSyntax ifStatement)
         {
+            return (int)GetNearmostParentJumpStatementKind(ifStatement);
+        }
+
+        private static SyntaxKind GetNearmostParentJumpStatementKind(IfStatementSyntax ifStatement)
+        {
             foreach (var node in ifStatement.Ancestors())
             {
                 switch (node.Kind())
                 {
                     case SyntaxKind.SwitchSection:
-                        return (int)SyntaxKind.BreakStatement;
+                        return SyntaxKind.BreakStatement;
 
                     case SyntaxKind.LocalFunctionStatement:
                     case SyntaxKind.SetAccessorDeclaration:
@@ -293,18 +300,18 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InvertIf
                     case SyntaxKind.AnonymousMethodExpression:
                     case SyntaxKind.SimpleLambdaExpression:
                     case SyntaxKind.ParenthesizedLambdaExpression:
-                        return (int)SyntaxKind.ReturnStatement;
+                        return SyntaxKind.ReturnStatement;
 
                     case SyntaxKind.DoStatement:
                     case SyntaxKind.WhileStatement:
                     case SyntaxKind.ForStatement:
                     case SyntaxKind.ForEachStatement:
                     case SyntaxKind.ForEachVariableStatement:
-                        return (int)SyntaxKind.ContinueStatement;
+                        return SyntaxKind.ContinueStatement;
                 }
             }
 
-            return -1;
+            return SyntaxKind.None;
         }
 
         protected override (SyntaxNode first, SyntaxNode last) GetIfBodyStatementRange(IfStatementSyntax ifStatement)
@@ -312,6 +319,18 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InvertIf
             var statement = ifStatement.Statement;
             return (statement, statement);
         }
+
+#if DEBUG
+        [Conditional("DEBUG")]
+        private static void AssertStatementRange(StatementSyntax firstStatement, StatementSyntax lastStatement)
+        {
+            Debug.Assert(firstStatement != null);
+            Debug.Assert(lastStatement != null);
+            Debug.Assert(firstStatement.Parent != null);
+            Debug.Assert(firstStatement.Parent == lastStatement.Parent);
+            Debug.Assert(firstStatement.SpanStart <= lastStatement.SpanStart);
+        }
+#endif
 
         protected override IEnumerable<(SyntaxNode first, SyntaxNode last)> GetSubsequentStatementRange(IfStatementSyntax ifStatement)
         {
@@ -324,6 +343,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InvertIf
                     case SyntaxKind.Block:
                         if (nextStatement != null)
                         {
+                            AssertStatementRange(nextStatement, ((BlockSyntax)node).Statements.Last());
                             yield return (nextStatement, ((BlockSyntax)node).Statements.Last());
                         }
 
@@ -331,6 +351,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InvertIf
                     case SyntaxKind.SwitchSection:
                         if (nextStatement != null)
                         {
+                            AssertStatementRange(nextStatement, ((SwitchSectionSyntax)node).Statements.Last());
                             yield return (nextStatement, ((SwitchSectionSyntax)node).Statements.Last());
                         }
 
