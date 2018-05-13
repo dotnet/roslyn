@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InvertIf
                 SemanticModel semanticModel,
                 IfStatementSyntax ifStatement,
                 InvertIfStyle invertIfStyle,
-                SyntaxNode subsequenceSingleExitPointOpt,
+                SyntaxNode subsequentSingleExitPointOpt,
                 SyntaxNode negatedExpression,
                 CancellationToken cancellationToken)
         {
@@ -98,7 +98,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InvertIf
                         return root.ReplaceNode(ifNode, updatedIf);
                     }
 
-                case InvertIfStyle.SwapIfBodyWithSubsequence:
+                case InvertIfStyle.SwapIfBodyWithSubsequentStatements:
                     {
                         var ifBody = ifNode.Statement;
 
@@ -119,7 +119,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InvertIf
                         return root.ReplaceNode(currentParent, updatedParent);
                     }
 
-                case InvertIfStyle.WithNearmostJump:
+                case InvertIfStyle.WithNearmostJumpStatement:
                     {
                         var newIfBody = GetNearmostAncestorJumpStatement();
                         var updatedIf = ifNode.WithCondition(negatedCondition)
@@ -152,9 +152,9 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InvertIf
                         }
                     }
 
-                case InvertIfStyle.WithSubsequenceExitPoint:
+                case InvertIfStyle.WithSubsequentExitPointStatement:
                     {
-                        var newIfBody = (StatementSyntax)subsequenceSingleExitPointOpt;
+                        var newIfBody = (StatementSyntax)subsequentSingleExitPointOpt;
                         var updatedIf = ifNode.WithCondition(negatedCondition)
                             .WithStatement(SyntaxFactory.Block(newIfBody));
 
@@ -170,7 +170,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InvertIf
                         return root.ReplaceNode(currentParent, updatedParent);
                     }
 
-                case InvertIfStyle.MoveSubsequenceToElseBody:
+                case InvertIfStyle.MoveSubsequentStatementsToElseBody:
                     {
                         var currentParent = ifNode.Parent;
                         var statements = GetStatements(currentParent);
@@ -338,7 +338,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InvertIf
         }
 #endif
 
-        protected override IEnumerable<(SyntaxNode first, SyntaxNode last)> GetSubsequentStatementRange(IfStatementSyntax ifStatement)
+        protected override IEnumerable<(SyntaxNode first, SyntaxNode last)> GetSubsequentStatementRanges(IfStatementSyntax ifStatement)
         {
             StatementSyntax innerStatement = ifStatement;
             foreach (var node in ifStatement.Ancestors())
@@ -349,16 +349,18 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InvertIf
                     case SyntaxKind.Block:
                         if (nextStatement != null)
                         {
-                            AssertStatementRange(nextStatement, ((BlockSyntax)node).Statements.Last());
-                            yield return (nextStatement, ((BlockSyntax)node).Statements.Last());
+                            var lastStatement = ((BlockSyntax)node).Statements.Last();
+                            AssertStatementRange(nextStatement, lastStatement);
+                            yield return (nextStatement, lastStatement);
                         }
 
                         break;
                     case SyntaxKind.SwitchSection:
                         if (nextStatement != null)
                         {
-                            AssertStatementRange(nextStatement, ((SwitchSectionSyntax)node).Statements.Last());
-                            yield return (nextStatement, ((SwitchSectionSyntax)node).Statements.Last());
+                            var lastStatement = ((SwitchSectionSyntax)node).Statements.Last();
+                            AssertStatementRange(nextStatement, lastStatement);
+                            yield return (nextStatement, lastStatement);
                         }
 
                         yield break;

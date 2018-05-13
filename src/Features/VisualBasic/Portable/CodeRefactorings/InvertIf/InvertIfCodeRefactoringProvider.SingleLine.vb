@@ -125,7 +125,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings.InvertIf
             Throw New NotImplementedException()
         End Function
 
-        Protected Overrides Function GetSubsequentStatementRange(ifStatement As SingleLineIfStatementSyntax) As IEnumerable(Of (first As SyntaxNode, last As SyntaxNode))
+        Protected Overrides Function GetSubsequentStatementRanges(ifStatement As SingleLineIfStatementSyntax) As IEnumerable(Of (first As SyntaxNode, last As SyntaxNode))
             Throw New NotImplementedException()
         End Function
 
