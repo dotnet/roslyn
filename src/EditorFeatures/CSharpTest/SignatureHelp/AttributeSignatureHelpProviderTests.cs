@@ -356,9 +356,9 @@ class D
             await TestAsync(markup, expectedOrderedItems, usePreviousCharAsTrigger: false);
         }
 
-        [Fact]
+        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
         [WorkItem(23664, "https://github.com/dotnet/roslyn/issues/23664")]
-        public async Task TestAttributeWithInvalidPropertyAbstract()
+        public async Task TestAttributeWithOverridenNamedProperties()
         {
             var markup = @"
 abstract class SomethingAttribute : System.Attribute
@@ -368,7 +368,46 @@ abstract class SomethingAttribute : System.Attribute
 
 class DerivedAttribute : SomethingAttribute
 {
-    public override int goo { get => 0; set { } }
+    public override int goo { get; set; }
+
+    public virtual int goo2 { get; set; }
+}
+
+class Derived2Attribute : DerivedAttribute
+{
+    public override int goo { get; set; }
+
+    public override int goo2 { get; set; }
+}
+
+[[|Derived2($$|])]
+class D
+{
+}";
+
+            var expectedOrderedItems = new List<SignatureHelpTestItem>();
+            expectedOrderedItems.Add(new SignatureHelpTestItem($"Derived2Attribute({CSharpFeaturesResources.Properties}: [goo = int], [goo2 = int])", string.Empty, null, currentParameterIndex: 0));
+
+            await TestAsync(markup, expectedOrderedItems);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        [WorkItem(23664, "https://github.com/dotnet/roslyn/issues/23664")]
+        public async Task TestAttributeWithShadowedMembers()
+        {
+            var markup = @"
+class SomethingAttribute : System.Attribute
+{
+    public int goo { get; set; }
+
+    public int field;
+}
+
+class DerivedAttribute : SomethingAttribute
+{
+    new public long goo { get; set; }
+
+    new public short field;
 }
 
 [[|Derived($$|])]
@@ -377,7 +416,7 @@ class D
 }";
 
             var expectedOrderedItems = new List<SignatureHelpTestItem>();
-            expectedOrderedItems.Add(new SignatureHelpTestItem($"DerivedAttribute({CSharpFeaturesResources.Properties}: [goo = int])", string.Empty, null, currentParameterIndex: 0));
+            expectedOrderedItems.Add(new SignatureHelpTestItem($"DerivedAttribute({CSharpFeaturesResources.Properties}: [field = short], [goo = long])", string.Empty, null, currentParameterIndex: 0));
 
             await TestAsync(markup, expectedOrderedItems);
         }
