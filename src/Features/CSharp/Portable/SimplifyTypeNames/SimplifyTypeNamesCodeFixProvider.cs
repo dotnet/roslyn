@@ -1,29 +1,25 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Composition;
-using System.Threading;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp.Diagnostics.SimplifyTypeNames;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Formatting;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Simplification;
 using Microsoft.CodeAnalysis.SimplifyTypeNames;
-using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.SimplifyTypeNames
 {
     [ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.SimplifyNames), Shared]
     [ExtensionOrder(After = PredefinedCodeFixProviderNames.RemoveUnnecessaryCast)]
-    internal partial class SimplifyTypeNamesCodeFixProvider : AbstractSimplifyTypeNamesCodeFixProvider
+    internal partial class SimplifyTypeNamesCodeFixProvider : AbstractSimplifyTypeNamesCodeFixProvider<SyntaxKind>
     {
-        protected override bool IsCandidate(SyntaxNode node)
-            => CSharpSimplifyTypeNamesDiagnosticAnalyzer.IsCandidate(node);
-
-        protected override bool CanSimplifyTypeNameExpression(SemanticModel model, SyntaxNode node, OptionSet optionSet, out TextSpan issueSpan, out string diagnosticId, CancellationToken cancellationToken)
-            => CSharpSimplifyTypeNamesDiagnosticAnalyzer.CanSimplifyTypeNameExpression(model, node, optionSet, out issueSpan, out diagnosticId, cancellationToken);
+        public SimplifyTypeNamesCodeFixProvider() 
+            : base(new CSharpSimplifyTypeNamesDiagnosticAnalyzer())
+        {
+        }
 
         protected override string GetTitle(string diagnosticId, string nodeText)
         {

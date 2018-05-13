@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Diagnostics.SimplifyTypeNames;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Options;
@@ -15,11 +16,19 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.SimplifyTypeNames
 {
-    internal abstract partial class AbstractSimplifyTypeNamesCodeFixProvider : SyntaxEditorBasedCodeFixProvider
+    internal abstract partial class AbstractSimplifyTypeNamesCodeFixProvider<TSyntaxKind> 
+        : SyntaxEditorBasedCodeFixProvider
+        where TSyntaxKind : struct
     {
+        private readonly SimplifyTypeNamesDiagnosticAnalyzerBase<TSyntaxKind> _analyzer;
+
+        protected AbstractSimplifyTypeNamesCodeFixProvider(
+            SimplifyTypeNamesDiagnosticAnalyzerBase<TSyntaxKind> analyzer)
+        {
+            _analyzer = analyzer;
+        }
+
         protected abstract string GetTitle(string diagnosticId, string nodeText);
-        protected abstract bool CanSimplifyTypeNameExpression(SemanticModel model, SyntaxNode node, OptionSet optionSet, out TextSpan issueSpan, out string diagnosticId, CancellationToken cancellationToken);
-        protected abstract bool IsCandidate(SyntaxNode node);
         protected abstract SyntaxNode AddSimplificationAnnotationTo(SyntaxNode node);
 
         public sealed override ImmutableArray<string> FixableDiagnosticIds { get; } =
@@ -112,8 +121,8 @@ namespace Microsoft.CodeAnalysis.SimplifyTypeNames
         private bool CanSimplifyTypeNameExpression(SemanticModel model, SyntaxNode node, OptionSet optionSet, TextSpan span, out string diagnosticId, CancellationToken cancellationToken)
         {
             diagnosticId = null;
-            if (!IsCandidate(node) ||
-                !CanSimplifyTypeNameExpression(model, node, optionSet, out var issueSpan, out diagnosticId, cancellationToken))
+            if (!_analyzer.IsCandidate(node) ||
+                !_analyzer.CanSimplifyTypeNameExpression(model, node, optionSet, out var issueSpan, out diagnosticId, cancellationToken))
             {
                 return false;
             }

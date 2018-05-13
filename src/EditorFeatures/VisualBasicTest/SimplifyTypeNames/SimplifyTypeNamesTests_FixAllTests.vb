@@ -796,6 +796,5 @@ End Class]]>
                 options:=options,
                 fixAllActionEquivalenceKey:=IDEDiagnosticIds.RemoveQualificationDiagnosticId)
         End Function
-
     End Class
 End Namespace
