@@ -10,8 +10,9 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.CodeRefactorings.InvertIf
 {
-    internal abstract partial class AbstractInvertIfCodeRefactoringProvider
+    internal abstract partial class AbstractInvertIfCodeRefactoringProvider<TIfStatementSyntax>
     {
+        // FIXME This is now an unnecessarily generic type
         internal static class Negator
         {
             private const string LongLength = "LongLength";

@@ -9,7 +9,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.CodeRefactorings.I
         Inherits AbstractVisualBasicCodeActionTest
 
         Protected Overrides Function CreateCodeRefactoringProvider(workspace As Workspace, parameters As TestParameters) As CodeRefactoringProvider
-            Return New VisualBasicInvertIfCodeRefactoringProvider()
+            Return New VisualBasicInvertIfSingleLineCodeRefactoringProvider()
         End Function
 
         Public Async Function TestFixOneAsync(initial As String, expected As String) As Task
