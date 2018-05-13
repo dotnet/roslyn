@@ -167,7 +167,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
             Action<ImmutableArray<PickMembersOption>> optionsCallback = null,
             int index = 0,
             CodeActionPriority? priority = null,
-            TestParameters parameters = default(TestParameters))
+            TestParameters parameters = default)
         {
             var pickMembersService = new TestPickMembersService(chosenSymbols.AsImmutableOrNull(), optionsCallback);
             return TestInRegularAndScript1Async(

@@ -88,7 +88,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
 
         protected async Task TestMissingInRegularAndScriptAsync(
             string initialMarkup,
-            TestParameters parameters = default(TestParameters))
+            TestParameters parameters = default)
         {
             await TestMissingAsync(initialMarkup, WithRegularOptions(parameters));
             await TestMissingAsync(initialMarkup, WithScriptOptions(parameters));
@@ -106,8 +106,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
         }
 
         protected async Task TestDiagnosticMissingAsync(
-            string initialMarkup,
-            TestParameters parameters = default(TestParameters))
+            string initialMarkup, TestParameters parameters = default)
         {
             using (var workspace = CreateWorkspaceFromOptions(initialMarkup, parameters))
             {
