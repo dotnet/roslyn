@@ -390,9 +390,9 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InvertIf
             }
         }
 
-        protected override bool IsEmptyStatementRange((SyntaxNode first, SyntaxNode last) range)
+        protected override bool IsEmptyStatementRange((SyntaxNode first, SyntaxNode last) statementRange)
         {
-            return range.first == range.last && range.first.IsKind(SyntaxKind.EmptyStatement);
+            return statementRange.first == statementRange.last && statementRange.first.IsKind(SyntaxKind.EmptyStatement);
         }
     }
 }

@@ -117,7 +117,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings.InvertIf
             Throw New NotImplementedException()
         End Function
 
-        Protected Overrides Function IsEmptyStatementRange(range As (first As SyntaxNode, last As SyntaxNode)) As Boolean
+        Protected Overrides Function IsEmptyStatementRange(statementRange As (first As SyntaxNode, last As SyntaxNode)) As Boolean
             Throw New NotImplementedException()
         End Function
 
