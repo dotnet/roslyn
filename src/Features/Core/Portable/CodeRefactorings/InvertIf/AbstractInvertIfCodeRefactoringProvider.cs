@@ -59,7 +59,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.InvertIf
             SyntaxNode subsequentSingleExitPointOpt = null;
 
             InvertIfStyle invertIfStyle;
-            if (IsElselessIfStatement(ifNode))
+            if (IsElseless(ifNode))
             {
                 invertIfStyle = GetInvertIfStyle(
                     ifNode,
@@ -236,7 +236,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.InvertIf
         {
             var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
             var negatedExpression = Negate(
-                GetIfCondition(ifNode),
+                GetCondition(ifNode),
                 document.GetLanguageService<SyntaxGenerator>(),
                 document.GetLanguageService<ISyntaxFactsService>(),
                 semanticModel,
@@ -302,17 +302,16 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.InvertIf
         }
 
         protected abstract bool CanInvert(TIfStatementSyntax ifNode);
-        protected abstract bool IsElselessIfStatement(TIfStatementSyntax ifNode);
-        protected abstract SyntaxNode GetIfCondition(TIfStatementSyntax ifNode);
+        protected abstract bool IsElseless(TIfStatementSyntax ifNode);
+        protected abstract SyntaxNode GetCondition(TIfStatementSyntax ifNode);
+        protected abstract TextSpan GetHeaderSpan(TIfStatementSyntax ifNode);
+        protected abstract string GetTitle();
 
         protected abstract int GetNearmostParentJumpStatementRawKind(TIfStatementSyntax ifNode);
         protected abstract bool IsEmptyStatementRange((SyntaxNode first, SyntaxNode last) range);
 
         protected abstract (SyntaxNode first, SyntaxNode last) GetIfBodyStatementRange(TIfStatementSyntax ifNode);
         protected abstract IEnumerable<(SyntaxNode first, SyntaxNode last)> GetSubsequentStatementRanges(TIfStatementSyntax ifNode);
-
-        protected abstract TextSpan GetHeaderSpan(TIfStatementSyntax ifNode);
-        protected abstract string GetTitle();
 
         protected abstract SyntaxNode GetRootWithInvertIfStatement(
             Document document,

@@ -105,7 +105,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings.InvertIf
                     ifNode.Condition.Span.End)
         End Function
 
-        Protected Overrides Function IsElselessIfStatement(ifNode As SingleLineIfStatementSyntax) As Boolean
+        Protected Overrides Function IsElseless(ifNode As SingleLineIfStatementSyntax) As Boolean
             Return ifNode.ElseClause Is Nothing
         End Function
 
@@ -129,7 +129,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings.InvertIf
             Throw New NotImplementedException()
         End Function
 
-        Protected Overrides Function GetIfCondition(ifNode As SingleLineIfStatementSyntax) As SyntaxNode
+        Protected Overrides Function GetCondition(ifNode As SingleLineIfStatementSyntax) As SyntaxNode
             Throw New NotImplementedException()
         End Function
     End Class

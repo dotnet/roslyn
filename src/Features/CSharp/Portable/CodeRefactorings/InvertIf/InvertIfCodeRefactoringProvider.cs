@@ -262,7 +262,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InvertIf
                 ifNode.CloseParenToken.Span.End);
         }
 
-        protected override bool IsElselessIfStatement(IfStatementSyntax ifNode)
+        protected override bool IsElseless(IfStatementSyntax ifNode)
         {
             return ifNode.Else == null;
         }
@@ -277,7 +277,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InvertIf
             return (int)GetNearmostParentJumpStatementKind(ifNode);
         }
 
-        protected override SyntaxNode GetIfCondition(IfStatementSyntax ifNode)
+        protected override SyntaxNode GetCondition(IfStatementSyntax ifNode)
         {
             return ifNode.Condition;
         }
