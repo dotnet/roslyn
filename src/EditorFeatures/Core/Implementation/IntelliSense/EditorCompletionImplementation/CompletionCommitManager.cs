@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Threading;
 using Microsoft.CodeAnalysis.Completion;
@@ -11,7 +12,7 @@ using Microsoft.VisualStudio.Language.Intellisense.AsyncCompletion;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Roslyn.Utilities;
-using EditorCompletion = Microsoft.VisualStudio.Language.Intellisense.AsyncCompletion;
+using EditorCompletion = Microsoft.VisualStudio.Language.Intellisense.AsyncCompletion.Data;
 using RoslynCompletionItem = Microsoft.CodeAnalysis.Completion.CompletionItem;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.EditorImplementation
@@ -23,48 +24,48 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.E
             ';', '+', '-', '*', '/', '%', '&', '|', '^', '!',
             '~', '=', '<', '>', '?', '@', '#', '\'', '\"', '\\');
 
-        public ImmutableArray<char> PotentialCommitCharacters => CommitChars;
+        IEnumerable<char> IAsyncCompletionCommitManager.PotentialCommitCharacters => CommitChars;
 
         public bool ShouldCommitCompletion(char typedChar, SnapshotPoint location)
         {
             return CommitChars.Contains(typedChar);
         }
 
-        public CommitResult TryCommit(ITextView view, ITextBuffer buffer, EditorCompletion.CompletionItem item, ITrackingSpan applicableSpan, char typeChar, CancellationToken token)
+        public EditorCompletion.CommitResult TryCommit(ITextView view, ITextBuffer buffer, EditorCompletion.CompletionItem item, ITrackingSpan applicableSpan, char typeChar, CancellationToken token)
         {
             var document = buffer.CurrentSnapshot.GetOpenDocumentInCurrentContextWithChanges();
             if (document == null)
             {
-                return new CommitResult(isHandled: false, CommitBehavior.None);
+                return new EditorCompletion.CommitResult(isHandled: false, EditorCompletion.CommitBehavior.None);
             }
 
             var completionService = document.GetLanguageService<CompletionService>();
             if (!item.Properties.TryGetProperty<RoslynCompletionItem>(CompletionItemSource.RoslynItem, out var roslynItem))
             {
-                return new CommitResult(isHandled: false, CommitBehavior.None);
+                return new EditorCompletion.CommitResult(isHandled: false, EditorCompletion.CommitBehavior.None);
             }
 
             var needsCustomCommit = ((CompletionServiceWithProviders)completionService).GetProvider(roslynItem) is IFeaturesCustomCommitCompletionProvider;
             if (needsCustomCommit)
             {
                 CustomCommit(view, buffer, roslynItem, applicableSpan, typeChar, token);
-                return new CommitResult(isHandled: true, CommitBehavior.SuppressFurtherCommandHandlers);
+                return new EditorCompletion.CommitResult(isHandled: true, EditorCompletion.CommitBehavior.SuppressFurtherCommandHandlers);
             }
 
             if (document.Project.Language == LanguageNames.VisualBasic && typeChar == '\n')
             {
-                return new CommitResult(isHandled: false, CommitBehavior.RaiseFurtherCommandHandlers);
+                return new EditorCompletion.CommitResult(isHandled: false, EditorCompletion.CommitBehavior.RaiseFurtherCommandHandlers);
             }
 
             if (item.InsertText.EndsWith(":") && typeChar == ':')
             {
-                return new CommitResult(isHandled: false, CommitBehavior.SuppressFurtherCommandHandlers);
+                return new EditorCompletion.CommitResult(isHandled: false, EditorCompletion.CommitBehavior.SuppressFurtherCommandHandlers);
             }
 
-            return new CommitResult(isHandled: false, CommitBehavior.None);
+            return new EditorCompletion.CommitResult(isHandled: false, EditorCompletion.CommitBehavior.None);
         }
 
-        private CommitBehavior CustomCommit(
+        private EditorCompletion.CommitBehavior CustomCommit(
             ITextView view,
             ITextBuffer buffer,
             RoslynCompletionItem roslynItem,
@@ -97,7 +98,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.E
                 }
             }
 
-            return CommitBehavior.SuppressFurtherCommandHandlers;
+            return EditorCompletion.CommitBehavior.SuppressFurtherCommandHandlers;
         }
     }
 }
