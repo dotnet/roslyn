@@ -66,11 +66,6 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.InvertIf
                 return;
             }
 
-            if (ifNode.OverlapsHiddenPosition(cancellationToken))
-            {
-                return;
-            }
-
             if (!CanInvert(ifNode))
             {
                 return;
