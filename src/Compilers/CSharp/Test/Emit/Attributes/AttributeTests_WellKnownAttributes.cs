@@ -8878,5 +8878,50 @@ class Test
                 // using static BothObsoleteParent.BothObsoleteChild;
                 Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "BothObsoleteParent.BothObsoleteChild").WithArguments("BothObsoleteParent.BothObsoleteChild").WithLocation(5, 14));
         }
+
+        [Fact, WorkItem(19394, "https://github.com/dotnet/roslyn/issues/19394")]
+        public void WellKnownTypeAsStruct_DefaultConstructor_DynamicAttribute()
+        {
+            var code = @"
+namespace System.Runtime.CompilerServices
+{
+    public struct DynamicAttribute
+    {
+        public DynamicAttribute(bool[] transformFlags)
+        {
+        }
+    }
+}
+class T
+{
+    void M(dynamic x) {}
+}";
+
+            CreateCompilation(code).VerifyDiagnostics().VerifyEmitDiagnostics(
+                // error CS0616: 'System.Runtime.CompilerServices.DynamicAttribute' is not an attribute class
+                Diagnostic(ErrorCode.ERR_NotAnAttributeClass).WithArguments("System.Runtime.CompilerServices.DynamicAttribute").WithLocation(1, 1));
+        }
+
+        [Fact, WorkItem(19394, "https://github.com/dotnet/roslyn/issues/19394")]
+        public void WellKnownTypeAsStruct_DefaultConstructor_IsReadOnlyAttribute()
+        {
+            var code = @"
+namespace System.Runtime.CompilerServices
+{
+    public struct IsReadOnlyAttribute
+    {
+    }
+}
+class Test
+{
+    void M(in int x)
+    {
+    }
+}";
+
+            CreateCompilation(code).VerifyDiagnostics().VerifyEmitDiagnostics(
+                // error CS0616: 'IsReadOnlyAttribute' is not an attribute class
+                Diagnostic(ErrorCode.ERR_NotAnAttributeClass).WithArguments("System.Runtime.CompilerServices.IsReadOnlyAttribute").WithLocation(1, 1));
+        }
     }
 }

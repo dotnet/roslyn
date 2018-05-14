@@ -717,7 +717,7 @@ namespace Microsoft.Cci
             return this.GetOrAddModuleReferenceHandle(moduleName);
         }
 
-        private BlobHandle GetCustomAttributeSignatureIndex(ICustomAttribute customAttribute)
+        private BlobHandle GetCustomAttributeSignatureIndex(ICustomAttribute customAttribute, IMethodReference constructor)
         {
             BlobHandle result;
             if (_customAttributeSignatureIndex.TryGetValue(customAttribute, out result))
@@ -726,7 +726,7 @@ namespace Microsoft.Cci
             }
 
             var writer = PooledBlobBuilder.GetInstance();
-            this.SerializeCustomAttributeSignature(customAttribute, writer);
+            this.SerializeCustomAttributeSignature(customAttribute, constructor, writer);
             result = metadata.GetOrAddBlob(writer);
             _customAttributeSignatureIndex.Add(customAttribute, result);
             writer.Free();
@@ -2142,10 +2142,15 @@ namespace Microsoft.Cci
 
         private void AddCustomAttributeToTable(EntityHandle parentHandle, ICustomAttribute customAttribute)
         {
-            metadata.AddCustomAttribute(
-                parent: parentHandle,
-                constructor: GetCustomAttributeTypeCodedIndex(customAttribute.Constructor(Context)),
-                value: GetCustomAttributeSignatureIndex(customAttribute));
+            IMethodReference constructor = customAttribute.Constructor(Context, reportDiagnostics: true);
+
+            if (constructor != null)
+            {
+                metadata.AddCustomAttribute(
+                    parent: parentHandle,
+                    constructor: GetCustomAttributeTypeCodedIndex(constructor),
+                    value: GetCustomAttributeSignatureIndex(customAttribute, constructor));
+            }
         }
 
         private void PopulateDeclSecurityTableRows()
@@ -3351,9 +3356,9 @@ namespace Microsoft.Cci
             }
         }
 
-        private void SerializeCustomAttributeSignature(ICustomAttribute customAttribute, BlobBuilder builder)
+        private void SerializeCustomAttributeSignature(ICustomAttribute customAttribute, IMethodReference constructor, BlobBuilder builder)
         {
-            var parameters = customAttribute.Constructor(Context).GetParameters(Context);
+            var parameters = constructor.GetParameters(Context);
             var arguments = customAttribute.GetArguments(Context);
             Debug.Assert(parameters.Length == arguments.Length);
 

@@ -5641,5 +5641,24 @@ Imports TestAssembly.BothObsoleteParent.BothObsoleteChild
         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 ]]></expected>)
         End Sub
+
+        <Fact>
+        <WorkItem(19394, "https://github.com/dotnet/roslyn/issues/19394")>
+        Public Sub WellKnownTypeAsStruct_DefaultConstructor_ParamArrayAttribute()
+            Dim code = <compilation><file name="a.vb"><![CDATA[
+Namespace System
+	public Structure ParamArrayAttribute
+	End Structure
+End Namespace
+Public Class C
+    Public Sub Test(ByVal ParamArray args() As Double)
+    End Sub
+End Class
+]]></file></compilation>
+
+            CreateCompilationWithMscorlib40AndVBRuntime(code).VerifyDiagnostics().AssertTheseEmitDiagnostics(<expected><![CDATA[
+BC31503: 'ParamArrayAttribute' cannot be used as an attribute because it is not a class.
+]]></expected>)
+        End Sub
     End Class
 End Namespace
