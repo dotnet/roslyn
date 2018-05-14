@@ -8257,7 +8257,7 @@ class Program
 {
   // Code size       34 (0x22)
   .maxstack  3
-  .locals init (pinned bool*& V_0)
+  .locals init (pinned bool& V_0)
   IL_0000:  ldsflda    ""s Program._fixedBufferExample""
   IL_0005:  ldflda     ""bool* s._buffer""
   IL_000a:  ldflda     ""bool s.<_buffer>e__FixedBuffer.FixedElementField""
@@ -8286,7 +8286,7 @@ class Program
 {
   // Code size       46 (0x2e)
   .maxstack  3
-  .locals init (pinned bool*& V_0)
+  .locals init (pinned bool& V_0)
   IL_0000:  ldsflda    ""s Program._fixedBufferExample""
   IL_0005:  ldflda     ""bool* s._buffer""
   IL_000a:  ldflda     ""bool s.<_buffer>e__FixedBuffer.FixedElementField""
@@ -8373,7 +8373,7 @@ class Program
 {
   // Code size       47 (0x2f)
   .maxstack  3
-  .locals init (pinned bool*& V_0)
+  .locals init (pinned bool& V_0)
   IL_0000:  ldsflda    ""s Program._fixedBufferExample""
   IL_0005:  ldflda     ""bool* s._buffer""
   IL_000a:  ldflda     ""bool s.<_buffer>e__FixedBuffer.FixedElementField""
@@ -8402,7 +8402,7 @@ class Program
 {
   // Code size       35 (0x23)
   .maxstack  3
-  .locals init (pinned bool*& V_0)
+  .locals init (pinned bool& V_0)
   IL_0000:  ldsflda    ""s Program._fixedBufferExample""
   IL_0005:  ldflda     ""bool* s._buffer""
   IL_000a:  ldflda     ""bool s.<_buffer>e__FixedBuffer.FixedElementField""

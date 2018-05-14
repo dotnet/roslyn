@@ -14638,10 +14638,10 @@ class C : IEnumerable
 ";
             var comp = CreateCompilation(text);
             comp.VerifyDiagnostics(
-                // (11,46): error CS1623: Iterators cannot have ref or out parameters
+                // (11,46): error CS1623: Iterators cannot have ref, in or out parameters
                 //     public IEnumerator GetEnumerator(ref int i)  // CS1623
                 Diagnostic(ErrorCode.ERR_BadIteratorArgType, "i"),
-                // (16,48): error CS1623: Iterators cannot have ref or out parameters
+                // (16,48): error CS1623: Iterators cannot have ref, in or out parameters
                 //     public IEnumerator GetEnumerator(out float f)  // CS1623
                 Diagnostic(ErrorCode.ERR_BadIteratorArgType, "f")
                 );
@@ -15554,7 +15554,7 @@ unsafe class Test
 {
   // Code size       25 (0x19)
   .maxstack  3
-  .locals init (pinned int*& V_0,
+  .locals init (pinned int& V_0,
                 int V_1)
   IL_0000:  ldarg.0
   IL_0001:  ldflda     ""S Test.field""
@@ -17048,9 +17048,29 @@ class Test
 }
 ";
             CreateCompilationWithMscorlib40AndSystemCore(text).VerifyDiagnostics(
-                // (7,75): error CS1951: An expression tree lambda may not contain an out or ref parameter
+                // (7,75): error CS1951: An expression tree lambda may not contain a ref, in or out parameter
                 //         System.Linq.Expressions.Expression<TestDelegate> tree1 = (ref int x) => x; // CS1951
-                Diagnostic(ErrorCode.ERR_ByRefParameterInExpressionTree, "x")
+                Diagnostic(ErrorCode.ERR_ByRefParameterInExpressionTree, "x").WithLocation(7, 75)
+                );
+        }
+
+        [Fact]
+        public void CS1951ERR_InParameterInExpressionTree()
+        {
+            var text = @"
+public delegate int TestDelegate(in int i);
+class Test
+{
+    static void Main()
+    {
+        System.Linq.Expressions.Expression<TestDelegate> tree1 = (in int x) => x; // CS1951
+    }
+}
+";
+            CreateCompilationWithMscorlib40AndSystemCore(text).VerifyDiagnostics(
+                // (7,74): error CS1951: An expression tree lambda may not contain a ref, in or out parameter
+                //         System.Linq.Expressions.Expression<TestDelegate> tree1 = (in int x) => x; // CS1951
+                Diagnostic(ErrorCode.ERR_ByRefParameterInExpressionTree, "x").WithLocation(7, 74)
                 );
         }
 

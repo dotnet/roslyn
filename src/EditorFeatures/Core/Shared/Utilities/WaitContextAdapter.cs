@@ -10,7 +10,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Utilities
     /// <summary>
     /// An adapter between Roslyn's <see cref="IWaitContext"/> and editor's <see cref="IUIThreadOperationScope"/>, 
     /// which represent the same abstraction. The only place where it's needed so far is <see cref="FindReferencesCommandHandler"/>,
-    /// that operates within <see cref="IUIThreadOperationContext"/>, but calls to the <see cref="IFindReferencesService"/>, which
+    /// that operates within <see cref="IUIThreadOperationContext"/>, but calls to the IFindReferencesService, which
     /// requires Roslyn's <see cref="IWaitContext"/>.
     /// Going forward this adapter can be deleted once Roslyn's <see cref="IWaitContext"/> is retired in favor of editor's 
     /// <see cref="IUIThreadOperationContext"/>.

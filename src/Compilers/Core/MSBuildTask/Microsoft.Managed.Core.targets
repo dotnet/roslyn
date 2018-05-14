@@ -4,7 +4,7 @@
   <!--
     Common targets for managed compilers.
   -->
-  <UsingTask TaskName="Microsoft.CodeAnalysis.BuildTasks.MapSourceRoots" AssemblyFile="$(RoslynTargetsPath)\Microsoft.Build.Tasks.CodeAnalysis.dll" Condition="'$(MSBuildAssemblyVersion)' != ''" />
+  <UsingTask TaskName="Microsoft.CodeAnalysis.BuildTasks.MapSourceRoots" AssemblyFile="$(MSBuildThisFileDirectory)Microsoft.Build.Tasks.CodeAnalysis.dll" />
 
   <Target Name="ShimReferencePathsWhenCommonTargetsDoesNotUnderstandReferenceAssemblies"
           BeforeTargets="CoreCompile"
@@ -88,7 +88,14 @@
       <SourceRoot Include="@(_MappedSourceRoot)" />
     </ItemGroup>
   </Target>
-  
+
+  <!-- 
+    Declare that target InitializeSourceRootMappedPaths that populates MappedPaths metadata on SourceRoot items is available.
+  -->
+  <PropertyGroup>
+    <SourceRootMappedPathsFeatureSupported>true</SourceRootMappedPathsFeatureSupported>
+  </PropertyGroup>
+
   <!-- 
     If InitializeSourceControlInformation target isn't supported, we just continue without invoking that synchronization target. 
     We'll proceed with SourceRoot (and other source control properties) provided by the user (or blank).

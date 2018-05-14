@@ -76,7 +76,7 @@ End Module");
             VisualStudio.Editor.Verify.CaretPosition(16);
         }
 
-        [WpfFact, Trait(Traits.Feature, Traits.Features.LineCommit)]
+        [WpfFact(Skip = "https://github.com/dotnet/roslyn/issues/20991"), Trait(Traits.Feature, Traits.Features.LineCommit)]
         void CommitOnSave()
         {
             VisualStudio.Editor.SetText(@"Module Module1

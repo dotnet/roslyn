@@ -33998,9 +33998,15 @@ public class C
             var compilation = CreateCompilation(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular);
 
             compilation.VerifyDiagnostics(
+                // (6,28): error CS8378: __arglist cannot have an argument passed by 'in' or 'out'
+                //         M(1, __arglist(out int y));
+                Diagnostic(ErrorCode.ERR_CantUseInOrOutInArglist, "int y").WithLocation(6, 28),
                 // (7,32): error CS8197: Cannot infer the type of implicitly-typed out variable 'z'.
                 //         M(2, __arglist(out var z));
-                Diagnostic(ErrorCode.ERR_TypeInferenceFailedForImplicitlyTypedOutVariable, "z").WithArguments("z").WithLocation(7, 32)
+                Diagnostic(ErrorCode.ERR_TypeInferenceFailedForImplicitlyTypedOutVariable, "z").WithArguments("z").WithLocation(7, 32),
+                // (7,28): error CS8378: __arglist cannot have an argument passed by 'in' or 'out'
+                //         M(2, __arglist(out var z));
+                Diagnostic(ErrorCode.ERR_CantUseInOrOutInArglist, "var z").WithLocation(7, 28)
                 );
 
             var tree = compilation.SyntaxTrees.Single();
@@ -34028,12 +34034,18 @@ public class C
             var compilation = CreateCompilation(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular);
 
             compilation.VerifyDiagnostics(
+                // (6,23): error CS8378: __arglist cannot have an argument passed by 'in' or 'out'
+                //         __arglist(out int y);
+                Diagnostic(ErrorCode.ERR_CantUseInOrOutInArglist, "int y").WithLocation(6, 23),
                 // (6,9): error CS0226: An __arglist expression may only appear inside of a call or new expression
                 //         __arglist(out int y);
                 Diagnostic(ErrorCode.ERR_IllegalArglist, "__arglist(out int y)").WithLocation(6, 9),
                 // (7,27): error CS8197: Cannot infer the type of implicitly-typed out variable 'z'.
                 //         __arglist(out var z);
                 Diagnostic(ErrorCode.ERR_TypeInferenceFailedForImplicitlyTypedOutVariable, "z").WithArguments("z").WithLocation(7, 27),
+                // (7,23): error CS8378: __arglist cannot have an argument passed by 'in' or 'out'
+                //         __arglist(out var z);
+                Diagnostic(ErrorCode.ERR_CantUseInOrOutInArglist, "var z").WithLocation(7, 23),
                 // (7,9): error CS0226: An __arglist expression may only appear inside of a call or new expression
                 //         __arglist(out var z);
                 Diagnostic(ErrorCode.ERR_IllegalArglist, "__arglist(out var z)").WithLocation(7, 9)
