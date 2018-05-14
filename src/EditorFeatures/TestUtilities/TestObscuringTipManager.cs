@@ -7,15 +7,15 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests
     // IObscuringTipManager, which is only exported in VS editor layer.
     // This is tracked by the editor bug https://devdiv.visualstudio.com/DevDiv/_workitems?id=544569.
     // Meantime a workaround is to export dummy IObscuringTipManager.
-    [Export(typeof(IObscuringTipManager))]
-    internal class TestObscuringTipManager : IObscuringTipManager
-    {
-        public void PushTip(ITextView view, IObscuringTip tip)
-        {
-        }
+    //[Export(typeof(IObscuringTipManager))]
+    //internal class TestObscuringTipManager : IObscuringTipManager
+    //{
+    //    public void PushTip(ITextView view, IObscuringTip tip)
+    //    {
+    //    }
 
-        public void RemoveTip(ITextView view, IObscuringTip tip)
-        {
-        }
-    }
+    //    public void RemoveTip(ITextView view, IObscuringTip tip)
+    //    {
+    //    }
+    //}
 }

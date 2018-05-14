@@ -36,7 +36,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests
                 typeof(TestWaitIndicator),
                 typeof(TestExtensionErrorHandler),
                 typeof(TestExportJoinableTaskContext), // Needed by editor components, but not actually exported anywhere else
-                typeof(TestObscuringTipManager) // Needed by editor components, but only exported in editor VS layer. Tracked by https://devdiv.visualstudio.com/DevDiv/_workitems?id=544569.
+                // typeof(TestObscuringTipManager) // Needed by editor components, but only exported in editor VS layer. Tracked by https://devdiv.visualstudio.com/DevDiv/_workitems?id=544569.
             };
 
             return types//.Concat(TestHelpers.GetAllTypesWithStaticFieldsImplementingType(typeof(InternalSolutionCrawlerOptions).Assembly, typeof(Microsoft.CodeAnalysis.Options.IOption)))
@@ -75,6 +75,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests
 
                 // Microsoft.VisualStudio.Language.StandardClassification.dll:
                 typeof(Microsoft.VisualStudio.Language.StandardClassification.PredefinedClassificationTypeNames).Assembly,
+
+                typeof(Microsoft.VisualStudio.Language.Intellisense.AsyncCompletion.IAsyncCompletionItemManagerProvider).Assembly
             };
 
             return assemblies;
