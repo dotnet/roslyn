@@ -99,6 +99,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             considerCustomModifiers: false); //shouldn't actually matter for source members
 
         /// <summary>
+        /// This instance is used to determine if a partial method implementation matches the definition.
+        /// It is the same as <see cref="DuplicateSourceComparer"/> except it considers ref kinds as well.
+        /// </summary>
+        public static readonly MemberSignatureComparer PartialMethodsComparer = new MemberSignatureComparer(
+            considerName: true,
+            considerExplicitlyImplementedInterfaces: true,
+            considerReturnType: false,
+            considerTypeConstraints: false,
+            considerCallingConvention: false,
+            considerRefKindDifferences: true,
+            considerCustomModifiers: false);
+
+        /// <summary>
         /// This instance is used to check whether one member overrides another, according to the C# definition.
         /// </summary>
         public static readonly MemberSignatureComparer CSharpOverrideComparer = new MemberSignatureComparer(
@@ -555,6 +568,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             if ((typeParameter1.HasConstructorConstraint != typeParameter2.HasConstructorConstraint) ||
                 (typeParameter1.HasReferenceTypeConstraint != typeParameter2.HasReferenceTypeConstraint) ||
                 (typeParameter1.HasValueTypeConstraint != typeParameter2.HasValueTypeConstraint) ||
+                (typeParameter1.HasUnmanagedTypeConstraint != typeParameter2.HasUnmanagedTypeConstraint) ||
                 (typeParameter1.Variance != typeParameter2.Variance))
             {
                 return false;

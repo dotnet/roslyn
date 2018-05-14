@@ -302,7 +302,7 @@ End Class
 
 </compilation>
 
-            Dim c1 = CompilationUtils.CreateCompilationWithMscorlib(source)
+            Dim c1 = CompilationUtils.CreateCompilationWithMscorlib40(source)
             AssertTheseDiagnostics(c1,
 <expected>
 BC30112: 'System' is a namespace and cannot be used as an expression.
@@ -351,7 +351,7 @@ End Class
 
             ' not referencing vb runtime to get an error in the synthesized assignments
             ' coming from the field initializers
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
                 source,
                 options:=TestOptions.ReleaseExe.WithOverflowChecks(True))
 
@@ -570,7 +570,7 @@ End Class
     </file>
 </compilation>
 
-            Dim c1 = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source)
+            Dim c1 = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(source)
 
             AssertTheseDiagnostics(c1,
 <expected>
@@ -783,7 +783,7 @@ End Structure
 6/7/2010 12:00:00 AM
 -42.00000000000000000000000
 ]]>)
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(source)
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(source)
             Dim globalNS = compilation.SourceModule.GlobalNamespace
             ' test that shared fields add a shared constructor to members list
             Dim type = DirectCast(globalNS.GetTypeMembers("S1").Single(), NamedTypeSymbol)
@@ -812,7 +812,7 @@ End Class
     </file>
 </compilation>
 
-            Dim c1 = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source)
+            Dim c1 = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(source)
 
             AssertTheseDiagnostics(c1,
 <expected>
@@ -842,7 +842,7 @@ End Class
     </file>
 </compilation>
 
-            Dim c1 = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source)
+            Dim c1 = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(source)
 
             AssertTheseDiagnostics(c1,
 <expected>
@@ -1038,7 +1038,7 @@ Class C
 End Class
     </file>
 </compilation>
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source)
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(source)
             AssertTheseDiagnostics(compilation,
 <expected>
 BC30424: Constants must be of an intrinsic or enumerated type, not a class, structure, type parameter, or array type.
@@ -1073,7 +1073,7 @@ Class C
 End Class
     </file>
 </compilation>
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source)
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(source)
             AssertTheseDiagnostics(compilation,
 <expected>
 BC30002: Type 'A' is not defined.

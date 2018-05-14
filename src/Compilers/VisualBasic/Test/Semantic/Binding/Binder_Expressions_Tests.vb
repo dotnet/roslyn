@@ -17,7 +17,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
         ' Test that BC30157 is generated for a member access off With when there is no containing With.
         <Fact>
         Public Sub MemberAccessNoContainingWith()
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation name="MemberAccessNoContainingWith">
     <file name="a.vb">
 Imports System        
@@ -69,7 +69,7 @@ expectedOutput:="123")
     <file name="a.vb">
         <%= My.Resources.Resource.T_68086 %>
     </file>
-</compilation>, additionalRefs:={MsvbRef})
+</compilation>, references:={MsvbRef})
         End Sub
 
         <WorkItem(707924, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/707924")>
@@ -105,7 +105,7 @@ End Module
         ' Test access to a local variable, parameter, type parameter, namespace with arity.
         <Fact>
         Public Sub LocalVariableWrongArity()
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation name="LocalVariable1">
     <file name="a.vb">
 Imports System        
@@ -175,7 +175,7 @@ End Module
         ' Test access to a local variable and assignment of them..
         <Fact>
         Public Sub ArrayAssignmentError1()
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation name="ArrayAssignmentError1">
     <file name="a.vb">
 Imports System        
@@ -228,7 +228,7 @@ End Module
         ' Test access to a local variable and assignment of them..
         <Fact()>
         Public Sub ArrayAssignmentError2()
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation name="ArrayAssignmentErrors2">
     <file name="a.vb">
 Option strict on     
@@ -357,7 +357,7 @@ End Module
         ' Test access to simple identifier that isn't found anywhere.
         <Fact>
         Public Sub SimpleNameNotFound()
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation name="SimpleNameNotFound">
     <file name="a.vb">
 Imports System        
@@ -382,7 +382,7 @@ BC30451: 'goo' is not declared. It may be inaccessible due to its protection lev
         <WorkItem(538871, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538871")>
         <Fact>
         Public Sub QualifiedNameBeforeDotNotFound()
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation name="QualifiedNameBeforeDotNotFound">
     <file name="a.vb">
 Imports System
@@ -413,7 +413,7 @@ BC30456: 'B' is not a member of 'MainModule.A'.
         ' Test access to qualified identifier not found, in various scopes
         <Fact>
         Public Sub QualifiedNameNotFound()
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation name="QualifiedNameNotFound">
     <file name="a.vb">
 Imports System        
@@ -459,7 +459,7 @@ BC30456: 'goo' is not a member of 'M1'.
         ' Test access qualified identifier off of type parameter
         <Fact>
         Public Sub TypeParamCantQualify()
-            Dim compilation = CreateCompilationWithMscorlib(
+            Dim compilation = CreateCompilationWithMscorlib40(
 <compilation name="TypeParamCantQualify">
     <file name="a.vb">
 Imports System        
@@ -485,7 +485,7 @@ BC32098: Type parameters cannot be used as qualifiers.
         ' Test access to simple identifier that can be found, but has an error.
         <Fact>
         Public Sub BadSimpleName()
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation name="BadSimpleName">
     <file name="a.vb">
 Imports System
@@ -514,7 +514,7 @@ BC32042: Too few type arguments to 'Goo(Of T)'.
         ' Test access to qualified identifier that can be found, but has an error.
         <Fact>
         Public Sub BadQualifiedName()
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation name="BadQualifiedName">
     <file name="a.vb">
 Imports System
@@ -565,7 +565,7 @@ BC42025: Access of shared member, constant member, enum member or nested type th
         ' Test access to instance member in various ways to get various errors.
         <Fact>
         Public Sub AccessInstanceFromStatic()
-            Dim compilation = CreateCompilationWithMscorlib(
+            Dim compilation = CreateCompilationWithMscorlib40(
 <compilation name="AccessInstanceFromStatic">
     <file name="a.vb">
 Class K
@@ -626,7 +626,7 @@ BC30469: Reference to a non-shared member requires an object reference.
         ' Test access to static member in various ways to get various errors.
         <Fact>
         Public Sub AccessStaticViaInstance()
-            Dim compilation = CreateCompilationWithMscorlib(
+            Dim compilation = CreateCompilationWithMscorlib40(
 <compilation name="AccessStaticViaInstance">
     <file name="a.vb">
 Class K
@@ -690,7 +690,7 @@ End Class
     </file>
 </compilation>
 
-            Dim c1 = CreateCompilationWithMscorlibAndVBRuntime(source).VerifyDiagnostics(
+            Dim c1 = CreateCompilationWithMscorlib40AndVBRuntime(source).VerifyDiagnostics(
                 Diagnostic(ERRID.WRN_SharedMemberThroughInstance, "j.MaxValue"),
                 Diagnostic(ERRID.WRN_SharedMemberThroughInstance, "i.MaxValue"))
 
@@ -698,7 +698,7 @@ End Class
 
         <Fact>
         Public Sub ConstantFields1()
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation name="VBConstantFields1">
     <file name="a.vb">
 Module Module1
@@ -803,7 +803,7 @@ End Module
     </file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(compilationDef)
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(compilationDef)
 
             AssertTheseDiagnostics(compilation,
 <expected>
@@ -863,7 +863,7 @@ End Class
     </file>
 </compilation>
 
-            compilation = CreateCompilationWithMscorlibAndVBRuntime(compilationDef, TestOptions.ReleaseExe)
+            compilation = CreateCompilationWithMscorlib40AndVBRuntime(compilationDef, TestOptions.ReleaseExe)
 
             CompileAndVerify(compilation, <![CDATA[
 Nothing
@@ -895,7 +895,7 @@ End Module
     </file>
 </compilation>
 
-            compilation = CreateCompilationWithMscorlibAndVBRuntime(compilationDef)
+            compilation = CreateCompilationWithMscorlib40AndVBRuntime(compilationDef)
 
             AssertTheseDiagnostics(compilation,
 <expected>
@@ -949,7 +949,7 @@ End Module
     </file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(compilationDef)
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(compilationDef)
 
             AssertTheseDiagnostics(compilation,
 <expected>
@@ -982,7 +982,7 @@ End Module
     </file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(compilationDef, TestOptions.ReleaseExe)
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(compilationDef, TestOptions.ReleaseExe)
 
             CompileAndVerify(compilation, <![CDATA[
 123
@@ -1004,7 +1004,7 @@ End Module
     </file>
 </compilation>
 
-            compilation = CreateCompilationWithMscorlibAndVBRuntime(compilationDef, TestOptions.ReleaseExe)
+            compilation = CreateCompilationWithMscorlib40AndVBRuntime(compilationDef, TestOptions.ReleaseExe)
 
             AssertTheseDiagnostics(compilation,
 <expected>
@@ -1056,7 +1056,7 @@ End Class
     </file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(compilationDef)
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(compilationDef)
 
             AssertTheseDiagnostics(compilation,
 <expected>
@@ -1086,7 +1086,7 @@ BC30108: 'S' is a type and cannot be used as an expression.
     </file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(compilationDef)
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(compilationDef)
 
             AssertNoErrors(compilation)
         End Sub
@@ -1108,7 +1108,7 @@ BC30108: 'S' is a type and cannot be used as an expression.
     </file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(compilationDef)
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(compilationDef)
 
             AssertTheseDiagnostics(compilation,
                                                <errors>
@@ -1144,7 +1144,7 @@ End Class
     </file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(compilationDef)
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(compilationDef)
 
             AssertTheseDiagnostics(compilation,
                                                <errors>
@@ -1259,7 +1259,7 @@ End Class
     </file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(compilationDef)
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(compilationDef)
 
             AssertNoErrors(compilation)
 
@@ -1288,7 +1288,7 @@ End Class
     </file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(compilationDef)
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(compilationDef)
 
             AssertTheseDiagnostics(compilation,
                                                <errors>
@@ -1339,7 +1339,7 @@ End Class
     </file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(compilationDef)
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(compilationDef)
 
             AssertTheseDiagnostics(compilation, <expected>
 BC30455: Argument not specified for parameter 'x' of 'Public ReadOnly Property color(x As Integer) As Color'.
@@ -1392,7 +1392,7 @@ End Class
     </file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(compilationDef)
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(compilationDef)
 
             AssertNoErrors(compilation)
 
@@ -1447,7 +1447,7 @@ End Module
     </file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(compilationDef)
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(compilationDef)
 
             AssertNoErrors(compilation)
 
@@ -1517,7 +1517,7 @@ End Module
     </file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(compilationDef)
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(compilationDef)
 
             AssertNoErrors(compilation)
 
@@ -1589,7 +1589,7 @@ End Module
     </file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(compilationDef)
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(compilationDef)
 
 
             AssertTheseDiagnostics(compilation,
@@ -1652,7 +1652,7 @@ End Module
     </file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(compilationDef)
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(compilationDef)
 
 
             AssertNoDiagnostics(compilation)
@@ -1713,7 +1713,7 @@ End Module
     </file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(compilationDef)
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(compilationDef)
 
             AssertNoErrors(compilation)
 
@@ -1789,7 +1789,7 @@ End Module
     </file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(compilationDef)
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(compilationDef)
 
             AssertNoErrors(compilation)
 
@@ -1886,7 +1886,7 @@ End Module
     </file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(compilationDef)
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(compilationDef)
 
             AssertNoErrors(compilation)
 
@@ -1946,7 +1946,7 @@ End Class
     </file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(compilationDef)
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(compilationDef)
 
             AssertNoDiagnostics(compilation)
 
@@ -2002,7 +2002,7 @@ End Class
     </file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(compilationDef)
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(compilationDef)
 
             AssertTheseDiagnostics(compilation, <expected>
 BC30369: Cannot refer to an instance member of a class from within a shared method or shared member initializer without an explicit instance of the class.
@@ -2032,7 +2032,7 @@ End Module
     </file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(text)
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(text)
             AssertTheseDiagnostics(compilation,
                                                <errors>
 BC42024: Unused local variable: 'y'.
@@ -2071,7 +2071,7 @@ End Module
     </file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(text)
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(text)
             AssertTheseDiagnostics(compilation,
 <errors>
 BC30182: Type expected.
@@ -2101,7 +2101,7 @@ End Namespace
     </file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(text)
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(text)
             AssertNoErrors(compilation)
 
         End Sub
@@ -2125,14 +2125,14 @@ Imports Con = System.Console
     </file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(text)
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(text)
             AssertNoErrors(compilation)
 
         End Sub
 
         <Fact>
         Public Sub Bug9300_1()
-            Dim compilation1 = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation1 = CreateCompilationWithMscorlib40AndVBRuntime(
     <compilation name="NotYetImplementedInRoslyn">
         <file name="a.vb">
 Imports System.Runtime.CompilerServices
@@ -2176,7 +2176,7 @@ BC30251: Type 'Object()' has no constructors.
 
         <Fact>
         Public Sub Bug9300_2()
-            Dim compilation1 = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation1 = CreateCompilationWithMscorlib40AndVBRuntime(
     <compilation name="NotYetImplementedInRoslyn">
         <file name="a.vb">
 Imports System.Runtime.CompilerServices
@@ -2221,7 +2221,7 @@ BC30282: Constructor call is valid only as the first statement in an instance co
 
         <Fact>
         Public Sub Bug9300_3()
-            Dim compilation1 = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation1 = CreateCompilationWithMscorlib40AndVBRuntime(
     <compilation name="NotYetImplementedInRoslyn">
         <file name="a.vb">
 Imports System.Runtime.CompilerServices
@@ -2268,7 +2268,7 @@ Action(Of IEnumerable)
 
         <Fact>
         Public Sub IllegalTypeExpressionsFromParserShouldNotBlowUpBinding()
-            Dim compilation1 = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation1 = CreateCompilationWithMscorlib40AndVBRuntime(
     <compilation name="IllegalTypeExpressionsFromParserShouldNotBlowUpBinding">
         <file name="a.vb">
             Class Outer(Of T)
@@ -2312,7 +2312,7 @@ BC30182: Type expected.
         </file>
     </compilation>
 
-            Dim c1 = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(source1_with)
+            Dim c1 = CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(source1_with)
 
             Dim baseBuffer = CompileAndVerify(c1).EmittedAssemblyData
 
@@ -2340,7 +2340,7 @@ BC30182: Type expected.
         </file>
     </compilation>
 
-            Dim c2 = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(source2, {MetadataReference.CreateFromImage(baseBuffer)})
+            Dim c2 = CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(source2, {MetadataReference.CreateFromImage(baseBuffer)})
 
             Dim derivedBuffer = CompileAndVerify(c2).EmittedAssemblyData
 
@@ -2366,11 +2366,11 @@ BC30182: Type expected.
     </file>
 </compilation>
 
-            Dim c1_without = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(source1_without)
+            Dim c1_without = CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(source1_without)
 
             Dim image = CompileAndVerify(c1_without).EmittedAssemblyData
 
-            Dim c3 = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(source3, {MetadataReference.CreateFromImage(derivedBuffer), MetadataReference.CreateFromImage(image)})
+            Dim c3 = CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(source3, {MetadataReference.CreateFromImage(derivedBuffer), MetadataReference.CreateFromImage(image)})
 
             AssertTheseDiagnostics(c3, <expected>
 BC30545: Property access must assign to the property or use its value.
@@ -2381,7 +2381,7 @@ BC30545: Property access must assign to the property or use its value.
 
         <Fact>
         Public Sub ColorColorOverriddenProperty()
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation name="Bug12687">
     <file name="a.vb">
 Class TypeSubstitution
@@ -2417,7 +2417,7 @@ End Class
 
         <Fact>
         Public Sub ColorColorPropertyWithParam()
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation name="Bug12687">
     <file name="a.vb">
 Class TypeSubstitution
@@ -2452,7 +2452,7 @@ BC30455: Argument not specified for parameter 'a' of 'Public Overridable ReadOnl
 
         <Fact>
         Public Sub ColorColorPropertyWithOverloading()
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation name="Bug12687">
     <file name="a.vb">
 Class TypeSubstitution
@@ -2489,7 +2489,7 @@ End Class
         ' and IsLValueFieldAccess for FieldAccess.
         <Fact>
         Public Sub IsValidAssignmentTarget()
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
     <file name="a.vb">
 Structure S
@@ -2526,7 +2526,7 @@ BC30068: Expression is a value and therefore cannot be the target of an assignme
 
         <Fact>
         Public Sub Bug12900()
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation name="MemberAccessNoContainingWith">
     <file name="a.vb">
 Imports System        
@@ -2551,7 +2551,7 @@ BC30203: Identifier expected.
 
         <Fact>
         Public Sub Bug13080()
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
     <file name="a.vb">
 Imports System        
@@ -2577,7 +2577,7 @@ BC30438: Constants must have a value.
         <WorkItem(546469, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546469")>
         <Fact>
         Public Sub GetTypeAllowsArrayOfModules()
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
     <file name="a.vb">    
 Imports System
@@ -2640,7 +2640,7 @@ BC31422: 'System.Void' can only be used in a GetType expression.
         <WorkItem(546469, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546469")>
         <Fact()>
         Public Sub GetTypeAllowsModuleAlias()
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
     <file name="a.vb">    
 Imports ModuleAlias = Bar.Test
@@ -2690,7 +2690,7 @@ End Class
     </file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(source, {SystemCoreRef}, options:=TestOptions.ReleaseExe)
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(source, {SystemCoreRef}, options:=TestOptions.ReleaseExe)
             AssertTheseDiagnostics(compilation, <expected></expected>)
 
             CompileAndVerify(compilation, expectedOutput:="42")
@@ -2699,7 +2699,7 @@ End Class
         <WorkItem(1108036, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1108036")>
         <Fact()>
         Public Sub Bug1108036()
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
     <file name="a.vb">
 Class Color
@@ -2740,7 +2740,7 @@ BC30521: Overload resolution failed because no accessible 'Color' is most specif
         <WorkItem(1108036, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1108036")>
         <Fact()>
         Public Sub Bug1108036_2()
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
     <file name="a.vb">
 Class Color
@@ -2781,7 +2781,7 @@ BC30521: Overload resolution failed because no accessible 'Color' is most specif
         <WorkItem(969006, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/969006")>
         <Fact()>
         Public Sub Bug969006_1()
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
     <file name="a.vb">
 Enum E
@@ -2827,7 +2827,7 @@ End Class
         <WorkItem(969006, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/969006")>
         <Fact()>
         Public Sub Bug969006_2()
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
     <file name="a.vb">
 Enum E
@@ -2873,7 +2873,7 @@ End Class
         <WorkItem(969006, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/969006")>
         <Fact()>
         Public Sub Bug969006_3()
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
     <file name="a.vb">
 Enum E
@@ -2924,7 +2924,7 @@ BC42104: Variable 'e' is used before it has been assigned a value. A null refere
         <WorkItem(969006, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/969006")>
         <Fact()>
         Public Sub Bug969006_4()
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
     <file name="a.vb">
 Enum E
@@ -2975,7 +2975,7 @@ BC42104: Variable 'e' is used before it has been assigned a value. A null refere
         <WorkItem(1108007, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1108007")>
         <Fact()>
         Public Sub Bug1108007_1()
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
     <file name="a.vb">
 Class Color
@@ -3015,7 +3015,7 @@ End Class
         <WorkItem(1108007, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1108007")>
         <Fact>
         Public Sub Bug1108007_2()
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
     <file name="a.vb">
 Imports System
@@ -3061,7 +3061,7 @@ End Class
         <WorkItem(1108007, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1108007")>
         <Fact()>
         Public Sub Bug1108007_3()
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
     <file name="a.vb">
         <![CDATA[
@@ -3105,7 +3105,7 @@ End Class
         <WorkItem(1108007, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1108007")>
         <Fact()>
         Public Sub Bug1108007_4()
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
     <file name="a.vb">
 Imports System
@@ -3156,7 +3156,7 @@ End Class
         <WorkItem(1108007, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1108007")>
         <Fact()>
         Public Sub Bug1108007_5()
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
     <file name="a.vb">
 Imports System
@@ -3210,7 +3210,7 @@ End Class
         <WorkItem(1108007, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1108007")>
         <Fact()>
         Public Sub Bug1108007_6()
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
     <file name="a.vb">
 Imports System
@@ -3258,7 +3258,7 @@ End Class
         <WorkItem(1108007, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1108007")>
         <Fact()>
         Public Sub Bug1108007_7()
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
     <file name="a.vb">
 Imports System
@@ -3302,7 +3302,7 @@ End Class
         <WorkItem(1108007, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1108007")>
         <Fact>
         Public Sub Bug1108007_8()
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
     <file name="a.vb">
 Imports System
@@ -3355,7 +3355,7 @@ End Class
         <WorkItem(1108007, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1108007")>
         <Fact()>
         Public Sub Bug1108007_9()
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
     <file name="a.vb">
 Class Color
@@ -3401,7 +3401,7 @@ End Class    </file>
         <WorkItem(1114969, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1114969")>
         <Fact()>
         Public Sub Bug1114969()
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
     <file name="a.vb">
 Class Color

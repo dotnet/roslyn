@@ -6,6 +6,7 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.UseThrowExpression;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.UseThrowExpression;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -452,6 +453,29 @@ class B
         if (a == null) [|throw|] new ArgumentNullException();
         map[a.Id] = a;
     }
+}");
+        }
+
+        [WorkItem(24628, "https://github.com/dotnet/roslyn/issues/24628")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseThrowExpression)]
+        public async Task TestNotWhenAccessedOnLineBefore()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"using System;
+using System.Collections.Generic;
+
+class B
+{
+    public B(object arg)
+    {
+        Dictionary<object, object> map = null;
+
+        if (arg == null) [|throw|] new ArgumentNullException();
+        var key = MakeKey(arg);
+        map[key] = arg;
+    }
+
+    object MakeKey(object x) => null;
 }");
         }
 

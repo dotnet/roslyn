@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.Operations
         /// </summary>
         IMethodSymbol OperatorMethod { get; }
 
-#pragma warning disable RS0010 // Avoid using cref tags with a prefix
+#pragma warning disable CA1200 // Avoid using cref tags with a prefix
         /// <summary>
         /// Gets the underlying common conversion information.
         /// </summary>
@@ -36,7 +36,7 @@ namespace Microsoft.CodeAnalysis.Operations
         /// <see cref="T:Microsoft.CodeAnalysis.CSharp.CSharpExtensions.GetConversion(IConversionOperation)"/> or
         /// <see cref="T:Microsoft.CodeAnalysis.VisualBasic.VisualBasicExtensions.GetConversion(IConversionOperation)"/>.
         /// </remarks>
-#pragma warning restore RS0010 // Avoid using cref tags with a prefix
+#pragma warning restore CA1200 // Avoid using cref tags with a prefix
         CommonConversion Conversion { get; }
         /// <summary>
         /// False if the conversion will fail with a <see cref="InvalidCastException"/> at runtime if the cast fails. This is true for C#'s

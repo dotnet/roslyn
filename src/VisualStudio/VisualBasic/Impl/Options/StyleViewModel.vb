@@ -152,13 +152,16 @@ Imports System
 Class Customer
     Private Age As Integer
 
-    Sub New()
+    Sub M1()
 //[
         ' {ServicesVSResources.Prefer_colon}
         Dim c = New Customer() With {{
             .Age = 21
         }}
-
+//]
+    End Sub
+    Sub M2()
+//[
         ' {ServicesVSResources.Over_colon}
         Dim c = New Customer()
         c.Age = 21
@@ -171,7 +174,7 @@ End Class"
 Class Customer
     Private Age As Integer
 
-    Sub New()
+    Sub M1()
 //[
         ' {ServicesVSResources.Prefer_colon}
         Dim list = New List(Of Integer) From {{
@@ -179,7 +182,10 @@ Class Customer
             2,
             3
         }}
-
+//]
+    End Sub
+    Sub M2()
+//[
         ' {ServicesVSResources.Over_colon}
         Dim list = New List(Of Integer)()
         list.Add(1)
@@ -191,13 +197,16 @@ End Class"
 
         Private Shared ReadOnly s_preferExplicitTupleName As String = $"
 Class Customer
-    Public Sub New()
+    Sub M1()
 //[
         ' {ServicesVSResources.Prefer_colon}
         Dim customer As (name As String, age As Integer)
         Dim name = customer.name
         Dim age = customer.age
-
+//]
+    End Sub
+    Sub M2()
+//[
         ' {ServicesVSResources.Over_colon}
         Dim customer As (name As String, age As Integer)
         Dim name = customer.Item1
@@ -209,11 +218,14 @@ end class
 
         Private Shared ReadOnly s_preferInferredTupleName As String = $"
 Class Customer
-    Public Sub New(name as String, age As Integer)
+    Sub M1(name as String, age As Integer)
 //[
         ' {ServicesVSResources.Prefer_colon}
         Dim tuple = (name, age)
-
+//]
+    End Sub
+    Sub M2(name as String, age As Integer)
+//[
         ' {ServicesVSResources.Over_colon}
         Dim tuple = (name:=name, age:=age)
 //]
@@ -223,13 +235,53 @@ end class
 
         Private Shared ReadOnly s_preferInferredAnonymousTypeMemberName As String = $"
 Class Customer
-    Public Sub New(name as String, age As Integer)
+    Sub M1(name as String, age As Integer)
 //[
         ' {ServicesVSResources.Prefer_colon}
         Dim anon = New With {{ name, age }}
-
+//]
+    End Sub
+    Sub M2(name as String, age As Integer)
+//[
         ' {ServicesVSResources.Over_colon}
         Dim anon = New With {{ .name = name, .age = age }}
+//]
+    End Sub
+end class
+"
+
+        Private Shared ReadOnly s_preferConditionalExpressionOverIfWithAssignments As String = $"
+Class Customer
+    Public Sub New(name as String, age As Integer)
+//[
+        ' {ServicesVSResources.Prefer_colon}
+        Dim s As String = If(expr, ""hello"", ""world"")
+
+        ' {ServicesVSResources.Over_colon}
+        Dim s As String
+        If expr Then
+            s = ""hello""
+        Else
+            s = ""world""
+        End If
+//]
+    End Sub
+end class
+"
+
+        Private Shared ReadOnly s_preferConditionalExpressionOverIfWithReturns As String = $"
+Class Customer
+    Public Sub New(name as String, age As Integer)
+//[
+        ' {ServicesVSResources.Prefer_colon}
+        Return If(expr, ""hello"", ""world"")
+
+        ' {ServicesVSResources.Over_colon}
+        If expr Then
+            Return ""hello""
+        Else
+            Return ""world""
+        End If
 //]
     End Sub
 end class
@@ -241,11 +293,14 @@ Imports System
 Class Customer
     Private Age As Integer
 
-    Sub New()
+    Sub M1()
 //[
         ' {ServicesVSResources.Prefer_colon}
         Dim v = If(x, y)
-
+//]
+    End Sub
+    Sub M2()
+//[
         ' {ServicesVSResources.Over_colon}
         Dim v = If(x Is Nothing, y, x)    ' {ServicesVSResources.or}
         Dim v = If(x IsNot Nothing, x, y)
@@ -259,11 +314,14 @@ Imports System
 Class Customer
     Private Age As Integer
 
-    Sub New()
+    Sub M1()
 //[
         ' {ServicesVSResources.Prefer_colon}
         Dim v = o?.ToString()
-
+//]
+    End Sub
+    Sub M2()
+//[
         ' {ServicesVSResources.Over_colon}
         Dim v = If(o Is Nothing, Nothing, o.ToString())    ' {ServicesVSResources.or}
         Dim v = If(o IsNot Nothing, o.ToString(), Nothing)
@@ -274,11 +332,14 @@ End Class"
         Private Shared ReadOnly s_preferAutoProperties As String = $"
 Imports System
 
-Class Customer
+Class Customer1
 //[
     ' {ServicesVSResources.Prefer_colon}
     Public ReadOnly Property Age As Integer
-
+//]
+End Class
+Class Customer2
+//[
     ' {ServicesVSResources.Over_colon}
     Private _age As Integer
 
@@ -295,19 +356,38 @@ End Class
 Imports System
 
 Class Customer
-    Sub New(value as object)
+    Sub M1(value as object)
 //[
         ' {ServicesVSResources.Prefer_colon}
         If value Is Nothing
             Return
         End If
-
+//]
+    End Sub
+    Sub M2(value as object)
+//[
         ' {ServicesVSResources.Over_colon}
         If Object.ReferenceEquals(value, Nothing)
             Return
         End If
 //]
     End Sub
+End Class"
+
+        Private Shared ReadOnly s_preferReadonly As String = $"
+Class Customer1
+//[
+    ' {ServicesVSResources.Prefer_colon}
+    ' 'value' can only be assigned in constructor
+    Private ReadOnly value As Integer = 0
+//]
+End Class
+Class Customer2
+//[
+    ' {ServicesVSResources.Over_colon}
+    ' 'value' can be assigned anywhere
+    Private value As Integer = 0
+//]
 End Class"
 
 #End Region
@@ -335,6 +415,7 @@ End Class"
             Dim codeBlockPreferencesGroupTitle = ServicesVSResources.Code_block_preferences_colon
             Dim expressionPreferencesGroupTitle = ServicesVSResources.Expression_preferences_colon
             Dim nothingPreferencesGroupTitle = BasicVSResources.nothing_checking_colon
+            Dim fieldPreferencesGroupTitle = ServicesVSResources.Field_preferences_colon
 
             ' qualify with Me. group
             Me.CodeStyleItems.Add(New BooleanCodeStyleOptionViewModel(CodeStyleOptions.QualifyFieldAccess, BasicVSResources.Qualify_field_access_with_Me, s_fieldDeclarationPreviewTrue, s_fieldDeclarationPreviewFalse, Me, optionSet, qualifyGroupTitle, qualifyMemberAccessPreferences))
@@ -355,11 +436,15 @@ End Class"
             Me.CodeStyleItems.Add(New BooleanCodeStyleOptionViewModel(CodeStyleOptions.PreferExplicitTupleNames, ServicesVSResources.Prefer_explicit_tuple_name, s_preferExplicitTupleName, s_preferExplicitTupleName, Me, optionSet, expressionPreferencesGroupTitle))
             Me.CodeStyleItems.Add(New BooleanCodeStyleOptionViewModel(CodeStyleOptions.PreferInferredTupleNames, ServicesVSResources.Prefer_inferred_tuple_names, s_preferInferredTupleName, s_preferInferredTupleName, Me, optionSet, expressionPreferencesGroupTitle))
             Me.CodeStyleItems.Add(New BooleanCodeStyleOptionViewModel(CodeStyleOptions.PreferInferredAnonymousTypeMemberNames, ServicesVSResources.Prefer_inferred_anonymous_type_member_names, s_preferInferredAnonymousTypeMemberName, s_preferInferredAnonymousTypeMemberName, Me, optionSet, expressionPreferencesGroupTitle))
-
+            Me.CodeStyleItems.Add(New BooleanCodeStyleOptionViewModel(CodeStyleOptions.PreferConditionalExpressionOverAssignment, ServicesVSResources.Prefer_conditional_expression_over_if_with_assignments, s_preferConditionalExpressionOverIfWithAssignments, s_preferConditionalExpressionOverIfWithAssignments, Me, optionSet, expressionPreferencesGroupTitle))
+            Me.CodeStyleItems.Add(New BooleanCodeStyleOptionViewModel(CodeStyleOptions.PreferConditionalExpressionOverReturn, ServicesVSResources.Prefer_conditional_expression_over_if_with_returns, s_preferConditionalExpressionOverIfWithReturns, s_preferConditionalExpressionOverIfWithReturns, Me, optionSet, expressionPreferencesGroupTitle))
             ' nothing preferences
             Me.CodeStyleItems.Add(New BooleanCodeStyleOptionViewModel(CodeStyleOptions.PreferCoalesceExpression, ServicesVSResources.Prefer_coalesce_expression, s_preferCoalesceExpression, s_preferCoalesceExpression, Me, optionSet, nothingPreferencesGroupTitle))
             Me.CodeStyleItems.Add(New BooleanCodeStyleOptionViewModel(CodeStyleOptions.PreferNullPropagation, ServicesVSResources.Prefer_null_propagation, s_preferNullPropagation, s_preferNullPropagation, Me, optionSet, nothingPreferencesGroupTitle))
             Me.CodeStyleItems.Add(New BooleanCodeStyleOptionViewModel(CodeStyleOptions.PreferIsNullCheckOverReferenceEqualityMethod, BasicVSResources.Prefer_Is_Nothing_over_ReferenceEquals, s_preferIsNothingCheckOverReferenceEquals, s_preferIsNothingCheckOverReferenceEquals, Me, optionSet, nothingPreferencesGroupTitle))
+
+            ' field preferences
+            Me.CodeStyleItems.Add(New BooleanCodeStyleOptionViewModel(CodeStyleOptions.PreferReadonly, ServicesVSResources.Prefer_readonly, s_preferReadonly, s_preferReadonly, Me, optionSet, fieldPreferencesGroupTitle))
         End Sub
     End Class
 End Namespace

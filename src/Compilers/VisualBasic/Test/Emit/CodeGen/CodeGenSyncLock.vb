@@ -1290,7 +1290,7 @@ End Class
     </file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.ReleaseExe)
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(source, TestOptions.ReleaseExe)
             compilation.MakeMemberMissing(WellKnownMember.System_Threading_Monitor__Enter)
 
             CompileAndVerify(compilation, expectedOutput:="Inside SyncLock.")
@@ -1315,7 +1315,7 @@ End Class
     </file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.ReleaseExe)
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(source, TestOptions.ReleaseExe)
             compilation.MakeMemberMissing(WellKnownMember.System_Threading_Monitor__Enter2)
 
             CompileAndVerify(compilation, expectedOutput:="Inside SyncLock.")
@@ -1340,7 +1340,7 @@ End Class
     </file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.ReleaseExe)
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(source, TestOptions.ReleaseExe)
             compilation.MakeMemberMissing(WellKnownMember.System_Threading_Monitor__Enter)
             compilation.MakeMemberMissing(WellKnownMember.System_Threading_Monitor__Enter2)
 
@@ -1370,7 +1370,7 @@ End Class
     </file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.ReleaseExe)
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(source, TestOptions.ReleaseExe)
             compilation.MakeMemberMissing(WellKnownMember.System_Threading_Monitor__Exit)
 
             AssertTheseEmitDiagnostics(compilation, <expected>
@@ -1399,7 +1399,7 @@ End Class
     </file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.ReleaseExe)
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(source, TestOptions.ReleaseExe)
             compilation.MakeMemberMissing(WellKnownMember.System_Threading_Monitor__Enter)
             compilation.MakeMemberMissing(WellKnownMember.System_Threading_Monitor__Enter2)
             compilation.MakeMemberMissing(WellKnownMember.System_Threading_Monitor__Exit)
@@ -1433,7 +1433,7 @@ End Class
     </file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.ReleaseExe)
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(source, TestOptions.ReleaseExe)
             compilation.MakeTypeMissing(WellKnownType.System_Threading_Monitor)
 
             AssertTheseEmitDiagnostics(compilation, <expected>

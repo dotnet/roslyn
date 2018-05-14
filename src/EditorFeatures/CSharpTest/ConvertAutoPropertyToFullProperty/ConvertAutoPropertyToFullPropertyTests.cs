@@ -6,6 +6,7 @@ using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.CSharp.ConvertAutoPropertyToFullProperty;
 using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -182,7 +183,7 @@ class goo
     public int G[||]oo { get; private set; }
 }
 ";
-        var expected = @"
+            var expected = @"
 class goo
 {
     private int _goo;
@@ -215,7 +216,7 @@ class goo
     //Comments after
 }
 ";
-        var expected = @"
+            var expected = @"
 class goo
 {
     private int _goo;
@@ -235,7 +236,7 @@ class goo
     //Comments after
 }
 ";
-            await TestInRegularAndScriptAsync(text, expected, options:DoNotPreferExpressionBodiedAccessors);
+            await TestInRegularAndScriptAsync(text, expected, options: DoNotPreferExpressionBodiedAccessors);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.ConvertAutoPropertyToFullProperty)]
@@ -247,7 +248,7 @@ class goo
     public int G[||]oo { get; set; }
 }
 ";
-        var expected = @"
+            var expected = @"
 class goo
 {
     private int _goo;
@@ -1017,7 +1018,7 @@ struct goo
         [Fact, Trait(Traits.Feature, Traits.Features.ConvertAutoPropertyToFullProperty)]
         public async Task PartialClasses()
         {
-           var text = @"
+            var text = @"
 partial class Program
 {
     int P { get; set; }
@@ -1136,5 +1137,15 @@ partial class Program
             }
         }
 
+        [Fact, Trait(Traits.Feature, Traits.Features.ConvertAutoPropertyToFullProperty)]
+        public async Task InvalidLocation()
+        {
+            await TestMissingAsync(@"namespace NS
+{
+    public int G[||]oo { get; set; }
+}");
+
+            await TestMissingAsync("public int G[||]oo { get; set; }");
+        }
     }
 }

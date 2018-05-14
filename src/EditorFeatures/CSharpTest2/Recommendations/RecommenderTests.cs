@@ -5,7 +5,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.Completion.Providers;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
@@ -83,7 +82,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
                 else
                 {
                     var result = (await RecommendKeywordsAsync(position, context)).Single();
-                    Assert.NotNull(result);
+                    Assert.True(result != null, "No recommended keywords");
                     Assert.Equal(keywordText, result.Keyword);
                     if (matchPriority != null)
                     {

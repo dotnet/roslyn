@@ -301,6 +301,8 @@ namespace My
                 1.1f
             };
             var (tuple, _) = (named: 1, 2);
+            bool tupleEquality = (1, (2, 3)) == (1, (2, 3));
+            bool tupleInequality = (1, (2, 3)) != (1, (2, 3));
             int[, ,] cube = { { { 111, 112, }, { 121, 122 } }, { { 211, 212 }, { 221, 222 } } };
             int[][] jagged = { { 111 }, { 121, 122 } };
             int[][,] arr = new int[5][,]; // as opposed to new int[][5,5]
@@ -386,7 +388,7 @@ namespace My
             {
                 *intref = 1;
             }
-            fixed (int* p = stackalloc int[100])
+            fixed (int* p = stackalloc int[] { 100 }, q = stackalloc[] { 100 })
             {
                 *intref = 1;
             }

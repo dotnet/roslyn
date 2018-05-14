@@ -6,16 +6,16 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Threading;
-using Microsoft.CodeAnalysis.Collections;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 using AnalyzerStateData = Microsoft.CodeAnalysis.Diagnostics.AnalysisState.AnalyzerStateData;
-using Microsoft.CodeAnalysis.PooledObjects;
-using SyntaxNodeAnalyzerStateData = Microsoft.CodeAnalysis.Diagnostics.AnalysisState.SyntaxNodeAnalyzerStateData;
-using OperationAnalyzerStateData = Microsoft.CodeAnalysis.Diagnostics.AnalysisState.OperationAnalyzerStateData;
 using DeclarationAnalyzerStateData = Microsoft.CodeAnalysis.Diagnostics.AnalysisState.DeclarationAnalyzerStateData;
+using OperationAnalyzerStateData = Microsoft.CodeAnalysis.Diagnostics.AnalysisState.OperationAnalyzerStateData;
+using SyntaxNodeAnalyzerStateData = Microsoft.CodeAnalysis.Diagnostics.AnalysisState.SyntaxNodeAnalyzerStateData;
 
 namespace Microsoft.CodeAnalysis.Diagnostics
 {
@@ -43,7 +43,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         private readonly Func<DiagnosticAnalyzer, bool> _shouldSkipAnalysisOnGeneratedCode;
         private readonly Func<Diagnostic, DiagnosticAnalyzer, Compilation, CancellationToken, bool> _shouldSuppressGeneratedCodeDiagnostic;
         private readonly Func<SyntaxTree, TextSpan, bool> _isGeneratedCodeLocation;
-        private readonly ConcurrentDictionary<DiagnosticAnalyzer, TimeSpan> _analyzerExecutionTimeMapOpt;
+        /// <summary>
+        /// The values in this map convert to <see cref="TimeSpan"/> using <see cref="TimeSpan.FromTicks(long)"/>.
+        /// </summary>
+        private readonly ConcurrentDictionary<DiagnosticAnalyzer, StrongBox<long>> _analyzerExecutionTimeMapOpt;
         private readonly CompilationAnalysisValueProviderFactory _compilationAnalysisValueProviderFactory;
         private readonly CancellationToken _cancellationToken;
 
@@ -97,7 +100,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             Debug.Assert((addNonCategorizedDiagnosticOpt != null) ^ (addCategorizedLocalDiagnosticOpt != null));
             Debug.Assert((addCategorizedLocalDiagnosticOpt != null) == (addCategorizedNonLocalDiagnosticOpt != null));
 
-            var analyzerExecutionTimeMapOpt = logExecutionTime ? new ConcurrentDictionary<DiagnosticAnalyzer, TimeSpan>() : null;
+            var analyzerExecutionTimeMapOpt = logExecutionTime ? new ConcurrentDictionary<DiagnosticAnalyzer, StrongBox<long>>() : null;
 
             return new AnalyzerExecutor(compilation, analyzerOptions, addNonCategorizedDiagnosticOpt, onAnalyzerException, analyzerExceptionFilter,
                 isCompilerAnalyzer, analyzerManager, shouldSkipAnalysisOnGeneratedCode, shouldSuppressGeneratedCodeDiagnostic, isGeneratedCodeLocation,
@@ -148,7 +151,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             Func<Diagnostic, DiagnosticAnalyzer, Compilation, CancellationToken, bool> shouldSuppressGeneratedCodeDiagnostic,
             Func<SyntaxTree, TextSpan, bool> isGeneratedCodeLocation,
             Func<DiagnosticAnalyzer, object> getAnalyzerGateOpt,
-            ConcurrentDictionary<DiagnosticAnalyzer, TimeSpan> analyzerExecutionTimeMapOpt,
+            ConcurrentDictionary<DiagnosticAnalyzer, StrongBox<long>> analyzerExecutionTimeMapOpt,
             Action<Diagnostic, DiagnosticAnalyzer, bool> addCategorizedLocalDiagnosticOpt,
             Action<Diagnostic, DiagnosticAnalyzer> addCategorizedNonLocalDiagnosticOpt,
             CancellationToken cancellationToken)
@@ -188,7 +191,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         internal AnalyzerOptions AnalyzerOptions => _analyzerOptions;
         internal CancellationToken CancellationToken => _cancellationToken;
         internal Action<Exception, DiagnosticAnalyzer, Diagnostic> OnAnalyzerException => _onAnalyzerException;
-        internal ImmutableDictionary<DiagnosticAnalyzer, TimeSpan> AnalyzerExecutionTimes => _analyzerExecutionTimeMapOpt.ToImmutableDictionary();
+        internal ImmutableDictionary<DiagnosticAnalyzer, TimeSpan> AnalyzerExecutionTimes => _analyzerExecutionTimeMapOpt.ToImmutableDictionary(pair => pair.Key, pair => TimeSpan.FromTicks(pair.Value.Value));
 
         /// <summary>
         /// Executes the <see cref="DiagnosticAnalyzer.Initialize(AnalysisContext)"/> for the given analyzer.
@@ -1201,6 +1204,18 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 if (_analyzerExecutionTimeMapOpt != null)
                 {
                     timer = PooledStopwatch.StartInstance();
+
+                    // This call to Restart isn't required by the API, but is included to avoid measurement errors which
+                    // can occur during periods of high allocation activity. In some cases, calls to Stopwatch
+                    // operations can block at their return point on the completion of a background GC operation. When
+                    // this occurs, the GC wait time ends up included in the measured time span. In the event the first
+                    // call to Restart blocked on a GC operation, this call to Restart will most likely occur when the
+                    // GC is no longer active. In practice, a substantial improvement to the consistency of analyzer
+                    // timing data was observed.
+                    //
+                    // Note that the call to Stopwatch.Stop() is not affected, because the GC wait will occur after the
+                    // timer has already recorded its stop time.
+                    timer.Restart();
                 }
 
                 analyze(argument);
@@ -1208,7 +1223,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 if (timer != null)
                 {
                     timer.Stop();
-                    _analyzerExecutionTimeMapOpt.AddOrUpdate(analyzer, timer.Elapsed, timer.UpdateValueFactory);
+                    StrongBox<long> totalTicks = _analyzerExecutionTimeMapOpt.GetOrAdd(analyzer, _ => new StrongBox<long>(0));
+                    Interlocked.Add(ref totalTicks.Value, timer.Elapsed.Ticks);
                     timer.Free();
                 }
             }
@@ -1604,13 +1620,13 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         internal TimeSpan ResetAnalyzerExecutionTime(DiagnosticAnalyzer analyzer)
         {
             Debug.Assert(_analyzerExecutionTimeMapOpt != null);
-            TimeSpan executionTime;
+            StrongBox<long> executionTime;
             if (!_analyzerExecutionTimeMapOpt.TryRemove(analyzer, out executionTime))
             {
-                executionTime = default(TimeSpan);
+                return TimeSpan.Zero;
             }
 
-            return executionTime;
+            return TimeSpan.FromTicks(executionTime.Value);
         }
     }
 }

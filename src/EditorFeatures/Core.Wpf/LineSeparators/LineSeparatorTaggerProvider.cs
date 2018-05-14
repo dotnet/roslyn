@@ -10,6 +10,7 @@ using Microsoft.CodeAnalysis.Editor.Shared.Tagging;
 using Microsoft.CodeAnalysis.Editor.Tagging;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
 using Microsoft.VisualStudio.Text;
@@ -42,8 +43,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.LineSeparators
         public LineSeparatorTaggerProvider(
             IEditorFormatMapService editorFormatMapService,
             IForegroundNotificationService notificationService,
-            [ImportMany] IEnumerable<Lazy<IAsynchronousOperationListener, FeatureMetadata>> asyncListeners)
-                : base(new AggregateAsynchronousOperationListener(asyncListeners, FeatureAttribute.LineSeparators), notificationService)
+            IAsynchronousOperationListenerProvider listenerProvider)
+                : base(listenerProvider.GetListener(FeatureAttribute.LineSeparators), notificationService)
         {
             _editorFormatMap = editorFormatMapService.GetEditorFormatMap("text");
             _editorFormatMap.FormatMappingChanged += OnFormatMappingChanged;
@@ -91,7 +92,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.LineSeparators
             using (Logger.LogBlock(FunctionId.Tagger_LineSeparator_TagProducer_ProduceTags, cancellationToken))
             {
                 var snapshotSpan = documentSnapshotSpan.SnapshotSpan;
-                var lineSeparatorService = document.Project.LanguageServices.GetService<ILineSeparatorService>();
+                var lineSeparatorService = document.GetLanguageService<ILineSeparatorService>();
                 var lineSeparatorSpans = await lineSeparatorService.GetLineSeparatorsAsync(document, snapshotSpan.Span.ToTextSpan(), cancellationToken).ConfigureAwait(false);
                 cancellationToken.ThrowIfCancellationRequested();
 

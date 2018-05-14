@@ -17,7 +17,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests
         Private ReadOnly _fileCodeModels As New Dictionary(Of DocumentId, ComHandle(Of EnvDTE80.FileCodeModel2, FileCodeModel))
 
         Public Sub New(workspace As TestWorkspace)
-            MyBase.New(workspace.Services.HostServices, backgroundWork:=WorkspaceBackgroundWork.ParseAndCompile)
+            MyBase.New(workspace.Services.HostServices)
 
             _workspace = workspace
             SetCurrentSolution(workspace.CurrentSolution)
@@ -84,10 +84,6 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests
 
         Friend Function GetFileCodeModelComHandle(id As DocumentId) As ComHandle(Of EnvDTE80.FileCodeModel2, FileCodeModel)
             Return _fileCodeModels(id)
-        End Function
-
-        Friend Overrides Function RenameFileCodeModelInstance(documentId As DocumentId, newFilePath As String) As Boolean
-            Throw New NotImplementedException()
         End Function
     End Class
 

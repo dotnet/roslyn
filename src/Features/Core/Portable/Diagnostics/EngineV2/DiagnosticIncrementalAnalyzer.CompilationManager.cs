@@ -82,7 +82,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 
                 // Create driver that holds onto compilation and associated analyzers
                 return CreateAnalyzerDriver(
-                    project, compilation, analyzers, logAnalyzerExecutionTime: false, reportSuppressedDiagnostics: includeSuppressedDiagnostics);
+                    project, compilation, analyzers, logAnalyzerExecutionTime: true, reportSuppressedDiagnostics: includeSuppressedDiagnostics);
             }
 
             private CompilationWithAnalyzers CreateAnalyzerDriver(

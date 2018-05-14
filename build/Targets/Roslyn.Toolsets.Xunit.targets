@@ -3,8 +3,12 @@
 <Project ToolsVersion="14.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
 
   <PropertyGroup>
+    <MSBuildAllProjects>$(MSBuildAllProjects);$(MSBuildThisFileFullPath)</MSBuildAllProjects>
+  </PropertyGroup>
+
+  <PropertyGroup>
     <!-- xUnit.net Console Runner -->
-    <XUnitPath>$(NuGetPackageRoot)\xunit.runner.console\$(xunitrunnerconsoleVersion)\tools\xunit.console.x86.exe</XUnitPath>
+    <XUnitPath>$(NuGetPackageRoot)\xunit.runner.console\$(xunitrunnerconsoleVersion)\tools\net452\xunit.console.x86.exe</XUnitPath>
     <XUnitTestResultsDirectory>$(OutDir)\xUnitResults</XUnitTestResultsDirectory>
     <XUnitArguments>"$(OutDir)\$(AssemblyName).dll" -html "$(XUnitTestResultsDirectory)\$(AssemblyName).html" -noshadow</XUnitArguments>
     <PrepareForBuildDependsOn>$(PrepareForBuildDependsOn);AddDefaultTestAppConfig</PrepareForBuildDependsOn>
@@ -18,34 +22,6 @@
 
     <RuntimeIdentifier Condition="'$(TargetFramework)' == 'net461' AND '$(RuntimeIdentifier)' == '' AND '$(OS)' == 'Windows_NT'">$(RoslynDesktopRuntimeIdentifier)</RuntimeIdentifier>
   </PropertyGroup>
-    
-  <ItemGroup Condition="'$(TargetFramework)' == 'netcoreapp2.0'">
-    <Content Include="$(NetStandard20RefPath)\netstandard.dll">
-      <Link>ref/%(FileName)%(Extension)</Link>
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-      <Visible>false</Visible>
-    </Content>
-    <Content Include="$(NetStandard20RefPath)\mscorlib.dll">
-      <Link>ref/%(FileName)%(Extension)</Link>
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-      <Visible>false</Visible>
-    </Content>
-    <Content Include="$(NetStandard20RefPath)\System.Runtime.dll">
-      <Link>ref/%(FileName)%(Extension)</Link>
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-      <Visible>false</Visible>
-    </Content>
-    <Content Include="$(NetStandard20RefPath)\System.Dynamic.Runtime.dll">
-      <Link>ref/%(FileName)%(Extension)</Link>
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-      <Visible>false</Visible>
-    </Content>
-    <Content Include="$(MicrosoftCSharpRefPath)\Microsoft.CSharp.dll">
-      <Link>ref/%(FileName)%(Extension)</Link>
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-      <Visible>false</Visible>
-    </Content>
-  </ItemGroup>
 
   <Target Name="Test" DependsOnTargets="Build">
     <MakeDir Directories="$(XUnitTestResultsDirectory)" />

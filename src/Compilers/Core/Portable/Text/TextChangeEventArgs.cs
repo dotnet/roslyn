@@ -18,10 +18,10 @@ namespace Microsoft.CodeAnalysis.Text
         /// </summary>
         /// <param name="oldText">The text before the change.</param>
         /// <param name="newText">The text after the change.</param>
-        /// <param name="changes">A non-empty set of ranges for the change.</param>
+        /// <param name="changes">A set of ranges for the change.</param>
         public TextChangeEventArgs(SourceText oldText, SourceText newText, IEnumerable<TextChangeRange> changes)
         {
-            if (changes == null || changes.IsEmpty())
+            if (changes == null)
             {
                 throw new ArgumentException("changes");
             }
@@ -36,7 +36,7 @@ namespace Microsoft.CodeAnalysis.Text
         /// </summary>
         /// <param name="oldText">The text before the change.</param>
         /// <param name="newText">The text after the change.</param>
-        /// <param name="changes">A non-empty set of ranges for the change.</param>
+        /// <param name="changes">A set of ranges for the change.</param>
         public TextChangeEventArgs(SourceText oldText, SourceText newText, params TextChangeRange[] changes)
             : this(oldText, newText, (IEnumerable<TextChangeRange>)changes)
         {
