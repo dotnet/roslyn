@@ -1852,7 +1852,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' either <paramref name="fromType"/> or <paramref name="toType"/> is Nothing, or
         ''' if no such conversion exists.
         ''' </summary>
-        Public Overrides Function IsImplicitConversion(fromType As ITypeSymbol, toType As ITypeSymbol) As Boolean
+        Public Overrides Function HasImplicitConversion(fromType As ITypeSymbol, toType As ITypeSymbol) As Boolean
             Return fromType IsNot Nothing AndAlso toType IsNot Nothing AndAlso Me.ClassifyConversion(fromType, toType).IsWidening
         End Function
 

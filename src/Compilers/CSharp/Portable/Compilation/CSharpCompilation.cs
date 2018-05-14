@@ -3095,7 +3095,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// either <paramref name="fromType"/> or <paramref name="toType"/> is null, or
         /// if no such conversion exists.
         /// </summary>
-        public override bool IsImplicitConversion(ITypeSymbol fromType, ITypeSymbol toType)
+        public override bool HasImplicitConversion(ITypeSymbol fromType, ITypeSymbol toType)
         {
             return fromType != null && toType != null && this.ClassifyConversion(fromType, toType).IsImplicit;
         }

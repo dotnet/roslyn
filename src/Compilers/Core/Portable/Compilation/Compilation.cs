@@ -1098,7 +1098,7 @@ namespace Microsoft.CodeAnalysis
         /// either <paramref name="fromType"/> or <paramref name="toType"/> is null, or
         /// if no such conversion exists.
         /// </summary>
-        public abstract bool IsImplicitConversion(ITypeSymbol fromType, ITypeSymbol toType);
+        public abstract bool HasImplicitConversion(ITypeSymbol fromType, ITypeSymbol toType);
 
         #endregion
 
