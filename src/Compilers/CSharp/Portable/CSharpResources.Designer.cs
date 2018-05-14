@@ -737,15 +737,6 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The &apos;{0}&apos; attribute is only applicable on members that return a boolean type..
-        /// </summary>
-        internal static string ERR_AttributeRequiresBoolReturn {
-            get {
-                return ResourceManager.GetString("ERR_AttributeRequiresBoolReturn", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Attributes are not allowed on local function parameters or type parameters.
         /// </summary>
         internal static string ERR_AttributesInLocalFuncDecl {
@@ -7312,6 +7303,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string ERR_NotConstantExpression {
             get {
                 return ResourceManager.GetString("ERR_NotConstantExpression", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The ! operator can only be applied to reference types..
+        /// </summary>
+        internal static string ERR_NotNullableOperatorNotReferenceType {
+            get {
+                return ResourceManager.GetString("ERR_NotNullableOperatorNotReferenceType", resourceCulture);
             }
         }
         

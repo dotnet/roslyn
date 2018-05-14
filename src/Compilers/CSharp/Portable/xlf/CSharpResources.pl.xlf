@@ -8975,6 +8975,11 @@ Aby usunąć ostrzeżenie, możesz zamiast tego użyć opcji /reference (ustaw w
         <target state="new">Explicit application of 'System.Runtime.CompilerServices.NullableAttribute' is not allowed.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_NotNullableOperatorNotReferenceType">
+        <source>The ! operator can only be applied to reference types.</source>
+        <target state="new">The ! operator can only be applied to reference types.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="WRN_NoBestNullabilityConditionalExpression">
         <source>No best nullability for operands of conditional expression '{0}' and '{1}'.</source>
         <target state="new">No best nullability for operands of conditional expression '{0}' and '{1}'.</target>
@@ -8993,11 +8998,6 @@ Aby usunąć ostrzeżenie, możesz zamiast tego użyć opcji /reference (ustaw w
       <trans-unit id="WRN_ConvertingNullableToNonNullable_Title">
         <source>Converting null literal or possible null value to non-nullable type.</source>
         <target state="new">Converting null literal or possible null value to non-nullable type.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ERR_AttributeRequiresBoolReturn">
-        <source>The '{0}' attribute is only applicable on members that return a boolean type.</source>
-        <target state="new">The '{0}' attribute is only applicable on members that return a boolean type.</target>
         <note />
       </trans-unit>
     </body>

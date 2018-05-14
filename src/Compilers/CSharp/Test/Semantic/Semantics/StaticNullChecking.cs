@@ -5523,7 +5523,7 @@ public class C
         }
 
         [Fact]
-        public void NotNullWhenFalse_ComparedToTrue()
+        public void NotNullWhenFalse_EqualsTrue()
         {
             CSharpCompilation c = CreateCompilation(@"
 using System.Runtime.CompilerServices;
@@ -5561,7 +5561,7 @@ public class C
         }
 
         [Fact]
-        public void NotNullWhenFalse_ComparedToFalse()
+        public void NotNullWhenFalse_EqualsFalse()
         {
             CSharpCompilation c = CreateCompilation(@"
 using System.Runtime.CompilerServices;
@@ -5570,6 +5570,44 @@ public class C
     public void Main(string? s)
     {
         if (false == MyIsNullOrEmpty(s))
+        {
+            s.ToString(); // ok
+        }
+        else
+        {
+            s.ToString(); // warn
+        }
+
+        s.ToString(); // warn 2
+    }
+    public static bool MyIsNullOrEmpty([NotNullWhenFalse] string? s) => throw null;
+}
+" + NotNullWhenFalseAttributeDefinition, parseOptions: TestOptions.Regular8);
+
+            // PROTOTYPE(NullableReferenceTypes): there should only be two diagnostics
+            c.VerifyDiagnostics(
+                // (9,13): warning CS8602: Possible dereference of a null reference.
+                //             s.ToString(); // ok
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "s").WithLocation(9, 13),
+                // (13,13): warning CS8602: Possible dereference of a null reference.
+                //             s.ToString(); // warn
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "s").WithLocation(13, 13),
+                // (16,9): warning CS8602: Possible dereference of a null reference.
+                //         s.ToString(); // warn 2
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "s").WithLocation(16, 9)
+                );
+        }
+
+        [Fact]
+        public void NotNullWhenFalse_NotEqualsFalse()
+        {
+            CSharpCompilation c = CreateCompilation(@"
+using System.Runtime.CompilerServices;
+public class C
+{
+    public void Main(string? s)
+    {
+        if (false != MyIsNullOrEmpty(s))
         {
             s.ToString(); // warn
         }
