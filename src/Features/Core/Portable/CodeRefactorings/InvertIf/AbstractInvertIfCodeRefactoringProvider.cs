@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.InvertIf
             // swap subsequent statements and if body
             SwapIfBodyWithSubsequentStatements,
             // move subsequent statements to if body
-            MoveSubsequentStatementsToElseBody,
+            MoveSubsequentStatementsToIfBody,
             // invert and generete else
             WithElseClause,
             // invert and generate else, keep if-body empty
@@ -94,9 +94,9 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.InvertIf
             SemanticModel semanticModel,
             ref SyntaxNode subsequentSingleExitPointOpt)
         {
-            if (NoIfBodyStatements(ifNode))
+            if (!AnyIfBodyStatements(ifNode))
             {
-                // An empty if-statement: just negate the condition
+                // (1) An empty if-statement: just negate the condition
                 //  
                 //  if (condition) { }
                 //
@@ -107,9 +107,9 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.InvertIf
                 return InvertIfStyle.WithNegatedCondition;
             }
 
-            if (NoSubsequentStatements(ifNode))
+            if (!AnySubsequentStatements(ifNode))
             {
-                // No statements if-statement, return with nearmost jump-statement
+                // (2) No statements after if-statement, invert with the nearmost parent jump-statement
                 //
                 //  void M() {
                 //    if (condition) {
@@ -147,10 +147,46 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.InvertIf
                         SubsequentStatementsAreInTheSameBlock(ifNode) &&
                         ifBodySingleExitPointOpt?.RawKind == GetNearmostParentJumpStatementRawKind(ifNode))
                     {
-                        return InvertIfStyle.MoveSubsequentStatementsToElseBody;
+                        // (3) Invese of the case (2). Safe to move all subsequent statements to if-body.
+                        // 
+                        //  while (condition) {
+                        //    if (condition) {
+                        //      continue;
+                        //    }
+                        //    f();
+                        //  }
+                        //
+                        // ->
+                        //
+                        //  while (condition) {
+                        //    if (!condition) {
+                        //      f();
+                        //    }
+                        //  }
+                        //
+                        return InvertIfStyle.MoveSubsequentStatementsToIfBody;
                     }
                     else
                     {
+                        // (4) Otherwise, we generate the else and swap blocks to keep flow intact.
+                        // 
+                        //  while (condition) {
+                        //    if (condition) {
+                        //      return;
+                        //    }
+                        //    f();
+                        //  }
+                        //
+                        // ->
+                        //
+                        //  while (condition) {
+                        //    if (!condition) {
+                        //      f();
+                        //    } else {
+                        //      return;
+                        //    }
+                        //  }
+                        //
                         return InvertIfStyle.WithElseClause;
                     }
                 }
@@ -160,33 +196,86 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.InvertIf
                 if (subsequentSingleExitPointOpt != null &&
                     SingleSubsequentStatement(ifNode))
                 {
+                    // (5) if-body end-point is reachable but the next statement is a only jump-statement.
+                    //     This usually happens in a switch-statement. We invert and use that jump-statement.
+                    // 
+                    //  case constant:
+                    //    if (condition) {
+                    //      f();
+                    //    }
+                    //    break;
+                    //
+                    // ->
+                    //
+                    //  case constant:
+                    //    if (!condition) {
+                    //      break;
+                    //    }
+                    //    f();
+                    //    break; // we always keep this so that we don't end up with invalid code.
+                    //
                     return InvertIfStyle.WithSubsequentExitPointStatement;
                 }
             }
             else if (SubsequentStatementsAreInTheSameBlock(ifNode))
             {
+                // (6) If both if-body and subsequent statements have an unreachable end-point,
+                //     it would be safe to just swap the two.
+                //
+                //    if (condition) {
+                //      return;
+                //    }
+                //    break;
+                //
+                // ->
+                //
+                //  case constant:
+                //    if (!condition) {
+                //      break;
+                //    }
+                //    return;
+                //
                 return InvertIfStyle.SwapIfBodyWithSubsequentStatements;
             }
 
+            // (7) If none of the above worked, as the last resort we invert and generate an empty if-body.
+            // 
+            //  {
+            //    if (condition) {
+            //      f();
+            //    }
+            //    f();
+            //  }
+            //
+            // ->
+            //
+            //  {
+            //    if (!condition) {
+            //    } else {
+            //      f();
+            //    }
+            //    f();
+            //  }
+            //  
             return InvertIfStyle.MoveIfBodyToElseClause;
         }
 
-        private bool NoSubsequentStatements(TIfStatementSyntax ifNode)
+        private bool AnySubsequentStatements(TIfStatementSyntax ifNode)
         {
             foreach (var statementRange in GetSubsequentStatementRanges(ifNode))
             {
                 if (!IsEmptyStatementRange(statementRange))
                 {
-                    return false;
+                    return true;
                 }
             }
 
-            return true;
+            return false;
         }
 
-        private bool NoIfBodyStatements(TIfStatementSyntax ifNode)
+        private bool AnyIfBodyStatements(TIfStatementSyntax ifNode)
         {
-            return IsEmptyStatementRange(GetIfBodyStatementRange(ifNode));
+            return !IsEmptyStatementRange(GetIfBodyStatementRange(ifNode));
         }
 
         private bool SingleIfBodyStatement(TIfStatementSyntax ifNode)

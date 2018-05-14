@@ -168,7 +168,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InvertIf
                         return root.ReplaceNode(currentParent, updatedParent);
                     }
 
-                case InvertIfStyle.MoveSubsequentStatementsToElseBody:
+                case InvertIfStyle.MoveSubsequentStatementsToIfBody:
                     {
                         var currentParent = ifNode.Parent;
                         var statements = GetStatements(currentParent);
