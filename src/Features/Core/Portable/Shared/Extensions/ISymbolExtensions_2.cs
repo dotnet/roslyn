@@ -199,7 +199,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 // DynamicInvoke() takes an object array, and EndInvoke() takes a System.IAsyncResult, so we can (and should) ignore those here.
 
                 var symbolName = methodSymbol.Name;
-                if (symbolName == "BeginInvoke" && parameter.Ordinal >= (methodSymbol.Parameters.Length - 2))
+                if (symbolName == WellKnownMemberNames.DelegateBeginInvokeName && parameter.Ordinal >= (methodSymbol.Parameters.Length - 2))
                 {
                     // Return null (similar to DocumentationComment.GetParameterText()) for the last two implicit parameters (usually called "callback" and "@object").
                     // We can't rely on those names because they might be renamed to avoid collision with a user-defined delegate parameter of the same name,
@@ -207,7 +207,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                     return null;
                 }
 
-                if (symbolName == "BeginInvoke" || symbolName == "Invoke")
+                if (symbolName == WellKnownMemberNames.DelegateInvokeName || symbolName == WellKnownMemberNames.DelegateBeginInvokeName)
                 {
                     // We know that containingSymbol is the [Begin]Invoke() method of a delegate type, so we need to go up a level and take the method's containing symbol (i.e. the delegate), which contains the documentation.
                     containingSymbol = containingSymbol.ContainingSymbol;
