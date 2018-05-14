@@ -626,25 +626,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
             else if (attribute.IsTargetAttribute(this, AttributeDescription.NotNullWhenFalseAttribute))
             {
-                if (this.ContainingSymbol.GetTypeOrReturnType().SpecialType == SpecialType.System_Boolean)
-                {
-                    arguments.GetOrCreateData<CommonParameterWellKnownAttributeData>().HasNotNullWhenFalseAttribute = true;
-                }
-                else
-                {
-                    arguments.Diagnostics.Add(ErrorCode.ERR_AttributeRequiresBoolReturn, arguments.AttributeSyntaxOpt.Location, AttributeDescription.NotNullWhenFalseAttribute.Name);
-                }
+                arguments.GetOrCreateData<CommonParameterWellKnownAttributeData>().HasNotNullWhenFalseAttribute = true;
             }
             else if (attribute.IsTargetAttribute(this, AttributeDescription.EnsuresNotNullAttribute))
             {
-                if (this.Type.IsValueType)
-                {
-                    arguments.Diagnostics.Add(ErrorCode.ERR_AttributeNotApplicableOnValueType, arguments.AttributeSyntaxOpt.Location, AttributeDescription.EnsuresNotNullAttribute.Name);
-                }
-                else
-                {
-                    arguments.GetOrCreateData<CommonParameterWellKnownAttributeData>().HasEnsuresNotNullAttribute = true;
-                }
+                arguments.GetOrCreateData<CommonParameterWellKnownAttributeData>().HasEnsuresNotNullAttribute = true;
             }
         }
 

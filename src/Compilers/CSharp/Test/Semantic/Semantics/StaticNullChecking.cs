@@ -5533,13 +5533,9 @@ public class C
 }
 " + NotNullWhenFalseAttributeDefinition, parseOptions: TestOptions.Regular8);
 
-            c.VerifyDiagnostics(
-                // (5,43): error CS8627: The 'NotNullWhenFalseAttribute' attribute is only applicable on members that return a boolean type.
-                //     public static object MyIsNullOrEmpty([NotNullWhenFalse] string? s) => throw null;
-                Diagnostic(ErrorCode.ERR_AttributeRequiresBoolReturn, "NotNullWhenFalse").WithArguments("NotNullWhenFalseAttribute").WithLocation(5, 43)
-                );
+            c.VerifyDiagnostics();
 
-            VerifyAnnotations(c, "C.MyIsNullOrEmpty", None);
+            VerifyAnnotations(c, "C.MyIsNullOrEmpty", NotNullWhenFalse);
         }
 
         [Fact]
@@ -6141,23 +6137,14 @@ public partial class C
 " + NotNullWhenFalseAttributeDefinition, parseOptions: TestOptions.Regular8);
 
             c.VerifyDiagnostics(
-                // (8,22): error CS8627: The 'NotNullWhenFalseAttribute' attribute is only applicable on members that return a boolean type.
-                //     partial void M2([NotNullWhenFalse] string? s);
-                Diagnostic(ErrorCode.ERR_AttributeRequiresBoolReturn, "NotNullWhenFalse").WithArguments("NotNullWhenFalseAttribute").WithLocation(8, 22),
-                // (12,22): error CS8627: The 'NotNullWhenFalseAttribute' attribute is only applicable on members that return a boolean type.
-                //     partial void M3([NotNullWhenFalse] string? s) => throw null;
-                Diagnostic(ErrorCode.ERR_AttributeRequiresBoolReturn, "NotNullWhenFalse").WithArguments("NotNullWhenFalseAttribute").WithLocation(12, 22),
                 // (11,22): error CS0579: Duplicate 'NotNullWhenFalse' attribute
                 //     partial void M3([NotNullWhenFalse] string? s);
-                Diagnostic(ErrorCode.ERR_DuplicateAttribute, "NotNullWhenFalse").WithArguments("NotNullWhenFalse").WithLocation(11, 22),
-                // (6,22): error CS8627: The 'NotNullWhenFalseAttribute' attribute is only applicable on members that return a boolean type.
-                //     partial void M1([NotNullWhenFalse] string? s) => throw null;
-                Diagnostic(ErrorCode.ERR_AttributeRequiresBoolReturn, "NotNullWhenFalse").WithArguments("NotNullWhenFalseAttribute").WithLocation(6, 22)
+                Diagnostic(ErrorCode.ERR_DuplicateAttribute, "NotNullWhenFalse").WithArguments("NotNullWhenFalse").WithLocation(11, 22)
                 );
 
-            VerifyAnnotations(c, "C.M1", None);
-            VerifyAnnotations(c, "C.M2", None);
-            VerifyAnnotations(c, "C.M3", None);
+            VerifyAnnotations(c, "C.M1", NotNullWhenFalse);
+            VerifyAnnotations(c, "C.M2", NotNullWhenFalse);
+            VerifyAnnotations(c, "C.M3", NotNullWhenFalse);
         }
 
         [Fact]
@@ -6183,9 +6170,6 @@ public class C
 " + NotNullWhenFalseAttributeDefinition, parseOptions: TestOptions.Regular8);
 
             c.VerifyDiagnostics(
-                // (16,37): error CS8627: The 'NotNullWhenFalseAttribute' attribute is only applicable on members that return a boolean type.
-                //     public dynamic MyIsNullOrEmpty([NotNullWhenFalse] string? s) => throw null;
-                Diagnostic(ErrorCode.ERR_AttributeRequiresBoolReturn, "NotNullWhenFalse").WithArguments("NotNullWhenFalseAttribute").WithLocation(16, 37),
                 // (9,13): warning CS8602: Possible dereference of a null reference.
                 //             s.ToString(); // warn
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "s").WithLocation(9, 13),
@@ -6194,7 +6178,7 @@ public class C
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "s").WithLocation(13, 13)
                 );
 
-            VerifyAnnotations(c, "C.MyIsNullOrEmpty", None);
+            VerifyAnnotations(c, "C.MyIsNullOrEmpty", NotNullWhenFalse);
         }
 
         [Fact]
@@ -6298,9 +6282,6 @@ class C
 " + NotNullWhenFalseAttributeDefinition, parseOptions: TestOptions.Regular8);
 
             c.VerifyDiagnostics(
-                // (10,29): error CS8627: The 'NotNullWhenFalseAttribute' attribute is only applicable on members that return a boolean type.
-                //     object MyIsNullOrEmpty([NotNullWhenFalse] string? s) => throw null;
-                Diagnostic(ErrorCode.ERR_AttributeRequiresBoolReturn, "NotNullWhenFalse").WithArguments("NotNullWhenFalseAttribute").WithLocation(10, 29),
                 // (8,9): warning CS8602: Possible dereference of a null reference.
                 //         s.ToString(); // warn
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "s").WithLocation(8, 9)
@@ -6572,13 +6553,9 @@ public class C
 }
 " + EnsuresNotNullAttributeDefinition, parseOptions: TestOptions.Regular8);
 
-            c.VerifyDiagnostics(
-                // (5,32): error CS8628: The 'EnsuresNotNullAttribute' attribute is not applicable on a value type.
-                //     public static void Bad<T>([EnsuresNotNull] int i) => throw null;
-                Diagnostic(ErrorCode.ERR_AttributeNotApplicableOnValueType, "EnsuresNotNull").WithArguments("EnsuresNotNullAttribute").WithLocation(5, 32)
-                );
+            c.VerifyDiagnostics();
 
-            VerifyAnnotations(c, "C.Bad", None);
+            VerifyAnnotations(c, "C.Bad", EnsuresNotNull);
             VerifyAnnotations(c, "C.ThrowIfNull", EnsuresNotNull);
         }
 

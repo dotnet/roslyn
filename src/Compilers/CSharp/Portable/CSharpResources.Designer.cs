@@ -701,15 +701,6 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The &apos;{0}&apos; attribute is not applicable on a value type..
-        /// </summary>
-        internal static string ERR_AttributeNotApplicableOnValueType {
-            get {
-                return ResourceManager.GetString("ERR_AttributeNotApplicableOnValueType", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Attribute &apos;{0}&apos; is not valid on property or event accessors. It is only valid on &apos;{1}&apos; declarations..
         /// </summary>
         internal static string ERR_AttributeNotOnAccessor {
@@ -7321,15 +7312,6 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string ERR_NotConstantExpression {
             get {
                 return ResourceManager.GetString("ERR_NotConstantExpression", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to The ! operator can only be applied to reference types..
-        /// </summary>
-        internal static string ERR_NotNullableOperatorNotReferenceType {
-            get {
-                return ResourceManager.GetString("ERR_NotNullableOperatorNotReferenceType", resourceCulture);
             }
         }
         

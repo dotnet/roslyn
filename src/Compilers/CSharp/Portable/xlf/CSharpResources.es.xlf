@@ -8975,11 +8975,6 @@ Para eliminar la advertencia puede usar /reference (establezca la propiedad Embe
         <target state="new">Explicit application of 'System.Runtime.CompilerServices.NullableAttribute' is not allowed.</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_NotNullableOperatorNotReferenceType">
-        <source>The ! operator can only be applied to reference types.</source>
-        <target state="new">The ! operator can only be applied to reference types.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="WRN_NoBestNullabilityConditionalExpression">
         <source>No best nullability for operands of conditional expression '{0}' and '{1}'.</source>
         <target state="new">No best nullability for operands of conditional expression '{0}' and '{1}'.</target>
@@ -9003,11 +8998,6 @@ Para eliminar la advertencia puede usar /reference (establezca la propiedad Embe
       <trans-unit id="ERR_AttributeRequiresBoolReturn">
         <source>The '{0}' attribute is only applicable on members that return a boolean type.</source>
         <target state="new">The '{0}' attribute is only applicable on members that return a boolean type.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ERR_AttributeNotApplicableOnValueType">
-        <source>The '{0}' attribute is not applicable on a value type.</source>
-        <target state="new">The '{0}' attribute is not applicable on a value type.</target>
         <note />
       </trans-unit>
     </body>
