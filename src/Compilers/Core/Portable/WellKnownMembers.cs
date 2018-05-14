@@ -2968,14 +2968,29 @@ namespace Microsoft.CodeAnalysis
                  0,                                                                                                                                             // Arity
                     0,                                                                                                                                          // Method Signature
                     (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Int32,
-                    
-                 // System_Runtime_CompilerServices_IsUnmanagedAttribute__ctor
+
+                // System_Runtime_CompilerServices_IsUnmanagedAttribute__ctor
                  (byte)(MemberFlags.Constructor),                                                                                                               // Flags
                  (byte)WellKnownType.ExtSentinel, (byte)(WellKnownType.System_Runtime_CompilerServices_IsUnmanagedAttribute - WellKnownType.ExtSentinel),       // DeclaringTypeId
                  0,                                                                                                                                             // Arity
                      0,                                                                                                                                         // Method Signature
                      (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Void,
 
+                 // Microsoft.VisualBasic.Conversion.Fix(Number As System.Single)
+                (byte)(MemberFlags.Method | MemberFlags.Static),                                                                                    // Flags
+                 (byte)WellKnownType.ExtSentinel, (byte)(WellKnownType.Microsoft_VisualBasic_Conversion - WellKnownType.ExtSentinel),               // DeclaringTypeId
+                0,                                                                                                                                  // Arity
+                    1,                                                                                                                              // Method Signature
+                    (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Single,                                    // Return type
+                    (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Single,
+
+                // Microsoft.VisualBasic.Conversion.Fix(Number As System.Double)
+                (byte)(MemberFlags.Method | MemberFlags.Static),                                                                                    // Flags
+                 (byte)WellKnownType.ExtSentinel, (byte)(WellKnownType.Microsoft_VisualBasic_Conversion - WellKnownType.ExtSentinel),               // DeclaringTypeId
+                0,                                                                                                                                  // Arity
+                    1,                                                                                                                              // Method Signature
+                    (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Double,                                    // Return type
+                    (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Double,
             };
 
             string[] allNames = new string[(int)WellKnownMember.Count]
@@ -3347,6 +3362,8 @@ namespace Microsoft.CodeAnalysis
                 "get_Item",                                 // System_ReadOnlySpan__get_Item
                 "get_Length",                               // System_ReadOnlySpan__get_Length
                 ".ctor",                                    // System_Runtime_CompilerServices_IsUnmanagedAttribute__ctor
+                "Fix",                                      // Microsoft.VisualBasic.Conversion.Fix(Number As System.Single)
+                "Fix"                                       // Microsoft.VisualBasic.Conversion.Fix(Number As System.Double)
             };
 
             s_descriptors = MemberDescriptor.InitializeFromStream(new System.IO.MemoryStream(initializationBytes, writable: false), allNames);
