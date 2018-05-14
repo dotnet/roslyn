@@ -349,5 +349,69 @@ Block[B5] - Exit
 
             VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedFlowGraph, expectedDiagnostics);
         }
+
+        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+        [Fact]
+        public void EventReference_ControlFlowInReceiver_StaticEvent()
+        {
+            string source = @"
+using System;
+
+class C
+{
+#pragma warning disable CS0067 // The event is never used
+    private static event EventHandler Event1;
+
+    public void M(C c1, C c2, EventHandler handler1, EventHandler handler2)
+    /*<bind>*/
+    {
+        handler1 = c1.Event1;
+        handler2 = (c1 ?? c2).Event1;
+    }/*</bind>*/
+}
+";
+            string expectedFlowGraph = @"
+Block[B0] - Entry
+    Statements (0)
+    Next (Regular) Block[B1]
+Block[B1] - Block
+    Predecessors: [B0]
+    Statements (2)
+        IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null, IsInvalid) (Syntax: 'handler1 = c1.Event1;')
+          Expression: 
+            ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.EventHandler, IsInvalid) (Syntax: 'handler1 = c1.Event1')
+              Left: 
+                IParameterReferenceOperation: handler1 (OperationKind.ParameterReference, Type: System.EventHandler) (Syntax: 'handler1')
+              Right: 
+                IEventReferenceOperation: event System.EventHandler C.Event1 (Static) (OperationKind.EventReference, Type: System.EventHandler, IsInvalid) (Syntax: 'c1.Event1')
+                  Instance Receiver: 
+                    null
+
+        IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null, IsInvalid) (Syntax: 'handler2 =  ... c2).Event1;')
+          Expression: 
+            ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.EventHandler, IsInvalid) (Syntax: 'handler2 =  ...  c2).Event1')
+              Left: 
+                IParameterReferenceOperation: handler2 (OperationKind.ParameterReference, Type: System.EventHandler) (Syntax: 'handler2')
+              Right: 
+                IEventReferenceOperation: event System.EventHandler C.Event1 (Static) (OperationKind.EventReference, Type: System.EventHandler, IsInvalid) (Syntax: '(c1 ?? c2).Event1')
+                  Instance Receiver: 
+                    null
+
+    Next (Regular) Block[B2]
+Block[B2] - Exit
+    Predecessors: [B1]
+    Statements (0)
+";
+            var expectedDiagnostics = new DiagnosticDescription[] {
+                // file.cs(12,20): error CS0176: Member 'C.Event1' cannot be accessed with an instance reference; qualify it with a type name instead
+                //         handler1 = c1.Event1;
+                Diagnostic(ErrorCode.ERR_ObjectProhibited, "c1.Event1").WithArguments("C.Event1").WithLocation(12, 20),
+                // file.cs(13,20): error CS0176: Member 'C.Event1' cannot be accessed with an instance reference; qualify it with a type name instead
+                //         handler2 = (c1 ?? c2).Event1;
+                Diagnostic(ErrorCode.ERR_ObjectProhibited, "(c1 ?? c2).Event1").WithArguments("C.Event1").WithLocation(13, 20)
+            };
+
+            VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedFlowGraph, expectedDiagnostics);
+        }
     }
 }

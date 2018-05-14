@@ -356,6 +356,67 @@ Block[B5] - Exit
 
         <CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)>
         <Fact>
+        Public Sub PropertyReference_ControlFlowInReceiver_StaticProperty()
+            Dim source = <![CDATA[
+Imports System
+
+Friend Class C
+    Public Shared ReadOnly Property P1 As Integer
+
+    Public Sub M(c1 As C, c2 As C, p1 As Integer, p2 As Integer)'BIND:"Public Sub M(c1 As C, c2 As C, p1 As Integer, p2 As Integer)"
+        p1 = c1.P1
+        p2 = If(c1, c2).P1
+    End Sub
+End Class
+]]>.Value
+
+            Dim expectedFlowGraph = <![CDATA[
+Block[B0] - Entry
+    Statements (0)
+    Next (Regular) Block[B1]
+Block[B1] - Block
+    Predecessors: [B0]
+    Statements (2)
+        IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'p1 = c1.P1')
+          Expression: 
+            ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32, IsImplicit) (Syntax: 'p1 = c1.P1')
+              Left: 
+                IParameterReferenceOperation: p1 (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'p1')
+              Right: 
+                IPropertyReferenceOperation: ReadOnly Property C.P1 As System.Int32 (Static) (OperationKind.PropertyReference, Type: System.Int32) (Syntax: 'c1.P1')
+                  Instance Receiver: 
+                    null
+
+        IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'p2 = If(c1, c2).P1')
+          Expression: 
+            ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32, IsImplicit) (Syntax: 'p2 = If(c1, c2).P1')
+              Left: 
+                IParameterReferenceOperation: p2 (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'p2')
+              Right: 
+                IPropertyReferenceOperation: ReadOnly Property C.P1 As System.Int32 (Static) (OperationKind.PropertyReference, Type: System.Int32) (Syntax: 'If(c1, c2).P1')
+                  Instance Receiver: 
+                    null
+
+    Next (Regular) Block[B2]
+Block[B2] - Exit
+    Predecessors: [B1]
+    Statements (0)
+]]>.Value
+
+            Dim expectedDiagnostics = <![CDATA[
+BC42025: Access of shared member, constant member, enum member or nested type through an instance; qualifying expression will not be evaluated.
+        p1 = c1.P1
+             ~~~~~
+BC42025: Access of shared member, constant member, enum member or nested type through an instance; qualifying expression will not be evaluated.
+        p2 = If(c1, c2).P1
+             ~~~~~~~~~~~~~
+]]>.Value
+
+            VerifyFlowGraphAndDiagnosticsForTest(Of MethodBlockSyntax)(source, expectedFlowGraph, expectedDiagnostics)
+        End Sub
+
+        <CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)>
+        <Fact>
         Public Sub PropertyReference_ControlFlowInArgument()
             Dim source = <![CDATA[
 Imports System

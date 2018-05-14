@@ -268,5 +268,67 @@ Block[B5] - Exit
 
             VerifyFlowGraphAndDiagnosticsForTest(Of MethodBlockSyntax)(source, expectedFlowGraph, expectedDiagnostics)
         End Sub
+
+        <CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)>
+        <Fact>
+        Public Sub EventReference_ControlFlowInReceiver_StaticEvent()
+            Dim source = <![CDATA[
+Option Strict On
+Imports System
+
+Class C1
+    Public Shared Event Event1 As EventHandler
+
+    Public Sub M1(c As C1, c2 As C1, handler1 As EventHandler, handler2 As EventHandler) 'BIND:"Public Sub M1(c As C1, c2 As C1, handler1 As EventHandler, handler2 As EventHandler)"
+        AddHandler c.Event1, handler1
+        AddHandler If(c, c2).Event1, handler2
+    End Sub
+End Class
+]]>.Value
+
+            Dim expectedFlowGraph = <![CDATA[
+Block[B0] - Entry
+    Statements (0)
+    Next (Regular) Block[B1]
+Block[B1] - Block
+    Predecessors: [B0]
+    Statements (2)
+        IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'AddHandler  ... 1, handler1')
+          Expression: 
+            IEventAssignmentOperation (EventAdd) (OperationKind.EventAssignment, Type: null, IsImplicit) (Syntax: 'AddHandler  ... 1, handler1')
+              Event Reference: 
+                IEventReferenceOperation: Event C1.Event1 As System.EventHandler (Static) (OperationKind.EventReference, Type: System.EventHandler) (Syntax: 'c.Event1')
+                  Instance Receiver: 
+                    null
+              Handler: 
+                IParameterReferenceOperation: handler1 (OperationKind.ParameterReference, Type: System.EventHandler) (Syntax: 'handler1')
+
+        IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'AddHandler  ... 1, handler2')
+          Expression: 
+            IEventAssignmentOperation (EventAdd) (OperationKind.EventAssignment, Type: null, IsImplicit) (Syntax: 'AddHandler  ... 1, handler2')
+              Event Reference: 
+                IEventReferenceOperation: Event C1.Event1 As System.EventHandler (Static) (OperationKind.EventReference, Type: System.EventHandler) (Syntax: 'If(c, c2).Event1')
+                  Instance Receiver: 
+                    null
+              Handler: 
+                IParameterReferenceOperation: handler2 (OperationKind.ParameterReference, Type: System.EventHandler) (Syntax: 'handler2')
+
+    Next (Regular) Block[B2]
+Block[B2] - Exit
+    Predecessors: [B1]
+    Statements (0)
+]]>.Value
+
+            Dim expectedDiagnostics = <![CDATA[
+BC42025: Access of shared member, constant member, enum member or nested type through an instance; qualifying expression will not be evaluated.
+        AddHandler c.Event1, handler1
+                   ~~~~~~~~
+BC42025: Access of shared member, constant member, enum member or nested type through an instance; qualifying expression will not be evaluated.
+        AddHandler If(c, c2).Event1, handler2
+                   ~~~~~~~~~~~~~~~~
+]]>.Value
+
+            VerifyFlowGraphAndDiagnosticsForTest(Of MethodBlockSyntax)(source, expectedFlowGraph, expectedDiagnostics)
+        End Sub
     End Class
 End Namespace

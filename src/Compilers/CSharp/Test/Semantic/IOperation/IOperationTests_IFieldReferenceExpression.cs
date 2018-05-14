@@ -585,5 +585,64 @@ Block[B5] - Exit
 
             VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedFlowGraph, expectedDiagnostics);
         }
+
+        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+        [Fact]
+        public void FieldReference_ControlFlowInReceiver_StaticField()
+        {
+            string source = @"
+class C
+{
+    public static int i = 0;
+    void M(C c1, C c2, int p1, int p2)
+    /*<bind>*/{
+        p1 = c1.i;
+        p2 = (c1 ?? c2).i;
+    }/*</bind>*/
+}
+";
+            string expectedFlowGraph = @"
+Block[B0] - Entry
+    Statements (0)
+    Next (Regular) Block[B1]
+Block[B1] - Block
+    Predecessors: [B0]
+    Statements (2)
+        IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null, IsInvalid) (Syntax: 'p1 = c1.i;')
+          Expression: 
+            ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32, IsInvalid) (Syntax: 'p1 = c1.i')
+              Left: 
+                IParameterReferenceOperation: p1 (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'p1')
+              Right: 
+                IFieldReferenceOperation: System.Int32 C.i (Static) (OperationKind.FieldReference, Type: System.Int32, IsInvalid) (Syntax: 'c1.i')
+                  Instance Receiver: 
+                    null
+
+        IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null, IsInvalid) (Syntax: 'p2 = (c1 ?? c2).i;')
+          Expression: 
+            ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32, IsInvalid) (Syntax: 'p2 = (c1 ?? c2).i')
+              Left: 
+                IParameterReferenceOperation: p2 (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'p2')
+              Right: 
+                IFieldReferenceOperation: System.Int32 C.i (Static) (OperationKind.FieldReference, Type: System.Int32, IsInvalid) (Syntax: '(c1 ?? c2).i')
+                  Instance Receiver: 
+                    null
+
+    Next (Regular) Block[B2]
+Block[B2] - Exit
+    Predecessors: [B1]
+    Statements (0)
+";
+            var expectedDiagnostics = new DiagnosticDescription[] {
+                // file.cs(7,14): error CS0176: Member 'C.i' cannot be accessed with an instance reference; qualify it with a type name instead
+                //         p1 = c1.i;
+                Diagnostic(ErrorCode.ERR_ObjectProhibited, "c1.i").WithArguments("C.i").WithLocation(7, 14),
+                // file.cs(8,14): error CS0176: Member 'C.i' cannot be accessed with an instance reference; qualify it with a type name instead
+                //         p2 = (c1 ?? c2).i;
+                Diagnostic(ErrorCode.ERR_ObjectProhibited, "(c1 ?? c2).i").WithArguments("C.i").WithLocation(8, 14)
+            };
+
+            VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedFlowGraph, expectedDiagnostics);
+        }
     }
 }

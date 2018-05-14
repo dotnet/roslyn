@@ -510,6 +510,65 @@ Block[B5] - Exit
 
         [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
         [Fact]
+        public void PropertyReference_ControlFlowInReceiver_StaticProperty()
+        {
+            string source = @"
+class C
+{
+    public static int P1 => 0;
+    void M(C c1, C c2, int p1, int p2)
+    /*<bind>*/{
+        p1 = c1.P1;
+        p2 = (c1 ?? c2).P1;
+    }/*</bind>*/
+}
+";
+            string expectedFlowGraph = @"
+Block[B0] - Entry
+    Statements (0)
+    Next (Regular) Block[B1]
+Block[B1] - Block
+    Predecessors: [B0]
+    Statements (2)
+        IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null, IsInvalid) (Syntax: 'p1 = c1.P1;')
+          Expression: 
+            ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32, IsInvalid) (Syntax: 'p1 = c1.P1')
+              Left: 
+                IParameterReferenceOperation: p1 (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'p1')
+              Right: 
+                IPropertyReferenceOperation: System.Int32 C.P1 { get; } (Static) (OperationKind.PropertyReference, Type: System.Int32, IsInvalid) (Syntax: 'c1.P1')
+                  Instance Receiver: 
+                    null
+
+        IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null, IsInvalid) (Syntax: 'p2 = (c1 ?? c2).P1;')
+          Expression: 
+            ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32, IsInvalid) (Syntax: 'p2 = (c1 ?? c2).P1')
+              Left: 
+                IParameterReferenceOperation: p2 (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'p2')
+              Right: 
+                IPropertyReferenceOperation: System.Int32 C.P1 { get; } (Static) (OperationKind.PropertyReference, Type: System.Int32, IsInvalid) (Syntax: '(c1 ?? c2).P1')
+                  Instance Receiver: 
+                    null
+
+    Next (Regular) Block[B2]
+Block[B2] - Exit
+    Predecessors: [B1]
+    Statements (0)
+";
+            var expectedDiagnostics = new DiagnosticDescription[] {
+                // file.cs(7,14): error CS0176: Member 'C.P1' cannot be accessed with an instance reference; qualify it with a type name instead
+                //         p1 = c1.P1;
+                Diagnostic(ErrorCode.ERR_ObjectProhibited, "c1.P1").WithArguments("C.P1").WithLocation(7, 14),
+                // file.cs(8,14): error CS0176: Member 'C.P1' cannot be accessed with an instance reference; qualify it with a type name instead
+                //         p2 = (c1 ?? c2).P1;
+                Diagnostic(ErrorCode.ERR_ObjectProhibited, "(c1 ?? c2).P1").WithArguments("C.P1").WithLocation(8, 14)
+            };
+
+            VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedFlowGraph, expectedDiagnostics);
+        }
+
+        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+        [Fact]
         public void PropertyReference_ControlFlowInArgument()
         {
             string source = @"

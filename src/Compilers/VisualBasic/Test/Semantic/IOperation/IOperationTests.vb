@@ -1067,5 +1067,72 @@ Block[B5] - Exit
 
             VerifyFlowGraphAndDiagnosticsForTest(Of MethodBlockSyntax)(source, expectedFlowGraph, expectedDiagnostics)
         End Sub
+
+        <CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)>
+        <Fact>
+        Public Sub MethodReference_ControlFlowInReceiver_StaticMethod()
+            Dim source = <![CDATA[
+Imports System
+
+Friend Class C
+    Public Shared Function M1() As Integer
+        Return 0
+    End Function
+
+    Public Sub M(c1 As C, c2 As C, m1 As Func(Of Integer), m2 As Func(Of Integer))'BIND:"Public Sub M(c1 As C, c2 As C, m1 As Func(Of Integer), m2 As Func(Of Integer))"
+        m1 = AddressOf c1.M1
+        m2 = AddressOf If(c1, c2).M1
+    End Sub
+End Class
+]]>.Value
+
+            Dim expectedFlowGraph = <![CDATA[
+Block[B0] - Entry
+    Statements (0)
+    Next (Regular) Block[B1]
+Block[B1] - Block
+    Predecessors: [B0]
+    Statements (2)
+        IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'm1 = AddressOf c1.M1')
+          Expression: 
+            ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Func(Of System.Int32), IsImplicit) (Syntax: 'm1 = AddressOf c1.M1')
+              Left: 
+                IParameterReferenceOperation: m1 (OperationKind.ParameterReference, Type: System.Func(Of System.Int32)) (Syntax: 'm1')
+              Right: 
+                IDelegateCreationOperation (OperationKind.DelegateCreation, Type: System.Func(Of System.Int32), IsImplicit) (Syntax: 'AddressOf c1.M1')
+                  Target: 
+                    IMethodReferenceOperation: Function C.M1() As System.Int32 (Static) (OperationKind.MethodReference, Type: null) (Syntax: 'AddressOf c1.M1')
+                      Instance Receiver: 
+                        null
+
+        IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'm2 = Addres ... (c1, c2).M1')
+          Expression: 
+            ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Func(Of System.Int32), IsImplicit) (Syntax: 'm2 = Addres ... (c1, c2).M1')
+              Left: 
+                IParameterReferenceOperation: m2 (OperationKind.ParameterReference, Type: System.Func(Of System.Int32)) (Syntax: 'm2')
+              Right: 
+                IDelegateCreationOperation (OperationKind.DelegateCreation, Type: System.Func(Of System.Int32), IsImplicit) (Syntax: 'AddressOf If(c1, c2).M1')
+                  Target: 
+                    IMethodReferenceOperation: Function C.M1() As System.Int32 (Static) (OperationKind.MethodReference, Type: null) (Syntax: 'AddressOf If(c1, c2).M1')
+                      Instance Receiver: 
+                        null
+
+    Next (Regular) Block[B2]
+Block[B2] - Exit
+    Predecessors: [B1]
+    Statements (0)
+]]>.Value
+
+            Dim expectedDiagnostics = <![CDATA[
+BC42025: Access of shared member, constant member, enum member or nested type through an instance; qualifying expression will not be evaluated.
+        m1 = AddressOf c1.M1
+             ~~~~~~~~~~~~~~~
+BC42025: Access of shared member, constant member, enum member or nested type through an instance; qualifying expression will not be evaluated.
+        m2 = AddressOf If(c1, c2).M1
+             ~~~~~~~~~~~~~~~~~~~~~~~
+]]>.Value
+
+            VerifyFlowGraphAndDiagnosticsForTest(Of MethodBlockSyntax)(source, expectedFlowGraph, expectedDiagnostics)
+        End Sub
     End Class
 End Namespace

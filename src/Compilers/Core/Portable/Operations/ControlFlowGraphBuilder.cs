@@ -4022,7 +4022,8 @@ oneMoreTime:
 
         public override IOperation VisitInvocation(IInvocationOperation operation, int? captureIdForResult)
         {
-            (IOperation visitedInstance, ImmutableArray<IArgumentOperation> visitedArguments) = VisitInstanceWithArguments(operation.Instance, operation.Arguments);
+            IOperation instance = operation.TargetMethod.IsStatic ? null : operation.Instance;
+            (IOperation visitedInstance, ImmutableArray<IArgumentOperation> visitedArguments) = VisitInstanceWithArguments(instance, operation.Arguments);
             return new InvocationExpression(operation.TargetMethod, visitedInstance, operation.IsVirtual, visitedArguments, semanticModel: null, operation.Syntax,
                                             operation.Type, operation.ConstantValue, IsImplicit(operation));
         }
@@ -4031,7 +4032,6 @@ oneMoreTime:
         {
             if (instance != null)
             {
-                // PROTOTYPE(dataflow): drop instance for a static method
                 _evalStack.Push(Visit(instance));
             }
 
@@ -4559,28 +4559,30 @@ oneMoreTime:
 
         public override IOperation VisitFieldReference(IFieldReferenceOperation operation, int? captureIdForResult)
         {
-            // PROTOTYPE(dataflow): drop instance for a static field
-            return new FieldReferenceExpression(operation.Field, operation.IsDeclaration, Visit(operation.Instance), semanticModel: null,
+            IOperation visitedInstance = operation.Field.IsStatic ? null : Visit(operation.Instance);
+            return new FieldReferenceExpression(operation.Field, operation.IsDeclaration, visitedInstance, semanticModel: null,
                                                 operation.Syntax, operation.Type, operation.ConstantValue, IsImplicit(operation));
         }
 
         public override IOperation VisitMethodReference(IMethodReferenceOperation operation, int? captureIdForResult)
         {
-            // PROTOTYPE(dataflow): drop instance for a static method
-            return new MethodReferenceExpression(operation.Method, operation.IsVirtual, Visit(operation.Instance), semanticModel: null,
+            IOperation visitedInstance = operation.Method.IsStatic ? null : Visit(operation.Instance);
+            return new MethodReferenceExpression(operation.Method, operation.IsVirtual, visitedInstance, semanticModel: null,
                                                  operation.Syntax, operation.Type, operation.ConstantValue, IsImplicit(operation));
         }
 
         public override IOperation VisitPropertyReference(IPropertyReferenceOperation operation, int? captureIdForResult)
         {
-            (IOperation visitedInstance, ImmutableArray<IArgumentOperation> visitedArguments) = VisitInstanceWithArguments(operation.Instance, operation.Arguments);
+            IOperation instance = operation.Property.IsStatic ? null : operation.Instance;
+            (IOperation visitedInstance, ImmutableArray<IArgumentOperation> visitedArguments) = VisitInstanceWithArguments(instance, operation.Arguments);
             return new PropertyReferenceExpression(operation.Property, visitedInstance, visitedArguments, semanticModel: null,
                                                    operation.Syntax, operation.Type, operation.ConstantValue, IsImplicit(operation));
         }
 
         public override IOperation VisitEventReference(IEventReferenceOperation operation, int? captureIdForResult)
         {
-            return new EventReferenceExpression(operation.Event, Visit(operation.Instance), semanticModel: null,
+            IOperation visitedInstance = operation.Event.IsStatic ? null : Visit(operation.Instance);
+            return new EventReferenceExpression(operation.Event, visitedInstance, semanticModel: null,
                                                 operation.Syntax, operation.Type, operation.ConstantValue, IsImplicit(operation));
         }
 
