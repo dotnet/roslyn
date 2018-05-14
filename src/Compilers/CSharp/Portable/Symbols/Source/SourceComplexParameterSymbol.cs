@@ -134,6 +134,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 (bool memberHasAny, AttributeAnnotations annotations) = TryGetExtraAttributeAnnotations();
                 if (memberHasAny)
                 {
+                    // PROTOTYPE(NullableReferenceTypes): Make sure this is covered by test
                     return annotations;
                 }
 

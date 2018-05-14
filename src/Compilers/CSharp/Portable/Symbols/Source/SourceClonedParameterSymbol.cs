@@ -153,6 +153,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal override AttributeAnnotations FlowAnalysisAnnotations
         {
+            // PROTOTYPE(NullableReferenceTypes): Make sure this is covered by test
             get { return _originalParam.FlowAnalysisAnnotations; }
         }
 

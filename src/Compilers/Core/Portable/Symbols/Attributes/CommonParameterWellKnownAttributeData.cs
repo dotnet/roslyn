@@ -110,6 +110,7 @@ namespace Microsoft.CodeAnalysis
         }
         #endregion
 
+        // PROTOTYPE(NullableReferenceTypes): Consider moving the attribute for nullability to C#-specific type
         private bool _hasNotNullWhenFalseAttribute;
         public bool HasNotNullWhenFalseAttribute
         {

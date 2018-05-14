@@ -307,7 +307,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
             IEnumerable<MetadataReference> references = null,
             CSharpCompilationOptions options = null,
             CSharpParseOptions parseOptions = null,
-            bool appendDefaultHeader = true) => CreateCompilationWithILAndMscorlib40(source, ilSource, TargetFramework.Standard, references, options, parseOptions, appendDefaultHeader);
+            bool appendDefaultHeader = true)
+        {
+            return CreateCompilationWithILAndMscorlib40(source, ilSource, TargetFramework.Standard, references, options, parseOptions, appendDefaultHeader);
+        }
 
         public static CSharpCompilation CreateCompilationWithILAndMscorlib40(
             CSharpTestSource source,
