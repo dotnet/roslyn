@@ -2361,7 +2361,7 @@ oneMoreTime:
             Debug.Assert(_currentStatement == operation);
             return null;
         }
-        
+
         public override IOperation VisitThrow(IThrowOperation operation, int? captureIdForResult)
         {
             bool isStatement = (_currentStatement == operation);
