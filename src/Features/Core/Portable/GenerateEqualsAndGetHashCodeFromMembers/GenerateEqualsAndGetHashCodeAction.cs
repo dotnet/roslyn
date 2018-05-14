@@ -335,8 +335,10 @@ namespace Microsoft.CodeAnalysis.GenerateEqualsAndGetHashCodeFromMembers
                 else
                 {
                     var compilation = await _document.Project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
+                    var tree = await _document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
+
                     return _document.GetLanguageService<SyntaxGenerator>().CreateEqualsMethod(
-                        compilation, _containingType, _selectedMembers,
+                        compilation, tree.Options, _containingType, _selectedMembers,
                         s_specializedFormattingAnnotation, cancellationToken);
                 }
             }
@@ -352,20 +354,40 @@ namespace Microsoft.CodeAnalysis.GenerateEqualsAndGetHashCodeFromMembers
             private async Task<IMethodSymbol> ImplementEqualsThroughIEqutableEqualsAsync(CancellationToken cancellationToken)
             {
                 var compilation = await _document.Project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
+                var tree = await _document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
                 var generator = _document.GetLanguageService<SyntaxGenerator>();
 
                 var expressions = ArrayBuilder<SyntaxNode>.GetInstance();
                 var objName = generator.IdentifierName("obj");
+
                 if (_containingType.IsValueType)
                 {
-                    // return obj is T && this.Equals((T)obj);
-                    expressions.Add(generator.IsTypeExpression(objName, _containingType));
-                    expressions.Add(
-                        generator.InvocationExpression(
-                            generator.MemberAccessExpression(
-                                generator.ThisExpression(),
-                                generator.IdentifierName(nameof(Equals))),
-                            generator.CastExpression(_containingType, objName)));
+                    if (generator.SupportsPatterns(tree.Options))
+                    {
+                        // return obj is T t && this.Equals(t);
+                        var localName = ICodeDefinitionFactoryExtensions.GetLocalName(_containingType);
+
+                        expressions.Add(
+                            generator.IsPatternExpression(objName,
+                                generator.DeclarationPattern(_containingType, localName)));
+                        expressions.Add(
+                            generator.InvocationExpression(
+                                generator.MemberAccessExpression(
+                                    generator.ThisExpression(),
+                                    generator.IdentifierName(nameof(Equals))),
+                                generator.IdentifierName(localName)));
+                    }
+                    else
+                    {
+                        // return obj is T && this.Equals((T)obj);
+                        expressions.Add(generator.IsTypeExpression(objName, _containingType));
+                        expressions.Add(
+                            generator.InvocationExpression(
+                                generator.MemberAccessExpression(
+                                    generator.ThisExpression(),
+                                    generator.IdentifierName(nameof(Equals))),
+                                generator.CastExpression(_containingType, objName)));
+                    }
                 }
                 else
                 {
@@ -382,8 +404,7 @@ namespace Microsoft.CodeAnalysis.GenerateEqualsAndGetHashCodeFromMembers
                     expressions.Aggregate(generator.LogicalAndExpression));
 
                 expressions.Free();
-                return compilation.CreateEqualsMethod(
-                    ImmutableArray.Create(statement));
+                return compilation.CreateEqualsMethod(ImmutableArray.Create(statement));
             }
 
             private async Task<IMethodSymbol> CreateIEqutableEqualsMethodAsync(CancellationToken cancellationToken)
