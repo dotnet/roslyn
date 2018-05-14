@@ -387,6 +387,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal abstract AttributeAnnotations FlowAnalysisAnnotations { get; }
 
+        /// <summary>
+        /// If there are any annotations on the member (not just that parameter), then memberHasExtra is true. The purpose is to ensure
+        /// that if some annotations are present on the member, then annotations win over the attributes on the member in all positions.
+        /// That could mean removing an attribute.
+        /// </summary>
         protected (bool memberHasExtra, AttributeAnnotations annotations) TryGetExtraAttributeAnnotations()
         {
             ParameterSymbol originalParameter = this.OriginalDefinition;

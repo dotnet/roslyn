@@ -1863,6 +1863,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 else if (notNullWhenFalse)
                 {
                     // We'll use the WhenTrue/False states to represent whether the invocation returns true/false
+                    // PROTOTYPE(NullableReferenceTypes): Consider splitting for the entire method, not just once the first annotated argument is encountered
                     Split();
 
                     // The variable in this slot is not null when the method returns false
