@@ -324,7 +324,7 @@ namespace BuildBoss
                 return false;
             }
 
-            var allGood = false;
+            var allGood = true;
             var regex = new Regex(@"^\s*file source=(.*) vs.file.*$", RegexOptions.IgnoreCase);
             foreach (var line in allLines)
             {
