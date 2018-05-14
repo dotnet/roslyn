@@ -6526,7 +6526,11 @@ public class C
 }
 " + EnsuresNotNullAttributeDefinition, parseOptions: TestOptions.Regular8);
 
-            c.VerifyDiagnostics();
+            c.VerifyDiagnostics(
+                // (8,9): warning CS8602: Possible dereference of a null reference.
+                //         u.ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "u").WithLocation(8, 9)
+                );
         }
 
         [Fact]
@@ -6802,9 +6806,9 @@ public class C
 
             // PROTOTYPE(NullableReferenceTypes): Should we be able to trace that s2 was assigned a non-null value?
             c.VerifyDiagnostics(
-                // (9,9): warning CS8602: Possible dereference of a null reference.
+                // (8,9): warning CS8602: Possible dereference of a null reference.
                 //         s2.ToString(); // warn
-                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "s2").WithLocation(9, 9)
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "s2").WithLocation(8, 9)
                 );
         }
 
