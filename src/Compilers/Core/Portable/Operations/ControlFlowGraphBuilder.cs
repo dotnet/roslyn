@@ -2356,6 +2356,12 @@ oneMoreTime:
             return null;
         }
 
+        public override IOperation VisitEmpty(IEmptyOperation operation, int? captureIdForResult)
+        {
+            Debug.Assert(_currentStatement == operation);
+            return null;
+        }
+        
         public override IOperation VisitThrow(IThrowOperation operation, int? captureIdForResult)
         {
             bool isStatement = (_currentStatement == operation);
@@ -4565,12 +4571,6 @@ oneMoreTime:
             return new TypeOfExpression(operation.TypeOperand, semanticModel: null, operation.Syntax, operation.Type, operation.ConstantValue, IsImplicit(operation));
         }
 
-        public override IOperation VisitEmpty(IEmptyOperation operation, int? captureIdForResult)
-        {
-            Debug.Assert(_currentStatement == operation);
-            return null;
-        }
-        
         public override IOperation VisitParenthesized(IParenthesizedOperation operation, int? captureIdForResult)
         {
             return new ParenthesizedExpression(Visit(operation.Operand), semanticModel: null, operation.Syntax, operation.Type, operation.ConstantValue, IsImplicit(operation));
