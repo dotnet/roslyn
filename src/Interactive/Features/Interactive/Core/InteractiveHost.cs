@@ -240,16 +240,8 @@ namespace Microsoft.CodeAnalysis.Interactive
         public void Dispose()
         {
             DisposeChannel();
-            lock(_outputGuard)
-            {
-                _output = TextWriter.Null;
-            }
-
-            lock(_errorOutputGuard)
-            {
-                _errorOutput = TextWriter.Null;
-            }
-
+            SetOutput(TextWriter.Null);
+            SetErrorOutput(TextWriter.Null);
             DisposeRemoteService(disposing: true);
             GC.SuppressFinalize(this);
         }
@@ -279,8 +271,11 @@ namespace Microsoft.CodeAnalysis.Interactive
                 throw new ArgumentNullException(nameof(value));
             }
 
-            var oldOutput = Interlocked.Exchange(ref _output, value);
-            oldOutput.Flush();
+            lock(_outputGuard)
+            {
+                _output.Flush();
+                _output = value;
+            }
         }
 
         public void SetErrorOutput(TextWriter value)
@@ -290,8 +285,11 @@ namespace Microsoft.CodeAnalysis.Interactive
                 throw new ArgumentNullException(nameof(value));
             }
 
-            var oldOutput = Interlocked.Exchange(ref _errorOutput, value);
-            oldOutput.Flush();
+            lock(_errorOutputGuard)
+            {
+                _errorOutput.Flush();
+                _errorOutput = value;
+            }
         }
 
         internal void OnOutputReceived(bool error, char[] buffer, int count)
