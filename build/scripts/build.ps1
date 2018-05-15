@@ -376,10 +376,10 @@ function Build-Installer () {
     Copy-Item -Path $vsixExpInstallerExe -Destination $vsixExpInstallerExeDestination
 
     ## Copying VsWhere.exe
-    $vswhere = Join-Path (Ensure-BasicTool "vswhere") "tools\vswhere.exe"
+    $vswhere = Join-Path (Ensure-BasicTool "vswhere") "tools\*"
     $vswhereDestination = Join-Path $intermidateDirectory "tools\vswhere"
     Create-Directory $vswhereDestination
-    Copy-Item -Path $vswhere -Destination $vswhereDestination
+    Copy-Item $vswhere -Destination $vswhereDestination -Recurse
 
     ## Copying scripts
     $installerScriptsFolder = Join-Path $repoDir "src\Setup\InstallerScripts\*.bat"
