@@ -4028,7 +4028,7 @@ oneMoreTime:
                                             operation.Type, operation.ConstantValue, IsImplicit(operation));
         }
 
-        private (IOperation, ImmutableArray<IArgumentOperation>) VisitInstanceWithArguments(IOperation instance, ImmutableArray<IArgumentOperation> arguments)
+        private (IOperation visitedInstance, ImmutableArray<IArgumentOperation> visitedArguments) VisitInstanceWithArguments(IOperation instance, ImmutableArray<IArgumentOperation> arguments)
         {
             if (instance != null)
             {
