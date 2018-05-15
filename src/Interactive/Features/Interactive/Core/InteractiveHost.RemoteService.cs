@@ -74,11 +74,10 @@ namespace Microsoft.CodeAnalysis.Interactive
                             _processExitHandlerStatus = ProcessExitHandlerStatus.Handled;
                             // Should set _processExitHandlerStatus before calling OnProcessExited to avoid deadlocks.
                             // Calling the host should be within the lock to prevent its disposing during the execution.
-                            _host.ReportProcessExited(Process);
                         }
                     }
 
-                    await _host.TryGetOrCreateRemoteServiceAsync(processPendingOutput: true).ConfigureAwait(false);
+                    await (_host?.OnProcessExited(Process)).ConfigureAwait(false);
                 }
                 catch (Exception e) when (FatalError.Report(e))
                 {
@@ -116,6 +115,7 @@ namespace Microsoft.CodeAnalysis.Interactive
                 }
             }
 
+            // Dispose may called anytime.
             internal void Dispose(bool joinThreads)
             {
                 // There can be a call from host initiated from OnProcessExit. 
