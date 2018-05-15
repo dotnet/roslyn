@@ -910,7 +910,6 @@ namespace N1
         [Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)]
         public async Task SimplifyGenericTypeName3()
         {
-            var fixAllActionId = IDEDiagnosticIds.SimplifyMemberAccessDiagnosticId;
             await TestInRegularAndScriptAsync(
 @"using System;
 
@@ -929,7 +928,7 @@ namespace N1
     {
         Action<Action<Action<EventArgs>, Action<Action<EventArgs, Action<EventArgs>, Action<Action<Action<Action<EventArgs>, Action<EventArgs>>>>>>>> a;
     }
-}", fixAllActionEquivalenceKey: fixAllActionId);
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
