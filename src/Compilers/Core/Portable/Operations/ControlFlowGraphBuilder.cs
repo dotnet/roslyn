@@ -4451,6 +4451,76 @@ oneMoreTime:
             throw ExceptionUtilities.Unreachable;
         }
 
+        public override IOperation VisitArrayCreation(IArrayCreationOperation operation, int? captureIdForResult)
+        {
+            // We have couple of options on how to rewrite an array creation with an initializer:
+            //       1) Retain the original tree shape so the visited IArrayCreationOperation still has an IArrayInitializerOperation child node.
+            //       2) Lower the IArrayCreationOperation so it always has a null initializer, followed by explicit assignments
+            //          of the form "IArrayElementReference = value" for the array initializer values.
+            //          There will be no IArrayInitializerOperation in the tree with approach.
+            //
+            //  We are going ahead with approach #1 for couple of reasons:
+            //  1. Simplicity: The implementation is much simpler, and has a lot lower risk associated with it.
+            //  2. Lack of array instance access in the initializer: Unlike the object/collection initializer scenario,
+            //     where the initializer can access the instance being initialized, array initializer does not have access
+            //     to the array instance being initialized, and hence it does not matter if the array allocation is done
+            //     before visiting the initializers or not.
+            //
+            //  In future, based on the customer feedback, we can consider switching to approach #2 and lower the initializer into assignment(s).
+
+            PushArray(operation.DimensionSizes);
+            IArrayInitializerOperation visitedInitializer = Visit(operation.Initializer);
+            ImmutableArray<IOperation> visitedDimensions = PopArray(operation.DimensionSizes);
+            return new ArrayCreationExpression(visitedDimensions, visitedInitializer, semanticModel: null,
+                                               operation.Syntax, operation.Type, operation.ConstantValue, IsImplicit(operation));
+        }
+
+        public override IOperation VisitArrayInitializer(IArrayInitializerOperation operation, int? captureIdForResult)
+        {
+            VisitAndPushArrayInitializerValues(operation);
+            return PopAndAssembleArrayInitializerValues(operation);
+        }
+
+        private void VisitAndPushArrayInitializerValues(IArrayInitializerOperation operation)
+        {
+            foreach (IOperation elementValue in operation.ElementValues)
+            {
+                // We need to retain the tree shape for nested array initializer.
+                if (elementValue.Kind == OperationKind.ArrayInitializer)
+                {
+                    VisitAndPushArrayInitializerValues((IArrayInitializerOperation)elementValue);
+                }
+                else
+                {
+                    _evalStack.Push(Visit(elementValue));
+                }
+            }
+        }
+
+        private IArrayInitializerOperation PopAndAssembleArrayInitializerValues(IArrayInitializerOperation operation)
+        {
+            var builder = ArrayBuilder<IOperation>.GetInstance(operation.ElementValues.Length);
+            for (int i = operation.ElementValues.Length - 1; i >= 0; i--)
+            {
+                IOperation elementValue = operation.ElementValues[i];
+
+                IOperation visitedElementValue;
+                if (elementValue.Kind == OperationKind.ArrayInitializer)
+                {
+                    visitedElementValue = PopAndAssembleArrayInitializerValues((IArrayInitializerOperation)elementValue);
+                }
+                else
+                {
+                    visitedElementValue = _evalStack.Pop();
+                }
+
+                builder.Add(visitedElementValue);
+            }
+
+            builder.ReverseContents();
+            return new ArrayInitializer(builder.ToImmutableAndFree(), semanticModel: null, operation.Syntax, operation.ConstantValue, IsImplicit(operation));
+        }
+
         public override IOperation VisitInstanceReference(IInstanceReferenceOperation operation, int? captureIdForResult)
         {
             if (operation.ReferenceKind == InstanceReferenceKind.ImplicitReceiver)
@@ -5003,16 +5073,6 @@ oneMoreTime:
         public override IOperation VisitCollectionElementInitializer(ICollectionElementInitializerOperation operation, int? captureIdForResult)
         {
             return new CollectionElementInitializerExpression(operation.AddMethod, operation.IsDynamic, VisitArray(operation.Arguments), semanticModel: null, operation.Syntax, operation.Type, operation.ConstantValue, IsImplicit(operation));
-        }
-
-        public override IOperation VisitArrayCreation(IArrayCreationOperation operation, int? captureIdForResult)
-        {
-            return new ArrayCreationExpression(VisitArray(operation.DimensionSizes), Visit(operation.Initializer), semanticModel: null, operation.Syntax, operation.Type, operation.ConstantValue, IsImplicit(operation));
-        }
-
-        public override IOperation VisitArrayInitializer(IArrayInitializerOperation operation, int? captureIdForResult)
-        {
-            return new ArrayInitializer(VisitArray(operation.ElementValues), semanticModel: null, operation.Syntax, operation.ConstantValue, IsImplicit(operation));
         }
 
         public override IOperation VisitIncrementOrDecrement(IIncrementOrDecrementOperation operation, int? captureIdForResult)

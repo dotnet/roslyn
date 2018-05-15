@@ -550,7 +550,6 @@ endRegion:
                 case OperationKind.FieldInitializer:
                 case OperationKind.PropertyInitializer:
                 case OperationKind.ParameterInitializer:
-                case OperationKind.ArrayInitializer:
                 case OperationKind.CatchClause:
                 case OperationKind.SwitchCase:
                 case OperationKind.CaseClause:
@@ -598,6 +597,7 @@ endRegion:
                 case OperationKind.ObjectCreation:
                 case OperationKind.TypeParameterObjectCreation:
                 case OperationKind.ArrayCreation:
+                case OperationKind.ArrayInitializer:
                 case OperationKind.IsType:
                 case OperationKind.Await:
                 case OperationKind.SimpleAssignment:
