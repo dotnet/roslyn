@@ -640,7 +640,7 @@ namespace Microsoft.CodeAnalysis.Text
                     {
                         changes = from c in changes
                                   where !c.Span.IsEmpty || c.NewText?.Length > 0
-                                  orderby c.Span.Start, c.Span.End
+                                  orderby c.Span
                                   select c;
                         return WithChanges(changes);
                     }
