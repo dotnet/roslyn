@@ -522,5 +522,98 @@ True";
   IL_001b:  ret
 }");
         }
+
+        [Fact, WorkItem(26859, "https://github.com/dotnet/roslyn/issues/26859")]
+        public void MatchUnconstrainedTypeParameter01()
+        {
+            var source =
+@"using System;
+public class C
+{
+    public static void Main()
+    {
+        {
+            var t = new Generic<bool> { Value = true };
+            var f = new Generic<bool> { Value = false };
+
+            if (!(t.Value is bool tv))
+                throw new Exception(""t.Value is no bool"");
+
+            if (!(f.Value is bool fv))
+                throw new Exception(""f.Value is no bool"");
+
+            CheckTypeWithIs(t);
+            CheckTypeWithIs(f);
+
+            CheckTypeWithIsAndAssignment(t);
+            CheckTypeWithIsAndAssignment(f);
+        }
+        {
+            var t = new Generic<int> { Value = 1 };
+            var f = new Generic<int> { Value = 0 };
+
+            if (!(t.Value is int tv))
+                throw new Exception(""t.Value is no int"");
+
+            if (!(f.Value is int fv))
+                throw new Exception(""f.Value is no int"");
+
+            CheckTypeWithIs(t);
+            CheckTypeWithIs(f);
+
+            CheckTypeWithIsAndAssignment(t);
+            CheckTypeWithIsAndAssignment(f);
+        }
+    }
+
+    private static void CheckTypeWithIs<T>(Generic<T> g)
+    {
+        if (!(g.Value is T))
+            throw new Exception($""g.Value({ g.Value}) is no T"");
+    }
+
+    private static void CheckTypeWithIsAndAssignment<T>(Generic<T> g)
+    {
+        if (!(g.Value is T gv))   // the gv at the end is the only difference to the previous method
+            throw new Exception($""g.Value ({g.Value}) is no T"");
+    }
+}
+
+public class Generic<T>
+{
+    public T Value { get; set; }
+}
+";
+            var compilation = CreateCompilation(source, options: TestOptions.ReleaseExe);
+            compilation.VerifyDiagnostics();
+            var expectedOutput = @"";
+            var compVerifier = CompileAndVerify(compilation, expectedOutput: expectedOutput);
+            compVerifier.VerifyIL("C.CheckTypeWithIsAndAssignment<T>(Generic<T>)",
+@"{
+  // Code size       49 (0x31)
+  .maxstack  2
+  .locals init (T V_0, //gv
+                bool V_1)
+  IL_0000:  nop
+  IL_0001:  ldarg.0
+  IL_0002:  callvirt   ""T Generic<T>.Value.get""
+  IL_0007:  dup
+  IL_0008:  stloc.0
+  IL_0009:  box        ""T""
+  IL_000e:  ldnull
+  IL_000f:  ceq
+  IL_0011:  stloc.1
+  IL_0012:  ldloc.1
+  IL_0013:  brfalse.s  IL_0030
+  IL_0015:  ldstr      ""g.Value ({0}) is no T""
+  IL_001a:  ldarg.0
+  IL_001b:  callvirt   ""T Generic<T>.Value.get""
+  IL_0020:  box        ""T""
+  IL_0025:  call       ""string string.Format(string, object)""
+  IL_002a:  newobj     ""System.Exception..ctor(string)""
+  IL_002f:  throw
+  IL_0030:  ret
+}");
+        }
     }
 }

@@ -1298,7 +1298,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim operand = node.Operand
 
             ' CInt(Fix(number)) and the like can be simplified to just truncate the number to the integral type
-            If TypeOf operand Is BoundCall Then
+            If operand.Kind = BoundKind.Call Then
                 Dim callOperand = DirectCast(operand, BoundCall)
                 If IsFixInvocation(callOperand) Then
                     Return New BoundConversion(node.Syntax, callOperand.Arguments(0), node.ConversionKind, node.Checked, node.ExplicitCastInCode, node.Type)
@@ -1340,7 +1340,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Private Function IsFixInvocation(node As BoundCall) As Boolean
-            If node.Method.Name <> "Fix" Then
+            ' Quick test to eliminate most calls to something other that Conversion.Fix
+            If Not "Fix".Equals(node.Method.Name) Then
                 Return False
             End If
 
