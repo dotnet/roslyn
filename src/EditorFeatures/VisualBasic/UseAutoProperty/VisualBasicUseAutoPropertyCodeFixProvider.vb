@@ -32,21 +32,31 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UseAutoProperty
             Dim statement = propertyDeclaration.PropertyStatement
             If Not isWrittenToOutsideOfConstructor AndAlso Not propertyDeclaration.Accessors.Any(SyntaxKind.SetAccessorBlock) Then
                 Dim generator = SyntaxGenerator.GetGenerator(propertyDocument.Project)
-                statement = DirectCast(generator.WithModifiers(statement, DeclarationModifiers.ReadOnly), PropertyStatementSyntax)
+                statement = DirectCast(generator.WithModifiers(statement, generator.GetModifiers(propertyDeclaration).WithIsReadOnly(True)), PropertyStatementSyntax)
             End If
 
             Dim initializer = Await GetFieldInitializer(fieldSymbol, cancellationToken).ConfigureAwait(False)
-            If initializer IsNot Nothing Then
-                statement = statement.WithInitializer(SyntaxFactory.EqualsValue(initializer))
+            If initializer.equalsValue IsNot Nothing Then
+                statement = statement.WithInitializer(initializer.equalsValue)
+            End If
+
+            If initializer.asNewClause IsNot Nothing Then
+                statement = statement.WithAsClause(initializer.asNewClause)
             End If
 
             Return statement
         End Function
 
-        Private Async Function GetFieldInitializer(fieldSymbol As IFieldSymbol, cancellationToken As CancellationToken) As Task(Of ExpressionSyntax)
+        Private Async Function GetFieldInitializer(fieldSymbol As IFieldSymbol, cancellationToken As CancellationToken) As Task(Of (equalsValue As EqualsValueSyntax, asNewClause As AsNewClauseSyntax))
             Dim identifier = TryCast(Await fieldSymbol.DeclaringSyntaxReferences(0).GetSyntaxAsync(cancellationToken).ConfigureAwait(False), ModifiedIdentifierSyntax)
             Dim declarator = TryCast(identifier?.Parent, VariableDeclaratorSyntax)
-            Return declarator?.Initializer?.Value
+            Dim initializer = declarator?.Initializer
+
+            ' We are only interested in the AsClause if it's being used as an initializer:
+            '  Dim x As String -- no need to preserve the clause since it will already be the same on the property
+            '  Dim x As New Guid("...") -- need to preserve the clause since it's being used as an initializer
+            Dim asNewClause = TryCast(declarator.AsClause, AsNewClauseSyntax)
+            Return (initializer, asNewClause)
         End Function
     End Class
 End Namespace

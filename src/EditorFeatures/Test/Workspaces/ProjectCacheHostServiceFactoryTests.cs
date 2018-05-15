@@ -266,7 +266,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
                     return (TWorkspaceService)s_taskSchedulerFactory;
                 }
 
-                return default(TWorkspaceService);
+                return default;
             }
         }
     }

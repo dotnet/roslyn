@@ -114,7 +114,7 @@ class Program2
     </Project>
 </Workspace>";
 
-            await TestInRegularAndScriptAsync(input, expected, options: FrameworkTypeEverywhere, fixAllActionEquivalenceKey: PreferFrameworkTypeCodeFixProvider.DeclarationsEquivalenceKey);
+            await TestInRegularAndScriptAsync(input, expected, options: FrameworkTypeEverywhere);
         }
 
         [Fact]
@@ -222,7 +222,7 @@ class Program2
     </Project>
 </Workspace>";
 
-            await TestInRegularAndScriptAsync(input, expected, options: FrameworkTypeEverywhere, fixAllActionEquivalenceKey: PreferFrameworkTypeCodeFixProvider.DeclarationsEquivalenceKey);
+            await TestInRegularAndScriptAsync(input, expected, options: FrameworkTypeEverywhere);
         }
 
         [Fact]
@@ -330,7 +330,7 @@ class Program2
     </Project>
 </Workspace>";
 
-            await TestInRegularAndScriptAsync(input, expected, options: FrameworkTypeEverywhere, fixAllActionEquivalenceKey: PreferFrameworkTypeCodeFixProvider.DeclarationsEquivalenceKey);
+            await TestInRegularAndScriptAsync(input, expected, options: FrameworkTypeEverywhere);
         }
 
         [Fact]
@@ -473,7 +473,8 @@ class ProgramA3
         </Document>
     </Project>
 </Workspace>";
-            await TestInRegularAndScriptAsync(input, expected, options: FrameworkTypeEverywhere, fixAllActionEquivalenceKey: PreferFrameworkTypeCodeFixProvider.MemberAccessEquivalenceKey);
+
+            await TestInRegularAndScriptAsync(input, expected, options: FrameworkTypeEverywhere);
         }
     }
 }

@@ -121,7 +121,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         {
             AssertIsForeground();
 
-            this.UpdateRuleSetError(this.RuleSetFile);
+            this.UpdateRuleSetError(this.RuleSetFile?.Target);
 
             // Set options.
             this.SetOptionsCore(newCompilationOptions, newParseOptions);
