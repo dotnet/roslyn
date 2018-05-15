@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel.Composition;
 using Microsoft.CodeAnalysis.Classification;
+using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.VisualStudio.Text.Classification;
 using Roslyn.Utilities;
@@ -39,7 +40,13 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Utilities
 
         public IClassificationType GetClassificationType(string name)
         {
-            return GetClassificationTypeWorker(name) ?? GetClassificationTypeWorker(ClassificationTypeNames.Text);
+            var type = GetClassificationTypeWorker(name);
+            if (type == null)
+            {
+                FatalError.ReportWithoutCrash(new Exception($"classification type doesn't exist for {name}"));
+            }
+
+            return type ?? GetClassificationTypeWorker(ClassificationTypeNames.Text);
         }
 
         private IClassificationType GetClassificationTypeWorker(string name)
