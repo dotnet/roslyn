@@ -29,6 +29,7 @@ param (
     [switch]$packAll = $false,
     [switch]$binaryLog = $false,
     [switch]$deployExtensions = $false,
+    [switch]$launch = $false,
     [switch]$procdump = $false,
     [string]$signType = "",
     [switch]$skipBuildExtras = $false,
@@ -113,6 +114,11 @@ function Process-Arguments() {
 
     if ($testDeterminism -and ($anyUnit -or $anyVsi)) {
         Write-Host "Cannot combine special testing with any other action"
+        exit 1
+    }
+
+    if ($build -and $launch -and -not $deployExtensions) {
+        Write-Host -ForegroundColor Red "Cannot combine -build and -launch without -deployExtensions"
         exit 1
     }
 
@@ -746,6 +752,12 @@ try {
     if ($testDesktop -or $testCoreClr -or $testVsi -or $testVsiNetCore) {
         Test-XUnit
     } 
+
+    if ($launch) {
+        $devenvExe = Get-VisualStudioDir
+        $devenvExe = Join-Path $devenvExe 'Common7\IDE\devenv.exe'
+        &$devenvExe /rootSuffix RoslynDev
+    }
 
     exit 0
 }
