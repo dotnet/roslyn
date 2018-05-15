@@ -114,6 +114,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return false; }
         }
 
+        internal override AttributeAnnotations FlowAnalysisAnnotations
+        {
+            get { return AttributeAnnotations.None;  }
+        }
+
         public override int Ordinal
         {
             get { return -1; }

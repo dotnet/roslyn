@@ -71,6 +71,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal override bool IsCallerMemberName { get { throw ExceptionUtilities.Unreachable; } }
 
+        internal override AttributeAnnotations FlowAnalysisAnnotations { get { throw ExceptionUtilities.Unreachable; } }
+
         public override Symbol ContainingSymbol { get { throw ExceptionUtilities.Unreachable; } }
 
         public override ImmutableArray<Location> Locations { get { throw ExceptionUtilities.Unreachable; } }

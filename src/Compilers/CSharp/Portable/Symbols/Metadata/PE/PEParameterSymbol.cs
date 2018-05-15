@@ -31,27 +31,29 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             IsCallerFilePath = 0x1 << 5,
             IsCallerLineNumber = 0x1 << 6,
             IsCallerMemberName = 0x1 << 7,
+            NotNullWhenFalse = 0x1 << 8,
+            EnsuresNotNull = 0x1 << 9,
         }
 
         private struct PackedFlags
         {
             // Layout:
-            // |.............|n|rr|cccccccc|vvvvvvvv|
+            // |.........|n|rr|cccccccccc|vvvvvvvvvv|
             // 
-            // v = decoded well known attribute values. 8 bits.
-            // c = completion states for well known attributes. 1 if given attribute has been decoded, 0 otherwise. 8 bits.
+            // v = decoded well known attribute values. 10 bits.
+            // c = completion states for well known attributes. 1 if given attribute has been decoded, 0 otherwise. 10 bits.
             // r = RefKind. 2 bits.
             // n = hasNameInMetadata. 1 bit.
 
             private const int WellKnownAttributeDataOffset = 0;
-            private const int WellKnownAttributeCompletionFlagOffset = 8;
-            private const int RefKindOffset = 16;
+            private const int WellKnownAttributeCompletionFlagOffset = 10;
+            private const int RefKindOffset = 20;
 
             private const int RefKindMask = 0x3;
-            private const int WellKnownAttributeDataMask = 0xFF;
+            private const int WellKnownAttributeDataMask = 0x3FF;
             private const int WellKnownAttributeCompletionFlagMask = WellKnownAttributeDataMask;
 
-            private const int HasNameInMetadataBit = 0x1 << 18;
+            private const int HasNameInMetadataBit = 0x1 << 22;
 
             private const int AllWellKnownAttributesCompleteNoData = WellKnownAttributeCompletionFlagMask << WellKnownAttributeCompletionFlagOffset;
 
@@ -645,6 +647,44 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             }
         }
 
+        internal override AttributeAnnotations FlowAnalysisAnnotations
+        {
+            get
+            {
+                const WellKnownAttributeFlags notNullWhenFalse = WellKnownAttributeFlags.NotNullWhenFalse;
+                const WellKnownAttributeFlags ensuresNotNull = WellKnownAttributeFlags.EnsuresNotNull;
+
+                // PROTOTYPE(NullableReferenceTypes): the flags could be packed more
+                if (!_packedFlags.TryGetWellKnownAttribute(notNullWhenFalse, out bool hasNotNullWhenFalse) ||
+                    !_packedFlags.TryGetWellKnownAttribute(ensuresNotNull, out bool hasEnsuresNotNull))
+                {
+                    (bool memberHasAny, AttributeAnnotations annotations) = TryGetExtraAttributeAnnotations();
+
+                    if (memberHasAny)
+                    {
+                        // External annotations win, if any is present on the member
+                        hasNotNullWhenFalse = (annotations & AttributeAnnotations.NotNullWhenFalse) != 0;
+                        hasEnsuresNotNull = (annotations & AttributeAnnotations.EnsuresNotNull) != 0;
+                    }
+                    else
+                    {
+                        hasNotNullWhenFalse = _moduleSymbol.Module.HasAttribute(_handle, AttributeDescription.NotNullWhenFalseAttribute);
+                        hasEnsuresNotNull = _moduleSymbol.Module.HasAttribute(_handle, AttributeDescription.EnsuresNotNullAttribute);
+                    }
+
+                    _packedFlags.SetWellKnownAttribute(notNullWhenFalse, hasNotNullWhenFalse);
+                    _packedFlags.SetWellKnownAttribute(ensuresNotNull, hasEnsuresNotNull);
+
+                    if (memberHasAny)
+                    {
+                        return annotations;
+                    }
+                }
+
+                return AttributeAnnotations.None.With(notNullWhenFalse: hasNotNullWhenFalse, ensuresNotNull: hasEnsuresNotNull);
+            }
+        }
+
         public override TypeSymbolWithAnnotations Type
         {
             get
@@ -652,7 +692,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 return _type;
             }
         }
-
 
         public override ImmutableArray<CustomModifier> RefCustomModifiers
         {

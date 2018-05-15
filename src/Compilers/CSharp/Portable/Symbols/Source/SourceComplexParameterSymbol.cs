@@ -127,6 +127,25 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                                   && !HasCallerFilePathAttribute
                                                   && HasCallerMemberNameAttribute;
 
+        internal override AttributeAnnotations FlowAnalysisAnnotations
+        {
+            get
+            {
+                (bool memberHasAny, AttributeAnnotations annotations) = TryGetExtraAttributeAnnotations();
+                if (memberHasAny)
+                {
+                    // PROTOTYPE(NullableReferenceTypes): Make sure this is covered by test
+                    return annotations;
+                }
+
+                CommonParameterWellKnownAttributeData attributeData = GetDecodedWellKnownAttributeData();
+
+                return AttributeAnnotations.None
+                    .With(notNullWhenFalse: attributeData?.HasNotNullWhenFalseAttribute == true,
+                        ensuresNotNull: attributeData?.HasEnsuresNotNullAttribute == true);
+            }
+        }
+
         private ConstantValue DefaultSyntaxValue
         {
             get
@@ -604,6 +623,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 // NullableAttribute should not be set explicitly.
                 arguments.Diagnostics.Add(ErrorCode.ERR_ExplicitNullableAttribute, arguments.AttributeSyntaxOpt.Location);
+            }
+            else if (attribute.IsTargetAttribute(this, AttributeDescription.NotNullWhenFalseAttribute))
+            {
+                arguments.GetOrCreateData<CommonParameterWellKnownAttributeData>().HasNotNullWhenFalseAttribute = true;
+            }
+            else if (attribute.IsTargetAttribute(this, AttributeDescription.EnsuresNotNullAttribute))
+            {
+                arguments.GetOrCreateData<CommonParameterWellKnownAttributeData>().HasEnsuresNotNullAttribute = true;
             }
         }
 
