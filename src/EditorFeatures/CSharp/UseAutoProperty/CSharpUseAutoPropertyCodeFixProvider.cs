@@ -60,6 +60,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UseAutoProperty
                                                  .WithSemicolonToken(SyntaxFactory.Token(SyntaxKind.SemicolonToken));
             }
 
+            // Ensure the new and old property share the same leading/trailing trivia.
+            updatedProperty = updatedProperty.WithTriviaFrom(propertyDeclaration);
             updatedProperty = updatedProperty.WithAdditionalAnnotations(SpecializedFormattingAnnotation);
 
             return updatedProperty;

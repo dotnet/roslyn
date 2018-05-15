@@ -1242,7 +1242,6 @@ namespace RoslynSandbox
 @"class Class
 {
     int P { get; set; } = 1;
-
     void M() { P = 2; }
 }");
         }
@@ -1294,7 +1293,6 @@ namespace RoslynSandbox
 @"class Class
 {
     int P { get; set; }
-
     void M() { P = 1; }
 }");
         }
@@ -1405,6 +1403,46 @@ namespace RoslynSandbox
 {
 
     public int P { get; protected set; }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseAutoProperty)]
+        [WorkItem(26858, "https://github.com/dotnet/roslyn/issues/26858")]
+        public async Task TestPreserveTrailingTrivia1()
+        {
+            await TestInRegularAndScriptAsync(
+@"class Goo
+{
+    private readonly object [|bar|] = new object();
+
+    public object Bar => bar;
+    public int Baz => 0;
+}",
+@"class Goo
+{
+
+    public object Bar { get; } = new object();
+    public int Baz => 0;
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseAutoProperty)]
+        [WorkItem(26858, "https://github.com/dotnet/roslyn/issues/26858")]
+        public async Task TestPreserveTrailingTrivia2()
+        {
+            await TestInRegularAndScriptAsync(
+@"class Goo
+{
+    private readonly object [|bar|] = new object();
+
+    public object Bar => bar; // prop comment
+    public int Baz => 0;
+}",
+@"class Goo
+{
+
+    public object Bar { get; } = new object(); // prop comment
+    public int Baz => 0;
 }");
         }
     }
