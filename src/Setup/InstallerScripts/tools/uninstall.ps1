@@ -15,21 +15,19 @@ try {
     $vsId = $vsInstalls[1]
 
     # Uninstall VSIX
-    Write-Host "Uninstalling Preview Everywhere..." -ForegroundColor Green
+    Write-Host "Uninstallting Preview Everywhere..." -ForegroundColor Green
     for ($i = 0; $i -lt $vsInstalls.Count;  $i+=2) {
       $vsDir = $vsInstalls[$i].Trim("\")
       $vsId = $vsInstalls[$i+1]
       Uninstall-VsixViaTool -vsDir $vsDir -vsId $vsId -hive ""
-      Uninstall-OlderVsixesViaTool -vsDir $vsDir -vsId $vsId -hive ""
-      Delete-CompilerVsix -vsDir $vsDir -vsId $vsId -hive ""
 
       # Clear MEF Cache
+      Write-Host "Refreshing MEF Cache" -ForegroundColor Gray
       $mefCacheFolder = Join-Path $env:LOCALAPPDATA "Microsoft\VisualStudio\15.0_$vsId\ComponentModelCache"
       Get-ChildItem -Path $mefCacheFolder -Include *.* -File -Recurse | foreach { Remove-Item $_}
 
       $vsExe = Join-Path $vsDir "Common7\IDE\devenv.exe"
       $args = "/updateconfiguration"
-      Write-Host "Refreshing MEF Cache" -ForegroundColor Gray
       Exec-Console $vsExe $args
     }
 
