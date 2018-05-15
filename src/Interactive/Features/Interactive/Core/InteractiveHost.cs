@@ -40,8 +40,8 @@ namespace Microsoft.CodeAnalysis.Interactive
 
         private TextWriter _output;
         private TextWriter _errorOutput;
-        private object _outputGuard;
-        private object _errorOutputGuard;
+        private readonly object _outputGuard;
+        private readonly object _errorOutputGuard;
 
         internal event Action<bool> ProcessStarting;
 
@@ -220,10 +220,11 @@ namespace Microsoft.CodeAnalysis.Interactive
             bool alive = process.IsAlive();
             if (!alive)
             {
+                string errorString = process.StandardError.ReadToEnd();
                 lock (_errorOutputGuard)
                 {
                     _errorOutput.WriteLine(FeaturesResources.Failed_to_launch_0_process_exit_code_colon_1_with_output_colon, _hostPath, process.ExitCode);
-                    _errorOutput.WriteLine(process.StandardError.ReadToEnd());
+                    _errorOutput.WriteLine(errorString);
                 }
             }
 
@@ -246,7 +247,7 @@ namespace Microsoft.CodeAnalysis.Interactive
 
             lock(_errorOutputGuard)
             {
-                _errorOutputGuard = TextWriter.Null;
+                _errorOutput = TextWriter.Null;
             }
 
             DisposeRemoteService(disposing: true);
@@ -270,6 +271,7 @@ namespace Microsoft.CodeAnalysis.Interactive
                 _serverChannel = null;
             }
         }
+
         public void SetOutput(TextWriter value)
         {
             if (value == null)
@@ -297,7 +299,11 @@ namespace Microsoft.CodeAnalysis.Interactive
             (error ? ErrorOutputReceived : OutputReceived)?.Invoke(buffer, count);
 
             var writer = error ? _errorOutput : _output;
-            writer.Write(buffer, 0, count);
+            var guard = error ? _errorOutputGuard : _outputGuard;
+            lock (guard)
+            {
+                writer.Write(buffer, 0, count);
+            }
         }
 
         private LazyRemoteService CreateRemoteService(InteractiveHostOptions options, bool skipInitialization)
@@ -338,11 +344,14 @@ namespace Microsoft.CodeAnalysis.Interactive
             {
                 LazyRemoteService currentRemoteService = _lazyRemoteService;
 
-                // Remote service may be disposed anytime.
-                if (currentRemoteService == null) { return default; }
-
                 for (int attempt = 0; attempt < MaxAttemptsToCreateProcess; attempt++)
                 {
+                    // Remote service may be disposed anytime.
+                    if (currentRemoteService == null)
+                    {
+                        return default;
+                    }
+
                     var initializedService = await currentRemoteService.InitializedService.GetValueAsync(currentRemoteService.CancellationSource.Token).ConfigureAwait(false);
                     if (initializedService.ServiceOpt != null && initializedService.ServiceOpt.Process.IsAlive())
                     {
@@ -361,7 +370,6 @@ namespace Microsoft.CodeAnalysis.Interactive
                     }
                     else
                     {
-                        if (previousService == null) { return default; }
                         // the process was reset in between our checks, try to use the new service:
                         newService.Dispose(joinThreads: false);
                         currentRemoteService = previousService;
