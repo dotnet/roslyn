@@ -370,10 +370,10 @@ function Build-Installer () {
 
     ## Copying VsixExpInstaller.exe
     $vsixExpInstallerDir = Get-PackageDir "RoslynTools.Microsoft.VSIXExpInstaller"
-    $vsixExpInstallerExe = Join-Path $vsixExpInstallerDir "tools\VsixExpInstaller.exe"
+    $vsixExpInstallerExe = Join-Path $vsixExpInstallerDir "tools\*"
     $vsixExpInstallerExeDestination = Join-Path $intermidateDirectory "tools\vsixexpinstaller"
     Create-Directory $vsixExpInstallerExeDestination
-    Copy-Item -Path $vsixExpInstallerExe -Destination $vsixExpInstallerExeDestination
+    Copy-Item $vsixExpInstallerExe -Destination $vsixExpInstallerExeDestination -Recurse
 
     ## Copying VsWhere.exe
     $vswhere = Join-Path (Ensure-BasicTool "vswhere") "tools\*"
