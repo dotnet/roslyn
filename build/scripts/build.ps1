@@ -387,30 +387,26 @@ function Build-Installer () {
     }
     Copy-Item -Path $vswhere -Destination $vswhereDestination
 
-    ## Copying powershell scripts
-    $installerScriptsFolder = Join-Path $repoDir "src\Setup\InstallerScripts"
+    ## Copying scripts
+    $installerScriptsFolder = Join-Path $repoDir "src\Setup\InstallerScripts\*.bat"
     Copy-Item $installerScriptsFolder -Destination $intermidateDirectory -Recurse
+    
+    $installerScriptsFolder = Join-Path $repoDir "src\Setup\InstallerScripts\tools\*.ps1"
+    $intermidatePowershellScriptsDirectory = Join-Path $intermidateDirectory "tools"
+    Copy-Item $installerScriptsFolder -Destination $intermidatePowershellScriptsDirectory -Recurse
 
     ## Copying VSIXes
     $vsixDir = Join-Path $configDir "Vsix"
     $vsixDirDestination = Join-Path $intermidateDirectory "vsix"
     if (-not (Test-Path $vsixDirDestination)) {
         New-Item -ItemType Directory -Force -Path $vsixDirDestination
-    }
-    $expressionEvaluatorPackageVsix = Join-Path $vsixDir "ExpressionEvaluatorPackage\ExpressionEvaluatorPackage.vsix"
-    Copy-Item $expressionEvaluatorPackageVsix -Destination $vsixDirDestination
-    
-    $compilerExtensionVsix = Join-Path $vsixDir "CompilerExtension\Roslyn.Compilers.Extension.vsix"
-    Copy-Item $compilerExtensionVsix -Destination $vsixDirDestination
-    
-    $interactiveComponentsVsix = Join-Path $vsixDir "VisualStudioInteractiveComponents\Roslyn.VisualStudio.InteractiveComponents.vsix"
-    Copy-Item $interactiveComponentsVsix -Destination $vsixDirDestination
-    
-    $visualStudioSetupVsix = Join-Path $vsixDir "VisualStudioSetup\Roslyn.VisualStudio.Setup.vsix"
-    Copy-Item $visualStudioSetupVsix -Destination $vsixDirDestination
+    }  
+    $RoslynDeploymentVsix = Join-Path $vsixDir "Roslyn\RoslynDeployment.vsix"
+    Copy-Item $RoslynDeploymentVsix -Destination $vsixDirDestination
     
     #  Zip Folder
     $installerZip = Join-Path $installerDir "Roslyn_Preview"
+    $intermidateDirectory = Join-Path $intermidateDirectory "*"
     Compress-Archive -Path $intermidateDirectory -DestinationPath $installerZip
 }
 
