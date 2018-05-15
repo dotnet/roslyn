@@ -649,6 +649,64 @@ Block[B5] - Exit
             VerifyFlowGraphAndDiagnosticsForTest(Of MethodBlockSyntax)(source, expectedFlowGraph, expectedDiagnostics)
         End Sub
 
+        <CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)>
+        <Fact()>
+        Public Sub InvocationFlow_08()
+            Dim source = <![CDATA[
+Class C
+    Public Sub M1(c1 As C, c2 As C, o1 As Object, o2 As Object) 'BIND:"Public Sub M1(c1 As C, c2 As C, o1 As Object, o2 As Object)"
+        c1.M2(o1)
+        Call If(c1, c2).M2(o2)
+    End Sub
+    Public Shared Sub M2(o1 As Object)
+    End Sub
+End Class]]>.Value
 
+            Dim expectedDiagnostics = <![CDATA[
+BC42025: Access of shared member, constant member, enum member or nested type through an instance; qualifying expression will not be evaluated.
+        c1.M2(o1)
+        ~~~~~
+BC42025: Access of shared member, constant member, enum member or nested type through an instance; qualifying expression will not be evaluated.
+        Call If(c1, c2).M2(o2)
+             ~~~~~~~~~~~~~
+]]>.Value
+
+            Dim expectedFlowGraph = <![CDATA[
+Block[B0] - Entry
+    Statements (0)
+    Next (Regular) Block[B1]
+Block[B1] - Block
+    Predecessors: [B0]
+    Statements (2)
+        IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'c1.M2(o1)')
+          Expression: 
+            IInvocationOperation (Sub C.M2(o1 As System.Object)) (OperationKind.Invocation, Type: System.Void) (Syntax: 'c1.M2(o1)')
+              Instance Receiver: 
+                null
+              Arguments(1):
+                  IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: o1) (OperationKind.Argument, Type: null) (Syntax: 'o1')
+                    IParameterReferenceOperation: o1 (OperationKind.ParameterReference, Type: System.Object) (Syntax: 'o1')
+                    InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                    OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+
+        IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'Call If(c1, c2).M2(o2)')
+          Expression: 
+            IInvocationOperation (Sub C.M2(o1 As System.Object)) (OperationKind.Invocation, Type: System.Void) (Syntax: 'If(c1, c2).M2(o2)')
+              Instance Receiver: 
+                null
+              Arguments(1):
+                  IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: o1) (OperationKind.Argument, Type: null) (Syntax: 'o2')
+                    IParameterReferenceOperation: o2 (OperationKind.ParameterReference, Type: System.Object) (Syntax: 'o2')
+                    InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                    OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+
+    Next (Regular) Block[B2]
+Block[B2] - Exit
+    Predecessors: [B1]
+    Statements (0)
+]]>.Value
+
+            VerifyFlowGraphAndDiagnosticsForTest(Of MethodBlockSyntax)(source, expectedFlowGraph, expectedDiagnostics)
+        End Sub
     End Class
 End Namespace
