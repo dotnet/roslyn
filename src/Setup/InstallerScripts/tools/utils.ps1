@@ -7,8 +7,8 @@ function Exec-CommandCore([string]$command, [string]$commandArgs, [switch]$useCo
   $startInfo.WorkingDirectory = Get-Location
 
   if (-not $useConsole) {
-     $startInfo.RedirectStandardOutput = $true
-     $startInfo.CreateNoWindow = $true
+    $startInfo.RedirectStandardOutput = $true
+    $startInfo.CreateNoWindow = $true
   }
 
   $process = New-Object System.Diagnostics.Process
@@ -17,34 +17,34 @@ function Exec-CommandCore([string]$command, [string]$commandArgs, [switch]$useCo
 
   $finished = $false
   try {
-      if (-not $useConsole) {
-          # The OutputDataReceived event doesn't fire as events are sent by the
-          # process in powershell.  Possibly due to subtlties of how Powershell
-          # manages the thread pool that I'm not aware of.  Using blocking
-          # reading here as an alternative which is fine since this blocks
-          # on completion already.
-          $out = $process.StandardOutput
-          while (-not $out.EndOfStream) {
-              $line = $out.ReadLine()
-              Write-Output $line
-          }
+    if (-not $useConsole) {
+      # The OutputDataReceived event doesn't fire as events are sent by the
+      # process in powershell.  Possibly due to subtlties of how Powershell
+      # manages the thread pool that I'm not aware of.  Using blocking
+      # reading here as an alternative which is fine since this blocks
+      # on completion already.
+      $out = $process.StandardOutput
+      while (-not $out.EndOfStream) {
+        $line = $out.ReadLine()
+        Write-Output $line
       }
+    }
 
-      while (-not $process.WaitForExit(100)) {
-          # Non-blocking loop done to allow ctr-c interrupts
-      }
+    while (-not $process.WaitForExit(100)) {
+      # Non-blocking loop done to allow ctr-c interrupts
+    }
 
-      $finished = $true
-      if ($process.ExitCode -ne 0) {
-          throw "Command failed to execute: $command $commandArgs"
-      }
+    $finished = $true
+    if ($process.ExitCode -ne 0) {
+      throw "Command failed to execute: $command $commandArgs"
+    }
   }
   finally {
-      # If we didn't finish then an error occured or the user hit ctrl-c.  Either
-      # way kill the process
-      if (-not $finished) {
-          $process.Kill()
-      }
+    # If we didn't finish then an error occured or the user hit ctrl-c.  Either
+    # way kill the process
+    if (-not $finished) {
+      $process.Kill()
+    }
   }
 }
 
@@ -80,20 +80,20 @@ function Get-VisualStudioDirAndId() {
   $j = ConvertFrom-Json $output
   $foundVsInstall = $false
   foreach ($obj in $j) {
-      # Need to be using at least Visual Studio 15.5 in order to have the appropriate
-      # set of SDK fixes. Parsing the installationName is the only place where this is
-      # recorded in that form.
-      $name = $obj.installationName
-      if ($name -match "VisualStudio(Preview)?/([\d.]+)(\+|-).*") {
-          $minVersion = New-Object System.Version "15.5.0"
-          $maxVersion = New-Object System.Version "15.8.0"
-          $version = New-Object System.Version $matches[2]
-          if ($version -ge $minVersion -and $version -lt $maxVersion) {
-              Write-Output $obj.installationPath
-              Write-Output $obj.instanceId
-              $foundVsInstall = $true;
-          }
+    # Need to be using at least Visual Studio 15.5 in order to have the appropriate
+    # set of SDK fixes. Parsing the installationName is the only place where this is
+    # recorded in that form.
+    $name = $obj.installationName
+    if ($name -match "VisualStudio(Preview)?/([\d.]+)(\+|-).*") {
+      $minVersion = New-Object System.Version "15.5.0"
+      $maxVersion = New-Object System.Version "15.8.0"
+      $version = New-Object System.Version $matches[2]
+      if ($version -ge $minVersion -and $version -lt $maxVersion) {
+        Write-Output $obj.installationPath
+        Write-Output $obj.instanceId
+        $foundVsInstall = $true;
       }
+    }
   }
 
   if (-not $foundVsInstall) {
@@ -143,9 +143,9 @@ function Use-VsixTool([string]$vsDir, [string]$vsId, [string]$baseArgs, [string]
   Write-Host "Using VS Instance $vsId at `"$vsDir`"" -ForegroundColor Gray
 
   foreach ($e in $vsixes) {
-      $name = $e
-      $filePath = "`"$((Resolve-Path $e).Path)`""
-      $fullArg = "$baseArgs $filePath"
-      Exec-Console $vsixExe $fullArg
+    $name = $e
+    $filePath = "`"$((Resolve-Path $e).Path)`""
+    $fullArg = "$baseArgs $filePath"
+    WExec-Console $vsixExe $fullArg
   }
 }
