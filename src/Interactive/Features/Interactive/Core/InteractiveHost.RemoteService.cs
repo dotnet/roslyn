@@ -77,7 +77,11 @@ namespace Microsoft.CodeAnalysis.Interactive
                         }
                     }
 
-                    await (_host?.OnProcessExited(Process)).ConfigureAwait(false);
+                    var host = _host;
+                    if (host != null)
+                    {
+                        await host.OnProcessExited(Process).ConfigureAwait(false);
+                    }
                 }
                 catch (Exception e) when (FatalError.Report(e))
                 {
