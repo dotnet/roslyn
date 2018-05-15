@@ -385,7 +385,7 @@
     https://github.com/dotnet/roslyn/issues/18753
   -->
   <ItemGroup>
-    <None Remove="$(NuGetPackageFolders)xunit.runner.visualstudio\$(xunitrunnervisualstudioVersion)\build\net20\..\_common\xunit.abstractions.dll" />
+    <None Remove="$(NuGetPackageRoot)xunit.runner.visualstudio\$(xunitrunnervisualstudioVersion)\build\net20\..\_common\xunit.abstractions.dll" />
   </ItemGroup>
 
   <!-- We need to run publish on our CoreCLR executables (CscCore and VbcCore) without rebuilding
