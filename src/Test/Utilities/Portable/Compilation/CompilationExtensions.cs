@@ -24,6 +24,8 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 {
     public static class CompilationExtensions
     {
+        internal static bool EnableVerifyIOperation { get; } = !string.IsNullOrEmpty(Environment.GetEnvironmentVariable("ROSLYN_TEST_IOPERATION"));
+
         internal static ImmutableArray<byte> EmitToArray(
             this Compilation compilation,
             EmitOptions options = null,
@@ -255,7 +257,11 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
         public static void ValidateIOperations(Func<Compilation> createCompilation)
         {
-#if TEST_IOPERATION_INTERFACE
+            if (!EnableVerifyIOperation)
+            {
+                return;
+            }
+
             var compilation = createCompilation();
             var roots = ArrayBuilder<IOperation>.GetInstance();
             var stopWatch = new Stopwatch();
@@ -322,7 +328,6 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
             roots.Free();
             stopWatch.Stop();
-#endif
         }
     }
 }
