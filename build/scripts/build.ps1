@@ -250,7 +250,7 @@ function Build-Artifacts() {
         Run-MSBuild "Compilers.sln" -useDotnetBuild
     }
     elseif ($build) {
-        Run-MSBuild "Roslyn.sln" "/p:DeployExtension=$deployExtensions"
+        Run-MSBuild "Roslyn.sln" $(if (-not $deployExtensions) {"/p:DeployExtension=false"})
         if (-not $skipBuildExtras) {
             Build-ExtraSignArtifacts
         }
