@@ -1421,13 +1421,15 @@ namespace Microsoft.CodeAnalysis.Operations
                                                    operation.Syntax, operation.Type, operation.ConstantValue, IsImplicit(operation));
         }
 
-        // PROTOTYPE(dataflow):
-        //public override IOperation VisitArrayElementReference(IArrayElementReferenceOperation operation, int? captureIdForResult)
-        //{
-        //    _evalStack.Push(Visit(operation.ArrayReference));
-        //    foreach (var index in operation.Indices)
-        //    return new ArrayElementReferenceExpression(Visit(operation.ArrayReference), VisitArray(operation.Indices), semanticModel: null, operation.Syntax, operation.Type, operation.ConstantValue, IsImplicit(operation));
-        //}
+        public override IOperation VisitArrayElementReference(IArrayElementReferenceOperation operation, int? captureIdForResult)
+        {
+            _evalStack.Push(Visit(operation.ArrayReference));
+            PushArray(operation.Indices);
+            ImmutableArray<IOperation> visitedIndices = PopArray(operation.Indices);
+            IOperation visitedArrayReference = _evalStack.Pop();
+            return new ArrayElementReferenceExpression(visitedArrayReference, visitedIndices, semanticModel: null,
+                operation.Syntax, operation.Type, operation.ConstantValue, IsImplicit(operation));
+        }
 
         private static bool IsConditional(IBinaryOperation operation)
         {
@@ -4882,11 +4884,6 @@ oneMoreTime:
         public override IOperation VisitOmittedArgument(IOmittedArgumentOperation operation, int? captureIdForResult)
         {
             return new OmittedArgumentExpression(semanticModel: null, operation.Syntax, operation.Type, operation.ConstantValue, IsImplicit(operation));
-        }
-
-        public override IOperation VisitArrayElementReference(IArrayElementReferenceOperation operation, int? captureIdForResult)
-        {
-            return new ArrayElementReferenceExpression(Visit(operation.ArrayReference), VisitArray(operation.Indices), semanticModel: null, operation.Syntax, operation.Type, operation.ConstantValue, IsImplicit(operation));
         }
 
         internal override IOperation VisitPointerIndirectionReference(IPointerIndirectionReferenceOperation operation, int? captureIdForResult)
