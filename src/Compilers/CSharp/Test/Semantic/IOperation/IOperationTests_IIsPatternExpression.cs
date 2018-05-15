@@ -639,9 +639,10 @@ IIsPatternOperation (OperationKind.IsPattern, Type: System.Boolean, IsInvalid) (
             string source = @"
 class C
 {
-    void M(int? x, bool b)
+    void M(int? x, bool b, int x2, bool b2)
     /*<bind>*/{
-        b = x is var y;       
+        b = x is var y;
+        b2 = x2 is 1;
     }/*</bind>*/
 }
 ";
@@ -656,7 +657,7 @@ Block[B0] - Entry
     Locals: [System.Int32? y]
     Block[B1] - Block
         Predecessors: [B0]
-        Statements (1)
+        Statements (2)
             IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'b = x is var y;')
               Expression: 
                 ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Boolean) (Syntax: 'b = x is var y')
@@ -668,6 +669,20 @@ Block[B0] - Entry
                         IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: System.Int32?) (Syntax: 'x')
                       Pattern: 
                         IDeclarationPatternOperation (Declared Symbol: System.Int32? y) (OperationKind.DeclarationPattern, Type: null) (Syntax: 'var y')
+
+            IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'b2 = x2 is 1;')
+              Expression: 
+                ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Boolean) (Syntax: 'b2 = x2 is 1')
+                  Left: 
+                    IParameterReferenceOperation: b2 (OperationKind.ParameterReference, Type: System.Boolean) (Syntax: 'b2')
+                  Right: 
+                    IIsPatternOperation (OperationKind.IsPattern, Type: System.Boolean) (Syntax: 'x2 is 1')
+                      Expression: 
+                        IParameterReferenceOperation: x2 (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'x2')
+                      Pattern: 
+                        IConstantPatternOperation (OperationKind.ConstantPattern, Type: null) (Syntax: '1')
+                          Value: 
+                            ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
 
         Next (Regular) Block[B2]
             Leaving: {R1}
