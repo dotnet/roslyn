@@ -567,11 +567,11 @@ namespace Microsoft.CodeAnalysis.Editor {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Config it now.
+        ///   Looks up a localized string similar to Configure it now.
         /// </summary>
-        internal static string Config_it_now {
+        internal static string Configure_it_now {
             get {
-                return ResourceManager.GetString("Config_it_now", resourceCulture);
+                return ResourceManager.GetString("Configure_it_now", resourceCulture);
             }
         }
         
@@ -657,7 +657,7 @@ namespace Microsoft.CodeAnalysis.Editor {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Don&apos;t show this again.
+        ///   Looks up a localized string similar to Do not show this message again.
         /// </summary>
         internal static string Donot_show_this_again {
             get {
@@ -2116,7 +2116,7 @@ namespace Microsoft.CodeAnalysis.Editor {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to We can fix the error by not making struct &quot;out/ref&quot; parameter(s). 
+        ///   Looks up a localized string similar to We can fix the error by not making struct &quot;out/ref&quot; parameter(s).
         ///Do you want to proceed?.
         /// </summary>
         internal static string We_can_fix_the_error_by_not_making_struct_out_ref_parameter_s_Do_you_want_to_proceed {

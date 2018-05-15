@@ -36,7 +36,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Formatting
             var infoBarService = workspace.Services.GetRequiredService<IInfoBarService>();
             infoBarService.ShowInfoBarInGlobalView(
                 EditorFeaturesResources.Code_cleanup_is_not_configured,
-                new InfoBarUI(EditorFeaturesResources.Config_it_now,
+                new InfoBarUI(EditorFeaturesResources.Configure_it_now,
                               kind: InfoBarUI.UIKind.Button,
                                () =>
                                {

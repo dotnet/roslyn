@@ -7,14 +7,14 @@
         <target state="new">Code cleanup is not configured</target>
         <note />
       </trans-unit>
-      <trans-unit id="Config_it_now">
-        <source>Config it now</source>
-        <target state="new">Config it now</target>
+      <trans-unit id="Configure_it_now">
+        <source>Configure it now</source>
+        <target state="new">Configure it now</target>
         <note />
       </trans-unit>
       <trans-unit id="Donot_show_this_again">
-        <source>Don't show this again</source>
-        <target state="new">Don't show this again</target>
+        <source>Do not show this message again</source>
+        <target state="new">Do not show this message again</target>
         <note />
       </trans-unit>
       <trans-unit id="Preprocessor_Text">
@@ -873,9 +873,9 @@
         <note />
       </trans-unit>
       <trans-unit id="We_can_fix_the_error_by_not_making_struct_out_ref_parameter_s_Do_you_want_to_proceed">
-        <source>We can fix the error by not making struct "out/ref" parameter(s). 
+        <source>We can fix the error by not making struct "out/ref" parameter(s).
 Do you want to proceed?</source>
-        <target state="translated">Yapı "out/ref" parametrelerini yapmayarak hatayı düzeltebiliriz. 
+        <target state="needs-review-translation">Yapı "out/ref" parametrelerini yapmayarak hatayı düzeltebiliriz. 
 Devam etmek istiyor musunuz?</target>
         <note />
       </trans-unit>
