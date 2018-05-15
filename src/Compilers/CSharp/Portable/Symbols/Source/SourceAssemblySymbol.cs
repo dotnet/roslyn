@@ -2451,7 +2451,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 // since there will be nothing left in the map/set the second time.
                 bool internalsAreVisible =
                     this.InternalsAreVisible ||
-                    this.DeclaringCompilation.Options.OutputKind.IsNetModule();
+                    this.IsNetModule();
 
                 HashSet<FieldSymbol> handledUnreadFields = null;
 
