@@ -4740,6 +4740,11 @@ oneMoreTime:
             return new ParenthesizedExpression(Visit(operation.Operand), semanticModel: null, operation.Syntax, operation.Type, operation.ConstantValue, IsImplicit(operation));
         }
 
+        public override IOperation VisitAwait(IAwaitOperation operation, int? captureIdForResult)
+        {
+            return new AwaitExpression(Visit(operation.Operation), semanticModel: null, operation.Syntax, operation.Type, operation.ConstantValue, IsImplicit(operation));
+        }
+        
         public override IOperation VisitParameterInitializer(IParameterInitializerOperation operation, int? captureIdForResult)
         {
             Debug.Assert(_currentStatement == operation);
@@ -4983,11 +4988,6 @@ oneMoreTime:
         public override IOperation VisitDelegateCreation(IDelegateCreationOperation operation, int? captureIdForResult)
         {
             return new DelegateCreationExpression(Visit(operation.Target), semanticModel: null, operation.Syntax, operation.Type, operation.ConstantValue, IsImplicit(operation));
-        }
-
-        public override IOperation VisitAwait(IAwaitOperation operation, int? captureIdForResult)
-        {
-            return new AwaitExpression(Visit(operation.Operation), semanticModel: null, operation.Syntax, operation.Type, operation.ConstantValue, IsImplicit(operation));
         }
 
         public override IOperation VisitAddressOf(IAddressOfOperation operation, int? captureIdForResult)
