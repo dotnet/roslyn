@@ -358,18 +358,18 @@
         <note />
       </trans-unit>
       <trans-unit id="UpgradeMSBuildWorkspaceDescription">
-        <source>Upgrade MSBuildWorkspace with Microsoft.CodeAnalysis.Workspaces.MSBuild package.</source>
-        <target state="new">Upgrade MSBuildWorkspace with Microsoft.CodeAnalysis.Workspaces.MSBuild package.</target>
+        <source>MSBuildWorkspace has moved to the Microsoft.CodeAnalysis.Workspaces.MSBuild NuGet package and there are breaking API changes.</source>
+        <target state="new">MSBuildWorkspace has moved to the Microsoft.CodeAnalysis.Workspaces.MSBuild NuGet package and there are breaking API changes.</target>
         <note />
       </trans-unit>
       <trans-unit id="UpgradeMSBuildWorkspaceMessage">
-        <source>Upgrade MSBuildWorkspace with Microsoft.CodeAnalysis.Workspaces.MSBuild package.</source>
-        <target state="new">Upgrade MSBuildWorkspace with Microsoft.CodeAnalysis.Workspaces.MSBuild package.</target>
+        <source>Please upgrade MSBuildWorkspace by adding a package reference to the Microsoft.CodeAnalysis.Workspaces.MSBuild NuGet package. See https://go.microsoft.com/fwlink/?linkid=874285 for details on using MSBuildWorkspace successfully.</source>
+        <target state="new">Please upgrade MSBuildWorkspace by adding a package reference to the Microsoft.CodeAnalysis.Workspaces.MSBuild NuGet package. See https://go.microsoft.com/fwlink/?linkid=874285 for details on using MSBuildWorkspace successfully.</target>
         <note />
       </trans-unit>
       <trans-unit id="UpgradeMSBuildWorkspaceTitle">
-        <source>Upgrade MSBuildWorkspace with Microsoft.CodeAnalysis.Workspaces.MSBuild package.</source>
-        <target state="new">Upgrade MSBuildWorkspace with Microsoft.CodeAnalysis.Workspaces.MSBuild package.</target>
+        <source>Upgrade MSBuildWorkspace</source>
+        <target state="new">Upgrade MSBuildWorkspace</target>
         <note />
       </trans-unit>
     </body>
