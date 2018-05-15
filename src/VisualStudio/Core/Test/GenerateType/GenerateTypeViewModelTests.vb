@@ -16,6 +16,7 @@ Imports Microsoft.VisualStudio.LanguageServices.Implementation.GenerateType
 Imports Roslyn.Test.Utilities
 
 Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.GenerateType
+    <[UseExportProvider]>
     Public Class GenerateTypeViewModelTests
         Private Shared s_assembly1_Name As String = "Assembly1"
         Private Shared s_test1_Name As String = "Test1"
@@ -855,7 +856,7 @@ namespace A
                 Dim document = workspace.CurrentSolution.GetDocument(testDoc.Id)
 
                 Dim tree = Await document.GetSyntaxTreeAsync()
-                Dim token = Await tree.GetTouchingWordAsync(testDoc.CursorPosition.Value, document.Project.LanguageServices.GetService(Of ISyntaxFactsService)(), CancellationToken.None)
+                Dim token = Await tree.GetTouchingWordAsync(testDoc.CursorPosition.Value, document.GetLanguageService(Of ISyntaxFactsService)(), CancellationToken.None)
                 Dim typeName = token.ToString()
 
                 Dim testProjectManagementService As IProjectManagementService = Nothing
@@ -864,7 +865,7 @@ namespace A
                     testProjectManagementService = New TestProjectManagementService(projectFolders)
                 End If
 
-                Dim syntaxFactsService = document.Project.LanguageServices.GetService(Of ISyntaxFactsService)()
+                Dim syntaxFactsService = document.GetLanguageService(Of ISyntaxFactsService)()
 
                 Return New GenerateTypeDialogViewModel(
                     document,

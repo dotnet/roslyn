@@ -14,6 +14,7 @@ using Xunit;
 
 namespace Roslyn.VisualStudio.CSharp.UnitTests.Options
 {
+    [UseExportProvider]
     public class OptionViewModelTests
     {
         private class MockServiceProvider : IServiceProvider
@@ -38,7 +39,7 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.Options
 
         public OptionViewModelTests()
         {
-            WpfTestCase.RequireWpfFact("Tests create WPF ViewModels and updates previews with them");
+            WpfTestRunner.RequireWpfFact("Tests create WPF ViewModels and updates previews with them");
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.Options)]

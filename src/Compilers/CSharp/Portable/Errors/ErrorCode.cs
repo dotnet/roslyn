@@ -1040,7 +1040,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         //FTL_NoMessagesDLL = 2018,
         FTL_InvalidTarget = 2019,
         //ERR_BadTargetForSecondInputSet = 2020,    Roslyn doesn't support building two binaries at once!
-        FTL_InputFileNameTooLong = 2021,
+        FTL_InvalidInputFileName = 2021,
         //ERR_NoSourcesInLastInputSet = 2022,       Roslyn doesn't support building two binaries at once!
         WRN_NoConfigNotOnCommandLine = 2023,
         ERR_InvalidFileAlignment = 2024,
@@ -1565,7 +1565,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_NewBoundWithUnmanaged = 8375,
         ERR_UnmanagedConstraintMustBeFirst = 8376,
         ERR_UnmanagedConstraintNotSatisfied = 8377,
-        ERR_UnmanagedConstraintWithLocalFunctions = 8378,
+        ERR_CantUseInOrOutInArglist = 8378,
         ERR_ConWithUnmanagedCon = 8379,
         ERR_UnmanagedBoundWithClass = 8380,
 
@@ -1574,8 +1574,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_ExpressionTreeContainsTupleBinOp = 8382,
         WRN_TupleBinopLiteralNameMismatch = 8383,
         ERR_TupleSizesMismatchForBinOps = 8384,
+        ERR_ExprCannotBeFixed = 8385,
+        ERR_InvalidObjectCreation = 8386,
         #endregion diagnostics introduced for C# 7.3
-
-        // Note: you will need to re-generate compiler code after adding warnings (build\scripts\generate-compiler-code.cmd)
     }
+    // Note: you will need to re-generate compiler code after adding warnings (build\scripts\generate-compiler-code.cmd)
 }

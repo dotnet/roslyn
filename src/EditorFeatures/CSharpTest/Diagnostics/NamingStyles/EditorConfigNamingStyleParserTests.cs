@@ -10,7 +10,7 @@ using static Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles.SymbolSpe
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.NamingStyles
 {
-    public partial class EditorConfigNamingStyleParserTests
+    public class EditorConfigNamingStyleParserTests
     {
         [Fact]
         public static void TestPascalCaseRule()
@@ -202,14 +202,14 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.NamingStyle
         }
 
         [Fact]
-        public static void TestParametersAreCamelCaseRule()
+        public static void TestParametersAndLocalsAreCamelCaseRule()
         {
             var dictionary = new Dictionary<string, object>()
             {
-                ["dotnet_naming_rule.parameters_are_camel_case.severity"] = "suggestion",
-                ["dotnet_naming_rule.parameters_are_camel_case.symbols"] = "parameters",
-                ["dotnet_naming_rule.parameters_are_camel_case.style"] = "camel_case_style",
-                ["dotnet_naming_symbols.parameters.applicable_kinds"] = "parameter",
+                ["dotnet_naming_rule.parameters_and_locals_are_camel_case.severity"] = "suggestion",
+                ["dotnet_naming_rule.parameters_and_locals_are_camel_case.symbols"] = "parameters_and_locals",
+                ["dotnet_naming_rule.parameters_and_locals_are_camel_case.style"] = "camel_case_style",
+                ["dotnet_naming_symbols.parameters_and_locals.applicable_kinds"] = "parameter,local",
                 ["dotnet_naming_style.camel_case_style.capitalization"] = "camel_case",
             };
 
@@ -225,8 +225,12 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.NamingStyle
             Assert.Equal(symbolSpec.ID, namingRule.SymbolSpecificationID);
             Assert.Equal(DiagnosticSeverity.Info, namingRule.EnforcementLevel);
 
-            Assert.Equal("parameters", symbolSpec.Name);
-            var expectedApplicableSymbolKindList = new[] { new SymbolKindOrTypeKind(SymbolKind.Parameter) };
+            Assert.Equal("parameters_and_locals", symbolSpec.Name);
+            var expectedApplicableSymbolKindList = new[]
+            {
+                new SymbolKindOrTypeKind(SymbolKind.Parameter),
+                new SymbolKindOrTypeKind(SymbolKind.Local),
+            };
             AssertEx.SetEqual(expectedApplicableSymbolKindList, symbolSpec.ApplicableSymbolKindList);
 
             Assert.Equal("camel_case_style", namingStyle.Name);
