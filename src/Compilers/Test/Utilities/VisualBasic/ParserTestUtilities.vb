@@ -12,6 +12,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.SyntaxFacts
 Imports Roslyn.Test.Utilities
 Imports Xunit
 Imports Microsoft.CodeAnalysis.Collections
+Imports System.Collections.Immutable
 
 Friend Module ParserTestUtilities
     Friend ReadOnly Property PooledStringBuilderPool As ObjectPool(Of PooledStringBuilder) = PooledStringBuilder.CreatePool(64)
@@ -529,6 +530,12 @@ Public Module VerificationHelpers
             End Get
         End Property
 
+        Public Overrides ReadOnly Property DiagnosticOptions As ImmutableDictionary(Of String, ReportDiagnostic)
+            Get
+                Throw New NotImplementedException()
+            End Get
+        End Property
+
         Public Overrides Function WithChangedText(newText As SourceText) As SyntaxTree
             Throw New NotImplementedException()
         End Function
@@ -538,6 +545,10 @@ Public Module VerificationHelpers
         End Function
 
         Public Overrides Function WithFilePath(path As String) As SyntaxTree
+            Throw New NotImplementedException()
+        End Function
+
+        Public Overrides Function WithDiagnosticOptions(options As ImmutableDictionary(Of String, ReportDiagnostic)) As SyntaxTree
             Throw New NotImplementedException()
         End Function
     End Class
