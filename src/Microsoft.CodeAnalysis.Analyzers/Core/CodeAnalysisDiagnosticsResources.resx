@@ -329,4 +329,13 @@
   <data name="DoNotUseTypesFromAssemblyRuleTitle" xml:space="preserve">
     <value>Do not use types from Workspaces assembly in an analyzer</value>
   </data>
+  <data name="UpgradeMSBuildWorkspaceDescription" xml:space="preserve">
+    <value>MSBuildWorkspace has moved to the Microsoft.CodeAnalysis.Workspaces.MSBuild NuGet package and there are breaking API changes.</value>
+  </data>
+  <data name="UpgradeMSBuildWorkspaceMessage" xml:space="preserve">
+    <value>Please upgrade MSBuildWorkspace by adding a package reference to the Microsoft.CodeAnalysis.Workspaces.MSBuild NuGet package. See https://go.microsoft.com/fwlink/?linkid=874285 for details on using MSBuildWorkspace successfully.</value>
+  </data>
+  <data name="UpgradeMSBuildWorkspaceTitle" xml:space="preserve">
+    <value>Upgrade MSBuildWorkspace</value>
+  </data>
 </root>

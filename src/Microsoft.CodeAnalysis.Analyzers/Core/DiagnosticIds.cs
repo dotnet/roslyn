@@ -26,5 +26,6 @@ namespace Microsoft.CodeAnalysis.Analyzers
         public const string UseCategoriesFromSpecifiedRangeRuleId = "RS1020";
         public const string AnalyzerCategoryAndIdRangeFileInvalidRuleId = "RS1021";
         public const string DoNotUseTypesFromAssemblyRuleId = "RS1022";
+        public const string UpgradeMSBuildWorkspaceRuleId = "RS1023";
     }
 }
