@@ -76,7 +76,13 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests
                 // Microsoft.VisualStudio.Language.StandardClassification.dll:
                 typeof(Microsoft.VisualStudio.Language.StandardClassification.PredefinedClassificationTypeNames).Assembly,
 
-                typeof(Microsoft.VisualStudio.Language.Intellisense.AsyncCompletion.IAsyncCompletionItemManagerProvider).Assembly
+                typeof(Microsoft.VisualStudio.Language.Intellisense.AsyncCompletion.IAsyncCompletionItemManagerProvider).Assembly,
+
+                typeof(Microsoft.VisualStudio.Language.Intellisense.AsyncCompletion.IAsyncCompletionBroker).Assembly,
+
+                typeof(Microsoft.VisualStudio.Utilities.IFeatureServiceFactory).Assembly,
+
+                typeof(Microsoft.VisualStudio.Text.Utilities.IExperimentationServiceInternal).Assembly,
             };
 
             return assemblies;
