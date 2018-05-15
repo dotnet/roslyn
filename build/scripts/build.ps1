@@ -45,7 +45,6 @@ param (
 
     # Special test options
     [switch]$testDeterminism = $false,
-    [switch]$testBuildCorrectness = $false,
 
     [parameter(ValueFromRemainingArguments=$true)] $badArgs)
 
@@ -78,7 +77,6 @@ function Print-Usage() {
     Write-Host "  -testIOperation           Run extra checks to validate IOperations"
     Write-Host ""
     Write-Host "Special Test options" 
-    Write-Host "  -testBuildCorrectness     Run build correctness tests"
     Write-Host "  -testDeterminism          Run determinism tests"
 }
 
@@ -113,8 +111,7 @@ function Process-Arguments() {
         $script:skipAnalyzers = $true
     }
 
-    $script:isAnyTestSpecial = $testBuildCorrectness -or $testDeterminism 
-    if ($isAnyTestSpecial -and ($anyUnit -or $anyVsi)) {
+    if ($testDeterminism -and ($anyUnit -or $anyVsi)) {
         Write-Host "Cannot combine special testing with any other action"
         exit 1
     }
@@ -436,17 +433,9 @@ function Build-DeployToSymStore() {
 # These are tests that don't follow our standard restore, build, test pattern. They customize 
 # the processes in order to test specific elements of our build and hence are handled 
 # separately from our other tests
-function Test-Special() {
-    if ($testBuildCorrectness) {
-        Exec-Block { & ".\build\scripts\test-build-correctness.ps1" -config $buildConfiguration } | Out-Host
-    }
-    elseif ($testDeterminism) {
-        $bootstrapDir = Make-BootstrapBuild
-        Exec-Block { & ".\build\scripts\test-determinism.ps1" -bootstrapDir $bootstrapDir } | Out-Host
-    } 
-    else {
-        throw "Not a special test"
-    }
+function Test-Determinism() {
+    $bootstrapDir = Make-BootstrapBuild
+    Exec-Block { & ".\build\scripts\test-determinism.ps1" -bootstrapDir $bootstrapDir } | Out-Host
 }
 
 function Test-XUnitCoreClr() {
@@ -741,8 +730,8 @@ try {
         Restore-Packages
     }
 
-    if ($isAnyTestSpecial) {
-        Test-Special
+    if ($testDeterminism) {
+        Test-Determinism
         exit 0
     }
 
