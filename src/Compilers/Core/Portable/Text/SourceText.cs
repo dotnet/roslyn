@@ -638,10 +638,10 @@ namespace Microsoft.CodeAnalysis.Text
                     // https://github.com/dotnet/roslyn/pull/26339
                     if (change.Span.End <= changeRanges.Last().Span.Start)
                     {
-                        changes = from c in changes
-                                  where !c.Span.IsEmpty || c.NewText?.Length > 0
-                                  orderby c.Span
-                                  select c;
+                        changes = (from c in changes
+                                   where !c.Span.IsEmpty || c.NewText?.Length > 0
+                                   orderby c.Span
+                                   select c).ToList();
                         return WithChanges(changes);
                     }
 
