@@ -20,15 +20,9 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Extensions
         {
             var run = new Run(part.Text);
 
-            var classificationType = typeMap.GetClassificationType(part.ClassificationType);
-            if (classificationType == null)
-            {
-                FatalError.ReportWithoutCrash(new Exception($"classification doesn't exist for {part.ClassificationType}"));
-            }
+            var classificationType = typeMap.GetClassificationTypeOrDefault(part.ClassificationType, ClassificationTypeNames.Text);
 
-            // don't throw just because it can't find classification type for some reason. in such case, recover just using plain "text"
-            // classification type
-            var format = formatMap.GetTextProperties(classificationType ?? typeMap.GetClassificationType(ClassificationTypeNames.Text));
+            var format = formatMap.GetTextProperties(classificationType);
             run.SetTextProperties(format);
 
             return run;

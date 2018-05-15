@@ -41,7 +41,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Utilities
                 }
                 else
                 {
-                    FatalError.ReportWithoutCrash(new System.Exception($"classification type doesn't exist for {value}"));
+                    FatalError.ReportWithoutCrash(new Exception($"classification type doesn't exist for {value}"));
                 }
             }
         }
@@ -51,6 +51,17 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Utilities
             return _identityMap.TryGetValue(name, out var result)
                 ? result
                 : _registryService.GetClassificationType(name);
+        }
+
+        public IClassificationType GetClassificationTypeOrDefault(string name, string @default)
+        {
+            var type = GetClassificationType(name) ?? GetClassificationType(@default);
+            if (type == null)
+            {
+                FatalError.ReportWithoutCrash(new Exception($"classification type doesn't exist for both {name} and {@default}"));
+            }
+
+            return type;
         }
     }
 }

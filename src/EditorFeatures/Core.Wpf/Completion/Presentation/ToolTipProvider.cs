@@ -106,7 +106,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.P
 
                 var run = new Run(text);
 
-                var format = formatMap.GetTextProperties(typeMap.GetClassificationType(ClassificationTags.GetClassificationTypeName(part.Tag)));
+                var format = formatMap.GetTextProperties(
+                    typeMap.GetClassificationTypeOrDefault(
+                        ClassificationTags.GetClassificationTypeName(part.Tag),
+                        ClassificationTypeNames.Text));
+
                 run.SetTextProperties(format);
 
                 return run;
@@ -158,7 +162,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.P
                     var text = part.ToString();
                     result.Add(new ClassificationSpan(
                         new SnapshotSpan(textSnapshot, new Microsoft.VisualStudio.Text.Span(index, text.Length)),
-                        typeMap.GetClassificationType(ClassificationTags.GetClassificationTypeName(part.Tag))));
+                        typeMap.GetClassificationTypeOrDefault(
+                            ClassificationTags.GetClassificationTypeName(part.Tag),
+                            ClassificationTypeNames.Text)));
 
                     index += text.Length;
                 }

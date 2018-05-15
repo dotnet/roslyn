@@ -72,15 +72,14 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Classification
                 .GetOrCreateExportProviderFactory(TestExportProvider.EntireAssemblyCatalogWithCSharpAndVisualBasic()) _
                 .CreateExportProvider()
 
-            Using workspace = New TestWorkspace(exportProvider)
-                Dim typeMap = workspace.GetService(Of ClassificationTypeMap)
-                Dim formatMap = workspace.GetService(Of IClassificationFormatMapService).GetClassificationFormatMap("tooltip")
 
-                Dim classifiedText = New ClassifiedText("UnknownClassificationType", "dummy")
-                Dim run = classifiedText.ToRun(formatMap, typeMap)
+            Dim typeMap = exportProvider.GetExportedValue(Of ClassificationTypeMap)
+            Dim formatMap = exportProvider.GetExportedValue(Of IClassificationFormatMapService).GetClassificationFormatMap("tooltip")
 
-                Assert.NotNull(run)
-            End Using
+            Dim classifiedText = New ClassifiedText("UnknownClassificationType", "dummy")
+            Dim run = classifiedText.ToRun(formatMap, typeMap)
+
+            Assert.NotNull(run)
         End Sub
 
 #Disable Warning BC40000 ' Type or member is obsolete
