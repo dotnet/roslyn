@@ -680,5 +680,22 @@ end class")
     end property
 end class")
         End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseAutoProperty)>
+        Public Async Function TestLeadingBlankLinesRemoved() As Task
+            Await TestInRegularAndScriptAsync(
+"class Class1
+    [|dim i as integer|]
+
+    readonly property P as integer
+        get
+            return i
+        end get
+    end property
+end class",
+"class Class1
+    readonly property P as integer
+end class")
+        End Function
     End Class
 End Namespace

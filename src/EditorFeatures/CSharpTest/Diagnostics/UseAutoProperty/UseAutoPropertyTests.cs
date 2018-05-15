@@ -34,7 +34,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.UseAutoProp
 }",
 @"class Class
 {
-
     int P { get; }
 }");
         }
@@ -57,7 +56,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.UseAutoProp
 }",
 @"class Class
 {
-
     public int P { get; private set; }
 }",
             CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp5));
@@ -99,7 +97,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.UseAutoProp
 }",
 @"class Class
 {
-
     int P { get; } = 1;
 }");
         }
@@ -140,7 +137,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.UseAutoProp
 }",
 @"class Class
 {
-
     int P { get; }
 }");
         }
@@ -186,7 +182,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.UseAutoProp
 }",
 @"class Class
 {
-
     int P { get; set; }
 }");
         }
@@ -209,7 +204,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.UseAutoProp
 }",
 @"class Class
 {
-
     int P { get; }
 }");
         }
@@ -255,7 +249,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.UseAutoProp
 }",
 @"class Class
 {
-
     int P { get; set; }
 }");
         }
@@ -742,7 +735,6 @@ partial class Class
 }",
 @"class Class
 {
-
     int P { get; }
 
     public Class()
@@ -775,7 +767,6 @@ partial class Class
 }",
 @"class Class
 {
-
     int P { get; }
 
     public Class(int P)
@@ -808,7 +799,6 @@ partial class Class
 }",
 @"class Class
 {
-
     int P { get; }
 
     public Class()
@@ -841,7 +831,6 @@ partial class Class
 }",
 @"class Class
 {
-
     int P { get; set; }
 
     public void Goo()
@@ -874,7 +863,6 @@ partial class Class
 }",
 @"class Class
 {
-
     public int P { get; private set; }
 
     public void Goo()
@@ -974,7 +962,6 @@ partial class Class
 }",
 @"class Class
 {
-
     (int, string) P { get; }
 }");
         }
@@ -997,7 +984,6 @@ partial class Class
 }",
 @"class Class
 {
-
     (int a, string b) P { get; }
 }");
         }
@@ -1038,7 +1024,6 @@ partial class Class
 }",
 @"class Class
 {
-
     (int a, string) P { get; }
 }");
         }
@@ -1061,7 +1046,6 @@ partial class Class
 }",
 @"class Class
 {
-
     (int, string) P { get; } = (1, ""hello"");
 }");
         }
@@ -1089,7 +1073,6 @@ partial class Class
 }",
 @"class Class
 {
-
     (int, string) P { get; set; }
 }");
         }
@@ -1124,7 +1107,6 @@ partial class Class
 }",
 @"class Class
 {
-
     int P { get; }
 
     int Q { get; }
@@ -1372,7 +1354,6 @@ namespace RoslynSandbox
 }",
 @"class Class
 {
-
     public int P { protected get; set; }
 }");
         }
@@ -1401,7 +1382,6 @@ namespace RoslynSandbox
 }",
 @"class Class
 {
-
     public int P { get; protected set; }
 }");
         }
@@ -1420,7 +1400,6 @@ namespace RoslynSandbox
 }",
 @"class Goo
 {
-
     public object Bar { get; } = new object();
     public int Baz => 0;
 }");
@@ -1440,7 +1419,27 @@ namespace RoslynSandbox
 }",
 @"class Goo
 {
+    public object Bar { get; } = new object(); // prop comment
+    public int Baz => 0;
+}");
+        }
 
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseAutoProperty)]
+        [WorkItem(26858, "https://github.com/dotnet/roslyn/issues/26858")]
+        public async Task TestPreserveTrailingTrivia3()
+        {
+            await TestInRegularAndScriptAsync(
+@"class Goo
+{
+    private readonly object [|bar|] = new object();
+
+    // doc
+    public object Bar => bar; // prop comment
+    public int Baz => 0;
+}",
+@"class Goo
+{
+    // doc
     public object Bar { get; } = new object(); // prop comment
     public int Baz => 0;
 }");

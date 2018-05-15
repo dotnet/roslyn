@@ -2,7 +2,6 @@
 
 Imports System.Composition
 Imports System.Threading
-Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis.CodeFixes
 Imports Microsoft.CodeAnalysis.Editing
 Imports Microsoft.CodeAnalysis.Formatting.Rules
@@ -12,10 +11,24 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UseAutoProperty
     <ExportCodeFixProvider(LanguageNames.VisualBasic, Name:=NameOf(VisualBasicUseAutoPropertyCodeFixProvider)), [Shared]>
     Friend Class VisualBasicUseAutoPropertyCodeFixProvider
-        Inherits AbstractUseAutoPropertyCodeFixProvider(Of PropertyBlockSyntax, FieldDeclarationSyntax, ModifiedIdentifierSyntax, ConstructorBlockSyntax, ExpressionSyntax)
+        Inherits AbstractUseAutoPropertyCodeFixProvider(Of PropertyBlockSyntax, ModifiedIdentifierSyntax, ConstructorBlockSyntax, ExpressionSyntax)
 
         Protected Overrides Function GetNodeToRemove(identifier As ModifiedIdentifierSyntax) As SyntaxNode
             Return Utilities.GetNodeToRemove(identifier)
+        End Function
+
+        Protected Overrides Function WillRemoveFirstFieldInTypeDirectlyAboveProperty(
+                [property] As PropertyBlockSyntax, nodeToRemove As SyntaxNode) As Boolean
+
+            If TypeOf nodeToRemove Is FieldDeclarationSyntax AndAlso
+               nodeToRemove.Parent Is [property].Parent AndAlso
+               TypeOf nodeToRemove.Parent Is TypeBlockSyntax Then
+
+                Dim typeBlock = DirectCast(nodeToRemove.Parent, TypeBlockSyntax)
+                Return typeBlock.Members(0) Is nodeToRemove AndAlso typeBlock.Members(1) Is [property]
+            End If
+
+            Return False
         End Function
 
         Protected Overrides Function GetFormattingRules(document As Document) As IEnumerable(Of IFormattingRule)

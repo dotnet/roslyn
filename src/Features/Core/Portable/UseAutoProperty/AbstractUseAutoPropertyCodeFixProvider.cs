@@ -14,15 +14,15 @@ using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Formatting.Rules;
+using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Rename;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.UseAutoProperty
 {
-    internal abstract class AbstractUseAutoPropertyCodeFixProvider<TPropertyDeclaration, TFieldDeclaration, TVariableDeclarator, TConstructorDeclaration, TExpression> : CodeFixProvider
+    internal abstract class AbstractUseAutoPropertyCodeFixProvider<TPropertyDeclaration, TVariableDeclarator, TConstructorDeclaration, TExpression> : CodeFixProvider
         where TPropertyDeclaration : SyntaxNode
-        where TFieldDeclaration : SyntaxNode
         where TVariableDeclarator : SyntaxNode
         where TConstructorDeclaration : SyntaxNode
         where TExpression : SyntaxNode
@@ -41,6 +41,9 @@ namespace Microsoft.CodeAnalysis.UseAutoProperty
         protected abstract Task<SyntaxNode> UpdatePropertyAsync(
             Document propertyDocument, Compilation compilation, IFieldSymbol fieldSymbol, IPropertySymbol propertySymbol,
             TPropertyDeclaration propertyDeclaration, bool isWrittenOutsideConstructor, CancellationToken cancellationToken);
+
+        protected abstract bool WillRemoveFirstFieldInTypeDirectlyAboveProperty(
+            TPropertyDeclaration property, SyntaxNode fieldToRemove);
 
         public sealed override Task RegisterCodeFixesAsync(CodeFixContext context)
         {
@@ -83,13 +86,27 @@ namespace Microsoft.CodeAnalysis.UseAutoProperty
 
             var solution = context.Document.Project.Solution;
             var fieldLocations = await Renamer.GetRenameLocationsAsync(
-                solution, SymbolAndProjectId.Create(fieldSymbol, fieldDocument.Project.Id), 
+                solution, SymbolAndProjectId.Create(fieldSymbol, fieldDocument.Project.Id),
                 solution.Options, cancellationToken).ConfigureAwait(false);
 
             // First, create the updated property we want to replace the old property with
             var isWrittenToOutsideOfConstructor = IsWrittenToOutsideOfConstructorOrProperty(fieldSymbol, fieldLocations, property, cancellationToken);
-            var updatedProperty = await UpdatePropertyAsync(propertyDocument, compilation, fieldSymbol, propertySymbol, property,
+            var updatedProperty = await UpdatePropertyAsync(
+                propertyDocument, compilation, fieldSymbol, propertySymbol, property,
                 isWrittenToOutsideOfConstructor, cancellationToken).ConfigureAwait(false);
+
+            // Ensure the new and old property share the same leading/trailing trivia.
+            updatedProperty = updatedProperty.WithTriviaFrom(property);
+
+            // However, if we have a situation where the property is the second member in a type,
+            // and it would become the first, then remove any leading blank lines from it so we
+            // don't have random blanks above it that used to space it from the field that was
+            // there.
+            if (fieldDocument == propertyDocument &&
+                WillRemoveFirstFieldInTypeDirectlyAboveProperty(property, GetNodeToRemove(declarator)))
+            {
+                updatedProperty = fieldDocument.GetLanguageService<ISyntaxFactsService>().GetNodeWithoutLeadingBlankLines(updatedProperty);
+            }
 
             // Note: rename will try to update all the references in linked files as well.  However, 
             // this can lead to some very bad behavior as we will change the references in linked files
@@ -105,7 +122,7 @@ namespace Microsoft.CodeAnalysis.UseAutoProperty
             // The workspace will see these as two irreconcilable edits.  To avoid this, we disallow
             // any edits to the other links for the files containing the field and property.  i.e.
             // rename will only be allowed to edit the exact same doc we're removing the field from
-            // and the exact doc we're updating hte property in.  It can't touch the other linked
+            // and the exact doc we're updating the property in.  It can't touch the other linked
             // files for those docs.  (It can of course touch any other documents unrelated to the
             // docs that the field and prop are declared in).
             var linkedFiles = new HashSet<DocumentId>();

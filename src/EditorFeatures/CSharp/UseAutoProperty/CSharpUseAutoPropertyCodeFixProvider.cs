@@ -17,13 +17,23 @@ using Microsoft.CodeAnalysis.UseAutoProperty;
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UseAutoProperty
 {
     [ExportCodeFixProvider(LanguageNames.CSharp, Name = nameof(CSharpUseAutoPropertyCodeFixProvider)), Shared]
-    internal class CSharpUseAutoPropertyCodeFixProvider : AbstractUseAutoPropertyCodeFixProvider<PropertyDeclarationSyntax, FieldDeclarationSyntax, VariableDeclaratorSyntax, ConstructorDeclarationSyntax, ExpressionSyntax>
+    internal class CSharpUseAutoPropertyCodeFixProvider : AbstractUseAutoPropertyCodeFixProvider<PropertyDeclarationSyntax, VariableDeclaratorSyntax, ConstructorDeclarationSyntax, ExpressionSyntax>
     {
         protected override SyntaxNode GetNodeToRemove(VariableDeclaratorSyntax declarator)
         {
             var fieldDeclaration = (FieldDeclarationSyntax)declarator.Parent.Parent;
             var nodeToRemove = fieldDeclaration.Declaration.Variables.Count > 1 ? declarator : (SyntaxNode)fieldDeclaration;
             return nodeToRemove;
+        }
+
+        protected override bool WillRemoveFirstFieldInTypeDirectlyAboveProperty(
+            PropertyDeclarationSyntax property, SyntaxNode nodeToRemove)
+        {
+            return nodeToRemove is FieldDeclarationSyntax &&
+                   nodeToRemove.Parent == property.Parent &&
+                   nodeToRemove.Parent is TypeDeclarationSyntax typeDeclaration &&
+                   typeDeclaration.Members[0] == nodeToRemove &&
+                   typeDeclaration.Members[1] == property;
         }
 
         protected override async Task<SyntaxNode> UpdatePropertyAsync(
@@ -60,11 +70,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UseAutoProperty
                                                  .WithSemicolonToken(SyntaxFactory.Token(SyntaxKind.SemicolonToken));
             }
 
-            // Ensure the new and old property share the same leading/trailing trivia.
-            updatedProperty = updatedProperty.WithTriviaFrom(propertyDeclaration);
-            updatedProperty = updatedProperty.WithAdditionalAnnotations(SpecializedFormattingAnnotation);
-
-            return updatedProperty;
+            return updatedProperty.WithAdditionalAnnotations(SpecializedFormattingAnnotation);
         }
 
         protected override IEnumerable<IFormattingRule> GetFormattingRules(Document document)
