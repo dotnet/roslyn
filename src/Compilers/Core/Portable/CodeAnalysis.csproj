@@ -54,6 +54,8 @@
     <PackageReference Include="System.Text.Encoding" Version="$(SystemTextEncodingVersion)" />
     <PackageReference Include="System.Text.Encoding.CodePages" Version="$(SystemTextEncodingCodePagesVersion)" />
     <PackageReference Include="System.Text.Encoding.Extensions" Version="$(SystemTextEncodingExtensionsVersion)" />
+    <!-- PROTOTYPE(editorconfig) Confirm that we want to reference regular expressions before shipping -->
+    <PackageReference Include="System.Text.RegularExpressions" Version="$(SystemTextRegularExpressionsVersion)" />
     <PackageReference Include="System.Xml.ReaderWriter" Version="$(SystemXmlReaderWriterVersion)" />
     <PackageReference Include="System.Xml.XDocument" Version="$(SystemXmlXDocumentVersion)" />
     <PackageReference Include="System.Xml.XmlDocument" Version="$(SystemXmlXmlDocumentVersion)" />
@@ -62,7 +64,6 @@
     <PackageReference Include="System.Reflection.Metadata" Version="$(SystemReflectionMetadataVersion)" />
     <PackageReference Include="System.ValueTuple" Version="$(SystemValueTupleVersion)" />
     <PackageReference Include="System.Xml.XPath.XDocument" Version="$(SystemXmlXPathXDocumentVersion)" />
-    <PackageReference Include="System.Text.Encoding.CodePages" Version="$(SystemTextEncodingCodePagesVersion)" />
   </ItemGroup>
   <ItemGroup>
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.CSharp" />
