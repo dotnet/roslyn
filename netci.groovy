@@ -189,7 +189,7 @@ commitPullList.each { isPr ->
   def myJob = job(jobName) {
     description('Build correctness tests')
     steps {
-      batchFile(""".\\build\\scripts\\cibuild.cmd -testBuildCorrectness""")
+      batchFile(""".\\build\\scripts\\test-build-correctness.cmd -cibuild -release""")
     }
   }
 

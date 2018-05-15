@@ -1721,5 +1721,23 @@ class Explicit : IReadOnlyList<int>
 ";
             await TestInRegularAndScriptAsync(text, expected, options: ImplicitTypeEverywhere);
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertForEachToFor)]
+        public async Task ArrayRank2()
+        {
+            var text = @"
+class Test
+{
+    void Method()
+    {
+        foreach [||] (int a in new int[,] { {1, 2} })
+        {
+            Console.WriteLine(a);
+        }
+    }
+}
+";
+            await TestMissingAsync(text);
+        }
     }
 }
