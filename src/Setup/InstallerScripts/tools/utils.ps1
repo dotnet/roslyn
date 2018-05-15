@@ -146,6 +146,6 @@ function Use-VsixTool([string]$vsDir, [string]$vsId, [string]$baseArgs, [string]
     $name = $e
     $filePath = "`"$((Resolve-Path $e).Path)`""
     $fullArg = "$baseArgs $filePath"
-    WExec-Console $vsixExe $fullArg
+    Exec-Console $vsixExe $fullArg
   }
 }
