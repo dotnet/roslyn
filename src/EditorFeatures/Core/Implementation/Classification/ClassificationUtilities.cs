@@ -53,9 +53,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
                         classificationType = typeMap.GetClassificationType(ClassificationTypeNames.Identifier);
                         break;
                     default:
-                        classificationType = typeMap.GetClassificationTypeOrDefault(
-                            classifiedSpan.ClassificationType,
-                            ClassificationTypeNames.Text);
+                        classificationType = typeMap.GetClassificationType(classifiedSpan.ClassificationType);
                         break;
                 }
 

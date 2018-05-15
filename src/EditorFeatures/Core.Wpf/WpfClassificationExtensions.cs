@@ -8,7 +8,6 @@ using System.Windows.Controls;
 using System.Windows.Documents;
 using Microsoft.CodeAnalysis.Classification;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
-using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.VisualStudio.Text.Classification;
 using Roslyn.Utilities;
 
@@ -20,7 +19,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Extensions
         {
             var run = new Run(part.Text);
 
-            var classificationType = typeMap.GetClassificationTypeOrDefault(part.ClassificationType, ClassificationTypeNames.Text);
+            var classificationType = typeMap.GetClassificationType(part.ClassificationType);
 
             var format = formatMap.GetTextProperties(classificationType);
             run.SetTextProperties(format);

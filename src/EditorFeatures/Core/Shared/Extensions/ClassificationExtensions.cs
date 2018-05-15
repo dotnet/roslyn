@@ -23,9 +23,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Extensions
                 var text = part.ToString();
                 result.Add(new ClassificationSpan(
                     new SnapshotSpan(textSnapshot, new Span(index, text.Length)),
-                    typeMap.GetClassificationTypeOrDefault(
-                        part.Tag.ToClassificationTypeName(),
-                        ClassificationTypeNames.Text)));
+                    typeMap.GetClassificationType(part.Tag.ToClassificationTypeName())));
 
                 index += text.Length;
             }

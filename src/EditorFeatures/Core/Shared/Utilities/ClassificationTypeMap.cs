@@ -4,7 +4,6 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel.Composition;
 using Microsoft.CodeAnalysis.Classification;
-using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.VisualStudio.Text.Classification;
 using Roslyn.Utilities;
@@ -34,34 +33,20 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Utilities
                 // with the string constants used by the compiler. Fortunately, a call
                 // to string.Intern fixes them.
                 var value = string.Intern((string)field.GetValue(null));
-                var classificationType = registryService.GetClassificationType(value);
-                if (classificationType != null)
-                {
-                    _identityMap.Add(value, classificationType);
-                }
-                else
-                {
-                    FatalError.ReportWithoutCrash(new Exception($"classification type doesn't exist for {value}"));
-                }
+                _identityMap.Add(value, registryService.GetClassificationType(value));
             }
         }
 
         public IClassificationType GetClassificationType(string name)
         {
+            return GetClassificationTypeWorker(name) ?? GetClassificationTypeWorker(ClassificationTypeNames.Text);
+        }
+
+        private IClassificationType GetClassificationTypeWorker(string name)
+        {
             return _identityMap.TryGetValue(name, out var result)
                 ? result
                 : _registryService.GetClassificationType(name);
-        }
-
-        public IClassificationType GetClassificationTypeOrDefault(string name, string @default)
-        {
-            var type = GetClassificationType(name) ?? GetClassificationType(@default);
-            if (type == null)
-            {
-                FatalError.ReportWithoutCrash(new Exception($"classification type doesn't exist for both {name} and {@default}"));
-            }
-
-            return type;
         }
     }
 }
