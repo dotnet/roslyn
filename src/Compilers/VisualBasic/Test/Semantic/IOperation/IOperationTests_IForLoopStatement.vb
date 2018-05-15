@@ -6448,5 +6448,1166 @@ Block[B27] - Exit
 
             VerifyFlowGraphAndDiagnosticsForTest(Of MethodBlockSyntax)(source, expectedFlowGraph, expectedDiagnostics)
         End Sub
+
+        <CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)>
+        <Fact()>
+        Public Sub ForToFlow_31()
+            Dim source = <![CDATA[
+Imports System
+Public Class C
+    Sub M(i As Object, init As Object, limit As Object, result As Object) 'BIND:"Sub M"
+        For i = init To limit
+            result = i
+        Next
+    End Sub
+End Class
+]]>.Value
+
+            Dim expectedDiagnostics = String.Empty
+
+            Dim expectedFlowGraph = <![CDATA[
+Block[B0] - Entry
+    Statements (0)
+    Next (Regular) Block[B1]
+        Entering: {R1}
+
+.locals {R1}
+{
+    Locals: [<anonymous local> As System.Object]
+    Block[B1] - Block
+        Predecessors: [B0]
+        Statements (0)
+        Jump if False (Regular) to Block[B3]
+            IInvocationOperation (Function Microsoft.VisualBasic.CompilerServices.ObjectFlowControl.ForLoopControl.ForLoopInitObj(Counter As System.Object, Start As System.Object, Limit As System.Object, StepValue As System.Object, ByRef LoopForResult As System.Object, ByRef CounterResult As System.Object) As System.Boolean) (OperationKind.Invocation, Type: System.Boolean, IsImplicit) (Syntax: 'limit')
+              Instance Receiver: 
+                null
+              Arguments(6):
+                  IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: Counter) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'i')
+                    IParameterReferenceOperation: i (OperationKind.ParameterReference, Type: System.Object) (Syntax: 'i')
+                    InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                    OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                  IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: Start) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'init')
+                    IParameterReferenceOperation: init (OperationKind.ParameterReference, Type: System.Object) (Syntax: 'init')
+                    InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                    OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                  IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: Limit) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'limit')
+                    IParameterReferenceOperation: limit (OperationKind.ParameterReference, Type: System.Object) (Syntax: 'limit')
+                    InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                    OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                  IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: StepValue) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'For i = ini ... Next')
+                    IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Object, IsImplicit) (Syntax: 'For i = ini ... Next')
+                      Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                        (WideningValue)
+                      Operand: 
+                        ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1, IsImplicit) (Syntax: 'For i = ini ... Next')
+                    InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                    OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                  IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: LoopForResult) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'i')
+                    ILocalReferenceOperation:  (IsDeclaration: True) (OperationKind.LocalReference, Type: System.Object, IsImplicit) (Syntax: 'i')
+                    InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                    OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                  IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: CounterResult) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'i')
+                    IParameterReferenceOperation: i (OperationKind.ParameterReference, Type: System.Object, IsImplicit) (Syntax: 'i')
+                    InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                    OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+            Leaving: {R1}
+
+        Next (Regular) Block[B2]
+    Block[B2] - Block
+        Predecessors: [B1] [B2]
+        Statements (1)
+            IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'result = i')
+              Expression: 
+                ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Object, IsImplicit) (Syntax: 'result = i')
+                  Left: 
+                    IParameterReferenceOperation: result (OperationKind.ParameterReference, Type: System.Object) (Syntax: 'result')
+                  Right: 
+                    IParameterReferenceOperation: i (OperationKind.ParameterReference, Type: System.Object) (Syntax: 'i')
+
+        Jump if False (Regular) to Block[B3]
+            IInvocationOperation (Function Microsoft.VisualBasic.CompilerServices.ObjectFlowControl.ForLoopControl.ForNextCheckObj(Counter As System.Object, LoopObj As System.Object, ByRef CounterResult As System.Object) As System.Boolean) (OperationKind.Invocation, Type: System.Boolean, IsImplicit) (Syntax: 'limit')
+              Instance Receiver: 
+                null
+              Arguments(3):
+                  IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: Counter) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'limit')
+                    IParameterReferenceOperation: i (OperationKind.ParameterReference, Type: System.Object, IsImplicit) (Syntax: 'i')
+                    InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                    OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                  IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: LoopObj) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'limit')
+                    ILocalReferenceOperation:  (OperationKind.LocalReference, Type: System.Object, IsImplicit) (Syntax: 'i')
+                    InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                    OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                  IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: CounterResult) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'limit')
+                    IParameterReferenceOperation: i (OperationKind.ParameterReference, Type: System.Object, IsImplicit) (Syntax: 'i')
+                    InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                    OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+            Leaving: {R1}
+
+        Next (Regular) Block[B2]
+}
+
+Block[B3] - Exit
+    Predecessors: [B1] [B2]
+    Statements (0)
+]]>.Value
+
+            VerifyFlowGraphAndDiagnosticsForTest(Of MethodBlockSyntax)(source, expectedFlowGraph, expectedDiagnostics)
+        End Sub
+
+        <CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)>
+        <Fact()>
+        Public Sub ForToFlow_32()
+            Dim source = <![CDATA[
+Imports System
+Public Class C
+    Sub M(init As Object, limit As Object, [step] as Object, result As Object) 'BIND:"Sub M"
+        For i = init To limit Step [step]
+            result = i
+        Next
+    End Sub
+End Class
+]]>.Value
+
+            Dim expectedDiagnostics = String.Empty
+
+            Dim expectedFlowGraph = <![CDATA[
+Block[B0] - Entry
+    Statements (0)
+    Next (Regular) Block[B1]
+        Entering: {R1}
+
+.locals {R1}
+{
+    Locals: [<anonymous local> As System.Object] [i As System.Object]
+    Block[B1] - Block
+        Predecessors: [B0]
+        Statements (0)
+        Jump if False (Regular) to Block[B3]
+            IInvocationOperation (Function Microsoft.VisualBasic.CompilerServices.ObjectFlowControl.ForLoopControl.ForLoopInitObj(Counter As System.Object, Start As System.Object, Limit As System.Object, StepValue As System.Object, ByRef LoopForResult As System.Object, ByRef CounterResult As System.Object) As System.Boolean) (OperationKind.Invocation, Type: System.Boolean, IsImplicit) (Syntax: 'limit')
+              Instance Receiver: 
+                null
+              Arguments(6):
+                  IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: Counter) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'i')
+                    ILocalReferenceOperation: i (IsDeclaration: True) (OperationKind.LocalReference, Type: System.Object, IsImplicit) (Syntax: 'i')
+                    InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                    OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                  IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: Start) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'init')
+                    IParameterReferenceOperation: init (OperationKind.ParameterReference, Type: System.Object) (Syntax: 'init')
+                    InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                    OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                  IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: Limit) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'limit')
+                    IParameterReferenceOperation: limit (OperationKind.ParameterReference, Type: System.Object) (Syntax: 'limit')
+                    InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                    OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                  IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: StepValue) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: '[step]')
+                    IParameterReferenceOperation: step (OperationKind.ParameterReference, Type: System.Object) (Syntax: '[step]')
+                    InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                    OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                  IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: LoopForResult) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'i')
+                    ILocalReferenceOperation:  (IsDeclaration: True) (OperationKind.LocalReference, Type: System.Object, IsImplicit) (Syntax: 'i')
+                    InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                    OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                  IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: CounterResult) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'i')
+                    ILocalReferenceOperation: i (IsDeclaration: True) (OperationKind.LocalReference, Type: System.Object, IsImplicit) (Syntax: 'i')
+                    InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                    OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+            Leaving: {R1}
+
+        Next (Regular) Block[B2]
+    Block[B2] - Block
+        Predecessors: [B1] [B2]
+        Statements (1)
+            IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'result = i')
+              Expression: 
+                ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Object, IsImplicit) (Syntax: 'result = i')
+                  Left: 
+                    IParameterReferenceOperation: result (OperationKind.ParameterReference, Type: System.Object) (Syntax: 'result')
+                  Right: 
+                    ILocalReferenceOperation: i (OperationKind.LocalReference, Type: System.Object) (Syntax: 'i')
+
+        Jump if False (Regular) to Block[B3]
+            IInvocationOperation (Function Microsoft.VisualBasic.CompilerServices.ObjectFlowControl.ForLoopControl.ForNextCheckObj(Counter As System.Object, LoopObj As System.Object, ByRef CounterResult As System.Object) As System.Boolean) (OperationKind.Invocation, Type: System.Boolean, IsImplicit) (Syntax: 'limit')
+              Instance Receiver: 
+                null
+              Arguments(3):
+                  IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: Counter) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'limit')
+                    ILocalReferenceOperation: i (IsDeclaration: True) (OperationKind.LocalReference, Type: System.Object, IsImplicit) (Syntax: 'i')
+                    InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                    OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                  IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: LoopObj) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'limit')
+                    ILocalReferenceOperation:  (OperationKind.LocalReference, Type: System.Object, IsImplicit) (Syntax: 'i')
+                    InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                    OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                  IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: CounterResult) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'limit')
+                    ILocalReferenceOperation: i (IsDeclaration: True) (OperationKind.LocalReference, Type: System.Object, IsImplicit) (Syntax: 'i')
+                    InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                    OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+            Leaving: {R1}
+
+        Next (Regular) Block[B2]
+}
+
+Block[B3] - Exit
+    Predecessors: [B1] [B2]
+    Statements (0)
+]]>.Value
+
+            VerifyFlowGraphAndDiagnosticsForTest(Of MethodBlockSyntax)(source, expectedFlowGraph, expectedDiagnostics)
+        End Sub
+
+        <CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)>
+        <Fact()>
+        Public Sub ForToFlow_33()
+            Dim source = <![CDATA[
+Imports System
+Public Class C
+    Sub M(c1 As C, c2 As C, bInit As Boolean, init1 As Object, init2 As Object, bLimit As Boolean, limit1 As Object, limit2 As Object, bStep As Boolean, step1 As Object, step2 As Object, result As Boolean) 'BIND:"Sub M"
+        For If(c1, c2).i = If(bInit, init1, init2) To If(bLimit, limit1, limit2) Step If(bStep, step1, step2)
+            result = true
+        Next
+    End Sub
+
+    Public i As Object
+End Class
+]]>.Value
+
+            Dim expectedDiagnostics = String.Empty
+
+            Dim expectedFlowGraph = <![CDATA[
+Block[B0] - Entry
+    Statements (0)
+    Next (Regular) Block[B1]
+        Entering: {R1}
+
+.locals {R1}
+{
+    Locals: [<anonymous local> As System.Object]
+    Block[B1] - Block
+        Predecessors: [B0]
+        Statements (1)
+            IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'c1')
+              Value: 
+                IParameterReferenceOperation: c1 (OperationKind.ParameterReference, Type: C) (Syntax: 'c1')
+
+        Jump if True (Regular) to Block[B3]
+            IIsNullOperation (OperationKind.IsNull, Type: System.Boolean, IsImplicit) (Syntax: 'c1')
+              Operand: 
+                IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: C, IsImplicit) (Syntax: 'c1')
+
+        Next (Regular) Block[B2]
+    Block[B2] - Block
+        Predecessors: [B1]
+        Statements (1)
+            IFlowCaptureOperation: 1 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'c1')
+              Value: 
+                IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: C, IsImplicit) (Syntax: 'c1')
+
+        Next (Regular) Block[B4]
+    Block[B3] - Block
+        Predecessors: [B1]
+        Statements (1)
+            IFlowCaptureOperation: 1 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'c2')
+              Value: 
+                IParameterReferenceOperation: c2 (OperationKind.ParameterReference, Type: C) (Syntax: 'c2')
+
+        Next (Regular) Block[B4]
+    Block[B4] - Block
+        Predecessors: [B2] [B3]
+        Statements (1)
+            IFlowCaptureOperation: 2 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'If(c1, c2).i')
+              Value: 
+                IFieldReferenceOperation: C.i As System.Object (OperationKind.FieldReference, Type: System.Object) (Syntax: 'If(c1, c2).i')
+                  Instance Receiver: 
+                    IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: C, IsImplicit) (Syntax: 'If(c1, c2)')
+
+        Jump if False (Regular) to Block[B6]
+            IParameterReferenceOperation: bInit (OperationKind.ParameterReference, Type: System.Boolean) (Syntax: 'bInit')
+
+        Next (Regular) Block[B5]
+    Block[B5] - Block
+        Predecessors: [B4]
+        Statements (1)
+            IFlowCaptureOperation: 3 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'init1')
+              Value: 
+                IParameterReferenceOperation: init1 (OperationKind.ParameterReference, Type: System.Object) (Syntax: 'init1')
+
+        Next (Regular) Block[B7]
+    Block[B6] - Block
+        Predecessors: [B4]
+        Statements (1)
+            IFlowCaptureOperation: 3 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'init2')
+              Value: 
+                IParameterReferenceOperation: init2 (OperationKind.ParameterReference, Type: System.Object) (Syntax: 'init2')
+
+        Next (Regular) Block[B7]
+    Block[B7] - Block
+        Predecessors: [B5] [B6]
+        Statements (0)
+        Jump if False (Regular) to Block[B9]
+            IParameterReferenceOperation: bLimit (OperationKind.ParameterReference, Type: System.Boolean) (Syntax: 'bLimit')
+
+        Next (Regular) Block[B8]
+    Block[B8] - Block
+        Predecessors: [B7]
+        Statements (1)
+            IFlowCaptureOperation: 4 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'limit1')
+              Value: 
+                IParameterReferenceOperation: limit1 (OperationKind.ParameterReference, Type: System.Object) (Syntax: 'limit1')
+
+        Next (Regular) Block[B10]
+    Block[B9] - Block
+        Predecessors: [B7]
+        Statements (1)
+            IFlowCaptureOperation: 4 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'limit2')
+              Value: 
+                IParameterReferenceOperation: limit2 (OperationKind.ParameterReference, Type: System.Object) (Syntax: 'limit2')
+
+        Next (Regular) Block[B10]
+    Block[B10] - Block
+        Predecessors: [B8] [B9]
+        Statements (0)
+        Jump if False (Regular) to Block[B12]
+            IParameterReferenceOperation: bStep (OperationKind.ParameterReference, Type: System.Boolean) (Syntax: 'bStep')
+
+        Next (Regular) Block[B11]
+    Block[B11] - Block
+        Predecessors: [B10]
+        Statements (1)
+            IFlowCaptureOperation: 5 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'step1')
+              Value: 
+                IParameterReferenceOperation: step1 (OperationKind.ParameterReference, Type: System.Object) (Syntax: 'step1')
+
+        Next (Regular) Block[B13]
+    Block[B12] - Block
+        Predecessors: [B10]
+        Statements (1)
+            IFlowCaptureOperation: 5 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'step2')
+              Value: 
+                IParameterReferenceOperation: step2 (OperationKind.ParameterReference, Type: System.Object) (Syntax: 'step2')
+
+        Next (Regular) Block[B13]
+    Block[B13] - Block
+        Predecessors: [B11] [B12]
+        Statements (1)
+            IFlowCaptureOperation: 6 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'c1')
+              Value: 
+                IParameterReferenceOperation: c1 (OperationKind.ParameterReference, Type: C, IsImplicit) (Syntax: 'c1')
+
+        Jump if True (Regular) to Block[B15]
+            IIsNullOperation (OperationKind.IsNull, Type: System.Boolean, IsImplicit) (Syntax: 'c1')
+              Operand: 
+                IFlowCaptureReferenceOperation: 6 (OperationKind.FlowCaptureReference, Type: C, IsImplicit) (Syntax: 'c1')
+
+        Next (Regular) Block[B14]
+    Block[B14] - Block
+        Predecessors: [B13]
+        Statements (1)
+            IFlowCaptureOperation: 7 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'c1')
+              Value: 
+                IFlowCaptureReferenceOperation: 6 (OperationKind.FlowCaptureReference, Type: C, IsImplicit) (Syntax: 'c1')
+
+        Next (Regular) Block[B16]
+    Block[B15] - Block
+        Predecessors: [B13]
+        Statements (1)
+            IFlowCaptureOperation: 7 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'c2')
+              Value: 
+                IParameterReferenceOperation: c2 (OperationKind.ParameterReference, Type: C, IsImplicit) (Syntax: 'c2')
+
+        Next (Regular) Block[B16]
+    Block[B16] - Block
+        Predecessors: [B14] [B15]
+        Statements (0)
+        Jump if False (Regular) to Block[B25]
+            IInvocationOperation (Function Microsoft.VisualBasic.CompilerServices.ObjectFlowControl.ForLoopControl.ForLoopInitObj(Counter As System.Object, Start As System.Object, Limit As System.Object, StepValue As System.Object, ByRef LoopForResult As System.Object, ByRef CounterResult As System.Object) As System.Boolean) (OperationKind.Invocation, Type: System.Boolean, IsImplicit) (Syntax: 'If(bLimit,  ... t1, limit2)')
+              Instance Receiver: 
+                null
+              Arguments(6):
+                  IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: Counter) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'If(c1, c2).i')
+                    IFlowCaptureReferenceOperation: 2 (OperationKind.FlowCaptureReference, Type: System.Object, IsImplicit) (Syntax: 'If(c1, c2).i')
+                    InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                    OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                  IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: Start) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'If(bInit, init1, init2)')
+                    IFlowCaptureReferenceOperation: 3 (OperationKind.FlowCaptureReference, Type: System.Object, IsImplicit) (Syntax: 'If(bInit, init1, init2)')
+                    InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                    OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                  IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: Limit) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'If(bLimit,  ... t1, limit2)')
+                    IFlowCaptureReferenceOperation: 4 (OperationKind.FlowCaptureReference, Type: System.Object, IsImplicit) (Syntax: 'If(bLimit,  ... t1, limit2)')
+                    InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                    OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                  IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: StepValue) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'If(bStep, step1, step2)')
+                    IFlowCaptureReferenceOperation: 5 (OperationKind.FlowCaptureReference, Type: System.Object, IsImplicit) (Syntax: 'If(bStep, step1, step2)')
+                    InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                    OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                  IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: LoopForResult) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'If(c1, c2).i')
+                    ILocalReferenceOperation:  (IsDeclaration: True) (OperationKind.LocalReference, Type: System.Object, IsImplicit) (Syntax: 'If(c1, c2).i')
+                    InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                    OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                  IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: CounterResult) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'If(c1, c2).i')
+                    IFieldReferenceOperation: C.i As System.Object (OperationKind.FieldReference, Type: System.Object, IsImplicit) (Syntax: 'If(c1, c2).i')
+                      Instance Receiver: 
+                        IFlowCaptureReferenceOperation: 7 (OperationKind.FlowCaptureReference, Type: C, IsImplicit) (Syntax: 'If(c1, c2)')
+                    InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                    OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+            Leaving: {R1}
+
+        Next (Regular) Block[B24]
+    Block[B17] - Block
+        Predecessors: [B24]
+        Statements (1)
+            IFlowCaptureOperation: 8 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'c1')
+              Value: 
+                IParameterReferenceOperation: c1 (OperationKind.ParameterReference, Type: C, IsImplicit) (Syntax: 'c1')
+
+        Jump if True (Regular) to Block[B19]
+            IIsNullOperation (OperationKind.IsNull, Type: System.Boolean, IsImplicit) (Syntax: 'c1')
+              Operand: 
+                IFlowCaptureReferenceOperation: 8 (OperationKind.FlowCaptureReference, Type: C, IsImplicit) (Syntax: 'c1')
+
+        Next (Regular) Block[B18]
+    Block[B18] - Block
+        Predecessors: [B17]
+        Statements (1)
+            IFlowCaptureOperation: 9 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'c1')
+              Value: 
+                IFlowCaptureReferenceOperation: 8 (OperationKind.FlowCaptureReference, Type: C, IsImplicit) (Syntax: 'c1')
+
+        Next (Regular) Block[B20]
+    Block[B19] - Block
+        Predecessors: [B17]
+        Statements (1)
+            IFlowCaptureOperation: 9 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'c2')
+              Value: 
+                IParameterReferenceOperation: c2 (OperationKind.ParameterReference, Type: C, IsImplicit) (Syntax: 'c2')
+
+        Next (Regular) Block[B20]
+    Block[B20] - Block
+        Predecessors: [B18] [B19]
+        Statements (2)
+            IFlowCaptureOperation: 10 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'If(c1, c2).i')
+              Value: 
+                IFieldReferenceOperation: C.i As System.Object (OperationKind.FieldReference, Type: System.Object, IsImplicit) (Syntax: 'If(c1, c2).i')
+                  Instance Receiver: 
+                    IFlowCaptureReferenceOperation: 9 (OperationKind.FlowCaptureReference, Type: C, IsImplicit) (Syntax: 'If(c1, c2)')
+
+            IFlowCaptureOperation: 11 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'c1')
+              Value: 
+                IParameterReferenceOperation: c1 (OperationKind.ParameterReference, Type: C, IsImplicit) (Syntax: 'c1')
+
+        Jump if True (Regular) to Block[B22]
+            IIsNullOperation (OperationKind.IsNull, Type: System.Boolean, IsImplicit) (Syntax: 'c1')
+              Operand: 
+                IFlowCaptureReferenceOperation: 11 (OperationKind.FlowCaptureReference, Type: C, IsImplicit) (Syntax: 'c1')
+
+        Next (Regular) Block[B21]
+    Block[B21] - Block
+        Predecessors: [B20]
+        Statements (1)
+            IFlowCaptureOperation: 12 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'c1')
+              Value: 
+                IFlowCaptureReferenceOperation: 11 (OperationKind.FlowCaptureReference, Type: C, IsImplicit) (Syntax: 'c1')
+
+        Next (Regular) Block[B23]
+    Block[B22] - Block
+        Predecessors: [B20]
+        Statements (1)
+            IFlowCaptureOperation: 12 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'c2')
+              Value: 
+                IParameterReferenceOperation: c2 (OperationKind.ParameterReference, Type: C, IsImplicit) (Syntax: 'c2')
+
+        Next (Regular) Block[B23]
+    Block[B23] - Block
+        Predecessors: [B21] [B22]
+        Statements (0)
+        Jump if False (Regular) to Block[B25]
+            IInvocationOperation (Function Microsoft.VisualBasic.CompilerServices.ObjectFlowControl.ForLoopControl.ForNextCheckObj(Counter As System.Object, LoopObj As System.Object, ByRef CounterResult As System.Object) As System.Boolean) (OperationKind.Invocation, Type: System.Boolean, IsImplicit) (Syntax: 'If(bLimit,  ... t1, limit2)')
+              Instance Receiver: 
+                null
+              Arguments(3):
+                  IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: Counter) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'If(bLimit,  ... t1, limit2)')
+                    IFlowCaptureReferenceOperation: 10 (OperationKind.FlowCaptureReference, Type: System.Object, IsImplicit) (Syntax: 'If(c1, c2).i')
+                    InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                    OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                  IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: LoopObj) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'If(bLimit,  ... t1, limit2)')
+                    ILocalReferenceOperation:  (OperationKind.LocalReference, Type: System.Object, IsImplicit) (Syntax: 'If(c1, c2).i')
+                    InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                    OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                  IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: CounterResult) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'If(bLimit,  ... t1, limit2)')
+                    IFieldReferenceOperation: C.i As System.Object (OperationKind.FieldReference, Type: System.Object, IsImplicit) (Syntax: 'If(c1, c2).i')
+                      Instance Receiver: 
+                        IFlowCaptureReferenceOperation: 12 (OperationKind.FlowCaptureReference, Type: C, IsImplicit) (Syntax: 'If(c1, c2)')
+                    InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                    OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+            Leaving: {R1}
+
+        Next (Regular) Block[B24]
+    Block[B24] - Block
+        Predecessors: [B16] [B23]
+        Statements (1)
+            IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'result = true')
+              Expression: 
+                ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Boolean, IsImplicit) (Syntax: 'result = true')
+                  Left: 
+                    IParameterReferenceOperation: result (OperationKind.ParameterReference, Type: System.Boolean) (Syntax: 'result')
+                  Right: 
+                    ILiteralOperation (OperationKind.Literal, Type: System.Boolean, Constant: True) (Syntax: 'true')
+
+        Next (Regular) Block[B17]
+}
+
+Block[B25] - Exit
+    Predecessors: [B16] [B23]
+    Statements (0)
+]]>.Value
+
+            VerifyFlowGraphAndDiagnosticsForTest(Of MethodBlockSyntax)(source, expectedFlowGraph, expectedDiagnostics)
+        End Sub
+
+        <CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)>
+        <Fact()>
+        Public Sub ForToFlow_34()
+            Dim source = <![CDATA[
+Imports System
+Public Class C
+    Sub M(c1 As C, c2 As C, init1 As Object, limit1 As Object, step1 As Object, result As Boolean) 'BIND:"Sub M"
+        For If(c1, c2).i = init1 To limit1 Step step1
+            result = true
+        Next
+    End Sub
+
+    Public i As Object
+End Class
+]]>.Value
+
+            Dim expectedDiagnostics = String.Empty
+
+            Dim expectedFlowGraph = <![CDATA[
+Block[B0] - Entry
+    Statements (0)
+    Next (Regular) Block[B1]
+        Entering: {R1}
+
+.locals {R1}
+{
+    Locals: [<anonymous local> As System.Object]
+    Block[B1] - Block
+        Predecessors: [B0]
+        Statements (1)
+            IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'c1')
+              Value: 
+                IParameterReferenceOperation: c1 (OperationKind.ParameterReference, Type: C) (Syntax: 'c1')
+
+        Jump if True (Regular) to Block[B3]
+            IIsNullOperation (OperationKind.IsNull, Type: System.Boolean, IsImplicit) (Syntax: 'c1')
+              Operand: 
+                IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: C, IsImplicit) (Syntax: 'c1')
+
+        Next (Regular) Block[B2]
+    Block[B2] - Block
+        Predecessors: [B1]
+        Statements (1)
+            IFlowCaptureOperation: 1 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'c1')
+              Value: 
+                IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: C, IsImplicit) (Syntax: 'c1')
+
+        Next (Regular) Block[B4]
+    Block[B3] - Block
+        Predecessors: [B1]
+        Statements (1)
+            IFlowCaptureOperation: 1 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'c2')
+              Value: 
+                IParameterReferenceOperation: c2 (OperationKind.ParameterReference, Type: C) (Syntax: 'c2')
+
+        Next (Regular) Block[B4]
+    Block[B4] - Block
+        Predecessors: [B2] [B3]
+        Statements (5)
+            IFlowCaptureOperation: 2 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'If(c1, c2).i')
+              Value: 
+                IFieldReferenceOperation: C.i As System.Object (OperationKind.FieldReference, Type: System.Object) (Syntax: 'If(c1, c2).i')
+                  Instance Receiver: 
+                    IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: C, IsImplicit) (Syntax: 'If(c1, c2)')
+
+            IFlowCaptureOperation: 3 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'init1')
+              Value: 
+                IParameterReferenceOperation: init1 (OperationKind.ParameterReference, Type: System.Object) (Syntax: 'init1')
+
+            IFlowCaptureOperation: 4 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'limit1')
+              Value: 
+                IParameterReferenceOperation: limit1 (OperationKind.ParameterReference, Type: System.Object) (Syntax: 'limit1')
+
+            IFlowCaptureOperation: 5 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'step1')
+              Value: 
+                IParameterReferenceOperation: step1 (OperationKind.ParameterReference, Type: System.Object) (Syntax: 'step1')
+
+            IFlowCaptureOperation: 6 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'c1')
+              Value: 
+                IParameterReferenceOperation: c1 (OperationKind.ParameterReference, Type: C, IsImplicit) (Syntax: 'c1')
+
+        Jump if True (Regular) to Block[B6]
+            IIsNullOperation (OperationKind.IsNull, Type: System.Boolean, IsImplicit) (Syntax: 'c1')
+              Operand: 
+                IFlowCaptureReferenceOperation: 6 (OperationKind.FlowCaptureReference, Type: C, IsImplicit) (Syntax: 'c1')
+
+        Next (Regular) Block[B5]
+    Block[B5] - Block
+        Predecessors: [B4]
+        Statements (1)
+            IFlowCaptureOperation: 7 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'c1')
+              Value: 
+                IFlowCaptureReferenceOperation: 6 (OperationKind.FlowCaptureReference, Type: C, IsImplicit) (Syntax: 'c1')
+
+        Next (Regular) Block[B7]
+    Block[B6] - Block
+        Predecessors: [B4]
+        Statements (1)
+            IFlowCaptureOperation: 7 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'c2')
+              Value: 
+                IParameterReferenceOperation: c2 (OperationKind.ParameterReference, Type: C, IsImplicit) (Syntax: 'c2')
+
+        Next (Regular) Block[B7]
+    Block[B7] - Block
+        Predecessors: [B5] [B6]
+        Statements (0)
+        Jump if False (Regular) to Block[B16]
+            IInvocationOperation (Function Microsoft.VisualBasic.CompilerServices.ObjectFlowControl.ForLoopControl.ForLoopInitObj(Counter As System.Object, Start As System.Object, Limit As System.Object, StepValue As System.Object, ByRef LoopForResult As System.Object, ByRef CounterResult As System.Object) As System.Boolean) (OperationKind.Invocation, Type: System.Boolean, IsImplicit) (Syntax: 'limit1')
+              Instance Receiver: 
+                null
+              Arguments(6):
+                  IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: Counter) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'If(c1, c2).i')
+                    IFlowCaptureReferenceOperation: 2 (OperationKind.FlowCaptureReference, Type: System.Object, IsImplicit) (Syntax: 'If(c1, c2).i')
+                    InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                    OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                  IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: Start) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'init1')
+                    IFlowCaptureReferenceOperation: 3 (OperationKind.FlowCaptureReference, Type: System.Object, IsImplicit) (Syntax: 'init1')
+                    InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                    OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                  IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: Limit) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'limit1')
+                    IFlowCaptureReferenceOperation: 4 (OperationKind.FlowCaptureReference, Type: System.Object, IsImplicit) (Syntax: 'limit1')
+                    InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                    OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                  IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: StepValue) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'step1')
+                    IFlowCaptureReferenceOperation: 5 (OperationKind.FlowCaptureReference, Type: System.Object, IsImplicit) (Syntax: 'step1')
+                    InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                    OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                  IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: LoopForResult) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'If(c1, c2).i')
+                    ILocalReferenceOperation:  (IsDeclaration: True) (OperationKind.LocalReference, Type: System.Object, IsImplicit) (Syntax: 'If(c1, c2).i')
+                    InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                    OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                  IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: CounterResult) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'If(c1, c2).i')
+                    IFieldReferenceOperation: C.i As System.Object (OperationKind.FieldReference, Type: System.Object, IsImplicit) (Syntax: 'If(c1, c2).i')
+                      Instance Receiver: 
+                        IFlowCaptureReferenceOperation: 7 (OperationKind.FlowCaptureReference, Type: C, IsImplicit) (Syntax: 'If(c1, c2)')
+                    InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                    OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+            Leaving: {R1}
+
+        Next (Regular) Block[B15]
+    Block[B8] - Block
+        Predecessors: [B15]
+        Statements (1)
+            IFlowCaptureOperation: 8 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'c1')
+              Value: 
+                IParameterReferenceOperation: c1 (OperationKind.ParameterReference, Type: C, IsImplicit) (Syntax: 'c1')
+
+        Jump if True (Regular) to Block[B10]
+            IIsNullOperation (OperationKind.IsNull, Type: System.Boolean, IsImplicit) (Syntax: 'c1')
+              Operand: 
+                IFlowCaptureReferenceOperation: 8 (OperationKind.FlowCaptureReference, Type: C, IsImplicit) (Syntax: 'c1')
+
+        Next (Regular) Block[B9]
+    Block[B9] - Block
+        Predecessors: [B8]
+        Statements (1)
+            IFlowCaptureOperation: 9 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'c1')
+              Value: 
+                IFlowCaptureReferenceOperation: 8 (OperationKind.FlowCaptureReference, Type: C, IsImplicit) (Syntax: 'c1')
+
+        Next (Regular) Block[B11]
+    Block[B10] - Block
+        Predecessors: [B8]
+        Statements (1)
+            IFlowCaptureOperation: 9 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'c2')
+              Value: 
+                IParameterReferenceOperation: c2 (OperationKind.ParameterReference, Type: C, IsImplicit) (Syntax: 'c2')
+
+        Next (Regular) Block[B11]
+    Block[B11] - Block
+        Predecessors: [B9] [B10]
+        Statements (2)
+            IFlowCaptureOperation: 10 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'If(c1, c2).i')
+              Value: 
+                IFieldReferenceOperation: C.i As System.Object (OperationKind.FieldReference, Type: System.Object, IsImplicit) (Syntax: 'If(c1, c2).i')
+                  Instance Receiver: 
+                    IFlowCaptureReferenceOperation: 9 (OperationKind.FlowCaptureReference, Type: C, IsImplicit) (Syntax: 'If(c1, c2)')
+
+            IFlowCaptureOperation: 11 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'c1')
+              Value: 
+                IParameterReferenceOperation: c1 (OperationKind.ParameterReference, Type: C, IsImplicit) (Syntax: 'c1')
+
+        Jump if True (Regular) to Block[B13]
+            IIsNullOperation (OperationKind.IsNull, Type: System.Boolean, IsImplicit) (Syntax: 'c1')
+              Operand: 
+                IFlowCaptureReferenceOperation: 11 (OperationKind.FlowCaptureReference, Type: C, IsImplicit) (Syntax: 'c1')
+
+        Next (Regular) Block[B12]
+    Block[B12] - Block
+        Predecessors: [B11]
+        Statements (1)
+            IFlowCaptureOperation: 12 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'c1')
+              Value: 
+                IFlowCaptureReferenceOperation: 11 (OperationKind.FlowCaptureReference, Type: C, IsImplicit) (Syntax: 'c1')
+
+        Next (Regular) Block[B14]
+    Block[B13] - Block
+        Predecessors: [B11]
+        Statements (1)
+            IFlowCaptureOperation: 12 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'c2')
+              Value: 
+                IParameterReferenceOperation: c2 (OperationKind.ParameterReference, Type: C, IsImplicit) (Syntax: 'c2')
+
+        Next (Regular) Block[B14]
+    Block[B14] - Block
+        Predecessors: [B12] [B13]
+        Statements (0)
+        Jump if False (Regular) to Block[B16]
+            IInvocationOperation (Function Microsoft.VisualBasic.CompilerServices.ObjectFlowControl.ForLoopControl.ForNextCheckObj(Counter As System.Object, LoopObj As System.Object, ByRef CounterResult As System.Object) As System.Boolean) (OperationKind.Invocation, Type: System.Boolean, IsImplicit) (Syntax: 'limit1')
+              Instance Receiver: 
+                null
+              Arguments(3):
+                  IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: Counter) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'limit1')
+                    IFlowCaptureReferenceOperation: 10 (OperationKind.FlowCaptureReference, Type: System.Object, IsImplicit) (Syntax: 'If(c1, c2).i')
+                    InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                    OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                  IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: LoopObj) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'limit1')
+                    ILocalReferenceOperation:  (OperationKind.LocalReference, Type: System.Object, IsImplicit) (Syntax: 'If(c1, c2).i')
+                    InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                    OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                  IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: CounterResult) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'limit1')
+                    IFieldReferenceOperation: C.i As System.Object (OperationKind.FieldReference, Type: System.Object, IsImplicit) (Syntax: 'If(c1, c2).i')
+                      Instance Receiver: 
+                        IFlowCaptureReferenceOperation: 12 (OperationKind.FlowCaptureReference, Type: C, IsImplicit) (Syntax: 'If(c1, c2)')
+                    InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                    OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+            Leaving: {R1}
+
+        Next (Regular) Block[B15]
+    Block[B15] - Block
+        Predecessors: [B7] [B14]
+        Statements (1)
+            IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'result = true')
+              Expression: 
+                ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Boolean, IsImplicit) (Syntax: 'result = true')
+                  Left: 
+                    IParameterReferenceOperation: result (OperationKind.ParameterReference, Type: System.Boolean) (Syntax: 'result')
+                  Right: 
+                    ILiteralOperation (OperationKind.Literal, Type: System.Boolean, Constant: True) (Syntax: 'true')
+
+        Next (Regular) Block[B8]
+}
+
+Block[B16] - Exit
+    Predecessors: [B7] [B14]
+    Statements (0)
+]]>.Value
+
+            VerifyFlowGraphAndDiagnosticsForTest(Of MethodBlockSyntax)(source, expectedFlowGraph, expectedDiagnostics)
+        End Sub
+
+        <CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)>
+        <Fact()>
+        Public Sub ForToFlow_35()
+            Dim source = <![CDATA[
+Imports System
+Public Class C
+    Sub M(i As Object, bInit As Boolean, init1 As Object, init2 As Object, limit1 As Object, step1 As Object, result As Boolean) 'BIND:"Sub M"
+        For i = If(bInit, init1, init2) To limit1 Step step1
+            result = true
+        Next
+    End Sub
+End Class
+]]>.Value
+
+            Dim expectedDiagnostics = String.Empty
+
+            Dim expectedFlowGraph = <![CDATA[
+Block[B0] - Entry
+    Statements (0)
+    Next (Regular) Block[B1]
+        Entering: {R1}
+
+.locals {R1}
+{
+    Locals: [<anonymous local> As System.Object]
+    Block[B1] - Block
+        Predecessors: [B0]
+        Statements (1)
+            IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'i')
+              Value: 
+                IParameterReferenceOperation: i (OperationKind.ParameterReference, Type: System.Object) (Syntax: 'i')
+
+        Jump if False (Regular) to Block[B3]
+            IParameterReferenceOperation: bInit (OperationKind.ParameterReference, Type: System.Boolean) (Syntax: 'bInit')
+
+        Next (Regular) Block[B2]
+    Block[B2] - Block
+        Predecessors: [B1]
+        Statements (1)
+            IFlowCaptureOperation: 1 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'init1')
+              Value: 
+                IParameterReferenceOperation: init1 (OperationKind.ParameterReference, Type: System.Object) (Syntax: 'init1')
+
+        Next (Regular) Block[B4]
+    Block[B3] - Block
+        Predecessors: [B1]
+        Statements (1)
+            IFlowCaptureOperation: 1 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'init2')
+              Value: 
+                IParameterReferenceOperation: init2 (OperationKind.ParameterReference, Type: System.Object) (Syntax: 'init2')
+
+        Next (Regular) Block[B4]
+    Block[B4] - Block
+        Predecessors: [B2] [B3]
+        Statements (0)
+        Jump if False (Regular) to Block[B6]
+            IInvocationOperation (Function Microsoft.VisualBasic.CompilerServices.ObjectFlowControl.ForLoopControl.ForLoopInitObj(Counter As System.Object, Start As System.Object, Limit As System.Object, StepValue As System.Object, ByRef LoopForResult As System.Object, ByRef CounterResult As System.Object) As System.Boolean) (OperationKind.Invocation, Type: System.Boolean, IsImplicit) (Syntax: 'limit1')
+              Instance Receiver: 
+                null
+              Arguments(6):
+                  IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: Counter) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'i')
+                    IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.Object, IsImplicit) (Syntax: 'i')
+                    InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                    OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                  IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: Start) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'If(bInit, init1, init2)')
+                    IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: System.Object, IsImplicit) (Syntax: 'If(bInit, init1, init2)')
+                    InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                    OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                  IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: Limit) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'limit1')
+                    IParameterReferenceOperation: limit1 (OperationKind.ParameterReference, Type: System.Object) (Syntax: 'limit1')
+                    InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                    OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                  IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: StepValue) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'step1')
+                    IParameterReferenceOperation: step1 (OperationKind.ParameterReference, Type: System.Object) (Syntax: 'step1')
+                    InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                    OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                  IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: LoopForResult) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'i')
+                    ILocalReferenceOperation:  (IsDeclaration: True) (OperationKind.LocalReference, Type: System.Object, IsImplicit) (Syntax: 'i')
+                    InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                    OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                  IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: CounterResult) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'i')
+                    IParameterReferenceOperation: i (OperationKind.ParameterReference, Type: System.Object, IsImplicit) (Syntax: 'i')
+                    InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                    OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+            Leaving: {R1}
+
+        Next (Regular) Block[B5]
+    Block[B5] - Block
+        Predecessors: [B4] [B5]
+        Statements (1)
+            IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'result = true')
+              Expression: 
+                ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Boolean, IsImplicit) (Syntax: 'result = true')
+                  Left: 
+                    IParameterReferenceOperation: result (OperationKind.ParameterReference, Type: System.Boolean) (Syntax: 'result')
+                  Right: 
+                    ILiteralOperation (OperationKind.Literal, Type: System.Boolean, Constant: True) (Syntax: 'true')
+
+        Jump if False (Regular) to Block[B6]
+            IInvocationOperation (Function Microsoft.VisualBasic.CompilerServices.ObjectFlowControl.ForLoopControl.ForNextCheckObj(Counter As System.Object, LoopObj As System.Object, ByRef CounterResult As System.Object) As System.Boolean) (OperationKind.Invocation, Type: System.Boolean, IsImplicit) (Syntax: 'limit1')
+              Instance Receiver: 
+                null
+              Arguments(3):
+                  IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: Counter) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'limit1')
+                    IParameterReferenceOperation: i (OperationKind.ParameterReference, Type: System.Object, IsImplicit) (Syntax: 'i')
+                    InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                    OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                  IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: LoopObj) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'limit1')
+                    ILocalReferenceOperation:  (OperationKind.LocalReference, Type: System.Object, IsImplicit) (Syntax: 'i')
+                    InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                    OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                  IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: CounterResult) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'limit1')
+                    IParameterReferenceOperation: i (OperationKind.ParameterReference, Type: System.Object, IsImplicit) (Syntax: 'i')
+                    InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                    OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+            Leaving: {R1}
+
+        Next (Regular) Block[B5]
+}
+
+Block[B6] - Exit
+    Predecessors: [B4] [B5]
+    Statements (0)
+]]>.Value
+
+            VerifyFlowGraphAndDiagnosticsForTest(Of MethodBlockSyntax)(source, expectedFlowGraph, expectedDiagnostics)
+        End Sub
+
+        <CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)>
+        <Fact()>
+        Public Sub ForToFlow_36()
+            Dim source = <![CDATA[
+Imports System
+Public Class C
+    Sub M(i As Object, init1 As Object, bLimit As Boolean, limit1 As Object, limit2 As Object, step1 As Object, result As Boolean) 'BIND:"Sub M"
+        For i = init1 To If(bLimit, limit1, limit2) Step step1
+            result = true
+        Next
+    End Sub
+End Class
+]]>.Value
+
+            Dim expectedDiagnostics = String.Empty
+
+            Dim expectedFlowGraph = <![CDATA[
+Block[B0] - Entry
+    Statements (0)
+    Next (Regular) Block[B1]
+        Entering: {R1}
+
+.locals {R1}
+{
+    Locals: [<anonymous local> As System.Object]
+    Block[B1] - Block
+        Predecessors: [B0]
+        Statements (2)
+            IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'i')
+              Value: 
+                IParameterReferenceOperation: i (OperationKind.ParameterReference, Type: System.Object) (Syntax: 'i')
+
+            IFlowCaptureOperation: 1 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'init1')
+              Value: 
+                IParameterReferenceOperation: init1 (OperationKind.ParameterReference, Type: System.Object) (Syntax: 'init1')
+
+        Jump if False (Regular) to Block[B3]
+            IParameterReferenceOperation: bLimit (OperationKind.ParameterReference, Type: System.Boolean) (Syntax: 'bLimit')
+
+        Next (Regular) Block[B2]
+    Block[B2] - Block
+        Predecessors: [B1]
+        Statements (1)
+            IFlowCaptureOperation: 2 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'limit1')
+              Value: 
+                IParameterReferenceOperation: limit1 (OperationKind.ParameterReference, Type: System.Object) (Syntax: 'limit1')
+
+        Next (Regular) Block[B4]
+    Block[B3] - Block
+        Predecessors: [B1]
+        Statements (1)
+            IFlowCaptureOperation: 2 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'limit2')
+              Value: 
+                IParameterReferenceOperation: limit2 (OperationKind.ParameterReference, Type: System.Object) (Syntax: 'limit2')
+
+        Next (Regular) Block[B4]
+    Block[B4] - Block
+        Predecessors: [B2] [B3]
+        Statements (0)
+        Jump if False (Regular) to Block[B6]
+            IInvocationOperation (Function Microsoft.VisualBasic.CompilerServices.ObjectFlowControl.ForLoopControl.ForLoopInitObj(Counter As System.Object, Start As System.Object, Limit As System.Object, StepValue As System.Object, ByRef LoopForResult As System.Object, ByRef CounterResult As System.Object) As System.Boolean) (OperationKind.Invocation, Type: System.Boolean, IsImplicit) (Syntax: 'If(bLimit,  ... t1, limit2)')
+              Instance Receiver: 
+                null
+              Arguments(6):
+                  IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: Counter) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'i')
+                    IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.Object, IsImplicit) (Syntax: 'i')
+                    InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                    OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                  IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: Start) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'init1')
+                    IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: System.Object, IsImplicit) (Syntax: 'init1')
+                    InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                    OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                  IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: Limit) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'If(bLimit,  ... t1, limit2)')
+                    IFlowCaptureReferenceOperation: 2 (OperationKind.FlowCaptureReference, Type: System.Object, IsImplicit) (Syntax: 'If(bLimit,  ... t1, limit2)')
+                    InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                    OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                  IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: StepValue) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'step1')
+                    IParameterReferenceOperation: step1 (OperationKind.ParameterReference, Type: System.Object) (Syntax: 'step1')
+                    InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                    OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                  IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: LoopForResult) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'i')
+                    ILocalReferenceOperation:  (IsDeclaration: True) (OperationKind.LocalReference, Type: System.Object, IsImplicit) (Syntax: 'i')
+                    InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                    OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                  IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: CounterResult) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'i')
+                    IParameterReferenceOperation: i (OperationKind.ParameterReference, Type: System.Object, IsImplicit) (Syntax: 'i')
+                    InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                    OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+            Leaving: {R1}
+
+        Next (Regular) Block[B5]
+    Block[B5] - Block
+        Predecessors: [B4] [B5]
+        Statements (1)
+            IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'result = true')
+              Expression: 
+                ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Boolean, IsImplicit) (Syntax: 'result = true')
+                  Left: 
+                    IParameterReferenceOperation: result (OperationKind.ParameterReference, Type: System.Boolean) (Syntax: 'result')
+                  Right: 
+                    ILiteralOperation (OperationKind.Literal, Type: System.Boolean, Constant: True) (Syntax: 'true')
+
+        Jump if False (Regular) to Block[B6]
+            IInvocationOperation (Function Microsoft.VisualBasic.CompilerServices.ObjectFlowControl.ForLoopControl.ForNextCheckObj(Counter As System.Object, LoopObj As System.Object, ByRef CounterResult As System.Object) As System.Boolean) (OperationKind.Invocation, Type: System.Boolean, IsImplicit) (Syntax: 'If(bLimit,  ... t1, limit2)')
+              Instance Receiver: 
+                null
+              Arguments(3):
+                  IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: Counter) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'If(bLimit,  ... t1, limit2)')
+                    IParameterReferenceOperation: i (OperationKind.ParameterReference, Type: System.Object, IsImplicit) (Syntax: 'i')
+                    InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                    OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                  IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: LoopObj) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'If(bLimit,  ... t1, limit2)')
+                    ILocalReferenceOperation:  (OperationKind.LocalReference, Type: System.Object, IsImplicit) (Syntax: 'i')
+                    InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                    OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                  IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: CounterResult) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'If(bLimit,  ... t1, limit2)')
+                    IParameterReferenceOperation: i (OperationKind.ParameterReference, Type: System.Object, IsImplicit) (Syntax: 'i')
+                    InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                    OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+            Leaving: {R1}
+
+        Next (Regular) Block[B5]
+}
+
+Block[B6] - Exit
+    Predecessors: [B4] [B5]
+    Statements (0)
+]]>.Value
+
+            VerifyFlowGraphAndDiagnosticsForTest(Of MethodBlockSyntax)(source, expectedFlowGraph, expectedDiagnostics)
+        End Sub
+
+        <CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)>
+        <Fact()>
+        Public Sub ForToFlow_37()
+            Dim source = <![CDATA[
+Imports System
+Public Class C
+    Sub M(i As Object, init1 As Object, limit1 As Object,  bStep As Boolean, step1 As Object, step2 As Object, result As Boolean) 'BIND:"Sub M"
+        For i = init1 To limit1 Step If(bStep, step1, step2)
+            result = true
+        Next
+    End Sub
+End Class
+]]>.Value
+
+            Dim expectedDiagnostics = String.Empty
+
+            Dim expectedFlowGraph = <![CDATA[
+Block[B0] - Entry
+    Statements (0)
+    Next (Regular) Block[B1]
+        Entering: {R1}
+
+.locals {R1}
+{
+    Locals: [<anonymous local> As System.Object]
+    Block[B1] - Block
+        Predecessors: [B0]
+        Statements (3)
+            IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'i')
+              Value: 
+                IParameterReferenceOperation: i (OperationKind.ParameterReference, Type: System.Object) (Syntax: 'i')
+
+            IFlowCaptureOperation: 1 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'init1')
+              Value: 
+                IParameterReferenceOperation: init1 (OperationKind.ParameterReference, Type: System.Object) (Syntax: 'init1')
+
+            IFlowCaptureOperation: 2 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'limit1')
+              Value: 
+                IParameterReferenceOperation: limit1 (OperationKind.ParameterReference, Type: System.Object) (Syntax: 'limit1')
+
+        Jump if False (Regular) to Block[B3]
+            IParameterReferenceOperation: bStep (OperationKind.ParameterReference, Type: System.Boolean) (Syntax: 'bStep')
+
+        Next (Regular) Block[B2]
+    Block[B2] - Block
+        Predecessors: [B1]
+        Statements (1)
+            IFlowCaptureOperation: 3 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'step1')
+              Value: 
+                IParameterReferenceOperation: step1 (OperationKind.ParameterReference, Type: System.Object) (Syntax: 'step1')
+
+        Next (Regular) Block[B4]
+    Block[B3] - Block
+        Predecessors: [B1]
+        Statements (1)
+            IFlowCaptureOperation: 3 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'step2')
+              Value: 
+                IParameterReferenceOperation: step2 (OperationKind.ParameterReference, Type: System.Object) (Syntax: 'step2')
+
+        Next (Regular) Block[B4]
+    Block[B4] - Block
+        Predecessors: [B2] [B3]
+        Statements (0)
+        Jump if False (Regular) to Block[B6]
+            IInvocationOperation (Function Microsoft.VisualBasic.CompilerServices.ObjectFlowControl.ForLoopControl.ForLoopInitObj(Counter As System.Object, Start As System.Object, Limit As System.Object, StepValue As System.Object, ByRef LoopForResult As System.Object, ByRef CounterResult As System.Object) As System.Boolean) (OperationKind.Invocation, Type: System.Boolean, IsImplicit) (Syntax: 'limit1')
+              Instance Receiver: 
+                null
+              Arguments(6):
+                  IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: Counter) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'i')
+                    IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.Object, IsImplicit) (Syntax: 'i')
+                    InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                    OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                  IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: Start) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'init1')
+                    IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: System.Object, IsImplicit) (Syntax: 'init1')
+                    InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                    OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                  IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: Limit) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'limit1')
+                    IFlowCaptureReferenceOperation: 2 (OperationKind.FlowCaptureReference, Type: System.Object, IsImplicit) (Syntax: 'limit1')
+                    InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                    OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                  IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: StepValue) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'If(bStep, step1, step2)')
+                    IFlowCaptureReferenceOperation: 3 (OperationKind.FlowCaptureReference, Type: System.Object, IsImplicit) (Syntax: 'If(bStep, step1, step2)')
+                    InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                    OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                  IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: LoopForResult) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'i')
+                    ILocalReferenceOperation:  (IsDeclaration: True) (OperationKind.LocalReference, Type: System.Object, IsImplicit) (Syntax: 'i')
+                    InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                    OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                  IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: CounterResult) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'i')
+                    IParameterReferenceOperation: i (OperationKind.ParameterReference, Type: System.Object, IsImplicit) (Syntax: 'i')
+                    InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                    OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+            Leaving: {R1}
+
+        Next (Regular) Block[B5]
+    Block[B5] - Block
+        Predecessors: [B4] [B5]
+        Statements (1)
+            IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'result = true')
+              Expression: 
+                ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Boolean, IsImplicit) (Syntax: 'result = true')
+                  Left: 
+                    IParameterReferenceOperation: result (OperationKind.ParameterReference, Type: System.Boolean) (Syntax: 'result')
+                  Right: 
+                    ILiteralOperation (OperationKind.Literal, Type: System.Boolean, Constant: True) (Syntax: 'true')
+
+        Jump if False (Regular) to Block[B6]
+            IInvocationOperation (Function Microsoft.VisualBasic.CompilerServices.ObjectFlowControl.ForLoopControl.ForNextCheckObj(Counter As System.Object, LoopObj As System.Object, ByRef CounterResult As System.Object) As System.Boolean) (OperationKind.Invocation, Type: System.Boolean, IsImplicit) (Syntax: 'limit1')
+              Instance Receiver: 
+                null
+              Arguments(3):
+                  IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: Counter) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'limit1')
+                    IParameterReferenceOperation: i (OperationKind.ParameterReference, Type: System.Object, IsImplicit) (Syntax: 'i')
+                    InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                    OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                  IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: LoopObj) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'limit1')
+                    ILocalReferenceOperation:  (OperationKind.LocalReference, Type: System.Object, IsImplicit) (Syntax: 'i')
+                    InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                    OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                  IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: CounterResult) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'limit1')
+                    IParameterReferenceOperation: i (OperationKind.ParameterReference, Type: System.Object, IsImplicit) (Syntax: 'i')
+                    InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                    OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+            Leaving: {R1}
+
+        Next (Regular) Block[B5]
+}
+
+Block[B6] - Exit
+    Predecessors: [B4] [B5]
+    Statements (0)
+]]>.Value
+
+            VerifyFlowGraphAndDiagnosticsForTest(Of MethodBlockSyntax)(source, expectedFlowGraph, expectedDiagnostics)
+        End Sub
     End Class
 End Namespace
