@@ -3423,13 +3423,19 @@ Block[B0] - Entry
     Locals: [C1 x]
     Block[B1] - Block
         Predecessors: [B0]
-        Statements (1)
+        Statements (2)
             IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsInvalid, IsImplicit) (Syntax: 'new C1 { O[ ... 2] = null }')
               Value: 
                 IObjectCreationOperation (Constructor: C1..ctor()) (OperationKind.ObjectCreation, Type: C1, IsInvalid) (Syntax: 'new C1 { O[ ... 2] = null }')
                   Arguments(0)
                   Initializer: 
                     null
+
+            IFlowCaptureOperation: 1 (OperationKind.FlowCapture, Type: null, IsInvalid, IsImplicit) (Syntax: 'O')
+              Value: 
+                IPropertyReferenceOperation: System.Object[] C1.O { get; set; } (OperationKind.PropertyReference, Type: System.Object[], IsInvalid) (Syntax: 'O')
+                  Instance Receiver: 
+                    IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: C1, IsInvalid, IsImplicit) (Syntax: 'O')
 
         Jump if False (Regular) to Block[B3]
             IParameterReferenceOperation: b (OperationKind.ParameterReference, Type: System.Boolean, IsInvalid) (Syntax: 'b')
@@ -3438,7 +3444,7 @@ Block[B0] - Entry
     Block[B2] - Block
         Predecessors: [B1]
         Statements (1)
-            IFlowCaptureOperation: 1 (OperationKind.FlowCapture, Type: null, IsInvalid, IsImplicit) (Syntax: '1')
+            IFlowCaptureOperation: 2 (OperationKind.FlowCapture, Type: null, IsInvalid, IsImplicit) (Syntax: '1')
               Value: 
                 ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1, IsInvalid) (Syntax: '1')
 
@@ -3446,7 +3452,7 @@ Block[B0] - Entry
     Block[B3] - Block
         Predecessors: [B1]
         Statements (1)
-            IFlowCaptureOperation: 1 (OperationKind.FlowCapture, Type: null, IsInvalid, IsImplicit) (Syntax: '2')
+            IFlowCaptureOperation: 2 (OperationKind.FlowCapture, Type: null, IsInvalid, IsImplicit) (Syntax: '2')
               Value: 
                 ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2, IsInvalid) (Syntax: '2')
 
@@ -3460,11 +3466,9 @@ Block[B0] - Entry
                     Left: 
                       IArrayElementReferenceOperation (OperationKind.ArrayElementReference, Type: System.Object, IsInvalid) (Syntax: 'O[b ? 1 : 2]')
                         Array reference: 
-                          IPropertyReferenceOperation: System.Object[] C1.O { get; set; } (OperationKind.PropertyReference, Type: System.Object[], IsInvalid) (Syntax: 'O')
-                            Instance Receiver: 
-                              IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: C1, IsInvalid, IsImplicit) (Syntax: 'O')
+                          IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: System.Object[], IsInvalid, IsImplicit) (Syntax: 'O')
                         Indices(1):
-                            IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: System.Int32, IsInvalid, IsImplicit) (Syntax: 'b ? 1 : 2')
+                            IFlowCaptureReferenceOperation: 2 (OperationKind.FlowCaptureReference, Type: System.Int32, IsInvalid, IsImplicit) (Syntax: 'b ? 1 : 2')
                     Right: 
                       IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Object, Constant: null, IsInvalid, IsImplicit) (Syntax: 'null')
                         Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
