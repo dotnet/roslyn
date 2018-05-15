@@ -764,7 +764,7 @@ Public Class BuildDevDivInsertionFiles
                 End If
 
                 ' Don't add in the netcoreapp2.0 version of DLL
-                if Path.GetFileName(parent) = "netcoreapp2.0" AndAlso name = "Microsoft.Build.Tasks.CodeAnalysis.dll" Then
+                If Path.GetFileName(parent) = "netcoreapp2.0" AndAlso name = "Microsoft.Build.Tasks.CodeAnalysis.dll" Then
                     Continue For
                 End If
 
@@ -835,21 +835,18 @@ Public Class BuildDevDivInsertionFiles
         add("Exes\Toolset\System.AppContext.dll")
         add("Exes\Toolset\System.Console.dll")
         add("Exes\Toolset\System.Collections.Immutable.dll")
+        add("Exes\Toolset\System.Diagnostics.DiagnosticSource.dll")
         add("Exes\Toolset\System.Diagnostics.FileVersionInfo.dll")
         add("Exes\Toolset\System.Diagnostics.StackTrace.dll")
         add("Exes\Toolset\System.IO.Compression.dll")
         add("Exes\Toolset\System.IO.FileSystem.dll")
         add("Exes\Toolset\System.IO.FileSystem.Primitives.dll")
-        add("Exes\Toolset\System.IO.Pipes.dll")
-        add("Exes\Toolset\System.IO.Pipes.AccessControl.dll")
+        add("Exes\Toolset\System.Net.Http.dll")
         add("Exes\Toolset\System.Reflection.Metadata.dll")
-        add("Exes\Toolset\System.Security.AccessControl.dll")
-        add("Exes\Toolset\System.Security.Claims.dll")
         add("Exes\Toolset\System.Security.Cryptography.Algorithms.dll")
         add("Exes\Toolset\System.Security.Cryptography.Encoding.dll")
         add("Exes\Toolset\System.Security.Cryptography.Primitives.dll")
         add("Exes\Toolset\System.Security.Cryptography.X509Certificates.dll")
-        add("Exes\Toolset\System.Security.Principal.Windows.dll")
         add("Exes\Toolset\System.Text.Encoding.CodePages.dll")
         add("Exes\Toolset\System.ValueTuple.dll")
         add("Exes\Toolset\System.Xml.ReaderWriter.dll")
@@ -1016,17 +1013,16 @@ Public Class BuildDevDivInsertionFiles
         Directory.CreateDirectory(outputDir)
 
         ' First copy over all the files from the compilers toolset. 
-        For Each fileRelativePath In GetCompilerToolsetNuspecFiles()
-            Dim fileName = Path.GetFileName(fileRelativePath)
+        For Each fileFullPath In GetCompilerToolsetNuspecFiles()
+            Dim fileName = Path.GetFileName(fileFullPath)
 
             ' Skip satellite assemblies; we don't need these for the compiler insertion
             If fileName.EndsWith(".resources.dll", StringComparison.OrdinalIgnoreCase) Then
                 Continue For
             End If
 
-            Dim filePath = Path.Combine(_binDirectory, fileRelativePath)
             Dim destFilepath = Path.Combine(outputDir, fileName)
-            File.Copy(filePath, destFilepath)
+            File.Copy(fileFullPath, destFilepath)
             nuspecFiles.Add(fileName)
 
             ' A bug in VS forces all of our exes to use the prefer 32 bit mode. Mark the copies added 
@@ -1128,7 +1124,19 @@ set DEVPATH=%RoslynToolsRoot%;%DEVPATH%"
         Dim document = XDocument.Load(nuspecFilePath)
         For Each fileElement In document.<package>.<files>.<file>
             If fileElement.Attribute("target").Value = "tools" Then
-                files.Add(fileElement.Attribute("src").Value)
+                Dim fileRelativePath = fileElement.Attribute("src").Value
+                Dim fileFullPath = Path.Combine(_binDirectory, fileRelativePath)
+                If fileRelativePath.Contains("**") Then
+                    Continue For
+                ElseIf fileRelativePath.Contains("*") Then
+                    Dim dir = Path.GetDirectoryName(fileRelativePath)
+                    dir = Path.Combine(_binDirectory, dir)
+                    For Each f In Directory.EnumerateFiles(dir, Path.GetFileName(fileRelativePath))
+                        files.Add(f)
+                    Next
+                Else
+                    files.Add(fileFullPath)
+                End If
             End If
         Next
 

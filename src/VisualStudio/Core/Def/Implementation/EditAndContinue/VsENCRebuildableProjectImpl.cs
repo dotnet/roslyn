@@ -36,6 +36,7 @@ using Microsoft.VisualStudio.Shell.Interop;
 using System.Reflection.PortableExecutable;
 using Microsoft.VisualStudio.LanguageServices.EditAndContinue;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.EditAndContinue
 {

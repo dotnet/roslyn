@@ -29,6 +29,7 @@ param (
     [switch]$packAll = $false,
     [switch]$binaryLog = $false,
     [switch]$deployExtensions = $false,
+    [switch]$procdump = $false,
     [string]$signType = "",
     [switch]$skipBuildExtras = $false,
     [switch]$skipAnalyzers = $false,
@@ -44,7 +45,6 @@ param (
 
     # Special test options
     [switch]$testDeterminism = $false,
-    [switch]$testBuildCorrectness = $false,
 
     [parameter(ValueFromRemainingArguments=$true)] $badArgs)
 
@@ -63,6 +63,7 @@ function Print-Usage() {
     Write-Host "  -pack                     Create our NuGet packages"
     Write-Host "  -deployExtensions         Deploy built vsixes"
     Write-Host "  -binaryLog                Create binary log for every MSBuild invocation"
+    Write-Host "  -procdump                 Monitor test runs with procdump" 
     Write-Host "  -skipAnalyzers            Do not run analyzers during build operations"
     Write-Host "  -skipBuildExtras          Do not build insertion items"
     Write-Host "" 
@@ -76,7 +77,6 @@ function Print-Usage() {
     Write-Host "  -testIOperation           Run extra checks to validate IOperations"
     Write-Host ""
     Write-Host "Special Test options" 
-    Write-Host "  -testBuildCorrectness     Run build correctness tests"
     Write-Host "  -testDeterminism          Run determinism tests"
 }
 
@@ -111,8 +111,7 @@ function Process-Arguments() {
         $script:skipAnalyzers = $true
     }
 
-    $script:isAnyTestSpecial = $testBuildCorrectness -or $testDeterminism 
-    if ($isAnyTestSpecial -and ($anyUnit -or $anyVsi)) {
+    if ($testDeterminism -and ($anyUnit -or $anyVsi)) {
         Write-Host "Cannot combine special testing with any other action"
         exit 1
     }
@@ -158,10 +157,6 @@ function Run-MSBuild([string]$projectFilePath, [string]$buildArgs = "", [string]
 
     if ($bootstrapDir -ne "") {
         $args += " /p:BootstrapBuildPath=$bootstrapDir"
-    }
-
-    if ($testIOperation) {
-        $args += " /p:TestIOperationInterface=true"
     }
 
     $args += " $buildArgs"
@@ -434,17 +429,9 @@ function Build-DeployToSymStore() {
 # These are tests that don't follow our standard restore, build, test pattern. They customize 
 # the processes in order to test specific elements of our build and hence are handled 
 # separately from our other tests
-function Test-Special() {
-    if ($testBuildCorrectness) {
-        Exec-Block { & ".\build\scripts\test-build-correctness.ps1" -config $buildConfiguration } | Out-Host
-    }
-    elseif ($testDeterminism) {
-        $bootstrapDir = Make-BootstrapBuild
-        Exec-Block { & ".\build\scripts\test-determinism.ps1" -bootstrapDir $bootstrapDir } | Out-Host
-    } 
-    else {
-        throw "Not a special test"
-    }
+function Test-Determinism() {
+    $bootstrapDir = Make-BootstrapBuild
+    Exec-Block { & ".\build\scripts\test-determinism.ps1" -bootstrapDir $bootstrapDir } | Out-Host
 }
 
 function Test-XUnitCoreClr() {
@@ -509,6 +496,10 @@ function Test-XUnit() {
         Deploy-VsixViaTool
     }
 
+    if ($testIOperation) {
+        $env:ROSLYN_TEST_IOPERATION = "true"
+    }
+
     $unitDir = Join-Path $configDir "UnitTests"
     $runTests = Join-Path $configDir "Exes\RunTests\RunTests.exe"
     $xunitDir = Join-Path (Get-PackageDir "xunit.runner.console") "tools\net452"
@@ -516,7 +507,7 @@ function Test-XUnit() {
     $args += " -logpath:$logsDir"
     $args += " -nocache"
 
-    if ($testDesktop) {
+    if ($testDesktop -or $testIOperation) {
         if ($test32) {
             $dlls = Get-ChildItem -re -in "*.UnitTests.dll" $unitDir
         }
@@ -548,7 +539,9 @@ function Test-XUnit() {
     if ($cibuild -or $official) {
         # Use a 50 minute timeout on CI
         $args += " -xml -timeout:50"
+    }
 
+    if ($procdump) {
         $procdumpPath = Ensure-ProcDump
         $args += " -procdumppath:$procDumpPath"
     }
@@ -566,6 +559,9 @@ function Test-XUnit() {
     }
     finally {
         Get-Process "xunit*" -ErrorAction SilentlyContinue | Stop-Process    
+        if ($testIOperation) { 
+            Remove-Item env:\ROSLYN_TEST_IOPERATION
+        }
     }
 }
 
@@ -737,8 +733,8 @@ try {
         Restore-Packages
     }
 
-    if ($isAnyTestSpecial) {
-        Test-Special
+    if ($testDeterminism) {
+        Test-Determinism
         exit 0
     }
 
@@ -750,7 +746,7 @@ try {
         Build-Artifacts
     }
 
-    if ($testDesktop -or $testCoreClr -or $testVsi -or $testVsiNetCore) {
+    if ($testDesktop -or $testCoreClr -or $testVsi -or $testVsiNetCore -or $testIOperation) {
         Test-XUnit
     } 
 
