@@ -1088,7 +1088,7 @@ Block[B5] - Exit
             string source = @"
 class C
 {
-    void M(int[,] a, int? i1, int i2, int j, int result)
+    void M(int[,] a, int? i1, int i2, byte j, int result)
     /*<bind>*/{
         result = a[i1 ?? i2, j];
     }/*</bind>*/
@@ -1152,7 +1152,11 @@ Block[B4] - Block
                     IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: System.Int32[,], IsImplicit) (Syntax: 'a')
                   Indices(2):
                       IFlowCaptureReferenceOperation: 3 (OperationKind.FlowCaptureReference, Type: System.Int32, IsImplicit) (Syntax: 'i1 ?? i2')
-                      IParameterReferenceOperation: j (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'j')
+                      IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Int32, IsImplicit) (Syntax: 'j')
+                        Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: True, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                          (ImplicitNumeric)
+                        Operand: 
+                          IParameterReferenceOperation: j (OperationKind.ParameterReference, Type: System.Byte) (Syntax: 'j')
 
     Next (Regular) Block[B5]
 Block[B5] - Exit

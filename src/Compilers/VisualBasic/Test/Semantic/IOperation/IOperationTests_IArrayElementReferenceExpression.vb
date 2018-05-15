@@ -940,7 +940,7 @@ Block[B5] - Exit
         Public Sub ArrayElementReference_ControlFlowInFirstIndex()
             Dim source = <![CDATA[
 Class C
-    Private Sub M(ByVal a As Integer(,), ByVal i1 As Integer?, ByVal i2 As Integer, ByVal j As Integer, ByVal result As Integer) 'BIND:"Private Sub M(ByVal a As Integer(,), ByVal i1 As Integer?, ByVal i2 As Integer, ByVal j As Integer, ByVal result As Integer)"
+    Private Sub M(ByVal a As Integer(,), ByVal i1 As Integer?, ByVal i2 As Integer, ByVal j As Byte, ByVal result As Integer) 'BIND:"Private Sub M(ByVal a As Integer(,), ByVal i1 As Integer?, ByVal i2 As Integer, ByVal j As Byte, ByVal result As Integer)"
         result = a(If(i1, i2), j)
     End Sub
 End Class
@@ -1004,7 +1004,11 @@ Block[B4] - Block
                     IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: System.Int32(,), IsImplicit) (Syntax: 'a')
                   Indices(2):
                       IFlowCaptureReferenceOperation: 3 (OperationKind.FlowCaptureReference, Type: System.Int32, IsImplicit) (Syntax: 'If(i1, i2)')
-                      IParameterReferenceOperation: j (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'j')
+                      IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Int32, IsImplicit) (Syntax: 'j')
+                        Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: True, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                          (WideningNumeric)
+                        Operand: 
+                          IParameterReferenceOperation: j (OperationKind.ParameterReference, Type: System.Byte) (Syntax: 'j')
 
     Next (Regular) Block[B5]
 Block[B5] - Exit
