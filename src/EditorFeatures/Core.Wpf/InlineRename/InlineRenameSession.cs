@@ -101,7 +101,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             IWaitIndicator waitIndicator,
             ITextBufferAssociatedViewService textBufferAssociatedViewService,
             ITextBufferFactoryService textBufferFactoryService,
-            IFeatureService featureService,
+            IFeatureServiceFactory featureServiceFactory,
             IEnumerable<IRefactorNotifyService> refactorNotifyServices,
             IAsynchronousOperationListener asyncListener) : base(assertIsForeground: true)
         {
@@ -123,7 +123,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             _textBufferAssociatedViewService = textBufferAssociatedViewService;
             _textBufferAssociatedViewService.SubjectBuffersConnected += OnSubjectBuffersConnected;
 
-            _featureService = featureService;
+            _featureService = featureServiceFactory.GlobalFeatureService;
+
             _completionDisabledToken = _featureService.Disable(PredefinedEditorFeatureNames.InteractivePopup, this);
 
             _renameService = renameService;

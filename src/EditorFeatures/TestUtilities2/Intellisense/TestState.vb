@@ -22,6 +22,7 @@ Imports Microsoft.VisualStudio.Text.Editor.Commanding.Commands
 Imports Microsoft.VisualStudio.Text.Operations
 Imports Roslyn.Utilities
 Imports VSCommanding = Microsoft.VisualStudio.Commanding
+Imports Microsoft.VisualStudio.Language.Intellisense.AsyncCompletion
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
 
@@ -32,6 +33,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
         Friend ReadOnly SignatureHelpCommandHandler As SignatureHelpCommandHandler
         Friend ReadOnly FormatCommandHandler As FormatCommandHandler
         Friend ReadOnly CompletionCommandHandler As CompletionCommandHandler
+        Friend ReadOnly EditorCompletionCommandHandler As VSCommanding.ICommandHandler
         Friend ReadOnly IntelliSenseCommandHandler As IntelliSenseCommandHandler
         Private ReadOnly SessionTestState As IIntelliSenseTestState
 
@@ -55,6 +57,8 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
                         Optional workspaceKind As String = Nothing)
             MyBase.New(workspaceElement, CombineExcludedTypes(excludedTypes, includeFormatCommandHandler), ExportProviderCache.CreateTypeCatalog(CombineExtraTypes(If(extraExportedTypes, New List(Of Type)))), workspaceKind:=workspaceKind)
 
+            ' Dim broker = GetExportedValue(Of IAsyncCompletionBroker)()
+
             Dim languageServices = Me.Workspace.CurrentSolution.Projects.First().LanguageServices
             Dim language = languageServices.Language
 
@@ -67,7 +71,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
 
             Me.AsyncCompletionService = GetExportedValue(Of IAsyncCompletionService)()
 
-            Me.CompletionCommandHandler = GetExportedValue(Of CompletionCommandHandler)()
+            EditorCompletionCommandHandler = GetExportedValues(Of VSCommanding.ICommandHandler)().Single(Function(e As VSCommanding.ICommandHandler) e.GetType().FullName = "Microsoft.VisualStudio.Language.Intellisense.AsyncCompletion.Implementation.CompletionCommandHandlers")
 
             Me.SignatureHelpCommandHandler = GetExportedValue(Of SignatureHelpCommandHandler)()
 
@@ -177,37 +181,39 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
 
 #Region "Completion Operations"
         Public Overloads Sub SendTab()
-            Dim handler = DirectCast(CompletionCommandHandler, VSCommanding.IChainedCommandHandler(Of TabKeyCommandArgs))
+            Dim handler = DirectCast(EditorCompletionCommandHandler, VSCommanding.ICommandHandler(Of TabKeyCommandArgs))
             MyBase.SendTab(Sub(a, n, c) handler.ExecuteCommand(a, n, c), Sub() EditorOperations.InsertText(vbTab))
         End Sub
 
         Public Overloads Sub SendReturn()
-            Dim handler = DirectCast(CompletionCommandHandler, VSCommanding.IChainedCommandHandler(Of ReturnKeyCommandArgs))
+            Dim handler = DirectCast(EditorCompletionCommandHandler, VSCommanding.ICommandHandler(Of ReturnKeyCommandArgs))
             MyBase.SendReturn(Sub(a, n, c) handler.ExecuteCommand(a, n, c), Sub() EditorOperations.InsertNewLine())
         End Sub
 
         Public Overloads Sub SendPageUp()
-            Dim handler = DirectCast(CompletionCommandHandler, VSCommanding.IChainedCommandHandler(Of PageUpKeyCommandArgs))
+            Dim handler = DirectCast(EditorCompletionCommandHandler, VSCommanding.ICommandHandler(Of PageUpKeyCommandArgs))
             MyBase.SendPageUp(Sub(a, n, c) handler.ExecuteCommand(a, n, c), Sub() Return)
         End Sub
 
         Public Overloads Sub SendCut()
-            Dim handler = DirectCast(CompletionCommandHandler, VSCommanding.IChainedCommandHandler(Of CutCommandArgs))
+            ' Will fail
+            Dim handler = DirectCast(EditorCompletionCommandHandler, VSCommanding.ICommandHandler(Of CutCommandArgs))
             MyBase.SendCut(Sub(a, n, c) handler.ExecuteCommand(a, n, c), Sub() Return)
         End Sub
 
         Public Overloads Sub SendPaste()
-            Dim handler = DirectCast(CompletionCommandHandler, VSCommanding.IChainedCommandHandler(Of PasteCommandArgs))
+            ' Will fail
+            Dim handler = DirectCast(EditorCompletionCommandHandler, VSCommanding.ICommandHandler(Of PasteCommandArgs))
             MyBase.SendPaste(Sub(a, n, c) handler.ExecuteCommand(a, n, c), Sub() Return)
         End Sub
 
         Public Overloads Sub SendInvokeCompletionList()
-            Dim handler = DirectCast(CompletionCommandHandler, VSCommanding.IChainedCommandHandler(Of InvokeCompletionListCommandArgs))
+            Dim handler = DirectCast(EditorCompletionCommandHandler, VSCommanding.ICommandHandler(Of InvokeCompletionListCommandArgs))
             MyBase.SendInvokeCompletionList(Sub(a, n, c) handler.ExecuteCommand(a, n, c), Sub() Return)
         End Sub
 
         Public Overloads Sub SendCommitUniqueCompletionListItem()
-            Dim handler = DirectCast(CompletionCommandHandler, VSCommanding.IChainedCommandHandler(Of CommitUniqueCompletionListItemCommandArgs))
+            Dim handler = DirectCast(EditorCompletionCommandHandler, VSCommanding.ICommandHandler(Of CommitUniqueCompletionListItemCommandArgs))
             MyBase.SendCommitUniqueCompletionListItem(Sub(a, n, c) handler.ExecuteCommand(a, n, c), Sub() Return)
         End Sub
 
@@ -222,22 +228,26 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
         End Sub
 
         Public Overloads Sub SendInsertSnippetCommand()
-            Dim handler = DirectCast(CompletionCommandHandler, VSCommanding.IChainedCommandHandler(Of InsertSnippetCommandArgs))
+            ' Won't work
+            Dim handler = DirectCast(EditorCompletionCommandHandler, VSCommanding.ICommandHandler(Of InsertSnippetCommandArgs))
             MyBase.SendInsertSnippetCommand(Sub(a, n, c) handler.ExecuteCommand(a, n, c), Sub() Return)
         End Sub
 
         Public Overloads Sub SendSurroundWithCommand()
-            Dim handler = DirectCast(CompletionCommandHandler, VSCommanding.IChainedCommandHandler(Of SurroundWithCommandArgs))
+            ' Won't work
+            Dim handler = DirectCast(EditorCompletionCommandHandler, VSCommanding.ICommandHandler(Of SurroundWithCommandArgs))
             MyBase.SendSurroundWithCommand(Sub(a, n, c) handler.ExecuteCommand(a, n, c), Sub() Return)
         End Sub
 
         Public Overloads Sub SendSave()
-            Dim handler = DirectCast(CompletionCommandHandler, VSCommanding.IChainedCommandHandler(Of SaveCommandArgs))
+            ' Won't work
+            Dim handler = DirectCast(EditorCompletionCommandHandler, VSCommanding.ICommandHandler(Of SaveCommandArgs))
             MyBase.SendSave(Sub(a, n, c) handler.ExecuteCommand(a, n, c), Sub() Return)
         End Sub
 
         Public Overloads Sub SendSelectAll()
-            Dim handler = DirectCast(CompletionCommandHandler, VSCommanding.IChainedCommandHandler(Of SelectAllCommandArgs))
+            ' Won't work
+            Dim handler = DirectCast(EditorCompletionCommandHandler, VSCommanding.ICommandHandler(Of SelectAllCommandArgs))
             MyBase.SendSelectAll(Sub(a, n, c) handler.ExecuteCommand(a, n, c), Sub() Return)
         End Sub
 
@@ -328,7 +338,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
         Private Sub ExecuteTypeCharCommand(args As TypeCharCommandArgs, finalHandler As Action, context As CommandExecutionContext)
             Dim sigHelpHandler = DirectCast(SignatureHelpCommandHandler, VSCommanding.IChainedCommandHandler(Of TypeCharCommandArgs))
             Dim formatHandler = DirectCast(FormatCommandHandler, VSCommanding.IChainedCommandHandler(Of TypeCharCommandArgs))
-            Dim compHandler = DirectCast(CompletionCommandHandler, VSCommanding.IChainedCommandHandler(Of TypeCharCommandArgs))
+            Dim compHandler = DirectCast(EditorCompletionCommandHandler, VSCommanding.IChainedCommandHandler(Of TypeCharCommandArgs))
 
             If formatHandler Is Nothing Then
                 sigHelpHandler.ExecuteCommand(
@@ -347,12 +357,12 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
         End Sub
 
         Public Overloads Sub SendBackspace()
-            Dim compHandler = DirectCast(CompletionCommandHandler, VSCommanding.IChainedCommandHandler(Of BackspaceKeyCommandArgs))
+            Dim compHandler = DirectCast(EditorCompletionCommandHandler, VSCommanding.IChainedCommandHandler(Of BackspaceKeyCommandArgs))
             MyBase.SendBackspace(Sub(a, n, c) compHandler.ExecuteCommand(a, n, c), AddressOf MyBase.SendBackspace)
         End Sub
 
         Public Overloads Sub SendDelete()
-            Dim compHandler = DirectCast(CompletionCommandHandler, VSCommanding.IChainedCommandHandler(Of DeleteKeyCommandArgs))
+            Dim compHandler = DirectCast(EditorCompletionCommandHandler, VSCommanding.IChainedCommandHandler(Of DeleteKeyCommandArgs))
             MyBase.SendDelete(Sub(a, n, c) compHandler.ExecuteCommand(a, n, c), AddressOf MyBase.SendDelete)
         End Sub
 
