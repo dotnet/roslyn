@@ -6749,6 +6749,13 @@ class C
                 //         foreach (_ in M())
                 Diagnostic(ErrorCode.ERR_MustDeclareForeachIteration, "_").WithLocation(6, 18)
                 );
+
+            var tree = comp.SyntaxTrees.Single();
+            var model = comp.GetSemanticModel(tree, ignoreAccessibility: false);
+            var discard = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().First();
+
+            var symbol = (DiscardSymbol)model.GetSymbolInfo(discard).Symbol;
+            Assert.True(symbol.Type.IsErrorType());
         }
 
         [Fact]
