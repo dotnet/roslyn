@@ -153,7 +153,7 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateMember.GenerateVariable
             }
 
             if (expression.IsParentKind(SyntaxKind.NameColon) &&
-                expression.Parent.IsParentKind(SyntaxKind.SubpatternElement))
+                expression.Parent.IsParentKind(SyntaxKind.Subpattern))
             {
                 return true;
             }

@@ -1791,7 +1791,7 @@
     <Field Name="OpenParenToken" Type="SyntaxToken">
       <Kind Name="OpenParenToken"/>
     </Field>
-    <Field Name="Subpatterns" Type="SeparatedSyntaxList&lt;SubpatternElementSyntax&gt;"/>
+    <Field Name="Subpatterns" Type="SeparatedSyntaxList&lt;SubpatternSyntax&gt;"/>
     <Field Name="CloseParenToken" Type="SyntaxToken">
       <Kind Name="CloseParenToken"/>
     </Field>
@@ -1801,13 +1801,13 @@
     <Field Name="OpenBraceToken" Type="SyntaxToken">
       <Kind Name="OpenBraceToken"/>
     </Field>
-    <Field Name="Subpatterns" Type="SeparatedSyntaxList&lt;SubpatternElementSyntax&gt;"/>
+    <Field Name="Subpatterns" Type="SeparatedSyntaxList&lt;SubpatternSyntax&gt;"/>
     <Field Name="CloseBraceToken" Type="SyntaxToken">
       <Kind Name="CloseBraceToken"/>
     </Field>
   </Node>
-  <Node Name="SubpatternElementSyntax" Base="CSharpSyntaxNode">
-    <Kind Name="SubpatternElement"/>
+  <Node Name="SubpatternSyntax" Base="CSharpSyntaxNode">
+    <Kind Name="Subpattern"/>
     <Field Name="NameColon" Type="NameColonSyntax" Optional="true" />
     <Field Name="Pattern" Type="PatternSyntax" />
   </Node>

@@ -746,7 +746,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             ref bool hasErrors)
         {
             var builder = ArrayBuilder<BoundSubpattern>.GetInstance(node.Subpatterns.Count);
-            foreach (SubpatternElementSyntax p in node.Subpatterns)
+            foreach (SubpatternSyntax p in node.Subpatterns)
             {
                 IdentifierNameSyntax name = p.NameColon?.Name;
                 PatternSyntax pattern = p.Pattern;

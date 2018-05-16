@@ -496,8 +496,8 @@ namespace Microsoft.CodeAnalysis.CSharp
       return this.DefaultVisit(node);
     }
 
-    /// <summary>Called when the visitor visits a SubpatternElementSyntax node.</summary>
-    public virtual TResult VisitSubpatternElement(SubpatternElementSyntax node)
+    /// <summary>Called when the visitor visits a SubpatternSyntax node.</summary>
+    public virtual TResult VisitSubpattern(SubpatternSyntax node)
     {
       return this.DefaultVisit(node);
     }
@@ -1777,8 +1777,8 @@ namespace Microsoft.CodeAnalysis.CSharp
       this.DefaultVisit(node);
     }
 
-    /// <summary>Called when the visitor visits a SubpatternElementSyntax node.</summary>
-    public virtual void VisitSubpatternElement(SubpatternElementSyntax node)
+    /// <summary>Called when the visitor visits a SubpatternSyntax node.</summary>
+    public virtual void VisitSubpattern(SubpatternSyntax node)
     {
       this.DefaultVisit(node);
     }
@@ -3205,7 +3205,7 @@ namespace Microsoft.CodeAnalysis.CSharp
       return node.Update(openBraceToken, subpatterns, closeBraceToken);
     }
 
-    public override SyntaxNode VisitSubpatternElement(SubpatternElementSyntax node)
+    public override SyntaxNode VisitSubpattern(SubpatternSyntax node)
     {
       var nameColon = (NameColonSyntax)this.Visit(node.NameColon);
       var pattern = (PatternSyntax)this.Visit(node.Pattern);
@@ -6812,7 +6812,7 @@ namespace Microsoft.CodeAnalysis.CSharp
     }
 
     /// <summary>Creates a new DeconstructionPatternClauseSyntax instance.</summary>
-    public static DeconstructionPatternClauseSyntax DeconstructionPatternClause(SyntaxToken openParenToken, SeparatedSyntaxList<SubpatternElementSyntax> subpatterns, SyntaxToken closeParenToken)
+    public static DeconstructionPatternClauseSyntax DeconstructionPatternClause(SyntaxToken openParenToken, SeparatedSyntaxList<SubpatternSyntax> subpatterns, SyntaxToken closeParenToken)
     {
       switch (openParenToken.Kind())
       {
@@ -6828,18 +6828,18 @@ namespace Microsoft.CodeAnalysis.CSharp
         default:
           throw new ArgumentException("closeParenToken");
       }
-      return (DeconstructionPatternClauseSyntax)Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.SyntaxFactory.DeconstructionPatternClause((Syntax.InternalSyntax.SyntaxToken)openParenToken.Node, subpatterns.Node.ToGreenSeparatedList<Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.SubpatternElementSyntax>(), (Syntax.InternalSyntax.SyntaxToken)closeParenToken.Node).CreateRed();
+      return (DeconstructionPatternClauseSyntax)Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.SyntaxFactory.DeconstructionPatternClause((Syntax.InternalSyntax.SyntaxToken)openParenToken.Node, subpatterns.Node.ToGreenSeparatedList<Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.SubpatternSyntax>(), (Syntax.InternalSyntax.SyntaxToken)closeParenToken.Node).CreateRed();
     }
 
 
     /// <summary>Creates a new DeconstructionPatternClauseSyntax instance.</summary>
-    public static DeconstructionPatternClauseSyntax DeconstructionPatternClause(SeparatedSyntaxList<SubpatternElementSyntax> subpatterns = default(SeparatedSyntaxList<SubpatternElementSyntax>))
+    public static DeconstructionPatternClauseSyntax DeconstructionPatternClause(SeparatedSyntaxList<SubpatternSyntax> subpatterns = default(SeparatedSyntaxList<SubpatternSyntax>))
     {
       return SyntaxFactory.DeconstructionPatternClause(SyntaxFactory.Token(SyntaxKind.OpenParenToken), subpatterns, SyntaxFactory.Token(SyntaxKind.CloseParenToken));
     }
 
     /// <summary>Creates a new PropertyPatternClauseSyntax instance.</summary>
-    public static PropertyPatternClauseSyntax PropertyPatternClause(SyntaxToken openBraceToken, SeparatedSyntaxList<SubpatternElementSyntax> subpatterns, SyntaxToken closeBraceToken)
+    public static PropertyPatternClauseSyntax PropertyPatternClause(SyntaxToken openBraceToken, SeparatedSyntaxList<SubpatternSyntax> subpatterns, SyntaxToken closeBraceToken)
     {
       switch (openBraceToken.Kind())
       {
@@ -6855,29 +6855,29 @@ namespace Microsoft.CodeAnalysis.CSharp
         default:
           throw new ArgumentException("closeBraceToken");
       }
-      return (PropertyPatternClauseSyntax)Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.SyntaxFactory.PropertyPatternClause((Syntax.InternalSyntax.SyntaxToken)openBraceToken.Node, subpatterns.Node.ToGreenSeparatedList<Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.SubpatternElementSyntax>(), (Syntax.InternalSyntax.SyntaxToken)closeBraceToken.Node).CreateRed();
+      return (PropertyPatternClauseSyntax)Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.SyntaxFactory.PropertyPatternClause((Syntax.InternalSyntax.SyntaxToken)openBraceToken.Node, subpatterns.Node.ToGreenSeparatedList<Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.SubpatternSyntax>(), (Syntax.InternalSyntax.SyntaxToken)closeBraceToken.Node).CreateRed();
     }
 
 
     /// <summary>Creates a new PropertyPatternClauseSyntax instance.</summary>
-    public static PropertyPatternClauseSyntax PropertyPatternClause(SeparatedSyntaxList<SubpatternElementSyntax> subpatterns = default(SeparatedSyntaxList<SubpatternElementSyntax>))
+    public static PropertyPatternClauseSyntax PropertyPatternClause(SeparatedSyntaxList<SubpatternSyntax> subpatterns = default(SeparatedSyntaxList<SubpatternSyntax>))
     {
       return SyntaxFactory.PropertyPatternClause(SyntaxFactory.Token(SyntaxKind.OpenBraceToken), subpatterns, SyntaxFactory.Token(SyntaxKind.CloseBraceToken));
     }
 
-    /// <summary>Creates a new SubpatternElementSyntax instance.</summary>
-    public static SubpatternElementSyntax SubpatternElement(NameColonSyntax nameColon, PatternSyntax pattern)
+    /// <summary>Creates a new SubpatternSyntax instance.</summary>
+    public static SubpatternSyntax Subpattern(NameColonSyntax nameColon, PatternSyntax pattern)
     {
       if (pattern == null)
         throw new ArgumentNullException(nameof(pattern));
-      return (SubpatternElementSyntax)Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.SyntaxFactory.SubpatternElement(nameColon == null ? null : (Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.NameColonSyntax)nameColon.Green, pattern == null ? null : (Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.PatternSyntax)pattern.Green).CreateRed();
+      return (SubpatternSyntax)Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.SyntaxFactory.Subpattern(nameColon == null ? null : (Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.NameColonSyntax)nameColon.Green, pattern == null ? null : (Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax.PatternSyntax)pattern.Green).CreateRed();
     }
 
 
-    /// <summary>Creates a new SubpatternElementSyntax instance.</summary>
-    public static SubpatternElementSyntax SubpatternElement(PatternSyntax pattern)
+    /// <summary>Creates a new SubpatternSyntax instance.</summary>
+    public static SubpatternSyntax Subpattern(PatternSyntax pattern)
     {
-      return SyntaxFactory.SubpatternElement(default(NameColonSyntax), pattern);
+      return SyntaxFactory.Subpattern(default(NameColonSyntax), pattern);
     }
 
     /// <summary>Creates a new ConstantPatternSyntax instance.</summary>

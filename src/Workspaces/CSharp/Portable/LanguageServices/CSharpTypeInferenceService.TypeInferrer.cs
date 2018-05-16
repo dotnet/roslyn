@@ -173,7 +173,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     case RefExpressionSyntax refExpression: return InferTypeInRefExpression(refExpression);
                     case ReturnStatementSyntax returnStatement: return InferTypeForReturnStatement(returnStatement);
                     case SimpleLambdaExpressionSyntax simpleLambdaExpression: return InferTypeInSimpleLambdaExpression(simpleLambdaExpression);
-                    case SubpatternElementSyntax subpatternElement: return InferTypeInSubpatternElement(subpatternElement, node);
+                    case SubpatternSyntax subpattern: return InferTypeInSubpattern(subpattern, node);
                     case SwitchLabelSyntax switchLabel: return InferTypeInSwitchLabel(switchLabel);
                     case SwitchStatementSyntax switchStatement: return InferTypeInSwitchStatement(switchStatement);
                     case ThrowExpressionSyntax throwExpression: return InferTypeInThrowExpression(throwExpression);
@@ -1444,19 +1444,19 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return InferTypes(propertySubpattern);
             }
 
-            private IEnumerable<TypeInferenceInfo> InferTypeInSubpatternElement(
-                SubpatternElementSyntax subpatternElement,
+            private IEnumerable<TypeInferenceInfo> InferTypeInSubpattern(
+                SubpatternSyntax subpattern,
                 SyntaxNode child)
             {
                 // we have  { X: ... }.  The type of ... is whatever the type of 'X' is in its
                 // parent type.  So look up the parent type first, then find the X member in it
                 // and use that type.
-                if (child == subpatternElement.Pattern &&
-                    subpatternElement.NameColon != null)
+                if (child == subpattern.Pattern &&
+                    subpattern.NameColon != null)
                 {
                     var result = ArrayBuilder<TypeInferenceInfo>.GetInstance();
 
-                    foreach (var symbol in this.SemanticModel.GetSymbolInfo(subpatternElement.NameColon.Name).GetAllSymbols())
+                    foreach (var symbol in this.SemanticModel.GetSymbolInfo(subpattern.NameColon.Name).GetAllSymbols())
                     {
                         switch (symbol)
                         {
@@ -1806,7 +1806,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             private IEnumerable<TypeInferenceInfo> InferTypeInNameColon(NameColonSyntax nameColon)
             {
-                if (nameColon.Parent is SubpatternElementSyntax subpattern)
+                if (nameColon.Parent is SubpatternSyntax subpattern)
                 {
                     return GetPatternTypes(subpattern.Pattern);
                 }

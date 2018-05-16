@@ -780,7 +780,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public bool IsNameOfSubpatternElement(SyntaxNode node)
             => node.IsKind(SyntaxKind.IdentifierName) &&
                node.IsParentKind(SyntaxKind.NameColon) &&
-               node.Parent.IsParentKind(SyntaxKind.SubpatternElement);
+               node.Parent.IsParentKind(SyntaxKind.Subpattern);
 
         public bool IsPropertyPatternClause(SyntaxNode node)
             => node.Kind() == SyntaxKind.PropertyPatternClause;

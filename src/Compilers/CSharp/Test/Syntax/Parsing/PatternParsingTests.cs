@@ -1861,7 +1861,7 @@ case KeyValuePair<String, DateTime>[] pairs2:
                             N(SyntaxKind.DeconstructionPatternClause);
                             {
                                 N(SyntaxKind.OpenParenToken);
-                                N(SyntaxKind.SubpatternElement);
+                                N(SyntaxKind.Subpattern);
                                 {
                                     N(SyntaxKind.NameColon);
                                     {
@@ -1941,21 +1941,21 @@ case KeyValuePair<String, DateTime>[] pairs2:
                             N(SyntaxKind.DeconstructionPatternClause);
                             {
                                 N(SyntaxKind.OpenParenToken);
-                                N(SyntaxKind.SubpatternElement);
+                                N(SyntaxKind.Subpattern);
                                 {
                                     N(SyntaxKind.RecursivePattern);
                                     {
                                         N(SyntaxKind.DeconstructionPatternClause);
                                         {
                                             N(SyntaxKind.OpenParenToken);
-                                            N(SyntaxKind.SubpatternElement);
+                                            N(SyntaxKind.Subpattern);
                                             {
                                                 N(SyntaxKind.RecursivePattern);
                                                 {
                                                     N(SyntaxKind.DeconstructionPatternClause);
                                                     {
                                                         N(SyntaxKind.OpenParenToken);
-                                                        N(SyntaxKind.SubpatternElement);
+                                                        N(SyntaxKind.Subpattern);
                                                         {
                                                             N(SyntaxKind.NameColon);
                                                             {
@@ -2028,7 +2028,7 @@ case KeyValuePair<String, DateTime>[] pairs2:
                             N(SyntaxKind.DeconstructionPatternClause);
                             {
                                 N(SyntaxKind.OpenParenToken);
-                                N(SyntaxKind.SubpatternElement);
+                                N(SyntaxKind.Subpattern);
                                 {
                                     N(SyntaxKind.NameColon);
                                     {
@@ -2047,7 +2047,7 @@ case KeyValuePair<String, DateTime>[] pairs2:
                                     }
                                 }
                                 N(SyntaxKind.CommaToken);
-                                N(SyntaxKind.SubpatternElement);
+                                N(SyntaxKind.Subpattern);
                                 {
                                     N(SyntaxKind.NameColon);
                                     {
@@ -2070,7 +2070,7 @@ case KeyValuePair<String, DateTime>[] pairs2:
                             N(SyntaxKind.PropertyPatternClause);
                             {
                                 N(SyntaxKind.OpenBraceToken);
-                                N(SyntaxKind.SubpatternElement);
+                                N(SyntaxKind.Subpattern);
                                 {
                                     N(SyntaxKind.NameColon);
                                     {
@@ -2267,7 +2267,7 @@ case KeyValuePair<String, DateTime>[] pairs2:
                             N(SyntaxKind.DeconstructionPatternClause);
                             {
                                 N(SyntaxKind.OpenParenToken);
-                                N(SyntaxKind.SubpatternElement);
+                                N(SyntaxKind.Subpattern);
                                 {
                                     N(SyntaxKind.NameColon);
                                     {
@@ -2459,7 +2459,7 @@ case KeyValuePair<String, DateTime>[] pairs2:
                         N(SyntaxKind.DeconstructionPatternClause);
                         {
                             N(SyntaxKind.OpenParenToken);
-                            N(SyntaxKind.SubpatternElement);
+                            N(SyntaxKind.Subpattern);
                             {
                                 N(SyntaxKind.ConstantPattern);
                                 {
@@ -2470,7 +2470,7 @@ case KeyValuePair<String, DateTime>[] pairs2:
                                 }
                             }
                             N(SyntaxKind.CommaToken);
-                            N(SyntaxKind.SubpatternElement);
+                            N(SyntaxKind.Subpattern);
                             {
                                 N(SyntaxKind.ConstantPattern);
                                 {
@@ -2481,7 +2481,7 @@ case KeyValuePair<String, DateTime>[] pairs2:
                                 }
                             }
                             N(SyntaxKind.CommaToken);
-                            N(SyntaxKind.SubpatternElement);
+                            N(SyntaxKind.Subpattern);
                             {
                                 N(SyntaxKind.ConstantPattern);
                                 {
@@ -2554,7 +2554,7 @@ case KeyValuePair<String, DateTime>[] pairs2:
                             N(SyntaxKind.DeconstructionPatternClause);
                             {
                                 N(SyntaxKind.OpenParenToken);
-                                N(SyntaxKind.SubpatternElement);
+                                N(SyntaxKind.Subpattern);
                                 {
                                     N(SyntaxKind.DeclarationPattern);
                                     {
@@ -2569,7 +2569,7 @@ case KeyValuePair<String, DateTime>[] pairs2:
                                     }
                                 }
                                 M(SyntaxKind.CommaToken);
-                                N(SyntaxKind.SubpatternElement);
+                                N(SyntaxKind.Subpattern);
                                 {
                                     N(SyntaxKind.ConstantPattern);
                                     {
@@ -4155,7 +4155,7 @@ case KeyValuePair<String, DateTime>[] pairs2:
                                     N(SyntaxKind.DeconstructionPatternClause);
                                     {
                                         N(SyntaxKind.OpenParenToken);
-                                        N(SyntaxKind.SubpatternElement);
+                                        N(SyntaxKind.Subpattern);
                                         {
                                             N(SyntaxKind.NameColon);
                                             {
@@ -4174,7 +4174,7 @@ case KeyValuePair<String, DateTime>[] pairs2:
                                             }
                                         }
                                         N(SyntaxKind.CommaToken);
-                                        N(SyntaxKind.SubpatternElement);
+                                        N(SyntaxKind.Subpattern);
                                         {
                                             N(SyntaxKind.NameColon);
                                             {
@@ -4197,7 +4197,7 @@ case KeyValuePair<String, DateTime>[] pairs2:
                                     N(SyntaxKind.PropertyPatternClause);
                                     {
                                         N(SyntaxKind.OpenBraceToken);
-                                        N(SyntaxKind.SubpatternElement);
+                                        N(SyntaxKind.Subpattern);
                                         {
                                             N(SyntaxKind.NameColon);
                                             {
@@ -4261,7 +4261,7 @@ case KeyValuePair<String, DateTime>[] pairs2:
                                     N(SyntaxKind.DeconstructionPatternClause);
                                     {
                                         N(SyntaxKind.OpenParenToken);
-                                        N(SyntaxKind.SubpatternElement);
+                                        N(SyntaxKind.Subpattern);
                                         {
                                             N(SyntaxKind.NameColon);
                                             {
@@ -4280,7 +4280,7 @@ case KeyValuePair<String, DateTime>[] pairs2:
                                             }
                                         }
                                         N(SyntaxKind.CommaToken);
-                                        N(SyntaxKind.SubpatternElement);
+                                        N(SyntaxKind.Subpattern);
                                         {
                                             N(SyntaxKind.NameColon);
                                             {
@@ -4303,7 +4303,7 @@ case KeyValuePair<String, DateTime>[] pairs2:
                                     N(SyntaxKind.PropertyPatternClause);
                                     {
                                         N(SyntaxKind.OpenBraceToken);
-                                        N(SyntaxKind.SubpatternElement);
+                                        N(SyntaxKind.Subpattern);
                                         {
                                             N(SyntaxKind.NameColon);
                                             {
@@ -4371,7 +4371,7 @@ case KeyValuePair<String, DateTime>[] pairs2:
                                     N(SyntaxKind.PropertyPatternClause);
                                     {
                                         N(SyntaxKind.OpenBraceToken);
-                                        N(SyntaxKind.SubpatternElement);
+                                        N(SyntaxKind.Subpattern);
                                         {
                                             N(SyntaxKind.NameColon);
                                             {
@@ -4435,7 +4435,7 @@ case KeyValuePair<String, DateTime>[] pairs2:
                                     N(SyntaxKind.PropertyPatternClause);
                                     {
                                         N(SyntaxKind.OpenBraceToken);
-                                        N(SyntaxKind.SubpatternElement);
+                                        N(SyntaxKind.Subpattern);
                                         {
                                             N(SyntaxKind.NameColon);
                                             {
@@ -4503,7 +4503,7 @@ case KeyValuePair<String, DateTime>[] pairs2:
                                     N(SyntaxKind.DeconstructionPatternClause);
                                     {
                                         N(SyntaxKind.OpenParenToken);
-                                        N(SyntaxKind.SubpatternElement);
+                                        N(SyntaxKind.Subpattern);
                                         {
                                             N(SyntaxKind.NameColon);
                                             {
@@ -4522,7 +4522,7 @@ case KeyValuePair<String, DateTime>[] pairs2:
                                             }
                                         }
                                         N(SyntaxKind.CommaToken);
-                                        N(SyntaxKind.SubpatternElement);
+                                        N(SyntaxKind.Subpattern);
                                         {
                                             N(SyntaxKind.NameColon);
                                             {
@@ -4586,7 +4586,7 @@ case KeyValuePair<String, DateTime>[] pairs2:
                                     N(SyntaxKind.DeconstructionPatternClause);
                                     {
                                         N(SyntaxKind.OpenParenToken);
-                                        N(SyntaxKind.SubpatternElement);
+                                        N(SyntaxKind.Subpattern);
                                         {
                                             N(SyntaxKind.NameColon);
                                             {
@@ -4605,7 +4605,7 @@ case KeyValuePair<String, DateTime>[] pairs2:
                                             }
                                         }
                                         N(SyntaxKind.CommaToken);
-                                        N(SyntaxKind.SubpatternElement);
+                                        N(SyntaxKind.Subpattern);
                                         {
                                             N(SyntaxKind.NameColon);
                                             {
@@ -4718,7 +4718,7 @@ case KeyValuePair<String, DateTime>[] pairs2:
                                     N(SyntaxKind.DeconstructionPatternClause);
                                     {
                                         N(SyntaxKind.OpenParenToken);
-                                        N(SyntaxKind.SubpatternElement);
+                                        N(SyntaxKind.Subpattern);
                                         {
                                             N(SyntaxKind.NameColon);
                                             {
@@ -4737,7 +4737,7 @@ case KeyValuePair<String, DateTime>[] pairs2:
                                             }
                                         }
                                         N(SyntaxKind.CommaToken);
-                                        N(SyntaxKind.SubpatternElement);
+                                        N(SyntaxKind.Subpattern);
                                         {
                                             N(SyntaxKind.NameColon);
                                             {
@@ -4760,7 +4760,7 @@ case KeyValuePair<String, DateTime>[] pairs2:
                                     N(SyntaxKind.PropertyPatternClause);
                                     {
                                         N(SyntaxKind.OpenBraceToken);
-                                        N(SyntaxKind.SubpatternElement);
+                                        N(SyntaxKind.Subpattern);
                                         {
                                             N(SyntaxKind.NameColon);
                                             {
@@ -4820,7 +4820,7 @@ case KeyValuePair<String, DateTime>[] pairs2:
                                     N(SyntaxKind.DeconstructionPatternClause);
                                     {
                                         N(SyntaxKind.OpenParenToken);
-                                        N(SyntaxKind.SubpatternElement);
+                                        N(SyntaxKind.Subpattern);
                                         {
                                             N(SyntaxKind.NameColon);
                                             {
@@ -4839,7 +4839,7 @@ case KeyValuePair<String, DateTime>[] pairs2:
                                             }
                                         }
                                         N(SyntaxKind.CommaToken);
-                                        N(SyntaxKind.SubpatternElement);
+                                        N(SyntaxKind.Subpattern);
                                         {
                                             N(SyntaxKind.NameColon);
                                             {
@@ -4862,7 +4862,7 @@ case KeyValuePair<String, DateTime>[] pairs2:
                                     N(SyntaxKind.PropertyPatternClause);
                                     {
                                         N(SyntaxKind.OpenBraceToken);
-                                        N(SyntaxKind.SubpatternElement);
+                                        N(SyntaxKind.Subpattern);
                                         {
                                             N(SyntaxKind.NameColon);
                                             {
@@ -4926,7 +4926,7 @@ case KeyValuePair<String, DateTime>[] pairs2:
                                     N(SyntaxKind.PropertyPatternClause);
                                     {
                                         N(SyntaxKind.OpenBraceToken);
-                                        N(SyntaxKind.SubpatternElement);
+                                        N(SyntaxKind.Subpattern);
                                         {
                                             N(SyntaxKind.NameColon);
                                             {
@@ -4986,7 +4986,7 @@ case KeyValuePair<String, DateTime>[] pairs2:
                                     N(SyntaxKind.PropertyPatternClause);
                                     {
                                         N(SyntaxKind.OpenBraceToken);
-                                        N(SyntaxKind.SubpatternElement);
+                                        N(SyntaxKind.Subpattern);
                                         {
                                             N(SyntaxKind.NameColon);
                                             {
@@ -5050,7 +5050,7 @@ case KeyValuePair<String, DateTime>[] pairs2:
                                     N(SyntaxKind.DeconstructionPatternClause);
                                     {
                                         N(SyntaxKind.OpenParenToken);
-                                        N(SyntaxKind.SubpatternElement);
+                                        N(SyntaxKind.Subpattern);
                                         {
                                             N(SyntaxKind.NameColon);
                                             {
@@ -5069,7 +5069,7 @@ case KeyValuePair<String, DateTime>[] pairs2:
                                             }
                                         }
                                         N(SyntaxKind.CommaToken);
-                                        N(SyntaxKind.SubpatternElement);
+                                        N(SyntaxKind.Subpattern);
                                         {
                                             N(SyntaxKind.NameColon);
                                             {
@@ -5129,7 +5129,7 @@ case KeyValuePair<String, DateTime>[] pairs2:
                                     N(SyntaxKind.DeconstructionPatternClause);
                                     {
                                         N(SyntaxKind.OpenParenToken);
-                                        N(SyntaxKind.SubpatternElement);
+                                        N(SyntaxKind.Subpattern);
                                         {
                                             N(SyntaxKind.NameColon);
                                             {
@@ -5148,7 +5148,7 @@ case KeyValuePair<String, DateTime>[] pairs2:
                                             }
                                         }
                                         N(SyntaxKind.CommaToken);
-                                        N(SyntaxKind.SubpatternElement);
+                                        N(SyntaxKind.Subpattern);
                                         {
                                             N(SyntaxKind.NameColon);
                                             {

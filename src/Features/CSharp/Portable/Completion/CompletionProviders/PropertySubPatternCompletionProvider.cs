@@ -46,10 +46,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 !m.IsImplicitlyDeclared);
 
             // Filter out those members that have already been typed
-            var propertySubpattern = (PropertySubpatternSyntax)token.Parent;
+            var propertySubpattern = (PropertyPatternClauseSyntax)token.Parent;
 
             // List the members that are already tested in this property sub-pattern
-            var alreadyTestedMembers = new HashSet<string>(propertySubpattern.SubPatterns.Select(
+            var alreadyTestedMembers = new HashSet<string>(propertySubpattern.Subpatterns.Select(
                 p => p.NameColon?.Name.Identifier.ValueText).Where(s => !string.IsNullOrEmpty(s)));
 
             var untestedMembers = members.Where(m => !alreadyTestedMembers.Contains(m.Name) &&
@@ -104,7 +104,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 return default;
             }
 
-            return token.Parent.IsKind(SyntaxKind.PropertySubpattern) ? token : default;
+            return token.Parent.IsKind(SyntaxKind.RecursivePattern) ? token : default;
         }
     }
 }

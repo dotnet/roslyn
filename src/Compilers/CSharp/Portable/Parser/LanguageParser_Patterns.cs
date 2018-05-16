@@ -478,7 +478,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 // We normalize later.
                 ParseSubpatternList(
                     openToken: out SyntaxToken openParenToken,
-                    subPatterns: out SeparatedSyntaxList<SubpatternElementSyntax> subPatterns,
+                    subPatterns: out SeparatedSyntaxList<SubpatternSyntax> subPatterns,
                     closeToken: out SyntaxToken closeParenToken,
                     openKind: SyntaxKind.OpenParenToken,
                     closeKind: SyntaxKind.CloseParenToken);
@@ -501,8 +501,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                     }
                 }
 
-                var deconstructopnPatternClause = _syntaxFactory.DeconstructionPatternClause(openParenToken, subPatterns, closeParenToken);
-                var result = _syntaxFactory.RecursivePattern(type, deconstructopnPatternClause, propertyPatternClause0, designation0);
+                var deconstructionPatternClause = _syntaxFactory.DeconstructionPatternClause(openParenToken, subPatterns, closeParenToken);
+                var result = _syntaxFactory.RecursivePattern(type, deconstructionPatternClause, propertyPatternClause0, designation0);
 
                 // 2017-11-20 LDM decision is to disallow a deconstruction pattern that contains just a
                 // single subpattern but for which the type is omitted.
@@ -544,7 +544,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         {
             ParseSubpatternList(
                 openToken: out SyntaxToken openBraceToken,
-                subPatterns: out SeparatedSyntaxList<SubpatternElementSyntax> subPatterns,
+                subPatterns: out SeparatedSyntaxList<SubpatternSyntax> subPatterns,
                 closeToken: out SyntaxToken closeBraceToken,
                 openKind: SyntaxKind.OpenBraceToken,
                 closeKind: SyntaxKind.CloseBraceToken);
@@ -553,7 +553,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
         private void ParseSubpatternList(
             out SyntaxToken openToken,
-            out SeparatedSyntaxList<SubpatternElementSyntax> subPatterns,
+            out SeparatedSyntaxList<SubpatternSyntax> subPatterns,
             out SyntaxToken closeToken,
             SyntaxKind openKind,
             SyntaxKind closeKind)
@@ -564,7 +564,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             Debug.Assert(openKind == this.CurrentToken.Kind);
 
             openToken = this.EatToken(openKind);
-            var list = _pool.AllocateSeparated<SubpatternElementSyntax>();
+            var list = _pool.AllocateSeparated<SubpatternSyntax>();
             try
             {
                 tryAgain:
@@ -610,7 +610,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             }
         }
 
-        private SubpatternElementSyntax ParseSubpatternElement()
+        private SubpatternSyntax ParseSubpatternElement()
         {
             NameColonSyntax nameColon = null;
             if (this.CurrentToken.Kind == SyntaxKind.IdentifierToken && this.PeekToken(1).Kind == SyntaxKind.ColonToken)
@@ -621,7 +621,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             }
 
             var pattern = ParsePattern(Precedence.Ternary);
-            return this._syntaxFactory.SubpatternElement(nameColon, pattern);
+            return this._syntaxFactory.Subpattern(nameColon, pattern);
         }
 
         /// <summary>
@@ -641,7 +641,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
         private PostSkipAction SkipBadPatternListTokens(
             ref SyntaxToken open,
-            SeparatedSyntaxListBuilder<SubpatternElementSyntax> list,
+            SeparatedSyntaxListBuilder<SubpatternSyntax> list,
             SyntaxKind expected,
             SyntaxKind closeKind)
         {
