@@ -95,7 +95,7 @@ namespace Microsoft.CodeAnalysis.UseAutoProperty
                 propertyDocument, compilation, fieldSymbol, propertySymbol, property,
                 isWrittenToOutsideOfConstructor, cancellationToken).ConfigureAwait(false);
 
-            // Ensure the new and old property share the same leading/trailing trivia.
+            // Ensure the new and old property share the same trailing trivia.
             updatedProperty = updatedProperty.WithTrailingTrivia(property.GetTrailingTrivia());
 
             // However, if we have a situation where the property is the second member in a type,
