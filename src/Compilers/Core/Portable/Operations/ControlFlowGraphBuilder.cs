@@ -4885,7 +4885,12 @@ oneMoreTime:
         {
             return new AwaitExpression(Visit(operation.Operation), semanticModel: null, operation.Syntax, operation.Type, operation.ConstantValue, IsImplicit(operation));
         }
-        
+
+        public override IOperation VisitStop(IStopOperation operation, int? captureIdForResult)
+        {
+            return new StopStatement(semanticModel: null, operation.Syntax, operation.Type, operation.ConstantValue, IsImplicit(operation));
+        }
+
         public override IOperation VisitParameterInitializer(IParameterInitializerOperation operation, int? captureIdForResult)
         {
             Debug.Assert(_currentStatement == operation);
@@ -5044,11 +5049,6 @@ oneMoreTime:
 
             _currentInitializedInstance = previousInitializedInstance;
             return null;
-        }
-
-        public override IOperation VisitStop(IStopOperation operation, int? captureIdForResult)
-        {
-            return new StopStatement(semanticModel: null, operation.Syntax, operation.Type, operation.ConstantValue, IsImplicit(operation));
         }
 
         public override IOperation VisitOmittedArgument(IOmittedArgumentOperation operation, int? captureIdForResult)
