@@ -121,10 +121,10 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.LanguageService
 
         private async Task UnregisterObjectBrowserLibraryManagerAsync(CancellationToken cancellationToken)
         {
+            await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+
             if (_libraryManagerCookie != 0)
             {
-                await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
-
                 if (await GetServiceAsync(typeof(SVsObjectManager)).ConfigureAwait(true) is IVsObjectManager2 objectManager)
                 {
                     objectManager.UnregisterLibrary(_libraryManagerCookie);

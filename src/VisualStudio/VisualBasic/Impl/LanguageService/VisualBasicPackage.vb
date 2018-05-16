@@ -121,9 +121,9 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic
         End Function
 
         Private Async Function UnregisterObjectBrowserLibraryManagerAsync(cancellationToken As CancellationToken) As Task
-            If _libraryManagerCookie <> 0 Then
-                Await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken)
+            Await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken)
 
+            If _libraryManagerCookie <> 0 Then
                 Dim objectManager = TryCast(Await GetServiceAsync(GetType(SVsObjectManager)).ConfigureAwait(True), IVsObjectManager2)
                 If objectManager IsNot Nothing Then
                     objectManager.UnregisterLibrary(Me._libraryManagerCookie)
