@@ -10,7 +10,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
         Public Sub CIntFix_01()
             Dim source =
 <compilation>
-    <file name="a.vb">
+    <file name="a.vb"><![CDATA[
 Option Strict On
 
 Imports System
@@ -93,17 +93,18 @@ Class C1
 
     Public Shared Sub CheckSingle(s As Single, expected As Integer)
         Dim result As Integer = SingleToInteger(s)
-        If result &lt;> expected
-            Throw New Exception("Error on " &amp; s &amp; " " &amp; expected)
+        If result <> expected
+            Throw New Exception("Error on " & s & " " & expected)
         End If
     End Sub
     Public Shared Sub CheckDouble(s As Double, expected As Integer)
         Dim result As Integer = DoubleToInteger(s)
-        If result &lt;> expected
-            Throw New Exception("Error on " &amp; s &amp; " " &amp; expected)
+        If result <> expected
+            Throw New Exception("Error on " & s & " " & expected)
         End If
     End Sub
 End Class
+]]>
     </file>
 </compilation>
             Dim compilation = CreateCompilationWithMscorlib45AndVBRuntime(source, options:=TestOptions.ReleaseExe.WithOverflowChecks(False))
@@ -261,7 +262,7 @@ done
         Public Sub CIntFix_Checked_01()
             Dim source =
 <compilation>
-    <file name="a.vb">
+    <file name="a.vb"><![CDATA[
 Option Strict On
 
 Imports System
@@ -344,8 +345,8 @@ Class C1
 
     Public Shared Sub CheckSingle(s As Single, expected As Integer)
         Dim result As Integer = SingleToInteger(s)
-        If result &lt;> expected
-            Throw New Exception("Error on " &amp; s &amp; " " &amp; expected)
+        If result <> expected
+            Throw New Exception("Error on " & s & " " & expected)
         End If
     End Sub
     Public Shared Sub CheckSingle(s As Single)
@@ -354,12 +355,12 @@ Class C1
         Catch ex As OverflowException
             Return
         End Try
-        Throw New Exception("Error on " &amp; s)
+        Throw New Exception("Error on " & s)
     End Sub
     Public Shared Sub CheckDouble(s As Double, expected As Integer)
         Dim result As Integer = DoubleToInteger(s)
-        If result &lt;> expected
-            Throw New Exception("Error on " &amp; s &amp; " " &amp; expected)
+        If result <> expected
+            Throw New Exception("Error on " & s & " " & expected)
         End If
     End Sub
     Public Shared Sub CheckDouble(s As Double)
@@ -368,9 +369,10 @@ Class C1
         Catch ex As OverflowException
             Return
         End Try
-        Throw New Exception("Error on " &amp; s)
+        Throw New Exception("Error on " & s)
     End Sub
 End Class
+]]>
     </file>
 </compilation>
             Dim compilation = CreateCompilationWithMscorlib45AndVBRuntime(source, options:=TestOptions.ReleaseExe.WithOverflowChecks(True))
@@ -529,7 +531,7 @@ done
         Public Sub CIntFix_Implicit_01()
             Dim source =
 <compilation>
-    <file name="a.vb">
+    <file name="a.vb"><![CDATA[
 Option Strict Off
 
 Imports System
@@ -612,17 +614,18 @@ Class C1
 
     Public Shared Sub CheckSingle(s As Single, expected As Integer)
         Dim result As Integer = SingleToInteger(s)
-        If result &lt;> expected
-            Throw New Exception("Error on " &amp; s &amp; " " &amp; expected)
+        If result <> expected
+            Throw New Exception("Error on " & s & " " & expected)
         End If
     End Sub
     Public Shared Sub CheckDouble(s As Double, expected As Integer)
         Dim result As Integer = DoubleToInteger(s)
-        If result &lt;> expected
-            Throw New Exception("Error on " &amp; s &amp; " " &amp; expected)
+        If result <> expected
+            Throw New Exception("Error on " & s & " " & expected)
         End If
     End Sub
 End Class
+]]>
     </file>
 </compilation>
             Dim compilation = CreateCompilationWithMscorlib45AndVBRuntime(source, options:=TestOptions.ReleaseExe.WithOverflowChecks(False))
@@ -780,7 +783,7 @@ done
         Public Sub CIntFix_CheckedImplicit_01()
             Dim source =
 <compilation>
-    <file name="a.vb">
+    <file name="a.vb"><![CDATA[
 Option Strict Off
 
 Imports System
@@ -863,8 +866,8 @@ Class C1
 
     Public Shared Sub CheckSingle(s As Single, expected As Integer)
         Dim result As Integer = SingleToInteger(s)
-        If result &lt;> expected
-            Throw New Exception("Error on " &amp; s &amp; " " &amp; expected)
+        If result <> expected
+            Throw New Exception("Error on " & s & " " & expected)
         End If
     End Sub
     Public Shared Sub CheckSingle(s As Single)
@@ -873,12 +876,12 @@ Class C1
         Catch ex As OverflowException
             Return
         End Try
-        Throw New Exception("Error on " &amp; s)
+        Throw New Exception("Error on " & s)
     End Sub
     Public Shared Sub CheckDouble(s As Double, expected As Integer)
         Dim result As Integer = DoubleToInteger(s)
-        If result &lt;> expected
-            Throw New Exception("Error on " &amp; s &amp; " " &amp; expected)
+        If result <> expected
+            Throw New Exception("Error on " & s & " " & expected)
         End If
     End Sub
     Public Shared Sub CheckDouble(s As Double)
@@ -887,9 +890,10 @@ Class C1
         Catch ex As OverflowException
             Return
         End Try
-        Throw New Exception("Error on " &amp; s)
+        Throw New Exception("Error on " & s)
     End Sub
 End Class
+]]>
     </file>
 </compilation>
             Dim compilation = CreateCompilationWithMscorlib45AndVBRuntime(source, options:=TestOptions.ReleaseExe.WithOverflowChecks(True))
