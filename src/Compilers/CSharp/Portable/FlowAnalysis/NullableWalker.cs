@@ -2999,13 +2999,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                 bool? isNullableIfReferenceType = null;
                 if ((object)sourceType != null)
                 {
-                    TypeSymbol destinationType = iterationVariable.Type.TypeSymbol;
+                    TypeSymbolWithAnnotations destinationType = iterationVariable.Type;
                     HashSet<DiagnosticInfo> useSiteDiagnostics = null;
-                    Conversion conversion = _conversions.ClassifyImplicitConversionFromType(sourceType.TypeSymbol, destinationType, ref useSiteDiagnostics);
-                    TypeSymbolWithAnnotations result = ApplyConversion(node.IterationVariableType, operandOpt: null, conversion, destinationType, sourceType, checkConversion: false, fromExplicitCast: false, out bool canConvert);
-                    if (!canConvert)
+                    Conversion conversion = _conversions.ClassifyImplicitConversionFromType(sourceType.TypeSymbol, destinationType.TypeSymbol, ref useSiteDiagnostics);
+                    TypeSymbolWithAnnotations result = ApplyConversion(node.IterationVariableType, operandOpt: null, conversion, destinationType.TypeSymbol, sourceType, checkConversion: false, fromExplicitCast: true, out bool canConvert);
+                    if (destinationType.IsReferenceType && destinationType.IsNullable == false && sourceType.IsNullable == true)
                     {
-                        // PROTOTYPE(NullableReferenceTypes): Report nullability mismatch.
+                        ReportStaticNullCheckingDiagnostics(ErrorCode.WRN_ConvertingNullableToNonNullable, node.IterationVariableType.Syntax);
                     }
                     isNullableIfReferenceType = result.IsNullable;
                 }

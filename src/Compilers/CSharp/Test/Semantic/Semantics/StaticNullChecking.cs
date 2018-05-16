@@ -21548,6 +21548,8 @@ class C
             x.ToString();
         foreach (object y in e)
             y.ToString();
+        foreach (object? z in e)
+            z.ToString();
     }
 }";
             var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
@@ -21555,9 +21557,15 @@ class C
                 // (15,13): warning CS8602: Possible dereference of a null reference.
                 //             x.ToString();
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "x").WithLocation(15, 13),
+                // (16,18): warning CS8600: Converting null literal or possible null value to non-nullable type.
+                //         foreach (object y in e)
+                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "object").WithLocation(16, 18),
                 // (17,13): warning CS8602: Possible dereference of a null reference.
                 //             y.ToString();
-                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "y").WithLocation(17, 13));
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "y").WithLocation(17, 13),
+                // (19,13): warning CS8602: Possible dereference of a null reference.
+                //             z.ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "z").WithLocation(19, 13));
         }
 
         [Fact]
@@ -21614,12 +21622,18 @@ class C
                 // (34,13): warning CS8602: Possible dereference of a null reference.
                 //             x.ToString();
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "x").WithLocation(34, 13),
+                // (35,18): warning CS8600: Converting null literal or possible null value to non-nullable type.
+                //         foreach (object y in e)
+                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "object").WithLocation(35, 18),
                 // (36,13): warning CS8602: Possible dereference of a null reference.
                 //             y.ToString();
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "y").WithLocation(36, 13),
                 // (41,13): warning CS8602: Possible dereference of a null reference.
                 //             z.ToString();
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "z").WithLocation(41, 13),
+                // (42,18): warning CS8600: Converting null literal or possible null value to non-nullable type.
+                //         foreach (object w in e)
+                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "object").WithLocation(42, 18),
                 // (43,13): warning CS8602: Possible dereference of a null reference.
                 //             w.ToString();
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "w").WithLocation(43, 13));
@@ -21705,9 +21719,15 @@ class P
                 // (15,13): warning CS8602: Possible dereference of a null reference.
                 //             y.ToString();
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "y").WithLocation(15, 13),
+                // (16,18): warning CS8600: Converting null literal or possible null value to non-nullable type.
+                //         foreach (T z in c)
+                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "T").WithLocation(16, 18),
                 // (17,13): warning CS8602: Possible dereference of a null reference.
                 //             z.ToString();
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "z").WithLocation(17, 13),
+                // (18,18): warning CS8600: Converting null literal or possible null value to non-nullable type.
+                //         foreach (object w in c)
+                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "object").WithLocation(18, 18),
                 // (19,13): warning CS8602: Possible dereference of a null reference.
                 //             w.ToString();
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "w").WithLocation(19, 13));
@@ -21756,6 +21776,9 @@ class P
                 // (26,13): warning CS8602: Possible dereference of a null reference.
                 //             x2.ToString();
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "x2").WithLocation(26, 13),
+                // (27,18): warning CS8600: Converting null literal or possible null value to non-nullable type.
+                //         foreach (T y2 in new S<T?>())
+                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "T").WithLocation(27, 18),
                 // (28,13): warning CS8602: Possible dereference of a null reference.
                 //             y2.ToString();
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "y2").WithLocation(28, 13),
@@ -21765,6 +21788,48 @@ class P
                 // (32,13): warning CS8602: Possible dereference of a null reference.
                 //             w2.ToString();
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "w2").WithLocation(32, 13));
+        }
+
+        [Fact]
+        public void ForEach_08()
+        {
+            var source =
+@"using System.Collections.Generic;
+interface I<T> { T P { get; } }
+interface IIn<in T> { }
+interface IOut<out T> { T P { get; } }
+static class C
+{
+    static void F1(IEnumerable<I<object>> x1, IEnumerable<I<object?>> y1)
+    {
+        foreach (I<object?> a1 in x1)
+            a1.P.ToString();
+        foreach (I<object> b1 in y1)
+            b1.P.ToString();
+    }
+    static void F2(IEnumerable<IIn<object>> x2, IEnumerable<IIn<object?>> y2)
+    {
+        foreach (IIn<object?> a2 in x2)
+            ;
+        foreach (IIn<object> b2 in y2)
+            ;
+    }
+    static void F3(IEnumerable<IOut<object>> x3, IEnumerable<IOut<object?>> y3)
+    {
+        foreach (IOut<object?> a3 in x3)
+            a3.P.ToString();
+        foreach (IOut<object> b3 in y3)
+            b3.P.ToString();
+    }
+}";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
+            comp.VerifyDiagnostics(
+                // (10,13): warning CS8602: Possible dereference of a null reference.
+                //             a1.P.ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "a1.P").WithLocation(10, 13),
+                // (24,13): warning CS8602: Possible dereference of a null reference.
+                //             a3.P.ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "a3.P").WithLocation(24, 13));
         }
 
         // PROTOTYPE(NullableReferenceTypes): Should report CS8600 for `T1 t = (T1)NullableObject();`
