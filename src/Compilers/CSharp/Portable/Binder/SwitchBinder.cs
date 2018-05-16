@@ -547,6 +547,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             var sectionBinder = originalBinder.GetBinder(node);
 
+            Debug.Assert(sectionBinder.GetDeclaredLocalsForScope(node).IsEmpty, "Dropping locals declared in the switch section."); // https://github.com/dotnet/roslyn/issues/26896
+
             // Bind switch section labels
             var boundLabelsBuilder = ArrayBuilder<BoundSwitchLabel>.GetInstance();
             foreach (var labelSyntax in node.Labels)
