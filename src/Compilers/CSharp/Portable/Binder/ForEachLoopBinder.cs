@@ -310,6 +310,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                         {
                             // Bind the expression for error recovery, but discard all new diagnostics
                             iterationErrorExpression = BindExpression(node.Variable, new DiagnosticBag());
+                            if (iterationErrorExpression.Kind == BoundKind.DiscardExpression)
+                            {
+                                iterationErrorExpression = ((BoundDiscardExpression)iterationErrorExpression).FailInference(this, diagnosticsOpt: null);
+                            }
                             hasErrors = true;
 
                             if (!node.HasErrors)

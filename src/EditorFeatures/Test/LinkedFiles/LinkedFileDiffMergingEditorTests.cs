@@ -39,11 +39,10 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.LinkedFiles
 
                 var expectedCode = "private class D { }";
 
-                await TestActionsOnLinkedFiles(
+                await TestActionOnLinkedFiles(
                     workspace,
                     expectedText: expectedCode,
-                    index: 0,
-                    actions: codeIssueOrRefactoring.Actions,
+                    action: codeIssueOrRefactoring.Actions[0],
                     expectedPreviewContents: expectedCode);
             }
         }
