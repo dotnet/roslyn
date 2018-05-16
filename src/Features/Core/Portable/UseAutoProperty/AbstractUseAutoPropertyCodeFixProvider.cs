@@ -21,7 +21,8 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.UseAutoProperty
 {
-    internal abstract class AbstractUseAutoPropertyCodeFixProvider<TPropertyDeclaration, TVariableDeclarator, TConstructorDeclaration, TExpression> : CodeFixProvider
+    internal abstract class AbstractUseAutoPropertyCodeFixProvider<TTypeDeclarationSyntax, TPropertyDeclaration, TVariableDeclarator, TConstructorDeclaration, TExpression> : CodeFixProvider
+        where TTypeDeclarationSyntax : SyntaxNode
         where TPropertyDeclaration : SyntaxNode
         where TVariableDeclarator : SyntaxNode
         where TConstructorDeclaration : SyntaxNode
@@ -41,9 +42,6 @@ namespace Microsoft.CodeAnalysis.UseAutoProperty
         protected abstract Task<SyntaxNode> UpdatePropertyAsync(
             Document propertyDocument, Compilation compilation, IFieldSymbol fieldSymbol, IPropertySymbol propertySymbol,
             TPropertyDeclaration propertyDeclaration, bool isWrittenOutsideConstructor, CancellationToken cancellationToken);
-
-        protected abstract bool WillRemoveFirstFieldInTypeDirectlyAboveProperty(
-            TPropertyDeclaration property, SyntaxNode fieldToRemove);
 
         public sealed override Task RegisterCodeFixesAsync(CodeFixContext context)
         {
@@ -98,21 +96,6 @@ namespace Microsoft.CodeAnalysis.UseAutoProperty
             // Ensure the new and old property share the same trailing trivia.
             updatedProperty = updatedProperty.WithTrailingTrivia(property.GetTrailingTrivia());
 
-            // However, if we have a situation where the property is the second member in a type,
-            // and it would become the first, then remove any leading blank lines from it so we
-            // don't have random blanks above it that used to space it from the field that was
-            // there.
-            var nodeToRemove = GetNodeToRemove(declarator);
-            if (fieldDocument == propertyDocument &&
-                WillRemoveFirstFieldInTypeDirectlyAboveProperty(property, nodeToRemove))
-            {
-                var syntaxFacts = fieldDocument.GetLanguageService<ISyntaxFactsService>();
-                if (syntaxFacts.GetLeadingBlankLines(nodeToRemove).Length == 0)
-                {
-                    updatedProperty = syntaxFacts.GetNodeWithoutLeadingBlankLines(updatedProperty);
-                }
-            }
-
             // Note: rename will try to update all the references in linked files as well.  However, 
             // this can lead to some very bad behavior as we will change the references in linked files
             // but only remove the field and update the property in a single document.  So, you can
@@ -161,10 +144,23 @@ namespace Microsoft.CodeAnalysis.UseAutoProperty
             var temp = await propertySymbol.DeclaringSyntaxReferences[0].GetSyntaxAsync(cancellationToken).ConfigureAwait(false);
             property = temp.FirstAncestorOrSelf<TPropertyDeclaration>();
 
-            nodeToRemove = GetNodeToRemove(declarator);
+            var nodeToRemove = GetNodeToRemove(declarator);
+
+            // If we have a situation where the property is the second member in a type,
+            // and it would become the first, then remove any leading blank lines from it so we
+            // don't have random blanks above it that used to space it from the field that was
+            // there.
+            if (fieldDocument == propertyDocument)
+            {
+                var syntaxFacts = fieldDocument.GetLanguageService<ISyntaxFactsService>();
+                if (WillRemoveFirstFieldInTypeDirectlyAboveProperty(syntaxFacts, property, nodeToRemove) &&
+                    syntaxFacts.GetLeadingBlankLines(nodeToRemove).Length == 0)
+                {
+                    updatedProperty = syntaxFacts.GetNodeWithoutLeadingBlankLines(updatedProperty);
+                }
+            }
 
             const SyntaxRemoveOptions options = SyntaxRemoveOptions.KeepUnbalancedDirectives | SyntaxRemoveOptions.AddElasticMarker;
-
             if (fieldDocument == propertyDocument)
             {
                 // Same file.  Have to do this in a slightly complicated fashion.
@@ -177,8 +173,7 @@ namespace Microsoft.CodeAnalysis.UseAutoProperty
                 var newRoot = editor.GetChangedRoot();
                 newRoot = await FormatAsync(newRoot, fieldDocument, cancellationToken).ConfigureAwait(false);
 
-                return solution.WithDocumentSyntaxRoot(
-                    fieldDocument.Id, newRoot);
+                return solution.WithDocumentSyntaxRoot(fieldDocument.Id, newRoot);
             }
             else
             {
@@ -197,6 +192,19 @@ namespace Microsoft.CodeAnalysis.UseAutoProperty
 
                 return updatedSolution;
             }
+        }
+
+        private bool WillRemoveFirstFieldInTypeDirectlyAboveProperty(
+            ISyntaxFactsService syntaxFacts, TPropertyDeclaration property, SyntaxNode fieldToRemove)
+        {
+            if (fieldToRemove.Parent == property.Parent &&
+                fieldToRemove.Parent is TTypeDeclarationSyntax typeDeclaration)
+            {
+                var members = syntaxFacts.GetMembersOfTypeDeclaration(typeDeclaration);
+                return members[0] == fieldToRemove && members[1] == property;
+            }
+
+            return false;
         }
 
         private bool CanEditDocument(
