@@ -496,9 +496,9 @@
         <target state="translated">Image PE neobsahuje spravovaná metadata.</target>
         <note />
       </trans-unit>
-      <trans-unit id="ChangesMustBeOrderedAndNotOverlapping">
-        <source>The changes must be ordered and not overlapping.</source>
-        <target state="translated">Změny musí být seřazené a nesmí se překrývat.</target>
+      <trans-unit id="ChangesMustNotOverlap">
+        <source>The changes must not overlap.</source>
+        <target state="needs-review-translation">Změny musí být seřazené a nesmí se překrývat.</target>
         <note />
       </trans-unit>
       <trans-unit id="DiagnosticIdCantBeNullOrWhitespace">
