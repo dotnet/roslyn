@@ -268,8 +268,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.ProjectSystemShim
                 Return
             End If
 
-            ' TODO: is this called for interop references too?
-            VisualStudioProject.RemoveMetadataReference(wszFileName, MetadataReferenceProperties.Assembly)
+            VisualStudioProject.RemoveMetadataReference(wszFileName, VisualStudioProject.GetPropertiesForMetadataReference(wszFileName).Single())
         End Sub
 
         Public Shadows Sub RemoveProjectReference(pReferencedCompilerProject As IVbCompilerProject) Implements IVbCompilerProject.RemoveProjectReference
@@ -388,17 +387,6 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.ProjectSystemShim
             ' We no longer have a concept in Roslyn equivalent to the native WaitUntilBound, since we don't have a
             ' background compiler in the same sense.
             Throw New NotSupportedException()
-        End Sub
-
-        Private Sub PushUpdatedGlobalImportsToWorkspace()
-            ' We'll just use the last converted options with the global imports changed. If we don't
-            ' have any last options, then we won't push anything down at all. We'll call
-            ' SetCompilationOptions later once we get the call through
-            ' IVbCompiler.SetCompilerOptions
-            'Dim lastCompilationOptions = TryCast(CurrentCompilationOptions, VisualBasicCompilationOptions)
-            'If lastCompilationOptions IsNot Nothing Then
-            '    SetOptions(lastCompilationOptions.WithGlobalImports(_imports), CurrentParseOptions)
-            'End If
         End Sub
 
         Public Shadows Sub Disconnect() Implements IVbCompilerProject.Disconnect

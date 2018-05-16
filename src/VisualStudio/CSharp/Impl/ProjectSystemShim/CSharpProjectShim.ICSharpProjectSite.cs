@@ -90,8 +90,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.ProjectSystemShim
         {
             filename = FileUtilities.NormalizeAbsolutePath(filename);
 
-            // TODO: remove the correct one is one with fancy properties
-            VisualStudioProject.RemoveMetadataReference(filename, MetadataReferenceProperties.Assembly);
+            VisualStudioProject.RemoveMetadataReference(filename, VisualStudioProject.GetPropertiesForMetadataReference(filename).Single());
         }
 
         public void OnOutputFileChanged(string filename)
@@ -179,7 +178,12 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.ProjectSystemShim
 
         public void OnAliasesChanged(string file, string project, int previousAliasesCount, string[] previousAliases, int currentAliasesCount, string[] currentAliases)
         {
-            throw new NotImplementedException();
+            using (VisualStudioProject.CreateBatchScope())
+            {
+                var existingProperties = VisualStudioProject.GetPropertiesForMetadataReference(file).Single();
+                VisualStudioProject.RemoveMetadataReference(file, existingProperties);
+                VisualStudioProject.AddMetadataReference(file, existingProperties.WithAliases(currentAliases));
+            }
         }
     }
 }

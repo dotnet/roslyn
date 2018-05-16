@@ -41,17 +41,20 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.ProjectSystemShim
         {
             CSharpProjectShim projectSite = GetProjectSite(project);
 
-            var existingProjectReference = VisualStudioProject.GetProjectReferences().Single(p => p.ProjectId == projectSite.VisualStudioProject.Id);
+            using (VisualStudioProject.CreateBatchScope())
+            {
+                var existingProjectReference = VisualStudioProject.GetProjectReferences().Single(p => p.ProjectId == projectSite.VisualStudioProject.Id);
 
-            VisualStudioProject.RemoveProjectReference(existingProjectReference);
-            VisualStudioProject.AddProjectReference(new ProjectReference(existingProjectReference.ProjectId, ImmutableArray.Create(currentAliases), existingProjectReference.EmbedInteropTypes));
+                VisualStudioProject.RemoveProjectReference(existingProjectReference);
+                VisualStudioProject.AddProjectReference(new ProjectReference(existingProjectReference.ProjectId, ImmutableArray.Create(currentAliases), existingProjectReference.EmbedInteropTypes));
+            }
         }
 
         public void AddReferenceToCodeDirectoryEx(string assemblyFileName, ICSharpProjectRoot projectRoot, CompilerOptions optionID)
         {
             CSharpProjectShim projectSite = GetProjectSite(projectRoot);
 
-            VisualStudioProject.AddProjectReference(new ProjectReference(projectSite.VisualStudioProject.Id));
+            VisualStudioProject.AddProjectReference(new ProjectReference(projectSite.VisualStudioProject.Id, embedInteropTypes: optionID == CompilerOptions.OPTID_IMPORTSUSINGNOPIA));
         }
 
         /// <summary>
