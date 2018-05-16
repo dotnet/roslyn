@@ -1576,7 +1576,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_TupleSizesMismatchForBinOps = 8384,
         ERR_ExprCannotBeFixed = 8385,
         ERR_InvalidObjectCreation = 8386,
-        #endregion diagnostics introduced for C# 7.3
+        #endregion diagnostics introduced for C# 7.3,
+        WRN_TypeParameterSameAsParentFunctionParameter = 8387
     }
     // Note: you will need to re-generate compiler code after adding warnings (build\scripts\generate-compiler-code.cmd)
 }

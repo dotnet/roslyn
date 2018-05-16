@@ -402,8 +402,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 var tpEnclosing = ContainingSymbol.FindEnclosingTypeParameter(name);
                 if ((object)tpEnclosing != null)
                 {
-                    // Type parameter '{0}' has the same name as the type parameter from outer type '{1}'
-                    diagnostics.Add(ErrorCode.WRN_TypeParameterSameAsOuterTypeParameter, location, name, tpEnclosing.ContainingSymbol);
+                    ErrorCode typeError;
+                    if (tpEnclosing.ContainingSymbol.Kind == SymbolKind.Method)
+                    {
+                        // Type parameter '{0}' has the same name as the type parameter from parent function '{1}'
+                        typeError = ErrorCode.WRN_TypeParameterSameAsParentFunctionParameter;
+                    } else
+                    {
+                        Debug.Assert(tpEnclosing.ContainingSymbol.Kind == SymbolKind.NamedType);
+                        // Type parameter '{0}' has the same name as the type parameter from outer type '{1}'
+                        typeError = ErrorCode.WRN_TypeParameterSameAsOuterTypeParameter;
+                    }
+                    diagnostics.Add(typeError, location, name, tpEnclosing.ContainingSymbol);
                 }
 
                 var typeParameter = new SourceMethodTypeParameterSymbol(

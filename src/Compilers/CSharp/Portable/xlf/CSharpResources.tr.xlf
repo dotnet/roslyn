@@ -382,6 +382,11 @@
         <target state="new">SyntaxTree is not part of the compilation, so it cannot be removed</target>
         <note />
       </trans-unit>
+      <trans-unit id="WRN_TypeParameterSameAsParentFunctionParameter">
+        <source>Type parameter '{0}' has the same name as the type parameter from parent function '{1}'</source>
+        <target state="new">Type parameter '{0}' has the same name as the type parameter from parent function '{1}'</target>
+        <note />
+      </trans-unit>
       <trans-unit id="XML_InvalidToken">
         <source>The character(s) '{0}' cannot be used at this location.</source>
         <target state="translated">{0}' karakterleri bu konumda kullanılamaz.</target>
