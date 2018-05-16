@@ -506,6 +506,7 @@ end class")
         get
             return i
         end get
+    end property
  public sub new(dim P as integer)
         i = 1
     end sub

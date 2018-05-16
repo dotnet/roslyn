@@ -96,16 +96,21 @@ namespace Microsoft.CodeAnalysis.UseAutoProperty
                 isWrittenToOutsideOfConstructor, cancellationToken).ConfigureAwait(false);
 
             // Ensure the new and old property share the same leading/trailing trivia.
-            updatedProperty = updatedProperty.WithTriviaFrom(property);
+            updatedProperty = updatedProperty.WithTrailingTrivia(property.GetTrailingTrivia());
 
             // However, if we have a situation where the property is the second member in a type,
             // and it would become the first, then remove any leading blank lines from it so we
             // don't have random blanks above it that used to space it from the field that was
             // there.
+            var nodeToRemove = GetNodeToRemove(declarator);
             if (fieldDocument == propertyDocument &&
-                WillRemoveFirstFieldInTypeDirectlyAboveProperty(property, GetNodeToRemove(declarator)))
+                WillRemoveFirstFieldInTypeDirectlyAboveProperty(property, nodeToRemove))
             {
-                updatedProperty = fieldDocument.GetLanguageService<ISyntaxFactsService>().GetNodeWithoutLeadingBlankLines(updatedProperty);
+                var syntaxFacts = fieldDocument.GetLanguageService<ISyntaxFactsService>();
+                if (syntaxFacts.GetLeadingBlankLines(nodeToRemove).Length == 0)
+                {
+                    updatedProperty = syntaxFacts.GetNodeWithoutLeadingBlankLines(updatedProperty);
+                }
             }
 
             // Note: rename will try to update all the references in linked files as well.  However, 
@@ -156,7 +161,7 @@ namespace Microsoft.CodeAnalysis.UseAutoProperty
             var temp = await propertySymbol.DeclaringSyntaxReferences[0].GetSyntaxAsync(cancellationToken).ConfigureAwait(false);
             property = temp.FirstAncestorOrSelf<TPropertyDeclaration>();
 
-            var nodeToRemove = GetNodeToRemove(declarator);
+            nodeToRemove = GetNodeToRemove(declarator);
 
             const SyntaxRemoveOptions options = SyntaxRemoveOptions.KeepUnbalancedDirectives | SyntaxRemoveOptions.AddElasticMarker;
 
