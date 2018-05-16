@@ -2654,7 +2654,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 ReportNullReferenceAssignmentIfNecessary(right, leftType, rightType, UseLegacyWarnings(left));
                 if (conversion.Exists && !canConvert)
                 {
-                    ReportStaticNullCheckingDiagnostics(ErrorCode.WRN_NullabilityMismatchInAssignment, right.Syntax, rightResult.Type.TypeSymbol, leftType.TypeSymbol);
+                    ReportStaticNullCheckingDiagnostics(ErrorCode.WRN_NullabilityMismatchInAssignment, right.Syntax, GetTypeAsDiagnosticArgument(rightResult.Type?.TypeSymbol), leftType.TypeSymbol);
                 }
                 TrackNullableStateForAssignment(right, leftType, leftResult.Slot, rightType, rightResult.Slot);
                 // PROTOTYPE(NullableReferenceTypes): Check node.Type.IsErrorType() instead?
