@@ -7550,6 +7550,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to An out variable cannot be declared as a ref local.
+        /// </summary>
+        internal static string ERR_OutVariableCannotBeByRef {
+            get {
+                return ResourceManager.GetString("ERR_OutVariableCannotBeByRef", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to &apos;{0}&apos; cannot define an overloaded {1} that differs only on parameter modifiers &apos;{2}&apos; and &apos;{3}&apos;.
         /// </summary>
         internal static string ERR_OverloadRefKind {
