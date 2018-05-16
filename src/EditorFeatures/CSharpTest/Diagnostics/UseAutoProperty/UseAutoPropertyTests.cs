@@ -1444,5 +1444,28 @@ namespace RoslynSandbox
     public int Baz => 0;
 }");
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseAutoProperty)]
+        [WorkItem(26858, "https://github.com/dotnet/roslyn/issues/26858")]
+        public async Task TestKeepLeadingBlank()
+        {
+            await TestInRegularAndScriptAsync(
+@"class Goo
+{
+
+    private readonly object [|bar|] = new object();
+
+    // doc
+    public object Bar => bar; // prop comment
+    public int Baz => 0;
+}",
+@"class Goo
+{
+
+    // doc
+    public object Bar { get; } = new object(); // prop comment
+    public int Baz => 0;
+}");
+        }
     }
 }
