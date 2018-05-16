@@ -321,13 +321,74 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                             Assert.False(true, $"Duplicate explicit node for syntax ({operation.Syntax.RawKind}): {operation.Syntax.ToString()}");
                         }
                     }
-                    
+
                     visitor.Visit(operation);
                 }
+
+                stopWatch.Stop();
+                checkControlFlowGraph(root);
+                stopWatch.Start();
             }
 
             roots.Free();
             stopWatch.Stop();
+            return;
+
+            void checkControlFlowGraph(IOperation root)
+            {
+                switch (root)
+                {
+                    case IMethodBodyBaseOperation methodBody:
+                        if (methodBody.Kind == OperationKind.ConstructorBodyOperation && !((IConstructorBodyOperation)methodBody).Locals.IsEmpty)
+                        {
+                            // PROTOTYPE(dataflow): Constructor initializers and locals declared within them are not handled right now
+                            break;
+                        }
+
+                        if (methodBody.BlockBody != null)
+                        {
+                            ControlFlowGraphVerifier.GetFlowGraph(compilation, Operations.ControlFlowGraphBuilder.Create(methodBody.BlockBody));
+                        }
+
+                        if (methodBody.ExpressionBody != null)
+                        {
+                            ControlFlowGraphVerifier.GetFlowGraph(compilation, Operations.ControlFlowGraphBuilder.Create(methodBody.ExpressionBody));
+                        }
+
+                        // PROTOTYPE(dataflow): add handling for constructor initializer
+                        break;
+
+                    case IBlockOperation blockOperation:
+                        // PROTOTYPE(dataflow): It looks like blocks in script can have no parent and not represent complete code.
+                        //                      See Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen.GotoTests.OutOfScriptBlock
+                        //                      This creates problems, especially with inability to resolve branches. 
+                        //                      Need to figure out what to do for scripts, either we should disallow getting CFG for them,
+                        //                      or have a reliable way to check for completeness of the code given to us. 
+                        //                      Going to disable verification for scripts for now so that other scenarios could be verified.
+                        if (blockOperation.Syntax.SyntaxTree.Options.Kind != SourceCodeKind.Script)
+                        {
+                            ControlFlowGraphVerifier.GetFlowGraph(compilation, Operations.ControlFlowGraphBuilder.Create(blockOperation));
+                        }
+
+                        break;
+
+                    case IFieldInitializerOperation fieldInitializerOperation:
+                    case IPropertyInitializerOperation propertyInitializerOperation:
+                        ControlFlowGraphVerifier.GetFlowGraph(compilation, Operations.ControlFlowGraphBuilder.Create(root));
+                        break;
+
+                    case IParameterInitializerOperation parameterInitializerOperation:
+                        // PROTOTYPE(dataflow): Parameter initializers in local functions can refer to locals outside.
+                        //                      This causes problems with graph verification because we are unable to locate a region
+                        //                      for them. See Microsoft.CodeAnalysis.CSharp.UnitTests.LocalFunctionTests.LocalFunctionParameterDefaultUsingConst
+                        //                      for example.
+                        if ((parameterInitializerOperation.Parameter.ContainingSymbol as IMethodSymbol)?.MethodKind != MethodKind.LocalFunction)
+                        {
+                            ControlFlowGraphVerifier.GetFlowGraph(compilation, Operations.ControlFlowGraphBuilder.Create(root));
+                        }
+                        break;
+                }
+            }
         }
     }
 }
