@@ -4687,6 +4687,8 @@ oneMoreTime:
 
         public override IOperation VisitRaiseEvent(IRaiseEventOperation operation, int? captureIdForResult)
         {
+            Debug.Assert(_currentStatement == operation);
+
             var instance = operation.EventReference.Event.IsStatic ? null : operation.EventReference.Instance;
             if (instance != null)
             {
