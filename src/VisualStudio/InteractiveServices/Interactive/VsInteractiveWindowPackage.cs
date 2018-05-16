@@ -34,18 +34,20 @@ namespace Microsoft.VisualStudio.LanguageServices.Interactive
 
             await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
-            // Load the Roslyn package so that its FatalError handlers are hooked up.
             var shell = (IVsShell)await GetServiceAsync(typeof(SVsShell)).ConfigureAwait(true);
+            _componentModel = (IComponentModel)await GetServiceAsync(typeof(SComponentModel)).ConfigureAwait(true);
+            var menuCommandService = (OleMenuCommandService)await GetServiceAsync(typeof(IMenuCommandService)).ConfigureAwait(true);
+            cancellationToken.ThrowIfCancellationRequested();
+
+            // Load the Roslyn package so that its FatalError handlers are hooked up.
             shell.LoadPackage(Guids.RoslynPackageId, out var roslynPackage);
             
             // Explicitly set up FatalError handlers for the InteractiveWindowPackage.
             SetErrorHandlers(typeof(IInteractiveWindow).Assembly);
             SetErrorHandlers(typeof(IVsInteractiveWindow).Assembly);
 
-            _componentModel = (IComponentModel)await GetServiceAsync(typeof(SComponentModel)).ConfigureAwait(true);
             _interactiveWindowProvider = _componentModel.DefaultExportProvider.GetExportedValue<TVsInteractiveWindowProvider>();
 
-            var menuCommandService = (OleMenuCommandService)await GetServiceAsync(typeof(IMenuCommandService)).ConfigureAwait(true);
             InitializeMenuCommands(menuCommandService);
         }
 

@@ -46,6 +46,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Setup
 
             await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
+            var componentModel = (IComponentModel)await GetServiceAsync(typeof(SComponentModel)).ConfigureAwait(true);
+            cancellationToken.ThrowIfCancellationRequested();
+
             FatalError.Handler = FailFast.OnFatalException;
             FatalError.NonFatalHandler = WatsonReporter.Report;
 
@@ -57,7 +60,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Setup
             var method = compilerFailFast.GetMethod(nameof(FailFast.OnFatalException), BindingFlags.Static | BindingFlags.NonPublic);
             property.SetValue(null, Delegate.CreateDelegate(property.PropertyType, method));
 
-            var componentModel = (IComponentModel)await GetServiceAsync(typeof(SComponentModel)).ConfigureAwait(true);
             _workspace = componentModel.GetService<VisualStudioWorkspace>();
             _workspace.Services.GetService<IExperimentationService>();
 

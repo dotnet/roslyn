@@ -43,6 +43,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
 
             await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
+            var shell = (IVsShell)await GetServiceAsync(typeof(SVsShell)).ConfigureAwait(true);
+            var solution = (IVsSolution)await GetServiceAsync(typeof(SVsSolution)).ConfigureAwait(true);
+            cancellationToken.ThrowIfCancellationRequested();
+
             foreach (var editorFactory in CreateEditorFactories())
             {
                 RegisterEditorFactory(editorFactory);
@@ -56,7 +60,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
                 _languageService.Setup();
                 return _languageService.ComAggregate;
             });
-            var shell = (IVsShell)await GetServiceAsync(typeof(SVsShell)).ConfigureAwait(true);
+
             // Okay, this is also a bit strange.  We need to get our Interop dll into our process,
             // but we're in the GAC.  Ask the base Roslyn Package to load, and it will take care of
             // it for us.
@@ -83,7 +87,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
                 // start remote host
                 EnableRemoteHostClientService();
 
-                Workspace.AdviseSolutionEvents((IVsSolution)await GetServiceAsync(typeof(SVsSolution)).ConfigureAwait(true));
+                Workspace.AdviseSolutionEvents(solution);
             }
 
             // Ensure services that must be created on the UI thread have been.

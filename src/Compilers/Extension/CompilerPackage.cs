@@ -24,10 +24,12 @@ namespace Roslyn.Compilers.Extension
 
             await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
+            var reg = (ILocalRegistry2)await GetServiceAsync(typeof(SLocalRegistry)).ConfigureAwait(true);
+            cancellationToken.ThrowIfCancellationRequested();
+
             var packagePath = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
 
             string localRegistryRoot;
-            var reg = (ILocalRegistry2)await GetServiceAsync(typeof(SLocalRegistry)).ConfigureAwait(true);
             reg.GetLocalRegistryRoot(out localRegistryRoot);
             var registryParts = localRegistryRoot.Split('\\');
 

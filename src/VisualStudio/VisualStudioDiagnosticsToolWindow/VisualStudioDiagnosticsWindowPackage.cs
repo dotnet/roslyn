@@ -84,12 +84,13 @@ namespace Roslyn.VisualStudio.DiagnosticsWindow
             await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
             var componentModel = (IComponentModel)await GetServiceAsync(typeof(SComponentModel)).ConfigureAwait(true);
+            var menuCommandService = (IMenuCommandService)await GetServiceAsync(typeof(IMenuCommandService)).ConfigureAwait(true);
 
             var workspace = componentModel.GetService<VisualStudioWorkspace>();
             _forceLowMemoryMode = new ForceLowMemoryMode(workspace.Services.GetService<IOptionService>());
 
             // Add our command handlers for menu (commands must exist in the .vsct file)
-            if (await GetServiceAsync(typeof(IMenuCommandService)).ConfigureAwait(true) is OleMenuCommandService mcs)
+            if (menuCommandService is OleMenuCommandService mcs)
             {
                 // Create the command for the tool window
                 CommandID toolwndCommandID = new CommandID(GuidList.guidVisualStudioDiagnosticsWindowCmdSet, (int)PkgCmdIDList.CmdIDRoslynDiagnosticWindow);
