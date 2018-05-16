@@ -4880,6 +4880,27 @@ oneMoreTime:
             }
         }
 
+        public override IOperation VisitIsPattern(IIsPatternOperation operation, int? captureIdForResult)
+        {
+            _evalStack.Push(Visit(operation.Value));
+            IPatternOperation visitedPattern = Visit(operation.Pattern);
+            IOperation visitedValue = _evalStack.Pop();
+            return new IsPatternExpression(visitedValue, visitedPattern, semanticModel: null,
+                operation.Syntax, operation.Type, operation.ConstantValue, IsImplicit(operation));
+        }
+
+        public override IOperation VisitConstantPattern(IConstantPatternOperation operation, int? captureIdForResult)
+        {
+            return new ConstantPattern(Visit(operation.Value), semanticModel: null,
+                operation.Syntax, operation.Type, operation.ConstantValue, IsImplicit(operation));
+        }
+
+        public override IOperation VisitDeclarationPattern(IDeclarationPatternOperation operation, int? captureIdForResult)
+        {
+            return new DeclarationPattern(operation.DeclaredSymbol, semanticModel: null,
+                operation.Syntax, operation.Type, operation.ConstantValue, IsImplicit(operation));
+        }
+
         private T Visit<T>(T node) where T : IOperation
         {
             return (T)Visit(node, argument: null);
@@ -5055,21 +5076,6 @@ oneMoreTime:
         public override IOperation VisitLocalFunction(ILocalFunctionOperation operation, int? captureIdForResult)
         {
             return new LocalFunctionStatement(operation.Symbol, Visit(operation.Body), Visit(operation.IgnoredBody), semanticModel: null, operation.Syntax, operation.Type, operation.ConstantValue, IsImplicit(operation));
-        }
-
-        public override IOperation VisitIsPattern(IIsPatternOperation operation, int? captureIdForResult)
-        {
-            return new IsPatternExpression(Visit(operation.Value), Visit(operation.Pattern), semanticModel: null, operation.Syntax, operation.Type, operation.ConstantValue, IsImplicit(operation));
-        }
-
-        public override IOperation VisitConstantPattern(IConstantPatternOperation operation, int? captureIdForResult)
-        {
-            return new ConstantPattern(Visit(operation.Value), semanticModel: null, operation.Syntax, operation.Type, operation.ConstantValue, IsImplicit(operation));
-        }
-
-        public override IOperation VisitDeclarationPattern(IDeclarationPatternOperation operation, int? captureIdForResult)
-        {
-            return new DeclarationPattern(operation.DeclaredSymbol, semanticModel: null, operation.Syntax, operation.Type, operation.ConstantValue, IsImplicit(operation));
         }
 
         public override IOperation VisitTranslatedQuery(ITranslatedQueryOperation operation, int? captureIdForResult)
