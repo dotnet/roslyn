@@ -2773,15 +2773,23 @@ parse_member_name:;
 
         private bool IsEndOfReturnType()
         {
-            switch (this.CurrentToken.Kind)
+            if (this.CurrentToken.Kind == SyntaxKind.IdentifierToken)
             {
-                case SyntaxKind.OpenParenToken:
-                case SyntaxKind.OpenBraceToken:
-                case SyntaxKind.SemicolonToken:
-                    return true;
-                default:
-                    return false;
+                switch (this.PeekToken(1).Kind)
+                {
+                    case SyntaxKind.OpenParenToken: // methodName (
+                    case SyntaxKind.OpenBraceToken: // propertyName {
+                    case SyntaxKind.SemicolonToken: // fieldName ;
+                        return true;
+                }
             }
+            else if (this.CurrentToken.Kind == SyntaxKind.ThisKeyword && this.PeekToken(1).Kind == SyntaxKind.OpenBracketToken)
+            {
+                // In case of indexer: this [
+                return true;  
+            }
+
+            return false;
         }
 
         private ConversionOperatorDeclarationSyntax ParseConversionOperatorDeclaration(SyntaxListBuilder<AttributeListSyntax> attributes, SyntaxListBuilder modifiers)
@@ -5356,6 +5364,21 @@ tryAgain:
             return isDefinitelyTypeArgumentList;
         }
 
+        private bool IsPossibleTypeInTypeArgumentList()
+        {
+            if (!this.IsPossibleType())
+            {
+                return false;
+            }
+
+            // If type argument list is part of return type then also check whether this "possible type" is a member's name
+            if ((_termState & TerminatorState.IsEndOfReturnType) == TerminatorState.IsEndOfReturnType && this.IsEndOfReturnType()) {
+                return false;
+            }
+
+            return true;
+        }
+
         // ParseInstantiation: Parses the generic argument/parameter parts of the name.
         private void ParseTypeArgumentList(out SyntaxToken open, SeparatedSyntaxListBuilder<TypeSyntax> types, out SyntaxToken close)
         {
@@ -5389,7 +5412,7 @@ tryAgain:
                 {
                     break;
                 }
-                else if (this.CurrentToken.Kind == SyntaxKind.CommaToken || this.IsPossibleType())
+                else if (this.CurrentToken.Kind == SyntaxKind.CommaToken || this.IsPossibleTypeInTypeArgumentList())
                 {
                     types.AddSeparator(this.EatToken(SyntaxKind.CommaToken));
                     types.Add(this.ParseTypeArgument());
@@ -5408,7 +5431,7 @@ tryAgain:
             CSharpSyntaxNode tmp = null;
             Debug.Assert(list.Count > 0);
             return this.SkipBadSeparatedListTokensWithExpectedKind(ref tmp, list,
-                p => this.CurrentToken.Kind != SyntaxKind.CommaToken && !this.IsPossibleType(),
+                p => this.CurrentToken.Kind != SyntaxKind.CommaToken && !this.IsPossibleTypeInTypeArgumentList(),
                 p => this.CurrentToken.Kind == SyntaxKind.GreaterThanToken || this.IsTerminator(),
                 expected);
         }
