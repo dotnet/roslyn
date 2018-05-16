@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel.Design;
 using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Packaging;
 using Microsoft.CodeAnalysis.Remote;
@@ -54,8 +55,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
                 RegisterEditorFactory(editorFactory);
             }
 
-            RegisterLanguageService(typeof(TLanguageService), () =>
+            RegisterLanguageService(typeof(TLanguageService), async ct =>
             {
+                await JoinableTaskFactory.SwitchToMainThreadAsync(ct);
+
                 // Create the language service, tell it to set itself up, then store it in a field
                 // so we can notify it that it's time to clean up.
                 _languageService = CreateLanguageService();
@@ -130,15 +133,15 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
         protected abstract IEnumerable<IVsEditorFactory> CreateEditorFactories();
         protected abstract TLanguageService CreateLanguageService();
 
-        protected void RegisterService<T>(Func<T> serviceCreator)
+        protected void RegisterService<T>(Func<CancellationToken, Task<T>> serviceCreator)
         {
-            ((IServiceContainer)this).AddService(typeof(T), (container, type) => serviceCreator(), promote: true);
+            AddService(typeof(T), async (container, cancellationToken, type) => await serviceCreator(cancellationToken).ConfigureAwait(true), promote: true);
         }
 
         // When registering a language service, we need to take its ComAggregate wrapper.
-        protected void RegisterLanguageService(Type t, Func<object> serviceCreator)
+        protected void RegisterLanguageService(Type t, Func<CancellationToken, Task<object>> serviceCreator)
         {
-            ((IServiceContainer)this).AddService(t, (container, type) => serviceCreator(), promote: true);
+            AddService(t, async (container, cancellationToken, type) => await serviceCreator(cancellationToken).ConfigureAwait(true), promote: true);
         }
 
         protected override void Dispose(bool disposing)

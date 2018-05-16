@@ -80,7 +80,11 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.LanguageService
 
                 await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
-                this.RegisterService<ICSharpTempPECompilerService>(() => new TempPECompilerService(this.Workspace.Services.GetService<IMetadataService>()));
+                this.RegisterService<ICSharpTempPECompilerService>(async ct =>
+                {
+                    await JoinableTaskFactory.SwitchToMainThreadAsync(ct);
+                    return new TempPECompilerService(this.Workspace.Services.GetService<IMetadataService>());
+                });
 
                 await RegisterObjectBrowserLibraryManagerAsync(cancellationToken).ConfigureAwait(true);
             }

@@ -89,10 +89,14 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic
                 Await MyBase.InitializeAsync(cancellationToken, progress).ConfigureAwait(True)
                 Await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken)
 
-                RegisterLanguageService(GetType(IVbCompilerService), Function() _comAggregate)
+                RegisterLanguageService(GetType(IVbCompilerService), Function() Task.FromResult(_comAggregate))
 
                 Dim workspace = Me.ComponentModel.GetService(Of VisualStudioWorkspaceImpl)()
-                RegisterService(Of IVbTempPECompilerFactory)(Function() New TempPECompilerFactory(workspace))
+                RegisterService(Of IVbTempPECompilerFactory)(
+                    Async Function(ct)
+                        Await JoinableTaskFactory.SwitchToMainThreadAsync(ct)
+                        Return New TempPECompilerFactory(workspace)
+                    End Function)
 
                 Await RegisterObjectBrowserLibraryManagerAsync(cancellationToken).ConfigureAwait(True)
             Catch ex As Exception When FatalError.ReportUnlessCanceled(ex)
