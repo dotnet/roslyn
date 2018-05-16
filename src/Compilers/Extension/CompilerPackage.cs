@@ -6,6 +6,7 @@ using System.IO;
 using System.Reflection;
 using System.Threading;
 using EnvDTE;
+using Microsoft;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using Task = System.Threading.Tasks.Task;
@@ -26,6 +27,7 @@ namespace Roslyn.Compilers.Extension
 
             var reg = (ILocalRegistry2)await GetServiceAsync(typeof(SLocalRegistry)).ConfigureAwait(true);
             cancellationToken.ThrowIfCancellationRequested();
+            Assumes.Present(reg);
 
             var packagePath = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
 

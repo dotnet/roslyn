@@ -46,6 +46,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
             var shell = (IVsShell)await GetServiceAsync(typeof(SVsShell)).ConfigureAwait(true);
             var solution = (IVsSolution)await GetServiceAsync(typeof(SVsSolution)).ConfigureAwait(true);
             cancellationToken.ThrowIfCancellationRequested();
+            Assumes.Present(shell);
+            Assumes.Present(solution);
 
             foreach (var editorFactory in CreateEditorFactories())
             {

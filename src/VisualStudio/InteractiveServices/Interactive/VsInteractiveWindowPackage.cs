@@ -38,6 +38,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Interactive
             _componentModel = (IComponentModel)await GetServiceAsync(typeof(SComponentModel)).ConfigureAwait(true);
             var menuCommandService = (OleMenuCommandService)await GetServiceAsync(typeof(IMenuCommandService)).ConfigureAwait(true);
             cancellationToken.ThrowIfCancellationRequested();
+            Assumes.Present(shell);
+            Assumes.Present(_componentModel);
+            Assumes.Present(menuCommandService);
 
             // Load the Roslyn package so that its FatalError handlers are hooked up.
             shell.LoadPackage(Guids.RoslynPackageId, out var roslynPackage);

@@ -48,6 +48,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Setup
 
             var componentModel = (IComponentModel)await GetServiceAsync(typeof(SComponentModel)).ConfigureAwait(true);
             cancellationToken.ThrowIfCancellationRequested();
+            Assumes.Present(componentModel);
 
             FatalError.Handler = FailFast.OnFatalException;
             FatalError.NonFatalHandler = WatsonReporter.Report;
