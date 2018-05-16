@@ -178,5 +178,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 
             return base.IsInitializable(member, containingType);
         }
+
+        protected override string EscapeIdentifier(ISymbol symbol)
+        {
+            return symbol.Name.EscapeIdentifier();
+        }
     }
 }
