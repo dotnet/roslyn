@@ -6605,21 +6605,6 @@ class C
 }");
         }
 
-        [WorkItem(774321, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/774321")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
-        public async Task TestGenerateMethodEquivalenceKey()
-        {
-            await TestEquivalenceKeyAsync(
-@"class C
-{
-    void M()
-    {
-        this.[|M1|](System.Exception.M2());
-    }
-}",
-string.Format(FeaturesResources.Generate_method_1_0, "M1", "C"));
-        }
-
         [WorkItem(5338, "https://github.com/dotnet/roslyn/issues/5338")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
         public async Task TestGenerateMethodLambdaOverload1()
