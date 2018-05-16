@@ -35,11 +35,6 @@
     <_NETCoreSdkIsPreview>false</_NETCoreSdkIsPreview>
   </PropertyGroup>
 
-  <!-- Settings for Visual Studio packages -->
-  <ItemGroup>
-    <PackageReference Include="Microsoft.VisualStudio.SDK.Analyzers" Version="$(MicrosoftVisualStudioSDKAnalyzersVersion)" PrivateAssets="all" Condition="'$(RoslynProjectType)' == 'Vsix'" />
-  </ItemGroup>
-
   <!-- Settings for localization -->
   <ItemGroup>
     <PackageReference Include="XliffTasks" Version="$(XliffTasksVersion)" PrivateAssets="All" Condition="'$(NonShipping)' != 'true'" />
