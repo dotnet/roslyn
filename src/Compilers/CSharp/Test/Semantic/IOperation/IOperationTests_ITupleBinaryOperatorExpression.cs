@@ -25,7 +25,7 @@ class C
 
             string expectedOperationTree =
 @"
-ITupleBinaryOperation (BinaryOperatorKind.Equals) (OperationKind.BinaryOperator, Type: System.Boolean) (Syntax: 'x == y')
+ITupleBinaryOperation (BinaryOperatorKind.Equals) (OperationKind.TupleBinaryOperator, Type: System.Boolean) (Syntax: 'x == y')
   Left: 
     IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: (System.Int32, System.Int32)) (Syntax: 'x')
   Right: 
@@ -49,7 +49,7 @@ class C
 
             string expectedOperationTree =
 @"
-ITupleBinaryOperation (BinaryOperatorKind.Equals) (OperationKind.BinaryOperator, Type: System.Boolean) (Syntax: 'x == (1, 2)')
+ITupleBinaryOperation (BinaryOperatorKind.Equals) (OperationKind.TupleBinaryOperator, Type: System.Boolean) (Syntax: 'x == (1, 2)')
   Left: 
     IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: (System.Int32, System.Int32)) (Syntax: 'x')
   Right: 
@@ -77,7 +77,7 @@ class C
 
             string expectedOperationTree =
 @"
-ITupleBinaryOperation (BinaryOperatorKind.NotEquals) (OperationKind.BinaryOperator, Type: System.Boolean) (Syntax: '(1, 2) != y')
+ITupleBinaryOperation (BinaryOperatorKind.NotEquals) (OperationKind.TupleBinaryOperator, Type: System.Boolean) (Syntax: '(1, 2) != y')
   Left: 
     ITupleOperation (OperationKind.Tuple, Type: (System.Int64, System.Int32)) (Syntax: '(1, 2)')
       NaturalType: (System.Int32, System.Int32)
@@ -111,7 +111,7 @@ class C
 
             string expectedOperationTree =
 @"
-ITupleBinaryOperation (BinaryOperatorKind.Equals) (OperationKind.BinaryOperator, Type: System.Boolean) (Syntax: '(null, (1,  ... l, (3L, 4))')
+ITupleBinaryOperation (BinaryOperatorKind.Equals) (OperationKind.TupleBinaryOperator, Type: System.Boolean) (Syntax: '(null, (1,  ... l, (3L, 4))')
   Left: 
     ITupleOperation (OperationKind.Tuple, Type: null) (Syntax: '(null, (1, 2L))')
       NaturalType: null
@@ -157,7 +157,7 @@ class C
 
             string expectedOperationTree =
 @"
-ITupleBinaryOperation (BinaryOperatorKind.Equals) (OperationKind.BinaryOperator, Type: System.Boolean) (Syntax: 'y == default')
+ITupleBinaryOperation (BinaryOperatorKind.Equals) (OperationKind.TupleBinaryOperator, Type: System.Boolean) (Syntax: 'y == default')
   Left: 
     IParameterReferenceOperation: y (OperationKind.ParameterReference, Type: (System.Int32, System.String)) (Syntax: 'y')
   Right: 
