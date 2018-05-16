@@ -39,22 +39,34 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // for all operations; we use it to enhance test coverage.
                 (parseOptions?.IsFeatureEnabled(MessageID.IDS_FeaturePatternMatching) != false ||
                  parseOptions?.Features.ContainsKey("testV7SwitchBinder") != false ||
-                 switchSyntax.HasErrors && HasPatternSwitchSyntax(switchSyntax))
+                 switchSyntax.HasErrors && HasPatternSwitchSyntax(next.Compilation, switchSyntax))
                 ? new PatternSwitchBinder(next, switchSyntax)
                 : new SwitchBinder(next, switchSyntax);
         }
 
-        internal static bool HasPatternSwitchSyntax(SwitchStatementSyntax switchSyntax)
+        internal static bool HasPatternSwitchSyntax(CSharpCompilation compilation, SwitchStatementSyntax switchSyntax)
         {
+            var caseExpressions = ArrayBuilder<CSharpSyntaxNode>.GetInstance();
             foreach (var section in switchSyntax.Sections)
             {
-                if (section.Labels.Any(SyntaxKind.CasePatternSwitchLabel))
+                foreach (var label in section.Labels)
                 {
-                    return true;
+                    switch (label.Kind())
+                    {
+                        case SyntaxKind.CasePatternSwitchLabel:
+                            caseExpressions.Free();
+                            return true;
+                        case SyntaxKind.CaseSwitchLabel:
+                            caseExpressions.Add(((CaseSwitchLabelSyntax)label).Value);
+                            continue;
+                    }
                 }
             }
 
-            return false;
+            var dummyBinder = new BuckStopsHereBinder(compilation);
+            var result = ExpressionVariableFinder.CountExpressionVariables(dummyBinder, caseExpressions) != 0;
+            caseExpressions.Free();
+            return result;
         }
 
         protected bool PatternsEnabled =>

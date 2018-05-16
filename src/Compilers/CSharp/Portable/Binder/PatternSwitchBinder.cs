@@ -32,8 +32,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     var parseOptions = SwitchSyntax?.SyntaxTree?.Options as CSharpParseOptions;
                     return
                         parseOptions?.Features.ContainsKey("testV7SwitchBinder") == true ||
-                        HasPatternSwitchSyntax(SwitchSyntax) ||
-                        !SwitchGoverningType.IsValidV6SwitchGoverningType();
+                        !SwitchGoverningType.IsValidV6SwitchGoverningType() ||
+                        HasPatternSwitchSyntax(this.Compilation, SwitchSyntax);
             }
         }
 

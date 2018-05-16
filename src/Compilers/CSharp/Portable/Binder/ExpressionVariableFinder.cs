@@ -441,6 +441,36 @@ namespace Microsoft.CodeAnalysis.CSharp
             s_poolInstance.Free(finder);
         }
 
+        /// <summary>
+        /// Count the number of expression variables declared among the nodes.
+        /// </summary>
+        internal static int CountExpressionVariables(
+            Binder scopeBinder,
+            ArrayBuilder<CSharpSyntaxNode> nodes)
+        {
+            if (nodes.IsEmpty())
+            {
+                return 0;
+            }
+
+            var builder = ArrayBuilder<LocalSymbol>.GetInstance();
+            var finder = s_poolInstance.Allocate();
+            finder._scopeBinder = scopeBinder;
+            finder._enclosingBinder = scopeBinder;
+
+            foreach (var node in nodes)
+            {
+                finder.FindExpressionVariables(builder, node);
+            }
+
+            finder._scopeBinder = null;
+            finder._enclosingBinder = null;
+            s_poolInstance.Free(finder);
+            var result = builder.Count;
+            builder.Free();
+            return result;
+        }
+
         protected override LocalSymbol MakePatternVariable(DeclarationPatternSyntax node, SyntaxNode nodeToBind)
         {
             var designation = node.Designation as SingleVariableDesignationSyntax;
