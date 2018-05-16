@@ -12,16 +12,6 @@
         <target state="translated">Assemblyname enthält ungültige Zeichen.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Msbuild_failed_when_processing_the_file_0">
-        <source>Msbuild failed when processing the file '{0}'</source>
-        <target state="translated">Msbuild ist beim Verarbeiten der Datei "{0}" fehlgeschlagen</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Msbuild_failed_when_processing_the_file_0_with_message_1">
-        <source>Msbuild failed when processing the file '{0}' with message: {1}</source>
-        <target state="translated">Msbuild ist beim Verarbeiten der Datei "{0}" fehlgeschlagen mit der Meldung: {1}</target>
-        <note />
-      </trans-unit>
     </body>
   </file>
 </xliff>

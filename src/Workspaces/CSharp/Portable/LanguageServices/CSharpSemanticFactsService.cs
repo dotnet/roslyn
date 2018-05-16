@@ -8,6 +8,7 @@ using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -15,9 +16,11 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
-    internal class CSharpSemanticFactsService : ISemanticFactsService
+    internal class CSharpSemanticFactsService : AbstractSemanticFactsService, ISemanticFactsService
     {
         internal static readonly CSharpSemanticFactsService Instance = new CSharpSemanticFactsService();
+
+        protected override ISyntaxFactsService SyntaxFactsService => CSharpSyntaxFactsService.Instance;
 
         private CSharpSemanticFactsService()
         {
@@ -297,7 +300,21 @@ namespace Microsoft.CodeAnalysis.CSharp
                 semanticModel.GetDeclaredSymbol(memberDeclaration, cancellationToken));
         }
 
-        public SymbolInfo GetSymbolInfo(SemanticModel semanticModel, SyntaxNode node, SyntaxToken token, CancellationToken cancellationToken)
+        public ImmutableArray<ISymbol> GetBestOrAllSymbols(SemanticModel semanticModel, SyntaxNode node, SyntaxToken token, CancellationToken cancellationToken)
+        {
+            switch (node)
+            {
+                case AssignmentExpressionSyntax assignment when token.Kind() == SyntaxKind.EqualsToken:
+                    return GetDeconstructionAssignmentMethods(semanticModel, node).As<ISymbol>();
+
+                case ForEachVariableStatementSyntax deconstructionForeach when token.Kind() == SyntaxKind.InKeyword:
+                    return GetDeconstructionForEachMethods(semanticModel, node).As<ISymbol>();
+            }
+
+            return GetSymbolInfo(semanticModel, node, token, cancellationToken).GetBestOrAllSymbols();
+        }
+
+        private SymbolInfo GetSymbolInfo(SemanticModel semanticModel, SyntaxNode node, SyntaxToken token, CancellationToken cancellationToken)
         {
             switch (node)
             {

@@ -19,6 +19,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeGeneration
 {
     public partial class CodeGenerationTests
     {
+        [UseExportProvider]
         public class VisualBasic
         {
             [Fact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
@@ -373,11 +374,11 @@ End Class";
                     return ImmutableArray.Create<IEventSymbol>(
                         new CodeGenerationEventSymbol(
                             GetTypeSymbol(typeof(System.ComponentModel.INotifyPropertyChanged))(semanticModel), 
-                            default(ImmutableArray<AttributeData>),
+                            attributes: default,
                             Accessibility.Public,
-                            default(DeclarationModifiers),
+                            modifiers: default,
                             GetTypeSymbol(typeof(System.ComponentModel.PropertyChangedEventHandler))(semanticModel),
-                            default,
+                            explicitInterfaceImplementations: default,
                             nameof(System.ComponentModel.INotifyPropertyChanged.PropertyChanged), null, null, null));
                 };
 

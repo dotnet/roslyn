@@ -22,6 +22,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.CommentSelection
 {
+    [UseExportProvider]
     public class CommentUncommentSelectionCommandHandlerTests
     {
         private class MockCommentSelectionService : AbstractCommentSelectionService

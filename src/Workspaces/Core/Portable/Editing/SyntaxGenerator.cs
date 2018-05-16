@@ -1410,7 +1410,11 @@ namespace Microsoft.CodeAnalysis.Editing
         /// <summary>
         /// Creates a statement that declares a single local variable.
         /// </summary>
-        public abstract SyntaxNode LocalDeclarationStatement(SyntaxNode type, string identifier, SyntaxNode initializer = null, bool isConst = false);
+        public abstract SyntaxNode LocalDeclarationStatement(
+            SyntaxNode type, string identifier, SyntaxNode initializer = null, bool isConst = false);
+
+        internal abstract SyntaxNode LocalDeclarationStatement(
+            SyntaxNode type, SyntaxToken identifier, SyntaxNode initializer = null, bool isConst = false);
 
         internal abstract SyntaxNode WithInitializer(SyntaxNode variableDeclarator, SyntaxNode initializer);
         internal abstract SyntaxNode EqualsValueClause(SyntaxToken operatorToken, SyntaxNode value);
@@ -1418,18 +1422,21 @@ namespace Microsoft.CodeAnalysis.Editing
         /// <summary>
         /// Creates a statement that declares a single local variable.
         /// </summary>
-        public SyntaxNode LocalDeclarationStatement(ITypeSymbol type, string name, SyntaxNode initializer = null, bool isConst = false)
-        {
-            return LocalDeclarationStatement(TypeExpression(type), name, initializer, isConst);
-        }
+        public SyntaxNode LocalDeclarationStatement(
+            ITypeSymbol type, string name, SyntaxNode initializer = null, bool isConst = false)
+                => LocalDeclarationStatement(TypeExpression(type), name, initializer, isConst);
 
         /// <summary>
         /// Creates a statement that declares a single local variable.
         /// </summary>
         public SyntaxNode LocalDeclarationStatement(string name, SyntaxNode initializer)
-        {
-            return LocalDeclarationStatement((SyntaxNode)null, name, initializer);
-        }
+            => LocalDeclarationStatement((SyntaxNode)null, name, initializer);
+
+        /// <summary>
+        /// Creates a statement that declares a single local variable.
+        /// </summary>
+        internal SyntaxNode LocalDeclarationStatement(SyntaxToken name, SyntaxNode initializer)
+            => LocalDeclarationStatement((SyntaxNode)null, name, initializer);
 
         /// <summary>
         /// Creates an if-statement
@@ -1437,7 +1444,8 @@ namespace Microsoft.CodeAnalysis.Editing
         /// <param name="condition">A condition expression.</param>
         /// <param name="trueStatements">The statements that are executed if the condition is true.</param>
         /// <param name="falseStatements">The statements that are executed if the condition is false.</param>
-        public abstract SyntaxNode IfStatement(SyntaxNode condition, IEnumerable<SyntaxNode> trueStatements, IEnumerable<SyntaxNode> falseStatements = null);
+        public abstract SyntaxNode IfStatement(
+            SyntaxNode condition, IEnumerable<SyntaxNode> trueStatements, IEnumerable<SyntaxNode> falseStatements = null);
 
         /// <summary>
         /// Creates an if statement

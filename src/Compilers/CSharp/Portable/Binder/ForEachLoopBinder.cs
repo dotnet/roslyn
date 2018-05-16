@@ -205,6 +205,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundTypeExpression boundIterationVariableType;
             bool hasNameConflicts = false;
             BoundForEachDeconstructStep deconstructStep = null;
+            BoundExpression iterationErrorExpression = null;
             uint collectionEscape = GetValEscape(collectionExpr, this.LocalScopeDepth);
             switch (_syntax.Kind())
             {
@@ -238,6 +239,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                         SourceLocalSymbol local = this.IterationVariable;
                         local.SetType(iterationVariableType);
                         local.SetValEscape(collectionEscape);
+
+                        if (local.RefKind != RefKind.None)
+                        {
+                            // The ref-escape of a ref-returning property is decided
+                            // by the value escape of its receiverm, in this case the
+                            // collection
+                            local.SetRefEscape(collectionEscape);
+                        }
 
                         if (!hasErrors)
                         {
@@ -297,11 +306,20 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                             deconstructStep = new BoundForEachDeconstructStep(variables, deconstruction, valuePlaceholder).MakeCompilerGenerated();
                         }
-                        else if (!node.HasErrors)
+                        else
                         {
-                            // error: must declare foreach loop iteration variables.
-                            Error(diagnostics, ErrorCode.ERR_MustDeclareForeachIteration, variables);
+                            // Bind the expression for error recovery, but discard all new diagnostics
+                            iterationErrorExpression = BindExpression(node.Variable, new DiagnosticBag());
+                            if (iterationErrorExpression.Kind == BoundKind.DiscardExpression)
+                            {
+                                iterationErrorExpression = ((BoundDiscardExpression)iterationErrorExpression).FailInference(this, diagnosticsOpt: null);
+                            }
                             hasErrors = true;
+
+                            if (!node.HasErrors)
+                            {
+                                Error(diagnostics, ErrorCode.ERR_MustDeclareForeachIteration, variables);
+                            }
                         }
 
                         boundIterationVariableType = new BoundTypeExpression(variables, aliasOpt: null, type: iterationVariableType).MakeCompilerGenerated();
@@ -334,6 +352,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     default(Conversion),
                     boundIterationVariableType,
                     iterationVariables,
+                    iterationErrorExpression,
                     collectionExpr,
                     deconstructStep,
                     body,
