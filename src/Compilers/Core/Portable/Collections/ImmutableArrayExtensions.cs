@@ -305,11 +305,6 @@ namespace Microsoft.CodeAnalysis
             return ImmutableArray<TBase>.CastUp(items);
         }
 
-        public static T GetOptItem<T>(this ImmutableArray<T> itemsOpt, int index)
-        {
-            return itemsOpt.IsDefault ? default : itemsOpt[index];
-        }
-
         /// <summary>
         /// Determines whether this instance and another immutable array are equal.
         /// </summary>

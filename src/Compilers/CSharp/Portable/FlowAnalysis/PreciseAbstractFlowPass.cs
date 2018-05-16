@@ -1316,7 +1316,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         protected static RefKind GetRefKind(ImmutableArray<RefKind> refKindsOpt, int index)
         {
-            return refKindsOpt.GetOptItem(index);
+            return refKindsOpt.IsDefault || refKindsOpt.Length <= index ? RefKind.None : refKindsOpt[index];
         }
 
         protected virtual void WriteArgument(BoundExpression arg, RefKind refKind, MethodSymbol method)

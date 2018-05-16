@@ -1790,7 +1790,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private void VisitArgumentEvaluate(ImmutableArray<BoundExpression> arguments, ImmutableArray<RefKind> refKindsOpt, int i)
         {
-            RefKind refKind = refKindsOpt.GetOptItem(i);
+            RefKind refKind = GetRefKind(refKindsOpt, i);
             var argument = arguments[i];
             if (refKind != RefKind.Out)
             {
@@ -1912,8 +1912,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
                 VisitArgumentWarn(
                     arguments[i],
-                    conversions.GetOptItem(i),
-                    refKindsOpt.GetOptItem(i),
+                    conversions.IsDefault ? Conversion.Identity : conversions[i],
+                    GetRefKind(refKindsOpt, i),
                     parameter,
                     parameterType,
                     results[i]);
@@ -1986,7 +1986,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 bool includedConversion = false;
                 for (int i = 0; i < n; i++)
                 {
-                    RefKind refKind = refKindsOpt.GetOptItem(i);
+                    RefKind refKind = GetRefKind(refKindsOpt, i);
                     var argument = arguments[i];
                     var conversion = Conversion.Identity;
                     if (refKind == RefKind.None)
