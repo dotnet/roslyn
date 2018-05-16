@@ -1568,7 +1568,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
                 else
                 {
-                    operand = RemoveImplicitConversion(operand);
+                    (operand, _) = RemoveConversion(operand, includeExplicitConversions: false);
                     Visit(operand);
                 }
                 return (operand, _result);
@@ -1605,7 +1605,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (!node.HasErrors)
             {
                 ImmutableArray<RefKind> refKindsOpt = node.ArgumentRefKindsOpt;
-                ImmutableArray<BoundExpression> arguments = RemoveArgumentConversions(node.Arguments, refKindsOpt);
+                (ImmutableArray<BoundExpression> arguments, ImmutableArray<Conversion> conversions) = RemoveArgumentConversions(node.Arguments, refKindsOpt);
                 ImmutableArray<int> argsToParamsOpt = node.ArgsToParamsOpt;
                 ImmutableArray<Result> results = VisitArgumentsEvaluate(arguments, refKindsOpt, method.Parameters, argsToParamsOpt, node.Expanded);
 
@@ -1613,7 +1613,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     method = InferMethod(node, method, results.SelectAsArray(r => r.Type));
                 }
-                VisitArgumentsWarn(arguments, refKindsOpt, method.Parameters, argsToParamsOpt, node.Expanded, results);
+                VisitArgumentsWarn(arguments, conversions, refKindsOpt, method.Parameters, argsToParamsOpt, node.Expanded, results);
             }
 
             UpdateStateForCall(node);
@@ -1738,7 +1738,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // (Compare with CSharpOperationFactory.CreateBoundCallOperation.)
             if (!node.HasErrors && !parameters.IsDefault)
             {
-                VisitArgumentsWarn(arguments, refKindsOpt, parameters, argsToParamsOpt, expanded, results);
+                VisitArgumentsWarn(arguments, conversions: default, refKindsOpt, parameters, argsToParamsOpt, expanded, results);
             }
         }
 
@@ -1790,7 +1790,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private void VisitArgumentEvaluate(ImmutableArray<BoundExpression> arguments, ImmutableArray<RefKind> refKindsOpt, int i)
         {
-            RefKind refKind = GetRefKind(refKindsOpt, i);
+            RefKind refKind = refKindsOpt.GetOptItem(i);
             var argument = arguments[i];
             if (refKind != RefKind.Out)
             {
@@ -1896,6 +1896,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private void VisitArgumentsWarn(
             ImmutableArray<BoundExpression> arguments,
+            ImmutableArray<Conversion> conversions,
             ImmutableArray<RefKind> refKindsOpt,
             ImmutableArray<ParameterSymbol> parameters,
             ImmutableArray<int> argsToParamsOpt,
@@ -1911,7 +1912,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
                 VisitArgumentWarn(
                     arguments[i],
-                    GetRefKind(refKindsOpt, i),
+                    conversions.GetOptItem(i),
+                    refKindsOpt.GetOptItem(i),
                     parameter,
                     parameterType,
                     results[i]);
@@ -1923,6 +1925,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         private void VisitArgumentWarn(
             BoundExpression argument,
+            Conversion conversion,
             RefKind refKind,
             ParameterSymbol parameter,
             TypeSymbolWithAnnotations parameterType,
@@ -1935,8 +1938,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case RefKind.None:
                 case RefKind.In:
                     {
-                        // PROTOTYPE(NullableReferenceTypes): Use RemoveConversion instead.
-                        Conversion conversion = GenerateConversion(_conversions, argument, argumentType, parameterType.TypeSymbol);
                         resultType = ApplyConversion(argument, argument, conversion, parameterType.TypeSymbol, resultType, checkConversion: true, fromExplicitCast: false, out bool canConvert);
                         if (!ReportNullReferenceArgumentIfNecessary(argument, resultType, parameter, parameterType) &&
                             !canConvert)
@@ -1974,34 +1975,40 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private static ImmutableArray<BoundExpression> RemoveArgumentConversions(ImmutableArray<BoundExpression> arguments, ImmutableArray<RefKind> refKindsOpt)
+        private static (ImmutableArray<BoundExpression>, ImmutableArray<Conversion>) RemoveArgumentConversions(ImmutableArray<BoundExpression> arguments, ImmutableArray<RefKind> refKindsOpt)
         {
             int n = arguments.Length;
+            var conversions = default(ImmutableArray<Conversion>);
             if (n > 0)
             {
                 var argumentsBuilder = ArrayBuilder<BoundExpression>.GetInstance(n);
+                var conversionsBuilder = ArrayBuilder<Conversion>.GetInstance(n);
                 bool includedConversion = false;
                 for (int i = 0; i < n; i++)
                 {
-                    RefKind refKind = GetRefKind(refKindsOpt, i);
+                    RefKind refKind = refKindsOpt.GetOptItem(i);
                     var argument = arguments[i];
+                    var conversion = Conversion.Identity;
                     if (refKind == RefKind.None)
                     {
-                        argument = RemoveImplicitConversion(argument);
+                        (argument, conversion) = RemoveConversion(argument, includeExplicitConversions: false);
                         if (argument != arguments[i])
                         {
                             includedConversion = true;
                         }
                     }
                     argumentsBuilder.Add(argument);
+                    conversionsBuilder.Add(conversion);
                 }
                 if (includedConversion)
                 {
                     arguments = argumentsBuilder.ToImmutable();
+                    conversions = conversionsBuilder.ToImmutable();
                 }
                 argumentsBuilder.Free();
+                conversionsBuilder.Free();
             }
-            return arguments;
+            return (arguments, conversions);
         }
 
         private static (ParameterSymbol, TypeSymbolWithAnnotations) GetCorrespondingParameter(int argumentOrdinal, ImmutableArray<ParameterSymbol> parameters, ImmutableArray<int> argsToParamsOpt, bool expanded)
@@ -2116,11 +2123,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             // PROTOTYPE(NullableReferenceTypes): Support field initializers in local functions.
         }
 
-        private static BoundExpression RemoveImplicitConversion(BoundExpression expr)
-        {
-            return RemoveConversion(expr, includeExplicitConversions: false).Item1;
-        }
-
         private static (BoundExpression, Conversion) RemoveConversion(BoundExpression expr, bool includeExplicitConversions)
         {
             ConversionGroup group = null;
@@ -2155,11 +2157,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         // See Binder.BindNullCoalescingOperator for initial binding.
         private Conversion GenerateConversionForConditionalOperator(BoundExpression sourceExpression, TypeSymbol sourceType, TypeSymbol destinationType, bool reportMismatch)
-        {
-            return GenerateConversionForAssignment(sourceExpression, sourceType, destinationType, reportMismatch);
-        }
-
-        private Conversion GenerateConversionForAssignment(BoundExpression sourceExpression, TypeSymbol sourceType, TypeSymbol destinationType, bool reportMismatch)
         {
             var conversion = GenerateConversion(_conversions, sourceExpression, sourceType, destinationType);
             bool canConvert = conversion.Exists;
