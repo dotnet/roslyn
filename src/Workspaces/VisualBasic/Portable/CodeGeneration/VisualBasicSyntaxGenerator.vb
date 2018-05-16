@@ -392,7 +392,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
             Return SyntaxFactory.UsingBlock(
                 SyntaxFactory.UsingStatement(
                     expression:=Nothing,
-                    variables:=SyntaxFactory.SingletonSeparatedList(VariableDeclarator(type, identifier, expression))),
+                    variables:=SyntaxFactory.SingletonSeparatedList(VariableDeclarator(type, identifier.ToModifiedIdentifier, expression))),
                 GetStatementList(statements))
         End Function
 
@@ -438,10 +438,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
         End Function
 
         Public Overloads Overrides Function LocalDeclarationStatement(type As SyntaxNode, identifier As String, Optional initializer As SyntaxNode = Nothing, Optional isConst As Boolean = False) As SyntaxNode
+            Return LocalDeclarationStatement(type, identifier.ToIdentifierToken, initializer, isConst)
+        End Function
+
+        Friend Overloads Overrides Function LocalDeclarationStatement(type As SyntaxNode, identifier As SyntaxToken, Optional initializer As SyntaxNode = Nothing, Optional isConst As Boolean = False) As SyntaxNode
             Return SyntaxFactory.LocalDeclarationStatement(
                 SyntaxFactory.TokenList(SyntaxFactory.Token(If(isConst, SyntaxKind.ConstKeyword, SyntaxKind.DimKeyword))),
-                SyntaxFactory.SingletonSeparatedList(VariableDeclarator(type, identifier, initializer)))
+                SyntaxFactory.SingletonSeparatedList(VariableDeclarator(type, SyntaxFactory.ModifiedIdentifier(identifier), initializer)))
         End Function
+
 
         Friend Overrides Function WithInitializer(variableDeclarator As SyntaxNode, initializer As SyntaxNode) As SyntaxNode
             Return DirectCast(variableDeclarator, VariableDeclaratorSyntax).WithInitializer(DirectCast(initializer, EqualsValueSyntax))
@@ -451,9 +456,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
             Return SyntaxFactory.EqualsValue(operatorToken, DirectCast(value, ExpressionSyntax))
         End Function
 
-        Private Function VariableDeclarator(type As SyntaxNode, name As String, Optional expression As SyntaxNode = Nothing) As VariableDeclaratorSyntax
+        Private Function VariableDeclarator(type As SyntaxNode, name As ModifiedIdentifierSyntax, Optional expression As SyntaxNode = Nothing) As VariableDeclaratorSyntax
             Return SyntaxFactory.VariableDeclarator(
-                SyntaxFactory.SingletonSeparatedList(name.ToModifiedIdentifier),
+                SyntaxFactory.SingletonSeparatedList(name),
                 If(type Is Nothing, Nothing, SyntaxFactory.SimpleAsClause(DirectCast(type, TypeSyntax))),
                 If(expression Is Nothing,
                    Nothing,
@@ -729,7 +734,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
             Return SyntaxFactory.FieldDeclaration(
                 attributeLists:=Nothing,
                 modifiers:=GetModifierList(accessibility, modifiers And s_fieldModifiers, DeclarationKind.Field),
-                declarators:=SyntaxFactory.SingletonSeparatedList(VariableDeclarator(type, name, initializer)))
+                declarators:=SyntaxFactory.SingletonSeparatedList(VariableDeclarator(type, name.ToModifiedIdentifier, initializer)))
         End Function
 
         Public Overrides Function MethodDeclaration(

@@ -128,6 +128,14 @@
       <NgenArchitecture>All</NgenArchitecture>
       <NgenPriority>3</NgenPriority>
     </ProjectReference>
+    <ProjectReference Include="..\..\Workspaces\Core\MSBuild\Workspaces.MSBuild.csproj">
+      <Name>Workspaces.MSBuild</Name>
+      <IncludeOutputGroupsInVSIX>BuiltProjectOutputGroup</IncludeOutputGroupsInVSIX>
+      <ForceIncludeInVSIX>true</ForceIncludeInVSIX>
+      <Ngen>true</Ngen>
+      <NgenArchitecture>All</NgenArchitecture>
+      <NgenPriority>3</NgenPriority>
+    </ProjectReference>
     <ProjectReference Include="..\..\Workspaces\CSharp\Portable\CSharpWorkspace.csproj">
       <Name>CSharpWorkspace</Name>
       <IncludeOutputGroupsInVSIX>BuiltProjectOutputGroup</IncludeOutputGroupsInVSIX>
@@ -228,6 +236,7 @@
     <NuGetPackageToIncludeInVsix Include="System.Composition.TypedParts" />
     <NuGetPackageToIncludeInVsix Include="System.Composition.Convention" />
     <NuGetPackageToIncludeInVsix Include="System.Composition.Hosting" />
+    <NuGetPackageToIncludeInVsix Include="System.Threading.Tasks.Extensions" />
     <NuGetPackageToIncludeInVsix Include="ICSharpCode.Decompiler" />
     <NuGetPackageToIncludeInVsix Include="Mono.Cecil" />
   </ItemGroup>

@@ -18,6 +18,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SuggestionTags
 {
+    [UseExportProvider]
     public class SuggestionTagProducerTests
     {
         private readonly DiagnosticTagProducer<DiagnosticsSuggestionTaggerProvider> _producer = new DiagnosticTagProducer<DiagnosticsSuggestionTaggerProvider>();

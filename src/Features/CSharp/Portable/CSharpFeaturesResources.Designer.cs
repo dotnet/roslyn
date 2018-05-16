@@ -216,15 +216,6 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Cast is redundant.
-        /// </summary>
-        internal static string Cast_is_redundant {
-            get {
-                return ResourceManager.GetString("Cast_is_redundant", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to catch clause.
         /// </summary>
         internal static string catch_clause {
@@ -288,11 +279,29 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Convert &apos;if&apos; to &apos;switch&apos;.
+        ///   Looks up a localized string similar to Convert to &apos;for&apos;.
         /// </summary>
-        internal static string Convert_if_to_switch {
+        internal static string Convert_to_for {
             get {
-                return ResourceManager.GetString("Convert_if_to_switch", resourceCulture);
+                return ResourceManager.GetString("Convert_to_for", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Convert to &apos;foreach&apos;.
+        /// </summary>
+        internal static string Convert_to_foreach {
+            get {
+                return ResourceManager.GetString("Convert_to_foreach", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Convert to &apos;switch&apos;.
+        /// </summary>
+        internal static string Convert_to_switch {
+            get {
+                return ResourceManager.GetString("Convert_to_switch", resourceCulture);
             }
         }
         
@@ -468,11 +477,11 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to &lt;implicit array creation&gt;.
+        ///   Looks up a localized string similar to &apos;if&apos; statement can be simplified.
         /// </summary>
-        internal static string implicit_array_creation {
+        internal static string if_statement_can_be_simplified {
             get {
-                return ResourceManager.GetString("implicit_array_creation", resourceCulture);
+                return ResourceManager.GetString("if_statement_can_be_simplified", resourceCulture);
             }
         }
         
@@ -548,7 +557,16 @@ namespace Microsoft.CodeAnalysis.CSharp {
             }
         }
         
-         /// <summary>
+        /// <summary>
+        ///   Looks up a localized string similar to Invert if.
+        /// </summary>
+        internal static string Invert_if {
+            get {
+                return ResourceManager.GetString("Invert_if", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to is pattern.
         /// </summary>
         internal static string is_pattern {
@@ -806,15 +824,6 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string Remove_this_qualification {
             get {
                 return ResourceManager.GetString("Remove_this_qualification", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Remove Unnecessary Cast.
-        /// </summary>
-        internal static string Remove_Unnecessary_Cast {
-            get {
-                return ResourceManager.GetString("Remove_Unnecessary_Cast", resourceCulture);
             }
         }
         

@@ -196,9 +196,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 
                 var taskOfTType = compilation.TaskOfTType();
                 var valueTaskType = compilation.ValueTaskOfTType();
+                var lazyOfTType = compilation.LazyOfTType();
 
                 if (originalDefinition == taskOfTType ||
                     originalDefinition == valueTaskType ||
+                    originalDefinition == lazyOfTType ||
                     originalDefinition.SpecialType == SpecialType.System_Nullable_T)
                 {
                     return UnwrapType(namedType.TypeArguments[0], compilation, wasPlural: wasPlural, seenTypes: seenTypes);

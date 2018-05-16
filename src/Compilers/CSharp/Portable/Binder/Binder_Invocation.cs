@@ -83,7 +83,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             Debug.Assert(receiver != null);
 
-            var boundExpression = BindInstanceMemberAccess(node, node, receiver, methodName, typeArgs.NullToEmpty().Length, typeArgsSyntax, typeArgs, true, diagnostics);
+            var boundExpression = BindInstanceMemberAccess(node, node, receiver, methodName, typeArgs.NullToEmpty().Length, typeArgsSyntax, typeArgs, invoked: true, indexed: false, diagnostics);
 
             // The other consumers of this helper (await and collection initializers) require the target member to be a method.
             if (!allowFieldsAndProperties && (boundExpression.Kind == BoundKind.FieldAccess || boundExpression.Kind == BoundKind.PropertyAccess))
@@ -198,6 +198,17 @@ namespace Microsoft.CodeAnalysis.CSharp
                 else if (argument.Type.SpecialType == SpecialType.System_Void)
                 {
                     Error(diagnostics, ErrorCode.ERR_CantUseVoidInArglist, argument.Syntax);
+                }
+
+                switch (analyzedArguments.RefKind(i))
+                {
+                    case RefKind.None:
+                    case RefKind.Ref:
+                        break;
+                    default:
+                        // Disallow "in" or "out" arguments
+                        Error(diagnostics, ErrorCode.ERR_CantUseInOrOutInArglist, argument.Syntax);
+                        break;
                 }
             }
 

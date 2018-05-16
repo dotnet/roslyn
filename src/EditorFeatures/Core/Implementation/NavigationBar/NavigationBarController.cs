@@ -376,7 +376,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationBar
                 var document = _subjectBuffer.CurrentSnapshot.GetOpenDocumentInCurrentContextWithChanges();
                 if (document != null)
                 {
-                    var languageService = document.Project.LanguageServices.GetService<INavigationBarItemService>();
+                    var languageService = document.GetLanguageService<INavigationBarItemService>();
 
                     NavigateToItem(item, document, _subjectBuffer.CurrentSnapshot, languageService, cancellationToken);
                 }
