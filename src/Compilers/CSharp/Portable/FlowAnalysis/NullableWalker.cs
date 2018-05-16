@@ -2681,8 +2681,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode VisitDeconstructionAssignmentOperator(BoundDeconstructionAssignmentOperator node)
         {
-            base.VisitDeconstructionAssignmentOperator(node);
             // PROTOTYPE(NullableReferenceTypes): Assign each of the deconstructed values.
+            VisitLvalue(node.Left);
+            // PROTOTYPE(NullableReferenceTypes): Handle deconstruction conversion node.Right.
+            VisitRvalue(node.Right.Operand);
             SetResult(node);
             return null;
         }

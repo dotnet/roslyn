@@ -261,9 +261,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 type: type,
                 hasErrors: hasErrors || !conversion.IsValid)
         {
-            // PROTOTYPE(NullableReferenceTypes): Move assert to Validate method
-            // (add HasValidate="true" in BoundNodes.xml).
-            Debug.Assert(!explicitCastInCode || conversionGroup != null);
             OriginalUserDefinedConversionsOpt = conversion.OriginalUserDefinedConversions;
         }
     }
