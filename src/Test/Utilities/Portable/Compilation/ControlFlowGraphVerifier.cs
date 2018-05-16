@@ -14,9 +14,16 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 {
     public static class ControlFlowGraphVerifier
     {
-        public static ControlFlowGraph GetControlFlowGraph(SyntaxNode syntaxNode, SemanticModel model, out IOperation operationRoot)
+        public static ControlFlowGraph GetControlFlowGraph(SyntaxNode syntaxNode, SemanticModel model)
         {
-            operationRoot = model.GetOperation(syntaxNode);
+            IOperation operationRoot = model.GetOperation(syntaxNode);
+
+            TestOperationVisitor.VerifySubTree(operationRoot.Kind == OperationKind.Block &&
+                                               (operationRoot.Parent?.Kind == OperationKind.ConstructorBodyOperation ||
+                                                operationRoot.Parent?.Kind == OperationKind.MethodBodyOperation) ?
+                                                    operationRoot.Parent :
+                                                    operationRoot);
+
             switch (operationRoot)
             {
                 case IBlockOperation blockOperation:
@@ -527,7 +534,9 @@ endRegion:
             switch (n.Kind)
             {
                 case OperationKind.Block:
-                    if (n.Parent?.Kind == OperationKind.AnonymousFunction && ((IBlockOperation)n).Operations.IsEmpty)
+                    if (((IBlockOperation)n).Operations.IsEmpty &&
+                        (n.Parent?.Kind == OperationKind.AnonymousFunction ||
+                         n.Parent?.Kind == OperationKind.LocalFunction))
                     {
                         // PROTOTYPE(dataflow): Temporary allow
                         return true;
@@ -544,13 +553,10 @@ endRegion:
                 case OperationKind.Coalesce:
                 case OperationKind.ConditionalAccess:
                 case OperationKind.ConditionalAccessInstance:
-                case OperationKind.ObjectOrCollectionInitializer:
                 case OperationKind.MemberInitializer:
-                case OperationKind.CollectionElementInitializer:
                 case OperationKind.FieldInitializer:
                 case OperationKind.PropertyInitializer:
                 case OperationKind.ParameterInitializer:
-                case OperationKind.ArrayInitializer:
                 case OperationKind.CatchClause:
                 case OperationKind.SwitchCase:
                 case OperationKind.CaseClause:
@@ -598,6 +604,7 @@ endRegion:
                 case OperationKind.ObjectCreation:
                 case OperationKind.TypeParameterObjectCreation:
                 case OperationKind.ArrayCreation:
+                case OperationKind.ArrayInitializer:
                 case OperationKind.IsType:
                 case OperationKind.Await:
                 case OperationKind.SimpleAssignment:
@@ -634,6 +641,11 @@ endRegion:
                 case OperationKind.IsNull:
                 case OperationKind.CaughtException:
                 case OperationKind.StaticLocalInitializationSemaphore:
+                case OperationKind.Discard:
+                case OperationKind.TupleBinaryOperator:
+                case OperationKind.ObjectOrCollectionInitializer: // PROTOTYPE(dataflow): it looks like this node is leaking through in some error scenarios, at least for now.
+                case OperationKind.CollectionElementInitializer:  // PROTOTYPE(dataflow): It looks like there is a bug in IOperation tree generation for non-error scenario in 
+                                                                  //                      Microsoft.CodeAnalysis.CSharp.UnitTests.SemanticModelGetSemanticInfoTests.ObjectCreation3
                     return true;
             }
 

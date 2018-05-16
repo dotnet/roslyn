@@ -869,6 +869,8 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             LogCommonPropertiesAndNewLine(operation);
 
             Visit(operation.Value, "Value");
+
+            TestOperationVisitor.Singleton.VisitFlowCapture(operation);
         }
 
         public override void VisitFlowCaptureReference(IFlowCaptureReferenceOperation operation)
@@ -994,6 +996,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
             Visit(operation.Operation, header: nameof(operation.Operation));
             Visit(operation.WhenNotNull, header: nameof(operation.WhenNotNull));
+            Assert.NotNull(operation.Type);
         }
 
         public override void VisitConditionalAccessInstance(IConditionalAccessInstanceOperation operation)
@@ -1241,7 +1244,16 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         public override void VisitObjectCreation(IObjectCreationOperation operation)
         {
             LogString(nameof(IObjectCreationOperation));
-            LogString($" (Constructor: {operation.Constructor.ToTestDisplayString()})");
+
+            // PROTOTYPE(dataflow): It looks like constructor can be null, when default constructor is used for a structure
+            //                      Apparently we don't have any targeted tests for this case. 
+            //                      Microsoft.CodeAnalysis.VisualBasic.UnitTests.Semantics.OperationAnalyzerTests.InvalidConstructorVisualBasic exposes this.
+            //                      Need to come up with the test and adjust serialization to make this situation clear.
+            if (operation.Constructor != null)
+            {
+                LogString($" (Constructor: {operation.Constructor.ToTestDisplayString()})");
+            }
+
             LogCommonPropertiesAndNewLine(operation);
 
             VisitArguments(operation.Arguments);

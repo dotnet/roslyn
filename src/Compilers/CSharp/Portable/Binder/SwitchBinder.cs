@@ -547,6 +547,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             var sectionBinder = originalBinder.GetBinder(node);
 
+            //PROTOTYPE(dataflow): Depending on the fix for https://github.com/dotnet/roslyn/issues/26896, enable or remove the assert.
+            //Debug.Assert(sectionBinder.GetDeclaredLocalsForScope(node).IsEmpty, "Dropping locals declared in the switch section.");
+
             // Bind switch section labels
             var boundLabelsBuilder = ArrayBuilder<BoundSwitchLabel>.GetInstance();
             foreach (var labelSyntax in node.Labels)
