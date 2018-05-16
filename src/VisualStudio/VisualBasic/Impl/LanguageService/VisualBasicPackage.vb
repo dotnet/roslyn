@@ -108,10 +108,10 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic
         End Sub
 
         Private Async Function RegisterObjectBrowserLibraryManagerAsync(cancellationToken As CancellationToken) As Task
+            Await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken)
+
             Dim objectManager = TryCast(Await GetServiceAsync(GetType(SVsObjectManager)).ConfigureAwait(True), IVsObjectManager2)
             If objectManager IsNot Nothing Then
-                Await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken)
-
                 Me._libraryManager = New ObjectBrowserLibraryManager(Me)
 
                 If ErrorHandler.Failed(objectManager.RegisterSimpleLibrary(Me._libraryManager, Me._libraryManagerCookie)) Then

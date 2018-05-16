@@ -106,10 +106,10 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.LanguageService
 
         private async Task RegisterObjectBrowserLibraryManagerAsync(CancellationToken cancellationToken)
         {
+            await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+
             if (await GetServiceAsync(typeof(SVsObjectManager)).ConfigureAwait(true) is IVsObjectManager2 objectManager)
             {
-                await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
-
                 _libraryManager = new ObjectBrowserLibraryManager(this);
 
                 if (ErrorHandler.Failed(objectManager.RegisterSimpleLibrary(_libraryManager, out _libraryManagerCookie)))
