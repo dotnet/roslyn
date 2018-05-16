@@ -9167,8 +9167,8 @@ public class Program
             compVerifier = CompileAndVerify(source,
                 options: TestOptions.DebugDll.WithOutputKind(OutputKind.ConsoleApplication),
                 expectedOutput: "");
-            compVerifier.VerifyIL("Program.M",
-@"{
+            compVerifier.VerifyIL(qualifiedMethodName: "Program.M", sequencePoints: "Program.M", source: source,
+expectedIL: @"{
   // Code size      149 (0x95)
   .maxstack  1
   .locals init (int V_0, //i
@@ -9177,65 +9177,104 @@ public class Program
                 int V_3, //i
                 object V_4,
                 object V_5)
+  // sequence point: {
   IL_0000:  nop
+  // sequence point: switch (o)
   IL_0001:  ldarg.0
   IL_0002:  stloc.s    V_5
+  // sequence point: <hidden>
   IL_0004:  ldloc.s    V_5
   IL_0006:  stloc.s    V_4
+  // sequence point: <hidden>
   IL_0008:  ldloc.s    V_4
   IL_000a:  isinst     ""int""
   IL_000f:  brfalse.s  IL_002f
   IL_0011:  ldloc.s    V_4
   IL_0013:  unbox.any  ""int""
   IL_0018:  stloc.0
+  // sequence point: <hidden>
   IL_0019:  br.s       IL_001b
+  // sequence point: when b
   IL_001b:  ldsfld     ""bool Program.b""
   IL_0020:  brtrue.s   IL_0024
+  // sequence point: <hidden>
   IL_0022:  br.s       IL_0026
+  // sequence point: break;
   IL_0024:  br.s       IL_0094
+  // sequence point: when b
   IL_0026:  ldsfld     ""bool Program.b""
   IL_002b:  brtrue.s   IL_0038
+  // sequence point: <hidden>
   IL_002d:  br.s       IL_003a
+  // sequence point: when b
   IL_002f:  ldsfld     ""bool Program.b""
   IL_0034:  brtrue.s   IL_0038
+  // sequence point: <hidden>
   IL_0036:  br.s       IL_0050
+  // sequence point: break;
   IL_0038:  br.s       IL_0094
+  // sequence point: <hidden>
   IL_003a:  ldloc.0
   IL_003b:  stloc.1
+  // sequence point: when b
   IL_003c:  ldsfld     ""bool Program.b""
   IL_0041:  brtrue.s   IL_0045
+  // sequence point: <hidden>
   IL_0043:  br.s       IL_0047
+  // sequence point: break;
   IL_0045:  br.s       IL_0094
+  // sequence point: when b
   IL_0047:  ldsfld     ""bool Program.b""
   IL_004c:  brtrue.s   IL_0059
+  // sequence point: <hidden>
   IL_004e:  br.s       IL_005b
+  // sequence point: when b
   IL_0050:  ldsfld     ""bool Program.b""
   IL_0055:  brtrue.s   IL_0059
+  // sequence point: <hidden>
   IL_0057:  br.s       IL_0071
+  // sequence point: break;
   IL_0059:  br.s       IL_0094
+  // sequence point: <hidden>
   IL_005b:  ldloc.0
   IL_005c:  stloc.2
+  // sequence point: when b
   IL_005d:  ldsfld     ""bool Program.b""
   IL_0062:  brtrue.s   IL_0066
+  // sequence point: <hidden>
   IL_0064:  br.s       IL_0068
+  // sequence point: break;
   IL_0066:  br.s       IL_0094
+  // sequence point: when b
   IL_0068:  ldsfld     ""bool Program.b""
   IL_006d:  brtrue.s   IL_007a
+  // sequence point: <hidden>
   IL_006f:  br.s       IL_007c
+  // sequence point: when b
   IL_0071:  ldsfld     ""bool Program.b""
   IL_0076:  brtrue.s   IL_007a
+  // sequence point: <hidden>
   IL_0078:  br.s       IL_0089
+  // sequence point: break;
   IL_007a:  br.s       IL_0094
+  // sequence point: <hidden>
   IL_007c:  ldloc.0
   IL_007d:  stloc.3
+  // sequence point: when b
   IL_007e:  ldsfld     ""bool Program.b""
   IL_0083:  brtrue.s   IL_0087
+  // sequence point: <hidden>
   IL_0085:  br.s       IL_0089
+  // sequence point: break;
   IL_0087:  br.s       IL_0094
+  // sequence point: when b
   IL_0089:  ldsfld     ""bool Program.b""
   IL_008e:  brtrue.s   IL_0092
+  // sequence point: <hidden>
   IL_0090:  br.s       IL_0094
+  // sequence point: break;
   IL_0092:  br.s       IL_0094
+  // sequence point: }
   IL_0094:  ret
 }"
             );
