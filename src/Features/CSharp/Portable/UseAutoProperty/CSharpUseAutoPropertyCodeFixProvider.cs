@@ -14,7 +14,7 @@ using Microsoft.CodeAnalysis.Formatting.Rules;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.UseAutoProperty;
 
-namespace Microsoft.CodeAnalysis.Editor.CSharp.UseAutoProperty
+namespace Microsoft.CodeAnalysis.CSharp.UseAutoProperty
 {
     [ExportCodeFixProvider(LanguageNames.CSharp, Name = nameof(CSharpUseAutoPropertyCodeFixProvider)), Shared]
     internal class CSharpUseAutoPropertyCodeFixProvider 
