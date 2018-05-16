@@ -84,7 +84,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.LanguageService
 
                 await RegisterObjectBrowserLibraryManagerAsync(cancellationToken).ConfigureAwait(true);
             }
-            catch (Exception e) when (FatalError.Report(e))
+            catch (Exception e) when (FatalError.ReportUnlessCanceled(e))
             {
             }
         }

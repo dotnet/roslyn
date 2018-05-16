@@ -95,7 +95,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic
                 RegisterService(Of IVbTempPECompilerFactory)(Function() New TempPECompilerFactory(workspace))
 
                 Await RegisterObjectBrowserLibraryManagerAsync(cancellationToken).ConfigureAwait(True)
-            Catch ex As Exception When FatalError.Report(ex)
+            Catch ex As Exception When FatalError.ReportUnlessCanceled(ex)
             End Try
         End Function
 
