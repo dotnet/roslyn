@@ -39,34 +39,22 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // for all operations; we use it to enhance test coverage.
                 (parseOptions?.IsFeatureEnabled(MessageID.IDS_FeaturePatternMatching) != false ||
                  parseOptions?.Features.ContainsKey("testV7SwitchBinder") != false ||
-                 switchSyntax.HasErrors && HasPatternSwitchSyntax(next.Compilation, switchSyntax))
+                 switchSyntax.HasErrors && HasPatternSwitchSyntax(switchSyntax))
                 ? new PatternSwitchBinder(next, switchSyntax)
                 : new SwitchBinder(next, switchSyntax);
         }
 
-        internal static bool HasPatternSwitchSyntax(CSharpCompilation compilation, SwitchStatementSyntax switchSyntax)
+        internal static bool HasPatternSwitchSyntax(SwitchStatementSyntax switchSyntax)
         {
-            var caseExpressions = ArrayBuilder<CSharpSyntaxNode>.GetInstance();
             foreach (var section in switchSyntax.Sections)
             {
-                foreach (var label in section.Labels)
+                if (section.Labels.Any(SyntaxKind.CasePatternSwitchLabel))
                 {
-                    switch (label.Kind())
-                    {
-                        case SyntaxKind.CasePatternSwitchLabel:
-                            caseExpressions.Free();
-                            return true;
-                        case SyntaxKind.CaseSwitchLabel:
-                            caseExpressions.Add(((CaseSwitchLabelSyntax)label).Value);
-                            continue;
-                    }
+                    return true;
                 }
             }
 
-            var dummyBinder = new BuckStopsHereBinder(compilation);
-            var result = ExpressionVariableFinder.CountExpressionVariables(dummyBinder, caseExpressions) != 0;
-            caseExpressions.Free();
-            return result;
+            return false;
         }
 
         protected bool PatternsEnabled =>
@@ -558,6 +546,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private BoundSwitchSection BindSwitchSection(SwitchSectionSyntax node, Binder originalBinder, DiagnosticBag diagnostics)
         {
             var sectionBinder = originalBinder.GetBinder(node);
+            var locals = sectionBinder.GetDeclaredLocalsForScope(node);
 
             // Bind switch section labels
             var boundLabelsBuilder = ArrayBuilder<BoundSwitchLabel>.GetInstance();
@@ -575,7 +564,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 boundStatementsBuilder.Add(sectionBinder.BindStatement(statement, diagnostics));
             }
 
-            return new BoundSwitchSection(node, boundLabelsBuilder.ToImmutableAndFree(), boundStatementsBuilder.ToImmutableAndFree());
+            return new BoundSwitchSection(node, locals, boundLabelsBuilder.ToImmutableAndFree(), boundStatementsBuilder.ToImmutableAndFree());
         }
 
         private Dictionary<SyntaxNode, LabelSymbol> _labelsByNode;

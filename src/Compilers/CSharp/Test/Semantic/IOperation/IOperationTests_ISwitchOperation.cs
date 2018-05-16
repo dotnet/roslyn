@@ -2760,10 +2760,7 @@ public sealed class MyClass
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // file.cs(8,18): error CS0150: A constant value is expected
                 //             case 1+TakeOutParam(3, out MyClass x1):
-                Diagnostic(ErrorCode.ERR_ConstantExpected, "1+TakeOutParam(3, out MyClass x1)").WithLocation(8, 18),
-                // file.cs(9,17): warning CS0162: Unreachable code detected
-                //                 result = false;
-                Diagnostic(ErrorCode.WRN_UnreachableCode, "result").WithLocation(9, 17)
+                Diagnostic(ErrorCode.ERR_ConstantExpected, "1+TakeOutParam(3, out MyClass x1)").WithLocation(8, 18)
             };
 
             string expectedFlowGraph = @"
@@ -2787,29 +2784,27 @@ Block[B1] - Block
         Predecessors: [B1]
         Statements (0)
         Jump if False (Regular) to Block[B4]
-            IIsPatternOperation (OperationKind.IsPattern, Type: System.Boolean, IsInvalid, IsImplicit) (Syntax: 'case 1+Take ... yClass x1):')
-              Expression: 
+            IBinaryOperation (BinaryOperatorKind.Equals) (OperationKind.BinaryOperator, Type: System.Boolean, IsInvalid, IsImplicit) (Syntax: '1+TakeOutPa ... MyClass x1)')
+              Left: 
                 IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.Int32, IsImplicit) (Syntax: 'input')
-              Pattern: 
-                IConstantPatternOperation (OperationKind.ConstantPattern, Type: null, IsInvalid, IsImplicit) (Syntax: 'case 1+Take ... yClass x1):')
-                  Value: 
-                    IBinaryOperation (BinaryOperatorKind.Add) (OperationKind.BinaryOperator, Type: System.Int32, IsInvalid) (Syntax: '1+TakeOutPa ... MyClass x1)')
-                      Left: 
-                        ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1, IsInvalid) (Syntax: '1')
-                      Right: 
-                        IInvocationOperation ( System.Int32 MyClass.TakeOutParam(System.Int32 a, out MyClass b)) (OperationKind.Invocation, Type: System.Int32, IsInvalid) (Syntax: 'TakeOutPara ... MyClass x1)')
-                          Instance Receiver: 
-                            IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: MyClass, IsInvalid, IsImplicit) (Syntax: 'TakeOutParam')
-                          Arguments(2):
-                              IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: a) (OperationKind.Argument, Type: null, IsInvalid) (Syntax: '3')
-                                ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 3, IsInvalid) (Syntax: '3')
-                                InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                                OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                              IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: b) (OperationKind.Argument, Type: null, IsInvalid) (Syntax: 'out MyClass x1')
-                                IDeclarationExpressionOperation (OperationKind.DeclarationExpression, Type: MyClass, IsInvalid) (Syntax: 'MyClass x1')
-                                  ILocalReferenceOperation: x1 (IsDeclaration: True) (OperationKind.LocalReference, Type: MyClass, IsInvalid) (Syntax: 'x1')
-                                InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                                OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+              Right: 
+                IBinaryOperation (BinaryOperatorKind.Add) (OperationKind.BinaryOperator, Type: System.Int32, IsInvalid) (Syntax: '1+TakeOutPa ... MyClass x1)')
+                  Left: 
+                    ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1, IsInvalid) (Syntax: '1')
+                  Right: 
+                    IInvocationOperation ( System.Int32 MyClass.TakeOutParam(System.Int32 a, out MyClass b)) (OperationKind.Invocation, Type: System.Int32, IsInvalid) (Syntax: 'TakeOutPara ... MyClass x1)')
+                      Instance Receiver: 
+                        IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: MyClass, IsInvalid, IsImplicit) (Syntax: 'TakeOutParam')
+                      Arguments(2):
+                          IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: a) (OperationKind.Argument, Type: null, IsInvalid) (Syntax: '3')
+                            ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 3, IsInvalid) (Syntax: '3')
+                            InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                            OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                          IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: b) (OperationKind.Argument, Type: null, IsInvalid) (Syntax: 'out MyClass x1')
+                            IDeclarationExpressionOperation (OperationKind.DeclarationExpression, Type: MyClass, IsInvalid) (Syntax: 'MyClass x1')
+                              ILocalReferenceOperation: x1 (IsDeclaration: True) (OperationKind.LocalReference, Type: MyClass, IsInvalid) (Syntax: 'x1')
+                            InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                            OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
             Leaving: {R1}
 
         Next (Regular) Block[B3]
@@ -2856,10 +2851,7 @@ public sealed class MyClass
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // file.cs(8,18): error CS0150: A constant value is expected
                 //             case 1+(input is int x1 ? x1 : 0):
-                Diagnostic(ErrorCode.ERR_ConstantExpected, "1+(input is int x1 ? x1 : 0)").WithLocation(8, 18),
-                // file.cs(9,17): warning CS0162: Unreachable code detected
-                //                 result = false;
-                Diagnostic(ErrorCode.WRN_UnreachableCode, "result").WithLocation(9, 17)
+                Diagnostic(ErrorCode.ERR_ConstantExpected, "1+(input is int x1 ? x1 : 0)").WithLocation(8, 18)
             };
 
             string expectedFlowGraph = @"
@@ -2914,12 +2906,13 @@ Block[B1] - Block
         Predecessors: [B3] [B4]
         Statements (0)
         Jump if False (Regular) to Block[B7]
-            IIsPatternOperation (OperationKind.IsPattern, Type: System.Boolean, IsInvalid, IsImplicit) (Syntax: 'case 1+(inp ...  ? x1 : 0):')
-              Expression: 
+            IBinaryOperation (BinaryOperatorKind.Equals, IsLifted) (OperationKind.BinaryOperator, Type: System.Boolean, IsInvalid, IsImplicit) (Syntax: '1+(input is ... 1 ? x1 : 0)')
+              Left: 
                 IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.Int32?, IsImplicit) (Syntax: 'input')
-              Pattern: 
-                IConstantPatternOperation (OperationKind.ConstantPattern, Type: null, IsInvalid, IsImplicit) (Syntax: 'case 1+(inp ...  ? x1 : 0):')
-                  Value: 
+              Right: 
+                IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Int32?, IsInvalid, IsImplicit) (Syntax: '1+(input is ... 1 ? x1 : 0)')
+                  Conversion: CommonConversion (Exists: True)
+                  Operand: 
                     IBinaryOperation (BinaryOperatorKind.Add) (OperationKind.BinaryOperator, Type: System.Int32, IsInvalid) (Syntax: '1+(input is ... 1 ? x1 : 0)')
                       Left: 
                         IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: System.Int32, Constant: 1, IsInvalid, IsImplicit) (Syntax: '1')

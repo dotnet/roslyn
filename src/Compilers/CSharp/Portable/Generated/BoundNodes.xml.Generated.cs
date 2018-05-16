@@ -2763,16 +2763,20 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal sealed partial class BoundSwitchSection : BoundStatementList
     {
-        public BoundSwitchSection(SyntaxNode syntax, ImmutableArray<BoundSwitchLabel> switchLabels, ImmutableArray<BoundStatement> statements, bool hasErrors = false)
+        public BoundSwitchSection(SyntaxNode syntax, ImmutableArray<LocalSymbol> locals, ImmutableArray<BoundSwitchLabel> switchLabels, ImmutableArray<BoundStatement> statements, bool hasErrors = false)
             : base(BoundKind.SwitchSection, syntax, statements, hasErrors || switchLabels.HasErrors() || statements.HasErrors())
         {
 
+            Debug.Assert(!locals.IsDefault, "Field 'locals' cannot be null (use Null=\"allow\" in BoundNodes.xml to remove this check)");
             Debug.Assert(!switchLabels.IsDefault, "Field 'switchLabels' cannot be null (use Null=\"allow\" in BoundNodes.xml to remove this check)");
             Debug.Assert(!statements.IsDefault, "Field 'statements' cannot be null (use Null=\"allow\" in BoundNodes.xml to remove this check)");
 
+            this.Locals = locals;
             this.SwitchLabels = switchLabels;
         }
 
+
+        public ImmutableArray<LocalSymbol> Locals { get; }
 
         public ImmutableArray<BoundSwitchLabel> SwitchLabels { get; }
 
@@ -2781,11 +2785,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             return visitor.VisitSwitchSection(this);
         }
 
-        public BoundSwitchSection Update(ImmutableArray<BoundSwitchLabel> switchLabels, ImmutableArray<BoundStatement> statements)
+        public BoundSwitchSection Update(ImmutableArray<LocalSymbol> locals, ImmutableArray<BoundSwitchLabel> switchLabels, ImmutableArray<BoundStatement> statements)
         {
-            if (switchLabels != this.SwitchLabels || statements != this.Statements)
+            if (locals != this.Locals || switchLabels != this.SwitchLabels || statements != this.Statements)
             {
-                var result = new BoundSwitchSection(this.Syntax, switchLabels, statements, this.HasErrors);
+                var result = new BoundSwitchSection(this.Syntax, locals, switchLabels, statements, this.HasErrors);
                 result.WasCompilerGenerated = this.WasCompilerGenerated;
                 return result;
             }
@@ -9085,7 +9089,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             ImmutableArray<BoundSwitchLabel> switchLabels = (ImmutableArray<BoundSwitchLabel>)this.VisitList(node.SwitchLabels);
             ImmutableArray<BoundStatement> statements = (ImmutableArray<BoundStatement>)this.VisitList(node.Statements);
-            return node.Update(switchLabels, statements);
+            return node.Update(node.Locals, switchLabels, statements);
         }
         public override BoundNode VisitSwitchLabel(BoundSwitchLabel node)
         {
@@ -10290,6 +10294,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             return new TreeDumperNode("switchSection", null, new TreeDumperNode[]
             {
+                new TreeDumperNode("locals", node.Locals, null),
                 new TreeDumperNode("switchLabels", null, from x in node.SwitchLabels select Visit(x, null)),
                 new TreeDumperNode("statements", null, from x in node.Statements select Visit(x, null))
             }
