@@ -4141,5 +4141,21 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
 
 #End Region
 
+#Region "Patterns"
+
+        Friend Overrides Function SupportsPatterns(options As ParseOptions) As Boolean
+            Return False
+        End Function
+
+        Friend Overrides Function IsPatternExpression(expression As SyntaxNode, pattern As SyntaxNode) As SyntaxNode
+            Throw New NotImplementedException()
+        End Function
+
+        Friend Overrides Function DeclarationPattern(type As INamedTypeSymbol, name As String) As SyntaxNode
+            Throw New NotImplementedException()
+        End Function
+
+#End Region
+
     End Class
 End Namespace

@@ -4235,5 +4235,20 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             => SyntaxFactory.TupleExpression(SyntaxFactory.SeparatedList(arguments.Select(AsArgument)));
 
         #endregion
+
+        #region Patterns
+
+        internal override bool SupportsPatterns(ParseOptions options)
+            => ((CSharpParseOptions)options).LanguageVersion >= LanguageVersion.CSharp7;
+
+        internal override SyntaxNode IsPatternExpression(SyntaxNode expression, SyntaxNode pattern)
+            => SyntaxFactory.IsPatternExpression((ExpressionSyntax)expression, (PatternSyntax)pattern);
+
+        internal override SyntaxNode DeclarationPattern(INamedTypeSymbol type, string name)
+            => SyntaxFactory.DeclarationPattern(
+                type.GenerateTypeSyntax(),
+                SyntaxFactory.SingleVariableDesignation(name.ToIdentifierToken()));
+
+        #endregion
     }
 }
