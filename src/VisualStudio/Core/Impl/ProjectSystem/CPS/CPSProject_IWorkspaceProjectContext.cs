@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel;
@@ -80,18 +81,21 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.C
 
         public void RemoveMetadataReference(string referencePath)
         {
-            // TODO: this won't work with non-standard properties
-            _visualStudioProject.RemoveMetadataReference(referencePath, MetadataReferenceProperties.Assembly);
+            referencePath = FileUtilities.NormalizeAbsolutePath(referencePath);
+            _visualStudioProject.RemoveMetadataReference(referencePath, _visualStudioProject.GetPropertiesForMetadataReference(referencePath).Single());
         }
 
         public void AddProjectReference(IWorkspaceProjectContext project, MetadataReferenceProperties properties)
         {
-            throw new NotImplementedException();
+            var otherProjectId = ((CPSProject)project)._visualStudioProject.Id;
+            _visualStudioProject.AddProjectReference(new ProjectReference(otherProjectId, properties.Aliases, properties.EmbedInteropTypes));
         }
 
         public void RemoveProjectReference(IWorkspaceProjectContext project)
         {
-            throw new NotImplementedException();
+            var otherProjectId = ((CPSProject)project)._visualStudioProject.Id;
+            var otherProjectReference = _visualStudioProject.GetProjectReferences().Single(pr => pr.ProjectId == otherProjectId);
+            _visualStudioProject.RemoveProjectReference(otherProjectReference);
         }
 
         public void AddSourceFile(string filePath, bool isInCurrentContext = true, IEnumerable<string> folderNames = null, SourceCodeKind sourceCodeKind = SourceCodeKind.Regular)
