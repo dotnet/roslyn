@@ -709,7 +709,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             TypeSymbolWithAnnotations returnType = GetReturnType(compilation, _currentMethodOrLambda);
             if ((object)returnType != null)
             {
-                TypeSymbolWithAnnotations resultType = ApplyConversion(expr, expr, conversion, returnType, result.Type, checkConversion: true, fromExplicitCast: false, out bool canConvert);
+                TypeSymbolWithAnnotations resultType = ApplyConversion(expr, expr, conversion, returnType.TypeSymbol, result.Type, checkConversion: true, fromExplicitCast: false, out bool canConvert);
                 if (conversion.Exists && !canConvert)
                 {
                     ReportStaticNullCheckingDiagnostics(ErrorCode.WRN_NullabilityMismatchInAssignment, expr.Syntax, result.Type.TypeSymbol, returnType.TypeSymbol);
@@ -813,7 +813,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             else
             {
                 var unconvertedType = valueType;
-                valueType = ApplyConversion(initializer, initializer, conversion, type, valueType, checkConversion: true, fromExplicitCast: false, out bool canConvert);
+                valueType = ApplyConversion(initializer, initializer, conversion, type.TypeSymbol, valueType, checkConversion: true, fromExplicitCast: false, out bool canConvert);
                 // Need to report all warnings that apply since the warnings can be suppressed individually.
                 ReportNullReferenceAssignmentIfNecessary(initializer, type, valueType, useLegacyWarnings: true);
                 if (conversion.Exists && !canConvert)
@@ -1122,7 +1122,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     var sourceType = resultType?.TypeSymbol;
                     if (elementTypeIsReferenceType)
                     {
-                        resultType = ApplyConversion(element, element, conversion, elementType, resultType, checkConversion: true, fromExplicitCast: false, out bool canConvert);
+                        resultType = ApplyConversion(element, element, conversion, elementType.TypeSymbol, resultType, checkConversion: true, fromExplicitCast: false, out bool canConvert);
                         ReportNullReferenceAssignmentIfNecessary(element, elementType, resultType, useLegacyWarnings: false);
                         if (conversion.Exists && !canConvert)
                         {
@@ -1764,7 +1764,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         // PROTOTYPE(NullableReferenceTypes): Use RemoveConversion instead.
                         Conversion conversion = GenerateConversion(_conversions, argument, argumentType, parameterType.TypeSymbol);
-                        resultType = ApplyConversion(argument, argument, conversion, parameterType, resultType, checkConversion: true, fromExplicitCast: false, out bool canConvert);
+                        resultType = ApplyConversion(argument, argument, conversion, parameterType.TypeSymbol, resultType, checkConversion: true, fromExplicitCast: false, out bool canConvert);
                         if (!ReportNullReferenceArgumentIfNecessary(argument, resultType, parameter, parameterType) &&
                             !canConvert)
                         {
@@ -2107,17 +2107,17 @@ namespace Microsoft.CodeAnalysis.CSharp
             var operandType = _result.Type;
             var explicitType = node.ConversionGroup?.ExplicitType;
             bool fromExplicitCast = (object)explicitType != null;
-            var targetType = explicitType ?? TypeSymbolWithAnnotations.Create(node.Type, isNullableIfReferenceType: null);
-            var resultType = ApplyConversion(node, operand, conversion, targetType, operandType, checkConversion: !fromExplicitCast, fromExplicitCast: fromExplicitCast, out bool _);
+            var resultType = ApplyConversion(node, operand, conversion, explicitType?.TypeSymbol ?? node.Type, operandType, checkConversion: !fromExplicitCast, fromExplicitCast: fromExplicitCast, out bool _);
 
-            if (fromExplicitCast && targetType.IsNullable == false)
+            if (fromExplicitCast && explicitType.IsNullable == false)
             {
+                var targetType = explicitType.TypeSymbol;
                 bool reportNullable = false;
                 if (targetType.IsReferenceType && IsUnconstrainedTypeParameter(resultType?.TypeSymbol))
                 {
                     reportNullable = true;
                 }
-                else if ((targetType.IsReferenceType || IsUnconstrainedTypeParameter(targetType.TypeSymbol)) &&
+                else if ((targetType.IsReferenceType || IsUnconstrainedTypeParameter(targetType)) &&
                     resultType?.IsNullable == true)
                 {
                     reportNullable = true;
@@ -2196,7 +2196,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private TypeSymbolWithAnnotations ApplyConversion(BoundExpression operand, Conversion conversion, TypeSymbolWithAnnotations targetType, TypeSymbolWithAnnotations operandType)
+        private TypeSymbolWithAnnotations ApplyConversion(BoundExpression operand, Conversion conversion, TypeSymbol targetType, TypeSymbolWithAnnotations operandType)
         {
             Debug.Assert(operand != null);
             return ApplyConversion(operand, operand, conversion, targetType, operandType, checkConversion: true, fromExplicitCast: false, out _);
@@ -2206,7 +2206,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundNode node,
             BoundExpression operandOpt,
             Conversion conversion,
-            TypeSymbolWithAnnotations targetType,
+            TypeSymbol targetType,
             TypeSymbolWithAnnotations operandType,
             bool checkConversion,
             bool fromExplicitCast,
@@ -2233,12 +2233,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         }
 
                         // operand -> conversion "from" type
-                        operandType = ApplyConversion(
-                            operandOpt,
-                            conversion.UserDefinedFromConversion,
-                            // PROTOTYPE(NullableReferenceTypes): Should BestUserDefinedConversionAnalysis.FromType include top-level nullability?
-                            TypeSymbolWithAnnotations.Create(conversion.BestUserDefinedConversionAnalysis.FromType, isNullableIfReferenceType: null),
-                            operandType);
+                        operandType = ApplyConversion(operandOpt, conversion.UserDefinedFromConversion, conversion.BestUserDefinedConversionAnalysis.FromType, operandType);
 
                         // PROTOTYPE(NullableReferenceTypes): Update method based on operandType.
                         var methodOpt = conversion.Method;
@@ -2247,18 +2242,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                         var parameter = methodOpt.Parameters[0];
 
                         // conversion "from" type -> method parameter type
-                        operandType = ClassifyAndApplyConversion(node, parameter.Type, operandType);
+                        operandType = ClassifyAndApplyConversion(node, parameter.Type.TypeSymbol, operandType);
 
                         // method parameter type -> method return type
                         ReportArgumentWarnings(operandOpt, operandType, parameter);
                         operandType = methodOpt.ReturnType;
 
                         // method return type -> conversion "to" type
-                        operandType = ClassifyAndApplyConversion(
-                            node, 
-                            // PROTOTYPE(NullableReferenceTypes): Should BestUserDefinedConversionAnalysis.ToType include top-level nullability?
-                            TypeSymbolWithAnnotations.Create(conversion.BestUserDefinedConversionAnalysis.ToType, isNullableIfReferenceType: null),
-                            operandType);
+                        operandType = ClassifyAndApplyConversion(node, conversion.BestUserDefinedConversionAnalysis.ToType, operandType);
 
                         // conversion "to" type -> final type
                         operandType = ClassifyAndApplyConversion(node, targetType, operandType);
@@ -2273,7 +2264,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ConversionKind.MethodGroup:
                     if (!fromExplicitCast)
                     {
-                        ReportNullabilityMismatchWithTargetDelegate(operandOpt.Syntax, targetType.TypeSymbol.GetDelegateType(), conversion.Method);
+                        ReportNullabilityMismatchWithTargetDelegate(operandOpt.Syntax, targetType.GetDelegateType(), conversion.Method);
                     }
                     isNullableIfReferenceType = false;
                     break;
@@ -2329,7 +2320,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         // object? obj = ...; var s = (string)obj;
                         if (checkConversion)
                         {
-                            conversion = GenerateConversion(_conversions, operandOpt, operandType?.TypeSymbol, targetType.TypeSymbol, fromExplicitCast);
+                            conversion = GenerateConversion(_conversions, operandOpt, operandType?.TypeSymbol, targetType, fromExplicitCast);
                             canConvert = requireIdentity ? (conversion.Kind == ConversionKind.Identity) : conversion.Exists;
                         }
                         isNullableIfReferenceType = operandType?.IsNullable;
@@ -2351,17 +2342,17 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             // PROTOTYPE(NullableReferenceTypes): Include nested nullability?
-            return TypeSymbolWithAnnotations.Create(targetType.TypeSymbol, isNullableIfReferenceType);
+            return TypeSymbolWithAnnotations.Create(targetType, isNullableIfReferenceType);
         }
 
-        private TypeSymbolWithAnnotations ClassifyAndApplyConversion(BoundNode node, TypeSymbolWithAnnotations targetType, TypeSymbolWithAnnotations operandType)
+        private TypeSymbolWithAnnotations ClassifyAndApplyConversion(BoundNode node, TypeSymbol targetType, TypeSymbolWithAnnotations operandType)
         {
             HashSet<DiagnosticInfo> useSiteDiagnostics = null;
-            var conversion = _conversions.ClassifyStandardConversion(null, operandType.TypeSymbol, targetType.TypeSymbol, ref useSiteDiagnostics);
+            var conversion = _conversions.ClassifyStandardConversion(null, operandType.TypeSymbol, targetType, ref useSiteDiagnostics);
             if (!conversion.Exists)
             {
                 // PROTOTYPE(NullableReferenceTypes): Not necessarily an assignment.
-                ReportStaticNullCheckingDiagnostics(ErrorCode.WRN_NullabilityMismatchInAssignment, node.Syntax, operandType.TypeSymbol, targetType.TypeSymbol);
+                ReportStaticNullCheckingDiagnostics(ErrorCode.WRN_NullabilityMismatchInAssignment, node.Syntax, operandType.TypeSymbol, targetType);
             }
             return ApplyConversion(node, operandOpt: null, conversion, targetType, operandType, checkConversion: false, fromExplicitCast: false, out _);
         }
@@ -2485,7 +2476,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             else
             {
                 var leftType = leftResult.Type;
-                var rightType = ApplyConversion(right, right, conversion, leftType, rightResult.Type, checkConversion: true, fromExplicitCast: false, out bool canConvert);
+                var rightType = ApplyConversion(right, right, conversion, leftType.TypeSymbol, rightResult.Type, checkConversion: true, fromExplicitCast: false, out bool canConvert);
                 // Need to report all warnings that apply since the warnings can be suppressed individually.
                 ReportNullReferenceAssignmentIfNecessary(right, leftType, rightType, UseLegacyWarnings(left));
                 if (conversion.Exists && !canConvert)
@@ -2535,16 +2526,16 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 // PROTOTYPE(NullableReferenceTypes): Update increment method based on operand type.
                 MethodSymbol incrementOperator = (node.OperatorKind.IsUserDefined() && (object)node.MethodOpt != null && node.MethodOpt.ParameterCount == 1) ? node.MethodOpt : null;
-                TypeSymbolWithAnnotations targetTypeOfOperandConversion;
+                TypeSymbol targetTypeOfOperandConversion;
 
                 // PROTOTYPE(NullableReferenceTypes): Update conversion method based on operand type.
                 if (node.OperandConversion.IsUserDefined && (object)node.OperandConversion.Method != null && node.OperandConversion.Method.ParameterCount == 1)
                 {
-                    targetTypeOfOperandConversion = node.OperandConversion.Method.ReturnType;
+                    targetTypeOfOperandConversion = node.OperandConversion.Method.ReturnType.TypeSymbol;
                 }
                 else if ((object)incrementOperator != null)
                 {
-                    targetTypeOfOperandConversion = incrementOperator.Parameters[0].Type;
+                    targetTypeOfOperandConversion = incrementOperator.Parameters[0].Type.TypeSymbol;
                 }
                 else
                 {
@@ -2576,7 +2567,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     resultOfIncrementType = GetTypeOrReturnTypeWithAdjustedNullableAnnotations(incrementOperator);
                 }
 
-                resultOfIncrementType = ApplyConversion(node, node.ResultConversion, TypeSymbolWithAnnotations.Create(node.Type, isNullableIfReferenceType: null), resultOfIncrementType);
+                resultOfIncrementType = ApplyConversion(node, node.ResultConversion, node.Type, resultOfIncrementType);
 
                 // PROTOTYPE(NullableReferenceTypes): Check node.Type.IsErrorType() instead?
                 if (!node.HasErrors)
@@ -2615,7 +2606,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if ((object)node.Operator.LeftType != null)
                 {
                     // PROTOTYPE(NullableReferenceTypes): Ignoring top-level nullability of operator left parameter.
-                    leftOnRightType = ApplyConversion(node.Left, node.LeftConversion, TypeSymbolWithAnnotations.Create(node.Operator.LeftType, isNullableIfReferenceType: null), leftOnRight.Type);
+                    leftOnRightType = ApplyConversion(node.Left, node.LeftConversion, node.Operator.LeftType, leftOnRight.Type);
                 }
                 else
                 {
@@ -2636,7 +2627,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     resultType = InferResultNullability(node.Operator.Kind, node.Operator.Method, node.Operator.ReturnType, leftOnRightType, rightType);
 
                     // PROTOTYPE(NullableReferenceTypes): Ignoring top-level nullability of operator.
-                    resultType = ApplyConversion(node, node.FinalConversion, TypeSymbolWithAnnotations.Create(node.Type, isNullableIfReferenceType: null), resultType);
+                    resultType = ApplyConversion(node, node.FinalConversion, node.Type, resultType);
                 }
                 else
                 {
@@ -2833,9 +2824,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 bool? isNullableIfReferenceType = null;
                 if ((object)sourceType != null)
                 {
-                    TypeSymbolWithAnnotations destinationType = iterationVariable.Type;
+                    TypeSymbol destinationType = iterationVariable.Type.TypeSymbol;
                     HashSet<DiagnosticInfo> useSiteDiagnostics = null;
-                    Conversion conversion = _conversions.ClassifyImplicitConversionFromType(sourceType.TypeSymbol, destinationType.TypeSymbol, ref useSiteDiagnostics);
+                    Conversion conversion = _conversions.ClassifyImplicitConversionFromType(sourceType.TypeSymbol, destinationType, ref useSiteDiagnostics);
                     TypeSymbolWithAnnotations result = ApplyConversion(node.IterationVariableType, operandOpt: null, conversion, destinationType, sourceType, checkConversion: false, fromExplicitCast: false, out bool canConvert);
                     if (!canConvert)
                     {
