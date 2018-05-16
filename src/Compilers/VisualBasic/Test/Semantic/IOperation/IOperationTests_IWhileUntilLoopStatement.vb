@@ -1860,5 +1860,93 @@ Block[B2] - Exit
             VerifyFlowGraphAndDiagnosticsForTest(Of MethodBlockSyntax)(source, expectedFlowGraph, expectedDiagnostics)
         End Sub
 
+        <CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)>
+        <Fact()>
+        Public Sub DoLoopFlow_01()
+            Dim source = <![CDATA[
+Imports System
+Public Class C
+    Sub M(condition As Boolean)'BIND:"Sub M"
+        Do
+            condition = false
+        Loop
+    End Sub
+End Class]]>.Value
+
+            Dim expectedDiagnostics = String.Empty
+
+            Dim expectedFlowGraph = <![CDATA[
+Block[B0] - Entry
+    Statements (0)
+    Next (Regular) Block[B1]
+Block[B1] - Block
+    Predecessors: [B0] [B1]
+    Statements (1)
+        IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'condition = false')
+          Expression: 
+            ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Boolean, IsImplicit) (Syntax: 'condition = false')
+              Left: 
+                IParameterReferenceOperation: condition (OperationKind.ParameterReference, Type: System.Boolean) (Syntax: 'condition')
+              Right: 
+                ILiteralOperation (OperationKind.Literal, Type: System.Boolean, Constant: False) (Syntax: 'false')
+
+    Next (Regular) Block[B1]
+Block[B2] - Exit [UnReachable]
+    Predecessors (0)
+    Statements (0)
+]]>.Value
+
+            VerifyFlowGraphAndDiagnosticsForTest(Of MethodBlockSyntax)(source, expectedFlowGraph, expectedDiagnostics)
+        End Sub
+
+        <CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)>
+        <Fact()>
+        Public Sub DoLoopFlow_02()
+            Dim source = <![CDATA[
+Imports System
+Public Class C
+    Sub M(condition As Boolean)'BIND:"Sub M"
+        Do
+            if condition
+                Continue Do
+            end if
+            condition = false
+        Loop
+    End Sub
+End Class]]>.Value
+
+            Dim expectedDiagnostics = String.Empty
+
+            Dim expectedFlowGraph = <![CDATA[
+Block[B0] - Entry
+    Statements (0)
+    Next (Regular) Block[B1]
+Block[B1] - Block
+    Predecessors: [B0] [B1] [B2]
+    Statements (0)
+    Jump if False (Regular) to Block[B2]
+        IParameterReferenceOperation: condition (OperationKind.ParameterReference, Type: System.Boolean) (Syntax: 'condition')
+
+    Next (Regular) Block[B1]
+Block[B2] - Block
+    Predecessors: [B1]
+    Statements (1)
+        IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'condition = false')
+          Expression: 
+            ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Boolean, IsImplicit) (Syntax: 'condition = false')
+              Left: 
+                IParameterReferenceOperation: condition (OperationKind.ParameterReference, Type: System.Boolean) (Syntax: 'condition')
+              Right: 
+                ILiteralOperation (OperationKind.Literal, Type: System.Boolean, Constant: False) (Syntax: 'false')
+
+    Next (Regular) Block[B1]
+Block[B3] - Exit [UnReachable]
+    Predecessors (0)
+    Statements (0)
+]]>.Value
+
+            VerifyFlowGraphAndDiagnosticsForTest(Of MethodBlockSyntax)(source, expectedFlowGraph, expectedDiagnostics)
+        End Sub
+
     End Class
 End Namespace

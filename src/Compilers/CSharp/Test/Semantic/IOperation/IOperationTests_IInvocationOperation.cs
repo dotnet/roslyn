@@ -486,5 +486,88 @@ Block[B5] - Exit
 ";
             VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedFlowGraph, expectedDiagnostics);
         }
+
+        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+        [Fact]
+        public void InvocationFlow_06()
+        {
+            string source = @"
+public class MyClass
+{
+    void M(MyClass c1, MyClass c2, object o1, object o2)
+    /*<bind>*/{
+        c1.M2(o1);
+        (c1 ?? c2).M2(o2);
+    }/*</bind>*/
+    static void M2(object o1) { }
+}
+";
+
+            var expectedDiagnostics = new DiagnosticDescription[] {
+                // file.cs(6,9): error CS0176: Member 'MyClass.M2(object)' cannot be accessed with an instance reference; qualify it with a type name instead
+                //         c1.M2(o1);
+                Diagnostic(ErrorCode.ERR_ObjectProhibited, "c1.M2").WithArguments("MyClass.M2(object)").WithLocation(6, 9),
+                // file.cs(7,9): error CS0176: Member 'MyClass.M2(object)' cannot be accessed with an instance reference; qualify it with a type name instead
+                //         (c1 ?? c2).M2(o2);
+                Diagnostic(ErrorCode.ERR_ObjectProhibited, "(c1 ?? c2).M2").WithArguments("MyClass.M2(object)").WithLocation(7, 9)
+            };
+
+            string expectedFlowGraph = @"
+Block[B0] - Entry
+    Statements (0)
+    Next (Regular) Block[B1]
+Block[B1] - Block
+    Predecessors: [B0]
+    Statements (2)
+        IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null, IsInvalid) (Syntax: 'c1.M2(o1);')
+          Expression: 
+            IInvalidOperation (OperationKind.Invalid, Type: System.Void, IsInvalid) (Syntax: 'c1.M2(o1)')
+              Children(2):
+                  IParameterReferenceOperation: c1 (OperationKind.ParameterReference, Type: MyClass, IsInvalid) (Syntax: 'c1')
+                  IParameterReferenceOperation: o1 (OperationKind.ParameterReference, Type: System.Object) (Syntax: 'o1')
+
+        IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsInvalid, IsImplicit) (Syntax: 'c1')
+          Value: 
+            IParameterReferenceOperation: c1 (OperationKind.ParameterReference, Type: MyClass, IsInvalid) (Syntax: 'c1')
+
+    Jump if True (Regular) to Block[B3]
+        IIsNullOperation (OperationKind.IsNull, Type: System.Boolean, IsInvalid, IsImplicit) (Syntax: 'c1')
+          Operand: 
+            IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: MyClass, IsInvalid, IsImplicit) (Syntax: 'c1')
+
+    Next (Regular) Block[B2]
+Block[B2] - Block
+    Predecessors: [B1]
+    Statements (1)
+        IFlowCaptureOperation: 1 (OperationKind.FlowCapture, Type: null, IsInvalid, IsImplicit) (Syntax: 'c1')
+          Value: 
+            IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: MyClass, IsInvalid, IsImplicit) (Syntax: 'c1')
+
+    Next (Regular) Block[B4]
+Block[B3] - Block
+    Predecessors: [B1]
+    Statements (1)
+        IFlowCaptureOperation: 1 (OperationKind.FlowCapture, Type: null, IsInvalid, IsImplicit) (Syntax: 'c2')
+          Value: 
+            IParameterReferenceOperation: c2 (OperationKind.ParameterReference, Type: MyClass, IsInvalid) (Syntax: 'c2')
+
+    Next (Regular) Block[B4]
+Block[B4] - Block
+    Predecessors: [B2] [B3]
+    Statements (1)
+        IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null, IsInvalid) (Syntax: '(c1 ?? c2).M2(o2);')
+          Expression: 
+            IInvalidOperation (OperationKind.Invalid, Type: System.Void, IsInvalid) (Syntax: '(c1 ?? c2).M2(o2)')
+              Children(2):
+                  IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: MyClass, IsInvalid, IsImplicit) (Syntax: 'c1 ?? c2')
+                  IParameterReferenceOperation: o2 (OperationKind.ParameterReference, Type: System.Object) (Syntax: 'o2')
+
+    Next (Regular) Block[B5]
+Block[B5] - Exit
+    Predecessors: [B4]
+    Statements (0)
+";
+            VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedFlowGraph, expectedDiagnostics);
+        }
     }
 }

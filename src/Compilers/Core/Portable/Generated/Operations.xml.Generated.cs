@@ -896,7 +896,7 @@ namespace Microsoft.CodeAnalysis.Operations
     internal abstract class BaseTupleBinaryOperatorExpression : Operation, ITupleBinaryOperation
     {
         public BaseTupleBinaryOperatorExpression(BinaryOperatorKind operatorKind, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit)
-            : base(OperationKind.BinaryOperator, semanticModel, syntax, type, constantValue, isImplicit)
+            : base(OperationKind.TupleBinaryOperator, semanticModel, syntax, type, constantValue, isImplicit)
         {
             OperatorKind = operatorKind;
         }
