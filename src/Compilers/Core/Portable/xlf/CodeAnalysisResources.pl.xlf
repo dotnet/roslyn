@@ -496,9 +496,9 @@
         <target state="translated">Obraz PE nie zawiera zarządzanych metadanych.</target>
         <note />
       </trans-unit>
-      <trans-unit id="ChangesMustBeOrderedAndNotOverlapping">
-        <source>The changes must be ordered and not overlapping.</source>
-        <target state="translated">Zmiany muszą być uporządkowane i nie mogą nakładać się na siebie.</target>
+      <trans-unit id="ChangesMustNotOverlap">
+        <source>The changes must not overlap.</source>
+        <target state="needs-review-translation">Zmiany muszą być uporządkowane i nie mogą nakładać się na siebie.</target>
         <note />
       </trans-unit>
       <trans-unit id="DiagnosticIdCantBeNullOrWhitespace">
