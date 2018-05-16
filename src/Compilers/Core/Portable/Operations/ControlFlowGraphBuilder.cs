@@ -4746,7 +4746,12 @@ oneMoreTime:
         {
             return new AwaitExpression(Visit(operation.Operation), semanticModel: null, operation.Syntax, operation.Type, operation.ConstantValue, IsImplicit(operation));
         }
-        
+
+        public override IOperation VisitStop(IStopOperation operation, int? captureIdForResult)
+        {
+            return new StopStatement(semanticModel: null, operation.Syntax, operation.Type, operation.ConstantValue, IsImplicit(operation));
+        }
+
         public override IOperation VisitParameterInitializer(IParameterInitializerOperation operation, int? captureIdForResult)
         {
             Debug.Assert(_currentStatement == operation);
@@ -4874,11 +4879,6 @@ oneMoreTime:
         internal override IOperation VisitWith(IWithOperation operation, int? captureIdForResult)
         {
             return new WithStatement(Visit(operation.Body), Visit(operation.Value), semanticModel: null, operation.Syntax, operation.Type, operation.ConstantValue, IsImplicit(operation));
-        }
-
-        public override IOperation VisitStop(IStopOperation operation, int? captureIdForResult)
-        {
-            return new StopStatement(semanticModel: null, operation.Syntax, operation.Type, operation.ConstantValue, IsImplicit(operation));
         }
 
         public override IOperation VisitOmittedArgument(IOmittedArgumentOperation operation, int? captureIdForResult)
