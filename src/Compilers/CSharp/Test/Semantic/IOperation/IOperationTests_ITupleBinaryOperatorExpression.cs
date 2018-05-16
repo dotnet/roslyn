@@ -195,5 +195,321 @@ class C
             var right = equals.Children.ElementAt(1);
             Assert.Equal(OperationKind.Tuple, right.Kind);
         }
+
+        [Fact, CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+        public void TupleBinaryOperator_NoControlFlow()
+        {
+            var source = @"
+class C
+{
+    void F((int, int) x, (int, int) y, bool b)
+    /*<bind>*/
+    {
+        b = x == y;
+    }/*</bind>*/
+}";
+
+            string expectedFlowGraph = @"
+Block[B0] - Entry
+    Statements (0)
+    Next (Regular) Block[B1]
+Block[B1] - Block
+    Predecessors: [B0]
+    Statements (1)
+        IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'b = x == y;')
+          Expression: 
+            ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Boolean) (Syntax: 'b = x == y')
+              Left: 
+                IParameterReferenceOperation: b (OperationKind.ParameterReference, Type: System.Boolean) (Syntax: 'b')
+              Right: 
+                ITupleBinaryOperation (BinaryOperatorKind.Equals) (OperationKind.TupleBinaryOperator, Type: System.Boolean) (Syntax: 'x == y')
+                  Left: 
+                    IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: (System.Int32, System.Int32)) (Syntax: 'x')
+                  Right: 
+                    IParameterReferenceOperation: y (OperationKind.ParameterReference, Type: (System.Int32, System.Int32)) (Syntax: 'y')
+
+    Next (Regular) Block[B2]
+Block[B2] - Exit
+    Predecessors: [B1]
+    Statements (0)
+";
+
+            var expectedDiagnostics = DiagnosticDescription.None;
+
+            VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedFlowGraph, expectedDiagnostics);
+        }
+
+        [Fact, CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+        public void TupleBinaryOperator_ControlFlowInLeftOperand()
+        {
+            var source = @"
+class C
+{
+    void F((int, int)? x1, (int, int) x2, (int, int) y, bool b)
+    /*<bind>*/
+    {
+        b = (x1 ?? x2) == y;
+    }/*</bind>*/
+}";
+
+            string expectedFlowGraph = @"
+Block[B0] - Entry
+    Statements (0)
+    Next (Regular) Block[B1]
+Block[B1] - Block
+    Predecessors: [B0]
+    Statements (2)
+        IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'b')
+          Value: 
+            IParameterReferenceOperation: b (OperationKind.ParameterReference, Type: System.Boolean) (Syntax: 'b')
+
+        IFlowCaptureOperation: 1 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'x1')
+          Value: 
+            IParameterReferenceOperation: x1 (OperationKind.ParameterReference, Type: (System.Int32, System.Int32)?) (Syntax: 'x1')
+
+    Jump if True (Regular) to Block[B3]
+        IIsNullOperation (OperationKind.IsNull, Type: System.Boolean, IsImplicit) (Syntax: 'x1')
+          Operand: 
+            IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: (System.Int32, System.Int32)?, IsImplicit) (Syntax: 'x1')
+
+    Next (Regular) Block[B2]
+Block[B2] - Block
+    Predecessors: [B1]
+    Statements (1)
+        IFlowCaptureOperation: 2 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'x1')
+          Value: 
+            IInvocationOperation ( (System.Int32, System.Int32) (System.Int32, System.Int32)?.GetValueOrDefault()) (OperationKind.Invocation, Type: (System.Int32, System.Int32), IsImplicit) (Syntax: 'x1')
+              Instance Receiver: 
+                IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: (System.Int32, System.Int32)?, IsImplicit) (Syntax: 'x1')
+              Arguments(0)
+
+    Next (Regular) Block[B4]
+Block[B3] - Block
+    Predecessors: [B1]
+    Statements (1)
+        IFlowCaptureOperation: 2 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'x2')
+          Value: 
+            IParameterReferenceOperation: x2 (OperationKind.ParameterReference, Type: (System.Int32, System.Int32)) (Syntax: 'x2')
+
+    Next (Regular) Block[B4]
+Block[B4] - Block
+    Predecessors: [B2] [B3]
+    Statements (1)
+        IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'b = (x1 ?? x2) == y;')
+          Expression: 
+            ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Boolean) (Syntax: 'b = (x1 ?? x2) == y')
+              Left: 
+                IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.Boolean, IsImplicit) (Syntax: 'b')
+              Right: 
+                ITupleBinaryOperation (BinaryOperatorKind.Equals) (OperationKind.TupleBinaryOperator, Type: System.Boolean) (Syntax: '(x1 ?? x2) == y')
+                  Left: 
+                    IFlowCaptureReferenceOperation: 2 (OperationKind.FlowCaptureReference, Type: (System.Int32, System.Int32), IsImplicit) (Syntax: 'x1 ?? x2')
+                  Right: 
+                    IParameterReferenceOperation: y (OperationKind.ParameterReference, Type: (System.Int32, System.Int32)) (Syntax: 'y')
+
+    Next (Regular) Block[B5]
+Block[B5] - Exit
+    Predecessors: [B4]
+    Statements (0)
+";
+
+            var expectedDiagnostics = DiagnosticDescription.None;
+
+            VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedFlowGraph, expectedDiagnostics);
+        }
+
+        [Fact, CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+        public void TupleBinaryOperator_ControlFlowInRightOperand()
+        {
+            var source = @"
+class C
+{
+    void F((int, int)? x1, (int, int) x2, (int, int) y, bool b)
+    /*<bind>*/
+    {
+        b = y == (x1 ?? x2);
+    }/*</bind>*/
+}";
+
+            string expectedFlowGraph = @"
+Block[B0] - Entry
+    Statements (0)
+    Next (Regular) Block[B1]
+Block[B1] - Block
+    Predecessors: [B0]
+    Statements (3)
+        IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'b')
+          Value: 
+            IParameterReferenceOperation: b (OperationKind.ParameterReference, Type: System.Boolean) (Syntax: 'b')
+
+        IFlowCaptureOperation: 1 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'y')
+          Value: 
+            IParameterReferenceOperation: y (OperationKind.ParameterReference, Type: (System.Int32, System.Int32)) (Syntax: 'y')
+
+        IFlowCaptureOperation: 2 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'x1')
+          Value: 
+            IParameterReferenceOperation: x1 (OperationKind.ParameterReference, Type: (System.Int32, System.Int32)?) (Syntax: 'x1')
+
+    Jump if True (Regular) to Block[B3]
+        IIsNullOperation (OperationKind.IsNull, Type: System.Boolean, IsImplicit) (Syntax: 'x1')
+          Operand: 
+            IFlowCaptureReferenceOperation: 2 (OperationKind.FlowCaptureReference, Type: (System.Int32, System.Int32)?, IsImplicit) (Syntax: 'x1')
+
+    Next (Regular) Block[B2]
+Block[B2] - Block
+    Predecessors: [B1]
+    Statements (1)
+        IFlowCaptureOperation: 3 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'x1')
+          Value: 
+            IInvocationOperation ( (System.Int32, System.Int32) (System.Int32, System.Int32)?.GetValueOrDefault()) (OperationKind.Invocation, Type: (System.Int32, System.Int32), IsImplicit) (Syntax: 'x1')
+              Instance Receiver: 
+                IFlowCaptureReferenceOperation: 2 (OperationKind.FlowCaptureReference, Type: (System.Int32, System.Int32)?, IsImplicit) (Syntax: 'x1')
+              Arguments(0)
+
+    Next (Regular) Block[B4]
+Block[B3] - Block
+    Predecessors: [B1]
+    Statements (1)
+        IFlowCaptureOperation: 3 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'x2')
+          Value: 
+            IParameterReferenceOperation: x2 (OperationKind.ParameterReference, Type: (System.Int32, System.Int32)) (Syntax: 'x2')
+
+    Next (Regular) Block[B4]
+Block[B4] - Block
+    Predecessors: [B2] [B3]
+    Statements (1)
+        IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'b = y == (x1 ?? x2);')
+          Expression: 
+            ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Boolean) (Syntax: 'b = y == (x1 ?? x2)')
+              Left: 
+                IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.Boolean, IsImplicit) (Syntax: 'b')
+              Right: 
+                ITupleBinaryOperation (BinaryOperatorKind.Equals) (OperationKind.TupleBinaryOperator, Type: System.Boolean) (Syntax: 'y == (x1 ?? x2)')
+                  Left: 
+                    IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: (System.Int32, System.Int32), IsImplicit) (Syntax: 'y')
+                  Right: 
+                    IFlowCaptureReferenceOperation: 3 (OperationKind.FlowCaptureReference, Type: (System.Int32, System.Int32), IsImplicit) (Syntax: 'x1 ?? x2')
+
+    Next (Regular) Block[B5]
+Block[B5] - Exit
+    Predecessors: [B4]
+    Statements (0)
+";
+
+            var expectedDiagnostics = DiagnosticDescription.None;
+
+            VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedFlowGraph, expectedDiagnostics);
+        }
+
+        [Fact, CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+        public void TupleBinaryOperator_ControlFlowInBothOperands()
+        {
+            var source = @"
+class C
+{
+    void F((int, int)? x1, (int, int) x2, (int, int)? y1, (int, int) y2, bool b)
+    /*<bind>*/
+    {
+        b = (x1 ?? x2) == (y1 ?? y2);
+    }/*</bind>*/
+}";
+
+            string expectedFlowGraph = @"
+Block[B0] - Entry
+    Statements (0)
+    Next (Regular) Block[B1]
+Block[B1] - Block
+    Predecessors: [B0]
+    Statements (2)
+        IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'b')
+          Value: 
+            IParameterReferenceOperation: b (OperationKind.ParameterReference, Type: System.Boolean) (Syntax: 'b')
+
+        IFlowCaptureOperation: 1 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'x1')
+          Value: 
+            IParameterReferenceOperation: x1 (OperationKind.ParameterReference, Type: (System.Int32, System.Int32)?) (Syntax: 'x1')
+
+    Jump if True (Regular) to Block[B3]
+        IIsNullOperation (OperationKind.IsNull, Type: System.Boolean, IsImplicit) (Syntax: 'x1')
+          Operand: 
+            IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: (System.Int32, System.Int32)?, IsImplicit) (Syntax: 'x1')
+
+    Next (Regular) Block[B2]
+Block[B2] - Block
+    Predecessors: [B1]
+    Statements (1)
+        IFlowCaptureOperation: 2 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'x1')
+          Value: 
+            IInvocationOperation ( (System.Int32, System.Int32) (System.Int32, System.Int32)?.GetValueOrDefault()) (OperationKind.Invocation, Type: (System.Int32, System.Int32), IsImplicit) (Syntax: 'x1')
+              Instance Receiver: 
+                IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: (System.Int32, System.Int32)?, IsImplicit) (Syntax: 'x1')
+              Arguments(0)
+
+    Next (Regular) Block[B4]
+Block[B3] - Block
+    Predecessors: [B1]
+    Statements (1)
+        IFlowCaptureOperation: 2 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'x2')
+          Value: 
+            IParameterReferenceOperation: x2 (OperationKind.ParameterReference, Type: (System.Int32, System.Int32)) (Syntax: 'x2')
+
+    Next (Regular) Block[B4]
+Block[B4] - Block
+    Predecessors: [B2] [B3]
+    Statements (1)
+        IFlowCaptureOperation: 3 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'y1')
+          Value: 
+            IParameterReferenceOperation: y1 (OperationKind.ParameterReference, Type: (System.Int32, System.Int32)?) (Syntax: 'y1')
+
+    Jump if True (Regular) to Block[B6]
+        IIsNullOperation (OperationKind.IsNull, Type: System.Boolean, IsImplicit) (Syntax: 'y1')
+          Operand: 
+            IFlowCaptureReferenceOperation: 3 (OperationKind.FlowCaptureReference, Type: (System.Int32, System.Int32)?, IsImplicit) (Syntax: 'y1')
+
+    Next (Regular) Block[B5]
+Block[B5] - Block
+    Predecessors: [B4]
+    Statements (1)
+        IFlowCaptureOperation: 4 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'y1')
+          Value: 
+            IInvocationOperation ( (System.Int32, System.Int32) (System.Int32, System.Int32)?.GetValueOrDefault()) (OperationKind.Invocation, Type: (System.Int32, System.Int32), IsImplicit) (Syntax: 'y1')
+              Instance Receiver: 
+                IFlowCaptureReferenceOperation: 3 (OperationKind.FlowCaptureReference, Type: (System.Int32, System.Int32)?, IsImplicit) (Syntax: 'y1')
+              Arguments(0)
+
+    Next (Regular) Block[B7]
+Block[B6] - Block
+    Predecessors: [B4]
+    Statements (1)
+        IFlowCaptureOperation: 4 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'y2')
+          Value: 
+            IParameterReferenceOperation: y2 (OperationKind.ParameterReference, Type: (System.Int32, System.Int32)) (Syntax: 'y2')
+
+    Next (Regular) Block[B7]
+Block[B7] - Block
+    Predecessors: [B5] [B6]
+    Statements (1)
+        IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'b = (x1 ??  ... (y1 ?? y2);')
+          Expression: 
+            ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Boolean) (Syntax: 'b = (x1 ??  ...  (y1 ?? y2)')
+              Left: 
+                IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.Boolean, IsImplicit) (Syntax: 'b')
+              Right: 
+                ITupleBinaryOperation (BinaryOperatorKind.Equals) (OperationKind.TupleBinaryOperator, Type: System.Boolean) (Syntax: '(x1 ?? x2) == (y1 ?? y2)')
+                  Left: 
+                    IFlowCaptureReferenceOperation: 2 (OperationKind.FlowCaptureReference, Type: (System.Int32, System.Int32), IsImplicit) (Syntax: 'x1 ?? x2')
+                  Right: 
+                    IFlowCaptureReferenceOperation: 4 (OperationKind.FlowCaptureReference, Type: (System.Int32, System.Int32), IsImplicit) (Syntax: 'y1 ?? y2')
+
+    Next (Regular) Block[B8]
+Block[B8] - Exit
+    Predecessors: [B7]
+    Statements (0)
+";
+
+            var expectedDiagnostics = DiagnosticDescription.None;
+
+            VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedFlowGraph, expectedDiagnostics);
+        }
     }
 }

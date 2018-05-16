@@ -1458,6 +1458,14 @@ namespace Microsoft.CodeAnalysis.Operations
                                                 operation.OperatorMethod, semanticModel: null, operation.Syntax, operation.Type, operation.ConstantValue, IsImplicit(operation));
         }
 
+        public override IOperation VisitTupleBinaryOperator(ITupleBinaryOperation operation, int? captureIdForResult)
+        {
+            _evalStack.Push(Visit(operation.LeftOperand));
+            IOperation rightOperand = Visit(operation.RightOperand);
+            return new TupleBinaryOperatorExpression(operation.OperatorKind, _evalStack.Pop(), rightOperand,
+                semanticModel: null, operation.Syntax, operation.Type, operation.ConstantValue, IsImplicit(operation));
+        }
+
         public override IOperation VisitUnaryOperator(IUnaryOperation operation, int? captureIdForResult)
         {
             // PROTOTYPE(dataflow): ensure we properly detect logical Not
@@ -5086,11 +5094,6 @@ oneMoreTime:
         public override IOperation VisitRaiseEvent(IRaiseEventOperation operation, int? captureIdForResult)
         {
             return new RaiseEventStatement(Visit(operation.EventReference), VisitArray(operation.Arguments), semanticModel: null, operation.Syntax, operation.Type, operation.ConstantValue, IsImplicit(operation));
-        }
-
-        public override IOperation VisitTupleBinaryOperator(ITupleBinaryOperation operation, int? captureIdForResult)
-        {
-            return new TupleBinaryOperatorExpression(operation.OperatorKind, Visit(operation.LeftOperand), Visit(operation.RightOperand), semanticModel: null, operation.Syntax, operation.Type, operation.ConstantValue, IsImplicit(operation));
         }
 
         public override IOperation VisitConstructorBodyOperation(IConstructorBodyOperation operation, int? captureIdForResult)

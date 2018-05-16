@@ -607,6 +607,7 @@ endRegion:
                 case OperationKind.InterpolatedString:
                 case OperationKind.AnonymousObjectCreation:
                 case OperationKind.Tuple:
+                case OperationKind.TupleBinaryOperator:
                 case OperationKind.DynamicObjectCreation:
                 case OperationKind.DynamicMemberReference:
                 case OperationKind.DynamicInvocation:
