@@ -407,7 +407,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     {
                         // Type parameter '{0}' has the same name as the type parameter from parent function '{1}'
                         typeError = ErrorCode.WRN_TypeParameterSameAsParentFunctionParameter;
-                    } else
+                    }
+                    else
                     {
                         Debug.Assert(tpEnclosing.ContainingSymbol.Kind == SymbolKind.NamedType);
                         // Type parameter '{0}' has the same name as the type parameter from outer type '{1}'
