@@ -982,6 +982,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Dim instance As BoundExpression = TryDefaultInstanceProperty(DirectCast(expr, BoundTypeExpression), diagnostics)
 
                     If instance Is Nothing Then
+                        If Binder.IsTypeOfExtended(expr.Syntax.Parent, diagnostics) Then
+                            Dim r = New BoundTypeAsValueExpression(expr.Syntax, DirectCast(expr, BoundTypeExpression), expr.Type)
+                            Return r
+                        End If
                         Dim type = expr.Type
                         ReportDiagnostic(diagnostics, expr.Syntax, GetTypeNotExpressionErrorId(type), type)
                         Return New BoundBadVariable(expr.Syntax, expr, ErrorTypeSymbol.UnknownResultType, hasErrors:=True)
@@ -1189,12 +1193,34 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Select
         End Function
 
+        Friend Shared Function IsTypeOfExtended(expr As SyntaxNode, diagnostics As DiagnosticBag) As Boolean
+            Dim binExpr = TryCast(expr, BinaryExpressionSyntax)
+            If binExpr IsNot Nothing Then
+                Dim left_typeof = TryCast(binExpr.Left, TypeOfExpressionSyntax)
+                If left_typeof IsNot Nothing Then
+                    Dim op = binExpr.OperatorToken.Kind
+                    Select Case op
+                        Case SyntaxKind.AndAlsoKeyword, SyntaxKind.AndKeyword,
+                             SyntaxKind.OrKeyword, SyntaxKind.OrElseKeyword
+                            If InternalSyntax.Parser.CheckFeatureAvailability(diagnostics, binExpr.Location, DirectCast(expr.SyntaxTree, VisualBasicSyntaxTree).Options.LanguageVersion, InternalSyntax.Feature.ExtendedTypeOfExpressions) Then
+                                Return True
+                            End If
+                    End Select
+                End If
+            End If
+            Return False
+        End Function
+
         Private Function MakeValue(
            expr As BoundExpression,
            diagnostics As DiagnosticBag
         ) As BoundExpression
 
-            If expr.Kind = BoundKind.Parenthesized Then
+            If expr.Kind = BoundKind.TypeExpression AndAlso IsTypeOfExtended(expr.Syntax, diagnostics) Then
+
+                Dim BoundAsExtendedTypeOf = New BoundTypeAsValueExpression(expr.Syntax, DirectCast(expr, BoundTypeExpression), expr.Type)
+                Return BoundAsExtendedTypeOf
+            ElseIf expr.Kind = BoundKind.Parenthesized Then
                 If Not expr.IsNothingLiteral() Then
                     Dim parenthesized = DirectCast(expr, BoundParenthesized)
                     Dim enclosed As BoundExpression = MakeValue(parenthesized.Expression, diagnostics)
@@ -1235,11 +1261,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim exprType = expr.Type
             Dim syntax = expr.Syntax
 
+
             If Not expr.IsValue() OrElse
-               (exprType IsNot Nothing AndAlso exprType.SpecialType = SpecialType.System_Void) Then
+           (exprType IsNot Nothing AndAlso exprType.SpecialType = SpecialType.System_Void) Then
 
                 ReportDiagnostic(diagnostics, syntax, ERRID.ERR_VoidValue)
                 Return BadExpression(syntax, expr, LookupResultKind.NotAValue, ErrorTypeSymbol.UnknownResultType)
+
+
             ElseIf expr.Kind = BoundKind.PropertyAccess Then
 
                 Dim propertyAccess = DirectCast(expr, BoundPropertyAccess)

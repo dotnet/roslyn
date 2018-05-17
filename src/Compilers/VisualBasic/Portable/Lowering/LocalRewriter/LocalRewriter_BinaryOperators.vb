@@ -11,7 +11,7 @@ Imports TypeKind = Microsoft.CodeAnalysis.TypeKind
 
 Namespace Microsoft.CodeAnalysis.VisualBasic
 
-    Friend Partial Class LocalRewriter
+    Partial Friend Class LocalRewriter
 
         Public Overrides Function VisitUserDefinedBinaryOperator(node As BoundUserDefinedBinaryOperator) As BoundNode
             If _inExpressionLambda Then
@@ -84,6 +84,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Overrides Function VisitBinaryOperator(node As BoundBinaryOperator) As BoundNode
             ' Do not blow the stack due to a deep recursion on the left. 
 
+            If Binder.IsTypeOfExtended(node.Syntax, Me._diagnostics) Then
+                Return RewriteAsTypeOf(node)
+            End If
             Dim child As BoundExpression = node.Left
 
             If child.Kind <> BoundKind.BinaryOperator Then
@@ -404,6 +407,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     End If
 
                 Case BinaryOperatorKind.OrElse, BinaryOperatorKind.AndAlso
+                    If Binder.IsTypeOfExtended(node.Syntax, Me._diagnostics) Then
+                        Return RewriteAsTypeOf(node)
+                    End If
                     If node.Type.IsObjectType() AndAlso Not _inExpressionLambda Then
                         Return RewriteObjectShortCircuitOperator(node)
                     End If
@@ -414,11 +420,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     End If
 
                 Case BinaryOperatorKind.Or
+                    If Binder.IsTypeOfExtended(node.Syntax, Me._diagnostics) Then
+                        Return RewriteAsTypeOf(node)
+                    End If
                     If node.Type.IsObjectType() AndAlso Not _inExpressionLambda Then
                         Return RewriteObjectBinaryOperator(node, WellKnownMember.Microsoft_VisualBasic_CompilerServices_Operators__OrObjectObjectObject)
                     End If
 
                 Case BinaryOperatorKind.And
+                    If Binder.IsTypeOfExtended(node.Syntax, Me._diagnostics) Then
+                        Return RewriteAsTypeOf(node)
+                    End If
                     If node.Type.IsObjectType() AndAlso Not _inExpressionLambda Then
                         Return RewriteObjectBinaryOperator(node, WellKnownMember.Microsoft_VisualBasic_CompilerServices_Operators__AndObjectObjectObject)
                     End If
@@ -426,6 +438,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Select
 
             Return node
+        End Function
+
+        Private Function RewriteAsTypeOf(node As BoundBinaryOperator) As BoundBinaryOperator
+            Dim left = DirectCast(node.Left, BoundTypeOf)
+            Dim right_operand = left.Operand ' New BoundDu(left.Operand.Syntax, left.Operand.Type.IsReferenceType, left.Operand.Type)
+            Dim right = New BoundTypeOf(node.Right.Syntax, right_operand, left.IsTypeOfIsNotExpression, node.Right.Type, left.Type)
+            Dim new_node = node.Update(node.OperatorKind, left, right, node.Checked, node.ConstantValueOpt, left.Type)
+            Return new_node
         End Function
 
         Private Function RewriteDateComparisonOperator(node As BoundBinaryOperator) As BoundExpression

@@ -26,11 +26,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             ValidateConstantValue()
             Left.AssertRValue()
             Right.AssertRValue()
-            Debug.Assert(HasErrors OrElse Left.Type.IsSameTypeIgnoringAll(Right.Type) OrElse
-                         (OperatorKind And BinaryOperatorKind.OpMask) = BinaryOperatorKind.LeftShift OrElse
-                         (OperatorKind And BinaryOperatorKind.OpMask) = BinaryOperatorKind.RightShift OrElse
-                         (OperatorKind And BinaryOperatorKind.OpMask) = BinaryOperatorKind.Is OrElse
-                         (OperatorKind And BinaryOperatorKind.OpMask) = BinaryOperatorKind.IsNot)
+            'Debug.Assert(HasErrors OrElse Left.Type.IsSameTypeIgnoringAll(Right.Type) OrElse
+            '             (OperatorKind And BinaryOperatorKind.OpMask) = BinaryOperatorKind.LeftShift OrElse
+            '             (OperatorKind And BinaryOperatorKind.OpMask) = BinaryOperatorKind.RightShift OrElse
+            '             (OperatorKind And BinaryOperatorKind.OpMask) = BinaryOperatorKind.Is OrElse
+            '             (OperatorKind And BinaryOperatorKind.OpMask) = BinaryOperatorKind.IsNot)
         End Sub
 #End If
 
