@@ -5,24 +5,18 @@ Imports System.Threading
 Imports Microsoft.CodeAnalysis.CodeRefactorings
 Imports Microsoft.CodeAnalysis.Editing
 Imports Microsoft.CodeAnalysis.LanguageServices
-Imports Microsoft.CodeAnalysis.Simplification
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings.InvertIf
     <ExportCodeRefactoringProvider(LanguageNames.VisualBasic, Name:=PredefinedCodeRefactoringProviderNames.InvertIf), [Shared]>
-    Friend NotInheritable Class VisualBasicInvertIfSingleLineCodeRefactoringProvider
+    Friend NotInheritable Class VisualBasicInvertSingleLineIfCodeRefactoringProvider
         Inherits VisualBasicInvertIfCodeRefactoringProvider(Of SingleLineIfStatementSyntax)
 
-        Private Shared Function GetInvertedIfNode(
+        Protected Overrides Function GetInvertedIfNode(
                 ifNode As SingleLineIfStatementSyntax,
-                document As Document,
-                generator As SyntaxGenerator,
-                syntaxFacts As ISyntaxFactsService,
-                semanticModel As SemanticModel,
-                negatedExpression As ExpressionSyntax,
-                cancellationToken As CancellationToken) As SingleLineIfStatementSyntax
+                negatedExpression As ExpressionSyntax) As SingleLineIfStatementSyntax
 
             Dim elseClause = ifNode.ElseClause
 
@@ -49,7 +43,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings.InvertIf
                     Dim trailing = singleLineIf.GetTrailingTrivia()
                     If trailing.Any(SyntaxKind.EndOfLineTrivia) Then
                         Dim eol = trailing.Last(Function(t) t.Kind = SyntaxKind.EndOfLineTrivia)
-                        trailing = trailing.Select(Function(t) If(t = eol, SyntaxFactory.ColonTrivia(syntaxFacts.GetText(SyntaxKind.ColonTrivia)), t)).ToSyntaxTriviaList()
+                        trailing = trailing.Select(Function(t) If(t = eol, SyntaxFactory.ColonTrivia(SyntaxFacts.GetText(SyntaxKind.ColonTrivia)), t)).ToSyntaxTriviaList()
                     End If
 
                     Dim withElsePart = singleLineIf.WithTrailingTrivia(trailing).WithElseClause(
@@ -65,39 +59,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings.InvertIf
                          .WithElseClause(elseClause.WithStatements(ifNode.Statements).WithTrailingTrivia(elseClause.GetTrailingTrivia()))
         End Function
 
-        Protected Overrides Function InvertIfStatement(
-                originalIfNode As SingleLineIfStatementSyntax,
-                document As Document,
-                generator As SyntaxGenerator,
-                syntaxFacts As ISyntaxFactsService,
-                model As SemanticModel,
-                negatedExpression As ExpressionSyntax,
-                cancellationToken As CancellationToken) As SemanticModel
-
-            Dim root = model.SyntaxTree.GetRoot()
-            Dim invertedIfNode = GetInvertedIfNode(originalIfNode, document, generator, syntaxFacts, model, negatedExpression, cancellationToken)
-            Dim result = UpdateSemanticModel(model, root.ReplaceNode(originalIfNode, invertedIfNode), cancellationToken)
-
-            ' Complexify the next statement if there is one.
-            invertedIfNode = DirectCast(result.Root.GetAnnotatedNodesAndTokens(s_ifNodeAnnotation).Single().AsNode(), SingleLineIfStatementSyntax)
-
-            Dim currentStatement As StatementSyntax = invertedIfNode
-            If currentStatement.HasAncestor(Of ExpressionSyntax)() Then
-                currentStatement = currentStatement _
-                    .Ancestors() _
-                    .OfType(Of ExpressionSyntax) _
-                    .Last() _
-                    .FirstAncestorOrSelf(Of StatementSyntax)()
-            End If
-
-            Dim nextStatement = currentStatement.GetNextStatement()
-            If nextStatement IsNot Nothing Then
-                Dim explicitNextStatement = Simplifier.Expand(nextStatement, result.Model, document.Project.Solution.Workspace, cancellationToken:=cancellationToken)
-                result = UpdateSemanticModel(result.Model, result.Root.ReplaceNode(nextStatement, explicitNextStatement), cancellationToken)
-            End If
-
-            Return result.Model
-        End Function
 
         Protected Overrides Function GetHeaderSpan(ifNode As SingleLineIfStatementSyntax) As TextSpan
             Return TextSpan.FromBounds(
@@ -110,27 +71,23 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings.InvertIf
         End Function
 
         Protected Overrides Function CanInvert(ifNode As SingleLineIfStatementSyntax) As Boolean
-            Throw New NotImplementedException()
-        End Function
+            If ifNode.IsParentKind(SyntaxKind.SingleLineSubLambdaExpression) Then
+                If ifNode.ElseClause Is Nothing Then
+                    Return False
+                End If
 
-        Protected Overrides Function GetNearmostParentJumpStatementRawKind(ifNode As SingleLineIfStatementSyntax) As Integer
-            Throw New NotImplementedException()
-        End Function
+                If ifNode.Parent.IsParentKind(SyntaxKind.EqualsValue) AndAlso
+                   ifNode.Parent.Parent.IsParentKind(SyntaxKind.VariableDeclarator) AndAlso
+                   ifNode.Parent.Parent.Parent.IsParentKind(SyntaxKind.LocalDeclarationStatement) Then
+                    Return DirectCast(ifNode.Parent.Parent.Parent.Parent, LocalDeclarationStatementSyntax).Declarators.Count = 1
+                End If
+            End If
 
-        Protected Overrides Function IsEmptyStatementRange(statementRange As (first As SyntaxNode, last As SyntaxNode)) As Boolean
-            Throw New NotImplementedException()
-        End Function
-
-        Protected Overrides Function GetIfBodyStatementRange(ifNode As SingleLineIfStatementSyntax) As (first As SyntaxNode, last As SyntaxNode)
-            Throw New NotImplementedException()
-        End Function
-
-        Protected Overrides Function GetSubsequentStatementRanges(ifNode As SingleLineIfStatementSyntax) As IEnumerable(Of (first As SyntaxNode, last As SyntaxNode))
-            Throw New NotImplementedException()
+            Return True
         End Function
 
         Protected Overrides Function GetCondition(ifNode As SingleLineIfStatementSyntax) As SyntaxNode
-            Throw New NotImplementedException()
+            Return ifNode.Condition
         End Function
     End Class
 End Namespace

@@ -23,19 +23,13 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InvertIf
         protected override string GetTitle() => CSharpFeaturesResources.Invert_if;
 
         protected override SyntaxNode GetRootWithInvertIfStatement(
-                Document document,
-                SemanticModel semanticModel,
-                IfStatementSyntax ifNode,
-                InvertIfStyle invertIfStyle,
-                SyntaxNode subsequentSingleExitPointOpt,
-                SyntaxNode negatedExpression,
-                CancellationToken cancellationToken)
+            SyntaxNode root,
+            IfStatementSyntax ifNode,
+            InvertIfStyle invertIfStyle,
+            SyntaxNode subsequentSingleExitPointOpt,
+            SyntaxNode negatedExpression)
         {
-            var generator = SyntaxGenerator.GetGenerator(document);
-            var syntaxFacts = CSharpSyntaxFactsService.Instance;
-
             var negatedCondition = (ExpressionSyntax)negatedExpression;
-            var root = semanticModel.SyntaxTree.GetRoot(cancellationToken);
 
             switch (invertIfStyle)
             {
@@ -119,7 +113,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InvertIf
 
                 case InvertIfStyle.WithNearmostJumpStatement:
                     {
-                        var newIfBody = GetNearmostAncestorJumpStatement();
+                        var newIfBody = GetNearmostParentJumpStatement();
                         var updatedIf = ifNode.WithCondition(negatedCondition)
                             .WithStatement(SyntaxFactory.Block(newIfBody));
 
@@ -135,7 +129,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InvertIf
                         return root.ReplaceNode(currentParent, updatedParent);
                     }
 
-                    StatementSyntax GetNearmostAncestorJumpStatement()
+                    StatementSyntax GetNearmostParentJumpStatement()
                     {
                         switch ((SyntaxKind)GetNearmostParentJumpStatementRawKind(ifNode))
                         {
@@ -221,6 +215,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InvertIf
         {
             if (statements.Length > 0)
             {
+                // FIXME preserve comments
                 statements[0] = statements[0].WithoutLeadingTrivia();
             }
 
@@ -324,44 +319,28 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InvertIf
             return (statement, statement);
         }
 
-#if DEBUG
-        [Conditional("DEBUG")]
-        private static void AssertStatementRange(StatementSyntax firstStatement, StatementSyntax lastStatement)
-        {
-            Debug.Assert(firstStatement != null);
-            Debug.Assert(lastStatement != null);
-            Debug.Assert(firstStatement.Parent != null);
-            Debug.Assert(firstStatement.Parent == lastStatement.Parent);
-            Debug.Assert(firstStatement.SpanStart <= lastStatement.SpanStart);
-        }
-#endif
-
         protected override IEnumerable<(SyntaxNode first, SyntaxNode last)> GetSubsequentStatementRanges(IfStatementSyntax ifNode)
         {
             StatementSyntax innerStatement = ifNode;
             foreach (var node in ifNode.Ancestors())
             {
                 var nextStatement = innerStatement.GetNextStatement();
+                if (nextStatement != null && node.IsKind(SyntaxKind.Block, SyntaxKind.SwitchSection))
+                {
+                    var lastStatement = GetStatements(node).Last();
+                    Debug.Assert(nextStatement.Parent != null);
+                    Debug.Assert(nextStatement.Parent == lastStatement.Parent);
+                    Debug.Assert(nextStatement.SpanStart <= lastStatement.SpanStart);
+                    yield return (nextStatement, lastStatement);
+                }
+
                 switch (node.Kind())
                 {
                     case SyntaxKind.Block:
-                        if (nextStatement != null)
-                        {
-                            var lastStatement = ((BlockSyntax)node).Statements.Last();
-                            AssertStatementRange(nextStatement, lastStatement);
-                            yield return (nextStatement, lastStatement);
-                        }
-
+                        // Continue walking up to visit possible outer blocks
                         break;
-                    case SyntaxKind.SwitchSection:
-                        if (nextStatement != null)
-                        {
-                            var lastStatement = ((SwitchSectionSyntax)node).Statements.Last();
-                            AssertStatementRange(nextStatement, lastStatement);
-                            yield return (nextStatement, lastStatement);
-                        }
 
-                        yield break;
+                    case SyntaxKind.SwitchSection:
                     case SyntaxKind.LocalFunctionStatement:
                     case SyntaxKind.SetAccessorDeclaration:
                     case SyntaxKind.GetAccessorDeclaration:
@@ -380,6 +359,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InvertIf
                     case SyntaxKind.ForStatement:
                     case SyntaxKind.ForEachStatement:
                     case SyntaxKind.ForEachVariableStatement:
+                        // We no longer need to continue since other statements
+                        // are out of reach, as far as the analysis is concerned.
                         yield break;
                 }
 

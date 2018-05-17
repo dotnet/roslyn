@@ -81,7 +81,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.InvertIf
                 : InvertIfStyle.Normal;
 
             context.RegisterRefactoring(new MyCodeAction(GetTitle(),
-                c => InvertIfAsync(document, semanticModel, ifNode, invertIfStyle, subsequentSingleExitPointOpt, c)));
+                c => InvertIfAsync(root, document, semanticModel, ifNode, invertIfStyle, subsequentSingleExitPointOpt, c)));
         }
 
         private InvertIfStyle GetInvertIfStyle(
@@ -288,6 +288,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.InvertIf
         }
 
         private Task<Document> InvertIfAsync(
+            SyntaxNode root,
             Document document,
             SemanticModel semanticModel,
             TIfStatementSyntax ifNode,
@@ -298,8 +299,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.InvertIf
             return Task.FromResult(
                 document.WithSyntaxRoot(
                     GetRootWithInvertIfStatement(
-                        document,
-                        semanticModel,
+                        root,
                         ifNode,
                         invertIfStyle,
                         subsequentSingleExitPointOpt,
@@ -308,8 +308,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.InvertIf
                             document.GetLanguageService<SyntaxGenerator>(),
                             document.GetLanguageService<ISyntaxFactsService>(),
                             semanticModel,
-                            cancellationToken),
-                        cancellationToken)));
+                            cancellationToken))));
         }
 
         private void AnalyzeSubsequentControlFlow(
@@ -378,13 +377,11 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.InvertIf
         protected abstract IEnumerable<(SyntaxNode first, SyntaxNode last)> GetSubsequentStatementRanges(TIfStatementSyntax ifNode);
 
         protected abstract SyntaxNode GetRootWithInvertIfStatement(
-            Document document,
-            SemanticModel semanticModel,
+            SyntaxNode root,
             TIfStatementSyntax ifNode,
             InvertIfStyle invertIfStyle,
             SyntaxNode subsequentSingleExitPointOpt,
-            SyntaxNode negatedExpression,
-            CancellationToken cancellationToken);
+            SyntaxNode negatedExpression);
 
         private sealed class MyCodeAction : CodeAction.DocumentChangeAction
         {

@@ -2,72 +2,111 @@
 
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.CodeRefactorings.InvertIf
-Imports Microsoft.CodeAnalysis.Editing
-Imports Microsoft.CodeAnalysis.LanguageServices
-Imports Microsoft.CodeAnalysis.Simplification
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings.InvertIf
     Friend MustInherit Class VisualBasicInvertIfCodeRefactoringProvider(Of TIfStatementSyntax As ExecutableStatementSyntax)
         Inherits AbstractInvertIfCodeRefactoringProvider(Of TIfStatementSyntax)
 
-        Protected Shared ReadOnly s_ifNodeAnnotation As New SyntaxAnnotation
-
         Protected NotOverridable Overrides Function GetTitle() As String
             Return VBFeaturesResources.Invert_If
         End Function
 
-        Protected Overrides Function GetRootWithInvertIfStatement(document As Document,
-                                                                  semanticModel As SemanticModel,
-                                                                  ifStatement As TIfStatementSyntax,
-                                                                  invertIfStyle As InvertIfStyle,
-                                                                  subsequenceSingleExitPointOpt As SyntaxNode,
-                                                                  negatedExpression As SyntaxNode,
-                                                                  cancellationToken As CancellationToken) As SyntaxNode
-            Dim generator = SyntaxGenerator.GetGenerator(document)
-            Dim syntaxFacts = VisualBasicSyntaxFactsService.Instance
-
-            Dim result = UpdateSemanticModel(semanticModel, semanticModel.SyntaxTree.GetRoot().ReplaceNode(ifStatement, ifStatement.WithAdditionalAnnotations(s_ifNodeAnnotation)), cancellationToken)
-
-            Dim ifNode = DirectCast(result.Root.GetAnnotatedNodesAndTokens(s_ifNodeAnnotation).Single().AsNode(), TIfStatementSyntax)
-
-            'In order to add parentheses for SingleLineIfStatements with commas, such as
-            'Case Sub() [||]If True Then Dim x Else Return, Nothing
-            'complexify the top-most statement parenting this if-statement if necessary
-            Dim topMostExpression = ifNode.Ancestors().OfType(Of ExpressionSyntax).LastOrDefault()
-            If topMostExpression IsNot Nothing Then
-                Dim topMostStatement = topMostExpression.Ancestors().OfType(Of StatementSyntax).FirstOrDefault()
-                If topMostStatement IsNot Nothing Then
-                    Dim explicitTopMostStatement = Simplifier.Expand(topMostStatement, result.Model, document.Project.Solution.Workspace, cancellationToken:=cancellationToken)
-                    result = UpdateSemanticModel(result.Model, result.Root.ReplaceNode(topMostStatement, explicitTopMostStatement), cancellationToken)
-                    ifNode = DirectCast(result.Root.GetAnnotatedNodesAndTokens(s_ifNodeAnnotation).Single().AsNode(), TIfStatementSyntax)
-                End If
-            End If
-
-            semanticModel = InvertIfStatement((ifNode), document, generator, syntaxFacts, result.Model, DirectCast(negatedExpression, ExpressionSyntax), cancellationToken)
-
-            ' Complexify the inverted if node.
-            result = (semanticModel, semanticModel.SyntaxTree.GetRoot())
-
-            Dim invertedIfNode = result.Root.GetAnnotatedNodesAndTokens(s_ifNodeAnnotation).Single().AsNode()
-
-            Dim explicitInvertedIfNode = Simplifier.Expand(invertedIfNode, result.Model, document.Project.Solution.Workspace, cancellationToken:=cancellationToken)
-            result = UpdateSemanticModel(result.Model, result.Root.ReplaceNode(invertedIfNode, explicitInvertedIfNode), cancellationToken)
-
-            Return result.Root
+        Protected NotOverridable Overrides Function IsEmptyStatementRange(statementRange As (first As SyntaxNode, last As SyntaxNode)) As Boolean
+            Return statementRange.first Is Nothing OrElse statementRange.last Is Nothing
         End Function
 
-        Protected MustOverride Function InvertIfStatement(ifNode As TIfStatementSyntax,
-                                                          document As Document,
-                                                          generator As SyntaxGenerator,
-                                                          syntaxFacts As ISyntaxFactsService,
-                                                          model As SemanticModel,
-                                                          negatedExpression As ExpressionSyntax,
-                                                          cancellationToken As CancellationToken) As SemanticModel
+        Protected NotOverridable Overrides Function GetIfBodyStatementRange(ifNode As TIfStatementSyntax) As (first As SyntaxNode, last As SyntaxNode)
+            Dim statements = ifNode.GetStatements()
+            Return (statements.FirstOrDefault(), statements.LastOrDefault())
+        End Function
 
-        Protected Shared Function UpdateSemanticModel(model As SemanticModel, root As SyntaxNode, cancellationToken As CancellationToken) As (Model As SemanticModel, Root As SyntaxNode)
-            Dim newModel = model.Compilation.ReplaceSyntaxTree(model.SyntaxTree, root.SyntaxTree).GetSemanticModel(root.SyntaxTree)
-            Return (newModel, newModel.SyntaxTree.GetRoot(cancellationToken))
+        Protected NotOverridable Overrides Iterator Function GetSubsequentStatementRanges(ifNode As TIfStatementSyntax) As IEnumerable(Of (first As SyntaxNode, last As SyntaxNode))
+            Dim syntaxFacts = VisualBasicSyntaxFactsService.Instance
+
+            Dim innerStatement As StatementSyntax = ifNode
+            For Each node In ifNode.Ancestors
+                Dim nextStatement = syntaxFacts.GetNextExecutableStatement(innerStatement)
+                If nextStatement IsNot Nothing AndAlso node.IsStatementContainerNode() Then
+                    Dim lastStatement = node.GetStatements().Last()
+                    Debug.Assert(nextStatement.Parent IsNot Nothing)
+                    Debug.Assert(nextStatement.Parent Is lastStatement.Parent)
+                    Debug.Assert(nextStatement.SpanStart <= lastStatement.SpanStart)
+                    Yield (nextStatement, lastStatement)
+                End If
+
+                If TypeOf node Is MethodBlockBaseSyntax OrElse
+                   TypeOf node Is CaseBlockSyntax OrElse
+                   TypeOf node Is DoLoopBlockSyntax OrElse
+                   TypeOf node Is ForOrForEachBlockSyntax OrElse
+                   TypeOf node Is WhileBlockSyntax Then
+                    Exit Function
+                End If
+
+                If TypeOf node Is StatementSyntax Then
+                    innerStatement = DirectCast(node, StatementSyntax)
+                End If
+            Next
+        End Function
+
+        Protected NotOverridable Overrides Function GetNearmostParentJumpStatementRawKind(ifNode As TIfStatementSyntax) As Integer
+            For Each node In ifNode.Ancestors
+                If TypeOf node Is MethodBlockBaseSyntax Then
+                    Return SyntaxKind.ReturnStatement
+                End If
+
+                If TypeOf node Is CaseBlockSyntax Then
+                    Return SyntaxKind.ExitSelectStatement
+                End If
+
+                If TypeOf node Is DoLoopBlockSyntax Then
+                    Return SyntaxKind.ContinueDoStatement
+                End If
+
+                If TypeOf node Is ForOrForEachBlockSyntax Then
+                    Return SyntaxKind.ContinueForStatement
+                End If
+
+                If TypeOf node Is WhileBlockSyntax Then
+                    Return SyntaxKind.ContinueWhileStatement
+                End If
+            Next
+
+            Throw ExceptionUtilities.Unreachable
+        End Function
+
+        Protected MustOverride Function GetInvertedIfNode(
+            ifNode As TIfStatementSyntax,
+            negatedExpression As ExpressionSyntax) As TIfStatementSyntax
+
+        Protected NotOverridable Overrides Function GetRootWithInvertIfStatement(
+            root As SyntaxNode,
+            ifNode As TIfStatementSyntax,
+            invertIfStyle As InvertIfStyle,
+            subsequentSingleExitPointOpt As SyntaxNode,
+            negatedExpression As SyntaxNode) As SyntaxNode
+            Select Case invertIfStyle
+                Case InvertIfStyle.Normal
+                    Return root.ReplaceNode(ifNode, GetInvertedIfNode(ifNode, DirectCast(negatedExpression, ExpressionSyntax)))
+                Case InvertIfStyle.SwapIfBodyWithSubsequentStatements
+                    Exit Select
+                Case InvertIfStyle.MoveSubsequentStatementsToIfBody
+                    Exit Select
+                Case InvertIfStyle.WithElseClause
+                    Exit Select
+                Case InvertIfStyle.MoveIfBodyToElseClause
+                    Exit Select
+                Case InvertIfStyle.WithSubsequentExitPointStatement
+                    Exit Select
+                Case InvertIfStyle.WithNearmostJumpStatement
+                    Exit Select
+                Case InvertIfStyle.WithNegatedCondition
+                    Exit Select
+            End Select
+
+            Debug.WriteLine(invertIfStyle)
+
+            Return root
         End Function
     End Class
 End Namespace
