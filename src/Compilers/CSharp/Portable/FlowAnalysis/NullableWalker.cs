@@ -1059,7 +1059,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 TrackNullableStateForAssignment(argument, property.Type, GetOrCreateSlot(property, receiverSlot), argumentResult.Type, argumentResult.Slot);
             }
 
-            // PROTOTYPE(NullableReferenceType): Result.Type may need to be a new anonymous
+            // PROTOTYPE(NullableReferenceTypes): Result.Type may need to be a new anonymous
             // type since the properties may have distinct nullability from original.
             // (See StaticNullChecking_FlowAnalysis.AnonymousObjectCreation_02.)
             _result = Result.Create(TypeSymbolWithAnnotations.Create(node.Type), receiverSlot);
@@ -1086,7 +1086,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var elementBuilder = ArrayBuilder<BoundExpression>.GetInstance(initialization.Initializers.Length);
             GetArrayElements(initialization, elementBuilder);
 
-            // PROTOTYPE(NullableReferenceType): Removing and recalculating conversions should not
+            // PROTOTYPE(NullableReferenceTypes): Removing and recalculating conversions should not
             // be necessary for explicitly typed arrays. In those cases, VisitConversion should warn
             // on nullability mismatch (although we'll need to ensure we handle the case where
             // initial binding calculated an Identity conversion, even though nullability was distinct).
@@ -1101,21 +1101,21 @@ namespace Microsoft.CodeAnalysis.CSharp
                 resultBuilder.Add(VisitRvalueWithResult(element));
             }
 
-            // PROTOTYPE(NullableReferenceType): Record in the BoundArrayCreation
+            // PROTOTYPE(NullableReferenceTypes): Record in the BoundArrayCreation
             // whether the array was implicitly typed, rather than relying on syntax.
             if (node.Syntax.Kind() == SyntaxKind.ImplicitArrayCreationExpression)
             {
                 var resultTypes = resultBuilder.SelectAsArray(r => r.Type);
-                // PROTOTYPE(NullableReferenceType): Initial binding calls InferBestType(ImmutableArray<BoundExpression>, ...)
+                // PROTOTYPE(NullableReferenceTypes): Initial binding calls InferBestType(ImmutableArray<BoundExpression>, ...)
                 // overload. Why are we calling InferBestType(ImmutableArray<TypeSymbolWithAnnotations>, ...) here?
-                // PROTOTYPE(NullableReferenceType): InferBestType(ImmutableArray<BoundExpression>, ...)
+                // PROTOTYPE(NullableReferenceTypes): InferBestType(ImmutableArray<BoundExpression>, ...)
                 // uses a HashSet<TypeSymbol> to reduce the candidates to the unique types before comparing.
                 // Should do the same here.
                 HashSet<DiagnosticInfo> useSiteDiagnostics = null;
                 // If there are error types, use the first error type. (Matches InferBestType(ImmutableArray<BoundExpression>, ...).)
                 var bestType = resultTypes.FirstOrDefault(t => t?.IsErrorType() ==true) ??
                     BestTypeInferrer.InferBestType(resultTypes, _conversions, useSiteDiagnostics: ref useSiteDiagnostics);
-                // PROTOTYPE(NullableReferenceType): Report a special ErrorCode.WRN_NoBestNullabilityArrayElements
+                // PROTOTYPE(NullableReferenceTypes): Report a special ErrorCode.WRN_NoBestNullabilityArrayElements
                 // when InferBestType fails, and avoid reporting conversion warnings for each element in those cases.
                 // (See similar code for conditional expressions: ErrorCode.WRN_NoBestNullabilityConditionalExpression.)
                 if ((object)bestType != null)
@@ -2420,9 +2420,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         /// <summary>
         /// Apply the conversion to the type of the operand and return the resulting type.
-        /// If `checkConversion` is set, the conversion is assumed to be from initial binding
-        /// and will be re-calcuated considering nullability if necessary. `canConvert` is set
-        /// based on whether the conversion succeeded.
+        /// If `checkConversion` is set, the incoming conversion is assumed to be from binding and
+        /// will be re-calcuated, this time considering nullability. (Note that the conversion calculation
+        /// considers nested nullability only. The caller is responsible for checking the top-level nullability
+        /// of the type returned by this method.) `canConvert` is set if the conversion succeeded.
         /// </summary>
         private TypeSymbolWithAnnotations ApplyConversion(
             BoundNode node,
@@ -2477,7 +2478,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                             fromExplicitCast: false,
                             out _);
 
-                        // PROTOTYPE(NullableReferenceTypes): Update method based on operandType.
+                        // PROTOTYPE(NullableReferenceTypes): Update method based on operandType
+                        // (see StaticNullChecking_FlowAnalysis.Conversions_07).
                         var methodOpt = conversion.Method;
                         Debug.Assert((object)methodOpt != null);
                         Debug.Assert(methodOpt.ParameterCount == 1);
@@ -2575,7 +2577,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             var conversion = _conversions.ClassifyStandardConversion(null, operandType.TypeSymbol, targetType, ref useSiteDiagnostics);
             if (!conversion.Exists)
             {
-                // PROTOTYPE(NullableReferenceTypes): Not necessarily an assignment.
+                // PROTOTYPE(NullableReferenceTypes): Not necessarily an assignment
+                // (see StaticNullChecking_FlowAnalysis.Conversions_07).
                 ReportStaticNullCheckingDiagnostics(ErrorCode.WRN_NullabilityMismatchInAssignment, node.Syntax, operandType.TypeSymbol, targetType);
             }
             return ApplyConversion(node, operandOpt: null, conversion, targetType, operandType, checkConversion: false, fromExplicitCast: false, out _);

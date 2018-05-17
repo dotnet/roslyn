@@ -18895,7 +18895,7 @@ class B5 : A<int>
                 Diagnostic(ErrorCode.ERR_PropertyLacksGet, "c.P").WithArguments("C.P").WithLocation(6, 11));
         }
 
-        // PROTOTYPE(NullableReferenceType): Assert failure in Binder.GenerateImplicitConversionError.
+        // PROTOTYPE(NullableReferenceTypes): Assert failure in Binder.GenerateImplicitConversionError.
         [Fact(Skip = "TODO")]
         public void SuppressNullableWarning_InvalidArrayInitializer()
         {

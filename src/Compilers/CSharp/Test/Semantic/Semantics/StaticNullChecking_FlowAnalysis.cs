@@ -232,7 +232,7 @@ class C
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "d[0].F").WithLocation(19, 9));
         }
 
-        // PROTOTYPE(NullableReferenceType): The array element type should be nullable,
+        // PROTOTYPE(NullableReferenceTypes): The array element type should be nullable,
         // even though there is no best type when considering nullability for C<object>? and
         // C<object?>. In short, should report WRN_NullReferenceReceiver for `c[0].ToString()`
         [Fact]
@@ -1230,7 +1230,7 @@ class C
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "(new { P = o }).P").WithLocation(5, 9));
         }
 
-        // PROTOTYPE(NullableReferenceType): NullableWalker.VisitAnonymousObjectCreationExpression
+        // PROTOTYPE(NullableReferenceTypes): NullableWalker.VisitAnonymousObjectCreationExpression
         // should support initializers with inferred nullability.
         [Fact(Skip = "TODO")]
         public void AnonymousObjectCreation_02()
@@ -3580,7 +3580,7 @@ class C
     }
 }";
             var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
-            // PROTOTYPE(NullableReferenceType): Report the base types that did not match
+            // PROTOTYPE(NullableReferenceTypes): Report the base types that did not match
             // rather than the derived or implementing type. For instance, report `'IIn<object>'
             // doesn't match ... 'IIn<object?>'` rather than `'A<string>' doesn't match ...`.
             comp.VerifyDiagnostics(
@@ -3623,7 +3623,7 @@ class C
     }
 }";
             var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
-            // PROTOTYPE(NullableReferenceType): Several issues with implicit user-defined conversions and
+            // PROTOTYPE(NullableReferenceTypes): Several issues with implicit user-defined conversions and
             // nested nullability: should report `'A<object?>' doesn't match ... 'A<object>'` rather than
             // `'A<object>' doesn't match ... 'A<object?>'`; should report warning for `G(y)` only, not `G(z)`; and
             // should be reported as WRN_NullabilityMismatchInArgument not WRN_NullabilityMismatchInAssignment
@@ -3679,7 +3679,7 @@ static class E
     static void EC2((IOut<object?>, IOut<object?>) t) { }
 }";
             var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
-            // PROTOTYPE(NullableReferenceType): NullableWalker should call ConversionsBase.GetTupleLiteralConversion.
+            // PROTOTYPE(NullableReferenceTypes): NullableWalker should call ConversionsBase.GetTupleLiteralConversion.
             comp.VerifyDiagnostics(/* PROTOTYPE(NullableReferenceType) */);
         }
 
@@ -3725,7 +3725,7 @@ static class E
     static void EC2(this (IOut<object?>, IOut<object?>) t) { }
 }";
             var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
-            // PROTOTYPE(NullableReferenceType): NullableWalker should call ConversionsBase.ClassifyImplicitExtensionMethodThisArgConversion.
+            // PROTOTYPE(NullableReferenceTypes): NullableWalker should call ConversionsBase.ClassifyImplicitExtensionMethodThisArgConversion.
             comp.VerifyDiagnostics(/* PROTOTYPE(NullableReferenceType) */);
         }
     }
