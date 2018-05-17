@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
@@ -9,6 +10,7 @@ using Microsoft.CodeAnalysis.Completion.Providers;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
@@ -21,28 +23,35 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 
         public override async Task ProvideCompletionsAsync(CompletionContext completionContext)
         {
-            var document = completionContext.Document;
-            var position = completionContext.Position;
-            var cancellationToken = completionContext.CancellationToken;
-
-            var semanticModel = await document.GetSemanticModelForSpanAsync(new Text.TextSpan(position, 0), cancellationToken).ConfigureAwait(false);
-
-            var workspace = document.Project.Solution.Workspace;
-            var context = CSharpSyntaxContext.CreateContext(workspace, semanticModel, position, cancellationToken);
-
-            var index = GetElementIndex(context);
-            if (index == null)
+            try
             {
-                return;
+                var document = completionContext.Document;
+                var position = completionContext.Position;
+                var cancellationToken = completionContext.CancellationToken;
+
+                var semanticModel = await document.GetSemanticModelForSpanAsync(new TextSpan(position, 0), cancellationToken).ConfigureAwait(false);
+
+                var workspace = document.Project.Solution.Workspace;
+                var context = CSharpSyntaxContext.CreateContext(workspace, semanticModel, position, cancellationToken);
+
+                var index = GetElementIndex(context);
+                if (index == null)
+                {
+                    return;
+                }
+
+                var typeInferrer = document.GetLanguageService<ITypeInferenceService>();
+                var inferredTypes = typeInferrer.InferTypes(semanticModel, context.TargetToken.Parent.SpanStart, cancellationToken)
+                        .Where(t => t.IsTupleType)
+                        .Cast<INamedTypeSymbol>()
+                        .ToImmutableArray();
+
+                AddItems(inferredTypes, index.Value, completionContext, context.TargetToken.Parent.SpanStart);
             }
-
-            var typeInferrer = document.GetLanguageService<ITypeInferenceService>();
-            var inferredTypes = typeInferrer.InferTypes(semanticModel, context.TargetToken.Parent.SpanStart, cancellationToken)
-                    .Where(t => t.IsTupleType)
-                    .Cast<INamedTypeSymbol>()
-                    .ToImmutableArray();
-
-            AddItems(inferredTypes, index.Value, completionContext, context.TargetToken.Parent.SpanStart);
+            catch (Exception e) when (FatalError.ReportWithoutCrashUnlessCanceled(e))
+            {
+                // nop
+            }
         }
 
         private int? GetElementIndex(CSharpSyntaxContext context)

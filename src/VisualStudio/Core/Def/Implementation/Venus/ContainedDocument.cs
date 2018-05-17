@@ -181,8 +181,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
 
 #pragma warning restore 67
 
-        IVisualStudioHostProject IVisualStudioHostDocument.Project { get { return this.Project; } }
-
         public ITextBuffer GetOpenTextBuffer()
         {
             return _containedLanguage.SubjectBuffer;
@@ -1150,10 +1148,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
             return CheckCode(snapshot, position - tag2.Length, tag1);
         }
 
-        public ITextUndoHistory GetTextUndoHistory()
+        public ITextBuffer GetTextUndoHistoryBuffer()
         {
             // In Venus scenarios, the undo history is associated with the data buffer
-            return _componentModel.GetService<ITextUndoHistoryRegistry>().GetHistory(_containedLanguage.DataBuffer);
+            return _containedLanguage.DataBuffer;
         }
 
         public uint GetItemId()

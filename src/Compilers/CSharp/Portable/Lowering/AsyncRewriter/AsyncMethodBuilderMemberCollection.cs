@@ -4,7 +4,6 @@ using System.Diagnostics;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Roslyn.Utilities;
-using System.Collections.Generic;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -75,6 +74,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         internal readonly PropertySymbol Task;
 
+        /// <summary>
+        /// True if generic method constraints should be checked at the call-site.
+        /// </summary>
+        internal readonly bool CheckGenericMethodConstraints;
+
         private AsyncMethodBuilderMemberCollection(
             NamedTypeSymbol builderType,
             TypeSymbol resultType,
@@ -85,7 +89,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             MethodSymbol awaitUnsafeOnCompleted,
             MethodSymbol start,
             MethodSymbol setStateMachine,
-            PropertySymbol task)
+            PropertySymbol task,
+            bool checkGenericMethodConstraints)
         {
             BuilderType = builderType;
             ResultType = resultType;
@@ -97,6 +102,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Start = start;
             SetStateMachine = setStateMachine;
             Task = task;
+            CheckGenericMethodConstraints = checkGenericMethodConstraints;
         }
 
         internal static bool TryCreate(SyntheticBoundNodeFactory F, MethodSymbol method, TypeMap typeMap, out AsyncMethodBuilderMemberCollection collection)
@@ -326,7 +332,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     awaitUnsafeOnCompletedMethod,
                     startMethod,
                     setStateMachineMethod,
-                    taskProperty);
+                    taskProperty,
+                    checkGenericMethodConstraints: customBuilder);
 
                 return true;
             }
@@ -346,7 +353,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (customBuilder)
             {
                 var descriptor = WellKnownMembers.GetDescriptor(member);
-                // Should check constraints (see https://github.com/dotnet/roslyn/issues/12616).
                 var sym = CSharpCompilation.GetRuntimeMember(
                     builderType.OriginalDefinition,
                     ref descriptor,

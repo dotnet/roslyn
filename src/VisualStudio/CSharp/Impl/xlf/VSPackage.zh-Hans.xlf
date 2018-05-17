@@ -1,0 +1,147 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
+  <file datatype="xml" source-language="en" target-language="zh-Hans" original="../VSPackage.resx">
+    <body>
+      <trans-unit id="101">
+        <source>C#</source>
+        <target state="translated">C#</target>
+        <note>Used many places.</note>
+      </trans-unit>
+      <trans-unit id="102">
+        <source>Advanced</source>
+        <target state="translated">高级</target>
+        <note>"Advanced" node under Tools &gt; Options, Text Editor, C#.</note>
+      </trans-unit>
+      <trans-unit id="103">
+        <source>IntelliSense</source>
+        <target state="translated">IntelliSense</target>
+        <note>"IntelliSense" node under Tools &gt; Options, Text Editor, C#.</note>
+      </trans-unit>
+      <trans-unit id="104">
+        <source>C# Editor</source>
+        <target state="translated">C# 编辑器</target>
+        <note>"C# Editor" node in profile Import/Export.</note>
+      </trans-unit>
+      <trans-unit id="105">
+        <source>Settings for the C# editor found under the Advanced, Formatting, and IntelliSense nodes in the Tools/Options dialog box.</source>
+        <target state="translated">在“工具/选项”对话框中的“高级”、“格式设置”和“IntelliSense”节点下找到了 C# 编辑器的设置。</target>
+        <note>"C# Editor" node help text in profile Import/Export.</note>
+      </trans-unit>
+      <trans-unit id="106">
+        <source>Settings for general C# options found under the General and Tabs nodes in the Tools/Options dialog box.</source>
+        <target state="translated">在“工具/选项”对话框中的“常规”和“标签”节点下找到了常规 C# 选项的设置。</target>
+        <note>"C#" node help text in profile Import/Export.</note>
+      </trans-unit>
+      <trans-unit id="306">
+        <source>Highlight references to symbol under cursor;Highlight related keywords under cursor;Enter outlining mode when files open;Show procedure line separators;Generate XML documentation comments;Show diagnostics for closed files;Show preview for rename tracking;Place 'System' directives first when sorting usings;Don't put ref or out on custom structs</source>
+        <target state="translated">突出显示对光标下符号的引用;突出显示光标下相关的关键字;打开文件时进入大纲模式;显示过程行分隔符;生成 XML 文档注释;显示对已关闭文件的诊断;显示重命名跟踪的预览;对 using 排序时将“System”指令排在第一位;不要在自定义结构上放置 ref 或 out</target>
+        <note>C# Advanced options page keywords</note>
+      </trans-unit>
+      <trans-unit id="307">
+        <source>Automatically format statement on semicolon;Automatically format block on brace;Automatically format on paste</source>
+        <target state="translated">输入分号时自动设置语句的格式;输入大括号时自动设置块的格式;粘贴时自动设置格式</target>
+        <note>C# Formatting &gt; General options page keywords</note>
+      </trans-unit>
+      <trans-unit id="308">
+        <source>Indent block contents;Indent open and close braces, indent case contents;indent case labels;label indentation</source>
+        <target state="translated">缩进块内容;缩进左大括号和右大括号;缩进 case 内容;缩进 case 标签;标签缩进</target>
+        <note>C# Formatting &gt; Indentation options page keywords</note>
+      </trans-unit>
+      <trans-unit id="309">
+        <source>New line formatting option for braces;New line formatting options for keywords</source>
+        <target state="translated">大括号的新行格式选项;关键字的新行格式选项</target>
+        <note>C# Formatting &gt; New Lines options page keywords</note>
+      </trans-unit>
+      <trans-unit id="310">
+        <source>Set spacing for method declarations;set spacing for method calls;set other spacing options;set spacing for brackets;set spacing for delimiters;set spacing for operators</source>
+        <target state="translated">设置方法声明的间距;设置方法调用的间距;设置其他间距选项;设置中括号的间距;设置分隔符的间距;设置运算符的间距</target>
+        <note>C# Formatting &gt; Spacing options page keywords</note>
+      </trans-unit>
+      <trans-unit id="311">
+        <source>Change formatting options for wrapping;leave block on single line;leave statements and member declarations on the same line</source>
+        <target state="translated">更改换行的格式选项;将块保留在一行上;将语句和成员声明保留在同一行上</target>
+        <note>C# Formatting &gt; Wrapping options page keywords</note>
+      </trans-unit>
+      <trans-unit id="312">
+        <source>Change completion list settings;Pre-select most recently used member</source>
+        <target state="translated">更改完成列表设置;预先选择最近使用过的成员</target>
+        <note>C# IntelliSense options page keywords</note>
+      </trans-unit>
+      <trans-unit id="107">
+        <source>Formatting</source>
+        <target state="translated">正在格式化</target>
+        <note>"Formatting" category node under Tools &gt; Options, Text Editor, C#, Code Style (no corresponding keywords)</note>
+      </trans-unit>
+      <trans-unit id="108">
+        <source>General</source>
+        <target state="translated">常规</target>
+        <note>"General" node under Tools &gt; Options, Text Editor, C# (used for Code Style and Formatting)</note>
+      </trans-unit>
+      <trans-unit id="109">
+        <source>Indentation</source>
+        <target state="translated">缩进</target>
+        <note>"Indentation" node under Tools &gt; Options, Text Editor, C#, Formatting.</note>
+      </trans-unit>
+      <trans-unit id="110">
+        <source>Wrapping</source>
+        <target state="translated">换行</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="111">
+        <source>New Lines</source>
+        <target state="translated">新行</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="112">
+        <source>Spacing</source>
+        <target state="translated">间距</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="2358">
+        <source>CSharp Editor</source>
+        <target state="translated">CSharp 编辑器</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="2359">
+        <source>CSharp Editor with Encoding</source>
+        <target state="translated">带编码功能的 CSharp 编辑器</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="113">
+        <source>Microsoft Visual C#</source>
+        <target state="translated">Microsoft Visual C#</target>
+        <note>Used for String in Tools &gt; Options, Text Editor, File Extensions</note>
+      </trans-unit>
+      <trans-unit id="114">
+        <source>Code Style</source>
+        <target state="translated">代码样式</target>
+        <note>"Code Style" category node under Tools &gt; Options, Text Editor, C# (no corresponding keywords)</note>
+      </trans-unit>
+      <trans-unit id="313">
+        <source>Style;Qualify;This;Code Style;var;member access;locals;parameters;var preferences;predefined type;framework type;built-in types;when variable type is apparent;elsewhere;qualify field access;qualify property access; qualify method access;qualify event access;</source>
+        <target state="translated">样式;限定;This;代码样式;var;成员访问;局部变量;参数;var 首选项;预定义类型;框架类型;内置类型;当变量类型明显时;别处;限定字段访问;限定属性访问;限定方法访问;限定事件访问;</target>
+        <note>C# Code Style options page keywords</note>
+      </trans-unit>
+      <trans-unit id="115">
+        <source>Naming</source>
+        <target state="translated">命名</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="314">
+        <source>Naming Style;Name Styles;Naming Rule;Naming Conventions</source>
+        <target state="translated">命名样式;名称样式;命名规则;命名约定</target>
+        <note>C# Naming Style options page keywords</note>
+      </trans-unit>
+      <trans-unit id="116">
+        <source>C# Tools</source>
+        <target state="translated">C# 工具</target>
+        <note>Help &gt; About</note>
+      </trans-unit>
+      <trans-unit id="117">
+        <source>C# components used in the IDE. Depending on your project type and settings, a different version of the compiler may be used.</source>
+        <target state="translated">IDE 中使用的 C# 组件。可能使用其他版本的编译器，具体取决于你的项目类型和设置。</target>
+        <note>Help &gt; About</note>
+      </trans-unit>
+    </body>
+  </file>
+</xliff>

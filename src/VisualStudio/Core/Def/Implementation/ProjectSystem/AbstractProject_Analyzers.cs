@@ -42,18 +42,18 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             var analyzer = new VisualStudioAnalyzer(analyzerAssemblyFullPath, fileChangeService, this.HostDiagnosticUpdateSource, this.Id, this.Workspace, analyzerLoader, this.Language);
             this.AddOrUpdateAnalyzer(analyzerAssemblyFullPath, analyzer);
 
-            if (_pushingChangesToWorkspaceHosts)
+            if (PushingChangesToWorkspace)
             {
                 var analyzerReference = analyzer.GetReference();
-                this.ProjectTracker.NotifyWorkspaceHosts(host => host.OnAnalyzerReferenceAdded(Id, analyzerReference));
+                this.ProjectTracker.NotifyWorkspace(workspace => workspace.OnAnalyzerReferenceAdded(Id, analyzerReference));
 
                 List<VisualStudioAnalyzer> existingReferencesWithLoadErrors = GetCurrentAnalyzers().Where(a => a.HasLoadErrors).ToList();
 
                 foreach (var existingReference in existingReferencesWithLoadErrors)
                 {
-                    this.ProjectTracker.NotifyWorkspaceHosts(host => host.OnAnalyzerReferenceRemoved(Id, existingReference.GetReference()));
+                    this.ProjectTracker.NotifyWorkspace(workspace => workspace.OnAnalyzerReferenceRemoved(Id, existingReference.GetReference()));
                     existingReference.Reset();
-                    this.ProjectTracker.NotifyWorkspaceHosts(host => host.OnAnalyzerReferenceAdded(Id, existingReference.GetReference()));
+                    this.ProjectTracker.NotifyWorkspace(workspace => workspace.OnAnalyzerReferenceAdded(Id, existingReference.GetReference()));
                 }
 
                 GetAnalyzerDependencyCheckingService().CheckForConflictsAsync();
@@ -91,10 +91,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
             RemoveAnalyzer(analyzerAssemblyFullPath);
 
-            if (_pushingChangesToWorkspaceHosts)
+            if (PushingChangesToWorkspace)
             {
                 var analyzerReference = analyzer.GetReference();
-                this.ProjectTracker.NotifyWorkspaceHosts(host => host.OnAnalyzerReferenceRemoved(Id, analyzerReference));
+                this.ProjectTracker.NotifyWorkspace(workspace => workspace.OnAnalyzerReferenceRemoved(Id, analyzerReference));
 
                 GetAnalyzerDependencyCheckingService().CheckForConflictsAsync();
             }
@@ -111,7 +111,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 ruleSetFileFullPath = string.Empty;
             }
 
-            if (!ruleSetFileFullPath.Equals(string.Empty))
+            if (ruleSetFileFullPath.Length > 0)
             {
                 // This is already a full path, but run it through GetFullPath to clean it (e.g., remove
                 // extra backslashes).
@@ -119,7 +119,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             }
 
             if (this.RuleSetFile != null &&
-                this.RuleSetFile.FilePath.Equals(ruleSetFileFullPath, StringComparison.OrdinalIgnoreCase))
+                this.RuleSetFile.Target.FilePath.Equals(ruleSetFileFullPath, StringComparison.OrdinalIgnoreCase))
             {
                 return;
             }
@@ -171,8 +171,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         {
             if (ruleSetFileFullPath.Length != 0)
             {
-                this.RuleSetFile = this.ProjectTracker.RuleSetFileProvider.GetOrCreateRuleSet(ruleSetFileFullPath);
-                this.RuleSetFile.UpdatedOnDisk += OnRuleSetFileUpdateOnDisk;
+                this.RuleSetFile = this.ProjectTracker.RuleSetFileManager.GetOrCreateRuleSet(ruleSetFileFullPath);
+                this.RuleSetFile.Target.UpdatedOnDisk += OnRuleSetFileUpdateOnDisk;
             }
         }
 
@@ -180,7 +180,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         {
             if (this.RuleSetFile != null)
             {
-                this.RuleSetFile.UpdatedOnDisk -= OnRuleSetFileUpdateOnDisk;
+                this.RuleSetFile.Target.UpdatedOnDisk -= OnRuleSetFileUpdateOnDisk;
+                this.RuleSetFile.Dispose();
                 this.RuleSetFile = null;
             }
         }
@@ -190,7 +191,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         {
             AssertIsForeground();
 
-            var filePath = this.RuleSetFile.FilePath;
+            var filePath = this.RuleSetFile.Target.FilePath;
 
             ResetAnalyzerRuleSet(filePath);
         }

@@ -15,7 +15,8 @@ using Microsoft.CodeAnalysis.Options;
 
 namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
 {
-    [ExportCodeRefactoringProvider(LanguageNames.CSharp), Shared]
+    [ExportCodeRefactoringProvider(LanguageNames.CSharp,
+        Name = PredefinedCodeRefactoringProviderNames.UseExpressionBody), Shared]
     internal class UseExpressionBodyCodeRefactoringProvider : CodeRefactoringProvider
     {
         private static readonly ImmutableArray<UseExpressionBodyHelper> _helpers = UseExpressionBodyHelper.Helpers;

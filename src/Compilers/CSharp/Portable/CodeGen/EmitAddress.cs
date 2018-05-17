@@ -78,9 +78,17 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                     break;
 
                 case BoundKind.ThisReference:
-                    Debug.Assert(expression.Type.IsValueType, "only value types may need a ref to this");
-                    Debug.Assert(HasHome(expression, addressKind));
-                    _builder.EmitOpCode(ILOpCode.Ldarg_0);
+                    Debug.Assert(expression.Type.IsValueType || IsReadOnly(addressKind), "'this' is readonly in classes");
+
+                    if (expression.Type.IsValueType)
+                    {
+                        _builder.EmitLoadArgumentOpcode(0);
+                    }
+                    else
+                    {
+                        _builder.EmitLoadArgumentAddrOpcode(0);
+                    }
+
                     break;
 
                 case BoundKind.PreviousSubmissionReference:
@@ -90,6 +98,9 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                 case BoundKind.BaseReference:
                     Debug.Assert(false, "base is always a reference type, why one may need a reference to it?");
                     break;
+
+                case BoundKind.PassByCopy:
+                    return EmitPassByCopyAddress((BoundPassByCopy)expression, addressKind);
 
                 case BoundKind.Sequence:
                     return EmitSequenceAddress((BoundSequence)expression, addressKind);
@@ -139,12 +150,15 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
                 case BoundKind.AssignmentOperator:
                     var assignment = (BoundAssignmentOperator)expression;
-                    if (!assignment.IsRef)
+                    if (!assignment.IsRef || !HasHome(assignment, addressKind))
                     {
                         goto default;
                     }
-
-                    throw ExceptionUtilities.UnexpectedValue(assignment.IsRef);
+                    else
+                    {
+                        EmitAssignmentExpression(assignment, UseKind.UsedAsAddress);
+                        break;
+                    }
 
                 case BoundKind.ThrowExpression:
                     // emit value or address is the same here.
@@ -157,6 +171,22 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             }
 
             return null;
+        }
+
+        private LocalDefinition EmitPassByCopyAddress(BoundPassByCopy passByCopyExpr, AddressKind addressKind)
+        {
+            // Normally we can just defer PassByCopy to the `default`,
+            // but in some cases the value inside is already a temp that is local to that node.
+            // In such case we can skip extra store/reload
+            if (passByCopyExpr.Expression is BoundSequence sequence)
+            {
+                if (DigForValueLocal(sequence, sequence.Value) != null)
+                {
+                    return EmitSequenceAddress(sequence, addressKind);
+                }
+            }
+
+            return EmitAddressOfTempClone(passByCopyExpr);
         }
 
         /// <summary>
@@ -363,15 +393,19 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
                     return true;
 
-                case BoundKind.BaseReference:
                 case BoundKind.PointerIndirectionOperator:
                 case BoundKind.RefValueOperator:
                     return true;
 
                 case BoundKind.ThisReference:
-                    Debug.Assert(expression.Type.IsValueType);
+                    var type = expression.Type;
+                    if (type.IsReferenceType)
+                    {
+                        Debug.Assert(IsReadOnly(addressKind), "`this` is readonly in classes");
+                        return true;
+                    }
 
-                    if (!IsReadOnly(addressKind) && expression.Type.IsReadOnly)
+                    if (!IsReadOnly(addressKind) && type.IsReadOnly)
                     {
                         return _method.MethodKind == MethodKind.Constructor;
                     }
@@ -411,7 +445,14 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                     return HasHome(((BoundSequence)expression).Value, addressKind);
 
                 case BoundKind.AssignmentOperator:
-                    return ((BoundAssignmentOperator)expression).IsRef;
+                    var assignment = (BoundAssignmentOperator)expression;
+                    if (!assignment.IsRef)
+                    {
+                        return false;
+                    }
+                    var lhsRefKind = assignment.Left.GetRefKind();
+                    return lhsRefKind == RefKind.Ref ||
+                        (IsReadOnly(addressKind) && lhsRefKind == RefKind.RefReadOnly);
 
                 case BoundKind.ComplexConditionalReceiver:
                     Debug.Assert(HasHome(((BoundComplexConditionalReceiver)expression).ValueTypeReceiver, addressKind));

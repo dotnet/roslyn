@@ -1225,7 +1225,7 @@ True
 True
 ";
 
-            CompilationVerifier verifier = CompileAndVerify(source + InstrumentationHelperSource, options: TestOptions.UnsafeDebugExe, expectedOutput: expectedOutput);
+            CompilationVerifier verifier = CompileAndVerify(source + InstrumentationHelperSource, options: TestOptions.UnsafeDebugExe, expectedOutput: expectedOutput, verify: Verification.Fails);
             verifier.VerifyDiagnostics();
         }
 
@@ -2310,7 +2310,7 @@ public class Program
 }
 ";
 
-            ImmutableArray<Diagnostic> diagnostics = CreateCompilation(source + InstrumentationHelperSource).GetEmitDiagnostics(EmitOptions.Default.WithInstrumentationKinds(ImmutableArray.Create(InstrumentationKind.TestCoverage)));
+            ImmutableArray<Diagnostic> diagnostics = CreateEmptyCompilation(source + InstrumentationHelperSource).GetEmitDiagnostics(EmitOptions.Default.WithInstrumentationKinds(ImmutableArray.Create(InstrumentationKind.TestCoverage)));
             foreach (Diagnostic diagnostic in diagnostics)
             {
                 if (diagnostic.Code == (int)ErrorCode.ERR_MissingPredefinedMember &&
@@ -2650,7 +2650,7 @@ class D
     void M() {}
 }
 ";
-            var c = CreateStandardCompilation(source + InstrumentationHelperSource, options: TestOptions.ReleaseDll);
+            var c = CreateCompilationWithMscorlib40(source + InstrumentationHelperSource, options: TestOptions.ReleaseDll);
             c.VerifyDiagnostics();
 
             var verifier = CompileAndVerify(c, emitOptions: EmitOptions.Default.WithInstrumentationKinds(ImmutableArray.Create(InstrumentationKind.TestCoverage)));
@@ -2687,7 +2687,7 @@ class D
     void M() {}
 }
 ";
-            var c = CreateStandardCompilation(source + InstrumentationHelperSource, options: TestOptions.ReleaseDll);
+            var c = CreateCompilationWithMscorlib40(source + InstrumentationHelperSource, options: TestOptions.ReleaseDll);
             c.VerifyDiagnostics();
 
             var verifier = CompileAndVerify(c, emitOptions: EmitOptions.Default.WithInstrumentationKinds(ImmutableArray.Create(InstrumentationKind.TestCoverage)));
@@ -3211,9 +3211,9 @@ True
             Assert.True(expected == instrumented, $"Method '{qualifiedMethodName}' should {(expected ? "be" : "not be")} instrumented. Actual IL:{Environment.NewLine}{il}");
         }
 
-        private CompilationVerifier CompileAndVerify(string source, string expectedOutput = null, CompilationOptions options = null)
+        private CompilationVerifier CompileAndVerify(string source, string expectedOutput = null, CSharpCompilationOptions options = null, Verification verify = Verification.Passes)
         {
-            return base.CompileAndVerify(source, expectedOutput: expectedOutput, additionalRefs: s_refs, options: (options ?? TestOptions.ReleaseExe).WithDeterministic(true), emitOptions: EmitOptions.Default.WithInstrumentationKinds(ImmutableArray.Create(InstrumentationKind.TestCoverage)));
+            return base.CompileAndVerify(source, expectedOutput: expectedOutput, options: (options ?? TestOptions.ReleaseExe).WithDeterministic(true), emitOptions: EmitOptions.Default.WithInstrumentationKinds(ImmutableArray.Create(InstrumentationKind.TestCoverage)), verify: verify);
         }
 
         private CompilationVerifier CompileAndVerify((string Path, string Content)[] sources, string expectedOutput = null, CSharpCompilationOptions options = null)
@@ -3225,11 +3225,10 @@ True
                 trees.Add(Parse(source.Content, filename: source.Path));
             }
 
-            var compilation = CreateStandardCompilation(trees, s_refs, (options ?? TestOptions.ReleaseExe).WithDeterministic(true));
+            var compilation = CreateCompilation(trees.ToArray(), options: (options ?? TestOptions.ReleaseExe).WithDeterministic(true));
             trees.Free();
             return base.CompileAndVerify(compilation, expectedOutput: expectedOutput, emitOptions: EmitOptions.Default.WithInstrumentationKinds(ImmutableArray.Create(InstrumentationKind.TestCoverage)));
         }
 
-        private static readonly MetadataReference[] s_refs = new[] { MscorlibRef_v4_0_30316_17626, SystemRef_v4_0_30319_17929, SystemCoreRef_v4_0_30319_17929, ValueTupleRef, SystemRuntimeFacadeRef };
     }
 }

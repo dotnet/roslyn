@@ -24,9 +24,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
         [ImportingConstructor]
         public CodeModelIncrementalAnalyzerProvider(
             IForegroundNotificationService notificationService,
-            [ImportMany]IEnumerable<Lazy<IAsynchronousOperationListener, FeatureMetadata>> listeners)
+            IAsynchronousOperationListenerProvider listenerProvider)
         {
-            _listener = new AggregateAsynchronousOperationListener(listeners, FeatureAttribute.CodeModel);
+            _listener = listenerProvider.GetListener(FeatureAttribute.CodeModel);
             _notificationService = notificationService;
         }
 
@@ -77,8 +77,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
                         return false;
                     }
 
-                    var codeModelProvider = project as IProjectCodeModelProvider;
-                    if (codeModelProvider == null)
+                    var projectCodeModel = project.ProjectCodeModel as ProjectCodeModel;
+                    if (projectCodeModel == null)
                     {
                         return false;
                     }
@@ -89,7 +89,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
                         return false;
                     }
 
-                    if (!codeModelProvider.ProjectCodeModel.TryGetCachedFileCodeModel(filename, out var fileCodeModelHandle))
+                    if (!projectCodeModel.TryGetCachedFileCodeModel(filename, out var fileCodeModelHandle))
                     {
                         return false;
                     }

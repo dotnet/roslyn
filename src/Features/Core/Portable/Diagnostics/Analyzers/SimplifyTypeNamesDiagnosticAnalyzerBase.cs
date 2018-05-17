@@ -192,7 +192,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.SimplifyTypeNames
                 return null;
             }
 
-            var applicableOption = AbstractQualifyMemberAccessDiagnosticAnalyzer<TLanguageKindEnum>.GetApplicableOptionFromSymbolKind(symbolInfo.Symbol.Kind);
+            var applicableOption = QualifyMembersHelpers.GetApplicableOptionFromSymbolKind(symbolInfo.Symbol.Kind);
             var optionValue = optionSet.GetOption(applicableOption, GetLanguageName());
             var severity = optionValue.Notification.Value;
 

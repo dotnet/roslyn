@@ -427,8 +427,14 @@ namespace Microsoft.CodeAnalysis
         System_Span_T__get_Item,
         System_Span_T__get_Length,
 
+        System_ReadOnlySpan_T__ctor,
         System_ReadOnlySpan_T__get_Item,
         System_ReadOnlySpan_T__get_Length,
+
+        System_Runtime_CompilerServices_IsUnmanagedAttribute__ctor,
+
+        Microsoft_VisualBasic_Conversion__FixSingle,
+        Microsoft_VisualBasic_Conversion__FixDouble,
 
         Count
     }

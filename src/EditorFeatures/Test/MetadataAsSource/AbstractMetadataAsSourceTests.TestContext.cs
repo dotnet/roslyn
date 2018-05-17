@@ -63,15 +63,15 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.MetadataAsSource
                 get { return this.CurrentSolution.Projects.First(); }
             }
 
-            public Task<MetadataAsSourceFile> GenerateSourceAsync(ISymbol symbol, Project project = null)
+            public Task<MetadataAsSourceFile> GenerateSourceAsync(ISymbol symbol, Project project = null, bool allowDecompilation = false)
             {
                 project = project ?? this.DefaultProject;
 
                 // Generate and hold onto the result so it can be disposed of with this context
-                return _metadataAsSourceService.GetGeneratedFileAsync(project, symbol);
+                return _metadataAsSourceService.GetGeneratedFileAsync(project, symbol, allowDecompilation);
             }
 
-            public async Task<MetadataAsSourceFile> GenerateSourceAsync(string symbolMetadataName = null, Project project = null)
+            public async Task<MetadataAsSourceFile> GenerateSourceAsync(string symbolMetadataName = null, Project project = null, bool allowDecompilation = false)
             {
                 symbolMetadataName = symbolMetadataName ?? AbstractMetadataAsSourceTests.DefaultSymbolMetadataName;
                 project = project ?? this.DefaultProject;
@@ -83,7 +83,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.MetadataAsSource
                 var symbol = await ResolveSymbolAsync(symbolMetadataName, compilation);
 
                 // Generate and hold onto the result so it can be disposed of with this context
-                var result = await _metadataAsSourceService.GetGeneratedFileAsync(project, symbol);
+                var result = await _metadataAsSourceService.GetGeneratedFileAsync(project, symbol, allowDecompilation);
 
                 return result;
             }
@@ -216,14 +216,11 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.MetadataAsSource
                 bool includeXmlDocComments, string sourceWithSymbolReference,
                 string languageVersion)
             {
+                string languageVersionAttribute = languageVersion is null ? "" : $@" LanguageVersion=""{languageVersion}""";
+
                 var xmlString = string.Concat(@"
 <Workspace>
-    <Project Language=""", projectLanguage, @""" CommonReferences=""true""");
-
-                if (languageVersion != null)
-                {
-                    xmlString += $@" LanguageVersion=""{languageVersion}""";
-                }
+    <Project Language=""", projectLanguage, @""" CommonReferences=""true""", languageVersionAttribute);
 
                 xmlString += ">";
 
@@ -234,14 +231,15 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.MetadataAsSource
                     var metadataLanguage = DeduceLanguageString(source);
 
                     xmlString = string.Concat(xmlString, string.Format(@"
-        <MetadataReferenceFromSource Language=""{0}"" CommonReferences=""true"" IncludeXmlDocComments=""{2}"">
+        <MetadataReferenceFromSource Language=""{0}"" CommonReferences=""true"" IncludeXmlDocComments=""{2}""{3}>
             <Document FilePath=""MetadataDocument"">
 {1}
             </Document>
         </MetadataReferenceFromSource>",
                         metadataLanguage,
                         SecurityElement.Escape(source),
-                        includeXmlDocComments.ToString()));
+                        includeXmlDocComments.ToString(),
+                        languageVersionAttribute));
                 }
 
                 if (sourceWithSymbolReference != null)

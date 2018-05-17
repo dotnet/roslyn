@@ -19,13 +19,13 @@ namespace Microsoft.CodeAnalysis.Remote
         /// 
         /// This will be called by ServiceHub/JsonRpc framework
         /// </summary>
-        public Task<DesignerAttributeResult> ScanDesignerAttributesAsync(PinnedSolutionInfo solutionInfo, DocumentId documentId, CancellationToken cancellationToken)
+        public Task<DesignerAttributeResult> ScanDesignerAttributesAsync(DocumentId documentId, CancellationToken cancellationToken)
         {
             return RunServiceAsync(async token =>
             {
                 using (RoslynLogger.LogBlock(FunctionId.CodeAnalysisService_GetDesignerAttributesAsync, documentId.DebugName, token))
                 {
-                    var solution = await GetSolutionAsync(solutionInfo, token).ConfigureAwait(false);
+                    var solution = await GetSolutionAsync(token).ConfigureAwait(false);
                     var document = solution.GetDocument(documentId);
 
                     var service = document.GetLanguageService<IDesignerAttributeService>();

@@ -132,6 +132,23 @@ class MemberInitializerTest<T> where T : Base, new()
 ";
             string expectedOperationTree = @"
 ITypeParameterObjectCreationOperation (OperationKind.TypeParameterObjectCreation, Type: T) (Syntax: 'new T() { x = 0, y = 0 }')
+  Initializer: 
+    IObjectOrCollectionInitializerOperation (OperationKind.ObjectOrCollectionInitializer, Type: T) (Syntax: '{ x = 0, y = 0 }')
+      Initializers(2):
+          ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32) (Syntax: 'x = 0')
+            Left: 
+              IFieldReferenceOperation: System.Int32 Base.x (OperationKind.FieldReference, Type: System.Int32) (Syntax: 'x')
+                Instance Receiver: 
+                  IInstanceReferenceOperation (OperationKind.InstanceReference, Type: T, IsImplicit) (Syntax: 'x')
+            Right: 
+              ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0) (Syntax: '0')
+          ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32) (Syntax: 'y = 0')
+            Left: 
+              IPropertyReferenceOperation: System.Int32 Base.y { get; set; } (OperationKind.PropertyReference, Type: System.Int32) (Syntax: 'y')
+                Instance Receiver: 
+                  IInstanceReferenceOperation (OperationKind.InstanceReference, Type: T, IsImplicit) (Syntax: 'y')
+            Right: 
+              ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0) (Syntax: '0')
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
@@ -230,7 +247,7 @@ IObjectCreationOperation (Constructor: MemberInitializerTest..ctor()) (Operation
             VerifyOperationTreeAndDiagnosticsForTest<ObjectCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
 
             // TODO: This should produce no diagnostics.
-            CreateStandardCompilation(source, references: new MetadataReference[] { SystemCoreRef, CSharpRef }).VerifyDiagnostics();
+            CreateCompilation(source, references: new MetadataReference[] { CSharpRef }).VerifyDiagnostics();
         }
 
         [Fact]
@@ -414,7 +431,7 @@ IObjectCreationOperation (Constructor: Test..ctor()) (OperationKind.ObjectCreati
 
             // TODO: This should produce no diagnostics.
             // The 'info' message is ONLY used for IDE (NOT show up in console)
-            CompileAndVerify(source, additionalRefs: new MetadataReference[] { SystemCoreRef, CSharpRef }).
+            CompileAndVerify(source, references: new MetadataReference[] { CSharpRef }).
                 VerifyDiagnostics(
                 // (4,1): info CS8019: Unnecessary using directive.
                 // using System.Collections;
@@ -1408,7 +1425,18 @@ class MemberInitializerTest<T>
 ";
             string expectedOperationTree = @"
 IInvalidOperation (OperationKind.Invalid, Type: T, IsInvalid) (Syntax: 'new T() { x = 0 }')
-  Children(0)
+  Children(1):
+      IObjectOrCollectionInitializerOperation (OperationKind.ObjectOrCollectionInitializer, Type: T, IsInvalid) (Syntax: '{ x = 0 }')
+        Initializers(1):
+            ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: ?, IsInvalid) (Syntax: 'x = 0')
+              Left: 
+                IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid, IsImplicit) (Syntax: 'x')
+                  Children(1):
+                      IOperation:  (OperationKind.None, Type: null, IsInvalid) (Syntax: 'x')
+                        Children(1):
+                            IInstanceReferenceOperation (OperationKind.InstanceReference, Type: T, IsInvalid, IsImplicit) (Syntax: 'T')
+              Right: 
+                ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0, IsInvalid) (Syntax: '0')
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // CS0117: 'T' does not contain a definition for 'x'
@@ -1544,10 +1572,8 @@ IObjectCreationOperation (Constructor: MemberInitializerTest..ctor()) (Operation
               ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0) (Syntax: '0')
           ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: MemberInitializerTest, IsInvalid) (Syntax: 'Goo() = new ... lizerTest()')
             Left: 
-              IInvocationOperation ( MemberInitializerTest MemberInitializerTest.Goo()) (OperationKind.Invocation, Type: MemberInitializerTest, IsInvalid) (Syntax: 'Goo()')
-                Instance Receiver: 
-                  IInstanceReferenceOperation (OperationKind.InstanceReference, Type: MemberInitializerTest, IsInvalid, IsImplicit) (Syntax: 'Goo')
-                Arguments(0)
+              IInvalidOperation (OperationKind.Invalid, Type: MemberInitializerTest, IsInvalid) (Syntax: 'Goo()')
+                Children(0)
             Right: 
               IObjectCreationOperation (Constructor: MemberInitializerTest..ctor()) (OperationKind.ObjectCreation, Type: MemberInitializerTest, IsInvalid) (Syntax: 'new MemberI ... lizerTest()')
                 Arguments(0)
@@ -2043,8 +2069,8 @@ IObjectCreationOperation (Constructor: Test..ctor()) (OperationKind.ObjectCreati
   Initializer: 
     IObjectOrCollectionInitializerOperation (OperationKind.ObjectOrCollectionInitializer, Type: Test, IsInvalid) (Syntax: '{ 1 }')
       Initializers(1):
-          ICollectionElementInitializerOperation (AddMethod: void Test.Add(System.Int32 i)) (IsDynamic: False) (OperationKind.CollectionElementInitializer, Type: System.Void, IsInvalid, IsImplicit) (Syntax: '1')
-            Arguments(1):
+          IInvalidOperation (OperationKind.Invalid, Type: System.Void, IsInvalid, IsImplicit) (Syntax: '1')
+            Children(1):
                 ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1, IsInvalid) (Syntax: '1')
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
@@ -2253,10 +2279,8 @@ IObjectCreationOperation (Constructor: MemberInitializerTest..ctor()) (Operation
             Children(1):
                 ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: MemberInitializerTest, IsInvalid) (Syntax: 'Goo() = new ... lizerTest()')
                   Left: 
-                    IInvocationOperation ( MemberInitializerTest MemberInitializerTest.Goo()) (OperationKind.Invocation, Type: MemberInitializerTest, IsInvalid) (Syntax: 'Goo()')
-                      Instance Receiver: 
-                        IInstanceReferenceOperation (OperationKind.InstanceReference, Type: MemberInitializerTest, IsInvalid, IsImplicit) (Syntax: 'Goo')
-                      Arguments(0)
+                    IInvalidOperation (OperationKind.Invalid, Type: MemberInitializerTest, IsInvalid) (Syntax: 'Goo()')
+                      Children(0)
                   Right: 
                     IObjectCreationOperation (Constructor: MemberInitializerTest..ctor()) (OperationKind.ObjectCreation, Type: MemberInitializerTest, IsInvalid) (Syntax: 'new MemberI ... lizerTest()')
                       Arguments(0)
@@ -3090,7 +3114,7 @@ class C
         }
     }
 }";
-            CreateStandardCompilation(source).VerifyDiagnostics(
+            CreateCompilation(source).VerifyDiagnostics(
                 // (6,21): error CS0826: No best type found for implicitly-typed array
                 //         var array = new[] { Main() };
                 Diagnostic(ErrorCode.ERR_ImplicitlyTypedArrayNoBestType, "new[] { Main() }"));
@@ -3310,7 +3334,7 @@ class X : List<int>
     }
 }
 ";
-            var compilation = CreateStandardCompilation(source);
+            var compilation = CreateCompilation(source);
 
             var tree = compilation.SyntaxTrees.Single();
             var semanticModel = compilation.GetSemanticModel(tree);
@@ -3358,7 +3382,7 @@ class X : Base
     }
 }
 ";
-            var compilation = CreateStandardCompilation(source);
+            var compilation = CreateCompilation(source);
 
             var tree = compilation.SyntaxTrees.Single();
             var semanticModel = compilation.GetSemanticModel(tree);
@@ -3403,7 +3427,7 @@ class Y
     }
 }
 ";
-            var compilation = CreateStandardCompilation(source);
+            var compilation = CreateCompilation(source);
 
             compilation.VerifyDiagnostics(
     // (5,14): error CS0535: 'Base' does not implement interface member 'IEnumerable<int>.GetEnumerator()'
@@ -3451,7 +3475,7 @@ class X : List<int>
     }
 }
 ";
-            var compilation = CreateStandardCompilation(source);
+            var compilation = CreateCompilation(source);
 
             var tree = compilation.SyntaxTrees.Single();
             var semanticModel = compilation.GetSemanticModel(tree);
@@ -3488,7 +3512,7 @@ class X : List<int>
     }
 }
 ";
-            var compilation = CreateStandardCompilation(source);
+            var compilation = CreateCompilation(source);
 
             var tree = compilation.SyntaxTrees.Single();
             var semanticModel = compilation.GetSemanticModel(tree);
@@ -3529,7 +3553,7 @@ class Test
     };
 }
 ";
-            var compilation = CreateStandardCompilation(source);
+            var compilation = CreateCompilation(source);
 
             var tree = compilation.SyntaxTrees.Single();
             var semanticModel = compilation.GetSemanticModel(tree);
@@ -3579,7 +3603,7 @@ class Test2
     public Test P { get; set; }
 }
 ";
-            var compilation = CreateStandardCompilation(source);
+            var compilation = CreateCompilation(source);
 
             var tree = compilation.SyntaxTrees.Single();
             var semanticModel = compilation.GetSemanticModel(tree);
@@ -3623,7 +3647,7 @@ class C : System.Collections.Generic.List<C>
     }
 }
 ";
-            var compilation = CreateStandardCompilation(source);
+            var compilation = CreateCompilation(source);
 
             var tree = compilation.SyntaxTrees.Single();
             var semanticModel = compilation.GetSemanticModel(tree);
@@ -3661,7 +3685,7 @@ class C
 }
 ";
 
-            CreateStandardCompilation(source).VerifyDiagnostics(
+            CreateCompilation(source).VerifyDiagnostics(
                 // (4,11): warning CS0414: The field 'C.a' is assigned but its value is never used
                 //     int[] a;
                 Diagnostic(ErrorCode.WRN_UnreferencedFieldAssg, "a").WithArguments("C.a").WithLocation(4, 11));
@@ -3682,7 +3706,7 @@ class C
 }
 ";
 
-            CreateStandardCompilation(source).VerifyDiagnostics(
+            CreateCompilation(source).VerifyDiagnostics(
                 // (4,12): warning CS0414: The field 'C.a' is assigned but its value is never used
                 //     int[,] a;
                 Diagnostic(ErrorCode.WRN_UnreferencedFieldAssg, "a").WithArguments("C.a").WithLocation(4, 12));
@@ -3703,7 +3727,7 @@ class C
 }
 ";
 
-            var compilation = CreateStandardCompilation(source);
+            var compilation = CreateCompilation(source);
 
             var tree = compilation.SyntaxTrees.Single();
             var semanticModel = compilation.GetSemanticModel(tree);
@@ -3759,7 +3783,7 @@ public class Cc{
     }
 }
 ";
-            CompileAndVerify(source, new[] { CSharpRef, SystemCoreRef }, expectedOutput: "Initialized");
+            CompileAndVerify(source, new[] { CSharpRef }, expectedOutput: "Initialized");
         }
 
         [WorkItem(12983, "https://github.com/dotnet/roslyn/issues/12983")]
@@ -3785,7 +3809,7 @@ class X
     }
 }
 ";
-            var compilation = CreateStandardCompilation(source);
+            var compilation = CreateCompilation(source);
 
             var tree = compilation.SyntaxTrees.Single();
             var semanticModel = compilation.GetSemanticModel(tree);

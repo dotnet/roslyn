@@ -252,12 +252,39 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
             End Set
         End Property
 
+        Public Property Style_PreferInferredTupleNames As String
+            Get
+                Return GetXmlOption(CodeStyleOptions.PreferInferredTupleNames)
+            End Get
+            Set(value As String)
+                SetXmlOption(CodeStyleOptions.PreferInferredTupleNames, value)
+            End Set
+        End Property
+
+        Public Property Style_PreferInferredAnonymousTypeMemberNames As String
+            Get
+                Return GetXmlOption(CodeStyleOptions.PreferInferredAnonymousTypeMemberNames)
+            End Get
+            Set(value As String)
+                SetXmlOption(CodeStyleOptions.PreferInferredAnonymousTypeMemberNames, value)
+            End Set
+        End Property
+
         Public Property Style_PreferExplicitTupleNames As String
             Get
                 Return GetXmlOption(CodeStyleOptions.PreferExplicitTupleNames)
             End Get
             Set(value As String)
                 SetXmlOption(CodeStyleOptions.PreferExplicitTupleNames, value)
+            End Set
+        End Property
+
+        Public Property Style_PreferReadonly As String
+            Get
+                Return GetXmlOption(CodeStyleOptions.PreferReadonly)
+            End Get
+            Set(value As String)
+                SetXmlOption(CodeStyleOptions.PreferReadonly, value)
             End Set
         End Property
 

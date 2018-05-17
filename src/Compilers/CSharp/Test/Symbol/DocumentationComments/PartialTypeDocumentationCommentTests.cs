@@ -42,7 +42,7 @@ partial class Goo
     partial void ImplementedMethod() { }
 }", options: TestOptions.RegularWithDocumentationComments);
 
-            _compilation = CreateStandardCompilation(new[] { tree1, tree2 });
+            _compilation = CreateCompilation(new[] { tree1, tree2 });
 
             _gooClass = _compilation.GlobalNamespace.GetTypeMembers("Goo").Single();
         }

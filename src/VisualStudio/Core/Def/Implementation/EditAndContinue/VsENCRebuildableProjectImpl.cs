@@ -35,6 +35,7 @@ using Microsoft.CodeAnalysis.Debugging;
 using Microsoft.VisualStudio.Shell.Interop;
 using System.Reflection.PortableExecutable;
 using Microsoft.VisualStudio.LanguageServices.EditAndContinue;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.EditAndContinue
 {
@@ -62,7 +63,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.EditAndContinue
 
         private static EncDebuggingSessionInfo s_encDebuggingSessionInfo;
 
-        private readonly IEditAndContinueWorkspaceService _encService;
+        private readonly IDebuggingWorkspaceService _debuggingService;
+        private readonly IEditAndContinueService _encService;
         private readonly IActiveStatementTrackingService _trackingService;
         private readonly EditAndContinueDiagnosticUpdateSource _diagnosticProvider;
         private readonly IDebugEncNotify _debugEncNotify;
@@ -100,9 +102,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.EditAndContinue
 
         internal VsENCRebuildableProjectImpl(AbstractProject project)
         {
+            Contract.Requires(project != null);
+
             _vsProject = project;
 
-            _encService = _vsProject.Workspace.Services.GetService<IEditAndContinueWorkspaceService>();
+            _debuggingService = _vsProject.Workspace.Services.GetService<IDebuggingWorkspaceService>();
             _trackingService = _vsProject.Workspace.Services.GetService<IActiveStatementTrackingService>();
             _notifications = _vsProject.Workspace.Services.GetService<INotificationService>();
 
@@ -112,12 +116,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.EditAndContinue
             _diagnosticProvider = componentModel.GetService<EditAndContinueDiagnosticUpdateSource>();
             _editorAdaptersFactoryService = componentModel.GetService<IVsEditorAdaptersFactoryService>();
             _moduleMetadataProvider = componentModel.GetService<IDebuggeeModuleMetadataProvider>();
+            _encService = _debuggingService.EditAndContinueServiceOpt;
 
-            Debug.Assert(_encService != null);
-            Debug.Assert(_trackingService != null);
-            Debug.Assert(_diagnosticProvider != null);
-            Debug.Assert(_editorAdaptersFactoryService != null);
-            Debug.Assert(_moduleMetadataProvider != null);
+            Contract.Requires(_debugEncNotify != null);
+            Contract.Requires(_encService != null);
+            Contract.Requires(_trackingService != null);
+            Contract.Requires(_diagnosticProvider != null);
+            Contract.Requires(_editorAdaptersFactoryService != null);
+            Contract.Requires(_moduleMetadataProvider != null);
         }
 
         // called from an edit filter if an edit of a read-only buffer is attempted:
@@ -164,17 +170,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.EditAndContinue
                 switch (projectReason)
                 {
                     case ProjectReadOnlyReason.MetadataNotAvailable:
-                        // TODO: Remove once https://github.com/dotnet/roslyn/issues/16657 is addressed
-                        bool deferredLoad = (_vsProject.ServiceProvider.GetService(typeof(SVsSolution)) as IVsSolution7)?.IsSolutionLoadDeferred() == true;
-                        if (deferredLoad)
-                        {
-                            message = ServicesVSResources.ChangesNotAllowedIfProjectWasntLoadedWhileDebugging;
-                            s_encDebuggingSessionInfo?.LogReadOnlyEditAttemptedProjectNotBuiltOrLoaded();
-                        }
-                        else
-                        {
-                            message = ServicesVSResources.ChangesNotAllowedIfProjectWasntBuildWhenDebuggingStarted;
-                        }
+                        message = ServicesVSResources.ChangesNotAllowedIfProjectWasntBuildWhenDebuggingStarted;
                         break;
 
                     case ProjectReadOnlyReason.NotLoaded:
@@ -226,12 +222,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.EditAndContinue
                     Debug.Assert(s_breakStateProjectCount == 0);
                     Debug.Assert(s_breakStateEnteredProjects.Count == 0);
 
-                    _encService.OnBeforeDebuggingStateChanged(DebuggingState.Design, DebuggingState.Run);
+                    _debuggingService.OnBeforeDebuggingStateChanged(DebuggingState.Design, DebuggingState.Run);
 
                     _encService.StartDebuggingSession(_vsProject.Workspace.CurrentSolution);
                     s_encDebuggingSessionInfo = new EncDebuggingSessionInfo();
 
-                    s_readOnlyDocumentTracker = new VsReadOnlyDocumentTracker(_encService, _editorAdaptersFactoryService, _vsProject);
+                    s_readOnlyDocumentTracker = new VsReadOnlyDocumentTracker(_encService, _editorAdaptersFactoryService);
                 }
 
                 string outputPath = _vsProject.ObjOutputPath;
@@ -338,7 +334,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.EditAndContinue
                 // Avoid ending the debug session if it has already been ended.
                 if (_encService.DebuggingSession != null)
                 {
-                    _encService.OnBeforeDebuggingStateChanged(DebuggingState.Run, DebuggingState.Design);
+                    _debuggingService.OnBeforeDebuggingStateChanged(DebuggingState.Run, DebuggingState.Design);
 
                     _encService.EndDebuggingSession();
                     LogEncSession();
@@ -472,7 +468,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.EditAndContinue
 
                     if (s_breakStateEntrySolution == null)
                     {
-                        _encService.OnBeforeDebuggingStateChanged(DebuggingState.Run, DebuggingState.Break);
+                        _debuggingService.OnBeforeDebuggingStateChanged(DebuggingState.Run, DebuggingState.Break);
 
                         s_breakStateEntrySolution = _vsProject.Workspace.CurrentSolution;
 
@@ -650,7 +646,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.EditAndContinue
 
                     SyntaxNode syntaxRoot = document.GetSyntaxRootAsync(default).Result;
 
-                    var analyzer = document.Project.LanguageServices.GetService<IEditAndContinueAnalyzer>();
+                    var analyzer = document.GetLanguageService<IEditAndContinueAnalyzer>();
 
                     s_pendingActiveStatements.Add(new VsActiveStatement(
                         this,
@@ -937,7 +933,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.EditAndContinue
                     {
                         Debug.Assert(s_breakStateProjectCount == s_debugStateProjectCount);
 
-                        _encService.OnBeforeDebuggingStateChanged(DebuggingState.Break, DebuggingState.Run);
+                        _debuggingService.OnBeforeDebuggingStateChanged(DebuggingState.Break, DebuggingState.Run);
 
                         _encService.EditSession.LogEditSession(s_encDebuggingSessionInfo);
                         _encService.EndEditSession();
@@ -1169,7 +1165,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.EditAndContinue
             Debug.Assert(Thread.CurrentThread.GetApartmentState() == ApartmentState.MTA);
 
             var symMethod = (ISymUnmanagedMethod2)_pdbReader.Value.GetMethodByVersion(MetadataTokens.GetToken(methodHandle), methodVersion: 1);
-            return MetadataTokens.StandaloneSignatureHandle(symMethod.GetLocalSignatureToken());
+
+            // Compiler generated methods (e.g. async kick-off methods) might not have debug information.
+            return symMethod == null ? default : MetadataTokens.StandaloneSignatureHandle(symMethod.GetLocalSignatureToken());
         }
 
         /// <summary>

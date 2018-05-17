@@ -39,6 +39,10 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
         public IList<TestHostDocument> AdditionalDocuments { get; }
         public IList<TestHostDocument> ProjectionDocuments { get; }
 
+        private readonly BackgroundCompiler _backgroundCompiler;
+        private readonly BackgroundParser _backgroundParser;
+        private readonly IMetadataAsSourceFileService _metadataAsSourceFileService;
+
         public TestWorkspace()
             : this(TestExportProvider.ExportProviderWithCSharpAndVisualBasic, WorkspaceKind.Test)
         {
@@ -57,6 +61,12 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             this.ProjectionDocuments = new List<TestHostDocument>();
 
             this.CanApplyChangeDocument = true;
+
+            _backgroundCompiler = new BackgroundCompiler(this);
+            _backgroundParser = new BackgroundParser(this);
+            _backgroundParser.Start();
+
+            _metadataAsSourceFileService = exportProvider.GetExportedValues<IMetadataAsSourceFileService>().FirstOrDefault();
         }
 
         /// <summary>
@@ -83,8 +93,29 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             }
         }
 
+        protected internal override bool PartialSemanticsEnabled
+        {
+            get { return _backgroundCompiler != null; }
+        }
+
         public TestHostDocument DocumentWithCursor 
             => Documents.Single(d => d.CursorPosition.HasValue && !d.IsLinkFile);
+
+        protected override void OnDocumentTextChanged(Document document)
+        {
+            if (_backgroundParser != null)
+            {
+                _backgroundParser.Parse(document);
+            }
+        }
+
+        protected override void OnDocumentClosing(DocumentId documentId)
+        {
+            if (_backgroundParser != null)
+            {
+                _backgroundParser.CancelParse(documentId);
+            }
+        }
 
         public new void RegisterText(SourceTextContainer text)
         {
@@ -93,11 +124,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 
         protected override void Dispose(bool finalize)
         {
-            var metadataAsSourceService = ExportProvider.GetExportedValues<IMetadataAsSourceFileService>().FirstOrDefault();
-            if (metadataAsSourceService != null)
-            {
-                metadataAsSourceService.CleanupGeneratedFiles();
-            }
+            _metadataAsSourceFileService?.CleanupGeneratedFiles();
 
             this.ClearSolutionData();
 
@@ -116,41 +143,14 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
                 document.CloseTextView();
             }
 
-            var exceptions = Flatten(ExportProvider.GetExportedValue<TestExtensionErrorHandler>().GetExceptions());
-
-            if (exceptions.Count > 0)
-            {
-                var messageBuilder = new StringBuilder();
-                messageBuilder.AppendLine(
-$@"{exceptions.Count} exception(s) were thrown during test.
-Note: exceptions may have been thrown by another test running concurrently with
-this test.  This can happen with any tests that share the same ExportProvider.
-Examining individual exception stacks may help reveal the original test and source 
-of the problem.");
-
-                messageBuilder.AppendLine();
-                for (int i = 0; i < exceptions.Count; i++)
-                {
-                    var exception = exceptions[i];
-                    messageBuilder.AppendLine($"Exception {i}:");
-                    messageBuilder.AppendLine(exception.ToString());
-                    messageBuilder.AppendLine();
-                }
-
-                var message = messageBuilder.ToString();
-                if (exceptions.Count == 1)
-                {
-                    throw new Exception(message, exceptions[0]);
-                }
-                else
-                {
-                    throw new AggregateException(message, exceptions);
-                }
-            }
-
             if (SynchronizationContext.Current != null)
             {
                 Dispatcher.CurrentDispatcher.DoEvents();
+            }
+
+            if (_backgroundParser != null)
+            {
+                _backgroundParser.CancelAllParses();
             }
 
             base.Dispose(finalize);
@@ -435,7 +435,7 @@ of the problem.");
             var languageServices = this.Services.GetLanguageServices(languageName);
 
             var projectionDocument = new TestHostDocument(
-                TestExportProvider.ExportProviderWithCSharpAndVisualBasic,
+                ExportProvider,
                 languageServices,
                 projectionBuffer,
                 path,
