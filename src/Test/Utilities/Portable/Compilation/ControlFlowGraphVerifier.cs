@@ -18,16 +18,25 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         {
             IOperation operationRoot = model.GetOperation(syntaxNode);
 
-            TestOperationVisitor.VerifySubTree(operationRoot.Kind == OperationKind.Block &&
-                                               (operationRoot.Parent?.Kind == OperationKind.ConstructorBodyOperation ||
-                                                operationRoot.Parent?.Kind == OperationKind.MethodBodyOperation) ?
-                                                    operationRoot.Parent :
-                                                    operationRoot);
+            // Workaround for unit tests designed to work on IBlockOperation with ConstructorBodyOperation/MethodBodyOperation parent.
+            operationRoot = operationRoot.Kind == OperationKind.Block &&
+                (operationRoot.Parent?.Kind == OperationKind.ConstructorBodyOperation ||
+                operationRoot.Parent?.Kind == OperationKind.MethodBodyOperation) ?
+                    operationRoot.Parent :
+                    operationRoot;
+
+            TestOperationVisitor.VerifySubTree(operationRoot);
 
             switch (operationRoot)
             {
                 case IBlockOperation blockOperation:
                     return SemanticModel.GetControlFlowGraph(blockOperation);
+
+                case IMethodBodyOperation methodBodyOperation:
+                    return SemanticModel.GetControlFlowGraph(methodBodyOperation);
+
+                case IConstructorBodyOperation constructorBodyOperation:
+                    return SemanticModel.GetControlFlowGraph(constructorBodyOperation);
 
                 case IFieldInitializerOperation fieldInitializerOperation:
                     return SemanticModel.GetControlFlowGraph(fieldInitializerOperation);
@@ -356,6 +365,12 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                         enterRegion($".static initializer {{R{regionMap[region]}}}");
                         break;
 
+                    case ControlFlowGraph.RegionKind.ErroneousBody:
+                        Assert.Null(region.ExceptionType);
+                        Assert.Empty(region.Locals);
+                        enterRegion($".erroneous body {{R{regionMap[region]}}}");
+                        break;
+
                     default:
                         Assert.False(true, $"Unexpected region kind {region.Kind}");
                         break;
@@ -389,6 +404,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                     case ControlFlowGraph.RegionKind.Finally:
                     case ControlFlowGraph.RegionKind.FilterAndHandler:
                     case ControlFlowGraph.RegionKind.StaticLocalInitializer:
+                    case ControlFlowGraph.RegionKind.ErroneousBody:
                         indent -= 4;
                         appendLine("}");
                         break;

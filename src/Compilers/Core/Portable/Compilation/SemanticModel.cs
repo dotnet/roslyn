@@ -99,17 +99,8 @@ namespace Microsoft.CodeAnalysis
 
             if (body.Parent != null)
             {
-                switch (body.Parent.Kind)
-                {
-                    case OperationKind.ConstructorBodyOperation:
-                        // PROTOTYPE(dataflow): Add tests for this code path
-                    case OperationKind.MethodBodyOperation:
-                        // PROTOTYPE(dataflow): Add tests for this code path
-                        break;
-                    default:
-                        // PROTOTYPE(dataflow): Special message?
-                        throw new ArgumentException();
-                }
+                // PROTOTYPE(dataflow): Special message?
+                throw new ArgumentException();
             }
 
             return GetControlFlowGraphCore(body);
@@ -170,6 +161,44 @@ namespace Microsoft.CodeAnalysis
             }
 
             return GetControlFlowGraphCore(initializer);
+        }
+
+        /// <summary>
+        /// PROTOTYPE(dataflow): Add documentation.
+        /// </summary>
+        public static Operations.ControlFlowGraph GetControlFlowGraph(Operations.IConstructorBodyOperation constructorBody)
+        {
+            if (constructorBody == null)
+            {
+                throw new ArgumentNullException(nameof(constructorBody));
+            }
+
+            if (constructorBody.Parent != null)
+            {
+                // PROTOTYPE(dataflow): Special message?
+                throw new ArgumentException();
+            }
+
+            return GetControlFlowGraphCore(constructorBody);
+        }
+
+        /// <summary>
+        /// PROTOTYPE(dataflow): Add documentation.
+        /// </summary>
+        public static Operations.ControlFlowGraph GetControlFlowGraph(Operations.IMethodBodyOperation methodBody)
+        {
+            if (methodBody == null)
+            {
+                throw new ArgumentNullException(nameof(methodBody));
+            }
+
+            if (methodBody.Parent != null)
+            {
+                // PROTOTYPE(dataflow): Special message?
+                throw new ArgumentException();
+            }
+
+            return GetControlFlowGraphCore(methodBody);
         }
 
         private static Operations.ControlFlowGraph GetControlFlowGraphCore(IOperation operation)
