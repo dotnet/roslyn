@@ -1468,5 +1468,105 @@ namespace RoslynSandbox
     public int Baz => 0;
 }");
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseAutoProperty)]
+        public async Task TestMultipleFieldsAbove1()
+        {
+            await TestInRegularAndScriptAsync(
+@"class Class
+{
+    [|int i|];
+    int j;
+
+    int P
+    {
+        get
+        {
+            return i;
+        }
+    }
+}",
+@"class Class
+{
+    int j;
+
+    int P { get; }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseAutoProperty)]
+        public async Task TestMultipleFieldsAbove2()
+        {
+            await TestInRegularAndScriptAsync(
+@"class Class
+{
+    int j;
+    [|int i|];
+
+    int P
+    {
+        get
+        {
+            return i;
+        }
+    }
+}",
+@"class Class
+{
+    int j;
+
+    int P { get; }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseAutoProperty)]
+        public async Task TestMultipleFieldsBelow1()
+        {
+            await TestInRegularAndScriptAsync(
+@"class Class
+{
+    int P
+    {
+        get
+        {
+            return i;
+        }
+    }
+
+    [|int i|];
+    int j;
+}",
+@"class Class
+{
+    int P { get; }
+
+    int j;
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseAutoProperty)]
+        public async Task TestMultipleFieldsBelow2()
+        {
+            await TestInRegularAndScriptAsync(
+@"class Class
+{
+    int P
+    {
+        get
+        {
+            return i;
+        }
+    }
+
+    int j;
+    [|int i|];
+}",
+@"class Class
+{
+    int P { get; }
+
+    int j;
+}");
+        }
     }
 }
