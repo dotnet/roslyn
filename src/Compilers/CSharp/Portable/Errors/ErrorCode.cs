@@ -1534,7 +1534,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_EscapeCall2 = 8348,
         ERR_EscapeOther = 8349,
         ERR_CallArgMixing = 8350,
-        ERR_MismatchedRefEscapeInTernary = 8351,
+,        ERR_MismatchedRefEscapeInTernary = 8351,
         ERR_EscapeLocal = 8352,
         ERR_EscapeStackAlloc = 8353,
         ERR_RefReturnThis = 8354,
@@ -1577,7 +1577,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_ExprCannotBeFixed = 8385,
         ERR_InvalidObjectCreation = 8386,
         #endregion diagnostics introduced for C# 7.3,
-        WRN_TypeParameterSameAsParentFunctionParameter = 8387
+        WRN_TypeParameterSameAsParentFunctionParameter = 8387,
         ERR_OutVariableCannotBeByRef = 8388,
     }
     // Note: you will need to re-generate compiler code after adding warnings (build\scripts\generate-compiler-code.cmd)
