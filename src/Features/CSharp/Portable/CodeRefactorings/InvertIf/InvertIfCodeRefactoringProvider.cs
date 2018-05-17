@@ -1,16 +1,13 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
 using System.Collections.Generic;
 using System.Composition;
 using System.Diagnostics;
 using System.Linq;
-using System.Threading;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.CodeRefactorings.InvertIf;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
@@ -360,7 +357,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InvertIf
                     case SyntaxKind.ForEachStatement:
                     case SyntaxKind.ForEachVariableStatement:
                         // We no longer need to continue since other statements
-                        // are out of reach, as far as the analysis is concerned.
+                        // are out of reach, as far as this analysis concerned.
                         yield break;
                 }
 

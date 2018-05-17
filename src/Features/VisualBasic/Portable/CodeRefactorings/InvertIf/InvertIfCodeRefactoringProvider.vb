@@ -1,6 +1,5 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-Imports System.Threading
 Imports Microsoft.CodeAnalysis.CodeRefactorings.InvertIf
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
@@ -89,24 +88,22 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings.InvertIf
                 Case InvertIfStyle.Normal
                     Return root.ReplaceNode(ifNode, GetInvertedIfNode(ifNode, DirectCast(negatedExpression, ExpressionSyntax)))
                 Case InvertIfStyle.SwapIfBodyWithSubsequentStatements
-                    Exit Select
+                    Throw New NotImplementedException
                 Case InvertIfStyle.MoveSubsequentStatementsToIfBody
-                    Exit Select
+                    Throw New NotImplementedException
                 Case InvertIfStyle.WithElseClause
-                    Exit Select
+                    Throw New NotImplementedException
                 Case InvertIfStyle.MoveIfBodyToElseClause
-                    Exit Select
+                    Throw New NotImplementedException
                 Case InvertIfStyle.WithSubsequentExitPointStatement
-                    Exit Select
+                    Throw New NotImplementedException
                 Case InvertIfStyle.WithNearmostJumpStatement
-                    Exit Select
+                    Throw New NotImplementedException
                 Case InvertIfStyle.WithNegatedCondition
-                    Exit Select
+                    Throw New NotImplementedException
+                Case Else
+                    Throw ExceptionUtilities.UnexpectedValue(invertIfStyle)
             End Select
-
-            Debug.WriteLine(invertIfStyle)
-
-            Return root
         End Function
     End Class
 End Namespace

@@ -76,20 +76,7 @@ Module A
 End Module
 </File>
 
-            Dim expected =
-<File>
-Module A
-    Sub Main()
-        If False Then :        Else
-            Goo() : Goo
-        End If
-    End Sub
-    Sub Goo()
-    End Sub
-End Module
-</File>
-
-            Await TestAsync(markup, expected)
+            Await TestMissingAsync(markup)
         End Function
 
 
@@ -364,20 +351,7 @@ Module Program
 End Module
 </File>
 
-            Dim expected =
-<File>
-Imports System.Linq
-Module Program
-    Sub Main()
-        If False Then Console.WriteLine() Else Dim q = From x In ""
-        [Take]()
-    End Sub
-    Sub Take()
-    End Sub
-End Module
-</File>
-
-            Await TestAsync(markup, expected)
+            Await TestMissingAsync(markup)
         End Function
 
         <WorkItem(531471, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531471")>
@@ -396,20 +370,7 @@ Module Program
 End Module
 </File>
 
-            Dim expected =
-<File>
-Imports System.Linq
-Module Program
-    Sub Main()
-        If False Then Console.WriteLine() Else Dim q = From x In ""
-        Ascending()
-    End Sub
-    Sub Ascending()
-    End Sub
-End Module
-</File>
-
-            Await TestAsync(markup, expected)
+            Await TestMissingAsync(markup)
         End Function
 
         <WorkItem(531471, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531471")>
@@ -428,20 +389,7 @@ Module Program
 End Module
 </File>
 
-            Dim expected =
-<File>
-Imports System.Linq
-Module Program
-    Sub Main()
-        If False Then Console.WriteLine() Else Dim q = From x In "" Order By x
-        [Ascending]()
-    End Sub
-    Sub Ascending()
-    End Sub
-End Module
-</File>
-
-            Await TestAsync(markup, expected)
+            Await TestMissingAsync(markup)
         End Function
 
         <WorkItem(531472, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531472")>
@@ -469,7 +417,7 @@ Module Program
 End Module
 </File>
 
-            Await TestAsync(markup, expected)
+            Await TestMissingAsync(markup)
         End Function
 
         <WorkItem(531475, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531475")>
@@ -488,20 +436,7 @@ Module Program
 End Module
 </File>
 
-            Dim expected =
-<File>
-Imports System.Linq
-Module Program
-    Sub Main()
-        Dim a = Sub() If False Then Console.WriteLine() Else Dim q = From x In ""
-        [Take]()
-    End Sub
-    Sub Take()
-    End Sub
-End Module
-</File>
-
-            Await TestAsync(markup, expected)
+            Await TestMissingAsync(markup)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)>
@@ -663,22 +598,9 @@ Module Program
         End Select
     End Sub
 End Module
-
 </File>
 
-            Dim expected =
-<File>
-Module Program
-    Sub Main()
-        Select Nothing
-            Case (Sub() If False Then Return Else Dim x), Nothing
-        End Select
-    End Sub
-End Module
-
-</File>
-
-            Await TestAsync(markup, expected)
+            Await TestMissingAsync(markup)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)>

@@ -1,10 +1,7 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Composition
-Imports System.Threading
 Imports Microsoft.CodeAnalysis.CodeRefactorings
-Imports Microsoft.CodeAnalysis.Editing
-Imports Microsoft.CodeAnalysis.LanguageServices
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
@@ -59,7 +56,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings.InvertIf
                          .WithElseClause(elseClause.WithStatements(ifNode.Statements).WithTrailingTrivia(elseClause.GetTrailingTrivia()))
         End Function
 
-
         Protected Overrides Function GetHeaderSpan(ifNode As SingleLineIfStatementSyntax) As TextSpan
             Return TextSpan.FromBounds(
                     ifNode.IfKeyword.SpanStart,
@@ -71,19 +67,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings.InvertIf
         End Function
 
         Protected Overrides Function CanInvert(ifNode As SingleLineIfStatementSyntax) As Boolean
-            If ifNode.IsParentKind(SyntaxKind.SingleLineSubLambdaExpression) Then
-                If ifNode.ElseClause Is Nothing Then
-                    Return False
-                End If
-
-                If ifNode.Parent.IsParentKind(SyntaxKind.EqualsValue) AndAlso
-                   ifNode.Parent.Parent.IsParentKind(SyntaxKind.VariableDeclarator) AndAlso
-                   ifNode.Parent.Parent.Parent.IsParentKind(SyntaxKind.LocalDeclarationStatement) Then
-                    Return DirectCast(ifNode.Parent.Parent.Parent.Parent, LocalDeclarationStatementSyntax).Declarators.Count = 1
-                End If
-            End If
-
-            Return True
+            Return TypeOf ifNode.Parent IsNot SingleLineLambdaExpressionSyntax AndAlso
+                Not ifNode.Statements.Any(Function(n) n.IsKind(SyntaxKind.LocalDeclarationStatement)) AndAlso
+                Not If(ifNode.ElseClause?.Statements.Any(Function(n) n.IsKind(SyntaxKind.LocalDeclarationStatement)), False)
         End Function
 
         Protected Overrides Function GetCondition(ifNode As SingleLineIfStatementSyntax) As SyntaxNode
