@@ -1267,18 +1267,6 @@ Friend Module CompilationUtils
     End Sub
 
     <Extension>
-    Friend Function GetSynthesizedAttributes(symbol As ISymbol, Optional forReturnType As Boolean = False) As ImmutableArray(Of SynthesizedAttributeData)
-        Dim attributes As ArrayBuilder(Of SynthesizedAttributeData) = Nothing
-        If Not forReturnType Then
-            Dim context = New ModuleCompilationState()
-            DirectCast(symbol, Symbol).AddSynthesizedAttributes(context, attributes)
-        Else
-            DirectCast(symbol, MethodSymbol).AddSynthesizedReturnTypeAttributes(attributes)
-        End If
-        Return If(attributes IsNot Nothing, attributes.ToImmutableAndFree(), ImmutableArray.Create(Of SynthesizedAttributeData)())
-    End Function
-
-    <Extension>
     Friend Function LookupNames(model As SemanticModel,
                                 position As Integer,
                                 Optional container As INamespaceOrTypeSymbol = Nothing,

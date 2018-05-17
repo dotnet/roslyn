@@ -6,6 +6,7 @@ using Microsoft.VisualStudio.Text.Editor.Commanding.Commands;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Text;
 using VSCommanding = Microsoft.VisualStudio.Commanding;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
 {
@@ -28,7 +29,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                     return;
                 }
 
-                var syntaxFactsService = document.Project.LanguageServices.GetService<ISyntaxFactsService>();
+                var syntaxFactsService = document.GetLanguageService<ISyntaxFactsService>();
 
                 // We are inside the region we can edit, so let's forward only if it's a valid
                 // character

@@ -195,15 +195,15 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
         }
 
         protected static SyntaxToken GenerateUniqueFieldName(
-            SemanticDocument document,
+            SemanticDocument semanticDocument,
             TExpressionSyntax expression,
             bool isConstant,
             CancellationToken cancellationToken)
         {
-            var syntaxFacts = document.Document.GetLanguageService<ISyntaxFactsService>();
-            var semanticFacts = document.Document.GetLanguageService<ISemanticFactsService>();
+            var syntaxFacts = semanticDocument.Document.GetLanguageService<ISyntaxFactsService>();
+            var semanticFacts = semanticDocument.Document.GetLanguageService<ISemanticFactsService>();
 
-            var semanticModel = document.SemanticModel;
+            var semanticModel = semanticDocument.SemanticModel;
             var baseName = semanticFacts.GenerateNameForExpression(
                 semanticModel, expression, isConstant, cancellationToken);
 
@@ -216,15 +216,15 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
         }
 
         protected static SyntaxToken GenerateUniqueLocalName(
-            SemanticDocument document,
+            SemanticDocument semanticDocument,
             TExpressionSyntax expression,
             bool isConstant,
             SyntaxNode containerOpt,
             CancellationToken cancellationToken)
         {
-            var semanticModel = document.SemanticModel;
+            var semanticModel = semanticDocument.SemanticModel;
 
-            var semanticFacts = document.Document.GetLanguageService<ISemanticFactsService>();
+            var semanticFacts = semanticDocument.Document.GetLanguageService<ISemanticFactsService>();
             var baseName = semanticFacts.GenerateNameForExpression(
                 semanticModel, expression, capitalize: isConstant, cancellationToken: cancellationToken);
 
