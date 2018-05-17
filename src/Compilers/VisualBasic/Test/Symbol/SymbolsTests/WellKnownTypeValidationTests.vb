@@ -537,7 +537,8 @@ End Namespace
                          WellKnownType.Microsoft_VisualBasic_ApplicationServices_ApplicationBase,
                          WellKnownType.Microsoft_VisualBasic_ApplicationServices_WindowsFormsApplicationBase,
                          WellKnownType.Microsoft_VisualBasic_Information,
-                         WellKnownType.Microsoft_VisualBasic_Interaction
+                         WellKnownType.Microsoft_VisualBasic_Interaction,
+                         WellKnownType.Microsoft_VisualBasic_Conversion
                         ' Not embedded, so not available.
                         Continue For
                     Case WellKnownType.System_FormattableString,
@@ -674,7 +675,9 @@ End Namespace
                          WellKnownMember.Microsoft_VisualBasic_Information__SystemTypeName,
                          WellKnownMember.Microsoft_VisualBasic_Information__TypeName,
                          WellKnownMember.Microsoft_VisualBasic_Information__VbTypeName,
-                         WellKnownMember.Microsoft_VisualBasic_Interaction__CallByName
+                         WellKnownMember.Microsoft_VisualBasic_Interaction__CallByName,
+                         WellKnownMember.Microsoft_VisualBasic_Conversion__FixSingle,
+                         WellKnownMember.Microsoft_VisualBasic_Conversion__FixDouble
                         ' The type is not embedded, so the member is not available.
                         Continue For
                     Case WellKnownMember.System_Array__Empty,
