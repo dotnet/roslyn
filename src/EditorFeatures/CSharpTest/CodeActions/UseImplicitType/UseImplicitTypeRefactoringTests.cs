@@ -8,6 +8,7 @@ using Microsoft.CodeAnalysis.CSharp.CodeRefactorings.UseImplicitType;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.UseExplicitType
@@ -265,6 +266,28 @@ class C
 
             await TestInRegularAndScriptAsync(code, expected, options: PreferImplicitTypeWithNone());
             await TestInRegularAndScriptAsync(code, expected, options: PreferExplicitTypeWithNone());
+            await TestMissingInRegularAndScriptAsync(code, PreferImplicitTypeWithInfo());
+        }
+
+        [Fact, WorkItem(26923, "https://github.com/dotnet/roslyn/issues/26923")]
+        public async Task NoSuggestionOnForeachCollectionExpression()
+        {
+            var code = @"using System;
+using System.Collections.Generic;
+
+class C
+{
+    static void Main(string[] args)
+    {
+        foreach (string arg in [|args|])
+        {
+
+        }
+    }
+}";
+
+            await TestMissingInRegularAndScriptAsync(code, PreferImplicitTypeWithNone());
+            await TestMissingInRegularAndScriptAsync(code, PreferExplicitTypeWithNone());
             await TestMissingInRegularAndScriptAsync(code, PreferImplicitTypeWithInfo());
         }
 
