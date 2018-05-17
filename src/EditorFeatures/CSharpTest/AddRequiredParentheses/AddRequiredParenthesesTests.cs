@@ -663,7 +663,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AddRequiredParentheses
         {
         }
     }
-}", options: RequireAllParenthesesForClarity, fixAllActionEquivalenceKey: CodeStyleOptions.ArithmeticBinaryParentheses.Name);
+}", options: RequireAllParenthesesForClarity);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddRequiredParentheses)]
@@ -698,7 +698,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AddRequiredParentheses
     {
         int x = 1 + (2 * 3) == 1 + (2 * 3);
     }
-}", options: RequireAllParenthesesForClarity, fixAllActionEquivalenceKey: CodeStyleOptions.ArithmeticBinaryParentheses.Name);
+}", options: RequireAllParenthesesForClarity);
         }
     }
 }
