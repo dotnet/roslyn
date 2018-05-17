@@ -961,6 +961,9 @@ class C
                 // (5,10): error CS0019: Operator '??' cannot be applied to operands of type '<null>' and '<null>'
                 //         (null ?? null).ToString();
                 Diagnostic(ErrorCode.ERR_BadBinaryOps, "null ?? null").WithArguments("??", "<null>", "<null>").WithLocation(5, 10),
+                // (5,10): warning CS8602: Possible dereference of a null reference.
+                //         (null ?? null).ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "null ?? null").WithLocation(5, 10),
                 // (7,10): warning CS8602: Possible dereference of a null reference.
                 //         (null ?? y).ToString();
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "null ?? y").WithLocation(7, 10));
@@ -1109,14 +1112,14 @@ public class NotNull
     {
         (x1 ?? y1)/*T:!*/.ToString();
         (y1 ?? x1)/*T:!*/.ToString();
-        (null ?? y1)/*T:Unknown?*/.ToString();
+        (null ?? y1)/*T:?*/.ToString();
         (y1 ?? null)/*T:?*/.ToString();
     }
     static void F2(C? x2, Unknown y2)
     {
         (x2 ?? y2)/*T:!*/.ToString();
         (y2 ?? x2)/*T:!*/.ToString();
-        (null ?? y2)/*T:Unknown!*/.ToString();
+        (null ?? y2)/*T:!*/.ToString();
         (y2 ?? null)/*T:!*/.ToString();
     }
 }";

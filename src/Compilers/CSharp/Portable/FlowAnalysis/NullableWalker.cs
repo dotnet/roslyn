@@ -842,12 +842,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             var result = base.VisitExpressionWithoutStackGuard(node);
 #if DEBUG
             // Verify Visit method set _result.
-            if (!IsConditionalState)
-            {
-                TypeSymbolWithAnnotations resultType = _result.Type;
-                Debug.Assert((object)resultType != _invalidType);
-                Debug.Assert((object)resultType == null || AreCloseEnough(resultType.TypeSymbol, node.Type));
-            }
+            TypeSymbolWithAnnotations resultType = _result.Type;
+            Debug.Assert((object)resultType != _invalidType);
+            Debug.Assert(AreCloseEnough(resultType?.TypeSymbol, node.Type));
 #endif
             if (_callbackOpt != null)
             {
@@ -860,6 +857,14 @@ namespace Microsoft.CodeAnalysis.CSharp
         // For asserts only.
         private static bool AreCloseEnough(TypeSymbol typeA, TypeSymbol typeB)
         {
+            if ((object)typeA == typeB)
+            {
+                return true;
+            }
+            if (typeA is null || typeB is null)
+            {
+                return false;
+            }
             bool canIgnoreType(TypeSymbol type) => (object)type.VisitType((t, unused1, unused2) => t.IsErrorType() || t.IsDynamic() || t.HasUseSiteError, (object)null) != null;
             return canIgnoreType(typeA) ||
                 canIgnoreType(typeB) ||
@@ -1352,9 +1357,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundExpression rightOperand = node.RightOperand;
 
             Result leftResult = VisitRvalueWithResult(leftOperand);
+            Result rightResult;
+
             if (IsConstantNull(leftOperand))
             {
-                VisitRvalue(rightOperand);
+                rightResult = VisitRvalueWithResult(rightOperand);
+                // Should be able to use rightResult for the result of the operator but
+                // binding may have generated a different result type in the case of errors.
+                _result = TypeSymbolWithAnnotations.Create(node.Type, getIsNullable(rightOperand, rightResult));
                 return null;
             }
 
@@ -1372,29 +1382,30 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // PROTOTYPE(NullableReferenceTypes): For cases where the left operand determines
             // the type, we should unwrap the right conversion and re-apply.
-            var rightResult = VisitRvalueWithResult(rightOperand);
+            rightResult = VisitRvalueWithResult(rightOperand);
             IntersectWith(ref this.State, ref leftState);
-
             TypeSymbol resultType;
+            var leftResultType = leftResult.Type?.TypeSymbol;
+            var rightResultType = rightResult.Type?.TypeSymbol;
             switch (node.OperatorResultKind)
             {
                 case BoundNullCoalescingOperatorResultKind.NoCommonType:
                     resultType = node.Type;
                     break;
                 case BoundNullCoalescingOperatorResultKind.LeftType:
-                    resultType = getLeftResultType(leftResult.Type.TypeSymbol, rightResult.Type?.TypeSymbol);
+                    resultType = getLeftResultType(leftResultType, rightResultType);
                     break;
                 case BoundNullCoalescingOperatorResultKind.LeftUnwrappedType:
-                    resultType = getLeftResultType(leftResult.Type.TypeSymbol.StrippedType(), rightResult.Type?.TypeSymbol);
+                    resultType = getLeftResultType(leftResultType.StrippedType(), rightResultType);
                     break;
                 case BoundNullCoalescingOperatorResultKind.RightType:
-                    resultType = getRightResultType(leftResult.Type.TypeSymbol, rightResult.Type.TypeSymbol);
+                    resultType = getRightResultType(leftResultType, rightResultType);
                     break;
                 case BoundNullCoalescingOperatorResultKind.LeftUnwrappedRightType:
-                    resultType = getRightResultType(leftResult.Type.TypeSymbol.StrippedType(), rightResult.Type.TypeSymbol);
+                    resultType = getRightResultType(leftResultType.StrippedType(), rightResultType);
                     break;
                 case BoundNullCoalescingOperatorResultKind.RightDynamicType:
-                    resultType = rightResult.Type.TypeSymbol;
+                    resultType = rightResultType;
                     break;
                 default:
                     throw ExceptionUtilities.UnexpectedValue(node.OperatorResultKind);
@@ -2834,13 +2845,13 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     // PROTOTYPE(NullableReferenceTypes): Ignoring top-level nullability of operator.
                     resultType = ApplyConversion(node, node.FinalConversion, node.Type, resultType);
+                    ReportAssignmentWarnings(node, left.Type, resultType, useLegacyWarnings: false);
                 }
                 else
                 {
-                    resultType = null;
+                    resultType = TypeSymbolWithAnnotations.Create(node.Type);
                 }
 
-                ReportAssignmentWarnings(node, left.Type, resultType, useLegacyWarnings: false);
                 TrackNullableStateForAssignment(node, left.Type, left.Slot, resultType);
                 _result = resultType;
             }
