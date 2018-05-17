@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             var cancellationToken = context.CancellationToken;
             var tree = await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
 
-            var token = TryGetOpenBraceOrCommaInPropertySubpattern(tree, position, cancellationToken);
+            var token = TryGetOpenBraceOrCommaInPropertyPatternClause(tree, position, cancellationToken);
             if (token == default || !(token.Parent.Parent is PatternSyntax))
             {
                 return;
@@ -46,10 +46,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 !m.IsImplicitlyDeclared);
 
             // Filter out those members that have already been typed
-            var propertySubpattern = (PropertyPatternClauseSyntax)token.Parent;
+            var propertyPatternClause = (PropertyPatternClauseSyntax)token.Parent;
 
             // List the members that are already tested in this property sub-pattern
-            var alreadyTestedMembers = new HashSet<string>(propertySubpattern.Subpatterns.Select(
+            var alreadyTestedMembers = new HashSet<string>(propertyPatternClause.Subpatterns.Select(
                 p => p.NameColon?.Name.Identifier.ValueText).Where(s => !string.IsNullOrEmpty(s)));
 
             var untestedMembers = members.Where(m => !alreadyTestedMembers.Contains(m.Name) &&
@@ -89,7 +89,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
         internal override bool IsInsertionTrigger(SourceText text, int characterPosition, OptionSet options)
             => CompletionUtilities.IsTriggerCharacter(text, characterPosition, options) || text[characterPosition] == ' ';
 
-        private static SyntaxToken TryGetOpenBraceOrCommaInPropertySubpattern(SyntaxTree tree, int position, CancellationToken cancellationToken)
+        private static SyntaxToken TryGetOpenBraceOrCommaInPropertyPatternClause(SyntaxTree tree, int position, CancellationToken cancellationToken)
         {
             if (tree.IsInNonUserCode(position, cancellationToken))
             {
@@ -104,7 +104,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 return default;
             }
 
-            return token.Parent.IsKind(SyntaxKind.RecursivePattern) ? token : default;
+            return token.Parent.IsKind(SyntaxKind.PropertyPatternClause) ? token : default;
         }
     }
 }

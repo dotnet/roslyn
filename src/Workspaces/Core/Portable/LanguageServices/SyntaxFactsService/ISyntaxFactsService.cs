@@ -317,7 +317,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         /// </summary>
         string GetNameForArgument(SyntaxNode argument);
 
-        bool IsNameOfSubpatternElement(SyntaxNode node);
+        bool IsNameOfSubpattern(SyntaxNode node);
         bool IsPropertyPatternClause(SyntaxNode node);
 
         ImmutableArray<SyntaxNode> GetSelectedMembers(SyntaxNode root, TextSpan textSpan);

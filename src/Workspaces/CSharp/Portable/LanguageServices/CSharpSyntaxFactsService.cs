@@ -777,7 +777,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public bool IsObjectCreationExpression(SyntaxNode node)
             => node is ObjectCreationExpressionSyntax;
 
-        public bool IsNameOfSubpatternElement(SyntaxNode node)
+        public bool IsNameOfSubpattern(SyntaxNode node)
             => node.IsKind(SyntaxKind.IdentifierName) &&
                node.IsParentKind(SyntaxKind.NameColon) &&
                node.Parent.IsParentKind(SyntaxKind.Subpattern);

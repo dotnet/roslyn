@@ -679,8 +679,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                     return (anonymousObjectCreationExpression.OpenBraceToken, anonymousObjectCreationExpression.CloseBraceToken);
                 case InitializerExpressionSyntax initializeExpressionNode:
                     return (initializeExpressionNode.OpenBraceToken, initializeExpressionNode.CloseBraceToken);
-                case PropertyPatternClauseSyntax propertySubpattern:
-                    return (propertySubpattern.OpenBraceToken, propertySubpattern.CloseBraceToken);
+                case PropertyPatternClauseSyntax propertyPatternClause:
+                    return (propertyPatternClause.OpenBraceToken, propertyPatternClause.CloseBraceToken);
                 case SwitchExpressionSyntax switchExpression:
                     return (switchExpression.OpenBraceToken, switchExpression.CloseBraceToken);
             }

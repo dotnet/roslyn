@@ -154,7 +154,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember
                 isStatic = false;
                 return;
             }
-            else if (syntaxFacts.IsNameOfSubpatternElement(expression))
+            else if (syntaxFacts.IsNameOfSubpattern(expression))
             {
                 var propertyPatternClause = expression.Ancestors().FirstOrDefault(syntaxFacts.IsPropertyPatternClause);
 
