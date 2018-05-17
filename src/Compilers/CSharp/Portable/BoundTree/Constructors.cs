@@ -202,7 +202,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 isBaseConversion: false,
                 @checked: false,
                 explicitCastInCode: false,
-                conversionGroup: null,
+                conversionGroupOpt: null,
                 constantValueOpt: constantValueOpt,
                 type: type)
             { WasCompilerGenerated = true };
@@ -219,7 +219,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Conversion conversion,
             bool @checked,
             bool explicitCastInCode,
-            ConversionGroup conversionGroup,
+            ConversionGroup conversionGroupOpt,
             ConstantValue constantValueOpt,
             TypeSymbol type,
             bool hasErrors = false)
@@ -230,7 +230,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 conversion,
                 @checked,
                 explicitCastInCode: explicitCastInCode,
-                conversionGroup,
+                conversionGroupOpt,
                 constantValueOpt,
                 type,
                 hasErrors || !conversion.IsValid)
@@ -245,7 +245,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Conversion conversion,
             bool @checked,
             bool explicitCastInCode,
-            ConversionGroup conversionGroup,
+            ConversionGroup conversionGroupOpt,
             ConstantValue constantValueOpt,
             TypeSymbol type,
             bool hasErrors = false)
@@ -257,7 +257,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 @checked: @checked,
                 explicitCastInCode: explicitCastInCode,
                 constantValueOpt: constantValueOpt,
-                conversionGroup,
+                conversionGroupOpt,
                 type: type,
                 hasErrors: hasErrors || !conversion.IsValid)
         {

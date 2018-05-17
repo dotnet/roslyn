@@ -5,6 +5,11 @@ using Microsoft.CodeAnalysis.CSharp.Symbols;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
+    /// <summary>
+    /// A group is a common instance referenced by all BoundConversion instances
+    /// that represent a single Conversion, and used by NullableWalker to determine
+    /// which BoundConversion nodes can be considered as a unit.
+    /// </summary>
     [DebuggerDisplay("{GetDebuggerDisplay(), nq}")]
     internal sealed class ConversionGroup
     {
@@ -14,9 +19,21 @@ namespace Microsoft.CodeAnalysis.CSharp
             ExplicitType = explicitType;
         }
 
+        /// <summary>
+        /// True if the conversion is an explicit conversion.
+        /// </summary>
         internal bool IsExplicitConversion => (object)ExplicitType != null;
 
+        /// <summary>
+        /// The conversion (from Conversions.ClassifyConversionFromExpression for
+        /// instance) from which all BoundConversions in the group were created.
+        /// </summary>
         internal readonly Conversion Conversion;
+
+        /// <summary>
+        /// The target type of the conversion specified explicitly in source,
+        /// or null if not an explicit conversion.
+        /// </summary>
         internal readonly TypeSymbolWithAnnotations ExplicitType;
 
 #if DEBUG
@@ -25,7 +42,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal string GetDebuggerDisplay()
         {
-            return $"#{_id} {Conversion}";
+            var str = $"#{_id} {Conversion}";
+            if ((object)ExplicitType != null)
+            {
+                str += $" ({ExplicitType})";
+            }
+            return str;
         }
 #endif
     }

@@ -319,7 +319,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             isBaseConversion: false,
                             @checked: false,
                             explicitCastInCode: explicitCastInCode,
-                            conversionGroup: oldNode.ConversionGroup,
+                            conversionGroupOpt: oldNode.ConversionGroupOpt,
                             constantValueOpt: constantValueOpt,
                             type: rewrittenType);
                     }
@@ -366,7 +366,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     isBaseConversion: oldNode.IsBaseConversion,
                     @checked: @checked,
                     explicitCastInCode: explicitCastInCode,
-                    conversionGroup: oldNode.ConversionGroup,
+                    conversionGroupOpt: oldNode.ConversionGroupOpt,
                     constantValueOpt: constantValueOpt,
                     type: rewrittenType) :
                 new BoundConversion(
@@ -376,7 +376,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     isBaseConversion: false,
                     @checked: @checked,
                     explicitCastInCode: explicitCastInCode,
-                    conversionGroup: null, // BoundConversion.ConversionGroup is not used in lowered tree
+                    conversionGroupOpt: null, // BoundConversion.ConversionGroup is not used in lowered tree
                     constantValueOpt: constantValueOpt,
                     type: rewrittenType);
         }
@@ -480,7 +480,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             conversion,             
                             @checked: @checked,
                             explicitCastInCode: false,
-                            conversionGroup: null,
+                            conversionGroupOpt: null,
                             constantValueOpt: default(ConstantValue),
                             type: type,
                             hasErrors: !conversion.IsValid) { WasCompilerGenerated = true };
@@ -1031,7 +1031,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             BoundExpression result =
                 doNotLowerToCall
-                ? BoundConversion.Synthesized(syntax, rewrittenOperand, conversion, false, explicitCastInCode: true, conversionGroup: null, default(ConstantValue), rewrittenType)
+                ? BoundConversion.Synthesized(syntax, rewrittenOperand, conversion, false, explicitCastInCode: true, conversionGroupOpt: null, default(ConstantValue), rewrittenType)
                 : (BoundExpression)BoundCall.Synthesized(syntax, null, conversion.Method, rewrittenOperand);
             Debug.Assert(result.Type == rewrittenType);
             return result;
@@ -1058,7 +1058,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (_inExpressionLambda)
             {
                 Conversion conv = TryMakeConversion(syntax, conversion, rewrittenOperand.Type, rewrittenType);
-                return BoundConversion.Synthesized(syntax, rewrittenOperand, conv, false, explicitCastInCode: true, conversionGroup: null, default(ConstantValue), rewrittenType);
+                return BoundConversion.Synthesized(syntax, rewrittenOperand, conv, false, explicitCastInCode: true, conversionGroupOpt: null, default(ConstantValue), rewrittenType);
             }
 
             // DELIBERATE SPEC VIOLATION: 
@@ -1174,7 +1174,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (_inExpressionLambda)
             {
-                return BoundConversion.Synthesized(syntax, rewrittenOperand, conversion, @checked, explicitCastInCode: explicitCastInCode, conversionGroup: null, constantValueOpt, rewrittenType);
+                return BoundConversion.Synthesized(syntax, rewrittenOperand, conversion, @checked, explicitCastInCode: explicitCastInCode, conversionGroupOpt: null, constantValueOpt, rewrittenType);
             }
 
             var rewrittenCall = MakeCall(
@@ -1360,7 +1360,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 ConversionKind conversionKind = isImplicit ? ConversionKind.ImplicitUserDefined : ConversionKind.ExplicitUserDefined;
                 var conversion = new Conversion(conversionKind, method, isExtensionMethod: false);
 
-                return new BoundConversion(syntax, operand, conversion, @checked: false, explicitCastInCode: false, conversionGroup: null, constantValueOpt: constantValueOpt, type: toType);
+                return new BoundConversion(syntax, operand, conversion, @checked: false, explicitCastInCode: false, conversionGroupOpt: null, constantValueOpt: constantValueOpt, type: toType);
             }
             else
             {

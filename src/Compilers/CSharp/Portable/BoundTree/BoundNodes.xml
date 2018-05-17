@@ -595,7 +595,13 @@
     <Field Name="Checked" Type="bool"/>
     <Field Name="ExplicitCastInCode" Type="bool"/>
     <Field Name="ConstantValueOpt" Type="ConstantValue" Null="allow"/>
-    <Field Name="ConversionGroup" Type="ConversionGroup" Null="allow"/>
+     <!--
+         Reference to a group instance common to all BoundConversions from a single
+         Conversion. Also contains the target type specified in source in the case of explicit
+         conversions. ConversionGroupOpt may be null for implicit conversions if the
+         Conversion is represented by a single BoundConversion.
+         -->
+    <Field Name="ConversionGroupOpt" Type="ConversionGroup" Null="allow"/>
 </Node>
 
   <!--

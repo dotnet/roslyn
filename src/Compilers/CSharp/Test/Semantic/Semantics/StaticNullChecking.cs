@@ -18435,8 +18435,6 @@ static class E
                 Diagnostic(ErrorCode.WRN_NullabilityMismatchInArgument, "y").WithArguments("C<object>", "I<object?>", "o", "void E.F2(I<object?> o)").WithLocation(9, 9));
         }
 
-        // PROTOTYPE(NullableReferenceTypes): Warnings should use B<object?> and
-        // B<object> for source type rather than A<object?> and A<object>.
         [Fact]
         public void SuppressNullableWarning_ImplicitUserDefinedConversion()
         {

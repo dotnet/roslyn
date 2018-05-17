@@ -441,7 +441,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 builder.CollectionConversion,
                 @checked: CheckOverflowAtRuntime,
                 explicitCastInCode: false,
-                conversionGroup: null,
+                conversionGroupOpt: null,
                 ConstantValue.NotAvailable,
                 builder.CollectionType);
 

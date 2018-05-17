@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var conversion = Conversions.ClassifyConversionFromExpression(source, destination, ref useSiteDiagnostics);
 
             diagnostics.Add(source.Syntax, useSiteDiagnostics);
-            return CreateConversion(source.Syntax, source, conversion, isCast: false, conversionGroup: null, destination: destination, diagnostics: diagnostics);
+            return CreateConversion(source.Syntax, source, conversion, isCast: false, conversionGroupOpt: null, destination: destination, diagnostics: diagnostics);
         }
 
         internal BoundExpression CreateConversion(
@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             TypeSymbol destination,
             DiagnosticBag diagnostics)
         {
-            return CreateConversion(source.Syntax, source, conversion, isCast: false, conversionGroup: null, destination: destination, diagnostics: diagnostics);
+            return CreateConversion(source.Syntax, source, conversion, isCast: false, conversionGroupOpt: null, destination: destination, diagnostics: diagnostics);
         }
 
         internal BoundExpression CreateConversion(
@@ -40,11 +40,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundExpression source,
             Conversion conversion,
             bool isCast,
-            ConversionGroup conversionGroup,
+            ConversionGroup conversionGroupOpt,
             TypeSymbol destination,
             DiagnosticBag diagnostics)
         {
-            return CreateConversion(syntax, source, conversion, isCast: isCast, conversionGroup, source.WasCompilerGenerated, destination, diagnostics);
+            return CreateConversion(syntax, source, conversion, isCast: isCast, conversionGroupOpt, source.WasCompilerGenerated, destination, diagnostics);
         }
 
         protected BoundExpression CreateConversion(
@@ -52,14 +52,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundExpression source,
             Conversion conversion,
             bool isCast,
-            ConversionGroup conversionGroup,
+            ConversionGroup conversionGroupOpt,
             bool wasCompilerGenerated,
             TypeSymbol destination,
             DiagnosticBag diagnostics)
         {
             Debug.Assert(source != null);
             Debug.Assert((object)destination != null);
-            Debug.Assert(!isCast || conversionGroup != null);
+            Debug.Assert(!isCast || conversionGroupOpt != null);
 
             if (conversion.IsIdentity)
             {
@@ -90,12 +90,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (conversion.IsMethodGroup)
             {
-                return CreateMethodGroupConversion(syntax, source, conversion, isCast: isCast, conversionGroup, destination, diagnostics);
+                return CreateMethodGroupConversion(syntax, source, conversion, isCast: isCast, conversionGroupOpt, destination, diagnostics);
             }
 
             if (conversion.IsAnonymousFunction && source.Kind == BoundKind.UnboundLambda)
             {
-                return CreateAnonymousFunctionConversion(syntax, source, conversion, isCast: isCast, conversionGroup, destination, diagnostics);
+                return CreateAnonymousFunctionConversion(syntax, source, conversion, isCast: isCast, conversionGroupOpt, destination, diagnostics);
             }
 
             if (conversion.IsStackAlloc)
@@ -106,12 +106,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (conversion.IsTupleLiteralConversion ||
                 (conversion.IsNullable && conversion.UnderlyingConversions[0].IsTupleLiteralConversion))
             {
-                return CreateTupleLiteralConversion(syntax, (BoundTupleLiteral)source, conversion, isCast: isCast, conversionGroup, destination, diagnostics);
+                return CreateTupleLiteralConversion(syntax, (BoundTupleLiteral)source, conversion, isCast: isCast, conversionGroupOpt, destination, diagnostics);
             }
 
             if (conversion.IsUserDefined)
             {
-                return CreateUserDefinedConversion(syntax, source, conversion, isCast: isCast, conversionGroup ?? new ConversionGroup(conversion), destination, diagnostics);
+                return CreateUserDefinedConversion(syntax, source, conversion, isCast: isCast, conversionGroupOpt ?? new ConversionGroup(conversion), destination, diagnostics);
             }
 
             ConstantValue constantValue = this.FoldConstantConversion(syntax, source, conversion, destination, diagnostics);
@@ -126,7 +126,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 conversion,
                 @checked: CheckOverflowAtRuntime,
                 explicitCastInCode: isCast && !wasCompilerGenerated,
-                conversionGroup,
+                conversionGroupOpt,
                 constantValueOpt: constantValue,
                 type: destination)
             { WasCompilerGenerated = wasCompilerGenerated };
@@ -362,7 +362,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var convertedNode = new BoundConvertedStackAllocExpression(syntax, elementType, boundStackAlloc.Count, boundStackAlloc.InitializerOpt, stackAllocType, boundStackAlloc.HasErrors);
 
             var underlyingConversion = conversion.UnderlyingConversions.Single();
-            return CreateConversion(syntax, convertedNode, underlyingConversion, isCast: isCast, conversionGroup: null, destination, diagnostics);
+            return CreateConversion(syntax, convertedNode, underlyingConversion, isCast: isCast, conversionGroupOpt: null, destination, diagnostics);
         }
 
         private BoundExpression CreateTupleLiteralConversion(SyntaxNode syntax, BoundTupleLiteral sourceTuple, Conversion conversion, bool isCast, ConversionGroup conversionGroup, TypeSymbol destination, DiagnosticBag diagnostics)
@@ -428,8 +428,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var argument = arguments[i];
                 var destType = targetElementTypes[i];
                 var elementConversion = underlyingConversions[i];
-                var elementGroupId = isCast ? new ConversionGroup(elementConversion, destType) : null;
-                convertedArguments.Add(CreateConversion(argument.Syntax, argument, elementConversion, isCast: isCast, elementGroupId, destType.TypeSymbol, diagnostics));
+                var elementConversionGroup = isCast ? new ConversionGroup(elementConversion, destType) : null;
+                convertedArguments.Add(CreateConversion(argument.Syntax, argument, elementConversion, isCast: isCast, elementConversionGroup, destType.TypeSymbol, diagnostics));
             }
 
             BoundExpression result = new BoundConvertedTupleLiteral(

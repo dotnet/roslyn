@@ -600,7 +600,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                 node.Checked,
                 node.ExplicitCastInCode,
                 node.ConstantValue,
-                node.ConversionGroup,
+                node.ConversionGroupOpt,
                 node.Type);
         }
 

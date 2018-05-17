@@ -2144,11 +2144,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                     break;
                 }
                 var conversion = (BoundConversion)expr;
-                if (group != conversion.ConversionGroup && group != null)
+                if (group != conversion.ConversionGroupOpt && group != null)
                 {
                     break;
                 }
-                group = conversion.ConversionGroup;
+                group = conversion.ConversionGroupOpt;
                 Debug.Assert(group != null || !conversion.ExplicitCastInCode); // Explicit conversions should include a group.
                 if (!includeExplicitConversions && group?.IsExplicitConversion == true)
                 {
@@ -2160,7 +2160,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // Ungrouped conversion should not be followed by another ungrouped
                     // conversion. Otherwise, the conversions should have been grouped.
                     Debug.Assert(expr.Kind != BoundKind.Conversion ||
-                        ((BoundConversion)expr).ConversionGroup != null ||
+                        ((BoundConversion)expr).ConversionGroupOpt != null ||
                         ((BoundConversion)expr).ConversionKind == ConversionKind.NoConversion);
                     return (expr, conversion.Conversion);
                 }
@@ -2318,7 +2318,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             Visit(operand);
             var operandType = _result.Type;
-            var explicitType = node.ConversionGroup?.ExplicitType;
+            var explicitType = node.ConversionGroupOpt?.ExplicitType;
             bool fromExplicitCast = (object)explicitType != null;
             var resultType = ApplyConversion(node, operand, conversion, explicitType?.TypeSymbol ?? node.Type, operandType, checkConversion: !fromExplicitCast, fromExplicitCast: fromExplicitCast, out bool _);
 

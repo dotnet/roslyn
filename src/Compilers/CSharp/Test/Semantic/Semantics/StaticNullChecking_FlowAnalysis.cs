@@ -3558,24 +3558,44 @@ class C
         public void Conversions_06()
         {
             var source =
-@"interface IOut<out T> { }
-class A<T> : IOut<object?> { }
+@"interface IIn<in T> { }
+interface IOut<out T> { }
+class A<T> : IIn<object>, IOut<object?> { }
+class B : IIn<object>, IOut<object?> { }
 class C
 {
-    static void F(A<string> x)
+    static void F(A<string> a1, B b1)
     {
-        IOut<object?> y = x;
+        IIn<object?> y = a1;
+        y = b1;
+        IOut<object?> z = a1;
+        z = b1;
     }
-    static void G(A<string> x)
+    static void G(A<string> a2, B b2)
     {
-        IOut<object> y = x;
+        IIn<object> y = a2;
+        y = b2;
+        IOut<object> z = a2;
+        z = b2;
     }
 }";
             var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
+            // PROTOTYPE(NullableReferenceType): Report the base types that did not match
+            // rather than the derived or implementing type. For instance, report `'IIn<object>'
+            // doesn't match ... 'IIn<object?>'` rather than `'A<string>' doesn't match ...`.
             comp.VerifyDiagnostics(
-                // (11,26): warning CS8619: Nullability of reference types in value of type 'A<string>' doesn't match target type 'IOut<object>'.
-                //         IOut<object> y = x;
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "x").WithArguments("A<string>", "IOut<object>").WithLocation(11, 26));
+                // (9,26): warning CS8619: Nullability of reference types in value of type 'A<string>' doesn't match target type 'IIn<object?>'.
+                //         IIn<object?> y = a1;
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "a1").WithArguments("A<string>", "IIn<object?>").WithLocation(9, 26),
+                // (10,13): warning CS8619: Nullability of reference types in value of type 'B' doesn't match target type 'IIn<object?>'.
+                //         y = b1;
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "b1").WithArguments("B", "IIn<object?>").WithLocation(10, 13),
+                // (18,26): warning CS8619: Nullability of reference types in value of type 'A<string>' doesn't match target type 'IOut<object>'.
+                //         IOut<object> z = a2;
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "a2").WithArguments("A<string>", "IOut<object>").WithLocation(18, 26),
+                // (19,13): warning CS8619: Nullability of reference types in value of type 'B' doesn't match target type 'IOut<object>'.
+                //         z = b2;
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "b2").WithArguments("B", "IOut<object>").WithLocation(19, 13));
         }
 
         [Fact]
@@ -3606,7 +3626,8 @@ class C
             // PROTOTYPE(NullableReferenceType): Several issues with implicit user-defined conversions and
             // nested nullability: should report `'A<object?>' doesn't match ... 'A<object>'` rather than
             // `'A<object>' doesn't match ... 'A<object?>'`; should report warning for `G(y)` only, not `G(z)`; and
-            // should be reported as WRN_NullabilityMismatchInArgument not WRN_NullabilityMismatchInAssignment.
+            // should be reported as WRN_NullabilityMismatchInArgument not WRN_NullabilityMismatchInAssignment
+            // (see NullabilityWalker.ApplyConversion).
             comp.VerifyDiagnostics(
                 // (15,11): warning CS8619: Nullability of reference types in value of type 'A<object>' doesn't match target type 'A<object?>'.
                 //         G(y); // warning
