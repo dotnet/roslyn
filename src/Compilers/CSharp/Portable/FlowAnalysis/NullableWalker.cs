@@ -2409,12 +2409,21 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
+        /// <summary>
+        /// Re-calculate and apply the conversion to the type of the operand and return the resulting type.
+        /// </summary>
         private TypeSymbolWithAnnotations ApplyConversion(BoundExpression operand, Conversion conversion, TypeSymbol targetType, TypeSymbolWithAnnotations operandType)
         {
             Debug.Assert(operand != null);
             return ApplyConversion(operand, operand, conversion, targetType, operandType, checkConversion: true, fromExplicitCast: false, out _);
         }
 
+        /// <summary>
+        /// Apply the conversion to the type of the operand and return the resulting type.
+        /// If `checkConversion` is set, the conversion is assumed to be from initial binding
+        /// and will be re-calcuated considering nullability if necessary. `canConvert` is set
+        /// based on whether the conversion succeeded.
+        /// </summary>
         private TypeSymbolWithAnnotations ApplyConversion(
             BoundNode node,
             BoundExpression operandOpt,
