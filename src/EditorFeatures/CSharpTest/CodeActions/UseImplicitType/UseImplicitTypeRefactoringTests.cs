@@ -286,9 +286,11 @@ class C
     }
 }";
 
+            // We never want to get offered here under any circumstances.
             await TestMissingInRegularAndScriptAsync(code, PreferImplicitTypeWithNone());
             await TestMissingInRegularAndScriptAsync(code, PreferExplicitTypeWithNone());
             await TestMissingInRegularAndScriptAsync(code, PreferImplicitTypeWithInfo());
+            await TestMissingInRegularAndScriptAsync(code, PreferExplicitTypeWithInfo());
         }
 
         private Task TestMissingInRegularAndScriptAsync(string initialMarkup, IDictionary<OptionKey, object> options)

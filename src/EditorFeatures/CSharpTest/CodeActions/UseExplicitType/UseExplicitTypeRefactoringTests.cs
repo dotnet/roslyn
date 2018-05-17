@@ -34,6 +34,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.UseExp
             SingleOption(CSharpCodeStyleOptions.UseImplicitTypeWhereApparent, offWithNone),
             SingleOption(CSharpCodeStyleOptions.UseImplicitTypeForIntrinsicTypes, offWithNone));
 
+        private IDictionary<OptionKey, object> PreferImplicitTypeWithInfo() => OptionsSet(
+            SingleOption(CSharpCodeStyleOptions.UseImplicitTypeWherePossible, onWithInfo),
+            SingleOption(CSharpCodeStyleOptions.UseImplicitTypeWhereApparent, onWithInfo),
+            SingleOption(CSharpCodeStyleOptions.UseImplicitTypeForIntrinsicTypes, onWithInfo));
+
         private IDictionary<OptionKey, object> PreferImplicitTypeWithNone() => OptionsSet(
             SingleOption(CSharpCodeStyleOptions.UseImplicitTypeWherePossible, onWithNone),
             SingleOption(CSharpCodeStyleOptions.UseImplicitTypeWhereApparent, onWithNone),
@@ -307,8 +312,10 @@ class Program
     }
 }";
 
-            await TestMissingInRegularAndScriptAsync(code, options: PreferImplicitTypeWithNone());
-            await TestMissingInRegularAndScriptAsync(code, options: PreferExplicitTypeWithNone());
+            // We never want to get offered here under any circumstances.
+            await TestMissingInRegularAndScriptAsync(code, PreferImplicitTypeWithNone());
+            await TestMissingInRegularAndScriptAsync(code, PreferExplicitTypeWithNone());
+            await TestMissingInRegularAndScriptAsync(code, PreferImplicitTypeWithInfo());
             await TestMissingInRegularAndScriptAsync(code, PreferExplicitTypeWithInfo());
         }
 
