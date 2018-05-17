@@ -1527,7 +1527,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_RefStructInterfaceImpl = 8343,
         ERR_BadSpecialByRefIterator = 8344,
         ERR_FieldAutoPropCantBeByRefLike = 8345,
-
         ERR_StackAllocConversionNotPossible = 8346,
 
         ERR_EscapeCall = 8347,
@@ -1576,7 +1575,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_TupleSizesMismatchForBinOps = 8384,
         ERR_ExprCannotBeFixed = 8385,
         ERR_InvalidObjectCreation = 8386,
-        #endregion diagnostics introduced for C# 7.3,
+        #endregion diagnostics introduced for C# 7.3
         WRN_TypeParameterSameAsParentFunctionParameter = 8387,
         ERR_OutVariableCannotBeByRef = 8388,
     }
