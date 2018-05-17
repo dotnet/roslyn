@@ -4317,8 +4317,8 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="SubmissionCanHaveAtMostOne" xml:space="preserve">
     <value>Submission can have at most one syntax tree.</value>
   </data>
-  <data name="SyntaxTreeNotFoundTo" xml:space="preserve">
-    <value>SyntaxTree '{0}' not found to remove</value>
+  <data name="SyntaxTreeNotFoundToRemove" xml:space="preserve">
+    <value>SyntaxTree is not part of the compilation, so it cannot be removed</value>
   </data>
   <data name="TreeMustHaveARootNodeWith" xml:space="preserve">
     <value>tree must have a root node with SyntaxKind.CompilationUnit</value>
@@ -4809,7 +4809,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
     <comment>File path referenced in source (#load) could not be resolved.</comment>
   </data>
   <data name="SyntaxTreeFromLoadNoRemoveReplace" xml:space="preserve">
-    <value>SyntaxTree '{0}' resulted from a #load directive and cannot be removed or replaced directly.</value>
+    <value>SyntaxTree resulted from a #load directive and cannot be removed or replaced directly.</value>
   </data>
   <data name="ERR_SourceFileReferencesNotSupported" xml:space="preserve">
     <value>Source file references are not supported.</value>
@@ -5326,5 +5326,11 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   </data>
   <data name="ERR_CantUseInOrOutInArglist" xml:space="preserve">
     <value>__arglist cannot have an argument passed by 'in' or 'out'</value>
+  </data>
+  <data name="SyntaxTreeNotFound" xml:space="preserve">
+    <value>SyntaxTree is not part of the compilation</value>
+  </data>
+  <data name="ERR_OutVariableCannotBeByRef" xml:space="preserve">
+    <value>An out variable cannot be declared as a ref local</value>
   </data>
 </root>
