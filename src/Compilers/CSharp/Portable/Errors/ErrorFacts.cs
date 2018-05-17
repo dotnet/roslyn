@@ -174,7 +174,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ErrorCode.WRN_IncorrectBooleanAssg:
                 case ErrorCode.WRN_BitwiseOrSignExtend:
                 case ErrorCode.WRN_TypeParameterSameAsOuterTypeParameter:
-                case ErrorCode.WRN_TypeParameterSameAsOuterMethodTypeParameter:
                 case ErrorCode.WRN_InvalidAssemblyName:
                 case ErrorCode.WRN_UnifyReferenceBldRev:
                 case ErrorCode.WRN_AssignmentToSelf:
@@ -324,6 +323,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ErrorCode.WRN_Experimental:
                 case ErrorCode.WRN_AttributesOnBackingFieldsNotAvailable:
                 case ErrorCode.WRN_TupleBinopLiteralNameMismatch:
+                case ErrorCode.WRN_TypeParameterSameAsOuterMethodTypeParameter:
                     return 1;
                 default:
                     return 0;
