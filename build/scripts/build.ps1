@@ -617,10 +617,18 @@ function Test-XUnit() {
 # Deploy our core VSIX libraries to Visual Studio via the Roslyn VSIX tool.  This is an alternative to
 # deploying at build time.
 function Deploy-VsixViaTool() {
+    $vsixDir = Get-PackageDir "RoslynTools.Microsoft.VSIXExpInstaller"
+    $vsixExe = Join-Path $vsixDir "tools\VsixExpInstaller.exe"
     $both = Get-VisualStudioDirAndId
     $vsDir = $both[0].Trim("\")
     $vsId = $both[1]
+    $hive = "RoslynDev"
+    Write-Host "Using VS Instance $vsId at `"$vsDir`""
+    $baseArgs = "/rootSuffix:$hive /vsInstallDir:`"$vsDir`""
     $all = @(
+        "Vsix\CompilerExtension\Roslyn.Compilers.Extension.vsix",
+        "Vsix\VisualStudioSetup\Roslyn.VisualStudio.Setup.vsix",
+        "Vsix\VisualStudioInteractiveComponents\Roslyn.VisualStudio.InteractiveComponents.vsix",
         "Vsix\ExpressionEvaluatorPackage\ExpressionEvaluatorPackage.vsix",
         "Vsix\VisualStudioDiagnosticsWindow\Roslyn.VisualStudio.DiagnosticsWindow.vsix",
         "Vsix\VisualStudioIntegrationTestSetup\Microsoft.VisualStudio.IntegrationTest.Setup.vsix")
