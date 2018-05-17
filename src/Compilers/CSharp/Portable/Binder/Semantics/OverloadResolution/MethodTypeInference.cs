@@ -385,7 +385,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         continue;
                     }
 
-                    var errorTypeName = _fixedResults[i].Name;
+                    var errorTypeName = _fixedResults[i].TypeSymbol.Name;
                     if (errorTypeName != null)
                     {
                         continue;
@@ -584,7 +584,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // Example:
             //      if   "(a: 1, b: "qq")" is passed as   (T, U) arg
             //      then T becomes int and U becomes string
-            if (target.Kind != SymbolKind.NamedType)
+            if (target.TypeSymbol.Kind != SymbolKind.NamedType)
             {
                 // tuples can only match to tuples or tuple underlying types.
                 return false;

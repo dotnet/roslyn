@@ -1769,7 +1769,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public BoundExpression BindNamespaceOrType(ExpressionSyntax node, DiagnosticBag diagnostics)
         {
             var symbol = this.BindNamespaceOrTypeOrAliasSymbol(node, diagnostics, null, false);
-            return CreateBoundNamespaceOrTypeExpression(node, symbol.Symbol);
+            return CreateBoundNamespaceOrTypeExpression(node, symbol.SymbolOrType);
         }
 
         public BoundExpression BindNamespaceAlias(IdentifierNameSyntax node, DiagnosticBag diagnostics)
