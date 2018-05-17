@@ -4980,6 +4980,11 @@ oneMoreTime:
             {
                 LeaveRegion();
             }
+	    }
+
+        public override IOperation VisitAddressOf(IAddressOfOperation operation, int? captureIdForResult)
+        {
+            return new AddressOfExpression(Visit(operation.Reference), semanticModel: null, operation.Syntax, operation.Type, operation.ConstantValue, IsImplicit(operation));
         }
 
         public override IOperation VisitIsPattern(IIsPatternOperation operation, int? captureIdForResult)
@@ -5122,11 +5127,6 @@ oneMoreTime:
         public override IOperation VisitDelegateCreation(IDelegateCreationOperation operation, int? captureIdForResult)
         {
             return new DelegateCreationExpression(Visit(operation.Target), semanticModel: null, operation.Syntax, operation.Type, operation.ConstantValue, IsImplicit(operation));
-        }
-
-        public override IOperation VisitAddressOf(IAddressOfOperation operation, int? captureIdForResult)
-        {
-            return new AddressOfExpression(Visit(operation.Reference), semanticModel: null, operation.Syntax, operation.Type, operation.ConstantValue, IsImplicit(operation));
         }
 
         public override IOperation VisitAnonymousObjectCreation(IAnonymousObjectCreationOperation operation, int? captureIdForResult)
