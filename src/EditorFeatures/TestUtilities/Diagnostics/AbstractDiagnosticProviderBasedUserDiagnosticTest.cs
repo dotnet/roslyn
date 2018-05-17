@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
@@ -117,7 +118,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
             return allDiagnostics;
         }
 
-        internal override async Task<IEnumerable<Tuple<Diagnostic, CodeFixCollection>>> GetDiagnosticAndFixesAsync(
+        internal override async Task<(ImmutableArray<Diagnostic>, ImmutableArray<CodeAction>, CodeAction actionToInvoke)> GetDiagnosticAndFixesAsync(
             TestWorkspace workspace, TestParameters parameters)
         {
             var providerAndFixer = GetOrCreateDiagnosticProviderAndFixer(workspace, parameters);
@@ -130,19 +131,19 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
             }
 
             var testDriver = new TestDiagnosticAnalyzerDriver(document.Project, provider);
-            var diagnostics = await testDriver.GetAllDiagnosticsAsync(provider, document, span);
+            var diagnostics = (await testDriver.GetAllDiagnosticsAsync(provider, document, span)).ToImmutableArray();
             AssertNoAnalyzerExceptionDiagnostics(diagnostics);
 
             var fixer = providerAndFixer.Item2;
             if (fixer == null)
             {
-                return diagnostics.Select(d => Tuple.Create(d, (CodeFixCollection) null));
+                return (diagnostics, ImmutableArray<CodeAction>.Empty, null);
             }
             
             var ids = new HashSet<string>(fixer.FixableDiagnosticIds);
             var dxs = diagnostics.Where(d => ids.Contains(d.Id)).ToList();
             return await GetDiagnosticAndFixesAsync(
-                dxs, provider, fixer, testDriver, document, span, annotation, parameters.fixAllActionEquivalenceKey);
+                dxs, provider, fixer, testDriver, document, span, annotation, parameters.index);
         }
 
         protected async Task TestDiagnosticInfoAsync(

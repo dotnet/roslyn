@@ -1128,7 +1128,7 @@ partial class Class
     int P { get; }
 
     int Q { get; }
-}", fixAllActionEquivalenceKey: FeaturesResources.Use_auto_property);
+}");
         }
 
         [WorkItem(23735, "https://github.com/dotnet/roslyn/issues/23735")]
