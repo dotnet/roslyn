@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -1064,10 +1064,10 @@ class C
                 // (18,26): error CS0692: Duplicate type parameter 'T'
                 //             int Local<T, T>() => 0;
                 Diagnostic(ErrorCode.ERR_DuplicateTypeParameter, "T").WithArguments("T").WithLocation(18, 26),
-                // (25,23): warning CS8387: Type parameter 'T' has the same name as the type parameter from parent function 'C.M2<T>()'
+                // (25,23): warning CS8387: Type parameter 'T' has the same name as the type parameter from outer method 'C.M2<T>()'
                 //             int Local<T>() => 0;
                 Diagnostic(ErrorCode.WRN_TypeParameterSameAsParentFunctionParameter, "T").WithArguments("T", "C.M2<T>()").WithLocation(25, 23),
-                // (31,28): warning CS8387: Type parameter 'V' has the same name as the type parameter from parent function 'Local1<V>()'
+                // (31,28): warning CS8387: Type parameter 'V' has the same name as the type parameter from outer method 'Local1<V>()'
                 //                 int Local2<V>() => 0;
                 Diagnostic(ErrorCode.WRN_TypeParameterSameAsParentFunctionParameter, "V").WithArguments("V", "Local1<V>()").WithLocation(31, 28),
                 // (37,17): error CS0412: 'T': a parameter, local variable, or local function cannot have the same name as a method type parameter
@@ -1079,7 +1079,7 @@ class C
                 // (54,25): error CS0412: 'T': a parameter, local variable, or local function cannot have the same name as a method type parameter
                 //                     int T() => 0;
                 Diagnostic(ErrorCode.ERR_LocalSameNameAsTypeParam, "T").WithArguments("T").WithLocation(54, 25),
-                // (67,32): warning CS8387: Type parameter 'T' has the same name as the type parameter from parent function 'C.M2<T>()'
+                // (67,32): warning CS8387: Type parameter 'T' has the same name as the type parameter from outer method 'C.M2<T>()'
                 //                     int Local3<T>() => 0;
                 Diagnostic(ErrorCode.WRN_TypeParameterSameAsParentFunctionParameter, "T").WithArguments("T", "C.M2<T>()").WithLocation(67, 32));
         }
@@ -1803,7 +1803,7 @@ class Program
 }
 ";
             VerifyDiagnostics(source,
-    // (8,21): warning CS8387: Type parameter 'T' has the same name as the type parameter from parent function 'Outer<T>()'
+    // (8,21): warning CS8387: Type parameter 'T' has the same name as the type parameter from outer method 'Outer<T>()'
     //             T Inner<T>()
     Diagnostic(ErrorCode.WRN_TypeParameterSameAsParentFunctionParameter, "T").WithArguments("T", "Outer<T>()").WithLocation(8, 21)
     );
