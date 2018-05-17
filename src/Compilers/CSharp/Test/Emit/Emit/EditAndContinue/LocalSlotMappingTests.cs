@@ -2450,8 +2450,8 @@ class C
   IL_0013:  ldloc.3
   IL_0014:  unbox.any  ""int""
   IL_0019:  stloc.1
-  IL_001a:  ldc.i4.1
-  IL_001b:  ldloc.1
+  IL_001a:  ldloc.1
+  IL_001b:  ldc.i4.1
   IL_001c:  beq.s      IL_003c
   IL_001e:  br.s       IL_005b
   IL_0020:  ldloc.3
@@ -2461,8 +2461,8 @@ class C
   IL_0029:  unbox.any  ""byte""
   IL_002e:  stloc.0
   IL_002f:  br.s       IL_0049
-  IL_0031:  ldc.i4.1
-  IL_0032:  ldloc.0
+  IL_0031:  ldloc.0
+  IL_0032:  ldc.i4.1
   IL_0033:  beq.s      IL_006d
   IL_0035:  br.s       IL_0087
   IL_0037:  ldloc.3
@@ -2533,8 +2533,8 @@ class C
   IL_0013:  ldloc.3
   IL_0014:  unbox.any  ""int""
   IL_0019:  stloc.1
-  IL_001a:  ldc.i4.1
-  IL_001b:  ldloc.1
+  IL_001a:  ldloc.1
+  IL_001b:  ldc.i4.1
   IL_001c:  beq.s      IL_003c
   IL_001e:  br.s       IL_005b
   IL_0020:  ldloc.3
@@ -2544,8 +2544,8 @@ class C
   IL_0029:  unbox.any  ""byte""
   IL_002e:  stloc.0
   IL_002f:  br.s       IL_0049
-  IL_0031:  ldc.i4.1
-  IL_0032:  ldloc.0
+  IL_0031:  ldloc.0
+  IL_0032:  ldc.i4.1
   IL_0033:  beq.s      IL_006d
   IL_0035:  br.s       IL_0087
   IL_0037:  ldloc.3

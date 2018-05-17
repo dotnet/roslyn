@@ -8407,8 +8407,8 @@ expectedIL: @"{
   IL_005d:  unbox.any  ""int""
   IL_0062:  stloc.s    V_4
   // sequence point: <hidden>
-  IL_0064:  ldc.i4.1
-  IL_0065:  ldloc.s    V_4
+  IL_0064:  ldloc.s    V_4
+  IL_0066:  ldc.i4.1
   IL_0067:  beq.s      IL_006b
   IL_0069:  br.s       IL_006d
   // sequence point: break;
@@ -8607,9 +8607,9 @@ class Program
     IL_0017:  ldloc.1
     IL_0018:  stfld      ""int Program.<Test>d__0.<>s__2""
     // sequence point: <hidden>
-    IL_001d:  ldc.i4.1
-    IL_001e:  ldarg.0
-    IL_001f:  ldfld      ""int Program.<Test>d__0.<>s__2""
+    IL_001d:  ldarg.0
+    IL_001e:  ldfld      ""int Program.<Test>d__0.<>s__2""
+    IL_0023:  ldc.i4.1
     IL_0024:  beq.s      IL_0028
     IL_0026:  br.s       IL_002a
     // sequence point: break;

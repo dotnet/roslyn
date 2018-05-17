@@ -265,33 +265,33 @@ namespace Microsoft.CodeAnalysis.CSharp
                 switch (loweredLiteral.Type.SpecialType)
                 {
                     case SpecialType.System_Boolean:
-                        return _localRewriter.MakeBinaryOperator(_factory.Syntax, BinaryOperatorKind.BoolEqual, loweredLiteral, input, booleanType, method: null);
+                        return _localRewriter.MakeBinaryOperator(_factory.Syntax, BinaryOperatorKind.BoolEqual, input, loweredLiteral, booleanType, method: null);
                     case SpecialType.System_Byte:
                     case SpecialType.System_Char:
                     case SpecialType.System_Int16:
                     case SpecialType.System_SByte:
                     case SpecialType.System_UInt16:
-                        return _localRewriter.MakeBinaryOperator(_factory.Syntax, BinaryOperatorKind.IntEqual, _factory.Convert(intType, loweredLiteral), _factory.Convert(intType, input), booleanType, method: null);
+                        return _localRewriter.MakeBinaryOperator(_factory.Syntax, BinaryOperatorKind.IntEqual, _factory.Convert(intType, input), _factory.Convert(intType, loweredLiteral), booleanType, method: null);
                     case SpecialType.System_Decimal:
-                        return _localRewriter.MakeBinaryOperator(_factory.Syntax, BinaryOperatorKind.DecimalEqual, loweredLiteral, input, booleanType, method: null);
+                        return _localRewriter.MakeBinaryOperator(_factory.Syntax, BinaryOperatorKind.DecimalEqual, input, loweredLiteral, booleanType, method: null);
                     case SpecialType.System_Double:
-                        return _localRewriter.MakeBinaryOperator(_factory.Syntax, BinaryOperatorKind.DoubleEqual, loweredLiteral, input, booleanType, method: null);
+                        return _localRewriter.MakeBinaryOperator(_factory.Syntax, BinaryOperatorKind.DoubleEqual, input, loweredLiteral, booleanType, method: null);
                     case SpecialType.System_Int32:
-                        return _localRewriter.MakeBinaryOperator(_factory.Syntax, BinaryOperatorKind.IntEqual, loweredLiteral, input, booleanType, method: null);
+                        return _localRewriter.MakeBinaryOperator(_factory.Syntax, BinaryOperatorKind.IntEqual, input, loweredLiteral, booleanType, method: null);
                     case SpecialType.System_Int64:
-                        return _localRewriter.MakeBinaryOperator(_factory.Syntax, BinaryOperatorKind.LongEqual, loweredLiteral, input, booleanType, method: null);
+                        return _localRewriter.MakeBinaryOperator(_factory.Syntax, BinaryOperatorKind.LongEqual, input, loweredLiteral, booleanType, method: null);
                     case SpecialType.System_Single:
-                        return _localRewriter.MakeBinaryOperator(_factory.Syntax, BinaryOperatorKind.FloatEqual, loweredLiteral, input, booleanType, method: null);
+                        return _localRewriter.MakeBinaryOperator(_factory.Syntax, BinaryOperatorKind.FloatEqual, input, loweredLiteral, booleanType, method: null);
                     case SpecialType.System_String:
-                        return _localRewriter.MakeBinaryOperator(_factory.Syntax, BinaryOperatorKind.StringEqual, loweredLiteral, input, booleanType, method: null);
+                        return _localRewriter.MakeBinaryOperator(_factory.Syntax, BinaryOperatorKind.StringEqual, input, loweredLiteral, booleanType, method: null);
                     case SpecialType.System_UInt32:
-                        return _localRewriter.MakeBinaryOperator(_factory.Syntax, BinaryOperatorKind.UIntEqual, loweredLiteral, input, booleanType, method: null);
+                        return _localRewriter.MakeBinaryOperator(_factory.Syntax, BinaryOperatorKind.UIntEqual, input, loweredLiteral, booleanType, method: null);
                     case SpecialType.System_UInt64:
-                        return _localRewriter.MakeBinaryOperator(_factory.Syntax, BinaryOperatorKind.ULongEqual, loweredLiteral, input, booleanType, method: null);
+                        return _localRewriter.MakeBinaryOperator(_factory.Syntax, BinaryOperatorKind.ULongEqual, input, loweredLiteral, booleanType, method: null);
                     default:
                         if (loweredLiteral.Type.IsEnumType())
                         {
-                            return _localRewriter.MakeBinaryOperator(_factory.Syntax, BinaryOperatorKind.EnumEqual, loweredLiteral, input, booleanType, method: null);
+                            return _localRewriter.MakeBinaryOperator(_factory.Syntax, BinaryOperatorKind.EnumEqual, input, loweredLiteral, booleanType, method: null);
                         }
 
                         // This is the (correct but inefficient) fallback for any type that isn't yet implemented.
