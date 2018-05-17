@@ -17,6 +17,7 @@ using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Emit;
+using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Symbols;
 using Microsoft.CodeAnalysis.Text;
@@ -1746,6 +1747,19 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>
+        /// Classifies a conversion from <paramref name="source"/> to <paramref name="destination"/> according
+        /// to this compilation's programming language.
+        /// </summary>
+        /// <param name="source">Source type of value to be converted</param>
+        /// <param name="destination">Destination type of value to be converted</param>
+        /// <returns>A <see cref="CommonConversion"/> that classifies the conversion from the
+        /// <paramref name="source"/> type to the <paramref name="destination"/> type.</returns>
+        public override CommonConversion ClassifyCommonConversion(ITypeSymbol source, ITypeSymbol destination)
+        {
+            return ClassifyConversion(source, destination).ToCommonConversion();
+        }
+
+        /// <summary>
         /// Returns a new ArrayTypeSymbol representing an array type tied to the base types of the
         /// COR Library in this Compilation.
         /// </summary>
@@ -3087,17 +3101,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             return new NameSymbolSearcher(this, filter, name, cancellationToken).GetSymbolsWithName();
-        }
-
-        /// <summary>
-        /// Returns true if there is an implicit conversion from
-        /// <paramref name="fromType"/> to <paramref name="toType"/>. Returns false if
-        /// either <paramref name="fromType"/> or <paramref name="toType"/> is null, or
-        /// if no such conversion exists.
-        /// </summary>
-        public override bool HasImplicitConversion(ITypeSymbol fromType, ITypeSymbol toType)
-        {
-            return fromType != null && toType != null && this.ClassifyConversion(fromType, toType).IsImplicit;
         }
 
         #endregion

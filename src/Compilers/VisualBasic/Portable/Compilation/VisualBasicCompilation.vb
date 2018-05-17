@@ -12,6 +12,7 @@ Imports Microsoft.CodeAnalysis.CodeGen
 Imports Microsoft.CodeAnalysis.Diagnostics
 Imports Microsoft.CodeAnalysis.Emit
 Imports Microsoft.CodeAnalysis.InternalUtilities
+Imports Microsoft.CodeAnalysis.Operations
 Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.Symbols
 Imports Microsoft.CodeAnalysis.Text
@@ -1759,6 +1760,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return New Conversion(Conversions.ClassifyConversion(vbsource, vbdest, Nothing))
         End Function
 
+        Public Overrides Function ClassifyCommonConversion(source As ITypeSymbol, destination As ITypeSymbol) As CommonConversion
+            Return ClassifyConversion(source, destination).ToCommonConversion()
+        End Function
+
         ''' <summary>
         ''' A symbol representing the implicit Script class. This is null if the class is not
         ''' defined in the compilation.
@@ -1844,16 +1849,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim typeSymbol = GetSpecialType(type)
             Dim diagnostic = typeSymbol.GetUseSiteErrorInfo
             Return diagnostic Is Nothing OrElse diagnostic.Severity <> DiagnosticSeverity.Error
-        End Function
-
-        ''' <summary>
-        ''' Returns True if there is a widening conversion from
-        ''' <paramref name="fromType"/> to <paramref name="toType"/>. Returns False if
-        ''' either <paramref name="fromType"/> or <paramref name="toType"/> is Nothing, or
-        ''' if no such conversion exists.
-        ''' </summary>
-        Public Overrides Function HasImplicitConversion(fromType As ITypeSymbol, toType As ITypeSymbol) As Boolean
-            Return fromType IsNot Nothing AndAlso toType IsNot Nothing AndAlso Me.ClassifyConversion(fromType, toType).IsWidening
         End Function
 
 #End Region

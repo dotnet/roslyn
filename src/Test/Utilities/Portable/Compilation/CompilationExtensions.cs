@@ -22,7 +22,7 @@ using Xunit.Sdk;
 
 namespace Microsoft.CodeAnalysis.Test.Utilities
 {
-    public static class CompilationExtensions
+    public static class CompilationExtensions2
     {
         internal static ImmutableArray<byte> EmitToArray(
             this Compilation compilation,
