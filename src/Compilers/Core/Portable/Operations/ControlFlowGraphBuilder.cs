@@ -4886,6 +4886,11 @@ oneMoreTime:
             return new AwaitExpression(Visit(operation.Operation), semanticModel: null, operation.Syntax, operation.Type, operation.ConstantValue, IsImplicit(operation));
         }
 
+        public override IOperation VisitSizeOf(ISizeOfOperation operation, int? captureIdForResult)
+        {
+            return new SizeOfExpression(operation.TypeOperand, semanticModel: null, operation.Syntax, operation.Type, operation.ConstantValue, IsImplicit(operation));
+        }
+        
         public override IOperation VisitStop(IStopOperation operation, int? captureIdForResult)
         {
             return new StopStatement(semanticModel: null, operation.Syntax, operation.Type, operation.ConstantValue, IsImplicit(operation));
@@ -5096,11 +5101,6 @@ oneMoreTime:
         public override IOperation VisitIsType(IIsTypeOperation operation, int? captureIdForResult)
         {
             return new IsTypeExpression(Visit(operation.ValueOperand), operation.TypeOperand, operation.IsNegated, semanticModel: null, operation.Syntax, operation.Type, operation.ConstantValue, IsImplicit(operation));
-        }
-
-        public override IOperation VisitSizeOf(ISizeOfOperation operation, int? captureIdForResult)
-        {
-            return new SizeOfExpression(operation.TypeOperand, semanticModel: null, operation.Syntax, operation.Type, operation.ConstantValue, IsImplicit(operation));
         }
 
         public override IOperation VisitAnonymousFunction(IAnonymousFunctionOperation operation, int? captureIdForResult)
