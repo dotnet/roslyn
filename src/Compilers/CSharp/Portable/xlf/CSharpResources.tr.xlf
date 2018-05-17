@@ -388,8 +388,8 @@
         <note />
       </trans-unit>
       <trans-unit id="WRN_TypeParameterSameAsParentFunctionParameter">
-        <source>Type parameter '{0}' has the same name as the type parameter from parent function '{1}'</source>
-        <target state="new">Type parameter '{0}' has the same name as the type parameter from parent function '{1}'</target>
+        <source>Type parameter '{0}' has the same name as the type parameter from outer method '{1}'</source>
+        <target state="new">Type parameter '{0}' has the same name as the type parameter from outer method '{1}'</target>
         <note />
       </trans-unit>
       <trans-unit id="XML_InvalidToken">
