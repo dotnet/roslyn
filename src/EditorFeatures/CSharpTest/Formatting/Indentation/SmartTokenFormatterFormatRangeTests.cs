@@ -453,6 +453,34 @@ class Class
         }
 
         [WpfFact]
+        [WorkItem(16984, "https://github.com/dotnet/roslyn/issues/16984")]
+        [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
+        public async Task AccessorList5b()
+        {
+            var code = @"using System;
+class Class
+{
+    int Prop {
+        get { return 1;   
+}$$
+}
+}";
+
+            var expected = @"using System;
+class Class
+{
+    int Prop {
+        get
+        {
+            return 1;
+        }
+}
+}";
+
+            await AutoFormatOnCloseBraceAsync(code, expected, SyntaxKind.OpenBraceToken);
+        }
+
+        [WpfFact]
         [Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)]
         public async Task AccessorList6()
         {
