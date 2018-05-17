@@ -1534,7 +1534,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_EscapeCall2 = 8348,
         ERR_EscapeOther = 8349,
         ERR_CallArgMixing = 8350,
-,        ERR_MismatchedRefEscapeInTernary = 8351,
+        ERR_MismatchedRefEscapeInTernary = 8351,
         ERR_EscapeLocal = 8352,
         ERR_EscapeStackAlloc = 8353,
         ERR_RefReturnThis = 8354,
