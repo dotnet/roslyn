@@ -64,7 +64,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.L
         protected void AddFile(string filename, SourceCodeKind sourceCodeKind)
         {
             bool getIsCurrentContext(IVisualStudioHostDocument document) => LinkedFileUtilities.IsCurrentContextHierarchy(document, RunningDocumentTable);
-            AddFile(filename, sourceCodeKind, getIsCurrentContext, GetFolderNamesFromHierarchy);
+            AddFile(filename, sourceCodeKind, getIsCurrentContext, GetFolderNamesFromHierarchy, documentServiceFactory: null);
         }
 
         protected void SetOutputPathAndRelatedData(string objOutputPath)

@@ -14,6 +14,7 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.Shared.Options;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.ErrorReporting;
+using Microsoft.CodeAnalysis.Experiment;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Notification;
@@ -959,7 +960,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             string filename,
             SourceCodeKind sourceCodeKind,
             Func<IVisualStudioHostDocument, bool> getIsCurrentContext,
-            Func<uint, IReadOnlyList<string>> getFolderNames)
+            Func<uint, IReadOnlyList<string>> getFolderNames,
+            IDocumentServiceFactory documentServiceFactory)
         {
             AssertIsForeground();
 

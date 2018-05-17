@@ -2,13 +2,16 @@
 
 using System;
 using System.Collections.Generic;
+using System.Threading;
 using System.Windows;
 using System.Windows.Documents;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
+using Microsoft.CodeAnalysis.Experiment;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Shell.TableControl;
 using Microsoft.VisualStudio.Shell.TableManager;
+using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.FindUsages
 {
@@ -56,9 +59,9 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                     case StandardTableKeyNames.DocumentName:
                         return Document.FilePath;
                     case StandardTableKeyNames.Line:
-                        return _sourceText.Lines.GetLinePosition(SourceSpan.Start).Line;
+                        return GetLinePosition().Line;
                     case StandardTableKeyNames.Column:
-                        return _sourceText.Lines.GetLinePosition(SourceSpan.Start).Character;
+                        return GetLinePosition().Character;
                     case StandardTableKeyNames.ProjectName:
                         return _projectName;
                     case StandardTableKeyNames.ProjectGuid:
@@ -68,6 +71,25 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                 }
 
                 return null;
+            }
+
+            private LinePosition GetLinePosition()
+            {
+                var service = _documentSpan.Document.State.Info.DocumentServiceFactory?.GetService<ISpanMapper>();
+                if (service == null)
+                {
+                    return _sourceText.Lines.GetLinePosition(SourceSpan.Start);
+                }
+
+                var result = service.MapSpansAsync(_documentSpan.Document, SpecializedCollections.SingletonEnumerable(_documentSpan.SourceSpan), CancellationToken.None)
+                                    .WaitAndGetResult_CanCallOnBackground(CancellationToken.None);
+
+                if (result.IsDefaultOrEmpty)
+                {
+                    return _sourceText.Lines.GetLinePosition(SourceSpan.Start);
+                }
+
+                return result[0].LinePositionSpan.Start;
             }
 
             public override bool TryCreateColumnContent(string columnName, out FrameworkElement content)
