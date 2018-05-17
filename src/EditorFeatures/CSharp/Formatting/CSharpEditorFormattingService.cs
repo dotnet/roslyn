@@ -316,7 +316,78 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.Formatting
 
         private IEnumerable<IFormattingRule> GetTypingRules(Document document, SyntaxNode root, int position)
         {
-            // make auto formatting on typing around missing brace case better
+            // Typing introduces several challenges around formatting.  
+            // Historically we've shipped several triggers that cause formatting to happen directly while typing.
+            // These include formatting of blocks when '}' is typed, formatting of statements when a ';' is typed, formatting of ```case```s when ':' typed, and many other cases.  
+            // However, formatting during typing can potentially cause problems.  This is because the surrounding code may not be complete, 
+            // or may otherwise have syntax errors, and thus edits could have unintended consequences.
+            // 
+            // Because of this, we introduce an extra rule into the set of formatting rules whose purpose is to actually make formatting *more* 
+            // conservative and *less* willing willing to make edits to the tree. 
+            // The primary effect this rule has is to assume that more code is on a single line (and thus should stay that way) 
+            // despite what the tree actually looks like.
+            // 
+            // It's ok that this is only during formatting that is caused by an edit because that formatting happens 
+            // implicitly and thus has to be more careful, whereas an explicit format-document call only happens on-demand 
+            // and can be more aggressive about what it's doing.
+            // 
+            // 
+            // For example, say you have the following code.
+            // 
+            // ```c#
+            // class C
+            // {
+            //   int P { get {    return
+            // }
+            // ```
+            // 
+            // Hitting ';' after 'return' should ideally only affect the 'return statement' and change it to:
+            // 
+            // ```c#
+            // class C
+            // {
+            //   int P { get { return;
+            // }
+            // ```
+            // 
+            // During a normal format-document call, this is not what would happen. 
+            // Specifically, because the parser will consume the '}' into the accessor, 
+            // it will think the accessor spans multiple lines, and thus should not stay on a single line.  This will produce:
+            // 
+            // ```c#
+            // class C
+            // {
+            //   int P
+            //   {
+            //     get
+            //     {
+            //       return;
+            //     }
+            // ```
+            // 
+            // Because it's ok for this to format in that fashion if format-document is invoked, 
+            // but should not happen during typing, we insert a specialized rule *only* during typing to try to control this.  
+            // During normal formatting we add 'keep on single line' suppression rules for blocks we find that are on a single line.  
+            // But that won't work since this span is not on a single line:
+            // 
+            // ```c#
+            // class C
+            // {
+            //   int P { get [|{    return;
+            // }|]
+            // ```
+            // 
+            // So, during typing, if we see any parent block is incomplete, we'll assume that 
+            // all our parent blocks are incomplete and we will place the suppression span like so:
+            // 
+            // ```c#
+            // class C
+            // {
+            //   int P { get [|{     return;|]
+            // }
+            // ```
+            // 
+            // This will have the desired effect of keeping these tokens on the same line, but only during typing scenarios.  
             var token = root.FindToken(position);
 
             if (token.Kind() == SyntaxKind.CloseBraceToken ||
