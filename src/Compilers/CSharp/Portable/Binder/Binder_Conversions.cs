@@ -111,6 +111,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (conversion.IsUserDefined)
             {
+                // User-defined conversions are likely to be represented as multiple
+                // BoundConversion instances so a ConversionGroup is necessary.
                 return CreateUserDefinedConversion(syntax, source, conversion, isCast: isCast, conversionGroupOpt ?? new ConversionGroup(conversion), destination, diagnostics);
             }
 
