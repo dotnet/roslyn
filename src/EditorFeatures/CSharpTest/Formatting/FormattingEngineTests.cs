@@ -25,85 +25,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Formatting
     public class FormattingEngineTests : FormattingEngineTestBase
     {
         [WpfFact]
-        [Trait(Traits.Feature, Traits.Features.Formatting)]
-        public void FormatDocumentRemoveUsings()
-        {
-            var code = @"using System;
-using System.Collections.Generic;
-class Program
-{
-    static void Main(string[] args)
-    {
-        Console.WriteLine();$$
-    }
-}
-";
-
-            var expected = @"using System;
-class Program
-{
-    static void Main(string[] args)
-    {
-        Console.WriteLine();$$
-    }
-}
-";
-            AssertFormatWithView(expected, code);
-        }
-
-        [WpfFact]
-        [Trait(Traits.Feature, Traits.Features.Formatting)]
-        public void FormatDocumentSortUsings()
-        {
-            var code = @"using System.Collections.Generic;
-using System;
-class Program
-{
-    static void Main(string[] args)
-    {
-        var list = new List<int>();$$
-        Console.WriteLine(list.Count);
-    }
-}
-";
-
-            var expected = @"using System;
-using System.Collections.Generic;
-class Program
-{
-    static void Main(string[] args)
-    {
-        var list = new List<int>();$$
-        Console.WriteLine(list.Count);
-    }
-}
-";
-            AssertFormatWithView(expected, code);
-        }
-
-        [WpfFact(Skip = "skip until figuring out how to get the CodeFixService")]
-        [Trait(Traits.Feature, Traits.Features.Formatting)]
-        public void FormatDocumentRemoveUnusedVariable()
-        {
-            var code = @"class Program
-{
-    void Method($$)
-    {
-        [|int a = 3;|]
-    }
-}
-";
-            var expected = @"class Program
-{
-    void Method($$)
-    {
-    }
-}
-";
-            AssertFormatWithView(expected, code);
-        }
-
-        [WpfFact]
         [WorkItem(539682, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539682")]
         [Trait(Traits.Feature, Traits.Features.Formatting)]
         public void FormatDocumentCommandHandler()
@@ -128,7 +49,8 @@ int y;
 }
 ";
 
-            AssertFormatWithView(expected, code);
+            AssertFormatWithView(expected, code,
+                new Dictionary<PerLanguageOption<bool>, bool>() { { FeatureOnOffOptions.IsCodeCleanupRulesConfigured, true } });
         }
 
         [WpfFact]

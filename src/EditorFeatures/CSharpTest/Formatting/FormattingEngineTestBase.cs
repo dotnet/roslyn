@@ -8,11 +8,13 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Editor.Implementation.Formatting;
+using Microsoft.CodeAnalysis.Editor.Shared.Options;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Utilities;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Formatting.Rules;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
@@ -173,10 +175,18 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Formatting
             Assert.Equal(expected, actual);
         }
 
-        protected static void AssertFormatWithView(string expectedWithMarker, string codeWithMarker, bool debugMode = false)
+        protected static void AssertFormatWithView(string expectedWithMarker, string codeWithMarker, Dictionary<PerLanguageOption<bool>, bool> changedOptions = null, bool debugMode = false)
         {
             using (var workspace = TestWorkspace.CreateCSharp(codeWithMarker))
             {
+                if (changedOptions != null)
+                {
+                    foreach (var optionKey in changedOptions.Keys)
+                    {
+                        workspace.Options = workspace.Options.WithChangedOption(optionKey, LanguageNames.CSharp, changedOptions[optionKey]);
+                    }
+                }
+
                 // set up caret position
                 var testDocument = workspace.Documents.Single();
                 var view = testDocument.GetTextView();

@@ -60,8 +60,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Formatting
                 return false;
             }
 
-            var optionService = document.Project.Solution.Workspace.Services.GetService<IOptionService>();
-            if (!optionService.GetOption(FeatureOnOffOptions.IsCodeCleanupRulesConfigured, LanguageNames.CSharp))
+            if (!document.Project.Solution.Workspace.Options.GetOption(FeatureOnOffOptions.IsCodeCleanupRulesConfigured, LanguageNames.CSharp))
             {
                 ShowGoldBarForCodeCleanupConfiguration(document.Project.Solution.Workspace);
             }

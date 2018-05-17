@@ -93,9 +93,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Formatting
         public Document CleanupDocument(Document document, CancellationToken cancellationToken)
         {
             var oldDocument = document;
-            var optionService = document.Project.Solution.Workspace.Services.GetService<IOptionService>();
-            document = RemoveSortUsings(document, optionService, cancellationToken);
-            document = ApplyCodeFixes(document, optionService, cancellationToken);
+            document = RemoveSortUsings(document, cancellationToken);
+            document = ApplyCodeFixes(document, cancellationToken);
 
             var codeFixChanges = document.GetTextChangesAsync(oldDocument, cancellationToken).WaitAndGetResult(cancellationToken).ToList();
 
@@ -134,10 +133,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Formatting
             }
         }
 
-        private Document RemoveSortUsings(Document document, IOptionService optionService, CancellationToken cancellationToken)
+        private Document RemoveSortUsings(Document document, CancellationToken cancellationToken)
         {
             // remove and sort usings
-            if (optionService.GetOption(FeatureOnOffOptions.RemoveUnusedUsings, LanguageNames.CSharp))
+            if (document.Project.Solution.Workspace.Options.GetOption(FeatureOnOffOptions.RemoveUnusedUsings, LanguageNames.CSharp))
             {
                 var removeUsingsService = document.GetLanguageService<IRemoveUnnecessaryImportsService>();
                 if (removeUsingsService != null)
@@ -147,7 +146,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Formatting
             }
 
             // sort usings
-            if (optionService.GetOption(FeatureOnOffOptions.SortUsings, LanguageNames.CSharp))
+            if (document.Project.Solution.Workspace.Options.GetOption(FeatureOnOffOptions.SortUsings, LanguageNames.CSharp))
             {
                 document = OrganizeImportsService.OrganizeImportsAsync(document, cancellationToken).WaitAndGetResult(cancellationToken);
             }
@@ -155,12 +154,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Formatting
             return document;
         }
 
-        private Document ApplyCodeFixes(Document document, IOptionService optionService, CancellationToken cancellationToken)
+        private Document ApplyCodeFixes(Document document, CancellationToken cancellationToken)
         {
             var fixAllService = document.Project.Solution.Workspace.Services.GetService<IFixAllGetFixesService>();
 
             var dummy = new ProgressTracker();
-            foreach (var diagnosticId in GetEnabledDiagnosticIds(optionService))
+            foreach (var diagnosticId in GetEnabledDiagnosticIds(document.Project.Solution.Workspace))
             {
                 var length = document.GetSyntaxTreeAsync(cancellationToken).WaitAndGetResult(cancellationToken).Length;
                 var textSpan = new TextSpan(0, length);
@@ -183,13 +182,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Formatting
         }
 
 
-        private List<string> GetEnabledDiagnosticIds(IOptionService optionService)
+        private List<string> GetEnabledDiagnosticIds(Workspace workspace)
         {
             var diagnosticIds = new List<string>();
 
             foreach (var featureOption in CodeCleanupService.Dictionary.Keys)
             {
-                if (optionService.GetOption(featureOption, LanguageNames.CSharp))
+                if (workspace.Options.GetOption(featureOption, LanguageNames.CSharp))
                 {
                     diagnosticIds.AddRange(CodeCleanupService.Dictionary[featureOption]);
                 }
