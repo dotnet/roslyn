@@ -2083,7 +2083,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         Conversion.NoConversion,
                         @checked: CheckOverflowAtRuntime,
                         explicitCastInCode: true,
-                        conversionGroup: null,
+                        conversionGroup: new ConversionGroup(Conversion.NoConversion, explicitType: targetType),
                         constantValueOpt: ConstantValue.NotAvailable,
                         type: targetType.TypeSymbol,
                         hasErrors: true);
