@@ -146,10 +146,35 @@ namespace Microsoft.CodeAnalysis.UseAutoProperty
 
             var nodeToRemove = GetNodeToRemove(declarator);
 
-            // If we have a situation where the property is the second member in a type,
-            // and it would become the first, then remove any leading blank lines from it so we
-            // don't have random blanks above it that used to space it from the field that was
-            // there.
+            // If we have a situation where the property is the second member in a type, and it
+            // would become the first, then remove any leading blank lines from it so we don't have
+            // random blanks above it that used to space it from the field that was there.
+            //
+            // The reason we do this special processing is that the first member of a type tends to
+            // be special wrt leading trivia. i.e. users do not normally put blank lines before the
+            // first member. And so, when a type now becomes the first member, we want to follow the
+            // user's common pattern here.
+            //
+            // In all other code cases, i.e.when there are multiple fields above, or the field is
+            // below the property, then the property isn't now becoming "the first member", and as
+            // such, it doesn't want this special behavior about it's leading blank lines. i.e. if
+            // the user has:
+            //
+            //  class C
+            //  {
+            //      int i;
+            //      int j;
+            //
+            //      int Prop => j;
+            //  }
+            //
+            // Then if we remove 'j' (or even 'i'), then 'Prop' would stay the non-first member, and
+            // would definitely want to keep that blank line above it.
+            //
+            // In essence, the blank line above the property exists for separation from what's above
+            // it. As long as something is above it, we keep the separation. However, if the
+            // property becomes the first member in the type, the separation is now inappropriate
+            // because there's nothing to actually separate it from.
             if (fieldDocument == propertyDocument)
             {
                 var syntaxFacts = fieldDocument.GetLanguageService<ISyntaxFactsService>();
