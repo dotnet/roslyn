@@ -406,7 +406,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     if (tpEnclosing.ContainingSymbol.Kind == SymbolKind.Method)
                     {
                         // Type parameter '{0}' has the same name as the type parameter from outer method '{1}'
-                        typeError = ErrorCode.WRN_TypeParameterSameAsParentFunctionParameter;
+                        typeError = ErrorCode.WRN_TypeParameterSameAsOuterMethodTypeParameter;
                     }
                     else
                     {

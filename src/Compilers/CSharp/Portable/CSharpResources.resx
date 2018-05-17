@@ -1940,7 +1940,7 @@ If such a class is used as a base class and if the deriving class defines a dest
   <data name="WRN_TypeParameterSameAsOuterTypeParameter" xml:space="preserve">
     <value>Type parameter '{0}' has the same name as the type parameter from outer type '{1}'</value>
   </data>
-  <data name="WRN_TypeParameterSameAsParentFunctionParameter" xml:space="preserve">
+  <data name="WRN_TypeParameterSameAsOuterMethodTypeParameter" xml:space="preserve">
     <value>Type parameter '{0}' has the same name as the type parameter from outer method '{1}'</value>
   </data>
   <data name="WRN_TypeParameterSameAsOuterTypeParameter_Title" xml:space="preserve">

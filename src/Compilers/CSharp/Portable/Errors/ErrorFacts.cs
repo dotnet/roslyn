@@ -174,6 +174,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ErrorCode.WRN_IncorrectBooleanAssg:
                 case ErrorCode.WRN_BitwiseOrSignExtend:
                 case ErrorCode.WRN_TypeParameterSameAsOuterTypeParameter:
+                case ErrorCode.WRN_TypeParameterSameAsOuterMethodTypeParameter:
                 case ErrorCode.WRN_InvalidAssemblyName:
                 case ErrorCode.WRN_UnifyReferenceBldRev:
                 case ErrorCode.WRN_AssignmentToSelf:
