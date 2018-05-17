@@ -1423,8 +1423,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     destination,
                     ref useSiteDiagnostics,
                     ConversionKind.ImplicitTupleLiteral,
-                    (ConversionsBase conversions, BoundExpression s, TypeSymbol d, ref HashSet<DiagnosticInfo> u, bool a) =>
-                        conversions.ClassifyImplicitExtensionMethodThisArgConversion(s, s.Type, d, ref u),
+                    (ConversionsBase conversions, BoundExpression s, TypeSymbolWithAnnotations d, ref HashSet<DiagnosticInfo> u, bool a) =>
+                        conversions.ClassifyImplicitExtensionMethodThisArgConversion(s, s.Type, d.TypeSymbol, ref u),
                     arg: false);
                 if (tupleConversion.Exists)
                 {
@@ -1814,7 +1814,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return Conversion.NoConversion;
         }
 
-        private delegate Conversion ClassifyConversionFromExpressionDelegate(ConversionsBase conversions, BoundExpression sourceExpression, TypeSymbol destination, ref HashSet<DiagnosticInfo> useSiteDiagnostics, bool arg);
+        private delegate Conversion ClassifyConversionFromExpressionDelegate(ConversionsBase conversions, BoundExpression sourceExpression, TypeSymbolWithAnnotations destination, ref HashSet<DiagnosticInfo> useSiteDiagnostics, bool arg);
         private delegate Conversion ClassifyConversionFromTypeDelegate(ConversionsBase conversions, TypeSymbolWithAnnotations source, TypeSymbolWithAnnotations destination, ref HashSet<DiagnosticInfo> useSiteDiagnostics, bool arg);
 
         private Conversion GetImplicitTupleLiteralConversion(BoundTupleLiteral source, TypeSymbol destination, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
@@ -1824,7 +1824,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 destination,
                 ref useSiteDiagnostics,
                 ConversionKind.ImplicitTupleLiteral,
-                (ConversionsBase conversions, BoundExpression s, TypeSymbol d, ref HashSet<DiagnosticInfo> u, bool a) => conversions.ClassifyImplicitConversionFromExpression(s, d, ref u),
+                (ConversionsBase conversions, BoundExpression s, TypeSymbolWithAnnotations d, ref HashSet<DiagnosticInfo> u, bool a) => conversions.ClassifyImplicitConversionFromExpression(s, d.TypeSymbol, ref u),
                 arg: false);
         }
 
@@ -1835,7 +1835,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 destination,
                 ref useSiteDiagnostics,
                 ConversionKind.ExplicitTupleLiteral,
-                (ConversionsBase conversions, BoundExpression s, TypeSymbol d, ref HashSet<DiagnosticInfo> u, bool a) => conversions.ClassifyConversionFromExpression(s, d, ref u, a),
+                (ConversionsBase conversions, BoundExpression s, TypeSymbolWithAnnotations d, ref HashSet<DiagnosticInfo> u, bool a) => conversions.ClassifyConversionFromExpression(s, d.TypeSymbol, ref u, a),
                 forCast);
         }
 
@@ -1863,8 +1863,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             for (int i = 0; i < arguments.Length; i++)
             {
                 var argument = arguments[i];
-                Debug.Assert(!IncludeNullability); // PROTOTYPE(NullableReferenceTypes): Should fail in StaticNullChecking_FlowAnalysis.Conversions_TupleLiteral.
-                var result = classifyConversion(this, argument, targetElementTypes[i].TypeSymbol, ref useSiteDiagnostics, arg);
+                var result = classifyConversion(this, argument, targetElementTypes[i], ref useSiteDiagnostics, arg);
                 if (!result.Exists)
                 {
                     argumentConversions.Free();
