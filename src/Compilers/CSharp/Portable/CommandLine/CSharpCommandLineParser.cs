@@ -1629,7 +1629,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 yield break;
             }
 
-            List<string> paths = ParseSeparatedPaths(value).Where((path) => !string.IsNullOrWhiteSpace(path)).ToList();
+            IEnumerable<string> paths = ParseSeparatedPaths(value).Where((path) => !string.IsNullOrWhiteSpace(path));
 
             foreach (string path in paths)
             {
@@ -1679,16 +1679,16 @@ namespace Microsoft.CodeAnalysis.CSharp
                 alias = null;
             }
 
-            List<string> paths = ParseSeparatedPaths(value).Where((path) => !string.IsNullOrWhiteSpace(path)).ToList();
+            string[] paths = ParseSeparatedPaths(value).Where((path) => !string.IsNullOrWhiteSpace(path)).ToArray();
             if (alias != null)
             {
-                if (paths.Count > 1)
+                if (paths.Length > 1)
                 {
                     AddDiagnostic(diagnostics, ErrorCode.ERR_OneAliasPerReference, value);
                     yield break;
                 }
 
-                if (paths.Count == 0)
+                if (paths.Length == 0)
                 {
                     AddDiagnostic(diagnostics, ErrorCode.ERR_AliasMissingFile, alias);
                     yield break;
