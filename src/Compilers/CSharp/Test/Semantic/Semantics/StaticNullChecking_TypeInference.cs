@@ -968,34 +968,34 @@ class C
     {
         throw new System.Exception();
     }
-    static void G(I<string> x, I<string?> y)
+    static void G1(I<string> x1, I<string?> y1)
     {
-        F(x, x).ToString();
-        F(x, y).ToString();
-        F(y, x).ToString();
-        F(y, y).ToString();
+        F(x1, x1).ToString();
+        F(x1, y1).ToString();
+        F(y1, x1).ToString();
+        F(y1, y1).ToString();
     }
     static T F<T>(IIn<T> x, IIn<T> y)
     {
         throw new System.Exception();
     }
-    static void G(IIn<string> x, IIn<string?> y)
+    static void G2(IIn<string> x2, IIn<string?> y2)
     {
-        F(x, x).ToString();
-        F(x, y).ToString();
-        F(y, x).ToString();
-        F(y, y).ToString();
+        F(x2, x2).ToString();
+        F(x2, y2).ToString();
+        F(y2, x2).ToString();
+        F(y2, y2).ToString();
     }
     static T F<T>(IOut<T> x, IOut<T> y)
     {
         throw new System.Exception();
     }
-    static void G(IOut<string> x, IOut<string?> y)
+    static void G3(IOut<string> x3, IOut<string?> y3)
     {
-        F(x, x).ToString();
-        F(x, y).ToString();
-        F(y, x).ToString();
-        F(y, y).ToString();
+        F(x3, x3).ToString();
+        F(x3, y3).ToString();
+        F(y3, x3).ToString();
+        F(y3, y3).ToString();
     }
 }";
             var comp = CreateCompilation(
@@ -1003,44 +1003,32 @@ class C
                 parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
                 // (13,11): warning CS8620: Nullability of reference types in argument of type 'I<string>' doesn't match target type 'I<string?>' for parameter 'x' in 'string? C.F<string?>(I<string?> x, I<string?> y)'.
-                //         F(x, y).ToString();
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInArgument, "x").WithArguments("I<string>", "I<string?>", "x", "string? C.F<string?>(I<string?> x, I<string?> y)").WithLocation(13, 11),
+                //         F(x1, y1).ToString();
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInArgument, "x1").WithArguments("I<string>", "I<string?>", "x", "string? C.F<string?>(I<string?> x, I<string?> y)").WithLocation(13, 11),
                 // (13,9): warning CS8602: Possible dereference of a null reference.
-                //         F(x, y).ToString();
-                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "F(x, y)").WithLocation(13, 9),
-                // (14,14): warning CS8620: Nullability of reference types in argument of type 'I<string>' doesn't match target type 'I<string?>' for parameter 'y' in 'string? C.F<string?>(I<string?> x, I<string?> y)'.
-                //         F(y, x).ToString();
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInArgument, "x").WithArguments("I<string>", "I<string?>", "y", "string? C.F<string?>(I<string?> x, I<string?> y)").WithLocation(14, 14),
+                //         F(x1, y1).ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "F(x1, y1)").WithLocation(13, 9),
+                // (14,15): warning CS8620: Nullability of reference types in argument of type 'I<string>' doesn't match target type 'I<string?>' for parameter 'y' in 'string? C.F<string?>(I<string?> x, I<string?> y)'.
+                //         F(y1, x1).ToString();
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInArgument, "x1").WithArguments("I<string>", "I<string?>", "y", "string? C.F<string?>(I<string?> x, I<string?> y)").WithLocation(14, 15),
                 // (14,9): warning CS8602: Possible dereference of a null reference.
-                //         F(y, x).ToString();
-                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "F(y, x)").WithLocation(14, 9),
+                //         F(y1, x1).ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "F(y1, x1)").WithLocation(14, 9),
                 // (15,9): warning CS8602: Possible dereference of a null reference.
-                //         F(y, y).ToString();
-                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "F(y, y)").WithLocation(15, 9),
-                // (24,14): warning CS8620: Nullability of reference types in argument of type 'IIn<string?>' doesn't match target type 'IIn<string>' for parameter 'y' in 'string C.F<string>(IIn<string> x, IIn<string> y)'.
-                //         F(x, y).ToString();
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInArgument, "y").WithArguments("IIn<string?>", "IIn<string>", "y", "string C.F<string>(IIn<string> x, IIn<string> y)").WithLocation(24, 14),
-                // (25,11): warning CS8620: Nullability of reference types in argument of type 'IIn<string?>' doesn't match target type 'IIn<string>' for parameter 'x' in 'string C.F<string>(IIn<string> x, IIn<string> y)'.
-                //         F(y, x).ToString();
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInArgument, "y").WithArguments("IIn<string?>", "IIn<string>", "x", "string C.F<string>(IIn<string> x, IIn<string> y)").WithLocation(25, 11),
+                //         F(y1, y1).ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "F(y1, y1)").WithLocation(15, 9),
                 // (26,9): warning CS8602: Possible dereference of a null reference.
-                //         F(y, y).ToString();
-                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "F(y, y)").WithLocation(26, 9),
-                // (35,11): warning CS8620: Nullability of reference types in argument of type 'IOut<string>' doesn't match target type 'IOut<string?>' for parameter 'x' in 'string? C.F<string?>(IOut<string?> x, IOut<string?> y)'.
-                //         F(x, y).ToString();
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInArgument, "x").WithArguments("IOut<string>", "IOut<string?>", "x", "string? C.F<string?>(IOut<string?> x, IOut<string?> y)").WithLocation(35, 11),
+                //         F(y2, y2).ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "F(y2, y2)").WithLocation(26, 9),
                 // (35,9): warning CS8602: Possible dereference of a null reference.
-                //         F(x, y).ToString();
-                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "F(x, y)").WithLocation(35, 9),
-                // (36,14): warning CS8620: Nullability of reference types in argument of type 'IOut<string>' doesn't match target type 'IOut<string?>' for parameter 'y' in 'string? C.F<string?>(IOut<string?> x, IOut<string?> y)'.
-                //         F(y, x).ToString();
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInArgument, "x").WithArguments("IOut<string>", "IOut<string?>", "y", "string? C.F<string?>(IOut<string?> x, IOut<string?> y)").WithLocation(36, 14),
+                //         F(x3, y3).ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "F(x3, y3)").WithLocation(35, 9),
                 // (36,9): warning CS8602: Possible dereference of a null reference.
-                //         F(y, x).ToString();
-                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "F(y, x)").WithLocation(36, 9),
+                //         F(y3, x3).ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "F(y3, x3)").WithLocation(36, 9),
                 // (37,9): warning CS8602: Possible dereference of a null reference.
-                //         F(y, y).ToString();
-                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "F(y, y)").WithLocation(37, 9));
+                //         F(y3, y3).ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "F(y3, y3)").WithLocation(37, 9));
         }
 
         [Fact]
@@ -1056,76 +1044,64 @@ class C
     {
         throw new System.Exception();
     }
-    static void G(I<string> x, I<string?> y)
+    static void G1(I<string> x1, I<string?> y1)
     {
-        F(x, x).ToString();
-        F(x, y).ToString();
-        F(y, x).ToString();
-        F(y, y).ToString();
+        F(x1, x1).ToString();
+        F(x1, y1).ToString();
+        F(y1, x1).ToString();
+        F(y1, y1).ToString();
     }
     static T F<T>(IIn<T> x, IIn<T?> y)
     {
         throw new System.Exception();
     }
-    static void G(IIn<string> x, IIn<string?> y)
+    static void G2(IIn<string> x2, IIn<string?> y2)
     {
-        F(x, x).ToString();
-        F(x, y).ToString();
-        F(y, x).ToString();
-        F(y, y).ToString();
+        F(x2, x2).ToString();
+        F(x2, y2).ToString();
+        F(y2, x2).ToString();
+        F(y2, y2).ToString();
     }
     static T F<T>(IOut<T> x, IOut<T?> y)
     {
         throw new System.Exception();
     }
-    static void G(IOut<string> x, IOut<string?> y)
+    static void G3(IOut<string> x3, IOut<string?> y3)
     {
-        F(x, x).ToString();
-        F(x, y).ToString();
-        F(y, x).ToString();
-        F(y, y).ToString();
+        F(x3, x3).ToString();
+        F(x3, y3).ToString();
+        F(y3, x3).ToString();
+        F(y3, y3).ToString();
     }
 }";
             var comp = CreateCompilation(
                 source,
                 parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
-                // (12,14): warning CS8620: Nullability of reference types in argument of type 'I<string>' doesn't match target type 'I<string?>' for parameter 'y' in 'string C.F<string>(I<string> x, I<string?> y)'.
-                //         F(x, x).ToString();
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInArgument, "x").WithArguments("I<string>", "I<string?>", "y", "string C.F<string>(I<string> x, I<string?> y)").WithLocation(12, 14),
-                // (14,14): warning CS8620: Nullability of reference types in argument of type 'I<string>' doesn't match target type 'I<string?>' for parameter 'y' in 'string? C.F<string?>(I<string?> x, I<string?> y)'.
-                //         F(y, x).ToString();
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInArgument, "x").WithArguments("I<string>", "I<string?>", "y", "string? C.F<string?>(I<string?> x, I<string?> y)").WithLocation(14, 14),
+                // (12,15): warning CS8620: Nullability of reference types in argument of type 'I<string>' doesn't match target type 'I<string?>' for parameter 'y' in 'string C.F<string>(I<string> x, I<string?> y)'.
+                //         F(x1, x1).ToString();
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInArgument, "x1").WithArguments("I<string>", "I<string?>", "y", "string C.F<string>(I<string> x, I<string?> y)").WithLocation(12, 15),
+                // (14,15): warning CS8620: Nullability of reference types in argument of type 'I<string>' doesn't match target type 'I<string?>' for parameter 'y' in 'string? C.F<string?>(I<string?> x, I<string?> y)'.
+                //         F(y1, x1).ToString();
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInArgument, "x1").WithArguments("I<string>", "I<string?>", "y", "string? C.F<string?>(I<string?> x, I<string?> y)").WithLocation(14, 15),
                 // (14,9): warning CS8602: Possible dereference of a null reference.
-                //         F(y, x).ToString();
-                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "F(y, x)").WithLocation(14, 9),
+                //         F(y1, x1).ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "F(y1, x1)").WithLocation(14, 9),
                 // (15,9): warning CS8602: Possible dereference of a null reference.
-                //         F(y, y).ToString();
-                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "F(y, y)").WithLocation(15, 9),
-                // (23,14): warning CS8620: Nullability of reference types in argument of type 'IIn<string>' doesn't match target type 'IIn<string?>' for parameter 'y' in 'string C.F<string>(IIn<string> x, IIn<string?> y)'.
-                //         F(x, x).ToString();
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInArgument, "x").WithArguments("IIn<string>", "IIn<string?>", "y", "string C.F<string>(IIn<string> x, IIn<string?> y)").WithLocation(23, 14),
-                // (25,11): warning CS8620: Nullability of reference types in argument of type 'IIn<string?>' doesn't match target type 'IIn<string>' for parameter 'x' in 'string C.F<string>(IIn<string> x, IIn<string?> y)'.
-                //         F(y, x).ToString();
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInArgument, "y").WithArguments("IIn<string?>", "IIn<string>", "x", "string C.F<string>(IIn<string> x, IIn<string?> y)").WithLocation(25, 11),
-                // (25,14): warning CS8620: Nullability of reference types in argument of type 'IIn<string>' doesn't match target type 'IIn<string?>' for parameter 'y' in 'string C.F<string>(IIn<string> x, IIn<string?> y)'.
-                //         F(y, x).ToString();
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInArgument, "x").WithArguments("IIn<string>", "IIn<string?>", "y", "string C.F<string>(IIn<string> x, IIn<string?> y)").WithLocation(25, 14),
-                // (26,11): warning CS8620: Nullability of reference types in argument of type 'IIn<string?>' doesn't match target type 'IIn<string>' for parameter 'x' in 'string C.F<string>(IIn<string> x, IIn<string?> y)'.
-                //         F(y, y).ToString();
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInArgument, "y").WithArguments("IIn<string?>", "IIn<string>", "x", "string C.F<string>(IIn<string> x, IIn<string?> y)").WithLocation(26, 11),
-                // (34,14): warning CS8620: Nullability of reference types in argument of type 'IOut<string>' doesn't match target type 'IOut<string?>' for parameter 'y' in 'string C.F<string>(IOut<string> x, IOut<string?> y)'.
-                //         F(x, x).ToString();
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInArgument, "x").WithArguments("IOut<string>", "IOut<string?>", "y", "string C.F<string>(IOut<string> x, IOut<string?> y)").WithLocation(34, 14),
-                // (36,14): warning CS8620: Nullability of reference types in argument of type 'IOut<string>' doesn't match target type 'IOut<string?>' for parameter 'y' in 'string? C.F<string?>(IOut<string?> x, IOut<string?> y)'.
-                //         F(y, x).ToString();
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInArgument, "x").WithArguments("IOut<string>", "IOut<string?>", "y", "string? C.F<string?>(IOut<string?> x, IOut<string?> y)").WithLocation(36, 14),
+                //         F(y1, y1).ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "F(y1, y1)").WithLocation(15, 9),
+                // (23,15): warning CS8620: Nullability of reference types in argument of type 'IIn<string>' doesn't match target type 'IIn<string?>' for parameter 'y' in 'string C.F<string>(IIn<string> x, IIn<string?> y)'.
+                //         F(x2, x2).ToString();
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInArgument, "x2").WithArguments("IIn<string>", "IIn<string?>", "y", "string C.F<string>(IIn<string> x, IIn<string?> y)").WithLocation(23, 15),
+                // (25,15): warning CS8620: Nullability of reference types in argument of type 'IIn<string>' doesn't match target type 'IIn<string?>' for parameter 'y' in 'string C.F<string>(IIn<string> x, IIn<string?> y)'.
+                //         F(y2, x2).ToString();
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInArgument, "x2").WithArguments("IIn<string>", "IIn<string?>", "y", "string C.F<string>(IIn<string> x, IIn<string?> y)").WithLocation(25, 15),
                 // (36,9): warning CS8602: Possible dereference of a null reference.
-                //         F(y, x).ToString();
-                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "F(y, x)").WithLocation(36, 9),
+                //         F(y3, x3).ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "F(y3, x3)").WithLocation(36, 9),
                 // (37,9): warning CS8602: Possible dereference of a null reference.
-                //         F(y, y).ToString();
-                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "F(y, y)").WithLocation(37, 9));
+                //         F(y3, y3).ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "F(y3, y3)").WithLocation(37, 9));
         }
 
         [Fact]

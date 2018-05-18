@@ -17565,8 +17565,7 @@ delegate string D2();
                 );
         }
 
-        // PROTOTYPE(NullableReferenceTypes): Conversions: Other
-        [Fact(Skip = "TODO")]
+        [Fact]
         public void Covariance_Interface()
         {
             var source =
@@ -17590,8 +17589,7 @@ class C
                 Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "i").WithArguments("I<string?>", "I<object>").WithLocation(7, 42));
         }
 
-        // PROTOTYPE(NullableReferenceTypes): Conversions: Other
-        [Fact(Skip = "TODO")]
+        [Fact]
         public void Contravariance_Interface()
         {
             var source =

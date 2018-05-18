@@ -2106,9 +2106,19 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private bool HasImplicitReferenceConversion(TypeSymbolWithAnnotations source, TypeSymbolWithAnnotations destination, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
         {
-            if (IncludeNullability && !HasTopLevelNullabilityImplicitConversion(source, destination))
+            if (IncludeNullability)
             {
-                return false;
+                if (!HasTopLevelNullabilityImplicitConversion(source, destination))
+                {
+                    return false;
+                }
+                // Check for identity conversion of underlying types if the top-level nullability is distinct.
+                // (An identity conversion where nullability matches is not considered an implicit reference conversion.)
+                if (source.IsNullable != destination.IsNullable &&
+                    HasIdentityConversionInternal(source.TypeSymbol, destination.TypeSymbol, includeNullability: true))
+                {
+                    return true;
+                }
             }
             return HasImplicitReferenceConversion(source.TypeSymbol, destination.TypeSymbol, ref useSiteDiagnostics);
         }
