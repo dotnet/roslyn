@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
   <file datatype="xml" source-language="en" target-language="pt-BR" original="../CSharpResources.resx">
     <body>
@@ -374,12 +374,12 @@
       </trans-unit>
       <trans-unit id="SyntaxTreeNotFound">
         <source>SyntaxTree is not part of the compilation</source>
-        <target state="new">SyntaxTree is not part of the compilation</target>
+        <target state="translated">A SyntaxTree não faz parte da compilação</target>
         <note />
       </trans-unit>
       <trans-unit id="SyntaxTreeNotFoundToRemove">
         <source>SyntaxTree is not part of the compilation, so it cannot be removed</source>
-        <target state="new">SyntaxTree is not part of the compilation, so it cannot be removed</target>
+        <target state="translated">A SyntaxTree não faz parte da compilação, portanto, não pode ser removida</target>
         <note />
       </trans-unit>
       <trans-unit id="XML_InvalidToken">
@@ -3762,7 +3762,7 @@ Um bloco catch() depois de um bloco catch (System.Exception e) poderá capturar 
       </trans-unit>
       <trans-unit id="ERR_NoSuchMemberOrExtension">
         <source>'{0}' does not contain a definition for '{1}' and no accessible extension method '{1}' accepting a first argument of type '{0}' could be found (are you missing a using directive or an assembly reference?)</source>
-        <target state="needs-review-translation">'"{0}" não contém uma definição para "{1}" e não foi possível encontrar nenhum método de extensão "{1}" que aceite um primeiro argumento do tipo "{0}" (há uma diretiva de uso ou referência de assembly ausente?)</target>
+        <target state="translated">‘{0}’ não contém uma definição para "{1}" e não foi possível encontrar nenhum método de extensão "{1}" que aceite um primeiro argumento do tipo ‘{0}’ (você está se esquecendo de usar uma diretiva ou uma referência de assembly?)</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NoSuchMemberOrExtensionNeedUsing">
@@ -7812,7 +7812,7 @@ Para incorporar informações de tipo de interoperabilidade para os dois assembl
       </trans-unit>
       <trans-unit id="SyntaxTreeFromLoadNoRemoveReplace">
         <source>SyntaxTree resulted from a #load directive and cannot be removed or replaced directly.</source>
-        <target state="needs-review-translation">A SyntaxTree "{0}" é resultado de uma diretiva #load, e não é permitido removê-la nem substituí-la diretamente.</target>
+        <target state="translated">A SyntaxTree o é resultado de uma diretiva #load e não pode ser removida nem substituída diretamente.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_SourceFileReferencesNotSupported">

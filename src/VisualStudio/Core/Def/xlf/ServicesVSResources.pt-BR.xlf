@@ -1525,12 +1525,12 @@ Eu concordo com todo o conteúdo supracitado:</target>
       </trans-unit>
       <trans-unit id="Prefer_conditional_expression_over_if_with_assignments">
         <source>Prefer conditional expression over 'if' with assignments</source>
-        <target state="new">Prefer conditional expression over 'if' with assignments</target>
+        <target state="translated">Preferir expressão condicional em vez de 'if' com atribuições</target>
         <note />
       </trans-unit>
       <trans-unit id="Prefer_conditional_expression_over_if_with_returns">
         <source>Prefer conditional expression over 'if' with returns</source>
-        <target state="new">Prefer conditional expression over 'if' with returns</target>
+        <target state="translated">Preferir expressão condicional em vez de 'if' com retornos</target>
         <note />
       </trans-unit>
     </body>

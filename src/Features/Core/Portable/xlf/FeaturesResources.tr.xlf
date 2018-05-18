@@ -2017,7 +2017,7 @@ Bu sürüm şurada kullanılır: {2}</target>
       </trans-unit>
       <trans-unit id="Convert_to_conditional_expression">
         <source>Convert to conditional expression</source>
-        <target state="new">Convert to conditional expression</target>
+        <target state="translated">Koşullu ifadeye dönüştürme</target>
         <note />
       </trans-unit>
     </body>

@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
   <file datatype="xml" source-language="en" target-language="zh-Hans" original="../CSharpResources.resx">
     <body>
@@ -374,12 +374,12 @@
       </trans-unit>
       <trans-unit id="SyntaxTreeNotFound">
         <source>SyntaxTree is not part of the compilation</source>
-        <target state="new">SyntaxTree is not part of the compilation</target>
+        <target state="translated">编译中不包含 SyntaxTree</target>
         <note />
       </trans-unit>
       <trans-unit id="SyntaxTreeNotFoundToRemove">
         <source>SyntaxTree is not part of the compilation, so it cannot be removed</source>
-        <target state="new">SyntaxTree is not part of the compilation, so it cannot be removed</target>
+        <target state="translated">编译中不包含 SyntaxTree，因此无法将其删除</target>
         <note />
       </trans-unit>
       <trans-unit id="XML_InvalidToken">
@@ -3762,7 +3762,7 @@ A catch() block after a catch (System.Exception e) block can catch non-CLS excep
       </trans-unit>
       <trans-unit id="ERR_NoSuchMemberOrExtension">
         <source>'{0}' does not contain a definition for '{1}' and no accessible extension method '{1}' accepting a first argument of type '{0}' could be found (are you missing a using directive or an assembly reference?)</source>
-        <target state="needs-review-translation">'“{0}”未包含“{1}”的定义，并且找不到可接受第一个“{0}”类型参数的扩展方法“{1}”(是否缺少 using 指令或程序集引用?)</target>
+        <target state="translated">'“{0}”未包含“{1}”的定义，并且找不到可接受第一个“{0}”类型参数的可访问扩展方法“{1}”(是否缺少 using 指令或程序集引用?)</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NoSuchMemberOrExtensionNeedUsing">
@@ -7812,7 +7812,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
       </trans-unit>
       <trans-unit id="SyntaxTreeFromLoadNoRemoveReplace">
         <source>SyntaxTree resulted from a #load directive and cannot be removed or replaced directly.</source>
-        <target state="needs-review-translation">#load 指令生成了 SyntaxTree“{0}”，并且无法直接移除或替代此 SyntaxTree。</target>
+        <target state="translated">#load 指令生成了 SyntaxTree，并且无法直接删除或替代此 SyntaxTree。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_SourceFileReferencesNotSupported">

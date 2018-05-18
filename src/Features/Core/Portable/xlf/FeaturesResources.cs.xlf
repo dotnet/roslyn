@@ -2017,7 +2017,7 @@ Tato verze se používá zde: {2}.</target>
       </trans-unit>
       <trans-unit id="Convert_to_conditional_expression">
         <source>Convert to conditional expression</source>
-        <target state="new">Convert to conditional expression</target>
+        <target state="translated">Převést na podmíněný výraz</target>
         <note />
       </trans-unit>
     </body>

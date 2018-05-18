@@ -1525,12 +1525,12 @@ L'utente accetta le condizioni sopra riportate:</target>
       </trans-unit>
       <trans-unit id="Prefer_conditional_expression_over_if_with_assignments">
         <source>Prefer conditional expression over 'if' with assignments</source>
-        <target state="new">Prefer conditional expression over 'if' with assignments</target>
+        <target state="translated">Preferisci l'espressione condizionale a 'if' con assegnazioni</target>
         <note />
       </trans-unit>
       <trans-unit id="Prefer_conditional_expression_over_if_with_returns">
         <source>Prefer conditional expression over 'if' with returns</source>
-        <target state="new">Prefer conditional expression over 'if' with returns</target>
+        <target state="translated">Preferisci l'espressione condizionale a 'if' con valori restituiti</target>
         <note />
       </trans-unit>
     </body>

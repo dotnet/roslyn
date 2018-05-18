@@ -2017,7 +2017,7 @@ Esta versión se utiliza en: {2}</target>
       </trans-unit>
       <trans-unit id="Convert_to_conditional_expression">
         <source>Convert to conditional expression</source>
-        <target state="new">Convert to conditional expression</target>
+        <target state="translated">Convertir a expresión condicional</target>
         <note />
       </trans-unit>
     </body>
