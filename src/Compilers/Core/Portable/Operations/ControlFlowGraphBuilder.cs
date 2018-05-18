@@ -3101,6 +3101,61 @@ oneMoreTime:
             AppendNewBlock(@break);
             return null;
 
+            IOperation tryCallObjectForLoopControlHelper(SyntaxNode syntax, WellKnownMember helper)
+            {
+                bool isInitialization = (helper == WellKnownMember.Microsoft_VisualBasic_CompilerServices_ObjectFlowControl_ForLoopControl__ForLoopInitObj);
+                var loopObjectReference = new LocalReferenceExpression(loopObject, 
+                                                                       isDeclaration: isInitialization, 
+                                                                       semanticModel: null,
+                                                                       operation.LoopControlVariable.Syntax, loopObject.Type,
+                                                                       constantValue: default, isImplicit: true);
+
+                var method = (IMethodSymbol)compilation.CommonGetWellKnownTypeMember(helper);
+                int parametersCount = WellKnownMembers.GetDescriptor(helper).ParametersCount;
+
+                if (method is null)
+                {
+                    var builder = ArrayBuilder<IOperation>.GetInstance(--parametersCount, fillWithValue: null);
+                    builder[--parametersCount] = loopObjectReference;
+                    do
+                    {
+                        builder[--parametersCount] = _evalStack.Pop();
+                    }
+                    while (parametersCount != 0);
+
+                    return MakeInvalidOperation(operation.LimitValue.Syntax, booleanType, builder.ToImmutableAndFree());
+                }
+                else
+                {
+
+                    var builder = ArrayBuilder<IArgumentOperation>.GetInstance(parametersCount, fillWithValue: null);
+
+                    builder[--parametersCount] = new ArgumentOperation(getLoopControlVariableReference(forceImplicit: true), // Yes we are going to evaluate it again
+                                                                       ArgumentKind.Explicit, method.Parameters[parametersCount],
+                                                                       inConversionOpt: null, outConversionOpt: null,
+                                                                       semanticModel: null, syntax, isImplicit: true);
+
+                    builder[--parametersCount] = new ArgumentOperation(loopObjectReference,
+                                                                       ArgumentKind.Explicit, method.Parameters[parametersCount],
+                                                                       inConversionOpt: null, outConversionOpt: null,
+                                                                       semanticModel: null, syntax, isImplicit: true);
+
+                    do
+                    {
+                        IOperation value = _evalStack.Pop();
+                        builder[--parametersCount] = new ArgumentOperation(value,
+                                                                           ArgumentKind.Explicit, method.Parameters[parametersCount],
+                                                                           inConversionOpt: null, outConversionOpt: null,
+                                                                           semanticModel: null, isInitialization ? value.Syntax : syntax, isImplicit: true);
+                    }
+                    while (parametersCount != 0);
+
+                    return new InvocationExpression(method, instance: null, isVirtual: false, builder.ToImmutableAndFree(),
+                                                    semanticModel: null, operation.LimitValue.Syntax, method.ReturnType,
+                                                    constantValue: default, isImplicit: true);
+                }
+            }
+
             void initializeLoop()
             {
                 if (isObjectLoop)
@@ -3127,7 +3182,6 @@ oneMoreTime:
                     // }
                     // exit:
 
-                    IOperation condition;
 #if DEBUG
                     int stackSize = _evalStack.Count;
 #endif
@@ -3135,52 +3189,10 @@ oneMoreTime:
                     _evalStack.Push(Visit(operation.InitialValue));
                     _evalStack.Push(Visit(operation.LimitValue));
                     _evalStack.Push(Visit(operation.StepValue));
-                    var loopObjectReference = new LocalReferenceExpression(loopObject, isDeclaration: true, semanticModel: null,
-                                                                           operation.LoopControlVariable.Syntax, loopObject.Type, 
-                                                                           constantValue: default, isImplicit: true);
 
-                    var initMethod = (IMethodSymbol)compilation.CommonGetWellKnownTypeMember(WellKnownMember.Microsoft_VisualBasic_CompilerServices_ObjectFlowControl_ForLoopControl__ForLoopInitObj);
-                    if (initMethod is null)
-                    {
-                        // PROTOTYPE(dataflow): The scenario with missing ObjectFlowControl.ForLoopControl.ForLoopInitObj is not covered by unit-tests.
-
-                        var builder = ArrayBuilder<IOperation>.GetInstance(5, fillWithValue: null);
-                        builder[4] = loopObjectReference;
-                        builder[3] = _evalStack.Pop();
-                        builder[2] = _evalStack.Pop();
-                        builder[1] = _evalStack.Pop();
-                        builder[0] = _evalStack.Pop();
-
-                        condition = MakeInvalidOperation(operation.LimitValue.Syntax, booleanType, builder.ToImmutableAndFree());
-                    }
-                    else
-                    {
-
-                        var builder = ArrayBuilder<IArgumentOperation>.GetInstance(6, fillWithValue: null);
-
-                        builder[5] = new ArgumentOperation(getLoopControlVariableReference(forceImplicit: true), // Yes we are going to evaluate it again
-                                                           ArgumentKind.Explicit, initMethod.Parameters[5],
-                                                           inConversionOpt: null, outConversionOpt: null,
-                                                           semanticModel: null, operation.LoopControlVariable.Syntax, isImplicit: true);
-
-                        builder[4] = new ArgumentOperation(loopObjectReference, 
-                                                           ArgumentKind.Explicit, initMethod.Parameters[4],
-                                                           inConversionOpt: null, outConversionOpt: null,
-                                                           semanticModel: null, operation.LoopControlVariable.Syntax, isImplicit: true);
-
-                        for (int i = 3; i >= 0; i--)
-                        {
-                            IOperation value = _evalStack.Pop();
-                            builder[i] = new ArgumentOperation(value,
-                                                               ArgumentKind.Explicit, initMethod.Parameters[i],
-                                                               inConversionOpt: null, outConversionOpt: null,
-                                                               semanticModel: null, value.Syntax, isImplicit: true);
-                        }
-
-                        condition = new InvocationExpression(initMethod, instance: null, isVirtual: false, builder.ToImmutableAndFree(),
-                                                             semanticModel: null, operation.LimitValue.Syntax, initMethod.ReturnType, 
-                                                             constantValue: default, isImplicit: true);
-                    }
+                    IOperation condition = tryCallObjectForLoopControlHelper(operation.LoopControlVariable.Syntax,
+                                                                             WellKnownMember.Microsoft_VisualBasic_CompilerServices_ObjectFlowControl_ForLoopControl__ForLoopInitObj);
+                    // PROTOTYPE(dataflow): The scenario with missing ObjectFlowControl.ForLoopControl.ForLoopInitObj is not covered by unit-tests.
 #if DEBUG
                     Debug.Assert(stackSize == _evalStack.Count);
 #endif
@@ -3330,45 +3342,17 @@ oneMoreTime:
                     // }
                     // exit:
 
-                    IOperation condition;
-                    var loopObjectReference = new LocalReferenceExpression(loopObject, isDeclaration: false, semanticModel: null,
-                                                                           operation.LoopControlVariable.Syntax, loopObject.Type,
-                                                                           constantValue: default, isImplicit: true);
+#if DEBUG
+                    int stackSize = _evalStack.Count;
+#endif
+                    _evalStack.Push(getLoopControlVariableReference(forceImplicit: true));
 
-                    var checkMethod = (IMethodSymbol)compilation.CommonGetWellKnownTypeMember(WellKnownMember.Microsoft_VisualBasic_CompilerServices_ObjectFlowControl_ForLoopControl__ForNextCheckObj);
-                    if (checkMethod is null)
-                    {
-                        // PROTOTYPE(dataflow): The scenario with missing ObjectFlowControl.ForLoopControl.ForNextCheckObj is not covered by unit-tests.
-                        condition = MakeInvalidOperation(operation.LimitValue.Syntax, booleanType, 
-                                                         getLoopControlVariableReference(forceImplicit: true), // Yes we are going to evaluate it again
-                                                         loopObjectReference);
-                    }
-                    else
-                    {
-                        _evalStack.Push(getLoopControlVariableReference(forceImplicit: true)); // Yes we are going to evaluate it again
-
-                        var builder = ArrayBuilder<IArgumentOperation>.GetInstance(3, fillWithValue: null);
-
-                        builder[2] = new ArgumentOperation(getLoopControlVariableReference(forceImplicit: true), // Yes we are going to evaluate it again
-                                                           ArgumentKind.Explicit, checkMethod.Parameters[2],
-                                                           inConversionOpt: null, outConversionOpt: null,
-                                                           semanticModel: null, operation.LimitValue.Syntax, isImplicit: true);
-
-                        builder[1] = new ArgumentOperation(loopObjectReference,
-                                                           ArgumentKind.Explicit, checkMethod.Parameters[1],
-                                                           inConversionOpt: null, outConversionOpt: null,
-                                                           semanticModel: null, operation.LimitValue.Syntax, isImplicit: true);
-
-                        builder[0] = new ArgumentOperation(_evalStack.Pop(),
-                                                           ArgumentKind.Explicit, checkMethod.Parameters[0],
-                                                           inConversionOpt: null, outConversionOpt: null,
-                                                           semanticModel: null, operation.LimitValue.Syntax, isImplicit: true);
-
-                        condition = new InvocationExpression(checkMethod, instance: null, isVirtual: false, builder.ToImmutableAndFree(),
-                                                             semanticModel: null, operation.LimitValue.Syntax, checkMethod.ReturnType,
-                                                             constantValue: default, isImplicit: true);
-                    }
-
+                    IOperation condition = tryCallObjectForLoopControlHelper(operation.LimitValue.Syntax,
+                                                                             WellKnownMember.Microsoft_VisualBasic_CompilerServices_ObjectFlowControl_ForLoopControl__ForNextCheckObj);
+                    // PROTOTYPE(dataflow): The scenario with missing ObjectFlowControl.ForLoopControl.ForNextCheckObj is not covered by unit-tests.
+#if DEBUG
+                    Debug.Assert(stackSize == _evalStack.Count);
+#endif
                     LinkBlocks(CurrentBasicBlock, (Operation.SetParentOperation(condition, null), JumpIfTrue: false, RegularBranch(@break)));
                     LinkBlocks(CurrentBasicBlock, bodyBlock);
                     _currentBasicBlock = null;
