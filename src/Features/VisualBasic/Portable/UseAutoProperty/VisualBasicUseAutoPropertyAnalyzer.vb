@@ -1,13 +1,12 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-Imports System.ComponentModel.Composition
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.Diagnostics
 Imports Microsoft.CodeAnalysis.UseAutoProperty
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
-Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UseAutoProperty
-    <Export, DiagnosticAnalyzer(LanguageNames.VisualBasic)>
+Namespace Microsoft.CodeAnalysis.VisualBasic.UseAutoProperty
+    <DiagnosticAnalyzer(LanguageNames.VisualBasic)>
     Friend Class VisualBasicUseAutoPropertyAnalyzer
         Inherits AbstractUseAutoPropertyAnalyzer(Of PropertyBlockSyntax, FieldDeclarationSyntax, ModifiedIdentifierSyntax, ExpressionSyntax)
 
