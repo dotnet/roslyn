@@ -77,7 +77,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.E
                         completionList.SuggestionModeItem.DisplayText,
                         (completionList.SuggestionModeItem.Properties.TryGetValue("Description", out var description)
                             ? description
-                            : string.Empty))
+                            : "TODO ALLOW EMPTY STRING"))
                     : null;
             return new EditorCompletion.CompletionContext(
                 items,
