@@ -20797,7 +20797,6 @@ class C
                 Diagnostic(ErrorCode.WRN_NullReferenceArgument, "b").WithArguments("a", "A.explicit operator S(A a)").WithLocation(13, 17));
         }
 
-        // PROTOTYPE(NullableReferenceTypes): Should only report one warning for: A a = (B)s;
         [Fact]
         public void MultipleConversions_Explicit_04()
         {
@@ -20826,6 +20825,8 @@ class C
     }
 }";
             var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
+            // PROTOTYPE(NullableReferenceTypes): Should only report one WRN_ConvertingNullableToNonNullable
+            // warning for `B b2 = (B)s;` and `A a = (B)s;`.
             comp.VerifyDiagnostics(
                 // (16,18): warning CS8600: Converting null literal or possible null value to non-nullable type.
                 //         var b1 = (B)s;

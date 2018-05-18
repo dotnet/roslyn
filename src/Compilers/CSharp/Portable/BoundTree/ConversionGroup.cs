@@ -7,8 +7,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 {
     /// <summary>
     /// A group is a common instance referenced by all BoundConversion instances
-    /// that represent a single Conversion, and used by NullableWalker to determine
-    /// which BoundConversion nodes can be considered as a unit.
+    /// generated from a single Conversion. The group is used by NullableWalker to
+    /// determine which BoundConversion nodes should be considered as a unit.
     /// </summary>
     [DebuggerDisplay("{GetDebuggerDisplay(), nq}")]
     internal sealed class ConversionGroup
