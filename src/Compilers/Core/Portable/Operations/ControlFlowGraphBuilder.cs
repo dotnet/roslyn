@@ -4477,48 +4477,48 @@ oneMoreTime:
 
         public override IOperation VisitArrayInitializer(IArrayInitializerOperation operation, int? captureIdForResult)
         {
-            VisitAndPushArrayInitializerValues(operation);
-            return PopAndAssembleArrayInitializerValues(operation);
-        }
+            visitAndPushArrayInitializerValues(operation);
+            return popAndAssembleArrayInitializerValues(operation);
 
-        private void VisitAndPushArrayInitializerValues(IArrayInitializerOperation operation)
-        {
-            foreach (IOperation elementValue in operation.ElementValues)
+            void visitAndPushArrayInitializerValues(IArrayInitializerOperation initializer)
             {
-                // We need to retain the tree shape for nested array initializer.
-                if (elementValue.Kind == OperationKind.ArrayInitializer)
+                foreach (IOperation elementValue in initializer.ElementValues)
                 {
-                    VisitAndPushArrayInitializerValues((IArrayInitializerOperation)elementValue);
-                }
-                else
-                {
-                    _evalStack.Push(Visit(elementValue));
+                    // We need to retain the tree shape for nested array initializer.
+                    if (elementValue.Kind == OperationKind.ArrayInitializer)
+                    {
+                        visitAndPushArrayInitializerValues((IArrayInitializerOperation)elementValue);
+                    }
+                    else
+                    {
+                        _evalStack.Push(Visit(elementValue));
+                    }
                 }
             }
-        }
 
-        private IArrayInitializerOperation PopAndAssembleArrayInitializerValues(IArrayInitializerOperation operation)
-        {
-            var builder = ArrayBuilder<IOperation>.GetInstance(operation.ElementValues.Length);
-            for (int i = operation.ElementValues.Length - 1; i >= 0; i--)
+            IArrayInitializerOperation popAndAssembleArrayInitializerValues(IArrayInitializerOperation initializer)
             {
-                IOperation elementValue = operation.ElementValues[i];
-
-                IOperation visitedElementValue;
-                if (elementValue.Kind == OperationKind.ArrayInitializer)
+                var builder = ArrayBuilder<IOperation>.GetInstance(initializer.ElementValues.Length);
+                for (int i = initializer.ElementValues.Length - 1; i >= 0; i--)
                 {
-                    visitedElementValue = PopAndAssembleArrayInitializerValues((IArrayInitializerOperation)elementValue);
-                }
-                else
-                {
-                    visitedElementValue = _evalStack.Pop();
+                    IOperation elementValue = initializer.ElementValues[i];
+
+                    IOperation visitedElementValue;
+                    if (elementValue.Kind == OperationKind.ArrayInitializer)
+                    {
+                        visitedElementValue = popAndAssembleArrayInitializerValues((IArrayInitializerOperation)elementValue);
+                    }
+                    else
+                    {
+                        visitedElementValue = _evalStack.Pop();
+                    }
+
+                    builder.Add(visitedElementValue);
                 }
 
-                builder.Add(visitedElementValue);
+                builder.ReverseContents();
+                return new ArrayInitializer(builder.ToImmutableAndFree(), semanticModel: null, initializer.Syntax, initializer.ConstantValue, IsImplicit(initializer));
             }
-
-            builder.ReverseContents();
-            return new ArrayInitializer(builder.ToImmutableAndFree(), semanticModel: null, operation.Syntax, operation.ConstantValue, IsImplicit(operation));
         }
 
         public override IOperation VisitInstanceReference(IInstanceReferenceOperation operation, int? captureIdForResult)
