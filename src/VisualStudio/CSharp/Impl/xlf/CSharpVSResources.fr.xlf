@@ -702,6 +702,16 @@
         <target state="new">Generate Event Subscription Command Handler</target>
         <note />
       </trans-unit>
+      <trans-unit id="In_arithmetic_binary_operators">
+        <source>In arithmetic operators:  *  /  %  +  -  &lt;&lt;  &gt;&gt;  &amp;  ^  |</source>
+        <target state="new">In arithmetic operators:  *  /  %  +  -  &lt;&lt;  &gt;&gt;  &amp;  ^  |</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="In_other_binary_operators">
+        <source>In other binary operators:  &lt;  &gt;  &lt;=  &gt;=  is  as  ==  !=  &amp;&amp;  ||  ??</source>
+        <target state="new">In other binary operators:  &lt;  &gt;  &lt;=  &gt;=  is  as  ==  !=  &amp;&amp;  ||  ??</target>
+        <note />
+      </trans-unit>
     </body>
   </file>
 </xliff>

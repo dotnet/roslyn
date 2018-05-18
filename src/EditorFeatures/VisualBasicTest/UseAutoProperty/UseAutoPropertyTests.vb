@@ -2,9 +2,10 @@
 
 Imports Microsoft.CodeAnalysis.CodeFixes
 Imports Microsoft.CodeAnalysis.Diagnostics
-Imports Microsoft.CodeAnalysis.Editor.VisualBasic.UseAutoProperty
+Imports Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics
+Imports Microsoft.CodeAnalysis.VisualBasic.UseAutoProperty
 
-Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics.UseAutoProperty
+Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.UseAutoProperty
     Public Class UseAutoPropertyTests
         Inherits AbstractVisualBasicDiagnosticProviderBasedUserDiagnosticTest
 
@@ -41,6 +42,23 @@ end class")
 end class",
 "class Class1
     readonly property P as integer
+end class")
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseAutoProperty)>
+        <WorkItem(26256, "https://github.com/dotnet/roslyn/issues/26256")>
+        Public Async Function TestSingleGetter3() As Task
+            Await TestInRegularAndScriptAsync(
+"class Class1
+    shared dim i as Integer
+    [|shared property P as integer
+        get
+            return i
+        end get
+    end property|]
+end class",
+"class Class1
+    shared ReadOnly property P as integer
 end class")
         End Function
 
@@ -103,6 +121,37 @@ end class")
     end property
 end class",
 New TestParameters(VisualBasicParseOptions.Default.WithLanguageVersion(LanguageVersion.VisualBasic9)))
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseAutoProperty)>
+        <WorkItem(26256, "https://github.com/dotnet/roslyn/issues/26256")>
+        Public Async Function TestInitializer_AsNew() As Task
+            Await TestInRegularAndScriptAsync(
+"class Class1
+    dim i as new Guid(""{00000000-0000-0000-0000-000000000000}"")
+    [|readonly property P as Guid
+        get
+            return i
+        end get
+    end property|]
+end class",
+"class Class1
+    readonly property P as new Guid(""{00000000-0000-0000-0000-000000000000}"")
+end class")
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseAutoProperty)>
+        <WorkItem(26256, "https://github.com/dotnet/roslyn/issues/26256")>
+        Public Async Function TestInitializer_AsNewDifferentType() As Task
+            Await TestMissingInRegularAndScriptAsync(
+"class Class1
+    dim i as new Guid(""{00000000-0000-0000-0000-000000000000}"")
+    [|readonly property P as Object
+        get
+            return i
+        end get
+    end property|]
+end class")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseAutoProperty)>
@@ -458,6 +507,7 @@ end class")
         get
             return i
         end get
+    end property
  public sub new(dim P as integer)
         i = 1
     end sub
@@ -630,6 +680,23 @@ end class")
             i = value
         end set
     end property
+end class")
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseAutoProperty)>
+        Public Async Function TestLeadingBlankLinesRemoved() As Task
+            Await TestInRegularAndScriptAsync(
+"class Class1
+    [|dim i as integer|]
+
+    readonly property P as integer
+        get
+            return i
+        end get
+    end property
+end class",
+"class Class1
+    readonly property P as integer
 end class")
         End Function
     End Class

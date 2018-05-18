@@ -529,6 +529,12 @@
   <data name="Separate_using_directive_groups" xml:space="preserve">
     <value>Separate using directive groups</value>
   </data>
+  <data name="In_arithmetic_binary_operators" xml:space="preserve">
+    <value>In arithmetic operators:  *  /  %  +  -  &lt;&lt;  &gt;&gt;  &amp;  ^  |</value>
+  </data>
+  <data name="In_other_binary_operators" xml:space="preserve">
+    <value>In other binary operators:  &lt;  &gt;  &lt;=  &gt;=  is  as  ==  !=  &amp;&amp;  ||  ??</value>
+  </data>
   <data name="Show_name_suggestions" xml:space="preserve">
     <value>Show name s_uggestions</value>
   </data>

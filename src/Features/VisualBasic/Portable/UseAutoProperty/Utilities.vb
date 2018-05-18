@@ -2,7 +2,7 @@
 
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
-Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UseAutoProperty
+Namespace Microsoft.CodeAnalysis.VisualBasic.UseAutoProperty
     Friend Module Utilities
         Friend Function GetNodeToRemove(identifier As ModifiedIdentifierSyntax) As SyntaxNode
             Dim declarator = DirectCast(identifier.Parent, VariableDeclaratorSyntax)
