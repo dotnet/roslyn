@@ -2134,6 +2134,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             // PROTOTYPE(NullableReferenceTypes): Support field initializers in local functions.
         }
 
+        /// <summary>
+        /// Returns the expression without the top-most conversion plus the conversion.
+        /// If the expression is not a conversion, returns the original expression plus
+        /// the Identity conversion. If `includeExplicitConversions` is true, implicit and
+        /// explicit conversions are considered. If `includeExplicitConversions` is false
+        /// only implicit conversions are considered and if the expression is an explicit
+        /// conversion, the expression is returned as is, with the Identity conversion.
+        /// </summary>
         private static (BoundExpression, Conversion) RemoveConversion(BoundExpression expr, bool includeExplicitConversions)
         {
             ConversionGroup group = null;
@@ -2146,6 +2154,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var conversion = (BoundConversion)expr;
                 if (group != conversion.ConversionGroupOpt && group != null)
                 {
+                    // E.g.: (C)(B)a
                     break;
                 }
                 group = conversion.ConversionGroupOpt;
@@ -2192,6 +2201,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                     conversions.ClassifyImplicitConversionFromType(sourceType, destinationType, ref useSiteDiagnostics));
         }
 
+        /// <summary>
+        /// Returns true if the expression should be used as the source when calculating
+        /// a conversion from this expression, rather than using the type (with nullability)
+        /// calculated by visiting this expression. Typically, that means expressions that
+        /// do not have an explicit type but there are several other cases as well.
+        /// (See expressions handled in ClassifyImplicitBuiltInConversionFromExpression.)
+        /// </summary>
         private static bool UseExpressionForConversion(BoundExpression value)
         {
             if (value is null)
@@ -2419,11 +2435,13 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>
-        /// Apply the conversion to the type of the operand and return the resulting type.
+        /// Apply the conversion to the type of the operand and return the resulting type. (If the
+        /// operand does not have an explicit type, the operand expression is used for the type.)
         /// If `checkConversion` is set, the incoming conversion is assumed to be from binding and
-        /// will be re-calcuated, this time considering nullability. (Note that the conversion calculation
+        /// will be re-calculated, this time considering nullability. (Note that the conversion calculation
         /// considers nested nullability only. The caller is responsible for checking the top-level nullability
         /// of the type returned by this method.) `canConvert` is set if the conversion succeeded.
+        /// `node` is used only for the location of any diagnostics.
         /// </summary>
         private TypeSymbolWithAnnotations ApplyConversion(
             BoundNode node,

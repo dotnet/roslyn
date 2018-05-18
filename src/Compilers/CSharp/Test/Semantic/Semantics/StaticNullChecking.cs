@@ -20718,6 +20718,10 @@ class P
         c = (C?)a1; // (ExplicitUserDefined)
         c = (C)b1; // (ExplicitUserDefined)(ImplicitReference)
         c = (C?)b1; // (ExplicitUserDefined)(ImplicitReference)
+        c = (C)(B)a1;
+        c = (C)(B?)a1;
+        c = (C?)(B)a1;
+        c = (C?)(B?)a1;
         D? d;
         d = (D)a1; // (ExplicitReference)(ExplicitUserDefined)
         d = (D?)a1; // (ExplicitReference)(ExplicitUserDefined)
@@ -20736,6 +20740,10 @@ class P
         d = (D?)a2; // (ExplicitReference)(ExplicitUserDefined)
         d = (D)b2; // (ExplicitReference)(ExplicitUserDefined)(ImplicitReference)
         d = (D?)b2; // (ExplicitReference)(ExplicitUserDefined)(ImplicitReference)
+        d = (D)(A)b2;
+        d = (D)(A?)b2;
+        d = (D?)(A)b2;
+        d = (D?)(A?)b2;
     }
 }";
             var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
@@ -20746,24 +20754,42 @@ class P
                 // (15,13): warning CS8600: Converting null literal or possible null value to non-nullable type.
                 //         c = (C)b1; // (ExplicitUserDefined)(ImplicitReference)
                 Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "(C)b1").WithLocation(15, 13),
+                // (17,13): warning CS8600: Converting null literal or possible null value to non-nullable type.
+                //         c = (C)(B)a1;
+                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "(C)(B)a1").WithLocation(17, 13),
                 // (18,13): warning CS8600: Converting null literal or possible null value to non-nullable type.
+                //         c = (C)(B?)a1;
+                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "(C)(B?)a1").WithLocation(18, 13),
+                // (22,13): warning CS8600: Converting null literal or possible null value to non-nullable type.
                 //         d = (D)a1; // (ExplicitReference)(ExplicitUserDefined)
-                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "(D)a1").WithLocation(18, 13),
-                // (20,13): warning CS8600: Converting null literal or possible null value to non-nullable type.
+                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "(D)a1").WithLocation(22, 13),
+                // (24,13): warning CS8600: Converting null literal or possible null value to non-nullable type.
                 //         d = (D)b1; // (ExplicitReference)(ExplicitUserDefined)(ImplicitReference)
-                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "(D)b1").WithLocation(20, 13),
-                // (26,13): warning CS8600: Converting null literal or possible null value to non-nullable type.
+                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "(D)b1").WithLocation(24, 13),
+                // (30,13): warning CS8600: Converting null literal or possible null value to non-nullable type.
                 //         c = (C)a2; // (ExplicitUserDefined)
-                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "(C)a2").WithLocation(26, 13),
-                // (28,13): warning CS8600: Converting null literal or possible null value to non-nullable type.
+                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "(C)a2").WithLocation(30, 13),
+                // (32,13): warning CS8600: Converting null literal or possible null value to non-nullable type.
                 //         c = (C)b2; // (ExplicitUserDefined)(ImplicitReference)
-                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "(C)b2").WithLocation(28, 13),
-                // (31,13): warning CS8600: Converting null literal or possible null value to non-nullable type.
+                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "(C)b2").WithLocation(32, 13),
+                // (35,13): warning CS8600: Converting null literal or possible null value to non-nullable type.
                 //         d = (D)a2; // (ExplicitReference)(ExplicitUserDefined)
-                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "(D)a2").WithLocation(31, 13),
-                // (33,13): warning CS8600: Converting null literal or possible null value to non-nullable type.
+                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "(D)a2").WithLocation(35, 13),
+                // (37,13): warning CS8600: Converting null literal or possible null value to non-nullable type.
                 //         d = (D)b2; // (ExplicitReference)(ExplicitUserDefined)(ImplicitReference)
-                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "(D)b2").WithLocation(33, 13));
+                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "(D)b2").WithLocation(37, 13),
+                // (39,16): warning CS8600: Converting null literal or possible null value to non-nullable type.
+                //         d = (D)(A)b2;
+                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "(A)b2").WithLocation(39, 16),
+                // (39,13): warning CS8600: Converting null literal or possible null value to non-nullable type.
+                //         d = (D)(A)b2;
+                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "(D)(A)b2").WithLocation(39, 13),
+                // (40,13): warning CS8600: Converting null literal or possible null value to non-nullable type.
+                //         d = (D)(A?)b2;
+                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "(D)(A?)b2").WithLocation(40, 13),
+                // (41,17): warning CS8600: Converting null literal or possible null value to non-nullable type.
+                //         d = (D?)(A)b2;
+                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "(A)b2").WithLocation(41, 17));
         }
 
         [Fact]
