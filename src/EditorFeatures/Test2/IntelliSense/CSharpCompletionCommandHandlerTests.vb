@@ -1004,8 +1004,7 @@ class C
 }]]></Document>)
 
                 state.SendTypeChars("fi")
-                Await state.AssertSelectedCompletionItem(displayText:="first:", isHardSelected:=True)
-                Assert.Equal("first", state.CurrentCompletionPresenterSession.SelectedItem.FilterText)
+                Await state.AssertSelectedCompletionItem(displayText:="first:", isHardSelected:=True, filterText:="first")
                 state.SendTypeChars(":")
                 Assert.Contains("(first:", state.GetLineTextFromCaretPosition(), StringComparison.Ordinal)
             End Using
@@ -1025,8 +1024,7 @@ class C
 }]]></Document>)
 
                 state.SendTypeChars("first")
-                Await state.AssertSelectedCompletionItem(displayText:="first:", isHardSelected:=True)
-                Assert.Equal("first", state.CurrentCompletionPresenterSession.SelectedItem.FilterText)
+                Await state.AssertSelectedCompletionItem(displayText:="first:", isHardSelected:=True, filterText:="first")
                 state.SendTypeChars(":")
                 Assert.Contains("(first:", state.GetLineTextFromCaretPosition(), StringComparison.Ordinal)
             End Using
@@ -1046,8 +1044,7 @@ class C
 }]]></Document>)
 
                 state.SendTypeChars("se")
-                Await state.AssertSelectedCompletionItem(displayText:="second:", isHardSelected:=True)
-                Assert.Equal("second", state.CurrentCompletionPresenterSession.SelectedItem.FilterText)
+                Await state.AssertSelectedCompletionItem(displayText:="second:", isHardSelected:=True, filterText:="second")
                 state.SendTypeChars(":")
                 Assert.Contains("(0, second:", state.GetLineTextFromCaretPosition(), StringComparison.Ordinal)
             End Using
@@ -1067,8 +1064,7 @@ class C
 }]]></Document>)
 
                 state.SendTypeChars("fi")
-                Await state.AssertSelectedCompletionItem(displayText:="first:", isHardSelected:=True)
-                Assert.Equal("first", state.CurrentCompletionPresenterSession.SelectedItem.FilterText)
+                Await state.AssertSelectedCompletionItem(displayText:="first:", isHardSelected:=True, filterText:="first")
                 state.SendTab()
                 state.SendTypeChars(":")
                 state.SendTypeChars("0")
@@ -1090,8 +1086,7 @@ class C
 }]]></Document>)
 
                 state.SendTypeChars("first")
-                Await state.AssertSelectedCompletionItem(displayText:="first:", isHardSelected:=True)
-                Assert.Equal("first", state.CurrentCompletionPresenterSession.SelectedItem.FilterText)
+                Await state.AssertSelectedCompletionItem(displayText:="first:", isHardSelected:=True, filterText:="first")
                 state.SendTab()
                 state.SendTypeChars(":")
                 state.SendTypeChars("0")
@@ -1113,8 +1108,7 @@ class C
 }]]></Document>)
 
                 state.SendTypeChars("se")
-                Await state.AssertSelectedCompletionItem(displayText:="second:", isHardSelected:=True)
-                Assert.Equal("second", state.CurrentCompletionPresenterSession.SelectedItem.FilterText)
+                Await state.AssertSelectedCompletionItem(displayText:="second:", isHardSelected:=True, filterText:="second")
                 state.SendTab()
                 state.SendTypeChars(":")
                 state.SendTypeChars("1")
@@ -1454,7 +1448,7 @@ class C
                 state.SendTypeChars(" ")
                 Await state.WaitForAsynchronousOperationsAsync()
                 Await state.AssertSelectedCompletionItem(displayText:="string", isHardSelected:=True)
-                Assert.True(state.CurrentCompletionPresenterSession.CompletionItems.Any(Function(c) c.DisplayText = "int"))
+                Assert.True(state.CompletionItemsContainsAll({"int"}))
             End Using
         End Function
 
@@ -1479,9 +1473,10 @@ class Goo
 
                 state.SendTypeChars("a")
                 Await state.AssertCompletionSession()
-                Assert.True(state.CurrentCompletionPresenterSession.CompletionItems.Any(Function(i) i.DisplayText = "num:"))
-                Assert.False(state.CurrentCompletionPresenterSession.CompletionItems.Any(Function(i) i.DisplayText = "System"))
-                Assert.False(state.CurrentCompletionPresenterSession.CompletionItems.Any(Function(c) c.DisplayText = "int"))
+
+                Assert.True(state.CompletionItemsContainsAll({"num:"}))
+                Assert.False(state.CompletionItemsContainsAny({"System"}))
+                Assert.False(state.CompletionItemsContainsAny({"int"}))
             End Using
         End Function
 
@@ -1610,13 +1605,13 @@ class Program
 
                 state.SendTypeChars("i")
                 Await state.AssertCompletionSession()
-                Assert.True(state.CurrentCompletionPresenterSession.CompletionItems.Any(Function(i) i.DisplayText = "@int:"))
+                Assert.True(state.CompletionItemsContainsAll({"@int:"}))
                 state.SendTypeChars("n")
                 Await state.WaitForAsynchronousOperationsAsync()
-                Assert.True(state.CurrentCompletionPresenterSession.CompletionItems.Any(Function(i) i.DisplayText = "@int:"))
+                Assert.True(state.CompletionItemsContainsAll({"@int:"}))
                 state.SendTypeChars("t")
                 Await state.WaitForAsynchronousOperationsAsync()
-                Assert.True(state.CurrentCompletionPresenterSession.CompletionItems.Any(Function(i) i.DisplayText = "@int:"))
+                Assert.True(state.CompletionItemsContainsAll({"@int:"}))
             End Using
         End Function
 
@@ -1964,7 +1959,7 @@ class A
             ]]></Document>)
                 state.SendTypeChars("X")
                 Await state.AssertCompletionSession()
-                Assert.False(state.CurrentCompletionPresenterSession.CompletionItems.Any(Function(i) i.DisplayText = "X"))
+                Assert.True(state.CompletionItemsContainsAll({"X"}))
             End Using
         End Function
 
@@ -2321,8 +2316,7 @@ class C
 class AtAttribute : System.Attribute { }]]></Document>)
                 state.SendTypeChars("At")
                 Await state.WaitForAsynchronousOperationsAsync()
-                Await state.AssertSelectedCompletionItem("At")
-                Assert.Equal("At", state.CurrentCompletionPresenterSession.SelectedItem.FilterText)
+                Await state.AssertSelectedCompletionItem("At", filterText:="At")
             End Using
         End Function
 
@@ -2398,7 +2392,7 @@ class C
                 state.SendTypeChars("Thing1")
                 Await state.WaitForAsynchronousOperationsAsync()
                 Await state.AssertSelectedCompletionItem("Thing1")
-                Assert.True(state.CurrentCompletionPresenterSession.SelectedItem.Tags.Contains(WellKnownTags.Warning))
+                ' Assert.True(state.CurrentCompletionPresenterSession.SelectedItem.Tags.Contains(CompletionTags.Warning)) TODO
                 state.SendBackspace()
                 state.SendBackspace()
                 state.SendBackspace()
@@ -2408,7 +2402,7 @@ class C
                 state.SendTypeChars("M")
                 Await state.WaitForAsynchronousOperationsAsync()
                 Await state.AssertSelectedCompletionItem("M")
-                Assert.False(state.CurrentCompletionPresenterSession.SelectedItem.Tags.Contains(WellKnownTags.Warning))
+                ' Assert.False(state.CurrentCompletionPresenterSession.SelectedItem.Tags.Contains(CompletionTags.Warning)) TODO
             End Using
         End Function
 
@@ -2430,22 +2424,22 @@ class C
             End Using
         End Function
 
-        <WorkItem(930254, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/930254")>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
-        Public Async Function NoCompletionWithBoxSelection() As Task
-            Using state = TestState.CreateCSharpTestState(
-                <Document><![CDATA[
-class C
-{
-    {|Selection:$$int x;|}
-    {|Selection:int y;|}
-}]]></Document>)
-                state.SendInvokeCompletionList()
-                Await state.AssertNoCompletionSession()
-                state.SendTypeChars("goo")
-                Await state.AssertNoCompletionSession()
-            End Using
-        End Function
+        '        <WorkItem(930254, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/930254")>
+        '        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        '        Public Async Function NoCompletionWithBoxSelection() As Task
+        '            Using state = TestState.CreateCSharpTestState(
+        '                <Document><![CDATA[
+        'class C
+        '{
+        '    {|Selection:$$int x;|}
+        '    {|Selection:int y;|}
+        '}]]></Document>)
+        '                state.SendInvokeCompletionList()
+        '                Await state.AssertNoCompletionSession()
+        '                state.SendTypeChars("goo")
+        '                Await state.AssertNoCompletionSession()
+        '            End Using
+        '        End Function
 
         <WorkItem(839555, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/839555")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
@@ -3185,97 +3179,97 @@ class C
             End Using
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
-        Public Async Function TestNoBlockOnCompletionItems1() As Task
-            Dim tcs = New TaskCompletionSource(Of Boolean)
-            Using state = TestState.CreateCSharpTestState(
-                              <Document>
-                                  using $$
-                              </Document>, {New TaskControlledCompletionProvider(tcs.Task)})
+        '<WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        'Public Async Function TestNoBlockOnCompletionItems1() As Task
+        '    Dim tcs = New TaskCompletionSource(Of Boolean)
+        '    Using state = TestState.CreateCSharpTestState(
+        '                      <Document>
+        '                          using $$
+        '                      </Document>, {New TaskControlledCompletionProvider(tcs.Task)})
 
-                state.Workspace.Options = state.Workspace.Options.WithChangedOption(
-                    CompletionOptions.BlockForCompletionItems, LanguageNames.CSharp, False)
+        '        state.Workspace.Options = state.Workspace.Options.WithChangedOption(
+        '            CompletionOptions.BlockForCompletionItems, LanguageNames.CSharp, False)
 
-                state.SendTypeChars("Sys.")
-                Await state.WaitForAsynchronousOperationsAsync()
-                Await state.AssertNoCompletionSession()
-                Assert.Contains("Sys.", state.GetLineTextFromCaretPosition())
+        '        state.SendTypeChars("Sys.")
+        '        Await state.WaitForAsynchronousOperationsAsync()
+        '        Await state.AssertNoCompletionSession()
+        '        Assert.Contains("Sys.", state.GetLineTextFromCaretPosition())
 
-                tcs.SetResult(True)
-            End Using
-        End Function
+        '        tcs.SetResult(True)
+        '    End Using
+        'End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
-        Public Async Function TestNoBlockOnCompletionItems2() As Task
-            Using state = TestState.CreateCSharpTestState(
-                              <Document>
-                                  using $$
-                              </Document>, {New TaskControlledCompletionProvider(Task.FromResult(True))})
+        '<WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        'Public Async Function TestNoBlockOnCompletionItems2() As Task
+        '    Using state = TestState.CreateCSharpTestState(
+        '                      <Document>
+        '                          using $$
+        '                      </Document>, {New TaskControlledCompletionProvider(Task.FromResult(True))})
 
-                state.Workspace.Options = state.Workspace.Options.WithChangedOption(
-                    CompletionOptions.BlockForCompletionItems, LanguageNames.CSharp, False)
+        '        state.Workspace.Options = state.Workspace.Options.WithChangedOption(
+        '            CompletionOptions.BlockForCompletionItems, LanguageNames.CSharp, False)
 
-                state.SendTypeChars("Sys")
-                Await state.WaitForAsynchronousOperationsAsync()
-                Await state.AssertCompletionSession()
-                state.SendTypeChars(".")
-                Assert.Contains("System.", state.GetLineTextFromCaretPosition())
-            End Using
-        End Function
+        '        state.SendTypeChars("Sys")
+        '        Await state.WaitForAsynchronousOperationsAsync()
+        '        Await state.AssertCompletionSession()
+        '        state.SendTypeChars(".")
+        '        Assert.Contains("System.", state.GetLineTextFromCaretPosition())
+        '    End Using
+        'End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
-        Public Async Function TestNoBlockOnCompletionItems4() As Task
-            Dim tcs = New TaskCompletionSource(Of Boolean)
-            Using state = TestState.CreateCSharpTestState(
-                              <Document>
-                                  using $$
-                              </Document>, {New TaskControlledCompletionProvider(tcs.Task)})
+        '<WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        'Public Async Function TestNoBlockOnCompletionItems4() As Task
+        '    Dim tcs = New TaskCompletionSource(Of Boolean)
+        '    Using state = TestState.CreateCSharpTestState(
+        '                      <Document>
+        '                          using $$
+        '                      </Document>, {New TaskControlledCompletionProvider(tcs.Task)})
 
-                state.Workspace.Options = state.Workspace.Options.WithChangedOption(
-                    CompletionOptions.BlockForCompletionItems, LanguageNames.CSharp, False)
+        '        state.Workspace.Options = state.Workspace.Options.WithChangedOption(
+        '            CompletionOptions.BlockForCompletionItems, LanguageNames.CSharp, False)
 
-                state.SendTypeChars("Sys")
-                state.SendCommitUniqueCompletionListItem()
-                Await Task.Delay(250)
-                Await state.AssertNoCompletionSession(block:=False)
-                Assert.Contains("Sys", state.GetLineTextFromCaretPosition())
-                Assert.DoesNotContain("System", state.GetLineTextFromCaretPosition())
+        '        state.SendTypeChars("Sys")
+        '        state.SendCommitUniqueCompletionListItem()
+        '        Await Task.Delay(250)
+        '        Await state.AssertNoCompletionSession(block:=False)
+        '        Assert.Contains("Sys", state.GetLineTextFromCaretPosition())
+        '        Assert.DoesNotContain("System", state.GetLineTextFromCaretPosition())
 
-                tcs.SetResult(True)
+        '        tcs.SetResult(True)
 
-                Await state.WaitForAsynchronousOperationsAsync()
-                Await state.AssertNoCompletionSession()
-                Assert.Contains("System", state.GetLineTextFromCaretPosition())
-            End Using
-        End Function
+        '        Await state.WaitForAsynchronousOperationsAsync()
+        '        Await state.AssertNoCompletionSession()
+        '        Assert.Contains("System", state.GetLineTextFromCaretPosition())
+        '    End Using
+        'End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
-        Public Async Function TestNoBlockOnCompletionItems3() As Task
-            Dim tcs = New TaskCompletionSource(Of Boolean)
-            Using state = TestState.CreateCSharpTestState(
-                              <Document>
-                                  using $$
-                              </Document>, {New TaskControlledCompletionProvider(tcs.Task)})
+        '<WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        'Public Async Function TestNoBlockOnCompletionItems3() As Task
+        '    Dim tcs = New TaskCompletionSource(Of Boolean)
+        '    Using state = TestState.CreateCSharpTestState(
+        '                      <Document>
+        '                          using $$
+        '                      </Document>, {New TaskControlledCompletionProvider(tcs.Task)})
 
-                state.Workspace.Options = state.Workspace.Options.WithChangedOption(
-                    CompletionOptions.BlockForCompletionItems, LanguageNames.CSharp, False)
+        '        state.Workspace.Options = state.Workspace.Options.WithChangedOption(
+        '            CompletionOptions.BlockForCompletionItems, LanguageNames.CSharp, False)
 
-                state.SendTypeChars("Sys")
-                state.SendCommitUniqueCompletionListItem()
-                Await Task.Delay(250)
-                Await state.AssertNoCompletionSession(block:=False)
-                Assert.Contains("Sys", state.GetLineTextFromCaretPosition())
-                Assert.DoesNotContain("System", state.GetLineTextFromCaretPosition())
+        '        state.SendTypeChars("Sys")
+        '        state.SendCommitUniqueCompletionListItem()
+        '        Await Task.Delay(250)
+        '        Await state.AssertNoCompletionSession(block:=False)
+        '        Assert.Contains("Sys", state.GetLineTextFromCaretPosition())
+        '        Assert.DoesNotContain("System", state.GetLineTextFromCaretPosition())
 
-                state.SendTypeChars("a")
+        '        state.SendTypeChars("a")
 
-                tcs.SetResult(True)
+        '        tcs.SetResult(True)
 
-                Await state.WaitForAsynchronousOperationsAsync()
-                Await state.AssertCompletionSession()
-                Assert.Contains("Sysa", state.GetLineTextFromCaretPosition())
-            End Using
-        End Function
+        '        Await state.WaitForAsynchronousOperationsAsync()
+        '        Await state.AssertCompletionSession()
+        '        Assert.Contains("Sysa", state.GetLineTextFromCaretPosition())
+        '    End Using
+        'End Function
 
         Private Class TaskControlledCompletionProvider
             Inherits CompletionProvider
@@ -3291,142 +3285,142 @@ class C
             End Function
         End Class
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
-        Public Async Function Filters_EmptyList1() As Task
-            Using state = TestState.CreateCSharpTestState(
-                <Document><![CDATA[
-using System.IO;
-using System.Threading.Tasks;
-class C
-{
-    async Task Moo()
-    {
-        var x = asd$$
-    }
-}
-            ]]></Document>)
+        '        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        '        Public Async Function Filters_EmptyList1() As Task
+        '            Using state = TestState.CreateCSharpTestState(
+        '                <Document><![CDATA[
+        'using System.IO;
+        'using System.Threading.Tasks;
+        'class C
+        '{
+        '    async Task Moo()
+        '    {
+        '        var x = asd$$
+        '    }
+        '}
+        '            ]]></Document>)
 
-                state.SendInvokeCompletionList()
-                Await state.WaitForAsynchronousOperationsAsync()
-                Dim filters = state.CurrentCompletionPresenterSession.CompletionItemFilters
-                Dim dict = New Dictionary(Of CompletionItemFilter, Boolean)
-                For Each f In filters
-                    dict(f) = False
-                Next
+        '                state.SendInvokeCompletionList()
+        '                Await state.WaitForAsynchronousOperationsAsync()
+        '                Dim filters = state.CurrentCompletionPresenterSession.CompletionItemFilters
+        '                Dim dict = New Dictionary(Of CompletionItemFilter, Boolean)
+        '                For Each f In filters
+        '                    dict(f) = False
+        '                Next
 
-                dict(CompletionItemFilter.InterfaceFilter) = True
+        '                dict(CompletionItemFilter.InterfaceFilter) = True
 
-                Dim args = New CompletionItemFilterStateChangedEventArgs(dict.ToImmutableDictionary())
-                state.CurrentCompletionPresenterSession.RaiseFiltersChanged(args)
-                Await state.WaitForAsynchronousOperationsAsync()
-                Assert.Null(state.CurrentCompletionPresenterSession.SelectedItem)
+        '                Dim args = New CompletionItemFilterStateChangedEventArgs(dict.ToImmutableDictionary())
+        '                state.CurrentCompletionPresenterSession.RaiseFiltersChanged(args)
+        '                Await state.WaitForAsynchronousOperationsAsync()
+        '                Assert.Null(state.CurrentCompletionPresenterSession.SelectedItem)
 
-            End Using
-        End Function
+        '            End Using
+        '        End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
-        Public Async Function Filters_EmptyList2() As Task
-            Using state = TestState.CreateCSharpTestState(
-                <Document><![CDATA[
-using System.IO;
-using System.Threading.Tasks;
-class C
-{
-    async Task Moo()
-    {
-        var x = asd$$
-    }
-}
-            ]]></Document>)
+        '        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        '        Public Async Function Filters_EmptyList2() As Task
+        '            Using state = TestState.CreateCSharpTestState(
+        '                <Document><![CDATA[
+        'using System.IO;
+        'using System.Threading.Tasks;
+        'class C
+        '{
+        '    async Task Moo()
+        '    {
+        '        var x = asd$$
+        '    }
+        '}
+        '            ]]></Document>)
 
-                state.SendInvokeCompletionList()
-                Await state.WaitForAsynchronousOperationsAsync()
-                Dim filters = state.CurrentCompletionPresenterSession.CompletionItemFilters
-                Dim dict = New Dictionary(Of CompletionItemFilter, Boolean)
-                For Each f In filters
-                    dict(f) = False
-                Next
+        '                state.SendInvokeCompletionList()
+        '                Await state.WaitForAsynchronousOperationsAsync()
+        '                Dim filters = state.CurrentCompletionPresenterSession.CompletionItemFilters
+        '                Dim dict = New Dictionary(Of CompletionItemFilter, Boolean)
+        '                For Each f In filters
+        '                    dict(f) = False
+        '                Next
 
-                dict(CompletionItemFilter.InterfaceFilter) = True
+        '                dict(CompletionItemFilter.InterfaceFilter) = True
 
-                Dim args = New CompletionItemFilterStateChangedEventArgs(dict.ToImmutableDictionary())
-                state.CurrentCompletionPresenterSession.RaiseFiltersChanged(args)
-                Await state.WaitForAsynchronousOperationsAsync()
-                Assert.Null(state.CurrentCompletionPresenterSession.SelectedItem)
-                state.SendTab()
-                Await state.AssertNoCompletionSession()
+        '                Dim args = New CompletionItemFilterStateChangedEventArgs(dict.ToImmutableDictionary())
+        '                state.CurrentCompletionPresenterSession.RaiseFiltersChanged(args)
+        '                Await state.WaitForAsynchronousOperationsAsync()
+        '                Assert.Null(state.CurrentCompletionPresenterSession.SelectedItem)
+        '                state.SendTab()
+        '                Await state.AssertNoCompletionSession()
 
-            End Using
-        End Function
+        '            End Using
+        '        End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
-        Public Async Function Filters_EmptyList3() As Task
-            Using state = TestState.CreateCSharpTestState(
-                <Document><![CDATA[
-using System.IO;
-using System.Threading.Tasks;
-class C
-{
-    async Task Moo()
-    {
-        var x = asd$$
-    }
-}
-            ]]></Document>)
+        '        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        '        Public Async Function Filters_EmptyList3() As Task
+        '            Using state = TestState.CreateCSharpTestState(
+        '                <Document><![CDATA[
+        'using System.IO;
+        'using System.Threading.Tasks;
+        'class C
+        '{
+        '    async Task Moo()
+        '    {
+        '        var x = asd$$
+        '    }
+        '}
+        '            ]]></Document>)
 
-                state.SendInvokeCompletionList()
-                Await state.WaitForAsynchronousOperationsAsync()
-                Dim filters = state.CurrentCompletionPresenterSession.CompletionItemFilters
-                Dim dict = New Dictionary(Of CompletionItemFilter, Boolean)
-                For Each f In filters
-                    dict(f) = False
-                Next
+        '                state.SendInvokeCompletionList()
+        '                Await state.WaitForAsynchronousOperationsAsync()
+        '                Dim filters = state.CurrentCompletionPresenterSession.CompletionItemFilters
+        '                Dim dict = New Dictionary(Of CompletionItemFilter, Boolean)
+        '                For Each f In filters
+        '                    dict(f) = False
+        '                Next
 
-                dict(CompletionItemFilter.InterfaceFilter) = True
+        '                dict(CompletionItemFilter.InterfaceFilter) = True
 
-                Dim args = New CompletionItemFilterStateChangedEventArgs(dict.ToImmutableDictionary())
-                state.CurrentCompletionPresenterSession.RaiseFiltersChanged(args)
-                Await state.WaitForAsynchronousOperationsAsync()
-                Assert.Null(state.CurrentCompletionPresenterSession.SelectedItem)
-                state.SendReturn()
-                Await state.AssertNoCompletionSession()
+        '                Dim args = New CompletionItemFilterStateChangedEventArgs(dict.ToImmutableDictionary())
+        '                state.CurrentCompletionPresenterSession.RaiseFiltersChanged(args)
+        '                Await state.WaitForAsynchronousOperationsAsync()
+        '                Assert.Null(state.CurrentCompletionPresenterSession.SelectedItem)
+        '                state.SendReturn()
+        '                Await state.AssertNoCompletionSession()
 
-            End Using
-        End Function
+        '            End Using
+        '        End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
-        Public Async Function Filters_EmptyList4() As Task
-            Using state = TestState.CreateCSharpTestState(
-                <Document><![CDATA[
-using System.IO;
-using System.Threading.Tasks;
-class C
-{
-    async Task Moo()
-    {
-        var x = asd$$
-    }
-}
-            ]]></Document>)
+        '        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        '        Public Async Function Filters_EmptyList4() As Task
+        '            Using state = TestState.CreateCSharpTestState(
+        '                <Document><![CDATA[
+        'using System.IO;
+        'using System.Threading.Tasks;
+        'class C
+        '{
+        '    async Task Moo()
+        '    {
+        '        var x = asd$$
+        '    }
+        '}
+        '            ]]></Document>)
 
-                state.SendInvokeCompletionList()
-                Await state.WaitForAsynchronousOperationsAsync()
-                Dim filters = state.CurrentCompletionPresenterSession.CompletionItemFilters
-                Dim dict = New Dictionary(Of CompletionItemFilter, Boolean)
-                For Each f In filters
-                    dict(f) = False
-                Next
+        '                state.SendInvokeCompletionList()
+        '                Await state.WaitForAsynchronousOperationsAsync()
+        '                Dim filters = state.CurrentCompletionPresenterSession.CompletionItemFilters
+        '                Dim dict = New Dictionary(Of CompletionItemFilter, Boolean)
+        '                For Each f In filters
+        '                    dict(f) = False
+        '                Next
 
-                dict(CompletionItemFilter.InterfaceFilter) = True
+        '                dict(CompletionItemFilter.InterfaceFilter) = True
 
-                Dim args = New CompletionItemFilterStateChangedEventArgs(dict.ToImmutableDictionary())
-                state.CurrentCompletionPresenterSession.RaiseFiltersChanged(args)
-                Await state.WaitForAsynchronousOperationsAsync()
-                Assert.Null(state.CurrentCompletionPresenterSession.SelectedItem)
-                state.SendTypeChars(".")
-                Await state.AssertNoCompletionSession()
-            End Using
-        End Function
+        '                Dim args = New CompletionItemFilterStateChangedEventArgs(dict.ToImmutableDictionary())
+        '                state.CurrentCompletionPresenterSession.RaiseFiltersChanged(args)
+        '                Await state.WaitForAsynchronousOperationsAsync()
+        '                Assert.Null(state.CurrentCompletionPresenterSession.SelectedItem)
+        '                state.SendTypeChars(".")
+        '                Await state.AssertNoCompletionSession()
+        '            End Using
+        '        End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         <WorkItem(15881, "https://github.com/dotnet/roslyn/issues/15881")>
@@ -3491,57 +3485,57 @@ class AAttribute: Attribute
             End Using
         End Function
 
-        <WorkItem(362890, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=362890")>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
-        Public Async Function TestFilteringAfterSimpleInvokeShowsAllItemsMatchingFilter() As Task
-            Using state = TestState.CreateCSharpTestState(
-                <Document><![CDATA[
+        '        <WorkItem(362890, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=362890")>
+        '        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        '        Public Async Function TestFilteringAfterSimpleInvokeShowsAllItemsMatchingFilter() As Task
+        '            Using state = TestState.CreateCSharpTestState(
+        '                <Document><![CDATA[
 
-enum Color
-{
-    Red,
-    Green,
-    Blue
-}
+        'enum Color
+        '{
+        '    Red,
+        '    Green,
+        '    Blue
+        '}
 
-class C
-{
-    void M()
-    {
-        Color.Re$$d
-    }
-}
-            ]]></Document>)
+        'class C
+        '{
+        '    void M()
+        '    {
+        '        Color.Re$$d
+        '    }
+        '}
+        '            ]]></Document>)
 
-                state.SendInvokeCompletionList()
-                Await state.AssertSelectedCompletionItem("Red")
-                state.CompletionItemsContainsAll(displayText:={"Red", "Green", "Blue", "Equals"})
+        '                state.SendInvokeCompletionList()
+        '                Await state.AssertSelectedCompletionItem("Red")
+        '                state.CompletionItemsContainsAll(displayText:={"Red", "Green", "Blue", "Equals"})
 
-                Dim filters = state.CurrentCompletionPresenterSession.CompletionItemFilters
-                Dim dict = New Dictionary(Of CompletionItemFilter, Boolean)
-                For Each f In filters
-                    dict(f) = False
-                Next
+        '                Dim filters = state.CurrentCompletionPresenterSession.CompletionItemFilters
+        '                Dim dict = New Dictionary(Of CompletionItemFilter, Boolean)
+        '                For Each f In filters
+        '                    dict(f) = False
+        '                Next
 
-                dict(CompletionItemFilter.EnumFilter) = True
+        '                dict(CompletionItemFilter.EnumFilter) = True
 
-                Dim args = New CompletionItemFilterStateChangedEventArgs(dict.ToImmutableDictionary())
-                state.CurrentCompletionPresenterSession.RaiseFiltersChanged(args)
-                Await state.AssertSelectedCompletionItem("Red")
-                state.CompletionItemsContainsAll(displayText:={"Red", "Green", "Blue"})
-                Assert.False(state.CurrentCompletionPresenterSession.CompletionItems.Any(Function(i) i.DisplayText = "Equals"))
+        '                Dim args = New CompletionItemFilterStateChangedEventArgs(dict.ToImmutableDictionary())
+        '                state.CurrentCompletionPresenterSession.RaiseFiltersChanged(args)
+        '                Await state.AssertSelectedCompletionItem("Red")
+        '                state.CompletionItemsContainsAll(displayText:={"Red", "Green", "Blue"})
+        '                Assert.False(state.CurrentCompletionPresenterSession.CompletionItems.Any(Function(i) i.DisplayText = "Equals"))
 
-                For Each f In filters
-                    dict(f) = False
-                Next
+        '                For Each f In filters
+        '                    dict(f) = False
+        '                Next
 
-                args = New CompletionItemFilterStateChangedEventArgs(dict.ToImmutableDictionary())
-                state.CurrentCompletionPresenterSession.RaiseFiltersChanged(args)
-                Await state.AssertSelectedCompletionItem("Red")
-                state.CompletionItemsContainsAll(displayText:={"Red", "Green", "Blue", "Equals"})
+        '                args = New CompletionItemFilterStateChangedEventArgs(dict.ToImmutableDictionary())
+        '                state.CurrentCompletionPresenterSession.RaiseFiltersChanged(args)
+        '                Await state.AssertSelectedCompletionItem("Red")
+        '                state.CompletionItemsContainsAll(displayText:={"Red", "Green", "Blue", "Equals"})
 
-            End Using
-        End Function
+        '            End Using
+        '        End Function
 
         <WorkItem(16236, "https://github.com/dotnet/roslyn/issues/16236")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
