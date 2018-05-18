@@ -1,4 +1,4 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Collections.Immutable
 Imports System.IO
@@ -1265,18 +1265,6 @@ Friend Module CompilationUtils
         Assert.Equal(SortAndMergeStrings(descriptions),
                      SortAndMergeStrings(symbols.Select(Function(s) s.ToDisplayString()).ToArray()))
     End Sub
-
-    <Extension>
-    Friend Function GetSynthesizedAttributes(symbol As ISymbol, Optional forReturnType As Boolean = False) As ImmutableArray(Of SynthesizedAttributeData)
-        Dim attributes As ArrayBuilder(Of SynthesizedAttributeData) = Nothing
-        If Not forReturnType Then
-            Dim context = New ModuleCompilationState()
-            DirectCast(symbol, Symbol).AddSynthesizedAttributes(context, attributes)
-        Else
-            DirectCast(symbol, MethodSymbol).AddSynthesizedReturnTypeAttributes(attributes)
-        End If
-        Return If(attributes IsNot Nothing, attributes.ToImmutableAndFree(), ImmutableArray.Create(Of SynthesizedAttributeData)())
-    End Function
 
     <Extension>
     Friend Function LookupNames(model As SemanticModel,
