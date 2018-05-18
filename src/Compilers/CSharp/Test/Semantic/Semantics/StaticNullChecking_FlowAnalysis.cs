@@ -893,6 +893,77 @@ class C
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "w3").WithLocation(67, 13));
         }
 
+        // PROTOTYPE(NullableReferenceTypes): Review /*T:...*/ and diagnostics.
+        [Fact]
+        public void ConditionalOperator_14()
+        {
+            var source =
+@"interface I<T> { T P { get; } }
+interface IIn<in T> { }
+interface IOut<out T> { T P { get; } }
+class C
+{
+    static void F1(bool b, ref string? x1, ref string y1)
+    {
+        (b ? ref x1 : ref x1)/*T:string?*/.ToString();
+        (b ? ref x1 : ref y1)/*T:string?*/.ToString();
+        (b ? ref y1 : ref x1)/*T:string?*/.ToString();
+        (b ? ref y1 : ref y1)/*T:string!*/.ToString();
+    }
+    static void F2(bool b, ref I<string?> x2, ref I<string> y2)
+    {
+        (b ? ref x2 : ref x2)/*T:I<string?>!*/.P.ToString();
+        (b ? ref y2 : ref x2)/*T:I<string>!*/.P.ToString();
+        (b ? ref x2 : ref y2)/*T:I<string>!*/.P.ToString();
+        (b ? ref y2 : ref y2)/*T:I<string!>!*/.P.ToString();
+    }
+    static void F3(bool b, ref IIn<string?> x3, ref IIn<string> y3)
+    {
+        (b ? ref x3 : ref x3)/*T:IIn<string?>!*/.ToString();
+        (b ? ref y3 : ref x3)/*T:IIn<string!>!*/.ToString();
+        (b ? ref x3 : ref y3)/*T:IIn<string!>!*/.ToString();
+        (b ? ref y3 : ref y3)/*T:IIn<string!>!*/.ToString();
+    }
+    static void F4(bool b, ref IOut<string?> x4, ref IOut<string> y4)
+    {
+        (b ? ref x4 : ref x4)/*T:IOut<string?>!*/.P.ToString();
+        (b ? ref y4 : ref x4)/*T:IOut<string?>!*/.P.ToString();
+        (b ? ref x4 : ref y4)/*T:IOut<string?>!*/.P.ToString();
+        (b ? ref y4 : ref y4)/*T:IOut<string!>!*/.P.ToString();
+    }
+}";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
+            comp.VerifyTypes();
+            comp.VerifyDiagnostics(
+                // (8,10): warning CS8602: Possible dereference of a null reference.
+                //         (b ? ref x1 : ref x1)/*T:string?*/.ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "b ? ref x1 : ref x1").WithLocation(8, 10),
+                // (9,10): warning CS8602: Possible dereference of a null reference.
+                //         (b ? ref x1 : ref y1)/*T:string?*/.ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "b ? ref x1 : ref y1").WithLocation(9, 10),
+                // (10,10): warning CS8602: Possible dereference of a null reference.
+                //         (b ? ref y1 : ref x1)/*T:string?*/.ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "b ? ref y1 : ref x1").WithLocation(10, 10),
+                // (15,9): warning CS8602: Possible dereference of a null reference.
+                //         (b ? ref x2 : ref x2)/*T:I<string?>!*/.P.ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "(b ? ref x2 : ref x2)/*T:I<string?>!*/.P").WithLocation(15, 9),
+                // (16,10): warning CS8626: No best nullability for operands of conditional expression 'I<string>' and 'I<string?>'.
+                //         (b ? ref y2 : ref x2)/*T:I<string>!*/.P.ToString();
+                Diagnostic(ErrorCode.WRN_NoBestNullabilityConditionalExpression, "b ? ref y2 : ref x2").WithArguments("I<string>", "I<string?>").WithLocation(16, 10),
+                // (17,10): warning CS8626: No best nullability for operands of conditional expression 'I<string?>' and 'I<string>'.
+                //         (b ? ref x2 : ref y2)/*T:I<string>!*/.P.ToString();
+                Diagnostic(ErrorCode.WRN_NoBestNullabilityConditionalExpression, "b ? ref x2 : ref y2").WithArguments("I<string?>", "I<string>").WithLocation(17, 10),
+                // (29,9): warning CS8602: Possible dereference of a null reference.
+                //         (b ? ref x4 : ref x4)/*T:IOut<string?>!*/.P.ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "(b ? ref x4 : ref x4)/*T:IOut<string?>!*/.P").WithLocation(29, 9),
+                // (30,9): warning CS8602: Possible dereference of a null reference.
+                //         (b ? ref y4 : ref x4)/*T:IOut<string?>!*/.P.ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "(b ? ref y4 : ref x4)/*T:IOut<string?>!*/.P").WithLocation(30, 9),
+                // (31,9): warning CS8602: Possible dereference of a null reference.
+                //         (b ? ref x4 : ref y4)/*T:IOut<string?>!*/.P.ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "(b ? ref x4 : ref y4)/*T:IOut<string?>!*/.P").WithLocation(31, 9));
+        }
+
         [Fact]
         public void NullCoalescingOperator_01()
         {

@@ -1986,7 +1986,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private static (ImmutableArray<BoundExpression>, ImmutableArray<Conversion>) RemoveArgumentConversions(ImmutableArray<BoundExpression> arguments, ImmutableArray<RefKind> refKindsOpt)
+        private static (ImmutableArray<BoundExpression> Arguments, ImmutableArray<Conversion> Conversions) RemoveArgumentConversions(
+            ImmutableArray<BoundExpression> arguments,
+            ImmutableArray<RefKind> refKindsOpt)
         {
             int n = arguments.Length;
             var conversions = default(ImmutableArray<Conversion>);
@@ -2022,7 +2024,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             return (arguments, conversions);
         }
 
-        private static (ParameterSymbol, TypeSymbolWithAnnotations) GetCorrespondingParameter(int argumentOrdinal, ImmutableArray<ParameterSymbol> parameters, ImmutableArray<int> argsToParamsOpt, bool expanded)
+        private static (ParameterSymbol Parameter, TypeSymbolWithAnnotations Type) GetCorrespondingParameter(
+            int argumentOrdinal,
+            ImmutableArray<ParameterSymbol> parameters,
+            ImmutableArray<int> argsToParamsOpt,
+            bool expanded)
         {
             if (parameters.IsDefault)
             {
@@ -2141,8 +2147,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// explicit conversions are considered. If `includeExplicitConversions` is false
         /// only implicit conversions are considered and if the expression is an explicit
         /// conversion, the expression is returned as is, with the Identity conversion.
+        /// (Currently, the only visit method that passes `includeExplicitConversions: true`
+        /// is VisitConversion. All other callers are handling implicit conversions only.)
         /// </summary>
-        private static (BoundExpression, Conversion) RemoveConversion(BoundExpression expr, bool includeExplicitConversions)
+        private static (BoundExpression Expression, Conversion Conversion) RemoveConversion(BoundExpression expr, bool includeExplicitConversions)
         {
             ConversionGroup group = null;
             while (true)
@@ -2585,7 +2593,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     break;
             }
 
-            // PROTOTYPE(NullableReferenceTypes): Include nested nullability?
             return TypeSymbolWithAnnotations.Create(targetType, isNullableIfReferenceType);
         }
 

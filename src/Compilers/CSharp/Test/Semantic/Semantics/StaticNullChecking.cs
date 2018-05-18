@@ -11773,8 +11773,7 @@ class C
                 );
         }
 
-        // PROTOTYPE(NullableReferenceTypes): Should report WRN_NullReferenceReceiver.
-        [Fact(Skip = "TODO")]
+        [Fact]
         public void Discard_01()
         {
             var source =
@@ -11787,14 +11786,12 @@ class C
         ((x, _) = t).Item2.ToString();
     }
 }";
-            var comp = CreateCompilation(
-                source,
-                references: new[] { ValueTupleRef, SystemRuntimeFacadeRef },
-                parseOptions: TestOptions.Regular8);
-            comp.VerifyDiagnostics(
-                // (7,9): warning CS8602: Possible dereference of a null reference.
-                //         ((x, _) = t).Item2.ToString();
-                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "((x, _) = t).Item2").WithLocation(7, 9));
+            // PROTOTYPE(NullableReferenceTypes): Should report WRN_NullReferenceReceiver.
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
+            comp.VerifyDiagnostics();
+                //// (7,9): warning CS8602: Possible dereference of a null reference.
+                ////         ((x, _) = t).Item2.ToString();
+                //Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "((x, _) = t).Item2").WithLocation(7, 9));
         }
 
         [Fact]
@@ -20933,6 +20930,69 @@ class C
                 // (12,22): warning CS8604: Possible null reference argument for parameter 'c' in 'C.implicit operator B(C c)'.
                 //         (A, A?) t = (x, y); // (ImplicitTuple)(ImplicitReference)(ImplicitUserDefined)
                 Diagnostic(ErrorCode.WRN_NullReferenceArgument, "x").WithArguments("c", "C.implicit operator B(C c)").WithLocation(12, 22));
+        }
+
+        [Fact]
+        public void Tuple_OtherMembers()
+        {
+            var source =
+@"internal delegate T D<T>();
+namespace System
+{
+    public struct ValueTuple<T1, T2>
+    {
+        public ValueTuple(T1 item1, T2 item2)
+        {
+            Item1 = item1;
+            Item2 = item2;
+            E2 = null;
+        }
+        public T1 Item1;
+        public T2 Item2;
+        internal T1 P1 => Item1;
+        internal event D<T2>? E2;
+    }
+}
+class C
+{
+    static void F(object? x)
+    {
+        var y = (x, x);
+        y.P1.ToString();
+        y.E2?.Invoke().ToString();
+        if (x == null) return;
+        var z = (x, x);
+        z.P1.ToString();
+        z.E2?.Invoke().ToString();
+    }
+}";
+            // PROTOTYPE(NullableReferenceTypes): Should not report warnings for `z.P1` or `z.E2?.Invoke()`.
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
+            comp.VerifyDiagnostics(
+                // (24,11): error CS0070: The event '(object?, object?).E2' can only appear on the left hand side of += or -= (except when used from within the type '(object?, object?)')
+                //         y.E2?.Invoke().ToString();
+                Diagnostic(ErrorCode.ERR_BadEventUsage, "E2").WithArguments("(object?, object?).E2", "(object?, object?)").WithLocation(24, 11),
+                // (28,11): error CS0070: The event '(object?, object?).E2' can only appear on the left hand side of += or -= (except when used from within the type '(object?, object?)')
+                //         z.E2?.Invoke().ToString();
+                Diagnostic(ErrorCode.ERR_BadEventUsage, "E2").WithArguments("(object?, object?).E2", "(object?, object?)").WithLocation(28, 11),
+                // (23,9): warning CS8602: Possible dereference of a null reference.
+                //         y.P1.ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "y.P1").WithLocation(23, 9),
+                // (24,9): hidden CS8607: Expression is probably never null.
+                //         y.E2?.Invoke().ToString();
+                Diagnostic(ErrorCode.HDN_ExpressionIsProbablyNeverNull, "y.E2").WithLocation(24, 9),
+                // (24,14): warning CS8602: Possible dereference of a null reference.
+                //         y.E2?.Invoke().ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, ".Invoke()").WithLocation(24, 14),
+                // (28,9): hidden CS8607: Expression is probably never null.
+                //         z.E2?.Invoke().ToString();
+                Diagnostic(ErrorCode.HDN_ExpressionIsProbablyNeverNull, "z.E2").WithLocation(28, 9),
+                // (28,14): warning CS8602: Possible dereference of a null reference.
+                //         z.E2?.Invoke().ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, ".Invoke()").WithLocation(28, 14),
+                // (15,31): warning CS0414: The field 'ValueTuple<T1, T2>.E2' is assigned but its value is never used
+                //         internal event D<T2>? E2;
+                Diagnostic(ErrorCode.WRN_UnreferencedFieldAssg, "E2").WithArguments("System.ValueTuple<T1, T2>.E2").WithLocation(15, 31));
         }
 
         [Fact]

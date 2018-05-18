@@ -4,6 +4,7 @@ using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -1102,6 +1103,97 @@ class C
                 // (37,9): warning CS8602: Possible dereference of a null reference.
                 //         F(y3, y3).ToString();
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "F(y3, y3)").WithLocation(37, 9));
+        }
+
+        [Fact]
+        public void TypeInference_11()
+        {
+            var source0 =
+@"public class A<T>
+{
+    public T F;
+}
+public class UnknownNull
+{
+    public A<object> A1;
+}";
+            var comp0 = CreateCompilation(source0, parseOptions: TestOptions.Regular7);
+            comp0.VerifyDiagnostics();
+            var ref0 = comp0.EmitToImageReference();
+
+            var source1 =
+@"#pragma warning disable 8618
+public class MaybeNull
+{
+    public A<object?> A2;
+}
+public class NotNull
+{
+    public A<object> A3;
+}";
+            var comp1 = CreateCompilation(source1, references: new[] { ref0 }, parseOptions: TestOptions.Regular8);
+            comp1.VerifyDiagnostics();
+            var ref1 = comp1.EmitToImageReference();
+
+            var source =
+@"class C
+{
+    static T F<T>(T x, T y) => throw null;
+    static void F1(UnknownNull x1, UnknownNull y1)
+    {
+        F(x1.A1, y1.A1)/*T:A<object>*/.F.ToString();
+    }
+    static void F2(UnknownNull x2, MaybeNull y2)
+    {
+        F(x2.A1, y2.A2)/*T:A<object>*/.F.ToString();
+    }
+    static void F3(MaybeNull x3, UnknownNull y3)
+    {
+        F(x3.A2, y3.A1)/*T:A<object?>!*/.F.ToString();
+    }
+    static void F4(MaybeNull x4, MaybeNull y4)
+    {
+        F(x4.A2, y4.A2)/*T:A<object?>!*/.F.ToString();
+    }
+    static void F5(UnknownNull x5, NotNull y5)
+    {
+        F(x5.A1, y5.A3)/*T:A<object>*/.F.ToString();
+    }
+    static void F6(NotNull x6, UnknownNull y6)
+    {
+        F(x6.A3, y6.A1)/*T:A<object!>!*/.F.ToString();
+    }
+    static void F7(MaybeNull x7, NotNull y7)
+    {
+        F(x7.A2, y7.A3)/*T:A<object?>!*/.F.ToString();
+    }
+    static void F8(NotNull x8, MaybeNull y8)
+    {
+        F(x8.A3, y8.A2)/*T:A<object!>!*/.F.ToString();
+    }
+    static void F9(NotNull x9, NotNull y9)
+    {
+        F(x9.A3, y9.A3)/*T:A<object!>!*/.F.ToString();
+    }
+}";
+            var comp = CreateCompilation(source, references: new[] { ref0, ref1 }, parseOptions: TestOptions.Regular8);
+            comp.VerifyTypes();
+            comp.VerifyDiagnostics(
+                // (14,9): warning CS8602: Possible dereference of a null reference.
+                //         F(x3.A2, y3.A1)/*T:A<object?>!*/.F.ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "F(x3.A2, y3.A1)/*T:A<object?>!*/.F").WithLocation(14, 9),
+                // (18,9): warning CS8602: Possible dereference of a null reference.
+                //         F(x4.A2, y4.A2)/*T:A<object?>!*/.F.ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "F(x4.A2, y4.A2)/*T:A<object?>!*/.F").WithLocation(18, 9),
+                // (30,18): warning CS8620: Nullability of reference types in argument of type 'A<object>' doesn't match target type 'A<object?>' for parameter 'y' in 'A<object?> C.F<A<object?>>(A<object?> x, A<object?> y)'.
+                //         F(x7.A2, y7.A3)/*T:A<object?>!*/.F.ToString();
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInArgument, "y7.A3").WithArguments("A<object>", "A<object?>", "y", "A<object?> C.F<A<object?>>(A<object?> x, A<object?> y)").WithLocation(30, 18),
+                // (30,9): warning CS8602: Possible dereference of a null reference.
+                //         F(x7.A2, y7.A3)/*T:A<object?>!*/.F.ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "F(x7.A2, y7.A3)/*T:A<object?>!*/.F").WithLocation(30, 9),
+                // (34,18): warning CS8620: Nullability of reference types in argument of type 'A<object?>' doesn't match target type 'A<object>' for parameter 'y' in 'A<object> C.F<A<object>>(A<object> x, A<object> y)'.
+                //         F(x8.A3, y8.A2)/*T:A<object!>!*/.F.ToString();
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInArgument, "y8.A2").WithArguments("A<object?>", "A<object>", "y", "A<object> C.F<A<object>>(A<object> x, A<object> y)").WithLocation(34, 18));
         }
 
         [Fact]
