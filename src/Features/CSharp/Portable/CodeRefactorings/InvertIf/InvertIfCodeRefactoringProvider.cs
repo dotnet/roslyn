@@ -33,40 +33,39 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InvertIf
                 case InvertIfStyle.Normal:
                     {
                         // For single line statement, we swap the TrailingTrivia to preserve the single line
-                        StatementSyntax newIfNodeStatement = null;
-                        ElseClauseSyntax newElseStatement = null;
-                        IfStatementSyntax oldIfStatement = ifNode;
+                        StatementSyntax newIfNodeStatement;
+                        ElseClauseSyntax newElseStatement;
 
-                        var hasNewLineAfterClosingBrace = oldIfStatement.Statement.GetTrailingTrivia().Any(trivia => trivia.Kind() == SyntaxKind.EndOfLineTrivia);
+                        var hasNewLineAfterClosingBrace = ifNode.Statement.GetTrailingTrivia().Any(trivia => trivia.Kind() == SyntaxKind.EndOfLineTrivia);
                         if (hasNewLineAfterClosingBrace)
                         {
-                            newIfNodeStatement = oldIfStatement.Else.Statement.Kind() != SyntaxKind.Block
-                                ? SyntaxFactory.Block(oldIfStatement.Else.Statement)
-                                : oldIfStatement.Else.Statement;
-                            newElseStatement = oldIfStatement.Else.WithStatement(oldIfStatement.Statement);
+                            newIfNodeStatement = ifNode.Else.Statement.Kind() != SyntaxKind.Block
+                                ? SyntaxFactory.Block(ifNode.Else.Statement)
+                                : ifNode.Else.Statement;
+                            newElseStatement = ifNode.Else.WithStatement(ifNode.Statement);
                         }
                         else
                         {
-                            var elseTrailingTrivia = oldIfStatement.Else.GetTrailingTrivia();
-                            var ifTrailingTrivia = oldIfStatement.Statement.GetTrailingTrivia();
-                            newIfNodeStatement = oldIfStatement.Else.Statement.WithTrailingTrivia(ifTrailingTrivia);
-                            newElseStatement = oldIfStatement.Else.WithStatement(oldIfStatement.Statement).WithTrailingTrivia(elseTrailingTrivia);
+                            var elseTrailingTrivia = ifNode.Else.GetTrailingTrivia();
+                            var ifTrailingTrivia = ifNode.Statement.GetTrailingTrivia();
+                            newIfNodeStatement = ifNode.Else.Statement.WithTrailingTrivia(ifTrailingTrivia);
+                            newElseStatement = ifNode.Else.WithStatement(ifNode.Statement).WithTrailingTrivia(elseTrailingTrivia);
                         }
 
-                        var newIfStatment = oldIfStatement.Else.Statement.Kind() == SyntaxKind.IfStatement && newIfNodeStatement.Kind() != SyntaxKind.Block
+                        var newIfStatment = ifNode.Else.Statement.Kind() == SyntaxKind.IfStatement && newIfNodeStatement.Kind() != SyntaxKind.Block
                             ? SyntaxFactory.Block(newIfNodeStatement)
                             : newIfNodeStatement;
 
-                        oldIfStatement = oldIfStatement.WithCondition(negatedCondition)
+                        var updatedIfStatement = ifNode.WithCondition(negatedCondition)
                             .WithStatement(newIfStatment)
                             .WithElse(newElseStatement);
 
                         if (hasNewLineAfterClosingBrace)
                         {
-                            oldIfStatement = oldIfStatement.WithAdditionalAnnotations(Formatter.Annotation);
+                            updatedIfStatement = updatedIfStatement.WithAdditionalAnnotations(Formatter.Annotation);
                         }
 
-                        return root.ReplaceNode(ifNode, oldIfStatement);
+                        return root.ReplaceNode(ifNode, updatedIfStatement);
                     }
 
                 case InvertIfStyle.MoveIfBodyToElseClause:
@@ -203,9 +202,11 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InvertIf
             }
         }
 
-        private static IEnumerable<StatementSyntax> UnwrapBlock(StatementSyntax ifBody)
+        private static SyntaxList<StatementSyntax> UnwrapBlock(StatementSyntax ifBody)
         {
-            return ifBody is BlockSyntax block ? block.Statements : (IEnumerable<StatementSyntax>)new[] { ifBody };
+            return ifBody is BlockSyntax block
+                ? block.Statements
+                : SyntaxFactory.SingletonList(ifBody);
         }
 
         private static StatementSyntax ReplaceEmbeddedStatement(StatementSyntax statement, StatementSyntax[] statements)
@@ -260,14 +261,14 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InvertIf
         protected override bool CanInvert(IfStatementSyntax ifNode)
             => ifNode.IsParentKind(SyntaxKind.Block, SyntaxKind.SwitchSection);
 
-        protected override int GetNearmostParentJumpStatementRawKind(IfStatementSyntax ifNode)
-            => (int)GetNearmostParentJumpStatementKind(ifNode);
-
         protected override SyntaxNode GetCondition(IfStatementSyntax ifNode)
             => ifNode.Condition;
 
         protected override StatementRange GetIfBodyStatementRange(IfStatementSyntax ifNode)
             => new StatementRange(ifNode.Statement, ifNode.Statement);
+
+        protected override int GetNearmostParentJumpStatementRawKind(IfStatementSyntax ifNode)
+            => (int)GetNearmostParentJumpStatementKind(ifNode);
 
         private static SyntaxKind GetNearmostParentJumpStatementKind(IfStatementSyntax ifNode)
         {
@@ -355,7 +356,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InvertIf
 
         protected override bool IsEmptyStatementRange(StatementRange statementRange)
         {
-            // TODO check for empty blocks
+            // FIXME check for empty blocks
             return statementRange.IsSingleStatement && statementRange.FirstStatement.IsKind(SyntaxKind.EmptyStatement);
         }
     }
