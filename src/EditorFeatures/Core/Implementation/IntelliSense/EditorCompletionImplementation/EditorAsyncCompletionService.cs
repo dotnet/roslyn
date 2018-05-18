@@ -15,7 +15,6 @@ using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
 using Microsoft.VisualStudio.Language.Intellisense.AsyncCompletion;
 using Microsoft.VisualStudio.Text;
-using Microsoft.VisualStudio.Text.Editor;
 using Roslyn.Utilities;
 using EditorCompletion = Microsoft.VisualStudio.Language.Intellisense.AsyncCompletion.Data;
 using RoslynCompletionItem = Microsoft.CodeAnalysis.Completion.CompletionItem;
@@ -39,7 +38,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.E
 
         public Task<ImmutableArray<EditorCompletion.CompletionItem>> SortCompletionListAsync(
             IAsyncCompletionSession session,
-            EditorCompletion.SessionInitialData data,
+            EditorCompletion.AsyncCompletionSessionInitialDataSnapshot data,
             CancellationToken token)
         {
             session.ItemCommitted += ItemCommitted;
@@ -59,7 +58,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.E
 
         public async Task<EditorCompletion.FilteredCompletionModel> UpdateCompletionListAsync(
             IAsyncCompletionSession session, 
-            EditorCompletion.SessionInstantenousData data, 
+            EditorCompletion.AsyncCompletionSessionDataSnapshot data, 
             CancellationToken cancellationToken)
         {
             var mustSetSelection = false;
