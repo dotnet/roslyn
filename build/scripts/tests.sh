@@ -24,8 +24,8 @@ if [[ "${runtime}" == "dotnet" ]]; then
     xunit_console="${nuget_dir}"/xunit.runner.console/"${xunit_console_version}"/tools/${target_framework}/xunit.console.dll
 elif [[ "${runtime}" == "mono" ]]; then
     file_list=(
-        "${unittest_dir}/CSharpCompilerSymbolTest/net461/Roslyn.Compilers.CSharp.Symbol.UnitTests.dll"
-        "${unittest_dir}/CSharpCompilerSyntaxTest/net461/Roslyn.Compilers.CSharp.Syntax.UnitTests.dll"
+        "${unittest_dir}/CSharpCompilerSymbolTest/net46/Roslyn.Compilers.CSharp.Symbol.UnitTests.dll"
+        "${unittest_dir}/CSharpCompilerSyntaxTest/net46/Roslyn.Compilers.CSharp.Syntax.UnitTests.dll"
         )
     xunit_console="${nuget_dir}"/xunit.runner.console/"${xunit_console_version}"/tools/net452/xunit.console.exe
 else

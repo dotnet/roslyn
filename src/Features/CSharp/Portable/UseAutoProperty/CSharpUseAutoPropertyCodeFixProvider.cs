@@ -14,10 +14,11 @@ using Microsoft.CodeAnalysis.Formatting.Rules;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.UseAutoProperty;
 
-namespace Microsoft.CodeAnalysis.Editor.CSharp.UseAutoProperty
+namespace Microsoft.CodeAnalysis.CSharp.UseAutoProperty
 {
     [ExportCodeFixProvider(LanguageNames.CSharp, Name = nameof(CSharpUseAutoPropertyCodeFixProvider)), Shared]
-    internal class CSharpUseAutoPropertyCodeFixProvider : AbstractUseAutoPropertyCodeFixProvider<PropertyDeclarationSyntax, FieldDeclarationSyntax, VariableDeclaratorSyntax, ConstructorDeclarationSyntax, ExpressionSyntax>
+    internal class CSharpUseAutoPropertyCodeFixProvider 
+        : AbstractUseAutoPropertyCodeFixProvider<TypeDeclarationSyntax, PropertyDeclarationSyntax, VariableDeclaratorSyntax, ConstructorDeclarationSyntax, ExpressionSyntax>
     {
         protected override SyntaxNode GetNodeToRemove(VariableDeclaratorSyntax declarator)
         {
@@ -60,9 +61,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UseAutoProperty
                                                  .WithSemicolonToken(SyntaxFactory.Token(SyntaxKind.SemicolonToken));
             }
 
-            updatedProperty = updatedProperty.WithAdditionalAnnotations(SpecializedFormattingAnnotation);
-
-            return updatedProperty;
+            return updatedProperty.WithAdditionalAnnotations(SpecializedFormattingAnnotation);
         }
 
         protected override IEnumerable<IFormattingRule> GetFormattingRules(Document document)

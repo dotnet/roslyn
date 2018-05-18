@@ -1295,18 +1295,23 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Private Function RewriteFloatingToIntegralConversion(node As BoundConversion, typeFrom As TypeSymbol, underlyingTypeTo As TypeSymbol) As BoundExpression
             Debug.Assert(typeFrom.IsFloatingType() AndAlso underlyingTypeTo.IsIntegralType())
             Dim result As BoundExpression = node
+            Dim operand = node.Operand
 
-            Dim mathRound As MethodSymbol
+            ' CInt(Fix(number)) and the like can be simplified to just truncate the number to the integral type
+            If operand.Kind = BoundKind.Call Then
+                Dim callOperand = DirectCast(operand, BoundCall)
+                If IsFixInvocation(callOperand) Then
+                    Return New BoundConversion(node.Syntax, callOperand.Arguments(0), node.ConversionKind, node.Checked, node.ExplicitCastInCode, node.Type)
+                End If
+            End If
+
             ' Call Math.Round method to enforce VB style rounding.
-
             Const memberId As WellKnownMember = WellKnownMember.System_Math__RoundDouble
-            mathRound = DirectCast(Compilation.GetWellKnownTypeMember(memberId), MethodSymbol)
+            Dim mathRound As MethodSymbol = DirectCast(Compilation.GetWellKnownTypeMember(memberId), MethodSymbol)
 
             If Not ReportMissingOrBadRuntimeHelper(node, memberId, mathRound) Then
                 ' If we got here and passed badness check, it should be safe to assume that we have 
                 ' a "good" symbol for Double type
-
-                Dim operand = node.Operand
 
 #If DEBUG Then
                 Dim useSiteDiagnostics As HashSet(Of DiagnosticInfo) = Nothing
@@ -1332,6 +1337,22 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End If
 
             Return result
+        End Function
+
+        Private Function IsFixInvocation(node As BoundCall) As Boolean
+            ' Quick test to eliminate most calls to something other that Conversion.Fix
+            If Not "Fix".Equals(node.Method.Name) Then
+                Return False
+            End If
+
+            Select Case node.Type.SpecialType
+                Case SpecialType.System_Single
+                    Return node.Method = Me.Compilation.GetWellKnownTypeMember(WellKnownMember.Microsoft_VisualBasic_Conversion__FixSingle)
+                Case SpecialType.System_Double
+                    Return node.Method = Me.Compilation.GetWellKnownTypeMember(WellKnownMember.Microsoft_VisualBasic_Conversion__FixDouble)
+                Case Else
+                    Return False
+            End Select
         End Function
 
 #End Region
