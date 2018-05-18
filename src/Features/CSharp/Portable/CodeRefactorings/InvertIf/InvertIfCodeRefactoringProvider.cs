@@ -310,13 +310,13 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InvertIf
             throw ExceptionUtilities.Unreachable;
         }
 
-        protected override (SyntaxNode first, SyntaxNode last) GetIfBodyStatementRange(IfStatementSyntax ifNode)
+        protected override StatementRange GetIfBodyStatementRange(IfStatementSyntax ifNode)
         {
             var statement = ifNode.Statement;
-            return (statement, statement);
+            return new StatementRange(statement, statement);
         }
 
-        protected override IEnumerable<(SyntaxNode first, SyntaxNode last)> GetSubsequentStatementRanges(IfStatementSyntax ifNode)
+        protected override IEnumerable<StatementRange> GetSubsequentStatementRanges(IfStatementSyntax ifNode)
         {
             StatementSyntax innerStatement = ifNode;
             foreach (var node in ifNode.Ancestors())
@@ -324,11 +324,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InvertIf
                 var nextStatement = innerStatement.GetNextStatement();
                 if (nextStatement != null && node.IsKind(SyntaxKind.Block, SyntaxKind.SwitchSection))
                 {
-                    var lastStatement = GetStatements(node).Last();
-                    Debug.Assert(nextStatement.Parent != null);
-                    Debug.Assert(nextStatement.Parent == lastStatement.Parent);
-                    Debug.Assert(nextStatement.SpanStart <= lastStatement.SpanStart);
-                    yield return (nextStatement, lastStatement);
+                    yield return new StatementRange(nextStatement, GetStatements(node).Last());
                 }
 
                 switch (node.Kind())
@@ -368,9 +364,10 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InvertIf
             }
         }
 
-        protected override bool IsEmptyStatementRange((SyntaxNode first, SyntaxNode last) statementRange)
+        protected override bool IsEmptyStatementRange(StatementRange statementRange)
         {
-            return statementRange.first == statementRange.last && statementRange.first.IsKind(SyntaxKind.EmptyStatement);
+            // TODO check for empty blocks
+            return statementRange.IsSingleStatement && statementRange.FirstStatement.IsKind(SyntaxKind.EmptyStatement);
         }
     }
 }

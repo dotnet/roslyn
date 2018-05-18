@@ -10,6 +10,8 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.LanguageServices;
+using System.Collections.Immutable;
+using System.Diagnostics;
 
 namespace Microsoft.CodeAnalysis.CodeRefactorings.InvertIf
 {
@@ -34,6 +36,27 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.InvertIf
             WithNearmostJumpStatement,
             // just invert the condition
             WithNegatedCondition,
+        }
+
+        protected readonly struct StatementRange
+        {
+            public readonly SyntaxNode FirstStatement;
+            public readonly SyntaxNode LastStatement;
+
+            public static readonly StatementRange Empty = new StatementRange();
+
+            public StatementRange(SyntaxNode firstStatement, SyntaxNode lastStatement)
+            {
+                Debug.Assert(firstStatement != null);
+                Debug.Assert(lastStatement != null);
+                Debug.Assert(firstStatement.Parent != null);
+                Debug.Assert(firstStatement.Parent == lastStatement.Parent);
+                Debug.Assert(firstStatement.SpanStart <= lastStatement.SpanStart);
+                FirstStatement = firstStatement;
+                LastStatement = lastStatement;
+            }
+
+            public bool IsSingleStatement => FirstStatement == LastStatement;
         }
 
         public sealed override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
@@ -89,7 +112,8 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.InvertIf
             SemanticModel semanticModel,
             ref SyntaxNode subsequentSingleExitPointOpt)
         {
-            if (!AnyIfBodyStatements(ifNode))
+            var ifBodyStatementRange = GetIfBodyStatementRange(ifNode);
+            if (IsEmptyStatementRange(ifBodyStatementRange))
             {
                 // (1) An empty if-statement: just negate the condition
                 //  
@@ -102,7 +126,8 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.InvertIf
                 return InvertIfStyle.WithNegatedCondition;
             }
 
-            if (!AnySubsequentStatements(ifNode))
+            var subsequentStatementRanges = GetSubsequentStatementRanges(ifNode).ToImmutableArray();
+            if (subsequentStatementRanges.All(IsEmptyStatementRange))
             {
                 // (2) No statements after if-statement, invert with the nearmost parent jump-statement
                 //
@@ -124,22 +149,22 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.InvertIf
                 return InvertIfStyle.WithNearmostJumpStatement;
             }
 
-            AnalyzeIfBodyControlFlow(
-                semanticModel, ifNode,
+            AnalyzeControlFlow(
+                semanticModel, ifBodyStatementRange,
                 out var ifBodyEndPointIsReachable,
                 out var ifBodySingleExitPointOpt);
 
             AnalyzeSubsequentControlFlow(
-                semanticModel, ifNode,
-                out var subsequentEndPontIsReachable,
+                semanticModel, subsequentStatementRanges,
+                out var subsequentEndPointIsReachable,
                 out subsequentSingleExitPointOpt);
 
-            if (subsequentEndPontIsReachable)
+            if (subsequentEndPointIsReachable)
             {
                 if (!ifBodyEndPointIsReachable)
                 {
-                    if (SingleIfBodyStatement(ifNode) &&
-                        SubsequentStatementsAreInTheSameBlock(ifNode) &&
+                    if (ifBodyStatementRange.IsSingleStatement &&
+                        SubsequentStatementsAreInTheSameBlock(ifNode, subsequentStatementRanges) &&
                         ifBodySingleExitPointOpt?.RawKind == GetNearmostParentJumpStatementRawKind(ifNode))
                     {
                         // (3) Invese of the case (2). Safe to move all subsequent statements to if-body.
@@ -189,7 +214,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.InvertIf
             else if (ifBodyEndPointIsReachable)
             {
                 if (subsequentSingleExitPointOpt != null &&
-                    SingleSubsequentStatement(ifNode))
+                    SingleSubsequentStatement(subsequentStatementRanges))
                 {
                     // (5) if-body end-point is reachable but the next statement is a only jump-statement.
                     //     This usually happens in a switch-statement. We invert and use that jump-statement.
@@ -212,7 +237,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.InvertIf
                     return InvertIfStyle.WithSubsequentExitPointStatement;
                 }
             }
-            else if (SubsequentStatementsAreInTheSameBlock(ifNode))
+            else if (SubsequentStatementsAreInTheSameBlock(ifNode, subsequentStatementRanges))
             {
                 // (6) If both if-body and subsequent statements have an unreachable end-point,
                 //     it would be safe to just swap the two.
@@ -255,36 +280,9 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.InvertIf
             return InvertIfStyle.MoveIfBodyToElseClause;
         }
 
-        private bool AnySubsequentStatements(TIfStatementSyntax ifNode)
+        private static bool SingleSubsequentStatement(ImmutableArray<StatementRange> subsequentStatementRanges)
         {
-            foreach (var statementRange in GetSubsequentStatementRanges(ifNode))
-            {
-                if (!IsEmptyStatementRange(statementRange))
-                {
-                    return true;
-                }
-            }
-
-            return false;
-        }
-
-        private bool AnyIfBodyStatements(TIfStatementSyntax ifNode)
-        {
-            return !IsEmptyStatementRange(GetIfBodyStatementRange(ifNode));
-        }
-
-        private bool SingleIfBodyStatement(TIfStatementSyntax ifNode)
-        {
-            var statementRange = GetIfBodyStatementRange(ifNode);
-            return statementRange.first == statementRange.last;
-        }
-
-        private bool SingleSubsequentStatement(TIfStatementSyntax ifNode)
-        {
-            using (var e = GetSubsequentStatementRanges(ifNode).GetEnumerator())
-            {
-                return e.MoveNext() && e.Current.first == e.Current.last && !e.MoveNext();
-            }
+            return subsequentStatementRanges.Length == 1 && subsequentStatementRanges[0].IsSingleStatement;
         }
 
         private Task<Document> InvertIfAsync(
@@ -311,57 +309,46 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.InvertIf
                             cancellationToken))));
         }
 
-        private void AnalyzeSubsequentControlFlow(
+        private static void AnalyzeSubsequentControlFlow(
             SemanticModel semanticModel,
-            TIfStatementSyntax ifNode,
-            out bool subsequentEndPontIsReachable,
+            ImmutableArray<StatementRange> subsequentStatementRanges,
+            out bool subsequentEndPointIsReachable,
             out SyntaxNode subsequentSingleExitPointOpt)
         {
-            subsequentEndPontIsReachable = true;
+            subsequentEndPointIsReachable = true;
             subsequentSingleExitPointOpt = null;
 
-            foreach (var statementRange in GetSubsequentStatementRanges(ifNode))
+            foreach (var statementRange in subsequentStatementRanges)
             {
                 AnalyzeControlFlow(
                     semanticModel,
                     statementRange,
-                    out subsequentEndPontIsReachable,
+                    out subsequentEndPointIsReachable,
                     out subsequentSingleExitPointOpt);
-                if (!subsequentEndPontIsReachable)
+                if (!subsequentEndPointIsReachable)
                 {
                     return;
                 }
             }
         }
 
-        private void AnalyzeIfBodyControlFlow(
-            SemanticModel semanticModel,
-            TIfStatementSyntax ifNode,
-            out bool ifBodyEndPointIsReachable,
-            out SyntaxNode ifBodySingleExitPointOpt)
-        {
-            AnalyzeControlFlow(
-                semanticModel,
-                GetIfBodyStatementRange(ifNode),
-                out ifBodyEndPointIsReachable,
-                out ifBodySingleExitPointOpt);
-        }
-
         private static void AnalyzeControlFlow(
             SemanticModel semanticModel,
-            (SyntaxNode first, SyntaxNode last) statementRange,
+            StatementRange statementRange,
             out bool endPointIsReachable,
             out SyntaxNode singleExitPointOpt)
         {
-            var flow = semanticModel.AnalyzeControlFlow(statementRange.first, statementRange.last);
+            var flow = semanticModel.AnalyzeControlFlow(statementRange.FirstStatement, statementRange.LastStatement);
             endPointIsReachable = flow.EndPointIsReachable;
             singleExitPointOpt = flow.ExitPoints.Length == 1 ? flow.ExitPoints[0] : null;
         }
 
-        private bool SubsequentStatementsAreInTheSameBlock(TIfStatementSyntax ifNode)
+        private static bool SubsequentStatementsAreInTheSameBlock(
+            TIfStatementSyntax ifNode,
+            ImmutableArray<StatementRange> subsequentStatementRanges)
         {
-            var (firstStatement, _) = GetSubsequentStatementRanges(ifNode).First();
-            return ifNode.Parent == firstStatement.Parent;
+            Debug.Assert(subsequentStatementRanges.Length > 0);
+            return ifNode.Parent == subsequentStatementRanges[0].FirstStatement.Parent;
         }
 
         protected abstract bool CanInvert(TIfStatementSyntax ifNode);
@@ -371,10 +358,10 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.InvertIf
         protected abstract string GetTitle();
 
         protected abstract int GetNearmostParentJumpStatementRawKind(TIfStatementSyntax ifNode);
-        protected abstract bool IsEmptyStatementRange((SyntaxNode first, SyntaxNode last) statementRange);
+        protected abstract bool IsEmptyStatementRange(StatementRange statementRange);
 
-        protected abstract (SyntaxNode first, SyntaxNode last) GetIfBodyStatementRange(TIfStatementSyntax ifNode);
-        protected abstract IEnumerable<(SyntaxNode first, SyntaxNode last)> GetSubsequentStatementRanges(TIfStatementSyntax ifNode);
+        protected abstract StatementRange GetIfBodyStatementRange(TIfStatementSyntax ifNode);
+        protected abstract IEnumerable<StatementRange> GetSubsequentStatementRanges(TIfStatementSyntax ifNode);
 
         protected abstract SyntaxNode GetRootWithInvertIfStatement(
             SyntaxNode root,

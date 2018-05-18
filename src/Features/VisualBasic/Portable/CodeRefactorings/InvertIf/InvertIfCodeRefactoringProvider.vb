@@ -11,27 +11,26 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings.InvertIf
             Return VBFeaturesResources.Invert_If
         End Function
 
-        Protected NotOverridable Overrides Function IsEmptyStatementRange(statementRange As (first As SyntaxNode, last As SyntaxNode)) As Boolean
-            Return statementRange.first Is Nothing OrElse statementRange.last Is Nothing
+        Protected NotOverridable Overrides Function IsEmptyStatementRange(statementRange As StatementRange) As Boolean
+            ' TODO check for empty blocks
+            Return statementRange.FirstStatement Is Nothing OrElse statementRange.LastStatement Is Nothing
         End Function
 
-        Protected NotOverridable Overrides Function GetIfBodyStatementRange(ifNode As TIfStatementSyntax) As (first As SyntaxNode, last As SyntaxNode)
+        Protected NotOverridable Overrides Function GetIfBodyStatementRange(ifNode As TIfStatementSyntax) As StatementRange
             Dim statements = ifNode.GetStatements()
-            Return (statements.FirstOrDefault(), statements.LastOrDefault())
+            Return If(statements.Count = 0,
+                StatementRange.Empty,
+                New StatementRange(statements.First(), statements.Last()))
         End Function
 
-        Protected NotOverridable Overrides Iterator Function GetSubsequentStatementRanges(ifNode As TIfStatementSyntax) As IEnumerable(Of (first As SyntaxNode, last As SyntaxNode))
+        Protected NotOverridable Overrides Iterator Function GetSubsequentStatementRanges(ifNode As TIfStatementSyntax) As IEnumerable(Of StatementRange)
             Dim syntaxFacts = VisualBasicSyntaxFactsService.Instance
 
             Dim innerStatement As StatementSyntax = ifNode
             For Each node In ifNode.Ancestors
                 Dim nextStatement = syntaxFacts.GetNextExecutableStatement(innerStatement)
                 If nextStatement IsNot Nothing AndAlso node.IsStatementContainerNode() Then
-                    Dim lastStatement = node.GetStatements().Last()
-                    Debug.Assert(nextStatement.Parent IsNot Nothing)
-                    Debug.Assert(nextStatement.Parent Is lastStatement.Parent)
-                    Debug.Assert(nextStatement.SpanStart <= lastStatement.SpanStart)
-                    Yield (nextStatement, lastStatement)
+                    Yield New StatementRange(nextStatement, node.GetStatements().Last())
                 End If
 
                 If TypeOf node Is MethodBlockBaseSyntax OrElse
