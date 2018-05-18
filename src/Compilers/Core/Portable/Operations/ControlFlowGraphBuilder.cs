@@ -1240,12 +1240,13 @@ namespace Microsoft.CodeAnalysis.Operations
                 VisitStatement(operation.Initializer);
             }
 
+            VisitMethodBodyBaseOperation(operation);
+
             if (haveLocals)
             {
                 LeaveRegion();
             }
 
-            VisitMethodBodyBaseOperation(operation);
             return null;
         }
 

@@ -956,7 +956,7 @@ Block[B0] - Entry
     Locals: [System.Int32 x]
     Block[B1] - Block
         Predecessors: [B0]
-        Statements (1)
+        Statements (2)
             IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null, IsImplicit) (Syntax: ': base(M(out int x))')
               Expression: 
                 IInvocationOperation ( B..ctor(System.Int32 i)) (OperationKind.Invocation, Type: System.Void) (Syntax: ': base(M(out int x))')
@@ -976,24 +976,20 @@ Block[B0] - Entry
                         InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                         OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
 
+            IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'j = i;')
+              Expression: 
+                ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32) (Syntax: 'j = i')
+                  Left: 
+                    IParameterReferenceOperation: j (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'j')
+                  Right: 
+                    IParameterReferenceOperation: i (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'i')
+
         Next (Regular) Block[B2]
             Leaving: {R1}
 }
 
-Block[B2] - Block
+Block[B2] - Exit
     Predecessors: [B1]
-    Statements (1)
-        IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'j = i;')
-          Expression: 
-            ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32) (Syntax: 'j = i')
-              Left: 
-                IParameterReferenceOperation: j (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'j')
-              Right: 
-                IParameterReferenceOperation: i (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'i')
-
-    Next (Regular) Block[B3]
-Block[B3] - Exit
-    Predecessors: [B2]
     Statements (0)
 ");
         }
