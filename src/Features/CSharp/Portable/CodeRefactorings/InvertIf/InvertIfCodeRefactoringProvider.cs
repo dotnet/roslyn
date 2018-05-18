@@ -255,24 +255,19 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InvertIf
         }
 
         protected override bool IsElseless(IfStatementSyntax ifNode)
-        {
-            return ifNode.Else == null;
-        }
+            => ifNode.Else == null;
 
         protected override bool CanInvert(IfStatementSyntax ifNode)
-        {
-            return ifNode.IsParentKind(SyntaxKind.Block, SyntaxKind.SwitchSection);
-        }
+            => ifNode.IsParentKind(SyntaxKind.Block, SyntaxKind.SwitchSection);
 
         protected override int GetNearmostParentJumpStatementRawKind(IfStatementSyntax ifNode)
-        {
-            return (int)GetNearmostParentJumpStatementKind(ifNode);
-        }
+            => (int)GetNearmostParentJumpStatementKind(ifNode);
 
         protected override SyntaxNode GetCondition(IfStatementSyntax ifNode)
-        {
-            return ifNode.Condition;
-        }
+            => ifNode.Condition;
+
+        protected override StatementRange GetIfBodyStatementRange(IfStatementSyntax ifNode)
+            => new StatementRange(ifNode.Statement, ifNode.Statement);
 
         private static SyntaxKind GetNearmostParentJumpStatementKind(IfStatementSyntax ifNode)
         {
@@ -308,12 +303,6 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InvertIf
             }
 
             throw ExceptionUtilities.Unreachable;
-        }
-
-        protected override StatementRange GetIfBodyStatementRange(IfStatementSyntax ifNode)
-        {
-            var statement = ifNode.Statement;
-            return new StatementRange(statement, statement);
         }
 
         protected override IEnumerable<StatementRange> GetSubsequentStatementRanges(IfStatementSyntax ifNode)
