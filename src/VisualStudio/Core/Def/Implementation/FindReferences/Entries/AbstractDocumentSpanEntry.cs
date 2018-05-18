@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Threading;
 using System.Windows;
 using System.Windows.Documents;
@@ -89,6 +90,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                     return _sourceText.Lines.GetLinePosition(SourceSpan.Start);
                 }
 
+                Debug.Assert(result[0].Document == _documentSpan.Document);
                 return result[0].LinePositionSpan.Start;
             }
 
