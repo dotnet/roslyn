@@ -1093,8 +1093,8 @@ namespace Microsoft.CodeAnalysis
         }
 
         /// <summary>
-        /// Returns <code>true</code> if a reference to referencedProject can be added to
-        /// referencingProject.  <code>false</code> otherwise.
+        /// Returns <see langword="true"/> if a reference to referencedProject can be added to
+        /// referencingProject.  <see langword="false"/> otherwise.
         /// </summary>
         internal virtual bool CanAddProjectReference(ProjectId referencingProject, ProjectId referencedProject)
         {

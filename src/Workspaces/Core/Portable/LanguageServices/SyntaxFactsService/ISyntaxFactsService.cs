@@ -131,8 +131,8 @@ namespace Microsoft.CodeAnalysis.LanguageServices
 
         /// <summary>
         /// Returns the expression node the member is being accessed off of.  If <paramref name="allowImplicitTarget"/>
-        /// is <code>false</code>, this will be the node directly to the left of the dot-token.  If <paramref name="allowImplicitTarget"/>
-        /// is <code>true</code>, then this can return another node in the tree that the member will be accessed
+        /// is <see langword="false"/>, this will be the node directly to the left of the dot-token.  If <paramref name="allowImplicitTarget"/>
+        /// is <see langword="true"/>, then this can return another node in the tree that the member will be accessed
         /// off of.  For example, in VB, if you have a member-access-expression of the form ".Length" then this
         /// may return the expression in the surrounding With-statement.
         /// </summary>
@@ -299,6 +299,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
 
         SyntaxToken ToIdentifierToken(string name);
         List<SyntaxNode> GetMethodLevelMembers(SyntaxNode root);
+        SyntaxList<SyntaxNode> GetMembersOfTypeDeclaration(SyntaxNode typeDeclaration);
 
         bool ContainsInMemberBody(SyntaxNode node, TextSpan span);
         int GetMethodLevelMemberId(SyntaxNode root, SyntaxNode node);
