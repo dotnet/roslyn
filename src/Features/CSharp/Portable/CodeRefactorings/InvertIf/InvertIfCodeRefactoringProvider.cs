@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InvertIf
 
             switch (invertIfStyle)
             {
-                case InvertIfStyle.Normal:
+                case InvertIfStyle.IfWithElse_SwapIfBodyWithElseBody:
                     {
                         // For single line statement, we swap the TrailingTrivia to preserve the single line
                         StatementSyntax newIfNodeStatement;
@@ -68,7 +68,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InvertIf
                         return root.ReplaceNode(ifNode, updatedIfStatement);
                     }
 
-                case InvertIfStyle.MoveIfBodyToElseClause:
+                case InvertIfStyle.IfWithoutElse_MoveIfBodyToElseClause:
                     {
                         var updatedIf = ifNode
                             .WithCondition(negatedCondition)
@@ -78,7 +78,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InvertIf
                         return root.ReplaceNode(ifNode, updatedIf);
                     }
 
-                case InvertIfStyle.WithNegatedCondition:
+                case InvertIfStyle.IfWithoutElse_WithNegatedCondition:
                     {
                         var updatedIf = ifNode
                             .WithCondition(negatedCondition);
@@ -86,7 +86,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InvertIf
                         return root.ReplaceNode(ifNode, updatedIf);
                     }
 
-                case InvertIfStyle.SwapIfBodyWithSubsequentStatements:
+                case InvertIfStyle.IfWithoutElse_SwapIfBodyWithSubsequentStatements:
                     {
                         var ifBody = ifNode.Statement;
 
@@ -107,7 +107,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InvertIf
                         return root.ReplaceNode(currentParent, updatedParent);
                     }
 
-                case InvertIfStyle.WithNearmostJumpStatement:
+                case InvertIfStyle.IfWithoutElse_WithNearmostJumpStatement:
                     {
                         var newIfBody = GetNearmostParentJumpStatement();
                         var updatedIf = ifNode.WithCondition(negatedCondition)
@@ -140,7 +140,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InvertIf
                         }
                     }
 
-                case InvertIfStyle.WithSubsequentExitPointStatement:
+                case InvertIfStyle.IfWithoutElse_WithSubsequentExitPointStatement:
                     {
                         var newIfBody = (StatementSyntax)subsequentSingleExitPointOpt;
                         var updatedIf = ifNode.WithCondition(negatedCondition)
@@ -158,7 +158,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InvertIf
                         return root.ReplaceNode(currentParent, updatedParent);
                     }
 
-                case InvertIfStyle.MoveSubsequentStatementsToIfBody:
+                case InvertIfStyle.IfWithoutElse_MoveSubsequentStatementsToIfBody:
                     {
                         var currentParent = ifNode.Parent;
                         var statements = GetStatements(currentParent);
@@ -177,7 +177,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InvertIf
                         return root.ReplaceNode(currentParent, updatedParent);
                     }
 
-                case InvertIfStyle.WithElseClause:
+                case InvertIfStyle.IfWithoutElse_WithElseClause:
                     {
                         var currentParent = ifNode.Parent;
                         var statements = GetStatements(currentParent);

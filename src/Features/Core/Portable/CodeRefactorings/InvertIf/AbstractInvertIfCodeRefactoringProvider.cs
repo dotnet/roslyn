@@ -20,22 +20,14 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.InvertIf
     {
         protected enum InvertIfStyle
         {
-            // swap if and else
-            Normal,
-            // swap subsequent statements and if body
-            SwapIfBodyWithSubsequentStatements,
-            // move subsequent statements to if body
-            MoveSubsequentStatementsToIfBody,
-            // invert and generete else
-            WithElseClause,
-            // invert and generate else, keep if-body empty
-            MoveIfBodyToElseClause,
-            // invert and copy the exit point statement
-            WithSubsequentExitPointStatement,
-            // invert and generate return, break, continue
-            WithNearmostJumpStatement,
-            // just invert the condition
-            WithNegatedCondition,
+            IfWithElse_SwapIfBodyWithElseBody,
+            IfWithoutElse_SwapIfBodyWithSubsequentStatements,
+            IfWithoutElse_MoveSubsequentStatementsToIfBody,
+            IfWithoutElse_WithElseClause,
+            IfWithoutElse_MoveIfBodyToElseClause,
+            IfWithoutElse_WithSubsequentExitPointStatement,
+            IfWithoutElse_WithNearmostJumpStatement,
+            IfWithoutElse_WithNegatedCondition,
         }
 
         protected readonly struct StatementRange
@@ -103,7 +95,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.InvertIf
                     ifNode,
                     semanticModel,
                     ref subsequentSingleExitPointOpt)
-                : InvertIfStyle.Normal;
+                : InvertIfStyle.IfWithElse_SwapIfBodyWithElseBody;
 
             context.RegisterRefactoring(new MyCodeAction(GetTitle(),
                 c => InvertIfAsync(root, document, semanticModel, ifNode, invertIfStyle, subsequentSingleExitPointOpt, c)));
@@ -125,7 +117,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.InvertIf
                 //
                 //  if (!condition) { }
                 //
-                return InvertIfStyle.WithNegatedCondition;
+                return InvertIfStyle.IfWithoutElse_WithNegatedCondition;
             }
 
             var subsequentStatementRanges = GetSubsequentStatementRanges(ifNode).ToImmutableArray();
@@ -148,7 +140,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.InvertIf
                 //    Body();
                 //  }
                 //
-                return InvertIfStyle.WithNearmostJumpStatement;
+                return InvertIfStyle.IfWithoutElse_WithNearmostJumpStatement;
             }
 
             AnalyzeControlFlow(
@@ -186,7 +178,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.InvertIf
                         //    }
                         //  }
                         //
-                        return InvertIfStyle.MoveSubsequentStatementsToIfBody;
+                        return InvertIfStyle.IfWithoutElse_MoveSubsequentStatementsToIfBody;
                     }
                     else
                     {
@@ -209,7 +201,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.InvertIf
                         //    }
                         //  }
                         //
-                        return InvertIfStyle.WithElseClause;
+                        return InvertIfStyle.IfWithoutElse_WithElseClause;
                     }
                 }
             }
@@ -236,7 +228,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.InvertIf
                     //    f();
                     //    break; // we always keep this so that we don't end up with invalid code.
                     //
-                    return InvertIfStyle.WithSubsequentExitPointStatement;
+                    return InvertIfStyle.IfWithoutElse_WithSubsequentExitPointStatement;
                 }
             }
             else if (SubsequentStatementsAreInTheSameBlock(ifNode, subsequentStatementRanges))
@@ -257,7 +249,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.InvertIf
                 //    }
                 //    return;
                 //
-                return InvertIfStyle.SwapIfBodyWithSubsequentStatements;
+                return InvertIfStyle.IfWithoutElse_SwapIfBodyWithSubsequentStatements;
             }
 
             // (7) If none of the above worked, as the last resort we invert and generate an empty if-body.
@@ -279,7 +271,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.InvertIf
             //    f();
             //  }
             //  
-            return InvertIfStyle.MoveIfBodyToElseClause;
+            return InvertIfStyle.IfWithoutElse_MoveIfBodyToElseClause;
         }
 
         private static bool SingleSubsequentStatement(ImmutableArray<StatementRange> subsequentStatementRanges)

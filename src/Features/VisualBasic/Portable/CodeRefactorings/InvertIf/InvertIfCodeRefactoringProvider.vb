@@ -84,21 +84,21 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings.InvertIf
             subsequentSingleExitPointOpt As SyntaxNode,
             negatedExpression As SyntaxNode) As SyntaxNode
             Select Case invertIfStyle
-                Case InvertIfStyle.Normal
+                Case InvertIfStyle.IfWithElse_SwapIfBodyWithElseBody
                     Return root.ReplaceNode(ifNode, GetInvertedIfNode(ifNode, DirectCast(negatedExpression, ExpressionSyntax)))
-                Case InvertIfStyle.SwapIfBodyWithSubsequentStatements
+                Case InvertIfStyle.IfWithoutElse_SwapIfBodyWithSubsequentStatements
                     Throw New NotImplementedException
-                Case InvertIfStyle.MoveSubsequentStatementsToIfBody
+                Case InvertIfStyle.IfWithoutElse_MoveSubsequentStatementsToIfBody
                     Throw New NotImplementedException
-                Case InvertIfStyle.WithElseClause
+                Case InvertIfStyle.IfWithoutElse_WithElseClause
                     Throw New NotImplementedException
-                Case InvertIfStyle.MoveIfBodyToElseClause
+                Case InvertIfStyle.IfWithoutElse_MoveIfBodyToElseClause
                     Throw New NotImplementedException
-                Case InvertIfStyle.WithSubsequentExitPointStatement
+                Case InvertIfStyle.IfWithoutElse_WithSubsequentExitPointStatement
                     Throw New NotImplementedException
-                Case InvertIfStyle.WithNearmostJumpStatement
+                Case InvertIfStyle.IfWithoutElse_WithNearmostJumpStatement
                     Throw New NotImplementedException
-                Case InvertIfStyle.WithNegatedCondition
+                Case InvertIfStyle.IfWithoutElse_WithNegatedCondition
                     Throw New NotImplementedException
                 Case Else
                     Throw ExceptionUtilities.UnexpectedValue(invertIfStyle)
