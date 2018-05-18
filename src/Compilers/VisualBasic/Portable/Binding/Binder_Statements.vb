@@ -4382,6 +4382,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                              diagnostics)
 
             Dim placeholderInfo = New Dictionary(Of TypeSymbol, ValueTuple(Of BoundRValuePlaceholder, BoundExpression, BoundExpression))()
+            Dim locals As ImmutableArray(Of LocalSymbol)
 
             If usingVariableDeclarationCount > 0 Then
                 ' this is the case of a using statement with one or more variable declarations.
@@ -4389,6 +4390,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 ' this will bind the declaration, infer the local's type if needed and binds the initialization expression.
                 ' implicit variable declarations are handled in that method as well (Option Explicit Off)
                 resourceList = usingBinder.BindVariableDeclarators(usingVariableDeclarations, diagnostics)
+
+                Dim localsBuilder = ArrayBuilder(Of LocalSymbol).GetInstance(usingVariableDeclarationCount)
 
                 ' now that the variable declarations and initialization expression are bound, report
                 ' using statement related diagnostics.
@@ -4424,6 +4427,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                              ErrorFactory.ErrorInfo(ERRID.ERR_UsingResourceVarNeedsInitializer))
                         End If
 
+                        localsBuilder.Add(boundLocalDeclaration.LocalSymbol)
                         VerifyUsingVariableDeclarationAndBuildUsingInfo(syntaxNodeForErrors,
                                                                         boundLocalDeclaration.LocalSymbol,
                                                                         iDisposable,
@@ -4435,6 +4439,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         ' there can be multiple variables be declared in an "As New"
                         For declarationIndex = 0 To boundAsNewDeclarations.LocalDeclarations.Length - 1
                             Dim localDeclaration As BoundLocalDeclaration = boundAsNewDeclarations.LocalDeclarations(declarationIndex)
+                            localsBuilder.Add(localDeclaration.LocalSymbol)
 
                             VerifyUsingVariableDeclarationAndBuildUsingInfo(localDeclaration.Syntax,
                                                                             localDeclaration.LocalSymbol,
@@ -4444,10 +4449,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         Next
                     End If
                 Next
+
+                locals = localsBuilder.ToImmutableAndFree()
             Else
                 ' the using block has an expression as resource
                 Debug.Assert(usingStatement.Expression IsNot Nothing)
 
+                locals = ImmutableArray(Of LocalSymbol).Empty
                 Dim resourceExpressionSyntax = usingStatement.Expression
                 resourceExpression = BindRValue(resourceExpressionSyntax, diagnostics)
 
@@ -4465,7 +4473,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim usingBody As BoundBlock = BindBlock(node, node.Statements, diagnostics).MakeCompilerGenerated()
             Dim usingInfo As New usingInfo(node, placeholderInfo)
 
-            Return New BoundUsingStatement(node, resourceList, resourceExpression, usingBody, usingInfo)
+            Return New BoundUsingStatement(node, resourceList, resourceExpression, usingBody, usingInfo, locals)
         End Function
 
         Private Sub VerifyUsingVariableDeclarationAndBuildUsingInfo(

@@ -167,7 +167,7 @@ namespace Microsoft.CodeAnalysis.Operations
 
         public override IOperation VisitUsing(IUsingOperation operation, object argument)
         {
-            return new UsingStatement(Visit(operation.Resources), Visit(operation.Body), ((Operation)operation).SemanticModel, operation.Syntax, operation.Type, operation.ConstantValue, operation.IsImplicit);
+            return new UsingStatement(Visit(operation.Resources), Visit(operation.Body), operation.Locals, ((Operation)operation).SemanticModel, operation.Syntax, operation.Type, operation.ConstantValue, operation.IsImplicit);
         }
 
         // https://github.com/dotnet/roslyn/issues/21281
