@@ -48,14 +48,14 @@ namespace Microsoft.Cci
 
         public virtual void Visit(ICustomAttribute customAttribute)
         {
-            this.Visit(customAttribute.GetArguments(Context));
-
             IMethodReference constructor = customAttribute.Constructor(Context, reportDiagnostics: false);
-            if (constructor != null)
+            if (constructor is null)
             {
-                this.Visit(constructor);
+                return;
             }
 
+            this.Visit(customAttribute.GetArguments(Context));
+            this.Visit(constructor);
             this.Visit(customAttribute.GetNamedArguments(Context));
         }
 

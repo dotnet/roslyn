@@ -717,7 +717,7 @@ namespace Microsoft.Cci
             return this.GetOrAddModuleReferenceHandle(moduleName);
         }
 
-        private BlobHandle GetCustomAttributeSignatureIndex(ICustomAttribute customAttribute, IMethodReference constructor)
+        private BlobHandle GetCustomAttributeSignatureIndex(ICustomAttribute customAttribute)
         {
             BlobHandle result;
             if (_customAttributeSignatureIndex.TryGetValue(customAttribute, out result))
@@ -726,7 +726,7 @@ namespace Microsoft.Cci
             }
 
             var writer = PooledBlobBuilder.GetInstance();
-            this.SerializeCustomAttributeSignature(customAttribute, constructor, writer);
+            this.SerializeCustomAttributeSignature(customAttribute, writer);
             result = metadata.GetOrAddBlob(writer);
             _customAttributeSignatureIndex.Add(customAttribute, result);
             writer.Free();
@@ -2149,7 +2149,7 @@ namespace Microsoft.Cci
                 metadata.AddCustomAttribute(
                     parent: parentHandle,
                     constructor: GetCustomAttributeTypeCodedIndex(constructor),
-                    value: GetCustomAttributeSignatureIndex(customAttribute, constructor));
+                    value: GetCustomAttributeSignatureIndex(customAttribute));
             }
         }
 
@@ -3356,9 +3356,9 @@ namespace Microsoft.Cci
             }
         }
 
-        private void SerializeCustomAttributeSignature(ICustomAttribute customAttribute, IMethodReference constructor, BlobBuilder builder)
+        private void SerializeCustomAttributeSignature(ICustomAttribute customAttribute, BlobBuilder builder)
         {
-            var parameters = constructor.GetParameters(Context);
+            var parameters = customAttribute.Constructor(Context, reportDiagnostics: false).GetParameters(Context);
             var arguments = customAttribute.GetArguments(Context);
             Debug.Assert(parameters.Length == arguments.Length);
 
