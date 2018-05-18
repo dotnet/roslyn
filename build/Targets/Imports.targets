@@ -35,9 +35,9 @@
     <_NETCoreSdkIsPreview>false</_NETCoreSdkIsPreview>
   </PropertyGroup>
 
-  <!-- Settings for localization -->
   <ItemGroup>
     <PackageReference Include="XliffTasks" Version="$(XliffTasksVersion)" PrivateAssets="All" />
+    <PackageReference Include="Microsoft.SourceLink.GitHub" Version="$(MicrosoftSourceLinkGitHubVersion)" PrivateAssets="All" />
   </ItemGroup>
 
   <PropertyGroup>
@@ -488,18 +488,23 @@
     <PublishOutputToSymStore Condition="'$(Nonshipping)' == 'true'">false</PublishOutputToSymStore>
   </PropertyGroup>
 
-  <Import Project="RepoToolset\SymStore.targets" />
-
-  <Import Project="RepoToolset\SourceLink.targets" Condition="'$(EnableSourceLink)' == 'true' and '$(GitHeadSha)' != ''"/>
-
+  <!--
+    Workaround for not having VS 15.7 on build machines.
+    Remove when machines are upgraded.
+  -->
+  <Target Name="InitializeSourceControlInformation" />
   <PropertyGroup>
-    <PathMap Condition="'$(DeterministicSourceRoot)' != ''">$(RepoRoot)=$(DeterministicSourceRoot)</PathMap>
+    <SourceControlInformationFeatureSupported>true</SourceControlInformationFeatureSupported>
   </PropertyGroup>
 
+<<<<<<< HEAD
   <Target Name="_CheckForSpacesInPathMap"
           BeforeTargets="CoreCompile">
     <Error Text="PathMap, DeterministicSourceRoot and RepoRoot shall not contain spaces (https://github.com/dotnet/roslyn/issues/22835)" 
            Condition="$(PathMap.Contains(' '))" />
   </Target>
 
+=======
+  <Import Project="RepoToolset\SymStore.targets" />
+>>>>>>> Use Microsoft.SourceLink package
 </Project>

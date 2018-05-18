@@ -6,8 +6,6 @@
     <MSBuildAllProjects>$(MSBuildAllProjects);$(MSBuildThisFileFullPath)</MSBuildAllProjects>
   </PropertyGroup>
 
-  <Import Project="RepoToolset\GitHash.props" />
- 
   <!-- This controls the version numbers of the build that we are producing -->
 
   <PropertyGroup>
@@ -88,9 +86,7 @@
          hurts our determinism efforts as binaries which should be the same between
          builds will not (due to developers building against different HEAD
          values). -->
-    <CommitHashDisplay>&lt;developer build&gt;</CommitHashDisplay>
-    <CommitHashDisplay Condition="'$(OfficialBuild)' == 'true'">$(GitHeadSha)</CommitHashDisplay>
-    
-    <InformationalVersion>$(NuGetPerBuildPreReleaseVersion). Commit Hash: $(CommitHashDisplay)</InformationalVersion>
+    <IncludeSourceRevisionInInformationalVersion Condition="'$(OfficialBuild)' != 'true'">false</IncludeSourceRevisionInInformationalVersion>
+    <InformationalVersion>$(NuGetPerBuildPreReleaseVersion)</InformationalVersion>
   </PropertyGroup>
 </Project>
