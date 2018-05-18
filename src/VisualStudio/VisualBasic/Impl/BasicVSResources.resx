@@ -279,4 +279,10 @@
   <data name="Separate_import_directive_groups" xml:space="preserve">
     <value>Separate import directive groups</value>
   </data>
+  <data name="In_arithmetic_binary_operators" xml:space="preserve">
+    <value>In arithmetic expressions:  ^  *  /  \  Mod  +  -  &amp;  &lt;&lt;  &gt;&gt;</value>
+  </data>
+  <data name="In_other_binary_operators" xml:space="preserve">
+    <value>In other binary operators:  =  &lt;&gt;  &lt;  &gt;  &lt;=  &gt;=  Like Is  And  Or  </value>
+  </data>
 </root>

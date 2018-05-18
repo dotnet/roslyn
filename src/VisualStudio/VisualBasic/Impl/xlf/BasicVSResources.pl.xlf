@@ -272,6 +272,16 @@
         <target state="translated">Oddziel grupy dyrektywy import</target>
         <note />
       </trans-unit>
+      <trans-unit id="In_arithmetic_binary_operators">
+        <source>In arithmetic expressions:  ^  *  /  \  Mod  +  -  &amp;  &lt;&lt;  &gt;&gt;</source>
+        <target state="new">In arithmetic expressions:  ^  *  /  \  Mod  +  -  &amp;  &lt;&lt;  &gt;&gt;</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="In_other_binary_operators">
+        <source>In other binary operators:  =  &lt;&gt;  &lt;  &gt;  &lt;=  &gt;=  Like Is  And  Or  </source>
+        <target state="new">In other binary operators:  =  &lt;&gt;  &lt;  &gt;  &lt;=  &gt;=  Like Is  And  Or  </target>
+        <note />
+      </trans-unit>
     </body>
   </file>
 </xliff>

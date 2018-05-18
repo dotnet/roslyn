@@ -1,6 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
+using System.Diagnostics;
 using Microsoft.CodeAnalysis.Options;
 using static Microsoft.CodeAnalysis.CodeStyle.CodeStyleHelpers;
 
@@ -193,7 +193,7 @@ namespace Microsoft.CodeAnalysis.CodeStyle
         private static readonly CodeStyleOption<AccessibilityModifiersRequired> s_requireAccessibilityModifiersDefault =
             new CodeStyleOption<AccessibilityModifiersRequired>(AccessibilityModifiersRequired.ForNonInterfaceMembers, NotificationOption.None);
 
-        internal static readonly PerLanguageOption<CodeStyleOption<AccessibilityModifiersRequired>> RequireAccessibilityModifiers = 
+        internal static readonly PerLanguageOption<CodeStyleOption<AccessibilityModifiersRequired>> RequireAccessibilityModifiers =
             new PerLanguageOption<CodeStyleOption<AccessibilityModifiersRequired>>(
                 nameof(CodeStyleOptions), nameof(RequireAccessibilityModifiers), defaultValue: s_requireAccessibilityModifiersDefault,
                 storageLocations: new OptionStorageLocation[]{
@@ -236,6 +236,68 @@ namespace Microsoft.CodeAnalysis.CodeStyle
             }
 
             return s_requireAccessibilityModifiersDefault;
+        }
+
+        private static readonly CodeStyleOption<ParenthesesPreference> s_defaultBinaryOperatorsParenthesesPreference =
+            new CodeStyleOption<ParenthesesPreference>(ParenthesesPreference.AlwaysForClarity, NotificationOption.None);
+
+        private static readonly CodeStyleOption<ParenthesesPreference> s_defaultOtherOperatorsParenthesesPreference =
+            new CodeStyleOption<ParenthesesPreference>(ParenthesesPreference.NeverIfUnnecessary, NotificationOption.None);
+
+        private static PerLanguageOption<CodeStyleOption<ParenthesesPreference>> CreateParenthesesOption(
+            string fieldName, CodeStyleOption<ParenthesesPreference> defaultValue, 
+            string styleName, bool isOther)
+        {
+            return new PerLanguageOption<CodeStyleOption<ParenthesesPreference>>(
+                nameof(CodeStyleOptions), fieldName, defaultValue,
+                storageLocations: new OptionStorageLocation[]{
+                    new EditorConfigStorageLocation<CodeStyleOption<ParenthesesPreference>>(
+                        styleName,
+                        s => ParseParenthesesPreference(s, defaultValue, isOther)),
+                    new RoamingProfileStorageLocation($"TextEditor.%LANGUAGE%.Specific.{fieldName}Preference")});
+        }
+
+        internal static readonly PerLanguageOption<CodeStyleOption<ParenthesesPreference>> ArithmeticBinaryParentheses =
+            CreateParenthesesOption(
+                nameof(ArithmeticBinaryParentheses),
+                s_defaultBinaryOperatorsParenthesesPreference,
+                "dotnet_style_parentheses_in_arithmetic_binary_operators", isOther: false);
+
+        internal static readonly PerLanguageOption<CodeStyleOption<ParenthesesPreference>> OtherBinaryParentheses =
+            CreateParenthesesOption(
+                nameof(OtherBinaryParentheses),
+                s_defaultBinaryOperatorsParenthesesPreference,
+                "dotnet_style_parentheses_in_other_binary_operators", isOther: false);
+
+        internal static readonly PerLanguageOption<CodeStyleOption<ParenthesesPreference>> OtherParentheses =
+            CreateParenthesesOption(
+                nameof(OtherParentheses),
+                s_defaultOtherOperatorsParenthesesPreference,
+                "dotnet_style_parentheses_in_other_operators", isOther: true);
+
+        private static Optional<CodeStyleOption<ParenthesesPreference>> ParseParenthesesPreference(
+            string optionString, Optional<CodeStyleOption<ParenthesesPreference>> defaultValue, bool isOther)
+        {
+            if (TryGetCodeStyleValueAndOptionalNotification(optionString,
+                    out var value, out var notificationOpt))
+            {
+                value.Trim();
+                notificationOpt = notificationOpt ?? NotificationOption.None;
+
+                switch (value)
+                {
+                // 'ignore' is only allowed for the "dotnet_style_parenthese_in_other_operators"
+                case "ignore" when isOther:
+                    return new CodeStyleOption<ParenthesesPreference>(ParenthesesPreference.Ignore, NotificationOption.None);
+                // 'always_for_clarity' is not allowed for "dotnet_style_parenthese_in_other_operators";
+                case "always_for_clarity" when !isOther:
+                    return new CodeStyleOption<ParenthesesPreference>(ParenthesesPreference.AlwaysForClarity, notificationOpt);
+                case "never_if_unnecessary":
+                    return new CodeStyleOption<ParenthesesPreference>(ParenthesesPreference.NeverIfUnnecessary, notificationOpt);
+                }
+            }
+
+            return defaultValue;
         }
     }
 }
