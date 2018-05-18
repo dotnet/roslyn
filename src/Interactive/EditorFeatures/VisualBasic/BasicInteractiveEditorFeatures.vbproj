@@ -6,7 +6,7 @@
     <PlatformTarget>AnyCPU</PlatformTarget>
     <OutputType>Library</OutputType>
     <AssemblyName>Microsoft.CodeAnalysis.VisualBasic.InteractiveEditorFeatures</AssemblyName>
-    <TargetFramework>net461</TargetFramework>
+    <TargetFramework>net46</TargetFramework>
     <RootNamespace></RootNamespace>
   </PropertyGroup>
   <ItemGroup Label="Project References">
