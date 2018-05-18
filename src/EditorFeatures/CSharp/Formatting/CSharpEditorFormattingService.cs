@@ -120,11 +120,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.Formatting
             return Formatter.GetFormattedTextChanges(root, SpecializedCollections.SingletonEnumerable(formattingSpan), document.Project.Solution.Workspace, options, rules, cancellationToken);
         }
 
-        private IEnumerable<IFormattingRule> GetFormattingRules(Document document, SyntaxNode root, int position)
+        private IEnumerable<IFormattingRule> GetFormattingRules(Document document, int position, SyntaxToken tokenBeforeCaret)
         {
             var workspace = document.Project.Solution.Workspace;
             var formattingRuleFactory = workspace.Services.GetService<IHostDependentFormattingRuleFactoryService>();
-            return formattingRuleFactory.CreateRule(document, position).Concat(GetTypingRules(document, root, position)).Concat(Formatter.GetDefaultFormattingRules(document));
+            return formattingRuleFactory.CreateRule(document, position).Concat(GetTypingRules(document, tokenBeforeCaret)).Concat(Formatter.GetDefaultFormattingRules(document));
         }
 
         public async Task<IList<TextChange>> GetFormattingChangesOnReturnAsync(Document document, int caretPosition, CancellationToken cancellationToken)
@@ -142,8 +142,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.Formatting
                 return null;
             }
 
-            var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-            var formattingRules = this.GetFormattingRules(document, root, caretPosition);
+            var formattingRules = this.GetFormattingRules(document, caretPosition, token);
 
             string text = null;
             if (IsInvalidToken(token, ref text))
@@ -218,7 +217,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.Formatting
             }
 
             var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-            var formattingRules = this.GetFormattingRules(document, root, caretPosition);
+            var formattingRules = this.GetFormattingRules(document, caretPosition, token);
 
             var service = document.GetLanguageService<ISyntaxFactsService>();
             if (service != null && service.IsInNonUserCode(token.SyntaxTree, caretPosition, cancellationToken))
@@ -314,7 +313,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.Formatting
             return changes;
         }
 
-        private IEnumerable<IFormattingRule> GetTypingRules(Document document, SyntaxNode root, int position)
+        private IEnumerable<IFormattingRule> GetTypingRules(Document document, SyntaxToken tokenBeforeCaret)
         {
             // Typing introduces several challenges around formatting.  
             // Historically we've shipped several triggers that cause formatting to happen directly while typing.
@@ -388,10 +387,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.Formatting
             // ```
             // 
             // This will have the desired effect of keeping these tokens on the same line, but only during typing scenarios.  
-            var token = root.FindToken(position);
-
-            if (token.Kind() == SyntaxKind.CloseBraceToken ||
-                token.Kind() == SyntaxKind.EndOfFileToken)
+            if (tokenBeforeCaret.Kind() == SyntaxKind.CloseBraceToken ||
+                tokenBeforeCaret.Kind() == SyntaxKind.EndOfFileToken)
             {
                 return SpecializedCollections.EmptyEnumerable<IFormattingRule>();
             }
