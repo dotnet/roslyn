@@ -265,7 +265,7 @@ class C
 }
 ";
 
-            CreateCompilationWithMscorlibAndSystemCore(source).VerifyDiagnostics(
+            CreateCompilation(source).VerifyDiagnostics(
                 // (9,41): error CS1593: Delegate 'Func<int, int>' does not take 0 arguments
                 //         Expression<Func<int,int>> ex1 = () => 1;
                 Diagnostic(ErrorCode.ERR_BadDelArgCount, "() => 1").WithArguments("System.Func<int, int>", "0").WithLocation(9, 41),
