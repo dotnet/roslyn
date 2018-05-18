@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.E
 
         IEnumerable<char> IAsyncCompletionCommitManager.PotentialCommitCharacters => CommitChars;
 
-        public bool ShouldCommitCompletion(char typedChar, SnapshotPoint location)
+        public bool ShouldCommitCompletion(char typedChar, SnapshotPoint location, CancellationToken token)
         {
             return CommitChars.Contains(typedChar);
         }
@@ -49,17 +49,17 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.E
             if (needsCustomCommit)
             {
                 CustomCommit(view, buffer, roslynItem, applicableSpan, typeChar, token);
-                return new EditorCompletion.CommitResult(isHandled: true, EditorCompletion.CommitBehavior.SuppressFurtherCommandHandlers);
+                return new EditorCompletion.CommitResult(isHandled: true, EditorCompletion.CommitBehavior.SuppressFurtherTypeCharCommandHandlers);
             }
 
             if (document.Project.Language == LanguageNames.VisualBasic && typeChar == '\n')
             {
-                return new EditorCompletion.CommitResult(isHandled: false, EditorCompletion.CommitBehavior.RaiseFurtherCommandHandlers);
+                return new EditorCompletion.CommitResult(isHandled: false, EditorCompletion.CommitBehavior.SuppressFurtherTypeCharCommandHandlers);
             }
 
             if (item.InsertText.EndsWith(":") && typeChar == ':')
             {
-                return new EditorCompletion.CommitResult(isHandled: false, EditorCompletion.CommitBehavior.SuppressFurtherCommandHandlers);
+                return new EditorCompletion.CommitResult(isHandled: false, EditorCompletion.CommitBehavior.SuppressFurtherTypeCharCommandHandlers);
             }
 
             return new EditorCompletion.CommitResult(isHandled: false, EditorCompletion.CommitBehavior.None);
@@ -98,7 +98,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.E
                 }
             }
 
-            return EditorCompletion.CommitBehavior.SuppressFurtherCommandHandlers;
+            return EditorCompletion.CommitBehavior.SuppressFurtherTypeCharCommandHandlers;
         }
     }
 }
