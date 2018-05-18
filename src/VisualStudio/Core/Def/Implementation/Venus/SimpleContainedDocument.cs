@@ -14,6 +14,8 @@ using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
 {
+    using System.Threading;
+    using System.Threading.Tasks;
     using Workspace = Microsoft.CodeAnalysis.Workspace;
 
     /// <summary>
@@ -25,14 +27,15 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
         /// The IDocumentProvider that created us.
         /// </summary>
         private readonly DocumentProvider _documentProvider;
-        private readonly FileChangeTracker _fileChangeTracker;
-        private readonly TextLoader _doNotAccessDirectlyLoader;
+        private readonly SourceTextContainer _sourceTextContainer;
+        private readonly EventHandler _updatedHandler;
 
         public DocumentId Id { get; }
         public IReadOnlyList<string> Folders { get; }
         public AbstractProject Project { get; }
         public SourceCodeKind SourceCodeKind { get; }
         public DocumentKey Key { get; }
+        public TextLoader Loader { get; }
         public IDocumentServiceFactory DocumentServiceFactory { get; }
 
         public SimpleContainedDocument(
@@ -40,10 +43,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
             AbstractProject project,
             DocumentKey documentKey,
             Func<uint, IReadOnlyList<string>> getFolderNames,
+            SourceTextContainer sourceTextContainer,
             SourceCodeKind sourceCodeKind,
-            IVsFileChangeEx fileChangeService,
             DocumentId id,
-            EventHandler updatedOnDiskHandler,
+            EventHandler updatedHandler,
             IDocumentServiceFactory documentServiceFactory)
         {
             Contract.ThrowIfNull(documentProvider);
@@ -61,30 +64,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
             this.Key = documentKey;
             this.SourceCodeKind = sourceCodeKind;
 
-            _fileChangeTracker = new FileChangeTracker(fileChangeService, this.FilePath);
-            _fileChangeTracker.UpdatedOnDisk += OnUpdatedOnDisk;
+            this.Loader = new SourceTextContainerTextLoader(sourceTextContainer, this.FilePath);
 
-            // The project system does not tell us the CodePage specified in the proj file, so
-            // we use null to auto-detect.
-            _doNotAccessDirectlyLoader = new FileTextLoader(documentKey.Moniker, defaultEncoding: null);
-
-            _fileChangeTracker.StartFileChangeListeningAsync();
-
-            if (updatedOnDiskHandler != null)
-            {
-                UpdatedOnDisk += updatedOnDiskHandler;
-            }
+            _updatedHandler = updatedHandler;
+            _sourceTextContainer = sourceTextContainer;
+            _sourceTextContainer.TextChanged += OnTextChanged;
 
             this.DocumentServiceFactory = documentServiceFactory;
-        }
-
-        public TextLoader Loader
-        {
-            get
-            {
-                _fileChangeTracker.EnsureSubscription();
-                return _doNotAccessDirectlyLoader;
-            }
         }
 
         public uint GetItemId()
@@ -145,17 +131,39 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
 
         public void Dispose()
         {
-            _fileChangeTracker.Dispose();
-            _fileChangeTracker.UpdatedOnDisk -= OnUpdatedOnDisk;
+            _sourceTextContainer.TextChanged -= OnTextChanged;
 
             _documentProvider.StopTrackingDocument(this);
         }
+
         public void UpdateText(SourceText newText) => throw new NotSupportedException();
         public ITextBuffer GetTextUndoHistoryBuffer() => null;
 
-        private void OnUpdatedOnDisk(object sender, EventArgs e)
+        private void OnTextChanged(object sender, TextChangeEventArgs e)
         {
-            UpdatedOnDisk?.Invoke(this, EventArgs.Empty);
+            _updatedHandler(this, e);
+        }
+
+        private class SourceTextContainerTextLoader : TextLoader
+        {
+            private readonly SourceTextContainer _sourceTextContainer;
+            private readonly string _filePath;
+
+            public SourceTextContainerTextLoader(SourceTextContainer sourceTextContainer, string filePath)
+            {
+                _sourceTextContainer = sourceTextContainer;
+                _filePath = filePath;
+            }
+
+            public override Task<TextAndVersion> LoadTextAndVersionAsync(Workspace workspace, DocumentId documentId, CancellationToken cancellationToken)
+            {
+                return Task.FromResult(LoadTextAndVersionSynchronously(workspace, documentId, cancellationToken));
+            }
+
+            internal override TextAndVersion LoadTextAndVersionSynchronously(Workspace workspace, DocumentId documentId, CancellationToken cancellationToken)
+            {
+                return TextAndVersion.Create(_sourceTextContainer.CurrentText, VersionStamp.Create(), _filePath);
+            }
         }
     }
 }

@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Experiment;
+using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.Editor;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Venus;
@@ -106,6 +107,30 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 closingHandler);
         }
 
+        public IVisualStudioHostDocument TryGetDocumentForFile(
+            AbstractProject hostProject,
+            string filePath,
+            SourceCodeKind sourceCodeKind,
+            Func<ITextBuffer, bool> canUseTextBuffer,
+            Func<uint, IReadOnlyList<string>> getFolderNames,
+            EventHandler updatedOnDiskHandler = null,
+            EventHandler<bool> openedHandler = null,
+            EventHandler<bool> closingHandler = null,
+            IDocumentServiceFactory documentServiceFactory = null)
+        {
+            return TryGetDocumentForFile(
+                hostProject,
+                filePath,
+                sourceTextContainer: null,
+                sourceCodeKind,
+                canUseTextBuffer,
+                getFolderNames,
+                updatedOnDiskHandler,
+                openedHandler,
+                closingHandler,
+                documentServiceFactory);
+        }
+
         /// <summary>
         /// Gets the <see cref="IVisualStudioHostDocument"/> for the file at the given filePath.
         /// If we are on the foreground thread and this document is already open in the editor,
@@ -116,10 +141,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         public IVisualStudioHostDocument TryGetDocumentForFile(
             AbstractProject hostProject,
             string filePath,
+            SourceTextContainer sourceTextContainer,
             SourceCodeKind sourceCodeKind,
             Func<ITextBuffer, bool> canUseTextBuffer,
             Func<uint, IReadOnlyList<string>> getFolderNames,
-            EventHandler updatedOnDiskHandler = null,
+            EventHandler updatedHandler = null,
             EventHandler<bool> openedHandler = null,
             EventHandler<bool> closingHandler = null,
             IDocumentServiceFactory documentServiceFactory = null)
@@ -190,7 +216,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                         _fileChangeService,
                         openTextBuffer,
                         id,
-                        updatedOnDiskHandler,
+                        updatedHandler,
                         openedHandler,
                         closingHandler);
                 }
@@ -208,10 +234,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                         hostProject,
                         documentKey,
                         getFolderNames,
+                        sourceTextContainer,
                         sourceCodeKind,
-                        _fileChangeService,
                         id,
-                        updatedOnDiskHandler,
+                        updatedHandler,
                         documentServiceFactory);
                 }
 

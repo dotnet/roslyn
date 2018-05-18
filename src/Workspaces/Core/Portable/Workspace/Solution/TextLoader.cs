@@ -76,6 +76,8 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
+        // this should hold onto SourceText not container. not sure why it is holding onto container.. perf (memory reason) ?
+        // anyway, seems wrong since _version is set but CurrentText can change if LoadTextAndVersion called multiple times.
         private class TextContainerLoader : TextLoader
         {
             private readonly SourceTextContainer _container;
