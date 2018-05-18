@@ -1527,7 +1527,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_RefStructInterfaceImpl = 8343,
         ERR_BadSpecialByRefIterator = 8344,
         ERR_FieldAutoPropCantBeByRefLike = 8345,
-
         ERR_StackAllocConversionNotPossible = 8346,
 
         ERR_EscapeCall = 8347,
@@ -1577,8 +1576,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_ExprCannotBeFixed = 8385,
         ERR_InvalidObjectCreation = 8386,
         #endregion diagnostics introduced for C# 7.3
-
-        ERR_OutVariableCannotBeByRef = 8387,
+        WRN_TypeParameterSameAsOuterMethodTypeParameter = 8387,
+        ERR_OutVariableCannotBeByRef = 8388,
     }
     // Note: you will need to re-generate compiler code after adding warnings (build\scripts\generate-compiler-code.cmd)
 }
