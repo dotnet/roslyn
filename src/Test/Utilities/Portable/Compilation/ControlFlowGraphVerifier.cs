@@ -367,7 +367,6 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
                     case ControlFlowGraph.RegionKind.ErroneousBody:
                         Assert.Null(region.ExceptionType);
-                        Assert.Empty(region.Locals);
                         enterRegion($".erroneous body {{R{regionMap[region]}}}");
                         break;
 

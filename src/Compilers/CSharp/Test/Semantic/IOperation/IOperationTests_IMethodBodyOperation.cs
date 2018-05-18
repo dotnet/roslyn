@@ -516,6 +516,87 @@ Block[B1] - Exit
 ");
         }
 
+        [CompilerTrait(CompilerFeature.Dataflow)]
+        [Fact]
+        public void RegularMethodBody_10()
+        {
+            string source = @"
+class C
+{
+    public void M()
+    { }
+    => M2(out int x);
+
+    void M2(out int x) => x = 0;
+}
+";
+            var compilation = CreateCompilation(source, parseOptions: TestOptions.RegularWithFlowAnalysisFeature);
+
+            compilation.VerifyDiagnostics(
+                // (4,5): error CS8057: Block bodies and expression bodies cannot both be provided.
+                //     public void M()
+                Diagnostic(ErrorCode.ERR_BlockBodyAndExpressionBody, @"public void M()
+    { }
+    => M2(out int x);").WithLocation(4, 5));
+
+            var tree = compilation.SyntaxTrees.Single();
+            var node1 = tree.GetRoot().DescendantNodes().OfType<BaseMethodDeclarationSyntax>().First();
+
+            compilation.VerifyOperationTree(node1, expectedOperationTree:
+@"
+IMethodBodyOperation (OperationKind.MethodBodyOperation, Type: null, IsInvalid) (Syntax: 'public void ... out int x);')
+  BlockBody: 
+    IBlockOperation (0 statements) (OperationKind.Block, Type: null, IsInvalid) (Syntax: '{ }')
+  ExpressionBody: 
+    IBlockOperation (1 statements, 1 locals) (OperationKind.Block, Type: null, IsInvalid) (Syntax: '=> M2(out int x)')
+      Locals: Local_1: System.Int32 x
+      IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null, IsInvalid, IsImplicit) (Syntax: 'M2(out int x)')
+        Expression: 
+          IInvocationOperation ( void C.M2(out System.Int32 x)) (OperationKind.Invocation, Type: System.Void, IsInvalid) (Syntax: 'M2(out int x)')
+            Instance Receiver: 
+              IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: C, IsInvalid, IsImplicit) (Syntax: 'M2')
+            Arguments(1):
+                IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: x) (OperationKind.Argument, Type: null, IsInvalid) (Syntax: 'out int x')
+                  IDeclarationExpressionOperation (OperationKind.DeclarationExpression, Type: System.Int32, IsInvalid) (Syntax: 'int x')
+                    ILocalReferenceOperation: x (IsDeclaration: True) (OperationKind.LocalReference, Type: System.Int32, IsInvalid) (Syntax: 'x')
+                  InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                  OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+");
+
+            VerifyFlowGraph(compilation, node1, expectedFlowGraph:
+@"
+Block[B0] - Entry
+    Statements (0)
+    Next (Regular) Block[B2]
+
+.erroneous body {R1}
+{
+    Locals: [System.Int32 x]
+    Block[B1] - Block [UnReachable]
+        Predecessors (0)
+        Statements (1)
+            IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null, IsInvalid, IsImplicit) (Syntax: 'M2(out int x)')
+              Expression: 
+                IInvocationOperation ( void C.M2(out System.Int32 x)) (OperationKind.Invocation, Type: System.Void, IsInvalid) (Syntax: 'M2(out int x)')
+                  Instance Receiver: 
+                    IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: C, IsInvalid, IsImplicit) (Syntax: 'M2')
+                  Arguments(1):
+                      IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: x) (OperationKind.Argument, Type: null, IsInvalid) (Syntax: 'out int x')
+                        IDeclarationExpressionOperation (OperationKind.DeclarationExpression, Type: System.Int32, IsInvalid) (Syntax: 'int x')
+                          ILocalReferenceOperation: x (IsDeclaration: True) (OperationKind.LocalReference, Type: System.Int32, IsInvalid) (Syntax: 'x')
+                        InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                        OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+
+        Next (Regular) Block[B2]
+            Leaving: {R1}
+}
+
+Block[B2] - Exit
+    Predecessors: [B0] [B1]
+    Statements (0)
+");
+        }
+
         [Fact]
         public void OperatorBody_01()
         {

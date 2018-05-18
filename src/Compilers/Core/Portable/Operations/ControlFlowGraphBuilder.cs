@@ -50,8 +50,6 @@ namespace Microsoft.CodeAnalysis.Operations
             return _forceImplicit || operation.IsImplicit;
         }
 
-        private bool IsStartOfErroneousBodyRegion => _currentRegion?.Kind == ControlFlowGraph.RegionKind.ErroneousBody && _currentRegion.IsEmpty;
-
         public static ControlFlowGraph Create(IOperation body)
         {
             // PROTOTYPE(dataflow): Consider getting the SemanticModel and Compilation from the root node, 
@@ -1135,15 +1133,9 @@ namespace Microsoft.CodeAnalysis.Operations
             CurrentBasicBlock.AddStatement(statement);
         }
 
-        private void AppendNewBlock(BasicBlock block)
-        {
-            AppendNewBlock(block, linkToPrevious: !IsStartOfErroneousBodyRegion);
-        }
-
-        private void AppendNewBlock(BasicBlock block, bool linkToPrevious)
+        private void AppendNewBlock(BasicBlock block, bool linkToPrevious = true)
         {
             Debug.Assert(block != null);
-            Debug.Assert(!linkToPrevious || !IsStartOfErroneousBodyRegion);
 
             if (linkToPrevious)
             {
