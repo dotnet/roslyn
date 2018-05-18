@@ -198,15 +198,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 node is AnonymousMethodExpressionSyntax;
         }
 
-        public bool IsLocalFunction(SyntaxNode node)
-        {
-            return node is LocalFunctionStatementSyntax;
-        }
-
         public bool IsGenericName(SyntaxNode node)
-        {
-            return node is GenericNameSyntax;
-        }
+            => node is GenericNameSyntax;
 
         public bool IsNamedParameter(SyntaxNode node)
             => node.CheckParent<NameColonSyntax>(p => p.Name == node);
