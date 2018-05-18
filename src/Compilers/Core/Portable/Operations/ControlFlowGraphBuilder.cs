@@ -4886,6 +4886,11 @@ oneMoreTime:
             return new AwaitExpression(Visit(operation.Operation), semanticModel: null, operation.Syntax, operation.Type, operation.ConstantValue, IsImplicit(operation));
         }
 
+        public override IOperation VisitSizeOf(ISizeOfOperation operation, int? captureIdForResult)
+        {
+            return new SizeOfExpression(operation.TypeOperand, semanticModel: null, operation.Syntax, operation.Type, operation.ConstantValue, IsImplicit(operation));
+        }
+        
         public override IOperation VisitStop(IStopOperation operation, int? captureIdForResult)
         {
             return new StopStatement(semanticModel: null, operation.Syntax, operation.Type, operation.ConstantValue, IsImplicit(operation));
@@ -4975,6 +4980,11 @@ oneMoreTime:
             {
                 LeaveRegion();
             }
+	    }
+
+        public override IOperation VisitAddressOf(IAddressOfOperation operation, int? captureIdForResult)
+        {
+            return new AddressOfExpression(Visit(operation.Reference), semanticModel: null, operation.Syntax, operation.Type, operation.ConstantValue, IsImplicit(operation));
         }
 
         public override IOperation VisitIsPattern(IIsPatternOperation operation, int? captureIdForResult)
@@ -5104,11 +5114,6 @@ oneMoreTime:
             return new IsTypeExpression(Visit(operation.ValueOperand), operation.TypeOperand, operation.IsNegated, semanticModel: null, operation.Syntax, operation.Type, operation.ConstantValue, IsImplicit(operation));
         }
 
-        public override IOperation VisitSizeOf(ISizeOfOperation operation, int? captureIdForResult)
-        {
-            return new SizeOfExpression(operation.TypeOperand, semanticModel: null, operation.Syntax, operation.Type, operation.ConstantValue, IsImplicit(operation));
-        }
-
         public override IOperation VisitAnonymousFunction(IAnonymousFunctionOperation operation, int? captureIdForResult)
         {
             // PROTOTYPE(dataflow): When implementing, consider when a lambda inside a VB initializer references the instance being initialized.
@@ -5123,11 +5128,6 @@ oneMoreTime:
                                                                       operation.Body.ConstantValue,
                                                                       IsImplicit(operation.Body)),
                                                    semanticModel: null, operation.Syntax, operation.Type, operation.ConstantValue, IsImplicit(operation));
-        }
-
-        public override IOperation VisitAddressOf(IAddressOfOperation operation, int? captureIdForResult)
-        {
-            return new AddressOfExpression(Visit(operation.Reference), semanticModel: null, operation.Syntax, operation.Type, operation.ConstantValue, IsImplicit(operation));
         }
 
         public override IOperation VisitAnonymousObjectCreation(IAnonymousObjectCreationOperation operation, int? captureIdForResult)
