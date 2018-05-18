@@ -693,7 +693,7 @@ class c
                 Await state.AssertNoCompletionSession()
 
                 ' /// <see langword="keyword"/>$$
-                Await state.AssertLineTextAroundCaret("    /// <see langword=""" + keyword + """/>", "")
+                Await state.AssertLineTextAroundCaret("    /// <see langword=""" + keyword + """/>" + vbNullChar, "") ' TODO ?! What happened here with the \0?
             End Using
         End Function
 
