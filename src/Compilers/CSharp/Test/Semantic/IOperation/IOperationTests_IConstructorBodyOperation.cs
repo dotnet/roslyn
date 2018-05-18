@@ -1033,5 +1033,312 @@ Block[B1] - Exit
     Statements (0)
 ");
         }
+
+        [CompilerTrait(CompilerFeature.Dataflow)]
+        [Fact]
+        public void ConstructorBody_16()
+        {
+            string source = @"
+class C : Base
+{
+    C(int p) : base(out var i)
+    {
+        p = i;
+    }
+}
+
+class Base
+{
+    protected Base(out int i)
+    {
+        i = 1;
+    }
+}
+";
+            var compilation = CreateCompilation(source, parseOptions: TestOptions.RegularWithFlowAnalysisFeature);
+
+            compilation.VerifyDiagnostics();
+
+            var tree = compilation.SyntaxTrees.Single();
+            var node1 = tree.GetRoot().DescendantNodes().OfType<ConstructorDeclarationSyntax>().First();
+
+            compilation.VerifyOperationTree(node1, expectedOperationTree:
+@"
+IConstructorBodyOperation (OperationKind.ConstructorBodyOperation, Type: null) (Syntax: 'C(int p) :  ... }')
+  Locals: Local_1: System.Int32 i
+  Initializer: 
+    IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null, IsImplicit) (Syntax: ': base(out var i)')
+      Expression: 
+        IInvocationOperation ( Base..ctor(out System.Int32 i)) (OperationKind.Invocation, Type: System.Void) (Syntax: ': base(out var i)')
+          Instance Receiver: 
+            IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: Base, IsImplicit) (Syntax: ': base(out var i)')
+          Arguments(1):
+              IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: i) (OperationKind.Argument, Type: null) (Syntax: 'out var i')
+                IDeclarationExpressionOperation (OperationKind.DeclarationExpression, Type: System.Int32) (Syntax: 'var i')
+                  ILocalReferenceOperation: i (IsDeclaration: True) (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'i')
+                InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+  BlockBody: 
+    IBlockOperation (1 statements) (OperationKind.Block, Type: null) (Syntax: '{ ... }')
+      IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'p = i;')
+        Expression: 
+          ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32) (Syntax: 'p = i')
+            Left: 
+              IParameterReferenceOperation: p (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'p')
+            Right: 
+              ILocalReferenceOperation: i (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'i')
+  ExpressionBody: 
+    null
+");
+
+            VerifyFlowGraph(compilation, node1, expectedFlowGraph:
+@"
+Block[B0] - Entry
+    Statements (0)
+    Next (Regular) Block[B1]
+        Entering: {R1}
+
+.locals {R1}
+{
+    Locals: [System.Int32 i]
+    Block[B1] - Block
+        Predecessors: [B0]
+        Statements (2)
+            IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null, IsImplicit) (Syntax: ': base(out var i)')
+              Expression: 
+                IInvocationOperation ( Base..ctor(out System.Int32 i)) (OperationKind.Invocation, Type: System.Void) (Syntax: ': base(out var i)')
+                  Instance Receiver: 
+                    IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: Base, IsImplicit) (Syntax: ': base(out var i)')
+                  Arguments(1):
+                      IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: i) (OperationKind.Argument, Type: null) (Syntax: 'out var i')
+                        IDeclarationExpressionOperation (OperationKind.DeclarationExpression, Type: System.Int32) (Syntax: 'var i')
+                          ILocalReferenceOperation: i (IsDeclaration: True) (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'i')
+                        InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                        OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+
+            IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'p = i;')
+              Expression: 
+                ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32) (Syntax: 'p = i')
+                  Left: 
+                    IParameterReferenceOperation: p (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'p')
+                  Right: 
+                    ILocalReferenceOperation: i (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'i')
+
+        Next (Regular) Block[B2]
+            Leaving: {R1}
+}
+
+Block[B2] - Exit
+    Predecessors: [B1]
+    Statements (0)
+");
+        }
+
+        [CompilerTrait(CompilerFeature.Dataflow)]
+        [Fact]
+        public void ConstructorBody_17()
+        {
+            string source = @"
+class C : Base
+{
+    C(int? i, int j, int p) : base(i ?? j) 
+    {
+        p = j;
+    }
+}
+
+class Base
+{
+    protected Base(int i)
+    {
+    }
+}
+";
+            var compilation = CreateCompilation(source, parseOptions: TestOptions.RegularWithFlowAnalysisFeature);
+
+            compilation.VerifyDiagnostics();
+
+            var tree = compilation.SyntaxTrees.Single();
+            var node1 = tree.GetRoot().DescendantNodes().OfType<ConstructorDeclarationSyntax>().First();
+
+            compilation.VerifyOperationTree(node1, expectedOperationTree:
+@"
+IConstructorBodyOperation (OperationKind.ConstructorBodyOperation, Type: null) (Syntax: 'C(int? i, i ... }')
+  Initializer: 
+    IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null, IsImplicit) (Syntax: ': base(i ?? j)')
+      Expression: 
+        IInvocationOperation ( Base..ctor(System.Int32 i)) (OperationKind.Invocation, Type: System.Void) (Syntax: ': base(i ?? j)')
+          Instance Receiver: 
+            IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: Base, IsImplicit) (Syntax: ': base(i ?? j)')
+          Arguments(1):
+              IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: i) (OperationKind.Argument, Type: null) (Syntax: 'i ?? j')
+                ICoalesceOperation (OperationKind.Coalesce, Type: System.Int32) (Syntax: 'i ?? j')
+                  Expression: 
+                    IParameterReferenceOperation: i (OperationKind.ParameterReference, Type: System.Int32?) (Syntax: 'i')
+                  ValueConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                    (Identity)
+                  WhenNull: 
+                    IParameterReferenceOperation: j (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'j')
+                InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+  BlockBody: 
+    IBlockOperation (1 statements) (OperationKind.Block, Type: null) (Syntax: '{ ... }')
+      IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'p = j;')
+        Expression: 
+          ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32) (Syntax: 'p = j')
+            Left: 
+              IParameterReferenceOperation: p (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'p')
+            Right: 
+              IParameterReferenceOperation: j (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'j')
+  ExpressionBody: 
+    null
+");
+
+            VerifyFlowGraph(compilation, node1, expectedFlowGraph:
+@"
+Block[B0] - Entry
+    Statements (0)
+    Next (Regular) Block[B1]
+Block[B1] - Block
+    Predecessors: [B0]
+    Statements (2)
+        IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: ': base(i ?? j)')
+          Value: 
+            IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: Base, IsImplicit) (Syntax: ': base(i ?? j)')
+
+        IFlowCaptureOperation: 1 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'i')
+          Value: 
+            IParameterReferenceOperation: i (OperationKind.ParameterReference, Type: System.Int32?) (Syntax: 'i')
+
+    Jump if True (Regular) to Block[B3]
+        IIsNullOperation (OperationKind.IsNull, Type: System.Boolean, IsImplicit) (Syntax: 'i')
+          Operand: 
+            IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: System.Int32?, IsImplicit) (Syntax: 'i')
+
+    Next (Regular) Block[B2]
+Block[B2] - Block
+    Predecessors: [B1]
+    Statements (1)
+        IFlowCaptureOperation: 2 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'i')
+          Value: 
+            IInvocationOperation ( System.Int32 System.Int32?.GetValueOrDefault()) (OperationKind.Invocation, Type: System.Int32, IsImplicit) (Syntax: 'i')
+              Instance Receiver: 
+                IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: System.Int32?, IsImplicit) (Syntax: 'i')
+              Arguments(0)
+
+    Next (Regular) Block[B4]
+Block[B3] - Block
+    Predecessors: [B1]
+    Statements (1)
+        IFlowCaptureOperation: 2 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'j')
+          Value: 
+            IParameterReferenceOperation: j (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'j')
+
+    Next (Regular) Block[B4]
+Block[B4] - Block
+    Predecessors: [B2] [B3]
+    Statements (2)
+        IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null, IsImplicit) (Syntax: ': base(i ?? j)')
+          Expression: 
+            IInvocationOperation ( Base..ctor(System.Int32 i)) (OperationKind.Invocation, Type: System.Void) (Syntax: ': base(i ?? j)')
+              Instance Receiver: 
+                IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: Base, IsImplicit) (Syntax: ': base(i ?? j)')
+              Arguments(1):
+                  IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: i) (OperationKind.Argument, Type: null) (Syntax: 'i ?? j')
+                    IFlowCaptureReferenceOperation: 2 (OperationKind.FlowCaptureReference, Type: System.Int32, IsImplicit) (Syntax: 'i ?? j')
+                    InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                    OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+
+        IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'p = j;')
+          Expression: 
+            ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32) (Syntax: 'p = j')
+              Left: 
+                IParameterReferenceOperation: p (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'p')
+              Right: 
+                IParameterReferenceOperation: j (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'j')
+
+    Next (Regular) Block[B5]
+Block[B5] - Exit
+    Predecessors: [B4]
+    Statements (0)
+");
+        }
+
+        [CompilerTrait(CompilerFeature.Dataflow)]
+        [Fact]
+        public void ConstructorBody_18()
+        {
+            string source = @"
+class C
+{
+    C(int j, int p) : this() 
+    {
+        p = j;
+    }
+
+    C()
+    {
+    }
+}
+";
+            var compilation = CreateCompilation(source, parseOptions: TestOptions.RegularWithFlowAnalysisFeature);
+
+            compilation.VerifyDiagnostics();
+
+            var tree = compilation.SyntaxTrees.Single();
+            var node1 = tree.GetRoot().DescendantNodes().OfType<ConstructorDeclarationSyntax>().First();
+
+            compilation.VerifyOperationTree(node1, expectedOperationTree:
+@"
+IConstructorBodyOperation (OperationKind.ConstructorBodyOperation, Type: null) (Syntax: 'C(int j, in ... }')
+  Initializer: 
+    IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null, IsImplicit) (Syntax: ': this()')
+      Expression: 
+        IInvocationOperation ( C..ctor()) (OperationKind.Invocation, Type: System.Void) (Syntax: ': this()')
+          Instance Receiver: 
+            IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: C, IsImplicit) (Syntax: ': this()')
+          Arguments(0)
+  BlockBody: 
+    IBlockOperation (1 statements) (OperationKind.Block, Type: null) (Syntax: '{ ... }')
+      IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'p = j;')
+        Expression: 
+          ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32) (Syntax: 'p = j')
+            Left: 
+              IParameterReferenceOperation: p (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'p')
+            Right: 
+              IParameterReferenceOperation: j (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'j')
+  ExpressionBody: 
+    null
+");
+
+            VerifyFlowGraph(compilation, node1, expectedFlowGraph:
+@"
+Block[B0] - Entry
+    Statements (0)
+    Next (Regular) Block[B1]
+Block[B1] - Block
+    Predecessors: [B0]
+    Statements (2)
+        IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null, IsImplicit) (Syntax: ': this()')
+          Expression: 
+            IInvocationOperation ( C..ctor()) (OperationKind.Invocation, Type: System.Void) (Syntax: ': this()')
+              Instance Receiver: 
+                IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: C, IsImplicit) (Syntax: ': this()')
+              Arguments(0)
+
+        IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'p = j;')
+          Expression: 
+            ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32) (Syntax: 'p = j')
+              Left: 
+                IParameterReferenceOperation: p (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'p')
+              Right: 
+                IParameterReferenceOperation: j (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'j')
+
+    Next (Regular) Block[B2]
+Block[B2] - Exit
+    Predecessors: [B1]
+    Statements (0)
+");
+        }
     }
 }
