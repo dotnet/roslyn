@@ -118,8 +118,8 @@ namespace AnalyzerRunner
                         else
                         {
                             throw new InvalidDataException((arg.StartsWith("/", StringComparison.Ordinal) ?
-                             $"Unrecognized option {arg}" :
-                             $"Unrecognized parameter {arg}"));
+                             "Unrecognized option " + arg :
+                             "Unrecognized parameter " + arg));
                         }
                         break;
                 }
