@@ -135,6 +135,7 @@
     <InternalsVisibleToRemoteLS Include="Microsoft.VisualStudio.LanguageServices.Remote.CSharp" />
     <InternalsVisibleToFSharp Include="FSharp.Editor" />
     <InternalsVisibleToFSharp Include="FSharp.LanguageService" />
+    <InternalsVisibleToRazor Include="Microsoft.VisualStudio.LanguageServices.Razor"/>
   </ItemGroup>
   <ItemGroup>
     <None Include="ManagedEditAndContinueService.vsdconfigxml" />
