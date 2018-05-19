@@ -494,6 +494,22 @@ namespace Microsoft.CodeAnalysis
         }
 
         /// <summary>
+        /// Call this method when a project's output ref file path is changed in the host environment.
+        /// </summary>
+        protected internal void OnOutputRefFilePathChanged(ProjectId projectId, string outputFilePath)
+        {
+            using (_serializationLock.DisposableWait())
+            {
+                CheckProjectIsInCurrentSolution(projectId);
+
+                var oldSolution = this.CurrentSolution;
+                var newSolution = this.SetCurrentSolution(oldSolution.WithProjectOutputRefFilePath(projectId, outputFilePath));
+
+                this.RaiseWorkspaceChangedEventAsync(WorkspaceChangeKind.ProjectChanged, oldSolution, newSolution, projectId);
+            }
+        }
+
+        /// <summary>
         /// Call this method when a project's name is changed in the host environment.
         /// </summary>
         protected internal void OnProjectNameChanged(ProjectId projectId, string name, string filePath)
@@ -1077,8 +1093,8 @@ namespace Microsoft.CodeAnalysis
         }
 
         /// <summary>
-        /// Returns <code>true</code> if a reference to referencedProject can be added to
-        /// referencingProject.  <code>false</code> otherwise.
+        /// Returns <see langword="true"/> if a reference to referencedProject can be added to
+        /// referencingProject.  <see langword="false"/> otherwise.
         /// </summary>
         internal virtual bool CanAddProjectReference(ProjectId referencingProject, ProjectId referencedProject)
         {

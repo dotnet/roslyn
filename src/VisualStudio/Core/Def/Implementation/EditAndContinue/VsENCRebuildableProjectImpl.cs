@@ -35,6 +35,7 @@ using Microsoft.CodeAnalysis.Debugging;
 using Microsoft.VisualStudio.Shell.Interop;
 using System.Reflection.PortableExecutable;
 using Microsoft.VisualStudio.LanguageServices.EditAndContinue;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.EditAndContinue
 {
@@ -169,17 +170,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.EditAndContinue
                 switch (projectReason)
                 {
                     case ProjectReadOnlyReason.MetadataNotAvailable:
-                        // TODO: Remove once https://github.com/dotnet/roslyn/issues/16657 is addressed
-                        bool deferredLoad = (_vsProject.ServiceProvider.GetService(typeof(SVsSolution)) as IVsSolution7)?.IsSolutionLoadDeferred() == true;
-                        if (deferredLoad)
-                        {
-                            message = ServicesVSResources.ChangesNotAllowedIfProjectWasntLoadedWhileDebugging;
-                            s_encDebuggingSessionInfo?.LogReadOnlyEditAttemptedProjectNotBuiltOrLoaded();
-                        }
-                        else
-                        {
-                            message = ServicesVSResources.ChangesNotAllowedIfProjectWasntBuildWhenDebuggingStarted;
-                        }
+                        message = ServicesVSResources.ChangesNotAllowedIfProjectWasntBuildWhenDebuggingStarted;
                         break;
 
                     case ProjectReadOnlyReason.NotLoaded:
@@ -236,7 +227,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.EditAndContinue
                     _encService.StartDebuggingSession(_vsProject.Workspace.CurrentSolution);
                     s_encDebuggingSessionInfo = new EncDebuggingSessionInfo();
 
-                    s_readOnlyDocumentTracker = new VsReadOnlyDocumentTracker(_encService, _editorAdaptersFactoryService, _vsProject);
+                    s_readOnlyDocumentTracker = new VsReadOnlyDocumentTracker(_encService, _editorAdaptersFactoryService);
                 }
 
                 string outputPath = _vsProject.ObjOutputPath;
@@ -655,7 +646,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.EditAndContinue
 
                     SyntaxNode syntaxRoot = document.GetSyntaxRootAsync(default).Result;
 
-                    var analyzer = document.Project.LanguageServices.GetService<IEditAndContinueAnalyzer>();
+                    var analyzer = document.GetLanguageService<IEditAndContinueAnalyzer>();
 
                     s_pendingActiveStatements.Add(new VsActiveStatement(
                         this,

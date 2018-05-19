@@ -74,8 +74,13 @@ namespace Microsoft.CodeAnalysis.Interactive
                             _processExitHandlerStatus = ProcessExitHandlerStatus.Handled;
                             // Should set _processExitHandlerStatus before calling OnProcessExited to avoid deadlocks.
                             // Calling the host should be within the lock to prevent its disposing during the execution.
-                            await _host.OnProcessExited(Process).ConfigureAwait(false);
                         }
+                    }
+
+                    var host = _host;
+                    if (host != null)
+                    {
+                        await host.OnProcessExited(Process).ConfigureAwait(false);
                     }
                 }
                 catch (Exception e) when (FatalError.Report(e))
@@ -114,19 +119,17 @@ namespace Microsoft.CodeAnalysis.Interactive
                 }
             }
 
+            // Dispose may called anytime.
             internal void Dispose(bool joinThreads)
             {
                 // There can be a call from host initiated from OnProcessExit. 
-                // This check on the beginning helps to avoid a reentrancy.
-                if (_processExitHandlerStatus == ProcessExitHandlerStatus.Hooked)
+                // We should not proceed with disposing if _disposeSemaphore is locked.
+                using (_disposeSemaphore.DisposableWait())
                 {
-                    using (_disposeSemaphore.DisposableWait())
+                    if (_processExitHandlerStatus == ProcessExitHandlerStatus.Hooked)
                     {
-                        if (_processExitHandlerStatus == ProcessExitHandlerStatus.Hooked)
-                        {
-                            Process.Exited -= ProcessExitedHandler;
-                            _processExitHandlerStatus = ProcessExitHandlerStatus.Handled;
-                        }
+                       Process.Exited -= ProcessExitedHandler;
+                       _processExitHandlerStatus = ProcessExitHandlerStatus.Handled;
                     }
                 }
 

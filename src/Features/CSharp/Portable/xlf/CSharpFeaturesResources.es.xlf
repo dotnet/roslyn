@@ -27,6 +27,11 @@
         <target state="translated">Eliminar instrucciones Using innecesarias</target>
         <note />
       </trans-unit>
+      <trans-unit id="if_statement_can_be_simplified">
+        <source>'if' statement can be simplified</source>
+        <target state="new">'if' statement can be simplified</target>
+        <note />
+      </trans-unit>
       <trans-unit id="lambda_expression">
         <source>&lt;lambda expression&gt;</source>
         <target state="translated">&lt;expresión lambda&gt;</target>
@@ -65,16 +70,6 @@
       <trans-unit id="Autoselect_disabled_due_to_potential_range_variable_declaration">
         <source>Autoselect disabled due to potential range variable declaration.</source>
         <target state="translated">La selección automática se ha deshabilitado debido posiblemente a una declaración de variable de rango.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Remove_Unnecessary_Cast">
-        <source>Remove Unnecessary Cast</source>
-        <target state="translated">Quitar conversión innecesaria</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Cast_is_redundant">
-        <source>Cast is redundant</source>
-        <target state="translated">Cast es redundante</target>
         <note />
       </trans-unit>
       <trans-unit id="Simplify_name_0">

@@ -433,6 +433,9 @@ namespace Microsoft.CodeAnalysis
 
         System_Runtime_CompilerServices_IsUnmanagedAttribute__ctor,
 
+        Microsoft_VisualBasic_Conversion__FixSingle,
+        Microsoft_VisualBasic_Conversion__FixDouble,
+
         System_IAsyncDisposable__DisposeAsync,
         System_Collections_Generic_IAsyncEnumerable_T__GetAsyncEnumerator,
         System_Collections_Generic_IAsyncEnumerator_T__WaitForNextAsync,

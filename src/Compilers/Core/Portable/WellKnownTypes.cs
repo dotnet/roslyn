@@ -274,6 +274,8 @@ namespace Microsoft.CodeAnalysis
         System_Runtime_InteropServices_UnmanagedType,
         System_Runtime_CompilerServices_IsUnmanagedAttribute,
 
+        Microsoft_VisualBasic_Conversion,
+
         System_IAsyncDisposable,
         System_Collections_Generic_IAsyncEnumerable_T,
         System_Collections_Generic_IAsyncEnumerator_T,
@@ -545,6 +547,9 @@ namespace Microsoft.CodeAnalysis
             "System.ReadOnlySpan`1",
             "System.Runtime.InteropServices.UnmanagedType",
             "System.Runtime.CompilerServices.IsUnmanagedAttribute",
+
+            "Microsoft.VisualBasic.Conversion",
+
             "System.IAsyncDisposable",
             "System.Collections.Generic.IAsyncEnumerable`1",
             "System.Collections.Generic.IAsyncEnumerator`1",

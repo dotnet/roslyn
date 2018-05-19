@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
@@ -16,7 +17,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Extensions
         {
             var codeBlocks = new List<Tuple<TextSpan, uint>>();
 
-            var syntaxFacts = document.Project.LanguageServices.GetService<ISyntaxFactsService>();
+            var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
             var text = document.GetTextAsync(cancellationToken).WaitAndGetResult(cancellationToken);
 
             int start = 0;

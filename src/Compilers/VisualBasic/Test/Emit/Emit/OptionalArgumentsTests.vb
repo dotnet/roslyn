@@ -9,6 +9,7 @@ Imports Microsoft.CodeAnalysis.Emit
 Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
+Imports Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Roslyn.Test.Utilities
 Imports Xunit
@@ -706,25 +707,26 @@ End Interface
     </file>
 </compilation>)
             comp.AssertTheseDiagnostics(<errors/>)
-            CompileAndVerify(comp, sourceSymbolValidator:=Sub([module])
-                                                              Dim type = [module].GlobalNamespace.GetMember(Of NamedTypeSymbol)("I")
-                                                              Assert.Equal(1, CountParamArrayAttributes(type.GetMember(Of MethodSymbol)("M1").Parameters(0)))
-                                                              Assert.Equal(1, CountParamArrayAttributes(type.GetMember(Of MethodSymbol)("M2").Parameters(0)))
-                                                              Assert.Equal(1, CountParamArrayAttributes(type.GetMember(Of MethodSymbol)("M3").Parameters(0)))
-                                                              Assert.Equal(1, CountParamArrayAttributes(type.GetMember(Of PropertySymbol)("P1").Parameters(0)))
-                                                              Assert.Equal(1, CountParamArrayAttributes(type.GetMember(Of MethodSymbol)("get_P1").Parameters(0)))
-                                                              Assert.Equal(1, CountParamArrayAttributes(type.GetMember(Of MethodSymbol)("set_P1").Parameters(0)))
-                                                              Assert.Equal(1, CountParamArrayAttributes(type.GetMember(Of PropertySymbol)("P2").Parameters(0)))
-                                                              Assert.Equal(1, CountParamArrayAttributes(type.GetMember(Of MethodSymbol)("get_P2").Parameters(0)))
-                                                              Assert.Equal(1, CountParamArrayAttributes(type.GetMember(Of MethodSymbol)("set_P2").Parameters(0)))
-                                                              Assert.Equal(1, CountParamArrayAttributes(type.GetMember(Of PropertySymbol)("P3").Parameters(0)))
-                                                              Assert.Equal(1, CountParamArrayAttributes(type.GetMember(Of MethodSymbol)("get_P3").Parameters(0)))
-                                                              Assert.Equal(1, CountParamArrayAttributes(type.GetMember(Of MethodSymbol)("set_P3").Parameters(0)))
-                                                          End Sub)
+            CompileAndVerify(comp, symbolValidator:=Sub([module])
+                                                        Dim type = [module].GlobalNamespace.GetMember(Of NamedTypeSymbol)("I")
+                                                        Assert.Equal(1, CountParamArrayAttributes(type.GetMember(Of MethodSymbol)("M1").Parameters(0)))
+                                                        Assert.Equal(1, CountParamArrayAttributes(type.GetMember(Of MethodSymbol)("M2").Parameters(0)))
+                                                        Assert.Equal(1, CountParamArrayAttributes(type.GetMember(Of MethodSymbol)("M3").Parameters(0)))
+                                                        Assert.Equal(1, CountParamArrayAttributes(type.GetMember(Of PropertySymbol)("P1").Parameters(0)))
+                                                        Assert.Equal(1, CountParamArrayAttributes(type.GetMember(Of MethodSymbol)("get_P1").Parameters(0)))
+                                                        Assert.Equal(1, CountParamArrayAttributes(type.GetMember(Of MethodSymbol)("set_P1").Parameters(0)))
+                                                        Assert.Equal(1, CountParamArrayAttributes(type.GetMember(Of PropertySymbol)("P2").Parameters(0)))
+                                                        Assert.Equal(1, CountParamArrayAttributes(type.GetMember(Of MethodSymbol)("get_P2").Parameters(0)))
+                                                        Assert.Equal(1, CountParamArrayAttributes(type.GetMember(Of MethodSymbol)("set_P2").Parameters(0)))
+                                                        Assert.Equal(1, CountParamArrayAttributes(type.GetMember(Of PropertySymbol)("P3").Parameters(0)))
+                                                        Assert.Equal(1, CountParamArrayAttributes(type.GetMember(Of MethodSymbol)("get_P3").Parameters(0)))
+                                                        Assert.Equal(1, CountParamArrayAttributes(type.GetMember(Of MethodSymbol)("set_P3").Parameters(0)))
+                                                    End Sub)
         End Sub
 
         Private Shared Function CountParamArrayAttributes(parameter As ParameterSymbol) As Integer
-            Dim attributes = parameter.GetCustomAttributesToEmit(New ModuleCompilationState)
+            Dim [module] = DirectCast(parameter.ContainingModule, PEModuleSymbol)
+            Dim attributes = [module].GetCustomAttributesForToken(DirectCast(parameter, PEParameterSymbol).Handle)
             Return attributes.Where(Function(a) a.AttributeClass.Name = "ParamArrayAttribute").Count()
         End Function
 
@@ -881,21 +883,21 @@ End Class
 </compilation>
             Dim comp1 = CreateCompilationWithMscorlib40AndVBRuntime(source1)
             comp1.AssertTheseDiagnostics(<errors/>)
-            CompileAndVerify(comp1, sourceSymbolValidator:=Sub([module])
-                                                               Dim type = [module].GlobalNamespace.GetMember(Of NamedTypeSymbol)("C")
-                                                               VerifyDefaultValueAttribute(type.GetMember(Of MethodSymbol)("F1").Parameters(0), Nothing, 1, True)
-                                                               VerifyDefaultValueAttribute(type.GetMember(Of MethodSymbol)("F2").Parameters(0), "DefaultParameterValueAttribute", 2, False)
-                                                               VerifyDefaultValueAttribute(type.GetMember(Of MethodSymbol)("F3").Parameters(0), "DefaultParameterValueAttribute", 3, True)
-                                                               VerifyDefaultValueAttribute(type.GetMember(Of MethodSymbol)("F4").Parameters(0), "DecimalConstantAttribute", 4UI, False)
-                                                               VerifyDefaultValueAttribute(type.GetMember(Of MethodSymbol)("F5").Parameters(0), "DecimalConstantAttribute", 5, False)
-                                                               VerifyDefaultValueAttribute(type.GetMember(Of MethodSymbol)("F6").Parameters(0), "DecimalConstantAttribute", 6, False)
-                                                               VerifyDefaultValueAttribute(type.GetMember(Of MethodSymbol)("F7").Parameters(0), "DateTimeConstantAttribute", 635102208000000000L, False)
-                                                               VerifyDefaultValueAttribute(type.GetMember(Of MethodSymbol)("F8").Parameters(0), "DateTimeConstantAttribute", 635102208000000000L, False)
-                                                               VerifyDefaultValueAttribute(type.GetMember(Of MethodSymbol)("F9").Parameters(0), "DateTimeConstantAttribute", 635102208000000000L, False)
-                                                               VerifyDefaultValueAttribute(type.GetMember(Of PropertySymbol)("P").Parameters(0), "DecimalConstantAttribute", 10, False)
-                                                               VerifyDefaultValueAttribute(type.GetMember(Of MethodSymbol)("get_P").Parameters(0), "DecimalConstantAttribute", 10, False)
-                                                               VerifyDefaultValueAttribute(type.GetMember(Of MethodSymbol)("set_P").Parameters(0), "DecimalConstantAttribute", 10, False)
-                                                           End Sub)
+            CompileAndVerify(comp1, symbolValidator:=Sub([module])
+                                                         Dim type = [module].GlobalNamespace.GetMember(Of NamedTypeSymbol)("C")
+                                                         VerifyDefaultValueAttribute(type.GetMember(Of MethodSymbol)("F1").Parameters(0), Nothing, 1, True)
+                                                         VerifyDefaultValueAttribute(type.GetMember(Of MethodSymbol)("F2").Parameters(0), "DefaultParameterValueAttribute", 2, False)
+                                                         VerifyDefaultValueAttribute(type.GetMember(Of MethodSymbol)("F3").Parameters(0), "DefaultParameterValueAttribute", 3, True)
+                                                         VerifyDefaultValueAttribute(type.GetMember(Of MethodSymbol)("F4").Parameters(0), "DecimalConstantAttribute", 4UI, False)
+                                                         VerifyDefaultValueAttribute(type.GetMember(Of MethodSymbol)("F5").Parameters(0), "DecimalConstantAttribute", 5, False)
+                                                         VerifyDefaultValueAttribute(type.GetMember(Of MethodSymbol)("F6").Parameters(0), "DecimalConstantAttribute", 6, False)
+                                                         VerifyDefaultValueAttribute(type.GetMember(Of MethodSymbol)("F7").Parameters(0), "DateTimeConstantAttribute", 635102208000000000L, False)
+                                                         VerifyDefaultValueAttribute(type.GetMember(Of MethodSymbol)("F8").Parameters(0), "DateTimeConstantAttribute", 635102208000000000L, False)
+                                                         VerifyDefaultValueAttribute(type.GetMember(Of MethodSymbol)("F9").Parameters(0), "DateTimeConstantAttribute", 635102208000000000L, False)
+                                                         VerifyDefaultValueAttribute(type.GetMember(Of PropertySymbol)("P").Parameters(0), "DecimalConstantAttribute", 10, False)
+                                                         VerifyDefaultValueAttribute(type.GetMember(Of MethodSymbol)("get_P").Parameters(0), "DecimalConstantAttribute", 10, False)
+                                                         VerifyDefaultValueAttribute(type.GetMember(Of MethodSymbol)("set_P").Parameters(0), "DecimalConstantAttribute", 10, False)
+                                                     End Sub)
             Dim source2 =
 <compilation>
     <file name="a.vb"><![CDATA[
@@ -982,27 +984,30 @@ Partial Class C
 End Class
 ]]>
     </file>
-</compilation>)
-            comp.AssertTheseDiagnostics(<errors/>)
-            CompileAndVerify(comp, sourceSymbolValidator:=Sub([module])
-                                                              Dim type = [module].GlobalNamespace.GetMember(Of NamedTypeSymbol)("C")
-                                                              VerifyDefaultValueAttribute(type.GetMember(Of MethodSymbol)("F1").Parameters(0), "DefaultParameterValueAttribute", 1, True)
-                                                              VerifyDefaultValueAttribute(type.GetMember(Of MethodSymbol)("F2").Parameters(0), "DecimalConstantAttribute", 2, False)
-                                                              VerifyDefaultValueAttribute(type.GetMember(Of MethodSymbol)("F3").Parameters(0), "DateTimeConstantAttribute", 635102208000000000L, False)
-                                                          End Sub)
+</compilation>,
+                options:=TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.All))
+
+            CompileAndVerify(comp, symbolValidator:=Sub([module])
+                                                        Dim type = [module].GlobalNamespace.GetMember(Of NamedTypeSymbol)("C")
+                                                        VerifyDefaultValueAttribute(type.GetMember(Of MethodSymbol)("F1").Parameters(0), "DefaultParameterValueAttribute", 1, True)
+                                                        VerifyDefaultValueAttribute(type.GetMember(Of MethodSymbol)("F2").Parameters(0), "DecimalConstantAttribute", 2, False)
+                                                        VerifyDefaultValueAttribute(type.GetMember(Of MethodSymbol)("F3").Parameters(0), "DateTimeConstantAttribute", 635102208000000000L, False)
+                                                    End Sub)
         End Sub
 
         Private Shared Sub VerifyDefaultValueAttribute(parameter As ParameterSymbol, expectedAttributeName As String, expectedDefault As Object, hasDefault As Boolean)
-            Dim attributes = parameter.GetCustomAttributesToEmit(New ModuleCompilationState).ToArray()
+            Dim attributes = DirectCast(parameter.ContainingModule, PEModuleSymbol).
+                GetCustomAttributesForToken(DirectCast(parameter, PEParameterSymbol).Handle).
+                Where(Function(attr) attr.AttributeClass.Name = expectedAttributeName).
+                ToArray()
+
             If expectedAttributeName Is Nothing Then
                 Assert.Equal(attributes.Length, 0)
             Else
                 Assert.Equal(attributes.Length, 1)
                 Dim attribute = DirectCast(attributes(0), VisualBasicAttributeData)
                 Dim argument = attribute.ConstructorArguments.Last()
-                Assert.Equal(expectedAttributeName, attribute.AttributeClass.Name)
                 Assert.Equal(expectedDefault, argument.Value)
-                Assert.Equal(hasDefault, DirectCast(parameter, Cci.IParameterDefinition).HasDefaultValue)
             End If
             If hasDefault Then
                 Assert.Equal(expectedDefault, parameter.ExplicitDefaultValue)
@@ -1344,7 +1349,7 @@ Parameter: Type=Library+Animal, Name=e2, Optional=True, DefaultValue=Cat
         ' Test without omitted argument syntax and an error
 
         <Fact()>
-        Public Sub TestExplicitConstantAttributesOnFields()
+        Public Sub TestExplicitConstantAttributesOnFields_Error()
             Dim comp = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
     <file name="a.vb"><![CDATA[
@@ -1382,10 +1387,6 @@ Class C
     <DecimalConstant(0, 0, 0, 0, 0)> Public Const F13 As DateTime = #1/1/2013#
 
     <DecimalConstant(0, 0, 0, 0, 0)> Public Const F14 As Decimal = 1
-
-    <DecimalConstantAttribute(0, 128, 0, 0, 7)> Public Const F15 as Decimal = -7
-
-    <DateTimeConstantAttribute(634925952000000000)> Public Const F16 as Date = #1/1/2013#
 End Class
 ]]>
     </file>
@@ -1431,11 +1432,36 @@ BC37228: The field has multiple distinct constant values.
     <DecimalConstant(0, 0, 0, 0, 0)> Public Const F14 As Decimal = 1
      ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 ]]></errors>)
+        End Sub
 
-            Dim c = comp.GetTypeByMetadataName("C")
-            Dim context = New ModuleCompilationState()
-            Assert.Equal(1, c.GetMember("F15").GetCustomAttributesToEmit(context).Count())
-            Assert.Equal(1, c.GetMember("F16").GetCustomAttributesToEmit(context).Count())
+        <Fact()>
+        Public Sub TestExplicitConstantAttributesOnFields_Valid()
+            Dim comp = CreateCompilationWithMscorlib40AndVBRuntime(
+<compilation>
+    <file name="a.vb"><![CDATA[
+Imports System
+Imports System.Runtime.CompilerServices
+Imports System.Runtime.InteropServices
+
+Class C
+    <DecimalConstantAttribute(0, 128, 0, 0, 7)> Public Const F1 as Decimal = -7
+
+    <DateTimeConstantAttribute(634925952000000000)> Public Const F2 as Date = #1/1/2013#
+End Class
+]]>
+    </file>
+</compilation>)
+
+            CompileAndVerify(comp, symbolValidator:=Sub([module] As ModuleSymbol)
+                                                        Dim peModule = DirectCast([module], PEModuleSymbol)
+                                                        Dim type = peModule.GlobalNamespace.GetTypeMember("C")
+
+                                                        Dim f1 = DirectCast(type.GetMember("F1"), PEFieldSymbol)
+                                                        Assert.Equal(1, peModule.GetCustomAttributesForToken(f1.Handle).Length)
+
+                                                        Dim f2 = DirectCast(type.GetMember("F2"), PEFieldSymbol)
+                                                        Assert.Equal(1, peModule.GetCustomAttributesForToken(f2.Handle).Length)
+                                                    End Sub)
         End Sub
 
     End Class
