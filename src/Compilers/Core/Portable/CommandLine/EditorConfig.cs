@@ -122,7 +122,7 @@ namespace Microsoft.CodeAnalysis
 
                         activeSectionName = sectionName;
                         activeSectionProperties = ImmutableDictionary.CreateBuilder<string, string>(
-                            CaseInsensitiveComparison.Comparer);
+                            Section.PropertiesKeyComparer);
                         continue;
                     }
 
@@ -219,11 +219,12 @@ namespace Microsoft.CodeAnalysis
             {
                 foreach (var s in sections)
                 {
-                    if (s.Name == name)
+                    if (s.Name.Equals(name, Section.NameComparer))
                     {
                         return s;
                     }
                 }
+
                 return null;
             }
         }
@@ -248,6 +249,18 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         internal sealed class Section
         {
+            /// <summary>
+            /// Used to compare <see cref="Name"/>s of sections. Specified by editorconfig to
+            /// be a case-sensitive comparison.
+            /// </summary>
+            public static StringComparison NameComparer { get; } = StringComparison.Ordinal;
+
+            /// <summary>
+            /// Used to compare keys in <see cref="Properties"/>. The editorconfig spec defines property
+            /// keys as being compared case-insensitively according to Unicode lower-case rules.
+            /// </summary>
+            public static IEqualityComparer<string> PropertiesKeyComparer { get; } = CaseInsensitiveComparison.Comparer;
+
             public Section(string name, ImmutableDictionary<string, string> properties)
             {
                 Name = name;
