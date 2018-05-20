@@ -7609,5 +7609,98 @@ class C
     void Goo(int i) { }
 }");
         }
+
+        [WorkItem(26993, "https://github.com/dotnet/roslyn/issues/26993")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
+        public async Task TestGenerateFieldInExpressionBodiedGetter()
+        {
+            await TestInRegularAndScriptAsync(
+@"class Program
+{
+    public int Y
+    {
+        get => [|y|];
+    }
+}",
+@"class Program
+{
+    private int y;
+
+    public int Y
+    {
+        get => y;
+    }
+}");
+        }
+
+        [WorkItem(26993, "https://github.com/dotnet/roslyn/issues/26993")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
+        public async Task TestGenerateReadonlyFieldInExpressionBodiedGetter()
+        {
+            await TestInRegularAndScriptAsync(
+@"class Program
+{
+    public int Y
+    {
+        get => [|y|];
+    }
+}",
+@"class Program
+{
+    private readonly int y;
+
+    public int Y
+    {
+        get => y;
+    }
+}",
+index: 1);
+        }
+
+        [WorkItem(26993, "https://github.com/dotnet/roslyn/issues/26993")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
+        public async Task TestGeneratePropertyInExpressionBodiedGetter()
+        {
+            await TestInRegularAndScriptAsync(
+@"class Program
+{
+    public int Y
+    {
+        get => [|y|];
+    }
+}",
+@"class Program
+{
+    public int Y
+    {
+        get => y;
+    }
+    public int y { get; private set; }
+}",
+index: 2);
+        }
+
+        [WorkItem(26993, "https://github.com/dotnet/roslyn/issues/26993")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
+        public async Task TestGenerateFieldInExpressionBodiedSetterInferredFromType()
+        {
+            await TestInRegularAndScriptAsync(
+@"class Program
+{
+    public int Y
+    {
+        set => [|y|] = value;
+    }
+}",
+@"class Program
+{
+    private int y;
+
+    public int Y
+    {
+        set => y = value;
+    }
+}");
+        }
     }
 }

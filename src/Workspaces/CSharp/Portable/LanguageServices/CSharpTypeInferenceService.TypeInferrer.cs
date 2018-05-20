@@ -186,6 +186,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return InferTypeInBaseMethodDeclaration(arrowClause.Parent as BaseMethodDeclarationSyntax);
                 }
 
+                if (arrowClause.IsParentKind(SyntaxKind.GetAccessorDeclaration))
+                {
+                    return InferTypeInGetAccessorDeclaration(arrowClause.Parent as AccessorDeclarationSyntax);
+                }
+
                 return SpecializedCollections.EmptyEnumerable<TypeInferenceInfo>();
             }
 
@@ -1192,6 +1197,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             private IEnumerable<TypeInferenceInfo> InferTypeInBaseMethodDeclaration(BaseMethodDeclarationSyntax declaration)
             {
                 var methodSymbol = SemanticModel.GetDeclaredSymbol(declaration);
+                return methodSymbol?.ReturnType != null
+                    ? SpecializedCollections.SingletonEnumerable(new TypeInferenceInfo(methodSymbol.ReturnType))
+                    : SpecializedCollections.EmptyEnumerable<TypeInferenceInfo>();
+            }
+
+            private IEnumerable<TypeInferenceInfo> InferTypeInGetAccessorDeclaration(AccessorDeclarationSyntax accessorDeclaration)
+            {
+                var methodSymbol = SemanticModel.GetDeclaredSymbol(accessorDeclaration);
                 return methodSymbol?.ReturnType != null
                     ? SpecializedCollections.SingletonEnumerable(new TypeInferenceInfo(methodSymbol.ReturnType))
                     : SpecializedCollections.EmptyEnumerable<TypeInferenceInfo>();
