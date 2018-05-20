@@ -176,16 +176,20 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             private IEnumerable<TypeInferenceInfo> InferTypeInArrowExpressionClause(ArrowExpressionClauseSyntax arrowClause)
             {
-                switch (arrowClause.Parent)
+                var parentSymbol = SemanticModel.GetDeclaredSymbol(arrowClause.Parent);
+
+                switch (parentSymbol)
                 {
-                    case PropertyDeclarationSyntax propertyDeclaration:
-                        return InferTypeInPropertyDeclaration(propertyDeclaration);
-                    case BaseMethodDeclarationSyntax baseMethodDeclaration:
-                        return InferTypeInBaseMethodDeclaration(baseMethodDeclaration);
-                    case AccessorDeclarationSyntax accessorDeclaration:
-                        return InferTypeInAccessorDeclaration(accessorDeclaration);
+                    case IPropertySymbol propertySymbol:
+                        return propertySymbol.Type != null
+                            ? SpecializedCollections.SingletonEnumerable(new TypeInferenceInfo(propertySymbol.Type))
+                            : SpecializedCollections.EmptyEnumerable<TypeInferenceInfo>();
+                    case IMethodSymbol methodSymbol:
+                        return methodSymbol.ReturnType != null 
+                            ? SpecializedCollections.SingletonEnumerable(new TypeInferenceInfo(methodSymbol.ReturnType))
+                            : SpecializedCollections.EmptyEnumerable<TypeInferenceInfo>();
                     default:
-                        return SpecializedCollections.EmptyEnumerable<TypeInferenceInfo>();
+                        return SpecializedCollections.EmptyEnumerable<TypeInferenceInfo>(); 
                 }
             }
 
@@ -1186,25 +1190,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var typeInfo = SemanticModel.GetTypeInfo(propertyDeclaration.Type);
                 return typeInfo.Type != null
                     ? SpecializedCollections.SingletonEnumerable(new TypeInferenceInfo(typeInfo.Type))
-                    : SpecializedCollections.EmptyEnumerable<TypeInferenceInfo>();
-            }
-
-            private IEnumerable<TypeInferenceInfo> InferTypeInBaseMethodDeclaration(BaseMethodDeclarationSyntax declaration)
-            {
-                var methodSymbol = SemanticModel.GetDeclaredSymbol(declaration);
-                return GetReturnTypeFromMethodSymbol(methodSymbol);
-            }
-
-            private IEnumerable<TypeInferenceInfo> InferTypeInAccessorDeclaration(AccessorDeclarationSyntax accessorDeclaration)
-            {
-                var methodSymbol = SemanticModel.GetDeclaredSymbol(accessorDeclaration);
-                return GetReturnTypeFromMethodSymbol(methodSymbol);
-            }
-
-            private IEnumerable<TypeInferenceInfo> GetReturnTypeFromMethodSymbol(IMethodSymbol methodSymbol)
-            {
-                return methodSymbol?.ReturnType != null
-                    ? SpecializedCollections.SingletonEnumerable(new TypeInferenceInfo(methodSymbol.ReturnType))
                     : SpecializedCollections.EmptyEnumerable<TypeInferenceInfo>();
             }
 
