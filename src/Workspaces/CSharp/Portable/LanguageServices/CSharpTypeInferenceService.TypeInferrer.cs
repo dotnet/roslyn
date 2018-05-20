@@ -176,19 +176,19 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             private IEnumerable<TypeInferenceInfo> InferTypeInArrowExpressionClause(ArrowExpressionClauseSyntax arrowClause)
             {
-                if (arrowClause.IsParentKind(SyntaxKind.PropertyDeclaration))
+                if (arrowClause.Parent is PropertyDeclarationSyntax propertyDeclaration)
                 {
-                    return InferTypeInPropertyDeclaration(arrowClause.Parent as PropertyDeclarationSyntax);
+                    return InferTypeInPropertyDeclaration(propertyDeclaration);
                 }
 
-                if (arrowClause.Parent is BaseMethodDeclarationSyntax)
+                if (arrowClause.Parent is BaseMethodDeclarationSyntax baseMethodDeclaration)
                 {
-                    return InferTypeInBaseMethodDeclaration(arrowClause.Parent as BaseMethodDeclarationSyntax);
+                    return InferTypeInBaseMethodDeclaration(baseMethodDeclaration);
                 }
 
-                if (arrowClause.IsParentKind(SyntaxKind.GetAccessorDeclaration))
+                if (arrowClause.Parent is AccessorDeclarationSyntax accessorDeclaration)
                 {
-                    return InferTypeInGetAccessorDeclaration(arrowClause.Parent as AccessorDeclarationSyntax);
+                    return InferTypeInAccessorDeclaration(accessorDeclaration);
                 }
 
                 return SpecializedCollections.EmptyEnumerable<TypeInferenceInfo>();
@@ -1197,14 +1197,17 @@ namespace Microsoft.CodeAnalysis.CSharp
             private IEnumerable<TypeInferenceInfo> InferTypeInBaseMethodDeclaration(BaseMethodDeclarationSyntax declaration)
             {
                 var methodSymbol = SemanticModel.GetDeclaredSymbol(declaration);
-                return methodSymbol?.ReturnType != null
-                    ? SpecializedCollections.SingletonEnumerable(new TypeInferenceInfo(methodSymbol.ReturnType))
-                    : SpecializedCollections.EmptyEnumerable<TypeInferenceInfo>();
+                return GetReturnTypeFromMethodSymbol(methodSymbol);
             }
 
-            private IEnumerable<TypeInferenceInfo> InferTypeInGetAccessorDeclaration(AccessorDeclarationSyntax accessorDeclaration)
+            private IEnumerable<TypeInferenceInfo> InferTypeInAccessorDeclaration(AccessorDeclarationSyntax accessorDeclaration)
             {
                 var methodSymbol = SemanticModel.GetDeclaredSymbol(accessorDeclaration);
+                return GetReturnTypeFromMethodSymbol(methodSymbol);
+            }
+
+            private IEnumerable<TypeInferenceInfo> GetReturnTypeFromMethodSymbol(IMethodSymbol methodSymbol)
+            {
                 return methodSymbol?.ReturnType != null
                     ? SpecializedCollections.SingletonEnumerable(new TypeInferenceInfo(methodSymbol.ReturnType))
                     : SpecializedCollections.EmptyEnumerable<TypeInferenceInfo>();
