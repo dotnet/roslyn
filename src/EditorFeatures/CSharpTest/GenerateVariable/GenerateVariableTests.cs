@@ -7635,6 +7635,31 @@ class C
 
         [WorkItem(26993, "https://github.com/dotnet/roslyn/issues/26993")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
+        public async Task TestGenerateFieldInExpressionBodiedGetterWithDifferentAccessibility()
+        {
+            await TestInRegularAndScriptAsync(
+@"class Program
+{
+    public int Y
+    {
+        protected get => [|y|];
+        set => throw new System.NotImplementedException();
+    }
+}",
+@"class Program
+{
+    private int y;
+
+    public int Y
+    {
+        protected get => y;
+        set => throw new System.NotImplementedException();
+    }
+}");
+        }
+
+        [WorkItem(26993, "https://github.com/dotnet/roslyn/issues/26993")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
         public async Task TestGenerateReadonlyFieldInExpressionBodiedGetter()
         {
             await TestInRegularAndScriptAsync(
