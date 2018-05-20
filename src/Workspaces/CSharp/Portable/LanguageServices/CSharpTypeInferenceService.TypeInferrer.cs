@@ -176,22 +176,17 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             private IEnumerable<TypeInferenceInfo> InferTypeInArrowExpressionClause(ArrowExpressionClauseSyntax arrowClause)
             {
-                if (arrowClause.Parent is PropertyDeclarationSyntax propertyDeclaration)
+                switch (arrowClause.Parent)
                 {
-                    return InferTypeInPropertyDeclaration(propertyDeclaration);
+                    case PropertyDeclarationSyntax propertyDeclaration:
+                        return InferTypeInPropertyDeclaration(propertyDeclaration);
+                    case BaseMethodDeclarationSyntax baseMethodDeclaration:
+                        return InferTypeInBaseMethodDeclaration(baseMethodDeclaration);
+                    case AccessorDeclarationSyntax accessorDeclaration:
+                        return InferTypeInAccessorDeclaration(accessorDeclaration);
+                    default:
+                        return SpecializedCollections.EmptyEnumerable<TypeInferenceInfo>();
                 }
-
-                if (arrowClause.Parent is BaseMethodDeclarationSyntax baseMethodDeclaration)
-                {
-                    return InferTypeInBaseMethodDeclaration(baseMethodDeclaration);
-                }
-
-                if (arrowClause.Parent is AccessorDeclarationSyntax accessorDeclaration)
-                {
-                    return InferTypeInAccessorDeclaration(accessorDeclaration);
-                }
-
-                return SpecializedCollections.EmptyEnumerable<TypeInferenceInfo>();
             }
 
             protected override IEnumerable<TypeInferenceInfo> InferTypesWorker_DoNotCallDirectly(int position)
