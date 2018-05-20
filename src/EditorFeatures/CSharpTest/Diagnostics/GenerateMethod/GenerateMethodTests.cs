@@ -7732,5 +7732,61 @@ class Program
     }
 }");
         }
+
+        [WorkItem(26993, "https://github.com/dotnet/roslyn/issues/26993")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
+        public async Task TestGenerateMethodInExpressionBodiedGetter()
+        {
+            await TestInRegularAndScriptAsync(
+@"class Class
+{
+    int Y
+    {
+        get => [|Foo|]();
+    }
+}",
+@"using System;
+
+class Class
+{
+    int Y
+    {
+        get => Foo();
+    }
+
+    private int Foo()
+    {
+        throw new NotImplementedException();
+    }
+}");
+        }
+
+        [WorkItem(26993, "https://github.com/dotnet/roslyn/issues/26993")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
+        public async Task TestGenerateMethodInExpressionBodiedSetter()
+        {
+            await TestInRegularAndScriptAsync(
+@"class Class
+{
+    int Y
+    {
+        set => [|Foo|](value);
+    }
+}",
+@"using System;
+
+class Class
+{
+    int Y
+    {
+        set => Foo(value);
+    }
+
+    private void Foo(int value)
+    {
+        throw new NotImplementedException();
+    }
+}");
+        }
     }
 }
