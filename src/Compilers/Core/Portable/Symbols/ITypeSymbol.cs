@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Immutable;
+using System.Diagnostics;
 
 namespace Microsoft.CodeAnalysis
 {
@@ -102,6 +103,22 @@ namespace Microsoft.CodeAnalysis
         internal static bool IsNullableType(ITypeSymbol typeOpt)
         {
             return typeOpt?.OriginalDefinition.SpecialType == SpecialType.System_Nullable_T;
+        }
+        
+        internal static bool IsNullableOfBoolean(ITypeSymbol type)
+        {
+            return IsNullableType(type) && IsBooleanType(GetNullableUnderlyingType(type));
+        }
+
+        internal static ITypeSymbol GetNullableUnderlyingType(ITypeSymbol type)
+        {
+            Debug.Assert(IsNullableType(type));
+            return ((INamedTypeSymbol)type).TypeArguments[0];
+        }
+
+        internal static bool IsBooleanType(ITypeSymbol type)
+        {
+            return type.SpecialType == SpecialType.System_Boolean;
         }
 
         internal static bool IsSignedIntegralType(ITypeSymbol type)
