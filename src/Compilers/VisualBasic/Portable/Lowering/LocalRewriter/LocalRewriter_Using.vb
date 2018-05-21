@@ -75,7 +75,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             ' rewrite the original using body only once here.
             Dim currentBody = DirectCast(Visit(node.Body), BoundBlock)
-            Dim locals As ImmutableArray(Of LocalSymbol)
+            Dim locals As ImmutableArray(Of LocalSymbol) = node.Locals
             Dim placeholderInfo As ValueTuple(Of BoundRValuePlaceholder, BoundExpression, BoundExpression)
 
             ' the initialization expressions (variable declaration & expression case) will be rewritten in 
@@ -115,12 +115,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         Next
                     End If
                 Next
-
-                locals = node.Locals
             Else
                 ' Case "Using <expression>"
                 Debug.Assert(node.ResourceExpressionOpt IsNot Nothing)
-                Debug.Assert(node.Locals.IsEmpty)
 
                 Dim initializationExpression = node.ResourceExpressionOpt
                 placeholderInfo = node.UsingInfo.PlaceholderInfo(initializationExpression.Type)
@@ -137,7 +134,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                              placeholderInfo,
                                                              currentBody)
 
-                locals = ImmutableArray.Create(tempResourceSymbol)
+                locals = locals.Add(tempResourceSymbol)
             End If
 
             RestoreUnstructuredExceptionHandlingContext(node, saveState)
