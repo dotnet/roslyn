@@ -961,6 +961,39 @@ class C
 
         #endregion
 
+        #region relational binary parentheses
+
+        private readonly string s_relationalBinaryIgnore = $@"
+class C
+{{
+    void M()
+    {{
+//[
+        // {ServicesVSResources.Keep_all_parentheses_in_colon}
+        var v = (a < b) == (c > d);
+//]
+    }}
+}}
+";
+
+        private readonly string s_relationalBinaryNeverIfUnnecessary = $@"
+class C
+{{
+    void M()
+    {{
+//[
+        // {ServicesVSResources.Prefer_colon}
+        var v = a < b == c > d;
+
+        // {ServicesVSResources.Over_colon}
+        var v = (a < b) == (c > d);
+//]
+    }}
+}}
+";
+
+        #endregion
+
         #region other binary parentheses
 
         private readonly string s_otherBinaryAlwaysForClarity = $@"
@@ -970,10 +1003,10 @@ class C
     {{
 //[
         // {ServicesVSResources.Prefer_colon}
-        var v = ((a <= b) || (c && d)) == (e is f);
+        var v = a || (b && c);
 
         // {ServicesVSResources.Over_colon}
-        var v = a <= b || c && d == e is f;
+        var v = a || b && c;
 //]
     }}
 }}
@@ -986,10 +1019,10 @@ class C
     {{
 //[
         // {ServicesVSResources.Prefer_colon}
-        var v = a <= b || c && d == e is f;
+        var v = a || b && c;
 
         // {ServicesVSResources.Over_colon}
-        var v = ((a <= b) || (c && d)) == (e is f);
+        var v = a || (b && c);
 //]
     }}
 }}
@@ -1119,19 +1152,25 @@ class C
                 LanguageNames.CSharp, optionSet, CodeStyleOptions.ArithmeticBinaryParentheses,
                 CSharpVSResources.In_arithmetic_binary_operators,
                 new[] { s_arithmeticBinaryAlwaysForClarity, s_arithmeticBinaryNeverIfUnnecessary },
-                isOther: false);
+                isIgnoreOption: false);
 
             AddParenthesesOption(
                 LanguageNames.CSharp, optionSet, CodeStyleOptions.OtherBinaryParentheses,
                 CSharpVSResources.In_other_binary_operators,
                 new[] { s_otherBinaryAlwaysForClarity, s_otherBinaryNeverIfUnnecessary },
-                isOther: false);
+                isIgnoreOption: false);
+
+            AddParenthesesOption(
+                LanguageNames.CSharp, optionSet, CodeStyleOptions.RelationalBinaryParentheses,
+                CSharpVSResources.In_relational_binary_operators,
+                new[] { s_relationalBinaryIgnore, s_relationalBinaryNeverIfUnnecessary },
+                isIgnoreOption: true);
 
             AddParenthesesOption(
                 LanguageNames.CSharp, optionSet, CodeStyleOptions.OtherParentheses,
                 ServicesVSResources.In_other_operators,
                 new[] { s_otherParenthesesIgnore, s_otherParenthesesNeverIfUnnecessary },
-                isOther: true);
+                isIgnoreOption: true);
         }
 
         private void AddExpressionBodyOptions(OptionSet optionSet, string expressionPreferencesGroupTitle)
