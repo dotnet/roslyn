@@ -178,8 +178,12 @@ namespace Microsoft.CodeAnalysis.Host
 
             var cancellationToken = cancellationTokenSource.Token;
 
+            // once task runs, we never cancel running parsing request. this will make sure 
+            // chained incremental parsing request will always get shorten by BG
+            //
+            // we are alraedy running in BG, you no need to run async version
             var task = _taskScheduler.ScheduleTask(
-                () => document.GetSyntaxTreeAsync(cancellationToken),
+                () => document.GetSyntaxTreeSynchronously(CancellationToken.None),
                 "BackgroundParser.ParseDocumentAsync",
                 cancellationToken);
 
