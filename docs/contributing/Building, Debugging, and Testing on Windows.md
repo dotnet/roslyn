@@ -20,6 +20,7 @@ If a stack trace is displayed on .NET Framework older than 4.7.2 (e.g. by xUnit 
 
 ## Developing with Visual Studio 2017
 
+
 1. [Visual Studio 2017 Version 15.7](https://www.visualstudio.com/vs/preview/)
     - Ensure C#, VB, MSBuild, .NET Core and Visual Studio Extensibility are included in the selected work loads
     - Ensure Visual Studio is on Version "15.7" or greater

@@ -619,17 +619,17 @@
       </trans-unit>
       <trans-unit id="Convert_to_switch">
         <source>Convert to 'switch'</source>
-        <target state="new">Convert to 'switch'</target>
+        <target state="translated">'switch'로 변환</target>
         <note />
       </trans-unit>
       <trans-unit id="Convert_to_foreach">
         <source>Convert to 'foreach'</source>
-        <target state="new">Convert to 'foreach'</target>
+        <target state="translated">'foreach'로 변환</target>
         <note />
       </trans-unit>
       <trans-unit id="Convert_to_for">
         <source>Convert to 'for'</source>
-        <target state="new">Convert to 'for'</target>
+        <target state="translated">'for'로 변환</target>
         <note />
       </trans-unit>
       <trans-unit id="Invert_if">
