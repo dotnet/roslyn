@@ -2164,7 +2164,6 @@ Microsoft.CodeAnalysis.SyntaxNodeOrTokenList.ToFullString() -> string
 Microsoft.CodeAnalysis.SyntaxReference
 Microsoft.CodeAnalysis.SyntaxReference.SyntaxReference() -> void
 Microsoft.CodeAnalysis.SyntaxRemoveOptions
-Microsoft.CodeAnalysis.SyntaxRemoveOptions.UseOriginalEndOfLine = 64 -> Microsoft.CodeAnalysis.SyntaxRemoveOptions
 Microsoft.CodeAnalysis.SyntaxRemoveOptions.AddElasticMarker = 32 -> Microsoft.CodeAnalysis.SyntaxRemoveOptions
 Microsoft.CodeAnalysis.SyntaxRemoveOptions.KeepDirectives = 8 -> Microsoft.CodeAnalysis.SyntaxRemoveOptions
 Microsoft.CodeAnalysis.SyntaxRemoveOptions.KeepEndOfLine = 16 -> Microsoft.CodeAnalysis.SyntaxRemoveOptions
