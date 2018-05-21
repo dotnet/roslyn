@@ -1358,7 +1358,7 @@ BC30672: Explicit initialization is not permitted for arrays declared with expli
             VerifyOperationTreeAndDiagnosticsForTest(Of LiteralExpressionSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
 
-        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/26900")>
+        <Fact>
         Public Sub ArrayCreationAndInitializer_MultiDimArrayInitializer_ErrorCase()
             ' Error case where one array initializer element value is a nested array initializer and another one is not.
             Dim source = <![CDATA[
@@ -1371,6 +1371,26 @@ End Class
 
             ' See https://github.com/dotnet/roslyn/issues/26900
             Dim expectedOperationTree = <![CDATA[
+IArrayCreationOperation (OperationKind.ArrayCreation, Type: System.Int32(,), IsInvalid) (Syntax: 'New Integer ...  {v1, {v2}}')
+  Dimension Sizes(2):
+      IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperator, Type: System.Int32, Constant: 2, IsImplicit) (Syntax: '1')
+        Left: 
+          ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
+        Right: 
+          ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1, IsImplicit) (Syntax: '1')
+      IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperator, Type: System.Int32, Constant: 1, IsImplicit) (Syntax: '0')
+        Left: 
+          ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0) (Syntax: '0')
+        Right: 
+          ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1, IsImplicit) (Syntax: '0')
+  Initializer: 
+    IArrayInitializerOperation (2 elements) (OperationKind.ArrayInitializer, Type: null, IsInvalid) (Syntax: '{v1, {v2}}')
+      Element Values(2):
+          IArrayInitializerOperation (0 elements) (OperationKind.ArrayInitializer, Type: null, IsInvalid) (Syntax: 'v1')
+            Element Values(0)
+          IArrayInitializerOperation (1 elements) (OperationKind.ArrayInitializer, Type: null) (Syntax: '{v2}')
+            Element Values(1):
+                IParameterReferenceOperation: v2 (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'v2')
 ]]>.Value
 
             Dim expectedDiagnostics = <![CDATA[
@@ -1396,6 +1416,7 @@ Class C
         a4 = New Integer(c1, c2) {{v2}, {v3}}           ' Multi-dimension, initializer
         a5 = New Integer(d4)() {}                       ' Jagged, no initializer
         a6 = New Integer(c3)() {New Integer() {v4}}     ' Jagged, initializer
+        Dim f = {1, 2, 3}                               ' Array creation with array literal initializer
     End Sub
 End Class
 ]]>.Value
@@ -1404,138 +1425,160 @@ End Class
 Block[B0] - Entry
     Statements (0)
     Next (Regular) Block[B1]
-Block[B1] - Block
-    Predecessors: [B0]
-    Statements (6)
-        IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'a1 = New Integer(d1) {}')
-          Expression: 
-            ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32(), IsImplicit) (Syntax: 'a1 = New Integer(d1) {}')
-              Left: 
-                IParameterReferenceOperation: a1 (OperationKind.ParameterReference, Type: System.Int32()) (Syntax: 'a1')
-              Right: 
-                IArrayCreationOperation (OperationKind.ArrayCreation, Type: System.Int32()) (Syntax: 'New Integer(d1) {}')
-                  Dimension Sizes(1):
-                      IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperator, Type: System.Int32, IsImplicit) (Syntax: 'd1')
-                        Left: 
-                          IParameterReferenceOperation: d1 (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'd1')
-                        Right: 
-                          ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1, IsImplicit) (Syntax: 'd1')
-                  Initializer: 
-                    IArrayInitializerOperation (0 elements) (OperationKind.ArrayInitializer, Type: null) (Syntax: '{}')
-                      Element Values(0)
+        Entering: {R1}
 
-        IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'a2 = New Integer() {v1}')
-          Expression: 
-            ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32(), IsImplicit) (Syntax: 'a2 = New Integer() {v1}')
-              Left: 
-                IParameterReferenceOperation: a2 (OperationKind.ParameterReference, Type: System.Int32()) (Syntax: 'a2')
-              Right: 
-                IArrayCreationOperation (OperationKind.ArrayCreation, Type: System.Int32()) (Syntax: 'New Integer() {v1}')
-                  Dimension Sizes(1):
-                      ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1, IsImplicit) (Syntax: 'New Integer() {v1}')
-                  Initializer: 
-                    IArrayInitializerOperation (1 elements) (OperationKind.ArrayInitializer, Type: null) (Syntax: '{v1}')
-                      Element Values(1):
-                          IParameterReferenceOperation: v1 (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'v1')
+.locals {R1}
+{
+    Locals: [f As System.Int32()]
+    Block[B1] - Block
+        Predecessors: [B0]
+        Statements (7)
+            IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'a1 = New Integer(d1) {}')
+              Expression: 
+                ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32(), IsImplicit) (Syntax: 'a1 = New Integer(d1) {}')
+                  Left: 
+                    IParameterReferenceOperation: a1 (OperationKind.ParameterReference, Type: System.Int32()) (Syntax: 'a1')
+                  Right: 
+                    IArrayCreationOperation (OperationKind.ArrayCreation, Type: System.Int32()) (Syntax: 'New Integer(d1) {}')
+                      Dimension Sizes(1):
+                          IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperator, Type: System.Int32, IsImplicit) (Syntax: 'd1')
+                            Left: 
+                              IParameterReferenceOperation: d1 (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'd1')
+                            Right: 
+                              ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1, IsImplicit) (Syntax: 'd1')
+                      Initializer: 
+                        IArrayInitializerOperation (0 elements) (OperationKind.ArrayInitializer, Type: null) (Syntax: '{}')
+                          Element Values(0)
 
-        IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'a3 = New In ... (d2, d3) {}')
-          Expression: 
-            ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32(,), IsImplicit) (Syntax: 'a3 = New In ... (d2, d3) {}')
-              Left: 
-                IParameterReferenceOperation: a3 (OperationKind.ParameterReference, Type: System.Int32(,)) (Syntax: 'a3')
-              Right: 
-                IArrayCreationOperation (OperationKind.ArrayCreation, Type: System.Int32(,)) (Syntax: 'New Integer(d2, d3) {}')
-                  Dimension Sizes(2):
-                      IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperator, Type: System.Int32, IsImplicit) (Syntax: 'd2')
-                        Left: 
-                          IParameterReferenceOperation: d2 (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'd2')
-                        Right: 
-                          ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1, IsImplicit) (Syntax: 'd2')
-                      IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperator, Type: System.Int32, IsImplicit) (Syntax: 'd3')
-                        Left: 
-                          IParameterReferenceOperation: d3 (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'd3')
-                        Right: 
-                          ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1, IsImplicit) (Syntax: 'd3')
-                  Initializer: 
-                    IArrayInitializerOperation (0 elements) (OperationKind.ArrayInitializer, Type: null) (Syntax: '{}')
-                      Element Values(0)
+            IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'a2 = New Integer() {v1}')
+              Expression: 
+                ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32(), IsImplicit) (Syntax: 'a2 = New Integer() {v1}')
+                  Left: 
+                    IParameterReferenceOperation: a2 (OperationKind.ParameterReference, Type: System.Int32()) (Syntax: 'a2')
+                  Right: 
+                    IArrayCreationOperation (OperationKind.ArrayCreation, Type: System.Int32()) (Syntax: 'New Integer() {v1}')
+                      Dimension Sizes(1):
+                          ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1, IsImplicit) (Syntax: 'New Integer() {v1}')
+                      Initializer: 
+                        IArrayInitializerOperation (1 elements) (OperationKind.ArrayInitializer, Type: null) (Syntax: '{v1}')
+                          Element Values(1):
+                              IParameterReferenceOperation: v1 (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'v1')
 
-        IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'a4 = New In ... {v2}, {v3}}')
-          Expression: 
-            ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32(,), IsImplicit) (Syntax: 'a4 = New In ... {v2}, {v3}}')
-              Left: 
-                IParameterReferenceOperation: a4 (OperationKind.ParameterReference, Type: System.Int32(,)) (Syntax: 'a4')
-              Right: 
-                IArrayCreationOperation (OperationKind.ArrayCreation, Type: System.Int32(,)) (Syntax: 'New Integer ... {v2}, {v3}}')
-                  Dimension Sizes(2):
-                      IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperator, Type: System.Int32, Constant: 2, IsImplicit) (Syntax: 'c1')
-                        Left: 
-                          IFieldReferenceOperation: C.c1 As System.Int32 (Static) (OperationKind.FieldReference, Type: System.Int32, Constant: 1) (Syntax: 'c1')
-                            Instance Receiver: 
-                              null
-                        Right: 
-                          ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1, IsImplicit) (Syntax: 'c1')
-                      IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperator, Type: System.Int32, Constant: 1, IsImplicit) (Syntax: 'c2')
-                        Left: 
-                          IFieldReferenceOperation: C.c2 As System.Int32 (Static) (OperationKind.FieldReference, Type: System.Int32, Constant: 0) (Syntax: 'c2')
-                            Instance Receiver: 
-                              null
-                        Right: 
-                          ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1, IsImplicit) (Syntax: 'c2')
-                  Initializer: 
-                    IArrayInitializerOperation (2 elements) (OperationKind.ArrayInitializer, Type: null) (Syntax: '{{v2}, {v3}}')
-                      Element Values(2):
-                          IArrayInitializerOperation (1 elements) (OperationKind.ArrayInitializer, Type: null) (Syntax: '{v2}')
-                            Element Values(1):
-                                IParameterReferenceOperation: v2 (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'v2')
-                          IArrayInitializerOperation (1 elements) (OperationKind.ArrayInitializer, Type: null) (Syntax: '{v3}')
-                            Element Values(1):
-                                IParameterReferenceOperation: v3 (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'v3')
+            IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'a3 = New In ... (d2, d3) {}')
+              Expression: 
+                ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32(,), IsImplicit) (Syntax: 'a3 = New In ... (d2, d3) {}')
+                  Left: 
+                    IParameterReferenceOperation: a3 (OperationKind.ParameterReference, Type: System.Int32(,)) (Syntax: 'a3')
+                  Right: 
+                    IArrayCreationOperation (OperationKind.ArrayCreation, Type: System.Int32(,)) (Syntax: 'New Integer(d2, d3) {}')
+                      Dimension Sizes(2):
+                          IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperator, Type: System.Int32, IsImplicit) (Syntax: 'd2')
+                            Left: 
+                              IParameterReferenceOperation: d2 (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'd2')
+                            Right: 
+                              ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1, IsImplicit) (Syntax: 'd2')
+                          IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperator, Type: System.Int32, IsImplicit) (Syntax: 'd3')
+                            Left: 
+                              IParameterReferenceOperation: d3 (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'd3')
+                            Right: 
+                              ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1, IsImplicit) (Syntax: 'd3')
+                      Initializer: 
+                        IArrayInitializerOperation (0 elements) (OperationKind.ArrayInitializer, Type: null) (Syntax: '{}')
+                          Element Values(0)
 
-        IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'a5 = New In ... er(d4)() {}')
-          Expression: 
-            ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32()(), IsImplicit) (Syntax: 'a5 = New In ... er(d4)() {}')
-              Left: 
-                IParameterReferenceOperation: a5 (OperationKind.ParameterReference, Type: System.Int32()()) (Syntax: 'a5')
-              Right: 
-                IArrayCreationOperation (OperationKind.ArrayCreation, Type: System.Int32()()) (Syntax: 'New Integer(d4)() {}')
-                  Dimension Sizes(1):
-                      IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperator, Type: System.Int32, IsImplicit) (Syntax: 'd4')
-                        Left: 
-                          IParameterReferenceOperation: d4 (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'd4')
-                        Right: 
-                          ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1, IsImplicit) (Syntax: 'd4')
-                  Initializer: 
-                    IArrayInitializerOperation (0 elements) (OperationKind.ArrayInitializer, Type: null) (Syntax: '{}')
-                      Element Values(0)
-
-        IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'a6 = New In ... ger() {v4}}')
-          Expression: 
-            ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32()(), IsImplicit) (Syntax: 'a6 = New In ... ger() {v4}}')
-              Left: 
-                IParameterReferenceOperation: a6 (OperationKind.ParameterReference, Type: System.Int32()()) (Syntax: 'a6')
-              Right: 
-                IArrayCreationOperation (OperationKind.ArrayCreation, Type: System.Int32()()) (Syntax: 'New Integer ... ger() {v4}}')
-                  Dimension Sizes(1):
-                      IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperator, Type: System.Int32, Constant: 1, IsImplicit) (Syntax: 'c3')
-                        Left: 
-                          IFieldReferenceOperation: C.c3 As System.Int32 (Static) (OperationKind.FieldReference, Type: System.Int32, Constant: 0) (Syntax: 'c3')
-                            Instance Receiver: 
-                              null
-                        Right: 
-                          ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1, IsImplicit) (Syntax: 'c3')
-                  Initializer: 
-                    IArrayInitializerOperation (1 elements) (OperationKind.ArrayInitializer, Type: null) (Syntax: '{New Integer() {v4}}')
-                      Element Values(1):
-                          IArrayCreationOperation (OperationKind.ArrayCreation, Type: System.Int32()) (Syntax: 'New Integer() {v4}')
-                            Dimension Sizes(1):
-                                ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1, IsImplicit) (Syntax: 'New Integer() {v4}')
-                            Initializer: 
-                              IArrayInitializerOperation (1 elements) (OperationKind.ArrayInitializer, Type: null) (Syntax: '{v4}')
+            IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'a4 = New In ... {v2}, {v3}}')
+              Expression: 
+                ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32(,), IsImplicit) (Syntax: 'a4 = New In ... {v2}, {v3}}')
+                  Left: 
+                    IParameterReferenceOperation: a4 (OperationKind.ParameterReference, Type: System.Int32(,)) (Syntax: 'a4')
+                  Right: 
+                    IArrayCreationOperation (OperationKind.ArrayCreation, Type: System.Int32(,)) (Syntax: 'New Integer ... {v2}, {v3}}')
+                      Dimension Sizes(2):
+                          IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperator, Type: System.Int32, Constant: 2, IsImplicit) (Syntax: 'c1')
+                            Left: 
+                              IFieldReferenceOperation: C.c1 As System.Int32 (Static) (OperationKind.FieldReference, Type: System.Int32, Constant: 1) (Syntax: 'c1')
+                                Instance Receiver: 
+                                  null
+                            Right: 
+                              ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1, IsImplicit) (Syntax: 'c1')
+                          IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperator, Type: System.Int32, Constant: 1, IsImplicit) (Syntax: 'c2')
+                            Left: 
+                              IFieldReferenceOperation: C.c2 As System.Int32 (Static) (OperationKind.FieldReference, Type: System.Int32, Constant: 0) (Syntax: 'c2')
+                                Instance Receiver: 
+                                  null
+                            Right: 
+                              ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1, IsImplicit) (Syntax: 'c2')
+                      Initializer: 
+                        IArrayInitializerOperation (2 elements) (OperationKind.ArrayInitializer, Type: null) (Syntax: '{{v2}, {v3}}')
+                          Element Values(2):
+                              IArrayInitializerOperation (1 elements) (OperationKind.ArrayInitializer, Type: null) (Syntax: '{v2}')
                                 Element Values(1):
-                                    IParameterReferenceOperation: v4 (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'v4')
+                                    IParameterReferenceOperation: v2 (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'v2')
+                              IArrayInitializerOperation (1 elements) (OperationKind.ArrayInitializer, Type: null) (Syntax: '{v3}')
+                                Element Values(1):
+                                    IParameterReferenceOperation: v3 (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'v3')
 
-    Next (Regular) Block[B2]
+            IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'a5 = New In ... er(d4)() {}')
+              Expression: 
+                ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32()(), IsImplicit) (Syntax: 'a5 = New In ... er(d4)() {}')
+                  Left: 
+                    IParameterReferenceOperation: a5 (OperationKind.ParameterReference, Type: System.Int32()()) (Syntax: 'a5')
+                  Right: 
+                    IArrayCreationOperation (OperationKind.ArrayCreation, Type: System.Int32()()) (Syntax: 'New Integer(d4)() {}')
+                      Dimension Sizes(1):
+                          IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperator, Type: System.Int32, IsImplicit) (Syntax: 'd4')
+                            Left: 
+                              IParameterReferenceOperation: d4 (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'd4')
+                            Right: 
+                              ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1, IsImplicit) (Syntax: 'd4')
+                      Initializer: 
+                        IArrayInitializerOperation (0 elements) (OperationKind.ArrayInitializer, Type: null) (Syntax: '{}')
+                          Element Values(0)
+
+            IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'a6 = New In ... ger() {v4}}')
+              Expression: 
+                ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32()(), IsImplicit) (Syntax: 'a6 = New In ... ger() {v4}}')
+                  Left: 
+                    IParameterReferenceOperation: a6 (OperationKind.ParameterReference, Type: System.Int32()()) (Syntax: 'a6')
+                  Right: 
+                    IArrayCreationOperation (OperationKind.ArrayCreation, Type: System.Int32()()) (Syntax: 'New Integer ... ger() {v4}}')
+                      Dimension Sizes(1):
+                          IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperator, Type: System.Int32, Constant: 1, IsImplicit) (Syntax: 'c3')
+                            Left: 
+                              IFieldReferenceOperation: C.c3 As System.Int32 (Static) (OperationKind.FieldReference, Type: System.Int32, Constant: 0) (Syntax: 'c3')
+                                Instance Receiver: 
+                                  null
+                            Right: 
+                              ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1, IsImplicit) (Syntax: 'c3')
+                      Initializer: 
+                        IArrayInitializerOperation (1 elements) (OperationKind.ArrayInitializer, Type: null) (Syntax: '{New Integer() {v4}}')
+                          Element Values(1):
+                              IArrayCreationOperation (OperationKind.ArrayCreation, Type: System.Int32()) (Syntax: 'New Integer() {v4}')
+                                Dimension Sizes(1):
+                                    ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1, IsImplicit) (Syntax: 'New Integer() {v4}')
+                                Initializer: 
+                                  IArrayInitializerOperation (1 elements) (OperationKind.ArrayInitializer, Type: null) (Syntax: '{v4}')
+                                    Element Values(1):
+                                        IParameterReferenceOperation: v4 (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'v4')
+
+            ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32(), IsImplicit) (Syntax: 'f = {1, 2, 3}')
+              Left: 
+                ILocalReferenceOperation: f (IsDeclaration: True) (OperationKind.LocalReference, Type: System.Int32(), IsImplicit) (Syntax: 'f')
+              Right: 
+                IArrayCreationOperation (OperationKind.ArrayCreation, Type: System.Int32()) (Syntax: '{1, 2, 3}')
+                  Dimension Sizes(1):
+                      ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 3, IsImplicit) (Syntax: '{1, 2, 3}')
+                  Initializer: 
+                    IArrayInitializerOperation (3 elements) (OperationKind.ArrayInitializer, Type: null, IsImplicit) (Syntax: '{1, 2, 3}')
+                      Element Values(3):
+                          ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
+                          ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2) (Syntax: '2')
+                          ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 3) (Syntax: '3')
+
+        Next (Regular) Block[B2]
+            Leaving: {R1}
+}
+
 Block[B2] - Exit
     Predecessors: [B1]
     Statements (0)

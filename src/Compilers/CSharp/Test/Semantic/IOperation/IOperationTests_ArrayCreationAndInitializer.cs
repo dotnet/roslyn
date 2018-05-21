@@ -967,6 +967,7 @@ class C
         a4 = new int[c1, c2] { { v2 }, { v3 } };        // Multi-dimension, initializer
         a5 = new int[d4][];                             // Jagged, no initializer
         a6 = new int[c3][] { new[] { v4 } };            // Jagged, initializer
+        int[] f = { 1, 3, 4 };                          // Array creation with only initializer.
     }/*</bind>*/
 }
 ";
@@ -974,107 +975,129 @@ class C
 Block[B0] - Entry
     Statements (0)
     Next (Regular) Block[B1]
-Block[B1] - Block
-    Predecessors: [B0]
-    Statements (6)
-        IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'a1 = new int[d1];')
-          Expression: 
-            ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32[]) (Syntax: 'a1 = new int[d1]')
-              Left: 
-                IParameterReferenceOperation: a1 (OperationKind.ParameterReference, Type: System.Int32[]) (Syntax: 'a1')
-              Right: 
-                IArrayCreationOperation (OperationKind.ArrayCreation, Type: System.Int32[]) (Syntax: 'new int[d1]')
-                  Dimension Sizes(1):
-                      IParameterReferenceOperation: d1 (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'd1')
-                  Initializer: 
-                    null
+        Entering: {R1}
 
-        IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'a2 = new int[] { v1 };')
-          Expression: 
-            ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32[]) (Syntax: 'a2 = new int[] { v1 }')
-              Left: 
-                IParameterReferenceOperation: a2 (OperationKind.ParameterReference, Type: System.Int32[]) (Syntax: 'a2')
-              Right: 
-                IArrayCreationOperation (OperationKind.ArrayCreation, Type: System.Int32[]) (Syntax: 'new int[] { v1 }')
-                  Dimension Sizes(1):
-                      ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1, IsImplicit) (Syntax: 'new int[] { v1 }')
-                  Initializer: 
-                    IArrayInitializerOperation (1 elements) (OperationKind.ArrayInitializer, Type: null) (Syntax: '{ v1 }')
-                      Element Values(1):
-                          IParameterReferenceOperation: v1 (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'v1')
+.locals {R1}
+{
+    Locals: [System.Int32[] f]
+    Block[B1] - Block
+        Predecessors: [B0]
+        Statements (7)
+            IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'a1 = new int[d1];')
+              Expression: 
+                ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32[]) (Syntax: 'a1 = new int[d1]')
+                  Left: 
+                    IParameterReferenceOperation: a1 (OperationKind.ParameterReference, Type: System.Int32[]) (Syntax: 'a1')
+                  Right: 
+                    IArrayCreationOperation (OperationKind.ArrayCreation, Type: System.Int32[]) (Syntax: 'new int[d1]')
+                      Dimension Sizes(1):
+                          IParameterReferenceOperation: d1 (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'd1')
+                      Initializer: 
+                        null
 
-        IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'a3 = new int[d2, d3];')
-          Expression: 
-            ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32[,]) (Syntax: 'a3 = new int[d2, d3]')
-              Left: 
-                IParameterReferenceOperation: a3 (OperationKind.ParameterReference, Type: System.Int32[,]) (Syntax: 'a3')
-              Right: 
-                IArrayCreationOperation (OperationKind.ArrayCreation, Type: System.Int32[,]) (Syntax: 'new int[d2, d3]')
-                  Dimension Sizes(2):
-                      IParameterReferenceOperation: d2 (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'd2')
-                      IParameterReferenceOperation: d3 (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'd3')
-                  Initializer: 
-                    null
+            IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'a2 = new int[] { v1 };')
+              Expression: 
+                ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32[]) (Syntax: 'a2 = new int[] { v1 }')
+                  Left: 
+                    IParameterReferenceOperation: a2 (OperationKind.ParameterReference, Type: System.Int32[]) (Syntax: 'a2')
+                  Right: 
+                    IArrayCreationOperation (OperationKind.ArrayCreation, Type: System.Int32[]) (Syntax: 'new int[] { v1 }')
+                      Dimension Sizes(1):
+                          ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1, IsImplicit) (Syntax: 'new int[] { v1 }')
+                      Initializer: 
+                        IArrayInitializerOperation (1 elements) (OperationKind.ArrayInitializer, Type: null) (Syntax: '{ v1 }')
+                          Element Values(1):
+                              IParameterReferenceOperation: v1 (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'v1')
 
-        IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'a4 = new in ... , { v3 } };')
-          Expression: 
-            ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32[,]) (Syntax: 'a4 = new in ... }, { v3 } }')
-              Left: 
-                IParameterReferenceOperation: a4 (OperationKind.ParameterReference, Type: System.Int32[,]) (Syntax: 'a4')
-              Right: 
-                IArrayCreationOperation (OperationKind.ArrayCreation, Type: System.Int32[,]) (Syntax: 'new int[c1, ... }, { v3 } }')
-                  Dimension Sizes(2):
-                      IFieldReferenceOperation: System.Int32 C.c1 (Static) (OperationKind.FieldReference, Type: System.Int32, Constant: 2) (Syntax: 'c1')
-                        Instance Receiver: 
-                          null
-                      IFieldReferenceOperation: System.Int32 C.c2 (Static) (OperationKind.FieldReference, Type: System.Int32, Constant: 1) (Syntax: 'c2')
-                        Instance Receiver: 
-                          null
-                  Initializer: 
-                    IArrayInitializerOperation (2 elements) (OperationKind.ArrayInitializer, Type: null) (Syntax: '{ { v2 }, { v3 } }')
-                      Element Values(2):
-                          IArrayInitializerOperation (1 elements) (OperationKind.ArrayInitializer, Type: null) (Syntax: '{ v2 }')
-                            Element Values(1):
-                                IParameterReferenceOperation: v2 (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'v2')
-                          IArrayInitializerOperation (1 elements) (OperationKind.ArrayInitializer, Type: null) (Syntax: '{ v3 }')
-                            Element Values(1):
-                                IParameterReferenceOperation: v3 (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'v3')
+            IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'a3 = new int[d2, d3];')
+              Expression: 
+                ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32[,]) (Syntax: 'a3 = new int[d2, d3]')
+                  Left: 
+                    IParameterReferenceOperation: a3 (OperationKind.ParameterReference, Type: System.Int32[,]) (Syntax: 'a3')
+                  Right: 
+                    IArrayCreationOperation (OperationKind.ArrayCreation, Type: System.Int32[,]) (Syntax: 'new int[d2, d3]')
+                      Dimension Sizes(2):
+                          IParameterReferenceOperation: d2 (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'd2')
+                          IParameterReferenceOperation: d3 (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'd3')
+                      Initializer: 
+                        null
 
-        IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'a5 = new int[d4][];')
-          Expression: 
-            ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32[][]) (Syntax: 'a5 = new int[d4][]')
-              Left: 
-                IParameterReferenceOperation: a5 (OperationKind.ParameterReference, Type: System.Int32[][]) (Syntax: 'a5')
-              Right: 
-                IArrayCreationOperation (OperationKind.ArrayCreation, Type: System.Int32[][]) (Syntax: 'new int[d4][]')
-                  Dimension Sizes(1):
-                      IParameterReferenceOperation: d4 (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'd4')
-                  Initializer: 
-                    null
-
-        IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'a6 = new in ... ] { v4 } };')
-          Expression: 
-            ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32[][]) (Syntax: 'a6 = new in ... [] { v4 } }')
-              Left: 
-                IParameterReferenceOperation: a6 (OperationKind.ParameterReference, Type: System.Int32[][]) (Syntax: 'a6')
-              Right: 
-                IArrayCreationOperation (OperationKind.ArrayCreation, Type: System.Int32[][]) (Syntax: 'new int[c3] ... [] { v4 } }')
-                  Dimension Sizes(1):
-                      IFieldReferenceOperation: System.Int32 C.c3 (Static) (OperationKind.FieldReference, Type: System.Int32, Constant: 1) (Syntax: 'c3')
-                        Instance Receiver: 
-                          null
-                  Initializer: 
-                    IArrayInitializerOperation (1 elements) (OperationKind.ArrayInitializer, Type: null) (Syntax: '{ new[] { v4 } }')
-                      Element Values(1):
-                          IArrayCreationOperation (OperationKind.ArrayCreation, Type: System.Int32[]) (Syntax: 'new[] { v4 }')
-                            Dimension Sizes(1):
-                                ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1, IsImplicit) (Syntax: 'new[] { v4 }')
-                            Initializer: 
-                              IArrayInitializerOperation (1 elements) (OperationKind.ArrayInitializer, Type: null) (Syntax: '{ v4 }')
+            IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'a4 = new in ... , { v3 } };')
+              Expression: 
+                ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32[,]) (Syntax: 'a4 = new in ... }, { v3 } }')
+                  Left: 
+                    IParameterReferenceOperation: a4 (OperationKind.ParameterReference, Type: System.Int32[,]) (Syntax: 'a4')
+                  Right: 
+                    IArrayCreationOperation (OperationKind.ArrayCreation, Type: System.Int32[,]) (Syntax: 'new int[c1, ... }, { v3 } }')
+                      Dimension Sizes(2):
+                          IFieldReferenceOperation: System.Int32 C.c1 (Static) (OperationKind.FieldReference, Type: System.Int32, Constant: 2) (Syntax: 'c1')
+                            Instance Receiver: 
+                              null
+                          IFieldReferenceOperation: System.Int32 C.c2 (Static) (OperationKind.FieldReference, Type: System.Int32, Constant: 1) (Syntax: 'c2')
+                            Instance Receiver: 
+                              null
+                      Initializer: 
+                        IArrayInitializerOperation (2 elements) (OperationKind.ArrayInitializer, Type: null) (Syntax: '{ { v2 }, { v3 } }')
+                          Element Values(2):
+                              IArrayInitializerOperation (1 elements) (OperationKind.ArrayInitializer, Type: null) (Syntax: '{ v2 }')
                                 Element Values(1):
-                                    IParameterReferenceOperation: v4 (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'v4')
+                                    IParameterReferenceOperation: v2 (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'v2')
+                              IArrayInitializerOperation (1 elements) (OperationKind.ArrayInitializer, Type: null) (Syntax: '{ v3 }')
+                                Element Values(1):
+                                    IParameterReferenceOperation: v3 (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'v3')
 
-    Next (Regular) Block[B2]
+            IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'a5 = new int[d4][];')
+              Expression: 
+                ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32[][]) (Syntax: 'a5 = new int[d4][]')
+                  Left: 
+                    IParameterReferenceOperation: a5 (OperationKind.ParameterReference, Type: System.Int32[][]) (Syntax: 'a5')
+                  Right: 
+                    IArrayCreationOperation (OperationKind.ArrayCreation, Type: System.Int32[][]) (Syntax: 'new int[d4][]')
+                      Dimension Sizes(1):
+                          IParameterReferenceOperation: d4 (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'd4')
+                      Initializer: 
+                        null
+
+            IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'a6 = new in ... ] { v4 } };')
+              Expression: 
+                ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32[][]) (Syntax: 'a6 = new in ... [] { v4 } }')
+                  Left: 
+                    IParameterReferenceOperation: a6 (OperationKind.ParameterReference, Type: System.Int32[][]) (Syntax: 'a6')
+                  Right: 
+                    IArrayCreationOperation (OperationKind.ArrayCreation, Type: System.Int32[][]) (Syntax: 'new int[c3] ... [] { v4 } }')
+                      Dimension Sizes(1):
+                          IFieldReferenceOperation: System.Int32 C.c3 (Static) (OperationKind.FieldReference, Type: System.Int32, Constant: 1) (Syntax: 'c3')
+                            Instance Receiver: 
+                              null
+                      Initializer: 
+                        IArrayInitializerOperation (1 elements) (OperationKind.ArrayInitializer, Type: null) (Syntax: '{ new[] { v4 } }')
+                          Element Values(1):
+                              IArrayCreationOperation (OperationKind.ArrayCreation, Type: System.Int32[]) (Syntax: 'new[] { v4 }')
+                                Dimension Sizes(1):
+                                    ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1, IsImplicit) (Syntax: 'new[] { v4 }')
+                                Initializer: 
+                                  IArrayInitializerOperation (1 elements) (OperationKind.ArrayInitializer, Type: null) (Syntax: '{ v4 }')
+                                    Element Values(1):
+                                        IParameterReferenceOperation: v4 (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'v4')
+
+            ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32[], IsImplicit) (Syntax: 'f = { 1, 3, 4 }')
+              Left: 
+                ILocalReferenceOperation: f (IsDeclaration: True) (OperationKind.LocalReference, Type: System.Int32[], IsImplicit) (Syntax: 'f = { 1, 3, 4 }')
+              Right: 
+                IArrayCreationOperation (OperationKind.ArrayCreation, Type: System.Int32[], IsImplicit) (Syntax: '{ 1, 3, 4 }')
+                  Dimension Sizes(1):
+                      ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 3, IsImplicit) (Syntax: '{ 1, 3, 4 }')
+                  Initializer: 
+                    IArrayInitializerOperation (3 elements) (OperationKind.ArrayInitializer, Type: null) (Syntax: '{ 1, 3, 4 }')
+                      Element Values(3):
+                          ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
+                          ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 3) (Syntax: '3')
+                          ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 4) (Syntax: '4')
+
+        Next (Regular) Block[B2]
+            Leaving: {R1}
+}
+
 Block[B2] - Exit
     Predecessors: [B1]
     Statements (0)
