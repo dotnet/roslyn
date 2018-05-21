@@ -104,6 +104,8 @@ End Module]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
 IUsingOperation (OperationKind.Using, Type: null) (Syntax: 'Using c1 As ... End Using')
+  Locals: Local_1: c1 As Program.C
+    Local_2: c2 As Program.C
   Resources: 
     IVariableDeclarationGroupOperation (2 declarations) (OperationKind.VariableDeclarationGroup, Type: null) (Syntax: 'Using c1 As ... s C = New C')
       IVariableDeclarationOperation (1 declarators) (OperationKind.VariableDeclaration, Type: null) (Syntax: 'c1 As C = New C')
@@ -172,6 +174,7 @@ End Module]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
 IUsingOperation (OperationKind.Using, Type: null) (Syntax: 'Using c1 As ... End Using')
+  Locals: Local_1: c1 As Program.C
   Resources: 
     IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDeclarationGroup, Type: null) (Syntax: 'Using c1 As C = New C')
       IVariableDeclarationOperation (1 declarators) (OperationKind.VariableDeclaration, Type: null) (Syntax: 'c1 As C = New C')
@@ -229,6 +232,7 @@ End Module]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
 IUsingOperation (OperationKind.Using, Type: null) (Syntax: 'Using c1 As ... End Using')
+  Locals: Local_1: c1 As Program.C
   Resources: 
     IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDeclarationGroup, Type: null) (Syntax: 'Using c1 As New C')
       IVariableDeclarationOperation (1 declarators) (OperationKind.VariableDeclaration, Type: null) (Syntax: 'c1 As New C')
@@ -286,6 +290,8 @@ End Module]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
 IUsingOperation (OperationKind.Using, Type: null) (Syntax: 'Using c1, c ... End Using')
+  Locals: Local_1: c1 As Program.C
+    Local_2: c2 As Program.C
   Resources: 
     IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDeclarationGroup, Type: null) (Syntax: 'Using c1, c2 As New C')
       IVariableDeclarationOperation (2 declarators) (OperationKind.VariableDeclaration, Type: null) (Syntax: 'c1, c2 As New C')
@@ -393,6 +399,8 @@ End Module]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
 IUsingOperation (OperationKind.Using, Type: null, IsInvalid) (Syntax: 'Using c1, c ... End Using')
+  Locals: Local_1: c1 As System.Object
+    Local_2: c2 As System.Object
   Resources: 
     IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDeclarationGroup, Type: null, IsInvalid) (Syntax: 'Using c1, c2')
       IVariableDeclarationOperation (2 declarators) (OperationKind.VariableDeclaration, Type: null, IsInvalid) (Syntax: 'c1, c2')
@@ -511,6 +519,9 @@ End Module]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
 IUsingOperation (OperationKind.Using, Type: null) (Syntax: 'Using c1 =  ... End Using')
+  Locals: Local_1: c1 As Program.C
+    Local_2: c2 As Program.C
+    Local_3: c3 As Program.C
   Resources: 
     IVariableDeclarationGroupOperation (2 declarations) (OperationKind.VariableDeclarationGroup, Type: null) (Syntax: 'Using c1 =  ... c3 As New C')
       IVariableDeclarationOperation (1 declarators) (OperationKind.VariableDeclaration, Type: null) (Syntax: 'c1 = New C')
@@ -582,6 +593,8 @@ End Module]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
 IUsingOperation (OperationKind.Using, Type: null, IsInvalid) (Syntax: 'Using c1 =  ... End Using')
+  Locals: Local_1: c1 As Program.C
+    Local_2: c2 As System.Object
   Resources: 
     IVariableDeclarationGroupOperation (2 declarations) (OperationKind.VariableDeclarationGroup, Type: null, IsInvalid) (Syntax: 'Using c1 = New C, c2')
       IVariableDeclarationOperation (1 declarators) (OperationKind.VariableDeclaration, Type: null) (Syntax: 'c1 = New C')
@@ -650,6 +663,7 @@ End Module]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
 IUsingOperation (OperationKind.Using, Type: null, IsInvalid) (Syntax: 'Using c1 As ... End Using')
+  Locals: Local_1: c1 As Program.C
   Resources: 
     IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDeclarationGroup, Type: null, IsInvalid) (Syntax: 'Using c1 As New C')
       IVariableDeclarationOperation (1 declarators) (OperationKind.VariableDeclaration, Type: null, IsInvalid) (Syntax: 'c1 As New C')
@@ -885,7 +899,7 @@ End Module]]>
         End Sub
 
         <CompilerTrait(CompilerFeature.IOperation)>
-        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/22362")>
+        <Fact, WorkItem(22362, "https://github.com/dotnet/roslyn/issues/22362")>
         Public Sub IUsingStatement_UsingStatementSyntax_VariablesSyntax()
             Dim source = <![CDATA[
 Option Strict On
@@ -905,10 +919,18 @@ Module Program
     End Class
 End Module]]>.Value
 
-            ' This should be returning a variable declaration, but the associated variable declarator operation has a
-            ' ModifiedIdentifierSyntax as the associated syntax node. Fixing is tracked by
-            ' https://github.com/dotnet/roslyn/issues/22362
             Dim expectedOperationTree = <![CDATA[
+IVariableDeclarationOperation (1 declarators) (OperationKind.VariableDeclaration, Type: null) (Syntax: 'c1 = New C')
+  Declarators:
+      IVariableDeclaratorOperation (Symbol: c1 As Program.C) (OperationKind.VariableDeclarator, Type: null) (Syntax: 'c1')
+        Initializer: 
+          null
+  Initializer: 
+    IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= New C')
+      IObjectCreationOperation (Constructor: Sub Program.C..ctor()) (OperationKind.ObjectCreation, Type: Program.C) (Syntax: 'New C')
+        Arguments(0)
+        Initializer: 
+          null
 ]]>.Value
 
             Dim expectedDiagnostics = String.Empty

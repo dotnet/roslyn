@@ -2463,40 +2463,34 @@ oneMoreTime:
             Compilation compilation = ((Operation)operation).SemanticModel.Compilation;
             ITypeSymbol iDisposable = compilation.GetSpecialType(SpecialType.System_IDisposable);
 
+            bool haveLocals = !operation.Locals.IsEmpty;
+            if (haveLocals)
+            {
+                EnterRegion(new RegionBuilder(ControlFlowGraph.RegionKind.Locals, locals: operation.Locals));
+            }
+
             if (operation.Resources.Kind == OperationKind.VariableDeclarationGroup)
             {
                 var declarationGroup = (IVariableDeclarationGroupOperation)operation.Resources;
                 var resourceQueue = ArrayBuilder<(IVariableDeclarationOperation, IVariableDeclaratorOperation)>.GetInstance(declarationGroup.Declarations.Length);
-
-                // PROTOTYPE(dataflow): Once https://github.com/dotnet/roslyn/issues/25825 is fixed
-                //                      we should switch to IUsingOperation.Locals property
-                //                      because the current approach doesn't handle 'out vars' and the like.
-                var locals = ArrayBuilder<ILocalSymbol>.GetInstance(declarationGroup.Declarations.Length);
-
+                
                 foreach (IVariableDeclarationOperation declaration in declarationGroup.Declarations)
                 {
                     foreach (IVariableDeclaratorOperation declarator in declaration.Declarators)
                     {
-                        locals.Add(declarator.Symbol);
                         resourceQueue.Add((declaration, declarator));
                     }
                 }
 
                 resourceQueue.ReverseContents();
-                EnterRegion(new RegionBuilder(ControlFlowGraph.RegionKind.Locals, locals: locals.ToImmutableAndFree()));
-
+                
                 processQueue(resourceQueue);
-
-                LeaveRegion();
             }
             else
             {
                 Debug.Assert(operation.Resources.Kind != OperationKind.VariableDeclaration);
                 Debug.Assert(operation.Resources.Kind != OperationKind.VariableDeclarator);
 
-                // PROTOTYPE(dataflow): Once https://github.com/dotnet/roslyn/issues/25825 is fixed
-                //                      we should handle locals in IUsingOperation.Locals property:
-                //                      'out vars' and the like.
                 IOperation resource = Visit(operation.Resources);
                 int captureId = _availableCaptureId++;
 
@@ -2507,6 +2501,11 @@ oneMoreTime:
 
                 AddStatement(new FlowCapture(captureId, resource.Syntax, resource));
                 processResource(new FlowCaptureReference(captureId, resource.Syntax, resource.Type, constantValue: default), resourceQueueOpt: null);
+            }
+
+            if (haveLocals)
+            {
+                LeaveRegion();
             }
 
             return null;

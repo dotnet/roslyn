@@ -8025,16 +8025,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
     Friend NotInheritable Partial Class BoundUsingStatement
         Inherits BoundStatement
 
-        Public Sub New(syntax As SyntaxNode, resourceList As ImmutableArray(Of BoundLocalDeclarationBase), resourceExpressionOpt As BoundExpression, body As BoundBlock, usingInfo As UsingInfo, Optional hasErrors As Boolean = False)
+        Public Sub New(syntax As SyntaxNode, resourceList As ImmutableArray(Of BoundLocalDeclarationBase), resourceExpressionOpt As BoundExpression, body As BoundBlock, usingInfo As UsingInfo, locals As ImmutableArray(Of LocalSymbol), Optional hasErrors As Boolean = False)
             MyBase.New(BoundKind.UsingStatement, syntax, hasErrors OrElse resourceList.NonNullAndHasErrors() OrElse resourceExpressionOpt.NonNullAndHasErrors() OrElse body.NonNullAndHasErrors())
 
             Debug.Assert(body IsNot Nothing, "Field 'body' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
             Debug.Assert(usingInfo IsNot Nothing, "Field 'usingInfo' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
+            Debug.Assert(Not (locals.IsDefault), "Field 'locals' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
 
             Me._ResourceList = resourceList
             Me._ResourceExpressionOpt = resourceExpressionOpt
             Me._Body = body
             Me._UsingInfo = usingInfo
+            Me._Locals = locals
         End Sub
 
 
@@ -8066,13 +8068,20 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
+        Private ReadOnly _Locals As ImmutableArray(Of LocalSymbol)
+        Public ReadOnly Property Locals As ImmutableArray(Of LocalSymbol)
+            Get
+                Return _Locals
+            End Get
+        End Property
+
         Public Overrides Function Accept(visitor as BoundTreeVisitor) As BoundNode
             Return visitor.VisitUsingStatement(Me)
         End Function
 
-        Public Function Update(resourceList As ImmutableArray(Of BoundLocalDeclarationBase), resourceExpressionOpt As BoundExpression, body As BoundBlock, usingInfo As UsingInfo) As BoundUsingStatement
-            If resourceList <> Me.ResourceList OrElse resourceExpressionOpt IsNot Me.ResourceExpressionOpt OrElse body IsNot Me.Body OrElse usingInfo IsNot Me.UsingInfo Then
-                Dim result = New BoundUsingStatement(Me.Syntax, resourceList, resourceExpressionOpt, body, usingInfo, Me.HasErrors)
+        Public Function Update(resourceList As ImmutableArray(Of BoundLocalDeclarationBase), resourceExpressionOpt As BoundExpression, body As BoundBlock, usingInfo As UsingInfo, locals As ImmutableArray(Of LocalSymbol)) As BoundUsingStatement
+            If resourceList <> Me.ResourceList OrElse resourceExpressionOpt IsNot Me.ResourceExpressionOpt OrElse body IsNot Me.Body OrElse usingInfo IsNot Me.UsingInfo OrElse locals <> Me.Locals Then
+                Dim result = New BoundUsingStatement(Me.Syntax, resourceList, resourceExpressionOpt, body, usingInfo, locals, Me.HasErrors)
                 
                 If Me.WasCompilerGenerated Then
                     result.SetWasCompilerGenerated()
@@ -13340,7 +13349,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim resourceList As ImmutableArray(Of BoundLocalDeclarationBase) = Me.VisitList(node.ResourceList)
             Dim resourceExpressionOpt As BoundExpression = DirectCast(Me.Visit(node.ResourceExpressionOpt), BoundExpression)
             Dim body As BoundBlock = DirectCast(Me.Visit(node.Body), BoundBlock)
-            Return node.Update(resourceList, resourceExpressionOpt, body, node.UsingInfo)
+            Return node.Update(resourceList, resourceExpressionOpt, body, node.UsingInfo, node.Locals)
         End Function
 
         Public Overrides Function VisitSyncLockStatement(node As BoundSyncLockStatement) As BoundNode
@@ -14746,7 +14755,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 New TreeDumperNode("resourceList", Nothing, From x In node.ResourceList Select Visit(x, Nothing)),
                 New TreeDumperNode("resourceExpressionOpt", Nothing, new TreeDumperNode() { Visit(node.ResourceExpressionOpt, Nothing) }),
                 New TreeDumperNode("body", Nothing, new TreeDumperNode() { Visit(node.Body, Nothing) }),
-                New TreeDumperNode("usingInfo", node.UsingInfo, Nothing)
+                New TreeDumperNode("usingInfo", node.UsingInfo, Nothing),
+                New TreeDumperNode("locals", node.Locals, Nothing)
             })
         End Function
 
