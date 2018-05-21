@@ -777,13 +777,13 @@ namespace Microsoft.CodeAnalysis.CSharp
         public bool IsObjectCreationExpression(SyntaxNode node)
             => node is ObjectCreationExpressionSyntax;
 
-        public bool IsNameOfSubpatternElement(SyntaxNode node)
+        public bool IsNameOfSubpattern(SyntaxNode node)
             => node.IsKind(SyntaxKind.IdentifierName) &&
                node.IsParentKind(SyntaxKind.NameColon) &&
-               node.Parent.IsParentKind(SyntaxKind.SubpatternElement);
+               node.Parent.IsParentKind(SyntaxKind.Subpattern);
 
-        public bool IsPropertySubpattern(SyntaxNode node)
-            => node.Kind() == SyntaxKind.PropertySubpattern;
+        public bool IsPropertyPatternClause(SyntaxNode node)
+            => node.Kind() == SyntaxKind.PropertyPatternClause;
 
         public bool IsObjectInitializerNamedAssignmentIdentifier(SyntaxNode node)
             => IsObjectInitializerNamedAssignmentIdentifier(node, out var unused);

@@ -341,8 +341,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
         public static bool IsCommaInSwitchExpression(this SyntaxToken token)
             => token.Kind() == SyntaxKind.CommaToken && token.Parent is SwitchExpressionSyntax;
 
-        public static bool IsCommaInPropertySubpattern(this SyntaxToken token)
-            => token.Kind() == SyntaxKind.CommaToken && token.Parent is PropertySubpatternSyntax;
+        public static bool IsCommaInPropertyPatternClause(this SyntaxToken token)
+            => token.Kind() == SyntaxKind.CommaToken && token.Parent is PropertyPatternClauseSyntax;
 
         public static bool IsIdentifierInLabeledStatement(this SyntaxToken token)
         {

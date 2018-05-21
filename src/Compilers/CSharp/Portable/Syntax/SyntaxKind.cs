@@ -558,10 +558,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         DiscardDesignation = 9014,
 
         // added along with recursive patterns
-        PropertyPattern = 9020,
-        PropertySubpattern = 9021,
-        SubpatternElement = 9022,
-        DeconstructionPattern = 9023,
+        RecursivePattern = 9020,
+        PropertyPatternClause = 9021,
+        Subpattern = 9022,
+        DeconstructionPatternClause = 9023,
         DiscardPattern = 9024,
         SwitchExpression = 9025,
         SwitchExpressionArm = 9026,

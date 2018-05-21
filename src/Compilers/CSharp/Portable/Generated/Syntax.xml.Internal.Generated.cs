@@ -11273,37 +11273,31 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     }
   }
 
-  internal sealed partial class DeconstructionPatternSyntax : PatternSyntax
+  internal sealed partial class RecursivePatternSyntax : PatternSyntax
   {
     internal readonly TypeSyntax type;
-    internal readonly SyntaxToken openParenToken;
-    internal readonly GreenNode subPatterns;
-    internal readonly SyntaxToken closeParenToken;
-    internal readonly PropertySubpatternSyntax propertySubpattern;
+    internal readonly DeconstructionPatternClauseSyntax deconstructionPatternClause;
+    internal readonly PropertyPatternClauseSyntax propertyPatternClause;
     internal readonly VariableDesignationSyntax designation;
 
-    internal DeconstructionPatternSyntax(SyntaxKind kind, TypeSyntax type, SyntaxToken openParenToken, GreenNode subPatterns, SyntaxToken closeParenToken, PropertySubpatternSyntax propertySubpattern, VariableDesignationSyntax designation, DiagnosticInfo[] diagnostics, SyntaxAnnotation[] annotations)
+    internal RecursivePatternSyntax(SyntaxKind kind, TypeSyntax type, DeconstructionPatternClauseSyntax deconstructionPatternClause, PropertyPatternClauseSyntax propertyPatternClause, VariableDesignationSyntax designation, DiagnosticInfo[] diagnostics, SyntaxAnnotation[] annotations)
         : base(kind, diagnostics, annotations)
     {
-        this.SlotCount = 6;
+        this.SlotCount = 4;
         if (type != null)
         {
             this.AdjustFlagsAndWidth(type);
             this.type = type;
         }
-        this.AdjustFlagsAndWidth(openParenToken);
-        this.openParenToken = openParenToken;
-        if (subPatterns != null)
+        if (deconstructionPatternClause != null)
         {
-            this.AdjustFlagsAndWidth(subPatterns);
-            this.subPatterns = subPatterns;
+            this.AdjustFlagsAndWidth(deconstructionPatternClause);
+            this.deconstructionPatternClause = deconstructionPatternClause;
         }
-        this.AdjustFlagsAndWidth(closeParenToken);
-        this.closeParenToken = closeParenToken;
-        if (propertySubpattern != null)
+        if (propertyPatternClause != null)
         {
-            this.AdjustFlagsAndWidth(propertySubpattern);
-            this.propertySubpattern = propertySubpattern;
+            this.AdjustFlagsAndWidth(propertyPatternClause);
+            this.propertyPatternClause = propertyPatternClause;
         }
         if (designation != null)
         {
@@ -11313,29 +11307,25 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     }
 
 
-    internal DeconstructionPatternSyntax(SyntaxKind kind, TypeSyntax type, SyntaxToken openParenToken, GreenNode subPatterns, SyntaxToken closeParenToken, PropertySubpatternSyntax propertySubpattern, VariableDesignationSyntax designation, SyntaxFactoryContext context)
+    internal RecursivePatternSyntax(SyntaxKind kind, TypeSyntax type, DeconstructionPatternClauseSyntax deconstructionPatternClause, PropertyPatternClauseSyntax propertyPatternClause, VariableDesignationSyntax designation, SyntaxFactoryContext context)
         : base(kind)
     {
         this.SetFactoryContext(context);
-        this.SlotCount = 6;
+        this.SlotCount = 4;
         if (type != null)
         {
             this.AdjustFlagsAndWidth(type);
             this.type = type;
         }
-        this.AdjustFlagsAndWidth(openParenToken);
-        this.openParenToken = openParenToken;
-        if (subPatterns != null)
+        if (deconstructionPatternClause != null)
         {
-            this.AdjustFlagsAndWidth(subPatterns);
-            this.subPatterns = subPatterns;
+            this.AdjustFlagsAndWidth(deconstructionPatternClause);
+            this.deconstructionPatternClause = deconstructionPatternClause;
         }
-        this.AdjustFlagsAndWidth(closeParenToken);
-        this.closeParenToken = closeParenToken;
-        if (propertySubpattern != null)
+        if (propertyPatternClause != null)
         {
-            this.AdjustFlagsAndWidth(propertySubpattern);
-            this.propertySubpattern = propertySubpattern;
+            this.AdjustFlagsAndWidth(propertyPatternClause);
+            this.propertyPatternClause = propertyPatternClause;
         }
         if (designation != null)
         {
@@ -11345,28 +11335,24 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     }
 
 
-    internal DeconstructionPatternSyntax(SyntaxKind kind, TypeSyntax type, SyntaxToken openParenToken, GreenNode subPatterns, SyntaxToken closeParenToken, PropertySubpatternSyntax propertySubpattern, VariableDesignationSyntax designation)
+    internal RecursivePatternSyntax(SyntaxKind kind, TypeSyntax type, DeconstructionPatternClauseSyntax deconstructionPatternClause, PropertyPatternClauseSyntax propertyPatternClause, VariableDesignationSyntax designation)
         : base(kind)
     {
-        this.SlotCount = 6;
+        this.SlotCount = 4;
         if (type != null)
         {
             this.AdjustFlagsAndWidth(type);
             this.type = type;
         }
-        this.AdjustFlagsAndWidth(openParenToken);
-        this.openParenToken = openParenToken;
-        if (subPatterns != null)
+        if (deconstructionPatternClause != null)
         {
-            this.AdjustFlagsAndWidth(subPatterns);
-            this.subPatterns = subPatterns;
+            this.AdjustFlagsAndWidth(deconstructionPatternClause);
+            this.deconstructionPatternClause = deconstructionPatternClause;
         }
-        this.AdjustFlagsAndWidth(closeParenToken);
-        this.closeParenToken = closeParenToken;
-        if (propertySubpattern != null)
+        if (propertyPatternClause != null)
         {
-            this.AdjustFlagsAndWidth(propertySubpattern);
-            this.propertySubpattern = propertySubpattern;
+            this.AdjustFlagsAndWidth(propertyPatternClause);
+            this.propertyPatternClause = propertyPatternClause;
         }
         if (designation != null)
         {
@@ -11376,10 +11362,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     }
 
     public TypeSyntax Type { get { return this.type; } }
-    public SyntaxToken OpenParenToken { get { return this.openParenToken; } }
-    public Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList<SubpatternElementSyntax> SubPatterns { get { return new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList<SubpatternElementSyntax>(new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<CSharpSyntaxNode>(this.subPatterns)); } }
-    public SyntaxToken CloseParenToken { get { return this.closeParenToken; } }
-    public PropertySubpatternSyntax PropertySubpattern { get { return this.propertySubpattern; } }
+    public DeconstructionPatternClauseSyntax DeconstructionPatternClause { get { return this.deconstructionPatternClause; } }
+    public PropertyPatternClauseSyntax PropertyPatternClause { get { return this.propertyPatternClause; } }
     public VariableDesignationSyntax Designation { get { return this.designation; } }
 
     internal override GreenNode GetSlot(int index)
@@ -11387,35 +11371,33 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         switch (index)
         {
             case 0: return this.type;
-            case 1: return this.openParenToken;
-            case 2: return this.subPatterns;
-            case 3: return this.closeParenToken;
-            case 4: return this.propertySubpattern;
-            case 5: return this.designation;
+            case 1: return this.deconstructionPatternClause;
+            case 2: return this.propertyPatternClause;
+            case 3: return this.designation;
             default: return null;
         }
     }
 
     internal override SyntaxNode CreateRed(SyntaxNode parent, int position)
     {
-      return new CSharp.Syntax.DeconstructionPatternSyntax(this, parent, position);
+      return new CSharp.Syntax.RecursivePatternSyntax(this, parent, position);
     }
 
     public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor)
     {
-        return visitor.VisitDeconstructionPattern(this);
+        return visitor.VisitRecursivePattern(this);
     }
 
     public override void Accept(CSharpSyntaxVisitor visitor)
     {
-        visitor.VisitDeconstructionPattern(this);
+        visitor.VisitRecursivePattern(this);
     }
 
-    public DeconstructionPatternSyntax Update(TypeSyntax type, SyntaxToken openParenToken, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList<SubpatternElementSyntax> subPatterns, SyntaxToken closeParenToken, PropertySubpatternSyntax propertySubpattern, VariableDesignationSyntax designation)
+    public RecursivePatternSyntax Update(TypeSyntax type, DeconstructionPatternClauseSyntax deconstructionPatternClause, PropertyPatternClauseSyntax propertyPatternClause, VariableDesignationSyntax designation)
     {
-        if (type != this.Type || openParenToken != this.OpenParenToken || subPatterns != this.SubPatterns || closeParenToken != this.CloseParenToken || propertySubpattern != this.PropertySubpattern || designation != this.Designation)
+        if (type != this.Type || deconstructionPatternClause != this.DeconstructionPatternClause || propertyPatternClause != this.PropertyPatternClause || designation != this.Designation)
         {
-            var newNode = SyntaxFactory.DeconstructionPattern(type, openParenToken, subPatterns, closeParenToken, propertySubpattern, designation);
+            var newNode = SyntaxFactory.RecursivePattern(type, deconstructionPatternClause, propertyPatternClause, designation);
             var diags = this.GetDiagnostics();
             if (diags != null && diags.Length > 0)
                newNode = newNode.WithDiagnosticsGreen(diags);
@@ -11430,47 +11412,35 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
     internal override GreenNode SetDiagnostics(DiagnosticInfo[] diagnostics)
     {
-         return new DeconstructionPatternSyntax(this.Kind, this.type, this.openParenToken, this.subPatterns, this.closeParenToken, this.propertySubpattern, this.designation, diagnostics, GetAnnotations());
+         return new RecursivePatternSyntax(this.Kind, this.type, this.deconstructionPatternClause, this.propertyPatternClause, this.designation, diagnostics, GetAnnotations());
     }
 
     internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations)
     {
-         return new DeconstructionPatternSyntax(this.Kind, this.type, this.openParenToken, this.subPatterns, this.closeParenToken, this.propertySubpattern, this.designation, GetDiagnostics(), annotations);
+         return new RecursivePatternSyntax(this.Kind, this.type, this.deconstructionPatternClause, this.propertyPatternClause, this.designation, GetDiagnostics(), annotations);
     }
 
-    internal DeconstructionPatternSyntax(ObjectReader reader)
+    internal RecursivePatternSyntax(ObjectReader reader)
         : base(reader)
     {
-      this.SlotCount = 6;
+      this.SlotCount = 4;
       var type = (TypeSyntax)reader.ReadValue();
       if (type != null)
       {
          AdjustFlagsAndWidth(type);
          this.type = type;
       }
-      var openParenToken = (SyntaxToken)reader.ReadValue();
-      if (openParenToken != null)
+      var deconstructionPatternClause = (DeconstructionPatternClauseSyntax)reader.ReadValue();
+      if (deconstructionPatternClause != null)
       {
-         AdjustFlagsAndWidth(openParenToken);
-         this.openParenToken = openParenToken;
+         AdjustFlagsAndWidth(deconstructionPatternClause);
+         this.deconstructionPatternClause = deconstructionPatternClause;
       }
-      var subPatterns = (GreenNode)reader.ReadValue();
-      if (subPatterns != null)
+      var propertyPatternClause = (PropertyPatternClauseSyntax)reader.ReadValue();
+      if (propertyPatternClause != null)
       {
-         AdjustFlagsAndWidth(subPatterns);
-         this.subPatterns = subPatterns;
-      }
-      var closeParenToken = (SyntaxToken)reader.ReadValue();
-      if (closeParenToken != null)
-      {
-         AdjustFlagsAndWidth(closeParenToken);
-         this.closeParenToken = closeParenToken;
-      }
-      var propertySubpattern = (PropertySubpatternSyntax)reader.ReadValue();
-      if (propertySubpattern != null)
-      {
-         AdjustFlagsAndWidth(propertySubpattern);
-         this.propertySubpattern = propertySubpattern;
+         AdjustFlagsAndWidth(propertyPatternClause);
+         this.propertyPatternClause = propertyPatternClause;
       }
       var designation = (VariableDesignationSyntax)reader.ReadValue();
       if (designation != null)
@@ -11484,25 +11454,321 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     {
       base.WriteTo(writer);
       writer.WriteValue(this.type);
-      writer.WriteValue(this.openParenToken);
-      writer.WriteValue(this.subPatterns);
-      writer.WriteValue(this.closeParenToken);
-      writer.WriteValue(this.propertySubpattern);
+      writer.WriteValue(this.deconstructionPatternClause);
+      writer.WriteValue(this.propertyPatternClause);
       writer.WriteValue(this.designation);
     }
 
-    static DeconstructionPatternSyntax()
+    static RecursivePatternSyntax()
     {
-       ObjectBinder.RegisterTypeReader(typeof(DeconstructionPatternSyntax), r => new DeconstructionPatternSyntax(r));
+       ObjectBinder.RegisterTypeReader(typeof(RecursivePatternSyntax), r => new RecursivePatternSyntax(r));
     }
   }
 
-  internal sealed partial class SubpatternElementSyntax : CSharpSyntaxNode
+  internal sealed partial class DeconstructionPatternClauseSyntax : CSharpSyntaxNode
+  {
+    internal readonly SyntaxToken openParenToken;
+    internal readonly GreenNode subpatterns;
+    internal readonly SyntaxToken closeParenToken;
+
+    internal DeconstructionPatternClauseSyntax(SyntaxKind kind, SyntaxToken openParenToken, GreenNode subpatterns, SyntaxToken closeParenToken, DiagnosticInfo[] diagnostics, SyntaxAnnotation[] annotations)
+        : base(kind, diagnostics, annotations)
+    {
+        this.SlotCount = 3;
+        this.AdjustFlagsAndWidth(openParenToken);
+        this.openParenToken = openParenToken;
+        if (subpatterns != null)
+        {
+            this.AdjustFlagsAndWidth(subpatterns);
+            this.subpatterns = subpatterns;
+        }
+        this.AdjustFlagsAndWidth(closeParenToken);
+        this.closeParenToken = closeParenToken;
+    }
+
+
+    internal DeconstructionPatternClauseSyntax(SyntaxKind kind, SyntaxToken openParenToken, GreenNode subpatterns, SyntaxToken closeParenToken, SyntaxFactoryContext context)
+        : base(kind)
+    {
+        this.SetFactoryContext(context);
+        this.SlotCount = 3;
+        this.AdjustFlagsAndWidth(openParenToken);
+        this.openParenToken = openParenToken;
+        if (subpatterns != null)
+        {
+            this.AdjustFlagsAndWidth(subpatterns);
+            this.subpatterns = subpatterns;
+        }
+        this.AdjustFlagsAndWidth(closeParenToken);
+        this.closeParenToken = closeParenToken;
+    }
+
+
+    internal DeconstructionPatternClauseSyntax(SyntaxKind kind, SyntaxToken openParenToken, GreenNode subpatterns, SyntaxToken closeParenToken)
+        : base(kind)
+    {
+        this.SlotCount = 3;
+        this.AdjustFlagsAndWidth(openParenToken);
+        this.openParenToken = openParenToken;
+        if (subpatterns != null)
+        {
+            this.AdjustFlagsAndWidth(subpatterns);
+            this.subpatterns = subpatterns;
+        }
+        this.AdjustFlagsAndWidth(closeParenToken);
+        this.closeParenToken = closeParenToken;
+    }
+
+    public SyntaxToken OpenParenToken { get { return this.openParenToken; } }
+    public Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList<SubpatternSyntax> Subpatterns { get { return new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList<SubpatternSyntax>(new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<CSharpSyntaxNode>(this.subpatterns)); } }
+    public SyntaxToken CloseParenToken { get { return this.closeParenToken; } }
+
+    internal override GreenNode GetSlot(int index)
+    {
+        switch (index)
+        {
+            case 0: return this.openParenToken;
+            case 1: return this.subpatterns;
+            case 2: return this.closeParenToken;
+            default: return null;
+        }
+    }
+
+    internal override SyntaxNode CreateRed(SyntaxNode parent, int position)
+    {
+      return new CSharp.Syntax.DeconstructionPatternClauseSyntax(this, parent, position);
+    }
+
+    public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor)
+    {
+        return visitor.VisitDeconstructionPatternClause(this);
+    }
+
+    public override void Accept(CSharpSyntaxVisitor visitor)
+    {
+        visitor.VisitDeconstructionPatternClause(this);
+    }
+
+    public DeconstructionPatternClauseSyntax Update(SyntaxToken openParenToken, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList<SubpatternSyntax> subpatterns, SyntaxToken closeParenToken)
+    {
+        if (openParenToken != this.OpenParenToken || subpatterns != this.Subpatterns || closeParenToken != this.CloseParenToken)
+        {
+            var newNode = SyntaxFactory.DeconstructionPatternClause(openParenToken, subpatterns, closeParenToken);
+            var diags = this.GetDiagnostics();
+            if (diags != null && diags.Length > 0)
+               newNode = newNode.WithDiagnosticsGreen(diags);
+            var annotations = this.GetAnnotations();
+            if (annotations != null && annotations.Length > 0)
+               newNode = newNode.WithAnnotationsGreen(annotations);
+            return newNode;
+        }
+
+        return this;
+    }
+
+    internal override GreenNode SetDiagnostics(DiagnosticInfo[] diagnostics)
+    {
+         return new DeconstructionPatternClauseSyntax(this.Kind, this.openParenToken, this.subpatterns, this.closeParenToken, diagnostics, GetAnnotations());
+    }
+
+    internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations)
+    {
+         return new DeconstructionPatternClauseSyntax(this.Kind, this.openParenToken, this.subpatterns, this.closeParenToken, GetDiagnostics(), annotations);
+    }
+
+    internal DeconstructionPatternClauseSyntax(ObjectReader reader)
+        : base(reader)
+    {
+      this.SlotCount = 3;
+      var openParenToken = (SyntaxToken)reader.ReadValue();
+      if (openParenToken != null)
+      {
+         AdjustFlagsAndWidth(openParenToken);
+         this.openParenToken = openParenToken;
+      }
+      var subpatterns = (GreenNode)reader.ReadValue();
+      if (subpatterns != null)
+      {
+         AdjustFlagsAndWidth(subpatterns);
+         this.subpatterns = subpatterns;
+      }
+      var closeParenToken = (SyntaxToken)reader.ReadValue();
+      if (closeParenToken != null)
+      {
+         AdjustFlagsAndWidth(closeParenToken);
+         this.closeParenToken = closeParenToken;
+      }
+    }
+
+    internal override void WriteTo(ObjectWriter writer)
+    {
+      base.WriteTo(writer);
+      writer.WriteValue(this.openParenToken);
+      writer.WriteValue(this.subpatterns);
+      writer.WriteValue(this.closeParenToken);
+    }
+
+    static DeconstructionPatternClauseSyntax()
+    {
+       ObjectBinder.RegisterTypeReader(typeof(DeconstructionPatternClauseSyntax), r => new DeconstructionPatternClauseSyntax(r));
+    }
+  }
+
+  internal sealed partial class PropertyPatternClauseSyntax : CSharpSyntaxNode
+  {
+    internal readonly SyntaxToken openBraceToken;
+    internal readonly GreenNode subpatterns;
+    internal readonly SyntaxToken closeBraceToken;
+
+    internal PropertyPatternClauseSyntax(SyntaxKind kind, SyntaxToken openBraceToken, GreenNode subpatterns, SyntaxToken closeBraceToken, DiagnosticInfo[] diagnostics, SyntaxAnnotation[] annotations)
+        : base(kind, diagnostics, annotations)
+    {
+        this.SlotCount = 3;
+        this.AdjustFlagsAndWidth(openBraceToken);
+        this.openBraceToken = openBraceToken;
+        if (subpatterns != null)
+        {
+            this.AdjustFlagsAndWidth(subpatterns);
+            this.subpatterns = subpatterns;
+        }
+        this.AdjustFlagsAndWidth(closeBraceToken);
+        this.closeBraceToken = closeBraceToken;
+    }
+
+
+    internal PropertyPatternClauseSyntax(SyntaxKind kind, SyntaxToken openBraceToken, GreenNode subpatterns, SyntaxToken closeBraceToken, SyntaxFactoryContext context)
+        : base(kind)
+    {
+        this.SetFactoryContext(context);
+        this.SlotCount = 3;
+        this.AdjustFlagsAndWidth(openBraceToken);
+        this.openBraceToken = openBraceToken;
+        if (subpatterns != null)
+        {
+            this.AdjustFlagsAndWidth(subpatterns);
+            this.subpatterns = subpatterns;
+        }
+        this.AdjustFlagsAndWidth(closeBraceToken);
+        this.closeBraceToken = closeBraceToken;
+    }
+
+
+    internal PropertyPatternClauseSyntax(SyntaxKind kind, SyntaxToken openBraceToken, GreenNode subpatterns, SyntaxToken closeBraceToken)
+        : base(kind)
+    {
+        this.SlotCount = 3;
+        this.AdjustFlagsAndWidth(openBraceToken);
+        this.openBraceToken = openBraceToken;
+        if (subpatterns != null)
+        {
+            this.AdjustFlagsAndWidth(subpatterns);
+            this.subpatterns = subpatterns;
+        }
+        this.AdjustFlagsAndWidth(closeBraceToken);
+        this.closeBraceToken = closeBraceToken;
+    }
+
+    public SyntaxToken OpenBraceToken { get { return this.openBraceToken; } }
+    public Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList<SubpatternSyntax> Subpatterns { get { return new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList<SubpatternSyntax>(new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<CSharpSyntaxNode>(this.subpatterns)); } }
+    public SyntaxToken CloseBraceToken { get { return this.closeBraceToken; } }
+
+    internal override GreenNode GetSlot(int index)
+    {
+        switch (index)
+        {
+            case 0: return this.openBraceToken;
+            case 1: return this.subpatterns;
+            case 2: return this.closeBraceToken;
+            default: return null;
+        }
+    }
+
+    internal override SyntaxNode CreateRed(SyntaxNode parent, int position)
+    {
+      return new CSharp.Syntax.PropertyPatternClauseSyntax(this, parent, position);
+    }
+
+    public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor)
+    {
+        return visitor.VisitPropertyPatternClause(this);
+    }
+
+    public override void Accept(CSharpSyntaxVisitor visitor)
+    {
+        visitor.VisitPropertyPatternClause(this);
+    }
+
+    public PropertyPatternClauseSyntax Update(SyntaxToken openBraceToken, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList<SubpatternSyntax> subpatterns, SyntaxToken closeBraceToken)
+    {
+        if (openBraceToken != this.OpenBraceToken || subpatterns != this.Subpatterns || closeBraceToken != this.CloseBraceToken)
+        {
+            var newNode = SyntaxFactory.PropertyPatternClause(openBraceToken, subpatterns, closeBraceToken);
+            var diags = this.GetDiagnostics();
+            if (diags != null && diags.Length > 0)
+               newNode = newNode.WithDiagnosticsGreen(diags);
+            var annotations = this.GetAnnotations();
+            if (annotations != null && annotations.Length > 0)
+               newNode = newNode.WithAnnotationsGreen(annotations);
+            return newNode;
+        }
+
+        return this;
+    }
+
+    internal override GreenNode SetDiagnostics(DiagnosticInfo[] diagnostics)
+    {
+         return new PropertyPatternClauseSyntax(this.Kind, this.openBraceToken, this.subpatterns, this.closeBraceToken, diagnostics, GetAnnotations());
+    }
+
+    internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations)
+    {
+         return new PropertyPatternClauseSyntax(this.Kind, this.openBraceToken, this.subpatterns, this.closeBraceToken, GetDiagnostics(), annotations);
+    }
+
+    internal PropertyPatternClauseSyntax(ObjectReader reader)
+        : base(reader)
+    {
+      this.SlotCount = 3;
+      var openBraceToken = (SyntaxToken)reader.ReadValue();
+      if (openBraceToken != null)
+      {
+         AdjustFlagsAndWidth(openBraceToken);
+         this.openBraceToken = openBraceToken;
+      }
+      var subpatterns = (GreenNode)reader.ReadValue();
+      if (subpatterns != null)
+      {
+         AdjustFlagsAndWidth(subpatterns);
+         this.subpatterns = subpatterns;
+      }
+      var closeBraceToken = (SyntaxToken)reader.ReadValue();
+      if (closeBraceToken != null)
+      {
+         AdjustFlagsAndWidth(closeBraceToken);
+         this.closeBraceToken = closeBraceToken;
+      }
+    }
+
+    internal override void WriteTo(ObjectWriter writer)
+    {
+      base.WriteTo(writer);
+      writer.WriteValue(this.openBraceToken);
+      writer.WriteValue(this.subpatterns);
+      writer.WriteValue(this.closeBraceToken);
+    }
+
+    static PropertyPatternClauseSyntax()
+    {
+       ObjectBinder.RegisterTypeReader(typeof(PropertyPatternClauseSyntax), r => new PropertyPatternClauseSyntax(r));
+    }
+  }
+
+  internal sealed partial class SubpatternSyntax : CSharpSyntaxNode
   {
     internal readonly NameColonSyntax nameColon;
     internal readonly PatternSyntax pattern;
 
-    internal SubpatternElementSyntax(SyntaxKind kind, NameColonSyntax nameColon, PatternSyntax pattern, DiagnosticInfo[] diagnostics, SyntaxAnnotation[] annotations)
+    internal SubpatternSyntax(SyntaxKind kind, NameColonSyntax nameColon, PatternSyntax pattern, DiagnosticInfo[] diagnostics, SyntaxAnnotation[] annotations)
         : base(kind, diagnostics, annotations)
     {
         this.SlotCount = 2;
@@ -11516,7 +11782,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     }
 
 
-    internal SubpatternElementSyntax(SyntaxKind kind, NameColonSyntax nameColon, PatternSyntax pattern, SyntaxFactoryContext context)
+    internal SubpatternSyntax(SyntaxKind kind, NameColonSyntax nameColon, PatternSyntax pattern, SyntaxFactoryContext context)
         : base(kind)
     {
         this.SetFactoryContext(context);
@@ -11531,7 +11797,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     }
 
 
-    internal SubpatternElementSyntax(SyntaxKind kind, NameColonSyntax nameColon, PatternSyntax pattern)
+    internal SubpatternSyntax(SyntaxKind kind, NameColonSyntax nameColon, PatternSyntax pattern)
         : base(kind)
     {
         this.SlotCount = 2;
@@ -11559,24 +11825,24 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
     internal override SyntaxNode CreateRed(SyntaxNode parent, int position)
     {
-      return new CSharp.Syntax.SubpatternElementSyntax(this, parent, position);
+      return new CSharp.Syntax.SubpatternSyntax(this, parent, position);
     }
 
     public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor)
     {
-        return visitor.VisitSubpatternElement(this);
+        return visitor.VisitSubpattern(this);
     }
 
     public override void Accept(CSharpSyntaxVisitor visitor)
     {
-        visitor.VisitSubpatternElement(this);
+        visitor.VisitSubpattern(this);
     }
 
-    public SubpatternElementSyntax Update(NameColonSyntax nameColon, PatternSyntax pattern)
+    public SubpatternSyntax Update(NameColonSyntax nameColon, PatternSyntax pattern)
     {
         if (nameColon != this.NameColon || pattern != this.Pattern)
         {
-            var newNode = SyntaxFactory.SubpatternElement(nameColon, pattern);
+            var newNode = SyntaxFactory.Subpattern(nameColon, pattern);
             var diags = this.GetDiagnostics();
             if (diags != null && diags.Length > 0)
                newNode = newNode.WithDiagnosticsGreen(diags);
@@ -11591,15 +11857,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
     internal override GreenNode SetDiagnostics(DiagnosticInfo[] diagnostics)
     {
-         return new SubpatternElementSyntax(this.Kind, this.nameColon, this.pattern, diagnostics, GetAnnotations());
+         return new SubpatternSyntax(this.Kind, this.nameColon, this.pattern, diagnostics, GetAnnotations());
     }
 
     internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations)
     {
-         return new SubpatternElementSyntax(this.Kind, this.nameColon, this.pattern, GetDiagnostics(), annotations);
+         return new SubpatternSyntax(this.Kind, this.nameColon, this.pattern, GetDiagnostics(), annotations);
     }
 
-    internal SubpatternElementSyntax(ObjectReader reader)
+    internal SubpatternSyntax(ObjectReader reader)
         : base(reader)
     {
       this.SlotCount = 2;
@@ -11624,316 +11890,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
       writer.WriteValue(this.pattern);
     }
 
-    static SubpatternElementSyntax()
+    static SubpatternSyntax()
     {
-       ObjectBinder.RegisterTypeReader(typeof(SubpatternElementSyntax), r => new SubpatternElementSyntax(r));
-    }
-  }
-
-  internal sealed partial class PropertyPatternSyntax : PatternSyntax
-  {
-    internal readonly TypeSyntax type;
-    internal readonly PropertySubpatternSyntax propertySubpattern;
-    internal readonly VariableDesignationSyntax designation;
-
-    internal PropertyPatternSyntax(SyntaxKind kind, TypeSyntax type, PropertySubpatternSyntax propertySubpattern, VariableDesignationSyntax designation, DiagnosticInfo[] diagnostics, SyntaxAnnotation[] annotations)
-        : base(kind, diagnostics, annotations)
-    {
-        this.SlotCount = 3;
-        if (type != null)
-        {
-            this.AdjustFlagsAndWidth(type);
-            this.type = type;
-        }
-        this.AdjustFlagsAndWidth(propertySubpattern);
-        this.propertySubpattern = propertySubpattern;
-        if (designation != null)
-        {
-            this.AdjustFlagsAndWidth(designation);
-            this.designation = designation;
-        }
-    }
-
-
-    internal PropertyPatternSyntax(SyntaxKind kind, TypeSyntax type, PropertySubpatternSyntax propertySubpattern, VariableDesignationSyntax designation, SyntaxFactoryContext context)
-        : base(kind)
-    {
-        this.SetFactoryContext(context);
-        this.SlotCount = 3;
-        if (type != null)
-        {
-            this.AdjustFlagsAndWidth(type);
-            this.type = type;
-        }
-        this.AdjustFlagsAndWidth(propertySubpattern);
-        this.propertySubpattern = propertySubpattern;
-        if (designation != null)
-        {
-            this.AdjustFlagsAndWidth(designation);
-            this.designation = designation;
-        }
-    }
-
-
-    internal PropertyPatternSyntax(SyntaxKind kind, TypeSyntax type, PropertySubpatternSyntax propertySubpattern, VariableDesignationSyntax designation)
-        : base(kind)
-    {
-        this.SlotCount = 3;
-        if (type != null)
-        {
-            this.AdjustFlagsAndWidth(type);
-            this.type = type;
-        }
-        this.AdjustFlagsAndWidth(propertySubpattern);
-        this.propertySubpattern = propertySubpattern;
-        if (designation != null)
-        {
-            this.AdjustFlagsAndWidth(designation);
-            this.designation = designation;
-        }
-    }
-
-    public TypeSyntax Type { get { return this.type; } }
-    public PropertySubpatternSyntax PropertySubpattern { get { return this.propertySubpattern; } }
-    public VariableDesignationSyntax Designation { get { return this.designation; } }
-
-    internal override GreenNode GetSlot(int index)
-    {
-        switch (index)
-        {
-            case 0: return this.type;
-            case 1: return this.propertySubpattern;
-            case 2: return this.designation;
-            default: return null;
-        }
-    }
-
-    internal override SyntaxNode CreateRed(SyntaxNode parent, int position)
-    {
-      return new CSharp.Syntax.PropertyPatternSyntax(this, parent, position);
-    }
-
-    public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor)
-    {
-        return visitor.VisitPropertyPattern(this);
-    }
-
-    public override void Accept(CSharpSyntaxVisitor visitor)
-    {
-        visitor.VisitPropertyPattern(this);
-    }
-
-    public PropertyPatternSyntax Update(TypeSyntax type, PropertySubpatternSyntax propertySubpattern, VariableDesignationSyntax designation)
-    {
-        if (type != this.Type || propertySubpattern != this.PropertySubpattern || designation != this.Designation)
-        {
-            var newNode = SyntaxFactory.PropertyPattern(type, propertySubpattern, designation);
-            var diags = this.GetDiagnostics();
-            if (diags != null && diags.Length > 0)
-               newNode = newNode.WithDiagnosticsGreen(diags);
-            var annotations = this.GetAnnotations();
-            if (annotations != null && annotations.Length > 0)
-               newNode = newNode.WithAnnotationsGreen(annotations);
-            return newNode;
-        }
-
-        return this;
-    }
-
-    internal override GreenNode SetDiagnostics(DiagnosticInfo[] diagnostics)
-    {
-         return new PropertyPatternSyntax(this.Kind, this.type, this.propertySubpattern, this.designation, diagnostics, GetAnnotations());
-    }
-
-    internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations)
-    {
-         return new PropertyPatternSyntax(this.Kind, this.type, this.propertySubpattern, this.designation, GetDiagnostics(), annotations);
-    }
-
-    internal PropertyPatternSyntax(ObjectReader reader)
-        : base(reader)
-    {
-      this.SlotCount = 3;
-      var type = (TypeSyntax)reader.ReadValue();
-      if (type != null)
-      {
-         AdjustFlagsAndWidth(type);
-         this.type = type;
-      }
-      var propertySubpattern = (PropertySubpatternSyntax)reader.ReadValue();
-      if (propertySubpattern != null)
-      {
-         AdjustFlagsAndWidth(propertySubpattern);
-         this.propertySubpattern = propertySubpattern;
-      }
-      var designation = (VariableDesignationSyntax)reader.ReadValue();
-      if (designation != null)
-      {
-         AdjustFlagsAndWidth(designation);
-         this.designation = designation;
-      }
-    }
-
-    internal override void WriteTo(ObjectWriter writer)
-    {
-      base.WriteTo(writer);
-      writer.WriteValue(this.type);
-      writer.WriteValue(this.propertySubpattern);
-      writer.WriteValue(this.designation);
-    }
-
-    static PropertyPatternSyntax()
-    {
-       ObjectBinder.RegisterTypeReader(typeof(PropertyPatternSyntax), r => new PropertyPatternSyntax(r));
-    }
-  }
-
-  internal sealed partial class PropertySubpatternSyntax : CSharpSyntaxNode
-  {
-    internal readonly SyntaxToken openBraceToken;
-    internal readonly GreenNode subPatterns;
-    internal readonly SyntaxToken closeBraceToken;
-
-    internal PropertySubpatternSyntax(SyntaxKind kind, SyntaxToken openBraceToken, GreenNode subPatterns, SyntaxToken closeBraceToken, DiagnosticInfo[] diagnostics, SyntaxAnnotation[] annotations)
-        : base(kind, diagnostics, annotations)
-    {
-        this.SlotCount = 3;
-        this.AdjustFlagsAndWidth(openBraceToken);
-        this.openBraceToken = openBraceToken;
-        if (subPatterns != null)
-        {
-            this.AdjustFlagsAndWidth(subPatterns);
-            this.subPatterns = subPatterns;
-        }
-        this.AdjustFlagsAndWidth(closeBraceToken);
-        this.closeBraceToken = closeBraceToken;
-    }
-
-
-    internal PropertySubpatternSyntax(SyntaxKind kind, SyntaxToken openBraceToken, GreenNode subPatterns, SyntaxToken closeBraceToken, SyntaxFactoryContext context)
-        : base(kind)
-    {
-        this.SetFactoryContext(context);
-        this.SlotCount = 3;
-        this.AdjustFlagsAndWidth(openBraceToken);
-        this.openBraceToken = openBraceToken;
-        if (subPatterns != null)
-        {
-            this.AdjustFlagsAndWidth(subPatterns);
-            this.subPatterns = subPatterns;
-        }
-        this.AdjustFlagsAndWidth(closeBraceToken);
-        this.closeBraceToken = closeBraceToken;
-    }
-
-
-    internal PropertySubpatternSyntax(SyntaxKind kind, SyntaxToken openBraceToken, GreenNode subPatterns, SyntaxToken closeBraceToken)
-        : base(kind)
-    {
-        this.SlotCount = 3;
-        this.AdjustFlagsAndWidth(openBraceToken);
-        this.openBraceToken = openBraceToken;
-        if (subPatterns != null)
-        {
-            this.AdjustFlagsAndWidth(subPatterns);
-            this.subPatterns = subPatterns;
-        }
-        this.AdjustFlagsAndWidth(closeBraceToken);
-        this.closeBraceToken = closeBraceToken;
-    }
-
-    public SyntaxToken OpenBraceToken { get { return this.openBraceToken; } }
-    public Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList<SubpatternElementSyntax> SubPatterns { get { return new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList<SubpatternElementSyntax>(new Microsoft.CodeAnalysis.Syntax.InternalSyntax.SyntaxList<CSharpSyntaxNode>(this.subPatterns)); } }
-    public SyntaxToken CloseBraceToken { get { return this.closeBraceToken; } }
-
-    internal override GreenNode GetSlot(int index)
-    {
-        switch (index)
-        {
-            case 0: return this.openBraceToken;
-            case 1: return this.subPatterns;
-            case 2: return this.closeBraceToken;
-            default: return null;
-        }
-    }
-
-    internal override SyntaxNode CreateRed(SyntaxNode parent, int position)
-    {
-      return new CSharp.Syntax.PropertySubpatternSyntax(this, parent, position);
-    }
-
-    public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor)
-    {
-        return visitor.VisitPropertySubpattern(this);
-    }
-
-    public override void Accept(CSharpSyntaxVisitor visitor)
-    {
-        visitor.VisitPropertySubpattern(this);
-    }
-
-    public PropertySubpatternSyntax Update(SyntaxToken openBraceToken, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList<SubpatternElementSyntax> subPatterns, SyntaxToken closeBraceToken)
-    {
-        if (openBraceToken != this.OpenBraceToken || subPatterns != this.SubPatterns || closeBraceToken != this.CloseBraceToken)
-        {
-            var newNode = SyntaxFactory.PropertySubpattern(openBraceToken, subPatterns, closeBraceToken);
-            var diags = this.GetDiagnostics();
-            if (diags != null && diags.Length > 0)
-               newNode = newNode.WithDiagnosticsGreen(diags);
-            var annotations = this.GetAnnotations();
-            if (annotations != null && annotations.Length > 0)
-               newNode = newNode.WithAnnotationsGreen(annotations);
-            return newNode;
-        }
-
-        return this;
-    }
-
-    internal override GreenNode SetDiagnostics(DiagnosticInfo[] diagnostics)
-    {
-         return new PropertySubpatternSyntax(this.Kind, this.openBraceToken, this.subPatterns, this.closeBraceToken, diagnostics, GetAnnotations());
-    }
-
-    internal override GreenNode SetAnnotations(SyntaxAnnotation[] annotations)
-    {
-         return new PropertySubpatternSyntax(this.Kind, this.openBraceToken, this.subPatterns, this.closeBraceToken, GetDiagnostics(), annotations);
-    }
-
-    internal PropertySubpatternSyntax(ObjectReader reader)
-        : base(reader)
-    {
-      this.SlotCount = 3;
-      var openBraceToken = (SyntaxToken)reader.ReadValue();
-      if (openBraceToken != null)
-      {
-         AdjustFlagsAndWidth(openBraceToken);
-         this.openBraceToken = openBraceToken;
-      }
-      var subPatterns = (GreenNode)reader.ReadValue();
-      if (subPatterns != null)
-      {
-         AdjustFlagsAndWidth(subPatterns);
-         this.subPatterns = subPatterns;
-      }
-      var closeBraceToken = (SyntaxToken)reader.ReadValue();
-      if (closeBraceToken != null)
-      {
-         AdjustFlagsAndWidth(closeBraceToken);
-         this.closeBraceToken = closeBraceToken;
-      }
-    }
-
-    internal override void WriteTo(ObjectWriter writer)
-    {
-      base.WriteTo(writer);
-      writer.WriteValue(this.openBraceToken);
-      writer.WriteValue(this.subPatterns);
-      writer.WriteValue(this.closeBraceToken);
-    }
-
-    static PropertySubpatternSyntax()
-    {
-       ObjectBinder.RegisterTypeReader(typeof(PropertySubpatternSyntax), r => new PropertySubpatternSyntax(r));
+       ObjectBinder.RegisterTypeReader(typeof(SubpatternSyntax), r => new SubpatternSyntax(r));
     }
   }
 
@@ -35445,22 +35404,22 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
       return this.DefaultVisit(node);
     }
 
-    public virtual TResult VisitDeconstructionPattern(DeconstructionPatternSyntax node)
+    public virtual TResult VisitRecursivePattern(RecursivePatternSyntax node)
     {
       return this.DefaultVisit(node);
     }
 
-    public virtual TResult VisitSubpatternElement(SubpatternElementSyntax node)
+    public virtual TResult VisitDeconstructionPatternClause(DeconstructionPatternClauseSyntax node)
     {
       return this.DefaultVisit(node);
     }
 
-    public virtual TResult VisitPropertyPattern(PropertyPatternSyntax node)
+    public virtual TResult VisitPropertyPatternClause(PropertyPatternClauseSyntax node)
     {
       return this.DefaultVisit(node);
     }
 
-    public virtual TResult VisitPropertySubpattern(PropertySubpatternSyntax node)
+    public virtual TResult VisitSubpattern(SubpatternSyntax node)
     {
       return this.DefaultVisit(node);
     }
@@ -36514,22 +36473,22 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
       this.DefaultVisit(node);
     }
 
-    public virtual void VisitDeconstructionPattern(DeconstructionPatternSyntax node)
+    public virtual void VisitRecursivePattern(RecursivePatternSyntax node)
     {
       this.DefaultVisit(node);
     }
 
-    public virtual void VisitSubpatternElement(SubpatternElementSyntax node)
+    public virtual void VisitDeconstructionPatternClause(DeconstructionPatternClauseSyntax node)
     {
       this.DefaultVisit(node);
     }
 
-    public virtual void VisitPropertyPattern(PropertyPatternSyntax node)
+    public virtual void VisitPropertyPatternClause(PropertyPatternClauseSyntax node)
     {
       this.DefaultVisit(node);
     }
 
-    public virtual void VisitPropertySubpattern(PropertySubpatternSyntax node)
+    public virtual void VisitSubpattern(SubpatternSyntax node)
     {
       this.DefaultVisit(node);
     }
@@ -37799,38 +37758,36 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
       return node.Update(varKeyword, designation);
     }
 
-    public override CSharpSyntaxNode VisitDeconstructionPattern(DeconstructionPatternSyntax node)
+    public override CSharpSyntaxNode VisitRecursivePattern(RecursivePatternSyntax node)
     {
       var type = (TypeSyntax)this.Visit(node.Type);
-      var openParenToken = (SyntaxToken)this.Visit(node.OpenParenToken);
-      var subPatterns = this.VisitList(node.SubPatterns);
-      var closeParenToken = (SyntaxToken)this.Visit(node.CloseParenToken);
-      var propertySubpattern = (PropertySubpatternSyntax)this.Visit(node.PropertySubpattern);
+      var deconstructionPatternClause = (DeconstructionPatternClauseSyntax)this.Visit(node.DeconstructionPatternClause);
+      var propertyPatternClause = (PropertyPatternClauseSyntax)this.Visit(node.PropertyPatternClause);
       var designation = (VariableDesignationSyntax)this.Visit(node.Designation);
-      return node.Update(type, openParenToken, subPatterns, closeParenToken, propertySubpattern, designation);
+      return node.Update(type, deconstructionPatternClause, propertyPatternClause, designation);
     }
 
-    public override CSharpSyntaxNode VisitSubpatternElement(SubpatternElementSyntax node)
+    public override CSharpSyntaxNode VisitDeconstructionPatternClause(DeconstructionPatternClauseSyntax node)
+    {
+      var openParenToken = (SyntaxToken)this.Visit(node.OpenParenToken);
+      var subpatterns = this.VisitList(node.Subpatterns);
+      var closeParenToken = (SyntaxToken)this.Visit(node.CloseParenToken);
+      return node.Update(openParenToken, subpatterns, closeParenToken);
+    }
+
+    public override CSharpSyntaxNode VisitPropertyPatternClause(PropertyPatternClauseSyntax node)
+    {
+      var openBraceToken = (SyntaxToken)this.Visit(node.OpenBraceToken);
+      var subpatterns = this.VisitList(node.Subpatterns);
+      var closeBraceToken = (SyntaxToken)this.Visit(node.CloseBraceToken);
+      return node.Update(openBraceToken, subpatterns, closeBraceToken);
+    }
+
+    public override CSharpSyntaxNode VisitSubpattern(SubpatternSyntax node)
     {
       var nameColon = (NameColonSyntax)this.Visit(node.NameColon);
       var pattern = (PatternSyntax)this.Visit(node.Pattern);
       return node.Update(nameColon, pattern);
-    }
-
-    public override CSharpSyntaxNode VisitPropertyPattern(PropertyPatternSyntax node)
-    {
-      var type = (TypeSyntax)this.Visit(node.Type);
-      var propertySubpattern = (PropertySubpatternSyntax)this.Visit(node.PropertySubpattern);
-      var designation = (VariableDesignationSyntax)this.Visit(node.Designation);
-      return node.Update(type, propertySubpattern, designation);
-    }
-
-    public override CSharpSyntaxNode VisitPropertySubpattern(PropertySubpatternSyntax node)
-    {
-      var openBraceToken = (SyntaxToken)this.Visit(node.OpenBraceToken);
-      var subPatterns = this.VisitList(node.SubPatterns);
-      var closeBraceToken = (SyntaxToken)this.Visit(node.CloseBraceToken);
-      return node.Update(openBraceToken, subPatterns, closeBraceToken);
     }
 
     public override CSharpSyntaxNode VisitConstantPattern(ConstantPatternSyntax node)
@@ -41596,7 +41553,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
       return result;
     }
 
-    public DeconstructionPatternSyntax DeconstructionPattern(TypeSyntax type, SyntaxToken openParenToken, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList<SubpatternElementSyntax> subPatterns, SyntaxToken closeParenToken, PropertySubpatternSyntax propertySubpattern, VariableDesignationSyntax designation)
+    public RecursivePatternSyntax RecursivePattern(TypeSyntax type, DeconstructionPatternClauseSyntax deconstructionPatternClause, PropertyPatternClauseSyntax propertyPatternClause, VariableDesignationSyntax designation)
+    {
+#if DEBUG
+#endif
+
+      return new RecursivePatternSyntax(SyntaxKind.RecursivePattern, type, deconstructionPatternClause, propertyPatternClause, designation, this.context);
+    }
+
+    public DeconstructionPatternClauseSyntax DeconstructionPatternClause(SyntaxToken openParenToken, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList<SubpatternSyntax> subpatterns, SyntaxToken closeParenToken)
     {
 #if DEBUG
       if (openParenToken == null)
@@ -41619,21 +41584,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
       }
 #endif
 
-      return new DeconstructionPatternSyntax(SyntaxKind.DeconstructionPattern, type, openParenToken, subPatterns.Node, closeParenToken, propertySubpattern, designation, this.context);
-    }
-
-    public SubpatternElementSyntax SubpatternElement(NameColonSyntax nameColon, PatternSyntax pattern)
-    {
-#if DEBUG
-      if (pattern == null)
-        throw new ArgumentNullException(nameof(pattern));
-#endif
-
       int hash;
-      var cached = CSharpSyntaxNodeCache.TryGetNode((int)SyntaxKind.SubpatternElement, nameColon, pattern, this.context, out hash);
-      if (cached != null) return (SubpatternElementSyntax)cached;
+      var cached = CSharpSyntaxNodeCache.TryGetNode((int)SyntaxKind.DeconstructionPatternClause, openParenToken, subpatterns.Node, closeParenToken, this.context, out hash);
+      if (cached != null) return (DeconstructionPatternClauseSyntax)cached;
 
-      var result = new SubpatternElementSyntax(SyntaxKind.SubpatternElement, nameColon, pattern, this.context);
+      var result = new DeconstructionPatternClauseSyntax(SyntaxKind.DeconstructionPatternClause, openParenToken, subpatterns.Node, closeParenToken, this.context);
       if (hash >= 0)
       {
           SyntaxNodeCache.AddNode(result, hash);
@@ -41642,27 +41597,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
       return result;
     }
 
-    public PropertyPatternSyntax PropertyPattern(TypeSyntax type, PropertySubpatternSyntax propertySubpattern, VariableDesignationSyntax designation)
-    {
-#if DEBUG
-      if (propertySubpattern == null)
-        throw new ArgumentNullException(nameof(propertySubpattern));
-#endif
-
-      int hash;
-      var cached = CSharpSyntaxNodeCache.TryGetNode((int)SyntaxKind.PropertyPattern, type, propertySubpattern, designation, this.context, out hash);
-      if (cached != null) return (PropertyPatternSyntax)cached;
-
-      var result = new PropertyPatternSyntax(SyntaxKind.PropertyPattern, type, propertySubpattern, designation, this.context);
-      if (hash >= 0)
-      {
-          SyntaxNodeCache.AddNode(result, hash);
-      }
-
-      return result;
-    }
-
-    public PropertySubpatternSyntax PropertySubpattern(SyntaxToken openBraceToken, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList<SubpatternElementSyntax> subPatterns, SyntaxToken closeBraceToken)
+    public PropertyPatternClauseSyntax PropertyPatternClause(SyntaxToken openBraceToken, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList<SubpatternSyntax> subpatterns, SyntaxToken closeBraceToken)
     {
 #if DEBUG
       if (openBraceToken == null)
@@ -41686,10 +41621,30 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 #endif
 
       int hash;
-      var cached = CSharpSyntaxNodeCache.TryGetNode((int)SyntaxKind.PropertySubpattern, openBraceToken, subPatterns.Node, closeBraceToken, this.context, out hash);
-      if (cached != null) return (PropertySubpatternSyntax)cached;
+      var cached = CSharpSyntaxNodeCache.TryGetNode((int)SyntaxKind.PropertyPatternClause, openBraceToken, subpatterns.Node, closeBraceToken, this.context, out hash);
+      if (cached != null) return (PropertyPatternClauseSyntax)cached;
 
-      var result = new PropertySubpatternSyntax(SyntaxKind.PropertySubpattern, openBraceToken, subPatterns.Node, closeBraceToken, this.context);
+      var result = new PropertyPatternClauseSyntax(SyntaxKind.PropertyPatternClause, openBraceToken, subpatterns.Node, closeBraceToken, this.context);
+      if (hash >= 0)
+      {
+          SyntaxNodeCache.AddNode(result, hash);
+      }
+
+      return result;
+    }
+
+    public SubpatternSyntax Subpattern(NameColonSyntax nameColon, PatternSyntax pattern)
+    {
+#if DEBUG
+      if (pattern == null)
+        throw new ArgumentNullException(nameof(pattern));
+#endif
+
+      int hash;
+      var cached = CSharpSyntaxNodeCache.TryGetNode((int)SyntaxKind.Subpattern, nameColon, pattern, this.context, out hash);
+      if (cached != null) return (SubpatternSyntax)cached;
+
+      var result = new SubpatternSyntax(SyntaxKind.Subpattern, nameColon, pattern, this.context);
       if (hash >= 0)
       {
           SyntaxNodeCache.AddNode(result, hash);
@@ -48779,7 +48734,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
       return result;
     }
 
-    public static DeconstructionPatternSyntax DeconstructionPattern(TypeSyntax type, SyntaxToken openParenToken, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList<SubpatternElementSyntax> subPatterns, SyntaxToken closeParenToken, PropertySubpatternSyntax propertySubpattern, VariableDesignationSyntax designation)
+    public static RecursivePatternSyntax RecursivePattern(TypeSyntax type, DeconstructionPatternClauseSyntax deconstructionPatternClause, PropertyPatternClauseSyntax propertyPatternClause, VariableDesignationSyntax designation)
+    {
+#if DEBUG
+#endif
+
+      return new RecursivePatternSyntax(SyntaxKind.RecursivePattern, type, deconstructionPatternClause, propertyPatternClause, designation);
+    }
+
+    public static DeconstructionPatternClauseSyntax DeconstructionPatternClause(SyntaxToken openParenToken, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList<SubpatternSyntax> subpatterns, SyntaxToken closeParenToken)
     {
 #if DEBUG
       if (openParenToken == null)
@@ -48802,21 +48765,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
       }
 #endif
 
-      return new DeconstructionPatternSyntax(SyntaxKind.DeconstructionPattern, type, openParenToken, subPatterns.Node, closeParenToken, propertySubpattern, designation);
-    }
-
-    public static SubpatternElementSyntax SubpatternElement(NameColonSyntax nameColon, PatternSyntax pattern)
-    {
-#if DEBUG
-      if (pattern == null)
-        throw new ArgumentNullException(nameof(pattern));
-#endif
-
       int hash;
-      var cached = SyntaxNodeCache.TryGetNode((int)SyntaxKind.SubpatternElement, nameColon, pattern, out hash);
-      if (cached != null) return (SubpatternElementSyntax)cached;
+      var cached = SyntaxNodeCache.TryGetNode((int)SyntaxKind.DeconstructionPatternClause, openParenToken, subpatterns.Node, closeParenToken, out hash);
+      if (cached != null) return (DeconstructionPatternClauseSyntax)cached;
 
-      var result = new SubpatternElementSyntax(SyntaxKind.SubpatternElement, nameColon, pattern);
+      var result = new DeconstructionPatternClauseSyntax(SyntaxKind.DeconstructionPatternClause, openParenToken, subpatterns.Node, closeParenToken);
       if (hash >= 0)
       {
           SyntaxNodeCache.AddNode(result, hash);
@@ -48825,27 +48778,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
       return result;
     }
 
-    public static PropertyPatternSyntax PropertyPattern(TypeSyntax type, PropertySubpatternSyntax propertySubpattern, VariableDesignationSyntax designation)
-    {
-#if DEBUG
-      if (propertySubpattern == null)
-        throw new ArgumentNullException(nameof(propertySubpattern));
-#endif
-
-      int hash;
-      var cached = SyntaxNodeCache.TryGetNode((int)SyntaxKind.PropertyPattern, type, propertySubpattern, designation, out hash);
-      if (cached != null) return (PropertyPatternSyntax)cached;
-
-      var result = new PropertyPatternSyntax(SyntaxKind.PropertyPattern, type, propertySubpattern, designation);
-      if (hash >= 0)
-      {
-          SyntaxNodeCache.AddNode(result, hash);
-      }
-
-      return result;
-    }
-
-    public static PropertySubpatternSyntax PropertySubpattern(SyntaxToken openBraceToken, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList<SubpatternElementSyntax> subPatterns, SyntaxToken closeBraceToken)
+    public static PropertyPatternClauseSyntax PropertyPatternClause(SyntaxToken openBraceToken, Microsoft.CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList<SubpatternSyntax> subpatterns, SyntaxToken closeBraceToken)
     {
 #if DEBUG
       if (openBraceToken == null)
@@ -48869,10 +48802,30 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 #endif
 
       int hash;
-      var cached = SyntaxNodeCache.TryGetNode((int)SyntaxKind.PropertySubpattern, openBraceToken, subPatterns.Node, closeBraceToken, out hash);
-      if (cached != null) return (PropertySubpatternSyntax)cached;
+      var cached = SyntaxNodeCache.TryGetNode((int)SyntaxKind.PropertyPatternClause, openBraceToken, subpatterns.Node, closeBraceToken, out hash);
+      if (cached != null) return (PropertyPatternClauseSyntax)cached;
 
-      var result = new PropertySubpatternSyntax(SyntaxKind.PropertySubpattern, openBraceToken, subPatterns.Node, closeBraceToken);
+      var result = new PropertyPatternClauseSyntax(SyntaxKind.PropertyPatternClause, openBraceToken, subpatterns.Node, closeBraceToken);
+      if (hash >= 0)
+      {
+          SyntaxNodeCache.AddNode(result, hash);
+      }
+
+      return result;
+    }
+
+    public static SubpatternSyntax Subpattern(NameColonSyntax nameColon, PatternSyntax pattern)
+    {
+#if DEBUG
+      if (pattern == null)
+        throw new ArgumentNullException(nameof(pattern));
+#endif
+
+      int hash;
+      var cached = SyntaxNodeCache.TryGetNode((int)SyntaxKind.Subpattern, nameColon, pattern, out hash);
+      if (cached != null) return (SubpatternSyntax)cached;
+
+      var result = new SubpatternSyntax(SyntaxKind.Subpattern, nameColon, pattern);
       if (hash >= 0)
       {
           SyntaxNodeCache.AddNode(result, hash);
@@ -53474,10 +53427,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
            typeof(DiscardPatternSyntax),
            typeof(DeclarationPatternSyntax),
            typeof(VarPatternSyntax),
-           typeof(DeconstructionPatternSyntax),
-           typeof(SubpatternElementSyntax),
-           typeof(PropertyPatternSyntax),
-           typeof(PropertySubpatternSyntax),
+           typeof(RecursivePatternSyntax),
+           typeof(DeconstructionPatternClauseSyntax),
+           typeof(PropertyPatternClauseSyntax),
+           typeof(SubpatternSyntax),
            typeof(ConstantPatternSyntax),
            typeof(InterpolatedStringTextSyntax),
            typeof(InterpolationSyntax),

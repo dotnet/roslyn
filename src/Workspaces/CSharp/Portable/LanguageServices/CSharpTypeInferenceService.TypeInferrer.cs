@@ -168,12 +168,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                     case ParenthesizedLambdaExpressionSyntax parenthesizedLambdaExpression: return InferTypeInParenthesizedLambdaExpression(parenthesizedLambdaExpression);
                     case PostfixUnaryExpressionSyntax postfixUnary: return InferTypeInPostfixUnaryExpression(postfixUnary);
                     case PrefixUnaryExpressionSyntax prefixUnary: return InferTypeInPrefixUnaryExpression(prefixUnary);
-                    case PropertyPatternSyntax propertyPattern: return InferTypeInPropertyPattern(propertyPattern);
-                    case PropertySubpatternSyntax propertySubpattern: return InferTypeInPropertySubpattern(propertySubpattern, node);
+                    case RecursivePatternSyntax propertyPattern: return InferTypeInRecursivePattern(propertyPattern);
+                    case PropertyPatternClauseSyntax propertySubpattern: return InferTypeInPropertyPatternClause(propertySubpattern, node);
                     case RefExpressionSyntax refExpression: return InferTypeInRefExpression(refExpression);
                     case ReturnStatementSyntax returnStatement: return InferTypeForReturnStatement(returnStatement);
                     case SimpleLambdaExpressionSyntax simpleLambdaExpression: return InferTypeInSimpleLambdaExpression(simpleLambdaExpression);
-                    case SubpatternElementSyntax subpatternElement: return InferTypeInSubpatternElement(subpatternElement, node);
+                    case SubpatternSyntax subpattern: return InferTypeInSubpattern(subpattern, node);
                     case SwitchLabelSyntax switchLabel: return InferTypeInSwitchLabel(switchLabel);
                     case SwitchStatementSyntax switchStatement: return InferTypeInSwitchStatement(switchStatement);
                     case ThrowExpressionSyntax throwExpression: return InferTypeInThrowExpression(throwExpression);
@@ -1425,12 +1425,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return SpecializedCollections.EmptyEnumerable<TypeInferenceInfo>();
             }
 
-            private IEnumerable<TypeInferenceInfo> InferTypeInPropertyPattern(PropertyPatternSyntax propertyPattern)
+            private IEnumerable<TypeInferenceInfo> InferTypeInRecursivePattern(RecursivePatternSyntax recursivePattern)
             {
-                // something like: { ... sub patterns ... } or like: Blah { ... sub patterns ... }
-                // in the latter case, we know the type, because it's explicitly stated.  In the former
-                // we have to walk higher to figure it out.
-                var type = this.SemanticModel.GetTypeInfo(propertyPattern).ConvertedType;
+                var type = this.SemanticModel.GetTypeInfo(recursivePattern).ConvertedType;
                 return CreateResult(type);
             }
 
@@ -1440,26 +1437,26 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return InferTypes(constantPattern);
             }
 
-            private IEnumerable<TypeInferenceInfo> InferTypeInPropertySubpattern(
-                PropertySubpatternSyntax propertySubpattern,
+            private IEnumerable<TypeInferenceInfo> InferTypeInPropertyPatternClause(
+                PropertyPatternClauseSyntax propertySubpattern,
                 SyntaxNode child)
             {
                 return InferTypes(propertySubpattern);
             }
 
-            private IEnumerable<TypeInferenceInfo> InferTypeInSubpatternElement(
-                SubpatternElementSyntax subpatternElement,
+            private IEnumerable<TypeInferenceInfo> InferTypeInSubpattern(
+                SubpatternSyntax subpattern,
                 SyntaxNode child)
             {
                 // we have  { X: ... }.  The type of ... is whatever the type of 'X' is in its
                 // parent type.  So look up the parent type first, then find the X member in it
                 // and use that type.
-                if (child == subpatternElement.Pattern &&
-                    subpatternElement.NameColon != null)
+                if (child == subpattern.Pattern &&
+                    subpattern.NameColon != null)
                 {
                     var result = ArrayBuilder<TypeInferenceInfo>.GetInstance();
 
-                    foreach (var symbol in this.SemanticModel.GetSymbolInfo(subpatternElement.NameColon.Name).GetAllSymbols())
+                    foreach (var symbol in this.SemanticModel.GetSymbolInfo(subpattern.NameColon.Name).GetAllSymbols())
                     {
                         switch (symbol)
                         {
@@ -1500,46 +1497,49 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     case ConstantPatternSyntax constantPattern: return GetTypes(constantPattern.Expression);
                     case DeclarationPatternSyntax declarationPattern: return GetTypes(declarationPattern.Type);
-                    case DeconstructionPatternSyntax deconstructionPattern: return GetTypesForDeconstructionPattern(deconstructionPattern);
-                    case PropertyPatternSyntax propertyPattern: return GetTypes(propertyPattern.Type);
+                    case RecursivePatternSyntax recursivePattern: return GetTypesForRecursivePattern(recursivePattern);
                     default: return SpecializedCollections.EmptyEnumerable<TypeInferenceInfo>();
                 }
             }
 
-            private IEnumerable<TypeInferenceInfo> GetTypesForDeconstructionPattern(DeconstructionPatternSyntax deconstructionPattern)
+            private IEnumerable<TypeInferenceInfo> GetTypesForRecursivePattern(RecursivePatternSyntax recursivePattern)
             {
                 // if it's of the for "X (...)" then just infer 'X' as the type.
-                if (deconstructionPattern.Type != null)
+                if (recursivePattern.Type != null)
                 {
-                    return CreateResult(SemanticModel.GetTypeInfo(deconstructionPattern).ConvertedType);
+                    return CreateResult(SemanticModel.GetTypeInfo(recursivePattern).ConvertedType);
                 }
 
                 // If it's of the form (...) then infer that the type should be a 
                 // tuple, whose elements are inferred from the individual patterns
                 // in the deconstruction.
-                var subPatternCount = deconstructionPattern.SubPatterns.Count;
-                if (subPatternCount >= 2)
+                var deconstructionPart = recursivePattern.DeconstructionPatternClause;
+                if (deconstructionPart != null)
                 {
-                    // infer a tuple type for this deconstruction.
-                    var elementTypesBuilder = ArrayBuilder<ITypeSymbol>.GetInstance(subPatternCount);
-                    var elementNamesBuilder = ArrayBuilder<string>.GetInstance(subPatternCount);
-
-                    foreach (var subPattern in deconstructionPattern.SubPatterns)
+                    var subPatternCount = deconstructionPart.Subpatterns.Count;
+                    if (subPatternCount >= 2)
                     {
-                        elementNamesBuilder.Add(subPattern.NameColon?.Name.Identifier.ValueText);
+                        // infer a tuple type for this deconstruction.
+                        var elementTypesBuilder = ArrayBuilder<ITypeSymbol>.GetInstance(subPatternCount);
+                        var elementNamesBuilder = ArrayBuilder<string>.GetInstance(subPatternCount);
 
-                        var patternType = GetPatternTypes(subPattern.Pattern).FirstOrDefault();
-                        if (patternType.InferredType == null)
+                        foreach (var subPattern in deconstructionPart.Subpatterns)
                         {
-                            return SpecializedCollections.EmptyEnumerable<TypeInferenceInfo>();
+                            elementNamesBuilder.Add(subPattern.NameColon?.Name.Identifier.ValueText);
+
+                            var patternType = GetPatternTypes(subPattern.Pattern).FirstOrDefault();
+                            if (patternType.InferredType == null)
+                            {
+                                return SpecializedCollections.EmptyEnumerable<TypeInferenceInfo>();
+                            }
+
+                            elementTypesBuilder.Add(patternType.InferredType);
                         }
 
-                        elementTypesBuilder.Add(patternType.InferredType);
+                        var type = Compilation.CreateTupleTypeSymbol(
+                            elementTypesBuilder.ToImmutableAndFree(), elementNamesBuilder.ToImmutableAndFree());
+                        return CreateResult(type);
                     }
-
-                    var type = Compilation.CreateTupleTypeSymbol(
-                        elementTypesBuilder.ToImmutableAndFree(), elementNamesBuilder.ToImmutableAndFree());
-                    return CreateResult(type);
                 }
 
                 return SpecializedCollections.EmptyEnumerable<TypeInferenceInfo>();
@@ -1806,7 +1806,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             private IEnumerable<TypeInferenceInfo> InferTypeInNameColon(NameColonSyntax nameColon)
             {
-                if (nameColon.Parent is SubpatternElementSyntax subpattern)
+                if (nameColon.Parent is SubpatternSyntax subpattern)
                 {
                     return GetPatternTypes(subpattern.Pattern);
                 }

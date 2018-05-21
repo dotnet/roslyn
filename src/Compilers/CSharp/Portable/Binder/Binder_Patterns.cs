@@ -98,11 +98,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.ConstantPattern:
                     return BindConstantPattern((ConstantPatternSyntax)node, inputType, hasErrors, diagnostics);
 
-                case SyntaxKind.DeconstructionPattern:
-                    return BindDeconstructionPattern((DeconstructionPatternSyntax)node, inputType, hasErrors, diagnostics);
-
-                case SyntaxKind.PropertyPattern:
-                    return BindPropertyPattern((PropertyPatternSyntax)node, inputType, hasErrors, diagnostics);
+                case SyntaxKind.RecursivePattern:
+                    return BindRecursivePattern((RecursivePatternSyntax)node, inputType, hasErrors, diagnostics);
 
                 case SyntaxKind.VarPattern:
                     return BindVarPattern((VarPatternSyntax)node, inputType, hasErrors, diagnostics);
@@ -512,26 +509,52 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private BoundPattern BindDeconstructionPattern(DeconstructionPatternSyntax node, TypeSymbol inputType, bool hasErrors, DiagnosticBag diagnostics)
+        private BoundPattern BindRecursivePattern(RecursivePatternSyntax node, TypeSymbol inputType, bool hasErrors, DiagnosticBag diagnostics)
         {
             TypeSyntax typeSyntax = node.Type;
             TypeSymbol declType = BindRecursivePatternType(typeSyntax, inputType, diagnostics, ref hasErrors, out BoundTypeExpression boundDeclType);
 
-            var patterns = ArrayBuilder<BoundSubpattern>.GetInstance(node.SubPatterns.Count);
             MethodSymbol deconstructMethod = null;
+            ImmutableArray<BoundSubpattern> deconstructionSubpatterns = default;
+            if (node.DeconstructionPatternClause != null)
+            {
+                deconstructionSubpatterns = BindDeconstructionPatternClause(node.DeconstructionPatternClause, declType, diagnostics, out deconstructMethod, ref hasErrors);
+            }
+
+            ImmutableArray<BoundSubpattern> properties = default;
+            if (node.PropertyPatternClause != null)
+            {
+                properties = BindPropertyPatternClause(node.PropertyPatternClause, declType, diagnostics, ref hasErrors);
+            }
+
+            BindPatternDesignation(node, node.Designation, declType, typeSyntax, diagnostics, ref hasErrors, out Symbol variableSymbol, out BoundExpression variableAccess);
+            return new BoundRecursivePattern(
+                syntax: node, declaredType: boundDeclType, inputType: inputType, deconstructMethod: deconstructMethod,
+                deconstruction: deconstructionSubpatterns, properties: properties, variable: variableSymbol, variableAccess: variableAccess, hasErrors: hasErrors);
+        }
+
+        private ImmutableArray<BoundSubpattern> BindDeconstructionPatternClause(
+            DeconstructionPatternClauseSyntax node,
+            TypeSymbol declType,
+            DiagnosticBag diagnostics,
+            out MethodSymbol deconstructMethod,
+            ref bool hasErrors)
+        {
+            deconstructMethod = null;
+            var patterns = ArrayBuilder<BoundSubpattern>.GetInstance(node.Subpatterns.Count);
             if (declType.IsTupleType)
             {
                 // It is a tuple type. Work according to its elements
                 ImmutableArray<TypeSymbol> elementTypes = declType.TupleElementTypes;
-                if (elementTypes.Length != node.SubPatterns.Count && !hasErrors)
+                if (elementTypes.Length != node.Subpatterns.Count && !hasErrors)
                 {
                     var location = new SourceLocation(node.SyntaxTree, new Text.TextSpan(node.OpenParenToken.SpanStart, node.CloseParenToken.Span.End - node.OpenParenToken.SpanStart));
-                    diagnostics.Add(ErrorCode.ERR_WrongNumberOfSubpatterns, location, declType, elementTypes.Length, node.SubPatterns.Count);
+                    diagnostics.Add(ErrorCode.ERR_WrongNumberOfSubpatterns, location, declType, elementTypes.Length, node.Subpatterns.Count);
                     hasErrors = true;
                 }
-                for (int i = 0; i < node.SubPatterns.Count; i++)
+                for (int i = 0; i < node.Subpatterns.Count; i++)
                 {
-                    var subPattern = node.SubPatterns[i];
+                    var subPattern = node.Subpatterns[i];
                     bool isError = i >= elementTypes.Length;
                     TypeSymbol elementType = isError ? CreateErrorType() : elementTypes[i];
                     FieldSymbol foundField = null;
@@ -552,10 +575,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 // It is not a tuple type. Seek an appropriate Deconstruct method.
                 var inputPlaceholder = new BoundImplicitReceiver(node, declType); // A fake receiver expression to permit us to reuse binding logic
-                // PROTOTYPE(patterns2): Can we include element names node.SubPatterns[i].NameColon?.Name in the AnalyzedArguments
+                // PROTOTYPE(patterns2): Can we include element names node.Subpatterns[i].NameColon?.Name in the AnalyzedArguments
                 // used in MakeDeconstructInvocationExpression so they are used to disambiguate? LDM needs to reconcile with deconstruction.
                 BoundExpression deconstruct = MakeDeconstructInvocationExpression(
-                    node.SubPatterns.Count, inputPlaceholder, node, diagnostics, outPlaceholders: out ImmutableArray<BoundDeconstructValuePlaceholder> outPlaceholders);
+                    node.Subpatterns.Count, inputPlaceholder, node, diagnostics, outPlaceholders: out ImmutableArray<BoundDeconstructValuePlaceholder> outPlaceholders);
                 deconstructMethod = deconstruct.ExpressionSymbol as MethodSymbol;
                 if (deconstructMethod is null)
                 {
@@ -563,9 +586,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 int skippedExtensionParameters = deconstructMethod?.IsExtensionMethod == true ? 1 : 0;
-                for (int i = 0; i < node.SubPatterns.Count; i++)
+                for (int i = 0; i < node.Subpatterns.Count; i++)
                 {
-                    var subPattern = node.SubPatterns[i];
+                    var subPattern = node.Subpatterns[i];
                     bool isError = outPlaceholders.IsDefaultOrEmpty || i >= outPlaceholders.Length;
                     TypeSymbol elementType = isError ? CreateErrorType() : outPlaceholders[i].Type;
                     ParameterSymbol parameter = null;
@@ -599,16 +622,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // PROTOTYPE(patterns2): If no Deconstruct method is found, try casting to `ITuple`.
             }
 
-            ImmutableArray<BoundSubpattern> propertiesOpt = default;
-            if (node.PropertySubpattern != null)
-            {
-                propertiesOpt = BindPropertySubpattern(node.PropertySubpattern, declType, diagnostics, ref hasErrors);
-            }
-
-            BindPatternDesignation(node, node.Designation, declType, typeSyntax, diagnostics, ref hasErrors, out Symbol variableSymbol, out BoundExpression variableAccess);
-            return new BoundRecursivePattern(
-                syntax: node, declaredType: boundDeclType, inputType: inputType, deconstructMethodOpt: deconstructMethod,
-                deconstruction: patterns.ToImmutableAndFree(), propertiesOpt: propertiesOpt, variable: variableSymbol, variableAccess: variableAccess, hasErrors: hasErrors);
+            return patterns.ToImmutableAndFree();
         }
 
         /// <summary>
@@ -715,8 +729,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                         }
 
                         return new BoundRecursivePattern(
-                            syntax: node, declaredType: null, inputType: inputType, deconstructMethodOpt: deconstructMethod,
-                            deconstruction: subPatterns.ToImmutableAndFree(), propertiesOpt: default, variable: null, variableAccess: null, hasErrors: hasErrors);
+                            syntax: node, declaredType: null, inputType: inputType, deconstructMethod: deconstructMethod,
+                            deconstruction: subPatterns.ToImmutableAndFree(), properties: default, variable: null, variableAccess: null, hasErrors: hasErrors);
                     }
                 default:
                     {
@@ -725,25 +739,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private BoundPattern BindPropertyPattern(PropertyPatternSyntax node, TypeSymbol inputType, bool hasErrors, DiagnosticBag diagnostics)
-        {
-            TypeSyntax typeSyntax = node.Type;
-            TypeSymbol declType = BindRecursivePatternType(typeSyntax, inputType, diagnostics, ref hasErrors, out BoundTypeExpression boundDeclType);
-            ImmutableArray<BoundSubpattern> propertiesOpt = BindPropertySubpattern(node.PropertySubpattern, declType, diagnostics, ref hasErrors);
-            BindPatternDesignation(node, node.Designation, declType, typeSyntax, diagnostics, ref hasErrors, out Symbol variableSymbol, out BoundExpression variableAccess);
-            return new BoundRecursivePattern(
-                syntax: node, declaredType: boundDeclType, inputType: inputType, deconstructMethodOpt: null,
-                deconstruction: default, propertiesOpt: propertiesOpt, variable: variableSymbol, variableAccess: variableAccess, hasErrors: hasErrors);
-        }
-
-        ImmutableArray<BoundSubpattern> BindPropertySubpattern(
-            PropertySubpatternSyntax node,
+        ImmutableArray<BoundSubpattern> BindPropertyPatternClause(
+            PropertyPatternClauseSyntax node,
             TypeSymbol inputType,
             DiagnosticBag diagnostics,
             ref bool hasErrors)
         {
-            var builder = ArrayBuilder<BoundSubpattern>.GetInstance(node.SubPatterns.Count);
-            foreach (SubpatternElementSyntax p in node.SubPatterns)
+            var builder = ArrayBuilder<BoundSubpattern>.GetInstance(node.Subpatterns.Count);
+            foreach (SubpatternSyntax p in node.Subpatterns)
             {
                 IdentifierNameSyntax name = p.NameColon?.Name;
                 PatternSyntax pattern = p.Pattern;

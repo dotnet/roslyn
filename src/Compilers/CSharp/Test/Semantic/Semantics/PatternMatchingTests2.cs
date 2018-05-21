@@ -2029,12 +2029,12 @@ class Point
 ";
             var compilation = CreateCompilation(source, options: TestOptions.ReleaseDll);
             compilation.VerifyDiagnostics(
-                // (6,18): error CS7036: There is no argument given that corresponds to the required formal parameter 'X' of 'Point.Deconstruct(out int, out int)'
+                // (6,23): error CS7036: There is no argument given that corresponds to the required formal parameter 'X' of 'Point.Deconstruct(out int, out int)'
                 //         if (p is Point())
-                Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "Point()").WithArguments("X", "Point.Deconstruct(out int, out int)").WithLocation(6, 18),
-                // (6,18): error CS8129: No suitable Deconstruct instance or extension method was found for type 'Point', with 0 out parameters and a void return type.
+                Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "()").WithArguments("X", "Point.Deconstruct(out int, out int)").WithLocation(6, 23),
+                // (6,23): error CS8129: No suitable Deconstruct instance or extension method was found for type 'Point', with 0 out parameters and a void return type.
                 //         if (p is Point())
-                Diagnostic(ErrorCode.ERR_MissingDeconstruct, "Point()").WithArguments("Point", "0").WithLocation(6, 18)
+                Diagnostic(ErrorCode.ERR_MissingDeconstruct, "()").WithArguments("Point", "0").WithLocation(6, 23)
                 );
         }
 
@@ -2084,12 +2084,12 @@ class Point
                 // (10,24): error CS8400: Pattern missing
                 //         if (p is Point(, { })) { }
                 Diagnostic(ErrorCode.ERR_MissingPattern, ",").WithLocation(10, 24),
-                // (9,18): error CS1501: No overload for method 'Deconstruct' takes 3 arguments
+                // (9,23): error CS1501: No overload for method 'Deconstruct' takes 3 arguments
                 //         if (p is Point({ }, { }, { })) { }
-                Diagnostic(ErrorCode.ERR_BadArgCount, "Point({ }, { }, { })").WithArguments("Deconstruct", "3").WithLocation(9, 18),
-                // (9,18): error CS8129: No suitable Deconstruct instance or extension method was found for type 'Point', with 3 out parameters and a void return type.
+                Diagnostic(ErrorCode.ERR_BadArgCount, "({ }, { }, { })").WithArguments("Deconstruct", "3").WithLocation(9, 23),
+                // (9,23): error CS8129: No suitable Deconstruct instance or extension method was found for type 'Point', with 3 out parameters and a void return type.
                 //         if (p is Point({ }, { }, { })) { }
-                Diagnostic(ErrorCode.ERR_MissingDeconstruct, "Point({ }, { }, { })").WithArguments("Point", "3").WithLocation(9, 18)
+                Diagnostic(ErrorCode.ERR_MissingDeconstruct, "({ }, { }, { })").WithArguments("Point", "3").WithLocation(9, 23)
                 );
             var tree = compilation.SyntaxTrees[0];
             var model = compilation.GetSemanticModel(tree);
@@ -2120,7 +2120,13 @@ public class C {
             compilation.VerifyDiagnostics(
                 // (4,21): error CS8407: A single-element deconstruct pattern requires a type before the open parenthesis.
                 //         _ = this is (a: 1);
-                Diagnostic(ErrorCode.ERR_SingleElementPositionalPatternRequiresType, "(a: 1)").WithLocation(4, 21)
+                Diagnostic(ErrorCode.ERR_SingleElementPositionalPatternRequiresType, "(a: 1)").WithLocation(4, 21),
+                // (4,21): error CS1061: 'C' does not contain a definition for 'Deconstruct' and no extension method 'Deconstruct' accepting a first argument of type 'C' could be found (are you missing a using directive or an assembly reference?)
+                //         _ = this is (a: 1);
+                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "(a: 1)").WithArguments("C", "Deconstruct").WithLocation(4, 21),
+                // (4,21): error CS8129: No suitable Deconstruct instance or extension method was found for type 'C', with 1 out parameters and a void return type.
+                //         _ = this is (a: 1);
+                Diagnostic(ErrorCode.ERR_MissingDeconstruct, "(a: 1)").WithArguments("C", "1").WithLocation(4, 21)
                 );
         }
 
@@ -2137,12 +2143,12 @@ public class C {
 ";
             var compilation = CreateCompilation(source, options: TestOptions.ReleaseDll);
             compilation.VerifyDiagnostics(
-                // (4,21): error CS1061: 'C' does not contain a definition for 'Deconstruct' and no extension method 'Deconstruct' accepting a first argument of type 'C' could be found (are you missing a using directive or an assembly reference?)
+                // (4,22): error CS1061: 'C' does not contain a definition for 'Deconstruct' and no extension method 'Deconstruct' accepting a first argument of type 'C' could be found (are you missing a using directive or an assembly reference?)
                 //         _ = this is C(a: 1);
-                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "C(a: 1)").WithArguments("C", "Deconstruct").WithLocation(4, 21),
-                // (4,21): error CS8129: No suitable Deconstruct instance or extension method was found for type 'C', with 1 out parameters and a void return type.
+                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "(a: 1)").WithArguments("C", "Deconstruct").WithLocation(4, 22),
+                // (4,22): error CS8129: No suitable Deconstruct instance or extension method was found for type 'C', with 1 out parameters and a void return type.
                 //         _ = this is C(a: 1);
-                Diagnostic(ErrorCode.ERR_MissingDeconstruct, "C(a: 1)").WithArguments("C", "1").WithLocation(4, 21)
+                Diagnostic(ErrorCode.ERR_MissingDeconstruct, "(a: 1)").WithArguments("C", "1").WithLocation(4, 22)
                 );
         }
     }

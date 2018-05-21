@@ -413,9 +413,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (!recursive.Deconstruction.IsDefault)
             {
                 // we have a "deconstruction" form, which is either an invocation of a Deconstruct method, or a disassembly of a tuple
-                if (recursive.DeconstructMethodOpt != null)
+                if (recursive.DeconstructMethod != null)
                 {
-                    MethodSymbol method = recursive.DeconstructMethodOpt;
+                    MethodSymbol method = recursive.DeconstructMethod;
                     var evaluation = new BoundDagDeconstructEvaluation(recursive.Syntax, method, input);
                     tests.Add(evaluation);
                     int extensionExtra = method.IsStatic ? 1 : 0;
@@ -454,12 +454,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            if (!recursive.PropertiesOpt.IsDefault)
+            if (!recursive.Properties.IsDefault)
             {
                 // we have a "property" form
-                for (int i = 0; i < recursive.PropertiesOpt.Length; i++)
+                for (int i = 0; i < recursive.Properties.Length; i++)
                 {
-                    var subPattern = recursive.PropertiesOpt[i];
+                    var subPattern = recursive.Properties[i];
                     Symbol symbol = subPattern.Symbol;
                     BoundPattern pattern = subPattern.Pattern;
                     BoundDagEvaluation evaluation;

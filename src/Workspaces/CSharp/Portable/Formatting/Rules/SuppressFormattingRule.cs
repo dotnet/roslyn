@@ -44,23 +44,26 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             }
 
             // ex: `e is Type ( /* positional */ )`
-            if (node is DeconstructionPatternSyntax deconstructionPattern)
+            if (node is RecursivePatternSyntax recursivePattern)
             {
-                // Formatting should refrain from inserting new lines, unless the user already split across multiple lines
-                AddSuppressWrappingIfOnSingleLineOperation(list, deconstructionPattern.OpenParenToken, deconstructionPattern.CloseParenToken);
-
-                if (deconstructionPattern.PropertySubpattern != null)
+                var deconstruct = recursivePattern.DeconstructionPatternClause;
+                var property = recursivePattern.PropertyPatternClause;
+                if (deconstruct != null)
                 {
-                    AddSuppressWrappingIfOnSingleLineOperation(list, deconstructionPattern.OpenParenToken, deconstructionPattern.PropertySubpattern.GetLastToken());
+                    // Formatting should refrain from inserting new lines, unless the user already split across multiple lines
+                    AddSuppressWrappingIfOnSingleLineOperation(list, deconstruct.OpenParenToken, deconstruct.CloseParenToken);
+                    if (property != null)
+                    {
+                        AddSuppressWrappingIfOnSingleLineOperation(list, deconstruct.OpenParenToken, property.GetLastToken());
+                    }
                 }
-                return;
-            }
 
-            // ex: `Property: <pattern>` inside a recursive pattern, such as `e is { Property: <pattern>, ... }`
-            if (node is PropertySubpatternSyntax propertySubpattern)
-            {
-                // Formatting should refrain from inserting new lines, unless the user already split across multiple lines
-                AddSuppressWrappingIfOnSingleLineOperation(list, propertySubpattern.OpenBraceToken, propertySubpattern.CloseBraceToken);
+                // ex: `Property: <pattern>` inside a recursive pattern, such as `e is { Property: <pattern>, ... }`
+                else if (property != null)
+                {
+                    // Formatting should refrain from inserting new lines, unless the user already split across multiple lines
+                    AddSuppressWrappingIfOnSingleLineOperation(list, property.OpenBraceToken, property.CloseBraceToken);
+                }
 
                 return;
             }
@@ -95,27 +98,22 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                 // Formatting should refrain from inserting new lines, unless the user already split across multiple lines
                 AddSuppressWrappingIfOnSingleLineOperation(list, isPattern.GetFirstToken(), isPattern.GetLastToken());
 
-                if (isPattern.Pattern is DeconstructionPatternSyntax deconstructionInIsPattern)
+                if (isPattern.Pattern is RecursivePatternSyntax recursionInIsPattern)
                 {
                     // ex:
                     // ```
                     // _ = expr is (1, 2) { }$$
                     // M();
                     // ```
-                    if (deconstructionInIsPattern.PropertySubpattern != null)
-                    {
-                        AddSuppressWrappingIfOnSingleLineOperation(list, isPattern.IsKeyword, deconstructionInIsPattern.PropertySubpattern.GetLastToken());
-                    }
-                }
-
-                if (isPattern.Pattern is PropertyPatternSyntax propertyPattern)
-                {
-                    // ex:
+                    // or:
                     // ```
                     // _ = expr is { }$$
                     // M();
                     // ```
-                    AddSuppressWrappingIfOnSingleLineOperation(list, isPattern.IsKeyword, propertyPattern.PropertySubpattern.GetLastToken());
+                    if (recursionInIsPattern.PropertyPatternClause != null)
+                    {
+                        AddSuppressWrappingIfOnSingleLineOperation(list, isPattern.IsKeyword, recursionInIsPattern.PropertyPatternClause.GetLastToken());
+                    }
                 }
 
                 return;
