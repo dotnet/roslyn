@@ -7788,5 +7788,76 @@ class Class
     }
 }");
         }
+
+        [WorkItem(26993, "https://github.com/dotnet/roslyn/issues/26993")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
+        public async Task TestGenerateMethodInExpressionBodiedLocalFunction()
+        {
+            await TestInRegularAndScriptAsync(
+@"class Class
+{
+    int Y()
+    {
+        return Foo();
+
+        int Foo() => [|Goo()|];
+    }
+}",
+@"using System;
+
+class Class
+{
+    int Y()
+    {
+        return Foo();
+
+        int Foo() => Goo();
+    }
+
+    private int Goo()
+    {
+        throw new NotImplementedException();
+    }
+}");
+        }
+
+        [WorkItem(26993, "https://github.com/dotnet/roslyn/issues/26993")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
+        public async Task TestGenerateMethodInBlockBodiedLocalFunction()
+        {
+            await TestInRegularAndScriptAsync(
+@"class Class
+{
+    int Y()
+    {
+        return Foo();
+
+        int Foo()
+        {
+            return [|Goo()|];
+        }
+    }
+}",
+@"using System;
+
+class Class
+{
+    int Y()
+    {
+        return Foo();
+
+        int Foo()
+        {
+            return Goo();
+        }
+    }
+
+    private int Goo()
+    {
+        throw new NotImplementedException();
+    }
+}");
+        }
+
     }
 }

@@ -7727,5 +7727,249 @@ index: 2);
     }
 }");
         }
+
+        [WorkItem(26993, "https://github.com/dotnet/roslyn/issues/26993")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
+        public async Task TestGenerateFieldInExpressionBodiedLocalFunction()
+        {
+            await TestInRegularAndScriptAsync(
+@"class Program
+{
+    public int Y()
+    {
+        return Foo();
+
+        int Foo() => [|y|];
+    }
+}",
+@"class Program
+{
+    private int y;
+
+    public int Y()
+    {
+        return Foo();
+
+        int Foo() => y;
+    }
+}");
+        }
+
+        [WorkItem(26993, "https://github.com/dotnet/roslyn/issues/26993")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
+        public async Task TestGenerateReadonlyFieldInExpressionBodiedLocalFunction()
+        {
+            await TestInRegularAndScriptAsync(
+@"class Program
+{
+    public int Y()
+    {
+        return Foo();
+
+        int Foo() => [|y|];
+    }
+}",
+@"class Program
+{
+    private readonly int y;
+
+    public int Y()
+    {
+        return Foo();
+
+        int Foo() => y;
+    }
+}",
+index: 1);
+        }
+
+        [WorkItem(26993, "https://github.com/dotnet/roslyn/issues/26993")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
+        public async Task TestGeneratePropertyInExpressionBodiedLocalFunction()
+        {
+            await TestInRegularAndScriptAsync(
+@"class Program
+{
+    public int Y()
+    {
+        return Foo();
+
+        int Foo() => [|y|];
+    }
+}",
+@"class Program
+{
+    public int y { get; private set; }
+
+    public int Y()
+    {
+        return Foo();
+
+        int Foo() => y;
+    }
+}",
+index: 2);
+        }
+
+        [WorkItem(26993, "https://github.com/dotnet/roslyn/issues/26993")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
+        public async Task TestGenerateFieldInExpressionBodiedLocalFunctionInferredFromType()
+        {
+            await TestInRegularAndScriptAsync(
+@"class Program
+{
+    public int Y()
+    {
+        return Foo();
+
+        int Foo() => [|y|] = 12;
+    }
+}",
+@"class Program
+{
+    private int y;
+
+    public int Y()
+    {
+        return Foo();
+
+        int Foo() => y = 12;
+    }
+}");
+        }
+
+        [WorkItem(26993, "https://github.com/dotnet/roslyn/issues/26993")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
+        public async Task TestGenerateFieldInBlockBodiedLocalFunction()
+        {
+            await TestInRegularAndScriptAsync(
+@"class Program
+{
+    public int Y()
+    {
+        return Foo();
+
+        int Foo()
+        {
+            return [|y|];
+        }
+    }
+}",
+@"class Program
+{
+    private int y;
+
+    public int Y()
+    {
+        return Foo();
+
+        int Foo()
+        {
+            return y;
+        }
+    }
+}");
+        }
+
+        [WorkItem(26993, "https://github.com/dotnet/roslyn/issues/26993")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
+        public async Task TestGenerateReadonlyFieldInBlockBodiedLocalFunction()
+        {
+            await TestInRegularAndScriptAsync(
+@"class Program
+{
+    public int Y()
+    {
+        return Foo();
+
+        int Foo()
+        {
+            return [|y|];
+        }
+    }
+}",
+@"class Program
+{
+    private readonly int y;
+
+    public int Y()
+    {
+        return Foo();
+
+        int Foo()
+        {
+            return y;
+        }
+    }
+}",
+index: 1);
+        }
+
+        [WorkItem(26993, "https://github.com/dotnet/roslyn/issues/26993")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
+        public async Task TestGeneratePropertyInBlockBodiedLocalFunction()
+        {
+            await TestInRegularAndScriptAsync(
+@"class Program
+{
+    public int Y()
+    {
+        return Foo();
+
+        int Foo()
+        {
+            return [|y|];
+        }
+    }
+}",
+@"class Program
+{
+    public int y { get; private set; }
+
+    public int Y()
+    {
+        return Foo();
+
+        int Foo()
+        {
+            return y;
+        }
+    }
+}",
+index: 2);
+        }
+
+        [WorkItem(26993, "https://github.com/dotnet/roslyn/issues/26993")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
+        public async Task TestGenerateFieldInBlockBodiedLocalFunctionInferredFromType()
+        {
+            await TestInRegularAndScriptAsync(
+@"class Program
+{
+    public int Y()
+    {
+        return Foo();
+
+        int Foo() 
+        {
+            return [|y|] = 12;
+        }
+    }
+}",
+@"class Program
+{
+    private int y;
+
+    public int Y()
+    {
+        return Foo();
+
+        int Foo() 
+        {
+            return y = 12;
+        }
+    }
+}");
+        }
     }
 }
