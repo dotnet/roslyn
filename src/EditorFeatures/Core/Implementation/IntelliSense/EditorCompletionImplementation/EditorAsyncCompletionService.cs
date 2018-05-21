@@ -675,9 +675,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.E
 
         private int GetMatchPriority(RoslynCompletionItem bestItem)
         {
-            return int.TryParse(ImmutableDictionary.GetValueOrDefault(bestItem.Properties, "MatchPriority"), out var matchPriority)
-                ? matchPriority
-                : MatchPriority.Default;
+            return bestItem.Rules.MatchPriority;
         }
 
         private struct FilterResult

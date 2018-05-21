@@ -190,8 +190,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.E
                 return string.Empty;
             }
 
-            Workspace.TryGetWorkspace(triggerBuffer.AsTextContainer(), out var workspace);
-
+            if (!Workspace.TryGetWorkspace(triggerBuffer.AsTextContainer(), out var workspace))
+            {
+                return string.Empty;
+            }
 
             var documentId = workspace.GetDocumentIdInCurrentContext(triggerBuffer.AsTextContainer());
             var document = workspace.CurrentSolution.GetDocument(documentId);
