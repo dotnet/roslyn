@@ -21,15 +21,18 @@ namespace Microsoft.CodeAnalysis.AddRequiredParentheses
         public override ImmutableArray<string> FixableDiagnosticIds
             => ImmutableArray.Create(IDEDiagnosticIds.AddRequiredParenthesesDiagnosticId);
 
-        protected override bool IncludeDiagnosticDuringFixAll(Diagnostic diagnostic)
-            => diagnostic.Properties.ContainsKey(AddRequiredParenthesesConstants.IncludeInFixAll);
+        protected override bool IncludeDiagnosticDuringFixAll(FixAllState state, Diagnostic diagnostic)
+            => diagnostic.Properties.ContainsKey(AddRequiredParenthesesConstants.IncludeInFixAll) &&
+               diagnostic.Properties[AddRequiredParenthesesConstants.EquivalenceKey] == state.CodeActionEquivalenceKey;
 
         public override Task RegisterCodeFixesAsync(CodeFixContext context)
         {
+            var firstDiagnostic = context.Diagnostics[0];
             context.RegisterCodeFix(
                 new MyCodeAction(
-                    c => FixAsync(context.Document, context.Diagnostics[0], c)),
-                    context.Diagnostics);
+                    c => FixAsync(context.Document, firstDiagnostic, c),
+                    firstDiagnostic.Properties[AddRequiredParenthesesConstants.EquivalenceKey]),
+                context.Diagnostics);
             return SpecializedTasks.EmptyTask;
         }
 
@@ -47,7 +50,8 @@ namespace Microsoft.CodeAnalysis.AddRequiredParentheses
                 // Do not add the simplifier annotation.  We do not want the simplifier undoing the 
                 // work we just did.
                 editor.ReplaceNode(node,
-                    (current, _) => syntaxFacts.Parenthesize(current, includeElasticTrivia: false, addSimplifierAnnotation: false));
+                    (current, _) => syntaxFacts.Parenthesize(
+                        current, includeElasticTrivia: false, addSimplifierAnnotation: false));
             }
 
             return SpecializedTasks.EmptyTask;
@@ -55,8 +59,8 @@ namespace Microsoft.CodeAnalysis.AddRequiredParentheses
 
         private class MyCodeAction : CodeAction.DocumentChangeAction
         {
-            public MyCodeAction(Func<CancellationToken, Task<Document>> createChangedDocument)
-                : base(FeaturesResources.Add_parentheses_for_clarity, createChangedDocument, FeaturesResources.Add_parentheses_for_clarity)
+            public MyCodeAction(Func<CancellationToken, Task<Document>> createChangedDocument, string equivalenceKey)
+                : base(FeaturesResources.Add_parentheses_for_clarity, createChangedDocument, equivalenceKey)
             {
             }
         }
