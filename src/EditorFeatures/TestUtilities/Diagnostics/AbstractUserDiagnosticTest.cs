@@ -12,6 +12,7 @@ using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics.GenerateType;
+using Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics.NamingStyles;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.GenerateType;
 using Microsoft.CodeAnalysis.Options;

@@ -2,6 +2,7 @@
 
 using System.Collections.Generic;
 using System.Globalization;
+using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.CodeStyle;
@@ -81,6 +82,48 @@ class goo
 }
 ";
             await TestAllOptionsOffAsync(text, expected, index: 1);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.EncapsulateField)]
+        public async Task PrivateFieldToPropertyIgnoringReferences_WithNamingRules()
+        {
+            var text = @"
+class goo
+{
+    private int b[|a|]r;
+
+    void baz()
+    {
+        var q = bar;
+    }
+}
+";
+
+            var expected = @"
+class goo
+{
+    private int bar;
+
+    public int Bar_Prop
+    {
+        get
+        {
+            return bar;
+        }
+
+        set
+        {
+            bar = value;
+        }
+    }
+
+    void baz()
+    {
+        var q = bar;
+    }
+}
+";
+            await TestAllOptionsOffAsync(text, expected, index: 1, options: NamingRuleOptions.CreatePropertyNamingRule(suffix: "_Prop"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.EncapsulateField)]

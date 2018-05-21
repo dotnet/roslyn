@@ -1,9 +1,11 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Immutable;
+using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.CSharp.ConvertAutoPropertyToFullProperty;
+using Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles;
 using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -45,7 +47,45 @@ class goo
     }
 }
 ";
-            await TestInRegularAndScriptAsync(text, expected, options: DoNotPreferExpressionBodiedAccessors);
+            var options = DoNotPreferExpressionBodiedAccessors
+                    .Union(NamingRuleOptions.PrivateFieldNamesAreCamelCaseWithUnderscore)
+                    .ToDictionary(k => k.Key, v => v.Value);
+
+            await TestInRegularAndScriptAsync(text, expected, options: options);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.ConvertAutoPropertyToFullProperty)]
+        public async Task SimpleAutoPropertyTest_RespectsNamingRule()
+        {
+            var text = @"
+class goo
+{
+    public int G[||]oo { get; set; }
+}
+";
+            var expected = @"
+class goo
+{
+    private int goo;
+
+    public int Goo
+    {
+        get
+        {
+            return goo;
+        }
+        set
+        {
+            goo = value;
+        }
+    }
+}
+";
+            var options = DoNotPreferExpressionBodiedAccessors
+                    .Union(NamingRuleOptions.CreateFieldNamingRule(prefix: ""))
+                    .ToDictionary(k => k.Key, v => v.Value);
+
+            await TestInRegularAndScriptAsync(text, expected, options: options);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.ConvertAutoPropertyToFullProperty)]

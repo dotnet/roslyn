@@ -385,7 +385,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateConstructor
                                 }
                                 else
                                 {
-                                    // Can change the parameter name, so do so.
+                                    // Can change the parameter name, so do so. TODO: why we should change parameter name?
                                     var newParameterName = new ParameterName(newFieldName, isFixed: false);
                                     newParameterNamesList[index] = newParameterName;
                                     parameterToNewFieldMap[newParameterName.BestNameForParameter] = newFieldName;

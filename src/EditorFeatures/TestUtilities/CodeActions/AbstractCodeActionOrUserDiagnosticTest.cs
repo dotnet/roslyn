@@ -11,6 +11,7 @@ using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes.Suppression;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Editor.Implementation.Preview;
+using Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics.NamingStyles;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Extensions;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Options;
@@ -58,6 +59,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
         }
 
         protected abstract string GetLanguage();
+        protected NamingStylesTestOptionSets NamingRuleOptions => new NamingStylesTestOptionSets(GetLanguage());
         protected abstract ParseOptions GetScriptOptions();
 
         protected TestWorkspace CreateWorkspaceFromOptions(

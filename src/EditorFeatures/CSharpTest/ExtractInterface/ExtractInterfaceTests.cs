@@ -520,7 +520,10 @@ internal interface IMyClass
     event Action<int?> ExtractableEvent2;
 }";
 
-            await TestExtractInterfaceCommandCSharpAsync(markup, expectedSuccess: true, expectedInterfaceCode: expectedInterfaceCode);
+            var options = NamingRuleOptions.CreateInterfaceNamingRule(suffix: "_Interface");
+            await TestExtractInterfaceCommandCSharpAsync(
+                markup, expectedSuccess: true, expectedInterfaceCode: expectedInterfaceCode,
+                op);
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractInterface)]

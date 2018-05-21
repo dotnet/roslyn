@@ -2,6 +2,7 @@
 
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics.NamingStyles;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.VisualBasic;
 using Xunit;
@@ -56,6 +57,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.ExtractInterface
                 expectedInterfaceCode,
                 new VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary, rootNamespace: rootNamespace));
         }
+
+        protected NamingStylesTestOptionSets NamingRuleOptions => new NamingStylesTestOptionSets(LanguageNames.CSharp);
 
         private static async Task TestExtractInterfaceCommandAsync(
             string markup,

@@ -8,7 +8,9 @@ using Microsoft.CodeAnalysis.CSharp.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.GenerateConstructor;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles;
 using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics;
+using Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics.NamingStyles;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -45,6 +47,33 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.GenerateConstructor
         new C(1);
     }
 }");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
+        public async Task TestWithSimpleArgument_RespectNamingRule()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    void M()
+    {
+        new [|C|](1);
+    }
+}",
+@"class C
+{
+    private int _v;
+
+    public C(int v)
+    {
+        _v = v;
+    }
+
+    void M()
+    {
+        new C(1);
+    }
+}", options: NamingRuleOptions.PrivateFieldNamesAreCamelCaseWithUnderscore);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
@@ -647,6 +676,44 @@ class D : B
         this.x = x;
     }
 }");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
+        public async Task TestWithExistingField10WithNamingRules()
+        {
+            var options = NamingRuleOptions.CreateFieldNamingRule(
+                accessibility: Accessibility.Private, prefix: "prefix_", suffix: "_suffix");
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    void M()
+    {
+        new [|D|](1);
+    }
+}
+
+class D
+{
+    private string prefix_v_suffix;
+}",
+@"class C
+{
+    void M()
+    {
+        new D(1);
+    }
+}
+
+class D
+{
+    private string prefix_v_suffix;
+    private int prefix_v1_suffix;
+
+    public D(int prefix_v1_suffix)
+    {
+        this.prefix_v1_suffix = prefix_v1_suffix;
+    }
+}", options: options);
         }
 
         [WorkItem(539444, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539444")]
