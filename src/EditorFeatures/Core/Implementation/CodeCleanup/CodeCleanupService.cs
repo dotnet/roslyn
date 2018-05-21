@@ -20,9 +20,8 @@ using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.Editor.Implementation.Formatting
+namespace Microsoft.CodeAnalysis.Editor.Implementation.CodeCleanup
 {
-    [Export]
     [Export(typeof(ICodeCleanupService))]
     internal class CodeCleanupService : ICodeCleanupService
     {
@@ -164,17 +163,14 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Formatting
                 var length = document.GetSyntaxTreeAsync(cancellationToken).WaitAndGetResult(cancellationToken).Length;
                 var textSpan = new TextSpan(0, length);
 
-                var fixCollectionArray = _codeFixService.GetFixesAsync(document, diagnosticId, textSpan, cancellationToken).WaitAndGetResult(cancellationToken);
-                if (fixCollectionArray == null || fixCollectionArray.Length == 0)
+                var fixCollection = _codeFixService.GetFixesAsync(document, textSpan, diagnosticId, cancellationToken).WaitAndGetResult(cancellationToken);
+                if (fixCollection == null)
                 {
                     continue;
                 }
 
-                // TODO: Just apply the first fix for now until we have a way to config user's preferred fix
-                var fixAll = fixCollectionArray.First().FixAllState;
-
+                var fixAll = fixCollection.FixAllState;
                 var solution = fixAllService.GetFixAllChangedSolutionAsync(fixAll.CreateFixAllContext(dummy, cancellationToken)).WaitAndGetResult(cancellationToken);
-
                 document = solution.GetDocument(document.Id);
             }
 

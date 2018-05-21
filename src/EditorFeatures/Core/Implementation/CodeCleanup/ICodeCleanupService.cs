@@ -2,9 +2,9 @@
 
 using System.Threading;
 
-namespace Microsoft.CodeAnalysis.Editor.Implementation.Formatting
+namespace Microsoft.CodeAnalysis.Editor.Implementation.CodeCleanup
 {
-    interface ICodeCleanupService
+    internal interface ICodeCleanupService
     {
         Document CleanupDocument(Document document, CancellationToken cancellationToken);
     }

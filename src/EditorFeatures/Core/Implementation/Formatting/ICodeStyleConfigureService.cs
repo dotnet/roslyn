@@ -4,7 +4,7 @@ using Microsoft.CodeAnalysis.Host;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.Formatting
 {
-    public interface ICodeStyleConfigureService : IWorkspaceService
+    internal interface ICodeStyleConfigureService : IWorkspaceService
     {
         void ShowFormattingOptionPage();
     }

@@ -49,8 +49,7 @@ int y;
 }
 ";
 
-            AssertFormatWithView(expected, code,
-                new Dictionary<PerLanguageOption<bool>, bool>() { { FeatureOnOffOptions.IsCodeCleanupRulesConfigured, true } });
+            AssertFormatWithView(expected, code, false, (FeatureOnOffOptions.IsCodeCleanupRulesConfigured, true));
         }
 
         [WpfFact]

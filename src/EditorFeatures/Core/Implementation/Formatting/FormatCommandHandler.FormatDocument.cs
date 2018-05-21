@@ -3,7 +3,6 @@
 using Microsoft.CodeAnalysis.Editor.Shared.Options;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Extensions;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Commanding;
@@ -63,29 +62,34 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Formatting
             if (!document.Project.Solution.Workspace.Options.GetOption(FeatureOnOffOptions.IsCodeCleanupRulesConfigured, LanguageNames.CSharp))
             {
                 ShowGoldBarForCodeCleanupConfiguration(document.Project.Solution.Workspace);
+                Format(args.TextView, document, null, context.WaitContext.UserCancellationToken);
             }
-
-            using (context.WaitContext.AddScope(allowCancellation: true, EditorFeaturesResources.Formatting_document))
+            else
             {
-                var cancellationToken = context.WaitContext.UserCancellationToken;
 
-                using (var transaction = new CaretPreservingEditTransaction(
-                    EditorFeaturesResources.Formatting, args.TextView, _undoHistoryRegistry, _editorOperationsFactoryService))
+                using (context.WaitContext.AddScope(allowCancellation: true, EditorFeaturesResources.Formatting_document))
                 {
-                    document = _codeCleanupService.CleanupDocument(document, cancellationToken);
+                    var cancellationToken = context.WaitContext.UserCancellationToken;
 
-                    var formattingService = document.GetLanguageService<IEditorFormattingService>();
-                    if (formattingService == null || !formattingService.SupportsFormatDocument)
+                    using (var transaction = new CaretPreservingEditTransaction(
+                        EditorFeaturesResources.Formatting, args.TextView, _undoHistoryRegistry, _editorOperationsFactoryService))
                     {
-                        return false;
+                        document = _codeCleanupService.CleanupDocument(document, cancellationToken);
+
+                        var formattingService = document.GetLanguageService<IEditorFormattingService>();
+                        if (formattingService == null || !formattingService.SupportsFormatDocument)
+                        {
+                            return false;
+                        }
+
+                        Format(args.TextView, document, null, cancellationToken);
+
+                        transaction.Complete();
                     }
-
-                    Format(args.TextView, document, null, cancellationToken);
-
-                    transaction.Complete();
-                    return true;
                 }
             }
+
+            return true;
         }
     }
 }
