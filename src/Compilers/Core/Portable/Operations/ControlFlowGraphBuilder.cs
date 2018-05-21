@@ -4992,6 +4992,12 @@ oneMoreTime:
                 operation.Syntax, operation.Type, operation.ConstantValue, IsImplicit(operation));
         }
 
+        public override IOperation VisitDelegateCreation(IDelegateCreationOperation operation, int? captureIdForResult)
+        {
+            return new DelegateCreationExpression(Visit(operation.Target), semanticModel: null,
+                operation.Syntax, operation.Type, operation.ConstantValue, IsImplicit(operation));
+        }
+
         private T Visit<T>(T node) where T : IOperation
         {
             return (T)Visit(node, argument: null);
@@ -5106,11 +5112,6 @@ oneMoreTime:
                                                                       operation.Body.ConstantValue,
                                                                       IsImplicit(operation.Body)),
                                                    semanticModel: null, operation.Syntax, operation.Type, operation.ConstantValue, IsImplicit(operation));
-        }
-
-        public override IOperation VisitDelegateCreation(IDelegateCreationOperation operation, int? captureIdForResult)
-        {
-            return new DelegateCreationExpression(Visit(operation.Target), semanticModel: null, operation.Syntax, operation.Type, operation.ConstantValue, IsImplicit(operation));
         }
 
         public override IOperation VisitAnonymousObjectCreation(IAnonymousObjectCreationOperation operation, int? captureIdForResult)
