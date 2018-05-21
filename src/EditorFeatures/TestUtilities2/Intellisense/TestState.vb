@@ -72,7 +72,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
 
             Me.AsyncCompletionService = GetExportedValue(Of IAsyncCompletionService)()
 
-            EditorCompletionCommandHandler = GetExportedValues(Of VSCommanding.ICommandHandler)().Single(Function(e As VSCommanding.ICommandHandler) e.GetType().FullName = "Microsoft.VisualStudio.Language.Intellisense.AsyncCompletion.Implementation.CompletionCommandHandlers")
+            EditorCompletionCommandHandler = GetExportedValues(Of VSCommanding.ICommandHandler)().Single(Function(e As VSCommanding.ICommandHandler) e.GetType().FullName = "Microsoft.VisualStudio.Language.Intellisense.AsyncCompletion.Implementation.CompletionCommandHandler")
 
             Me.SignatureHelpCommandHandler = GetExportedValue(Of SignatureHelpCommandHandler)()
 
