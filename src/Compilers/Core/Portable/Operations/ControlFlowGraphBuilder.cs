@@ -3101,6 +3101,61 @@ oneMoreTime:
             AppendNewBlock(@break);
             return null;
 
+            IOperation tryCallObjectForLoopControlHelper(SyntaxNode syntax, WellKnownMember helper)
+            {
+                bool isInitialization = (helper == WellKnownMember.Microsoft_VisualBasic_CompilerServices_ObjectFlowControl_ForLoopControl__ForLoopInitObj);
+                var loopObjectReference = new LocalReferenceExpression(loopObject, 
+                                                                       isDeclaration: isInitialization, 
+                                                                       semanticModel: null,
+                                                                       operation.LoopControlVariable.Syntax, loopObject.Type,
+                                                                       constantValue: default, isImplicit: true);
+
+                var method = (IMethodSymbol)compilation.CommonGetWellKnownTypeMember(helper);
+                int parametersCount = WellKnownMembers.GetDescriptor(helper).ParametersCount;
+
+                if (method is null)
+                {
+                    var builder = ArrayBuilder<IOperation>.GetInstance(--parametersCount, fillWithValue: null);
+                    builder[--parametersCount] = loopObjectReference;
+                    do
+                    {
+                        builder[--parametersCount] = _evalStack.Pop();
+                    }
+                    while (parametersCount != 0);
+
+                    return MakeInvalidOperation(operation.LimitValue.Syntax, booleanType, builder.ToImmutableAndFree());
+                }
+                else
+                {
+
+                    var builder = ArrayBuilder<IArgumentOperation>.GetInstance(parametersCount, fillWithValue: null);
+
+                    builder[--parametersCount] = new ArgumentOperation(getLoopControlVariableReference(forceImplicit: true), // Yes we are going to evaluate it again
+                                                                       ArgumentKind.Explicit, method.Parameters[parametersCount],
+                                                                       inConversionOpt: null, outConversionOpt: null,
+                                                                       semanticModel: null, syntax, isImplicit: true);
+
+                    builder[--parametersCount] = new ArgumentOperation(loopObjectReference,
+                                                                       ArgumentKind.Explicit, method.Parameters[parametersCount],
+                                                                       inConversionOpt: null, outConversionOpt: null,
+                                                                       semanticModel: null, syntax, isImplicit: true);
+
+                    do
+                    {
+                        IOperation value = _evalStack.Pop();
+                        builder[--parametersCount] = new ArgumentOperation(value,
+                                                                           ArgumentKind.Explicit, method.Parameters[parametersCount],
+                                                                           inConversionOpt: null, outConversionOpt: null,
+                                                                           semanticModel: null, isInitialization ? value.Syntax : syntax, isImplicit: true);
+                    }
+                    while (parametersCount != 0);
+
+                    return new InvocationExpression(method, instance: null, isVirtual: false, builder.ToImmutableAndFree(),
+                                                    semanticModel: null, operation.LimitValue.Syntax, method.ReturnType,
+                                                    constantValue: default, isImplicit: true);
+                }
+            }
+
             void initializeLoop()
             {
                 if (isObjectLoop)
@@ -3127,7 +3182,6 @@ oneMoreTime:
                     // }
                     // exit:
 
-                    IOperation condition;
 #if DEBUG
                     int stackSize = _evalStack.Count;
 #endif
@@ -3135,52 +3189,10 @@ oneMoreTime:
                     _evalStack.Push(Visit(operation.InitialValue));
                     _evalStack.Push(Visit(operation.LimitValue));
                     _evalStack.Push(Visit(operation.StepValue));
-                    var loopObjectReference = new LocalReferenceExpression(loopObject, isDeclaration: true, semanticModel: null,
-                                                                           operation.LoopControlVariable.Syntax, loopObject.Type, 
-                                                                           constantValue: default, isImplicit: true);
 
-                    var initMethod = (IMethodSymbol)compilation.CommonGetWellKnownTypeMember(WellKnownMember.Microsoft_VisualBasic_CompilerServices_ObjectFlowControl_ForLoopControl__ForLoopInitObj);
-                    if (initMethod is null)
-                    {
-                        // PROTOTYPE(dataflow): The scenario with missing ObjectFlowControl.ForLoopControl.ForLoopInitObj is not covered by unit-tests.
-
-                        var builder = ArrayBuilder<IOperation>.GetInstance(5, fillWithValue: null);
-                        builder[4] = loopObjectReference;
-                        builder[3] = _evalStack.Pop();
-                        builder[2] = _evalStack.Pop();
-                        builder[1] = _evalStack.Pop();
-                        builder[0] = _evalStack.Pop();
-
-                        condition = MakeInvalidOperation(operation.LimitValue.Syntax, booleanType, builder.ToImmutableAndFree());
-                    }
-                    else
-                    {
-
-                        var builder = ArrayBuilder<IArgumentOperation>.GetInstance(6, fillWithValue: null);
-
-                        builder[5] = new ArgumentOperation(getLoopControlVariableReference(forceImplicit: true), // Yes we are going to evaluate it again
-                                                           ArgumentKind.Explicit, initMethod.Parameters[5],
-                                                           inConversionOpt: null, outConversionOpt: null,
-                                                           semanticModel: null, operation.LoopControlVariable.Syntax, isImplicit: true);
-
-                        builder[4] = new ArgumentOperation(loopObjectReference, 
-                                                           ArgumentKind.Explicit, initMethod.Parameters[4],
-                                                           inConversionOpt: null, outConversionOpt: null,
-                                                           semanticModel: null, operation.LoopControlVariable.Syntax, isImplicit: true);
-
-                        for (int i = 3; i >= 0; i--)
-                        {
-                            IOperation value = _evalStack.Pop();
-                            builder[i] = new ArgumentOperation(value,
-                                                               ArgumentKind.Explicit, initMethod.Parameters[i],
-                                                               inConversionOpt: null, outConversionOpt: null,
-                                                               semanticModel: null, value.Syntax, isImplicit: true);
-                        }
-
-                        condition = new InvocationExpression(initMethod, instance: null, isVirtual: false, builder.ToImmutableAndFree(),
-                                                             semanticModel: null, operation.LimitValue.Syntax, initMethod.ReturnType, 
-                                                             constantValue: default, isImplicit: true);
-                    }
+                    IOperation condition = tryCallObjectForLoopControlHelper(operation.LoopControlVariable.Syntax,
+                                                                             WellKnownMember.Microsoft_VisualBasic_CompilerServices_ObjectFlowControl_ForLoopControl__ForLoopInitObj);
+                    // PROTOTYPE(dataflow): The scenario with missing ObjectFlowControl.ForLoopControl.ForLoopInitObj is not covered by unit-tests.
 #if DEBUG
                     Debug.Assert(stackSize == _evalStack.Count);
 #endif
@@ -3330,45 +3342,17 @@ oneMoreTime:
                     // }
                     // exit:
 
-                    IOperation condition;
-                    var loopObjectReference = new LocalReferenceExpression(loopObject, isDeclaration: false, semanticModel: null,
-                                                                           operation.LoopControlVariable.Syntax, loopObject.Type,
-                                                                           constantValue: default, isImplicit: true);
+#if DEBUG
+                    int stackSize = _evalStack.Count;
+#endif
+                    _evalStack.Push(getLoopControlVariableReference(forceImplicit: true));
 
-                    var checkMethod = (IMethodSymbol)compilation.CommonGetWellKnownTypeMember(WellKnownMember.Microsoft_VisualBasic_CompilerServices_ObjectFlowControl_ForLoopControl__ForNextCheckObj);
-                    if (checkMethod is null)
-                    {
-                        // PROTOTYPE(dataflow): The scenario with missing ObjectFlowControl.ForLoopControl.ForNextCheckObj is not covered by unit-tests.
-                        condition = MakeInvalidOperation(operation.LimitValue.Syntax, booleanType, 
-                                                         getLoopControlVariableReference(forceImplicit: true), // Yes we are going to evaluate it again
-                                                         loopObjectReference);
-                    }
-                    else
-                    {
-                        _evalStack.Push(getLoopControlVariableReference(forceImplicit: true)); // Yes we are going to evaluate it again
-
-                        var builder = ArrayBuilder<IArgumentOperation>.GetInstance(3, fillWithValue: null);
-
-                        builder[2] = new ArgumentOperation(getLoopControlVariableReference(forceImplicit: true), // Yes we are going to evaluate it again
-                                                           ArgumentKind.Explicit, checkMethod.Parameters[2],
-                                                           inConversionOpt: null, outConversionOpt: null,
-                                                           semanticModel: null, operation.LimitValue.Syntax, isImplicit: true);
-
-                        builder[1] = new ArgumentOperation(loopObjectReference,
-                                                           ArgumentKind.Explicit, checkMethod.Parameters[1],
-                                                           inConversionOpt: null, outConversionOpt: null,
-                                                           semanticModel: null, operation.LimitValue.Syntax, isImplicit: true);
-
-                        builder[0] = new ArgumentOperation(_evalStack.Pop(),
-                                                           ArgumentKind.Explicit, checkMethod.Parameters[0],
-                                                           inConversionOpt: null, outConversionOpt: null,
-                                                           semanticModel: null, operation.LimitValue.Syntax, isImplicit: true);
-
-                        condition = new InvocationExpression(checkMethod, instance: null, isVirtual: false, builder.ToImmutableAndFree(),
-                                                             semanticModel: null, operation.LimitValue.Syntax, checkMethod.ReturnType,
-                                                             constantValue: default, isImplicit: true);
-                    }
-
+                    IOperation condition = tryCallObjectForLoopControlHelper(operation.LimitValue.Syntax,
+                                                                             WellKnownMember.Microsoft_VisualBasic_CompilerServices_ObjectFlowControl_ForLoopControl__ForNextCheckObj);
+                    // PROTOTYPE(dataflow): The scenario with missing ObjectFlowControl.ForLoopControl.ForNextCheckObj is not covered by unit-tests.
+#if DEBUG
+                    Debug.Assert(stackSize == _evalStack.Count);
+#endif
                     LinkBlocks(CurrentBasicBlock, (Operation.SetParentOperation(condition, null), JumpIfTrue: false, RegularBranch(@break)));
                     LinkBlocks(CurrentBasicBlock, bodyBlock);
                     _currentBasicBlock = null;
@@ -4541,6 +4525,76 @@ oneMoreTime:
             return MakeInvalidOperation(operation.Syntax, operation.Type, ImmutableArray<IOperation>.Empty);
         }
 
+        public override IOperation VisitArrayCreation(IArrayCreationOperation operation, int? captureIdForResult)
+        {
+            // We have couple of options on how to rewrite an array creation with an initializer:
+            //       1) Retain the original tree shape so the visited IArrayCreationOperation still has an IArrayInitializerOperation child node.
+            //       2) Lower the IArrayCreationOperation so it always has a null initializer, followed by explicit assignments
+            //          of the form "IArrayElementReference = value" for the array initializer values.
+            //          There will be no IArrayInitializerOperation in the tree with approach.
+            //
+            //  We are going ahead with approach #1 for couple of reasons:
+            //  1. Simplicity: The implementation is much simpler, and has a lot lower risk associated with it.
+            //  2. Lack of array instance access in the initializer: Unlike the object/collection initializer scenario,
+            //     where the initializer can access the instance being initialized, array initializer does not have access
+            //     to the array instance being initialized, and hence it does not matter if the array allocation is done
+            //     before visiting the initializers or not.
+            //
+            //  In future, based on the customer feedback, we can consider switching to approach #2 and lower the initializer into assignment(s).
+
+            PushArray(operation.DimensionSizes);
+            IArrayInitializerOperation visitedInitializer = Visit(operation.Initializer);
+            ImmutableArray<IOperation> visitedDimensions = PopArray(operation.DimensionSizes);
+            return new ArrayCreationExpression(visitedDimensions, visitedInitializer, semanticModel: null,
+                                               operation.Syntax, operation.Type, operation.ConstantValue, IsImplicit(operation));
+        }
+
+        public override IOperation VisitArrayInitializer(IArrayInitializerOperation operation, int? captureIdForResult)
+        {
+            visitAndPushArrayInitializerValues(operation);
+            return popAndAssembleArrayInitializerValues(operation);
+
+            void visitAndPushArrayInitializerValues(IArrayInitializerOperation initializer)
+            {
+                foreach (IOperation elementValue in initializer.ElementValues)
+                {
+                    // We need to retain the tree shape for nested array initializer.
+                    if (elementValue.Kind == OperationKind.ArrayInitializer)
+                    {
+                        visitAndPushArrayInitializerValues((IArrayInitializerOperation)elementValue);
+                    }
+                    else
+                    {
+                        _evalStack.Push(Visit(elementValue));
+                    }
+                }
+            }
+
+            IArrayInitializerOperation popAndAssembleArrayInitializerValues(IArrayInitializerOperation initializer)
+            {
+                var builder = ArrayBuilder<IOperation>.GetInstance(initializer.ElementValues.Length);
+                for (int i = initializer.ElementValues.Length - 1; i >= 0; i--)
+                {
+                    IOperation elementValue = initializer.ElementValues[i];
+
+                    IOperation visitedElementValue;
+                    if (elementValue.Kind == OperationKind.ArrayInitializer)
+                    {
+                        visitedElementValue = popAndAssembleArrayInitializerValues((IArrayInitializerOperation)elementValue);
+                    }
+                    else
+                    {
+                        visitedElementValue = _evalStack.Pop();
+                    }
+
+                    builder.Add(visitedElementValue);
+                }
+
+                builder.ReverseContents();
+                return new ArrayInitializer(builder.ToImmutableAndFree(), semanticModel: null, initializer.Syntax, initializer.ConstantValue, IsImplicit(initializer));
+            }
+        }
+
         public override IOperation VisitInstanceReference(IInstanceReferenceOperation operation, int? captureIdForResult)
         {
             if (operation.ReferenceKind == InstanceReferenceKind.ImplicitReceiver)
@@ -4886,6 +4940,11 @@ oneMoreTime:
             return new AwaitExpression(Visit(operation.Operation), semanticModel: null, operation.Syntax, operation.Type, operation.ConstantValue, IsImplicit(operation));
         }
 
+        public override IOperation VisitSizeOf(ISizeOfOperation operation, int? captureIdForResult)
+        {
+            return new SizeOfExpression(operation.TypeOperand, semanticModel: null, operation.Syntax, operation.Type, operation.ConstantValue, IsImplicit(operation));
+        }
+        
         public override IOperation VisitStop(IStopOperation operation, int? captureIdForResult)
         {
             return new StopStatement(semanticModel: null, operation.Syntax, operation.Type, operation.ConstantValue, IsImplicit(operation));
@@ -4975,6 +5034,7 @@ oneMoreTime:
             {
                 LeaveRegion();
             }
+<<<<<<< HEAD
 	}
 
         public override IOperation VisitEventAssignment(IEventAssignmentOperation operation, int? captureIdForResult)
@@ -5011,6 +5071,11 @@ oneMoreTime:
                 operation.Syntax, operation.Type, operation.ConstantValue, IsImplicit(operation));
         }
 
+        public override IOperation VisitAddressOf(IAddressOfOperation operation, int? captureIdForResult)
+        {
+            return new AddressOfExpression(Visit(operation.Reference), semanticModel: null, operation.Syntax, operation.Type, operation.ConstantValue, IsImplicit(operation));
+        }
+
         public override IOperation VisitIsPattern(IIsPatternOperation operation, int? captureIdForResult)
         {
             _evalStack.Push(Visit(operation.Value));
@@ -5029,6 +5094,12 @@ oneMoreTime:
         public override IOperation VisitDeclarationPattern(IDeclarationPatternOperation operation, int? captureIdForResult)
         {
             return new DeclarationPattern(operation.DeclaredSymbol, semanticModel: null,
+                operation.Syntax, operation.Type, operation.ConstantValue, IsImplicit(operation));
+        }
+
+        public override IOperation VisitDelegateCreation(IDelegateCreationOperation operation, int? captureIdForResult)
+        {
+            return new DelegateCreationExpression(Visit(operation.Target), semanticModel: null,
                 operation.Syntax, operation.Type, operation.ConstantValue, IsImplicit(operation));
         }
 
@@ -5127,11 +5198,6 @@ oneMoreTime:
             return new IsTypeExpression(Visit(operation.ValueOperand), operation.TypeOperand, operation.IsNegated, semanticModel: null, operation.Syntax, operation.Type, operation.ConstantValue, IsImplicit(operation));
         }
 
-        public override IOperation VisitSizeOf(ISizeOfOperation operation, int? captureIdForResult)
-        {
-            return new SizeOfExpression(operation.TypeOperand, semanticModel: null, operation.Syntax, operation.Type, operation.ConstantValue, IsImplicit(operation));
-        }
-
         public override IOperation VisitAnonymousFunction(IAnonymousFunctionOperation operation, int? captureIdForResult)
         {
             // PROTOTYPE(dataflow): When implementing, consider when a lambda inside a VB initializer references the instance being initialized.
@@ -5148,16 +5214,6 @@ oneMoreTime:
                                                    semanticModel: null, operation.Syntax, operation.Type, operation.ConstantValue, IsImplicit(operation));
         }
 
-        public override IOperation VisitDelegateCreation(IDelegateCreationOperation operation, int? captureIdForResult)
-        {
-            return new DelegateCreationExpression(Visit(operation.Target), semanticModel: null, operation.Syntax, operation.Type, operation.ConstantValue, IsImplicit(operation));
-        }
-
-        public override IOperation VisitAddressOf(IAddressOfOperation operation, int? captureIdForResult)
-        {
-            return new AddressOfExpression(Visit(operation.Reference), semanticModel: null, operation.Syntax, operation.Type, operation.ConstantValue, IsImplicit(operation));
-        }
-
         public override IOperation VisitAnonymousObjectCreation(IAnonymousObjectCreationOperation operation, int? captureIdForResult)
         {
             return new AnonymousObjectCreationExpression(VisitArray(operation.Initializers), semanticModel: null, operation.Syntax, operation.Type, operation.ConstantValue, IsImplicit(operation));
@@ -5169,16 +5225,6 @@ oneMoreTime:
             //                      Microsoft.CodeAnalysis.CSharp.UnitTests.SemanticModelGetSemanticInfoTests.ObjectCreation3
             //                      We have ICollectionElementInitializerOperation, but not IObjectCreationOperation.
             return new CollectionElementInitializerExpression(operation.AddMethod, operation.IsDynamic, VisitArray(operation.Arguments), semanticModel: null, operation.Syntax, operation.Type, operation.ConstantValue, IsImplicit(operation));
-        }
-
-        public override IOperation VisitArrayCreation(IArrayCreationOperation operation, int? captureIdForResult)
-        {
-            return new ArrayCreationExpression(VisitArray(operation.DimensionSizes), Visit(operation.Initializer), semanticModel: null, operation.Syntax, operation.Type, operation.ConstantValue, IsImplicit(operation));
-        }
-
-        public override IOperation VisitArrayInitializer(IArrayInitializerOperation operation, int? captureIdForResult)
-        {
-            return new ArrayInitializer(VisitArray(operation.ElementValues), semanticModel: null, operation.Syntax, operation.ConstantValue, IsImplicit(operation));
         }
 
         public override IOperation VisitIncrementOrDecrement(IIncrementOrDecrementOperation operation, int? captureIdForResult)
