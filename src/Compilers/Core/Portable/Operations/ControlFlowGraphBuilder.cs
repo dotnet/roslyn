@@ -5034,8 +5034,7 @@ oneMoreTime:
             {
                 LeaveRegion();
             }
-<<<<<<< HEAD
-	}
+    	}
 
         public override IOperation VisitEventAssignment(IEventAssignmentOperation operation, int? captureIdForResult)
         {
