@@ -58,11 +58,11 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                 switch (keyName)
                 {
                     case StandardTableKeyNames.DocumentName:
-                        return Document.FilePath;
+                        return GetMappedPosition().Document.FilePath;
                     case StandardTableKeyNames.Line:
-                        return GetLinePosition().Line;
+                        return GetMappedPosition().Line;
                     case StandardTableKeyNames.Column:
-                        return GetLinePosition().Character;
+                        return GetMappedPosition().Character;
                     case StandardTableKeyNames.ProjectName:
                         return _projectName;
                     case StandardTableKeyNames.ProjectGuid:
@@ -74,12 +74,13 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                 return null;
             }
 
-            private LinePosition GetLinePosition()
+            private (Document Document, int Line, int Character) GetMappedPosition()
             {
                 var service = _documentSpan.Document.State.Info.DocumentServiceFactory?.GetService<ISpanMapper>();
                 if (service == null)
                 {
-                    return _sourceText.Lines.GetLinePosition(SourceSpan.Start);
+                    var linePosition = _sourceText.Lines.GetLinePosition(SourceSpan.Start);
+                    return (_documentSpan.Document, linePosition.Line, linePosition.Character);
                 }
 
                 var result = service.MapSpansAsync(_documentSpan.Document, SpecializedCollections.SingletonEnumerable(_documentSpan.SourceSpan), CancellationToken.None)
@@ -87,11 +88,11 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
 
                 if (result.IsDefaultOrEmpty)
                 {
-                    return _sourceText.Lines.GetLinePosition(SourceSpan.Start);
+                    var linePosition = _sourceText.Lines.GetLinePosition(SourceSpan.Start);
+                    return (_documentSpan.Document, linePosition.Line, linePosition.Character);
                 }
 
-                Debug.Assert(result[0].Document == _documentSpan.Document);
-                return result[0].LinePositionSpan.Start;
+                return (result[0].Document, result[0].LinePositionSpan.Start.Line, result[0].LinePositionSpan.Start.Character);
             }
 
             public override bool TryCreateColumnContent(string columnName, out FrameworkElement content)
