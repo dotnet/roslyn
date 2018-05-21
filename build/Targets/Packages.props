@@ -239,7 +239,7 @@
     <VSLangProj80Version>8.0.0.0-alpha</VSLangProj80Version>
     <VSSDKComponentModelHostVersion>12.0.4</VSSDKComponentModelHostVersion>
     <VsWebsiteInteropVersion>8.0.0.0-alpha</VsWebsiteInteropVersion>
-    <vswhereVersion>1.0.71</vswhereVersion>
+    <vswhereVersion>2.4.1</vswhereVersion>
     <XliffTasksVersion>0.2.0-beta-62827-03</XliffTasksVersion>
     <xunitVersion>2.3.1</xunitVersion>
     <xunitanalyzersVersion>0.8.0</xunitanalyzersVersion>

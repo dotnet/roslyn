@@ -17,12 +17,11 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Extensions
     {
         public static Run ToRun(this ClassifiedText part, IClassificationFormatMap formatMap, ClassificationTypeMap typeMap)
         {
-            var text = part.Text;
+            var run = new Run(part.Text);
 
-            var run = new Run(text);
+            var classificationType = typeMap.GetClassificationType(part.ClassificationType);
 
-            var format = formatMap.GetTextProperties(typeMap.GetClassificationType(
-                part.ClassificationType));
+            var format = formatMap.GetTextProperties(classificationType);
             run.SetTextProperties(format);
 
             return run;
