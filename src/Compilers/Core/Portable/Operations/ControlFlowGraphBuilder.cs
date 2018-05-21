@@ -5034,7 +5034,41 @@ oneMoreTime:
             {
                 LeaveRegion();
             }
-	    }
+    	}
+
+        public override IOperation VisitEventAssignment(IEventAssignmentOperation operation, int? captureIdForResult)
+        {
+            var instance = operation.EventReference.Event.IsStatic ? null : operation.EventReference.Instance;
+            if (instance != null)
+            {
+                _evalStack.Push(Visit(instance));
+            }
+
+            IOperation visitedHandler = Visit(operation.HandlerValue);
+            IOperation visitedInstance = instance == null ? null : _evalStack.Pop();
+            var visitedEventReference = new EventReferenceExpression(operation.EventReference.Event, visitedInstance,
+                semanticModel: null, operation.EventReference.Syntax, operation.EventReference.Type, operation.EventReference.ConstantValue, IsImplicit(operation.EventReference));
+            return new EventAssignmentOperation(visitedEventReference, visitedHandler, operation.Adds, semanticModel: null,
+                operation.Syntax, operation.Type, operation.ConstantValue, IsImplicit(operation));
+        }
+
+        public override IOperation VisitRaiseEvent(IRaiseEventOperation operation, int? captureIdForResult)
+        {
+            Debug.Assert(_currentStatement == operation);
+
+            var instance = operation.EventReference.Event.IsStatic ? null : operation.EventReference.Instance;
+            if (instance != null)
+            {
+                _evalStack.Push(Visit(instance));
+            }
+
+            ImmutableArray<IArgumentOperation> visitedArguments = VisitArguments(operation.Arguments);
+            IOperation visitedInstance = instance == null ? null : _evalStack.Pop();
+            var visitedEventReference = new EventReferenceExpression(operation.EventReference.Event, visitedInstance,
+                semanticModel: null, operation.EventReference.Syntax, operation.EventReference.Type, operation.EventReference.ConstantValue, IsImplicit(operation.EventReference));
+            return new RaiseEventStatement(visitedEventReference, visitedArguments, semanticModel: null,
+                operation.Syntax, operation.Type, operation.ConstantValue, IsImplicit(operation));
+        }
 
         public override IOperation VisitAddressOf(IAddressOfOperation operation, int? captureIdForResult)
         {
@@ -5129,11 +5163,6 @@ oneMoreTime:
         internal override IOperation VisitPointerIndirectionReference(IPointerIndirectionReferenceOperation operation, int? captureIdForResult)
         {
             return new PointerIndirectionReferenceExpression(Visit(operation.Pointer), semanticModel: null, operation.Syntax, operation.Type, operation.ConstantValue, IsImplicit(operation));
-        }
-
-        public override IOperation VisitEventAssignment(IEventAssignmentOperation operation, int? captureIdForResult)
-        {
-            return new EventAssignmentOperation(Visit(operation.EventReference), Visit(operation.HandlerValue), operation.Adds, semanticModel: null, operation.Syntax, operation.Type, operation.ConstantValue, IsImplicit(operation));
         }
 
         internal override IOperation VisitPlaceholder(IPlaceholderOperation operation, int? captureIdForResult)
@@ -5251,11 +5280,6 @@ oneMoreTime:
         public override IOperation VisitTranslatedQuery(ITranslatedQueryOperation operation, int? captureIdForResult)
         {
             return new TranslatedQueryExpression(Visit(operation.Operation), semanticModel: null, operation.Syntax, operation.Type, operation.ConstantValue, IsImplicit(operation));
-        }
-
-        public override IOperation VisitRaiseEvent(IRaiseEventOperation operation, int? captureIdForResult)
-        {
-            return new RaiseEventStatement(Visit(operation.EventReference), VisitArray(operation.Arguments), semanticModel: null, operation.Syntax, operation.Type, operation.ConstantValue, IsImplicit(operation));
         }
 
         public override IOperation VisitTupleBinaryOperator(ITupleBinaryOperation operation, int? captureIdForResult)

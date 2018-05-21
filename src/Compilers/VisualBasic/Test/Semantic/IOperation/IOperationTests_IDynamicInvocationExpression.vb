@@ -1075,7 +1075,7 @@ Block[B8] - Exit
             VerifyFlowGraphAndDiagnosticsForTest(Of MethodBlockSyntax)(source, expectedFlowGraph, expectedDiagnostics)
         End Sub
 
-        <CompilerTrait(CompilerFeature.IOperation)>
+        <CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)>
         <Fact()>
         Public Sub DynamicInvocation_ControlFlowInvocationOffObject()
             Dim source = <![CDATA[
