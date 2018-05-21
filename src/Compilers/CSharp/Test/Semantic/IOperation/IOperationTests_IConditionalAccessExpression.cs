@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Xunit;
 
@@ -109,16 +110,12 @@ Block[B2] - Block
     Statements (1)
         IFlowCaptureOperation: 2 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: '.Length')
           Value: 
-            IObjectCreationOperation (Constructor: System.Int32?..ctor(System.Int32 value)) (OperationKind.ObjectCreation, Type: System.Int32?, IsImplicit) (Syntax: '.Length')
-              Arguments(1):
-                  IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: '.Length')
-                    IPropertyReferenceOperation: System.Int32 System.Array.Length { get; } (OperationKind.PropertyReference, Type: System.Int32) (Syntax: '.Length')
-                      Instance Receiver: 
-                        IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: System.Array, IsImplicit) (Syntax: 'input')
-                    InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                    OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-              Initializer: 
-                null
+            IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Int32?, IsImplicit) (Syntax: '.Length')
+              Conversion: CommonConversion (Exists: True)
+              Operand: 
+                IPropertyReferenceOperation: System.Int32 System.Array.Length { get; } (OperationKind.PropertyReference, Type: System.Int32) (Syntax: '.Length')
+                  Instance Receiver: 
+                    IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: System.Array, IsImplicit) (Syntax: 'input')
 
     Next (Regular) Block[B4]
 Block[B3] - Block
@@ -508,18 +505,14 @@ Block[B3] - Block
     Statements (1)
         IFlowCaptureOperation: 3 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: '[11]')
           Value: 
-            IObjectCreationOperation (Constructor: P?..ctor(P value)) (OperationKind.ObjectCreation, Type: P?, IsImplicit) (Syntax: '[11]')
-              Arguments(1):
-                  IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: '[11]')
-                    IArrayElementReferenceOperation (OperationKind.ArrayElementReference, Type: P) (Syntax: '[11]')
-                      Array reference: 
-                        IFlowCaptureReferenceOperation: 2 (OperationKind.FlowCaptureReference, Type: P[], IsImplicit) (Syntax: '.Access1()')
-                      Indices(1):
-                          ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 11) (Syntax: '11')
-                    InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                    OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-              Initializer: 
-                null
+            IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: P?, IsImplicit) (Syntax: '[11]')
+              Conversion: CommonConversion (Exists: True)
+              Operand: 
+                IArrayElementReferenceOperation (OperationKind.ArrayElementReference, Type: P) (Syntax: '[11]')
+                  Array reference: 
+                    IFlowCaptureReferenceOperation: 2 (OperationKind.FlowCaptureReference, Type: P[], IsImplicit) (Syntax: '.Access1()')
+                  Indices(1):
+                      ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 11) (Syntax: '11')
 
     Next (Regular) Block[B5]
 Block[B4] - Block
@@ -567,20 +560,16 @@ Block[B7] - Block
     Statements (1)
         IFlowCaptureOperation: 5 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: '.Access2()')
           Value: 
-            IObjectCreationOperation (Constructor: P?..ctor(P value)) (OperationKind.ObjectCreation, Type: P?, IsImplicit) (Syntax: '.Access2()')
-              Arguments(1):
-                  IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: '.Access2()')
-                    IInvocationOperation ( P P.Access2()) (OperationKind.Invocation, Type: P) (Syntax: '.Access2()')
+            IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: P?, IsImplicit) (Syntax: '.Access2()')
+              Conversion: CommonConversion (Exists: True)
+              Operand: 
+                IInvocationOperation ( P P.Access2()) (OperationKind.Invocation, Type: P) (Syntax: '.Access2()')
+                  Instance Receiver: 
+                    IInvocationOperation ( P P?.GetValueOrDefault()) (OperationKind.Invocation, Type: P, IsImplicit) (Syntax: '[22]')
                       Instance Receiver: 
-                        IInvocationOperation ( P P?.GetValueOrDefault()) (OperationKind.Invocation, Type: P, IsImplicit) (Syntax: '[22]')
-                          Instance Receiver: 
-                            IFlowCaptureReferenceOperation: 4 (OperationKind.FlowCaptureReference, Type: P?, IsImplicit) (Syntax: '[22]')
-                          Arguments(0)
+                        IFlowCaptureReferenceOperation: 4 (OperationKind.FlowCaptureReference, Type: P?, IsImplicit) (Syntax: '[22]')
                       Arguments(0)
-                    InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                    OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-              Initializer: 
-                null
+                  Arguments(0)
 
     Next (Regular) Block[B9]
 Block[B8] - Block
@@ -651,19 +640,15 @@ Block[B2] - Block
     Statements (1)
         IFlowCaptureOperation: 1 (OperationKind.FlowCapture, Type: null, IsInvalid, IsImplicit) (Syntax: '.P1')
           Value: 
-            IObjectCreationOperation (Constructor: System.Int32?..ctor(System.Int32 value)) (OperationKind.ObjectCreation, Type: System.Int32?, IsInvalid, IsImplicit) (Syntax: '.P1')
-              Arguments(1):
-                  IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument, Type: null, IsInvalid, IsImplicit) (Syntax: '.P1')
-                    IPropertyReferenceOperation: System.Int32 S1.P1 { get; set; } (OperationKind.PropertyReference, Type: System.Int32, IsInvalid) (Syntax: '.P1')
+            IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Int32?, IsInvalid, IsImplicit) (Syntax: '.P1')
+              Conversion: CommonConversion (Exists: True)
+              Operand: 
+                IPropertyReferenceOperation: System.Int32 S1.P1 { get; set; } (OperationKind.PropertyReference, Type: System.Int32, IsInvalid) (Syntax: '.P1')
+                  Instance Receiver: 
+                    IInvocationOperation ( S1 S1?.GetValueOrDefault()) (OperationKind.Invocation, Type: S1, IsInvalid, IsImplicit) (Syntax: 'x')
                       Instance Receiver: 
-                        IInvocationOperation ( S1 S1?.GetValueOrDefault()) (OperationKind.Invocation, Type: S1, IsInvalid, IsImplicit) (Syntax: 'x')
-                          Instance Receiver: 
-                            IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: S1?, IsInvalid, IsImplicit) (Syntax: 'x')
-                          Arguments(0)
-                    InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                    OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-              Initializer: 
-                null
+                        IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: S1?, IsInvalid, IsImplicit) (Syntax: 'x')
+                      Arguments(0)
 
     Next (Regular) Block[B4]
 Block[B3] - Block
@@ -740,19 +725,15 @@ Block[B2] - Block
     Statements (1)
         IFlowCaptureOperation: 1 (OperationKind.FlowCapture, Type: null, IsInvalid, IsImplicit) (Syntax: '.P1')
           Value: 
-            IObjectCreationOperation (Constructor: System.Int32?..ctor(System.Int32 value)) (OperationKind.ObjectCreation, Type: System.Int32?, IsInvalid, IsImplicit) (Syntax: '.P1')
-              Arguments(1):
-                  IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument, Type: null, IsInvalid, IsImplicit) (Syntax: '.P1')
-                    IFieldReferenceOperation: System.Int32 S1.P1 (OperationKind.FieldReference, Type: System.Int32, IsInvalid) (Syntax: '.P1')
+            IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Int32?, IsInvalid, IsImplicit) (Syntax: '.P1')
+              Conversion: CommonConversion (Exists: True)
+              Operand: 
+                IFieldReferenceOperation: System.Int32 S1.P1 (OperationKind.FieldReference, Type: System.Int32, IsInvalid) (Syntax: '.P1')
+                  Instance Receiver: 
+                    IInvocationOperation ( S1 S1?.GetValueOrDefault()) (OperationKind.Invocation, Type: S1, IsInvalid, IsImplicit) (Syntax: 'x')
                       Instance Receiver: 
-                        IInvocationOperation ( S1 S1?.GetValueOrDefault()) (OperationKind.Invocation, Type: S1, IsInvalid, IsImplicit) (Syntax: 'x')
-                          Instance Receiver: 
-                            IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: S1?, IsInvalid, IsImplicit) (Syntax: 'x')
-                          Arguments(0)
-                    InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                    OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-              Initializer: 
-                null
+                        IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: S1?, IsInvalid, IsImplicit) (Syntax: 'x')
+                      Arguments(0)
 
     Next (Regular) Block[B4]
 Block[B3] - Block
@@ -790,5 +771,87 @@ Block[B5] - Exit
             VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedGraph, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+        [Fact]
+        public void ConditionalAccessFlow_08()
+        {
+            string source = @"
+struct P
+{
+    void M1(P? input, int? result)
+/*<bind>*/{
+        result = input?.Length;
+    }/*</bind>*/
+
+    public int Length { get; }
+}
+";
+            var compilation = CreateCompilationWithMscorlib45(source, parseOptions: TestOptions.RegularWithFlowAnalysisFeature);
+            compilation.MakeMemberMissing(SpecialMember.System_Nullable_T_GetValueOrDefault);
+
+            string expectedGraph = @"
+Block[B0] - Entry
+    Statements (0)
+    Next (Regular) Block[B1]
+Block[B1] - Block
+    Predecessors: [B0]
+    Statements (2)
+        IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'result')
+          Value: 
+            IParameterReferenceOperation: result (OperationKind.ParameterReference, Type: System.Int32?) (Syntax: 'result')
+
+        IFlowCaptureOperation: 1 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'input')
+          Value: 
+            IParameterReferenceOperation: input (OperationKind.ParameterReference, Type: P?) (Syntax: 'input')
+
+    Jump if True (Regular) to Block[B3]
+        IIsNullOperation (OperationKind.IsNull, Type: System.Boolean, IsImplicit) (Syntax: 'input')
+          Operand: 
+            IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: P?, IsImplicit) (Syntax: 'input')
+
+    Next (Regular) Block[B2]
+Block[B2] - Block
+    Predecessors: [B1]
+    Statements (1)
+        IFlowCaptureOperation: 2 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: '.Length')
+          Value: 
+            IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Int32?, IsImplicit) (Syntax: '.Length')
+              Conversion: CommonConversion (Exists: True)
+              Operand: 
+                IPropertyReferenceOperation: System.Int32 P.Length { get; } (OperationKind.PropertyReference, Type: System.Int32) (Syntax: '.Length')
+                  Instance Receiver: 
+                    IInvalidOperation (OperationKind.Invalid, Type: P, IsImplicit) (Syntax: 'input')
+                      Children(1):
+                          IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: P?, IsImplicit) (Syntax: 'input')
+
+    Next (Regular) Block[B4]
+Block[B3] - Block
+    Predecessors: [B1]
+    Statements (1)
+        IFlowCaptureOperation: 2 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'input')
+          Value: 
+            IDefaultValueOperation (OperationKind.DefaultValue, Type: System.Int32?, IsImplicit) (Syntax: 'input')
+
+    Next (Regular) Block[B4]
+Block[B4] - Block
+    Predecessors: [B2] [B3]
+    Statements (1)
+        IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'result = input?.Length;')
+          Expression: 
+            ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32?) (Syntax: 'result = input?.Length')
+              Left: 
+                IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.Int32?, IsImplicit) (Syntax: 'result')
+              Right: 
+                IFlowCaptureReferenceOperation: 2 (OperationKind.FlowCaptureReference, Type: System.Int32?, IsImplicit) (Syntax: 'input?.Length')
+
+    Next (Regular) Block[B5]
+Block[B5] - Exit
+    Predecessors: [B4]
+    Statements (0)
+";
+            var expectedDiagnostics = DiagnosticDescription.None;
+
+            VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(compilation, expectedGraph, expectedDiagnostics);
+        }
     }
 }

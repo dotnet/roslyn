@@ -148,19 +148,15 @@ Block[B2] - Block
     Statements (1)
         IFlowCaptureOperation: 1 (OperationKind.FlowCapture, Type: null, IsInvalid, IsImplicit) (Syntax: '.P1()')
           Value: 
-            IObjectCreationOperation (Constructor: Sub System.Nullable(Of System.Int32)..ctor(value As System.Int32)) (OperationKind.ObjectCreation, Type: System.Nullable(Of System.Int32), IsInvalid, IsImplicit) (Syntax: '.P1()')
-              Arguments(1):
-                  IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument, Type: null, IsInvalid, IsImplicit) (Syntax: '.P1()')
-                    IPropertyReferenceOperation: Property S1.P1 As System.Int32 (OperationKind.PropertyReference, Type: System.Int32, IsInvalid) (Syntax: '.P1()')
+            IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Nullable(Of System.Int32), IsInvalid, IsImplicit) (Syntax: '.P1()')
+              Conversion: CommonConversion (Exists: True)
+              Operand: 
+                IPropertyReferenceOperation: Property S1.P1 As System.Int32 (OperationKind.PropertyReference, Type: System.Int32, IsInvalid) (Syntax: '.P1()')
+                  Instance Receiver: 
+                    IInvocationOperation ( Function System.Nullable(Of S1).GetValueOrDefault() As S1) (OperationKind.Invocation, Type: S1, IsInvalid, IsImplicit) (Syntax: 'x')
                       Instance Receiver: 
-                        IInvocationOperation ( Function System.Nullable(Of S1).GetValueOrDefault() As S1) (OperationKind.Invocation, Type: S1, IsInvalid, IsImplicit) (Syntax: 'x')
-                          Instance Receiver: 
-                            IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.Nullable(Of S1), IsInvalid, IsImplicit) (Syntax: 'x')
-                          Arguments(0)
-                    InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                    OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-              Initializer: 
-                null
+                        IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.Nullable(Of S1), IsInvalid, IsImplicit) (Syntax: 'x')
+                      Arguments(0)
 
     Next (Regular) Block[B4]
 Block[B3] - Block
@@ -241,19 +237,15 @@ Block[B2] - Block
     Statements (1)
         IFlowCaptureOperation: 1 (OperationKind.FlowCapture, Type: null, IsInvalid, IsImplicit) (Syntax: '.P1')
           Value: 
-            IObjectCreationOperation (Constructor: Sub System.Nullable(Of System.Int32)..ctor(value As System.Int32)) (OperationKind.ObjectCreation, Type: System.Nullable(Of System.Int32), IsInvalid, IsImplicit) (Syntax: '.P1')
-              Arguments(1):
-                  IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument, Type: null, IsInvalid, IsImplicit) (Syntax: '.P1')
-                    IPropertyReferenceOperation: Property S1.P1 As System.Int32 (OperationKind.PropertyReference, Type: System.Int32, IsInvalid) (Syntax: '.P1')
+            IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Nullable(Of System.Int32), IsInvalid, IsImplicit) (Syntax: '.P1')
+              Conversion: CommonConversion (Exists: True)
+              Operand: 
+                IPropertyReferenceOperation: Property S1.P1 As System.Int32 (OperationKind.PropertyReference, Type: System.Int32, IsInvalid) (Syntax: '.P1')
+                  Instance Receiver: 
+                    IInvocationOperation ( Function System.Nullable(Of S1).GetValueOrDefault() As S1) (OperationKind.Invocation, Type: S1, IsInvalid, IsImplicit) (Syntax: 'x')
                       Instance Receiver: 
-                        IInvocationOperation ( Function System.Nullable(Of S1).GetValueOrDefault() As S1) (OperationKind.Invocation, Type: S1, IsInvalid, IsImplicit) (Syntax: 'x')
-                          Instance Receiver: 
-                            IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.Nullable(Of S1), IsInvalid, IsImplicit) (Syntax: 'x')
-                          Arguments(0)
-                    InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                    OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-              Initializer: 
-                null
+                        IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.Nullable(Of S1), IsInvalid, IsImplicit) (Syntax: 'x')
+                      Arguments(0)
 
     Next (Regular) Block[B4]
 Block[B3] - Block
@@ -334,19 +326,15 @@ Block[B2] - Block
     Statements (1)
         IFlowCaptureOperation: 1 (OperationKind.FlowCapture, Type: null, IsInvalid, IsImplicit) (Syntax: '.F1')
           Value: 
-            IObjectCreationOperation (Constructor: Sub System.Nullable(Of System.Int32)..ctor(value As System.Int32)) (OperationKind.ObjectCreation, Type: System.Nullable(Of System.Int32), IsInvalid, IsImplicit) (Syntax: '.F1')
-              Arguments(1):
-                  IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument, Type: null, IsInvalid, IsImplicit) (Syntax: '.F1')
-                    IFieldReferenceOperation: S1.F1 As System.Int32 (OperationKind.FieldReference, Type: System.Int32, IsInvalid) (Syntax: '.F1')
+            IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Nullable(Of System.Int32), IsInvalid, IsImplicit) (Syntax: '.F1')
+              Conversion: CommonConversion (Exists: True)
+              Operand: 
+                IFieldReferenceOperation: S1.F1 As System.Int32 (OperationKind.FieldReference, Type: System.Int32, IsInvalid) (Syntax: '.F1')
+                  Instance Receiver: 
+                    IInvocationOperation ( Function System.Nullable(Of S1).GetValueOrDefault() As S1) (OperationKind.Invocation, Type: S1, IsInvalid, IsImplicit) (Syntax: 'x')
                       Instance Receiver: 
-                        IInvocationOperation ( Function System.Nullable(Of S1).GetValueOrDefault() As S1) (OperationKind.Invocation, Type: S1, IsInvalid, IsImplicit) (Syntax: 'x')
-                          Instance Receiver: 
-                            IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.Nullable(Of S1), IsInvalid, IsImplicit) (Syntax: 'x')
-                          Arguments(0)
-                    InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                    OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-              Initializer: 
-                null
+                        IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.Nullable(Of S1), IsInvalid, IsImplicit) (Syntax: 'x')
+                      Arguments(0)
 
     Next (Regular) Block[B4]
 Block[B3] - Block

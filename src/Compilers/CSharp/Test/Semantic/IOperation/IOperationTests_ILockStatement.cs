@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Xunit;
 
@@ -795,6 +796,184 @@ Block[B6] - Exit
             var expectedDiagnostics = DiagnosticDescription.None;
 
             VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedGraph, expectedDiagnostics);
+        }
+
+        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+        [Fact]
+        public void LockFlow_05()
+        {
+            string source = @"
+class P
+{
+    void M(P input, bool b)
+    /*<bind>*/{
+        lock (input)
+            b = true;
+    }/*</bind>*/
+}
+";
+            var compilation = CreateCompilationWithMscorlib45(source, parseOptions: TestOptions.RegularWithFlowAnalysisFeature);
+            compilation.MakeMemberMissing(WellKnownMember.System_Threading_Monitor__Enter);
+            compilation.MakeMemberMissing(WellKnownMember.System_Threading_Monitor__Enter2);
+
+            string expectedGraph = @"
+Block[B0] - Entry
+    Statements (0)
+    Next (Regular) Block[B1]
+Block[B1] - Block
+    Predecessors: [B0]
+    Statements (2)
+        IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'input')
+          Value: 
+            IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Object, IsImplicit) (Syntax: 'input')
+              Conversion: CommonConversion (Exists: True)
+              Operand: 
+                IParameterReferenceOperation: input (OperationKind.ParameterReference, Type: P) (Syntax: 'input')
+
+        IInvalidOperation (OperationKind.Invalid, Type: null, IsImplicit) (Syntax: 'input')
+          Children(1):
+              IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.Object, IsImplicit) (Syntax: 'input')
+
+    Next (Regular) Block[B2]
+        Entering: {R1} {R2}
+
+.try {R1, R2}
+{
+    Block[B2] - Block
+        Predecessors: [B1]
+        Statements (1)
+            IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'b = true;')
+              Expression: 
+                ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Boolean) (Syntax: 'b = true')
+                  Left: 
+                    IParameterReferenceOperation: b (OperationKind.ParameterReference, Type: System.Boolean) (Syntax: 'b')
+                  Right: 
+                    ILiteralOperation (OperationKind.Literal, Type: System.Boolean, Constant: True) (Syntax: 'true')
+
+        Next (Regular) Block[B4]
+            Finalizing: {R3}
+            Leaving: {R2} {R1}
+}
+.finally {R3}
+{
+    Block[B3] - Block
+        Predecessors (0)
+        Statements (1)
+            IInvocationOperation (void System.Threading.Monitor.Exit(System.Object obj)) (OperationKind.Invocation, Type: System.Void, IsImplicit) (Syntax: 'input')
+              Instance Receiver: 
+                null
+              Arguments(1):
+                  IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: obj) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'input')
+                    IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.Object, IsImplicit) (Syntax: 'input')
+                    InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                    OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+
+        Next (StructuredExceptionHandling) Block[null]
+}
+
+Block[B4] - Exit
+    Predecessors: [B2]
+    Statements (0)
+";
+            var expectedDiagnostics = DiagnosticDescription.None;
+
+            VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(compilation, expectedGraph, expectedDiagnostics);
+        }
+
+        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+        [Fact]
+        public void LockFlow_06()
+        {
+            string source = @"
+class P
+{
+    void M(P input, bool b)
+    /*<bind>*/{
+        lock (input)
+            b = true;
+    }/*</bind>*/
+}
+";
+            var compilation = CreateCompilationWithMscorlib45(source, parseOptions: TestOptions.RegularWithFlowAnalysisFeature);
+            compilation.MakeMemberMissing(WellKnownMember.System_Threading_Monitor__Exit);
+
+            string expectedGraph = @"
+Block[B0] - Entry
+    Statements (0)
+    Next (Regular) Block[B1]
+Block[B1] - Block
+    Predecessors: [B0]
+    Statements (1)
+        IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'input')
+          Value: 
+            IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Object, IsImplicit) (Syntax: 'input')
+              Conversion: CommonConversion (Exists: True)
+              Operand: 
+                IParameterReferenceOperation: input (OperationKind.ParameterReference, Type: P) (Syntax: 'input')
+
+    Next (Regular) Block[B2]
+        Entering: {R1} {R2}
+
+.try {R1, R2}
+{
+    Block[B2] - Block
+        Predecessors: [B1]
+        Statements (2)
+            IInvocationOperation (void System.Threading.Monitor.Enter(System.Object obj, ref System.Boolean lockTaken)) (OperationKind.Invocation, Type: System.Void, IsImplicit) (Syntax: 'input')
+              Instance Receiver: 
+                null
+              Arguments(2):
+                  IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: obj) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'input')
+                    IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.Object, IsImplicit) (Syntax: 'input')
+                    InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                    OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                  IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: lockTaken) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'input')
+                    IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: System.Boolean, IsImplicit) (Syntax: 'input')
+                    InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                    OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+
+            IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'b = true;')
+              Expression: 
+                ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Boolean) (Syntax: 'b = true')
+                  Left: 
+                    IParameterReferenceOperation: b (OperationKind.ParameterReference, Type: System.Boolean) (Syntax: 'b')
+                  Right: 
+                    ILiteralOperation (OperationKind.Literal, Type: System.Boolean, Constant: True) (Syntax: 'true')
+
+        Next (Regular) Block[B6]
+            Finalizing: {R3}
+            Leaving: {R2} {R1}
+}
+.finally {R3}
+{
+    Block[B3] - Block
+        Predecessors (0)
+        Statements (0)
+        Jump if False (Regular) to Block[B5]
+            IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: System.Boolean, IsImplicit) (Syntax: 'input')
+
+        Next (Regular) Block[B4]
+    Block[B4] - Block
+        Predecessors: [B3]
+        Statements (1)
+            IInvalidOperation (OperationKind.Invalid, Type: null, IsImplicit) (Syntax: 'input')
+              Children(1):
+                  IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.Object, IsImplicit) (Syntax: 'input')
+
+        Next (Regular) Block[B5]
+    Block[B5] - Block
+        Predecessors: [B3] [B4]
+        Statements (0)
+        Next (StructuredExceptionHandling) Block[null]
+}
+
+Block[B6] - Exit
+    Predecessors: [B2]
+    Statements (0)
+";
+            var expectedDiagnostics = DiagnosticDescription.None;
+
+            VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(compilation, expectedGraph, expectedDiagnostics);
         }
     }
 }

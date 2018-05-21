@@ -1986,7 +1986,6 @@ oneMoreTime:
                     (!testConversion.IsIdentity || !ITypeSymbolHelpers.IsNullableType(operation.Type)))
                 {
                     possiblyUnwrappedValue = TryUnwrapNullableValue(capturedValue, compilation);
-                    // PROTOTYPE(dataflow): The scenario with missing GetValueOrDefault is not covered by unit-tests.
                 }
                 else
                 {
@@ -2105,7 +2104,6 @@ oneMoreTime:
         {
             Debug.Assert(ITypeSymbolHelpers.IsNullableType(value.Type));
             return TryUnwrapNullableValue(value, compilation) ??
-                   // PROTOTYPE(dataflow): The scenario with missing GetValueOrDefault is not covered by unit-tests.
                    MakeInvalidOperation(ITypeSymbolHelpers.GetNullableUnderlyingType(value.Type), value);
         }
 
@@ -2197,10 +2195,10 @@ oneMoreTime:
                 if (ITypeSymbolHelpers.IsNullableType(operation.Type) && !ITypeSymbolHelpers.IsNullableType(currentConditionalAccess.WhenNotNull.Type))
                 {
                     IOperation access = Visit(currentConditionalAccess.WhenNotNull);
-                    AddStatement(new FlowCapture(resultCaptureId, currentConditionalAccess.WhenNotNull.Syntax,
-                                                 TryMakeNullableValue((INamedTypeSymbol)operation.Type, access, compilation) ??
-                                                 // PROTOTYPE(dataflow): The scenario with missing constructor is not covered by unit-tests.
-                                                 MakeInvalidOperation(operation.Type, access)));
+                    IOperation nullableCapture = ((INamedTypeSymbol)operation.Type).TypeArguments[0].Equals(access.Type) ?
+                        MakeNullable(access, operation.Type) :
+                        MakeInvalidOperation(operation.Type, access);
+                    AddStatement(new FlowCapture(resultCaptureId, currentConditionalAccess.WhenNotNull.Syntax, nullableCapture));
                 }
                 else
                 {
@@ -2830,7 +2828,6 @@ oneMoreTime:
             }
 
             AddStatement(tryDispose(resource) ??
-                         // PROTOTYPE(dataflow): The scenario with missing Dispose is not covered by unit-tests.
                          MakeInvalidOperation(type: null, resource));
 
             AppendNewBlock(endOfFinally);
@@ -2927,7 +2924,6 @@ oneMoreTime:
                 // Monitor.Enter($lock);
                 if (enterMethod == null)
                 {
-                    // PROTOTYPE(dataflow): The scenario with missing Enter is not covered by unit-tests.
                     AddStatement(MakeInvalidOperation(type: null, lockedValue));
                 }
                 else
@@ -3007,7 +3003,6 @@ oneMoreTime:
 
             if (exitMethod == null)
             {
-                // PROTOTYPE(dataflow): The scenario with missing Exit is not covered by unit-tests.
                 AddStatement(MakeInvalidOperation(type: null, lockedValue));
             }
             else
@@ -3400,7 +3395,6 @@ oneMoreTime:
 
                     IOperation condition = tryCallObjectForLoopControlHelper(operation.LoopControlVariable.Syntax,
                                                                              WellKnownMember.Microsoft_VisualBasic_CompilerServices_ObjectFlowControl_ForLoopControl__ForLoopInitObj);
-                    // PROTOTYPE(dataflow): The scenario with missing ObjectFlowControl.ForLoopControl.ForLoopInitObj is not covered by unit-tests.
 #if DEBUG
                     Debug.Assert(stackSize == _evalStack.Count);
 #endif
@@ -3555,7 +3549,6 @@ oneMoreTime:
 
                     IOperation condition = tryCallObjectForLoopControlHelper(operation.LimitValue.Syntax,
                                                                              WellKnownMember.Microsoft_VisualBasic_CompilerServices_ObjectFlowControl_ForLoopControl__ForNextCheckObj);
-                    // PROTOTYPE(dataflow): The scenario with missing ObjectFlowControl.ForLoopControl.ForNextCheckObj is not covered by unit-tests.
 #if DEBUG
                     Debug.Assert(stackSize == _evalStack.Count);
 #endif
@@ -4157,7 +4150,6 @@ oneMoreTime:
             }
         }
 
-        // PROTOTYPE(dataflow): Replace use of TryMakeNullable with this helper
         private static IOperation MakeNullable(IOperation operand, ITypeSymbol type)
         {
             Debug.Assert(ITypeSymbolHelpers.IsNullableType(type));
@@ -4341,13 +4333,6 @@ oneMoreTime:
         private void HandleVariableDeclarator(IVariableDeclarationOperation declaration, IVariableDeclaratorOperation declarator)
         {
             ILocalSymbol localSymbol = declarator.Symbol;
-
-            // We skip constants in the control flow graph, as they're not actually involved in any control flow.
-            if (localSymbol.IsConst)
-            {
-                // PROTOTYPE(dataflow): This is not consistent with how we handle fields.
-                return;
-            }
 
             // If the local is a static (possible in VB), then we create a semaphore for conditional execution of the initializer.
             BasicBlock afterInitialization = null;

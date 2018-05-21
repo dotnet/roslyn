@@ -3086,7 +3086,13 @@ Block[B0] - Entry
     Locals: [a As System.Int32] [b As System.Int32]
     Block[B1] - Block
         Predecessors: [B0]
-        Statements (0)
+        Statements (1)
+            ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32, IsImplicit) (Syntax: 'a As Integer = 1')
+              Left: 
+                ILocalReferenceOperation: a (IsDeclaration: True) (OperationKind.LocalReference, Type: System.Int32, IsImplicit) (Syntax: 'a')
+              Right: 
+                ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
+
         Jump if False (Regular) to Block[B3]
             IStaticLocalInitializationSemaphoreOperation (Local Symbol: b As System.Int32) (OperationKind.StaticLocalInitializationSemaphore, Type: System.Boolean, IsImplicit) (Syntax: 'b')
             Leaving: {R1}
@@ -3112,6 +3118,73 @@ Block[B0] - Entry
 
 Block[B3] - Exit
     Predecessors: [B1] [B2]
+    Statements (0)
+]]>.Value
+
+            VerifyFlowGraphAndDiagnosticsForTest(Of MethodBlockSyntax)(source, expectedFlowGraph, expectedDiagnostics)
+        End Sub
+
+        <CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)>
+        <Fact()>
+        Public Sub VariableDeclaration_06_WithControlFlow()
+            Dim source = <![CDATA[
+Imports System
+Public Class C
+    Public Sub M()'BIND:"Public Sub M()"
+#Disable Warning BC42099 ' Unused local constant
+        Const a As Integer = If(True, 1, 2)
+    End Sub
+End Class]]>.Value
+
+            Dim expectedDiagnostics = String.Empty
+
+            Dim expectedFlowGraph = <![CDATA[
+Block[B0] - Entry
+    Statements (0)
+    Next (Regular) Block[B1]
+        Entering: {R1}
+
+.locals {R1}
+{
+    Locals: [a As System.Int32]
+    Block[B1] - Block
+        Predecessors: [B0]
+        Statements (0)
+        Jump if False (Regular) to Block[B3]
+            ILiteralOperation (OperationKind.Literal, Type: System.Boolean, Constant: True) (Syntax: 'True')
+
+        Next (Regular) Block[B2]
+    Block[B2] - Block
+        Predecessors: [B1]
+        Statements (1)
+            IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: '1')
+              Value: 
+                ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
+
+        Next (Regular) Block[B4]
+    Block[B3] - Block [UnReachable]
+        Predecessors: [B1]
+        Statements (1)
+            IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: '2')
+              Value: 
+                ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2) (Syntax: '2')
+
+        Next (Regular) Block[B4]
+    Block[B4] - Block
+        Predecessors: [B2] [B3]
+        Statements (1)
+            ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32, IsImplicit) (Syntax: 'a As Intege ... True, 1, 2)')
+              Left: 
+                ILocalReferenceOperation: a (IsDeclaration: True) (OperationKind.LocalReference, Type: System.Int32, IsImplicit) (Syntax: 'a')
+              Right: 
+                IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.Int32, Constant: 1, IsImplicit) (Syntax: 'If(True, 1, 2)')
+
+        Next (Regular) Block[B5]
+            Leaving: {R1}
+}
+
+Block[B5] - Exit
+    Predecessors: [B4]
     Statements (0)
 ]]>.Value
 
