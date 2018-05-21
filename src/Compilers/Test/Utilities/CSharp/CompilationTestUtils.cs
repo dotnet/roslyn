@@ -360,13 +360,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 var node = token.Parent;
                 while (true)
                 {
-                    var expr = node as ExpressionSyntax;
+                    var expr = asExpression(node);
                     if (expr != null)
                     {
-                        if (expr.Kind() == SyntaxKind.ParenthesizedExpression)
-                        {
-                            return ((ParenthesizedExpressionSyntax)expr).Expression;
-                        }
                         return expr;
                     }
                     if (node == root)
@@ -376,6 +372,27 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     node = node.Parent;
                 }
                 return null;
+            }
+
+            ExpressionSyntax asExpression(SyntaxNode node)
+            {
+                var expr = node as ExpressionSyntax;
+                if (expr == null)
+                {
+                    return null;
+                }
+                switch (expr.Kind())
+                {
+                    case SyntaxKind.ParenthesizedExpression:
+                        return ((ParenthesizedExpressionSyntax)expr).Expression;
+                    case SyntaxKind.IdentifierName:
+                        if (expr.Parent is MemberAccessExpressionSyntax memberAccess && memberAccess.Name == expr)
+                        {
+                            return memberAccess;
+                        }
+                        break;
+                }
+                return expr;
             }
         }
     }

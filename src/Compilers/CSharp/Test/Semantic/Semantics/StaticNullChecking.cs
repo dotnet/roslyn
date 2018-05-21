@@ -11513,20 +11513,20 @@ class C
         [Fact]
         public void DynamicMemberAccess_02()
         {
-            // PROTOTYPE(NullableReferenceTypes): Consider adding test infrastructure to verify
-            // nullability based on /*[...]*/ annotations such as [dynamic], [dynamic!], [dynamic?].
             var source =
 @"class C
 {
     static void M(dynamic x)
     {
-        x.F/*[dynamic]*/.ToString();
-        var y/*[dynamic]*/ = x.F;
+        x.F/*T:dynamic*/.ToString();
+        var y = x.F;
+        y/*T:dynamic*/.ToString();
         y = null;
     }
 }";
             var comp = CreateCompilationWithMscorlib40AndSystemCore(source, parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics();
+            comp.VerifyTypes();
         }
 
         [Fact]
