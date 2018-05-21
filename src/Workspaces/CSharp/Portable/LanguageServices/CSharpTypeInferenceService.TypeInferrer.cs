@@ -176,7 +176,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             private IEnumerable<TypeInferenceInfo> InferTypeInArrowExpressionClause(ArrowExpressionClauseSyntax arrowClause)
             {
-                var parentSymbol = SemanticModel.GetDeclaredSymbol(arrowClause.Parent);
+                var parentSymbol = SemanticModel.GetDeclaredSymbol(arrowClause.Parent, CancellationToken);
                 var symbolReturnType = GetSymbolReturnType();
 
                 return symbolReturnType != null 
@@ -187,8 +187,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     switch (parentSymbol)
                     {
-                        case IPropertySymbol property: return property?.Type;
-                        case IMethodSymbol method: return method?.ReturnType;
+                        case IPropertySymbol property: return property.Type;
+                        case IMethodSymbol method: return method.ReturnType;
                         default: return null;
                     }
                 }
