@@ -189,7 +189,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             TypeSymbol resultType = expr.Type;
             BoundKind exprKind = expr.Kind;
 
-            if (expr.HasAnyErrors && ((object)resultType != null || exprKind == BoundKind.UnboundLambda))
+            if (expr.HasErrors && ((object)resultType != null || exprKind == BoundKind.UnboundLambda))
             {
                 return expr;
             }
