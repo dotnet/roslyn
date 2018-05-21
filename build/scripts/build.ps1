@@ -29,6 +29,7 @@ param (
     [switch]$packAll = $false,
     [switch]$binaryLog = $false,
     [switch]$deployExtensions = $false,
+    [switch]$launch = $false,
     [switch]$procdump = $false,
     [string]$signType = "",
     [switch]$skipBuildExtras = $false,
@@ -113,6 +114,11 @@ function Process-Arguments() {
 
     if ($testDeterminism -and ($anyUnit -or $anyVsi)) {
         Write-Host "Cannot combine special testing with any other action"
+        exit 1
+    }
+
+    if ($build -and $launch -and -not $deployExtensions) {
+        Write-Host -ForegroundColor Red "Cannot combine -build and -launch without -deployExtensions"
         exit 1
     }
 
@@ -246,7 +252,7 @@ function Build-Artifacts() {
         Run-MSBuild "Compilers.sln" -useDotnetBuild
     }
     elseif ($build) {
-        Run-MSBuild "Roslyn.sln" "/p:DeployExtension=$deployExtensions"
+        Run-MSBuild "Roslyn.sln" $(if (-not $deployExtensions) {"/p:DeployExtension=false"})
         if (-not $skipBuildExtras) {
             Build-ExtraSignArtifacts
         }
@@ -617,10 +623,18 @@ function Test-XUnit() {
 # Deploy our core VSIX libraries to Visual Studio via the Roslyn VSIX tool.  This is an alternative to
 # deploying at build time.
 function Deploy-VsixViaTool() {
+    $vsixDir = Get-PackageDir "RoslynTools.Microsoft.VSIXExpInstaller"
+    $vsixExe = Join-Path $vsixDir "tools\VsixExpInstaller.exe"
     $both = Get-VisualStudioDirAndId
     $vsDir = $both[0].Trim("\")
     $vsId = $both[1]
+    $hive = "RoslynDev"
+    Write-Host "Using VS Instance $vsId at `"$vsDir`""
+    $baseArgs = "/rootSuffix:$hive /vsInstallDir:`"$vsDir`""
     $all = @(
+        "Vsix\CompilerExtension\Roslyn.Compilers.Extension.vsix",
+        "Vsix\VisualStudioSetup\Roslyn.VisualStudio.Setup.vsix",
+        "Vsix\VisualStudioInteractiveComponents\Roslyn.VisualStudio.InteractiveComponents.vsix",
         "Vsix\ExpressionEvaluatorPackage\ExpressionEvaluatorPackage.vsix",
         "Vsix\VisualStudioDiagnosticsWindow\Roslyn.VisualStudio.DiagnosticsWindow.vsix",
         "Vsix\VisualStudioIntegrationTestSetup\Microsoft.VisualStudio.IntegrationTest.Setup.vsix")
@@ -789,6 +803,12 @@ try {
 
     if ($testDesktop -or $testCoreClr -or $testVsi -or $testVsiNetCore -or $testIOperation) {
         Test-XUnit
+    }
+
+    if ($launch) {
+        $devenvExe = Get-VisualStudioDir
+        $devenvExe = Join-Path $devenvExe 'Common7\IDE\devenv.exe'
+        &$devenvExe /rootSuffix RoslynDev
     }
 
     exit 0

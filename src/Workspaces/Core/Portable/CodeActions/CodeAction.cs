@@ -68,10 +68,10 @@ namespace Microsoft.CodeAnalysis.CodeActions
             return GetOperationsAsync(new ProgressTracker(), cancellationToken);
         }
 
-        internal async Task<ImmutableArray<CodeActionOperation>> GetOperationsAsync(
+        internal Task<ImmutableArray<CodeActionOperation>> GetOperationsAsync(
             IProgressTracker progressTracker, CancellationToken cancellationToken)
         {
-            return await GetOperationsCoreAsync(progressTracker, cancellationToken).ConfigureAwait(false);
+            return GetOperationsCoreAsync(progressTracker, cancellationToken);
         }
 
         /// <summary>
@@ -130,9 +130,9 @@ namespace Microsoft.CodeAnalysis.CodeActions
         /// Override this method if you want to implement a <see cref="CodeAction"/> that has a set of preview operations that are different
         /// than the operations produced by <see cref="ComputeOperationsAsync(CancellationToken)"/>.
         /// </summary>
-        protected virtual async Task<IEnumerable<CodeActionOperation>> ComputePreviewOperationsAsync(CancellationToken cancellationToken)
+        protected virtual Task<IEnumerable<CodeActionOperation>> ComputePreviewOperationsAsync(CancellationToken cancellationToken)
         {
-            return await ComputeOperationsAsync(cancellationToken).ConfigureAwait(false);
+            return ComputeOperationsAsync(cancellationToken);
         }
 
         /// <summary>
@@ -179,9 +179,9 @@ namespace Microsoft.CodeAnalysis.CodeActions
             return await this.PostProcessChangesAsync(solution, cancellationToken).ConfigureAwait(false);
         }
 
-        internal async Task<Document> GetChangedDocumentInternalAsync(CancellationToken cancellation)
+        internal Task<Document> GetChangedDocumentInternalAsync(CancellationToken cancellation)
         {
-            return await this.GetChangedDocumentAsync(cancellation).ConfigureAwait(false);
+            return GetChangedDocumentAsync(cancellation);
         }
 
         /// <summary>

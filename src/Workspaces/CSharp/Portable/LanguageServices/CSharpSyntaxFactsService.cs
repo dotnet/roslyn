@@ -1048,6 +1048,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             return list;
         }
 
+        public SyntaxList<SyntaxNode> GetMembersOfTypeDeclaration(SyntaxNode typeDeclaration)
+            => ((TypeDeclarationSyntax)typeDeclaration).Members;
+
         private void AppendMethodLevelMembers(SyntaxNode node, List<SyntaxNode> list)
         {
             foreach (var member in node.GetMembers())

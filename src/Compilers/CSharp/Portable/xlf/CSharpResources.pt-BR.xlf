@@ -387,6 +387,16 @@
         <target state="new">SyntaxTree is not part of the compilation, so it cannot be removed</target>
         <note />
       </trans-unit>
+      <trans-unit id="WRN_TypeParameterSameAsOuterMethodTypeParameter">
+        <source>Type parameter '{0}' has the same name as the type parameter from outer method '{1}'</source>
+        <target state="new">Type parameter '{0}' has the same name as the type parameter from outer method '{1}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_TypeParameterSameAsOuterMethodTypeParameter_Title">
+        <source>Type parameter has the same type as the type parameter from outer method.</source>
+        <target state="new">Type parameter has the same type as the type parameter from outer method.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="XML_InvalidToken">
         <source>The character(s) '{0}' cannot be used at this location.</source>
         <target state="translated">O(s) caractere(s) "{0}" não pode(m) ser usado(s) neste local.</target>

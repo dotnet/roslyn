@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
     {
         internal static BuildPaths CreateBuildPaths(string workingDirectory)
         {
-#if NET461 || NET46
+#if NET46
             return new BuildPaths(
                 clientDir: Path.GetDirectoryName(typeof(BuildPathsUtil).Assembly.Location),
                 workingDir: workingDirectory,
@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
         internal static IRuntimeEnvironmentFactory GetRuntimeEnvironmentFactory()
         {
-#if NET461 || NET46
+#if NET46
             return new Roslyn.Test.Utilities.Desktop.DesktopRuntimeEnvironmentFactory();
 #elif NETCOREAPP2_0
             return new Roslyn.Test.Utilities.CoreClr.CoreCLRRuntimeEnvironmentFactory();
@@ -45,7 +45,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
         internal static AnalyzerAssemblyLoader CreateAnalyzerAssemblyLoader()
         {
-#if NET461 || NET46
+#if NET46
             return new DesktopAnalyzerAssemblyLoader();
 #else 
             return new ThrowingAnalyzerAssemblyLoader();
@@ -57,7 +57,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         /// </summary>
         internal static string GetAssemblyLocation(Type type)
         {
-#if NET461 || NET46 || NETCOREAPP2_0
+#if NET46 || NETCOREAPP2_0
             return type.GetTypeInfo().Assembly.Location;
 #elif NETSTANDARD1_3
             throw new NotSupportedException();
