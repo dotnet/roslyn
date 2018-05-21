@@ -52,6 +52,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
             Contract.ThrowIfNull(documentProvider);
 
             this.Project = project;
+
+            this.Key = documentKey;
+            this.SourceCodeKind = sourceCodeKind;
+
             this.Id = id ?? DocumentId.CreateNewId(project.Id, documentKey.Moniker);
 
             var itemid = this.GetItemId();
@@ -60,9 +64,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
                 : getFolderNames(itemid);
 
             _documentProvider = documentProvider;
-
-            this.Key = documentKey;
-            this.SourceCodeKind = sourceCodeKind;
 
             this.Loader = new SourceTextContainerTextLoader(sourceTextContainer, this.FilePath);
 

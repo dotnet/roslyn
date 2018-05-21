@@ -986,7 +986,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 canUseTextBuffer: CanUseTextBuffer,
                 updatedOnDiskHandler: s_documentUpdatedEventHandler,
                 openedHandler: s_documentOpenedEventHandler,
-                closingHandler: s_documentClosingEventHandler);
+                closingHandler: s_documentClosingEventHandler,
+                documentServiceFactory: documentServiceFactory);
 
             if (document == null)
             {
