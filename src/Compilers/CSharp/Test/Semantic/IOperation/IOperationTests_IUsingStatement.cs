@@ -936,7 +936,7 @@ class P : System.IDisposable
     {
     }
 
-    void M(System.IDisposable input, P p)
+    void M(P p)
     {
         /*<bind>*/using (p = M2(out int c))
         {

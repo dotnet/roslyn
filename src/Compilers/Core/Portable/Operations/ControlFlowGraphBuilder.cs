@@ -2473,13 +2473,11 @@ oneMoreTime:
             {
                 var declarationGroup = (IVariableDeclarationGroupOperation)operation.Resources;
                 var resourceQueue = ArrayBuilder<(IVariableDeclarationOperation, IVariableDeclaratorOperation)>.GetInstance(declarationGroup.Declarations.Length);
-                var locals = ArrayBuilder<ILocalSymbol>.GetInstance(declarationGroup.Declarations.Length);
-
+                
                 foreach (IVariableDeclarationOperation declaration in declarationGroup.Declarations)
                 {
                     foreach (IVariableDeclaratorOperation declarator in declaration.Declarators)
                     {
-                        locals.Add(declarator.Symbol);
                         resourceQueue.Add((declaration, declarator));
                     }
                 }

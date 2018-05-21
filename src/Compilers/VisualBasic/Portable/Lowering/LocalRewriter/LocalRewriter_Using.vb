@@ -84,8 +84,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             If Not node.ResourceList.IsDefault Then
                 ' Case "Using <variable declarations>"  
 
-                Dim localsBuilder = ArrayBuilder(Of LocalSymbol).GetInstance
-
                 ' the try statements will be nested. To avoid re-rewriting we're iterating through the resource list in reverse
                 For declarationIndex = node.ResourceList.Length - 1 To 0 Step -1
                     Dim localDeclaration = node.ResourceList(declarationIndex)
@@ -100,8 +98,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                                      localVariableDeclaration.InitializerOpt,
                                                                      placeholderInfo,
                                                                      currentBody)
-
-                        localsBuilder.Add(localVariableDeclaration.LocalSymbol)
                     Else
                         Dim localAsNewDeclaration = DirectCast(localDeclaration, BoundAsNewLocalDeclarations)
 
@@ -116,18 +112,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                                          localAsNewDeclaration.Initializer,
                                                                          placeholderInfo,
                                                                          currentBody)
-                            localsBuilder.Add(localAsNewDeclaration.LocalDeclarations(initializedVariableIndex).LocalSymbol)
                         Next
                     End If
                 Next
 
-                ' we are adding the locals to the builder in reverse order. Therefore we need to reverse the array to have
-                ' the same forward declaration order in IL as Dev10 did.
-                localsBuilder.ReverseContents()
-                locals = localsBuilder.ToImmutableAndFree()
+                locals = node.Locals
             Else
                 ' Case "Using <expression>"
                 Debug.Assert(node.ResourceExpressionOpt IsNot Nothing)
+                Debug.Assert(node.Locals.IsEmpty)
 
                 Dim initializationExpression = node.ResourceExpressionOpt
                 placeholderInfo = node.UsingInfo.PlaceholderInfo(initializationExpression.Type)

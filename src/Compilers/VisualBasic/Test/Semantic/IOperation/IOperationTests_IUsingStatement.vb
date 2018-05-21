@@ -400,6 +400,7 @@ End Module]]>.Value
             Dim expectedOperationTree = <![CDATA[
 IUsingOperation (OperationKind.Using, Type: null, IsInvalid) (Syntax: 'Using c1, c ... End Using')
   Locals: Local_1: c1 As System.Object
+    Local_2: c2 As System.Object
   Resources: 
     IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDeclarationGroup, Type: null, IsInvalid) (Syntax: 'Using c1, c2')
       IVariableDeclarationOperation (2 declarators) (OperationKind.VariableDeclaration, Type: null, IsInvalid) (Syntax: 'c1, c2')
