@@ -39,7 +39,7 @@ Friend Module CompilationUtils
                                             references,
                                             options)
                                       End Function
-        CompilationExtensions2.ValidateIOperations(createCompilationLambda)
+        CompilationTestUtilities.ValidateIOperations(createCompilationLambda)
         Return createCompilationLambda()
     End Function
 
@@ -74,7 +74,7 @@ Friend Module CompilationUtils
                                           Return VisualBasicCompilation.Create(assemblyName, source, metadataReferences, options)
                                       End Function
 
-        CompilationExtensions2.ValidateIOperations(createCompilationLambda)
+        CompilationTestUtilities.ValidateIOperations(createCompilationLambda)
         Return createCompilationLambda()
     End Function
 
@@ -104,7 +104,7 @@ Friend Module CompilationUtils
         Dim createCompilationLambda = Function()
                                           Return VisualBasicCompilation.Create(If(assemblyName, GetUniqueName()), source, If(references Is Nothing, additionalRefs, additionalRefs.Concat(references)), options)
                                       End Function
-        CompilationExtensions2.ValidateIOperations(createCompilationLambda)
+        CompilationTestUtilities.ValidateIOperations(createCompilationLambda)
         Return createCompilationLambda()
     End Function
 
@@ -118,7 +118,7 @@ Friend Module CompilationUtils
         Dim createCompilationLambda = Function()
                                           Return VisualBasicCompilation.Create(If(assemblyName, GetUniqueName()), {Parse(source, parseOptions)}, If(references Is Nothing, additionalRefs, additionalRefs.Concat(references)), options)
                                       End Function
-        CompilationExtensions2.ValidateIOperations(createCompilationLambda)
+        CompilationTestUtilities.ValidateIOperations(createCompilationLambda)
         Return createCompilationLambda()
     End Function
 
@@ -129,7 +129,7 @@ Friend Module CompilationUtils
         Dim createCompilationLambda = Function()
                                           Return VisualBasicCompilation.Create(GetUniqueName(), source, If(references Is Nothing, additionalRefs, additionalRefs.Concat(references)), options)
                                       End Function
-        CompilationExtensions2.ValidateIOperations(createCompilationLambda)
+        CompilationTestUtilities.ValidateIOperations(createCompilationLambda)
         Return createCompilationLambda()
     End Function
 
@@ -139,7 +139,7 @@ Friend Module CompilationUtils
         Dim createCompilationLambda = Function()
                                           Return VisualBasicCompilation.Create(GetUniqueName(), {source}, If(references Is Nothing, {MscorlibRef}, {MscorlibRef}.Concat(references)), options)
                                       End Function
-        CompilationExtensions2.ValidateIOperations(createCompilationLambda)
+        CompilationTestUtilities.ValidateIOperations(createCompilationLambda)
         Return createCompilationLambda()
     End Function
 
@@ -331,7 +331,7 @@ Friend Module CompilationUtils
         Dim createCompilationLambda = Function()
                                           Return VisualBasicCompilation.Create(If(assemblyName, GetUniqueName()), source, references, options)
                                       End Function
-        CompilationExtensions2.ValidateIOperations(createCompilationLambda)
+        CompilationTestUtilities.ValidateIOperations(createCompilationLambda)
         Return createCompilationLambda()
     End Function
 
@@ -358,7 +358,7 @@ Friend Module CompilationUtils
         Dim createCompilationLambda = Function()
                                           Return VisualBasicCompilation.Create(identity.Name, trees, references, options)
                                       End Function
-        CompilationExtensions2.ValidateIOperations(createCompilationLambda)
+        CompilationTestUtilities.ValidateIOperations(createCompilationLambda)
         Dim c = createCompilationLambda()
         Assert.NotNull(c.Assembly) ' force creation of SourceAssemblySymbol
 

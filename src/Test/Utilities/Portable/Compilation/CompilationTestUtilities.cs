@@ -22,7 +22,7 @@ using Xunit.Sdk;
 
 namespace Microsoft.CodeAnalysis.Test.Utilities
 {
-    public static class CompilationExtensions2
+    public static class CompilationTestUtilities
     {
         internal static bool EnableVerifyIOperation { get; } = !string.IsNullOrEmpty(Environment.GetEnvironmentVariable("ROSLYN_TEST_IOPERATION"));
 

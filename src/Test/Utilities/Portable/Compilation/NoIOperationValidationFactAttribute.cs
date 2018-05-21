@@ -9,7 +9,7 @@ namespace Roslyn.Test.Utilities
     {
         public NoIOperationValidationFactAttribute()
         {
-            if (CompilationExtensions2.EnableVerifyIOperation)
+            if (CompilationTestUtilities.EnableVerifyIOperation)
             {
                 Skip = "Test not run during IOperation verification";
             }
