@@ -284,7 +284,10 @@ namespace Microsoft.CodeAnalysis.Operations
 
         public override IOperation VisitBinaryOperator(IBinaryOperation operation, object argument)
         {
-            return new BinaryOperatorExpression(operation.OperatorKind, Visit(operation.LeftOperand), Visit(operation.RightOperand), operation.IsLifted, operation.IsChecked, operation.IsCompareText, operation.OperatorMethod, ((Operation)operation).SemanticModel, operation.Syntax, operation.Type, operation.ConstantValue, operation.IsImplicit);
+            return new BinaryOperatorExpression(operation.OperatorKind, Visit(operation.LeftOperand), Visit(operation.RightOperand), operation.IsLifted,
+                                                operation.IsChecked, operation.IsCompareText, operation.OperatorMethod,
+                                                ((BaseBinaryOperatorExpression)operation).UnaryOperatorMethod, ((Operation)operation).SemanticModel,
+                                                operation.Syntax, operation.Type, operation.ConstantValue, operation.IsImplicit);
         }
 
         public override IOperation VisitTupleBinaryOperator(ITupleBinaryOperation operation, object argument)

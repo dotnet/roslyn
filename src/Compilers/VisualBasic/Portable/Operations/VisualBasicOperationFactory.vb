@@ -469,7 +469,7 @@ Namespace Microsoft.CodeAnalysis.Operations
                                                                                  Return GetChildOfBadExpression(boundUserDefinedUnaryOperator.UnderlyingExpression, 0)
                                                                              End If
                                                                          End Function)
-            Dim operatorMethod As IMethodSymbol = If(boundUserDefinedUnaryOperator.UnderlyingExpression.Kind = BoundKind.Call, boundUserDefinedUnaryOperator.Call.Method, Nothing)
+            Dim operatorMethod As IMethodSymbol = TryGetOperatorMethod(boundUserDefinedUnaryOperator)
             Dim syntax As SyntaxNode = boundUserDefinedUnaryOperator.Syntax
             Dim type As ITypeSymbol = boundUserDefinedUnaryOperator.Type
             Dim constantValue As [Optional](Of Object) = ConvertToOptional(boundUserDefinedUnaryOperator.ConstantValueOpt)
@@ -477,6 +477,10 @@ Namespace Microsoft.CodeAnalysis.Operations
             Dim isChecked As Boolean = False
             Dim isImplicit As Boolean = boundUserDefinedUnaryOperator.WasCompilerGenerated
             Return New LazyUnaryOperatorExpression(operatorKind, operand, isLifted, isChecked, operatorMethod, _semanticModel, syntax, type, constantValue, isImplicit)
+        End Function
+
+        Private Shared Function TryGetOperatorMethod(boundUserDefinedUnaryOperator As BoundUserDefinedUnaryOperator) As MethodSymbol
+            Return If(boundUserDefinedUnaryOperator.UnderlyingExpression.Kind = BoundKind.Call, boundUserDefinedUnaryOperator.Call.Method, Nothing)
         End Function
 
         Private Function CreateBoundBinaryOperatorOperation(boundBinaryOperator As BoundBinaryOperator) As IBinaryOperation
@@ -489,7 +493,7 @@ Namespace Microsoft.CodeAnalysis.Operations
             Dim isImplicit As Boolean = boundBinaryOperator.WasCompilerGenerated
             Return New LazyBinaryOperatorExpression(binaryOperatorInfo.OperatorKind, leftOperand, rightOperand, binaryOperatorInfo.IsLifted,
                                                     binaryOperatorInfo.IsChecked, binaryOperatorInfo.IsCompareText, binaryOperatorInfo.OperatorMethod,
-                                                    _semanticModel, syntax, type, constantValue, isImplicit)
+                                                    unaryOperatorMethod:=Nothing, _semanticModel, syntax, type, constantValue, isImplicit)
         End Function
 
         Private Function CreateBoundUserDefinedBinaryOperatorOperation(boundUserDefinedBinaryOperator As BoundUserDefinedBinaryOperator) As IBinaryOperation
@@ -504,7 +508,7 @@ Namespace Microsoft.CodeAnalysis.Operations
             Dim isImplicit As Boolean = boundUserDefinedBinaryOperator.WasCompilerGenerated
             Return New LazyBinaryOperatorExpression(binaryOperatorInfo.OperatorKind, leftOperand, rightOperand, binaryOperatorInfo.IsLifted,
                                                     binaryOperatorInfo.IsChecked, binaryOperatorInfo.IsCompareText, binaryOperatorInfo.OperatorMethod,
-                                                    _semanticModel, syntax, type, constantValue, isImplicit)
+                                                    unaryOperatorMethod:=Nothing, _semanticModel, syntax, type, constantValue, isImplicit)
         End Function
 
         Private Function CreateBoundBinaryConditionalExpressionOperation(boundBinaryConditionalExpression As BoundBinaryConditionalExpression) As ICoalesceOperation
@@ -547,7 +551,18 @@ Namespace Microsoft.CodeAnalysis.Operations
             Dim isChecked As Boolean = False
             Dim isCompareText As Boolean = False
             Dim isImplicit As Boolean = boundUserDefinedShortCircuitingOperator.WasCompilerGenerated
-            Return New LazyBinaryOperatorExpression(operatorKind, leftOperand, rightOperand, binaryOperatorInfo.IsLifted, isChecked, isCompareText, binaryOperatorInfo.OperatorMethod, _semanticModel, syntax, type, constantValue, isImplicit)
+
+            Dim unaryOperatorMethod As IMethodSymbol = Nothing
+            Dim leftTest As BoundExpression = boundUserDefinedShortCircuitingOperator.LeftTest
+            If leftTest IsNot Nothing Then
+                unaryOperatorMethod = TryGetOperatorMethod(DirectCast(If(leftTest.Kind = BoundKind.UserDefinedUnaryOperator,
+                                                                         leftTest,
+                                                                         DirectCast(leftTest, BoundNullableIsTrueOperator).Operand),
+                                                                      BoundUserDefinedUnaryOperator))
+            End If
+
+            Return New LazyBinaryOperatorExpression(operatorKind, leftOperand, rightOperand, binaryOperatorInfo.IsLifted, isChecked, isCompareText,
+                                                    binaryOperatorInfo.OperatorMethod, unaryOperatorMethod, _semanticModel, syntax, type, constantValue, isImplicit)
         End Function
 
         Private Function CreateBoundBadExpressionOperation(boundBadExpression As BoundBadExpression) As IInvalidOperation

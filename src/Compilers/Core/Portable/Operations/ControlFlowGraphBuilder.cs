@@ -1520,30 +1520,36 @@ namespace Microsoft.CodeAnalysis.Operations
 
         public override IOperation VisitBinaryOperator(IBinaryOperation operation, int? captureIdForResult)
         {
-            if (IsConditional(operation) &&
-                operation.OperatorMethod == null) // PROTOTYPE(dataflow): cannot properly handle user-defined conditional operators yet.
+            if (IsConditional(operation))
             {
-                if (ITypeSymbolHelpers.IsBooleanType(operation.Type) &&
-                    ITypeSymbolHelpers.IsBooleanType(operation.LeftOperand.Type) &&
-                    ITypeSymbolHelpers.IsBooleanType(operation.RightOperand.Type))
+                if (operation.OperatorMethod == null)
                 {
-                    // Regular boolean logic
-                    return VisitBinaryConditionalOperator(operation, sense: true, captureIdForResult, fallToTrueOpt: null, fallToFalseOpt: null);
+                    if (ITypeSymbolHelpers.IsBooleanType(operation.Type) &&
+                        ITypeSymbolHelpers.IsBooleanType(operation.LeftOperand.Type) &&
+                        ITypeSymbolHelpers.IsBooleanType(operation.RightOperand.Type))
+                    {
+                        // Regular boolean logic
+                        return VisitBinaryConditionalOperator(operation, sense: true, captureIdForResult, fallToTrueOpt: null, fallToFalseOpt: null);
+                    }
+                    else if (operation.IsLifted &&
+                             ITypeSymbolHelpers.IsNullableOfBoolean(operation.Type) &&
+                             ITypeSymbolHelpers.IsNullableOfBoolean(operation.LeftOperand.Type) &&
+                             ITypeSymbolHelpers.IsNullableOfBoolean(operation.RightOperand.Type))
+                    {
+                        // Three-value boolean logic (VB).
+                        return VisitNullableBinaryConditionalOperator(operation, captureIdForResult);
+                    }
                 }
-                else if (operation.IsLifted && 
-                         ITypeSymbolHelpers.IsNullableOfBoolean(operation.Type) &&
-                         ITypeSymbolHelpers.IsNullableOfBoolean(operation.LeftOperand.Type) &&
-                         ITypeSymbolHelpers.IsNullableOfBoolean(operation.RightOperand.Type))
+                else
                 {
-                    // Three-value boolean logic (VB).
-                    return VisitNullableBinaryConditionalOperator(operation, captureIdForResult);
+                    return VisitUserDefinedBinaryConditionalOperator(operation, captureIdForResult);
                 }
             }
 
             _evalStack.Push(Visit(operation.LeftOperand));
             IOperation rightOperand = Visit(operation.RightOperand);
             return new BinaryOperatorExpression(operation.OperatorKind, _evalStack.Pop(), rightOperand, operation.IsLifted, operation.IsChecked, operation.IsCompareText,
-                                                operation.OperatorMethod, semanticModel: null, operation.Syntax, operation.Type, operation.ConstantValue, IsImplicit(operation));
+                                                operation.OperatorMethod, ((BaseBinaryOperatorExpression)operation).UnaryOperatorMethod, semanticModel: null, operation.Syntax, operation.Type, operation.ConstantValue, IsImplicit(operation));
         }
 
         public override IOperation VisitTupleBinaryOperator(ITupleBinaryOperation operation, int? captureIdForResult)
@@ -1704,6 +1710,83 @@ namespace Microsoft.CodeAnalysis.Operations
                                                    semanticModel: null, operand.Syntax, operand.Type, constantValue: default, isImplicit: true);
 
             }
+        }
+
+        private IOperation VisitUserDefinedBinaryConditionalOperator(IBinaryOperation binOp, int? captureIdForResult)
+        {
+            SpillEvalStack();
+
+            Compilation compilation = ((Operation)binOp).SemanticModel.Compilation;
+            INamedTypeSymbol booleanType = compilation.GetSpecialType(SpecialType.System_Boolean);
+            bool isLifted = binOp.IsLifted;
+            IOperation left = binOp.LeftOperand;
+            IOperation right = binOp.RightOperand;
+            IMethodSymbol unaryOperatorMethod = ((BaseBinaryOperatorExpression)binOp).UnaryOperatorMethod;
+            IOperation condition;
+
+            var done = new BasicBlock(BasicBlockKind.Block);
+            var doBitWise = new BasicBlock(BasicBlockKind.Block);
+
+            int leftId = VisitAndCapture(left);
+
+            condition = GetCaptureReference(leftId, left);
+
+            if (ITypeSymbolHelpers.IsNullableType(left.Type))
+            {
+                if (unaryOperatorMethod == null ? isLifted : !ITypeSymbolHelpers.IsNullableType(unaryOperatorMethod.Parameters[0].Type))
+                {
+                    condition = MakeIsNullOperation(condition, booleanType);
+                    LinkBlocks(CurrentBasicBlock, (Operation.SetParentOperation(condition, null), JumpIfTrue: true, RegularBranch(doBitWise)));
+                    _currentBasicBlock = null;
+
+                    Debug.Assert(unaryOperatorMethod == null || !ITypeSymbolHelpers.IsNullableType(unaryOperatorMethod.Parameters[0].Type));
+                    condition = UnwrapNullableValue(GetCaptureReference(leftId, left), compilation);
+                }
+            }
+            else if (unaryOperatorMethod != null && ITypeSymbolHelpers.IsNullableType(unaryOperatorMethod.Parameters[0].Type))
+            {
+                condition = MakeInvalidOperation(unaryOperatorMethod.Parameters[0].Type, condition);
+            }
+
+            if (unaryOperatorMethod != null)
+            {
+                Debug.Assert(ITypeSymbolHelpers.IsBooleanType(unaryOperatorMethod.ReturnType));
+                condition = new UnaryOperatorExpression(binOp.OperatorKind == BinaryOperatorKind.ConditionalAnd ? UnaryOperatorKind.False : UnaryOperatorKind.True,
+                                                        condition, isLifted: false, isChecked: false, operatorMethod: unaryOperatorMethod,
+                                                        semanticModel: null, condition.Syntax, unaryOperatorMethod.ReturnType, constantValue: default, isImplicit: true);
+            }
+            else
+            {
+                condition = MakeInvalidOperation(booleanType, condition);
+            }
+
+            LinkBlocks(CurrentBasicBlock, (Operation.SetParentOperation(condition, null), JumpIfTrue: false, RegularBranch(doBitWise)));
+            _currentBasicBlock = null;
+
+            int resultId = captureIdForResult ?? _availableCaptureId++;
+            AddStatement(new FlowCapture(resultId, binOp.Syntax, GetCaptureReference(leftId, left)));
+            LinkBlocks(CurrentBasicBlock, done);
+            _currentBasicBlock = null;
+
+            AppendNewBlock(doBitWise);
+
+            AddStatement(new FlowCapture(resultId, binOp.Syntax,
+                                         new BinaryOperatorExpression(binOp.OperatorKind == BinaryOperatorKind.ConditionalAnd ? BinaryOperatorKind.And : BinaryOperatorKind.Or,
+                                                                      GetCaptureReference(leftId, left), 
+                                                                      Visit(right), 
+                                                                      isLifted, 
+                                                                      binOp.IsChecked, 
+                                                                      binOp.IsCompareText,
+                                                                      binOp.OperatorMethod, 
+                                                                      unaryOperatorMethod: null, 
+                                                                      semanticModel: null,
+                                                                      binOp.Syntax, 
+                                                                      binOp.Type, 
+                                                                      binOp.ConstantValue, IsImplicit(binOp))));
+
+            AppendNewBlock(done);
+
+            return GetCaptureReference(resultId, binOp);
         }
 
         private IOperation VisitShortCircuitingOperator(IBinaryOperation condition, bool sense, bool stopSense, bool stopValue,
@@ -3335,7 +3418,6 @@ oneMoreTime:
                 }
                 else
                 {
-
                     var builder = ArrayBuilder<IArgumentOperation>.GetInstance(parametersCount, fillWithValue: null);
 
                     builder[--parametersCount] = new ArgumentOperation(getLoopControlVariableReference(forceImplicit: true), // Yes we are going to evaluate it again
@@ -3495,6 +3577,7 @@ oneMoreTime:
                                                                 isChecked: false,
                                                                 isCompareText: false,
                                                                 operatorMethod: null,
+                                                                unaryOperatorMethod: null,
                                                                 semanticModel: null,
                                                                 stepValue.Syntax,
                                                                 booleanType,
@@ -3653,6 +3736,7 @@ oneMoreTime:
                                                                  isChecked: false,
                                                                  isCompareText: false,
                                                                  operatorMethod: null,
+                                                                 unaryOperatorMethod: null,
                                                                  semanticModel: null,
                                                                  operation.LimitValue.Syntax,
                                                                  booleanType,
@@ -3686,6 +3770,7 @@ oneMoreTime:
                                                                                           isChecked: false,
                                                                                           isCompareText: false,
                                                                                           operatorMethod: null,
+                                                                                          unaryOperatorMethod: null,
                                                                                           semanticModel: null,
                                                                                           operation.StepValue.Syntax,
                                                                                           compilation.GetSpecialType(SpecialType.System_Boolean),
@@ -3729,6 +3814,7 @@ oneMoreTime:
                                                              isChecked: false,
                                                              isCompareText: false,
                                                              operatorMethod: null,
+                                                             unaryOperatorMethod: null,
                                                              semanticModel: null,
                                                              operation.LimitValue.Syntax,
                                                              booleanType,
@@ -3747,6 +3833,7 @@ oneMoreTime:
                                                              isChecked: false,
                                                              isCompareText: false,
                                                              operatorMethod: null,
+                                                             unaryOperatorMethod: null,
                                                              semanticModel: null,
                                                              operation.LimitValue.Syntax,
                                                              booleanType,
@@ -3778,6 +3865,7 @@ oneMoreTime:
                                                                isChecked: false,
                                                                isCompareText: false,
                                                                operatorMethod: null,
+                                                               unaryOperatorMethod: null,
                                                                semanticModel: null,
                                                                operand.Syntax,
                                                                operation.StepValue.Type,
@@ -3791,6 +3879,7 @@ oneMoreTime:
                                                     isChecked: false,
                                                     isCompareText: false,
                                                     operatorMethod: null,
+                                                    unaryOperatorMethod: null,
                                                     semanticModel: null,
                                                     operand.Syntax,
                                                     operand.Type,
@@ -3858,6 +3947,7 @@ oneMoreTime:
                                                                             isChecked: false,
                                                                             isCompareText: false,
                                                                             operatorMethod: null,
+                                                                            unaryOperatorMethod: null,
                                                                             semanticModel: null,
                                                                             operation.StepValue.Syntax,
                                                                             compilation.GetSpecialType(SpecialType.System_Boolean),
@@ -3912,6 +4002,7 @@ oneMoreTime:
                                                                         isChecked: operation.IsChecked,
                                                                         isCompareText: false,
                                                                         operatorMethod: null,
+                                                                        unaryOperatorMethod: null,
                                                                         semanticModel: null,
                                                                         operation.StepValue.Syntax,
                                                                         controlVariableReferenceForIncrement.Type,
@@ -4087,6 +4178,7 @@ oneMoreTime:
                                                                      isChecked: false,
                                                                      isCompareText: false,
                                                                      operatorMethod: null,
+                                                                     unaryOperatorMethod: null,
                                                                      semanticModel: null,
                                                                      compareWith.Syntax,
                                                                      booleanType,

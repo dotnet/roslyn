@@ -121,6 +121,11 @@ namespace Microsoft.CodeAnalysis
             return type.SpecialType == SpecialType.System_Boolean;
         }
 
+        internal static bool IsObjectType(ITypeSymbol type)
+        {
+            return type.SpecialType == SpecialType.System_Object;
+        }
+
         internal static bool IsSignedIntegralType(ITypeSymbol type)
         {
             return type.SpecialType.IsSignedIntegralType();

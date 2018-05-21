@@ -791,7 +791,9 @@ namespace Microsoft.CodeAnalysis.Operations
     /// </summary>
     internal abstract partial class BaseBinaryOperatorExpression : Operation, IBinaryOperation
     {
-        protected BaseBinaryOperatorExpression(BinaryOperatorKind operatorKind, bool isLifted, bool isChecked, bool isCompareText, IMethodSymbol operatorMethod, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
+        protected BaseBinaryOperatorExpression(BinaryOperatorKind operatorKind, bool isLifted, bool isChecked, bool isCompareText, 
+                                               IMethodSymbol operatorMethod, IMethodSymbol unaryOperatorMethod, SemanticModel semanticModel, 
+                                               SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
             base(OperationKind.BinaryOperator, semanticModel, syntax, type, constantValue, isImplicit)
         {
             OperatorKind = operatorKind;
@@ -799,6 +801,7 @@ namespace Microsoft.CodeAnalysis.Operations
             IsChecked = isChecked;
             IsCompareText = isCompareText;
             OperatorMethod = operatorMethod;
+            UnaryOperatorMethod = unaryOperatorMethod;
         }
         /// <summary>
         /// Kind of binary operation.
@@ -808,6 +811,13 @@ namespace Microsoft.CodeAnalysis.Operations
         /// Operator method used by the operation, null if the operation does not use an operator method.
         /// </summary>
         public IMethodSymbol OperatorMethod { get; }
+
+        /// <summary>
+        /// True/False operator method used for short circuiting.
+        /// PROTOTYPE(dataflow): figure out how to expose this information through public API
+        /// </summary>
+        public IMethodSymbol UnaryOperatorMethod { get; }
+
         /// <summary>
         /// <code>true</code> if this is a 'lifted' binary operator.  When there is an
         /// operator that is defined to work on a value type, 'lifted' operators are
@@ -860,8 +870,10 @@ namespace Microsoft.CodeAnalysis.Operations
     /// </summary>
     internal sealed partial class BinaryOperatorExpression : BaseBinaryOperatorExpression, IBinaryOperation
     {
-        public BinaryOperatorExpression(BinaryOperatorKind operatorKind, IOperation leftOperand, IOperation rightOperand, bool isLifted, bool isChecked, bool isCompareText, IMethodSymbol operatorMethod, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
-            base(operatorKind, isLifted, isChecked, isCompareText, operatorMethod, semanticModel, syntax, type, constantValue, isImplicit)
+        public BinaryOperatorExpression(BinaryOperatorKind operatorKind, IOperation leftOperand, IOperation rightOperand, bool isLifted, bool isChecked, bool isCompareText,
+                                        IMethodSymbol operatorMethod, IMethodSymbol unaryOperatorMethod, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type,
+                                        Optional<object> constantValue, bool isImplicit) :
+            base(operatorKind, isLifted, isChecked, isCompareText, operatorMethod, unaryOperatorMethod, semanticModel, syntax, type, constantValue, isImplicit)
         {
             LeftOperand = SetParentOperation(leftOperand, this);
             RightOperand = SetParentOperation(rightOperand, this);
@@ -879,8 +891,10 @@ namespace Microsoft.CodeAnalysis.Operations
         private readonly Lazy<IOperation> _lazyLeftOperand;
         private readonly Lazy<IOperation> _lazyRightOperand;
 
-        public LazyBinaryOperatorExpression(BinaryOperatorKind operatorKind, Lazy<IOperation> leftOperand, Lazy<IOperation> rightOperand, bool isLifted, bool isChecked, bool isCompareText, IMethodSymbol operatorMethod, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
-            base(operatorKind, isLifted, isChecked, isCompareText, operatorMethod, semanticModel, syntax, type, constantValue, isImplicit)
+        public LazyBinaryOperatorExpression(BinaryOperatorKind operatorKind, Lazy<IOperation> leftOperand, Lazy<IOperation> rightOperand, bool isLifted, bool isChecked, bool isCompareText,
+                                            IMethodSymbol operatorMethod, IMethodSymbol unaryOperatorMethod, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type,
+                                            Optional<object> constantValue, bool isImplicit) :
+            base(operatorKind, isLifted, isChecked, isCompareText, operatorMethod, unaryOperatorMethod, semanticModel, syntax, type, constantValue, isImplicit)
         {
             _lazyLeftOperand = leftOperand ?? throw new System.ArgumentNullException(nameof(leftOperand));
             _lazyRightOperand = rightOperand ?? throw new System.ArgumentNullException(nameof(rightOperand));

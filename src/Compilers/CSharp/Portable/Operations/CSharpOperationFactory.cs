@@ -1139,7 +1139,8 @@ namespace Microsoft.CodeAnalysis.Operations
             bool isChecked = boundBinaryOperator.OperatorKind.IsChecked();
             bool isCompareText = false;
             bool isImplicit = boundBinaryOperator.WasCompilerGenerated;
-            return new LazyBinaryOperatorExpression(operatorKind, leftOperand, rightOperand, isLifted, isChecked, isCompareText, operatorMethod, _semanticModel, syntax, type, constantValue, isImplicit);
+            return new LazyBinaryOperatorExpression(operatorKind, leftOperand, rightOperand, isLifted, isChecked, isCompareText, operatorMethod, unaryOperatorMethod: null,
+                                                    _semanticModel, syntax, type, constantValue, isImplicit);
         }
 
         private ITupleBinaryOperation CreateBoundTupleBinaryOperatorOperation(BoundTupleBinaryOperator boundTupleBinaryOperator)
