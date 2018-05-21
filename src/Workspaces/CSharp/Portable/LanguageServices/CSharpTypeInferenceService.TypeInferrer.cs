@@ -177,19 +177,20 @@ namespace Microsoft.CodeAnalysis.CSharp
             private IEnumerable<TypeInferenceInfo> InferTypeInArrowExpressionClause(ArrowExpressionClauseSyntax arrowClause)
             {
                 var parentSymbol = SemanticModel.GetDeclaredSymbol(arrowClause.Parent);
+                var symbolReturnType = GetSymbolReturnType();
 
-                switch (parentSymbol)
+                return symbolReturnType != null 
+                    ? SpecializedCollections.SingletonEnumerable(new TypeInferenceInfo(symbolReturnType))
+                    : SpecializedCollections.EmptyEnumerable<TypeInferenceInfo>();
+
+                ITypeSymbol GetSymbolReturnType()
                 {
-                    case IPropertySymbol propertySymbol:
-                        return propertySymbol.Type != null
-                            ? SpecializedCollections.SingletonEnumerable(new TypeInferenceInfo(propertySymbol.Type))
-                            : SpecializedCollections.EmptyEnumerable<TypeInferenceInfo>();
-                    case IMethodSymbol methodSymbol:
-                        return methodSymbol.ReturnType != null 
-                            ? SpecializedCollections.SingletonEnumerable(new TypeInferenceInfo(methodSymbol.ReturnType))
-                            : SpecializedCollections.EmptyEnumerable<TypeInferenceInfo>();
-                    default:
-                        return SpecializedCollections.EmptyEnumerable<TypeInferenceInfo>(); 
+                    switch (parentSymbol)
+                    {
+                        case IPropertySymbol property: return property?.Type;
+                        case IMethodSymbol method: return method?.ReturnType;
+                        default: return null;
+                    }
                 }
             }
 
