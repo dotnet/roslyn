@@ -2002,6 +2002,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     RefKind refKind = GetRefKind(refKindsOpt, i);
                     var argument = arguments[i];
                     var conversion = Conversion.Identity;
+                    // PROTOTYPE(NullableReferenceTypes): Should `RefKind.In` be treated similarly to `RefKind.None`?
                     if (refKind == RefKind.None)
                     {
                         (argument, conversion) = RemoveConversion(argument, includeExplicitConversions: false);
@@ -2572,6 +2573,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         // object? obj = ...; var s = (string)obj;
                         if (checkConversion)
                         {
+                            // PROTOTYPE(NullableReferenceTypes): Assert conversion is similar to original.
                             conversion = GenerateConversion(_conversions, operandOpt, operandType?.TypeSymbol, targetType, fromExplicitCast);
                             canConvert = conversion.Exists;
                         }

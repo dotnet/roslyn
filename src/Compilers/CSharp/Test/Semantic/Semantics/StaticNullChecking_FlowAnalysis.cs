@@ -282,41 +282,41 @@ class C
             var source =
 @"class C
 {
-    static void F(C x, Unknown? y)
+    static void F(C x1, Unknown? y1)
     {
-        var a = new[] { x, y };
-        a[0].ToString();
-        var b = new[] { y, x };
-        b[0].ToString();
+        var a1 = new[] { x1, y1 };
+        a1[0].ToString();
+        var b1 = new[] { y1, x1 };
+        b1[0].ToString();
     }
-    static void G(C? x, Unknown y)
+    static void G(C? x2, Unknown y2)
     {
-        var a = new[] { x, y };
-        a[0].ToString();
-        var b = new[] { y, x };
-        b[0].ToString();
+        var a2 = new[] { x2, y2 };
+        a2[0].ToString();
+        var b2 = new[] { y2, x2 };
+        b2[0].ToString();
     }
 }";
             var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
-                // (10,25): error CS0246: The type or namespace name 'Unknown' could not be found (are you missing a using directive or an assembly reference?)
-                //     static void G(C? x, Unknown y)
-                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "Unknown").WithArguments("Unknown").WithLocation(10, 25),
-                // (3,24): error CS0246: The type or namespace name 'Unknown' could not be found (are you missing a using directive or an assembly reference?)
-                //     static void F(C x, Unknown? y)
-                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "Unknown").WithArguments("Unknown").WithLocation(3, 24),
+                // (10,26): error CS0246: The type or namespace name 'Unknown' could not be found (are you missing a using directive or an assembly reference?)
+                //     static void G(C? x2, Unknown y2)
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "Unknown").WithArguments("Unknown").WithLocation(10, 26),
+                // (3,25): error CS0246: The type or namespace name 'Unknown' could not be found (are you missing a using directive or an assembly reference?)
+                //     static void F(C x1, Unknown? y1)
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "Unknown").WithArguments("Unknown").WithLocation(3, 25),
                 // (6,9): warning CS8602: Possible dereference of a null reference.
-                //         a[0].ToString();
-                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "a[0]").WithLocation(6, 9),
+                //         a1[0].ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "a1[0]").WithLocation(6, 9),
                 // (8,9): warning CS8602: Possible dereference of a null reference.
-                //         b[0].ToString();
-                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "b[0]").WithLocation(8, 9),
-                // (12,25): warning CS8601: Possible null reference assignment.
-                //         var a = new[] { x, y };
-                Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "x").WithLocation(12, 25),
-                // (14,28): warning CS8601: Possible null reference assignment.
-                //         var b = new[] { y, x };
-                Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "x").WithLocation(14, 28));
+                //         b1[0].ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "b1[0]").WithLocation(8, 9),
+                // (12,26): warning CS8601: Possible null reference assignment.
+                //         var a2 = new[] { x2, y2 };
+                Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "x2").WithLocation(12, 26),
+                // (14,30): warning CS8601: Possible null reference assignment.
+                //         var b2 = new[] { y2, x2 };
+                Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "x2").WithLocation(14, 30));
         }
 
         [Fact]
