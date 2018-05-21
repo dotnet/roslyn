@@ -1447,7 +1447,7 @@ Namespace Microsoft.CodeAnalysis.Operations
                         Return Create(boundUsingStatement.ResourceExpressionOpt)
                     End If
                 End Function)
-            Dim locals As ImmutableArray(Of ILocalSymbol) = boundUsingStatement.Locals.CastArray(Of ILocalSymbol)
+            Dim locals As ImmutableArray(Of ILocalSymbol) = ImmutableArray(Of ILocalSymbol).CastUp(boundUsingStatement.Locals)
             Dim syntax As SyntaxNode = boundUsingStatement.Syntax
             Dim type As ITypeSymbol = Nothing
             Dim constantValue As [Optional](Of Object) = New [Optional](Of Object)()
