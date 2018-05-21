@@ -1053,7 +1053,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
         {
             var model = compilation.GetSemanticModel(syntaxNode.SyntaxTree);
             ControlFlowGraph graph = ControlFlowGraphVerifier.GetControlFlowGraph(syntaxNode, model);
-            ControlFlowGraphVerifier.VerifyGraph(model.Compilation, expectedFlowGraph, graph);
+            ControlFlowGraphVerifier.VerifyGraph(compilation, expectedFlowGraph, graph);
         }
 
         protected static void VerifyOperationTreeForTest<TSyntaxNode>(

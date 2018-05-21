@@ -14,6 +14,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Fact]
         public void RegularMethodBody_01()
         {
+            // No block or expression body
             string source = @"
 abstract class C
 {
@@ -35,6 +36,7 @@ abstract class C
         [Fact]
         public void RegularMethodBody_02()
         {
+            // Block body with throw
             string source = @"
 class C
 {
@@ -80,6 +82,7 @@ Block[B2] - Exit [UnReachable]
         [Fact]
         public void RegularMethodBody_03()
         {
+            // Expression body with throw
             string source = @"
 class C
 {
@@ -117,16 +120,8 @@ Block[B1] - Block
     Statements (0)
     Next (Throw) Block[null]
         ILiteralOperation (OperationKind.Literal, Type: null, Constant: null) (Syntax: 'null')
-Block[B2] - Block [UnReachable]
+Block[B2] - Exit [UnReachable]
     Predecessors (0)
-    Statements (1)
-        IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null, IsImplicit) (Syntax: 'throw null')
-          Expression: 
-            IOperation:  (OperationKind.None, Type: null, IsImplicit) (Syntax: 'throw null')
-
-    Next (Regular) Block[B3]
-Block[B3] - Exit [UnReachable]
-    Predecessors: [B2]
     Statements (0)
 ");
         }
@@ -135,6 +130,7 @@ Block[B3] - Exit [UnReachable]
         [Fact]
         public void RegularMethodBody_04()
         {
+            // Block and expression body with throw
             string source = @"
 class C
 {
@@ -189,19 +185,10 @@ Block[B1] - Block
         Statements (0)
         Next (Throw) Block[null]
             ILiteralOperation (OperationKind.Literal, Type: null, Constant: null, IsInvalid) (Syntax: 'null')
-    Block[B3] - Block [UnReachable]
-        Predecessors (0)
-        Statements (1)
-            IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null, IsInvalid, IsImplicit) (Syntax: 'throw null')
-              Expression: 
-                IOperation:  (OperationKind.None, Type: null, IsInvalid, IsImplicit) (Syntax: 'throw null')
-
-        Next (Regular) Block[B4]
-            Leaving: {R1}
 }
 
-Block[B4] - Exit [UnReachable]
-    Predecessors: [B3]
+Block[B3] - Exit [UnReachable]
+    Predecessors (0)
     Statements (0)
 ");
         }
@@ -210,6 +197,7 @@ Block[B4] - Exit [UnReachable]
         [Fact]
         public void RegularMethodBody_05()
         {
+            // Block body with non-exceptional flow
             string source = @"
 class C
 {
@@ -223,22 +211,6 @@ class C
 
             var tree = compilation.SyntaxTrees.Single();
             var node1 = tree.GetRoot().DescendantNodes().OfType<BaseMethodDeclarationSyntax>().Single();
-
-            compilation.VerifyOperationTree(node1, expectedOperationTree:
-@"
-IMethodBodyOperation (OperationKind.MethodBodyOperation, Type: null) (Syntax: 'public void ... { j = i; }')
-  BlockBody: 
-    IBlockOperation (1 statements) (OperationKind.Block, Type: null) (Syntax: '{ j = i; }')
-      IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'j = i;')
-        Expression: 
-          ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32) (Syntax: 'j = i')
-            Left: 
-              IParameterReferenceOperation: j (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'j')
-            Right: 
-              IParameterReferenceOperation: i (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'i')
-  ExpressionBody: 
-    null
-");
 
             VerifyFlowGraph(compilation, node1, expectedFlowGraph:
 @"
@@ -267,6 +239,7 @@ Block[B2] - Exit
         [Fact]
         public void RegularMethodBody_06()
         {
+            // Expression body with non-exceptional flow
             string source = @"
 class C
 {
@@ -280,22 +253,6 @@ class C
 
             var tree = compilation.SyntaxTrees.Single();
             var node1 = tree.GetRoot().DescendantNodes().OfType<BaseMethodDeclarationSyntax>().Single();
-
-            compilation.VerifyOperationTree(node1, expectedOperationTree:
-@"
-IMethodBodyOperation (OperationKind.MethodBodyOperation, Type: null) (Syntax: 'public void ... => j = i;')
-  BlockBody: 
-    null
-  ExpressionBody: 
-    IBlockOperation (1 statements) (OperationKind.Block, Type: null) (Syntax: '=> j = i')
-      IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null, IsImplicit) (Syntax: 'j = i')
-        Expression: 
-          ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32) (Syntax: 'j = i')
-            Left: 
-              IParameterReferenceOperation: j (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'j')
-            Right: 
-              IParameterReferenceOperation: i (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'i')
-");
 
             VerifyFlowGraph(compilation, node1, expectedFlowGraph:
 @"
@@ -324,12 +281,13 @@ Block[B2] - Exit
         [Fact]
         public void RegularMethodBody_07()
         {
+            // Block and expression body with non-exceptional flow
             string source = @"
 class C
 {
-    public void M(int i, int j)
-    { j = i; }
-    => j = i;
+    public void M(int i1, int i2, int j1, int j2)
+    { i1 = j1; }
+    => i2 = j2;
 }
 ";
             var compilation = CreateCompilation(source, parseOptions: TestOptions.RegularWithFlowAnalysisFeature);
@@ -337,35 +295,12 @@ class C
             compilation.VerifyDiagnostics(
                 // (4,5): error CS8057: Block bodies and expression bodies cannot both be provided.
                 //     public void M(int i, int j)
-                Diagnostic(ErrorCode.ERR_BlockBodyAndExpressionBody, @"public void M(int i, int j)
-    { j = i; }
-    => j = i;").WithLocation(4, 5));
+                Diagnostic(ErrorCode.ERR_BlockBodyAndExpressionBody, @"public void M(int i1, int i2, int j1, int j2)
+    { i1 = j1; }
+    => i2 = j2;").WithLocation(4, 5));
 
             var tree = compilation.SyntaxTrees.Single();
             var node1 = tree.GetRoot().DescendantNodes().OfType<BaseMethodDeclarationSyntax>().Single();
-
-            compilation.VerifyOperationTree(node1, expectedOperationTree:
-@"
-IMethodBodyOperation (OperationKind.MethodBodyOperation, Type: null, IsInvalid) (Syntax: 'public void ... => j = i;')
-  BlockBody: 
-    IBlockOperation (1 statements) (OperationKind.Block, Type: null, IsInvalid) (Syntax: '{ j = i; }')
-      IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null, IsInvalid) (Syntax: 'j = i;')
-        Expression: 
-          ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32, IsInvalid) (Syntax: 'j = i')
-            Left: 
-              IParameterReferenceOperation: j (OperationKind.ParameterReference, Type: System.Int32, IsInvalid) (Syntax: 'j')
-            Right: 
-              IParameterReferenceOperation: i (OperationKind.ParameterReference, Type: System.Int32, IsInvalid) (Syntax: 'i')
-  ExpressionBody: 
-    IBlockOperation (1 statements) (OperationKind.Block, Type: null, IsInvalid) (Syntax: '=> j = i')
-      IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null, IsInvalid, IsImplicit) (Syntax: 'j = i')
-        Expression: 
-          ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32, IsInvalid) (Syntax: 'j = i')
-            Left: 
-              IParameterReferenceOperation: j (OperationKind.ParameterReference, Type: System.Int32, IsInvalid) (Syntax: 'j')
-            Right: 
-              IParameterReferenceOperation: i (OperationKind.ParameterReference, Type: System.Int32, IsInvalid) (Syntax: 'i')
-");
 
             VerifyFlowGraph(compilation, node1, expectedFlowGraph:
 @"
@@ -375,13 +310,13 @@ Block[B0] - Entry
 Block[B1] - Block
     Predecessors: [B0]
     Statements (1)
-        IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null, IsInvalid) (Syntax: 'j = i;')
+        IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null, IsInvalid) (Syntax: 'i1 = j1;')
           Expression: 
-            ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32, IsInvalid) (Syntax: 'j = i')
+            ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32, IsInvalid) (Syntax: 'i1 = j1')
               Left: 
-                IParameterReferenceOperation: j (OperationKind.ParameterReference, Type: System.Int32, IsInvalid) (Syntax: 'j')
+                IParameterReferenceOperation: i1 (OperationKind.ParameterReference, Type: System.Int32, IsInvalid) (Syntax: 'i1')
               Right: 
-                IParameterReferenceOperation: i (OperationKind.ParameterReference, Type: System.Int32, IsInvalid) (Syntax: 'i')
+                IParameterReferenceOperation: j1 (OperationKind.ParameterReference, Type: System.Int32, IsInvalid) (Syntax: 'j1')
 
     Next (Regular) Block[B3]
 
@@ -390,13 +325,13 @@ Block[B1] - Block
     Block[B2] - Block [UnReachable]
         Predecessors (0)
         Statements (1)
-            IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null, IsInvalid, IsImplicit) (Syntax: 'j = i')
+            IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null, IsInvalid, IsImplicit) (Syntax: 'i2 = j2')
               Expression: 
-                ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32, IsInvalid) (Syntax: 'j = i')
+                ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32, IsInvalid) (Syntax: 'i2 = j2')
                   Left: 
-                    IParameterReferenceOperation: j (OperationKind.ParameterReference, Type: System.Int32, IsInvalid) (Syntax: 'j')
+                    IParameterReferenceOperation: i2 (OperationKind.ParameterReference, Type: System.Int32, IsInvalid) (Syntax: 'i2')
                   Right: 
-                    IParameterReferenceOperation: i (OperationKind.ParameterReference, Type: System.Int32, IsInvalid) (Syntax: 'i')
+                    IParameterReferenceOperation: j2 (OperationKind.ParameterReference, Type: System.Int32, IsInvalid) (Syntax: 'j2')
 
         Next (Regular) Block[B3]
             Leaving: {R1}
@@ -412,6 +347,8 @@ Block[B3] - Exit
         [Fact]
         public void RegularMethodBody_08()
         {
+            // Verify block body with a return statement, followed by throw in expression body.
+            // This caught an assert when attempting to link current basic block which was already linked to exit.
             string source = @"
 class C
 {
@@ -432,27 +369,11 @@ class C
             var tree = compilation.SyntaxTrees.Single();
             var node1 = tree.GetRoot().DescendantNodes().OfType<BaseMethodDeclarationSyntax>().Single();
 
-            compilation.VerifyOperationTree(node1, expectedOperationTree:
-@"
-IMethodBodyOperation (OperationKind.MethodBodyOperation, Type: null, IsInvalid) (Syntax: 'public void ... throw null;')
-  BlockBody: 
-    IBlockOperation (1 statements) (OperationKind.Block, Type: null, IsInvalid) (Syntax: '{ return; }')
-      IReturnOperation (OperationKind.Return, Type: null, IsInvalid) (Syntax: 'return;')
-        ReturnedValue: 
-          null
-  ExpressionBody: 
-    IBlockOperation (1 statements) (OperationKind.Block, Type: null, IsInvalid) (Syntax: '=> throw null')
-      IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null, IsInvalid, IsImplicit) (Syntax: 'throw null')
-        Expression: 
-          IThrowOperation (OperationKind.Throw, Type: null, IsInvalid) (Syntax: 'throw null')
-            ILiteralOperation (OperationKind.Literal, Type: null, Constant: null, IsInvalid) (Syntax: 'null')
-");
-
             VerifyFlowGraph(compilation, node1, expectedFlowGraph:
 @"
 Block[B0] - Entry
     Statements (0)
-    Next (Regular) Block[B3]
+    Next (Regular) Block[B2]
 
 .erroneous body {R1}
 {
@@ -461,19 +382,10 @@ Block[B0] - Entry
         Statements (0)
         Next (Throw) Block[null]
             ILiteralOperation (OperationKind.Literal, Type: null, Constant: null, IsInvalid) (Syntax: 'null')
-    Block[B2] - Block [UnReachable]
-        Predecessors (0)
-        Statements (1)
-            IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null, IsInvalid, IsImplicit) (Syntax: 'throw null')
-              Expression: 
-                IOperation:  (OperationKind.None, Type: null, IsInvalid, IsImplicit) (Syntax: 'throw null')
-
-        Next (Regular) Block[B3]
-            Leaving: {R1}
 }
 
-Block[B3] - Exit
-    Predecessors: [B0] [B2]
+Block[B2] - Exit
+    Predecessors: [B0]
     Statements (0)
 ");
         }
@@ -482,11 +394,14 @@ Block[B3] - Exit
         [Fact]
         public void RegularMethodBody_09()
         {
+            // Expression body with local declarations.
             string source = @"
 class C
 {
     public void M()
-    { }
+    => M2(out int x);
+
+    void M2(out int x) => x = 0;
 }
 ";
             var compilation = CreateCompilation(source, parseOptions: TestOptions.RegularWithFlowAnalysisFeature);
@@ -494,24 +409,39 @@ class C
             compilation.VerifyDiagnostics();
 
             var tree = compilation.SyntaxTrees.Single();
-            var node1 = tree.GetRoot().DescendantNodes().OfType<BaseMethodDeclarationSyntax>().Single();
-
-            compilation.VerifyOperationTree(node1, expectedOperationTree:
-@"
-IMethodBodyOperation (OperationKind.MethodBodyOperation, Type: null) (Syntax: 'public void ... { }')
-  BlockBody: 
-    IBlockOperation (0 statements) (OperationKind.Block, Type: null) (Syntax: '{ }')
-  ExpressionBody: 
-    null
-");
+            var node1 = tree.GetRoot().DescendantNodes().OfType<BaseMethodDeclarationSyntax>().First();
 
             VerifyFlowGraph(compilation, node1, expectedFlowGraph:
 @"
 Block[B0] - Entry
     Statements (0)
     Next (Regular) Block[B1]
-Block[B1] - Exit
-    Predecessors: [B0]
+        Entering: {R1}
+
+.locals {R1}
+{
+    Locals: [System.Int32 x]
+    Block[B1] - Block
+        Predecessors: [B0]
+        Statements (1)
+            IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null, IsImplicit) (Syntax: 'M2(out int x)')
+              Expression: 
+                IInvocationOperation ( void C.M2(out System.Int32 x)) (OperationKind.Invocation, Type: System.Void) (Syntax: 'M2(out int x)')
+                  Instance Receiver: 
+                    IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: C, IsImplicit) (Syntax: 'M2')
+                  Arguments(1):
+                      IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: x) (OperationKind.Argument, Type: null) (Syntax: 'out int x')
+                        IDeclarationExpressionOperation (OperationKind.DeclarationExpression, Type: System.Int32) (Syntax: 'int x')
+                          ILocalReferenceOperation: x (IsDeclaration: True) (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'x')
+                        InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                        OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+
+        Next (Regular) Block[B2]
+            Leaving: {R1}
+}
+
+Block[B2] - Exit
+    Predecessors: [B1]
     Statements (0)
 ");
         }
@@ -520,6 +450,7 @@ Block[B1] - Exit
         [Fact]
         public void RegularMethodBody_10()
         {
+            // Block body and expression body with local declarations.
             string source = @"
 class C
 {
@@ -541,27 +472,6 @@ class C
 
             var tree = compilation.SyntaxTrees.Single();
             var node1 = tree.GetRoot().DescendantNodes().OfType<BaseMethodDeclarationSyntax>().First();
-
-            compilation.VerifyOperationTree(node1, expectedOperationTree:
-@"
-IMethodBodyOperation (OperationKind.MethodBodyOperation, Type: null, IsInvalid) (Syntax: 'public void ... out int x);')
-  BlockBody: 
-    IBlockOperation (0 statements) (OperationKind.Block, Type: null, IsInvalid) (Syntax: '{ }')
-  ExpressionBody: 
-    IBlockOperation (1 statements, 1 locals) (OperationKind.Block, Type: null, IsInvalid) (Syntax: '=> M2(out int x)')
-      Locals: Local_1: System.Int32 x
-      IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null, IsInvalid, IsImplicit) (Syntax: 'M2(out int x)')
-        Expression: 
-          IInvocationOperation ( void C.M2(out System.Int32 x)) (OperationKind.Invocation, Type: System.Void, IsInvalid) (Syntax: 'M2(out int x)')
-            Instance Receiver: 
-              IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: C, IsInvalid, IsImplicit) (Syntax: 'M2')
-            Arguments(1):
-                IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: x) (OperationKind.Argument, Type: null, IsInvalid) (Syntax: 'out int x')
-                  IDeclarationExpressionOperation (OperationKind.DeclarationExpression, Type: System.Int32, IsInvalid) (Syntax: 'int x')
-                    ILocalReferenceOperation: x (IsDeclaration: True) (OperationKind.LocalReference, Type: System.Int32, IsInvalid) (Syntax: 'x')
-                  InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                  OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-");
 
             VerifyFlowGraph(compilation, node1, expectedFlowGraph:
 @"

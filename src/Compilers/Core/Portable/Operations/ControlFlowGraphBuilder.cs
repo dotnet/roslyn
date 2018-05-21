@@ -1270,11 +1270,8 @@ namespace Microsoft.CodeAnalysis.Operations
                 if (operation.ExpressionBody != null)
                 {
                     // Link last block of visited BlockBody to the exit block.
-                    BasicBlock lastBlock = _blocks.Last();
-                    if (lastBlock.InternalNext.Branch.Destination == null)
-                    {
-                        LinkBlocks(lastBlock, _exit);
-                    }
+                    LinkBlocks(CurrentBasicBlock, _exit);
+                    _currentBasicBlock = null;
 
                     // Generate a special region for unreachable erroneous expression body.
                     EnterRegion(new RegionBuilder(ControlFlowGraph.RegionKind.ErroneousBody));
@@ -2149,6 +2146,10 @@ oneMoreTime:
             if (underlying == null)
             {
                 Debug.Assert(operation.Operation.Kind == OperationKind.ConditionalAccess);
+                return null;
+            }
+            else if (operation.Operation.Kind == OperationKind.Throw)
+            {
                 return null;
             }
 
