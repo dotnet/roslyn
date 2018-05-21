@@ -260,6 +260,10 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
                 Return
             End If
 
+            If (session.IsDismissed) Then
+                Return
+            End If
+
             Try
                 session.GetComputedItems(CancellationToken.None)
             Catch ex As IndexOutOfRangeException
