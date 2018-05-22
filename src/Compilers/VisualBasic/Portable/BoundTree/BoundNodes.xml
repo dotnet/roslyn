@@ -1667,7 +1667,8 @@
       <Field Name="ResourceList" Type="ImmutableArray(Of BoundLocalDeclarationBase)" Null="allow" />
       <Field Name="ResourceExpressionOpt" Type="BoundExpression" Null="allow" />
       <Field Name="Body" Type="BoundBlock" Null="disallow" />
-      <Field Name="UsingInfo" Type="UsingInfo" Null="disallow" />    
+      <Field Name="UsingInfo" Type="UsingInfo" Null="disallow" />
+      <Field Name="Locals" Type="ImmutableArray(Of LocalSymbol)"/>
     </Node>
 
   <Node Name="BoundSyncLockStatement" Base="BoundStatement">

@@ -62,6 +62,7 @@ Microsoft.CodeAnalysis.Operations.ControlFlowGraph.Region.Locals.get -> System.C
 Microsoft.CodeAnalysis.Operations.ControlFlowGraph.Region.Regions.get -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Operations.ControlFlowGraph.Region>
 Microsoft.CodeAnalysis.Operations.ControlFlowGraph.RegionKind
 Microsoft.CodeAnalysis.Operations.ControlFlowGraph.RegionKind.Catch = 4 -> Microsoft.CodeAnalysis.Operations.ControlFlowGraph.RegionKind
+Microsoft.CodeAnalysis.Operations.ControlFlowGraph.RegionKind.ErroneousBody = 10 -> Microsoft.CodeAnalysis.Operations.ControlFlowGraph.RegionKind
 Microsoft.CodeAnalysis.Operations.ControlFlowGraph.RegionKind.Filter = 3 -> Microsoft.CodeAnalysis.Operations.ControlFlowGraph.RegionKind
 Microsoft.CodeAnalysis.Operations.ControlFlowGraph.RegionKind.FilterAndHandler = 5 -> Microsoft.CodeAnalysis.Operations.ControlFlowGraph.RegionKind
 Microsoft.CodeAnalysis.Operations.ControlFlowGraph.RegionKind.Finally = 7 -> Microsoft.CodeAnalysis.Operations.ControlFlowGraph.RegionKind
@@ -109,6 +110,7 @@ Microsoft.CodeAnalysis.Operations.ITupleBinaryOperation.LeftOperand.get -> Micro
 Microsoft.CodeAnalysis.Operations.ITupleBinaryOperation.OperatorKind.get -> Microsoft.CodeAnalysis.Operations.BinaryOperatorKind
 Microsoft.CodeAnalysis.Operations.ITupleBinaryOperation.RightOperand.get -> Microsoft.CodeAnalysis.IOperation
 Microsoft.CodeAnalysis.Operations.ITupleOperation.NaturalType.get -> Microsoft.CodeAnalysis.ITypeSymbol
+Microsoft.CodeAnalysis.Operations.IUsingOperation.Locals.get -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.ILocalSymbol>
 Microsoft.CodeAnalysis.Operations.InstanceReferenceKind
 Microsoft.CodeAnalysis.Operations.InstanceReferenceKind.ContainingTypeInstance = 0 -> Microsoft.CodeAnalysis.Operations.InstanceReferenceKind
 Microsoft.CodeAnalysis.Operations.InstanceReferenceKind.ImplicitReceiver = 1 -> Microsoft.CodeAnalysis.Operations.InstanceReferenceKind
@@ -118,7 +120,9 @@ abstract Microsoft.CodeAnalysis.DataFlowAnalysis.CapturedOutside.get -> System.C
 const Microsoft.CodeAnalysis.WellKnownMemberNames.DeconstructMethodName = "Deconstruct" -> string
 static Microsoft.CodeAnalysis.Diagnostic.Create(Microsoft.CodeAnalysis.DiagnosticDescriptor descriptor, Microsoft.CodeAnalysis.Location location, Microsoft.CodeAnalysis.DiagnosticSeverity effectiveSeverity, System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.Location> additionalLocations, System.Collections.Immutable.ImmutableDictionary<string, string> properties, params object[] messageArgs) -> Microsoft.CodeAnalysis.Diagnostic
 static Microsoft.CodeAnalysis.SemanticModel.GetControlFlowGraph(Microsoft.CodeAnalysis.Operations.IBlockOperation body) -> Microsoft.CodeAnalysis.Operations.ControlFlowGraph
+static Microsoft.CodeAnalysis.SemanticModel.GetControlFlowGraph(Microsoft.CodeAnalysis.Operations.IConstructorBodyOperation constructorBody) -> Microsoft.CodeAnalysis.Operations.ControlFlowGraph
 static Microsoft.CodeAnalysis.SemanticModel.GetControlFlowGraph(Microsoft.CodeAnalysis.Operations.IFieldInitializerOperation initializer) -> Microsoft.CodeAnalysis.Operations.ControlFlowGraph
+static Microsoft.CodeAnalysis.SemanticModel.GetControlFlowGraph(Microsoft.CodeAnalysis.Operations.IMethodBodyOperation methodBody) -> Microsoft.CodeAnalysis.Operations.ControlFlowGraph
 static Microsoft.CodeAnalysis.SemanticModel.GetControlFlowGraph(Microsoft.CodeAnalysis.Operations.IParameterInitializerOperation initializer) -> Microsoft.CodeAnalysis.Operations.ControlFlowGraph
 static Microsoft.CodeAnalysis.SemanticModel.GetControlFlowGraph(Microsoft.CodeAnalysis.Operations.IPropertyInitializerOperation initializer) -> Microsoft.CodeAnalysis.Operations.ControlFlowGraph
 virtual Microsoft.CodeAnalysis.Operations.OperationVisitor.VisitCaughtException(Microsoft.CodeAnalysis.Operations.ICaughtExceptionOperation operation) -> void

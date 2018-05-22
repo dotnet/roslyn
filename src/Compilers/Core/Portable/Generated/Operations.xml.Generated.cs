@@ -5495,9 +5495,10 @@ namespace Microsoft.CodeAnalysis.Operations
     /// </summary>
     internal abstract partial class BaseUsingStatement : Operation, IUsingOperation
     {
-        protected BaseUsingStatement(SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
+        protected BaseUsingStatement(ImmutableArray<ILocalSymbol> locals, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
             base(OperationKind.Using, semanticModel, syntax, type, constantValue, isImplicit)
         {
+            Locals = locals;
         }
         public override IEnumerable<IOperation> Children
         {
@@ -5524,6 +5525,11 @@ namespace Microsoft.CodeAnalysis.Operations
         /// </summary>
         public abstract IOperation Body { get; }
 
+        /// <summary>
+        /// Locals declared within the <see cref="Resources"/> with scope spanning across this entire <see cref="IUsingOperation"/>.
+        /// </summary>
+        public ImmutableArray<ILocalSymbol> Locals { get; }
+
         public override void Accept(OperationVisitor visitor)
         {
             visitor.VisitUsing(this);
@@ -5539,8 +5545,8 @@ namespace Microsoft.CodeAnalysis.Operations
     /// </summary>
     internal sealed partial class UsingStatement : BaseUsingStatement, IUsingOperation
     {
-        public UsingStatement(IOperation resources, IOperation body, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
-            base(semanticModel, syntax, type, constantValue, isImplicit)
+        public UsingStatement(IOperation resources, IOperation body, ImmutableArray<ILocalSymbol> locals, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
+            base(locals, semanticModel, syntax, type, constantValue, isImplicit)
         {
             Resources = SetParentOperation(resources, this);
             Body = SetParentOperation(body, this);
@@ -5558,8 +5564,8 @@ namespace Microsoft.CodeAnalysis.Operations
         private readonly Lazy<IOperation> _lazyResources;
         private readonly Lazy<IOperation> _lazyBody;
 
-        public LazyUsingStatement(Lazy<IOperation> resources, Lazy<IOperation> body, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
-            base(semanticModel, syntax, type, constantValue, isImplicit)
+        public LazyUsingStatement(Lazy<IOperation> resources, Lazy<IOperation> body, ImmutableArray<ILocalSymbol> locals, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
+            base(locals, semanticModel, syntax, type, constantValue, isImplicit)
         {
             _lazyResources = resources ?? throw new System.ArgumentNullException(nameof(resources));
             _lazyBody = body ?? throw new System.ArgumentNullException(nameof(body));

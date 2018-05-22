@@ -57,7 +57,10 @@ namespace Microsoft.CodeAnalysis.Operations
             //                      throughout the process rather than getting them from individual nodes.
 
             Debug.Assert(body != null);
+            Debug.Assert(body.Parent == null);
             Debug.Assert(body.Kind == OperationKind.Block ||
+                body.Kind == OperationKind.MethodBodyOperation ||
+                body.Kind == OperationKind.ConstructorBodyOperation ||
                 body.Kind == OperationKind.FieldInitializer ||
                 body.Kind == OperationKind.PropertyInitializer ||
                 body.Kind == OperationKind.ParameterInitializer,
@@ -453,6 +456,7 @@ namespace Microsoft.CodeAnalysis.Operations
                     case ControlFlowGraph.RegionKind.Finally:
                     case ControlFlowGraph.RegionKind.Locals:
                     case ControlFlowGraph.RegionKind.StaticLocalInitializer:
+                    case ControlFlowGraph.RegionKind.ErroneousBody:
 
                         if (region.Regions?.Count == 1)
                         {
@@ -1074,6 +1078,10 @@ namespace Microsoft.CodeAnalysis.Operations
                 if (labeled.Ordinal == -1)
                 {
                     // Neither VB nor C# produce trees with unresolved branches 
+                    // PROTOTYPE(dataflow): It looks like we can get here for blocks from script if block doesn't include all code.
+                    //                      See Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen.GotoTests.OutOfScriptBlock
+                    //                      Need to figure out what to do for scripts, either we should disallow getting CFG for them,
+                    //                      or should have a reliable way to check for completeness of the code given to us. 
                     throw ExceptionUtilities.Unreachable;
                 }
             }
@@ -1084,7 +1092,9 @@ namespace Microsoft.CodeAnalysis.Operations
             IOperation saveCurrentStatement = _currentStatement;
             _currentStatement = operation;
             Debug.Assert(_evalStack.Count == 0);
-            Debug.Assert(_currentInitializedInstance == null);
+
+            // PROTOTYPE(dataflow): This assert doesn't hold with the current handling of With statement
+            //Debug.Assert(_currentInitializedInstance == null);
 
             AddStatement(Visit(operation, null));
             Debug.Assert(_evalStack.Count == 0);
@@ -1135,6 +1145,11 @@ namespace Microsoft.CodeAnalysis.Operations
                 {
                     LinkBlocks(prevBlock, block);
                 }
+            }
+
+            if (block.Ordinal != -1)
+            {
+                throw ExceptionUtilities.Unreachable;
             }
 
             block.Ordinal = _blocks.Count;
@@ -1207,6 +1222,66 @@ namespace Microsoft.CodeAnalysis.Operations
             foreach (var statement in statements)
             {
                 VisitStatement(statement);
+            }
+        }
+
+        public override IOperation VisitConstructorBodyOperation(IConstructorBodyOperation operation, int? captureIdForResult)
+        {
+            Debug.Assert(_currentStatement == operation);
+
+            bool haveLocals = !operation.Locals.IsEmpty;
+            if (haveLocals)
+            {
+                EnterRegion(new RegionBuilder(ControlFlowGraph.RegionKind.Locals, locals: operation.Locals));
+            }
+
+            if (operation.Initializer != null)
+            {
+                VisitStatement(operation.Initializer);
+            }
+
+            VisitMethodBodyBaseOperation(operation);
+
+            if (haveLocals)
+            {
+                LeaveRegion();
+            }
+
+            return null;
+        }
+
+        public override IOperation VisitMethodBodyOperation(IMethodBodyOperation operation, int? captureIdForResult)
+        {
+            Debug.Assert(_currentStatement == operation);
+
+            VisitMethodBodyBaseOperation(operation);
+            return null;
+        }
+
+        private void VisitMethodBodyBaseOperation(IMethodBodyBaseOperation operation)
+        {
+            Debug.Assert(_currentStatement == operation);
+
+            if (operation.BlockBody != null)
+            {
+                VisitStatement(operation.BlockBody);
+
+                // Check for error case with non-null BlockBody and non-null ExpressionBody.
+                if (operation.ExpressionBody != null)
+                {
+                    // Link last block of visited BlockBody to the exit block.
+                    LinkBlocks(CurrentBasicBlock, _exit);
+                    _currentBasicBlock = null;
+
+                    // Generate a special region for unreachable erroneous expression body.
+                    EnterRegion(new RegionBuilder(ControlFlowGraph.RegionKind.ErroneousBody));
+                    VisitStatement(operation.ExpressionBody);
+                    LeaveRegion();
+                }
+            }
+            else if (operation.ExpressionBody != null)
+            {
+                VisitStatement(operation.ExpressionBody);
             }
         }
 
@@ -1468,7 +1543,10 @@ namespace Microsoft.CodeAnalysis.Operations
         public override IOperation VisitUnaryOperator(IUnaryOperation operation, int? captureIdForResult)
         {
             // PROTOTYPE(dataflow): ensure we properly detect logical Not
-            if (operation.OperatorKind == UnaryOperatorKind.Not)
+            //                      For example, Microsoft.CodeAnalysis.CSharp.UnitTests.IOperationTests.Test_UnaryOperatorExpression_Type_LogicalNot_dynamic
+            if (operation.OperatorKind == UnaryOperatorKind.Not && 
+                operation.Type.SpecialType == SpecialType.System_Boolean &&
+                operation.OperatorMethod == null)
             {
                 return VisitConditionalExpression(operation.Operand, sense: false, captureIdForResult, fallToTrueOpt: null, fallToFalseOpt: null);
             }
@@ -1938,7 +2016,11 @@ oneMoreTime:
                                MakeInvalidOperation(((INamedTypeSymbol)testExpressionType).TypeArguments[0], receiver);
                 }
 
-                Debug.Assert(_currentConditionalAccessInstance == null);
+                // PROTOTYPE(dataflow): It looks like there is a bug in IOperation tree around XmlMemberAccessExpressionSyntax,
+                //                      a None operation is created and all children are dropped.
+                //                      See Microsoft.CodeAnalysis.VisualBasic.UnitTests.Semantics.ConditionalAccessTests.AnonymousTypeMemberName_01
+                //                      The following assert is triggered because of that. Disabling it for now.
+                //Debug.Assert(_currentConditionalAccessInstance == null);
                 _currentConditionalAccessInstance = receiver;
 
                 if (currentConditionalAccess.WhenNotNull.Kind != OperationKind.ConditionalAccess)
@@ -1956,7 +2038,11 @@ oneMoreTime:
                 Debug.Assert(captureIdForResult == null);
 
                 IOperation result = Visit(currentConditionalAccess.WhenNotNull);
-                Debug.Assert(_currentConditionalAccessInstance == null);
+                // PROTOTYPE(dataflow): It looks like there is a bug in IOperation tree,
+                //                      See Microsoft.CodeAnalysis.VisualBasic.UnitTests.Semantics.ConditionalAccessTests.ConditionalAccessToEvent_04
+                //                      The following assert is triggered because of that. Disabling it for now.
+                //Debug.Assert(_currentConditionalAccessInstance == null);
+                _currentConditionalAccessInstance = null;
 
                 if (_currentStatement != operation)
                 {
@@ -1987,7 +2073,12 @@ oneMoreTime:
                     VisitAndCapture(currentConditionalAccess.WhenNotNull, resultCaptureId);
                 }
 
-                Debug.Assert(_currentConditionalAccessInstance == null);
+                // PROTOTYPE(dataflow): It looks like there is a bug in IOperation tree around XmlMemberAccessExpressionSyntax,
+                //                      a None operation is created and all children are dropped.
+                //                      See Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator.UnitTests.ExpressionCompilerTests.ConditionalAccessExpressionType
+                //                      The following assert is triggered because of that. Disabling it for now.
+                //Debug.Assert(_currentConditionalAccessInstance == null);
+                _currentConditionalAccessInstance = null;
 
                 var afterAccess = new BasicBlock(BasicBlockKind.Block);
                 LinkBlocks(CurrentBasicBlock, afterAccess);
@@ -2064,6 +2155,10 @@ oneMoreTime:
                 Debug.Assert(operation.Operation.Kind == OperationKind.ConditionalAccess);
                 return null;
             }
+            else if (operation.Operation.Kind == OperationKind.Throw)
+            {
+                return null;
+            }
 
             return new ExpressionStatement(underlying, semanticModel: null, operation.Syntax, operation.Type, operation.ConstantValue, IsImplicit(operation));
         }
@@ -2136,7 +2231,15 @@ oneMoreTime:
 
                 AppendNewBlock(@continue);
 
-                VisitConditionalBranch(operation.Condition, ref start, sense: !operation.ConditionIsUntil);
+                if (operation.Condition != null)
+                {
+                    VisitConditionalBranch(operation.Condition, ref start, sense: !operation.ConditionIsUntil);
+                }
+                else
+                {
+                    LinkBlocks(CurrentBasicBlock, start);
+                    _currentBasicBlock = null;
+                }
             }
 
             if (haveLocals)
@@ -2151,10 +2254,18 @@ oneMoreTime:
 
         public override IOperation VisitTry(ITryOperation operation, int? captureIdForResult)
         {
+            Debug.Assert(_currentStatement == operation);
+
+            var afterTryCatchFinally = GetLabeledOrNewBlock(operation.ExitLabel);
+
             if (operation.Catches.IsEmpty && operation.Finally == null)
             {
                 // Malformed node without handlers
-                throw ExceptionUtilities.Unreachable;
+                // It looks like we can get here for VB only. Let's recover the same way C# does, i.e.
+                // pretend that there is no Try. Just visit body.
+                VisitStatement(operation.Body);
+                AppendNewBlock(afterTryCatchFinally);
+                return null;
             }
 
             RegionBuilder tryAndFinallyRegion = null;
@@ -2172,8 +2283,6 @@ oneMoreTime:
                 EnterRegion(new RegionBuilder(ControlFlowGraph.RegionKind.TryAndCatch));
                 EnterRegion(new RegionBuilder(ControlFlowGraph.RegionKind.Try));
             }
-
-            var afterTryCatchFinally = GetLabeledOrNewBlock(operation.ExitLabel);
 
             VisitStatement(operation.Body);
             LinkBlocks(CurrentBasicBlock, afterTryCatchFinally);
@@ -2343,7 +2452,15 @@ oneMoreTime:
         {
             Debug.Assert(_currentStatement == operation);
 
-            AppendNewBlock(GetLabeledOrNewBlock(operation.Label));
+            BasicBlock labeled = GetLabeledOrNewBlock(operation.Label);
+
+            if (labeled.Ordinal != -1)
+            {
+                // Must be a duplicate label. Recover by simply allocating a new block.
+                labeled = new BasicBlock(BasicBlockKind.Block);
+            }
+
+            AppendNewBlock(labeled);
             VisitStatement(operation.Operation);
             return null;
         }
@@ -2421,40 +2538,34 @@ oneMoreTime:
             Compilation compilation = ((Operation)operation).SemanticModel.Compilation;
             ITypeSymbol iDisposable = compilation.GetSpecialType(SpecialType.System_IDisposable);
 
+            bool haveLocals = !operation.Locals.IsEmpty;
+            if (haveLocals)
+            {
+                EnterRegion(new RegionBuilder(ControlFlowGraph.RegionKind.Locals, locals: operation.Locals));
+            }
+
             if (operation.Resources.Kind == OperationKind.VariableDeclarationGroup)
             {
                 var declarationGroup = (IVariableDeclarationGroupOperation)operation.Resources;
                 var resourceQueue = ArrayBuilder<(IVariableDeclarationOperation, IVariableDeclaratorOperation)>.GetInstance(declarationGroup.Declarations.Length);
-
-                // PROTOTYPE(dataflow): Once https://github.com/dotnet/roslyn/issues/25825 is fixed
-                //                      we should switch to IUsingOperation.Locals property
-                //                      because the current approach doesn't handle 'out vars' and the like.
-                var locals = ArrayBuilder<ILocalSymbol>.GetInstance(declarationGroup.Declarations.Length);
-
+                
                 foreach (IVariableDeclarationOperation declaration in declarationGroup.Declarations)
                 {
                     foreach (IVariableDeclaratorOperation declarator in declaration.Declarators)
                     {
-                        locals.Add(declarator.Symbol);
                         resourceQueue.Add((declaration, declarator));
                     }
                 }
 
                 resourceQueue.ReverseContents();
-                EnterRegion(new RegionBuilder(ControlFlowGraph.RegionKind.Locals, locals: locals.ToImmutableAndFree()));
-
+                
                 processQueue(resourceQueue);
-
-                LeaveRegion();
             }
             else
             {
                 Debug.Assert(operation.Resources.Kind != OperationKind.VariableDeclaration);
                 Debug.Assert(operation.Resources.Kind != OperationKind.VariableDeclarator);
 
-                // PROTOTYPE(dataflow): Once https://github.com/dotnet/roslyn/issues/25825 is fixed
-                //                      we should handle locals in IUsingOperation.Locals property:
-                //                      'out vars' and the like.
                 IOperation resource = Visit(operation.Resources);
                 int captureId = _availableCaptureId++;
 
@@ -2465,6 +2576,11 @@ oneMoreTime:
 
                 AddStatement(new FlowCapture(captureId, resource.Syntax, resource));
                 processResource(new FlowCaptureReference(captureId, resource.Syntax, resource.Type, constantValue: default), resourceQueueOpt: null);
+            }
+
+            if (haveLocals)
+            {
+                LeaveRegion();
             }
 
             return null;
@@ -3059,6 +3175,61 @@ oneMoreTime:
             AppendNewBlock(@break);
             return null;
 
+            IOperation tryCallObjectForLoopControlHelper(SyntaxNode syntax, WellKnownMember helper)
+            {
+                bool isInitialization = (helper == WellKnownMember.Microsoft_VisualBasic_CompilerServices_ObjectFlowControl_ForLoopControl__ForLoopInitObj);
+                var loopObjectReference = new LocalReferenceExpression(loopObject, 
+                                                                       isDeclaration: isInitialization, 
+                                                                       semanticModel: null,
+                                                                       operation.LoopControlVariable.Syntax, loopObject.Type,
+                                                                       constantValue: default, isImplicit: true);
+
+                var method = (IMethodSymbol)compilation.CommonGetWellKnownTypeMember(helper);
+                int parametersCount = WellKnownMembers.GetDescriptor(helper).ParametersCount;
+
+                if (method is null)
+                {
+                    var builder = ArrayBuilder<IOperation>.GetInstance(--parametersCount, fillWithValue: null);
+                    builder[--parametersCount] = loopObjectReference;
+                    do
+                    {
+                        builder[--parametersCount] = _evalStack.Pop();
+                    }
+                    while (parametersCount != 0);
+
+                    return MakeInvalidOperation(operation.LimitValue.Syntax, booleanType, builder.ToImmutableAndFree());
+                }
+                else
+                {
+
+                    var builder = ArrayBuilder<IArgumentOperation>.GetInstance(parametersCount, fillWithValue: null);
+
+                    builder[--parametersCount] = new ArgumentOperation(getLoopControlVariableReference(forceImplicit: true), // Yes we are going to evaluate it again
+                                                                       ArgumentKind.Explicit, method.Parameters[parametersCount],
+                                                                       inConversionOpt: null, outConversionOpt: null,
+                                                                       semanticModel: null, syntax, isImplicit: true);
+
+                    builder[--parametersCount] = new ArgumentOperation(loopObjectReference,
+                                                                       ArgumentKind.Explicit, method.Parameters[parametersCount],
+                                                                       inConversionOpt: null, outConversionOpt: null,
+                                                                       semanticModel: null, syntax, isImplicit: true);
+
+                    do
+                    {
+                        IOperation value = _evalStack.Pop();
+                        builder[--parametersCount] = new ArgumentOperation(value,
+                                                                           ArgumentKind.Explicit, method.Parameters[parametersCount],
+                                                                           inConversionOpt: null, outConversionOpt: null,
+                                                                           semanticModel: null, isInitialization ? value.Syntax : syntax, isImplicit: true);
+                    }
+                    while (parametersCount != 0);
+
+                    return new InvocationExpression(method, instance: null, isVirtual: false, builder.ToImmutableAndFree(),
+                                                    semanticModel: null, operation.LimitValue.Syntax, method.ReturnType,
+                                                    constantValue: default, isImplicit: true);
+                }
+            }
+
             void initializeLoop()
             {
                 if (isObjectLoop)
@@ -3085,7 +3256,6 @@ oneMoreTime:
                     // }
                     // exit:
 
-                    IOperation condition;
 #if DEBUG
                     int stackSize = _evalStack.Count;
 #endif
@@ -3093,52 +3263,10 @@ oneMoreTime:
                     _evalStack.Push(Visit(operation.InitialValue));
                     _evalStack.Push(Visit(operation.LimitValue));
                     _evalStack.Push(Visit(operation.StepValue));
-                    var loopObjectReference = new LocalReferenceExpression(loopObject, isDeclaration: true, semanticModel: null,
-                                                                           operation.LoopControlVariable.Syntax, loopObject.Type, 
-                                                                           constantValue: default, isImplicit: true);
 
-                    var initMethod = (IMethodSymbol)compilation.CommonGetWellKnownTypeMember(WellKnownMember.Microsoft_VisualBasic_CompilerServices_ObjectFlowControl_ForLoopControl__ForLoopInitObj);
-                    if (initMethod is null)
-                    {
-                        // PROTOTYPE(dataflow): The scenario with missing ObjectFlowControl.ForLoopControl.ForLoopInitObj is not covered by unit-tests.
-
-                        var builder = ArrayBuilder<IOperation>.GetInstance(5, fillWithValue: null);
-                        builder[4] = loopObjectReference;
-                        builder[3] = _evalStack.Pop();
-                        builder[2] = _evalStack.Pop();
-                        builder[1] = _evalStack.Pop();
-                        builder[0] = _evalStack.Pop();
-
-                        condition = MakeInvalidOperation(operation.LimitValue.Syntax, booleanType, builder.ToImmutableAndFree());
-                    }
-                    else
-                    {
-
-                        var builder = ArrayBuilder<IArgumentOperation>.GetInstance(6, fillWithValue: null);
-
-                        builder[5] = new ArgumentOperation(getLoopControlVariableReference(forceImplicit: true), // Yes we are going to evaluate it again
-                                                           ArgumentKind.Explicit, initMethod.Parameters[5],
-                                                           inConversionOpt: null, outConversionOpt: null,
-                                                           semanticModel: null, operation.LoopControlVariable.Syntax, isImplicit: true);
-
-                        builder[4] = new ArgumentOperation(loopObjectReference, 
-                                                           ArgumentKind.Explicit, initMethod.Parameters[4],
-                                                           inConversionOpt: null, outConversionOpt: null,
-                                                           semanticModel: null, operation.LoopControlVariable.Syntax, isImplicit: true);
-
-                        for (int i = 3; i >= 0; i--)
-                        {
-                            IOperation value = _evalStack.Pop();
-                            builder[i] = new ArgumentOperation(value,
-                                                               ArgumentKind.Explicit, initMethod.Parameters[i],
-                                                               inConversionOpt: null, outConversionOpt: null,
-                                                               semanticModel: null, value.Syntax, isImplicit: true);
-                        }
-
-                        condition = new InvocationExpression(initMethod, instance: null, isVirtual: false, builder.ToImmutableAndFree(),
-                                                             semanticModel: null, operation.LimitValue.Syntax, initMethod.ReturnType, 
-                                                             constantValue: default, isImplicit: true);
-                    }
+                    IOperation condition = tryCallObjectForLoopControlHelper(operation.LoopControlVariable.Syntax,
+                                                                             WellKnownMember.Microsoft_VisualBasic_CompilerServices_ObjectFlowControl_ForLoopControl__ForLoopInitObj);
+                    // PROTOTYPE(dataflow): The scenario with missing ObjectFlowControl.ForLoopControl.ForLoopInitObj is not covered by unit-tests.
 #if DEBUG
                     Debug.Assert(stackSize == _evalStack.Count);
 #endif
@@ -3288,45 +3416,17 @@ oneMoreTime:
                     // }
                     // exit:
 
-                    IOperation condition;
-                    var loopObjectReference = new LocalReferenceExpression(loopObject, isDeclaration: false, semanticModel: null,
-                                                                           operation.LoopControlVariable.Syntax, loopObject.Type,
-                                                                           constantValue: default, isImplicit: true);
+#if DEBUG
+                    int stackSize = _evalStack.Count;
+#endif
+                    _evalStack.Push(getLoopControlVariableReference(forceImplicit: true));
 
-                    var checkMethod = (IMethodSymbol)compilation.CommonGetWellKnownTypeMember(WellKnownMember.Microsoft_VisualBasic_CompilerServices_ObjectFlowControl_ForLoopControl__ForNextCheckObj);
-                    if (checkMethod is null)
-                    {
-                        // PROTOTYPE(dataflow): The scenario with missing ObjectFlowControl.ForLoopControl.ForNextCheckObj is not covered by unit-tests.
-                        condition = MakeInvalidOperation(operation.LimitValue.Syntax, booleanType, 
-                                                         getLoopControlVariableReference(forceImplicit: true), // Yes we are going to evaluate it again
-                                                         loopObjectReference);
-                    }
-                    else
-                    {
-                        _evalStack.Push(getLoopControlVariableReference(forceImplicit: true)); // Yes we are going to evaluate it again
-
-                        var builder = ArrayBuilder<IArgumentOperation>.GetInstance(3, fillWithValue: null);
-
-                        builder[2] = new ArgumentOperation(getLoopControlVariableReference(forceImplicit: true), // Yes we are going to evaluate it again
-                                                           ArgumentKind.Explicit, checkMethod.Parameters[2],
-                                                           inConversionOpt: null, outConversionOpt: null,
-                                                           semanticModel: null, operation.LimitValue.Syntax, isImplicit: true);
-
-                        builder[1] = new ArgumentOperation(loopObjectReference,
-                                                           ArgumentKind.Explicit, checkMethod.Parameters[1],
-                                                           inConversionOpt: null, outConversionOpt: null,
-                                                           semanticModel: null, operation.LimitValue.Syntax, isImplicit: true);
-
-                        builder[0] = new ArgumentOperation(_evalStack.Pop(),
-                                                           ArgumentKind.Explicit, checkMethod.Parameters[0],
-                                                           inConversionOpt: null, outConversionOpt: null,
-                                                           semanticModel: null, operation.LimitValue.Syntax, isImplicit: true);
-
-                        condition = new InvocationExpression(checkMethod, instance: null, isVirtual: false, builder.ToImmutableAndFree(),
-                                                             semanticModel: null, operation.LimitValue.Syntax, checkMethod.ReturnType,
-                                                             constantValue: default, isImplicit: true);
-                    }
-
+                    IOperation condition = tryCallObjectForLoopControlHelper(operation.LimitValue.Syntax,
+                                                                             WellKnownMember.Microsoft_VisualBasic_CompilerServices_ObjectFlowControl_ForLoopControl__ForNextCheckObj);
+                    // PROTOTYPE(dataflow): The scenario with missing ObjectFlowControl.ForLoopControl.ForNextCheckObj is not covered by unit-tests.
+#if DEBUG
+                    Debug.Assert(stackSize == _evalStack.Count);
+#endif
                     LinkBlocks(CurrentBasicBlock, (Operation.SetParentOperation(condition, null), JumpIfTrue: false, RegularBranch(@break)));
                     LinkBlocks(CurrentBasicBlock, bodyBlock);
                     _currentBasicBlock = null;
@@ -4117,6 +4217,7 @@ oneMoreTime:
             // We skip constants in the control flow graph, as they're not actually involved in any control flow.
             if (localSymbol.IsConst)
             {
+                // PROTOTYPE(dataflow): This is not consistent with how we handle fields.
                 return;
             }
 
@@ -4291,7 +4392,18 @@ oneMoreTime:
 
                     case OperationKind.CollectionElementInitializer:
                         // PROTOTYPE(dataflow): support collection initializers
-                        throw new NotImplementedException();
+                        //                      Just drop it for now to enable other test scenarios.
+                        return;
+
+                    case OperationKind.Increment:
+                        // PROTOTYPE(dataflow): It looks like we can get here with an increment
+                        //                      See Microsoft.CodeAnalysis.CSharp.UnitTests.SemanticModelGetSemanticInfoTests.ObjectInitializer_InvalidElementInitializer_IdentifierNameSyntax
+                        //                      Just drop it for now to enable other test scenarios.
+                        return;
+
+                    case OperationKind.Literal:
+                        // PROTOTYPE(dataflow): See Microsoft.CodeAnalysis.VisualBasic.UnitTests.BindingErrorTests.BC30994ERR_AggrInitInvalidForObject
+                        return;
 
                     case OperationKind.Invalid:
                         AddStatement(Visit(innerInitializer));
@@ -4309,7 +4421,9 @@ oneMoreTime:
                 if (!pushSuccess)
                 {
                     // Error case. We don't try any error recovery here, just return whatever the default visit would.
-                    Debug.Assert(assignmentOperation.Target.Kind == OperationKind.Invalid);
+
+                    // PROTOTYPE(dataflow): At the moment we can get here in other cases as well, see tryPushTarget
+                    // Debug.Assert(assignmentOperation.Target.Kind == OperationKind.Invalid);
                     return Visit(assignmentOperation);
                 }
 
@@ -4420,10 +4534,16 @@ oneMoreTime:
                         _evalStack.Push(Visit(arrayReference.ArrayReference));
                         return (success: true, indicies);
 
+                    case OperationKind.DynamicIndexerAccess: // PROTOTYPE(dataflow): For now handle as invalid case to enable other test scenarios
+                    case OperationKind.None: // PROTOTYPE(dataflow): For now handle as invalid case to enable other test scenarios.
+                                             //                      see Microsoft.CodeAnalysis.CSharp.UnitTests.IOperationTests.ObjectCreationWithDynamicMemberInitializer_01
                     case OperationKind.Invalid:
                         return (success: false, arguments: ImmutableArray<IOperation>.Empty);
 
                     default:
+                        // PROTOTYPE(dataflow): Probably it will be more robust to handle all remaining cases as an invalid case.
+                        //                      Likely not worth it throwing for some edge error case. Asserting would be good though
+                        //                      so that tests could catch the things we though are impossible.
                         throw ExceptionUtilities.UnexpectedValue(instance.Kind);
                 }
             }
@@ -4458,12 +4578,95 @@ oneMoreTime:
 
         public override IOperation VisitObjectOrCollectionInitializer(IObjectOrCollectionInitializerOperation operation, int? captureIdForResult)
         {
-            throw ExceptionUtilities.Unreachable;
+            // PROTOTYPE(dataflow): It looks like we need to handle the standalone case, happens in error scenarios,
+            //                      see DefaultValueNonNullForNullableParameterTypeWithMissingNullableReference_IndexerInObjectCreationInitializer unit-test.
+            //                      For now will just visit children and recreate the node, should add tests to confirm that this is an appropriate
+            //                      rewrite (probably not appropriate, see comment in VisitMemberInitializer).  
+
+            IOperation save = _currentInitializedInstance;
+            _currentInitializedInstance = null;
+            PushArray(operation.Initializers);
+            _currentInitializedInstance = save;
+            return new ObjectOrCollectionInitializerExpression(PopArray(operation.Initializers), semanticModel: null, operation.Syntax, operation.Type, operation.ConstantValue, operation.IsImplicit);
         }
 
         public override IOperation VisitMemberInitializer(IMemberInitializerOperation operation, int? captureIdForResult)
         {
-            throw ExceptionUtilities.Unreachable;
+            // PROTOTYPE(dataflow): It looks like this is reachable at the moment for error scenarios.
+            //                      See Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen.CodeGenTupleTests.SimpleTupleNew2
+            //                      Going to return invalid operation for now to unblock testing.
+            //throw ExceptionUtilities.Unreachable;
+            return MakeInvalidOperation(operation.Syntax, operation.Type, ImmutableArray<IOperation>.Empty);
+        }
+
+        public override IOperation VisitArrayCreation(IArrayCreationOperation operation, int? captureIdForResult)
+        {
+            // We have couple of options on how to rewrite an array creation with an initializer:
+            //       1) Retain the original tree shape so the visited IArrayCreationOperation still has an IArrayInitializerOperation child node.
+            //       2) Lower the IArrayCreationOperation so it always has a null initializer, followed by explicit assignments
+            //          of the form "IArrayElementReference = value" for the array initializer values.
+            //          There will be no IArrayInitializerOperation in the tree with approach.
+            //
+            //  We are going ahead with approach #1 for couple of reasons:
+            //  1. Simplicity: The implementation is much simpler, and has a lot lower risk associated with it.
+            //  2. Lack of array instance access in the initializer: Unlike the object/collection initializer scenario,
+            //     where the initializer can access the instance being initialized, array initializer does not have access
+            //     to the array instance being initialized, and hence it does not matter if the array allocation is done
+            //     before visiting the initializers or not.
+            //
+            //  In future, based on the customer feedback, we can consider switching to approach #2 and lower the initializer into assignment(s).
+
+            PushArray(operation.DimensionSizes);
+            IArrayInitializerOperation visitedInitializer = Visit(operation.Initializer);
+            ImmutableArray<IOperation> visitedDimensions = PopArray(operation.DimensionSizes);
+            return new ArrayCreationExpression(visitedDimensions, visitedInitializer, semanticModel: null,
+                                               operation.Syntax, operation.Type, operation.ConstantValue, IsImplicit(operation));
+        }
+
+        public override IOperation VisitArrayInitializer(IArrayInitializerOperation operation, int? captureIdForResult)
+        {
+            visitAndPushArrayInitializerValues(operation);
+            return popAndAssembleArrayInitializerValues(operation);
+
+            void visitAndPushArrayInitializerValues(IArrayInitializerOperation initializer)
+            {
+                foreach (IOperation elementValue in initializer.ElementValues)
+                {
+                    // We need to retain the tree shape for nested array initializer.
+                    if (elementValue.Kind == OperationKind.ArrayInitializer)
+                    {
+                        visitAndPushArrayInitializerValues((IArrayInitializerOperation)elementValue);
+                    }
+                    else
+                    {
+                        _evalStack.Push(Visit(elementValue));
+                    }
+                }
+            }
+
+            IArrayInitializerOperation popAndAssembleArrayInitializerValues(IArrayInitializerOperation initializer)
+            {
+                var builder = ArrayBuilder<IOperation>.GetInstance(initializer.ElementValues.Length);
+                for (int i = initializer.ElementValues.Length - 1; i >= 0; i--)
+                {
+                    IOperation elementValue = initializer.ElementValues[i];
+
+                    IOperation visitedElementValue;
+                    if (elementValue.Kind == OperationKind.ArrayInitializer)
+                    {
+                        visitedElementValue = popAndAssembleArrayInitializerValues((IArrayInitializerOperation)elementValue);
+                    }
+                    else
+                    {
+                        visitedElementValue = _evalStack.Pop();
+                    }
+
+                    builder.Add(visitedElementValue);
+                }
+
+                builder.ReverseContents();
+                return new ArrayInitializer(builder.ToImmutableAndFree(), semanticModel: null, initializer.Syntax, initializer.ConstantValue, IsImplicit(initializer));
+            }
         }
 
         public override IOperation VisitInstanceReference(IInstanceReferenceOperation operation, int? captureIdForResult)
@@ -4471,9 +4674,19 @@ oneMoreTime:
             if (operation.ReferenceKind == InstanceReferenceKind.ImplicitReceiver)
             {
                 // When we're in an object or collection initializer, we need to replace the instance reference with a reference to the object being initialized
-                Debug.Assert(_currentInitializedInstance != null);
                 Debug.Assert(operation.IsImplicit);
-                return OperationCloner.CloneOperation(_currentInitializedInstance);
+
+                if (_currentInitializedInstance != null)
+                {
+                    return OperationCloner.CloneOperation(_currentInitializedInstance);
+                }
+                else
+                {
+                    // PROTOTYPE(dataflow): We can get here in some error scenarios, for example
+                    //                      Microsoft.CodeAnalysis.CSharp.UnitTests.IOperationTests.DefaultValueNonNullForNullableParameterTypeWithMissingNullableReference_IndexerInObjectCreationInitializer
+                    //                      To enable other test scenarios, I will simply produce an invalid operation, but we need to confirm with specific tests that this is good enough
+                    return MakeInvalidOperation(operation.Syntax, operation.Type, ImmutableArray<IOperation>.Empty);
+                }
             }
             else
             {
@@ -4807,7 +5020,22 @@ oneMoreTime:
         {
             return new AwaitExpression(Visit(operation.Operation), semanticModel: null, operation.Syntax, operation.Type, operation.ConstantValue, IsImplicit(operation));
         }
+
+        public override IOperation VisitSizeOf(ISizeOfOperation operation, int? captureIdForResult)
+        {
+            return new SizeOfExpression(operation.TypeOperand, semanticModel: null, operation.Syntax, operation.Type, operation.ConstantValue, IsImplicit(operation));
+        }
         
+        public override IOperation VisitStop(IStopOperation operation, int? captureIdForResult)
+        {
+            return new StopStatement(semanticModel: null, operation.Syntax, operation.Type, operation.ConstantValue, IsImplicit(operation));
+        }
+
+        public override IOperation VisitIsType(IIsTypeOperation operation, int? captureIdForResult)
+        {
+            return new IsTypeExpression(Visit(operation.ValueOperand), operation.TypeOperand, operation.IsNegated, semanticModel: null, operation.Syntax, operation.Type, operation.ConstantValue, IsImplicit(operation));
+        }
+
         public override IOperation VisitParameterInitializer(IParameterInitializerOperation operation, int? captureIdForResult)
         {
             Debug.Assert(_currentStatement == operation);
@@ -4892,6 +5120,45 @@ oneMoreTime:
             {
                 LeaveRegion();
             }
+    	}
+
+        public override IOperation VisitEventAssignment(IEventAssignmentOperation operation, int? captureIdForResult)
+        {
+            var instance = operation.EventReference.Event.IsStatic ? null : operation.EventReference.Instance;
+            if (instance != null)
+            {
+                _evalStack.Push(Visit(instance));
+            }
+
+            IOperation visitedHandler = Visit(operation.HandlerValue);
+            IOperation visitedInstance = instance == null ? null : _evalStack.Pop();
+            var visitedEventReference = new EventReferenceExpression(operation.EventReference.Event, visitedInstance,
+                semanticModel: null, operation.EventReference.Syntax, operation.EventReference.Type, operation.EventReference.ConstantValue, IsImplicit(operation.EventReference));
+            return new EventAssignmentOperation(visitedEventReference, visitedHandler, operation.Adds, semanticModel: null,
+                operation.Syntax, operation.Type, operation.ConstantValue, IsImplicit(operation));
+        }
+
+        public override IOperation VisitRaiseEvent(IRaiseEventOperation operation, int? captureIdForResult)
+        {
+            Debug.Assert(_currentStatement == operation);
+
+            var instance = operation.EventReference.Event.IsStatic ? null : operation.EventReference.Instance;
+            if (instance != null)
+            {
+                _evalStack.Push(Visit(instance));
+            }
+
+            ImmutableArray<IArgumentOperation> visitedArguments = VisitArguments(operation.Arguments);
+            IOperation visitedInstance = instance == null ? null : _evalStack.Pop();
+            var visitedEventReference = new EventReferenceExpression(operation.EventReference.Event, visitedInstance,
+                semanticModel: null, operation.EventReference.Syntax, operation.EventReference.Type, operation.EventReference.ConstantValue, IsImplicit(operation.EventReference));
+            return new RaiseEventStatement(visitedEventReference, visitedArguments, semanticModel: null,
+                operation.Syntax, operation.Type, operation.ConstantValue, IsImplicit(operation));
+        }
+
+        public override IOperation VisitAddressOf(IAddressOfOperation operation, int? captureIdForResult)
+        {
+            return new AddressOfExpression(Visit(operation.Reference), semanticModel: null, operation.Syntax, operation.Type, operation.ConstantValue, IsImplicit(operation));
         }
 
         public override IOperation VisitIsPattern(IIsPatternOperation operation, int? captureIdForResult)
@@ -4912,6 +5179,12 @@ oneMoreTime:
         public override IOperation VisitDeclarationPattern(IDeclarationPatternOperation operation, int? captureIdForResult)
         {
             return new DeclarationPattern(operation.DeclaredSymbol, semanticModel: null,
+                operation.Syntax, operation.Type, operation.ConstantValue, IsImplicit(operation));
+        }
+
+        public override IOperation VisitDelegateCreation(IDelegateCreationOperation operation, int? captureIdForResult)
+        {
+            return new DelegateCreationExpression(Visit(operation.Target), semanticModel: null,
                 operation.Syntax, operation.Type, operation.ConstantValue, IsImplicit(operation));
         }
 
@@ -4942,7 +5215,7 @@ oneMoreTime:
 
         public override IOperation VisitArgument(IArgumentOperation operation, int? captureIdForResult)
         {
-            // PROTOTYPE(DATAFLOW): All usages of this should be removed the following line uncommented when support is added for object creation, property reference, and raise events.
+            // PROTOTYPE(dataflow): All usages of this should be removed the following line uncommented when support is added for object creation, property reference, and raise events.
             // throw ExceptionUtilities.Unreachable;
             var baseArgument = (BaseArgument)operation;
             return new ArgumentOperation(Visit(operation.Value), operation.ArgumentKind, operation.Parameter, baseArgument.InConversionConvertibleOpt, baseArgument.OutConversionConvertibleOpt, semanticModel: null, operation.Syntax, IsImplicit(operation));
@@ -4955,12 +5228,17 @@ oneMoreTime:
 
         internal override IOperation VisitWith(IWithOperation operation, int? captureIdForResult)
         {
-            return new WithStatement(Visit(operation.Body), Visit(operation.Value), semanticModel: null, operation.Syntax, operation.Type, operation.ConstantValue, IsImplicit(operation));
-        }
+            Debug.Assert(_currentStatement == operation);
+            int captureId = VisitAndCapture(operation.Value);
 
-        public override IOperation VisitStop(IStopOperation operation, int? captureIdForResult)
-        {
-            return new StopStatement(semanticModel: null, operation.Syntax, operation.Type, operation.ConstantValue, IsImplicit(operation));
+            // PROTOTYPE(dataflow): Either rename _currentInitializedInstance, or use different field
+            IOperation previousInitializedInstance = _currentInitializedInstance;
+            _currentInitializedInstance = new FlowCaptureReference(captureId, operation.Value.Syntax, operation.Value.Type, operation.Value.ConstantValue);
+
+            VisitStatement(operation.Body);
+
+            _currentInitializedInstance = previousInitializedInstance;
+            return null;
         }
 
         public override IOperation VisitOmittedArgument(IOmittedArgumentOperation operation, int? captureIdForResult)
@@ -4971,11 +5249,6 @@ oneMoreTime:
         internal override IOperation VisitPointerIndirectionReference(IPointerIndirectionReferenceOperation operation, int? captureIdForResult)
         {
             return new PointerIndirectionReferenceExpression(Visit(operation.Pointer), semanticModel: null, operation.Syntax, operation.Type, operation.ConstantValue, IsImplicit(operation));
-        }
-
-        public override IOperation VisitEventAssignment(IEventAssignmentOperation operation, int? captureIdForResult)
-        {
-            return new EventAssignmentOperation(Visit(operation.EventReference), Visit(operation.HandlerValue), operation.Adds, semanticModel: null, operation.Syntax, operation.Type, operation.ConstantValue, IsImplicit(operation));
         }
 
         internal override IOperation VisitPlaceholder(IPlaceholderOperation operation, int? captureIdForResult)
@@ -5005,16 +5278,6 @@ oneMoreTime:
             return new PlaceholderExpression(operation.PlaceholderKind, semanticModel: null, operation.Syntax, operation.Type, operation.ConstantValue, IsImplicit(operation));
         }
 
-        public override IOperation VisitIsType(IIsTypeOperation operation, int? captureIdForResult)
-        {
-            return new IsTypeExpression(Visit(operation.ValueOperand), operation.TypeOperand, operation.IsNegated, semanticModel: null, operation.Syntax, operation.Type, operation.ConstantValue, IsImplicit(operation));
-        }
-
-        public override IOperation VisitSizeOf(ISizeOfOperation operation, int? captureIdForResult)
-        {
-            return new SizeOfExpression(operation.TypeOperand, semanticModel: null, operation.Syntax, operation.Type, operation.ConstantValue, IsImplicit(operation));
-        }
-
         public override IOperation VisitAnonymousFunction(IAnonymousFunctionOperation operation, int? captureIdForResult)
         {
             // PROTOTYPE(dataflow): When implementing, consider when a lambda inside a VB initializer references the instance being initialized.
@@ -5031,16 +5294,6 @@ oneMoreTime:
                                                    semanticModel: null, operation.Syntax, operation.Type, operation.ConstantValue, IsImplicit(operation));
         }
 
-        public override IOperation VisitDelegateCreation(IDelegateCreationOperation operation, int? captureIdForResult)
-        {
-            return new DelegateCreationExpression(Visit(operation.Target), semanticModel: null, operation.Syntax, operation.Type, operation.ConstantValue, IsImplicit(operation));
-        }
-
-        public override IOperation VisitAddressOf(IAddressOfOperation operation, int? captureIdForResult)
-        {
-            return new AddressOfExpression(Visit(operation.Reference), semanticModel: null, operation.Syntax, operation.Type, operation.ConstantValue, IsImplicit(operation));
-        }
-
         public override IOperation VisitAnonymousObjectCreation(IAnonymousObjectCreationOperation operation, int? captureIdForResult)
         {
             return new AnonymousObjectCreationExpression(VisitArray(operation.Initializers), semanticModel: null, operation.Syntax, operation.Type, operation.ConstantValue, IsImplicit(operation));
@@ -5048,17 +5301,10 @@ oneMoreTime:
 
         public override IOperation VisitCollectionElementInitializer(ICollectionElementInitializerOperation operation, int? captureIdForResult)
         {
+            // PROTOTYPE(dataflow): It looks like there is a bug in IOperation tree generation for non-error scenario in 
+            //                      Microsoft.CodeAnalysis.CSharp.UnitTests.SemanticModelGetSemanticInfoTests.ObjectCreation3
+            //                      We have ICollectionElementInitializerOperation, but not IObjectCreationOperation.
             return new CollectionElementInitializerExpression(operation.AddMethod, operation.IsDynamic, VisitArray(operation.Arguments), semanticModel: null, operation.Syntax, operation.Type, operation.ConstantValue, IsImplicit(operation));
-        }
-
-        public override IOperation VisitArrayCreation(IArrayCreationOperation operation, int? captureIdForResult)
-        {
-            return new ArrayCreationExpression(VisitArray(operation.DimensionSizes), Visit(operation.Initializer), semanticModel: null, operation.Syntax, operation.Type, operation.ConstantValue, IsImplicit(operation));
-        }
-
-        public override IOperation VisitArrayInitializer(IArrayInitializerOperation operation, int? captureIdForResult)
-        {
-            return new ArrayInitializer(VisitArray(operation.ElementValues), semanticModel: null, operation.Syntax, operation.ConstantValue, IsImplicit(operation));
         }
 
         public override IOperation VisitIncrementOrDecrement(IIncrementOrDecrementOperation operation, int? captureIdForResult)
@@ -5089,27 +5335,32 @@ oneMoreTime:
 
         public override IOperation VisitLocalFunction(ILocalFunctionOperation operation, int? captureIdForResult)
         {
-            return new LocalFunctionStatement(operation.Symbol, Visit(operation.Body), Visit(operation.IgnoredBody), semanticModel: null, operation.Syntax, operation.Type, operation.ConstantValue, IsImplicit(operation));
+            // PROTOTYPE(dataflow): Drop bodies for now to enable some test scenarios
+            return new LocalFunctionStatement(operation.Symbol,
+                                              getBlock(operation.Body),
+                                              getBlock(operation.IgnoredBody), 
+                                              semanticModel: null, operation.Syntax, operation.Type, operation.ConstantValue, IsImplicit(operation));
+
+            IBlockOperation getBlock(IBlockOperation original)
+            {
+                if (original == null)
+                {
+                    return null;
+                }
+
+                return new BlockStatement(ImmutableArray<IOperation>.Empty,
+                                          ImmutableArray<ILocalSymbol>.Empty,
+                                          semanticModel: null,
+                                          original.Syntax,
+                                          original.Type,
+                                          original.ConstantValue,
+                                          IsImplicit(original));
+            }
         }
 
         public override IOperation VisitTranslatedQuery(ITranslatedQueryOperation operation, int? captureIdForResult)
         {
             return new TranslatedQueryExpression(Visit(operation.Operation), semanticModel: null, operation.Syntax, operation.Type, operation.ConstantValue, IsImplicit(operation));
-        }
-
-        public override IOperation VisitRaiseEvent(IRaiseEventOperation operation, int? captureIdForResult)
-        {
-            return new RaiseEventStatement(Visit(operation.EventReference), VisitArray(operation.Arguments), semanticModel: null, operation.Syntax, operation.Type, operation.ConstantValue, IsImplicit(operation));
-        }
-
-        public override IOperation VisitConstructorBodyOperation(IConstructorBodyOperation operation, int? captureIdForResult)
-        {
-            return new ConstructorBodyOperation(operation.Locals, semanticModel: null, operation.Syntax, Visit(operation.Initializer), Visit(operation.BlockBody), Visit(operation.ExpressionBody));
-        }
-
-        public override IOperation VisitMethodBodyOperation(IMethodBodyOperation operation, int? captureIdForResult)
-        {
-            return new MethodBodyOperation(semanticModel: null, operation.Syntax, Visit(operation.BlockBody), Visit(operation.ExpressionBody));
         }
 
         public override IOperation VisitDiscardOperation(IDiscardOperation operation, int? captureIdForResult)

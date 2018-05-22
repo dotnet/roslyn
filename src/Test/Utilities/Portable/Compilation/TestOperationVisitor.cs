@@ -407,6 +407,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         public override void VisitUsing(IUsingOperation operation)
         {
             Assert.Equal(OperationKind.Using, operation.Kind);
+            VisitLocals(operation.Locals);
             AssertEx.Equal(new[] { operation.Resources, operation.Body }, operation.Children);
             Assert.NotEqual(OperationKind.VariableDeclaration, operation.Resources.Kind);
             Assert.NotEqual(OperationKind.VariableDeclarator, operation.Resources.Kind);
@@ -613,6 +614,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         public override void VisitConditionalAccess(IConditionalAccessOperation operation)
         {
             Assert.Equal(OperationKind.ConditionalAccess, operation.Kind);
+            Assert.NotNull(operation.Type);
             AssertEx.Equal(new[] { operation.Operation, operation.WhenNotNull }, operation.Children);
         }
 
@@ -824,6 +826,11 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             if (!operation.Type.IsValueType)
             {
                 Assert.NotNull(constructor);
+
+                if (constructor == null)
+                {
+                    Assert.Empty(operation.Arguments);
+                }
             }
 
             IEnumerable<IOperation> children = operation.Arguments;
@@ -1229,6 +1236,23 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             Assert.Equal(OperationKind.FlowCapture, operation.Kind);
             Assert.True(operation.IsImplicit);
             Assert.Same(operation.Value, operation.Children.Single());
+
+            switch (operation.Value.Kind)
+            {
+                case OperationKind.Invalid:
+                case OperationKind.None:
+                case OperationKind.AnonymousFunction:
+                case OperationKind.FlowCaptureReference:
+                case OperationKind.DefaultValue:
+                    break;
+                default:
+                    // Only values can be spilled/captured
+                    if (!operation.Value.ConstantValue.HasValue || operation.Value.ConstantValue.Value != null)
+                    {
+                        Assert.NotNull(operation.Value.Type);
+                    }
+                    break;
+            }
         }
 
         public override void VisitFlowCaptureReference(IFlowCaptureReferenceOperation operation)

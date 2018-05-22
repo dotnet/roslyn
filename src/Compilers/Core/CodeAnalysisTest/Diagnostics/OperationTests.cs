@@ -124,8 +124,8 @@ class C
             {
                 var compilation = CSharpCompilation.Create("c", new[] { tree });
                 var model = compilation.GetSemanticModel(tree, ignoreAccessibility: true);
-                var blockSyntax = tree.GetCompilationUnitRoot().DescendantNodes().OfType<BlockSyntax>().Last();
-                var operation = (IBlockOperation)model.GetOperation(blockSyntax);
+                var methodBodySyntax = tree.GetCompilationUnitRoot().DescendantNodes().OfType<BaseMethodDeclarationSyntax>().Last();
+                var operation = (IMethodBodyOperation)model.GetOperation(methodBodySyntax);
 
                 if (expectException)
                 {

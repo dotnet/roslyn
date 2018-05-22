@@ -97,6 +97,12 @@ namespace Microsoft.CodeAnalysis
                 throw new ArgumentNullException(nameof(body));
             }
 
+            if (body.Parent != null)
+            {
+                // PROTOTYPE(dataflow): Special message?
+                throw new ArgumentException();
+            }
+
             return GetControlFlowGraphCore(body);
         }
 
@@ -108,6 +114,12 @@ namespace Microsoft.CodeAnalysis
             if (initializer == null)
             {
                 throw new ArgumentNullException(nameof(initializer));
+            }
+
+            if (initializer.Parent != null)
+            {
+                // PROTOTYPE(dataflow): Special message?
+                throw new ArgumentException();
             }
 
             return GetControlFlowGraphCore(initializer);
@@ -123,6 +135,12 @@ namespace Microsoft.CodeAnalysis
                 throw new ArgumentNullException(nameof(initializer));
             }
 
+            if (initializer.Parent != null)
+            {
+                // PROTOTYPE(dataflow): Special message?
+                throw new ArgumentException();
+            }
+
             return GetControlFlowGraphCore(initializer);
         }
 
@@ -136,11 +154,61 @@ namespace Microsoft.CodeAnalysis
                 throw new ArgumentNullException(nameof(initializer));
             }
 
+            if (initializer.Parent != null)
+            {
+                // PROTOTYPE(dataflow): Special message?
+                throw new ArgumentException();
+            }
+
             return GetControlFlowGraphCore(initializer);
+        }
+
+        /// <summary>
+        /// PROTOTYPE(dataflow): Add documentation.
+        /// </summary>
+        public static Operations.ControlFlowGraph GetControlFlowGraph(Operations.IConstructorBodyOperation constructorBody)
+        {
+            if (constructorBody == null)
+            {
+                throw new ArgumentNullException(nameof(constructorBody));
+            }
+
+            if (constructorBody.Parent != null)
+            {
+                // PROTOTYPE(dataflow): Special message?
+                throw new ArgumentException();
+            }
+
+            return GetControlFlowGraphCore(constructorBody);
+        }
+
+        /// <summary>
+        /// PROTOTYPE(dataflow): Add documentation.
+        /// </summary>
+        public static Operations.ControlFlowGraph GetControlFlowGraph(Operations.IMethodBodyOperation methodBody)
+        {
+            if (methodBody == null)
+            {
+                throw new ArgumentNullException(nameof(methodBody));
+            }
+
+            if (methodBody.Parent != null)
+            {
+                // PROTOTYPE(dataflow): Special message?
+                throw new ArgumentException();
+            }
+
+            return GetControlFlowGraphCore(methodBody);
         }
 
         private static Operations.ControlFlowGraph GetControlFlowGraphCore(IOperation operation)
         {
+            if (((Operation)operation).SemanticModel == null)
+            {
+                // PROTOTYPE(dataflow): Special message?
+                throw new ArgumentException();
+            }
+
             if (!operation.Syntax.SyntaxTree.Options.Features.ContainsKey("flow-analysis"))
             {
                 throw new InvalidOperationException(CodeAnalysisResources.FlowAnalysisFeatureDisabled);

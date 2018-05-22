@@ -809,6 +809,7 @@
   </Node>
 
   <Node Name="BoundSwitchSection" Base="BoundStatementList">
+    <Field Name="Locals" Type="ImmutableArray&lt;LocalSymbol&gt;"/>
     <Field Name="SwitchLabels" Type="ImmutableArray&lt;BoundSwitchLabel&gt;"/>
   </Node>
 
