@@ -2,7 +2,7 @@
 
 using System;
 using System.Composition;
-using Microsoft.CodeAnalysis.Editor.Implementation.Formatting;
+using Microsoft.CodeAnalysis.Editor.Implementation.CodeCleanup;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.VisualStudio.LanguageServices.CSharp.Options.Formatting;
 using Microsoft.VisualStudio.Shell;

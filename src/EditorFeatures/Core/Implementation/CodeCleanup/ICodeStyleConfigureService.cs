@@ -2,7 +2,7 @@
 
 using Microsoft.CodeAnalysis.Host;
 
-namespace Microsoft.CodeAnalysis.Editor.Implementation.Formatting
+namespace Microsoft.CodeAnalysis.Editor.Implementation.CodeCleanup
 {
     internal interface ICodeStyleConfigureService : IWorkspaceService
     {
