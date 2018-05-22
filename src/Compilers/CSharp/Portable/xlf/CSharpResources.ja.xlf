@@ -7204,7 +7204,6 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
         <note />
       </trans-unit>
       <trans-unit id="IDS_CSCHelp">
-        <trans-unit id="IDS_CSCHelp">
         <source>
                              Visual C# Compiler Options
 
