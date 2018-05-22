@@ -183,7 +183,7 @@ namespace Microsoft.CodeAnalysis.Host
             //
             // we are alraedy running in BG, you no need to run async version
             var task = _taskScheduler.ScheduleTask(
-                () => document.GetSyntaxTreeSynchronously(CancellationToken.None),
+                () => document.GetSyntaxTreeAsync(CancellationToken.None),
                 "BackgroundParser.ParseDocumentAsync",
                 cancellationToken);
 
