@@ -1748,9 +1748,8 @@ namespace Microsoft.CodeAnalysis.Operations
                 condition = MakeInvalidOperation(unaryOperatorMethod.Parameters[0].Type, condition);
             }
 
-            if (unaryOperatorMethod != null)
+            if (unaryOperatorMethod != null && ITypeSymbolHelpers.IsBooleanType(unaryOperatorMethod.ReturnType))
             {
-                Debug.Assert(ITypeSymbolHelpers.IsBooleanType(unaryOperatorMethod.ReturnType));
                 condition = new UnaryOperatorExpression(binOp.OperatorKind == BinaryOperatorKind.ConditionalAnd ? UnaryOperatorKind.False : UnaryOperatorKind.True,
                                                         condition, isLifted: false, isChecked: false, operatorMethod: unaryOperatorMethod,
                                                         semanticModel: null, condition.Syntax, unaryOperatorMethod.ReturnType, constantValue: default, isImplicit: true);

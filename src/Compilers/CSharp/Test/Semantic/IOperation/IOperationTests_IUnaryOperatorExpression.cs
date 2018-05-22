@@ -2943,10 +2943,11 @@ IConditionalOperation (OperationKind.Conditional, Type: null) (Syntax: 'if (x &&
   Condition: 
     IUnaryOperation (UnaryOperatorKind.True) (OperatorMethod: System.Boolean S.op_True(S x)) (OperationKind.UnaryOperator, Type: System.Boolean, IsImplicit) (Syntax: 'x && y')
       Operand: 
-        IOperation:  (OperationKind.None, Type: null) (Syntax: 'x && y')
-          Children(2):
-              ILocalReferenceOperation: x (OperationKind.LocalReference, Type: S) (Syntax: 'x')
-              ILocalReferenceOperation: y (OperationKind.LocalReference, Type: S) (Syntax: 'y')
+        IBinaryOperation (BinaryOperatorKind.ConditionalAnd) (OperatorMethod: S S.op_BitwiseAnd(S x, S y)) (OperationKind.BinaryOperator, Type: S) (Syntax: 'x && y')
+          Left: 
+            ILocalReferenceOperation: x (OperationKind.LocalReference, Type: S) (Syntax: 'x')
+          Right: 
+            ILocalReferenceOperation: y (OperationKind.LocalReference, Type: S) (Syntax: 'y')
   WhenTrue: 
     IBlockOperation (0 statements) (OperationKind.Block, Type: null) (Syntax: '{ }')
   WhenFalse: 
@@ -3003,10 +3004,11 @@ IConditionalOperation (OperationKind.Conditional, Type: null) (Syntax: 'if (x ||
   Condition: 
     IUnaryOperation (UnaryOperatorKind.True) (OperatorMethod: System.Boolean S.op_True(S x)) (OperationKind.UnaryOperator, Type: System.Boolean, IsImplicit) (Syntax: 'x || y')
       Operand: 
-        IOperation:  (OperationKind.None, Type: null) (Syntax: 'x || y')
-          Children(2):
-              ILocalReferenceOperation: x (OperationKind.LocalReference, Type: S) (Syntax: 'x')
-              ILocalReferenceOperation: y (OperationKind.LocalReference, Type: S) (Syntax: 'y')
+        IBinaryOperation (BinaryOperatorKind.ConditionalOr) (OperatorMethod: S S.op_BitwiseOr(S x, S y)) (OperationKind.BinaryOperator, Type: S) (Syntax: 'x || y')
+          Left: 
+            ILocalReferenceOperation: x (OperationKind.LocalReference, Type: S) (Syntax: 'x')
+          Right: 
+            ILocalReferenceOperation: y (OperationKind.LocalReference, Type: S) (Syntax: 'y')
   WhenTrue: 
     IBlockOperation (0 statements) (OperationKind.Block, Type: null) (Syntax: '{ }')
   WhenFalse: 
@@ -3223,10 +3225,11 @@ class C
 }
 ";
             string expectedOperationTree = @"
-IOperation:  (OperationKind.None, Type: null) (Syntax: 'x && y')
-  Children(2):
-      ILocalReferenceOperation: x (OperationKind.LocalReference, Type: S) (Syntax: 'x')
-      ILocalReferenceOperation: y (OperationKind.LocalReference, Type: S) (Syntax: 'y')
+IBinaryOperation (BinaryOperatorKind.ConditionalAnd) (OperatorMethod: S S.op_BitwiseAnd(S x, S y)) (OperationKind.BinaryOperator, Type: S) (Syntax: 'x && y')
+  Left: 
+    ILocalReferenceOperation: x (OperationKind.LocalReference, Type: S) (Syntax: 'x')
+  Right: 
+    ILocalReferenceOperation: y (OperationKind.LocalReference, Type: S) (Syntax: 'y')
 ";
             VerifyOperationTreeForTest<BinaryExpressionSyntax>(source, expectedOperationTree);
         }

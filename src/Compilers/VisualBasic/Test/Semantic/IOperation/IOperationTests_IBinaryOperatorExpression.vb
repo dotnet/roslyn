@@ -6432,5 +6432,97 @@ Block[B5] - Exit
             VerifyFlowGraphAndDiagnosticsForTest(Of MethodBlockSyntax)(source, expectedGraph, expectedDiagnostics)
         End Sub
 
+        <CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)>
+        <Fact()>
+        Public Sub LogicalUserDefinedFlow_20()
+            Dim source = <![CDATA[
+Imports System
+Public Structure C
+
+    Sub M(a As C?, b As C?, result As C?) 'BIND:"Sub M"
+        result = a OrElse b
+    End Sub
+
+    Public Shared Operator And(x As C, y As C) As C
+        Return Nothing
+    End Operator
+
+    Public Shared Operator Or(x As C, y As C) As C
+        Return Nothing
+    End Operator
+
+    Public Shared Operator IsFalse(x As C?) As Boolean
+        Return Nothing
+    End Operator
+
+    Public Shared Operator IsTrue(x As C?) As Boolean
+        Return Nothing
+    End Operator
+End Structure
+]]>.Value
+
+            Dim expectedDiagnostics = String.Empty
+
+            Dim expectedGraph = <![CDATA[
+Block[B0] - Entry
+    Statements (0)
+    Next (Regular) Block[B1]
+Block[B1] - Block
+    Predecessors: [B0]
+    Statements (2)
+        IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'result')
+          Value: 
+            IParameterReferenceOperation: result (OperationKind.ParameterReference, Type: System.Nullable(Of C)) (Syntax: 'result')
+
+        IFlowCaptureOperation: 1 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'a')
+          Value: 
+            IParameterReferenceOperation: a (OperationKind.ParameterReference, Type: System.Nullable(Of C)) (Syntax: 'a')
+
+    Jump if False (Regular) to Block[B3]
+        IUnaryOperation (UnaryOperatorKind.True) (OperatorMethod: Function C.op_True(x As System.Nullable(Of C)) As System.Boolean) (OperationKind.UnaryOperator, Type: System.Boolean, IsImplicit) (Syntax: 'a')
+          Operand: 
+            IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: System.Nullable(Of C), IsImplicit) (Syntax: 'a')
+
+    Next (Regular) Block[B2]
+Block[B2] - Block
+    Predecessors: [B1]
+    Statements (1)
+        IFlowCaptureOperation: 2 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'a OrElse b')
+          Value: 
+            IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: System.Nullable(Of C), IsImplicit) (Syntax: 'a')
+
+    Next (Regular) Block[B4]
+Block[B3] - Block
+    Predecessors: [B1]
+    Statements (1)
+        IFlowCaptureOperation: 2 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'a OrElse b')
+          Value: 
+            IBinaryOperation (BinaryOperatorKind.Or, IsLifted) (OperatorMethod: Function C.op_BitwiseOr(x As C, y As C) As C) (OperationKind.BinaryOperator, Type: System.Nullable(Of C)) (Syntax: 'a OrElse b')
+              Left: 
+                IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: System.Nullable(Of C), IsImplicit) (Syntax: 'a')
+              Right: 
+                IParameterReferenceOperation: b (OperationKind.ParameterReference, Type: System.Nullable(Of C)) (Syntax: 'b')
+
+    Next (Regular) Block[B4]
+Block[B4] - Block
+    Predecessors: [B2] [B3]
+    Statements (1)
+        IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'result = a OrElse b')
+          Expression: 
+            ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Nullable(Of C), IsImplicit) (Syntax: 'result = a OrElse b')
+              Left: 
+                IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.Nullable(Of C), IsImplicit) (Syntax: 'result')
+              Right: 
+                IFlowCaptureReferenceOperation: 2 (OperationKind.FlowCaptureReference, Type: System.Nullable(Of C), IsImplicit) (Syntax: 'a OrElse b')
+
+    Next (Regular) Block[B5]
+Block[B5] - Exit
+    Predecessors: [B4]
+    Statements (0)
+]]>.Value
+
+            VerifyFlowGraphAndDiagnosticsForTest(Of MethodBlockSyntax)(source, expectedGraph, expectedDiagnostics)
+        End Sub
+
     End Class
 End Namespace
