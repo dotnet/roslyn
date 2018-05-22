@@ -1045,10 +1045,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
             where TSyntaxNode : SyntaxNode
         {
             var tree = compilation.SyntaxTrees[0];
-            var model = compilation.GetSemanticModel(tree);
             SyntaxNode syntaxNode = GetSyntaxNodeOfTypeForBinding<TSyntaxNode>(GetSyntaxNodeList(tree));
+            VerifyFlowGraph(compilation, syntaxNode, expectedFlowGraph);
+        }
 
-            Operations.ControlFlowGraph graph = ControlFlowGraphVerifier.GetControlFlowGraph(syntaxNode, model);
+        protected static void VerifyFlowGraph(CSharpCompilation compilation, SyntaxNode syntaxNode, string expectedFlowGraph)
+        {
+            var model = compilation.GetSemanticModel(syntaxNode.SyntaxTree);
+            ControlFlowGraph graph = ControlFlowGraphVerifier.GetControlFlowGraph(syntaxNode, model);
             ControlFlowGraphVerifier.VerifyGraph(compilation, expectedFlowGraph, graph);
         }
 

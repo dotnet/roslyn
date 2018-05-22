@@ -57,7 +57,10 @@ namespace Microsoft.CodeAnalysis.Operations
             //                      throughout the process rather than getting them from individual nodes.
 
             Debug.Assert(body != null);
+            Debug.Assert(body.Parent == null);
             Debug.Assert(body.Kind == OperationKind.Block ||
+                body.Kind == OperationKind.MethodBodyOperation ||
+                body.Kind == OperationKind.ConstructorBodyOperation ||
                 body.Kind == OperationKind.FieldInitializer ||
                 body.Kind == OperationKind.PropertyInitializer ||
                 body.Kind == OperationKind.ParameterInitializer,
@@ -453,6 +456,7 @@ namespace Microsoft.CodeAnalysis.Operations
                     case ControlFlowGraph.RegionKind.Finally:
                     case ControlFlowGraph.RegionKind.Locals:
                     case ControlFlowGraph.RegionKind.StaticLocalInitializer:
+                    case ControlFlowGraph.RegionKind.ErroneousBody:
 
                         if (region.Regions?.Count == 1)
                         {
@@ -1218,6 +1222,66 @@ namespace Microsoft.CodeAnalysis.Operations
             foreach (var statement in statements)
             {
                 VisitStatement(statement);
+            }
+        }
+
+        public override IOperation VisitConstructorBodyOperation(IConstructorBodyOperation operation, int? captureIdForResult)
+        {
+            Debug.Assert(_currentStatement == operation);
+
+            bool haveLocals = !operation.Locals.IsEmpty;
+            if (haveLocals)
+            {
+                EnterRegion(new RegionBuilder(ControlFlowGraph.RegionKind.Locals, locals: operation.Locals));
+            }
+
+            if (operation.Initializer != null)
+            {
+                VisitStatement(operation.Initializer);
+            }
+
+            VisitMethodBodyBaseOperation(operation);
+
+            if (haveLocals)
+            {
+                LeaveRegion();
+            }
+
+            return null;
+        }
+
+        public override IOperation VisitMethodBodyOperation(IMethodBodyOperation operation, int? captureIdForResult)
+        {
+            Debug.Assert(_currentStatement == operation);
+
+            VisitMethodBodyBaseOperation(operation);
+            return null;
+        }
+
+        private void VisitMethodBodyBaseOperation(IMethodBodyBaseOperation operation)
+        {
+            Debug.Assert(_currentStatement == operation);
+
+            if (operation.BlockBody != null)
+            {
+                VisitStatement(operation.BlockBody);
+
+                // Check for error case with non-null BlockBody and non-null ExpressionBody.
+                if (operation.ExpressionBody != null)
+                {
+                    // Link last block of visited BlockBody to the exit block.
+                    LinkBlocks(CurrentBasicBlock, _exit);
+                    _currentBasicBlock = null;
+
+                    // Generate a special region for unreachable erroneous expression body.
+                    EnterRegion(new RegionBuilder(ControlFlowGraph.RegionKind.ErroneousBody));
+                    VisitStatement(operation.ExpressionBody);
+                    LeaveRegion();
+                }
+            }
+            else if (operation.ExpressionBody != null)
+            {
+                VisitStatement(operation.ExpressionBody);
             }
         }
 
@@ -2082,6 +2146,10 @@ oneMoreTime:
             if (underlying == null)
             {
                 Debug.Assert(operation.Operation.Kind == OperationKind.ConditionalAccess);
+                return null;
+            }
+            else if (operation.Operation.Kind == OperationKind.Throw)
+            {
                 return null;
             }
 
@@ -5284,16 +5352,6 @@ oneMoreTime:
         public override IOperation VisitTupleBinaryOperator(ITupleBinaryOperation operation, int? captureIdForResult)
         {
             return new TupleBinaryOperatorExpression(operation.OperatorKind, Visit(operation.LeftOperand), Visit(operation.RightOperand), semanticModel: null, operation.Syntax, operation.Type, operation.ConstantValue, IsImplicit(operation));
-        }
-
-        public override IOperation VisitConstructorBodyOperation(IConstructorBodyOperation operation, int? captureIdForResult)
-        {
-            return new ConstructorBodyOperation(operation.Locals, semanticModel: null, operation.Syntax, Visit(operation.Initializer), Visit(operation.BlockBody), Visit(operation.ExpressionBody));
-        }
-
-        public override IOperation VisitMethodBodyOperation(IMethodBodyOperation operation, int? captureIdForResult)
-        {
-            return new MethodBodyOperation(semanticModel: null, operation.Syntax, Visit(operation.BlockBody), Visit(operation.ExpressionBody));
         }
 
         public override IOperation VisitDiscardOperation(IDiscardOperation operation, int? captureIdForResult)

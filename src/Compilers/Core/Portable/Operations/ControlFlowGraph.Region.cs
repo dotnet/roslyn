@@ -71,6 +71,11 @@ namespace Microsoft.CodeAnalysis.Operations
             /// the first time a function is called.
             /// </summary>
             StaticLocalInitializer,
+
+            /// <summary>
+            /// Region representing erroneous block of code that is unreachable from the entry block.
+            /// </summary>
+            ErroneousBody,
         }
 
         /// <summary>
@@ -174,6 +179,7 @@ namespace Microsoft.CodeAnalysis.Operations
                     case RegionKind.Catch:
                     case RegionKind.Finally:
                     case RegionKind.StaticLocalInitializer:
+                    case RegionKind.ErroneousBody:
                         previousLast = firstBlockOrdinal - 1;
 
                         foreach (Region r in Regions)
