@@ -405,6 +405,35 @@ end class
 
 #End Region
 
+#Region "relational binary parentheses"
+
+        Private Shared ReadOnly s_relationalBinaryIgnore As String = $"
+class C
+    sub M()
+//[
+        ' {ServicesVSResources.Keep_all_parentheses_in_colon}
+        Dim v = (a < b) = (c > d)
+//]
+    end sub
+end class
+"
+
+        Private Shared ReadOnly s_relationalBinaryNeverIfUnnecessary As String = $"
+class C
+    sub M()
+//[
+        ' {ServicesVSResources.Prefer_colon}
+        Dim v = a < b = c > d
+
+        ' {ServicesVSResources.Over_colon}
+        Dim v = (a < b) = (c > d)
+//]
+    end sub
+end class
+"
+
+#End Region
+
 #Region "other binary parentheses"
 
         Private ReadOnly s_otherBinaryAlwaysForClarity As String = $"
@@ -412,10 +441,10 @@ class C
     sub M()
 //[
         // {ServicesVSResources.Prefer_colon}
-        Dim v = ((a <= b) OrElse (c AndAlso d)) = (e Is f)
+        Dim v = a OrElse (b AndAlso c)
 
         // {ServicesVSResources.Over_colon}
-        Dim v = a <= b OrElse c AndAlso d = e Is f
+        Dim v = a OrElse b AndAlso c
 //]
     end sub
 end class
@@ -426,10 +455,10 @@ class C
     sub M()
 //[
         // {ServicesVSResources.Prefer_colon}
-        Dim v = a <= b OrElse c AndAlso d = e Is f
+        Dim v = a OrElse b AndAlso c
 
         // {ServicesVSResources.Over_colon}
-        Dim v = ((a <= b) OrElse (c AndAlso d)) = (e Is f)
+        Dim v = a OrElse (b AndAlso c)
 //]
     end sub
 end class
@@ -546,19 +575,25 @@ End Class"
                 LanguageNames.VisualBasic, optionSet, CodeStyleOptions.ArithmeticBinaryParentheses,
                 BasicVSResources.In_arithmetic_binary_operators,
                 {s_arithmeticBinaryAlwaysForClarity, s_arithmeticBinaryNeverIfUnnecessary},
-                isOther:=False)
+                isIgnoreOption:=False)
 
             AddParenthesesOption(
                 LanguageNames.VisualBasic, optionSet, CodeStyleOptions.OtherBinaryParentheses,
                 BasicVSResources.In_other_binary_operators,
                 {s_otherBinaryAlwaysForClarity, s_otherBinaryNeverIfUnnecessary},
-                isOther:=False)
+                isIgnoreOption:=False)
+
+            AddParenthesesOption(
+                LanguageNames.VisualBasic, optionSet, CodeStyleOptions.RelationalBinaryParentheses,
+                BasicVSResources.In_relational_binary_operators,
+                {s_relationalBinaryIgnore, s_relationalBinaryNeverIfUnnecessary},
+                isIgnoreOption:=True)
 
             AddParenthesesOption(
                 LanguageNames.VisualBasic, optionSet, CodeStyleOptions.OtherParentheses,
                 ServicesVSResources.In_other_operators,
                 {s_otherParenthesesIgnore, s_otherParenthesesNeverIfUnnecessary},
-                isOther:=True)
+                isIgnoreOption:=True)
         End Sub
     End Class
 End Namespace
