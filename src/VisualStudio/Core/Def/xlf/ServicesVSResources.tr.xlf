@@ -1555,12 +1555,12 @@ Aşağıdakilerin tümünü onaylıyorum:</target>
       </trans-unit>
       <trans-unit id="Prefer_conditional_expression_over_if_with_assignments">
         <source>Prefer conditional expression over 'if' with assignments</source>
-        <target state="new">Prefer conditional expression over 'if' with assignments</target>
+        <target state="translated">Atamalarda 'if' yerine koşullu deyim tercih et</target>
         <note />
       </trans-unit>
       <trans-unit id="Prefer_conditional_expression_over_if_with_returns">
         <source>Prefer conditional expression over 'if' with returns</source>
-        <target state="new">Prefer conditional expression over 'if' with returns</target>
+        <target state="translated">Dönüşlerde 'if' yerine koşullu deyim tercih et</target>
         <note />
       </trans-unit>
     </body>
