@@ -407,6 +407,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         public override void VisitUsing(IUsingOperation operation)
         {
             Assert.Equal(OperationKind.Using, operation.Kind);
+            VisitLocals(operation.Locals);
             AssertEx.Equal(new[] { operation.Resources, operation.Body }, operation.Children);
             Assert.NotEqual(OperationKind.VariableDeclaration, operation.Resources.Kind);
             Assert.NotEqual(OperationKind.VariableDeclarator, operation.Resources.Kind);

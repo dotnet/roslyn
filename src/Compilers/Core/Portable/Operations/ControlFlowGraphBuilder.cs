@@ -2463,40 +2463,34 @@ oneMoreTime:
             Compilation compilation = ((Operation)operation).SemanticModel.Compilation;
             ITypeSymbol iDisposable = compilation.GetSpecialType(SpecialType.System_IDisposable);
 
+            bool haveLocals = !operation.Locals.IsEmpty;
+            if (haveLocals)
+            {
+                EnterRegion(new RegionBuilder(ControlFlowGraph.RegionKind.Locals, locals: operation.Locals));
+            }
+
             if (operation.Resources.Kind == OperationKind.VariableDeclarationGroup)
             {
                 var declarationGroup = (IVariableDeclarationGroupOperation)operation.Resources;
                 var resourceQueue = ArrayBuilder<(IVariableDeclarationOperation, IVariableDeclaratorOperation)>.GetInstance(declarationGroup.Declarations.Length);
-
-                // PROTOTYPE(dataflow): Once https://github.com/dotnet/roslyn/issues/25825 is fixed
-                //                      we should switch to IUsingOperation.Locals property
-                //                      because the current approach doesn't handle 'out vars' and the like.
-                var locals = ArrayBuilder<ILocalSymbol>.GetInstance(declarationGroup.Declarations.Length);
-
+                
                 foreach (IVariableDeclarationOperation declaration in declarationGroup.Declarations)
                 {
                     foreach (IVariableDeclaratorOperation declarator in declaration.Declarators)
                     {
-                        locals.Add(declarator.Symbol);
                         resourceQueue.Add((declaration, declarator));
                     }
                 }
 
                 resourceQueue.ReverseContents();
-                EnterRegion(new RegionBuilder(ControlFlowGraph.RegionKind.Locals, locals: locals.ToImmutableAndFree()));
-
+                
                 processQueue(resourceQueue);
-
-                LeaveRegion();
             }
             else
             {
                 Debug.Assert(operation.Resources.Kind != OperationKind.VariableDeclaration);
                 Debug.Assert(operation.Resources.Kind != OperationKind.VariableDeclarator);
 
-                // PROTOTYPE(dataflow): Once https://github.com/dotnet/roslyn/issues/25825 is fixed
-                //                      we should handle locals in IUsingOperation.Locals property:
-                //                      'out vars' and the like.
                 IOperation resource = Visit(operation.Resources);
                 int captureId = _availableCaptureId++;
 
@@ -2507,6 +2501,11 @@ oneMoreTime:
 
                 AddStatement(new FlowCapture(captureId, resource.Syntax, resource));
                 processResource(new FlowCaptureReference(captureId, resource.Syntax, resource.Type, constantValue: default), resourceQueueOpt: null);
+            }
+
+            if (haveLocals)
+            {
+                LeaveRegion();
             }
 
             return null;
@@ -4525,6 +4524,76 @@ oneMoreTime:
             return MakeInvalidOperation(operation.Syntax, operation.Type, ImmutableArray<IOperation>.Empty);
         }
 
+        public override IOperation VisitArrayCreation(IArrayCreationOperation operation, int? captureIdForResult)
+        {
+            // We have couple of options on how to rewrite an array creation with an initializer:
+            //       1) Retain the original tree shape so the visited IArrayCreationOperation still has an IArrayInitializerOperation child node.
+            //       2) Lower the IArrayCreationOperation so it always has a null initializer, followed by explicit assignments
+            //          of the form "IArrayElementReference = value" for the array initializer values.
+            //          There will be no IArrayInitializerOperation in the tree with approach.
+            //
+            //  We are going ahead with approach #1 for couple of reasons:
+            //  1. Simplicity: The implementation is much simpler, and has a lot lower risk associated with it.
+            //  2. Lack of array instance access in the initializer: Unlike the object/collection initializer scenario,
+            //     where the initializer can access the instance being initialized, array initializer does not have access
+            //     to the array instance being initialized, and hence it does not matter if the array allocation is done
+            //     before visiting the initializers or not.
+            //
+            //  In future, based on the customer feedback, we can consider switching to approach #2 and lower the initializer into assignment(s).
+
+            PushArray(operation.DimensionSizes);
+            IArrayInitializerOperation visitedInitializer = Visit(operation.Initializer);
+            ImmutableArray<IOperation> visitedDimensions = PopArray(operation.DimensionSizes);
+            return new ArrayCreationExpression(visitedDimensions, visitedInitializer, semanticModel: null,
+                                               operation.Syntax, operation.Type, operation.ConstantValue, IsImplicit(operation));
+        }
+
+        public override IOperation VisitArrayInitializer(IArrayInitializerOperation operation, int? captureIdForResult)
+        {
+            visitAndPushArrayInitializerValues(operation);
+            return popAndAssembleArrayInitializerValues(operation);
+
+            void visitAndPushArrayInitializerValues(IArrayInitializerOperation initializer)
+            {
+                foreach (IOperation elementValue in initializer.ElementValues)
+                {
+                    // We need to retain the tree shape for nested array initializer.
+                    if (elementValue.Kind == OperationKind.ArrayInitializer)
+                    {
+                        visitAndPushArrayInitializerValues((IArrayInitializerOperation)elementValue);
+                    }
+                    else
+                    {
+                        _evalStack.Push(Visit(elementValue));
+                    }
+                }
+            }
+
+            IArrayInitializerOperation popAndAssembleArrayInitializerValues(IArrayInitializerOperation initializer)
+            {
+                var builder = ArrayBuilder<IOperation>.GetInstance(initializer.ElementValues.Length);
+                for (int i = initializer.ElementValues.Length - 1; i >= 0; i--)
+                {
+                    IOperation elementValue = initializer.ElementValues[i];
+
+                    IOperation visitedElementValue;
+                    if (elementValue.Kind == OperationKind.ArrayInitializer)
+                    {
+                        visitedElementValue = popAndAssembleArrayInitializerValues((IArrayInitializerOperation)elementValue);
+                    }
+                    else
+                    {
+                        visitedElementValue = _evalStack.Pop();
+                    }
+
+                    builder.Add(visitedElementValue);
+                }
+
+                builder.ReverseContents();
+                return new ArrayInitializer(builder.ToImmutableAndFree(), semanticModel: null, initializer.Syntax, initializer.ConstantValue, IsImplicit(initializer));
+            }
+        }
+
         public override IOperation VisitInstanceReference(IInstanceReferenceOperation operation, int? captureIdForResult)
         {
             if (operation.ReferenceKind == InstanceReferenceKind.ImplicitReceiver)
@@ -4880,6 +4949,11 @@ oneMoreTime:
             return new StopStatement(semanticModel: null, operation.Syntax, operation.Type, operation.ConstantValue, IsImplicit(operation));
         }
 
+        public override IOperation VisitIsType(IIsTypeOperation operation, int? captureIdForResult)
+        {
+            return new IsTypeExpression(Visit(operation.ValueOperand), operation.TypeOperand, operation.IsNegated, semanticModel: null, operation.Syntax, operation.Type, operation.ConstantValue, IsImplicit(operation));
+        }
+
         public override IOperation VisitParameterInitializer(IParameterInitializerOperation operation, int? captureIdForResult)
         {
             Debug.Assert(_currentStatement == operation);
@@ -4964,7 +5038,41 @@ oneMoreTime:
             {
                 LeaveRegion();
             }
-	    }
+    	}
+
+        public override IOperation VisitEventAssignment(IEventAssignmentOperation operation, int? captureIdForResult)
+        {
+            var instance = operation.EventReference.Event.IsStatic ? null : operation.EventReference.Instance;
+            if (instance != null)
+            {
+                _evalStack.Push(Visit(instance));
+            }
+
+            IOperation visitedHandler = Visit(operation.HandlerValue);
+            IOperation visitedInstance = instance == null ? null : _evalStack.Pop();
+            var visitedEventReference = new EventReferenceExpression(operation.EventReference.Event, visitedInstance,
+                semanticModel: null, operation.EventReference.Syntax, operation.EventReference.Type, operation.EventReference.ConstantValue, IsImplicit(operation.EventReference));
+            return new EventAssignmentOperation(visitedEventReference, visitedHandler, operation.Adds, semanticModel: null,
+                operation.Syntax, operation.Type, operation.ConstantValue, IsImplicit(operation));
+        }
+
+        public override IOperation VisitRaiseEvent(IRaiseEventOperation operation, int? captureIdForResult)
+        {
+            Debug.Assert(_currentStatement == operation);
+
+            var instance = operation.EventReference.Event.IsStatic ? null : operation.EventReference.Instance;
+            if (instance != null)
+            {
+                _evalStack.Push(Visit(instance));
+            }
+
+            ImmutableArray<IArgumentOperation> visitedArguments = VisitArguments(operation.Arguments);
+            IOperation visitedInstance = instance == null ? null : _evalStack.Pop();
+            var visitedEventReference = new EventReferenceExpression(operation.EventReference.Event, visitedInstance,
+                semanticModel: null, operation.EventReference.Syntax, operation.EventReference.Type, operation.EventReference.ConstantValue, IsImplicit(operation.EventReference));
+            return new RaiseEventStatement(visitedEventReference, visitedArguments, semanticModel: null,
+                operation.Syntax, operation.Type, operation.ConstantValue, IsImplicit(operation));
+        }
 
         public override IOperation VisitAddressOf(IAddressOfOperation operation, int? captureIdForResult)
         {
@@ -4996,6 +5104,12 @@ oneMoreTime:
         public override IOperation VisitDeclarationPattern(IDeclarationPatternOperation operation, int? captureIdForResult)
         {
             return new DeclarationPattern(operation.DeclaredSymbol, semanticModel: null,
+                operation.Syntax, operation.Type, operation.ConstantValue, IsImplicit(operation));
+        }
+
+        public override IOperation VisitDelegateCreation(IDelegateCreationOperation operation, int? captureIdForResult)
+        {
+            return new DelegateCreationExpression(Visit(operation.Target), semanticModel: null,
                 operation.Syntax, operation.Type, operation.ConstantValue, IsImplicit(operation));
         }
 
@@ -5062,11 +5176,6 @@ oneMoreTime:
             return new PointerIndirectionReferenceExpression(Visit(operation.Pointer), semanticModel: null, operation.Syntax, operation.Type, operation.ConstantValue, IsImplicit(operation));
         }
 
-        public override IOperation VisitEventAssignment(IEventAssignmentOperation operation, int? captureIdForResult)
-        {
-            return new EventAssignmentOperation(Visit(operation.EventReference), Visit(operation.HandlerValue), operation.Adds, semanticModel: null, operation.Syntax, operation.Type, operation.ConstantValue, IsImplicit(operation));
-        }
-
         internal override IOperation VisitPlaceholder(IPlaceholderOperation operation, int? captureIdForResult)
         {
             switch (operation.PlaceholderKind)
@@ -5094,11 +5203,6 @@ oneMoreTime:
             return new PlaceholderExpression(operation.PlaceholderKind, semanticModel: null, operation.Syntax, operation.Type, operation.ConstantValue, IsImplicit(operation));
         }
 
-        public override IOperation VisitIsType(IIsTypeOperation operation, int? captureIdForResult)
-        {
-            return new IsTypeExpression(Visit(operation.ValueOperand), operation.TypeOperand, operation.IsNegated, semanticModel: null, operation.Syntax, operation.Type, operation.ConstantValue, IsImplicit(operation));
-        }
-
         public override IOperation VisitAnonymousFunction(IAnonymousFunctionOperation operation, int? captureIdForResult)
         {
             // PROTOTYPE(dataflow): When implementing, consider when a lambda inside a VB initializer references the instance being initialized.
@@ -5113,11 +5217,6 @@ oneMoreTime:
                                                                       operation.Body.ConstantValue,
                                                                       IsImplicit(operation.Body)),
                                                    semanticModel: null, operation.Syntax, operation.Type, operation.ConstantValue, IsImplicit(operation));
-        }
-
-        public override IOperation VisitDelegateCreation(IDelegateCreationOperation operation, int? captureIdForResult)
-        {
-            return new DelegateCreationExpression(Visit(operation.Target), semanticModel: null, operation.Syntax, operation.Type, operation.ConstantValue, IsImplicit(operation));
         }
 
         public override IOperation VisitAnonymousObjectCreation(IAnonymousObjectCreationOperation operation, int? captureIdForResult)
@@ -5141,6 +5240,12 @@ oneMoreTime:
         public override IOperation VisitArrayInitializer(IArrayInitializerOperation operation, int? captureIdForResult)
         {
             return new ArrayInitializer(VisitArray(operation.ElementValues), semanticModel: null, operation.Syntax, operation.ConstantValue, IsImplicit(operation));
+        }
+        
+        public override IOperation VisitIncrementOrDecrement(IIncrementOrDecrementOperation operation, int? captureIdForResult)
+        {
+            bool isDecrement = operation.Kind == OperationKind.Decrement;
+            return new IncrementExpression(isDecrement, operation.IsPostfix, operation.IsLifted, operation.IsChecked, Visit(operation.Target), operation.OperatorMethod, semanticModel: null, operation.Syntax, operation.Type, operation.ConstantValue, IsImplicit(operation));
         }
 
         public override IOperation VisitDynamicObjectCreation(IDynamicObjectCreationOperation operation, int? captureIdForResult)
@@ -5191,11 +5296,6 @@ oneMoreTime:
         public override IOperation VisitTranslatedQuery(ITranslatedQueryOperation operation, int? captureIdForResult)
         {
             return new TranslatedQueryExpression(Visit(operation.Operation), semanticModel: null, operation.Syntax, operation.Type, operation.ConstantValue, IsImplicit(operation));
-        }
-
-        public override IOperation VisitRaiseEvent(IRaiseEventOperation operation, int? captureIdForResult)
-        {
-            return new RaiseEventStatement(Visit(operation.EventReference), VisitArray(operation.Arguments), semanticModel: null, operation.Syntax, operation.Type, operation.ConstantValue, IsImplicit(operation));
         }
 
         public override IOperation VisitTupleBinaryOperator(ITupleBinaryOperation operation, int? captureIdForResult)

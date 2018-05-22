@@ -1355,6 +1355,7 @@ End Module]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
 IUsingOperation (OperationKind.Using, Type: null) (Syntax: 'Using c1 As ... End Using')
+  Locals: Local_1: c1 As Program.C
   Resources: 
     IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDeclarationGroup, Type: null) (Syntax: 'Using c1 As New C')
       IVariableDeclarationOperation (1 declarators) (OperationKind.VariableDeclaration, Type: null) (Syntax: 'c1 As New C')

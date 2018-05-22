@@ -546,6 +546,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private BoundSwitchSection BindSwitchSection(SwitchSectionSyntax node, Binder originalBinder, DiagnosticBag diagnostics)
         {
             var sectionBinder = originalBinder.GetBinder(node);
+            var locals = sectionBinder.GetDeclaredLocalsForScope(node);
 
             //PROTOTYPE(dataflow): Depending on the fix for https://github.com/dotnet/roslyn/issues/26896, enable or remove the assert.
             //Debug.Assert(sectionBinder.GetDeclaredLocalsForScope(node).IsEmpty, "Dropping locals declared in the switch section.");
@@ -566,7 +567,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 boundStatementsBuilder.Add(sectionBinder.BindStatement(statement, diagnostics));
             }
 
-            return new BoundSwitchSection(node, boundLabelsBuilder.ToImmutableAndFree(), boundStatementsBuilder.ToImmutableAndFree());
+            return new BoundSwitchSection(node, locals, boundLabelsBuilder.ToImmutableAndFree(), boundStatementsBuilder.ToImmutableAndFree());
         }
 
         private Dictionary<SyntaxNode, LabelSymbol> _labelsByNode;

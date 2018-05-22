@@ -2733,5 +2733,214 @@ Block[B4] - Exit
 ";
             VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedFlowGraph, expectedDiagnostics);
         }
+
+        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+        [Fact]
+        public void SwitchFlow_34()
+        {
+            string source = @"
+public sealed class MyClass
+{
+    void M(bool result, int input)
+    /*<bind>*/{
+        switch (input)
+        {
+            case 1+TakeOutParam(3, out MyClass x1):
+                result = false;
+                break;
+        }
+    }/*</bind>*/
+    int TakeOutParam(int a, out MyClass b)
+    {
+        b = default;
+        return a;
+    }
+}
+";
+            var expectedDiagnostics = new DiagnosticDescription[] {
+                // file.cs(8,18): error CS0150: A constant value is expected
+                //             case 1+TakeOutParam(3, out MyClass x1):
+                Diagnostic(ErrorCode.ERR_ConstantExpected, "1+TakeOutParam(3, out MyClass x1)").WithLocation(8, 18)
+            };
+
+            string expectedFlowGraph = @"
+Block[B0] - Entry
+    Statements (0)
+    Next (Regular) Block[B1]
+Block[B1] - Block
+    Predecessors: [B0]
+    Statements (1)
+        IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'input')
+          Value: 
+            IParameterReferenceOperation: input (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'input')
+
+    Next (Regular) Block[B2]
+        Entering: {R1}
+
+.locals {R1}
+{
+    Locals: [MyClass x1]
+    Block[B2] - Block
+        Predecessors: [B1]
+        Statements (0)
+        Jump if False (Regular) to Block[B4]
+            IBinaryOperation (BinaryOperatorKind.Equals) (OperationKind.BinaryOperator, Type: System.Boolean, IsInvalid, IsImplicit) (Syntax: '1+TakeOutPa ... MyClass x1)')
+              Left: 
+                IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.Int32, IsImplicit) (Syntax: 'input')
+              Right: 
+                IBinaryOperation (BinaryOperatorKind.Add) (OperationKind.BinaryOperator, Type: System.Int32, IsInvalid) (Syntax: '1+TakeOutPa ... MyClass x1)')
+                  Left: 
+                    ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1, IsInvalid) (Syntax: '1')
+                  Right: 
+                    IInvocationOperation ( System.Int32 MyClass.TakeOutParam(System.Int32 a, out MyClass b)) (OperationKind.Invocation, Type: System.Int32, IsInvalid) (Syntax: 'TakeOutPara ... MyClass x1)')
+                      Instance Receiver: 
+                        IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: MyClass, IsInvalid, IsImplicit) (Syntax: 'TakeOutParam')
+                      Arguments(2):
+                          IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: a) (OperationKind.Argument, Type: null, IsInvalid) (Syntax: '3')
+                            ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 3, IsInvalid) (Syntax: '3')
+                            InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                            OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                          IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: b) (OperationKind.Argument, Type: null, IsInvalid) (Syntax: 'out MyClass x1')
+                            IDeclarationExpressionOperation (OperationKind.DeclarationExpression, Type: MyClass, IsInvalid) (Syntax: 'MyClass x1')
+                              ILocalReferenceOperation: x1 (IsDeclaration: True) (OperationKind.LocalReference, Type: MyClass, IsInvalid) (Syntax: 'x1')
+                            InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                            OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+            Leaving: {R1}
+
+        Next (Regular) Block[B3]
+    Block[B3] - Block
+        Predecessors: [B2]
+        Statements (1)
+            IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'result = false;')
+              Expression: 
+                ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Boolean) (Syntax: 'result = false')
+                  Left: 
+                    IParameterReferenceOperation: result (OperationKind.ParameterReference, Type: System.Boolean) (Syntax: 'result')
+                  Right: 
+                    ILiteralOperation (OperationKind.Literal, Type: System.Boolean, Constant: False) (Syntax: 'false')
+
+        Next (Regular) Block[B4]
+            Leaving: {R1}
+}
+
+Block[B4] - Exit
+    Predecessors: [B2] [B3]
+    Statements (0)
+";
+            VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedFlowGraph, expectedDiagnostics);
+        }
+
+        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+        [Fact]
+        public void SwitchFlow_35()
+        {
+            string source = @"
+public sealed class MyClass
+{
+    void M(bool result, int? input)
+    /*<bind>*/{
+        switch (input)
+        {
+            case 1+(input is int x1 ? x1 : 0):
+                result = false;
+                break;
+        }
+    }/*</bind>*/
+}
+";
+            var expectedDiagnostics = new DiagnosticDescription[] {
+                // file.cs(8,18): error CS0150: A constant value is expected
+                //             case 1+(input is int x1 ? x1 : 0):
+                Diagnostic(ErrorCode.ERR_ConstantExpected, "1+(input is int x1 ? x1 : 0)").WithLocation(8, 18)
+            };
+
+            string expectedFlowGraph = @"
+Block[B0] - Entry
+    Statements (0)
+    Next (Regular) Block[B1]
+Block[B1] - Block
+    Predecessors: [B0]
+    Statements (1)
+        IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'input')
+          Value: 
+            IParameterReferenceOperation: input (OperationKind.ParameterReference, Type: System.Int32?) (Syntax: 'input')
+
+    Next (Regular) Block[B2]
+        Entering: {R1}
+
+.locals {R1}
+{
+    Locals: [System.Int32 x1]
+    Block[B2] - Block
+        Predecessors: [B1]
+        Statements (1)
+            IFlowCaptureOperation: 1 (OperationKind.FlowCapture, Type: null, IsInvalid, IsImplicit) (Syntax: '1')
+              Value: 
+                ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1, IsInvalid) (Syntax: '1')
+
+        Jump if False (Regular) to Block[B4]
+            IIsPatternOperation (OperationKind.IsPattern, Type: System.Boolean, IsInvalid) (Syntax: 'input is int x1')
+              Expression: 
+                IParameterReferenceOperation: input (OperationKind.ParameterReference, Type: System.Int32?, IsInvalid) (Syntax: 'input')
+              Pattern: 
+                IDeclarationPatternOperation (Declared Symbol: System.Int32 x1) (OperationKind.DeclarationPattern, Type: null, IsInvalid) (Syntax: 'int x1')
+
+        Next (Regular) Block[B3]
+    Block[B3] - Block
+        Predecessors: [B2]
+        Statements (1)
+            IFlowCaptureOperation: 2 (OperationKind.FlowCapture, Type: null, IsInvalid, IsImplicit) (Syntax: 'x1')
+              Value: 
+                ILocalReferenceOperation: x1 (OperationKind.LocalReference, Type: System.Int32, IsInvalid) (Syntax: 'x1')
+
+        Next (Regular) Block[B5]
+    Block[B4] - Block
+        Predecessors: [B2]
+        Statements (1)
+            IFlowCaptureOperation: 2 (OperationKind.FlowCapture, Type: null, IsInvalid, IsImplicit) (Syntax: '0')
+              Value: 
+                ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0, IsInvalid) (Syntax: '0')
+
+        Next (Regular) Block[B5]
+    Block[B5] - Block
+        Predecessors: [B3] [B4]
+        Statements (0)
+        Jump if False (Regular) to Block[B7]
+            IBinaryOperation (BinaryOperatorKind.Equals, IsLifted) (OperationKind.BinaryOperator, Type: System.Boolean, IsInvalid, IsImplicit) (Syntax: '1+(input is ... 1 ? x1 : 0)')
+              Left: 
+                IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.Int32?, IsImplicit) (Syntax: 'input')
+              Right: 
+                IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Int32?, IsInvalid, IsImplicit) (Syntax: '1+(input is ... 1 ? x1 : 0)')
+                  Conversion: CommonConversion (Exists: True)
+                  Operand: 
+                    IBinaryOperation (BinaryOperatorKind.Add) (OperationKind.BinaryOperator, Type: System.Int32, IsInvalid) (Syntax: '1+(input is ... 1 ? x1 : 0)')
+                      Left: 
+                        IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: System.Int32, Constant: 1, IsInvalid, IsImplicit) (Syntax: '1')
+                      Right: 
+                        IFlowCaptureReferenceOperation: 2 (OperationKind.FlowCaptureReference, Type: System.Int32, IsInvalid, IsImplicit) (Syntax: 'input is int x1 ? x1 : 0')
+            Leaving: {R1}
+
+        Next (Regular) Block[B6]
+    Block[B6] - Block
+        Predecessors: [B5]
+        Statements (1)
+            IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'result = false;')
+              Expression: 
+                ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Boolean) (Syntax: 'result = false')
+                  Left: 
+                    IParameterReferenceOperation: result (OperationKind.ParameterReference, Type: System.Boolean) (Syntax: 'result')
+                  Right: 
+                    ILiteralOperation (OperationKind.Literal, Type: System.Boolean, Constant: False) (Syntax: 'false')
+
+        Next (Regular) Block[B7]
+            Leaving: {R1}
+}
+
+Block[B7] - Exit
+    Predecessors: [B5] [B6]
+    Statements (0)
+";
+            VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedFlowGraph, expectedDiagnostics);
+        }
     }
 }

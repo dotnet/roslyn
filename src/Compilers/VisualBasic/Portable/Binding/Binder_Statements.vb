@@ -4444,6 +4444,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         Next
                     End If
                 Next
+
             Else
                 ' the using block has an expression as resource
                 Debug.Assert(usingStatement.Expression IsNot Nothing)
@@ -4464,8 +4465,26 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             ' Bind the body of the using statement.
             Dim usingBody As BoundBlock = BindBlock(node, node.Statements, diagnostics).MakeCompilerGenerated()
             Dim usingInfo As New usingInfo(node, placeholderInfo)
+            Dim locals As ImmutableArray(Of LocalSymbol) = GetUsingBlockLocals(usingBinder)
 
-            Return New BoundUsingStatement(node, resourceList, resourceExpression, usingBody, usingInfo)
+            Return New BoundUsingStatement(node, resourceList, resourceExpression, usingBody, usingInfo, locals)
+        End Function
+
+        Private Function GetUsingBlockLocals(currentBinder As Binder) As ImmutableArray(Of LocalSymbol)
+            Dim usingBlockBinder As UsingBlockBinder
+
+            Do
+                usingBlockBinder = TryCast(currentBinder, UsingBlockBinder)
+
+                If usingBlockBinder IsNot Nothing Then
+                    Return usingBlockBinder.Locals
+                End If
+
+                currentBinder = currentBinder.ContainingBinder
+            Loop While currentBinder IsNot Nothing
+
+            Debug.Fail("Failed to find UsingBlockBinder")
+            Return ImmutableArray(Of LocalSymbol).Empty
         End Function
 
         Private Sub VerifyUsingVariableDeclarationAndBuildUsingInfo(

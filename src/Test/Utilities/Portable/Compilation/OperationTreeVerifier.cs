@@ -686,6 +686,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             LogString(nameof(IUsingOperation));
             LogCommonPropertiesAndNewLine(operation);
 
+            LogLocals(operation.Locals);
             Visit(operation.Resources, "Resources");
             Visit(operation.Body, "Body");
 

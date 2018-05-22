@@ -1600,11 +1600,12 @@ namespace Microsoft.CodeAnalysis.Operations
         {
             Lazy<IOperation> resources = new Lazy<IOperation>(() => Create((BoundNode)boundUsingStatement.DeclarationsOpt ?? boundUsingStatement.ExpressionOpt));
             Lazy<IOperation> body = new Lazy<IOperation>(() => Create(boundUsingStatement.Body));
+            ImmutableArray<ILocalSymbol> locals = ImmutableArray<ILocalSymbol>.CastUp(boundUsingStatement.Locals);
             SyntaxNode syntax = boundUsingStatement.Syntax;
             ITypeSymbol type = null;
             Optional<object> constantValue = default(Optional<object>);
             bool isImplicit = boundUsingStatement.WasCompilerGenerated;
-            return new LazyUsingStatement(resources, body, _semanticModel, syntax, type, constantValue, isImplicit);
+            return new LazyUsingStatement(resources, body, locals, _semanticModel, syntax, type, constantValue, isImplicit);
         }
 
         private IThrowOperation CreateBoundThrowStatementOperation(BoundThrowStatement boundThrowStatement)

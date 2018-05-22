@@ -1447,11 +1447,12 @@ Namespace Microsoft.CodeAnalysis.Operations
                         Return Create(boundUsingStatement.ResourceExpressionOpt)
                     End If
                 End Function)
+            Dim locals As ImmutableArray(Of ILocalSymbol) = ImmutableArray(Of ILocalSymbol).CastUp(boundUsingStatement.Locals)
             Dim syntax As SyntaxNode = boundUsingStatement.Syntax
             Dim type As ITypeSymbol = Nothing
             Dim constantValue As [Optional](Of Object) = New [Optional](Of Object)()
             Dim isImplicit As Boolean = boundUsingStatement.WasCompilerGenerated
-            Return New LazyUsingStatement(resources, body, _semanticModel, syntax, type, constantValue, isImplicit)
+            Return New LazyUsingStatement(resources, body, locals, _semanticModel, syntax, type, constantValue, isImplicit)
         End Function
 
         Private Function CreateBoundExpressionStatementOperation(boundExpressionStatement As BoundExpressionStatement) As IExpressionStatementOperation

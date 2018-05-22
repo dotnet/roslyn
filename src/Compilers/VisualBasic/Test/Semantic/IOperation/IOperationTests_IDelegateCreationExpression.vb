@@ -4517,5 +4517,164 @@ IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDecla
 
 #End Region
 
+#Region "Control Flow"
+
+        <CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)>
+        <Fact()>
+        Public Sub DelegateCreation_NoControlFlow()
+            Dim source = <![CDATA[
+Imports System
+
+Class C
+    Private Sub M(a1 As Action, a2 As Action, a3 As Action, a4 As Action) 'BIND:"Private Sub M(a1 As Action, a2 As Action, a3 As Action, a4 As Action)"
+        a1 = Sub()
+             End Sub
+        a2 = AddressOf M2
+        a3 = New Action(AddressOf M3)
+    End Sub
+
+    Private Sub M2()
+    End Sub
+
+    Private Shared Sub M3()
+    End Sub
+End Class
+]]>.Value
+
+            Dim expectedFlowGraph = <![CDATA[
+Block[B0] - Entry
+    Statements (0)
+    Next (Regular) Block[B1]
+Block[B1] - Block
+    Predecessors: [B0]
+    Statements (3)
+        IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'a1 = Sub() ... End Sub')
+          Expression: 
+            ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Action, IsImplicit) (Syntax: 'a1 = Sub() ... End Sub')
+              Left: 
+                IParameterReferenceOperation: a1 (OperationKind.ParameterReference, Type: System.Action) (Syntax: 'a1')
+              Right: 
+                IDelegateCreationOperation (OperationKind.DelegateCreation, Type: System.Action, IsImplicit) (Syntax: 'Sub() ... End Sub')
+                  Target: 
+                    IAnonymousFunctionOperation (Symbol: Sub ()) (OperationKind.AnonymousFunction, Type: null) (Syntax: 'Sub() ... End Sub')
+                      IBlockOperation (0 statements) (OperationKind.Block, Type: null, IsImplicit) (Syntax: 'Sub() ... End Sub')
+
+        IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'a2 = AddressOf M2')
+          Expression: 
+            ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Action, IsImplicit) (Syntax: 'a2 = AddressOf M2')
+              Left: 
+                IParameterReferenceOperation: a2 (OperationKind.ParameterReference, Type: System.Action) (Syntax: 'a2')
+              Right: 
+                IDelegateCreationOperation (OperationKind.DelegateCreation, Type: System.Action, IsImplicit) (Syntax: 'AddressOf M2')
+                  Target: 
+                    IMethodReferenceOperation: Sub C.M2() (OperationKind.MethodReference, Type: null) (Syntax: 'AddressOf M2')
+                      Instance Receiver: 
+                        IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: C, IsImplicit) (Syntax: 'M2')
+
+        IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'a3 = New Ac ... dressOf M3)')
+          Expression: 
+            ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Action, IsImplicit) (Syntax: 'a3 = New Ac ... dressOf M3)')
+              Left: 
+                IParameterReferenceOperation: a3 (OperationKind.ParameterReference, Type: System.Action) (Syntax: 'a3')
+              Right: 
+                IDelegateCreationOperation (OperationKind.DelegateCreation, Type: System.Action) (Syntax: 'New Action(AddressOf M3)')
+                  Target: 
+                    IMethodReferenceOperation: Sub C.M3() (Static) (OperationKind.MethodReference, Type: null) (Syntax: 'AddressOf M3')
+                      Instance Receiver: 
+                        null
+
+    Next (Regular) Block[B2]
+Block[B2] - Exit
+    Predecessors: [B1]
+    Statements (0)
+]]>.Value
+
+            Dim expectedDiagnostics = String.Empty
+
+            VerifyFlowGraphAndDiagnosticsForTest(Of MethodBlockSyntax)(source, expectedFlowGraph, expectedDiagnostics)
+        End Sub
+
+        <CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)>
+        <Fact()>
+        Public Sub DelegateCreation_ControlFlowInTarget()
+            Dim source = <![CDATA[
+Imports System
+
+Class C
+    Private Sub M(a1 As Action, a2 As Action, a3 As Action) 'BIND:"Private Sub M(a1 As Action, a2 As Action, a3 As Action)"
+        a1 = AddressOf If(a2, a3)
+    End Sub
+End Class
+]]>.Value
+
+            Dim expectedFlowGraph = <![CDATA[
+Block[B0] - Entry
+    Statements (0)
+    Next (Regular) Block[B1]
+Block[B1] - Block
+    Predecessors: [B0]
+    Statements (2)
+        IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'a1')
+          Value: 
+            IParameterReferenceOperation: a1 (OperationKind.ParameterReference, Type: System.Action) (Syntax: 'a1')
+
+        IFlowCaptureOperation: 1 (OperationKind.FlowCapture, Type: null, IsInvalid, IsImplicit) (Syntax: 'a2')
+          Value: 
+            IParameterReferenceOperation: a2 (OperationKind.ParameterReference, Type: System.Action, IsInvalid) (Syntax: 'a2')
+
+    Jump if True (Regular) to Block[B3]
+        IIsNullOperation (OperationKind.IsNull, Type: System.Boolean, IsInvalid, IsImplicit) (Syntax: 'a2')
+          Operand: 
+            IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: System.Action, IsInvalid, IsImplicit) (Syntax: 'a2')
+
+    Next (Regular) Block[B2]
+Block[B2] - Block
+    Predecessors: [B1]
+    Statements (1)
+        IFlowCaptureOperation: 2 (OperationKind.FlowCapture, Type: null, IsInvalid, IsImplicit) (Syntax: 'a2')
+          Value: 
+            IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: System.Action, IsInvalid, IsImplicit) (Syntax: 'a2')
+
+    Next (Regular) Block[B4]
+Block[B3] - Block
+    Predecessors: [B1]
+    Statements (1)
+        IFlowCaptureOperation: 2 (OperationKind.FlowCapture, Type: null, IsInvalid, IsImplicit) (Syntax: 'a3')
+          Value: 
+            IParameterReferenceOperation: a3 (OperationKind.ParameterReference, Type: System.Action, IsInvalid) (Syntax: 'a3')
+
+    Next (Regular) Block[B4]
+Block[B4] - Block
+    Predecessors: [B2] [B3]
+    Statements (1)
+        IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null, IsInvalid) (Syntax: 'a1 = Addres ...  If(a2, a3)')
+          Expression: 
+            ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Action, IsInvalid, IsImplicit) (Syntax: 'a1 = Addres ...  If(a2, a3)')
+              Left: 
+                IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.Action, IsImplicit) (Syntax: 'a1')
+              Right: 
+                IDelegateCreationOperation (OperationKind.DelegateCreation, Type: System.Action, IsInvalid, IsImplicit) (Syntax: 'AddressOf If(a2, a3)')
+                  Target: 
+                    IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid) (Syntax: 'AddressOf If(a2, a3)')
+                      Children(1):
+                          IFlowCaptureReferenceOperation: 2 (OperationKind.FlowCaptureReference, Type: System.Action, IsInvalid, IsImplicit) (Syntax: 'If(a2, a3)')
+
+    Next (Regular) Block[B5]
+Block[B5] - Exit
+    Predecessors: [B4]
+    Statements (0)
+]]>.Value
+
+            Dim expectedDiagnostics = <![CDATA[
+BC30577: 'AddressOf' operand must be the name of a method (without parentheses).
+        a1 = AddressOf If(a2, a3)
+                       ~~~~~~~~~~
+]]>.Value
+
+            VerifyFlowGraphAndDiagnosticsForTest(Of MethodBlockSyntax)(source, expectedFlowGraph, expectedDiagnostics)
+        End Sub
+
+#End Region
+
     End Class
 End Namespace
