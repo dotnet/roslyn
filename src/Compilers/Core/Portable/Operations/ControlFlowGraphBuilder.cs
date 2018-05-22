@@ -5068,7 +5068,6 @@ oneMoreTime:
             
             return new EventAssignmentOperation(visitedEventReference, visitedHandler, operation.Adds, semanticModel: null,
                 operation.Syntax, operation.Type, operation.ConstantValue, IsImplicit(operation));
-
         }
 
         public override IOperation VisitRaiseEvent(IRaiseEventOperation operation, int? captureIdForResult)
