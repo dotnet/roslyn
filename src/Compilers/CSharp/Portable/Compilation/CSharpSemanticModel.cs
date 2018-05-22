@@ -1756,6 +1756,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundNode boundNodeForSyntacticParent,
             Binder binderOpt)
         {
+            LookupResultKind resultKind;
+            ImmutableArray<Symbol> symbols;
+
+            if (lowestBoundNode is BoundSubpattern subpattern)
+            {
+                return GetSymbolInfoForSubpattern(subpattern);
+            }
+
             if (!(lowestBoundNode is BoundExpression boundExpr))
             {
                 return SymbolInfo.None;
@@ -1768,10 +1776,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // Get symbols and result kind from the lowest and highest nodes associated with the
             // syntax node.
-            LookupResultKind resultKind;
-            bool isDynamic;
-            ImmutableArray<Symbol> unusedMemberGroup;
-            var symbols = GetSemanticSymbols(boundExpr, boundNodeForSyntacticParent, binderOpt, options, out isDynamic, out resultKind, out unusedMemberGroup);
+            symbols = GetSemanticSymbols(boundExpr, boundNodeForSyntacticParent, binderOpt, options, out bool isDynamic, out resultKind, out ImmutableArray<Symbol> unusedMemberGroup);
 
             if (highestBoundNode is BoundExpression highestBoundExpr)
             {
@@ -1842,6 +1847,16 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             return SymbolInfoFactory.Create(symbols, resultKind, isDynamic);
+        }
+
+        private SymbolInfo GetSymbolInfoForSubpattern(BoundSubpattern subpattern)
+        {
+            if (subpattern.Symbol?.OriginalDefinition is ErrorTypeSymbol originalErrorType)
+            {
+                return new SymbolInfo(null, originalErrorType.CandidateSymbols.CastArray<ISymbol>(), originalErrorType.ResultKind.ToCandidateReason());
+            }
+
+            return new SymbolInfo(subpattern.Symbol, CandidateReason.None);
         }
 
         private static void AddUnwrappingErrorTypes(ArrayBuilder<Symbol> builder, Symbol s)
@@ -4101,9 +4116,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return (object)tupleElement == null ? SymbolInfo.None : new SymbolInfo(tupleElement, ImmutableArray<ISymbol>.Empty, CandidateReason.None);
             }
 
+            if (parent3.IsKind(SyntaxKind.PropertyPatternClause) || parent3.IsKind(SyntaxKind.DeconstructionPatternClause))
+            {
+                return GetSymbolInfoWorker(identifierNameSyntax, SymbolInfoOptions.DefaultOptions, cancellationToken);
+            }
+
             CSharpSyntaxNode containingInvocation = parent3.Parent;
             SymbolInfo containingInvocationInfo = GetSymbolInfoWorker(containingInvocation, SymbolInfoOptions.PreferConstructorsToType | SymbolInfoOptions.ResolveAliases, cancellationToken);
-
 
             if ((object)containingInvocationInfo.Symbol != null)
             {

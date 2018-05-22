@@ -16,11 +16,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
     [CompilerTrait(CompilerFeature.Patterns)]
     public class PatternMatchingTests2 : PatternMatchingTestBase
     {
-        CSharpCompilation CreatePatternCompilation(string source)
-        {
-            return CreateCompilation(source, options: TestOptions.DebugExe, parseOptions: TestOptions.RegularWithRecursivePatterns);
-        }
-
         [Fact]
         public void Patterns2_00()
         {

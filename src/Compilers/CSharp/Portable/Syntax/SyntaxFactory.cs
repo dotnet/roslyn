@@ -2162,6 +2162,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
 
                     break;
+
+                case SyntaxKind.NameColon:
+                    if (parent.Parent.IsKind(SyntaxKind.Subpattern))
+                    {
+                        return parent.Parent;
+                    }
+
+                    break;
             }
 
             return node;

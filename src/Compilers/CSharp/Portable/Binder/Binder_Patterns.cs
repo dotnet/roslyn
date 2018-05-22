@@ -554,20 +554,20 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
                 for (int i = 0; i < node.Subpatterns.Count; i++)
                 {
-                    var subPattern = node.Subpatterns[i];
+                    var subpatternSyntax = node.Subpatterns[i];
                     bool isError = i >= elementTypes.Length;
                     TypeSymbol elementType = isError ? CreateErrorType() : elementTypes[i];
                     FieldSymbol foundField = null;
-                    if (subPattern.NameColon != null)
+                    if (subpatternSyntax.NameColon != null)
                     {
-                        string name = subPattern.NameColon.Name.Identifier.ValueText;
-                        foundField = CheckIsTupleElement(subPattern.NameColon.Name, (NamedTypeSymbol)declType, name, i, diagnostics);
+                        string name = subpatternSyntax.NameColon.Name.Identifier.ValueText;
+                        foundField = CheckIsTupleElement(subpatternSyntax.NameColon.Name, (NamedTypeSymbol)declType, name, i, diagnostics);
                     }
 
                     BoundSubpattern boundSubpattern = new BoundSubpattern(
-                        subPattern,
+                        subpatternSyntax,
                         foundField,
-                        BindPattern(subPattern.Pattern, elementType, isError, diagnostics));
+                        BindPattern(subpatternSyntax.Pattern, elementType, isError, diagnostics));
                     patterns.Add(boundSubpattern);
                 }
             }
@@ -575,8 +575,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 // It is not a tuple type. Seek an appropriate Deconstruct method.
                 var inputPlaceholder = new BoundImplicitReceiver(node, declType); // A fake receiver expression to permit us to reuse binding logic
-                // PROTOTYPE(patterns2): Can we include element names node.Subpatterns[i].NameColon?.Name in the AnalyzedArguments
-                // used in MakeDeconstructInvocationExpression so they are used to disambiguate? LDM needs to reconcile with deconstruction.
                 BoundExpression deconstruct = MakeDeconstructInvocationExpression(
                     node.Subpatterns.Count, inputPlaceholder, node, diagnostics, outPlaceholders: out ImmutableArray<BoundDeconstructValuePlaceholder> outPlaceholders);
                 deconstructMethod = deconstruct.ExpressionSymbol as MethodSymbol;
@@ -628,7 +626,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// Check that the given name designates a tuple element at the given index, and return that element.
         /// </summary>
-        private FieldSymbol CheckIsTupleElement(SyntaxNode node, NamedTypeSymbol tupleType, string name, int tupleIndex, DiagnosticBag diagnostics)
+        private static FieldSymbol CheckIsTupleElement(SyntaxNode node, NamedTypeSymbol tupleType, string name, int tupleIndex, DiagnosticBag diagnostics)
         {
             FieldSymbol foundElement = null;
             foreach (var symbol in tupleType.GetMembers(name))
@@ -702,10 +700,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                             }
                             for (int i = 0; i < tupleDesignation.Variables.Count; i++)
                             {
+                                var variable = tupleDesignation.Variables[i];
                                 bool isError = i >= elementTypes.Length;
                                 TypeSymbol elementType = isError ? CreateErrorType() : elementTypes[i];
-                                BoundPattern boundSubpattern = BindVarDesignation(node, tupleDesignation.Variables[i], elementType, isError, diagnostics);
-                                subPatterns.Add(new BoundSubpattern(node, symbol: null, boundSubpattern));
+                                BoundPattern pattern = BindVarDesignation(node, variable, elementType, isError, diagnostics);
+                                subPatterns.Add(new BoundSubpattern(variable, symbol: null, pattern));
                             }
                         }
                         else
@@ -719,10 +718,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                             for (int i = 0; i < tupleDesignation.Variables.Count; i++)
                             {
+                                var variable = tupleDesignation.Variables[i];
                                 bool isError = outPlaceholders.IsDefaultOrEmpty || i >= outPlaceholders.Length;
                                 TypeSymbol elementType = isError ? CreateErrorType() : outPlaceholders[i].Type;
-                                BoundPattern pattern = BindVarDesignation(node, tupleDesignation.Variables[i], elementType, isError, diagnostics);
-                                subPatterns.Add(new BoundSubpattern(node, symbol: null, pattern));
+                                BoundPattern pattern = BindVarDesignation(node, variable, elementType, isError, diagnostics);
+                                subPatterns.Add(new BoundSubpattern(variable, symbol: null, pattern));
                             }
 
                             // PROTOTYPE(patterns2): If no Deconstruct method is found, try casting to `ITuple`.
@@ -768,7 +768,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 BoundPattern boundPattern = BindPattern(pattern, memberType, hasErrors, diagnostics);
-                builder.Add(new BoundSubpattern(pattern, member, boundPattern));
+                builder.Add(new BoundSubpattern(p, member, boundPattern));
             }
 
             return builder.ToImmutableAndFree();
@@ -782,13 +782,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (inputType.IsErrorType() || hasErrors || symbol == (object)null)
             {
                 memberType = CreateErrorType();
-                return null;
             }
             else
             {
                 memberType = symbol.GetTypeOrReturnType();
-                return symbol;
             }
+
+            return symbol;
         }
 
         private Symbol BindPropertyPatternMember(
@@ -819,7 +819,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     (BoundPropertyGroup)boundMember, mustHaveAllOptionalParameters: true, diagnostics: diagnostics);
             }
 
-            LookupResultKind resultKind = boundMember.ResultKind;
             hasErrors |= boundMember.HasAnyErrors || implicitReceiver.HasAnyErrors;
 
             switch (boundMember.Kind)
@@ -854,14 +853,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
 
                     hasErrors = true;
-                    return null;
+                    return boundMember.ExpressionSymbol;
             }
 
             if (hasErrors || !CheckValueKind(node: memberName.Parent, expr: boundMember, valueKind: BindValueKind.RValue,
                                              checkingReceiver: false, diagnostics: diagnostics))
             {
                 hasErrors = true;
-                return null;
             }
 
             return boundMember.ExpressionSymbol;
