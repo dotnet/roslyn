@@ -21,9 +21,9 @@ namespace Microsoft.CodeAnalysis.CodeFixes.PreferFrameworkType
         public const string DeclarationsEquivalenceKey = nameof(DeclarationsEquivalenceKey);
         public const string MemberAccessEquivalenceKey = nameof(MemberAccessEquivalenceKey);
 
-        public sealed override ImmutableArray<string> FixableDiagnosticIds { get; } =
-            ImmutableArray.Create(IDEDiagnosticIds.PreferFrameworkTypeInDeclarationsDiagnosticId,
-                                  IDEDiagnosticIds.PreferFrameworkTypeInMemberAccessDiagnosticId);
+        public sealed override ImmutableArray<string> FixableDiagnosticIds => ImmutableArray.Create(
+                IDEDiagnosticIds.PreferFrameworkTypeInDeclarationsDiagnosticId,
+                IDEDiagnosticIds.PreferFrameworkTypeInMemberAccessDiagnosticId);
 
         public override Task RegisterCodeFixesAsync(CodeFixContext context)
         {
