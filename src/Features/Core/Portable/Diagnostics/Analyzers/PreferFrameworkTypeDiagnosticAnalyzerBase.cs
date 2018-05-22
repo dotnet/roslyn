@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.PreferFrameworkType
             PreferFrameworkTypeCodeFixProvider.EquivalenceKey, PreferFrameworkTypeCodeFixProvider.MemberAccessEquivalenceKey);
 
         protected PreferFrameworkTypeDiagnosticAnalyzerBase()
-            : base(IDEDiagnosticIds.PreferFrameworkTypeDiagnosticId,
+            : base(IDEDiagnosticIds.PreferFrameworkTypeInDeclarationsDiagnosticId,
                    new LocalizableResourceString(nameof(FeaturesResources.Use_framework_type), FeaturesResources.ResourceManager, typeof(FeaturesResources)),
                    new LocalizableResourceString(nameof(FeaturesResources.Use_framework_type), FeaturesResources.ResourceManager, typeof(FeaturesResources)))
         {

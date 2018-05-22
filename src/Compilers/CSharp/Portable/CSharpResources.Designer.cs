@@ -7550,6 +7550,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to An out variable cannot be declared as a ref local.
+        /// </summary>
+        internal static string ERR_OutVariableCannotBeByRef {
+            get {
+                return ResourceManager.GetString("ERR_OutVariableCannotBeByRef", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to &apos;{0}&apos; cannot define an overloaded {1} that differs only on parameter modifiers &apos;{2}&apos; and &apos;{3}&apos;.
         /// </summary>
         internal static string ERR_OverloadRefKind {
@@ -14503,6 +14512,24 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string WRN_TupleLiteralNameMismatch_Title {
             get {
                 return ResourceManager.GetString("WRN_TupleLiteralNameMismatch_Title", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Type parameter &apos;{0}&apos; has the same name as the type parameter from outer method &apos;{1}&apos;.
+        /// </summary>
+        internal static string WRN_TypeParameterSameAsOuterMethodTypeParameter {
+            get {
+                return ResourceManager.GetString("WRN_TypeParameterSameAsOuterMethodTypeParameter", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Type parameter has the same type as the type parameter from outer method..
+        /// </summary>
+        internal static string WRN_TypeParameterSameAsOuterMethodTypeParameter_Title {
+            get {
+                return ResourceManager.GetString("WRN_TypeParameterSameAsOuterMethodTypeParameter_Title", resourceCulture);
             }
         }
         

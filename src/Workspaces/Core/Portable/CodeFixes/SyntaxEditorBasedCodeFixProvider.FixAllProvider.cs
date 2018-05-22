@@ -34,8 +34,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
 
             internal sealed override async Task<CodeAction> GetFixAsync(
                 ImmutableDictionary<Document, ImmutableArray<Diagnostic>> documentsAndDiagnosticsToFixMap,
-                FixAllState fixAllState,
-                CancellationToken cancellationToken)
+                FixAllState fixAllState, CancellationToken cancellationToken)
             {
                 // Process all documents in parallel.
                 var updatedDocumentTasks = documentsAndDiagnosticsToFixMap.Select(
@@ -60,13 +59,12 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             }
 
             private Task<Document> FixDocumentAsync(
-                FixAllState state, Document document, 
-                ImmutableArray<Diagnostic> diagnostics, CancellationToken cancellationToken)
+                FixAllState fixAllState, Document document, ImmutableArray<Diagnostic> diagnostics, CancellationToken cancellationToken)
             {
                 // Ensure that diagnostics for this document are always in document location
                 // order.  This provides a consistent and deterministic order for fixers
                 // that want to update a document.
-                var filteredDiagnostics = diagnostics.WhereAsArray(d => _codeFixProvider.IncludeDiagnosticDuringFixAll(state, d))
+                var filteredDiagnostics = diagnostics.WhereAsArray(d => _codeFixProvider.IncludeDiagnosticDuringFixAll(fixAllState, d))
                                                      .Sort((d1, d2) => d1.Location.SourceSpan.Start - d2.Location.SourceSpan.Start);
                 return _codeFixProvider.FixAllAsync(document, filteredDiagnostics, cancellationToken);
             }

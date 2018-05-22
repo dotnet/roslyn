@@ -964,6 +964,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return list
         End Function
 
+        Public Function GetMembersOfTypeDeclaration(typeDeclaration As SyntaxNode) As SyntaxList(Of SyntaxNode) Implements ISyntaxFactsService.GetMembersOfTypeDeclaration
+            Return DirectCast(typeDeclaration, TypeBlockSyntax).Members
+        End Function
+
         Public Function IsTopLevelNodeWithMembers(node As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsTopLevelNodeWithMembers
             Return TypeOf node Is NamespaceBlockSyntax OrElse
                    TypeOf node Is TypeBlockSyntax OrElse

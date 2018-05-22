@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.Analyzers
             ImmutableArray.Create(SyntaxKind.PredefinedType);
 
         ///<remarks>
-        /// every predefined type keyword except `void` can be replaced by its framework type in code.
+        /// every predefined type keyword except <c>void</c> can be replaced by its framework type in code.
         ///</remarks>
         protected override bool IsPredefinedTypeReplaceableWithFrameworkType(PredefinedTypeSyntax node) 
             => node.Keyword.Kind() != SyntaxKind.VoidKeyword;
