@@ -115,6 +115,7 @@ public class Test
         Console.WriteLine($""a: {a}, b: {b}"");
         Console.WriteLine($""{{{a}}}"");
         Console.WriteLine(""a:"" + $"" {a}"");
+        Console.WriteLine($""a: {$""{a}, b: {b}""}"");
     }
 }
 ";
@@ -124,12 +125,13 @@ ab
 a: a, b: b
 {a}
 a: a
+a: a, b: b
 ");
 
             comp.VerifyDiagnostics();
             comp.VerifyIL("Test.Main", @"
 {
-  // Code size      112 (0x70)
+  // Code size      134 (0x86)
   .maxstack  4
   .locals init (string V_0, //a
                 string V_1) //b
@@ -164,7 +166,13 @@ a: a
   IL_0064:  ldloc.0
   IL_0065:  call       ""string string.Concat(string, string)""
   IL_006a:  call       ""void System.Console.WriteLine(string)""
-  IL_006f:  ret
+  IL_006f:  ldstr      ""a: ""
+  IL_0074:  ldloc.0
+  IL_0075:  ldstr      "", b: ""
+  IL_007a:  ldloc.1
+  IL_007b:  call       ""string string.Concat(string, string, string, string)""
+  IL_0080:  call       ""void System.Console.WriteLine(string)""
+  IL_0085:  ret
 }
 ");
         }
