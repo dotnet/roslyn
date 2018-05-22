@@ -1681,7 +1681,7 @@ namespace Microsoft.CodeAnalysis.Operations
         /// <summary>
         /// Instance used to refer to the event being bound.
         /// </summary>
-        public abstract IEventReferenceOperation EventReference { get; }
+        public abstract IOperation EventReference { get; }
 
         /// <summary>
         /// Handler supplied for the event.
@@ -1702,14 +1702,14 @@ namespace Microsoft.CodeAnalysis.Operations
     /// </summary>
     internal sealed partial class EventAssignmentOperation : BaseEventAssignmentOperation, IEventAssignmentOperation
     {
-        public EventAssignmentOperation(IEventReferenceOperation eventReference, IOperation handlerValue, bool adds, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
+        public EventAssignmentOperation(IOperation eventReference, IOperation handlerValue, bool adds, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
             base(adds, semanticModel, syntax, type, constantValue, isImplicit)
         {
             EventReference = SetParentOperation(eventReference, this);
             HandlerValue = SetParentOperation(handlerValue, this);
         }
 
-        public override IEventReferenceOperation EventReference { get; }
+        public override IOperation EventReference { get; }
         public override IOperation HandlerValue { get; }
     }
 
@@ -1718,17 +1718,17 @@ namespace Microsoft.CodeAnalysis.Operations
     /// </summary>
     internal sealed partial class LazyEventAssignmentOperation : BaseEventAssignmentOperation, IEventAssignmentOperation
     {
-        private readonly Lazy<IEventReferenceOperation> _lazyEventReference;
+        private readonly Lazy<IOperation> _lazyEventReference;
         private readonly Lazy<IOperation> _lazyHandlerValue;
 
-        public LazyEventAssignmentOperation(Lazy<IEventReferenceOperation> eventReference, Lazy<IOperation> handlerValue, bool adds, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
+        public LazyEventAssignmentOperation(Lazy<IOperation> eventReference, Lazy<IOperation> handlerValue, bool adds, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
             base(adds, semanticModel, syntax, type, constantValue, isImplicit)
         {
             _lazyEventReference = eventReference ?? throw new System.ArgumentNullException(nameof(eventReference));
             _lazyHandlerValue = handlerValue ?? throw new System.ArgumentNullException(nameof(handlerValue));
         }
 
-        public override IEventReferenceOperation EventReference => SetParentOperation(_lazyEventReference.Value, this);
+        public override IOperation EventReference => SetParentOperation(_lazyEventReference.Value, this);
         public override IOperation HandlerValue => SetParentOperation(_lazyHandlerValue.Value, this);
     }
 

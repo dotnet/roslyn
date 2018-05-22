@@ -183,9 +183,7 @@ Public Class Form2
 End Class
                              </file>
                          </compilation>
-            Dim comp = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(source,
-                                                                                    options:=TestOptions.ReleaseDll.WithOptionStrict(OptionStrict.On),
-                                                                                    parseOptions:=TestOptions.RegularWithFlowAnalysisFeature)
+            Dim comp = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(source, TestOptions.ReleaseDll.WithOptionStrict(OptionStrict.On))
             CompilationUtils.AssertTheseCompileDiagnostics(comp,
 <Expected>
 BC30389: 'Form1.EventB' is not accessible in this context because it is 'Private'.
@@ -201,169 +199,6 @@ BC30389: 'Form1.EventB' is not accessible in this context because it is 'Private
         RemoveHandler EventB, Nothing
                       ~~~~~~
 </Expected>)
-
-            Dim tree = comp.SyntaxTrees.Single()
-            Dim node = tree.GetRoot().DescendantNodes().OfType(Of MethodBlockBaseSyntax).Single()
-            VerifyFlowGraph(comp, node, expectedFlowGraph:=<![CDATA[
-Block[B0] - Entry
-    Statements (0)
-    Next (Regular) Block[B1]
-Block[B1] - Block
-    Predecessors: [B0]
-    Statements (12)
-        IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'AddHandler  ... tA, Nothing')
-          Expression: 
-            IEventAssignmentOperation (EventAdd) (OperationKind.EventAssignment, Type: null, IsImplicit) (Syntax: 'AddHandler  ... tA, Nothing')
-              Event Reference: 
-                IEventReferenceOperation: Event Form1.EventA As System.Action (OperationKind.EventReference, Type: System.Action) (Syntax: 'MyBase.EventA')
-                  Instance Receiver: 
-                    IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: Form1) (Syntax: 'MyBase')
-              Handler: 
-                IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Action, Constant: null, IsImplicit) (Syntax: 'Nothing')
-                  Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                    (WideningNothingLiteral)
-                  Operand: 
-                    ILiteralOperation (OperationKind.Literal, Type: null, Constant: null) (Syntax: 'Nothing')
-
-        IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'RemoveHandl ... tA, Nothing')
-          Expression: 
-            IEventAssignmentOperation (EventRemove) (OperationKind.EventAssignment, Type: null, IsImplicit) (Syntax: 'RemoveHandl ... tA, Nothing')
-              Event Reference: 
-                IEventReferenceOperation: Event Form1.EventA As System.Action (OperationKind.EventReference, Type: System.Action) (Syntax: 'MyBase.EventA')
-                  Instance Receiver: 
-                    IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: Form1) (Syntax: 'MyBase')
-              Handler: 
-                IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Action, Constant: null, IsImplicit) (Syntax: 'Nothing')
-                  Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                    (WideningNothingLiteral)
-                  Operand: 
-                    ILiteralOperation (OperationKind.Literal, Type: null, Constant: null) (Syntax: 'Nothing')
-
-        IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'AddHandler  ... tA, Nothing')
-          Expression: 
-            IEventAssignmentOperation (EventAdd) (OperationKind.EventAssignment, Type: null, IsImplicit) (Syntax: 'AddHandler  ... tA, Nothing')
-              Event Reference: 
-                IEventReferenceOperation: Event Form1.EventA As System.Action (OperationKind.EventReference, Type: System.Action) (Syntax: 'EventA')
-                  Instance Receiver: 
-                    IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: Form2, IsImplicit) (Syntax: 'EventA')
-              Handler: 
-                IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Action, Constant: null, IsImplicit) (Syntax: 'Nothing')
-                  Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                    (WideningNothingLiteral)
-                  Operand: 
-                    ILiteralOperation (OperationKind.Literal, Type: null, Constant: null) (Syntax: 'Nothing')
-
-        IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'RemoveHandl ... tA, Nothing')
-          Expression: 
-            IEventAssignmentOperation (EventRemove) (OperationKind.EventAssignment, Type: null, IsImplicit) (Syntax: 'RemoveHandl ... tA, Nothing')
-              Event Reference: 
-                IEventReferenceOperation: Event Form1.EventA As System.Action (OperationKind.EventReference, Type: System.Action) (Syntax: 'EventA')
-                  Instance Receiver: 
-                    IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: Form2, IsImplicit) (Syntax: 'EventA')
-              Handler: 
-                IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Action, Constant: null, IsImplicit) (Syntax: 'Nothing')
-                  Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                    (WideningNothingLiteral)
-                  Operand: 
-                    ILiteralOperation (OperationKind.Literal, Type: null, Constant: null) (Syntax: 'Nothing')
-
-        IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null, IsInvalid) (Syntax: 'AddHandler  ... tB, Nothing')
-          Expression: 
-            IInvalidOperation (OperationKind.Invalid, Type: null, IsInvalid, IsImplicit) (Syntax: 'AddHandler  ... tB, Nothing')
-              Children(2):
-                  IInvalidOperation (OperationKind.Invalid, Type: null, IsInvalid) (Syntax: 'MyBase.EventB')
-                    Children(1):
-                        IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: Form1, IsInvalid) (Syntax: 'MyBase')
-                  ILiteralOperation (OperationKind.Literal, Type: null, Constant: null) (Syntax: 'Nothing')
-
-        IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null, IsInvalid) (Syntax: 'RemoveHandl ... tB, Nothing')
-          Expression: 
-            IInvalidOperation (OperationKind.Invalid, Type: null, IsInvalid, IsImplicit) (Syntax: 'RemoveHandl ... tB, Nothing')
-              Children(2):
-                  IInvalidOperation (OperationKind.Invalid, Type: null, IsInvalid) (Syntax: 'MyBase.EventB')
-                    Children(1):
-                        IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: Form1, IsInvalid) (Syntax: 'MyBase')
-                  ILiteralOperation (OperationKind.Literal, Type: null, Constant: null) (Syntax: 'Nothing')
-
-        IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null, IsInvalid) (Syntax: 'AddHandler  ... tB, Nothing')
-          Expression: 
-            IInvalidOperation (OperationKind.Invalid, Type: null, IsInvalid, IsImplicit) (Syntax: 'AddHandler  ... tB, Nothing')
-              Children(2):
-                  IInvalidOperation (OperationKind.Invalid, Type: null, IsInvalid, IsImplicit) (Syntax: 'EventB')
-                    Children(1):
-                        IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: Form2, IsInvalid, IsImplicit) (Syntax: 'EventB')
-                  ILiteralOperation (OperationKind.Literal, Type: null, Constant: null) (Syntax: 'Nothing')
-
-        IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null, IsInvalid) (Syntax: 'RemoveHandl ... tB, Nothing')
-          Expression: 
-            IInvalidOperation (OperationKind.Invalid, Type: null, IsInvalid, IsImplicit) (Syntax: 'RemoveHandl ... tB, Nothing')
-              Children(2):
-                  IInvalidOperation (OperationKind.Invalid, Type: null, IsInvalid, IsImplicit) (Syntax: 'EventB')
-                    Children(1):
-                        IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: Form2, IsInvalid, IsImplicit) (Syntax: 'EventB')
-                  ILiteralOperation (OperationKind.Literal, Type: null, Constant: null) (Syntax: 'Nothing')
-
-        IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'AddHandler  ... tC, Nothing')
-          Expression: 
-            IEventAssignmentOperation (EventAdd) (OperationKind.EventAssignment, Type: null, IsImplicit) (Syntax: 'AddHandler  ... tC, Nothing')
-              Event Reference: 
-                IEventReferenceOperation: Event Form1.EventC As System.Action (OperationKind.EventReference, Type: System.Action) (Syntax: 'MyBase.EventC')
-                  Instance Receiver: 
-                    IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: Form1) (Syntax: 'MyBase')
-              Handler: 
-                IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Action, Constant: null, IsImplicit) (Syntax: 'Nothing')
-                  Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                    (WideningNothingLiteral)
-                  Operand: 
-                    ILiteralOperation (OperationKind.Literal, Type: null, Constant: null) (Syntax: 'Nothing')
-
-        IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'RemoveHandl ... tC, Nothing')
-          Expression: 
-            IEventAssignmentOperation (EventRemove) (OperationKind.EventAssignment, Type: null, IsImplicit) (Syntax: 'RemoveHandl ... tC, Nothing')
-              Event Reference: 
-                IEventReferenceOperation: Event Form1.EventC As System.Action (OperationKind.EventReference, Type: System.Action) (Syntax: 'MyBase.EventC')
-                  Instance Receiver: 
-                    IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: Form1) (Syntax: 'MyBase')
-              Handler: 
-                IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Action, Constant: null, IsImplicit) (Syntax: 'Nothing')
-                  Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                    (WideningNothingLiteral)
-                  Operand: 
-                    ILiteralOperation (OperationKind.Literal, Type: null, Constant: null) (Syntax: 'Nothing')
-
-        IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'AddHandler  ... tC, Nothing')
-          Expression: 
-            IEventAssignmentOperation (EventAdd) (OperationKind.EventAssignment, Type: null, IsImplicit) (Syntax: 'AddHandler  ... tC, Nothing')
-              Event Reference: 
-                IEventReferenceOperation: Event Form1.EventC As System.Action (OperationKind.EventReference, Type: System.Action) (Syntax: 'EventC')
-                  Instance Receiver: 
-                    IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: Form2, IsImplicit) (Syntax: 'EventC')
-              Handler: 
-                IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Action, Constant: null, IsImplicit) (Syntax: 'Nothing')
-                  Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                    (WideningNothingLiteral)
-                  Operand: 
-                    ILiteralOperation (OperationKind.Literal, Type: null, Constant: null) (Syntax: 'Nothing')
-
-        IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'RemoveHandl ... tC, Nothing')
-          Expression: 
-            IEventAssignmentOperation (EventRemove) (OperationKind.EventAssignment, Type: null, IsImplicit) (Syntax: 'RemoveHandl ... tC, Nothing')
-              Event Reference: 
-                IEventReferenceOperation: Event Form1.EventC As System.Action (OperationKind.EventReference, Type: System.Action) (Syntax: 'EventC')
-                  Instance Receiver: 
-                    IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: Form2, IsImplicit) (Syntax: 'EventC')
-              Handler: 
-                IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Action, Constant: null, IsImplicit) (Syntax: 'Nothing')
-                  Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                    (WideningNothingLiteral)
-                  Operand: 
-                    ILiteralOperation (OperationKind.Literal, Type: null, Constant: null) (Syntax: 'Nothing')
-
-    Next (Regular) Block[B2]
-Block[B2] - Exit
-    Predecessors: [B1]
-    Statements (0)
-    ]]>.Value)
         End Sub
 
         <WorkItem(542806, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542806")>
@@ -1814,7 +1649,7 @@ Module Program
     End Sub
 End Module
     ]]></file>
-</compilation>, parseOptions:=TestOptions.RegularWithFlowAnalysisFeature)
+</compilation>)
 
             Dim semanticSummary = CompilationUtils.GetSemanticInfoSummary(Of IdentifierNameSyntax)(compilation, "a.vb")
 
@@ -1836,47 +1671,6 @@ End Module
             Assert.Equal(0, semanticSummary.MemberGroup.Length)
 
             Assert.False(semanticSummary.ConstantValue.HasValue)
-
-            Dim tree = compilation.SyntaxTrees.Single()
-            Dim node = tree.GetRoot().DescendantNodes().OfType(Of MethodBlockSyntax).Single()
-            VerifyFlowGraph(compilation, node, expectedFlowGraph:=<![CDATA[
-Block[B0] - Entry
-    Statements (0)
-    Next (Regular) Block[B1]
-        Entering: {R1}
-
-.locals {R1}
-{
-    Locals: [x As C]
-    Block[B1] - Block
-        Predecessors: [B0]
-        Statements (2)
-            ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: C, IsImplicit) (Syntax: 'x = New C')
-              Left: 
-                ILocalReferenceOperation: x (IsDeclaration: True) (OperationKind.LocalReference, Type: C, IsImplicit) (Syntax: 'x')
-              Right: 
-                IObjectCreationOperation (Constructor: Sub C..ctor()) (OperationKind.ObjectCreation, Type: C) (Syntax: 'New C')
-                  Arguments(0)
-                  Initializer: 
-                    null
-
-            IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null, IsInvalid) (Syntax: 'AddHandler  ... End Sub')
-              Expression: 
-                IInvalidOperation (OperationKind.Invalid, Type: null, IsInvalid, IsImplicit) (Syntax: 'AddHandler  ... End Sub')
-                  Children(2):
-                      IInvalidOperation (OperationKind.Invalid, Type: C.EEventHandler, IsInvalid) (Syntax: 'x.EEvent')
-                        Children(1):
-                            ILocalReferenceOperation: x (OperationKind.LocalReference, Type: C, IsInvalid) (Syntax: 'x')
-                      IOperation:  (OperationKind.None, Type: null) (Syntax: 'Sub()'BIND: ... End Sub')
-
-        Next (Regular) Block[B2]
-            Leaving: {R1}
-}
-
-Block[B2] - Exit
-    Predecessors: [B1]
-    Statements (0)
-    ]]>.Value)
         End Sub
 
         <WorkItem(543447, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543447")>

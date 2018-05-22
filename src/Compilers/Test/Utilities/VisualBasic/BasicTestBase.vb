@@ -868,9 +868,9 @@ Public MustInherit Class BasicTestBase
         VerifyOperationTreeForTest(Of TSyntaxNode)(compilation, fileName, expectedOperationTree, which, additionalOperationTreeVerifier)
     End Sub
 
-    Friend Shared Sub VerifyFlowGraphAndDiagnosticsForTest(Of TSyntaxNode As SyntaxNode)(compilation As VisualBasicCompilation, expectedOperationTree As String, expectedDiagnostics As String, Optional which As Integer = 0)
+    Friend Shared Sub VerifyFlowGraphAndDiagnosticsForTest(Of TSyntaxNode As SyntaxNode)(compilation As VisualBasicCompilation, expectedFlowGraph As String, expectedDiagnostics As String, Optional which As Integer = 0)
         compilation.AssertTheseDiagnostics(FilterString(expectedDiagnostics))
-        VerifyFlowGraphForTest(Of TSyntaxNode)(compilation, expectedOperationTree, which)
+        VerifyFlowGraphForTest(Of TSyntaxNode)(compilation, expectedFlowGraph, which)
     End Sub
 
     Friend Shared Sub VerifyOperationTreeAndDiagnosticsForTest(Of TSyntaxNode As SyntaxNode)(
@@ -895,7 +895,7 @@ Public MustInherit Class BasicTestBase
 
     Friend Shared Sub VerifyFlowGraphAndDiagnosticsForTest(Of TSyntaxNode As SyntaxNode)(
         testSrc As String,
-        expectedOperationTree As String,
+        expectedFlowGraph As String,
         expectedDiagnostics As String,
         Optional compilationOptions As VisualBasicCompilationOptions = Nothing,
         Optional parseOptions As VisualBasicParseOptions = Nothing,
@@ -910,7 +910,7 @@ Public MustInherit Class BasicTestBase
         Dim references = defaultRefs.Concat({ValueTupleRef, SystemRuntimeFacadeRef})
         references = If(additionalReferences IsNot Nothing, references.Concat(additionalReferences), references)
         Dim compilation = CreateCompilationWithMscorlib45AndVBRuntime({syntaxTree}, references:=references, options:=If(compilationOptions, TestOptions.ReleaseDll))
-        VerifyFlowGraphAndDiagnosticsForTest(Of TSyntaxNode)(compilation, expectedOperationTree, expectedDiagnostics, which)
+        VerifyFlowGraphAndDiagnosticsForTest(Of TSyntaxNode)(compilation, expectedFlowGraph, expectedDiagnostics, which)
     End Sub
 
 

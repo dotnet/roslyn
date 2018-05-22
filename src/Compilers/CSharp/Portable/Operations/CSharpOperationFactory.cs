@@ -464,7 +464,7 @@ namespace Microsoft.CodeAnalysis.Operations
 
         private IEventAssignmentOperation CreateBoundEventAssignmentOperatorOperation(BoundEventAssignmentOperator boundEventAssignmentOperator)
         {
-            Lazy<IEventReferenceOperation> eventReference = new Lazy<IEventReferenceOperation>(() => CreateBoundEventAccessOperation(boundEventAssignmentOperator));
+            Lazy<IOperation> eventReference = new Lazy<IOperation>(() => CreateBoundEventAccessOperation(boundEventAssignmentOperator));
             Lazy<IOperation> handlerValue = new Lazy<IOperation>(() => Create(boundEventAssignmentOperator.Argument));
             SyntaxNode syntax = boundEventAssignmentOperator.Syntax;
             bool adds = boundEventAssignmentOperator.IsAddition;
