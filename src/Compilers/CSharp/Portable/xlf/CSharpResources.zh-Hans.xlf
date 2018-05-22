@@ -1693,8 +1693,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_FriendRefNotEqualToThis">
-        <source>Friend access was granted by '{0}', but the public key of the output assembly does not match that specified by the attribute in the granting assembly.</source>
-        <target state="translated">友元访问权限由“{0}”授予，但是输出程序集的公钥与授予程序集中特性指定的公钥不匹配。</target>
+        <source>Friend access was granted by '{0}', but the public key of the output assembly ('{1}') does not match that specified by the InternalsVisibleTo attribute in the granting assembly.</source>
+        <target state="needs-review-translation">友元访问权限由“{0}”授予，但是输出程序集的公钥与授予程序集中特性指定的公钥不匹配。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_FriendRefSigningMismatch">

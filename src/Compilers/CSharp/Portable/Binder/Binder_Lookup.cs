@@ -4,7 +4,6 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
-using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
@@ -1148,21 +1147,33 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return LookupResult.Inaccessible(symbol, diagInfo);
             }
             else if (!InCref &&
-                     !this.IsAccessible(unwrappedSymbol,
+                    !this.IsAccessible(unwrappedSymbol,
                                         RefineAccessThroughType(options, accessThroughType),
                                         out inaccessibleViaQualifier,
                                         ref useSiteDiagnostics,
                                         basesBeingResolved))
             {
-                if (inaccessibleViaQualifier)
-                {
+                 bool friendRefNotEqualToThis = unwrappedSymbol.ContainingAssembly.GetInternalsVisibleToPublicKeys(this.ContainingType.ContainingAssembly.Name).Any()
+                            && unwrappedSymbol.DeclaredAccessibility.Equals(Accessibility.Internal);
+
+                 foreach (ImmutableArray<byte> key in unwrappedSymbol.ContainingAssembly.GetInternalsVisibleToPublicKeys(this.ContainingType.ContainingAssembly.Name))
+                 {
+                    friendRefNotEqualToThis = key.SequenceEqual(this.ContainingType.ContainingAssembly.Identity.PublicKey) ? false : friendRefNotEqualToThis;
+                 }
+                 
+                 if (inaccessibleViaQualifier)
+                 {
                     diagInfo = diagnose ? new CSDiagnosticInfo(ErrorCode.ERR_BadProtectedAccess, unwrappedSymbol, accessThroughType, this.ContainingType) : null;
-                }
-                else
-                {
+                 }
+                 else if (friendRefNotEqualToThis)
+                 { 
+                       diagInfo = diagnose ? new CSDiagnosticInfo(ErrorCode.ERR_FriendRefNotEqualToThis, unwrappedSymbol.ContainingAssembly.Identity.ToString(), this.ContainingType.ContainingAssembly.PublicKey.PublicKeyToString()) : null;
+                 }
+                 else
+                 {
                     var unwrappedSymbols = ImmutableArray.Create<Symbol>(unwrappedSymbol);
                     diagInfo = diagnose ? new CSDiagnosticInfo(ErrorCode.ERR_BadAccess, new[] { unwrappedSymbol }, unwrappedSymbols, additionalLocations: ImmutableArray<Location>.Empty) : null;
-                }
+                 }
 
                 return LookupResult.Inaccessible(symbol, diagInfo);
             }
@@ -1196,7 +1207,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return LookupResult.Good(symbol);
             }
         }
-
+ 
         private CSDiagnosticInfo MakeCallMethodsDirectlyDiagnostic(Symbol symbol)
         {
             Debug.Assert(symbol.MustCallMethodsDirectly());

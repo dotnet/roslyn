@@ -7,6 +7,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Runtime.CompilerServices;
+using System.Text;
 using Microsoft.CodeAnalysis.PooledObjects;
 
 namespace Microsoft.CodeAnalysis
@@ -61,6 +62,23 @@ namespace Microsoft.CodeAnalysis
             }
 
             return ImmutableArray.CreateRange<T>(items);
+        }
+
+        public static string PublicKeyToString(this ImmutableArray<byte> key)
+        {
+            if (key.IsDefaultOrEmpty)
+            {
+                return "";
+            }            
+
+            PooledStringBuilder sb = PooledStringBuilder.GetInstance();
+            StringBuilder builder = sb.Builder;
+            foreach (byte b in key)
+            {
+                
+                builder.Append(b.ToString("x2"));
+            }
+            return sb.ToStringAndFree(); 
         }
 
         /// <summary>
