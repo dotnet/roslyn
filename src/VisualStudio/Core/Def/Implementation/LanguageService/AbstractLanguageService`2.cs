@@ -10,6 +10,7 @@ using Microsoft.CodeAnalysis.Editor.Host;
 using Microsoft.CodeAnalysis.Editor.Implementation.Structure;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Options;
+using Microsoft.CodeAnalysis.Experiment;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
@@ -387,12 +388,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
         }
 
         protected virtual IVsContainedLanguage CreateContainedLanguage(
-            IVsTextBufferCoordinator bufferCoordinator, AbstractProject project,
-            IVsHierarchy hierarchy, uint itemid)
+            IVsTextBufferCoordinator bufferCoordinator, IDocumentServiceFactory documentServiceFactory,
+            AbstractProject project, IVsHierarchy hierarchy, uint itemid)
         {
             return new ContainedLanguage<TPackage, TLanguageService>(
                 bufferCoordinator, this.Package.ComponentModel, project, hierarchy, itemid,
-                (TLanguageService)this, SourceCodeKind.Regular);
+                (TLanguageService)this, SourceCodeKind.Regular, documentServiceFactory);
         }
     }
 }

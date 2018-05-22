@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Generic;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Experiment;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Text;
@@ -54,6 +55,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         /// A loader that can access the current stored text of the document.
         /// </summary>
         TextLoader Loader { get; }
+
+        IDocumentServiceFactory DocumentServiceFactory { get; }
 
         /// <summary>
         /// Returns true if the document is currently open in an editor.

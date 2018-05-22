@@ -3,6 +3,7 @@
 using System;
 using System.Linq;
 using System.Runtime.InteropServices;
+using Microsoft.CodeAnalysis.Experiment;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.TextManager.Interop;
@@ -68,6 +69,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
 
         public int GetLanguage(IVsHierarchy hierarchy, uint itemid, IVsTextBufferCoordinator bufferCoordinator, out IVsContainedLanguage language)
         {
+            return GetLanguage(hierarchy, itemid, bufferCoordinator, serviceFactory: null, out language);
+        }
+
+        public int GetLanguage(IVsHierarchy hierarchy, uint itemid, IVsTextBufferCoordinator bufferCoordinator, IDocumentServiceFactory serviceFactory, out IVsContainedLanguage language)
+        {
             var project = FindMatchingProject(hierarchy, itemid);
             if (project == null)
             {
@@ -75,7 +81,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
                 return VSConstants.E_INVALIDARG;
             }
 
-            language = CreateContainedLanguage(bufferCoordinator, project, hierarchy, itemid);
+            language = CreateContainedLanguage(bufferCoordinator, serviceFactory, project, hierarchy, itemid);
 
             return VSConstants.S_OK;
         }
