@@ -224,12 +224,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
         protected void AddParenthesesOption(
             string language, OptionSet optionSet,
             PerLanguageOption<CodeStyleOption<ParenthesesPreference>> languageOption,
-            string title, string[] examples, bool isOther)
+            string title, string[] examples, bool isIgnoreOption)
         {
             var preferences = new List<ParenthesesPreference>();
             var codeStylePreferences = new List<CodeStylePreference>();
 
-            if (isOther)
+            if (isIgnoreOption)
             {
                 preferences.Add(ParenthesesPreference.Ignore);
                 codeStylePreferences.Add(new CodeStylePreference(ServicesVSResources.Ignore, isChecked: false));
