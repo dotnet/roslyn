@@ -597,18 +597,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         {
             Assert.Equal(OperationKind.EventAssignment, operation.Kind);
             var adds = operation.Adds;
-            // operation.EventReference shouldn't be null. The following conditional logic is
-            // a work around for https://github.com/dotnet/roslyn/issues/23810 and should 
-            // be removed once the issue is fixed
-            if (operation.EventReference == null)
-            {
-                Assert.Equal(LanguageNames.VisualBasic, operation.Language);
-                Assert.Same(operation.HandlerValue, operation.Children.Single());
-            }
-            else
-            {
-                AssertEx.Equal(new[] { operation.EventReference, operation.HandlerValue }, operation.Children);
-            }
+            AssertEx.Equal(new[] { operation.EventReference, operation.HandlerValue }, operation.Children);
         }
 
         public override void VisitConditionalAccess(IConditionalAccessOperation operation)
