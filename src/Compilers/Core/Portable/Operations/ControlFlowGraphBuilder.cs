@@ -1460,9 +1460,8 @@ namespace Microsoft.CodeAnalysis.Operations
 
         public override IOperation VisitTupleBinaryOperator(ITupleBinaryOperation operation, int? captureIdForResult)
         {
-            _evalStack.Push(Visit(operation.LeftOperand));
-            IOperation rightOperand = Visit(operation.RightOperand);
-            return new TupleBinaryOperatorExpression(operation.OperatorKind, _evalStack.Pop(), rightOperand,
+            (IOperation visitedLeft, IOperation visitedRight) = VisitPreservingTupleOperations(operation.LeftOperand, operation.RightOperand);
+            return new TupleBinaryOperatorExpression(operation.OperatorKind, visitedLeft, visitedRight,
                 semanticModel: null, operation.Syntax, operation.Type, operation.ConstantValue, IsImplicit(operation));
         }
 
@@ -4548,14 +4547,7 @@ oneMoreTime:
 
         public override IOperation VisitDeconstructionAssignment(IDeconstructionAssignmentOperation operation, int? captureIdForResult)
         {
-            // If the assignment target is a tuple, we want to decompose the tuple and push each element back onto the stack, so that if the value
-            // has control flow the individual elements are captured. Then we can recompose the tuple after operation.Value has been visited.
-            // We do this to keep the graph sane, so that users don't have to track a tuple captured via flow control when it's not really
-            // the tuple that's been captured, it's the operands to the tuple.
-            PushTargetAndUnwrapTupleIfNecessary(operation.Target);
-            IOperation visitedValue = Visit(operation.Value);
-            IOperation visitedTarget = PopTargetAndWrapTupleIfNecessary(operation.Target);
-
+            (IOperation visitedTarget, IOperation visitedValue) = VisitPreservingTupleOperations(operation.Target, operation.Value);
             return new DeconstructionAssignmentExpression(visitedTarget, visitedValue, semanticModel: null, operation.Syntax, operation.Type, operation.ConstantValue, IsImplicit(operation));
         }
 
@@ -4613,10 +4605,24 @@ oneMoreTime:
             return PopTargetAndWrapTupleIfNecessary(operation);
         }
 
+        private (IOperation visitedLeft, IOperation visitedRight) VisitPreservingTupleOperations(IOperation left, IOperation right)
+        {
+            Debug.Assert(left != null);
+            Debug.Assert(right != null);
+
+            // If the left is a tuple, we want to decompose the tuple and push each element back onto the stack, so that if the right
+            // has control flow the individual elements are captured. Then we can recompose the tuple after the right has been visited.
+            // We do this to keep the graph sane, so that users don't have to track a tuple captured via flow control when it's not really
+            // the tuple that's been captured, it's the operands to the tuple.
+            PushTargetAndUnwrapTupleIfNecessary(left);
+            IOperation visitedRight = Visit(right);
+            IOperation visitedLeft = PopTargetAndWrapTupleIfNecessary(left);
+            return (visitedLeft, visitedRight);
+        }
+
         public override IOperation VisitTuple(ITupleOperation operation, int? captureIdForResult)
         {
-            PushArray(operation.Elements);
-            return new TupleExpression(PopArray(operation.Elements), semanticModel: null, operation.Syntax, operation.Type, operation.NaturalType, operation.ConstantValue, IsImplicit(operation));
+            return VisitPreservingTupleOperations(operation);
         }
 
         internal override IOperation VisitNoneOperation(IOperation operation, int? captureIdForResult)
