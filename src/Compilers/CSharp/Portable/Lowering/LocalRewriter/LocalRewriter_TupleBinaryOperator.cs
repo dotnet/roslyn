@@ -11,14 +11,14 @@ namespace Microsoft.CodeAnalysis.CSharp
     internal sealed partial class LocalRewriter
     {
         /// <summary>
-        /// Rewrite `GetTuple() == (1, 2)` to `tuple.Item1 == 1 &amp;&amp; tuple.Item2 == 2`.
+        /// Rewrite <c>GetTuple() == (1, 2)</c> to <c>tuple.Item1 == 1 &amp;&amp; tuple.Item2 == 2</c>.
         /// Also supports the != operator, nullable and nested tuples.
         ///
         /// Note that all the side-effects for visible expressions are evaluated first and from left to right. The initialization phase
         /// contains side-effects for:
-        /// - single elements in tuple literals, like `a` in `(a, ...) == (...)` for example
-        /// - nested expressions that aren't tuple literals, like `GetTuple()` in `(..., GetTuple()) == (..., (..., ...))`
-        /// On the other hand, `Item1` and `Item2` of `GetTuple()` are not saved as part of the initialization phase of `GetTuple() == (..., ...)`
+        /// - single elements in tuple literals, like <c>a</c> in <c>(a, ...) == (...)</c> for example
+        /// - nested expressions that aren't tuple literals, like <c>GetTuple()</c> in <c>(..., GetTuple()) == (..., (..., ...))</c>
+        /// On the other hand, <c>Item1</c> and <c>Item2</c> of <c>GetTuple()</c> are not saved as part of the initialization phase of <c>GetTuple() == (..., ...)</c>
         ///
         /// Element-wise conversions occur late, together with the element-wise comparisons. They might not be evaluated.
         /// </summary>
@@ -200,7 +200,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>
-        /// Produce a `.HasValue` and a `.GetValueOrDefault()` for nullable expressions that are neither always null or never null, and functionally equivalent parts for other cases.
+        /// Produce a <c>.HasValue</c> and a <c>.GetValueOrDefault()</c> for nullable expressions that are neither always null or never null, and functionally equivalent parts for other cases.
         /// </summary>
         private void MakeNullableParts(BoundExpression expr, ArrayBuilder<LocalSymbol> temps, ArrayBuilder<BoundExpression> innerEffects,
             ArrayBuilder<BoundExpression> outerEffects, bool saveHasValue, out BoundExpression hasValue, out BoundExpression value, out bool isNullable)
@@ -303,7 +303,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         /// <summary>
         /// For tuple literals, we just return the element.
-        /// For expressions with tuple type, we access `Item{i}`.
+        /// For expressions with tuple type, we access <c>Item{i}</c>.
         /// </summary>
         private BoundExpression GetTuplePart(BoundExpression tuple, int i)
         {
@@ -327,9 +327,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// Produce an element-wise comparison and logic to ensure the result is a bool type.
         ///
         /// If an element-wise comparison doesn't return bool, then:
-        /// - if it is dynamic, we'll do `!(comparisonResult.false)` or `comparisonResult.true`
+        /// - if it is dynamic, we'll do <c>!(comparisonResult.false)</c> or <c>comparisonResult.true</c>
         /// - if it implicitly converts to bool, we'll just do the conversion
-        /// - otherwise, we'll do `!(comparisonResult.false)` or `comparisonResult.true` (as we'd do for `if` or `while`)
+        /// - otherwise, we'll do <c>!(comparisonResult.false)</c> or <c>comparisonResult.true</c> (as we'd do for <c>if</c> or <c>while</c>)
         /// </summary>
         private BoundExpression RewriteTupleSingleOperator(TupleBinaryOperatorInfo.Single single,
             BoundExpression left, BoundExpression right, TypeSymbol boolType, BinaryOperatorKind operatorKind)

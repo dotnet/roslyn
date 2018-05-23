@@ -539,7 +539,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Preview
             cancellationToken.ThrowIfCancellationRequested();
 
             // is it okay to create buffer from threads other than UI thread?
-            var contentTypeService = document.Project.LanguageServices.GetService<IContentTypeLanguageService>();
+            var contentTypeService = document.GetLanguageService<IContentTypeLanguageService>();
             var contentType = contentTypeService.GetDefaultContentType();
 
             return _textBufferFactoryService.CreateTextBuffer(
