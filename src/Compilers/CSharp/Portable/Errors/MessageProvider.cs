@@ -134,7 +134,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override int ERR_ExpectedSingleScript => (int)ErrorCode.ERR_ExpectedSingleScript;
         public override int ERR_OpenResponseFile => (int)ErrorCode.ERR_OpenResponseFile;
         public override int ERR_InvalidPathMap => (int)ErrorCode.ERR_InvalidPathMap;
-        public override int FTL_InputFileNameTooLong => (int)ErrorCode.FTL_InputFileNameTooLong;
+        public override int FTL_InvalidInputFileName => (int)ErrorCode.FTL_InvalidInputFileName;
         public override int ERR_FileNotFound => (int)ErrorCode.ERR_FileNotFound;
         public override int ERR_NoSourceFile => (int)ErrorCode.ERR_NoSourceFile;
         public override int ERR_CantOpenFileWrite => (int)ErrorCode.ERR_CantOpenFileWrite;

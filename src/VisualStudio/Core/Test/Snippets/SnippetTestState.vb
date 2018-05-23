@@ -27,12 +27,13 @@ Imports MSXML
 Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Snippets
     Friend NotInheritable Class SnippetTestState
         Inherits AbstractCommandHandlerTestState
-        Implements IIntelliSenseTestState
 
         Public Sub New(workspaceElement As XElement, languageName As String, startActiveSession As Boolean, extraParts As IEnumerable(Of Type), Optional workspaceKind As String = Nothing)
             MyBase.New(workspaceElement, extraParts:=CreatePartCatalog(extraParts), workspaceKind:=workspaceKind)
 
             Workspace.Options = Workspace.Options.WithChangedOption(InternalFeatureOnOffOptions.Snippets, True)
+
+            SessionTestState = Workspace.GetService(Of IIntelliSenseTestState)
 
             Dim mockEditorAdaptersFactoryService = New Mock(Of IVsEditorAdaptersFactoryService)
             Dim mockSVsServiceProvider = New Mock(Of SVsServiceProvider)
@@ -46,17 +47,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Snippets
                 Dim completionService = DirectCast(Workspace.Services.GetLanguageServices(languageName).GetService(Of CompletionService), CommonCompletionService)
                 completionService.SetTestProviders({snippetProvider})
 
-                Dim asyncCompletionService = New AsyncCompletionService(
-                    GetService(Of IEditorOperationsFactoryService)(),
-                    UndoHistoryRegistry,
-                    GetService(Of IInlineRenameService)(),
-                    GetExportedValue(Of IAsynchronousOperationListenerProvider)(),
-                    New TestCompletionPresenter(Me),
-                    GetExports(Of IBraceCompletionSessionProvider, BraceCompletionMetadata)())
-
-                Dim CompletionCommandHandler = New CompletionCommandHandler(asyncCompletionService)
-
-                Me._completionCommandHandler = CompletionCommandHandler
+                _completionCommandHandler = Workspace.GetService(Of CompletionCommandHandler)
             End If
 
             SnippetExpansionClient = New MockSnippetExpansionClient(startActiveSession)
@@ -66,28 +57,24 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Snippets
         Public ReadOnly SnippetCommandHandler As AbstractSnippetCommandHandler
         Private ReadOnly _completionCommandHandler As CompletionCommandHandler
         Private _currentCompletionPresenterSession As TestCompletionPresenterSession
+        Private ReadOnly SessionTestState As IIntelliSenseTestState
+
         Public Property SnippetExpansionClient As MockSnippetExpansionClient
 
         Private Shared Function CreatePartCatalog(types As IEnumerable(Of Type)) As ComposableCatalog
-            Return ExportProviderCache.CreateTypeCatalog(types)
+            Return ExportProviderCache.CreateTypeCatalog(types).WithParts(GetType(TestCompletionPresenter), GetType(IntelliSenseTestState))
         End Function
 
-        Public Property CurrentCompletionPresenterSession As TestCompletionPresenterSession Implements IIntelliSenseTestState.CurrentCompletionPresenterSession
+        Friend ReadOnly Property CurrentSignatureHelpPresenterSession As TestSignatureHelpPresenterSession
             Get
-                Return _currentCompletionPresenterSession
+                Return SessionTestState.CurrentSignatureHelpPresenterSession
             End Get
-            Set(value As TestCompletionPresenterSession)
-                _currentCompletionPresenterSession = value
-            End Set
         End Property
 
-        Public Property CurrentSignatureHelpPresenterSession As TestSignatureHelpPresenterSession Implements IIntelliSenseTestState.CurrentSignatureHelpPresenterSession
+        Friend ReadOnly Property CurrentCompletionPresenterSession As TestCompletionPresenterSession
             Get
-                Throw New NotImplementedException()
+                Return SessionTestState.CurrentCompletionPresenterSession
             End Get
-            Set(value As TestSignatureHelpPresenterSession)
-                Throw New NotImplementedException()
-            End Set
         End Property
 
         Public Shared Function CreateTestState(markup As String, languageName As String, Optional startActiveSession As Boolean = False, Optional extraParts As IEnumerable(Of Type) = Nothing) As SnippetTestState

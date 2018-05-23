@@ -853,6 +853,15 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Convert to conditional expression.
+        /// </summary>
+        internal static string Convert_to_conditional_expression {
+            get {
+                return ResourceManager.GetString("Convert_to_conditional_expression", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Convert to decimal.
         /// </summary>
         internal static string Convert_to_decimal {

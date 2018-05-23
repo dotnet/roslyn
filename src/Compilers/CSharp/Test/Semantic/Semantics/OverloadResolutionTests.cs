@@ -11145,5 +11145,33 @@ class Program
                 Diagnostic(ErrorCode.ERR_BadRetType, "F").WithArguments("Program.F(in System.DateTime)", "string").WithLocation(16, 15)
             );
         }
+
+        [Fact, WorkItem(25813, "https://github.com/dotnet/roslyn/issues/25813")]
+        public void InaccessibleExtensionMethod()
+        {
+            var code = @"
+using System;
+using System.Collections.Generic;
+using System.Linq;
+
+public class Program
+{
+    static void Main(string[] args)
+    {
+        var a = new[] { 0, 1, 3 };
+        var b = new[] { 1, 2, 3, 4, 5 };
+        Console.WriteLine(b.Count(a.Contains));
+    }
+}
+
+public static class Extensions
+{
+    // NOTE: private access modifier simulates internal class public method in referenced assembly.
+    private static bool Contains<T>(this System.Collections.Generic.IEnumerable<T> a, T value) =>
+        throw new NotImplementedException();
+}";
+
+            CompileAndVerify(code, expectedOutput: @"2");
+        }
     }
 }

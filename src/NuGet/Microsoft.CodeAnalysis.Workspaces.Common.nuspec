@@ -51,5 +51,10 @@
     <file src="Dlls\Workspaces\Microsoft.CodeAnalysis.Workspaces.xml" target="lib\netstandard1.3" />
     <file src="Dlls\Workspaces\Microsoft.CodeAnalysis.Workspaces.pdb*" target="lib\netstandard1.3" />
     <file src="$thirdPartyNoticesPath$" target="" />
+
+    <!-- Satellite assemblies -->
+    <file src="Dlls\Workspaces.Desktop\**\Microsoft.CodeAnalysis.Workspaces.Desktop.resources.dll" target="lib\net46" />
+    <file src="Dlls\Workspaces\**\Microsoft.CodeAnalysis.Workspaces.resources.dll" target="lib\net46" />
+    <file src="Dlls\Workspaces\**\Microsoft.CodeAnalysis.Workspaces.resources.dll" target="lib\netstandard1.3" />
   </files>
 </package>

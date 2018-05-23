@@ -1439,7 +1439,20 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
                 Return new SyntaxList(Of InheritsStatementSyntax)(listNode)
         End Function
 
+        ''' <summary>
+        ''' Returns a copy of this with the [Inherits] property changed to the specified
+        ''' value. Returns this instance if the specified value is the same as the current
+        ''' value.
+        ''' </summary>
+        Public Function WithInherits([inherits] As SyntaxList(Of InheritsStatementSyntax)) As TypeBlockSyntax
+            Return WithInheritsCore([inherits])
+        End Function
+        Friend MustOverride Function WithInheritsCore([inherits] As SyntaxList(Of InheritsStatementSyntax)) As TypeBlockSyntax
 
+        Public Shadows Function AddInherits(ParamArray items As InheritsStatementSyntax()) As TypeBlockSyntax
+            Return AddInheritsCore(items)
+        End Function
+        Friend MustOverride Function AddInheritsCore(ParamArray items As InheritsStatementSyntax()) As TypeBlockSyntax
         ''' <summary>
         ''' A list of the Implements declarations for the type.
         ''' </summary>
@@ -1457,7 +1470,20 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
                 Return new SyntaxList(Of ImplementsStatementSyntax)(listNode)
         End Function
 
+        ''' <summary>
+        ''' Returns a copy of this with the [Implements] property changed to the specified
+        ''' value. Returns this instance if the specified value is the same as the current
+        ''' value.
+        ''' </summary>
+        Public Function WithImplements([implements] As SyntaxList(Of ImplementsStatementSyntax)) As TypeBlockSyntax
+            Return WithImplementsCore([implements])
+        End Function
+        Friend MustOverride Function WithImplementsCore([implements] As SyntaxList(Of ImplementsStatementSyntax)) As TypeBlockSyntax
 
+        Public Shadows Function AddImplements(ParamArray items As ImplementsStatementSyntax()) As TypeBlockSyntax
+            Return AddImplementsCore(items)
+        End Function
+        Friend MustOverride Function AddImplementsCore(ParamArray items As ImplementsStatementSyntax()) As TypeBlockSyntax
         ''' <summary>
         ''' The declarations contained in the type or module.
         ''' </summary>
@@ -1475,7 +1501,20 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
                 Return new SyntaxList(Of StatementSyntax)(listNode)
         End Function
 
+        ''' <summary>
+        ''' Returns a copy of this with the Members property changed to the specified
+        ''' value. Returns this instance if the specified value is the same as the current
+        ''' value.
+        ''' </summary>
+        Public Function WithMembers(members As SyntaxList(Of StatementSyntax)) As TypeBlockSyntax
+            Return WithMembersCore(members)
+        End Function
+        Friend MustOverride Function WithMembersCore(members As SyntaxList(Of StatementSyntax)) As TypeBlockSyntax
 
+        Public Shadows Function AddMembers(ParamArray items As StatementSyntax()) As TypeBlockSyntax
+            Return AddMembersCore(items)
+        End Function
+        Friend MustOverride Function AddMembersCore(ParamArray items As StatementSyntax()) As TypeBlockSyntax
     End Class
 
     ''' <summary>
@@ -1533,6 +1572,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
             Return Me.[Inherits]
         End Function
 
+        Friend Overrides Function WithInheritsCore([inherits] As SyntaxList(Of InheritsStatementSyntax)) As TypeBlockSyntax
+            Return WithInherits([inherits])
+        End Function
+
         ''' <summary>
         ''' Returns a copy of this with the [Inherits] property changed to the specified
         ''' value. Returns this instance if the specified value is the same as the current
@@ -1544,6 +1587,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
 
         Public Shadows Function AddInherits(ParamArray items As InheritsStatementSyntax()) As ModuleBlockSyntax
             Return Me.WithInherits(Me.Inherits.AddRange(items))
+        End Function
+
+        Friend Overrides Function AddInheritsCore(ParamArray items As InheritsStatementSyntax()) As TypeBlockSyntax
+            Return AddInherits(items)
         End Function
 
         ''' <summary>
@@ -1563,6 +1610,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
             Return Me.[Implements]
         End Function
 
+        Friend Overrides Function WithImplementsCore([implements] As SyntaxList(Of ImplementsStatementSyntax)) As TypeBlockSyntax
+            Return WithImplements([implements])
+        End Function
+
         ''' <summary>
         ''' Returns a copy of this with the [Implements] property changed to the specified
         ''' value. Returns this instance if the specified value is the same as the current
@@ -1574,6 +1625,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
 
         Public Shadows Function AddImplements(ParamArray items As ImplementsStatementSyntax()) As ModuleBlockSyntax
             Return Me.WithImplements(Me.Implements.AddRange(items))
+        End Function
+
+        Friend Overrides Function AddImplementsCore(ParamArray items As ImplementsStatementSyntax()) As TypeBlockSyntax
+            Return AddImplements(items)
         End Function
 
         ''' <summary>
@@ -1593,6 +1648,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
             Return Me.Members
         End Function
 
+        Friend Overrides Function WithMembersCore(members As SyntaxList(Of StatementSyntax)) As TypeBlockSyntax
+            Return WithMembers(members)
+        End Function
+
         ''' <summary>
         ''' Returns a copy of this with the Members property changed to the specified
         ''' value. Returns this instance if the specified value is the same as the current
@@ -1604,6 +1663,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
 
         Public Shadows Function AddMembers(ParamArray items As StatementSyntax()) As ModuleBlockSyntax
             Return Me.WithMembers(Me.Members.AddRange(items))
+        End Function
+
+        Friend Overrides Function AddMembersCore(ParamArray items As StatementSyntax()) As TypeBlockSyntax
+            Return AddMembers(items)
         End Function
 
         ''' <summary>
@@ -1755,6 +1818,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
             Return Me.[Inherits]
         End Function
 
+        Friend Overrides Function WithInheritsCore([inherits] As SyntaxList(Of InheritsStatementSyntax)) As TypeBlockSyntax
+            Return WithInherits([inherits])
+        End Function
+
         ''' <summary>
         ''' Returns a copy of this with the [Inherits] property changed to the specified
         ''' value. Returns this instance if the specified value is the same as the current
@@ -1766,6 +1833,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
 
         Public Shadows Function AddInherits(ParamArray items As InheritsStatementSyntax()) As StructureBlockSyntax
             Return Me.WithInherits(Me.Inherits.AddRange(items))
+        End Function
+
+        Friend Overrides Function AddInheritsCore(ParamArray items As InheritsStatementSyntax()) As TypeBlockSyntax
+            Return AddInherits(items)
         End Function
 
         ''' <summary>
@@ -1785,6 +1856,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
             Return Me.[Implements]
         End Function
 
+        Friend Overrides Function WithImplementsCore([implements] As SyntaxList(Of ImplementsStatementSyntax)) As TypeBlockSyntax
+            Return WithImplements([implements])
+        End Function
+
         ''' <summary>
         ''' Returns a copy of this with the [Implements] property changed to the specified
         ''' value. Returns this instance if the specified value is the same as the current
@@ -1796,6 +1871,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
 
         Public Shadows Function AddImplements(ParamArray items As ImplementsStatementSyntax()) As StructureBlockSyntax
             Return Me.WithImplements(Me.Implements.AddRange(items))
+        End Function
+
+        Friend Overrides Function AddImplementsCore(ParamArray items As ImplementsStatementSyntax()) As TypeBlockSyntax
+            Return AddImplements(items)
         End Function
 
         ''' <summary>
@@ -1815,6 +1894,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
             Return Me.Members
         End Function
 
+        Friend Overrides Function WithMembersCore(members As SyntaxList(Of StatementSyntax)) As TypeBlockSyntax
+            Return WithMembers(members)
+        End Function
+
         ''' <summary>
         ''' Returns a copy of this with the Members property changed to the specified
         ''' value. Returns this instance if the specified value is the same as the current
@@ -1826,6 +1909,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
 
         Public Shadows Function AddMembers(ParamArray items As StatementSyntax()) As StructureBlockSyntax
             Return Me.WithMembers(Me.Members.AddRange(items))
+        End Function
+
+        Friend Overrides Function AddMembersCore(ParamArray items As StatementSyntax()) As TypeBlockSyntax
+            Return AddMembers(items)
         End Function
 
         ''' <summary>
@@ -1977,6 +2064,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
             Return Me.[Inherits]
         End Function
 
+        Friend Overrides Function WithInheritsCore([inherits] As SyntaxList(Of InheritsStatementSyntax)) As TypeBlockSyntax
+            Return WithInherits([inherits])
+        End Function
+
         ''' <summary>
         ''' Returns a copy of this with the [Inherits] property changed to the specified
         ''' value. Returns this instance if the specified value is the same as the current
@@ -1988,6 +2079,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
 
         Public Shadows Function AddInherits(ParamArray items As InheritsStatementSyntax()) As InterfaceBlockSyntax
             Return Me.WithInherits(Me.Inherits.AddRange(items))
+        End Function
+
+        Friend Overrides Function AddInheritsCore(ParamArray items As InheritsStatementSyntax()) As TypeBlockSyntax
+            Return AddInherits(items)
         End Function
 
         ''' <summary>
@@ -2007,6 +2102,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
             Return Me.[Implements]
         End Function
 
+        Friend Overrides Function WithImplementsCore([implements] As SyntaxList(Of ImplementsStatementSyntax)) As TypeBlockSyntax
+            Return WithImplements([implements])
+        End Function
+
         ''' <summary>
         ''' Returns a copy of this with the [Implements] property changed to the specified
         ''' value. Returns this instance if the specified value is the same as the current
@@ -2018,6 +2117,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
 
         Public Shadows Function AddImplements(ParamArray items As ImplementsStatementSyntax()) As InterfaceBlockSyntax
             Return Me.WithImplements(Me.Implements.AddRange(items))
+        End Function
+
+        Friend Overrides Function AddImplementsCore(ParamArray items As ImplementsStatementSyntax()) As TypeBlockSyntax
+            Return AddImplements(items)
         End Function
 
         ''' <summary>
@@ -2037,6 +2140,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
             Return Me.Members
         End Function
 
+        Friend Overrides Function WithMembersCore(members As SyntaxList(Of StatementSyntax)) As TypeBlockSyntax
+            Return WithMembers(members)
+        End Function
+
         ''' <summary>
         ''' Returns a copy of this with the Members property changed to the specified
         ''' value. Returns this instance if the specified value is the same as the current
@@ -2048,6 +2155,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
 
         Public Shadows Function AddMembers(ParamArray items As StatementSyntax()) As InterfaceBlockSyntax
             Return Me.WithMembers(Me.Members.AddRange(items))
+        End Function
+
+        Friend Overrides Function AddMembersCore(ParamArray items As StatementSyntax()) As TypeBlockSyntax
+            Return AddMembers(items)
         End Function
 
         ''' <summary>
@@ -2199,6 +2310,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
             Return Me.[Inherits]
         End Function
 
+        Friend Overrides Function WithInheritsCore([inherits] As SyntaxList(Of InheritsStatementSyntax)) As TypeBlockSyntax
+            Return WithInherits([inherits])
+        End Function
+
         ''' <summary>
         ''' Returns a copy of this with the [Inherits] property changed to the specified
         ''' value. Returns this instance if the specified value is the same as the current
@@ -2210,6 +2325,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
 
         Public Shadows Function AddInherits(ParamArray items As InheritsStatementSyntax()) As ClassBlockSyntax
             Return Me.WithInherits(Me.Inherits.AddRange(items))
+        End Function
+
+        Friend Overrides Function AddInheritsCore(ParamArray items As InheritsStatementSyntax()) As TypeBlockSyntax
+            Return AddInherits(items)
         End Function
 
         ''' <summary>
@@ -2229,6 +2348,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
             Return Me.[Implements]
         End Function
 
+        Friend Overrides Function WithImplementsCore([implements] As SyntaxList(Of ImplementsStatementSyntax)) As TypeBlockSyntax
+            Return WithImplements([implements])
+        End Function
+
         ''' <summary>
         ''' Returns a copy of this with the [Implements] property changed to the specified
         ''' value. Returns this instance if the specified value is the same as the current
@@ -2240,6 +2363,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
 
         Public Shadows Function AddImplements(ParamArray items As ImplementsStatementSyntax()) As ClassBlockSyntax
             Return Me.WithImplements(Me.Implements.AddRange(items))
+        End Function
+
+        Friend Overrides Function AddImplementsCore(ParamArray items As ImplementsStatementSyntax()) As TypeBlockSyntax
+            Return AddImplements(items)
         End Function
 
         ''' <summary>
@@ -2259,6 +2386,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
             Return Me.Members
         End Function
 
+        Friend Overrides Function WithMembersCore(members As SyntaxList(Of StatementSyntax)) As TypeBlockSyntax
+            Return WithMembers(members)
+        End Function
+
         ''' <summary>
         ''' Returns a copy of this with the Members property changed to the specified
         ''' value. Returns this instance if the specified value is the same as the current
@@ -2270,6 +2401,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
 
         Public Shadows Function AddMembers(ParamArray items As StatementSyntax()) As ClassBlockSyntax
             Return Me.WithMembers(Me.Members.AddRange(items))
+        End Function
+
+        Friend Overrides Function AddMembersCore(ParamArray items As StatementSyntax()) As TypeBlockSyntax
+            Return AddMembers(items)
         End Function
 
         ''' <summary>
@@ -2787,7 +2922,20 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
                 Return new SyntaxList(Of AttributeListSyntax)(listNode)
         End Function
 
+        ''' <summary>
+        ''' Returns a copy of this with the AttributeLists property changed to the
+        ''' specified value. Returns this instance if the specified value is the same as
+        ''' the current value.
+        ''' </summary>
+        Public Function WithAttributeLists(attributeLists As SyntaxList(Of AttributeListSyntax)) As TypeStatementSyntax
+            Return WithAttributeListsCore(attributeLists)
+        End Function
+        Friend MustOverride Function WithAttributeListsCore(attributeLists As SyntaxList(Of AttributeListSyntax)) As TypeStatementSyntax
 
+        Public Shadows Function AddAttributeLists(ParamArray items As AttributeListSyntax()) As TypeStatementSyntax
+            Return AddAttributeListsCore(items)
+        End Function
+        Friend MustOverride Function AddAttributeListsCore(ParamArray items As AttributeListSyntax()) As TypeStatementSyntax
         ''' <summary>
         ''' A list of all the modifier tokens that were present on this declaration. If no
         ''' modifiers were specified, an empty list is returned.
@@ -2809,7 +2957,20 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
                 Return Nothing
         End Function
 
+        ''' <summary>
+        ''' Returns a copy of this with the Modifiers property changed to the specified
+        ''' value. Returns this instance if the specified value is the same as the current
+        ''' value.
+        ''' </summary>
+        Public Function WithModifiers(modifiers As SyntaxTokenList) As TypeStatementSyntax
+            Return WithModifiersCore(modifiers)
+        End Function
+        Friend MustOverride Function WithModifiersCore(modifiers As SyntaxTokenList) As TypeStatementSyntax
 
+        Public Shadows Function AddModifiers(ParamArray items As SyntaxToken()) As TypeStatementSyntax
+            Return AddModifiersCore(items)
+        End Function
+        Friend MustOverride Function AddModifiersCore(ParamArray items As SyntaxToken()) As TypeStatementSyntax
         ''' <summary>
         ''' The name of the type being declared.
         ''' </summary>
@@ -2823,6 +2984,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
                 return new SyntaxToken(Me, DirectCast(Me.Green, Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax.TypeStatementSyntax)._identifier, Me.GetChildPosition(2), Me.GetChildIndex(2))
         End Function
 
+        ''' <summary>
+        ''' Returns a copy of this with the Identifier property changed to the specified
+        ''' value. Returns this instance if the specified value is the same as the current
+        ''' value.
+        ''' </summary>
+        Public Function WithIdentifier(identifier As SyntaxToken) As TypeStatementSyntax
+            Return WithIdentifierCore(identifier)
+        End Function
+        Friend MustOverride Function WithIdentifierCore(identifier As SyntaxToken) As TypeStatementSyntax
 
         ''' <summary>
         ''' If present, a type parameter list with generic parameters for this type. If no
@@ -2841,6 +3011,20 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
                 Return GetRed(_typeParameterList, 3)
         End Function
 
+        ''' <summary>
+        ''' Returns a copy of this with the TypeParameterList property changed to the
+        ''' specified value. Returns this instance if the specified value is the same as
+        ''' the current value.
+        ''' </summary>
+        Public Function WithTypeParameterList(typeParameterList As TypeParameterListSyntax) As TypeStatementSyntax
+            Return WithTypeParameterListCore(typeParameterList)
+        End Function
+        Friend MustOverride Function WithTypeParameterListCore(typeParameterList As TypeParameterListSyntax) As TypeStatementSyntax
+
+        Public Shadows Function AddTypeParameterListParameters(ParamArray items As TypeParameterSyntax()) As TypeStatementSyntax
+            Return AddTypeParameterListParametersCore(items)
+        End Function
+        Friend MustOverride Function AddTypeParameterListParametersCore(ParamArray items As TypeParameterSyntax()) As TypeStatementSyntax
 
     End Class
 
@@ -2880,6 +3064,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
             Return Me.AttributeLists
         End Function
 
+        Friend Overrides Function WithAttributeListsCore(attributeLists As SyntaxList(Of AttributeListSyntax)) As TypeStatementSyntax
+            Return WithAttributeLists(attributeLists)
+        End Function
+
         ''' <summary>
         ''' Returns a copy of this with the AttributeLists property changed to the
         ''' specified value. Returns this instance if the specified value is the same as
@@ -2891,6 +3079,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
 
         Public Shadows Function AddAttributeLists(ParamArray items As AttributeListSyntax()) As ModuleStatementSyntax
             Return Me.WithAttributeLists(Me.AttributeLists.AddRange(items))
+        End Function
+
+        Friend Overrides Function AddAttributeListsCore(ParamArray items As AttributeListSyntax()) As TypeStatementSyntax
+            Return AddAttributeLists(items)
         End Function
 
         ''' <summary>
@@ -2914,6 +3106,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
             Return Me.Modifiers
         End Function
 
+        Friend Overrides Function WithModifiersCore(modifiers As SyntaxTokenList) As TypeStatementSyntax
+            Return WithModifiers(modifiers)
+        End Function
+
         ''' <summary>
         ''' Returns a copy of this with the Modifiers property changed to the specified
         ''' value. Returns this instance if the specified value is the same as the current
@@ -2925,6 +3121,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
 
         Public Shadows Function AddModifiers(ParamArray items As SyntaxToken()) As ModuleStatementSyntax
             Return Me.WithModifiers(Me.Modifiers.AddRange(items))
+        End Function
+
+        Friend Overrides Function AddModifiersCore(ParamArray items As SyntaxToken()) As TypeStatementSyntax
+            Return AddModifiers(items)
         End Function
 
         ''' <summary>
@@ -2958,6 +3158,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
             Return Me.Identifier
         End Function
 
+        Friend Overrides Function WithIdentifierCore(identifier As SyntaxToken) As TypeStatementSyntax
+            Return WithIdentifier(identifier)
+        End Function
+
         ''' <summary>
         ''' Returns a copy of this with the Identifier property changed to the specified
         ''' value. Returns this instance if the specified value is the same as the current
@@ -2984,6 +3188,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
             Return Me.TypeParameterList
         End Function
 
+        Friend Overrides Function WithTypeParameterListCore(typeParameterList As TypeParameterListSyntax) As TypeStatementSyntax
+            Return WithTypeParameterList(typeParameterList)
+        End Function
+
         ''' <summary>
         ''' Returns a copy of this with the TypeParameterList property changed to the
         ''' specified value. Returns this instance if the specified value is the same as
@@ -2996,6 +3204,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
         Public Shadows Function AddTypeParameterListParameters(ParamArray items As TypeParameterSyntax()) As ModuleStatementSyntax
             Dim _child = If (Me.TypeParameterList IsNot Nothing, Me.TypeParameterList, SyntaxFactory.TypeParameterList())
             Return Me.WithTypeParameterList(_child.AddParameters(items))
+        End Function
+
+        Friend Overrides Function AddTypeParameterListParametersCore(ParamArray items As TypeParameterSyntax()) As TypeStatementSyntax
+            Return AddTypeParameterListParameters(items)
         End Function
 
         Friend Overrides Function GetCachedSlot(i as Integer) as SyntaxNode
@@ -3098,6 +3310,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
             Return Me.AttributeLists
         End Function
 
+        Friend Overrides Function WithAttributeListsCore(attributeLists As SyntaxList(Of AttributeListSyntax)) As TypeStatementSyntax
+            Return WithAttributeLists(attributeLists)
+        End Function
+
         ''' <summary>
         ''' Returns a copy of this with the AttributeLists property changed to the
         ''' specified value. Returns this instance if the specified value is the same as
@@ -3109,6 +3325,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
 
         Public Shadows Function AddAttributeLists(ParamArray items As AttributeListSyntax()) As StructureStatementSyntax
             Return Me.WithAttributeLists(Me.AttributeLists.AddRange(items))
+        End Function
+
+        Friend Overrides Function AddAttributeListsCore(ParamArray items As AttributeListSyntax()) As TypeStatementSyntax
+            Return AddAttributeLists(items)
         End Function
 
         ''' <summary>
@@ -3132,6 +3352,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
             Return Me.Modifiers
         End Function
 
+        Friend Overrides Function WithModifiersCore(modifiers As SyntaxTokenList) As TypeStatementSyntax
+            Return WithModifiers(modifiers)
+        End Function
+
         ''' <summary>
         ''' Returns a copy of this with the Modifiers property changed to the specified
         ''' value. Returns this instance if the specified value is the same as the current
@@ -3143,6 +3367,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
 
         Public Shadows Function AddModifiers(ParamArray items As SyntaxToken()) As StructureStatementSyntax
             Return Me.WithModifiers(Me.Modifiers.AddRange(items))
+        End Function
+
+        Friend Overrides Function AddModifiersCore(ParamArray items As SyntaxToken()) As TypeStatementSyntax
+            Return AddModifiers(items)
         End Function
 
         ''' <summary>
@@ -3176,6 +3404,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
             Return Me.Identifier
         End Function
 
+        Friend Overrides Function WithIdentifierCore(identifier As SyntaxToken) As TypeStatementSyntax
+            Return WithIdentifier(identifier)
+        End Function
+
         ''' <summary>
         ''' Returns a copy of this with the Identifier property changed to the specified
         ''' value. Returns this instance if the specified value is the same as the current
@@ -3202,6 +3434,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
             Return Me.TypeParameterList
         End Function
 
+        Friend Overrides Function WithTypeParameterListCore(typeParameterList As TypeParameterListSyntax) As TypeStatementSyntax
+            Return WithTypeParameterList(typeParameterList)
+        End Function
+
         ''' <summary>
         ''' Returns a copy of this with the TypeParameterList property changed to the
         ''' specified value. Returns this instance if the specified value is the same as
@@ -3214,6 +3450,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
         Public Shadows Function AddTypeParameterListParameters(ParamArray items As TypeParameterSyntax()) As StructureStatementSyntax
             Dim _child = If (Me.TypeParameterList IsNot Nothing, Me.TypeParameterList, SyntaxFactory.TypeParameterList())
             Return Me.WithTypeParameterList(_child.AddParameters(items))
+        End Function
+
+        Friend Overrides Function AddTypeParameterListParametersCore(ParamArray items As TypeParameterSyntax()) As TypeStatementSyntax
+            Return AddTypeParameterListParameters(items)
         End Function
 
         Friend Overrides Function GetCachedSlot(i as Integer) as SyntaxNode
@@ -3316,6 +3556,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
             Return Me.AttributeLists
         End Function
 
+        Friend Overrides Function WithAttributeListsCore(attributeLists As SyntaxList(Of AttributeListSyntax)) As TypeStatementSyntax
+            Return WithAttributeLists(attributeLists)
+        End Function
+
         ''' <summary>
         ''' Returns a copy of this with the AttributeLists property changed to the
         ''' specified value. Returns this instance if the specified value is the same as
@@ -3327,6 +3571,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
 
         Public Shadows Function AddAttributeLists(ParamArray items As AttributeListSyntax()) As InterfaceStatementSyntax
             Return Me.WithAttributeLists(Me.AttributeLists.AddRange(items))
+        End Function
+
+        Friend Overrides Function AddAttributeListsCore(ParamArray items As AttributeListSyntax()) As TypeStatementSyntax
+            Return AddAttributeLists(items)
         End Function
 
         ''' <summary>
@@ -3350,6 +3598,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
             Return Me.Modifiers
         End Function
 
+        Friend Overrides Function WithModifiersCore(modifiers As SyntaxTokenList) As TypeStatementSyntax
+            Return WithModifiers(modifiers)
+        End Function
+
         ''' <summary>
         ''' Returns a copy of this with the Modifiers property changed to the specified
         ''' value. Returns this instance if the specified value is the same as the current
@@ -3361,6 +3613,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
 
         Public Shadows Function AddModifiers(ParamArray items As SyntaxToken()) As InterfaceStatementSyntax
             Return Me.WithModifiers(Me.Modifiers.AddRange(items))
+        End Function
+
+        Friend Overrides Function AddModifiersCore(ParamArray items As SyntaxToken()) As TypeStatementSyntax
+            Return AddModifiers(items)
         End Function
 
         ''' <summary>
@@ -3394,6 +3650,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
             Return Me.Identifier
         End Function
 
+        Friend Overrides Function WithIdentifierCore(identifier As SyntaxToken) As TypeStatementSyntax
+            Return WithIdentifier(identifier)
+        End Function
+
         ''' <summary>
         ''' Returns a copy of this with the Identifier property changed to the specified
         ''' value. Returns this instance if the specified value is the same as the current
@@ -3420,6 +3680,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
             Return Me.TypeParameterList
         End Function
 
+        Friend Overrides Function WithTypeParameterListCore(typeParameterList As TypeParameterListSyntax) As TypeStatementSyntax
+            Return WithTypeParameterList(typeParameterList)
+        End Function
+
         ''' <summary>
         ''' Returns a copy of this with the TypeParameterList property changed to the
         ''' specified value. Returns this instance if the specified value is the same as
@@ -3432,6 +3696,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
         Public Shadows Function AddTypeParameterListParameters(ParamArray items As TypeParameterSyntax()) As InterfaceStatementSyntax
             Dim _child = If (Me.TypeParameterList IsNot Nothing, Me.TypeParameterList, SyntaxFactory.TypeParameterList())
             Return Me.WithTypeParameterList(_child.AddParameters(items))
+        End Function
+
+        Friend Overrides Function AddTypeParameterListParametersCore(ParamArray items As TypeParameterSyntax()) As TypeStatementSyntax
+            Return AddTypeParameterListParameters(items)
         End Function
 
         Friend Overrides Function GetCachedSlot(i as Integer) as SyntaxNode
@@ -3534,6 +3802,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
             Return Me.AttributeLists
         End Function
 
+        Friend Overrides Function WithAttributeListsCore(attributeLists As SyntaxList(Of AttributeListSyntax)) As TypeStatementSyntax
+            Return WithAttributeLists(attributeLists)
+        End Function
+
         ''' <summary>
         ''' Returns a copy of this with the AttributeLists property changed to the
         ''' specified value. Returns this instance if the specified value is the same as
@@ -3545,6 +3817,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
 
         Public Shadows Function AddAttributeLists(ParamArray items As AttributeListSyntax()) As ClassStatementSyntax
             Return Me.WithAttributeLists(Me.AttributeLists.AddRange(items))
+        End Function
+
+        Friend Overrides Function AddAttributeListsCore(ParamArray items As AttributeListSyntax()) As TypeStatementSyntax
+            Return AddAttributeLists(items)
         End Function
 
         ''' <summary>
@@ -3568,6 +3844,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
             Return Me.Modifiers
         End Function
 
+        Friend Overrides Function WithModifiersCore(modifiers As SyntaxTokenList) As TypeStatementSyntax
+            Return WithModifiers(modifiers)
+        End Function
+
         ''' <summary>
         ''' Returns a copy of this with the Modifiers property changed to the specified
         ''' value. Returns this instance if the specified value is the same as the current
@@ -3579,6 +3859,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
 
         Public Shadows Function AddModifiers(ParamArray items As SyntaxToken()) As ClassStatementSyntax
             Return Me.WithModifiers(Me.Modifiers.AddRange(items))
+        End Function
+
+        Friend Overrides Function AddModifiersCore(ParamArray items As SyntaxToken()) As TypeStatementSyntax
+            Return AddModifiers(items)
         End Function
 
         ''' <summary>
@@ -3612,6 +3896,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
             Return Me.Identifier
         End Function
 
+        Friend Overrides Function WithIdentifierCore(identifier As SyntaxToken) As TypeStatementSyntax
+            Return WithIdentifier(identifier)
+        End Function
+
         ''' <summary>
         ''' Returns a copy of this with the Identifier property changed to the specified
         ''' value. Returns this instance if the specified value is the same as the current
@@ -3638,6 +3926,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
             Return Me.TypeParameterList
         End Function
 
+        Friend Overrides Function WithTypeParameterListCore(typeParameterList As TypeParameterListSyntax) As TypeStatementSyntax
+            Return WithTypeParameterList(typeParameterList)
+        End Function
+
         ''' <summary>
         ''' Returns a copy of this with the TypeParameterList property changed to the
         ''' specified value. Returns this instance if the specified value is the same as
@@ -3650,6 +3942,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
         Public Shadows Function AddTypeParameterListParameters(ParamArray items As TypeParameterSyntax()) As ClassStatementSyntax
             Dim _child = If (Me.TypeParameterList IsNot Nothing, Me.TypeParameterList, SyntaxFactory.TypeParameterList())
             Return Me.WithTypeParameterList(_child.AddParameters(items))
+        End Function
+
+        Friend Overrides Function AddTypeParameterListParametersCore(ParamArray items As TypeParameterSyntax()) As TypeStatementSyntax
+            Return AddTypeParameterListParameters(items)
         End Function
 
         Friend Overrides Function GetCachedSlot(i as Integer) as SyntaxNode
@@ -4840,7 +5136,20 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
                 Return new SyntaxList(Of StatementSyntax)(listNode)
         End Function
 
+        ''' <summary>
+        ''' Returns a copy of this with the Statements property changed to the specified
+        ''' value. Returns this instance if the specified value is the same as the current
+        ''' value.
+        ''' </summary>
+        Public Function WithStatements(statements As SyntaxList(Of StatementSyntax)) As MethodBlockBaseSyntax
+            Return WithStatementsCore(statements)
+        End Function
+        Friend MustOverride Function WithStatementsCore(statements As SyntaxList(Of StatementSyntax)) As MethodBlockBaseSyntax
 
+        Public Shadows Function AddStatements(ParamArray items As StatementSyntax()) As MethodBlockBaseSyntax
+            Return AddStatementsCore(items)
+        End Function
+        Friend MustOverride Function AddStatementsCore(ParamArray items As StatementSyntax()) As MethodBlockBaseSyntax
     End Class
 
     ''' <summary>
@@ -4898,6 +5207,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
             Return Me.Statements
         End Function
 
+        Friend Overrides Function WithStatementsCore(statements As SyntaxList(Of StatementSyntax)) As MethodBlockBaseSyntax
+            Return WithStatements(statements)
+        End Function
+
         ''' <summary>
         ''' Returns a copy of this with the Statements property changed to the specified
         ''' value. Returns this instance if the specified value is the same as the current
@@ -4909,6 +5222,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
 
         Public Shadows Function AddStatements(ParamArray items As StatementSyntax()) As MethodBlockSyntax
             Return Me.WithStatements(Me.Statements.AddRange(items))
+        End Function
+
+        Friend Overrides Function AddStatementsCore(ParamArray items As StatementSyntax()) As MethodBlockBaseSyntax
+            Return AddStatements(items)
         End Function
 
         ''' <summary>
@@ -5049,6 +5366,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
             Return Me.Statements
         End Function
 
+        Friend Overrides Function WithStatementsCore(statements As SyntaxList(Of StatementSyntax)) As MethodBlockBaseSyntax
+            Return WithStatements(statements)
+        End Function
+
         ''' <summary>
         ''' Returns a copy of this with the Statements property changed to the specified
         ''' value. Returns this instance if the specified value is the same as the current
@@ -5060,6 +5381,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
 
         Public Shadows Function AddStatements(ParamArray items As StatementSyntax()) As ConstructorBlockSyntax
             Return Me.WithStatements(Me.Statements.AddRange(items))
+        End Function
+
+        Friend Overrides Function AddStatementsCore(ParamArray items As StatementSyntax()) As MethodBlockBaseSyntax
+            Return AddStatements(items)
         End Function
 
         ''' <summary>
@@ -5197,6 +5522,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
             Return Me.Statements
         End Function
 
+        Friend Overrides Function WithStatementsCore(statements As SyntaxList(Of StatementSyntax)) As MethodBlockBaseSyntax
+            Return WithStatements(statements)
+        End Function
+
         ''' <summary>
         ''' Returns a copy of this with the Statements property changed to the specified
         ''' value. Returns this instance if the specified value is the same as the current
@@ -5208,6 +5537,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
 
         Public Shadows Function AddStatements(ParamArray items As StatementSyntax()) As OperatorBlockSyntax
             Return Me.WithStatements(Me.Statements.AddRange(items))
+        End Function
+
+        Friend Overrides Function AddStatementsCore(ParamArray items As StatementSyntax()) As MethodBlockBaseSyntax
+            Return AddStatements(items)
         End Function
 
         ''' <summary>
@@ -5347,6 +5680,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
             Return Me.Statements
         End Function
 
+        Friend Overrides Function WithStatementsCore(statements As SyntaxList(Of StatementSyntax)) As MethodBlockBaseSyntax
+            Return WithStatements(statements)
+        End Function
+
         ''' <summary>
         ''' Returns a copy of this with the Statements property changed to the specified
         ''' value. Returns this instance if the specified value is the same as the current
@@ -5358,6 +5695,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
 
         Public Shadows Function AddStatements(ParamArray items As StatementSyntax()) As AccessorBlockSyntax
             Return Me.WithStatements(Me.Statements.AddRange(items))
+        End Function
+
+        Friend Overrides Function AddStatementsCore(ParamArray items As StatementSyntax()) As MethodBlockBaseSyntax
+            Return AddStatements(items)
         End Function
 
         ''' <summary>
@@ -5766,7 +6107,20 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
                 Return new SyntaxList(Of AttributeListSyntax)(listNode)
         End Function
 
+        ''' <summary>
+        ''' Returns a copy of this with the AttributeLists property changed to the
+        ''' specified value. Returns this instance if the specified value is the same as
+        ''' the current value.
+        ''' </summary>
+        Public Function WithAttributeLists(attributeLists As SyntaxList(Of AttributeListSyntax)) As MethodBaseSyntax
+            Return WithAttributeListsCore(attributeLists)
+        End Function
+        Friend MustOverride Function WithAttributeListsCore(attributeLists As SyntaxList(Of AttributeListSyntax)) As MethodBaseSyntax
 
+        Public Shadows Function AddAttributeLists(ParamArray items As AttributeListSyntax()) As MethodBaseSyntax
+            Return AddAttributeListsCore(items)
+        End Function
+        Friend MustOverride Function AddAttributeListsCore(ParamArray items As AttributeListSyntax()) As MethodBaseSyntax
         ''' <summary>
         ''' A list of all the modifier tokens that were present on this declaration. If no
         ''' modifiers were specified, an empty list is returned. A bitfield version of all
@@ -5790,7 +6144,20 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
                 Return Nothing
         End Function
 
+        ''' <summary>
+        ''' Returns a copy of this with the Modifiers property changed to the specified
+        ''' value. Returns this instance if the specified value is the same as the current
+        ''' value.
+        ''' </summary>
+        Public Function WithModifiers(modifiers As SyntaxTokenList) As MethodBaseSyntax
+            Return WithModifiersCore(modifiers)
+        End Function
+        Friend MustOverride Function WithModifiersCore(modifiers As SyntaxTokenList) As MethodBaseSyntax
 
+        Public Shadows Function AddModifiers(ParamArray items As SyntaxToken()) As MethodBaseSyntax
+            Return AddModifiersCore(items)
+        End Function
+        Friend MustOverride Function AddModifiersCore(ParamArray items As SyntaxToken()) As MethodBaseSyntax
         ''' <summary>
         ''' The method's parameter list including the parentheses. If no parameter list was
         ''' present, Nothing is returned.
@@ -5808,6 +6175,20 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
                 Return GetRed(_parameterList, 2)
         End Function
 
+        ''' <summary>
+        ''' Returns a copy of this with the ParameterList property changed to the specified
+        ''' value. Returns this instance if the specified value is the same as the current
+        ''' value.
+        ''' </summary>
+        Public Function WithParameterList(parameterList As ParameterListSyntax) As MethodBaseSyntax
+            Return WithParameterListCore(parameterList)
+        End Function
+        Friend MustOverride Function WithParameterListCore(parameterList As ParameterListSyntax) As MethodBaseSyntax
+
+        Public Shadows Function AddParameterListParameters(ParamArray items As ParameterSyntax()) As MethodBaseSyntax
+            Return AddParameterListParametersCore(items)
+        End Function
+        Friend MustOverride Function AddParameterListParametersCore(ParamArray items As ParameterSyntax()) As MethodBaseSyntax
 
     End Class
 
@@ -5992,6 +6373,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
             Return Me.AttributeLists
         End Function
 
+        Friend Overrides Function WithAttributeListsCore(attributeLists As SyntaxList(Of AttributeListSyntax)) As MethodBaseSyntax
+            Return WithAttributeLists(attributeLists)
+        End Function
+
         ''' <summary>
         ''' Returns a copy of this with the AttributeLists property changed to the
         ''' specified value. Returns this instance if the specified value is the same as
@@ -6003,6 +6388,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
 
         Public Shadows Function AddAttributeLists(ParamArray items As AttributeListSyntax()) As MethodStatementSyntax
             Return Me.WithAttributeLists(Me.AttributeLists.AddRange(items))
+        End Function
+
+        Friend Overrides Function AddAttributeListsCore(ParamArray items As AttributeListSyntax()) As MethodBaseSyntax
+            Return AddAttributeLists(items)
         End Function
 
         ''' <summary>
@@ -6028,6 +6417,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
             Return Me.Modifiers
         End Function
 
+        Friend Overrides Function WithModifiersCore(modifiers As SyntaxTokenList) As MethodBaseSyntax
+            Return WithModifiers(modifiers)
+        End Function
+
         ''' <summary>
         ''' Returns a copy of this with the Modifiers property changed to the specified
         ''' value. Returns this instance if the specified value is the same as the current
@@ -6039,6 +6432,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
 
         Public Shadows Function AddModifiers(ParamArray items As SyntaxToken()) As MethodStatementSyntax
             Return Me.WithModifiers(Me.Modifiers.AddRange(items))
+        End Function
+
+        Friend Overrides Function AddModifiersCore(ParamArray items As SyntaxToken()) As MethodBaseSyntax
+            Return AddModifiers(items)
         End Function
 
         ''' <summary>
@@ -6121,6 +6518,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
             Return Me.ParameterList
         End Function
 
+        Friend Overrides Function WithParameterListCore(parameterList As ParameterListSyntax) As MethodBaseSyntax
+            Return WithParameterList(parameterList)
+        End Function
+
         ''' <summary>
         ''' Returns a copy of this with the ParameterList property changed to the specified
         ''' value. Returns this instance if the specified value is the same as the current
@@ -6133,6 +6534,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
         Public Shadows Function AddParameterListParameters(ParamArray items As ParameterSyntax()) As MethodStatementSyntax
             Dim _child = If (Me.ParameterList IsNot Nothing, Me.ParameterList, SyntaxFactory.ParameterList())
             Return Me.WithParameterList(_child.AddParameters(items))
+        End Function
+
+        Friend Overrides Function AddParameterListParametersCore(ParamArray items As ParameterSyntax()) As MethodBaseSyntax
+            Return AddParameterListParameters(items)
         End Function
 
         ''' <summary>
@@ -6342,6 +6747,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
             Return Me.AttributeLists
         End Function
 
+        Friend Overrides Function WithAttributeListsCore(attributeLists As SyntaxList(Of AttributeListSyntax)) As MethodBaseSyntax
+            Return WithAttributeLists(attributeLists)
+        End Function
+
         ''' <summary>
         ''' Returns a copy of this with the AttributeLists property changed to the
         ''' specified value. Returns this instance if the specified value is the same as
@@ -6353,6 +6762,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
 
         Public Shadows Function AddAttributeLists(ParamArray items As AttributeListSyntax()) As SubNewStatementSyntax
             Return Me.WithAttributeLists(Me.AttributeLists.AddRange(items))
+        End Function
+
+        Friend Overrides Function AddAttributeListsCore(ParamArray items As AttributeListSyntax()) As MethodBaseSyntax
+            Return AddAttributeLists(items)
         End Function
 
         ''' <summary>
@@ -6378,6 +6791,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
             Return Me.Modifiers
         End Function
 
+        Friend Overrides Function WithModifiersCore(modifiers As SyntaxTokenList) As MethodBaseSyntax
+            Return WithModifiers(modifiers)
+        End Function
+
         ''' <summary>
         ''' Returns a copy of this with the Modifiers property changed to the specified
         ''' value. Returns this instance if the specified value is the same as the current
@@ -6389,6 +6806,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
 
         Public Shadows Function AddModifiers(ParamArray items As SyntaxToken()) As SubNewStatementSyntax
             Return Me.WithModifiers(Me.Modifiers.AddRange(items))
+        End Function
+
+        Friend Overrides Function AddModifiersCore(ParamArray items As SyntaxToken()) As MethodBaseSyntax
+            Return AddModifiers(items)
         End Function
 
         ''' <summary>
@@ -6444,6 +6865,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
             Return Me.ParameterList
         End Function
 
+        Friend Overrides Function WithParameterListCore(parameterList As ParameterListSyntax) As MethodBaseSyntax
+            Return WithParameterList(parameterList)
+        End Function
+
         ''' <summary>
         ''' Returns a copy of this with the ParameterList property changed to the specified
         ''' value. Returns this instance if the specified value is the same as the current
@@ -6456,6 +6881,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
         Public Shadows Function AddParameterListParameters(ParamArray items As ParameterSyntax()) As SubNewStatementSyntax
             Dim _child = If (Me.ParameterList IsNot Nothing, Me.ParameterList, SyntaxFactory.ParameterList())
             Return Me.WithParameterList(_child.AddParameters(items))
+        End Function
+
+        Friend Overrides Function AddParameterListParametersCore(ParamArray items As ParameterSyntax()) As MethodBaseSyntax
+            Return AddParameterListParameters(items)
         End Function
 
         Friend Overrides Function GetCachedSlot(i as Integer) as SyntaxNode
@@ -6560,6 +6989,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
             Return Me.AttributeLists
         End Function
 
+        Friend Overrides Function WithAttributeListsCore(attributeLists As SyntaxList(Of AttributeListSyntax)) As MethodBaseSyntax
+            Return WithAttributeLists(attributeLists)
+        End Function
+
         ''' <summary>
         ''' Returns a copy of this with the AttributeLists property changed to the
         ''' specified value. Returns this instance if the specified value is the same as
@@ -6571,6 +7004,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
 
         Public Shadows Function AddAttributeLists(ParamArray items As AttributeListSyntax()) As DeclareStatementSyntax
             Return Me.WithAttributeLists(Me.AttributeLists.AddRange(items))
+        End Function
+
+        Friend Overrides Function AddAttributeListsCore(ParamArray items As AttributeListSyntax()) As MethodBaseSyntax
+            Return AddAttributeLists(items)
         End Function
 
         ''' <summary>
@@ -6596,6 +7033,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
             Return Me.Modifiers
         End Function
 
+        Friend Overrides Function WithModifiersCore(modifiers As SyntaxTokenList) As MethodBaseSyntax
+            Return WithModifiers(modifiers)
+        End Function
+
         ''' <summary>
         ''' Returns a copy of this with the Modifiers property changed to the specified
         ''' value. Returns this instance if the specified value is the same as the current
@@ -6607,6 +7048,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
 
         Public Shadows Function AddModifiers(ParamArray items As SyntaxToken()) As DeclareStatementSyntax
             Return Me.WithModifiers(Me.Modifiers.AddRange(items))
+        End Function
+
+        Friend Overrides Function AddModifiersCore(ParamArray items As SyntaxToken()) As MethodBaseSyntax
+            Return AddModifiers(items)
         End Function
 
         ''' <summary>
@@ -6788,6 +7233,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
             Return Me.ParameterList
         End Function
 
+        Friend Overrides Function WithParameterListCore(parameterList As ParameterListSyntax) As MethodBaseSyntax
+            Return WithParameterList(parameterList)
+        End Function
+
         ''' <summary>
         ''' Returns a copy of this with the ParameterList property changed to the specified
         ''' value. Returns this instance if the specified value is the same as the current
@@ -6800,6 +7249,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
         Public Shadows Function AddParameterListParameters(ParamArray items As ParameterSyntax()) As DeclareStatementSyntax
             Dim _child = If (Me.ParameterList IsNot Nothing, Me.ParameterList, SyntaxFactory.ParameterList())
             Return Me.WithParameterList(_child.AddParameters(items))
+        End Function
+
+        Friend Overrides Function AddParameterListParametersCore(ParamArray items As ParameterSyntax()) As MethodBaseSyntax
+            Return AddParameterListParameters(items)
         End Function
 
         ''' <summary>
@@ -6961,6 +7414,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
             Return Me.AttributeLists
         End Function
 
+        Friend Overrides Function WithAttributeListsCore(attributeLists As SyntaxList(Of AttributeListSyntax)) As MethodBaseSyntax
+            Return WithAttributeLists(attributeLists)
+        End Function
+
         ''' <summary>
         ''' Returns a copy of this with the AttributeLists property changed to the
         ''' specified value. Returns this instance if the specified value is the same as
@@ -6972,6 +7429,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
 
         Public Shadows Function AddAttributeLists(ParamArray items As AttributeListSyntax()) As DelegateStatementSyntax
             Return Me.WithAttributeLists(Me.AttributeLists.AddRange(items))
+        End Function
+
+        Friend Overrides Function AddAttributeListsCore(ParamArray items As AttributeListSyntax()) As MethodBaseSyntax
+            Return AddAttributeLists(items)
         End Function
 
         ''' <summary>
@@ -6997,6 +7458,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
             Return Me.Modifiers
         End Function
 
+        Friend Overrides Function WithModifiersCore(modifiers As SyntaxTokenList) As MethodBaseSyntax
+            Return WithModifiers(modifiers)
+        End Function
+
         ''' <summary>
         ''' Returns a copy of this with the Modifiers property changed to the specified
         ''' value. Returns this instance if the specified value is the same as the current
@@ -7008,6 +7473,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
 
         Public Shadows Function AddModifiers(ParamArray items As SyntaxToken()) As DelegateStatementSyntax
             Return Me.WithModifiers(Me.Modifiers.AddRange(items))
+        End Function
+
+        Friend Overrides Function AddModifiersCore(ParamArray items As SyntaxToken()) As MethodBaseSyntax
+            Return AddModifiers(items)
         End Function
 
         ''' <summary>
@@ -7108,6 +7577,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
             Return Me.ParameterList
         End Function
 
+        Friend Overrides Function WithParameterListCore(parameterList As ParameterListSyntax) As MethodBaseSyntax
+            Return WithParameterList(parameterList)
+        End Function
+
         ''' <summary>
         ''' Returns a copy of this with the ParameterList property changed to the specified
         ''' value. Returns this instance if the specified value is the same as the current
@@ -7120,6 +7593,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
         Public Shadows Function AddParameterListParameters(ParamArray items As ParameterSyntax()) As DelegateStatementSyntax
             Dim _child = If (Me.ParameterList IsNot Nothing, Me.ParameterList, SyntaxFactory.ParameterList())
             Return Me.WithParameterList(_child.AddParameters(items))
+        End Function
+
+        Friend Overrides Function AddParameterListParametersCore(ParamArray items As ParameterSyntax()) As MethodBaseSyntax
+            Return AddParameterListParameters(items)
         End Function
 
         ''' <summary>
@@ -7267,6 +7744,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
             Return Me.AttributeLists
         End Function
 
+        Friend Overrides Function WithAttributeListsCore(attributeLists As SyntaxList(Of AttributeListSyntax)) As MethodBaseSyntax
+            Return WithAttributeLists(attributeLists)
+        End Function
+
         ''' <summary>
         ''' Returns a copy of this with the AttributeLists property changed to the
         ''' specified value. Returns this instance if the specified value is the same as
@@ -7278,6 +7759,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
 
         Public Shadows Function AddAttributeLists(ParamArray items As AttributeListSyntax()) As EventStatementSyntax
             Return Me.WithAttributeLists(Me.AttributeLists.AddRange(items))
+        End Function
+
+        Friend Overrides Function AddAttributeListsCore(ParamArray items As AttributeListSyntax()) As MethodBaseSyntax
+            Return AddAttributeLists(items)
         End Function
 
         ''' <summary>
@@ -7303,6 +7788,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
             Return Me.Modifiers
         End Function
 
+        Friend Overrides Function WithModifiersCore(modifiers As SyntaxTokenList) As MethodBaseSyntax
+            Return WithModifiers(modifiers)
+        End Function
+
         ''' <summary>
         ''' Returns a copy of this with the Modifiers property changed to the specified
         ''' value. Returns this instance if the specified value is the same as the current
@@ -7314,6 +7803,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
 
         Public Shadows Function AddModifiers(ParamArray items As SyntaxToken()) As EventStatementSyntax
             Return Me.WithModifiers(Me.Modifiers.AddRange(items))
+        End Function
+
+        Friend Overrides Function AddModifiersCore(ParamArray items As SyntaxToken()) As MethodBaseSyntax
+            Return AddModifiers(items)
         End Function
 
         ''' <summary>
@@ -7394,6 +7887,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
             Return Me.ParameterList
         End Function
 
+        Friend Overrides Function WithParameterListCore(parameterList As ParameterListSyntax) As MethodBaseSyntax
+            Return WithParameterList(parameterList)
+        End Function
+
         ''' <summary>
         ''' Returns a copy of this with the ParameterList property changed to the specified
         ''' value. Returns this instance if the specified value is the same as the current
@@ -7406,6 +7903,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
         Public Shadows Function AddParameterListParameters(ParamArray items As ParameterSyntax()) As EventStatementSyntax
             Dim _child = If (Me.ParameterList IsNot Nothing, Me.ParameterList, SyntaxFactory.ParameterList())
             Return Me.WithParameterList(_child.AddParameters(items))
+        End Function
+
+        Friend Overrides Function AddParameterListParametersCore(ParamArray items As ParameterSyntax()) As MethodBaseSyntax
+            Return AddParameterListParameters(items)
         End Function
 
         ''' <summary>
@@ -7577,6 +8078,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
             Return Me.AttributeLists
         End Function
 
+        Friend Overrides Function WithAttributeListsCore(attributeLists As SyntaxList(Of AttributeListSyntax)) As MethodBaseSyntax
+            Return WithAttributeLists(attributeLists)
+        End Function
+
         ''' <summary>
         ''' Returns a copy of this with the AttributeLists property changed to the
         ''' specified value. Returns this instance if the specified value is the same as
@@ -7588,6 +8093,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
 
         Public Shadows Function AddAttributeLists(ParamArray items As AttributeListSyntax()) As OperatorStatementSyntax
             Return Me.WithAttributeLists(Me.AttributeLists.AddRange(items))
+        End Function
+
+        Friend Overrides Function AddAttributeListsCore(ParamArray items As AttributeListSyntax()) As MethodBaseSyntax
+            Return AddAttributeLists(items)
         End Function
 
         ''' <summary>
@@ -7613,6 +8122,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
             Return Me.Modifiers
         End Function
 
+        Friend Overrides Function WithModifiersCore(modifiers As SyntaxTokenList) As MethodBaseSyntax
+            Return WithModifiers(modifiers)
+        End Function
+
         ''' <summary>
         ''' Returns a copy of this with the Modifiers property changed to the specified
         ''' value. Returns this instance if the specified value is the same as the current
@@ -7624,6 +8137,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
 
         Public Shadows Function AddModifiers(ParamArray items As SyntaxToken()) As OperatorStatementSyntax
             Return Me.WithModifiers(Me.Modifiers.AddRange(items))
+        End Function
+
+        Friend Overrides Function AddModifiersCore(ParamArray items As SyntaxToken()) As MethodBaseSyntax
+            Return AddModifiers(items)
         End Function
 
         ''' <summary>
@@ -7679,6 +8196,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
             Return Me.ParameterList
         End Function
 
+        Friend Overrides Function WithParameterListCore(parameterList As ParameterListSyntax) As MethodBaseSyntax
+            Return WithParameterList(parameterList)
+        End Function
+
         ''' <summary>
         ''' Returns a copy of this with the ParameterList property changed to the specified
         ''' value. Returns this instance if the specified value is the same as the current
@@ -7691,6 +8212,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
         Public Shadows Function AddParameterListParameters(ParamArray items As ParameterSyntax()) As OperatorStatementSyntax
             Dim _child = If (Me.ParameterList IsNot Nothing, Me.ParameterList, SyntaxFactory.ParameterList())
             Return Me.WithParameterList(_child.AddParameters(items))
+        End Function
+
+        Friend Overrides Function AddParameterListParametersCore(ParamArray items As ParameterSyntax()) As MethodBaseSyntax
+            Return AddParameterListParameters(items)
         End Function
 
         ''' <summary>
@@ -7827,6 +8352,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
             Return Me.AttributeLists
         End Function
 
+        Friend Overrides Function WithAttributeListsCore(attributeLists As SyntaxList(Of AttributeListSyntax)) As MethodBaseSyntax
+            Return WithAttributeLists(attributeLists)
+        End Function
+
         ''' <summary>
         ''' Returns a copy of this with the AttributeLists property changed to the
         ''' specified value. Returns this instance if the specified value is the same as
@@ -7838,6 +8367,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
 
         Public Shadows Function AddAttributeLists(ParamArray items As AttributeListSyntax()) As PropertyStatementSyntax
             Return Me.WithAttributeLists(Me.AttributeLists.AddRange(items))
+        End Function
+
+        Friend Overrides Function AddAttributeListsCore(ParamArray items As AttributeListSyntax()) As MethodBaseSyntax
+            Return AddAttributeLists(items)
         End Function
 
         ''' <summary>
@@ -7863,6 +8396,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
             Return Me.Modifiers
         End Function
 
+        Friend Overrides Function WithModifiersCore(modifiers As SyntaxTokenList) As MethodBaseSyntax
+            Return WithModifiers(modifiers)
+        End Function
+
         ''' <summary>
         ''' Returns a copy of this with the Modifiers property changed to the specified
         ''' value. Returns this instance if the specified value is the same as the current
@@ -7874,6 +8411,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
 
         Public Shadows Function AddModifiers(ParamArray items As SyntaxToken()) As PropertyStatementSyntax
             Return Me.WithModifiers(Me.Modifiers.AddRange(items))
+        End Function
+
+        Friend Overrides Function AddModifiersCore(ParamArray items As SyntaxToken()) As MethodBaseSyntax
+            Return AddModifiers(items)
         End Function
 
         ''' <summary>
@@ -7929,6 +8470,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
             Return Me.ParameterList
         End Function
 
+        Friend Overrides Function WithParameterListCore(parameterList As ParameterListSyntax) As MethodBaseSyntax
+            Return WithParameterList(parameterList)
+        End Function
+
         ''' <summary>
         ''' Returns a copy of this with the ParameterList property changed to the specified
         ''' value. Returns this instance if the specified value is the same as the current
@@ -7941,6 +8486,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
         Public Shadows Function AddParameterListParameters(ParamArray items As ParameterSyntax()) As PropertyStatementSyntax
             Dim _child = If (Me.ParameterList IsNot Nothing, Me.ParameterList, SyntaxFactory.ParameterList())
             Return Me.WithParameterList(_child.AddParameters(items))
+        End Function
+
+        Friend Overrides Function AddParameterListParametersCore(ParamArray items As ParameterSyntax()) As MethodBaseSyntax
+            Return AddParameterListParameters(items)
         End Function
 
         ''' <summary>
@@ -8137,6 +8686,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
             Return Me.AttributeLists
         End Function
 
+        Friend Overrides Function WithAttributeListsCore(attributeLists As SyntaxList(Of AttributeListSyntax)) As MethodBaseSyntax
+            Return WithAttributeLists(attributeLists)
+        End Function
+
         ''' <summary>
         ''' Returns a copy of this with the AttributeLists property changed to the
         ''' specified value. Returns this instance if the specified value is the same as
@@ -8148,6 +8701,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
 
         Public Shadows Function AddAttributeLists(ParamArray items As AttributeListSyntax()) As AccessorStatementSyntax
             Return Me.WithAttributeLists(Me.AttributeLists.AddRange(items))
+        End Function
+
+        Friend Overrides Function AddAttributeListsCore(ParamArray items As AttributeListSyntax()) As MethodBaseSyntax
+            Return AddAttributeLists(items)
         End Function
 
         ''' <summary>
@@ -8173,6 +8730,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
             Return Me.Modifiers
         End Function
 
+        Friend Overrides Function WithModifiersCore(modifiers As SyntaxTokenList) As MethodBaseSyntax
+            Return WithModifiers(modifiers)
+        End Function
+
         ''' <summary>
         ''' Returns a copy of this with the Modifiers property changed to the specified
         ''' value. Returns this instance if the specified value is the same as the current
@@ -8184,6 +8745,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
 
         Public Shadows Function AddModifiers(ParamArray items As SyntaxToken()) As AccessorStatementSyntax
             Return Me.WithModifiers(Me.Modifiers.AddRange(items))
+        End Function
+
+        Friend Overrides Function AddModifiersCore(ParamArray items As SyntaxToken()) As MethodBaseSyntax
+            Return AddModifiers(items)
         End Function
 
         ''' <summary>
@@ -8222,6 +8787,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
             Return Me.ParameterList
         End Function
 
+        Friend Overrides Function WithParameterListCore(parameterList As ParameterListSyntax) As MethodBaseSyntax
+            Return WithParameterList(parameterList)
+        End Function
+
         ''' <summary>
         ''' Returns a copy of this with the ParameterList property changed to the specified
         ''' value. Returns this instance if the specified value is the same as the current
@@ -8234,6 +8803,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
         Public Shadows Function AddParameterListParameters(ParamArray items As ParameterSyntax()) As AccessorStatementSyntax
             Dim _child = If (Me.ParameterList IsNot Nothing, Me.ParameterList, SyntaxFactory.ParameterList())
             Return Me.WithParameterList(_child.AddParameters(items))
+        End Function
+
+        Friend Overrides Function AddParameterListParametersCore(ParamArray items As ParameterSyntax()) As MethodBaseSyntax
+            Return AddParameterListParameters(items)
         End Function
 
         Friend Overrides Function GetCachedSlot(i as Integer) as SyntaxNode
@@ -9467,6 +10040,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
                 return new SyntaxToken(Me, DirectCast(Me.Green, Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax.AsClauseSyntax)._asKeyword, Me.Position, 0)
         End Function
 
+        ''' <summary>
+        ''' Returns a copy of this with the AsKeyword property changed to the specified
+        ''' value. Returns this instance if the specified value is the same as the current
+        ''' value.
+        ''' </summary>
+        Public Function WithAsKeyword(asKeyword As SyntaxToken) As AsClauseSyntax
+            Return WithAsKeywordCore(asKeyword)
+        End Function
+        Friend MustOverride Function WithAsKeywordCore(asKeyword As SyntaxToken) As AsClauseSyntax
 
     End Class
 
@@ -9502,6 +10084,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
 
         Friend Overrides Function GetAsKeywordCore() As SyntaxToken
             Return Me.AsKeyword
+        End Function
+
+        Friend Overrides Function WithAsKeywordCore(asKeyword As SyntaxToken) As AsClauseSyntax
+            Return WithAsKeyword(asKeyword)
         End Function
 
         ''' <summary>
@@ -9647,6 +10233,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
 
         Friend Overrides Function GetAsKeywordCore() As SyntaxToken
             Return Me.AsKeyword
+        End Function
+
+        Friend Overrides Function WithAsKeywordCore(asKeyword As SyntaxToken) As AsClauseSyntax
+            Return WithAsKeyword(asKeyword)
         End Function
 
         ''' <summary>
@@ -10043,6 +10633,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
                 Return Nothing
         End Function
 
+        ''' <summary>
+        ''' Returns a copy of this with the KeyKeyword property changed to the specified
+        ''' value. Returns this instance if the specified value is the same as the current
+        ''' value.
+        ''' </summary>
+        Public Function WithKeyKeyword(keyKeyword As SyntaxToken) As FieldInitializerSyntax
+            Return WithKeyKeywordCore(keyKeyword)
+        End Function
+        Friend MustOverride Function WithKeyKeywordCore(keyKeyword As SyntaxToken) As FieldInitializerSyntax
 
     End Class
 
@@ -10083,6 +10682,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
 
         Friend Overrides Function GetKeyKeywordCore() As SyntaxToken
             Return Me.KeyKeyword
+        End Function
+
+        Friend Overrides Function WithKeyKeywordCore(keyKeyword As SyntaxToken) As FieldInitializerSyntax
+            Return WithKeyKeyword(keyKeyword)
         End Function
 
         ''' <summary>
@@ -10201,6 +10804,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
 
         Friend Overrides Function GetKeyKeywordCore() As SyntaxToken
             Return Me.KeyKeyword
+        End Function
+
+        Friend Overrides Function WithKeyKeywordCore(keyKeyword As SyntaxToken) As FieldInitializerSyntax
+            Return WithKeyKeyword(keyKeyword)
         End Function
 
         ''' <summary>
@@ -17239,7 +17846,20 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
                 Return new SyntaxList(Of StatementSyntax)(listNode)
         End Function
 
+        ''' <summary>
+        ''' Returns a copy of this with the Statements property changed to the specified
+        ''' value. Returns this instance if the specified value is the same as the current
+        ''' value.
+        ''' </summary>
+        Public Function WithStatements(statements As SyntaxList(Of StatementSyntax)) As ForOrForEachBlockSyntax
+            Return WithStatementsCore(statements)
+        End Function
+        Friend MustOverride Function WithStatementsCore(statements As SyntaxList(Of StatementSyntax)) As ForOrForEachBlockSyntax
 
+        Public Shadows Function AddStatements(ParamArray items As StatementSyntax()) As ForOrForEachBlockSyntax
+            Return AddStatementsCore(items)
+        End Function
+        Friend MustOverride Function AddStatementsCore(ParamArray items As StatementSyntax()) As ForOrForEachBlockSyntax
         ''' <summary>
         ''' The Next statement that ends the block. If two For or For Each statements are
         ''' ended by a single Next statement, the inner For will not have a Next statement.
@@ -17257,6 +17877,20 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
                 Return GetRed(_nextStatement, 1)
         End Function
 
+        ''' <summary>
+        ''' Returns a copy of this with the NextStatement property changed to the specified
+        ''' value. Returns this instance if the specified value is the same as the current
+        ''' value.
+        ''' </summary>
+        Public Function WithNextStatement(nextStatement As NextStatementSyntax) As ForOrForEachBlockSyntax
+            Return WithNextStatementCore(nextStatement)
+        End Function
+        Friend MustOverride Function WithNextStatementCore(nextStatement As NextStatementSyntax) As ForOrForEachBlockSyntax
+
+        Public Shadows Function AddNextStatementControlVariables(ParamArray items As ExpressionSyntax()) As ForOrForEachBlockSyntax
+            Return AddNextStatementControlVariablesCore(items)
+        End Function
+        Friend MustOverride Function AddNextStatementControlVariablesCore(ParamArray items As ExpressionSyntax()) As ForOrForEachBlockSyntax
 
     End Class
 
@@ -17316,6 +17950,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
             Return Me.Statements
         End Function
 
+        Friend Overrides Function WithStatementsCore(statements As SyntaxList(Of StatementSyntax)) As ForOrForEachBlockSyntax
+            Return WithStatements(statements)
+        End Function
+
         ''' <summary>
         ''' Returns a copy of this with the Statements property changed to the specified
         ''' value. Returns this instance if the specified value is the same as the current
@@ -17327,6 +17965,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
 
         Public Shadows Function AddStatements(ParamArray items As StatementSyntax()) As ForBlockSyntax
             Return Me.WithStatements(Me.Statements.AddRange(items))
+        End Function
+
+        Friend Overrides Function AddStatementsCore(ParamArray items As StatementSyntax()) As ForOrForEachBlockSyntax
+            Return AddStatements(items)
         End Function
 
         ''' <summary>
@@ -17346,6 +17988,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
             Return Me.NextStatement
         End Function
 
+        Friend Overrides Function WithNextStatementCore(nextStatement As NextStatementSyntax) As ForOrForEachBlockSyntax
+            Return WithNextStatement(nextStatement)
+        End Function
+
         ''' <summary>
         ''' Returns a copy of this with the NextStatement property changed to the specified
         ''' value. Returns this instance if the specified value is the same as the current
@@ -17358,6 +18004,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
         Public Shadows Function AddNextStatementControlVariables(ParamArray items As ExpressionSyntax()) As ForBlockSyntax
             Dim _child = If (Me.NextStatement IsNot Nothing, Me.NextStatement, SyntaxFactory.NextStatement())
             Return Me.WithNextStatement(_child.AddControlVariables(items))
+        End Function
+
+        Friend Overrides Function AddNextStatementControlVariablesCore(ParamArray items As ExpressionSyntax()) As ForOrForEachBlockSyntax
+            Return AddNextStatementControlVariables(items)
         End Function
 
         Friend Overrides Function GetCachedSlot(i as Integer) as SyntaxNode
@@ -17478,6 +18128,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
             Return Me.Statements
         End Function
 
+        Friend Overrides Function WithStatementsCore(statements As SyntaxList(Of StatementSyntax)) As ForOrForEachBlockSyntax
+            Return WithStatements(statements)
+        End Function
+
         ''' <summary>
         ''' Returns a copy of this with the Statements property changed to the specified
         ''' value. Returns this instance if the specified value is the same as the current
@@ -17489,6 +18143,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
 
         Public Shadows Function AddStatements(ParamArray items As StatementSyntax()) As ForEachBlockSyntax
             Return Me.WithStatements(Me.Statements.AddRange(items))
+        End Function
+
+        Friend Overrides Function AddStatementsCore(ParamArray items As StatementSyntax()) As ForOrForEachBlockSyntax
+            Return AddStatements(items)
         End Function
 
         ''' <summary>
@@ -17508,6 +18166,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
             Return Me.NextStatement
         End Function
 
+        Friend Overrides Function WithNextStatementCore(nextStatement As NextStatementSyntax) As ForOrForEachBlockSyntax
+            Return WithNextStatement(nextStatement)
+        End Function
+
         ''' <summary>
         ''' Returns a copy of this with the NextStatement property changed to the specified
         ''' value. Returns this instance if the specified value is the same as the current
@@ -17520,6 +18182,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
         Public Shadows Function AddNextStatementControlVariables(ParamArray items As ExpressionSyntax()) As ForEachBlockSyntax
             Dim _child = If (Me.NextStatement IsNot Nothing, Me.NextStatement, SyntaxFactory.NextStatement())
             Return Me.WithNextStatement(_child.AddControlVariables(items))
+        End Function
+
+        Friend Overrides Function AddNextStatementControlVariablesCore(ParamArray items As ExpressionSyntax()) As ForOrForEachBlockSyntax
+            Return AddNextStatementControlVariables(items)
         End Function
 
         Friend Overrides Function GetCachedSlot(i as Integer) as SyntaxNode
@@ -17611,6 +18277,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
                 return new SyntaxToken(Me, DirectCast(Me.Green, Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax.ForOrForEachStatementSyntax)._forKeyword, Me.Position, 0)
         End Function
 
+        ''' <summary>
+        ''' Returns a copy of this with the ForKeyword property changed to the specified
+        ''' value. Returns this instance if the specified value is the same as the current
+        ''' value.
+        ''' </summary>
+        Public Function WithForKeyword(forKeyword As SyntaxToken) As ForOrForEachStatementSyntax
+            Return WithForKeywordCore(forKeyword)
+        End Function
+        Friend MustOverride Function WithForKeywordCore(forKeyword As SyntaxToken) As ForOrForEachStatementSyntax
 
         ''' <summary>
         ''' If the For or For Each statement is of a form that does not declare a new loop
@@ -17628,6 +18303,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
                 Return GetRed(_controlVariable, 1)
         End Function
 
+        ''' <summary>
+        ''' Returns a copy of this with the ControlVariable property changed to the
+        ''' specified value. Returns this instance if the specified value is the same as
+        ''' the current value.
+        ''' </summary>
+        Public Function WithControlVariable(controlVariable As VisualBasicSyntaxNode) As ForOrForEachStatementSyntax
+            Return WithControlVariableCore(controlVariable)
+        End Function
+        Friend MustOverride Function WithControlVariableCore(controlVariable As VisualBasicSyntaxNode) As ForOrForEachStatementSyntax
 
     End Class
 
@@ -17669,6 +18353,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
             Return Me.ForKeyword
         End Function
 
+        Friend Overrides Function WithForKeywordCore(forKeyword As SyntaxToken) As ForOrForEachStatementSyntax
+            Return WithForKeyword(forKeyword)
+        End Function
+
         ''' <summary>
         ''' Returns a copy of this with the ForKeyword property changed to the specified
         ''' value. Returns this instance if the specified value is the same as the current
@@ -17692,6 +18380,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
 
         Friend Overrides Function GetControlVariableCore() As VisualBasicSyntaxNode
             Return Me.ControlVariable
+        End Function
+
+        Friend Overrides Function WithControlVariableCore(controlVariable As VisualBasicSyntaxNode) As ForOrForEachStatementSyntax
+            Return WithControlVariable(controlVariable)
         End Function
 
         ''' <summary>
@@ -18016,6 +18708,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
             Return Me.ForKeyword
         End Function
 
+        Friend Overrides Function WithForKeywordCore(forKeyword As SyntaxToken) As ForOrForEachStatementSyntax
+            Return WithForKeyword(forKeyword)
+        End Function
+
         ''' <summary>
         ''' Returns a copy of this with the ForKeyword property changed to the specified
         ''' value. Returns this instance if the specified value is the same as the current
@@ -18057,6 +18753,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
 
         Friend Overrides Function GetControlVariableCore() As VisualBasicSyntaxNode
             Return Me.ControlVariable
+        End Function
+
+        Friend Overrides Function WithControlVariableCore(controlVariable As VisualBasicSyntaxNode) As ForOrForEachStatementSyntax
+            Return WithControlVariable(controlVariable)
         End Function
 
         ''' <summary>
@@ -20399,6 +21099,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
                 return new SyntaxToken(Me, DirectCast(Me.Green, Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax.InstanceExpressionSyntax)._keyword, Me.Position, 0)
         End Function
 
+        ''' <summary>
+        ''' Returns a copy of this with the Keyword property changed to the specified
+        ''' value. Returns this instance if the specified value is the same as the current
+        ''' value.
+        ''' </summary>
+        Public Function WithKeyword(keyword As SyntaxToken) As InstanceExpressionSyntax
+            Return WithKeywordCore(keyword)
+        End Function
+        Friend MustOverride Function WithKeywordCore(keyword As SyntaxToken) As InstanceExpressionSyntax
 
     End Class
 
@@ -20430,6 +21139,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
 
         Friend Overrides Function GetKeywordCore() As SyntaxToken
             Return Me.Keyword
+        End Function
+
+        Friend Overrides Function WithKeywordCore(keyword As SyntaxToken) As InstanceExpressionSyntax
+            Return WithKeyword(keyword)
         End Function
 
         ''' <summary>
@@ -20513,6 +21226,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
             Return Me.Keyword
         End Function
 
+        Friend Overrides Function WithKeywordCore(keyword As SyntaxToken) As InstanceExpressionSyntax
+            Return WithKeyword(keyword)
+        End Function
+
         ''' <summary>
         ''' Returns a copy of this with the Keyword property changed to the specified
         ''' value. Returns this instance if the specified value is the same as the current
@@ -20592,6 +21309,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
 
         Friend Overrides Function GetKeywordCore() As SyntaxToken
             Return Me.Keyword
+        End Function
+
+        Friend Overrides Function WithKeywordCore(keyword As SyntaxToken) As InstanceExpressionSyntax
+            Return WithKeyword(keyword)
         End Function
 
         ''' <summary>
@@ -21571,6 +22292,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
                 return new SyntaxToken(Me, DirectCast(Me.Green, Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax.NewExpressionSyntax)._newKeyword, Me.Position, 0)
         End Function
 
+        ''' <summary>
+        ''' Returns a copy of this with the NewKeyword property changed to the specified
+        ''' value. Returns this instance if the specified value is the same as the current
+        ''' value.
+        ''' </summary>
+        Public Function WithNewKeyword(newKeyword As SyntaxToken) As NewExpressionSyntax
+            Return WithNewKeywordCore(newKeyword)
+        End Function
+        Friend MustOverride Function WithNewKeywordCore(newKeyword As SyntaxToken) As NewExpressionSyntax
 
         ''' <summary>
         ''' A list of all attribute lists on the type. If no attributes were specified, an
@@ -21590,7 +22320,20 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
                 Return new SyntaxList(Of AttributeListSyntax)(listNode)
         End Function
 
+        ''' <summary>
+        ''' Returns a copy of this with the AttributeLists property changed to the
+        ''' specified value. Returns this instance if the specified value is the same as
+        ''' the current value.
+        ''' </summary>
+        Public Function WithAttributeLists(attributeLists As SyntaxList(Of AttributeListSyntax)) As NewExpressionSyntax
+            Return WithAttributeListsCore(attributeLists)
+        End Function
+        Friend MustOverride Function WithAttributeListsCore(attributeLists As SyntaxList(Of AttributeListSyntax)) As NewExpressionSyntax
 
+        Public Shadows Function AddAttributeLists(ParamArray items As AttributeListSyntax()) As NewExpressionSyntax
+            Return AddAttributeListsCore(items)
+        End Function
+        Friend MustOverride Function AddAttributeListsCore(ParamArray items As AttributeListSyntax()) As NewExpressionSyntax
     End Class
 
     ''' <summary>
@@ -21627,6 +22370,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
             Return Me.NewKeyword
         End Function
 
+        Friend Overrides Function WithNewKeywordCore(newKeyword As SyntaxToken) As NewExpressionSyntax
+            Return WithNewKeyword(newKeyword)
+        End Function
+
         ''' <summary>
         ''' Returns a copy of this with the NewKeyword property changed to the specified
         ''' value. Returns this instance if the specified value is the same as the current
@@ -21654,6 +22401,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
             Return Me.AttributeLists
         End Function
 
+        Friend Overrides Function WithAttributeListsCore(attributeLists As SyntaxList(Of AttributeListSyntax)) As NewExpressionSyntax
+            Return WithAttributeLists(attributeLists)
+        End Function
+
         ''' <summary>
         ''' Returns a copy of this with the AttributeLists property changed to the
         ''' specified value. Returns this instance if the specified value is the same as
@@ -21665,6 +22416,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
 
         Public Shadows Function AddAttributeLists(ParamArray items As AttributeListSyntax()) As ObjectCreationExpressionSyntax
             Return Me.WithAttributeLists(Me.AttributeLists.AddRange(items))
+        End Function
+
+        Friend Overrides Function AddAttributeListsCore(ParamArray items As AttributeListSyntax()) As NewExpressionSyntax
+            Return AddAttributeLists(items)
         End Function
 
         ''' <summary>
@@ -21835,6 +22590,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
             Return Me.NewKeyword
         End Function
 
+        Friend Overrides Function WithNewKeywordCore(newKeyword As SyntaxToken) As NewExpressionSyntax
+            Return WithNewKeyword(newKeyword)
+        End Function
+
         ''' <summary>
         ''' Returns a copy of this with the NewKeyword property changed to the specified
         ''' value. Returns this instance if the specified value is the same as the current
@@ -21862,6 +22621,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
             Return Me.AttributeLists
         End Function
 
+        Friend Overrides Function WithAttributeListsCore(attributeLists As SyntaxList(Of AttributeListSyntax)) As NewExpressionSyntax
+            Return WithAttributeLists(attributeLists)
+        End Function
+
         ''' <summary>
         ''' Returns a copy of this with the AttributeLists property changed to the
         ''' specified value. Returns this instance if the specified value is the same as
@@ -21873,6 +22636,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
 
         Public Shadows Function AddAttributeLists(ParamArray items As AttributeListSyntax()) As AnonymousObjectCreationExpressionSyntax
             Return Me.WithAttributeLists(Me.AttributeLists.AddRange(items))
+        End Function
+
+        Friend Overrides Function AddAttributeListsCore(ParamArray items As AttributeListSyntax()) As NewExpressionSyntax
+            Return AddAttributeLists(items)
         End Function
 
         ''' <summary>
@@ -21990,6 +22757,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
             Return Me.NewKeyword
         End Function
 
+        Friend Overrides Function WithNewKeywordCore(newKeyword As SyntaxToken) As NewExpressionSyntax
+            Return WithNewKeyword(newKeyword)
+        End Function
+
         ''' <summary>
         ''' Returns a copy of this with the NewKeyword property changed to the specified
         ''' value. Returns this instance if the specified value is the same as the current
@@ -22017,6 +22788,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
             Return Me.AttributeLists
         End Function
 
+        Friend Overrides Function WithAttributeListsCore(attributeLists As SyntaxList(Of AttributeListSyntax)) As NewExpressionSyntax
+            Return WithAttributeLists(attributeLists)
+        End Function
+
         ''' <summary>
         ''' Returns a copy of this with the AttributeLists property changed to the
         ''' specified value. Returns this instance if the specified value is the same as
@@ -22028,6 +22803,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
 
         Public Shadows Function AddAttributeLists(ParamArray items As AttributeListSyntax()) As ArrayCreationExpressionSyntax
             Return Me.WithAttributeLists(Me.AttributeLists.AddRange(items))
+        End Function
+
+        Friend Overrides Function AddAttributeListsCore(ParamArray items As AttributeListSyntax()) As NewExpressionSyntax
+            Return AddAttributeLists(items)
         End Function
 
         ''' <summary>
@@ -22369,6 +23148,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
                 return new SyntaxToken(Me, DirectCast(Me.Green, Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax.CastExpressionSyntax)._keyword, Me.Position, 0)
         End Function
 
+        ''' <summary>
+        ''' Returns a copy of this with the Keyword property changed to the specified
+        ''' value. Returns this instance if the specified value is the same as the current
+        ''' value.
+        ''' </summary>
+        Public Function WithKeyword(keyword As SyntaxToken) As CastExpressionSyntax
+            Return WithKeywordCore(keyword)
+        End Function
+        Friend MustOverride Function WithKeywordCore(keyword As SyntaxToken) As CastExpressionSyntax
 
         ''' <summary>
         ''' The "(" token.
@@ -22383,6 +23171,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
                 return new SyntaxToken(Me, DirectCast(Me.Green, Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax.CastExpressionSyntax)._openParenToken, Me.GetChildPosition(1), Me.GetChildIndex(1))
         End Function
 
+        ''' <summary>
+        ''' Returns a copy of this with the OpenParenToken property changed to the
+        ''' specified value. Returns this instance if the specified value is the same as
+        ''' the current value.
+        ''' </summary>
+        Public Function WithOpenParenToken(openParenToken As SyntaxToken) As CastExpressionSyntax
+            Return WithOpenParenTokenCore(openParenToken)
+        End Function
+        Friend MustOverride Function WithOpenParenTokenCore(openParenToken As SyntaxToken) As CastExpressionSyntax
 
         ''' <summary>
         ''' The expression being cast.
@@ -22397,6 +23194,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
                 Return GetRed(_expression, 2)
         End Function
 
+        ''' <summary>
+        ''' Returns a copy of this with the Expression property changed to the specified
+        ''' value. Returns this instance if the specified value is the same as the current
+        ''' value.
+        ''' </summary>
+        Public Function WithExpression(expression As ExpressionSyntax) As CastExpressionSyntax
+            Return WithExpressionCore(expression)
+        End Function
+        Friend MustOverride Function WithExpressionCore(expression As ExpressionSyntax) As CastExpressionSyntax
 
         ''' <summary>
         ''' The "," token.
@@ -22411,6 +23217,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
                 return new SyntaxToken(Me, DirectCast(Me.Green, Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax.CastExpressionSyntax)._commaToken, Me.GetChildPosition(3), Me.GetChildIndex(3))
         End Function
 
+        ''' <summary>
+        ''' Returns a copy of this with the CommaToken property changed to the specified
+        ''' value. Returns this instance if the specified value is the same as the current
+        ''' value.
+        ''' </summary>
+        Public Function WithCommaToken(commaToken As SyntaxToken) As CastExpressionSyntax
+            Return WithCommaTokenCore(commaToken)
+        End Function
+        Friend MustOverride Function WithCommaTokenCore(commaToken As SyntaxToken) As CastExpressionSyntax
 
         ''' <summary>
         ''' The type the expression is being cast to.
@@ -22425,6 +23240,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
                 Return GetRed(_type, 4)
         End Function
 
+        ''' <summary>
+        ''' Returns a copy of this with the Type property changed to the specified value.
+        ''' Returns this instance if the specified value is the same as the current value.
+        ''' </summary>
+        Public Function WithType(type As TypeSyntax) As CastExpressionSyntax
+            Return WithTypeCore(type)
+        End Function
+        Friend MustOverride Function WithTypeCore(type As TypeSyntax) As CastExpressionSyntax
 
         ''' <summary>
         ''' The ")" token.
@@ -22439,6 +23262,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
                 return new SyntaxToken(Me, DirectCast(Me.Green, Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax.CastExpressionSyntax)._closeParenToken, Me.GetChildPosition(5), Me.GetChildIndex(5))
         End Function
 
+        ''' <summary>
+        ''' Returns a copy of this with the CloseParenToken property changed to the
+        ''' specified value. Returns this instance if the specified value is the same as
+        ''' the current value.
+        ''' </summary>
+        Public Function WithCloseParenToken(closeParenToken As SyntaxToken) As CastExpressionSyntax
+            Return WithCloseParenTokenCore(closeParenToken)
+        End Function
+        Friend MustOverride Function WithCloseParenTokenCore(closeParenToken As SyntaxToken) As CastExpressionSyntax
 
     End Class
 
@@ -22469,6 +23301,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
             Return Me.Keyword
         End Function
 
+        Friend Overrides Function WithKeywordCore(keyword As SyntaxToken) As CastExpressionSyntax
+            Return WithKeyword(keyword)
+        End Function
+
         ''' <summary>
         ''' Returns a copy of this with the Keyword property changed to the specified
         ''' value. Returns this instance if the specified value is the same as the current
@@ -22489,6 +23325,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
 
         Friend Overrides Function GetOpenParenTokenCore() As SyntaxToken
             Return Me.OpenParenToken
+        End Function
+
+        Friend Overrides Function WithOpenParenTokenCore(openParenToken As SyntaxToken) As CastExpressionSyntax
+            Return WithOpenParenToken(openParenToken)
         End Function
 
         ''' <summary>
@@ -22513,6 +23353,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
             Return Me.Expression
         End Function
 
+        Friend Overrides Function WithExpressionCore(expression As ExpressionSyntax) As CastExpressionSyntax
+            Return WithExpression(expression)
+        End Function
+
         ''' <summary>
         ''' Returns a copy of this with the Expression property changed to the specified
         ''' value. Returns this instance if the specified value is the same as the current
@@ -22533,6 +23377,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
 
         Friend Overrides Function GetCommaTokenCore() As SyntaxToken
             Return Me.CommaToken
+        End Function
+
+        Friend Overrides Function WithCommaTokenCore(commaToken As SyntaxToken) As CastExpressionSyntax
+            Return WithCommaToken(commaToken)
         End Function
 
         ''' <summary>
@@ -22557,6 +23405,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
             Return Me.Type
         End Function
 
+        Friend Overrides Function WithTypeCore(type As TypeSyntax) As CastExpressionSyntax
+            Return WithType(type)
+        End Function
+
         ''' <summary>
         ''' Returns a copy of this with the Type property changed to the specified value.
         ''' Returns this instance if the specified value is the same as the current value.
@@ -22576,6 +23428,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
 
         Friend Overrides Function GetCloseParenTokenCore() As SyntaxToken
             Return Me.CloseParenToken
+        End Function
+
+        Friend Overrides Function WithCloseParenTokenCore(closeParenToken As SyntaxToken) As CastExpressionSyntax
+            Return WithCloseParenToken(closeParenToken)
         End Function
 
         ''' <summary>
@@ -22681,6 +23537,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
             Return Me.Keyword
         End Function
 
+        Friend Overrides Function WithKeywordCore(keyword As SyntaxToken) As CastExpressionSyntax
+            Return WithKeyword(keyword)
+        End Function
+
         ''' <summary>
         ''' Returns a copy of this with the Keyword property changed to the specified
         ''' value. Returns this instance if the specified value is the same as the current
@@ -22701,6 +23561,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
 
         Friend Overrides Function GetOpenParenTokenCore() As SyntaxToken
             Return Me.OpenParenToken
+        End Function
+
+        Friend Overrides Function WithOpenParenTokenCore(openParenToken As SyntaxToken) As CastExpressionSyntax
+            Return WithOpenParenToken(openParenToken)
         End Function
 
         ''' <summary>
@@ -22725,6 +23589,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
             Return Me.Expression
         End Function
 
+        Friend Overrides Function WithExpressionCore(expression As ExpressionSyntax) As CastExpressionSyntax
+            Return WithExpression(expression)
+        End Function
+
         ''' <summary>
         ''' Returns a copy of this with the Expression property changed to the specified
         ''' value. Returns this instance if the specified value is the same as the current
@@ -22745,6 +23613,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
 
         Friend Overrides Function GetCommaTokenCore() As SyntaxToken
             Return Me.CommaToken
+        End Function
+
+        Friend Overrides Function WithCommaTokenCore(commaToken As SyntaxToken) As CastExpressionSyntax
+            Return WithCommaToken(commaToken)
         End Function
 
         ''' <summary>
@@ -22769,6 +23641,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
             Return Me.Type
         End Function
 
+        Friend Overrides Function WithTypeCore(type As TypeSyntax) As CastExpressionSyntax
+            Return WithType(type)
+        End Function
+
         ''' <summary>
         ''' Returns a copy of this with the Type property changed to the specified value.
         ''' Returns this instance if the specified value is the same as the current value.
@@ -22788,6 +23664,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
 
         Friend Overrides Function GetCloseParenTokenCore() As SyntaxToken
             Return Me.CloseParenToken
+        End Function
+
+        Friend Overrides Function WithCloseParenTokenCore(closeParenToken As SyntaxToken) As CastExpressionSyntax
+            Return WithCloseParenToken(closeParenToken)
         End Function
 
         ''' <summary>
@@ -22893,6 +23773,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
             Return Me.Keyword
         End Function
 
+        Friend Overrides Function WithKeywordCore(keyword As SyntaxToken) As CastExpressionSyntax
+            Return WithKeyword(keyword)
+        End Function
+
         ''' <summary>
         ''' Returns a copy of this with the Keyword property changed to the specified
         ''' value. Returns this instance if the specified value is the same as the current
@@ -22913,6 +23797,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
 
         Friend Overrides Function GetOpenParenTokenCore() As SyntaxToken
             Return Me.OpenParenToken
+        End Function
+
+        Friend Overrides Function WithOpenParenTokenCore(openParenToken As SyntaxToken) As CastExpressionSyntax
+            Return WithOpenParenToken(openParenToken)
         End Function
 
         ''' <summary>
@@ -22937,6 +23825,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
             Return Me.Expression
         End Function
 
+        Friend Overrides Function WithExpressionCore(expression As ExpressionSyntax) As CastExpressionSyntax
+            Return WithExpression(expression)
+        End Function
+
         ''' <summary>
         ''' Returns a copy of this with the Expression property changed to the specified
         ''' value. Returns this instance if the specified value is the same as the current
@@ -22957,6 +23849,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
 
         Friend Overrides Function GetCommaTokenCore() As SyntaxToken
             Return Me.CommaToken
+        End Function
+
+        Friend Overrides Function WithCommaTokenCore(commaToken As SyntaxToken) As CastExpressionSyntax
+            Return WithCommaToken(commaToken)
         End Function
 
         ''' <summary>
@@ -22981,6 +23877,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
             Return Me.Type
         End Function
 
+        Friend Overrides Function WithTypeCore(type As TypeSyntax) As CastExpressionSyntax
+            Return WithType(type)
+        End Function
+
         ''' <summary>
         ''' Returns a copy of this with the Type property changed to the specified value.
         ''' Returns this instance if the specified value is the same as the current value.
@@ -23000,6 +23900,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
 
         Friend Overrides Function GetCloseParenTokenCore() As SyntaxToken
             Return Me.CloseParenToken
+        End Function
+
+        Friend Overrides Function WithCloseParenTokenCore(closeParenToken As SyntaxToken) As CastExpressionSyntax
+            Return WithCloseParenToken(closeParenToken)
         End Function
 
         ''' <summary>
@@ -23930,6 +24834,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
                 Return GetRedAtZero(_subOrFunctionHeader)
         End Function
 
+        ''' <summary>
+        ''' Returns a copy of this with the SubOrFunctionHeader property changed to the
+        ''' specified value. Returns this instance if the specified value is the same as
+        ''' the current value.
+        ''' </summary>
+        Public Function WithSubOrFunctionHeader(subOrFunctionHeader As LambdaHeaderSyntax) As LambdaExpressionSyntax
+            Return WithSubOrFunctionHeaderCore(subOrFunctionHeader)
+        End Function
+        Friend MustOverride Function WithSubOrFunctionHeaderCore(subOrFunctionHeader As LambdaHeaderSyntax) As LambdaExpressionSyntax
 
     End Class
 
@@ -23963,6 +24876,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
 
         Friend Overrides Function GetSubOrFunctionHeaderCore() As LambdaHeaderSyntax
             Return Me.SubOrFunctionHeader
+        End Function
+
+        Friend Overrides Function WithSubOrFunctionHeaderCore(subOrFunctionHeader As LambdaHeaderSyntax) As LambdaExpressionSyntax
+            Return WithSubOrFunctionHeader(subOrFunctionHeader)
         End Function
 
         ''' <summary>
@@ -24081,6 +24998,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
 
         Friend Overrides Function GetSubOrFunctionHeaderCore() As LambdaHeaderSyntax
             Return Me.SubOrFunctionHeader
+        End Function
+
+        Friend Overrides Function WithSubOrFunctionHeaderCore(subOrFunctionHeader As LambdaHeaderSyntax) As LambdaExpressionSyntax
+            Return WithSubOrFunctionHeader(subOrFunctionHeader)
         End Function
 
         ''' <summary>
@@ -24240,6 +25161,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
             Return Me.AttributeLists
         End Function
 
+        Friend Overrides Function WithAttributeListsCore(attributeLists As SyntaxList(Of AttributeListSyntax)) As MethodBaseSyntax
+            Return WithAttributeLists(attributeLists)
+        End Function
+
         ''' <summary>
         ''' Returns a copy of this with the AttributeLists property changed to the
         ''' specified value. Returns this instance if the specified value is the same as
@@ -24251,6 +25176,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
 
         Public Shadows Function AddAttributeLists(ParamArray items As AttributeListSyntax()) As LambdaHeaderSyntax
             Return Me.WithAttributeLists(Me.AttributeLists.AddRange(items))
+        End Function
+
+        Friend Overrides Function AddAttributeListsCore(ParamArray items As AttributeListSyntax()) As MethodBaseSyntax
+            Return AddAttributeLists(items)
         End Function
 
         ''' <summary>
@@ -24276,6 +25205,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
             Return Me.Modifiers
         End Function
 
+        Friend Overrides Function WithModifiersCore(modifiers As SyntaxTokenList) As MethodBaseSyntax
+            Return WithModifiers(modifiers)
+        End Function
+
         ''' <summary>
         ''' Returns a copy of this with the Modifiers property changed to the specified
         ''' value. Returns this instance if the specified value is the same as the current
@@ -24287,6 +25220,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
 
         Public Shadows Function AddModifiers(ParamArray items As SyntaxToken()) As LambdaHeaderSyntax
             Return Me.WithModifiers(Me.Modifiers.AddRange(items))
+        End Function
+
+        Friend Overrides Function AddModifiersCore(ParamArray items As SyntaxToken()) As MethodBaseSyntax
+            Return AddModifiers(items)
         End Function
 
         ''' <summary>
@@ -24324,6 +25261,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
             Return Me.ParameterList
         End Function
 
+        Friend Overrides Function WithParameterListCore(parameterList As ParameterListSyntax) As MethodBaseSyntax
+            Return WithParameterList(parameterList)
+        End Function
+
         ''' <summary>
         ''' Returns a copy of this with the ParameterList property changed to the specified
         ''' value. Returns this instance if the specified value is the same as the current
@@ -24336,6 +25277,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
         Public Shadows Function AddParameterListParameters(ParamArray items As ParameterSyntax()) As LambdaHeaderSyntax
             Dim _child = If (Me.ParameterList IsNot Nothing, Me.ParameterList, SyntaxFactory.ParameterList())
             Return Me.WithParameterList(_child.AddParameters(items))
+        End Function
+
+        Friend Overrides Function AddParameterListParametersCore(ParamArray items As ParameterSyntax()) As MethodBaseSyntax
+            Return AddParameterListParameters(items)
         End Function
 
         ''' <summary>
@@ -27005,6 +27950,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
                 return new SyntaxToken(Me, DirectCast(Me.Green, Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax.JoinClauseSyntax)._joinKeyword, Me.Position, 0)
         End Function
 
+        ''' <summary>
+        ''' Returns a copy of this with the JoinKeyword property changed to the specified
+        ''' value. Returns this instance if the specified value is the same as the current
+        ''' value.
+        ''' </summary>
+        Public Function WithJoinKeyword(joinKeyword As SyntaxToken) As JoinClauseSyntax
+            Return WithJoinKeywordCore(joinKeyword)
+        End Function
+        Friend MustOverride Function WithJoinKeywordCore(joinKeyword As SyntaxToken) As JoinClauseSyntax
 
         ''' <summary>
         ''' Defines the collection range variables being joined to.
@@ -27019,7 +27973,20 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
             End Get
         End Property
 
+        ''' <summary>
+        ''' Returns a copy of this with the JoinedVariables property changed to the
+        ''' specified value. Returns this instance if the specified value is the same as
+        ''' the current value.
+        ''' </summary>
+        Public Function WithJoinedVariables(joinedVariables As SeparatedSyntaxList(Of CollectionRangeVariableSyntax)) As JoinClauseSyntax
+            Return WithJoinedVariablesCore(joinedVariables)
+        End Function
+        Friend MustOverride Function WithJoinedVariablesCore(joinedVariables As SeparatedSyntaxList(Of CollectionRangeVariableSyntax)) As JoinClauseSyntax
 
+        Public Shadows Function AddJoinedVariables(ParamArray items As CollectionRangeVariableSyntax()) As JoinClauseSyntax
+            Return AddJoinedVariablesCore(items)
+        End Function
+        Friend MustOverride Function AddJoinedVariablesCore(ParamArray items As CollectionRangeVariableSyntax()) As JoinClauseSyntax
         ''' <summary>
         ''' An additional Join or Group Join query operator.
         ''' </summary>
@@ -27037,7 +28004,20 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
                 Return new SyntaxList(Of JoinClauseSyntax)(listNode)
         End Function
 
+        ''' <summary>
+        ''' Returns a copy of this with the AdditionalJoins property changed to the
+        ''' specified value. Returns this instance if the specified value is the same as
+        ''' the current value.
+        ''' </summary>
+        Public Function WithAdditionalJoins(additionalJoins As SyntaxList(Of JoinClauseSyntax)) As JoinClauseSyntax
+            Return WithAdditionalJoinsCore(additionalJoins)
+        End Function
+        Friend MustOverride Function WithAdditionalJoinsCore(additionalJoins As SyntaxList(Of JoinClauseSyntax)) As JoinClauseSyntax
 
+        Public Shadows Function AddAdditionalJoins(ParamArray items As JoinClauseSyntax()) As JoinClauseSyntax
+            Return AddAdditionalJoinsCore(items)
+        End Function
+        Friend MustOverride Function AddAdditionalJoinsCore(ParamArray items As JoinClauseSyntax()) As JoinClauseSyntax
         ''' <summary>
         ''' The "On" keyword.
         ''' </summary>
@@ -27051,6 +28031,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
                 return new SyntaxToken(Me, DirectCast(Me.Green, Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax.JoinClauseSyntax)._onKeyword, Me.GetChildPosition(3), Me.GetChildIndex(3))
         End Function
 
+        ''' <summary>
+        ''' Returns a copy of this with the OnKeyword property changed to the specified
+        ''' value. Returns this instance if the specified value is the same as the current
+        ''' value.
+        ''' </summary>
+        Public Function WithOnKeyword(onKeyword As SyntaxToken) As JoinClauseSyntax
+            Return WithOnKeywordCore(onKeyword)
+        End Function
+        Friend MustOverride Function WithOnKeywordCore(onKeyword As SyntaxToken) As JoinClauseSyntax
 
         ''' <summary>
         ''' The conditions indicating what expressions to compare during the join. Each
@@ -27066,7 +28055,20 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
             End Get
         End Property
 
+        ''' <summary>
+        ''' Returns a copy of this with the JoinConditions property changed to the
+        ''' specified value. Returns this instance if the specified value is the same as
+        ''' the current value.
+        ''' </summary>
+        Public Function WithJoinConditions(joinConditions As SeparatedSyntaxList(Of JoinConditionSyntax)) As JoinClauseSyntax
+            Return WithJoinConditionsCore(joinConditions)
+        End Function
+        Friend MustOverride Function WithJoinConditionsCore(joinConditions As SeparatedSyntaxList(Of JoinConditionSyntax)) As JoinClauseSyntax
 
+        Public Shadows Function AddJoinConditions(ParamArray items As JoinConditionSyntax()) As JoinClauseSyntax
+            Return AddJoinConditionsCore(items)
+        End Function
+        Friend MustOverride Function AddJoinConditionsCore(ParamArray items As JoinConditionSyntax()) As JoinClauseSyntax
     End Class
 
     ''' <summary>
@@ -27228,6 +28230,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
             Return Me.JoinKeyword
         End Function
 
+        Friend Overrides Function WithJoinKeywordCore(joinKeyword As SyntaxToken) As JoinClauseSyntax
+            Return WithJoinKeyword(joinKeyword)
+        End Function
+
         ''' <summary>
         ''' Returns a copy of this with the JoinKeyword property changed to the specified
         ''' value. Returns this instance if the specified value is the same as the current
@@ -27250,6 +28256,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
             End Get
         End Property
 
+        Friend Overrides Function WithJoinedVariablesCore(joinedVariables As SeparatedSyntaxList(Of CollectionRangeVariableSyntax)) As JoinClauseSyntax
+            Return WithJoinedVariables(joinedVariables)
+        End Function
+
         ''' <summary>
         ''' Returns a copy of this with the JoinedVariables property changed to the
         ''' specified value. Returns this instance if the specified value is the same as
@@ -27261,6 +28271,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
 
         Public Shadows Function AddJoinedVariables(ParamArray items As CollectionRangeVariableSyntax()) As SimpleJoinClauseSyntax
             Return Me.WithJoinedVariables(Me.JoinedVariables.AddRange(items))
+        End Function
+
+        Friend Overrides Function AddJoinedVariablesCore(ParamArray items As CollectionRangeVariableSyntax()) As JoinClauseSyntax
+            Return AddJoinedVariables(items)
         End Function
 
         ''' <summary>
@@ -27280,6 +28294,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
             Return Me.AdditionalJoins
         End Function
 
+        Friend Overrides Function WithAdditionalJoinsCore(additionalJoins As SyntaxList(Of JoinClauseSyntax)) As JoinClauseSyntax
+            Return WithAdditionalJoins(additionalJoins)
+        End Function
+
         ''' <summary>
         ''' Returns a copy of this with the AdditionalJoins property changed to the
         ''' specified value. Returns this instance if the specified value is the same as
@@ -27293,6 +28311,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
             Return Me.WithAdditionalJoins(Me.AdditionalJoins.AddRange(items))
         End Function
 
+        Friend Overrides Function AddAdditionalJoinsCore(ParamArray items As JoinClauseSyntax()) As JoinClauseSyntax
+            Return AddAdditionalJoins(items)
+        End Function
+
         ''' <summary>
         ''' The "On" keyword.
         ''' </summary>
@@ -27304,6 +28326,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
 
         Friend Overrides Function GetOnKeywordCore() As SyntaxToken
             Return Me.OnKeyword
+        End Function
+
+        Friend Overrides Function WithOnKeywordCore(onKeyword As SyntaxToken) As JoinClauseSyntax
+            Return WithOnKeyword(onKeyword)
         End Function
 
         ''' <summary>
@@ -27329,6 +28355,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
             End Get
         End Property
 
+        Friend Overrides Function WithJoinConditionsCore(joinConditions As SeparatedSyntaxList(Of JoinConditionSyntax)) As JoinClauseSyntax
+            Return WithJoinConditions(joinConditions)
+        End Function
+
         ''' <summary>
         ''' Returns a copy of this with the JoinConditions property changed to the
         ''' specified value. Returns this instance if the specified value is the same as
@@ -27340,6 +28370,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
 
         Public Shadows Function AddJoinConditions(ParamArray items As JoinConditionSyntax()) As SimpleJoinClauseSyntax
             Return Me.WithJoinConditions(Me.JoinConditions.AddRange(items))
+        End Function
+
+        Friend Overrides Function AddJoinConditionsCore(ParamArray items As JoinConditionSyntax()) As JoinClauseSyntax
+            Return AddJoinConditions(items)
         End Function
 
         Friend Overrides Function GetCachedSlot(i as Integer) as SyntaxNode
@@ -27459,6 +28493,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
             Return Me.JoinKeyword
         End Function
 
+        Friend Overrides Function WithJoinKeywordCore(joinKeyword As SyntaxToken) As JoinClauseSyntax
+            Return WithJoinKeyword(joinKeyword)
+        End Function
+
         ''' <summary>
         ''' Returns a copy of this with the JoinKeyword property changed to the specified
         ''' value. Returns this instance if the specified value is the same as the current
@@ -27481,6 +28519,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
             End Get
         End Property
 
+        Friend Overrides Function WithJoinedVariablesCore(joinedVariables As SeparatedSyntaxList(Of CollectionRangeVariableSyntax)) As JoinClauseSyntax
+            Return WithJoinedVariables(joinedVariables)
+        End Function
+
         ''' <summary>
         ''' Returns a copy of this with the JoinedVariables property changed to the
         ''' specified value. Returns this instance if the specified value is the same as
@@ -27492,6 +28534,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
 
         Public Shadows Function AddJoinedVariables(ParamArray items As CollectionRangeVariableSyntax()) As GroupJoinClauseSyntax
             Return Me.WithJoinedVariables(Me.JoinedVariables.AddRange(items))
+        End Function
+
+        Friend Overrides Function AddJoinedVariablesCore(ParamArray items As CollectionRangeVariableSyntax()) As JoinClauseSyntax
+            Return AddJoinedVariables(items)
         End Function
 
         ''' <summary>
@@ -27511,6 +28557,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
             Return Me.AdditionalJoins
         End Function
 
+        Friend Overrides Function WithAdditionalJoinsCore(additionalJoins As SyntaxList(Of JoinClauseSyntax)) As JoinClauseSyntax
+            Return WithAdditionalJoins(additionalJoins)
+        End Function
+
         ''' <summary>
         ''' Returns a copy of this with the AdditionalJoins property changed to the
         ''' specified value. Returns this instance if the specified value is the same as
@@ -27524,6 +28574,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
             Return Me.WithAdditionalJoins(Me.AdditionalJoins.AddRange(items))
         End Function
 
+        Friend Overrides Function AddAdditionalJoinsCore(ParamArray items As JoinClauseSyntax()) As JoinClauseSyntax
+            Return AddAdditionalJoins(items)
+        End Function
+
         ''' <summary>
         ''' The "On" keyword.
         ''' </summary>
@@ -27535,6 +28589,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
 
         Friend Overrides Function GetOnKeywordCore() As SyntaxToken
             Return Me.OnKeyword
+        End Function
+
+        Friend Overrides Function WithOnKeywordCore(onKeyword As SyntaxToken) As JoinClauseSyntax
+            Return WithOnKeyword(onKeyword)
         End Function
 
         ''' <summary>
@@ -27560,6 +28618,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
             End Get
         End Property
 
+        Friend Overrides Function WithJoinConditionsCore(joinConditions As SeparatedSyntaxList(Of JoinConditionSyntax)) As JoinClauseSyntax
+            Return WithJoinConditions(joinConditions)
+        End Function
+
         ''' <summary>
         ''' Returns a copy of this with the JoinConditions property changed to the
         ''' specified value. Returns this instance if the specified value is the same as
@@ -27571,6 +28633,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
 
         Public Shadows Function AddJoinConditions(ParamArray items As JoinConditionSyntax()) As GroupJoinClauseSyntax
             Return Me.WithJoinConditions(Me.JoinConditions.AddRange(items))
+        End Function
+
+        Friend Overrides Function AddJoinConditionsCore(ParamArray items As JoinConditionSyntax()) As JoinClauseSyntax
+            Return AddJoinConditions(items)
         End Function
 
         ''' <summary>
@@ -30681,6 +31747,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
                 return new SyntaxToken(Me, DirectCast(Me.Green, Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax.SimpleNameSyntax)._identifier, Me.Position, 0)
         End Function
 
+        ''' <summary>
+        ''' Returns a copy of this with the Identifier property changed to the specified
+        ''' value. Returns this instance if the specified value is the same as the current
+        ''' value.
+        ''' </summary>
+        Public Function WithIdentifier(identifier As SyntaxToken) As SimpleNameSyntax
+            Return WithIdentifierCore(identifier)
+        End Function
+        Friend MustOverride Function WithIdentifierCore(identifier As SyntaxToken) As SimpleNameSyntax
 
     End Class
 
@@ -30713,6 +31788,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
 
         Friend Overrides Function GetIdentifierCore() As SyntaxToken
             Return Me.Identifier
+        End Function
+
+        Friend Overrides Function WithIdentifierCore(identifier As SyntaxToken) As SimpleNameSyntax
+            Return WithIdentifier(identifier)
         End Function
 
         ''' <summary>
@@ -30796,6 +31875,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
 
         Friend Overrides Function GetIdentifierCore() As SyntaxToken
             Return Me.Identifier
+        End Function
+
+        Friend Overrides Function WithIdentifierCore(identifier As SyntaxToken) As SimpleNameSyntax
+            Return WithIdentifier(identifier)
         End Function
 
         ''' <summary>
@@ -33458,6 +34541,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
                 return new SyntaxToken(Me, DirectCast(Me.Green, Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax.DirectiveTriviaSyntax)._hashToken, Me.Position, 0)
         End Function
 
+        ''' <summary>
+        ''' Returns a copy of this with the HashToken property changed to the specified
+        ''' value. Returns this instance if the specified value is the same as the current
+        ''' value.
+        ''' </summary>
+        Public Function WithHashToken(hashToken As SyntaxToken) As DirectiveTriviaSyntax
+            Return WithHashTokenCore(hashToken)
+        End Function
+        Friend MustOverride Function WithHashTokenCore(hashToken As SyntaxToken) As DirectiveTriviaSyntax
 
     End Class
 
@@ -33490,6 +34582,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
 
         Friend Overrides Function GetHashTokenCore() As SyntaxToken
             Return Me.HashToken
+        End Function
+
+        Friend Overrides Function WithHashTokenCore(hashToken As SyntaxToken) As DirectiveTriviaSyntax
+            Return WithHashToken(hashToken)
         End Function
 
         ''' <summary>
@@ -33662,6 +34758,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
 
         Friend Overrides Function GetHashTokenCore() As SyntaxToken
             Return Me.HashToken
+        End Function
+
+        Friend Overrides Function WithHashTokenCore(hashToken As SyntaxToken) As DirectiveTriviaSyntax
+            Return WithHashToken(hashToken)
         End Function
 
         ''' <summary>
@@ -33840,6 +34940,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
             Return Me.HashToken
         End Function
 
+        Friend Overrides Function WithHashTokenCore(hashToken As SyntaxToken) As DirectiveTriviaSyntax
+            Return WithHashToken(hashToken)
+        End Function
+
         ''' <summary>
         ''' Returns a copy of this with the HashToken property changed to the specified
         ''' value. Returns this instance if the specified value is the same as the current
@@ -33939,6 +35043,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
 
         Friend Overrides Function GetHashTokenCore() As SyntaxToken
             Return Me.HashToken
+        End Function
+
+        Friend Overrides Function WithHashTokenCore(hashToken As SyntaxToken) As DirectiveTriviaSyntax
+            Return WithHashToken(hashToken)
         End Function
 
         ''' <summary>
@@ -34058,6 +35166,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
 
         Friend Overrides Function GetHashTokenCore() As SyntaxToken
             Return Me.HashToken
+        End Function
+
+        Friend Overrides Function WithHashTokenCore(hashToken As SyntaxToken) As DirectiveTriviaSyntax
+            Return WithHashToken(hashToken)
         End Function
 
         ''' <summary>
@@ -34184,6 +35296,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
             Return Me.HashToken
         End Function
 
+        Friend Overrides Function WithHashTokenCore(hashToken As SyntaxToken) As DirectiveTriviaSyntax
+            Return WithHashToken(hashToken)
+        End Function
+
         ''' <summary>
         ''' Returns a copy of this with the HashToken property changed to the specified
         ''' value. Returns this instance if the specified value is the same as the current
@@ -34308,6 +35424,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
 
         Friend Overrides Function GetHashTokenCore() As SyntaxToken
             Return Me.HashToken
+        End Function
+
+        Friend Overrides Function WithHashTokenCore(hashToken As SyntaxToken) As DirectiveTriviaSyntax
+            Return WithHashToken(hashToken)
         End Function
 
         ''' <summary>
@@ -34501,6 +35621,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
             Return Me.HashToken
         End Function
 
+        Friend Overrides Function WithHashTokenCore(hashToken As SyntaxToken) As DirectiveTriviaSyntax
+            Return WithHashToken(hashToken)
+        End Function
+
         ''' <summary>
         ''' Returns a copy of this with the HashToken property changed to the specified
         ''' value. Returns this instance if the specified value is the same as the current
@@ -34618,6 +35742,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
 
         Friend Overrides Function GetHashTokenCore() As SyntaxToken
             Return Me.HashToken
+        End Function
+
+        Friend Overrides Function WithHashTokenCore(hashToken As SyntaxToken) As DirectiveTriviaSyntax
+            Return WithHashToken(hashToken)
         End Function
 
         ''' <summary>
@@ -34847,6 +35975,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
             Return Me.HashToken
         End Function
 
+        Friend Overrides Function WithHashTokenCore(hashToken As SyntaxToken) As DirectiveTriviaSyntax
+            Return WithHashToken(hashToken)
+        End Function
+
         ''' <summary>
         ''' Returns a copy of this with the HashToken property changed to the specified
         ''' value. Returns this instance if the specified value is the same as the current
@@ -34995,6 +36127,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
 
         Friend Overrides Function GetHashTokenCore() As SyntaxToken
             Return Me.HashToken
+        End Function
+
+        Friend Overrides Function WithHashTokenCore(hashToken As SyntaxToken) As DirectiveTriviaSyntax
+            Return WithHashToken(hashToken)
         End Function
 
         ''' <summary>
@@ -35146,6 +36282,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
             Return Me.HashToken
         End Function
 
+        Friend Overrides Function WithHashTokenCore(hashToken As SyntaxToken) As DirectiveTriviaSyntax
+            Return WithHashToken(hashToken)
+        End Function
+
         ''' <summary>
         ''' Returns a copy of this with the HashToken property changed to the specified
         ''' value. Returns this instance if the specified value is the same as the current
@@ -35265,6 +36405,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
 
         Friend Overrides Function GetHashTokenCore() As SyntaxToken
             Return Me.HashToken
+        End Function
+
+        Friend Overrides Function WithHashTokenCore(hashToken As SyntaxToken) As DirectiveTriviaSyntax
+            Return WithHashToken(hashToken)
         End Function
 
         ''' <summary>

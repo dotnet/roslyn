@@ -38,5 +38,8 @@
     <file src="Dlls\RemoteWorkspaces\Microsoft.CodeAnalysis.Remote.Workspaces.xml" target="lib\net46" />
     <file src="Dlls\RemoteWorkspaces\Microsoft.CodeAnalysis.Remote.Workspaces.pdb*" target="lib\net46" />
     <file src="$thirdPartyNoticesPath$" target="" />
+
+    <!-- Satellite assemblies -->
+    <file src="Dlls\RemoteWorkspaces\**\Microsoft.CodeAnalysis.Remote.Workspaces.resources.dll" target="lib\net46" />
   </files>
 </package>
