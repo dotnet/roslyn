@@ -170,7 +170,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Formatting
             Assert.Equal(expected, actual);
         }
 
-        protected static void AssertFormatWithView(string expectedWithMarker, string codeWithMarker, bool debugMode = false, params (PerLanguageOption<bool>, bool)[] options)
+        protected static void AssertFormatWithView(string expectedWithMarker, string codeWithMarker, bool debugMode = false, params (PerLanguageOption<bool> option, bool enabled)[] options)
         {
             using (var workspace = TestWorkspace.CreateCSharp(codeWithMarker))
             {
@@ -178,7 +178,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Formatting
                 {
                     foreach (var option in options)
                     {
-                        workspace.Options = workspace.Options.WithChangedOption(option.Item1, LanguageNames.CSharp, option.Item2);
+                        workspace.Options = workspace.Options.WithChangedOption(option.option, LanguageNames.CSharp, option.enabled);
                     }
                 }
 
