@@ -2891,10 +2891,10 @@ namespace Microsoft.CodeAnalysis
                     (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Int32,
 
                 // System_Runtime_CompilerServices_ReferenceAssemblyAttribute__ctor
-                (byte)MemberFlags.Constructor,                                                                                                      // Flags
+                (byte)MemberFlags.Constructor,                                                                                                                  // Flags
                 (byte)WellKnownType.ExtSentinel, (byte)(WellKnownType.System_Runtime_CompilerServices_ReferenceAssemblyAttribute - WellKnownType.ExtSentinel),  // DeclaringTypeId
-                0,                                                                                                                                  // Arity
-                    0,                                                                                                                              // Method Signature
+                0,                                                                                                                                              // Arity
+                    0,                                                                                                                                          // Method Signature
                     (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Void, // Return Type
 
                  // System_Runtime_CompilerServices_IsReadOnlyAttribute__ctor
@@ -2946,7 +2946,7 @@ namespace Microsoft.CodeAnalysis
 
                  // System_ReadOnlySpan__ctor
                  (byte)(MemberFlags.Constructor),                                                                                                               // Flags
-                 (byte)WellKnownType.ExtSentinel, (byte)(WellKnownType.System_ReadOnlySpan_T - WellKnownType.ExtSentinel),                                              // DeclaringTypeId
+                 (byte)WellKnownType.ExtSentinel, (byte)(WellKnownType.System_ReadOnlySpan_T - WellKnownType.ExtSentinel),                                      // DeclaringTypeId
                  0,                                                                                                                                             // Arity
                      2,                                                                                                                                         // Method Signature
                      (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Void, // Return Type
@@ -2975,33 +2975,33 @@ namespace Microsoft.CodeAnalysis
                      0,                                                                                                                                         // Method Signature
                      (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Void, // Return Type
 
-                 // Microsoft.VisualBasic.Conversion.Fix(Number As System.Single)
+                 // Microsoft_VisualBasic_Conversion__FixSingle
                 (byte)(MemberFlags.Method | MemberFlags.Static),                                                                                    // Flags
-                 (byte)WellKnownType.ExtSentinel, (byte)(WellKnownType.Microsoft_VisualBasic_Conversion - WellKnownType.ExtSentinel),               // DeclaringTypeId
+                (byte)WellKnownType.ExtSentinel, (byte)(WellKnownType.Microsoft_VisualBasic_Conversion - WellKnownType.ExtSentinel),                // DeclaringTypeId
                 0,                                                                                                                                  // Arity
                     1,                                                                                                                              // Method Signature
                     (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Single, // Return type
                     (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Single, // Number As System.Single
 
-                // Microsoft.VisualBasic.Conversion.Fix(Number As System.Double)
+                // Microsoft_VisualBasic_Conversion__FixDouble
                 (byte)(MemberFlags.Method | MemberFlags.Static),                                                                                    // Flags
-                 (byte)WellKnownType.ExtSentinel, (byte)(WellKnownType.Microsoft_VisualBasic_Conversion - WellKnownType.ExtSentinel),               // DeclaringTypeId
+                (byte)WellKnownType.ExtSentinel, (byte)(WellKnownType.Microsoft_VisualBasic_Conversion - WellKnownType.ExtSentinel),                // DeclaringTypeId
                 0,                                                                                                                                  // Arity
                     1,                                                                                                                              // Method Signature
                     (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Double, // Return type
                     (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Double, // Number As System.Double
 
-                 // Microsoft.VisualBasic.Conversion.Int(Number As System.Single)
+                 // Microsoft_VisualBasic_Conversion__IntSingle
                 (byte)(MemberFlags.Method | MemberFlags.Static),                                                                                    // Flags
-                 (byte)WellKnownType.ExtSentinel, (byte)(WellKnownType.Microsoft_VisualBasic_Conversion - WellKnownType.ExtSentinel),               // DeclaringTypeId
+                (byte)WellKnownType.ExtSentinel, (byte)(WellKnownType.Microsoft_VisualBasic_Conversion - WellKnownType.ExtSentinel),                // DeclaringTypeId
                 0,                                                                                                                                  // Arity
                     1,                                                                                                                              // Method Signature
                     (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Single, // Return type
                     (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Single, // Number As System.Single
 
-                // Microsoft.VisualBasic.Conversion.Int(Number As System.Double)
+                // Microsoft_VisualBasic_Conversion__IntDouble
                 (byte)(MemberFlags.Method | MemberFlags.Static),                                                                                    // Flags
-                 (byte)WellKnownType.ExtSentinel, (byte)(WellKnownType.Microsoft_VisualBasic_Conversion - WellKnownType.ExtSentinel),               // DeclaringTypeId
+                (byte)WellKnownType.ExtSentinel, (byte)(WellKnownType.Microsoft_VisualBasic_Conversion - WellKnownType.ExtSentinel),                // DeclaringTypeId
                 0,                                                                                                                                  // Arity
                     1,                                                                                                                              // Method Signature
                     (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Double, // Return type
@@ -3402,10 +3402,10 @@ namespace Microsoft.CodeAnalysis
                 "get_Item",                                 // System_ReadOnlySpan__get_Item
                 "get_Length",                               // System_ReadOnlySpan__get_Length
                 ".ctor",                                    // System_Runtime_CompilerServices_IsUnmanagedAttribute__ctor
-                "Fix",                                      // Microsoft.VisualBasic.Conversion.Fix(Number As System.Single)
-                "Fix",                                      // Microsoft.VisualBasic.Conversion.Fix(Number As System.Double)
-                "Int",                                      // Microsoft.VisualBasic.Conversion.Int(Number As System.Single)
-                "Int",                                      // Microsoft.VisualBasic.Conversion.Int(Number As System.Double)
+                "Fix",                                      // Microsoft_VisualBasic_Conversion__FixSingle
+                "Fix",                                      // Microsoft_VisualBasic_Conversion__FixDouble
+                "Int",                                      // Microsoft_VisualBasic_Conversion__IntSingle
+                "Int",                                      // Microsoft_VisualBasic_Conversion__IntDouble
                 "Ceiling",                                  // System_Math__CeilingDouble
                 "Floor",                                    // System_Math__FloorDouble
                 "Truncate",                                 // System_Math__TruncateDouble
