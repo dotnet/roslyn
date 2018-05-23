@@ -338,26 +338,6 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             {
                 switch (root)
                 {
-                    case IMethodBodyBaseOperation methodBody:
-                        if (methodBody.Kind == OperationKind.ConstructorBodyOperation && !((IConstructorBodyOperation)methodBody).Locals.IsEmpty)
-                        {
-                            // PROTOTYPE(dataflow): Constructor initializers and locals declared within them are not handled right now
-                            break;
-                        }
-
-                        if (methodBody.BlockBody != null)
-                        {
-                            ControlFlowGraphVerifier.GetFlowGraph(compilation, Operations.ControlFlowGraphBuilder.Create(methodBody.BlockBody));
-                        }
-
-                        if (methodBody.ExpressionBody != null)
-                        {
-                            ControlFlowGraphVerifier.GetFlowGraph(compilation, Operations.ControlFlowGraphBuilder.Create(methodBody.ExpressionBody));
-                        }
-
-                        // PROTOTYPE(dataflow): add handling for constructor initializer
-                        break;
-
                     case IBlockOperation blockOperation:
                         // PROTOTYPE(dataflow): It looks like blocks in script can have no parent and not represent complete code.
                         //                      See Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen.GotoTests.OutOfScriptBlock
@@ -372,6 +352,8 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
                         break;
 
+                    case IMethodBodyOperation methodBody:
+                    case IConstructorBodyOperation constructorBody:
                     case IFieldInitializerOperation fieldInitializerOperation:
                     case IPropertyInitializerOperation propertyInitializerOperation:
                         ControlFlowGraphVerifier.GetFlowGraph(compilation, Operations.ControlFlowGraphBuilder.Create(root));
