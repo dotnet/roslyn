@@ -981,10 +981,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             var document = this.DocumentProvider.TryGetDocumentForFile(
                 this,
                 filePath: filename,
+                sourceTextContainer: sourceTextContainer,
                 sourceCodeKind: sourceCodeKind,
                 getFolderNames: getFolderNames,
                 canUseTextBuffer: CanUseTextBuffer,
-                updatedOnDiskHandler: s_documentUpdatedEventHandler,
+                updatedHandler: s_documentUpdatedEventHandler,
                 openedHandler: s_documentOpenedEventHandler,
                 closingHandler: s_documentClosingEventHandler,
                 documentServiceFactory: documentServiceFactory);
