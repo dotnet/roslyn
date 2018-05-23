@@ -1160,21 +1160,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                  {
                      friendRefNotEqualToThis = key.SequenceEqual(this.ContainingType.ContainingAssembly.Identity.PublicKey) ? false : friendRefNotEqualToThis;
                  }
-                 
-                 if (inaccessibleViaQualifier)
-                 {
-                     diagInfo = diagnose ? new CSDiagnosticInfo(ErrorCode.ERR_BadProtectedAccess, unwrappedSymbol, accessThroughType, this.ContainingType) : null;
-                 }
-                 else if (friendRefNotEqualToThis)
-                 { 
-                     diagInfo = diagnose ? new CSDiagnosticInfo(ErrorCode.ERR_FriendRefNotEqualToThis, unwrappedSymbol.ContainingAssembly.Identity.ToString(), this.ContainingType.ContainingAssembly.PublicKey.PublicKeyToString()) : null;
-                 }
-                 else
-                 {
-                     var unwrappedSymbols = ImmutableArray.Create<Symbol>(unwrappedSymbol);
-                     diagInfo = diagnose ? new CSDiagnosticInfo(ErrorCode.ERR_BadAccess, new[] { unwrappedSymbol }, unwrappedSymbols, additionalLocations: ImmutableArray<Location>.Empty) : null;
-                 }
 
+                 diagInfo = diagnose ?
+                       inaccessibleViaQualifier ?
+                           new CSDiagnosticInfo(ErrorCode.ERR_BadProtectedAccess, unwrappedSymbol, accessThroughType, this.ContainingType) :
+                           friendRefNotEqualToThis ?
+                               new CSDiagnosticInfo(ErrorCode.ERR_FriendRefNotEqualToThis, unwrappedSymbol.ContainingAssembly.Identity.ToString(), AssemblyIdentity.PublicKeyToString(this.ContainingType.ContainingAssembly.PublicKey)) :
+                               new CSDiagnosticInfo(ErrorCode.ERR_BadAccess, new[] { unwrappedSymbol }, ImmutableArray.Create<Symbol>(unwrappedSymbol), additionalLocations: ImmutableArray<Location>.Empty) :
+                           null;
+                
                 return LookupResult.Inaccessible(symbol, diagInfo);
             }
             else if (!InCref && unwrappedSymbol.MustCallMethodsDirectly())

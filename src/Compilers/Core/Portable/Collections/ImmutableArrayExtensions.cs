@@ -64,23 +64,6 @@ namespace Microsoft.CodeAnalysis
             return ImmutableArray.CreateRange<T>(items);
         }
 
-        public static string PublicKeyToString(this ImmutableArray<byte> key)
-        {
-            if (key.IsDefaultOrEmpty)
-            {
-                return "";
-            }            
-
-            PooledStringBuilder sb = PooledStringBuilder.GetInstance();
-            StringBuilder builder = sb.Builder;
-            foreach (byte b in key)
-            {
-                
-                builder.Append(b.ToString("x2"));
-            }
-            return sb.ToStringAndFree(); 
-        }
-
         /// <summary>
         /// Converts an array to an immutable array. The array must not be null.
         /// </summary>
