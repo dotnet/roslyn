@@ -1153,26 +1153,26 @@ namespace Microsoft.CodeAnalysis.CSharp
                                         ref useSiteDiagnostics,
                                         basesBeingResolved))
             {
-                 bool friendRefNotEqualToThis = unwrappedSymbol.ContainingAssembly.GetInternalsVisibleToPublicKeys(this.ContainingType.ContainingAssembly.Name).Any()
+                 bool friendRefNotEqualToThis = unwrappedSymbol != null && unwrappedSymbol.ContainingAssembly.GetInternalsVisibleToPublicKeys(this.ContainingType.ContainingAssembly.Name).Any()
                             && unwrappedSymbol.DeclaredAccessibility.Equals(Accessibility.Internal);
 
                  foreach (ImmutableArray<byte> key in unwrappedSymbol.ContainingAssembly.GetInternalsVisibleToPublicKeys(this.ContainingType.ContainingAssembly.Name))
                  {
-                    friendRefNotEqualToThis = key.SequenceEqual(this.ContainingType.ContainingAssembly.Identity.PublicKey) ? false : friendRefNotEqualToThis;
+                     friendRefNotEqualToThis = key.SequenceEqual(this.ContainingType.ContainingAssembly.Identity.PublicKey) ? false : friendRefNotEqualToThis;
                  }
                  
                  if (inaccessibleViaQualifier)
                  {
-                    diagInfo = diagnose ? new CSDiagnosticInfo(ErrorCode.ERR_BadProtectedAccess, unwrappedSymbol, accessThroughType, this.ContainingType) : null;
+                     diagInfo = diagnose ? new CSDiagnosticInfo(ErrorCode.ERR_BadProtectedAccess, unwrappedSymbol, accessThroughType, this.ContainingType) : null;
                  }
                  else if (friendRefNotEqualToThis)
                  { 
-                       diagInfo = diagnose ? new CSDiagnosticInfo(ErrorCode.ERR_FriendRefNotEqualToThis, unwrappedSymbol.ContainingAssembly.Identity.ToString(), this.ContainingType.ContainingAssembly.PublicKey.PublicKeyToString()) : null;
+                     diagInfo = diagnose ? new CSDiagnosticInfo(ErrorCode.ERR_FriendRefNotEqualToThis, unwrappedSymbol.ContainingAssembly.Identity.ToString(), this.ContainingType.ContainingAssembly.PublicKey.PublicKeyToString()) : null;
                  }
                  else
                  {
-                    var unwrappedSymbols = ImmutableArray.Create<Symbol>(unwrappedSymbol);
-                    diagInfo = diagnose ? new CSDiagnosticInfo(ErrorCode.ERR_BadAccess, new[] { unwrappedSymbol }, unwrappedSymbols, additionalLocations: ImmutableArray<Location>.Empty) : null;
+                     var unwrappedSymbols = ImmutableArray.Create<Symbol>(unwrappedSymbol);
+                     diagInfo = diagnose ? new CSDiagnosticInfo(ErrorCode.ERR_BadAccess, new[] { unwrappedSymbol }, unwrappedSymbols, additionalLocations: ImmutableArray<Location>.Empty) : null;
                  }
 
                 return LookupResult.Inaccessible(symbol, diagInfo);
