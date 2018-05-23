@@ -286,12 +286,11 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
         public void BeforeVBCSCoreCompileDependencies()
         {
             VerifyValues(
-                props: $@"
-<Project>
+                customProps: $@"
   <ItemGroup>
     <ReferencePath Include=""A"" />
-  </ItemGroup>
-</Project>",
+  </ItemGroup>",
+                customTargets: null,
                 targets: new[]
                 {
                     "_BeforeVBCSCoreCompile"
@@ -310,16 +309,15 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
         public void ClearEmbedInteropTypes()
         {
             VerifyValues(
-                props: $@"
-<Project>
+                customProps: $@"
   <PropertyGroup>
     <TargetingClr2Framework>true</TargetingClr2Framework>
   </PropertyGroup>
   <ItemGroup>
     <ReferencePathWithRefAssemblies Include=""A"" EmbedInteropTypes=""false""/>
     <ReferencePathWithRefAssemblies Include=""B"" EmbedInteropTypes=""true""/>
-  </ItemGroup>
-</Project>",
+  </ItemGroup>",
+                customTargets: null,
                 targets: new[]
                 {
                     "CoreCompile"
