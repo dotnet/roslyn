@@ -7,6 +7,7 @@ using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.CodeFixes.SimplifyTypeNames;
+using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Diagnostics.SimplifyTypeNames;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Options;
@@ -3995,6 +3996,25 @@ class C
                 options: PreferIntrinsicTypeInMemberAccess);
         }
 
+        [Fact, WorkItem(26923, "https://github.com/dotnet/roslyn/issues/26923")]
+        public async Task NoSuggestionOnForeachCollectionExpression()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"using System;
+using System.Collections.Generic;
+
+class C
+{
+    static void Main(string[] args)
+    {
+        foreach (string arg in [|args|])
+        {
+
+        }
+    }
+}", new TestParameters(options: PreferImplicitTypeWithNone));
+        }
+
         [Theory]
         [InlineData(0)]
         [InlineData(1)]
@@ -4046,6 +4066,11 @@ namespace Root
         private IDictionary<OptionKey, object> PreferIntrinsicTypeInMemberAccess => OptionsSet(
             SingleOption(CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInMemberAccess, true, NotificationOption.Error),
             SingleOption(CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInDeclaration, this.offWithNone, GetLanguage()));
+
+        private IDictionary<OptionKey, object> PreferImplicitTypeWithNone => OptionsSet(
+            SingleOption(CSharpCodeStyleOptions.UseImplicitTypeWherePossible, onWithNone),
+            SingleOption(CSharpCodeStyleOptions.UseImplicitTypeWhereApparent, onWithNone),
+            SingleOption(CSharpCodeStyleOptions.UseImplicitTypeForIntrinsicTypes, onWithNone));
 
         private readonly CodeStyleOption<bool> onWithNone = new CodeStyleOption<bool>(true, NotificationOption.None);
         private readonly CodeStyleOption<bool> offWithNone = new CodeStyleOption<bool>(false, NotificationOption.None);
