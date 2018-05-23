@@ -49,8 +49,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Preview
             _componentModel = componentModel;
             var bufferFactory = componentModel.GetService<ITextBufferFactoryService>();
             var bufferText = left != null
-                ? left.GetTextAsync(CancellationToken.None).WaitAndGetResult(CancellationToken.None)
-                : right.GetTextAsync(CancellationToken.None).WaitAndGetResult(CancellationToken.None);
+                ? left.GetTextSynchronously(CancellationToken.None)
+                : right.GetTextSynchronously(CancellationToken.None);
             _buffer = bufferFactory.CreateTextBuffer(bufferText.ToString(), bufferFactory.InertContentType);
             _encoding = bufferText.Encoding;
 
@@ -71,8 +71,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Preview
                 return GetEntireDocumentAsSpanChange(left);
             }
 
-            var oldText = left.GetTextAsync(cancellationToken).WaitAndGetResult(cancellationToken);
-            var newText = right.GetTextAsync(cancellationToken).WaitAndGetResult(cancellationToken);
+            var oldText = left.GetTextSynchronously(cancellationToken);
+            var newText = right.GetTextSynchronously(cancellationToken);
 
             var diffSelector = _componentModel.GetService<ITextDifferencingSelectorService>();
             var diffService = diffSelector.GetTextDifferencingService(
@@ -237,8 +237,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Preview
             //       current way of just using text differ has its own issue, and using syntax differ in compiler that are for incremental parser
             //       has its own drawbacks.
 
-            var oldText = left.GetTextAsync(cancellationToken).WaitAndGetResult(cancellationToken);
-            var newText = right.GetTextAsync(cancellationToken).WaitAndGetResult(cancellationToken);
+            var oldText = left.GetTextSynchronously(cancellationToken);
+            var newText = right.GetTextSynchronously(cancellationToken);
 
             var oldString = oldText.ToString();
             var newString = newText.ToString();
