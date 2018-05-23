@@ -1161,14 +1161,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                  {
                     if (inaccessibleViaQualifier)
                     {
-                        new CSDiagnosticInfo(ErrorCode.ERR_BadProtectedAccess, unwrappedSymbol, accessThroughType, this.ContainingType);
+                       diagInfo = new CSDiagnosticInfo(ErrorCode.ERR_BadProtectedAccess, unwrappedSymbol, accessThroughType, this.ContainingType);
                     }
                     else if (getFriendRefNotEqualToThis())
                     {
-                        new CSDiagnosticInfo(ErrorCode.ERR_FriendRefNotEqualToThis, unwrappedSymbol.ContainingAssembly.Identity.ToString(), AssemblyIdentity.PublicKeyToString(this.ContainingType.ContainingAssembly.PublicKey));
+                        diagInfo = new CSDiagnosticInfo(ErrorCode.ERR_FriendRefNotEqualToThis, unwrappedSymbol.ContainingAssembly.Identity.ToString(), AssemblyIdentity.PublicKeyToString(this.Compilation.Assembly.PublicKey));
                     } else
                     {
-                        new CSDiagnosticInfo(ErrorCode.ERR_BadAccess, new[] { unwrappedSymbol }, ImmutableArray.Create<Symbol>(unwrappedSymbol), additionalLocations: ImmutableArray<Location>.Empty);
+                        diagInfo = new CSDiagnosticInfo(ErrorCode.ERR_BadAccess, new[] { unwrappedSymbol }, ImmutableArray.Create<Symbol>(unwrappedSymbol), additionalLocations: ImmutableArray<Location>.Empty);
                     }
                 }
 
@@ -1206,19 +1206,31 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             bool getFriendRefNotEqualToThis()
             {
-                if (inaccessibleViaQualifier)
+                try
                 {
+                    if (inaccessibleViaQualifier)
+                    {
+                        return false;
+                    }
+                    bool temp = unwrappedSymbol != null
+                            && unwrappedSymbol.ContainingAssembly != null
+                            && unwrappedSymbol.DeclaredAccessibility == Accessibility.Internal
+                            && this.Compilation.Assembly.PublicKey != null;
+
+                    if (temp && unwrappedSymbol.ContainingAssembly.GetInternalsVisibleToPublicKeys(this.Compilation.AssemblyName).Any())
+                    {
+                        foreach (ImmutableArray<byte> key in unwrappedSymbol.ContainingAssembly.GetInternalsVisibleToPublicKeys(this.Compilation.AssemblyName))
+                        {
+                            temp = key.SequenceEqual(this.Compilation.Assembly.Identity.PublicKey) ? false : temp;
+                        }
+                    }
+                    return temp;
+                }
+                catch
+                {
+                    Debugger.Launch();
                     return false;
                 }
-                bool temp = unwrappedSymbol != null
-                        && this.ContainingType.ContainingAssembly.Name != null
-                        && unwrappedSymbol.ContainingAssembly.GetInternalsVisibleToPublicKeys(this.ContainingType.ContainingAssembly.Name).Any()
-                        && unwrappedSymbol.DeclaredAccessibility == Accessibility.Internal;
-                foreach (ImmutableArray<byte> key in unwrappedSymbol.ContainingAssembly.GetInternalsVisibleToPublicKeys(this.ContainingType.ContainingAssembly.Name))
-                {
-                    temp = key.SequenceEqual(this.ContainingType.ContainingAssembly.Identity.PublicKey) ? false : temp;
-                }
-                return temp;
             }
         }
  
