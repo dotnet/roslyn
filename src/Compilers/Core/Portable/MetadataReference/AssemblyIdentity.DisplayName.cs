@@ -58,7 +58,6 @@ namespace Microsoft.CodeAnalysis
             return GetDisplayName(fullKey: false);
         }
 
-
         internal static string PublicKeyToString(ImmutableArray<byte> key)
         {
             if (key.IsDefaultOrEmpty)
