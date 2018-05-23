@@ -178,7 +178,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.EventHookup
                                                .Single().Span.End;
 
             return document.Project.Solution.WithDocumentText(
-                formattedDocument.Id, formattedDocument.GetTextAsync(cancellationToken).WaitAndGetResult(cancellationToken));
+                formattedDocument.Id, formattedDocument.GetTextSynchronously(cancellationToken));
         }
 
         private Document AddMethodNameAndAnnotationsToSolution(
@@ -202,7 +202,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.EventHookup
 
             // Next, perform a textual insertion of the event handler method name.
             var textChange = new TextChange(new TextSpan(position, 0), textToInsert);
-            var newText = document.GetTextAsync(cancellationToken).WaitAndGetResult(cancellationToken).WithChanges(textChange);
+            var newText = document.GetTextSynchronously(cancellationToken).WithChanges(textChange);
             var documentWithNameAdded = document.WithText(newText);
 
             // Now find the event hookup again to add the appropriate annotations.
