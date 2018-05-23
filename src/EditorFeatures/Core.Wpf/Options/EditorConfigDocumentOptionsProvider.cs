@@ -3,15 +3,13 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
+using Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles;
 using Microsoft.CodeAnalysis.ErrorLogger;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.VisualStudio.CodingConventions;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Options
 {
@@ -19,13 +17,7 @@ namespace Microsoft.CodeAnalysis.Editor.Options
     // isn't yet available outside of Visual Studio.
     internal sealed partial class EditorConfigDocumentOptionsProvider : IDocumentOptionsProvider
     {
-        private const int EventDelayInMillisecond = 50;
-
-        // this lock guard _openDocumentContexts mutation
         private readonly object _gate = new object();
-
-        // this lock guard _resettableDelay
-        private readonly object _eventGate = new object();
 
         /// <summary>
         /// The map of cached contexts for currently open documents. Should only be accessed if holding a monitor lock
@@ -33,51 +25,19 @@ namespace Microsoft.CodeAnalysis.Editor.Options
         /// </summary>
         private readonly Dictionary<DocumentId, Task<ICodingConventionContext>> _openDocumentContexts = new Dictionary<DocumentId, Task<ICodingConventionContext>>();
 
-        private readonly Workspace _workspace;
         private readonly ICodingConventionsManager _codingConventionsManager;
         private readonly IErrorLoggerService _errorLogger;
 
-        /// <summary>
-        /// this is used to aggregate OnCodingConventionsChangedAsync event
-        /// the event will be raised to all open documents that is affected by same editorconfig files
-        /// </summary>
-        private ResettableDelay _resettableDelay;
-
-        internal EditorConfigDocumentOptionsProvider(Workspace workspace, ICodingConventionsManager codingConventionsManager)
+        internal EditorConfigDocumentOptionsProvider(Workspace workspace)
         {
-            _workspace = workspace;
-
-            _codingConventionsManager = codingConventionsManager;
+            _codingConventionsManager = CodingConventionsManagerFactory.CreateCodingConventionsManager();
             _errorLogger = workspace.Services.GetService<IErrorLoggerService>();
 
-            _resettableDelay = ResettableDelay.CompletedDelay;
-
-            workspace.DocumentOpened += OnDocumentOpened;
-            workspace.DocumentClosed += OnDocumentClosed;
-
-            // workaround until this is fixed.
-            // https://github.com/dotnet/roslyn/issues/26377
-            // otherwise, we will leak files in _openDocumentContexts
-            workspace.WorkspaceChanged += OnWorkspaceChanged;
+            workspace.DocumentOpened += Workspace_DocumentOpened;
+            workspace.DocumentClosed += Workspace_DocumentClosed;
         }
 
-        private void OnWorkspaceChanged(object sender, WorkspaceChangeEventArgs e)
-        {
-            switch (e.Kind)
-            {
-                case WorkspaceChangeKind.SolutionRemoved:
-                case WorkspaceChangeKind.SolutionCleared:
-                    ClearOpenFileCache();
-                    break;
-                case WorkspaceChangeKind.ProjectRemoved:
-                    ClearOpenFileCache(e.ProjectId);
-                    break;
-                default:
-                    break;
-            }
-        }
-
-        private void OnDocumentClosed(object sender, DocumentEventArgs e)
+        private void Workspace_DocumentClosed(object sender, DocumentEventArgs e)
         {
             lock (_gate)
             {
@@ -86,67 +46,21 @@ namespace Microsoft.CodeAnalysis.Editor.Options
                     _openDocumentContexts.Remove(e.Document.Id);
 
                     // Ensure we dispose the context, which we'll do asynchronously
-                    EnsureContextCleanup(contextTask);
+                    contextTask.ContinueWith(
+                        t => t.Result.Dispose(),
+                        CancellationToken.None,
+                        TaskContinuationOptions.OnlyOnRanToCompletion,
+                        TaskScheduler.Default);
                 }
             }
         }
 
-        private void OnDocumentOpened(object sender, DocumentEventArgs e)
+        private void Workspace_DocumentOpened(object sender, DocumentEventArgs e)
         {
             lock (_gate)
             {
-                var contextTask = Task.Run(async () =>
-                {
-                    var context = await GetConventionContextAsync(e.Document.FilePath, CancellationToken.None).ConfigureAwait(false);
-                    context.CodingConventionsChangedAsync += OnCodingConventionsChangedAsync;
-                    return context;
-                });
-
-                Contract.Requires(!_openDocumentContexts.ContainsKey(e.Document.Id));
-                _openDocumentContexts.Add(e.Document.Id, contextTask);
+                _openDocumentContexts.Add(e.Document.Id, Task.Run(() => GetConventionContextAsync(e.Document.FilePath, CancellationToken.None)));
             }
-        }
-
-        private void ClearOpenFileCache(ProjectId projectId = null)
-        {
-            var contextTasks = new List<Task<ICodingConventionContext>>();
-
-            lock (_gate)
-            {
-                if (projectId == null)
-                {
-                    contextTasks.AddRange(_openDocumentContexts.Values);
-                    _openDocumentContexts.Clear();
-                }
-                else
-                {
-                    foreach (var kv in _openDocumentContexts.Where(kv => kv.Key.ProjectId == projectId).ToList())
-                    {
-                        _openDocumentContexts.Remove(kv.Key);
-                        contextTasks.Add(kv.Value);
-                    }
-                }
-            }
-
-            foreach (var contextTask in contextTasks)
-            {
-                EnsureContextCleanup(contextTask);
-            }
-        }
-
-        private void EnsureContextCleanup(Task<ICodingConventionContext> contextTask)
-        {
-            contextTask.ContinueWith(
-                t =>
-                {
-                    var context = t.Result;
-
-                    context.CodingConventionsChangedAsync -= OnCodingConventionsChangedAsync;
-                    context.Dispose();
-                },
-                CancellationToken.None,
-                TaskContinuationOptions.OnlyOnRanToCompletion,
-                TaskScheduler.Default);
         }
 
         public async Task<IDocumentOptions> GetOptionsForDocumentAsync(Document document, CancellationToken cancellationToken)
@@ -207,41 +121,6 @@ namespace Microsoft.CodeAnalysis.Editor.Options
             return IOUtilities.PerformIOAsync(
                 () => _codingConventionsManager.GetConventionContextAsync(path, cancellationToken),
                 defaultValue: EmptyCodingConventionContext.Instance);
-        }
-
-        private Task OnCodingConventionsChangedAsync(object sender, CodingConventionsChangedEventArgs arg)
-        {
-            // this is a temporary workaround. once we finish the work to put editorconfig file as a part of roslyn solution snapshot,
-            // that system will automatically pick up option changes and update snapshot. and it will work regardless
-            // whether a file is opened in editor or not.
-            // 
-            // but until then, we need to explicitly touch workspace to update snapshot. and 
-            // only works for open files. it is not easy to track option changes for closed files with current model.
-            // related tracking issue - https://github.com/dotnet/roslyn/issues/26250
-            //
-            // use its own lock to remove dead lock possibility
-            ResettableDelay delay;
-            lock (_eventGate)
-            {
-                if (!_resettableDelay.Task.IsCompleted)
-                {
-                    _resettableDelay.Reset();
-                    return Task.CompletedTask;
-                }
-
-                // since this event gets raised for all documents that are affected by 1 editconfig file,
-                // and since for now we make that event as whole solution changed event, we don't need to update
-                // snapshot for each events. aggregate all events to 1.
-                delay = new ResettableDelay(EventDelayInMillisecond);
-                _resettableDelay = delay;
-            }
-
-            delay.Task.ContinueWith(_ => _workspace.OnOptionChanged(),
-                CancellationToken.None,
-                TaskContinuationOptions.ExecuteSynchronously,
-                TaskScheduler.Default);
-
-            return Task.CompletedTask;
         }
     }
 }
