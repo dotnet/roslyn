@@ -547,7 +547,7 @@ Public Class BuildDevDivInsertionFiles
                                                                 isFacade:=(frameworkAssemblies IsNot Nothing AndAlso
                                                                            packageName <> "Microsoft.Build" AndAlso
                                                                            packageName <> "Microsoft.DiaSymReader") OrElse
-                                                                           packageName = "System.IO.Pipes.AccessControl")))
+                                                                           packageName = "System.IO.Pipes.AccessControl"))
                     End If
                 Next
             Next
