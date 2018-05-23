@@ -658,7 +658,6 @@ endRegion:
                 case OperationKind.CaughtException:
                 case OperationKind.StaticLocalInitializationSemaphore:
                 case OperationKind.Discard:
-                case OperationKind.TupleBinaryOperator:
                 case OperationKind.ObjectOrCollectionInitializer: // PROTOTYPE(dataflow): it looks like this node is leaking through in some error scenarios, at least for now.
                 case OperationKind.CollectionElementInitializer:  // PROTOTYPE(dataflow): It looks like there is a bug in IOperation tree generation for non-error scenario in 
                                                                   //                      Microsoft.CodeAnalysis.CSharp.UnitTests.SemanticModelGetSemanticInfoTests.ObjectCreation3
