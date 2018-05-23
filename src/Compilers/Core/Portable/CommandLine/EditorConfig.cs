@@ -51,11 +51,17 @@ namespace Microsoft.CodeAnalysis
 
         public Section GlobalSection { get; }
 
+        /// <summary>
+        /// The directory containing the editor config file, with '/' as the directory separator.
+        /// </summary>
         public string Directory { get; }
 
         public ImmutableArray<Section> NamedSections { get; }
 
-        private EditorConfig(Section globalSection, ImmutableArray<Section> namedSections, string directory)
+        private EditorConfig(
+            Section globalSection,
+            ImmutableArray<Section> namedSections,
+            string directory)
         {
             GlobalSection = globalSection;
             NamedSections = namedSections;
@@ -65,8 +71,7 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// Gets whether this editorconfig is a the topmost editorconfig.
         /// </summary>
-        public bool IsRoot
-            => GlobalSection.Properties.TryGetValue("root", out string val) && val == "true";
+        public bool IsRoot => GlobalSection.Properties.TryGetValue("root", out string val) && val == "true";
 
         /// <summary>
         /// Parses an editor config file text located within the given parent directory. No parsing

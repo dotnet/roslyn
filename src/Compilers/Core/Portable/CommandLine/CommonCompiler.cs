@@ -16,6 +16,8 @@ using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 using System.Security.Cryptography;
+using Microsoft.CodeAnalysis.PooledObjects;
+using System.Text.RegularExpressions;
 
 namespace Microsoft.CodeAnalysis
 {
@@ -240,6 +242,235 @@ namespace Microsoft.CodeAnalysis
             {
                 diagnostics.Add(ToFileReadDiagnostics(this.MessageProvider, e, filePath));
                 normalizedFilePath = null;
+                return null;
+            }
+        }
+
+        internal static ImmutableArray<ImmutableDictionary<string, ReportDiagnostic>> GetAnalyzerConfigOptions(
+            IReadOnlyList<string> sourcePaths,
+            ArrayBuilder<EditorConfig> analyzerConfigs,
+            CommonMessageProvider messageProvider,
+            DiagnosticBag diagnostics)
+        {
+            // Sort editorconfig paths from shortest to longest.
+            // Since paths are compared as ordinal string comparisons, the least nested
+            // file will always be the first in sort order
+            analyzerConfigs.Sort(Comparer<EditorConfig>.Create(
+                (e1, e2) => e1.Directory.Length.CompareTo(e2.Directory.Length)));
+
+            var allDiagnosticOptions =
+                ArrayBuilder<ImmutableDictionary<string, ReportDiagnostic>>.GetInstance(sourcePaths.Count);
+
+            var allRegexes = PooledDictionary<EditorConfig, ImmutableArray<Regex>>.GetInstance();
+            foreach (var config in analyzerConfigs)
+            {
+                // Create an array of regexes with each entry corresponding to the same index
+                // in <see cref="EditorConfig.NamedSections"/>.
+                var builder = ArrayBuilder<Regex>.GetInstance(config.NamedSections.Length);
+                foreach (var section in config.NamedSections)
+                {
+                    string regex = EditorConfig.TryCompileSectionNameToRegEx(section.Name);
+                    builder.Add(new Regex(regex, RegexOptions.Compiled));
+                }
+
+                Debug.Assert(builder.Count == config.NamedSections.Length);
+
+                allRegexes.Add(config, builder.ToImmutableAndFree());
+            }
+
+            Debug.Assert(allRegexes.Count == analyzerConfigs.Count);
+
+            var optionsBuilder = ImmutableDictionary.CreateBuilder<string, ReportDiagnostic>(
+                CaseInsensitiveComparison.Comparer);
+            foreach (var sourceFile in sourcePaths)
+            {
+                var normalizedPath = PathWithForwardSlashSeparators(sourceFile);
+                // The editorconfig paths are sorted from shortest to longest, so matches
+                // are resolved from most nested to least nested, where last setting wins
+                foreach (EditorConfig config in analyzerConfigs)
+                {
+                    if (normalizedPath.StartsWith(config.Directory, StringComparison.Ordinal))
+                    {
+                        string relativePath = normalizedPath.Substring(config.Directory.Length);
+                        ImmutableArray<Regex> regexes = allRegexes[config];
+                        for (int sectionIndex = 0; sectionIndex < regexes.Length; sectionIndex++)
+                        {
+                            if (regexes[sectionIndex].IsMatch(relativePath))
+                            {
+                                var section = config.NamedSections[sectionIndex];
+                                addDiagnosticOptions(section, optionsBuilder);
+                            }
+                        }
+                    }
+                }
+
+                // Avoid extra allocations by using null.
+                allDiagnosticOptions.Add(optionsBuilder.Count > 0 ? optionsBuilder.ToImmutable() : null);
+                optionsBuilder.Clear();
+            }
+
+            allRegexes.Free();
+            Debug.Assert(allDiagnosticOptions.Count == sourcePaths.Count);
+
+            return allDiagnosticOptions.ToImmutableAndFree();
+
+            void addDiagnosticOptions(
+                EditorConfig.Section section,
+                ImmutableDictionary<string, ReportDiagnostic>.Builder builder)
+            {
+                const string DiagnosticOptionPrefix = "dotnet_diagnostic.";
+                const string DiagnosticOptionSuffix = ".severity";
+
+                foreach (var (key, value) in section.Properties)
+                {
+                    // Keys are lowercased in editorconfig parsing
+                    if (key.StartsWith(DiagnosticOptionPrefix, StringComparison.Ordinal) &&
+                        key.EndsWith(DiagnosticOptionSuffix, StringComparison.Ordinal))
+                    {
+                        string diagId = key.Substring(DiagnosticOptionPrefix.Length);
+                        diagId = diagId.Substring(0, diagId.Length - DiagnosticOptionSuffix.Length);
+
+                        ReportDiagnostic? severity = null;
+                        switch (CaseInsensitiveComparison.ToLower(value))
+                        {
+                            case "default":
+                                severity = ReportDiagnostic.Default;
+                                break;
+
+                            case "error":
+                                severity = ReportDiagnostic.Error;
+                                break;
+
+                            case "warn":
+                                severity = ReportDiagnostic.Warn;
+                                break;
+
+                            case "info":
+                                severity = ReportDiagnostic.Info;
+                                break;
+
+                            case "hidden":
+                                severity = ReportDiagnostic.Hidden;
+                                break;
+
+                            case "suppress":
+                                severity = ReportDiagnostic.Suppress;
+                                break;
+
+                            default:
+                                diagnostics.Add(Diagnostic.Create(
+                                    messageProvider,
+                                    messageProvider.WRN_InvalidSeverityInAnalyzerConfig,
+                                    diagId,
+                                    value));
+                                break;
+                        }
+
+                        if (severity.HasValue)
+                        {
+                            builder[diagId] = severity.GetValueOrDefault();
+                        }
+                    }
+                }
+            }
+
+            void sortAnalyzerConfigFiles(ArrayBuilder<EditorConfig> resultEditorConfigs)
+            {
+            }
+        }
+
+        public ImmutableArray<ImmutableDictionary<string, ReportDiagnostic>> ProcessAnalyzerConfigFiles(
+            ImmutableArray<string> analyzerConfigPaths,
+            ImmutableArray<CommandLineSourceFile> sourceFiles,
+            ref bool hadErrors,
+            DiagnosticBag diagnostics)
+        {
+            var analyzerConfigs = ArrayBuilder<EditorConfig>.GetInstance();
+
+            readEditorConfigFiles(analyzerConfigPaths, analyzerConfigs);
+
+            if (diagnostics.HasAnyErrors())
+            {
+                analyzerConfigs.Free();
+                hadErrors = true;
+                return default;
+            }
+
+            var sourcePaths = sourceFiles.SelectAsArray(file => file.Path);
+            ImmutableArray<ImmutableDictionary<string, ReportDiagnostic>> diagnosticOptions =
+                GetAnalyzerConfigOptions(sourcePaths, analyzerConfigs, MessageProvider, diagnostics);
+
+            analyzerConfigs.Free();
+            return diagnosticOptions;
+
+            void readEditorConfigFiles(
+                ImmutableArray<string> configPaths,
+                ArrayBuilder<EditorConfig> configs)
+            {
+                var processedDirs = PooledHashSet<string>.GetInstance();
+
+                foreach (var configPath in configPaths)
+                {
+                    // The editorconfig spec requires all paths use '/' as the directory separator.
+                    // Since no known system allows directory separators as part of the file name,
+                    // we can replace every instance of the directory separator with a '/'
+                    string fileContent = TryReadFileContent(configPath, diagnostics, out string normalizedPath);
+                    if (fileContent is null)
+                    {
+                        // Error reading a file. Bail out and report error.
+                        break;
+                    }
+
+                    var directory = Path.GetDirectoryName(normalizedPath) ?? normalizedPath;
+                    // Path mapping expects a trailing '/' to be included
+                    if (directory[directory.Length - 1] != '/')
+                    {
+                        directory = directory + "/";
+                    }
+
+                    if (processedDirs.Contains(directory))
+                    {
+                        diagnostics.Add(Diagnostic.Create(
+                            MessageProvider,
+                            MessageProvider.ERR_MultipleAnalyzerConfigsInSameDir,
+                            directory));
+                        break;
+                    }
+
+                    processedDirs.Add(directory);
+                    var forwardPath = PathWithForwardSlashSeparators(directory);
+                    var editorConfig = EditorConfig.Parse(fileContent, forwardPath);
+                    configs.Add(editorConfig);
+                }
+
+                processedDirs.Free();
+            }
+        }
+
+        // Takes a system-native path and turns it into one which has '/' for the directory separators.
+        private static string PathWithForwardSlashSeparators(string path)
+            => PathUtilities.DirectorySeparatorChar == '/'
+                ? path
+                : path.Replace(PathUtilities.DirectorySeparatorChar, '/');
+
+        /// <summary>
+        /// Read a UTF-8 encoded file and return the text as a string.
+        /// </summary>
+        private string TryReadFileContent(string filePath, DiagnosticBag diagnostics, out string normalizedPath)
+        {
+            try
+            {
+                var data = OpenFileForReadWithSmallBufferOptimization(filePath);
+                normalizedPath = data.Name;
+                using (var reader = new StreamReader(data, Encoding.UTF8))
+                {
+                    return reader.ReadToEnd();
+                }
+            }
+            catch (Exception e)
+            {
+                diagnostics.Add(Diagnostic.Create(ToFileReadDiagnostics(MessageProvider, e, filePath)));
+                normalizedPath = null;
                 return null;
             }
         }

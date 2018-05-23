@@ -4,9 +4,11 @@ using System;
 using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
+using static Roslyn.Test.Utilities.TestHelpers;
 
 namespace Microsoft.CodeAnalysis.UnitTests
 {
@@ -65,9 +67,9 @@ my_prop = my_val");
         [Fact]
         public void EmptySection()
         {
-            var config = EditorConfig.Parse(@"
+            var config = ParseConfigFile(@"
 []
-my_prop = my_val", "");
+my_prop = my_val");
 
             var properties = config.GlobalSection.Properties;
             Assert.Equal(new[] { KeyValuePair.Create("my_prop", "my_val")}, properties);
@@ -368,6 +370,175 @@ RoOt = TruE");
             Assert.DoesNotMatch(regex, "aa?cde?f");
             Assert.DoesNotMatch(regex, "?a?cdexf");
             Assert.DoesNotMatch(regex, "?axcde?f");
+        }
+
+        [Fact]
+        public void EditorConfigToDiagnostics()
+        {
+            var configs = ArrayBuilder<EditorConfig>.GetInstance();
+            configs.Add(EditorConfig.Parse(@"
+[*.cs]
+dotnet_diagnostic.cs000.severity = suppress
+
+[*.vb]
+dotnet_diagnostic.cs000.severity = error", "/"));
+
+            var options = CommonCompiler.GetAnalyzerConfigOptions(
+                new[] { "/test.cs", "/test.vb", "/test" },
+                configs,
+                messageProvider: null,
+                diagnostics: null);
+            configs.Free();
+
+            Assert.Equal(new[] {
+                CreateImmutableDictionary(("cs000", ReportDiagnostic.Suppress)),
+                CreateImmutableDictionary(("cs000", ReportDiagnostic.Error)),
+                null
+            }, options);
+        }
+
+        [Fact]
+        public void LaterSectionOverrides()
+        {
+            var configs = ArrayBuilder<EditorConfig>.GetInstance();
+            configs.Add(EditorConfig.Parse(@"
+[*.cs]
+dotnet_diagnostic.cs000.severity = suppress
+
+[test.*]
+dotnet_diagnostic.cs000.severity = error", "/"));
+
+            var options = CommonCompiler.GetAnalyzerConfigOptions(
+                new[] { "/test.cs", "/test.vb", "/test" },
+                configs,
+                messageProvider: null,
+                diagnostics: null);
+            configs.Free();
+
+            Assert.Equal(new[] {
+                CreateImmutableDictionary(("cs000", ReportDiagnostic.Error)),
+                CreateImmutableDictionary(("cs000", ReportDiagnostic.Error)),
+                null
+            }, options);
+        }
+
+        [Fact]
+        public void TwoSettingsSameSection()
+        {
+            var configs = ArrayBuilder<EditorConfig>.GetInstance();
+            configs.Add(EditorConfig.Parse(@"
+[*.cs]
+dotnet_diagnostic.cs000.severity = suppress
+dotnet_diagnostic.cs001.severity = info", "/"));
+
+            var options = CommonCompiler.GetAnalyzerConfigOptions(
+                new[] { "/test.cs" },
+                configs,
+                messageProvider: null,
+                diagnostics: null);
+            configs.Free();
+
+            Assert.Equal(new[]
+            {
+                CreateImmutableDictionary(
+                    ("cs000", ReportDiagnostic.Suppress),
+                    ("cs001", ReportDiagnostic.Info)),
+            }, options);
+        }
+
+        [Fact]
+        public void TwoSettingsDifferentSections()
+        {
+            var configs = ArrayBuilder<EditorConfig>.GetInstance();
+            configs.Add(EditorConfig.Parse(@"
+[*.cs]
+dotnet_diagnostic.cs000.severity = suppress
+
+[test.*]
+dotnet_diagnostic.cs001.severity = info", "/"));
+
+            var options = CommonCompiler.GetAnalyzerConfigOptions(
+                new[] { "/test.cs" },
+                configs,
+                messageProvider: null,
+                diagnostics: null);
+            configs.Free();
+
+            Assert.Equal(new[]
+            {
+                CreateImmutableDictionary(
+                    ("cs000", ReportDiagnostic.Suppress),
+                    ("cs001", ReportDiagnostic.Info))
+            }, options);
+        }
+
+        [Fact]
+        public void MultipleEditorConfigs()
+        {
+            var configs = ArrayBuilder<EditorConfig>.GetInstance();
+            configs.Add(EditorConfig.Parse(@"
+[**/*]
+dotnet_diagnostic.cs000.severity = suppress
+
+[**test.*]
+dotnet_diagnostic.cs001.severity = info", "/"));
+            configs.Add(EditorConfig.Parse(@"
+[**]
+dotnet_diagnostic.cs000.severity = warn
+
+[test.cs]
+dotnet_diagnostic.cs001.severity = error", "/subdir/"));
+
+            var options = CommonCompiler.GetAnalyzerConfigOptions(
+                new[] { "/subdir/test.cs", "/subdir/test.vb" },
+                configs,
+                messageProvider: null,
+                diagnostics: null);
+            configs.Free();
+
+            Assert.Equal(new[]
+            {
+                CreateImmutableDictionary(
+                    ("cs000", ReportDiagnostic.Warn),
+                    ("cs001", ReportDiagnostic.Error)),
+                CreateImmutableDictionary(
+                    ("cs000", ReportDiagnostic.Warn),
+                    ("cs001", ReportDiagnostic.Info))
+            }, options);
+        }
+
+        [Fact]
+        public void InheritOuterConfig()
+        {
+            var configs = ArrayBuilder<EditorConfig>.GetInstance();
+            configs.Add(EditorConfig.Parse(@"
+[**/*]
+dotnet_diagnostic.cs000.severity = suppress
+
+[**test.cs]
+dotnet_diagnostic.cs001.severity = info", "/"));
+            configs.Add(EditorConfig.Parse(@"
+[test.cs]
+dotnet_diagnostic.cs001.severity = error", "/subdir/"));
+
+            var options = CommonCompiler.GetAnalyzerConfigOptions(
+                new[] { "/test.cs", "/subdir/test.cs", "/subdir/test.vb" },
+                configs,
+                messageProvider: null,
+                diagnostics: null);
+            configs.Free();
+
+            Assert.Equal(new[]
+            {
+                CreateImmutableDictionary(
+                    ("cs001", ReportDiagnostic.Info)),
+                CreateImmutableDictionary(
+                    ("cs000", ReportDiagnostic.Suppress),
+                    ("cs001", ReportDiagnostic.Error)),
+                CreateImmutableDictionary(
+                    ("cs000", ReportDiagnostic.Suppress))
+            }, options);
+
         }
     }
 }

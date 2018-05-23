@@ -1,3 +1,4 @@
+Microsoft.CodeAnalysis.CommandLineArguments.AnalyzerConfigFiles.get -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.CommandLineSourceFile>
 Microsoft.CodeAnalysis.Diagnostics.Telemetry.AnalyzerTelemetryInfo.Concurrent.get -> bool
 Microsoft.CodeAnalysis.Diagnostics.Telemetry.AnalyzerTelemetryInfo.Concurrent.set -> void
 static readonly Microsoft.CodeAnalysis.SyntaxTree.EmptyDiagnosticOptions -> System.Collections.Immutable.ImmutableDictionary<string, Microsoft.CodeAnalysis.ReportDiagnostic>
