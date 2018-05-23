@@ -48,16 +48,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.E
                 triggerLocation,
                 GetRoslynTrigger(trigger)).ConfigureAwait(false);
 
-            var doNotShowList = false;
-            if (completionList == null)
-            {
-                doNotShowList = true;
-                completionList = await completionService.GetCompletionsAsync(
-                    document,
-                    triggerLocation,
-                    RoslynTrigger.Invoke).ConfigureAwait(false);
-            }
-
             if (completionList == null)
             {                
                 return new EditorCompletion.CompletionContext(ImmutableArray<EditorCompletion.CompletionItem>.Empty);
@@ -70,7 +60,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.E
                 var item = Convert(document, roslynItem, completionService, filterCache);
                 item.Properties.AddProperty(TriggerBuffer, triggerLocation.Snapshot.TextBuffer);
                 return item;
-            });
+            }).Where(i => !string.IsNullOrEmpty(i.DisplayText)).ToImmutableArray();
 
             var suggestionItemOptions = completionList.SuggestionModeItem != null
                     ? new EditorCompletion.SuggestionItemOptions(
@@ -82,7 +72,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.E
             return new EditorCompletion.CompletionContext(
                 items,
                 suggestionItemOptions,
-                doNotShowList ? EditorCompletion.InitialSelectionHint.NoSelection : EditorCompletion.InitialSelectionHint.RegularSelection);
+                suggestionItemOptions == null ? EditorCompletion.InitialSelectionHint.RegularSelection : EditorCompletion.InitialSelectionHint.SoftSelection);
 
             //return new EditorCompletion.CompletionContext(
             //    items,

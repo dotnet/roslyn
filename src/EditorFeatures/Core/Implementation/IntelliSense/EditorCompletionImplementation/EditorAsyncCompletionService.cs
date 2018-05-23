@@ -56,40 +56,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.E
             // TODO: Unhook the session's events when the session is available in the args
         }
 
-        public async Task<EditorCompletion.FilteredCompletionModel> UpdateCompletionListAsync(
+        public Task<EditorCompletion.FilteredCompletionModel> UpdateCompletionListAsync(
             IAsyncCompletionSession session, 
             EditorCompletion.AsyncCompletionSessionDataSnapshot data, 
             CancellationToken cancellationToken)
         {
             var mustSetSelection = false;
-
-            if (data.IsUnavailable && 
-                (data.UpdateTrigger.Reason == EditorCompletion.UpdateTriggerReason.Insertion || data.UpdateTrigger.Reason == EditorCompletion.UpdateTriggerReason.Deletion))
-            {
-                var document = data.Snapshot.GetOpenDocumentInCurrentContextWithChanges();
-                if (document == null)
-                {
-                    // Uhh...
-                    return new EditorCompletion.FilteredCompletionModel(ImmutableArray<EditorCompletion.CompletionItemWithHighlight>.Empty, 0);
-                }
-
-                var completionService = document.GetLanguageService<CompletionService>();
-                var completionList = await completionService.GetCompletionsAsync(
-                    document,
-                    session.ApplicableToSpan.GetEndPoint(data.Snapshot),
-                    GetRoslynTrigger(data.UpdateTrigger)).ConfigureAwait(false);
-
-                if (completionList != null && completionList.Items.Length > 0)
-                {
-                    // Okay, we want completion. How do I communicate that?
-                    mustSetSelection = true;
-                }
-                else
-                {
-                    // Still don't want completion. 
-                    return new EditorCompletion.FilteredCompletionModel(ImmutableArray<EditorCompletion.CompletionItemWithHighlight>.Empty, 0);
-                }
-            }
 
             var filterText = session.ApplicableToSpan.GetText(data.Snapshot);
 
@@ -108,7 +80,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.E
             {
                 if (!IsAfterDot(data.Snapshot, session.ApplicableToSpan))
                 {
-                    return new EditorCompletion.FilteredCompletionModel(ImmutableArray<EditorCompletion.CompletionItemWithHighlight>.Empty, 0);
+                    return Task.FromResult(new EditorCompletion.FilteredCompletionModel(ImmutableArray<EditorCompletion.CompletionItemWithHighlight>.Empty, 0));
                 }
             }
 
@@ -143,14 +115,14 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.E
 
             if (initialListOfItemsToBeIncluded.Count == 0)
             {
-                return HandleAllItemsFilteredOut(data.InitialTrigger.Reason, data.SelectedFilters, selectedFilters, mustSetSelection);
+                return Task.FromResult(HandleAllItemsFilteredOut(data.InitialTrigger.Reason, data.SelectedFilters, selectedFilters, mustSetSelection));
             }
 
             // If this was deletion, then we control the entire behavior of deletion
             // ourselves.
             if (data.InitialTrigger.Reason == EditorCompletion.InitialTriggerReason.Deletion)
             {
-                return HandleDeletionTrigger(data.InitialSortedList, data.InitialTrigger.Reason, data.SelectedFilters, data.UpdateTrigger.Reason, filterText, initialListOfItemsToBeIncluded, mustSetSelection);
+                return Task.FromResult(HandleDeletionTrigger(data.InitialSortedList, data.InitialTrigger.Reason, data.SelectedFilters, data.UpdateTrigger.Reason, filterText, initialListOfItemsToBeIncluded, mustSetSelection));
             }
 
             var caretPoint = session.TextView.GetCaretPoint(data.Snapshot.TextBuffer);
@@ -158,7 +130,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.E
 
             var snapshotForDocument = data.InitialSortedList.FirstOrDefault(i => i.Properties.ContainsProperty(CompletionItemSource.TriggerBuffer))?.Properties.GetProperty<ITextBuffer>(CompletionItemSource.TriggerBuffer).CurrentSnapshot ?? data.Snapshot;
 
-            return HandleNormalFiltering(
+            return Task.FromResult(HandleNormalFiltering(
                 data.InitialSortedList,
                 snapshotForDocument,
                 caretPosition,
@@ -167,7 +139,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.E
                 data.UpdateTrigger.Reason,
                 initialListOfItemsToBeIncluded,
                 data.InitialTrigger.Reason,
-                mustSetSelection);
+                mustSetSelection));
         }
 
         private static RoslynTrigger GetRoslynTrigger(EditorCompletion.UpdateTrigger trigger)
