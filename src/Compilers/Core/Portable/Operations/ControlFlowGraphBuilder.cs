@@ -1521,10 +1521,23 @@ namespace Microsoft.CodeAnalysis.Operations
         public override IOperation VisitBinaryOperator(IBinaryOperation operation, int? captureIdForResult)
         {
             if (IsConditional(operation) &&
-                operation.OperatorMethod == null && // PROTOTYPE(dataflow): cannot properly handle user-defined conditional operators yet.
-                operation.Type.SpecialType == SpecialType.System_Boolean) // PROTOTYPE(dataflow): cannot properly handle nullable conditional operators yet.
+                operation.OperatorMethod == null) // PROTOTYPE(dataflow): cannot properly handle user-defined conditional operators yet.
             {
-                return VisitBinaryConditionalOperator(operation, sense: true, captureIdForResult, fallToTrueOpt: null, fallToFalseOpt: null);
+                if (ITypeSymbolHelpers.IsBooleanType(operation.Type) &&
+                    ITypeSymbolHelpers.IsBooleanType(operation.LeftOperand.Type) &&
+                    ITypeSymbolHelpers.IsBooleanType(operation.RightOperand.Type))
+                {
+                    // Regular boolean logic
+                    return VisitBinaryConditionalOperator(operation, sense: true, captureIdForResult, fallToTrueOpt: null, fallToFalseOpt: null);
+                }
+                else if (operation.IsLifted && 
+                         ITypeSymbolHelpers.IsNullableOfBoolean(operation.Type) &&
+                         ITypeSymbolHelpers.IsNullableOfBoolean(operation.LeftOperand.Type) &&
+                         ITypeSymbolHelpers.IsNullableOfBoolean(operation.RightOperand.Type))
+                {
+                    // Three-value boolean logic (VB).
+                    return VisitNullableBinaryConditionalOperator(operation, captureIdForResult);
+                }
             }
 
             _evalStack.Push(Visit(operation.LeftOperand));
@@ -1544,9 +1557,7 @@ namespace Microsoft.CodeAnalysis.Operations
         {
             // PROTOTYPE(dataflow): ensure we properly detect logical Not
             //                      For example, Microsoft.CodeAnalysis.CSharp.UnitTests.IOperationTests.Test_UnaryOperatorExpression_Type_LogicalNot_dynamic
-            if (operation.OperatorKind == UnaryOperatorKind.Not && 
-                operation.Type.SpecialType == SpecialType.System_Boolean &&
-                operation.OperatorMethod == null)
+            if (IsBooleanLogicalNot(operation))
             {
                 return VisitConditionalExpression(operation.Operand, sense: false, captureIdForResult, fallToTrueOpt: null, fallToFalseOpt: null);
             }
@@ -1555,46 +1566,151 @@ namespace Microsoft.CodeAnalysis.Operations
                                                semanticModel: null, operation.Syntax, operation.Type, operation.ConstantValue, IsImplicit(operation));
         }
 
-        private IOperation VisitBinaryConditionalOperator(IBinaryOperation binOp, bool sense, int? captureIdForResult,
-                                                          BasicBlock fallToTrueOpt, BasicBlock fallToFalseOpt)
+        private static bool IsBooleanLogicalNot(IUnaryOperation operation)
         {
-            bool andOrSense = sense;
+            return operation.OperatorKind == UnaryOperatorKind.Not &&
+                   operation.OperatorMethod == null &&
+                   ITypeSymbolHelpers.IsBooleanType(operation.Type) &&
+                   ITypeSymbolHelpers.IsBooleanType(operation.Operand.Type);
+        }
 
+        private static bool CalculateAndOrSense(IBinaryOperation binOp, bool sense)
+        {
             switch (binOp.OperatorKind)
             {
                 case BinaryOperatorKind.ConditionalOr:
-                    Debug.Assert(binOp.LeftOperand.Type.SpecialType == SpecialType.System_Boolean);
-                    Debug.Assert(binOp.RightOperand.Type.SpecialType == SpecialType.System_Boolean);
-
                     // Rewrite (a || b) as ~(~a && ~b)
-                    andOrSense = !andOrSense;
-                    // Fall through
-                    goto case BinaryOperatorKind.ConditionalAnd;
+                    return !sense;
 
                 case BinaryOperatorKind.ConditionalAnd:
-                    Debug.Assert(binOp.LeftOperand.Type.SpecialType == SpecialType.System_Boolean);
-                    Debug.Assert(binOp.RightOperand.Type.SpecialType == SpecialType.System_Boolean);
-
-                    // ~(a && b) is equivalent to (~a || ~b)
-                    if (!andOrSense)
-                    {
-                        // generate (~a || ~b)
-                        return VisitShortCircuitingOperator(binOp, sense: sense, stopSense: sense, stopValue: true, captureIdForResult, fallToTrueOpt, fallToFalseOpt);
-                    }
-                    else
-                    {
-                        // generate (a && b)
-                        return VisitShortCircuitingOperator(binOp, sense: sense, stopSense: !sense, stopValue: false, captureIdForResult, fallToTrueOpt, fallToFalseOpt);
-                    }
+                    return sense;
 
                 default:
                     throw ExceptionUtilities.UnexpectedValue(binOp.OperatorKind);
             }
         }
 
+        private IOperation VisitBinaryConditionalOperator(IBinaryOperation binOp, bool sense, int? captureIdForResult,
+                                                          BasicBlock fallToTrueOpt, BasicBlock fallToFalseOpt)
+        {
+            // ~(a && b) is equivalent to (~a || ~b)
+            if (!CalculateAndOrSense(binOp, sense))
+            {
+                // generate (~a || ~b)
+                return VisitShortCircuitingOperator(binOp, sense: sense, stopSense: sense, stopValue: true, captureIdForResult, fallToTrueOpt, fallToFalseOpt);
+            }
+            else
+            {
+                // generate (a && b)
+                return VisitShortCircuitingOperator(binOp, sense: sense, stopSense: !sense, stopValue: false, captureIdForResult, fallToTrueOpt, fallToFalseOpt);
+            }
+        }
+
+        private IOperation VisitNullableBinaryConditionalOperator(IBinaryOperation binOp, int? captureIdForResult)
+        {
+            SpillEvalStack();
+
+            Compilation compilation = ((Operation)binOp).SemanticModel.Compilation;
+            IOperation left = binOp.LeftOperand;
+            IOperation right = binOp.RightOperand;
+            IOperation condition;
+
+            bool isAndAlso = CalculateAndOrSense(binOp, true);
+
+            // case BinaryOperatorKind.ConditionalOr:
+            //        Dim result As Boolean?
+            //
+            //        If left.GetValueOrDefault Then
+            //            result = left
+            //            GoTo done
+            //        End If
+            //
+            //        If Not ((Not right).GetValueOrDefault) Then
+            //            result = right
+            //            GoTo done
+            //        End If
+            //
+            //        result = left
+            //done:
+            //        Return result
+
+            // case BinaryOperatorKind.ConditionalAnd:
+            //        Dim result As Boolean?
+            //
+            //        If (Not left).GetValueOrDefault() Then
+            //            result = left
+            //            GoTo done
+            //        End If
+            //
+            //        If Not (right.GetValueOrDefault()) Then
+            //            result = right
+            //            GoTo done
+            //        End If
+            //
+            //        result = left
+            //
+            //done:
+            //        Return result
+
+            var done = new BasicBlock(BasicBlockKind.Block);
+            var checkRight = new BasicBlock(BasicBlockKind.Block);
+            var resultIsLeft = new BasicBlock(BasicBlockKind.Block);
+
+            int leftId = VisitAndCapture(left);
+            condition = GetCaptureReference(leftId, left);
+
+            if (isAndAlso)
+            {
+                condition = negateNullable(condition);
+            }
+
+            condition = UnwrapNullableValue(condition, compilation);
+            LinkBlocks(CurrentBasicBlock, (Operation.SetParentOperation(condition, null), JumpIfTrue: false, RegularBranch(checkRight)));
+            _currentBasicBlock = null;
+
+            int resultId = captureIdForResult ?? _availableCaptureId++;
+            AddStatement(new FlowCapture(resultId, binOp.Syntax, GetCaptureReference(leftId, left)));
+            LinkBlocks(CurrentBasicBlock, done);
+            _currentBasicBlock = null;
+
+            AppendNewBlock(checkRight);
+
+            int rightId = VisitAndCapture(right);
+            condition = GetCaptureReference(rightId, right);
+
+            if (!isAndAlso)
+            {
+                condition = negateNullable(condition);
+            }
+
+            condition = UnwrapNullableValue(condition, compilation);
+            LinkBlocks(CurrentBasicBlock, (Operation.SetParentOperation(condition, null), JumpIfTrue: true, RegularBranch(resultIsLeft)));
+            _currentBasicBlock = null;
+
+            AddStatement(new FlowCapture(resultId, binOp.Syntax, GetCaptureReference(rightId, right)));
+            LinkBlocks(CurrentBasicBlock, done);
+            _currentBasicBlock = null;
+
+            AppendNewBlock(resultIsLeft);
+            AddStatement(new FlowCapture(resultId, binOp.Syntax, GetCaptureReference(leftId, left)));
+
+            AppendNewBlock(done);
+
+            return GetCaptureReference(resultId, binOp);
+
+            IOperation negateNullable(IOperation operand)
+            {
+                return new UnaryOperatorExpression(UnaryOperatorKind.Not, operand, isLifted: true, isChecked: false, operatorMethod: null,
+                                                   semanticModel: null, operand.Syntax, operand.Type, constantValue: default, isImplicit: true);
+
+            }
+        }
+
         private IOperation VisitShortCircuitingOperator(IBinaryOperation condition, bool sense, bool stopSense, bool stopValue,
                                                         int? captureIdForResult, BasicBlock fallToTrueOpt, BasicBlock fallToFalseOpt)
         {
+            Debug.Assert(IsBooleanConditionalOperator(condition));
+                    
             // we generate:
             //
             // gotoif (a == stopSense) fallThrough
@@ -1640,12 +1756,15 @@ namespace Microsoft.CodeAnalysis.Operations
 
         private IOperation VisitConditionalExpression(IOperation condition, bool sense, int? captureIdForResult, BasicBlock fallToTrueOpt, BasicBlock fallToFalseOpt)
         {
+            Debug.Assert(ITypeSymbolHelpers.IsBooleanType(condition.Type));
+
+            // PROTOTYPE(dataflow): Unwrap parenthesized and look for other places where it should happen
             // PROTOTYPE(dataflow): Do not erase UnaryOperatorKind.Not if ProduceIsSense below will have to add it back.
+
             while (condition.Kind == OperationKind.UnaryOperator)
             {
                 var unOp = (IUnaryOperation)condition;
-                // PROTOTYPE(dataflow): ensure we properly detect logical Not
-                if (unOp.OperatorKind != UnaryOperatorKind.Not)
+                if (!IsBooleanLogicalNot(unOp))
                 {
                     break;
                 }
@@ -1653,12 +1772,10 @@ namespace Microsoft.CodeAnalysis.Operations
                 sense = !sense;
             }
 
-            Debug.Assert(condition.Type.SpecialType == SpecialType.System_Boolean);
-
             if (condition.Kind == OperationKind.BinaryOperator)
             {
                 var binOp = (IBinaryOperation)condition;
-                if (IsConditional(binOp))
+                if (IsBooleanConditionalOperator(binOp))
                 {
                     return VisitBinaryConditionalOperator(binOp, sense, captureIdForResult, fallToTrueOpt, fallToFalseOpt);
                 }
@@ -1667,13 +1784,24 @@ namespace Microsoft.CodeAnalysis.Operations
             return ProduceIsSense(Visit(condition), sense);
         }
 
+        private static bool IsBooleanConditionalOperator(IBinaryOperation binOp)
+        {
+            return IsConditional(binOp) &&
+                   binOp.OperatorMethod == null &&
+                   ITypeSymbolHelpers.IsBooleanType(binOp.Type) &&
+                   ITypeSymbolHelpers.IsBooleanType(binOp.LeftOperand.Type) &&
+                   ITypeSymbolHelpers.IsBooleanType(binOp.RightOperand.Type);
+        }
+
         private IOperation ProduceIsSense(IOperation condition, bool sense)
         {
+            Debug.Assert(ITypeSymbolHelpers.IsBooleanType(condition.Type));
+
             if (!sense)
             {
                 return new UnaryOperatorExpression(UnaryOperatorKind.Not,
                                                    condition,
-                                                   isLifted: false, // PROTOTYPE(dataflow): Deal with nullable
+                                                   isLifted: false,
                                                    isChecked: false,
                                                    operatorMethod: null,
                                                    semanticModel: null,
@@ -1699,38 +1827,31 @@ oneMoreTime:
             {
                 case OperationKind.BinaryOperator:
                     var binOp = (IBinaryOperation)condition;
-                    bool testBothArgs = sense;
 
-                    switch (binOp.OperatorKind)
+                    if (IsBooleanConditionalOperator(binOp))
                     {
-                        case BinaryOperatorKind.ConditionalOr:
-                            testBothArgs = !testBothArgs;
-                            // Fall through
-                            goto case BinaryOperatorKind.ConditionalAnd;
+                        if (CalculateAndOrSense(binOp, sense))
+                        {
+                            // gotoif(LeftOperand != sense) fallThrough
+                            // gotoif(RightOperand == sense) dest
+                            // fallThrough:
 
-                        case BinaryOperatorKind.ConditionalAnd:
-                            if (testBothArgs)
-                            {
-                                // gotoif(a != sense) fallThrough
-                                // gotoif(b == sense) dest
-                                // fallThrough:
+                            BasicBlock fallThrough = null;
 
-                                BasicBlock fallThrough = null;
-
-                                VisitConditionalBranch(binOp.LeftOperand, ref fallThrough, !sense);
-                                VisitConditionalBranch(binOp.RightOperand, ref dest, sense);
-                                AppendNewBlock(fallThrough);
-                            }
-                            else
-                            {
-                                // gotoif(a == sense) labDest
-                                // gotoif(b == sense) labDest
-
-                                VisitConditionalBranch(binOp.LeftOperand, ref dest, sense);
-                                condition = binOp.RightOperand;
-                                goto oneMoreTime;
-                            }
+                            VisitConditionalBranch(binOp.LeftOperand, ref fallThrough, !sense);
+                            VisitConditionalBranch(binOp.RightOperand, ref dest, sense);
+                            AppendNewBlock(fallThrough);
                             return;
+                        }
+                        else
+                        {
+                            // gotoif(LeftOperand == sense) dest
+                            // gotoif(RightOperand == sense) dest
+
+                            VisitConditionalBranch(binOp.LeftOperand, ref dest, sense);
+                            condition = binOp.RightOperand;
+                            goto oneMoreTime;
+                        }
                     }
 
                     // none of above. 
@@ -1740,7 +1861,7 @@ oneMoreTime:
                 case OperationKind.UnaryOperator:
                     var unOp = (IUnaryOperation)condition;
 
-                    if (unOp.OperatorKind == UnaryOperatorKind.Not && unOp.Operand.Type.SpecialType == SpecialType.System_Boolean)
+                    if (IsBooleanLogicalNot(unOp))
                     {
                         sense = !sense;
                         condition = unOp.Operand;
@@ -1749,49 +1870,56 @@ oneMoreTime:
                     goto default;
 
                 case OperationKind.Conditional:
-                    if (condition.Type.SpecialType == SpecialType.System_Boolean)
+                    if (ITypeSymbolHelpers.IsBooleanType(condition.Type))
                     {
                         var conditional = (IConditionalOperation)condition;
 
-                        BasicBlock whenFalse = null;
-                        VisitConditionalBranch(conditional.Condition, ref whenFalse, sense: false);
-                        VisitConditionalBranch(conditional.WhenTrue, ref dest, sense);
+                        if (ITypeSymbolHelpers.IsBooleanType(conditional.WhenTrue.Type) &&
+                            ITypeSymbolHelpers.IsBooleanType(conditional.WhenFalse.Type))
+                        {
+                            BasicBlock whenFalse = null;
+                            VisitConditionalBranch(conditional.Condition, ref whenFalse, sense: false);
+                            VisitConditionalBranch(conditional.WhenTrue, ref dest, sense);
 
-                        var afterIf = new BasicBlock(BasicBlockKind.Block);
-                        LinkBlocks(CurrentBasicBlock, afterIf);
-                        _currentBasicBlock = null;
+                            var afterIf = new BasicBlock(BasicBlockKind.Block);
+                            LinkBlocks(CurrentBasicBlock, afterIf);
+                            _currentBasicBlock = null;
 
-                        AppendNewBlock(whenFalse);
-                        VisitConditionalBranch(conditional.WhenFalse, ref dest, sense);
-                        AppendNewBlock(afterIf);
+                            AppendNewBlock(whenFalse);
+                            VisitConditionalBranch(conditional.WhenFalse, ref dest, sense);
+                            AppendNewBlock(afterIf);
 
-                        return;
+                            return;
+                        }
                     }
                     goto default;
 
                 case OperationKind.Coalesce:
-                    if (condition.Type.SpecialType == SpecialType.System_Boolean)
+                    if (ITypeSymbolHelpers.IsBooleanType(condition.Type))
                     {
                         var coalesce = (ICoalesceOperation)condition;
 
-                        var whenNull = new BasicBlock(BasicBlockKind.Block);
-                        IOperation convertedTestExpression = NullCheckAndConvertCoalesceValue(coalesce, whenNull);
+                        if (ITypeSymbolHelpers.IsBooleanType(coalesce.WhenNull.Type))
+                        {
+                            var whenNull = new BasicBlock(BasicBlockKind.Block);
+                            IOperation convertedTestExpression = NullCheckAndConvertCoalesceValue(coalesce, whenNull);
 
-                        convertedTestExpression = Operation.SetParentOperation(convertedTestExpression, null);
-                        dest = dest ?? new BasicBlock(BasicBlockKind.Block);
-                        LinkBlocks(CurrentBasicBlock, (convertedTestExpression, sense, RegularBranch(dest)));
-                        _currentBasicBlock = null;
+                            convertedTestExpression = Operation.SetParentOperation(convertedTestExpression, null);
+                            dest = dest ?? new BasicBlock(BasicBlockKind.Block);
+                            LinkBlocks(CurrentBasicBlock, (convertedTestExpression, sense, RegularBranch(dest)));
+                            _currentBasicBlock = null;
 
-                        var afterCoalesce = new BasicBlock(BasicBlockKind.Block);
-                        LinkBlocks(CurrentBasicBlock, afterCoalesce);
-                        _currentBasicBlock = null;
+                            var afterCoalesce = new BasicBlock(BasicBlockKind.Block);
+                            LinkBlocks(CurrentBasicBlock, afterCoalesce);
+                            _currentBasicBlock = null;
 
-                        AppendNewBlock(whenNull);
-                        VisitConditionalBranch(coalesce.WhenNull, ref dest, sense);
+                            AppendNewBlock(whenNull);
+                            VisitConditionalBranch(coalesce.WhenNull, ref dest, sense);
 
-                        AppendNewBlock(afterCoalesce);
+                            AppendNewBlock(afterCoalesce);
 
-                        return;
+                            return;
+                        }
                     }
                     goto default;
 
@@ -1941,7 +2069,7 @@ oneMoreTime:
 
         private static IsNullOperation MakeIsNullOperation(IOperation operand, ITypeSymbol booleanType)
         {
-            Debug.Assert(booleanType.SpecialType == SpecialType.System_Boolean);
+            Debug.Assert(ITypeSymbolHelpers.IsBooleanType(booleanType));
             Optional<object> constantValue = operand.ConstantValue;
             return new IsNullOperation(operand.Syntax, operand,
                                        booleanType,
@@ -1971,6 +2099,14 @@ oneMoreTime:
             }
 
             return null;
+        }
+
+        private static IOperation UnwrapNullableValue(IOperation value, Compilation compilation)
+        {
+            Debug.Assert(ITypeSymbolHelpers.IsNullableType(value.Type));
+            return TryUnwrapNullableValue(value, compilation) ??
+                   // PROTOTYPE(dataflow): The scenario with missing GetValueOrDefault is not covered by unit-tests.
+                   MakeInvalidOperation(ITypeSymbolHelpers.GetNullableUnderlyingType(value.Type), value);
         }
 
         public override IOperation VisitConditionalAccess(IConditionalAccessOperation operation, int? captureIdForResult)
@@ -2011,9 +2147,7 @@ oneMoreTime:
 
                 if (ITypeSymbolHelpers.IsNullableType(testExpressionType))
                 {
-                    receiver = TryUnwrapNullableValue(receiver, compilation) ??
-                               // PROTOTYPE(dataflow): The scenario with missing GetValueOrDefault is not covered by unit-tests.
-                               MakeInvalidOperation(((INamedTypeSymbol)testExpressionType).TypeArguments[0], receiver);
+                    receiver = UnwrapNullableValue(receiver, compilation);
                 }
 
                 // PROTOTYPE(dataflow): It looks like there is a bug in IOperation tree around XmlMemberAccessExpressionSyntax,
@@ -3283,7 +3417,7 @@ oneMoreTime:
                     int initialValueId = VisitAndCapture(operation.InitialValue);
                     limitValueId = VisitAndCapture(operation.LimitValue);
                     stepValueId = VisitAndCapture(operation.StepValue);
-                    IOperation stepValue = getCaptureReference(stepValueId, operation.StepValue);
+                    IOperation stepValue = GetCaptureReference(stepValueId, operation.StepValue);
 
                     if (userDefinedInfo != null)
                     {
@@ -3291,8 +3425,8 @@ oneMoreTime:
                         Debug.Assert(_forToLoopBinaryOperatorRightOperand == null);
 
                         // calculate and cache result of a positive check := step >= (step - step).
-                        _forToLoopBinaryOperatorLeftOperand = getCaptureReference(stepValueId, operation.StepValue);
-                        _forToLoopBinaryOperatorRightOperand = getCaptureReference(stepValueId, operation.StepValue);
+                        _forToLoopBinaryOperatorLeftOperand = GetCaptureReference(stepValueId, operation.StepValue);
+                        _forToLoopBinaryOperatorRightOperand = GetCaptureReference(stepValueId, operation.StepValue);
 
                         IOperation subtraction = Visit(userDefinedInfo.Subtraction.Value);
 
@@ -3316,10 +3450,8 @@ oneMoreTime:
 
                         if (ITypeSymbolHelpers.IsNullableType(stepValue.Type))
                         {
-                            stepValueIsNull = MakeIsNullOperation(getCaptureReference(stepValueId, operation.StepValue), booleanType);
-                            stepValue = TryUnwrapNullableValue(stepValue, compilation) ??
-                                            MakeInvalidOperation(((INamedTypeSymbol)stepValue.Type).TypeArguments[0], stepValue);
-                            // PROTOTYPE(dataflow): The scenario with missing GetValueOrDefault is not covered by unit-tests.
+                            stepValueIsNull = MakeIsNullOperation(GetCaptureReference(stepValueId, operation.StepValue), booleanType);
+                            stepValue = UnwrapNullableValue(stepValue, compilation);
                         }
 
                         ITypeSymbol stepValueEnumUnderlyingTypeOrSelf = ITypeSymbolHelpers.GetEnumUnderlyingTypeOrSelf(stepValue.Type);
@@ -3382,9 +3514,9 @@ oneMoreTime:
                         }
                     }
 
-                    AddStatement(new SimpleAssignmentExpression(getCaptureReference(captureId, controlVarReferenceForInitialization),
+                    AddStatement(new SimpleAssignmentExpression(GetCaptureReference(captureId, controlVarReferenceForInitialization),
                                                                 isRef: false,
-                                                                getCaptureReference(initialValueId, operation.InitialValue),
+                                                                GetCaptureReference(initialValueId, operation.InitialValue),
                                                                 semanticModel: null, operation.InitialValue.Syntax, type: null,
                                                                 constantValue: default, isImplicit: true));
                 }
@@ -3443,14 +3575,14 @@ oneMoreTime:
                     int captureId = _availableCaptureId++;
                     IOperation controlVariableReferenceForCondition = getLoopControlVariableReference(forceImplicit: true, captureId); // Yes we are going to evaluate it again
                     CaptureResultIfNotAlready(controlVariableReferenceForCondition.Syntax, captureId, controlVariableReferenceForCondition);
-                    controlVariableReferenceForCondition = getCaptureReference(captureId, controlVariableReferenceForCondition);
+                    controlVariableReferenceForCondition = GetCaptureReference(captureId, controlVariableReferenceForCondition);
 
                     var notPositive = new BasicBlock(BasicBlockKind.Block);
                     LinkBlocks(CurrentBasicBlock, (Operation.SetParentOperation(positiveFlag, null), JumpIfTrue: false, RegularBranch(notPositive)));
                     _currentBasicBlock = null;
 
                     _forToLoopBinaryOperatorLeftOperand = controlVariableReferenceForCondition;
-                    _forToLoopBinaryOperatorRightOperand = getCaptureReference(limitValueId, operation.LimitValue);
+                    _forToLoopBinaryOperatorRightOperand = GetCaptureReference(limitValueId, operation.LimitValue);
 
                     VisitConditionalBranch(userDefinedInfo.LessThanOrEqual.Value, ref @break, sense: false);
                     LinkBlocks(CurrentBasicBlock, bodyBlock);
@@ -3471,7 +3603,7 @@ oneMoreTime:
                 else
                 {
                     IOperation controlVariableReferenceforCondition = getLoopControlVariableReference(forceImplicit: true); // Yes we are going to evaluate it again
-                    IOperation limitReference = getCaptureReference(limitValueId, operation.LimitValue);
+                    IOperation limitReference = GetCaptureReference(limitValueId, operation.LimitValue);
                     var comparisonKind = BinaryOperatorKind.None;
 
                     // unsigned step is always Up
@@ -3568,13 +3700,11 @@ oneMoreTime:
                         AppendNewBlock(whenBothNotNull);
 
                         controlVariableReferenceforCondition = getLoopControlVariableReference(forceImplicit: true); // Yes we are going to evaluate it again
-                        limitReference = getCaptureReference(limitValueId, operation.LimitValue);
+                        limitReference = GetCaptureReference(limitValueId, operation.LimitValue);
 
-                        controlVariableReferenceforCondition = TryUnwrapNullableValue(controlVariableReferenceforCondition, compilation) ??
-                                                                    MakeInvalidOperation(((INamedTypeSymbol)operation.LimitValue.Type).TypeArguments[0], controlVariableReferenceforCondition);
-                        limitReference = TryUnwrapNullableValue(limitReference, compilation) ??
-                                                    MakeInvalidOperation(((INamedTypeSymbol)operation.LimitValue.Type).TypeArguments[0], limitReference);
-                        // PROTOTYPE(dataflow): The scenario with missing GetValueOrDefault is not covered by unit-tests.
+                        Debug.Assert(ITypeSymbolHelpers.IsNullableType(controlVariableReferenceforCondition.Type));
+                        controlVariableReferenceforCondition = UnwrapNullableValue(controlVariableReferenceforCondition, compilation);
+                        limitReference = UnwrapNullableValue(limitReference, compilation);
                     }
 
                     // If (positiveFlag, ctrl <= limit, ctrl >= limit)
@@ -3642,7 +3772,7 @@ oneMoreTime:
                                                        constantValue: bits, isImplicit: true);
 
                 var shiftedStep = new BinaryOperatorExpression(BinaryOperatorKind.RightShift,
-                                                               getCaptureReference(stepValueId, operation.StepValue),
+                                                               GetCaptureReference(stepValueId, operation.StepValue),
                                                                shiftConst,
                                                                isLifted: false,
                                                                isChecked: false,
@@ -3687,7 +3817,7 @@ oneMoreTime:
 
                     // Generate: controlVariable + stepValue
                     _forToLoopBinaryOperatorLeftOperand = getLoopControlVariableReference(forceImplicit: true); // Yes we are going to evaluate it again
-                    _forToLoopBinaryOperatorRightOperand = getCaptureReference(stepValueId, operation.StepValue);
+                    _forToLoopBinaryOperatorRightOperand = GetCaptureReference(stepValueId, operation.StepValue);
 
                     IOperation increment = Visit(userDefinedInfo.Addition.Value);
 
@@ -3716,12 +3846,12 @@ oneMoreTime:
                         int captureId = _availableCaptureId++;
                         controlVariableReferenceForAssignment = getLoopControlVariableReference(forceImplicit: true, captureId); // Yes we are going to evaluate it again
                         CaptureResultIfNotAlready(controlVariableReferenceForAssignment.Syntax, captureId, controlVariableReferenceForAssignment);
-                        controlVariableReferenceForAssignment = getCaptureReference(captureId, controlVariableReferenceForAssignment);
+                        controlVariableReferenceForAssignment = GetCaptureReference(captureId, controlVariableReferenceForAssignment);
 
                         BasicBlock whenNotNull = new BasicBlock(BasicBlockKind.Block);
 
                         IOperation condition = new BinaryOperatorExpression(BinaryOperatorKind.Or,
-                                                                            MakeIsNullOperation(getCaptureReference(stepValueId, operation.StepValue), booleanType),
+                                                                            MakeIsNullOperation(GetCaptureReference(stepValueId, operation.StepValue), booleanType),
                                                                             MakeIsNullOperation(getLoopControlVariableReference(forceImplicit: true), // Yes we are going to evaluate it again
                                                                                                 booleanType),
                                                                             isLifted: false,
@@ -3755,7 +3885,7 @@ oneMoreTime:
 
                         AppendNewBlock(whenNotNull);
 
-                        controlVariableReferenceForAssignment = getCaptureReference(captureId, controlVariableReferenceForAssignment);
+                        controlVariableReferenceForAssignment = GetCaptureReference(captureId, controlVariableReferenceForAssignment);
                     }
                     else
                     {
@@ -3766,15 +3896,13 @@ oneMoreTime:
                     _evalStack.Push(controlVariableReferenceForAssignment);
 
                     IOperation controlVariableReferenceForIncrement = getLoopControlVariableReference(forceImplicit: true); // Yes we are going to evaluate it again
-                    IOperation stepValueForIncrement = getCaptureReference(stepValueId, operation.StepValue);
+                    IOperation stepValueForIncrement = GetCaptureReference(stepValueId, operation.StepValue);
 
                     if (isNullable)
                     {
-                        controlVariableReferenceForIncrement = TryUnwrapNullableValue(controlVariableReferenceForIncrement, compilation) ??
-                                                                   MakeInvalidOperation(((INamedTypeSymbol)operation.StepValue.Type).TypeArguments[0], controlVariableReferenceForIncrement);
-                        stepValueForIncrement = TryUnwrapNullableValue(stepValueForIncrement, compilation) ??
-                                                    MakeInvalidOperation(((INamedTypeSymbol)operation.StepValue.Type).TypeArguments[0], stepValueForIncrement);
-                        // PROTOTYPE(dataflow): The scenario with missing GetValueOrDefault is not covered by unit-tests.
+                        Debug.Assert(ITypeSymbolHelpers.IsNullableType(controlVariableReferenceForIncrement.Type));
+                        controlVariableReferenceForIncrement = UnwrapNullableValue(controlVariableReferenceForIncrement, compilation);
+                        stepValueForIncrement = UnwrapNullableValue(stepValueForIncrement, compilation);
                     }
 
                     IOperation increment = new BinaryOperatorExpression(BinaryOperatorKind.Add,
@@ -3828,11 +3956,11 @@ oneMoreTime:
                         return result;
                 }
             }
+        }
 
-            FlowCaptureReference getCaptureReference(int id, IOperation underlying)
-            {
-                return new FlowCaptureReference(id, underlying.Syntax, underlying.Type, underlying.ConstantValue);
-            }
+        private static FlowCaptureReference GetCaptureReference(int id, IOperation underlying)
+        {
+            return new FlowCaptureReference(id, underlying.Syntax, underlying.Type, underlying.ConstantValue);
         }
 
         public override IOperation VisitSwitch(ISwitchOperation operation, int? captureIdForResult)
@@ -4033,7 +4161,7 @@ oneMoreTime:
         private static IOperation MakeNullable(IOperation operand, ITypeSymbol type)
         {
             Debug.Assert(ITypeSymbolHelpers.IsNullableType(type));
-            Debug.Assert(((INamedTypeSymbol)type).TypeArguments[0].Equals(operand.Type));
+            Debug.Assert(ITypeSymbolHelpers.GetNullableUnderlyingType(type).Equals(operand.Type));
 
             return new ConversionOperation(operand, ConvertibleConversion.Instance, isTryCast: false, isChecked: false,
                                            semanticModel: null, operand.Syntax, type,
