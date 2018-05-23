@@ -1153,16 +1153,24 @@ namespace Microsoft.CodeAnalysis.CSharp
                                         ref useSiteDiagnostics,
                                         basesBeingResolved))
             {
-                 bool friendRefNotEqualToThis = getFriendRefNotEqualToThis();
-
-                 diagInfo = diagnose ?
-                       inaccessibleViaQualifier ?
-                           new CSDiagnosticInfo(ErrorCode.ERR_BadProtectedAccess, unwrappedSymbol, accessThroughType, this.ContainingType) :
-                           friendRefNotEqualToThis ?
-                               new CSDiagnosticInfo(ErrorCode.ERR_FriendRefNotEqualToThis, unwrappedSymbol.ContainingAssembly.Identity.ToString(), AssemblyIdentity.PublicKeyToString(this.ContainingType.ContainingAssembly.PublicKey)) :
-                               new CSDiagnosticInfo(ErrorCode.ERR_BadAccess, new[] { unwrappedSymbol }, ImmutableArray.Create<Symbol>(unwrappedSymbol), additionalLocations: ImmutableArray<Location>.Empty) :
-                           null;
-                
+                 if (!diagnose)
+                 {
+                    diagInfo = null;
+                 }
+                 else
+                 {
+                    if (inaccessibleViaQualifier)
+                    {
+                        new CSDiagnosticInfo(ErrorCode.ERR_BadProtectedAccess, unwrappedSymbol, accessThroughType, this.ContainingType);
+                    }
+                    else if (getFriendRefNotEqualToThis())
+                    {
+                        new CSDiagnosticInfo(ErrorCode.ERR_FriendRefNotEqualToThis, unwrappedSymbol.ContainingAssembly.Identity.ToString(), AssemblyIdentity.PublicKeyToString(this.ContainingType.ContainingAssembly.PublicKey));
+                    } else
+                    {
+                        new CSDiagnosticInfo(ErrorCode.ERR_BadAccess, new[] { unwrappedSymbol }, ImmutableArray.Create<Symbol>(unwrappedSymbol), additionalLocations: ImmutableArray<Location>.Empty);
+                    }
+                }
 
                 return LookupResult.Inaccessible(symbol, diagInfo);
             }
