@@ -138,8 +138,8 @@
   <data name="Conflict_s_detected" xml:space="preserve">
     <value>Conflict(s) detected.</value>
   </data>
-  <data name="Invert_If_statement" xml:space="preserve">
-    <value>Invert If statement</value>
+  <data name="Invert_If" xml:space="preserve">
+    <value>Invert If</value>
   </data>
   <data name="Move_the_0_statement_to_line_1" xml:space="preserve">
     <value>Move the '{0}' statement to line {1}.</value>
@@ -212,12 +212,6 @@
   </data>
   <data name="Fix_Incorrect_Function_Return_Type" xml:space="preserve">
     <value>Fix Incorrect Function Return Type</value>
-  </data>
-  <data name="Remove_Unnecessary_Cast" xml:space="preserve">
-    <value>Remove Unnecessary Cast</value>
-  </data>
-  <data name="Cast_is_redundant" xml:space="preserve">
-    <value>Cast is redundant</value>
   </data>
   <data name="Simplify_name_0" xml:space="preserve">
     <value>Simplify name '{0}'</value>
@@ -1235,6 +1229,9 @@ Sub(&lt;parameterList&gt;) &lt;statement&gt;</value>
   <data name="Make_Async_Sub" xml:space="preserve">
     <value>Make Async Sub</value>
   </data>
+  <data name="Multiple_Types" xml:space="preserve">
+    <value>&lt;Multiple Types&gt;</value>
+  </data>
   <data name="Add_Me" xml:space="preserve">
     <value>Add 'Me.'</value>
   </data>
@@ -1252,5 +1249,8 @@ Sub(&lt;parameterList&gt;) &lt;statement&gt;</value>
   </data>
   <data name="Convert_to_For" xml:space="preserve">
     <value>Convert  to 'For'</value>
+  </data>
+  <data name="If_statement_can_be_simplified" xml:space="preserve">
+    <value>'If' statement can be simplified</value>
   </data>
 </root>

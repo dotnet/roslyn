@@ -1,9 +1,9 @@
 <Project Sdk="Microsoft.NET.Sdk">
-  <!-- 
+  <!--
 
-    This project file is used to create the Microsoft.NetCore.Compilers NuPkg on 
+    This project file is used to create the Microsoft.NetCore.Compilers NuPkg on
     Unix platforms during our bootstrap phase. This is a very temporary solution. Longer
-    term we are moving all of our packaging code to use `dotnet pack` at which point 
+    term we are moving all of our packaging code to use `dotnet pack` at which point
     this will simply be folded into that work.
 
     https://github.com/dotnet/roslyn/issues/25439
@@ -38,13 +38,19 @@
     <NuspecProperties>$(NuspecProperties);tags=Roslyn CodeAnalysis Compiler CSharp VB VisualBasic Parser Scanner Lexer Emit CodeGeneration Metadata IL Compilation Scripting Syntax Semantics</NuspecProperties>
 
     <!-- The set of NuGet packages whose versions we need in the NuSpec file -->
+    <NuspecProperties>$(NuspecProperties);HumanizerCoreVersion=$(HumanizerCoreVersion)</NuspecProperties>
+    <NuspecProperties>$(NuspecProperties);ICSharpCodeDecompilerVersion=$(ICSharpCodeDecompilerVersion)</NuspecProperties>
     <NuspecProperties>$(NuspecProperties);MicrosoftBuildFixedVersion=$(MicrosoftBuildFixedVersion)</NuspecProperties>
     <NuspecProperties>$(NuspecProperties);MicrosoftBuildTasksCoreFixedVersion=$(MicrosoftBuildTasksCoreFixedVersion)</NuspecProperties>
     <NuspecProperties>$(NuspecProperties);MicrosoftCSharpVersion=$(MicrosoftCSharpVersion)</NuspecProperties>
     <NuspecProperties>$(NuspecProperties);MicrosoftCodeAnalysisAnalyzersVersion=$(MicrosoftCodeAnalysisAnalyzersVersion)</NuspecProperties>
     <NuspecProperties>$(NuspecProperties);MicrosoftCodeAnalysisElfieVersion=$(MicrosoftCodeAnalysisElfieVersion)</NuspecProperties>
     <NuspecProperties>$(NuspecProperties);MicrosoftVisualBasicVersion=$(MicrosoftVisualBasicVersion)</NuspecProperties>
+    <NuspecProperties>$(NuspecProperties);MicrosoftVisualStudioImagingInterop140DesignTimeVersion=$(MicrosoftVisualStudioImagingInterop140DesignTimeVersion)</NuspecProperties>
+    <NuspecProperties>$(NuspecProperties);MicrosoftVisualStudioLanguageIntellisenseVersion=$(MicrosoftVisualStudioLanguageIntellisenseVersion)</NuspecProperties>
+    <NuspecProperties>$(NuspecProperties);MicrosoftVisualStudioLanguageStandardClassificationVersion=$(MicrosoftVisualStudioLanguageStandardClassificationVersion)</NuspecProperties>
     <NuspecProperties>$(NuspecProperties);MicrosoftVisualStudioSetupConfigurationInteropVersion=$(MicrosoftVisualStudioSetupConfigurationInteropVersion)</NuspecProperties>
+    <NuspecProperties>$(NuspecProperties);SQLitePCLRawbundle_greenVersion=$(SQLitePCLRawbundle_greenVersion)</NuspecProperties>
     <NuspecProperties>$(NuspecProperties);SystemAppContextVersion=$(SystemAppContextVersion)</NuspecProperties>
     <NuspecProperties>$(NuspecProperties);SystemCollectionsVersion=$(SystemCollectionsVersion)</NuspecProperties>
     <NuspecProperties>$(NuspecProperties);SystemCollectionsConcurrentVersion=$(SystemCollectionsConcurrentVersion)</NuspecProperties>
@@ -88,6 +94,7 @@
     <NuspecProperties>$(NuspecProperties);SystemTextRegularExpressionsVersion=$(SystemTextRegularExpressionsVersion)</NuspecProperties>
     <NuspecProperties>$(NuspecProperties);SystemThreadingVersion=$(SystemThreadingVersion)</NuspecProperties>
     <NuspecProperties>$(NuspecProperties);SystemThreadingTasksVersion=$(SystemThreadingTasksVersion)</NuspecProperties>
+    <NuspecProperties>$(NuspecProperties);SystemThreadingTasksExtensionsVersion=$(SystemThreadingTasksExtensionsVersion)</NuspecProperties>
     <NuspecProperties>$(NuspecProperties);SystemThreadingTasksParallelVersion=$(SystemThreadingTasksParallelVersion)</NuspecProperties>
     <NuspecProperties>$(NuspecProperties);SystemThreadingThreadVersion=$(SystemThreadingThreadVersion)</NuspecProperties>
     <NuspecProperties>$(NuspecProperties);SystemValueTupleVersion=$(SystemValueTupleVersion)</NuspecProperties>

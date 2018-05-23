@@ -2015,6 +2015,11 @@ This version used in: {2}</source>
         <target state="translated">フィールドを読み取り専用にします</target>
         <note />
       </trans-unit>
+      <trans-unit id="Convert_to_conditional_expression">
+        <source>Convert to conditional expression</source>
+        <target state="new">Convert to conditional expression</target>
+        <note />
+      </trans-unit>
     </body>
   </file>
 </xliff>

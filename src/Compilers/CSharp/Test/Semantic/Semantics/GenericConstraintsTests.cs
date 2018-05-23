@@ -3115,5 +3115,160 @@ Unmanaged: 1
 Object: 2
 Unmanaged: 3");
         }
+
+        [Fact]
+        [WorkItem(25654, "https://github.com/dotnet/roslyn/issues/25654")]
+        public void UnmanagedConstraint_PointersTypeInference()
+        {
+            var compilation = CreateCompilation(@"
+class C
+{
+    unsafe void M<T>(T* a) where T : unmanaged
+    {
+        var p = stackalloc T[10];
+        M(p);
+    }
+}", options: TestOptions.UnsafeReleaseDll);
+
+            compilation.VerifyDiagnostics();
+
+            var tree = compilation.SyntaxTrees.Single();
+            var model = compilation.GetSemanticModel(tree);
+
+            var call = tree.GetRoot().DescendantNodes().OfType<InvocationExpressionSyntax>().Single();
+            var inferredMethod = (MethodSymbol)model.GetSymbolInfo(call).Symbol;
+            var declaredMethod = compilation.GlobalNamespace.GetTypeMember("C").GetMethod("M");
+
+            Assert.Equal(declaredMethod, inferredMethod);
+            Assert.Equal(declaredMethod.TypeParameters.Single(), inferredMethod.TypeArguments.Single());
+        }
+
+        [Fact]
+        [WorkItem(25654, "https://github.com/dotnet/roslyn/issues/25654")]
+        public void UnmanagedConstraint_PointersTypeInference_CallFromADifferentMethod()
+        {
+            var compilation = CreateCompilation(@"
+class C
+{
+    unsafe void M<T>(T* a) where T : unmanaged
+    {
+    }
+    unsafe void N()
+    {
+        var p = stackalloc int[10];
+        M(p);
+    }
+}", options: TestOptions.UnsafeReleaseDll);
+
+            compilation.VerifyDiagnostics();
+
+            var tree = compilation.SyntaxTrees.Single();
+            var model = compilation.GetSemanticModel(tree);
+
+            var call = tree.GetRoot().DescendantNodes().OfType<InvocationExpressionSyntax>().Single();
+            var inferredMethod = (MethodSymbol)model.GetSymbolInfo(call).Symbol;
+            var declaredMethod = compilation.GlobalNamespace.GetTypeMember("C").GetMethod("M");
+
+            Assert.Equal(declaredMethod, inferredMethod.ConstructedFrom());
+            Assert.Equal(SpecialType.System_Int32, inferredMethod.TypeArguments.Single().SpecialType);
+        }
+
+        [Fact]
+        [WorkItem(25654, "https://github.com/dotnet/roslyn/issues/25654")]
+        public void UnmanagedConstraint_PointersTypeInference_WithOtherArgs()
+        {
+            var compilation = CreateCompilation(@"
+unsafe class C
+{
+    static void M<T>(T* a, T b) where T : unmanaged
+    {
+        M(null, b);
+    }
+}", options: TestOptions.UnsafeReleaseDll);
+
+            compilation.VerifyDiagnostics();
+
+            var tree = compilation.SyntaxTrees.Single();
+            var model = compilation.GetSemanticModel(tree);
+
+            var call = tree.GetRoot().DescendantNodes().OfType<InvocationExpressionSyntax>().Single();
+            var inferredMethod = (MethodSymbol)model.GetSymbolInfo(call).Symbol;
+            var declaredMethod = compilation.GlobalNamespace.GetTypeMember("C").GetMethod("M");
+
+            Assert.Equal(declaredMethod, inferredMethod);
+            Assert.Equal(declaredMethod.TypeParameters.Single(), inferredMethod.TypeArguments.Single());
+        }
+
+        [Fact]
+        [WorkItem(25654, "https://github.com/dotnet/roslyn/issues/25654")]
+        public void UnmanagedConstraint_PointersTypeInference_WithOtherArgs_CallFromADifferentMethod()
+        {
+            var compilation = CreateCompilation(@"
+unsafe class C
+{
+    static void M<T>(T* a, T b) where T : unmanaged
+    {
+    }
+    static void N()
+    {
+        M(null, 5);
+    }
+}", options: TestOptions.UnsafeReleaseDll);
+
+            compilation.VerifyDiagnostics();
+
+            var tree = compilation.SyntaxTrees.Single();
+            var model = compilation.GetSemanticModel(tree);
+
+            var call = tree.GetRoot().DescendantNodes().OfType<InvocationExpressionSyntax>().Single();
+            var inferredMethod = (MethodSymbol)model.GetSymbolInfo(call).Symbol;
+            var declaredMethod = compilation.GlobalNamespace.GetTypeMember("C").GetMethod("M");
+
+            Assert.Equal(declaredMethod, inferredMethod.ConstructedFrom());
+            Assert.Equal(SpecialType.System_Int32, inferredMethod.TypeArguments.Single().SpecialType);
+        }
+
+        [Fact]
+        [WorkItem(25654, "https://github.com/dotnet/roslyn/issues/25654")]
+        public void UnmanagedConstraint_PointersTypeInference_Errors()
+        {
+            CreateCompilation(@"
+unsafe class C
+{
+    void Unmanaged<T>(T* a) where T : unmanaged
+    {
+    }
+    void UnmanagedWithInterface<T>(T* a) where T : unmanaged, System.IDisposable
+    {
+    }
+    void Test()
+    {
+        int a = 0;
+
+        Unmanaged(0);                       // fail (type inference)
+        Unmanaged(a);                       // fail (type inference)
+        Unmanaged(&a);                      // succeed (unmanaged type pointer)
+
+        UnmanagedWithInterface(0);          // fail (type inference)
+        UnmanagedWithInterface(a);          // fail (type inference)
+        UnmanagedWithInterface(&a);         // fail (does not match interface)
+    }
+}", options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
+                // (14,9): error CS0411: The type arguments for method 'C.Unmanaged<T>(T*)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
+                //         Unmanaged(0);                       // fail (type inference)
+                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "Unmanaged").WithArguments("C.Unmanaged<T>(T*)").WithLocation(14, 9),
+                // (15,9): error CS0411: The type arguments for method 'C.Unmanaged<T>(T*)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
+                //         Unmanaged(a);                       // fail (type inference)
+                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "Unmanaged").WithArguments("C.Unmanaged<T>(T*)").WithLocation(15, 9),
+                // (18,9): error CS0411: The type arguments for method 'C.UnmanagedWithInterface<T>(T*)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
+                //         UnmanagedWithInterface(0);          // fail (type inference)
+                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "UnmanagedWithInterface").WithArguments("C.UnmanagedWithInterface<T>(T*)").WithLocation(18, 9),
+                // (19,9): error CS0411: The type arguments for method 'C.UnmanagedWithInterface<T>(T*)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
+                //         UnmanagedWithInterface(a);          // fail (type inference)
+                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "UnmanagedWithInterface").WithArguments("C.UnmanagedWithInterface<T>(T*)").WithLocation(19, 9),
+                // (20,9): error CS0315: The type 'int' cannot be used as type parameter 'T' in the generic type or method 'C.UnmanagedWithInterface<T>(T*)'. There is no boxing conversion from 'int' to 'System.IDisposable'.
+                //         UnmanagedWithInterface(&a);         // fail (does not match interface)
+                Diagnostic(ErrorCode.ERR_GenericConstraintNotSatisfiedValType, "UnmanagedWithInterface").WithArguments("C.UnmanagedWithInterface<T>(T*)", "System.IDisposable", "T", "int").WithLocation(20, 9));
+        }
     }
 }

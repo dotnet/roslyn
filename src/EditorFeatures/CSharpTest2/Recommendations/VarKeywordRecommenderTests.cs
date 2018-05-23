@@ -268,5 +268,61 @@ $$"));
         {
             await VerifyKeywordAsync(AddInsideMethod("var b = o is $$ "));
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestNotAfterRefInMemberContext()
+        {
+            await VerifyAbsenceAsync(
+@"class C {
+    ref $$");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestNotAfterRefReadonlyInMemberContext()
+        {
+            await VerifyAbsenceAsync(
+@"class C {
+    ref readonly $$");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestAfterRefInStatementContext()
+        {
+            await VerifyKeywordAsync(AddInsideMethod(
+@"ref $$"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestAfterRefReadonlyInStatementContext()
+        {
+            await VerifyKeywordAsync(AddInsideMethod(
+@"ref readonly $$"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestAfterRefLocalDeclaration()
+        {
+            await VerifyKeywordAsync(AddInsideMethod(
+@"ref $$ int local;"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestAfterRefReadonlyLocalDeclaration()
+        {
+            await VerifyKeywordAsync(AddInsideMethod(
+@"ref readonly $$ int local;"));
+        }
+
+        // For a local function, we can't add any tests - sometimes the keyword is offered and sometimes it's not,
+        // depending on whether the keyword is partially written or not. This is because a partially written keyword
+        // causes this to be parsed as a local declaration instead. We can't add either test because
+        // VerifyKeywordAsync & VerifyAbsenceAsync check for both cases - with the keyword partially written and without.
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestNotAfterRefExpression()
+        {
+            await VerifyAbsenceAsync(AddInsideMethod(
+@"ref int x = ref $$"));
+        }
     }
 }

@@ -74,8 +74,8 @@ if (o is object res) { // warning CS0184: The given expression is never of the p
 
 - https://github.com/dotnet/roslyn/issues/21979 In C# 7.2 (Visual Studio 2017 version 15.5) and previous it was allowed to convert to a delegate an instance method of a ref-like type such as `TypedReference`. Such operation invariable resulted in code that could not possibly run. The reason is that such conversion requires the receiver be boxed, which ref-like types cannot do.
 In Visual Studio 2017 version 15.6 such conversions will be explicitly disallowed by the compiler and cause compile time errors.
-Example: `Func<int> f = default(TypedReference).GetHashCode; // new error CS0123: No overload for 'GetHashCode' matches delegate 'Func<int>'` 
-   
+Example: `Func<int> f = default(TypedReference).GetHashCode; // new error CS0123: No overload for 'GetHashCode' matches delegate 'Func<int>'`
+
 - https://github.com/dotnet/roslyn/pull/23416 Before Visual Studio 2017 version 15.6 (Roslyn version 2.8) the compiler accepted `__arglist(...)` expressions with void-typed arguments. For instance, `__arglist(Console.WriteLine())`. But such program would fail at runtime. In Visual Studio 2017 version 15.6, this causes a compile-time error.
 
 - https://github.com/dotnet/roslyn/pull/24023 In Visual Studio 2017 version 15.6, Microsoft.CodeAnalysis.CSharp.Syntax.CrefParameterSyntax constructor and Update(), the parameter refOrOutKeyword was renamed to refKindKeyword (source breaking change if you're using named arguments).
@@ -97,6 +97,35 @@ Example: `Func<int> f = default(TypedReference).GetHashCode; // new error CS0123
     This is changed in 15.6 to now produce an error that the variable is not definitely assigned.
 
 - Visual Studio 2017 version 15.7: https://github.com/dotnet/roslyn/issues/19792 C# compiler will now reject [IsReadOnly] symbols that should have an [InAttribute] modreq, but don't.
+
 - Visual Studio 2017 version 15.7: https://github.com/dotnet/roslyn/pull/25131 C# compiler will now check `stackalloc T [count]` expressions to see if T matches constraints of `Span<T>`.
+
+- https://github.com/dotnet/roslyn/issues/24806 In C# 7.2 and previous versions, it could be possible to observe cases when an RValue expression is reduced to a variable that can be passed by reference in the process of compiling.
+For example `(x + 0)` becomes `x`. If such change happens in a context that allows both RValues and passing via direct reference (receiver of a struct call or an `in` parameter), then it could change the meaning of the code.
+C# 7.3 will preserve the behavior of the rvalue where the value must always be passed via a copy.
+Example:
+   ```C#
+   static int x = 123;
+   static string Test1()
+   {
+       // cannot replace value of "x + 0" with a reference to "x"
+       // since that would make the method see the mutations in M1();
+       return (x + 0).ToString(M1());
+   }
+
+   static string M1()
+   {
+       x = 42;
+       return "";
+   }
+   	```
+
+- Visual Studio 2017 version 15.7: https://github.com/dotnet/roslyn/issues/25450 We added new restrictions on the use of the `default` expression in preparation for the planned addition of further pattern-matching features in C# 8.0:
+  - If you write `e is default`, you will get the new error
+    `error CS8363: A default literal 'default' is not valid as a pattern. Use another literal (e.g. '0' or 'null') as appropriate. To match everything, use a discard pattern 'var _'.`
+  - If you write `case default:`, you will get the new error
+    `error CS8313: A default literal 'default' is not valid as a case constant. Use another literal (e.g. '0' or 'null') as appropriate. If you intended to write the default label, use 'default:' without 'case'.`
 - Visual Studio 2017 version 15.7: https://github.com/dotnet/roslyn/issues/25399 C# compiler will now produce errors if partial methods parameters have different ref-kinds in implementation vs definition.
 - Visual Studio 2017 version 15.7: https://github.com/dotnet/roslyn/issues/23525 C# compiler will now produce errors if there was an invalid pdbpath supplied to an embedded pdb, instead of just writing it to the binary.
+
+- Visual Studio 2017 version 15.8: https://github.com/dotnet/roslyn/issues/22455 C# compiler will now produce errors if there was an "in" or an "out" argument to an "__arglist" call. "out" was always allowed, and "in" was introduced in 15.5.

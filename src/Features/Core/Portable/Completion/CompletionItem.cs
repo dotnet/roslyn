@@ -44,7 +44,7 @@ namespace Microsoft.CodeAnalysis.Completion
         public ImmutableDictionary<string, string> Properties { get; }
 
         /// <summary>
-        /// Descriptive tags from <see cref="CompletionTags"/>.
+        /// Descriptive tags from <see cref="Tags.WellKnownTags"/>.
         /// These tags may influence how the item is displayed.
         /// </summary>
         public ImmutableArray<string> Tags { get; }

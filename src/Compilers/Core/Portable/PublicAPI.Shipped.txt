@@ -2246,7 +2246,6 @@ Microsoft.CodeAnalysis.SyntaxTokenList.Reverse() -> Microsoft.CodeAnalysis.Synta
 Microsoft.CodeAnalysis.SyntaxTokenList.Reversed
 Microsoft.CodeAnalysis.SyntaxTokenList.Reversed.Enumerator
 Microsoft.CodeAnalysis.SyntaxTokenList.Reversed.Enumerator.Current.get -> Microsoft.CodeAnalysis.SyntaxToken
-Microsoft.CodeAnalysis.SyntaxTokenList.Reversed.Enumerator.Enumerator(ref Microsoft.CodeAnalysis.SyntaxTokenList list) -> void
 Microsoft.CodeAnalysis.SyntaxTokenList.Reversed.Enumerator.MoveNext() -> bool
 Microsoft.CodeAnalysis.SyntaxTokenList.Reversed.Equals(Microsoft.CodeAnalysis.SyntaxTokenList.Reversed other) -> bool
 Microsoft.CodeAnalysis.SyntaxTokenList.Reversed.GetEnumerator() -> Microsoft.CodeAnalysis.SyntaxTokenList.Reversed.Enumerator
@@ -2318,7 +2317,6 @@ Microsoft.CodeAnalysis.SyntaxTriviaList.Reverse() -> Microsoft.CodeAnalysis.Synt
 Microsoft.CodeAnalysis.SyntaxTriviaList.Reversed
 Microsoft.CodeAnalysis.SyntaxTriviaList.Reversed.Enumerator
 Microsoft.CodeAnalysis.SyntaxTriviaList.Reversed.Enumerator.Current.get -> Microsoft.CodeAnalysis.SyntaxTrivia
-Microsoft.CodeAnalysis.SyntaxTriviaList.Reversed.Enumerator.Enumerator(ref Microsoft.CodeAnalysis.SyntaxTriviaList list) -> void
 Microsoft.CodeAnalysis.SyntaxTriviaList.Reversed.Enumerator.MoveNext() -> bool
 Microsoft.CodeAnalysis.SyntaxTriviaList.Reversed.Equals(Microsoft.CodeAnalysis.SyntaxTriviaList.Reversed other) -> bool
 Microsoft.CodeAnalysis.SyntaxTriviaList.Reversed.GetEnumerator() -> Microsoft.CodeAnalysis.SyntaxTriviaList.Reversed.Enumerator

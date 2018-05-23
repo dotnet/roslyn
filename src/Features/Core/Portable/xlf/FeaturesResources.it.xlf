@@ -2015,6 +2015,11 @@ Questa versione è usata {2}</target>
         <target state="translated">Imposta il campo come di sola lettura</target>
         <note />
       </trans-unit>
+      <trans-unit id="Convert_to_conditional_expression">
+        <source>Convert to conditional expression</source>
+        <target state="new">Convert to conditional expression</target>
+        <note />
+      </trans-unit>
     </body>
   </file>
 </xliff>

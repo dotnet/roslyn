@@ -241,15 +241,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.VBFeaturesResources
         End Property
         
         '''<summary>
-        '''  Looks up a localized string similar to Cast is redundant.
-        '''</summary>
-        Friend ReadOnly Property Cast_is_redundant() As String
-            Get
-                Return ResourceManager.GetString("Cast_is_redundant", resourceCulture)
-            End Get
-        End Property
-        
-        '''<summary>
         '''  Looks up a localized string similar to Catch clause.
         '''</summary>
         Friend ReadOnly Property Catch_clause() As String
@@ -1179,6 +1170,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.VBFeaturesResources
         End Property
         
         '''<summary>
+        '''  Looks up a localized string similar to &apos;If&apos; statement can be simplified.
+        '''</summary>
+        Friend ReadOnly Property If_statement_can_be_simplified() As String
+            Get
+                Return ResourceManager.GetString("If_statement_can_be_simplified", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
         '''  Looks up a localized string similar to Implicit member access can&apos;t be included in the selection without containing statement.
         '''</summary>
         Friend ReadOnly Property Implicit_member_access_can_t_be_included_in_the_selection_without_containing_statement() As String
@@ -1494,11 +1494,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.VBFeaturesResources
         End Property
         
         '''<summary>
-        '''  Looks up a localized string similar to Invert If statement.
+        '''  Looks up a localized string similar to Invert If.
         '''</summary>
-        Friend ReadOnly Property Invert_If_statement() As String
+        Friend ReadOnly Property Invert_If() As String
             Get
-                Return ResourceManager.GetString("Invert_If_statement", resourceCulture)
+                Return ResourceManager.GetString("Invert_If", resourceCulture)
             End Get
         End Property
         
@@ -1598,6 +1598,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.VBFeaturesResources
         Friend ReadOnly Property Move_the_0_statement_to_line_1() As String
             Get
                 Return ResourceManager.GetString("Move_the_0_statement_to_line_1", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to &lt;Multiple Types&gt;.
+        '''</summary>
+        Friend ReadOnly Property Multiple_Types() As String
+            Get
+                Return ResourceManager.GetString("Multiple_Types", resourceCulture)
             End Get
         End Property
         
@@ -2006,15 +2015,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.VBFeaturesResources
         Friend ReadOnly Property Remove_Me_qualification() As String
             Get
                 Return ResourceManager.GetString("Remove_Me_qualification", resourceCulture)
-            End Get
-        End Property
-        
-        '''<summary>
-        '''  Looks up a localized string similar to Remove Unnecessary Cast.
-        '''</summary>
-        Friend ReadOnly Property Remove_Unnecessary_Cast() As String
-            Get
-                Return ResourceManager.GetString("Remove_Unnecessary_Cast", resourceCulture)
             End Get
         End Property
         

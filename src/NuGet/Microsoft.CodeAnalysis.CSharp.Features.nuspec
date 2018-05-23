@@ -15,6 +15,7 @@
     <dependencies>
       <dependency id="Microsoft.CodeAnalysis.Features" version="$version$" />
       <dependency id="Microsoft.CodeAnalysis.CSharp.Workspaces" version="$version$" />
+      <dependency id="Humanizer.Core" version="$HumanizerCoreVersion$" />
     </dependencies>
 
     <language>en-US</language>
@@ -32,5 +33,8 @@
     <file src="Dlls\CSharpFeatures\Microsoft.CodeAnalysis.CSharp.Features.xml" target="lib\netstandard1.3" />
     <file src="Dlls\CSharpFeatures\Microsoft.CodeAnalysis.CSharp.Features.pdb*" target="lib\netstandard1.3" />
     <file src="$thirdPartyNoticesPath$" target="" />
+
+    <!-- Satellite assemblies -->
+    <file src="Dlls\CSharpFeatures\**\Microsoft.CodeAnalysis.CSharp.Features.resources.dll" target="lib\netstandard1.3" />
   </files>
 </package>

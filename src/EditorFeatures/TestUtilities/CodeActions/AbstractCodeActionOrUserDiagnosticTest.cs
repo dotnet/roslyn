@@ -74,12 +74,18 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
 
         protected abstract TestWorkspace CreateWorkspaceFromFile(string initialMarkup, TestParameters parameters);
 
+        private TestParameters WithRegularOptions(TestParameters parameters)
+            => parameters.WithParseOptions(parameters.parseOptions?.WithKind(SourceCodeKind.Regular));
+
+        private TestParameters WithScriptOptions(TestParameters parameters)
+            => parameters.WithParseOptions(parameters.parseOptions?.WithKind(SourceCodeKind.Script) ?? GetScriptOptions());
+
         protected async Task TestMissingInRegularAndScriptAsync(
             string initialMarkup,
             TestParameters parameters = default(TestParameters))
         {
-            await TestMissingAsync(initialMarkup, parameters.WithParseOptions(null));
-            await TestMissingAsync(initialMarkup, parameters.WithParseOptions(GetScriptOptions()));
+            await TestMissingAsync(initialMarkup, WithRegularOptions(parameters));
+            await TestMissingAsync(initialMarkup, WithScriptOptions(parameters));
         }
 
         protected async Task TestMissingAsync(
@@ -169,11 +175,11 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
             await TestAddDocument(
                 initialMarkup, expectedMarkup,
                 expectedContainers, expectedDocumentName,
-                index, parameters.WithParseOptions(null));
+                index, WithRegularOptions(parameters));
             await TestAddDocument(
                 initialMarkup, expectedMarkup,
                 expectedContainers, expectedDocumentName,
-                index, parameters.WithParseOptions(GetScriptOptions()));
+                index, WithScriptOptions(parameters));
         }
 
         protected async Task<Tuple<Solution, Solution>> TestAddDocumentAsync(
@@ -202,7 +208,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
             {
                 var codeActions = await GetCodeActionsAsync(workspace, parameters);
                 await TestAddDocument(
-                    workspace, expectedMarkup, index, expectedContainers, 
+                    workspace, expectedMarkup, index, expectedContainers,
                     expectedDocumentName, codeActions);
             }
         }
@@ -317,8 +323,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
             CodeActionPriority? priority = null,
             TestParameters parameters = default(TestParameters))
         {
-            await TestAsync(initialMarkup, expectedMarkup, index, priority, parameters.WithParseOptions(null));
-            await TestAsync(initialMarkup, expectedMarkup, index, priority, parameters.WithParseOptions(GetScriptOptions()));
+            await TestAsync(initialMarkup, expectedMarkup, index, priority, WithRegularOptions(parameters));
+            await TestAsync(initialMarkup, expectedMarkup, index, priority, WithScriptOptions(parameters));
         }
 
         internal Task TestAsync(
@@ -346,7 +352,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
             TestParameters parameters)
         {
             MarkupTestFile.GetSpans(
-                expectedMarkup.NormalizeLineEndings(), 
+                expectedMarkup.NormalizeLineEndings(),
                 out var expected, out IDictionary<string, ImmutableArray<TextSpan>> spanMap);
 
             var conflictSpans = spanMap.GetOrAdd("Conflict", _ => ImmutableArray<TextSpan>.Empty);
@@ -425,7 +431,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
             {
                 var annotatedItems = fixedRoot.GetAnnotatedNodesAndTokens(annotationKind).OrderBy(s => s.SpanStart).ToList();
 
-                Assert.Equal(expectedSpans.Length, annotatedItems.Count);
+                Assert.True(expectedSpans.Length == annotatedItems.Count,
+                    $"Annotations of kind '{annotationKind}' didn't match. Expected: {expectedSpans.Length}. Actual: {annotatedItems.Count}.");
 
                 for (var i = 0; i < Math.Min(expectedSpans.Length, annotatedItems.Count); i++)
                 {
@@ -443,6 +450,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
             if (expectedChangedDocumentId == null)
             {
                 var projectDifferences = SolutionUtilities.GetSingleChangedProjectChanges(oldSolution, newSolution);
+
                 var documentId = projectDifferences.GetChangedDocuments().FirstOrDefault() ?? projectDifferences.GetAddedDocuments().FirstOrDefault();
                 Assert.NotNull(documentId);
                 document = newSolution.GetDocument(documentId);
@@ -482,6 +490,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
             int index, ImmutableArray<CodeAction> actions, CodeActionPriority? priority = null)
         {
             Assert.NotNull(actions);
+            Assert.NotEmpty(actions);
             if (actions.Length == 1)
             {
                 if (actions.Single() is TopLevelSuppressionCodeAction suppressionAction)
