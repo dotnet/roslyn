@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis
         /// not be removed.
         /// </remarks>
         public static ImmutableHashSet<string> ReservedKeys { get; }
-            = ImmutableHashSet.CreateRange(CaseInsensitiveComparison.Comparer, new[] {
+            = ImmutableHashSet.CreateRange(Section.PropertiesKeyComparer, new[] {
                 "root",
                 "indent_style",
                 "indent_size",
@@ -84,7 +84,7 @@ namespace Microsoft.CodeAnalysis
             // To accommodate this, we use a lower case Unicode mapping when adding to the
             // dictionary, but we also use a case-insensitive key comparer when doing lookups
             var activeSectionProperties = ImmutableDictionary.CreateBuilder<string, string>(
-                CaseInsensitiveComparison.Comparer);
+                Section.PropertiesKeyComparer);
             string activeSectionName = "";
 
             using (var reader = new StringReader(text))
