@@ -21915,6 +21915,90 @@ static class C
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "a3.P").WithLocation(24, 13));
         }
 
+        [Fact]
+        public void ForEach_09()
+        {
+            var source =
+@"class A { }
+class B : A { }
+class C
+{
+    static void F(A?[] c)
+    {
+        foreach (var a1 in c)
+            a1.ToString();
+        foreach (A? a2 in c)
+            a2.ToString();
+        foreach (A a3 in c)
+            a3.ToString();
+        foreach (B? b1 in c)
+            b1.ToString();
+        foreach (B b2 in c)
+            b2.ToString();
+    }
+}";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
+            comp.VerifyDiagnostics(
+                // (8,13): warning CS8602: Possible dereference of a null reference.
+                //             a1.ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "a1").WithLocation(8, 13),
+                // (10,13): warning CS8602: Possible dereference of a null reference.
+                //             a2.ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "a2").WithLocation(10, 13),
+                // (11,18): warning CS8600: Converting null literal or possible null value to non-nullable type.
+                //         foreach (A a3 in c)
+                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "A").WithLocation(11, 18),
+                // (12,13): warning CS8602: Possible dereference of a null reference.
+                //             a3.ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "a3").WithLocation(12, 13),
+                // (14,13): warning CS8602: Possible dereference of a null reference.
+                //             b1.ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "b1").WithLocation(14, 13),
+                // (15,18): warning CS8600: Converting null literal or possible null value to non-nullable type.
+                //         foreach (B b2 in c)
+                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "B").WithLocation(15, 18),
+                // (16,13): warning CS8602: Possible dereference of a null reference.
+                //             b2.ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "b2").WithLocation(16, 13));
+        }
+
+        [Fact]
+        public void ForEach_10()
+        {
+            var source =
+@"#pragma warning disable 0649
+#pragma warning disable 8618
+class A<T>
+{
+    internal T F;
+}
+class B : A<object> { }
+class C
+{
+    static void F(A<object?>[] c)
+    {
+        foreach (var a1 in c)
+            a1.F.ToString();
+        foreach (A<object?> a2 in c)
+            a2.F.ToString();
+        foreach (A<object> a3 in c)
+            a3.F.ToString();
+        foreach (B b1 in c)
+            b1.ToString();
+    }
+}";
+            // PROTOTYPE(NullableReferenceTypes): Should report WRN_NullabilityMismatchInAssignment
+            // for `A<object> a3 in c` and `B b1 in c`.
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
+            comp.VerifyDiagnostics(
+                // (13,13): warning CS8602: Possible dereference of a null reference.
+                //             a1.F.ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "a1.F").WithLocation(13, 13),
+                // (15,13): warning CS8602: Possible dereference of a null reference.
+                //             a2.F.ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "a2.F").WithLocation(15, 13));
+        }
+
         // PROTOTYPE(NullableReferenceTypes): Should report CS8600 for `T1 t = (T1)NullableObject();`
         // and `T3 t = (T3)NullableObject();`. (See VisitConversion which skips reporting because the
         // `object?` has an Unboxing conversion. Should report warning on unconverted operand
