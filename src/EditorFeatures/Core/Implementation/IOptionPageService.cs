@@ -2,9 +2,9 @@
 
 using Microsoft.CodeAnalysis.Host;
 
-namespace Microsoft.CodeAnalysis.Editor.Implementation.CodeCleanup
+namespace Microsoft.CodeAnalysis.Editor.Implementation
 {
-    internal interface ICodeStyleConfigureService : IWorkspaceService
+    internal interface IOptionPageService : IWorkspaceService
     {
         void ShowFormattingOptionPage();
     }

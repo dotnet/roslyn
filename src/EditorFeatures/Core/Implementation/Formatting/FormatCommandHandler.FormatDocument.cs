@@ -1,7 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Linq;
-using Microsoft.CodeAnalysis.Editor.Implementation.CodeCleanup;
 using Microsoft.CodeAnalysis.Editor.Shared.Options;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Extensions;
@@ -33,7 +32,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Formatting
 
             _infoBarOpen = true;
 
-            var codeStyleConfigureService = workspace.Services.GetRequiredService<ICodeStyleConfigureService>();
+            var optionPageService = workspace.Services.GetRequiredService<IOptionPageService>();
             var infoBarService = workspace.Services.GetRequiredService<IInfoBarService>();
             infoBarService.ShowInfoBarInGlobalView(
                 EditorFeaturesResources.Code_cleanup_is_not_configured,
@@ -41,7 +40,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Formatting
                               kind: InfoBarUI.UIKind.Button,
                                () =>
                                {
-                                   codeStyleConfigureService.ShowFormattingOptionPage();
+                                   optionPageService.ShowFormattingOptionPage();
                                    _infoBarOpen = false;
                                }),
                 new InfoBarUI(EditorFeaturesResources.Donot_show_this_message_again,

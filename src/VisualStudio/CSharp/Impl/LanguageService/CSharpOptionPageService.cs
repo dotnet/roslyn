@@ -2,7 +2,7 @@
 
 using System;
 using System.Composition;
-using Microsoft.CodeAnalysis.Editor.Implementation.CodeCleanup;
+using Microsoft.CodeAnalysis.Editor.Implementation;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.VisualStudio.LanguageServices.CSharp.Options.Formatting;
@@ -11,19 +11,20 @@ using Microsoft.VisualStudio.Shell.Interop;
 
 namespace Microsoft.VisualStudio.LanguageServices.CSharp.LanguageService
 {
-    [ExportWorkspaceService(typeof(ICodeStyleConfigureService)), Shared]
-    internal class CSharpCodeStyleConfigureService : ForegroundThreadAffinitizedObject, ICodeStyleConfigureService
+    [ExportWorkspaceService(typeof(IOptionPageService)), Shared]
+    internal class CSharpOptionPageService : ForegroundThreadAffinitizedObject, IOptionPageService
     {
         private CSharpPackage _package;
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public CSharpCodeStyleConfigureService(SVsServiceProvider serviceProvider)
+        public CSharpOptionPageService(SVsServiceProvider serviceProvider)
         {
             var shell = (IVsShell)serviceProvider.GetService(typeof(SVsShell));
             ErrorHandler.ThrowOnFailure(shell.LoadPackage(Guids.CSharpPackageId, out var package));
             _package = (CSharpPackage)package;
         }
+
         public void ShowFormattingOptionPage()
         {
             AssertIsForeground();
