@@ -322,7 +322,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Format Document Settings.
+        ///   Looks up a localized string similar to Format Document Settings (Experiment) .
         /// </summary>
         internal static string Format_document_settings {
             get {

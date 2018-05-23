@@ -659,9 +659,9 @@ namespace Microsoft.CodeAnalysis.Editor {
         /// <summary>
         ///   Looks up a localized string similar to Do not show this message again.
         /// </summary>
-        internal static string Donot_show_this_again {
+        internal static string Donot_show_this_message_again {
             get {
-                return ResourceManager.GetString("Donot_show_this_again", resourceCulture);
+                return ResourceManager.GetString("Donot_show_this_message_again", resourceCulture);
             }
         }
         

@@ -58,8 +58,8 @@
         <note />
       </trans-unit>
       <trans-unit id="Format_document_settings">
-        <source>Format Document Settings</source>
-        <target state="new">Format Document Settings</target>
+        <source>Format Document Settings (Experiment) </source>
+        <target state="new">Format Document Settings (Experiment) </target>
         <note />
       </trans-unit>
       <trans-unit id="Make_readonly">

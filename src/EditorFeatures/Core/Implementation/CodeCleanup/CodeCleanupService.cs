@@ -2,9 +2,11 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.ComponentModel.Composition;
 using System.Linq;
 using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
@@ -25,8 +27,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CodeCleanup
     [Export(typeof(ICodeCleanupService))]
     internal class CodeCleanupService : ICodeCleanupService
     {
-        private static Lazy<IDictionary<PerLanguageOption<bool>, string[]>> _dictionary
-            = new Lazy<IDictionary<PerLanguageOption<bool>, string[]>>(GetCodeCleanupOptionMapping);
+        /// <summary>
+        /// Maps format document code cleanup options to DiagnosticId[]
+        /// </summary>
+        private static ImmutableDictionary<PerLanguageOption<bool>, string[]> _dictionary = GetCodeCleanupOptionMapping();
 
         private readonly ICodeFixService _codeFixService;
 
@@ -41,11 +45,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CodeCleanup
         {
             get
             {
-                return _dictionary.Value;
+                return _dictionary;
             }
         }
 
-        private static IDictionary<PerLanguageOption<bool>, string[]> GetCodeCleanupOptionMapping()
+        private static ImmutableDictionary<PerLanguageOption<bool>, string[]> GetCodeCleanupOptionMapping()
         {
             var dictionary = new Dictionary<PerLanguageOption<bool>, string[]>();
             dictionary.Add(FeatureOnOffOptions.FixImplicitExplicitType,
@@ -86,52 +90,17 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CodeCleanup
             //    IDEDiagnosticIds.InlineIsTypeCheckId,
             //    IDEDiagnosticIds.InlineIsTypeWithoutNameCheckDiagnosticsId,
 
-            return dictionary;
+            return dictionary.ToImmutableDictionary();
         }
 
-        public Document CleanupDocument(Document document, CancellationToken cancellationToken)
+        public Task<IEnumerable<TextChange>> GetChangesForCleanupDocument(Document document, CancellationToken cancellationToken)
         {
             var oldDocument = document;
             document = RemoveSortUsings(document, cancellationToken);
             document = ApplyCodeFixes(document, cancellationToken);
 
-            var codeFixChanges = document.GetTextChangesAsync(oldDocument, cancellationToken).WaitAndGetResult(cancellationToken).ToList();
-
-            // we should do apply changes only once. but for now, we just do it twice, for all others and formatting
-            if (codeFixChanges.Count > 0)
-            {
-                ApplyChanges(oldDocument, codeFixChanges, selectionOpt: null, cancellationToken);
-            }
-
-            return document;
+            return document.GetTextChangesAsync(oldDocument, cancellationToken);
         }
-
-        /// <summary>
-        /// TODO: copied from FormatCommandHandler.cs, will refactor to a better place
-        /// </summary>
-        /// <param name="document"></param>
-        /// <param name="changes"></param>
-        /// <param name="selectionOpt"></param>
-        /// <param name="cancellationToken"></param>
-        private void ApplyChanges(Document document, IList<TextChange> changes, TextSpan? selectionOpt, CancellationToken cancellationToken)
-        {
-            if (selectionOpt.HasValue)
-            {
-                var ruleFactory = document.Project.Solution.Workspace.Services.GetService<IHostDependentFormattingRuleFactoryService>();
-
-                changes = ruleFactory.FilterFormattedChanges(document, selectionOpt.Value, changes).ToList();
-                if (changes.Count == 0)
-                {
-                    return;
-                }
-            }
-
-            using (Logger.LogBlock(FunctionId.Formatting_ApplyResultToBuffer, cancellationToken))
-            {
-                document.Project.Solution.Workspace.ApplyTextChanges(document.Id, changes, cancellationToken);
-            }
-        }
-
         private Document RemoveSortUsings(Document document, CancellationToken cancellationToken)
         {
             // remove and sort usings

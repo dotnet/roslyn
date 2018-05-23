@@ -854,7 +854,7 @@ Do you want to proceed?</value>
   <data name="Configure_it_now" xml:space="preserve">
     <value>Configure it now</value>
   </data>
-  <data name="Donot_show_this_again" xml:space="preserve">
+  <data name="Donot_show_this_message_again" xml:space="preserve">
     <value>Do not show this message again</value>
   </data>
 </root>

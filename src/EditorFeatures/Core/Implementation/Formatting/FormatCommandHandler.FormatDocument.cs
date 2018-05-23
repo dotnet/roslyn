@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.Linq;
 using Microsoft.CodeAnalysis.Editor.Implementation.CodeCleanup;
 using Microsoft.CodeAnalysis.Editor.Shared.Options;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
@@ -43,9 +44,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Formatting
                                    codeStyleConfigureService.ShowFormattingOptionPage();
                                    _infoBarOpen = false;
                                }),
-                new InfoBarUI(EditorFeaturesResources.Donot_show_this_again,
+                new InfoBarUI(EditorFeaturesResources.Donot_show_this_message_again,
                               kind: InfoBarUI.UIKind.Button,
-                               () => { _infoBarOpen = false; }));
+                              ()=> { }));
         }
         public bool ExecuteCommand(FormatDocumentCommandArgs args, CommandExecutionContext context)
         {
@@ -75,7 +76,14 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Formatting
                     using (var transaction = new CaretPreservingEditTransaction(
                         EditorFeaturesResources.Formatting, args.TextView, _undoHistoryRegistry, _editorOperationsFactoryService))
                     {
-                        document = _codeCleanupService.CleanupDocument(document, cancellationToken);
+                        var oldDocument = document;
+                        var codeFixChanges = _codeCleanupService.GetChangesForCleanupDocument(document, cancellationToken).Result.ToList();
+
+                        // we should do apply changes only once. but for now, we just do it twice, for all others and formatting
+                        if (codeFixChanges.Count > 0)
+                        {
+                            ApplyChanges(oldDocument, codeFixChanges, selectionOpt: null, cancellationToken);
+                        }
 
                         var formattingService = document.GetLanguageService<IEditorFormattingService>();
                         if (formattingService == null || !formattingService.SupportsFormatDocument)

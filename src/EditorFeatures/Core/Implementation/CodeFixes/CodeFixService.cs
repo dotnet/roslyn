@@ -221,7 +221,9 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         public async Task<CodeFixCollection> GetFixesAsync(Document document, TextSpan range, string diagnosticId, CancellationToken cancellationToken)
         {
             var fixesCollectionArray = await GetFixesAsync(document, range, includeSuppressionFixes: false, diagnosticId, cancellationToken).ConfigureAwait(false);
+
             // TODO: Just get the first fix for now until we have a way to config user's preferred fix
+            // https://github.com/dotnet/roslyn/issues/27066
             return fixesCollectionArray.IsEmpty? null : fixesCollectionArray.First();
         }
 

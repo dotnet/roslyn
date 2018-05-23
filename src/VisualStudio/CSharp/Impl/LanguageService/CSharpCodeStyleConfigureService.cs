@@ -3,6 +3,7 @@
 using System;
 using System.Composition;
 using Microsoft.CodeAnalysis.Editor.Implementation.CodeCleanup;
+using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.VisualStudio.LanguageServices.CSharp.Options.Formatting;
 using Microsoft.VisualStudio.Shell;
@@ -11,7 +12,7 @@ using Microsoft.VisualStudio.Shell.Interop;
 namespace Microsoft.VisualStudio.LanguageServices.CSharp.LanguageService
 {
     [ExportWorkspaceService(typeof(ICodeStyleConfigureService)), Shared]
-    internal class CSharpCodeStyleConfigureService : ICodeStyleConfigureService
+    internal class CSharpCodeStyleConfigureService : ForegroundThreadAffinitizedObject, ICodeStyleConfigureService
     {
         private CSharpPackage _package;
 
@@ -25,6 +26,8 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.LanguageService
         }
         public void ShowFormattingOptionPage()
         {
+            AssertIsForeground();
+
             _package.ShowOptionPage(typeof(FormattingOptionPage));
         }
     }
