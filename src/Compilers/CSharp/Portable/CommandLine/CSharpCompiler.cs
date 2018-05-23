@@ -48,12 +48,30 @@ namespace Microsoft.CodeAnalysis.CSharp
             var normalizedFilePaths = new string[sourceFiles.Length];
             var diagnosticBag = DiagnosticBag.GetInstance();
 
+            ImmutableArray<ImmutableDictionary<string, ReportDiagnostic>> allTreeDiagnosticOptions = default;
+            if (Arguments.AnalyzerConfigFiles.Length > 0)
+            {
+                var analyzerConfigPaths = Arguments.AnalyzerConfigFiles.SelectAsArray(f => f.Path);
+                allTreeDiagnosticOptions = ProcessAnalyzerConfigFiles(
+                    analyzerConfigPaths,
+                    sourceFiles,
+                    ref hadErrors,
+                    diagnosticBag);
+            }
+
             if (Arguments.CompilationOptions.ConcurrentBuild)
             {
                 Parallel.For(0, sourceFiles.Length, UICultureUtilities.WithCurrentUICulture<int>(i =>
                 {
                     //NOTE: order of trees is important!!
-                    trees[i] = ParseFile(parseOptions, scriptParseOptions, ref hadErrors, sourceFiles[i], diagnosticBag, out normalizedFilePaths[i]);
+                    trees[i] = ParseFile(
+                        parseOptions,
+                        scriptParseOptions,
+                        allTreeDiagnosticOptions.IsDefault ? null : allTreeDiagnosticOptions[i],
+                        ref hadErrors,
+                        sourceFiles[i],
+                        diagnosticBag,
+                        out normalizedFilePaths[i]);
                 }));
             }
             else
@@ -61,24 +79,35 @@ namespace Microsoft.CodeAnalysis.CSharp
                 for (int i = 0; i < sourceFiles.Length; i++)
                 {
                     //NOTE: order of trees is important!!
-                    trees[i] = ParseFile(parseOptions, scriptParseOptions, ref hadErrors, sourceFiles[i], diagnosticBag, out normalizedFilePaths[i]);
+                    trees[i] = ParseFile(
+                        parseOptions,
+                        scriptParseOptions,
+                        allTreeDiagnosticOptions.IsDefault ? null : allTreeDiagnosticOptions[i],
+                        ref hadErrors,
+                        sourceFiles[i],
+                        diagnosticBag,
+                        out normalizedFilePaths[i]);
                 }
             }
+
+            Debug.Assert(hadErrors == diagnosticBag.HasAnyErrors());
+
+            var diagnostics = new List<DiagnosticInfo>();
 
             // If errors had been reported in ParseFile, while trying to read files, then we should simply exit.
             if (hadErrors)
             {
-                Debug.Assert(diagnosticBag.HasAnyErrors());
                 ReportErrors(diagnosticBag.ToReadOnlyAndFree(), consoleOutput, errorLogger);
                 return null;
             }
             else
             {
-                Debug.Assert(diagnosticBag.IsEmptyWithoutResolution);
+                foreach (var diag in diagnosticBag.AsEnumerable())
+                {
+                    diagnostics.Add(new DiagnosticInfo(MessageProvider, diag.Code, diag.Arguments.ToArray()));
+                }
                 diagnosticBag.Free();
             }
-
-            var diagnostics = new List<DiagnosticInfo>();
 
             var uniqueFilePaths = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
             for (int i = 0; i < sourceFiles.Length; i++)
@@ -154,6 +183,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private SyntaxTree ParseFile(
             CSharpParseOptions parseOptions,
             CSharpParseOptions scriptParseOptions,
+            ImmutableDictionary<string, ReportDiagnostic> diagnosticOptions,
             ref bool addedDiagnostics,
             CommandLineSourceFile file,
             DiagnosticBag diagnostics,
@@ -175,7 +205,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             else
             {
                 Debug.Assert(fileDiagnostics.Count == 0);
-                return ParseFile(parseOptions, scriptParseOptions, content, file);
+                return ParseFile(parseOptions, scriptParseOptions, content, file, diagnosticOptions);
             }
         }
 
@@ -183,12 +213,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             CSharpParseOptions parseOptions,
             CSharpParseOptions scriptParseOptions,
             SourceText content,
-            CommandLineSourceFile file)
+            CommandLineSourceFile file,
+            ImmutableDictionary<string, ReportDiagnostic> diagnosticOptions)
         {
             var tree = SyntaxFactory.ParseSyntaxTree(
                 content,
                 file.IsScript ? scriptParseOptions : parseOptions,
-                file.Path);
+                file.Path,
+                diagnosticOptions);
 
             // prepopulate line tables.
             // we will need line tables anyways and it is better to not wait until we are in emit

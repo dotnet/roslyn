@@ -56,6 +56,96 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CommandLine.UnitTests
         End Function
 
         <Fact>
+        Public Sub SimpleAnalyzerConfig()
+            Dim dir = Temp.CreateDirectory()
+            Dim src = dir.CreateFile("test.vb").WriteAllText("
+Class C
+     Sub M()
+        Dim x As Integer
+    End Sub
+End Class")
+            Dim analyzerConfig = dir.CreateFile(".editorconfig").WriteAllText("
+[*.vb]
+dotnet_diagnostic.bc42024.severity = suppress")
+            Dim cmd = New MockVisualBasicCompiler(Nothing, dir.Path, {
+                "/nologo",
+                "/t:library",
+                "/analyzerconfig:" + analyzerConfig.Path,
+                src.Path})
+
+            Assert.Equal(analyzerConfig.Path, Assert.Single(cmd.Arguments.AnalyzerConfigFiles).Path)
+
+            Dim outWriter = new StringWriter(CultureInfo.InvariantCulture)
+            Dim exitCode = cmd.Run(outWriter)
+            Assert.Equal(0, exitCode)
+            Assert.Equal("", outWriter.ToString())
+        End Sub
+
+        <Fact>
+        Public Sub AnalyzerConfigBadSeverity()
+            Dim dir = Temp.CreateDirectory()
+            Dim src = dir.CreateFile("test.vb").WriteAllText("
+Class C
+     Sub M()
+        Dim x As Integer
+    End Sub
+End Class")
+            Dim analyzerConfig = dir.CreateFile(".editorconfig").WriteAllText("
+[*.vb]
+dotnet_diagnostic.BC42024.severity = garbage")
+            Dim cmd = new MockVisualBasicCompiler(Nothing, dir.Path, {
+                "/nologo",
+                "/t:library",
+                "/analyzerconfig:" + analyzerConfig.Path,
+                src.Path })
+
+            Assert.Equal(analyzerConfig.Path, Assert.Single(cmd.Arguments.AnalyzerConfigFiles).Path)
+
+            Dim outWriter = new StringWriter(CultureInfo.InvariantCulture)
+            Dim exitCode = cmd.Run(outWriter)
+            Assert.Equal(0, exitCode)
+            Assert.Equal(
+$"vbc : warning BC42500: The diagnostic 'bc42024' was given an invalid severity 'garbage' in analyzer config file.
+{src.Path}(4) : warning BC42024: Unused local variable: 'x'.
+
+        Dim x As Integer
+            ~           
+", outWriter.ToString())
+        End Sub
+
+        <Fact>
+        public Sub AnalyzerConfigsInSameDir()
+            Dim dir = Temp.CreateDirectory()
+            Dim src = dir.CreateFile("test.cs").WriteAllText("
+Class C
+     Sub M()
+        Dim x As Integer
+    End Sub
+End Class")
+            Dim configText = "
+[*.cs]
+dotnet_diagnostic.cs0169.severity = suppress"
+
+            Dim analyzerConfig1 = dir.CreateFile("analyzerconfig1").WriteAllText(configText)
+            Dim analyzerConfig2 = dir.CreateFile("analyzerconfig2").WriteAllText(configText)
+
+            Dim cmd = new MockVisualBasicCompiler(Nothing, dir.Path, {
+                "/nologo",
+                "/t:library",
+                "/analyzerconfig:" + analyzerConfig1.Path,
+                "/analyzerconfig:" + analyzerConfig2.Path,
+                src.Path
+            })
+
+            Dim outWriter = new StringWriter(CultureInfo.InvariantCulture)
+            Dim exitCode = cmd.Run(outWriter)
+            Assert.Equal(1, exitCode)
+            Assert.Equal(
+                $"vbc : error BC42501: Multiple analyzer configs cannot be in the same directory ('{dir.Path}').",
+                outWriter.ToString().TrimEnd())
+        End Sub
+
+        <Fact>
         <WorkItem(946954, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/946954")>
         Public Sub CompilerBinariesAreAnyCPU()
             Assert.Equal(ProcessorArchitecture.MSIL, AssemblyName.GetAssemblyName(s_basicCompilerExecutable).ProcessorArchitecture)

@@ -115,6 +115,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim sourceFiles = New List(Of CommandLineSourceFile)()
             Dim hasSourceFiles = False
             Dim additionalFiles = New List(Of CommandLineSourceFile)()
+            Dim analyzerConfigs = ArrayBuilder(Of CommandLineSourceFile).GetInstance()
             Dim embeddedFiles = New List(Of CommandLineSourceFile)()
             Dim embedAllSourceFiles = False
             Dim codepage As Encoding = Nothing
@@ -1169,6 +1170,16 @@ lVbRuntimePlus:
                             additionalFiles.AddRange(ParseSeparatedFileArgument(value, baseDirectory, diagnostics))
                             Continue For
 
+                        Case "analyzerconfig"
+                            value = RemoveQuotesAndSlashes(value)
+                            If String.IsNullOrEmpty(value) Then
+                                AddDiagnostic(diagnostics, ERRID.ERR_ArgumentRequired, name, ":<file_list>")
+                                Continue For
+                            End If
+
+                            analyzerConfigs.AddRange(ParseSeparatedFileArgument(value, baseDirectory, diagnostics))
+                            Continue For
+
                         Case "embed"
                             value = RemoveQuotesAndSlashes(value)
                             If String.IsNullOrEmpty(value) Then
@@ -1393,6 +1404,7 @@ lVbRuntimePlus:
                 .MetadataReferences = metadataReferences.AsImmutable(),
                 .AnalyzerReferences = analyzers.AsImmutable(),
                 .AdditionalFiles = additionalFiles.AsImmutable(),
+                .AnalyzerConfigFiles = analyzerConfigs.ToImmutableAndFree(),
                 .ReferencePaths = searchPaths,
                 .SourcePaths = sourcePaths.AsImmutable(),
                 .KeyFileSearchPaths = keyFileSearchPaths.AsImmutable(),
