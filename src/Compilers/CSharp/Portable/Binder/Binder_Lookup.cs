@@ -1147,19 +1147,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return LookupResult.Inaccessible(symbol, diagInfo);
             }
             else if (!InCref &&
-                    !this.IsAccessible(unwrappedSymbol,
+                     !this.IsAccessible(unwrappedSymbol,
                                         RefineAccessThroughType(options, accessThroughType),
                                         out inaccessibleViaQualifier,
                                         ref useSiteDiagnostics,
                                         basesBeingResolved))
             {
-                 bool friendRefNotEqualToThis = unwrappedSymbol != null && unwrappedSymbol.ContainingAssembly.GetInternalsVisibleToPublicKeys(this.ContainingType.ContainingAssembly.Name).Any()
-                            && unwrappedSymbol.DeclaredAccessibility.Equals(Accessibility.Internal);
-
-                 foreach (ImmutableArray<byte> key in unwrappedSymbol.ContainingAssembly.GetInternalsVisibleToPublicKeys(this.ContainingType.ContainingAssembly.Name))
-                 {
-                     friendRefNotEqualToThis = key.SequenceEqual(this.ContainingType.ContainingAssembly.Identity.PublicKey) ? false : friendRefNotEqualToThis;
-                 }
+                 bool friendRefNotEqualToThis = getFriendRefNotEqualToThis();
 
                  diagInfo = diagnose ?
                        inaccessibleViaQualifier ?
@@ -1169,6 +1163,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                new CSDiagnosticInfo(ErrorCode.ERR_BadAccess, new[] { unwrappedSymbol }, ImmutableArray.Create<Symbol>(unwrappedSymbol), additionalLocations: ImmutableArray<Location>.Empty) :
                            null;
                 
+
                 return LookupResult.Inaccessible(symbol, diagInfo);
             }
             else if (!InCref && unwrappedSymbol.MustCallMethodsDirectly())
@@ -1199,6 +1194,23 @@ namespace Microsoft.CodeAnalysis.CSharp
             else
             {
                 return LookupResult.Good(symbol);
+            }
+
+            bool getFriendRefNotEqualToThis()
+            {
+                if (inaccessibleViaQualifier)
+                {
+                    return false;
+                }
+                bool temp = unwrappedSymbol != null
+                        && this.ContainingType.ContainingAssembly.Name != null
+                        && unwrappedSymbol.ContainingAssembly.GetInternalsVisibleToPublicKeys(this.ContainingType.ContainingAssembly.Name).Any()
+                        && unwrappedSymbol.DeclaredAccessibility == Accessibility.Internal;
+                foreach (ImmutableArray<byte> key in unwrappedSymbol.ContainingAssembly.GetInternalsVisibleToPublicKeys(this.ContainingType.ContainingAssembly.Name))
+                {
+                    temp = key.SequenceEqual(this.ContainingType.ContainingAssembly.Identity.PublicKey) ? false : temp;
+                }
+                return temp;
             }
         }
  
