@@ -211,7 +211,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.E
                 // This also preserves the behavior the VB had through Dev12.
                 var hardSelect = bestFilterResult.Value.CompletionItem.FilterText.StartsWith(filterText, StringComparison.CurrentCultureIgnoreCase);
 
-                return new EditorCompletion.FilteredCompletionModel(highlightedList, filteredItems.IndexOf(bestFilterResult.Value.CompletionItem), updatedFilters, matchCount == 1 ? EditorCompletion.UpdateSelectionHint.Selected : EditorCompletion.UpdateSelectionHint.SoftSelected, centerSelection: true, uniqueItem: null);
+                return new EditorCompletion.FilteredCompletionModel(highlightedList, filteredItems.IndexOf(bestFilterResult.Value.CompletionItem), updatedFilters, hardSelect ? EditorCompletion.UpdateSelectionHint.Selected : EditorCompletion.UpdateSelectionHint.SoftSelected, centerSelection: true, uniqueItem: null);
             }
             else
             {
