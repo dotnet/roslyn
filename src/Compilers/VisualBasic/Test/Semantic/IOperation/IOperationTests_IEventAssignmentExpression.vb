@@ -999,11 +999,9 @@ Block[B1] - Block
           Expression: 
             IEventAssignmentOperation (EventAdd) (OperationKind.EventAssignment, Type: null, IsImplicit) (Syntax: 'AddHandler( ... t), handler')
               Event Reference: 
-                IParenthesizedOperation (OperationKind.Parenthesized, Type: System.EventHandler) (Syntax: '(c.TestEvent)')
-                  Operand: 
-                    IEventReferenceOperation: Event C.TestEvent As System.EventHandler (OperationKind.EventReference, Type: System.EventHandler) (Syntax: 'c.TestEvent')
-                      Instance Receiver: 
-                        IParameterReferenceOperation: c (OperationKind.ParameterReference, Type: C) (Syntax: 'c')
+                IEventReferenceOperation: Event C.TestEvent As System.EventHandler (OperationKind.EventReference, Type: System.EventHandler) (Syntax: '(c.TestEvent)')
+                  Instance Receiver: 
+                    IParameterReferenceOperation: c (OperationKind.ParameterReference, Type: C) (Syntax: 'c')
               Handler: 
                 IParameterReferenceOperation: handler (OperationKind.ParameterReference, Type: System.EventHandler) (Syntax: 'handler')
 
@@ -1039,13 +1037,9 @@ Block[B0] - Entry
 Block[B1] - Block
     Predecessors: [B0]
     Statements (2)
-        IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: '(c.TestEvent)')
+        IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'c')
           Value: 
-            IParenthesizedOperation (OperationKind.Parenthesized, Type: System.EventHandler) (Syntax: '(c.TestEvent)')
-              Operand: 
-                IEventReferenceOperation: Event C.TestEvent As System.EventHandler (OperationKind.EventReference, Type: System.EventHandler) (Syntax: 'c.TestEvent')
-                  Instance Receiver: 
-                    IParameterReferenceOperation: c (OperationKind.ParameterReference, Type: C) (Syntax: 'c')
+            IParameterReferenceOperation: c (OperationKind.ParameterReference, Type: C) (Syntax: 'c')
 
         IFlowCaptureOperation: 1 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'handler1')
           Value: 
@@ -1080,7 +1074,9 @@ Block[B4] - Block
           Expression: 
             IEventAssignmentOperation (EventAdd) (OperationKind.EventAssignment, Type: null, IsImplicit) (Syntax: 'AddHandler( ... , handler2)')
               Event Reference: 
-                IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.EventHandler, IsImplicit) (Syntax: '(c.TestEvent)')
+                IEventReferenceOperation: Event C.TestEvent As System.EventHandler (OperationKind.EventReference, Type: System.EventHandler) (Syntax: '(c.TestEvent)')
+                  Instance Receiver: 
+                    IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: C, IsImplicit) (Syntax: 'c')
               Handler: 
                 IFlowCaptureReferenceOperation: 2 (OperationKind.FlowCaptureReference, Type: System.EventHandler, IsImplicit) (Syntax: 'If(handler1, handler2)')
 

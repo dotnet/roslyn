@@ -5043,10 +5043,13 @@ oneMoreTime:
         public override IOperation VisitEventAssignment(IEventAssignmentOperation operation, int? captureIdForResult)
         {
             IOperation visitedEventReference, visitedHandler;
-            if (operation.EventReference.Kind == OperationKind.EventReference)
+
+            // Get the IEventReferenceOperation, digging through IParenthesizedOperation.
+            // Note that for error cases, the event reference might be an IInvalidOperation.
+            IEventReferenceOperation eventReference = getEventReference();
+            if (eventReference != null)
             {
-                // Preserve the IEventReferenceOperation
-                var eventReference = (IEventReferenceOperation)operation.EventReference;
+                // Preserve the IEventReferenceOperation.
                 var eventReferenceInstance = eventReference.Event.IsStatic ? null : eventReference.Instance;
                 if (eventReferenceInstance != null)
                 {
@@ -5061,6 +5064,9 @@ oneMoreTime:
             }
             else
             {
+                Debug.Assert(operation.EventReference != null);
+                Debug.Assert(operation.EventReference.Kind == OperationKind.Invalid);
+
                 _evalStack.Push(Visit(operation.EventReference));
                 visitedHandler = Visit(operation.HandlerValue);
                 visitedEventReference = _evalStack.Pop();
@@ -5068,6 +5074,27 @@ oneMoreTime:
             
             return new EventAssignmentOperation(visitedEventReference, visitedHandler, operation.Adds, semanticModel: null,
                 operation.Syntax, operation.Type, operation.ConstantValue, IsImplicit(operation));
+
+            IEventReferenceOperation getEventReference()
+            {
+                IOperation current = operation.EventReference;
+
+                while (true)
+                {
+                    switch (current.Kind)
+                    {
+                        case OperationKind.EventReference:
+                            return (IEventReferenceOperation)current;
+
+                        case OperationKind.Parenthesized:
+                            current = ((IParenthesizedOperation)current).Operand;
+                            continue;
+
+                        default:
+                            return null;
+                    }
+                }
+            }
         }
 
         public override IOperation VisitRaiseEvent(IRaiseEventOperation operation, int? captureIdForResult)
