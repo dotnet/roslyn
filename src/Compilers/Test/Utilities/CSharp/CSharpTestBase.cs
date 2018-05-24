@@ -422,7 +422,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
                 source.GetSyntaxTrees(parseOptions, sourceFileName),
                 references,
                 options);
-            CompilationTestUtilities.ValidateIOperations(createCompilationLambda);
+            CompilationExtensions.ValidateIOperations(createCompilationLambda);
             return createCompilationLambda();
         }
 
@@ -436,7 +436,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
             var trees = (source == null) ? null : source.Select(s => Parse(s, options: parseOptions)).ToArray();
             Func<CSharpCompilation> createCompilationLambda = () => CSharpCompilation.Create(identity.Name, options: options ?? TestOptions.ReleaseDll, references: references, syntaxTrees: trees);
 
-            CompilationTestUtilities.ValidateIOperations(createCompilationLambda);
+            CompilationExtensions.ValidateIOperations(createCompilationLambda);
             var c = createCompilationLambda();
             Assert.NotNull(c.Assembly); // force creation of SourceAssemblySymbol
 
@@ -461,7 +461,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
                 previousScriptCompilation: previous,
                 returnType: returnType,
                 globalsType: hostObjectType);
-            CompilationTestUtilities.ValidateIOperations(createCompilationLambda);
+            CompilationExtensions.ValidateIOperations(createCompilationLambda);
             return createCompilationLambda();
         }
 
@@ -484,7 +484,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
                 previousScriptCompilation: previous,
                 returnType: returnType,
                 globalsType: hostObjectType);
-            CompilationTestUtilities.ValidateIOperations(createCompilationLambda);
+            CompilationExtensions.ValidateIOperations(createCompilationLambda);
             return createCompilationLambda();
         }
 

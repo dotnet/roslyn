@@ -10,18 +10,6 @@ using System.Threading.Tasks;
 
 namespace Microsoft.CodeAnalysis
 {
-    public static class CompilationExtensions
-    {
-        /// <summary>
-        /// Returns true if there is an implicit (C#) or widening (VB) conversion from
-        /// <paramref name="fromType"/> to <paramref name="toType"/>. Returns false if
-        /// either <paramref name="fromType"/> or <paramref name="toType"/> is null, or
-        /// if no such conversion exists.
-        /// </summary>
-        public static bool HasImplicitConversion(this Compilation compilation, ITypeSymbol fromType, ITypeSymbol toType)
-            => fromType != null && toType != null && compilation.ClassifyCommonConversion(fromType, toType).IsImplicit;
-    }
-
     public static class ModelExtensions
     {
         /// <summary>

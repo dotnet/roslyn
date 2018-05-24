@@ -1103,6 +1103,15 @@ namespace Microsoft.CodeAnalysis
         /// <paramref name="source"/> type to the <paramref name="destination"/> type.</returns>
         public abstract CommonConversion ClassifyCommonConversion(ITypeSymbol source, ITypeSymbol destination);
 
+        /// <summary>
+        /// Returns true if there is an implicit (C#) or widening (VB) conversion from
+        /// <paramref name="fromType"/> to <paramref name="toType"/>. Returns false if
+        /// either <paramref name="fromType"/> or <paramref name="toType"/> is null, or
+        /// if no such conversion exists.
+        /// </summary>
+        public bool HasImplicitConversion(ITypeSymbol fromType, ITypeSymbol toType)
+            => fromType != null && toType != null && this.ClassifyCommonConversion(fromType, toType).IsImplicit;
+
         #endregion
 
         #region Diagnostics
