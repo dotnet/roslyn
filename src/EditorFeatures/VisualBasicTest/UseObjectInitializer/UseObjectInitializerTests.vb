@@ -379,7 +379,7 @@ End Class
 "
 class C
     Sub Bar()
-        Dim c As IExample = [||]New Foo
+        Dim c As IExample = [||]New Goo
         c.Name = String.Empty
     End Sub
 End Class
@@ -389,7 +389,7 @@ Interface IExample
     Property LastName As String
 End Interface
 
-Class Foo
+Class Goo
     Implements IExample
 
     Private Property Name As String Implements IExample.Name
@@ -405,7 +405,7 @@ End Class
 "
 class C
     Sub Bar()
-        Dim c As IExample = [||]New Foo
+        Dim c As IExample = [||]New Goo
         c.Name = String.Empty
         c.LastName = String.Empty
     End Sub
@@ -416,7 +416,7 @@ Interface IExample
     Property LastName As String
 End Interface
 
-Class Foo
+Class Goo
     Implements IExample
 
     Private Property Name As String Implements IExample.Name
@@ -432,7 +432,7 @@ End Class
 "
 class C
     Sub Bar()
-        Dim c As IExample = [||]New Foo
+        Dim c As IExample = [||]New Goo
         c.LastName = String.Empty
         c.Name = String.Empty
     End Sub
@@ -443,7 +443,7 @@ Interface IExample
     Property LastName As String
 End Interface
 
-Class Foo
+Class Goo
     Implements IExample
 
     Private Property Name As String Implements IExample.Name
@@ -453,7 +453,7 @@ End Class
 "
 class C
     Sub Bar()
-        Dim c As IExample = New Foo With {
+        Dim c As IExample = New Goo With {
             .LastName = String.Empty
         }
         c.Name = String.Empty
@@ -465,7 +465,7 @@ Interface IExample
     Property LastName As String
 End Interface
 
-Class Foo
+Class Goo
     Implements IExample
 
     Private Property Name As String Implements IExample.Name
@@ -481,7 +481,7 @@ End Class
 "
 class C
     Sub Bar()
-        Dim c As IExample = [||]New Foo
+        Dim c As IExample = [||]New Goo
         c.LastName = String.Empty
         c.Name = String.Empty
     End Sub
@@ -492,7 +492,7 @@ Interface IExample
     Property LastName As String
 End Interface
 
-Class Foo
+Class Goo
     Implements IExample
 
     Private Property Name As String Implements IExample.Name
@@ -502,8 +502,8 @@ End Class
 "
 class C
     Sub Bar()
-        Dim c As IExample = New Foo With {
-            .LastName = String.Empty
+        Dim c As IExample = New Goo With {
+            .MyLastName = String.Empty
         }
         c.Name = String.Empty
     End Sub
@@ -514,7 +514,7 @@ Interface IExample
     Property LastName As String
 End Interface
 
-Class Foo
+Class Goo
     Implements IExample
 
     Private Property Name As String Implements IExample.Name
