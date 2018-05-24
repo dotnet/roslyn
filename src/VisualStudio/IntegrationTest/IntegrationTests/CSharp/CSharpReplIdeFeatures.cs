@@ -203,7 +203,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
             Assert.False(VisualStudio.IsCommandAvailable(WellKnownCommandNames.Refactor_ReorderParameters));
         }
 
-        [WpfFact]
+        [WpfFact(Skip = "https://github.com/dotnet/roslyn/issues/27128")]
         public void AddUsing()
         {
             VisualStudio.InteractiveWindow.InsertCode("typeof(ArrayList)");
@@ -219,7 +219,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
 typeof(ArrayList)");
         }
 
-        [WpfFact]
+        [WpfFact(Skip = "https://github.com/dotnet/roslyn/issues/27128")]
         public void QualifyName()
         {
             VisualStudio.InteractiveWindow.InsertCode("typeof(ArrayList)");
