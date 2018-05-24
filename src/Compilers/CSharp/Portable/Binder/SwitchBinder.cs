@@ -232,8 +232,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // SPEC VIOLATION for Dev10 COMPATIBILITY:
 
                 // Dev10 compiler violates the SPEC comment below:
-                //      "if the constant-expression is not implicitly convertible (§6.1) to 
-                //      the governing type of the nearest enclosing switch statement, 
+                //      "if the constant-expression is not implicitly convertible (§6.1) to
+                //      the governing type of the nearest enclosing switch statement,
                 //      a compile-time error occurs"
 
                 // If there is no implicit conversion from gotoCaseExpression to switchGoverningType,
