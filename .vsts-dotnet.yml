@@ -1,0 +1,11 @@
+phases:
+- phase: Windows Unit Tests
+  queue:
+    matrix:
+      debug:
+        configuration: debug
+      release: 
+        configuration: release
+  steps:
+    - script: build/scripts/cibuild.cmd -$(configuartion) -test32
+           
