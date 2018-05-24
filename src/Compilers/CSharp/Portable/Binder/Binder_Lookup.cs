@@ -1206,31 +1206,17 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             bool getFriendRefNotEqualToThis()
             {
-                try
+                if (unwrappedSymbol.DeclaredAccessibility == Accessibility.Internal)
                 {
-                    if (inaccessibleViaQualifier)
+                    foreach (ImmutableArray<byte> key in unwrappedSymbol.ContainingAssembly.GetInternalsVisibleToPublicKeys(this.Compilation.AssemblyName))
                     {
-                        return false;
-                    }
-                    bool temp = unwrappedSymbol != null
-                            && unwrappedSymbol.ContainingAssembly != null
-                            && unwrappedSymbol.DeclaredAccessibility == Accessibility.Internal
-                            && this.Compilation.Assembly.PublicKey != null;
-
-                    if (temp && unwrappedSymbol.ContainingAssembly.GetInternalsVisibleToPublicKeys(this.Compilation.AssemblyName).Any())
-                    {
-                        foreach (ImmutableArray<byte> key in unwrappedSymbol.ContainingAssembly.GetInternalsVisibleToPublicKeys(this.Compilation.AssemblyName))
+                        if (key.SequenceEqual(this.Compilation.Assembly.Identity.PublicKey))
                         {
-                            temp = key.SequenceEqual(this.Compilation.Assembly.Identity.PublicKey) ? false : temp;
+                            return false;
                         }
                     }
-                    return temp;
                 }
-                catch
-                {
-                    Debugger.Launch();
-                    return false;
-                }
+                return true ;
             }
         }
  
