@@ -853,6 +853,15 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Convert anonymous type to tuple.
+        /// </summary>
+        internal static string Convert_anonymous_type_to_tuple {
+            get {
+                return ResourceManager.GetString("Convert_anonymous_type_to_tuple", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Convert to binary.
         /// </summary>
         internal static string Convert_to_binary {

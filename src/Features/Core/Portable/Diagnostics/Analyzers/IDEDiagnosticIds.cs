@@ -72,6 +72,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         public const string RemoveUnnecessaryParenthesesDiagnosticId = "IDE0047";
         public const string AddRequiredParenthesesDiagnosticId = "IDE0048";
 
+        public const string ConvertAnonymousTypeToTupleDiagnosticId = "IDE0049";
+
         // Analyzer error Ids
         public const string AnalyzerChangedId = "IDE1001";
         public const string AnalyzerDependencyConflictId = "IDE1002";

@@ -17,6 +17,11 @@
         <target state="translated">Действия не могут быть пустыми.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Convert_anonymous_type_to_tuple">
+        <source>Convert anonymous type to tuple</source>
+        <target state="new">Convert anonymous type to tuple</target>
+        <note />
+      </trans-unit>
       <trans-unit id="generic_overload">
         <source>generic overload</source>
         <target state="translated">универсальная перегрузка</target>
