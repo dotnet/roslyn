@@ -429,14 +429,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     tmpDiagnostics.Clear()
 
                     If withoutArgs.Kind = BoundKind.PropertyAccess Then
-                        If DirectCast(withoutArgs, BoundPropertyAccess).ReceiverOpt?.Syntax Is withoutArgs.Syntax Then
+                        Dim receiverOpt As BoundExpression = DirectCast(withoutArgs, BoundPropertyAccess).ReceiverOpt
+                        If receiverOpt?.Syntax Is withoutArgs.Syntax AndAlso Not receiverOpt.WasCompilerGenerated Then
                             withoutArgs.MakeCompilerGenerated()
                         End If
 
                         withoutArgs = MakeRValue(withoutArgs, diagnostics)
 
-                    ElseIf DirectCast(withoutArgs, BoundCall).ReceiverOpt?.Syntax Is withoutArgs.Syntax Then
-                        withoutArgs.MakeCompilerGenerated()
+                    Else
+                        Dim receiverOpt As BoundExpression = DirectCast(withoutArgs, BoundCall).ReceiverOpt
+                        If receiverOpt?.Syntax Is withoutArgs.Syntax AndAlso Not receiverOpt.WasCompilerGenerated Then
+                            withoutArgs.MakeCompilerGenerated()
+                        End If
                     End If
 
                     If withoutArgs.Kind = BoundKind.BadExpression Then

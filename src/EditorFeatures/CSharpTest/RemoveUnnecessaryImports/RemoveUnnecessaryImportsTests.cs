@@ -6,6 +6,7 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.RemoveUnnecessaryImports;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -1352,6 +1353,35 @@ class Program
         Console.WriteLine();
     }
 }");
+        }
+
+        [Theory]
+        [InlineData(0)]
+        [InlineData(1)]
+        [InlineData(2)]
+        [InlineData(3)]
+        [InlineData(4)]
+        [Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryImports)]
+        [WorkItem(20377, "https://github.com/dotnet/roslyn/issues/20377")]
+        public async Task TestWarningLevel(int warningLevel)
+        {
+            await TestInRegularAndScriptAsync(
+@"[|using System;
+using System.Collections.Generic;
+using System.Linq;
+
+class Program
+{
+    static void Main(string[] args)
+    {
+    }
+}|]",
+@"class Program
+{
+    static void Main(string[] args)
+    {
+    }
+}", compilationOptions: new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary, warningLevel: warningLevel));
         }
     }
 }

@@ -3,9 +3,11 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.CodeStyle;
+using Microsoft.CodeAnalysis.CSharp.CodeStyle.TypeStyle;
 using Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery;
 using Microsoft.CodeAnalysis.CSharp.Simplification;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
@@ -324,12 +326,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
         public static bool IsInInContext(this ExpressionSyntax expression)
             => (expression?.Parent as ArgumentSyntax)?.RefKindKeyword.Kind() == SyntaxKind.InKeyword;
 
-        public static bool IsOnlyWrittenTo(this ExpressionSyntax expression)
+        private static ExpressionSyntax GetExpressionToAnalyzeForWrites(ExpressionSyntax expression)
         {
             if (expression.IsRightSideOfDotOrArrow())
             {
                 expression = expression.Parent as ExpressionSyntax;
             }
+
+            expression = expression.WalkUpParentheses();
+
+            return expression;
+        }
+
+        public static bool IsOnlyWrittenTo(this ExpressionSyntax expression)
+        {
+            expression = GetExpressionToAnalyzeForWrites(expression);
 
             if (expression != null)
             {
@@ -350,27 +361,76 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                         return true;
                     }
                 }
+
+                if (IsExpressionOfArgumentInDeconstruction(expression))
+                {
+                    return true;
+                }
             }
 
             return false;
         }
 
-        public static bool IsAttributeNamedArgumentIdentifier(this ExpressionSyntax expression)
+        /// <summary>
+        /// If this declaration or identifier is part of a deconstruction, find the deconstruction.
+        /// If found, returns either an assignment expression or a foreach variable statement.
+        /// Returns null otherwise.
+        /// 
+        /// copied from SyntaxExtensions.GetContainingDeconstruction
+        /// </summary>
+        private static bool IsExpressionOfArgumentInDeconstruction(ExpressionSyntax expr)
         {
-            var nameEquals = expression?.Parent as NameEqualsSyntax;
-            return nameEquals.IsParentKind(SyntaxKind.AttributeArgument);
+            if (!expr.IsParentKind(SyntaxKind.Argument))
+            {
+                return false;
+            }
+
+            while (true)
+            {
+                var parent = expr.Parent;
+                if (parent == null)
+                {
+                    return false;
+                }
+
+                switch (parent.Kind())
+                {
+                    case SyntaxKind.Argument:
+                        if (parent.Parent?.Kind() == SyntaxKind.TupleExpression)
+                        {
+                            expr = (TupleExpressionSyntax)parent.Parent;
+                            continue;
+                        }
+
+                        return false;
+                    case SyntaxKind.SimpleAssignmentExpression:
+                        if (((AssignmentExpressionSyntax)parent).Left == expr)
+                        {
+                            return true;
+                        }
+
+                        return false;
+                    case SyntaxKind.ForEachVariableStatement:
+                        if (((ForEachVariableStatementSyntax)parent).Variable == expr)
+                        {
+                            return true;
+                        }
+
+                        return false;
+
+                    default:
+                        return false;
+                }
+            }
         }
 
         public static bool IsWrittenTo(this ExpressionSyntax expression)
         {
+            expression = GetExpressionToAnalyzeForWrites(expression);
+
             if (expression.IsOnlyWrittenTo())
             {
                 return true;
-            }
-
-            if (expression.IsRightSideOfDotOrArrow())
-            {
-                expression = expression.Parent as ExpressionSyntax;
             }
 
             if (expression.IsInRefContext())
@@ -390,6 +450,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             }
 
             return false;
+        }
+
+        public static bool IsAttributeNamedArgumentIdentifier(this ExpressionSyntax expression)
+        {
+            var nameEquals = expression?.Parent as NameEqualsSyntax;
+            return nameEquals.IsParentKind(SyntaxKind.AttributeArgument);
         }
 
         public static bool IsOperandOfIncrementOrDecrementExpression(this ExpressionSyntax expression)
@@ -691,13 +757,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 var memberAccess = (MemberAccessExpressionSyntax)expression;
                 return memberAccess.TryReduce(semanticModel, out replacementNode, out issueSpan, optionSet, cancellationToken);
             }
-            else if (expression is NameSyntax name)
+
+            if (expression is TypeSyntax typeName)
             {
-                return name.TryReduce(semanticModel, out replacementNode, out issueSpan, optionSet, cancellationToken);
-            }
-            else if (expression is TypeSyntax typeName)
-            {
-                return typeName.IsReplaceableByVar(semanticModel, out replacementNode, out issueSpan, optionSet, cancellationToken);
+                // First, see if we can replace this type with var if that's what the user prefers.
+                // That always overrides all other simplification.
+                if (typeName.IsReplaceableByVar(semanticModel, out replacementNode, out issueSpan, optionSet, cancellationToken))
+                {
+                    return true;
+                }
+
+                if (expression is NameSyntax name)
+                {
+                    return name.TryReduce(semanticModel, out replacementNode, out issueSpan, optionSet, cancellationToken);
+                }
             }
 
             return false;
@@ -2269,75 +2342,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             OptionSet optionSet,
             CancellationToken cancellationToken)
         {
-            replacementNode = null;
-            issueSpan = default;
+            var typeStyle = CSharpUseImplicitTypeHelper.Instance.AnalyzeTypeName(
+                simpleName, semanticModel, optionSet, cancellationToken);
 
-            if (!optionSet.GetOption(SimplificationOptions.PreferImplicitTypeInLocalDeclaration))
+            if (!typeStyle.IsStylePreferred || !typeStyle.CanConvert())
             {
+                replacementNode = null;
+                issueSpan = default;
                 return false;
             }
 
-            // If it is already var
-            if (simpleName.IsVar)
-            {
-                return false;
-            }
-
-            var candidateReplacementNode = SyntaxFactory.IdentifierName("var")
-                                            .WithLeadingTrivia(simpleName.GetLeadingTrivia())
-                                            .WithTrailingTrivia(simpleName.GetTrailingTrivia());
-            var candidateIssueSpan = simpleName.Span;
-
-            // If there exists a Type called var , fail.
-            var checkSymbol = semanticModel.GetSpeculativeSymbolInfo(simpleName.SpanStart, candidateReplacementNode, SpeculativeBindingOption.BindAsTypeOrNamespace).Symbol;
-            if (checkSymbol != null && checkSymbol.IsKind(SymbolKind.NamedType) && ((INamedTypeSymbol)checkSymbol).TypeKind == TypeKind.Class && checkSymbol.Name == "var")
-            {
-                return false;
-            }
-
-            // If the simpleName is the type of the Variable Declaration Syntax belonging to LocalDeclaration, For Statement or Using statement
-            if (simpleName.IsParentKind(SyntaxKind.VariableDeclaration) &&
-                ((VariableDeclarationSyntax)simpleName.Parent).Type == simpleName &&
-                simpleName.Parent.Parent.IsKind(SyntaxKind.LocalDeclarationStatement, SyntaxKind.ForStatement, SyntaxKind.UsingStatement))
-            {
-                if (simpleName.Parent.IsParentKind(SyntaxKind.LocalDeclarationStatement) &&
-                    ((LocalDeclarationStatementSyntax)simpleName.Parent.Parent).Modifiers.Any(n => n.Kind() == SyntaxKind.ConstKeyword))
-                {
-                    return false;
-                }
-
-                var variableDeclaration = (VariableDeclarationSyntax)simpleName.Parent;
-
-                // Check the Initialized Value to see if it is allowed to be in the Var initialization
-                if (variableDeclaration.Variables.Count != 1 ||
-                    !variableDeclaration.Variables.Single().Initializer.IsKind(SyntaxKind.EqualsValueClause))
-                {
-                    return false;
-                }
-
-                var variable = variableDeclaration.Variables.Single();
-                var initializer = variable.Initializer;
-                var identifier = variable.Identifier;
-
-                if (EqualsValueClauseNotSuitableForVar(identifier, simpleName, initializer, semanticModel, cancellationToken))
-                {
-                    return false;
-                }
-
-                replacementNode = candidateReplacementNode;
-                issueSpan = candidateIssueSpan;
-                return true;
-            }
-
-            if (simpleName.IsParentKind(SyntaxKind.ForEachStatement) &&
-                ((ForEachStatementSyntax)simpleName.Parent).Type == simpleName)
-            {
-                replacementNode = candidateReplacementNode;
-                issueSpan = candidateIssueSpan;
-                return true;
-            }
-
-            return false;
+            replacementNode = SyntaxFactory.IdentifierName("var")
+                .WithLeadingTrivia(simpleName.GetLeadingTrivia())
+                .WithTrailingTrivia(simpleName.GetTrailingTrivia());
+            issueSpan = simpleName.Span;
+            return true;
         }
 
         private static bool EqualsValueClauseNotSuitableForVar(
@@ -2576,6 +2595,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             if (node is MemberBindingExpressionSyntax memberBinding)
             {
                 return memberBinding.Name;
+            }
+
+            if (node is AliasQualifiedNameSyntax aliasQualifiedName && aliasQualifiedName.Name != null)
+            {
+                return aliasQualifiedName.Name;
             }
 
             return null;

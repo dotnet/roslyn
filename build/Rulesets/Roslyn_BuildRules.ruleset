@@ -21,6 +21,7 @@
     <Rule Id="CA1055" Action="None" />
     <Rule Id="CA1056" Action="None" />
     <Rule Id="CA1061" Action="None" /> <!-- "do not hide base class methods": currently violations in the compiler -->
+    <Rule Id="CA1063" Action="None" /> <!-- https://github.com/dotnet/roslyn/issues/25134: Enable rule CA1063 (Implement IDisposable correctly) for Roslyn.sln -->
     <Rule Id="CA1064" Action="None" />
     <Rule Id="CA1065" Action="None" />
     <Rule Id="CA1066" Action="None" />
@@ -44,10 +45,13 @@
     <Rule Id="CA1814" Action="None" /> <!-- prefer jagged arrays to multidimensional: a silly piece of advice -->
     <Rule Id="CA1815" Action="None" />
     <Rule Id="CA1821" Action="Warning" />
+    <Rule Id="CA1822" Action="None" /> <!-- https://github.com/dotnet/roslyn/issues/25132: Enable rule CA1822 (Mark members as static) on Roslyn.sln -->
     <Rule Id="CA1823" Action="None" /> <!-- https://github.com/dotnet/roslyn/issues/20404: Enable rule CA1823 (remove unused field) once we have a fixer for it -->
     <Rule Id="CA1824" Action="None" /> <!-- mark assemblies with NeutralResourcesLanguageAttribute -->
+    <Rule Id="CA2000" Action="None" /> <!-- https://github.com/dotnet/roslyn/issues/25880 -->
     <Rule Id="CA2007" Action="Warning" />
     <Rule Id="CA2211" Action="None" />
+    <Rule Id="CA2213" Action="None" /> <!-- https://github.com/dotnet/roslyn/issues/25880 -->
     <Rule Id="CA2214" Action="None" /> <!-- do not call overridable methods in constructors: done in various places -->
     <Rule Id="CA2218" Action="None" />
     <Rule Id="CA2222" Action="None" />
@@ -121,7 +125,7 @@
     <Rule Id="RS0018" Action="Warning" />
   </Rules>
   <Rules AnalyzerId="XmlDocumentationComments.Analyzers" RuleNamespace="XmlDocumentationComments.Analyzers">
-    <Rule Id="RS0010" Action="Warning" />
+    <Rule Id="CA1200" Action="Warning" />
   </Rules>
   <Rules AnalyzerId="Microsoft.NetCore.Analyzers" RuleNamespace="Microsoft.NetCore.Analyzers">
     <Rule Id="CA9999" Action="None" /> <!-- We know the analyzers will fail during a bootstrap build -->
@@ -136,5 +140,11 @@
     <Rule Id="xUnit2006" Action="None" /> <!-- "do not use generic Assert.Equal to test string equality" is a valid assert, but very noisy right now -->
     <Rule Id="xUnit2007" Action="None" /> <!-- "do not use Assert.IsType(typeof...)" is a valid assert, but very noisy right now -->
     <Rule Id="xUnit2009" Action="None" /> <!-- "do not use Assert.True to check for substrings" is a valid assert, but very noisy right now -->
+    <Rule Id="xUnit2012" Action="None" /> <!-- "do not use Enumerable.Any() to check if a value exists in a collection" is a valid assert, but very noisy right now -->
+    <Rule Id="xUnit2013" Action="None" /> <!-- "do not use Assert.Equal() to check for collection size" is a valid assert, but very noisy right now -->
+    <Rule Id="xUnit2015" Action="None" /> <!-- "do not use typeof() expression to check the exception type. " is a valid assert, but very noisy right now -->
+    <Rule Id="xUnit2017" Action="None" /> <!-- "do not use Contains() to check if a value exists in a collection" is a valid assert, but very noisy right now -->
+    <Rule Id="xUnit2018" Action="None" /> <!-- "do not compare an object's exact type to the abstract class" is a valid assert, but very noisy right now -->
+collection.
   </Rules>
 </RuleSet>

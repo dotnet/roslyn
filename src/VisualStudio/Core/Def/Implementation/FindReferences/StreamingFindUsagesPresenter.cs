@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Composition;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor.Host;
+using Microsoft.CodeAnalysis.Editor.QuickInfo;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.FindUsages;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -31,12 +32,12 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
         private readonly IServiceProvider _serviceProvider;
 
         public readonly ITextBufferFactoryService TextBufferFactoryService;
-        public readonly IProjectionBufferFactoryService ProjectionBufferFactoryService;
-        public readonly IEditorOptionsFactoryService EditorOptionsFactoryService;
         public readonly ITextEditorFactoryService TextEditorFactoryService;
         public readonly IContentTypeRegistryService ContentTypeRegistryService;
         public readonly ClassificationTypeMap TypeMap;
         public readonly IEditorFormatMapService FormatMapService;
+        public readonly IClassificationFormatMap ClassificationFormatMap;
+        public readonly DeferredContentFrameworkElementFactory DeferredContentFrameworkElementFactory;
 
         private readonly IFindAllReferencesService _vsFindAllReferencesService;
         private readonly VisualStudioWorkspace _workspace;
@@ -49,23 +50,23 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
             VisualStudioWorkspace workspace,
             Shell.SVsServiceProvider serviceProvider,
             ITextBufferFactoryService textBufferFactoryService,
-            IProjectionBufferFactoryService projectionBufferFactoryService,
-            IEditorOptionsFactoryService editorOptionsFactoryService,
             ITextEditorFactoryService textEditorFactoryService,
             IContentTypeRegistryService contentTypeRegistryService,
+            DeferredContentFrameworkElementFactory frameworkElementFactory,
             ClassificationTypeMap typeMap,
-            IEditorFormatMapService formatMapService)
+            IEditorFormatMapService formatMapService,
+            IClassificationFormatMapService classificationFormatMapService)
         {
             _workspace = workspace;
             _serviceProvider = serviceProvider;
             TextBufferFactoryService = textBufferFactoryService;
-            ProjectionBufferFactoryService = projectionBufferFactoryService;
-            EditorOptionsFactoryService = editorOptionsFactoryService;
             ContentTypeRegistryService = contentTypeRegistryService;
+            DeferredContentFrameworkElementFactory = frameworkElementFactory;
 
             TextEditorFactoryService = textEditorFactoryService;
             TypeMap = typeMap;
             FormatMapService = formatMapService;
+            ClassificationFormatMap = classificationFormatMapService.GetClassificationFormatMap("tooltip");
 
             _vsFindAllReferencesService = (IFindAllReferencesService)_serviceProvider.GetService(typeof(SVsFindAllReferences));
         }

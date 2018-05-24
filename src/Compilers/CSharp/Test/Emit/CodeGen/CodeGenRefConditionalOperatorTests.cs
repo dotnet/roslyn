@@ -637,6 +637,37 @@ class C
         }
 
         [Fact]
+        [WorkItem(24306, "https://github.com/dotnet/roslyn/issues/24306")]
+        public void TestRefConditional_71()
+        {
+            var source = @"
+class C
+{
+    static void Main()
+    {
+
+    }
+
+    void Test()
+    {
+        int local1 = 1;
+        int local2 = 2;
+        bool b = true;
+
+        ref int r = ref b? ref local1: ref local2;
+    }
+}
+";
+            var comp = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe, parseOptions:TestOptions.Regular7_1);
+
+            comp.VerifyEmitDiagnostics(
+                // (15,25): error CS8302: Feature 'ref conditional expression' is not available in C# 7.1. Please use language version 7.2 or greater.
+                //         ref int r = ref b? ref local1: ref local2;
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_1, "b? ref local1: ref local2").WithArguments("ref conditional expression", "7.2").WithLocation(15, 25)
+               );
+        }
+
+        [Fact]
         public void TestRefConditionalUnsafeToReturn1()
         {
             var source = @"
@@ -961,7 +992,7 @@ class C
 }
 ";
 
-            var comp = CompileAndVerify(source, additionalRefs: new[] { SystemRuntimeFacadeRef, ValueTupleRef }, expectedOutput: "1");
+            var comp = CompileAndVerify(source, expectedOutput: "1");
             comp.VerifyDiagnostics();
 
             comp.VerifyIL("C.Main", @"
@@ -1025,7 +1056,7 @@ class C
     }
 ";
 
-            var comp = CompileAndVerify(source, additionalRefs: new[] { SystemRuntimeFacadeRef, ValueTupleRef, SystemCoreRef }, expectedOutput: "00", verify: Verification.Fails);
+            var comp = CompileAndVerifyWithMscorlib40(source, references: new[] { SystemRuntimeFacadeRef, ValueTupleRef, SystemCoreRef }, expectedOutput: "00", verify: Verification.Fails);
             comp.VerifyDiagnostics();
 
             comp.VerifyIL("Program.Main", @"
@@ -1113,7 +1144,7 @@ class C
     }
 ";
 
-            var comp = CompileAndVerify(source, additionalRefs: new[] { SystemRuntimeFacadeRef, ValueTupleRef }, expectedOutput: "00", verify: Verification.Fails);
+            var comp = CompileAndVerify(source, expectedOutput: "00", verify: Verification.Fails);
             comp.VerifyDiagnostics();
 
             comp.VerifyIL("Program.Test", @"

@@ -31,7 +31,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Symbols.CorLibrary
 
         <Fact, WorkItem(760148, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/760148")>
         Public Sub Bug760148_1()
-            Dim corLib = CompilationUtils.CreateCompilationWithoutReferences(
+            Dim corLib = CompilationUtils.CreateEmptyCompilation(
 <compilation>
     <file name="a.vb">
 Namespace System
@@ -46,7 +46,7 @@ End Namespace
             Assert.False(obj.IsErrorType())
             Assert.Same(corLib.Assembly, obj.ContainingAssembly)
 
-            Dim consumer = CompilationUtils.CreateCompilationWithReferences(
+            Dim consumer = CompilationUtils.CreateEmptyCompilationWithReferences(
 <compilation>
     <file name="a.vb">
 Namespace System
@@ -61,7 +61,7 @@ End Namespace
 
         <Fact, WorkItem(760148, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/760148")>
         Public Sub Bug760148_2()
-            Dim corLib = CompilationUtils.CreateCompilationWithoutReferences(
+            Dim corLib = CompilationUtils.CreateEmptyCompilation(
 <compilation>
     <file name="a.vb">
 Namespace System
@@ -73,7 +73,7 @@ End Namespace
 
             Dim obj = corLib.GetSpecialType(SpecialType.System_Object)
 
-            Dim consumer = CompilationUtils.CreateCompilationWithReferences(
+            Dim consumer = CompilationUtils.CreateEmptyCompilationWithReferences(
 <compilation>
     <file name="a.vb">
 Namespace System

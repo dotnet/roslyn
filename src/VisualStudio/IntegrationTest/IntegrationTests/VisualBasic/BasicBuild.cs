@@ -1,6 +1,8 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -14,12 +16,17 @@ namespace Roslyn.VisualStudio.IntegrationTests.VisualBasic
         public BasicBuild(VisualStudioInstanceFactory instanceFactory)
             : base(instanceFactory)
         {
+        }
+
+        public override async Task InitializeAsync()
+        {
+            await base.InitializeAsync().ConfigureAwait(true);
             VisualStudio.SolutionExplorer.CreateSolution(nameof(BasicBuild));
             var testProj = new ProjectUtils.Project("TestProj");
             VisualStudio.SolutionExplorer.AddProject(testProj, WellKnownProjectTemplates.ConsoleApplication, LanguageNames.VisualBasic);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Build)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Build)]
         public void BuildProject()
         {
             var editorText = @"Module Program

@@ -4,272 +4,272 @@
     <body>
       <trans-unit id="Microsoft_Visual_Basic">
         <source>Microsoft Visual Basic</source>
-        <target state="new">Microsoft Visual Basic</target>
+        <target state="translated">Microsoft Visual Basic</target>
         <note />
       </trans-unit>
       <trans-unit id="Insert_Snippet">
         <source>Insert Snippet</source>
-        <target state="new">Insert Snippet</target>
+        <target state="translated">Kod Parçacığı Ekle</target>
         <note />
       </trans-unit>
       <trans-unit id="IntelliSense">
         <source>IntelliSense</source>
-        <target state="new">IntelliSense</target>
+        <target state="translated">IntelliSense</target>
         <note />
       </trans-unit>
       <trans-unit id="Move_local_declaration_to_the_extracted_method_if_it_is_not_used_elsewhere">
         <source>_Move local declaration to the extracted method if it is not used elsewhere</source>
-        <target state="new">_Move local declaration to the extracted method if it is not used elsewhere</target>
+        <target state="translated">Başka bir yerde kullanılmıyorsa, yerel bildirimi ayıklanan metoda _taşı</target>
         <note />
       </trans-unit>
       <trans-unit id="Automatic_insertion_of_Interface_and_MustOverride_members">
         <source>Automatic _insertion of Interface and MustOverride members</source>
-        <target state="new">Automatic _insertion of Interface and MustOverride members</target>
+        <target state="translated">Interface ve MustOverride üyelerini otomatik olarak _ekle</target>
         <note />
       </trans-unit>
       <trans-unit id="Show_procedure_line_separators">
         <source>_Show procedure line separators</source>
-        <target state="new">_Show procedure line separators</target>
+        <target state="translated">Yordam satır ayıraçlarını _göster</target>
         <note />
       </trans-unit>
       <trans-unit id="Don_t_put_ByRef_on_custom_structure">
         <source>_Don't put ByRef on custom structure</source>
-        <target state="new">_Don't put ByRef on custom structure</target>
+        <target state="translated">Özel yapıya ByRef _yerleştirme</target>
         <note />
       </trans-unit>
       <trans-unit id="Editor_Help">
         <source>Editor Help</source>
-        <target state="new">Editor Help</target>
+        <target state="translated">Düzenleyici Yardımı</target>
         <note />
       </trans-unit>
       <trans-unit id="A_utomatic_insertion_of_end_constructs">
         <source>A_utomatic insertion of end constructs</source>
-        <target state="new">A_utomatic insertion of end constructs</target>
+        <target state="translated">Bitiş yapılarını o_tomatik ekle</target>
         <note />
       </trans-unit>
       <trans-unit id="Highlight_related_keywords_under_cursor">
         <source>Highlight related _keywords under cursor</source>
-        <target state="new">Highlight related _keywords under cursor</target>
+        <target state="translated">İmlecin altında ilgili ana_htar sözcükleri vurgula</target>
         <note />
       </trans-unit>
       <trans-unit id="Highlight_references_to_symbol_under_cursor">
         <source>_Highlight references to symbol under cursor</source>
-        <target state="new">_Highlight references to symbol under cursor</target>
+        <target state="translated">İmlecin altındaki sembole başvuruları _vurgula</target>
         <note />
       </trans-unit>
       <trans-unit id="Pretty_listing_reformatting_of_code">
         <source>_Pretty listing (reformatting) of code</source>
-        <target state="new">_Pretty listing (reformatting) of code</target>
+        <target state="translated">Kodu _düzgün listeleme (yeniden biçimlendirme)</target>
         <note />
       </trans-unit>
       <trans-unit id="Enter_outlining_mode_when_files_open">
         <source>_Enter outlining mode when files open</source>
-        <target state="new">_Enter outlining mode when files open</target>
+        <target state="translated">Dosyalar açılırken ana hat oluşturma moduna _gir</target>
         <note />
       </trans-unit>
       <trans-unit id="Extract_Method">
         <source>Extract Method</source>
-        <target state="new">Extract Method</target>
+        <target state="translated">Metodu Ayıkla</target>
         <note />
       </trans-unit>
       <trans-unit id="Generate_XML_documentation_comments_for">
         <source>_Generate XML documentation comments for '''</source>
-        <target state="new">_Generate XML documentation comments for '''</target>
+        <target state="translated">'' için XML belge açıklamaları _oluştur</target>
         <note />
       </trans-unit>
       <trans-unit id="Highlighting">
         <source>Highlighting</source>
-        <target state="new">Highlighting</target>
+        <target state="translated">Vurgulama</target>
         <note />
       </trans-unit>
       <trans-unit id="Optimize_for_solution_size">
         <source>Optimize for solution size</source>
-        <target state="new">Optimize for solution size</target>
+        <target state="translated">Çözüm boyutunu iyileştir</target>
         <note />
       </trans-unit>
       <trans-unit id="Large">
         <source>Large</source>
-        <target state="new">Large</target>
+        <target state="translated">Büyük</target>
         <note />
       </trans-unit>
       <trans-unit id="Regular">
         <source>Regular</source>
-        <target state="new">Regular</target>
+        <target state="translated">Normal</target>
         <note />
       </trans-unit>
       <trans-unit id="Small">
         <source>Small</source>
-        <target state="new">Small</target>
+        <target state="translated">Küçük</target>
         <note />
       </trans-unit>
       <trans-unit id="Performance">
         <source>Performance</source>
-        <target state="new">Performance</target>
+        <target state="translated">Performans</target>
         <note />
       </trans-unit>
       <trans-unit id="Show_preview_for_rename_tracking">
         <source>Show preview for rename _tracking</source>
-        <target state="new">Show preview for rename _tracking</target>
+        <target state="translated">Yeniden adlandırma i_zlemesi için önizleme göster</target>
         <note />
       </trans-unit>
       <trans-unit id="Navigate_to_Object_Browser_for_symbols_defined_in_metadata">
         <source>_Navigate to Object Browser for symbols defined in metadata</source>
-        <target state="new">_Navigate to Object Browser for symbols defined in metadata</target>
+        <target state="translated">Meta verilerde tanımlanan semboller için Nesne Tarayıcısı'na _git</target>
         <note />
       </trans-unit>
       <trans-unit id="Go_to_Definition">
         <source>Go to Definition</source>
-        <target state="new">Go to Definition</target>
+        <target state="translated">Tanıma Git</target>
         <note />
       </trans-unit>
       <trans-unit id="Import_Directives">
         <source>Import Directives</source>
-        <target state="new">Import Directives</target>
+        <target state="translated">İçeri Aktarma Yönergeleri</target>
         <note />
       </trans-unit>
       <trans-unit id="Suggest_imports_for_types_in_NuGet_packages">
         <source>Suggest imports for types in _NuGet packages</source>
-        <target state="new">Suggest imports for types in _NuGet packages</target>
+        <target state="translated">_NuGet paketlerindeki türler için içeri aktarmalar öner</target>
         <note />
       </trans-unit>
       <trans-unit id="Suggest_imports_for_types_in_reference_assemblies">
         <source>Suggest imports for types in _reference assemblies</source>
-        <target state="new">Suggest imports for types in _reference assemblies</target>
+        <target state="translated">_Başvuru bütünleştirilmiş kodlarındaki türler için içeri aktarmalar öner</target>
         <note />
       </trans-unit>
       <trans-unit id="Place_System_directives_first_when_sorting_imports">
         <source>_Place 'System' directives first when sorting imports</source>
-        <target state="new">_Place 'System' directives first when sorting imports</target>
+        <target state="translated">İçeri aktarmaları sıralarken önce 'System' yönergelerini _yerleştir</target>
         <note />
       </trans-unit>
       <trans-unit id="Qualify_event_access_with_Me">
         <source>Qualify event access with 'Me'</source>
-        <target state="new">Qualify event access with 'Me'</target>
+        <target state="translated">Olay erişimini 'Me' ile sınıflandır</target>
         <note />
       </trans-unit>
       <trans-unit id="Qualify_field_access_with_Me">
         <source>Qualify field access with 'Me'</source>
-        <target state="new">Qualify field access with 'Me'</target>
+        <target state="translated">Alan erişimini 'Me' ile sınıflandır</target>
         <note />
       </trans-unit>
       <trans-unit id="Qualify_method_access_with_Me">
         <source>Qualify method access with 'Me'</source>
-        <target state="new">Qualify method access with 'Me'</target>
+        <target state="translated">Metot erişimini 'Me' ile sınıflandır</target>
         <note />
       </trans-unit>
       <trans-unit id="Qualify_property_access_with_Me">
         <source>Qualify property access with 'Me'</source>
-        <target state="new">Qualify property access with 'Me'</target>
+        <target state="translated">Özellik erişimini 'Me' ile sınıflandır</target>
         <note />
       </trans-unit>
       <trans-unit id="Do_not_prefer_Me">
         <source>Do not prefer 'Me.'</source>
-        <target state="new">Do not prefer 'Me.'</target>
+        <target state="translated">Me.' öğesini tercih etme</target>
         <note />
       </trans-unit>
       <trans-unit id="Prefer_Me">
         <source>Prefer 'Me.'</source>
-        <target state="new">Prefer 'Me.'</target>
+        <target state="translated">Me.' öğesini tercih et</target>
         <note />
       </trans-unit>
       <trans-unit id="Me_preferences_colon">
         <source>'Me.' preferences:</source>
-        <target state="new">'Me.' preferences:</target>
+        <target state="translated">'Me.' tercihleri:</target>
         <note />
       </trans-unit>
       <trans-unit id="Predefined_type_preferences_colon">
         <source>Predefined type preferences:</source>
-        <target state="new">Predefined type preferences:</target>
+        <target state="translated">Önceden tanımlanmış tür tercihleri:</target>
         <note />
       </trans-unit>
       <trans-unit id="Highlight_matching_portions_of_completion_list_items">
         <source>_Highlight matching portions of completion list items</source>
-        <target state="new">_Highlight matching portions of completion list items</target>
+        <target state="translated">Tamamlanma listesi öğelerinin eşleşen bölümlerini _vurgula</target>
         <note />
       </trans-unit>
       <trans-unit id="Show_completion_item_filters">
         <source>Show completion item _filters</source>
-        <target state="new">Show completion item _filters</target>
+        <target state="translated">Tamamlanma öğesi _filtrelerini göster</target>
         <note />
       </trans-unit>
       <trans-unit id="Completion_Lists">
         <source>Completion Lists</source>
-        <target state="new">Completion Lists</target>
+        <target state="translated">Tamamlanma Listeleri</target>
         <note />
       </trans-unit>
       <trans-unit id="Enter_key_behavior_colon">
         <source>Enter key behavior:</source>
-        <target state="new">Enter key behavior:</target>
+        <target state="translated">Enter tuşu davranışı:</target>
         <note />
       </trans-unit>
       <trans-unit id="Only_add_new_line_on_enter_after_end_of_fully_typed_word">
         <source>_Only add new line on enter after end of fully typed word</source>
-        <target state="new">_Only add new line on enter after end of fully typed word</target>
+        <target state="translated">_Enter tuşuna basıldığında yalnızca tam bir kelime yazılmışsa sonuna yeni satır ekle</target>
         <note />
       </trans-unit>
       <trans-unit id="Always_add_new_line_on_enter">
         <source>_Always add new line on enter</source>
-        <target state="new">_Always add new line on enter</target>
+        <target state="translated">_Enter tuşuna basıldığında her zaman yeni satır ekle</target>
         <note />
       </trans-unit>
       <trans-unit id="Never_add_new_line_on_enter">
         <source>_Never add new line on enter</source>
-        <target state="new">_Never add new line on enter</target>
+        <target state="translated">Enter tuşuna basıldığında _hiçbir zaman yeni satır ekleme</target>
         <note />
       </trans-unit>
       <trans-unit id="Always_include_snippets">
         <source>Always include snippets</source>
-        <target state="new">Always include snippets</target>
+        <target state="translated">Kod parçacıklarını her zaman dahil et</target>
         <note />
       </trans-unit>
       <trans-unit id="Include_snippets_when_Tab_is_typed_after_an_identifier">
         <source>Include snippets when ?-Tab is typed after an identifier</source>
-        <target state="new">Include snippets when ?-Tab is typed after an identifier</target>
+        <target state="translated">Bir tanımlayıcıdan sonra ?-Tab yazılırsa kod parçacıklarını dahil et</target>
         <note />
       </trans-unit>
       <trans-unit id="Never_include_snippets">
         <source>Never include snippets</source>
-        <target state="new">Never include snippets</target>
+        <target state="translated">Kod parçacıklarını hiçbir zaman dahil etme</target>
         <note />
       </trans-unit>
       <trans-unit id="Snippets_behavior">
         <source>Snippets behavior</source>
-        <target state="new">Snippets behavior</target>
+        <target state="translated">Kod parçacığı davranışı</target>
         <note />
       </trans-unit>
       <trans-unit id="Show_completion_list_after_a_character_is_deleted">
         <source>Show completion list after a character is _deleted</source>
-        <target state="new">Show completion list after a character is _deleted</target>
+        <target state="translated">Bir karakter _silindikten sonra tamamlanma listesini göster</target>
         <note />
       </trans-unit>
       <trans-unit id="Show_completion_list_after_a_character_is_typed">
         <source>_Show completion list after a character is typed</source>
-        <target state="new">_Show completion list after a character is typed</target>
+        <target state="translated">Bir karakter yazıldıktan sonra tamamlanma listesini _göster</target>
         <note />
       </trans-unit>
       <trans-unit id="nothing_checking_colon">
         <source>'nothing' checking:</source>
-        <target state="new">'nothing' checking:</target>
+        <target state="translated">'nothing' denetimi:</target>
         <note />
       </trans-unit>
       <trans-unit id="Fade_out_unused_imports">
         <source>Fade out unused imports</source>
-        <target state="new">Fade out unused imports</target>
+        <target state="translated">Kullanılmayan içeri aktarmaları soluklaştır</target>
         <note />
       </trans-unit>
       <trans-unit id="Prefer_Is_Nothing_over_ReferenceEquals">
         <source>Prefer 'Is Nothing' over 'Object.ReferenceEquals(..., Nothing)'</source>
-        <target state="new">Prefer 'Is Nothing' over 'Object.ReferenceEquals(..., Nothing)'</target>
+        <target state="translated">Object.ReferenceEquals(..., Nothing)' yerine 'Is Nothing' tercih et</target>
         <note />
       </trans-unit>
       <trans-unit id="Report_invalid_placeholders_in_string_dot_format_calls">
         <source>Report invalid placeholders in 'String.Format' calls</source>
-        <target state="new">Report invalid placeholders in 'String.Format' calls</target>
+        <target state="translated">String.Format' çağrılarındaki geçersiz yer tutucuları bildir</target>
         <note />
       </trans-unit>
       <trans-unit id="Separate_import_directive_groups">
         <source>Separate import directive groups</source>
-        <target state="new">Separate import directive groups</target>
+        <target state="translated">İçeri aktarma yönerge gruplarını ayır</target>
         <note />
       </trans-unit>
     </body>

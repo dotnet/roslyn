@@ -4,12 +4,12 @@
     <body>
       <trans-unit id="CanNotCreateWindow">
         <source>Can not create tool window.</source>
-        <target state="new">Can not create tool window.</target>
+        <target state="translated">Не удалось создать окно инструмента.</target>
         <note />
       </trans-unit>
       <trans-unit id="ToolWindowTitle">
         <source>Roslyn Diagnostics</source>
-        <target state="new">Roslyn Diagnostics</target>
+        <target state="translated">Диагностика Roslyn</target>
         <note />
       </trans-unit>
     </body>

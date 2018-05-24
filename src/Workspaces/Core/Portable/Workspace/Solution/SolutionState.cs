@@ -603,7 +603,22 @@ namespace Microsoft.CodeAnalysis
 
             CheckContainsProject(projectId);
 
-            return this.ForkProject(this.GetProjectState(projectId).UpdateOutputPath(outputFilePath));
+            return this.ForkProject(this.GetProjectState(projectId).UpdateOutputFilePath(outputFilePath));
+        }
+
+        /// <summary>
+        /// Creates a new solution instance with the project specified updated to have the output file path.
+        /// </summary>
+        public SolutionState WithProjectOutputRefFilePath(ProjectId projectId, string outputRefFilePath)
+        {
+            if (projectId == null)
+            {
+                throw new ArgumentNullException(nameof(projectId));
+            }
+
+            CheckContainsProject(projectId);
+
+            return this.ForkProject(this.GetProjectState(projectId).UpdateOutputRefFilePath(outputRefFilePath));
         }
 
         /// <summary>

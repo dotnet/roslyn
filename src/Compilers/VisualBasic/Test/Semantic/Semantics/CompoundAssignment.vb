@@ -63,7 +63,7 @@ End Class
     </file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef, TestOptions.ReleaseExe)
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(compilationDef, TestOptions.ReleaseExe)
 
             Dim verifier = CompileAndVerify(compilation, expectedOutput:="2" & vbCrLf & "4" & vbCrLf & "6" & vbCrLf & "7")
 
@@ -161,7 +161,7 @@ End Module
     </file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef, TestOptions.ReleaseExe)
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(compilationDef, TestOptions.ReleaseExe)
 
             CompilationUtils.AssertTheseDiagnostics(compilation,
 <expected>
@@ -213,7 +213,7 @@ End Module
     </file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef, TestOptions.ReleaseExe.WithOptionStrict(OptionStrict.Custom))
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(compilationDef, TestOptions.ReleaseExe.WithOptionStrict(OptionStrict.Custom))
 
             CompilationUtils.AssertTheseDiagnostics(compilation,
 <expected><![CDATA[
@@ -286,7 +286,7 @@ End Module
     </file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef, TestOptions.ReleaseExe.WithOptionStrict(OptionStrict.Custom))
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(compilationDef, TestOptions.ReleaseExe.WithOptionStrict(OptionStrict.Custom))
 
             Dim tree As SyntaxTree = (From t In compilation.SyntaxTrees Where t.FilePath = "a.vb").Single()
             Dim semanticModel = compilation.GetSemanticModel(tree)
@@ -387,7 +387,7 @@ End Module
     ]]></file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef, TestOptions.ReleaseExe)
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(compilationDef, TestOptions.ReleaseExe)
 
             Dim verifier = CompileAndVerify(compilation, expectedOutput:=
             <![CDATA[
@@ -501,7 +501,7 @@ End Class
     ]]></file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef, TestOptions.ReleaseExe)
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(compilationDef, TestOptions.ReleaseExe)
             Dim verifier = CompileAndVerify(compilation, expectedOutput:="DRRR")
 
             verifier.VerifyIL("Program.Main",
@@ -559,7 +559,7 @@ End Module
     ]]></file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef, TestOptions.ReleaseExe)
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(compilationDef, TestOptions.ReleaseExe)
 
             Dim verifier = CompileAndVerify(compilation, expectedOutput:="123" & vbCrLf & "123")
 
@@ -675,7 +675,7 @@ End Class
     ]]></file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntimeAndReferences(compilationDef, {SystemCoreRef, SystemXmlRef, SystemXmlLinqRef}, TestOptions.ReleaseExe)
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(compilationDef, {SystemCoreRef, SystemXmlRef, SystemXmlLinqRef}, TestOptions.ReleaseExe)
 
             Dim verifier = CompileAndVerify(compilation, expectedOutput:=
             <![CDATA[
@@ -930,7 +930,7 @@ End Module
     ]]></file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntimeAndReferences(compilationDef, {SystemCoreRef, SystemXmlRef, SystemXmlLinqRef}, TestOptions.ReleaseExe)
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(compilationDef, {SystemCoreRef, SystemXmlRef, SystemXmlLinqRef}, TestOptions.ReleaseExe)
 
             AssertTheseDiagnostics(compilation,
 <expected><![CDATA[
@@ -978,7 +978,7 @@ End Class
     </file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(compilationDef, TestOptions.ReleaseDll)
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(compilationDef, TestOptions.ReleaseDll)
 
             AssertTheseEmitDiagnostics(compilation,
 <expected>
@@ -1010,7 +1010,7 @@ End Class
     </file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(compilationDef, TestOptions.ReleaseDll)
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(compilationDef, TestOptions.ReleaseDll)
 
             Dim tree As SyntaxTree = (From t In compilation.SyntaxTrees Where t.FilePath = "a.vb").Single()
             Dim semanticModel = compilation.GetSemanticModel(tree)
@@ -1083,7 +1083,7 @@ End Class
     </file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef, TestOptions.ReleaseExe)
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(compilationDef, TestOptions.ReleaseExe)
 
             CompileAndVerify(compilation,
             <![CDATA[
@@ -1137,7 +1137,7 @@ End Class
     </file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef, TestOptions.ReleaseExe)
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(compilationDef, TestOptions.ReleaseExe)
 
             Dim verifier = CompileAndVerify(compilation,
             <![CDATA[
@@ -1164,7 +1164,7 @@ Position set for item 'Goo'
 }
 ]]>)
 
-            compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef, TestOptions.DebugExe)
+            compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(compilationDef, TestOptions.DebugExe)
 
             verifier = CompileAndVerify(compilation,
             <![CDATA[
@@ -1240,7 +1240,7 @@ End Class
     </file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef, TestOptions.ReleaseExe)
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(compilationDef, TestOptions.ReleaseExe)
 
             Dim verifier = CompileAndVerify(compilation,
             <![CDATA[
@@ -1267,7 +1267,7 @@ Position set for item 'Goo'
 }
 ]]>)
 
-            compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef, TestOptions.DebugExe)
+            compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(compilationDef, TestOptions.DebugExe)
 
             verifier = CompileAndVerify(compilation,
             <![CDATA[
@@ -1344,7 +1344,7 @@ End Class
     </file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef, TestOptions.ReleaseExe)
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(compilationDef, TestOptions.ReleaseExe)
 
             Dim verifier = CompileAndVerify(compilation,
             <![CDATA[
@@ -1374,7 +1374,7 @@ Position set for item 'Goo'
 }
 ]]>)
 
-            compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef, TestOptions.DebugExe)
+            compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(compilationDef, TestOptions.DebugExe)
 
             verifier = CompileAndVerify(compilation,
             <![CDATA[
@@ -1453,7 +1453,7 @@ End Class
     </file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef, TestOptions.ReleaseExe)
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(compilationDef, TestOptions.ReleaseExe)
 
             Dim verifier = CompileAndVerify(compilation,
             <![CDATA[
@@ -1465,29 +1465,33 @@ Position set for item 'Goo'
             verifier.VerifyIL("Program.Shift",
             <![CDATA[
 {
-  // Code size       46 (0x2e)
+  // Code size       56 (0x38)
   .maxstack  4
-  .locals init (T& V_0)
+  .locals init (T() V_0)
   IL_0000:  ldarg.0
-  IL_0001:  ldc.i4.0
-  IL_0002:  ldelema    "T"
-  IL_0007:  dup
-  IL_0008:  stloc.0
-  IL_0009:  ldloc.0
-  IL_000a:  constrained. "T"
-  IL_0010:  callvirt   "Function IMoveable.get_Position() As Integer"
-  IL_0015:  ldarg.0
-  IL_0016:  ldc.i4.0
-  IL_0017:  ldelema    "T"
-  IL_001c:  call       "Function Program.GetOffset(Of T)(ByRef T) As Integer"
-  IL_0021:  add.ovf
-  IL_0022:  constrained. "T"
-  IL_0028:  callvirt   "Sub IMoveable.set_Position(Integer)"
-  IL_002d:  ret
+  IL_0001:  dup
+  IL_0002:  stloc.0
+  IL_0003:  ldc.i4.0
+  IL_0004:  readonly.
+  IL_0006:  ldelema    "T"
+  IL_000b:  ldloc.0
+  IL_000c:  ldc.i4.0
+  IL_000d:  readonly.
+  IL_000f:  ldelema    "T"
+  IL_0014:  constrained. "T"
+  IL_001a:  callvirt   "Function IMoveable.get_Position() As Integer"
+  IL_001f:  ldarg.0
+  IL_0020:  ldc.i4.0
+  IL_0021:  ldelema    "T"
+  IL_0026:  call       "Function Program.GetOffset(Of T)(ByRef T) As Integer"
+  IL_002b:  add.ovf
+  IL_002c:  constrained. "T"
+  IL_0032:  callvirt   "Sub IMoveable.set_Position(Integer)"
+  IL_0037:  ret
 }
 ]]>)
 
-            compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef, TestOptions.DebugExe)
+            compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(compilationDef, TestOptions.DebugExe)
 
             verifier = CompileAndVerify(compilation,
             <![CDATA[
@@ -1499,27 +1503,31 @@ Position set for item 'Bar'
             verifier.VerifyIL("Program.Shift",
             <![CDATA[
 {
-  // Code size       48 (0x30)
+  // Code size       58 (0x3a)
   .maxstack  4
-  .locals init (T& V_0)
+  .locals init (T() V_0)
   IL_0000:  nop
   IL_0001:  ldarg.0
-  IL_0002:  ldc.i4.0
-  IL_0003:  ldelema    "T"
-  IL_0008:  dup
-  IL_0009:  stloc.0
-  IL_000a:  ldloc.0
-  IL_000b:  constrained. "T"
-  IL_0011:  callvirt   "Function IMoveable.get_Position() As Integer"
-  IL_0016:  ldarg.0
-  IL_0017:  ldc.i4.0
-  IL_0018:  ldelema    "T"
-  IL_001d:  call       "Function Program.GetOffset(Of T)(ByRef T) As Integer"
-  IL_0022:  add.ovf
-  IL_0023:  constrained. "T"
-  IL_0029:  callvirt   "Sub IMoveable.set_Position(Integer)"
-  IL_002e:  nop
-  IL_002f:  ret
+  IL_0002:  dup
+  IL_0003:  stloc.0
+  IL_0004:  ldc.i4.0
+  IL_0005:  readonly.
+  IL_0007:  ldelema    "T"
+  IL_000c:  ldloc.0
+  IL_000d:  ldc.i4.0
+  IL_000e:  readonly.
+  IL_0010:  ldelema    "T"
+  IL_0015:  constrained. "T"
+  IL_001b:  callvirt   "Function IMoveable.get_Position() As Integer"
+  IL_0020:  ldarg.0
+  IL_0021:  ldc.i4.0
+  IL_0022:  ldelema    "T"
+  IL_0027:  call       "Function Program.GetOffset(Of T)(ByRef T) As Integer"
+  IL_002c:  add.ovf
+  IL_002d:  constrained. "T"
+  IL_0033:  callvirt   "Sub IMoveable.set_Position(Integer)"
+  IL_0038:  nop
+  IL_0039:  ret
 }
 ]]>)
         End Sub
@@ -1574,7 +1582,7 @@ End Class
     </file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef, TestOptions.ReleaseExe)
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(compilationDef, TestOptions.ReleaseExe)
 
             Dim verifier = CompileAndVerify(compilation,
             <![CDATA[
@@ -1606,7 +1614,7 @@ Position set for item 'Goo'
 }
 ]]>)
 
-            compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef, TestOptions.DebugExe)
+            compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(compilationDef, TestOptions.DebugExe)
 
             verifier = CompileAndVerify(compilation,
             <![CDATA[
@@ -1689,7 +1697,7 @@ End Class
     </file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef, TestOptions.ReleaseExe)
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(compilationDef, TestOptions.ReleaseExe)
 
             Dim verifier = CompileAndVerify(compilation,
             <![CDATA[
@@ -1716,7 +1724,7 @@ Position set for item 'Goo'
 }
 ]]>)
 
-            compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef, TestOptions.DebugExe)
+            compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(compilationDef, TestOptions.DebugExe)
 
             verifier = CompileAndVerify(compilation,
             <![CDATA[
@@ -1794,7 +1802,7 @@ End Class
     </file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef, TestOptions.ReleaseExe)
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(compilationDef, TestOptions.ReleaseExe)
 
             Dim verifier = CompileAndVerify(compilation,
             <![CDATA[
@@ -1821,7 +1829,7 @@ Position set for item 'Goo'
 }
 ]]>)
 
-            compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef, TestOptions.DebugExe)
+            compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(compilationDef, TestOptions.DebugExe)
 
             verifier = CompileAndVerify(compilation,
             <![CDATA[
@@ -1897,7 +1905,7 @@ End Class
     </file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef, TestOptions.ReleaseExe)
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(compilationDef, TestOptions.ReleaseExe)
 
             Dim verifier = CompileAndVerify(compilation,
             <![CDATA[
@@ -1924,7 +1932,7 @@ Position set for item 'Goo'
 }
 ]]>)
 
-            compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef, TestOptions.DebugExe)
+            compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(compilationDef, TestOptions.DebugExe)
 
             verifier = CompileAndVerify(compilation,
             <![CDATA[
@@ -2001,7 +2009,7 @@ End Class
     </file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef, TestOptions.ReleaseExe)
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(compilationDef, TestOptions.ReleaseExe)
 
             Dim verifier = CompileAndVerify(compilation,
             <![CDATA[
@@ -2031,7 +2039,7 @@ Position set for item 'Goo'
 }
 ]]>)
 
-            compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef, TestOptions.DebugExe)
+            compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(compilationDef, TestOptions.DebugExe)
 
             verifier = CompileAndVerify(compilation,
             <![CDATA[
@@ -2110,7 +2118,7 @@ End Class
     </file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef, TestOptions.ReleaseExe)
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(compilationDef, TestOptions.ReleaseExe)
 
             Dim verifier = CompileAndVerify(compilation,
             <![CDATA[
@@ -2122,29 +2130,33 @@ Position set for item 'Goo'
             verifier.VerifyIL("Program.Shift",
             <![CDATA[
 {
-  // Code size       46 (0x2e)
+  // Code size       56 (0x38)
   .maxstack  4
-  .locals init (T& V_0)
+  .locals init (T() V_0)
   IL_0000:  ldarg.0
-  IL_0001:  ldc.i4.0
-  IL_0002:  ldelema    "T"
-  IL_0007:  dup
-  IL_0008:  stloc.0
-  IL_0009:  ldloc.0
-  IL_000a:  constrained. "T"
-  IL_0010:  callvirt   "Function IMoveable.get_Position() As Integer"
-  IL_0015:  ldarg.0
-  IL_0016:  ldc.i4.0
-  IL_0017:  ldelema    "T"
-  IL_001c:  call       "Function Program.GetOffset(Of T)(ByRef T) As Integer"
-  IL_0021:  add.ovf
-  IL_0022:  constrained. "T"
-  IL_0028:  callvirt   "Sub IMoveable.set_Position(Integer)"
-  IL_002d:  ret
+  IL_0001:  dup
+  IL_0002:  stloc.0
+  IL_0003:  ldc.i4.0
+  IL_0004:  readonly.
+  IL_0006:  ldelema    "T"
+  IL_000b:  ldloc.0
+  IL_000c:  ldc.i4.0
+  IL_000d:  readonly.
+  IL_000f:  ldelema    "T"
+  IL_0014:  constrained. "T"
+  IL_001a:  callvirt   "Function IMoveable.get_Position() As Integer"
+  IL_001f:  ldarg.0
+  IL_0020:  ldc.i4.0
+  IL_0021:  ldelema    "T"
+  IL_0026:  call       "Function Program.GetOffset(Of T)(ByRef T) As Integer"
+  IL_002b:  add.ovf
+  IL_002c:  constrained. "T"
+  IL_0032:  callvirt   "Sub IMoveable.set_Position(Integer)"
+  IL_0037:  ret
 }
 ]]>)
 
-            compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef, TestOptions.DebugExe)
+            compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(compilationDef, TestOptions.DebugExe)
 
             verifier = CompileAndVerify(compilation,
             <![CDATA[
@@ -2156,27 +2168,31 @@ Position set for item 'Bar'
             verifier.VerifyIL("Program.Shift",
             <![CDATA[
 {
-  // Code size       48 (0x30)
+  // Code size       58 (0x3a)
   .maxstack  4
-  .locals init (T& V_0)
+  .locals init (T() V_0)
   IL_0000:  nop
   IL_0001:  ldarg.0
-  IL_0002:  ldc.i4.0
-  IL_0003:  ldelema    "T"
-  IL_0008:  dup
-  IL_0009:  stloc.0
-  IL_000a:  ldloc.0
-  IL_000b:  constrained. "T"
-  IL_0011:  callvirt   "Function IMoveable.get_Position() As Integer"
-  IL_0016:  ldarg.0
-  IL_0017:  ldc.i4.0
-  IL_0018:  ldelema    "T"
-  IL_001d:  call       "Function Program.GetOffset(Of T)(ByRef T) As Integer"
-  IL_0022:  add.ovf
-  IL_0023:  constrained. "T"
-  IL_0029:  callvirt   "Sub IMoveable.set_Position(Integer)"
-  IL_002e:  nop
-  IL_002f:  ret
+  IL_0002:  dup
+  IL_0003:  stloc.0
+  IL_0004:  ldc.i4.0
+  IL_0005:  readonly.
+  IL_0007:  ldelema    "T"
+  IL_000c:  ldloc.0
+  IL_000d:  ldc.i4.0
+  IL_000e:  readonly.
+  IL_0010:  ldelema    "T"
+  IL_0015:  constrained. "T"
+  IL_001b:  callvirt   "Function IMoveable.get_Position() As Integer"
+  IL_0020:  ldarg.0
+  IL_0021:  ldc.i4.0
+  IL_0022:  ldelema    "T"
+  IL_0027:  call       "Function Program.GetOffset(Of T)(ByRef T) As Integer"
+  IL_002c:  add.ovf
+  IL_002d:  constrained. "T"
+  IL_0033:  callvirt   "Sub IMoveable.set_Position(Integer)"
+  IL_0038:  nop
+  IL_0039:  ret
 }
 ]]>)
         End Sub
@@ -2231,7 +2247,7 @@ End Class
     </file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef, TestOptions.ReleaseExe)
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(compilationDef, TestOptions.ReleaseExe)
 
             Dim verifier = CompileAndVerify(compilation,
             <![CDATA[
@@ -2263,7 +2279,7 @@ Position set for item 'Goo'
 }
 ]]>)
 
-            compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef, TestOptions.DebugExe)
+            compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(compilationDef, TestOptions.DebugExe)
 
             verifier = CompileAndVerify(compilation,
             <![CDATA[
@@ -2346,7 +2362,7 @@ End Class
     </file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef, TestOptions.ReleaseExe)
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(compilationDef, TestOptions.ReleaseExe)
 
             Dim verifier = CompileAndVerify(compilation,
             <![CDATA[
@@ -2373,7 +2389,7 @@ Position set for item 'Goo'
 }
 ]]>)
 
-            compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef, TestOptions.DebugExe)
+            compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(compilationDef, TestOptions.DebugExe)
 
             verifier = CompileAndVerify(compilation,
             <![CDATA[
@@ -2460,7 +2476,7 @@ End Class
     </file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef, TestOptions.ReleaseExe)
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(compilationDef, TestOptions.ReleaseExe)
 
             CompileAndVerify(compilation,
             <![CDATA[
@@ -2468,7 +2484,7 @@ Position get for item 'Goo'
 Position set for item 'Goo'
 ]]>)
 
-            compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef, TestOptions.DebugExe)
+            compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(compilationDef, TestOptions.DebugExe)
 
             CompileAndVerify(compilation,
             <![CDATA[
@@ -2532,7 +2548,7 @@ End Class
     </file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef, TestOptions.ReleaseExe)
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(compilationDef, TestOptions.ReleaseExe)
 
             CompileAndVerify(compilation,
             <![CDATA[
@@ -2540,7 +2556,7 @@ Position get for item 'Goo'
 Position set for item 'Goo'
 ]]>)
 
-            compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef, TestOptions.DebugExe)
+            compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(compilationDef, TestOptions.DebugExe)
 
             CompileAndVerify(compilation,
             <![CDATA[
@@ -2601,7 +2617,7 @@ End Class
     </file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef, TestOptions.ReleaseExe)
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(compilationDef, TestOptions.ReleaseExe)
 
             CompileAndVerify(compilation,
             <![CDATA[
@@ -2611,7 +2627,7 @@ False
 True
 ]]>)
 
-            compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef, TestOptions.DebugExe)
+            compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(compilationDef, TestOptions.DebugExe)
 
             CompileAndVerify(compilation,
             <![CDATA[
@@ -2683,7 +2699,7 @@ End Class
     </file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef, TestOptions.ReleaseExe)
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(compilationDef, TestOptions.ReleaseExe)
 
             CompileAndVerify(compilation,
             <![CDATA[
@@ -2693,7 +2709,7 @@ False
 False
 ]]>)
 
-            compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef, TestOptions.DebugExe)
+            compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(compilationDef, TestOptions.DebugExe)
 
             CompileAndVerify(compilation,
             <![CDATA[
@@ -2750,7 +2766,7 @@ End Namespace
     </file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef, TestOptions.ReleaseExe)
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(compilationDef, TestOptions.ReleaseExe)
 
             CompileAndVerify(compilation,
             <![CDATA[

@@ -394,7 +394,7 @@ class Program
 }
 ";
 
-            var compilation = CreateCompilationWithMscorlibAndSystemCore(source);
+            var compilation = CreateCompilationWithMscorlib40AndSystemCore(source);
             var syntaxTree = compilation.SyntaxTrees[0];
             var semanticModel = compilation.GetSemanticModel(syntaxTree);
 

@@ -774,18 +774,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return SymbolInfo.None;
             }
 
-            var binder = this.GetEnclosingBinder(position);
+            var binder = memberModel.GetEnclosingBinder(position);
             if (binder != null)
             {
                 var diagnostics = DiagnosticBag.GetInstance();
+                binder = new ExecutableCodeBinder(constructorInitializer, binder.ContainingMemberOrLambda, binder);
 
-                if (constructorInitializer.ArgumentList != null)
-                {
-                    binder = new ExecutableCodeBinder(constructorInitializer.ArgumentList, binder.ContainingMemberOrLambda, binder);
-                }
-
-                var bnode = memberModel.Bind(binder, constructorInitializer, diagnostics);
-                var binfo = memberModel.GetSymbolInfoForNode(SymbolInfoOptions.DefaultOptions, bnode, bnode, boundNodeForSyntacticParent: null, binderOpt: binder);
+                BoundExpressionStatement bnode = binder.BindConstructorInitializer(constructorInitializer, diagnostics);
+                var binfo = memberModel.GetSymbolInfoForNode(SymbolInfoOptions.DefaultOptions, bnode.Expression, bnode.Expression, boundNodeForSyntacticParent: null, binderOpt: binder);
                 diagnostics.Free();
                 return binfo;
             }
@@ -1700,7 +1696,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 throw new ArgumentNullException(nameof(symbol));
             }
 
-            var cssymbol = symbol.EnsureCSharpSymbolOrNull<ISymbol, Symbol>("symbol");
+            var cssymbol = symbol.EnsureCSharpSymbolOrNull<ISymbol, Symbol>(nameof(symbol));
 
             var binder = this.GetEnclosingBinder(position);
             if (binder != null)
@@ -2516,7 +2512,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 throw new ArgumentNullException(nameof(destination));
             }
 
-            var cdestination = destination.EnsureCSharpSymbolOrNull<ITypeSymbol, TypeSymbol>("destination");
+            var cdestination = destination.EnsureCSharpSymbolOrNull<ITypeSymbol, TypeSymbol>(nameof(destination));
 
             if (expression.Kind() == SyntaxKind.DeclarationExpression)
             {
@@ -4751,12 +4747,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             return ImmutableArray.Create<ISymbol>();
         }
 
-        internal override void ComputeDeclarationsInSpan(TextSpan span, bool getSymbol, List<DeclarationInfo> builder, CancellationToken cancellationToken)
+        internal override void ComputeDeclarationsInSpan(TextSpan span, bool getSymbol, ArrayBuilder<DeclarationInfo> builder, CancellationToken cancellationToken)
         {
             CSharpDeclarationComputer.ComputeDeclarationsInSpan(this, span, getSymbol, builder, cancellationToken);
         }
 
-        internal override void ComputeDeclarationsInNode(SyntaxNode node, bool getSymbol, List<DeclarationInfo> builder, CancellationToken cancellationToken, int? levelsToCompute = null)
+        internal override void ComputeDeclarationsInNode(SyntaxNode node, bool getSymbol, ArrayBuilder<DeclarationInfo> builder, CancellationToken cancellationToken, int? levelsToCompute = null)
         {
             CSharpDeclarationComputer.ComputeDeclarationsInNode(this, node, getSymbol, builder, cancellationToken, levelsToCompute);
         }
@@ -4918,12 +4914,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         protected sealed override bool IsAccessibleCore(int position, ISymbol symbol)
         {
-            return this.IsAccessible(position, symbol.EnsureCSharpSymbolOrNull<ISymbol, Symbol>("symbol"));
+            return this.IsAccessible(position, symbol.EnsureCSharpSymbolOrNull<ISymbol, Symbol>(nameof(symbol)));
         }
 
         protected sealed override bool IsEventUsableAsFieldCore(int position, IEventSymbol symbol)
         {
-            return this.IsEventUsableAsField(position, symbol.EnsureCSharpSymbolOrNull<IEventSymbol, EventSymbol>("symbol"));
+            return this.IsEventUsableAsField(position, symbol.EnsureCSharpSymbolOrNull<IEventSymbol, EventSymbol>(nameof(symbol)));
         }
 
         #endregion

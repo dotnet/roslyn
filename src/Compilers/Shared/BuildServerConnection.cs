@@ -118,47 +118,62 @@ namespace Microsoft.CodeAnalysis.CommandLine
             var clientDir = buildPaths.ClientDirectory;
             var timeoutNewProcess = timeoutOverride ?? TimeOutMsNewProcess;
             var timeoutExistingProcess = timeoutOverride ?? TimeOutMsExistingProcess;
-            var clientMutexName = GetClientMutexName(pipeName);
             Task<NamedPipeClientStream> pipeTask = null;
-            using (var clientMutex = new Mutex(initiallyOwned: true,
-                                               name: clientMutexName,
-                                               createdNew: out var holdsMutex))
+            Mutex clientMutex = null;
+            var holdsMutex = false;
+            try
             {
                 try
                 {
-                    if (!holdsMutex)
-                    {
-                        try
-                        {
-                            holdsMutex = clientMutex.WaitOne(timeoutNewProcess);
+                    var clientMutexName = GetClientMutexName(pipeName);
+                    clientMutex = new Mutex(initiallyOwned: true, name: clientMutexName, out holdsMutex);
+                }
+                catch
+                {
+                    // The Mutex constructor can throw in certain cases. One specific example is docker containers
+                    // where the /tmp directory is restricted. In those cases there is no reliable way to execute
+                    // the server and we need to fall back to the command line.
+                    //
+                    // Example: https://github.com/dotnet/roslyn/issues/24124
+                    return new RejectedBuildResponse();
+                }
 
-                            if (!holdsMutex)
-                            {
-                                return new RejectedBuildResponse();
-                            }
-                        }
-                        catch (AbandonedMutexException)
+                if (!holdsMutex)
+                {
+                    try
+                    {
+                        holdsMutex = clientMutex.WaitOne(timeoutNewProcess);
+
+                        if (!holdsMutex)
                         {
-                            holdsMutex = true;
+                            return new RejectedBuildResponse();
                         }
                     }
-
-                    // Check for an already running server
-                    var serverMutexName = GetServerMutexName(pipeName);
-                    bool wasServerRunning = WasServerMutexOpen(serverMutexName);
-                    var timeout = wasServerRunning ? timeoutExistingProcess : timeoutNewProcess;
-
-                    if (wasServerRunning || tryCreateServerFunc(clientDir, pipeName))
+                    catch (AbandonedMutexException)
                     {
-                        pipeTask = TryConnectToServerAsync(pipeName, timeout, cancellationToken);
+                        holdsMutex = true;
                     }
                 }
-                finally
+
+                // Check for an already running server
+                var serverMutexName = GetServerMutexName(pipeName);
+                bool wasServerRunning = WasServerMutexOpen(serverMutexName);
+                var timeout = wasServerRunning ? timeoutExistingProcess : timeoutNewProcess;
+
+                if (wasServerRunning || tryCreateServerFunc(clientDir, pipeName))
+                {
+                    pipeTask = TryConnectToServerAsync(pipeName, timeout, cancellationToken);
+                }
+            }
+            finally
+            {
+                if (clientMutex != null)
                 {
                     if (holdsMutex)
                     {
                         clientMutex.ReleaseMutex();
                     }
+                    clientMutex.Dispose();
                 }
             }
 
@@ -416,7 +431,19 @@ namespace Microsoft.CodeAnalysis.CommandLine
             {
                 try
                 {
-                    Process.Start(expectedPath, processArguments);
+                    var startInfo = new ProcessStartInfo()
+                    {
+                        FileName = expectedPath,
+                        Arguments = processArguments,
+                        UseShellExecute = false,
+                        WorkingDirectory = clientDir,
+                        RedirectStandardInput = true,
+                        RedirectStandardOutput = true,
+                        RedirectStandardError = true,
+                        CreateNoWindow = true
+                    };
+
+                    Process.Start(startInfo);
                     return true;
                 }
                 catch
@@ -455,17 +482,16 @@ namespace Microsoft.CodeAnalysis.CommandLine
             }
             catch (Exception ex)
             {
-                Log("Exception checking pipe connection: {0}", ex.Message);
+                LogException(ex, "Checking pipe connection");
                 return false;
             }
         }
 
-#if NETSTANDARD1_3
+#if NET46
         internal static bool CheckIdentityUnix(PipeStream stream)
         {
             // Identity verification is unavailable in the MSBuild task,
             // but verification is not needed client-side so that's okay.
-            // (unavailable due to lack of internal reflection capabilities in netstandard1.3)
             return true;
         }
 #else
@@ -494,21 +520,8 @@ namespace Microsoft.CodeAnalysis.CommandLine
 
         private static ObjectSecurity GetPipeSecurity(PipeStream pipeStream)
         {
-#if NETSTANDARD1_3
-            return (ObjectSecurity)typeof(PipeStream)
-                .GetTypeInfo()
-                .GetDeclaredMethod("GetAccessControl")
-                ?.Invoke(pipeStream, parameters: null);
-#else
             return pipeStream.GetAccessControl();
-#endif
         }
-
-        private static string GetUserName() =>
-            (string)typeof(Environment)
-            .GetTypeInfo()
-            .GetDeclaredProperty("UserName")
-            ?.GetMethod?.Invoke(null, parameters: null);
 
         /// <returns>
         /// Null if not enough information was found to create a valid pipe name.
@@ -526,13 +539,13 @@ namespace Microsoft.CodeAnalysis.CommandLine
                 isAdmin = principal.IsInRole(WindowsBuiltInRole.Administrator);
             }
 
-            var userName = GetUserName();
+            var userName = Environment.UserName;
             if (userName == null)
             {
                 return null;
             }
 
-            return $"{userName}.{isAdmin}.{basePipeName}";
+            return $"{userName}.{(isAdmin ? 'T' : 'F')}.{basePipeName}";
         }
 
         internal static string GetBasePipeName(string compilerExeDirectory)
@@ -547,6 +560,7 @@ namespace Microsoft.CodeAnalysis.CommandLine
             {
                 var bytes = sha.ComputeHash(Encoding.UTF8.GetBytes(compilerExeDirectory));
                 basePipeName = Convert.ToBase64String(bytes)
+                    .Substring(0, 25) // We only have ~50 total characters on Mac, so strip this down
                     .Replace("/", "_")
                     .Replace("=", string.Empty);
             }
@@ -556,12 +570,21 @@ namespace Microsoft.CodeAnalysis.CommandLine
 
         internal static bool WasServerMutexOpen(string mutexName)
         {
-            Mutex mutex;
-            var open = Mutex.TryOpenExisting(mutexName, out mutex);
-            if (open)
+            try
             {
-                mutex.Dispose();
-                return true;
+                Mutex mutex;
+                var open = Mutex.TryOpenExisting(mutexName, out mutex);
+                if (open)
+                {
+                    mutex.Dispose();
+                    return true;
+                }
+            }
+            catch
+            {
+                // In the case an exception occured trying to open the Mutex then 
+                // the assumption is that it's not open. 
+                return false;
             }
 
             return false;

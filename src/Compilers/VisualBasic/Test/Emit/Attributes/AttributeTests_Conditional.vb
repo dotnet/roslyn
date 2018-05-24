@@ -274,7 +274,7 @@ End Class
             Debug.Assert(Not preprocessorSymbols.IsDefault)
             Dim parseOpts = VisualBasicParseOptions.Default.WithPreprocessorSymbols(preprocessorSymbols)
             Dim testSource As String = condDefs & s_commonTestSource_ConditionalAttrDefs & s_commonTestSource_ConditionalAttributesApplied
-            Dim compilation = CreateCompilationWithMscorlib({Parse(testSource, parseOpts)}, options:=TestOptions.ReleaseExe)
+            Dim compilation = CreateCompilationWithMscorlib40({Parse(testSource, parseOpts)}, options:=TestOptions.ReleaseExe)
             CompileAndVerify(compilation, sourceSymbolValidator:=_commonValidatorForCondAttrType(True), symbolValidator:=_commonValidatorForCondAttrType(False), expectedOutput:="")
         End Sub
 
@@ -302,11 +302,11 @@ Imports System.Diagnostics
             Dim parseOpts2 = VisualBasicParseOptions.Default.WithPreprocessorSymbols(preprocessorSymbolsSrcFile2)
 
             ' Different source files, same compilation
-            Dim comp = CreateCompilationWithMscorlib({Parse(source1, parseOpts1), Parse(source2, parseOpts2)})
+            Dim comp = CreateCompilationWithMscorlib40({Parse(source1, parseOpts1), Parse(source2, parseOpts2)})
             CompileAndVerify(comp, sourceSymbolValidator:=_commonValidatorForCondAttrType(True), symbolValidator:=_commonValidatorForCondAttrType(False), expectedOutput:="")
 
             ' Different source files, different compilation
-            Dim comp1 = CreateCompilationWithMscorlib({Parse(source1, parseOpts1)}, options:=TestOptions.ReleaseDll)
+            Dim comp1 = CreateCompilationWithMscorlib40({Parse(source1, parseOpts1)}, options:=TestOptions.ReleaseDll)
             Dim comp2 = VisualBasicCompilation.Create("comp2", {Parse(source2, parseOpts2)}, {MscorlibRef, New VisualBasicCompilationReference(comp1)})
             CompileAndVerify(comp2, sourceSymbolValidator:=_commonValidatorForCondAttrType(True), symbolValidator:=_commonValidatorForCondAttrType(False), expectedOutput:="")
         End Sub
@@ -798,7 +798,7 @@ Class C
 End Class
 "
             Dim parseOptions As New VisualBasicParseOptions(preprocessorSymbols:={New KeyValuePair(Of String, Object)("Defined", True)})
-            Dim comp = CreateCompilationWithMscorlib({VisualBasicSyntaxTree.ParseText(source, parseOptions)}, options:=TestOptions.ReleaseModule)
+            Dim comp = CreateCompilationWithMscorlib40({VisualBasicSyntaxTree.ParseText(source, parseOptions)}, options:=TestOptions.ReleaseModule)
             CompileAndVerify(comp, verify:=Verification.Fails).VerifyIL("C.M", "
 {
   // Code size        7 (0x7)

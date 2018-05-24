@@ -84,15 +84,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             {
                 string mainModuleName = Emit(testEnvironment, manifestResources, emitOptions);
                 _allModuleData = testEnvironment.GetAllModuleData();
-
-                if (peVerify == Verification.Passes)
-                {
-                    testEnvironment.PeVerify();
-                }
-                else if (peVerify == Verification.Fails)
-                {
-                    Assert.Throws<PeVerifyException>(() => testEnvironment.PeVerify());
-                }
+                testEnvironment.Verify(peVerify);
 
                 if (expectedSignatures != null)
                 {
@@ -118,7 +110,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             using (var testEnvironment = RuntimeEnvironmentFactory.Create(_dependencies))
             {
                 string mainModuleName = Emit(testEnvironment, null, null);
-                string[] actualOutput = testEnvironment.PeVerifyModules(new[] { mainModuleName }, throwOnError: false);
+                string[] actualOutput = testEnvironment.VerifyModules(new[] { mainModuleName });
                 Assert.Equal(expectedPeVerifyOutput, actualOutput);
             }
         }

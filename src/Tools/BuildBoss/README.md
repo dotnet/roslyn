@@ -6,7 +6,7 @@ This is a tool to validate the state of our solutions, project files and other b
 > BuildBoss.exe <solution / project / targets path / build log paths>
 ```
 
-This tool is run on every CI job against our important solution files: [Roslyn.sln](https://github.com/dotnet/roslyn/blob/master/Roslyn.sln), [CrossPlatform.sln](https://github.com/dotnet/roslyn/blob/master/CrossPlatform.sln) and [Samples.sln](https://github.com/dotnet/roslyn/blob/master/src/Samples/Samples.sln).  
+This tool is run on every CI job against our important solution files: [Roslyn.sln](https://github.com/dotnet/roslyn/blob/master/Roslyn.sln), and [CrossPlatform.sln](https://github.com/dotnet/roslyn/blob/master/CrossPlatform.sln).  
 
 Violations reported are important to fix as they represent correctness issues in our build.  Many of the properties verified represent problems that otherwise won't be verified at check in time.
 

@@ -402,5 +402,17 @@ namespace Microsoft.CodeAnalysis.Internal.Log
         Intellisense_Completion,
         MetadataOnlyImage_EmitFailure,
         LiveTableDataSource_OnDiagnosticsUpdated,
+        Experiment_KeybindingsReset,
+        Diagnostics_GeneratePerformaceReport,
+        Diagnostics_BadAnalyzer,
+        CodeAnalysisService_ReportAnalyzerPerformance,
+        PerformanceTrackerService_AddSnapshot,
+        AbstractProject_SetIntelliSenseBuild,
+        AbstractProject_Created,
+        AbstractProject_PushedToWorkspace,
+        ExternalErrorDiagnosticUpdateSource_AddError,
+        DiagnosticIncrementalAnalyzer_SynchronizeWithBuildAsync,
+        Completion_ExecuteCommand_TypeChar,
+        RemoteHostService_SynchronizeTextAsync,
     }
 }

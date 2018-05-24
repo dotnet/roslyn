@@ -4,272 +4,272 @@
     <body>
       <trans-unit id="Microsoft_Visual_Basic">
         <source>Microsoft Visual Basic</source>
-        <target state="new">Microsoft Visual Basic</target>
+        <target state="translated">Microsoft Visual Basic</target>
         <note />
       </trans-unit>
       <trans-unit id="Insert_Snippet">
         <source>Insert Snippet</source>
-        <target state="new">Insert Snippet</target>
+        <target state="translated">Insertar fragmento de código</target>
         <note />
       </trans-unit>
       <trans-unit id="IntelliSense">
         <source>IntelliSense</source>
-        <target state="new">IntelliSense</target>
+        <target state="translated">IntelliSense</target>
         <note />
       </trans-unit>
       <trans-unit id="Move_local_declaration_to_the_extracted_method_if_it_is_not_used_elsewhere">
         <source>_Move local declaration to the extracted method if it is not used elsewhere</source>
-        <target state="new">_Move local declaration to the extracted method if it is not used elsewhere</target>
+        <target state="translated">_Mover la declaración local al método extraído si no se usa en otros lugares</target>
         <note />
       </trans-unit>
       <trans-unit id="Automatic_insertion_of_Interface_and_MustOverride_members">
         <source>Automatic _insertion of Interface and MustOverride members</source>
-        <target state="new">Automatic _insertion of Interface and MustOverride members</target>
+        <target state="translated">I_nserción automática de miembros Interface y MustOverride</target>
         <note />
       </trans-unit>
       <trans-unit id="Show_procedure_line_separators">
         <source>_Show procedure line separators</source>
-        <target state="new">_Show procedure line separators</target>
+        <target state="translated">Mo_strar separadores de líneas de procedimientos</target>
         <note />
       </trans-unit>
       <trans-unit id="Don_t_put_ByRef_on_custom_structure">
         <source>_Don't put ByRef on custom structure</source>
-        <target state="new">_Don't put ByRef on custom structure</target>
+        <target state="translated">_No poner ByRef en una estructura personalizada</target>
         <note />
       </trans-unit>
       <trans-unit id="Editor_Help">
         <source>Editor Help</source>
-        <target state="new">Editor Help</target>
+        <target state="translated">Ayuda de editor</target>
         <note />
       </trans-unit>
       <trans-unit id="A_utomatic_insertion_of_end_constructs">
         <source>A_utomatic insertion of end constructs</source>
-        <target state="new">A_utomatic insertion of end constructs</target>
+        <target state="translated">Inserción a_utomática de construcciones end</target>
         <note />
       </trans-unit>
       <trans-unit id="Highlight_related_keywords_under_cursor">
         <source>Highlight related _keywords under cursor</source>
-        <target state="new">Highlight related _keywords under cursor</target>
+        <target state="translated">Resaltar palabras cla_ve relacionadas bajo el cursor</target>
         <note />
       </trans-unit>
       <trans-unit id="Highlight_references_to_symbol_under_cursor">
         <source>_Highlight references to symbol under cursor</source>
-        <target state="new">_Highlight references to symbol under cursor</target>
+        <target state="translated">_Resaltar referencias al símbolo bajo el cursor</target>
         <note />
       </trans-unit>
       <trans-unit id="Pretty_listing_reformatting_of_code">
         <source>_Pretty listing (reformatting) of code</source>
-        <target state="new">_Pretty listing (reformatting) of code</target>
+        <target state="translated">_Lista descriptiva (nuevo formato) de código</target>
         <note />
       </trans-unit>
       <trans-unit id="Enter_outlining_mode_when_files_open">
         <source>_Enter outlining mode when files open</source>
-        <target state="new">_Enter outlining mode when files open</target>
+        <target state="translated">_Especificar el modo de esquematización al abrir los archivos</target>
         <note />
       </trans-unit>
       <trans-unit id="Extract_Method">
         <source>Extract Method</source>
-        <target state="new">Extract Method</target>
+        <target state="translated">Extraer método</target>
         <note />
       </trans-unit>
       <trans-unit id="Generate_XML_documentation_comments_for">
         <source>_Generate XML documentation comments for '''</source>
-        <target state="new">_Generate XML documentation comments for '''</target>
+        <target state="translated">_Generar comentarios de documentación XML con '''</target>
         <note />
       </trans-unit>
       <trans-unit id="Highlighting">
         <source>Highlighting</source>
-        <target state="new">Highlighting</target>
+        <target state="translated">Resaltar</target>
         <note />
       </trans-unit>
       <trans-unit id="Optimize_for_solution_size">
         <source>Optimize for solution size</source>
-        <target state="new">Optimize for solution size</target>
+        <target state="translated">Optimizar para tamaño de la solución</target>
         <note />
       </trans-unit>
       <trans-unit id="Large">
         <source>Large</source>
-        <target state="new">Large</target>
+        <target state="translated">Grande</target>
         <note />
       </trans-unit>
       <trans-unit id="Regular">
         <source>Regular</source>
-        <target state="new">Regular</target>
+        <target state="translated">Normal</target>
         <note />
       </trans-unit>
       <trans-unit id="Small">
         <source>Small</source>
-        <target state="new">Small</target>
+        <target state="translated">Pequeño</target>
         <note />
       </trans-unit>
       <trans-unit id="Performance">
         <source>Performance</source>
-        <target state="new">Performance</target>
+        <target state="translated">Rendimiento</target>
         <note />
       </trans-unit>
       <trans-unit id="Show_preview_for_rename_tracking">
         <source>Show preview for rename _tracking</source>
-        <target state="new">Show preview for rename _tracking</target>
+        <target state="translated">Mostrar vista previa para _seguimiento de cambio de nombre</target>
         <note />
       </trans-unit>
       <trans-unit id="Navigate_to_Object_Browser_for_symbols_defined_in_metadata">
         <source>_Navigate to Object Browser for symbols defined in metadata</source>
-        <target state="new">_Navigate to Object Browser for symbols defined in metadata</target>
+        <target state="translated">_Vaya al Examinador de objetos para obtener los símbolos definidos en los metadatos</target>
         <note />
       </trans-unit>
       <trans-unit id="Go_to_Definition">
         <source>Go to Definition</source>
-        <target state="new">Go to Definition</target>
+        <target state="translated">Ir a definición</target>
         <note />
       </trans-unit>
       <trans-unit id="Import_Directives">
         <source>Import Directives</source>
-        <target state="new">Import Directives</target>
+        <target state="translated">Directivas de importación</target>
         <note />
       </trans-unit>
       <trans-unit id="Suggest_imports_for_types_in_NuGet_packages">
         <source>Suggest imports for types in _NuGet packages</source>
-        <target state="new">Suggest imports for types in _NuGet packages</target>
+        <target state="translated">Sugerir importaciones para tipos de paquetes _NuGet</target>
         <note />
       </trans-unit>
       <trans-unit id="Suggest_imports_for_types_in_reference_assemblies">
         <source>Suggest imports for types in _reference assemblies</source>
-        <target state="new">Suggest imports for types in _reference assemblies</target>
+        <target state="translated">Sugerir importaciones para tipos de ensamblados de r_eferencia</target>
         <note />
       </trans-unit>
       <trans-unit id="Place_System_directives_first_when_sorting_imports">
         <source>_Place 'System' directives first when sorting imports</source>
-        <target state="new">_Place 'System' directives first when sorting imports</target>
+        <target state="translated">_Poner directivas del sistema en primer lugar cuando se ordenen las importaciones</target>
         <note />
       </trans-unit>
       <trans-unit id="Qualify_event_access_with_Me">
         <source>Qualify event access with 'Me'</source>
-        <target state="new">Qualify event access with 'Me'</target>
+        <target state="translated">Calificar el acceso a eventos con 'Me'</target>
         <note />
       </trans-unit>
       <trans-unit id="Qualify_field_access_with_Me">
         <source>Qualify field access with 'Me'</source>
-        <target state="new">Qualify field access with 'Me'</target>
+        <target state="translated">Calificar el acceso a campos con 'Me'</target>
         <note />
       </trans-unit>
       <trans-unit id="Qualify_method_access_with_Me">
         <source>Qualify method access with 'Me'</source>
-        <target state="new">Qualify method access with 'Me'</target>
+        <target state="translated">Calificar el acceso a métodos con 'Me'</target>
         <note />
       </trans-unit>
       <trans-unit id="Qualify_property_access_with_Me">
         <source>Qualify property access with 'Me'</source>
-        <target state="new">Qualify property access with 'Me'</target>
+        <target state="translated">Calificar el acceso a propiedades con 'Me'</target>
         <note />
       </trans-unit>
       <trans-unit id="Do_not_prefer_Me">
         <source>Do not prefer 'Me.'</source>
-        <target state="new">Do not prefer 'Me.'</target>
+        <target state="translated">No preferir 'Me.'</target>
         <note />
       </trans-unit>
       <trans-unit id="Prefer_Me">
         <source>Prefer 'Me.'</source>
-        <target state="new">Prefer 'Me.'</target>
+        <target state="translated">Preferir 'Me.'</target>
         <note />
       </trans-unit>
       <trans-unit id="Me_preferences_colon">
         <source>'Me.' preferences:</source>
-        <target state="new">'Me.' preferences:</target>
+        <target state="translated">'Preferencias de "Me.":</target>
         <note />
       </trans-unit>
       <trans-unit id="Predefined_type_preferences_colon">
         <source>Predefined type preferences:</source>
-        <target state="new">Predefined type preferences:</target>
+        <target state="translated">Preferencias de tipos predefinidos:</target>
         <note />
       </trans-unit>
       <trans-unit id="Highlight_matching_portions_of_completion_list_items">
         <source>_Highlight matching portions of completion list items</source>
-        <target state="new">_Highlight matching portions of completion list items</target>
+        <target state="translated">_Resaltar partes coincidentes de elementos de lista de finalización</target>
         <note />
       </trans-unit>
       <trans-unit id="Show_completion_item_filters">
         <source>Show completion item _filters</source>
-        <target state="new">Show completion item _filters</target>
+        <target state="translated">Mostrar _filtros de elementos de finalización</target>
         <note />
       </trans-unit>
       <trans-unit id="Completion_Lists">
         <source>Completion Lists</source>
-        <target state="new">Completion Lists</target>
+        <target state="translated">Listas de finalización</target>
         <note />
       </trans-unit>
       <trans-unit id="Enter_key_behavior_colon">
         <source>Enter key behavior:</source>
-        <target state="new">Enter key behavior:</target>
+        <target state="translated">Comportamiento de la tecla Entrar:</target>
         <note />
       </trans-unit>
       <trans-unit id="Only_add_new_line_on_enter_after_end_of_fully_typed_word">
         <source>_Only add new line on enter after end of fully typed word</source>
-        <target state="new">_Only add new line on enter after end of fully typed word</target>
+        <target state="translated">_Agregar solo una nueva línea con Entrar al final de palabras</target>
         <note />
       </trans-unit>
       <trans-unit id="Always_add_new_line_on_enter">
         <source>_Always add new line on enter</source>
-        <target state="new">_Always add new line on enter</target>
+        <target state="translated">_Agregar siempre una nueva línea al presionar Entrar</target>
         <note />
       </trans-unit>
       <trans-unit id="Never_add_new_line_on_enter">
         <source>_Never add new line on enter</source>
-        <target state="new">_Never add new line on enter</target>
+        <target state="translated">_No agregar nunca una nueva línea al presionar Entrar</target>
         <note />
       </trans-unit>
       <trans-unit id="Always_include_snippets">
         <source>Always include snippets</source>
-        <target state="new">Always include snippets</target>
+        <target state="translated">Incluir siempre fragmentos de código</target>
         <note />
       </trans-unit>
       <trans-unit id="Include_snippets_when_Tab_is_typed_after_an_identifier">
         <source>Include snippets when ?-Tab is typed after an identifier</source>
-        <target state="new">Include snippets when ?-Tab is typed after an identifier</target>
+        <target state="translated">Incluir fragmentos de código cuando ?-Tab se escriba después de un identificador</target>
         <note />
       </trans-unit>
       <trans-unit id="Never_include_snippets">
         <source>Never include snippets</source>
-        <target state="new">Never include snippets</target>
+        <target state="translated">No incluir nunca fragmentos de código</target>
         <note />
       </trans-unit>
       <trans-unit id="Snippets_behavior">
         <source>Snippets behavior</source>
-        <target state="new">Snippets behavior</target>
+        <target state="translated">Comportamiento de los fragmentos de código</target>
         <note />
       </trans-unit>
       <trans-unit id="Show_completion_list_after_a_character_is_deleted">
         <source>Show completion list after a character is _deleted</source>
-        <target state="new">Show completion list after a character is _deleted</target>
+        <target state="translated">Mostrar lista de finalización después de la _eliminación de un carácter</target>
         <note />
       </trans-unit>
       <trans-unit id="Show_completion_list_after_a_character_is_typed">
         <source>_Show completion list after a character is typed</source>
-        <target state="new">_Show completion list after a character is typed</target>
+        <target state="translated">_Mostrar lista de finalización después de escribir un carácter</target>
         <note />
       </trans-unit>
       <trans-unit id="nothing_checking_colon">
         <source>'nothing' checking:</source>
-        <target state="new">'nothing' checking:</target>
+        <target state="translated">'Comprobación de "nothing":</target>
         <note />
       </trans-unit>
       <trans-unit id="Fade_out_unused_imports">
         <source>Fade out unused imports</source>
-        <target state="new">Fade out unused imports</target>
+        <target state="translated">Atenuar importaciones no utilizadas</target>
         <note />
       </trans-unit>
       <trans-unit id="Prefer_Is_Nothing_over_ReferenceEquals">
         <source>Prefer 'Is Nothing' over 'Object.ReferenceEquals(..., Nothing)'</source>
-        <target state="new">Prefer 'Is Nothing' over 'Object.ReferenceEquals(..., Nothing)'</target>
+        <target state="translated">Preferir "Is Nothing" a "Object.ReferenceEquals(..., Nothing)"</target>
         <note />
       </trans-unit>
       <trans-unit id="Report_invalid_placeholders_in_string_dot_format_calls">
         <source>Report invalid placeholders in 'String.Format' calls</source>
-        <target state="new">Report invalid placeholders in 'String.Format' calls</target>
+        <target state="translated">Informar sobre marcadores de posición no válidos en llamadas a "String.Format"</target>
         <note />
       </trans-unit>
       <trans-unit id="Separate_import_directive_groups">
         <source>Separate import directive groups</source>
-        <target state="new">Separate import directive groups</target>
+        <target state="translated">Separar grupos de directivas import</target>
         <note />
       </trans-unit>
     </body>

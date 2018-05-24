@@ -11,7 +11,6 @@
     <ProjectReference Include="..\..\Compilers\CSharp\Portable\CSharpCodeAnalysis.csproj" />
     <ProjectReference Include="..\..\Compilers\Test\Utilities\CSharp\CSharpCompilerTestUtilities.csproj" />
     <ProjectReference Include="..\..\Interactive\EditorFeatures\CSharp\CSharpInteractiveEditorFeatures.csproj" />
-    <ProjectReference Include="..\..\Test\Utilities\Desktop\TestUtilities.Desktop.csproj" />
     <ProjectReference Include="..\..\Workspaces\Core\Desktop\Workspaces.Desktop.csproj" />
     <ProjectReference Include="..\..\Workspaces\Core\Portable\Workspaces.csproj" />
     <ProjectReference Include="..\..\Features\CSharp\Portable\CSharpFeatures.csproj" />
@@ -21,6 +20,7 @@
     <ProjectReference Include="..\..\EditorFeatures\Text\TextEditorFeatures.csproj" />
     <ProjectReference Include="..\..\Workspaces\CSharp\Portable\CSharpWorkspace.csproj" />
     <ProjectReference Include="..\..\EditorFeatures\Core\EditorFeatures.csproj" />
+    <ProjectReference Include="..\..\EditorFeatures\Core.Wpf\EditorFeatures.Wpf.csproj" />
     <ProjectReference Include="..\..\EditorFeatures\CSharp\CSharpEditorFeatures.csproj" />
     <ProjectReference Include="..\..\Compilers\Test\Resources\Core\CompilerTestResources.csproj" />
     <ProjectReference Include="..\TestUtilities\ServicesTestUtilities.csproj" />

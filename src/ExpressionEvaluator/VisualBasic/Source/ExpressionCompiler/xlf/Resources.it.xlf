@@ -4,7 +4,7 @@
     <body>
       <trans-unit id="InvalidDebuggerStatement">
         <source>Statements of type '{0}' are not allowed in the Immediate window.</source>
-        <target state="new">Statements of type '{0}' are not allowed in the Immediate window.</target>
+        <target state="translated">Le istruzioni di tipo '{0}' non sono consentite nella finestra Immediato.</target>
         <note />
       </trans-unit>
     </body>

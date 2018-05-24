@@ -4,6 +4,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.Input;
+using Roslyn.Test.Utilities;
 using Xunit;
 using ProjectUtils = Microsoft.VisualStudio.IntegrationTest.Utilities.Common.ProjectUtils;
 
@@ -19,7 +20,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.VisualBasic
         {
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.WinForms)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.WinForms)]
         public void TestMyIntelliSense()
         {
             var project = new ProjectUtils.Project(ProjectName);
@@ -48,7 +49,7 @@ End Class");
             VisualStudio.Editor.Verify.CompletionItemDoNotExist("ToString");
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/19191"), Trait(Traits.Feature, Traits.Features.WinForms)]
+        [WpfFact(Skip = "https://github.com/dotnet/roslyn/issues/19191"), Trait(Traits.Feature, Traits.Features.WinForms)]
         public void AddControl()
         {
             var project = new ProjectUtils.Project(ProjectName);
@@ -61,7 +62,7 @@ End Class");
             Assert.Contains(@"Friend WithEvents SomeButton As Button", actualText);
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/19191"), Trait(Traits.Feature, Traits.Features.WinForms)]
+        [WpfFact(Skip = "https://github.com/dotnet/roslyn/issues/19191"), Trait(Traits.Feature, Traits.Features.WinForms)]
         public void ChangeControlProperty()
         {
             var project = new ProjectUtils.Project(ProjectName);
@@ -74,7 +75,7 @@ End Class");
             Assert.Contains(@"Me.SomeButton.Text = ""NewButtonText""", actualText);
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/19191"), Trait(Traits.Feature, Traits.Features.WinForms)]
+        [WpfFact(Skip = "https://github.com/dotnet/roslyn/issues/19191"), Trait(Traits.Feature, Traits.Features.WinForms)]
         public void ChangeControlPropertyInCode()
         {
             var project = new ProjectUtils.Project(ProjectName);
@@ -101,7 +102,7 @@ End Class");
             Assert.Equal(expectedPropertyValue, actualPropertyValue);
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/19191"), Trait(Traits.Feature, Traits.Features.WinForms)]
+        [WpfFact(Skip = "https://github.com/dotnet/roslyn/issues/19191"), Trait(Traits.Feature, Traits.Features.WinForms)]
         public void AddClickHandler()
         {
             var project = new ProjectUtils.Project(ProjectName);
@@ -114,7 +115,7 @@ End Class");
             VisualStudio.SolutionExplorer.SaveFile(project, "Form1.vb");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.WinForms)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.WinForms)]
         public void RenameControl()
         {
             var project = new ProjectUtils.Project(ProjectName);
@@ -146,7 +147,7 @@ End Class");
             Assert.Contains(@"Private Sub SomeButtonHandler(sender As Object, e As EventArgs) Handles AnotherNewButton.Click", formActualText);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.WinForms)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.WinForms)]
         public void RemoveEventHandler()
         {
             var project = new ProjectUtils.Project(ProjectName);
@@ -162,7 +163,7 @@ End Class");
             Assert.DoesNotContain(@"Private Sub GooHandler(sender As Object, e As EventArgs) Handles SomeButton.Click", actualText);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.WinForms)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.WinForms)]
         public void ChangeAccessibility()
         {
             var project = new ProjectUtils.Project(ProjectName);
@@ -179,7 +180,7 @@ End Class");
             Assert.Contains(@"Public WithEvents SomeButton As Button", actualText);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.WinForms)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.WinForms)]
         public void DeleteControl()
         {
             var project = new ProjectUtils.Project(ProjectName);

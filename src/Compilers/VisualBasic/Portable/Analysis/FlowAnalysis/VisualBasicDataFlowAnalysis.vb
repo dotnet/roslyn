@@ -32,6 +32,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Private _readOutside As ImmutableArray(Of ISymbol)
         Private _writtenOutside As ImmutableArray(Of ISymbol)
         Private _captured As ImmutableArray(Of ISymbol)
+        Private _capturedInside As ImmutableArray(Of ISymbol)
+        Private _capturedOutside As ImmutableArray(Of ISymbol)
         Private _succeeded As Boolean?
         Private _invalidRegionDetected As Boolean
 
@@ -163,6 +165,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim readOutside As IEnumerable(Of Symbol) = Nothing
             Dim writtenOutside As IEnumerable(Of Symbol) = Nothing
             Dim captured As IEnumerable(Of Symbol) = Nothing
+            Dim capturedInside As IEnumerable(Of Symbol) = Nothing
+            Dim capturedOutside As IEnumerable(Of Symbol) = Nothing
 
             If Not Me.Succeeded Then
                 readInside = Enumerable.Empty(Of Symbol)()
@@ -178,7 +182,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     writtenInside:=writtenInside,
                     readOutside:=readOutside,
                     writtenOutside:=writtenOutside,
-                    captured:=captured)
+                    captured:=captured,
+                    capturedInside:=capturedInside,
+                    capturedOutside:=capturedOutside)
             End If
 
             ImmutableInterlocked.InterlockedCompareExchange(Me._readInside, Sort(readInside), Nothing)
@@ -186,6 +192,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             ImmutableInterlocked.InterlockedCompareExchange(Me._readOutside, Sort(readOutside), Nothing)
             ImmutableInterlocked.InterlockedCompareExchange(Me._writtenOutside, Sort(writtenOutside), Nothing)
             ImmutableInterlocked.InterlockedCompareExchange(Me._captured, Sort(captured), Nothing)
+            ImmutableInterlocked.InterlockedCompareExchange(Me._capturedInside, Sort(capturedInside), Nothing)
+            ImmutableInterlocked.InterlockedCompareExchange(Me._capturedOutside, Sort(capturedOutside), Nothing)
         End Sub
 
         ''' <summary>
@@ -199,6 +207,26 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 End If
 
                 Return Me._captured
+            End Get
+        End Property
+
+        Public Overrides ReadOnly Property CapturedInside As ImmutableArray(Of ISymbol)
+            Get
+                If Me._capturedInside.IsDefault Then
+                    AnalyzeReadWrite()
+                End If
+
+                Return Me._capturedInside
+            End Get
+        End Property
+
+        Public Overrides ReadOnly Property CapturedOutside As ImmutableArray(Of ISymbol)
+            Get
+                If Me._capturedOutside.IsDefault Then
+                    AnalyzeReadWrite()
+                End If
+
+                Return Me._capturedOutside
             End Get
         End Property
 

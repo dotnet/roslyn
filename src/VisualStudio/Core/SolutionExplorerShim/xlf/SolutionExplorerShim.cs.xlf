@@ -4,157 +4,157 @@
     <body>
       <trans-unit id="Analyzers">
         <source>Analyzers</source>
-        <target state="new">Analyzers</target>
+        <target state="translated">Analyzátory</target>
         <note />
       </trans-unit>
       <trans-unit id="Folder_Properties">
         <source>Folder Properties</source>
-        <target state="new">Folder Properties</target>
+        <target state="translated">Vlastnosti složky</target>
         <note />
       </trans-unit>
       <trans-unit id="Analyzer_Properties">
         <source>Analyzer Properties</source>
-        <target state="new">Analyzer Properties</target>
+        <target state="translated">Vlastnosti analyzátoru</target>
         <note />
       </trans-unit>
       <trans-unit id="Add_Analyzer">
         <source>Add Analyzer</source>
-        <target state="new">Add Analyzer</target>
+        <target state="translated">Přidat analyzátor</target>
         <note />
       </trans-unit>
       <trans-unit id="Analyzer_Files">
         <source>Analyzer Files</source>
-        <target state="new">Analyzer Files</target>
+        <target state="translated">Soubory analyzátoru</target>
         <note />
       </trans-unit>
       <trans-unit id="Diagnostic_Properties">
         <source>Diagnostic Properties</source>
-        <target state="new">Diagnostic Properties</target>
+        <target state="translated">Diagnostické vlastnosti</target>
         <note />
       </trans-unit>
       <trans-unit id="Could_not_find_project_0">
         <source>Could not find project {0}.</source>
-        <target state="new">Could not find project {0}.</target>
+        <target state="translated">Projekt {0} nebylo možné najít.</target>
         <note />
       </trans-unit>
       <trans-unit id="No_rule_set_file_is_specified_or_the_file_does_not_exist">
         <source>No rule set file is specified, or the file does not exist.</source>
-        <target state="new">No rule set file is specified, or the file does not exist.</target>
+        <target state="translated">Není zadaný žádný soubor sady pravidel nebo tento soubor neexistuje.</target>
         <note />
       </trans-unit>
       <trans-unit id="The_rule_set_file_could_not_be_opened">
         <source>The rule set file could not be opened.</source>
-        <target state="new">The rule set file could not be opened.</target>
+        <target state="translated">Soubor sady pravidel nebylo možné otevřít.</target>
         <note />
       </trans-unit>
       <trans-unit id="The_rule_set_file_could_not_be_updated">
         <source>The rule set file could not be updated.</source>
-        <target state="new">The rule set file could not be updated.</target>
+        <target state="translated">Soubor sady pravidel nebylo možné aktualizovat.</target>
         <note />
       </trans-unit>
       <trans-unit id="Could_not_create_a_rule_set_for_project_0">
         <source>Could not create a rule set for project {0}.</source>
-        <target state="new">Could not create a rule set for project {0}.</target>
+        <target state="translated">Pro projekt {0} nebylo možné vytvořit sadu pravidel.</target>
         <note />
       </trans-unit>
       <trans-unit id="Default_">
         <source>Default</source>
-        <target state="new">Default</target>
+        <target state="translated">Výchozí</target>
         <note />
       </trans-unit>
       <trans-unit id="Error_">
         <source>Error</source>
-        <target state="new">Error</target>
+        <target state="translated">Chyba</target>
         <note />
       </trans-unit>
       <trans-unit id="Warning">
         <source>Warning</source>
-        <target state="new">Warning</target>
+        <target state="translated">Varování</target>
         <note />
       </trans-unit>
       <trans-unit id="Info">
         <source>Info</source>
-        <target state="new">Info</target>
+        <target state="translated">Informace</target>
         <note />
       </trans-unit>
       <trans-unit id="Hidden">
         <source>Hidden</source>
-        <target state="new">Hidden</target>
+        <target state="translated">Skryté</target>
         <note />
       </trans-unit>
       <trans-unit id="Suppressed">
         <source>Suppressed</source>
-        <target state="new">Suppressed</target>
+        <target state="translated">Potlačeno</target>
         <note />
       </trans-unit>
       <trans-unit id="Rule_Set">
         <source>Rule Set</source>
-        <target state="new">Rule Set</target>
+        <target state="translated">Sada pravidel</target>
         <note />
       </trans-unit>
       <trans-unit id="Checking_out_0_for_editing">
         <source>Checking out {0} for editing...</source>
-        <target state="new">Checking out {0} for editing...</target>
+        <target state="translated">Rezervuje se {0} pro úpravy...</target>
         <note />
       </trans-unit>
       <trans-unit id="Name">
         <source>(Name)</source>
-        <target state="new">(Name)</target>
+        <target state="translated">(Název)</target>
         <note />
       </trans-unit>
       <trans-unit id="Path">
         <source>Path</source>
-        <target state="new">Path</target>
+        <target state="translated">Cesta</target>
         <note />
       </trans-unit>
       <trans-unit id="Category">
         <source>Category</source>
-        <target state="new">Category</target>
+        <target state="translated">Kategorie</target>
         <note />
       </trans-unit>
       <trans-unit id="Default_severity">
         <source>Default severity</source>
-        <target state="new">Default severity</target>
+        <target state="translated">Výchozí závažnost</target>
         <note />
       </trans-unit>
       <trans-unit id="Description">
         <source>Description</source>
-        <target state="new">Description</target>
+        <target state="translated">Popis</target>
         <note />
       </trans-unit>
       <trans-unit id="Effective_severity">
         <source>Effective severity</source>
-        <target state="new">Effective severity</target>
+        <target state="translated">Efektivní závažnost</target>
         <note />
       </trans-unit>
       <trans-unit id="Enabled_by_default">
         <source>Enabled by default</source>
-        <target state="new">Enabled by default</target>
+        <target state="translated">Standardně povoleno</target>
         <note />
       </trans-unit>
       <trans-unit id="Help_link">
         <source>Help link</source>
-        <target state="new">Help link</target>
+        <target state="translated">Odkaz na nápovědu</target>
         <note />
       </trans-unit>
       <trans-unit id="ID">
         <source>ID</source>
-        <target state="new">ID</target>
+        <target state="translated">ID</target>
         <note />
       </trans-unit>
       <trans-unit id="Message">
         <source>Message</source>
-        <target state="new">Message</target>
+        <target state="translated">Zpráva</target>
         <note />
       </trans-unit>
       <trans-unit id="Tags">
         <source>Tags</source>
-        <target state="new">Tags</target>
+        <target state="translated">Značky</target>
         <note />
       </trans-unit>
       <trans-unit id="Title">
         <source>Title</source>
-        <target state="new">Title</target>
+        <target state="translated">Název</target>
         <note />
       </trans-unit>
     </body>

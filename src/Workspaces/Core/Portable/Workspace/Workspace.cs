@@ -31,6 +31,8 @@ namespace Microsoft.CodeAnalysis
         private readonly HostWorkspaceServices _services;
         private readonly BranchId _primaryBranchId;
 
+        private readonly IWorkspaceOptionService _workspaceOptionService;
+
         // forces serialization of mutation calls from host (OnXXX methods). Must take this lock before taking stateLock.
         private readonly SemaphoreSlim _serializationLock = new SemaphoreSlim(initialCount: 1);
 
@@ -81,6 +83,8 @@ namespace Microsoft.CodeAnalysis
             _workspaceKind = workspaceKind;
 
             _services = host.CreateWorkspaceServices(this);
+
+            _workspaceOptionService = _services.GetService<IOptionService>() as IWorkspaceOptionService;
 
             // queue used for sending events
             var workspaceTaskSchedulerFactory = _services.GetRequiredService<IWorkspaceTaskSchedulerFactory>();
@@ -304,7 +308,7 @@ namespace Microsoft.CodeAnalysis
                 this.ClearSolutionData();
             }
 
-            ((IWorkspaceOptionService)this.Services.GetService<IOptionService>()).OnWorkspaceDisposed(this);
+            _workspaceOptionService?.OnWorkspaceDisposed(this);
         }
 
         #region Host API
@@ -1017,6 +1021,11 @@ namespace Microsoft.CodeAnalysis
                 {
                     outputAssemblyToProjectIdMap[p.OutputFilePath] = p.Id;
                 }
+
+                if (!string.IsNullOrEmpty(p.OutputRefFilePath))
+                {
+                    outputAssemblyToProjectIdMap[p.OutputRefFilePath] = p.Id;
+                }
             }
 
             // now fix each project if necessary
@@ -1427,7 +1436,10 @@ namespace Microsoft.CodeAnalysis
                 project.ProjectReferences,
                 project.MetadataReferences,
                 project.AnalyzerReferences,
-                project.AdditionalDocuments.Select(d => CreateDocumentInfoWithText(d)));
+                project.AdditionalDocuments.Select(d => CreateDocumentInfoWithText(d)),
+                project.IsSubmission,
+                project.State.HostObjectType,
+                project.OutputRefFilePath);
         }
 
         internal SourceText GetTextForced(TextDocument doc)

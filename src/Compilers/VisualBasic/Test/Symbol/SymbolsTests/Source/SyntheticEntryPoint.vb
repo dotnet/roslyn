@@ -34,7 +34,7 @@ End Class
     ]]></file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(compilationDef, TestOptions.ReleaseExe.WithMainTypeName("Test"))
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(compilationDef, TestOptions.ReleaseExe.WithMainTypeName("Test"))
 
             AssertTheseDiagnostics(compilation,
 <expected><![CDATA[
@@ -64,7 +64,7 @@ End Namespace
     ]]></file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(compilationDef, {SystemWindowsFormsRef, SystemDrawingRef}, TestOptions.ReleaseExe.WithMainTypeName("ns.test"))
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(compilationDef, {SystemWindowsFormsRef, SystemDrawingRef}, TestOptions.ReleaseExe.WithMainTypeName("ns.test"))
 
             Dim verifier = CompileAndVerify(compilation).VerifyDiagnostics()
 
@@ -109,7 +109,7 @@ End Class
     ]]></file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(compilationDef, {SystemWindowsFormsRef, SystemDrawingRef}, TestOptions.ReleaseExe.WithMainTypeName("Test"))
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(compilationDef, {SystemWindowsFormsRef, SystemDrawingRef}, TestOptions.ReleaseExe.WithMainTypeName("Test"))
 
             compilation.MyTemplate = GroupClassTests.WindowsFormsMyTemplateTree
 
@@ -162,7 +162,7 @@ End Class
     ]]></file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(compilationDef, {SystemWindowsFormsRef, SystemDrawingRef}, TestOptions.ReleaseExe.WithMainTypeName("Test"))
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(compilationDef, {SystemWindowsFormsRef, SystemDrawingRef}, TestOptions.ReleaseExe.WithMainTypeName("Test"))
 
             AssertTheseDiagnostics(compilation,
 <expected><![CDATA[
@@ -193,7 +193,7 @@ End Class
     ]]></file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(compilationDef, {SystemWindowsFormsRef, SystemDrawingRef}, TestOptions.ReleaseExe.WithMainTypeName("Test"))
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(compilationDef, {SystemWindowsFormsRef, SystemDrawingRef}, TestOptions.ReleaseExe.WithMainTypeName("Test"))
 
             Dim verifier = CompileAndVerify(compilation).VerifyDiagnostics()
 
@@ -242,7 +242,7 @@ End Class
     ]]></file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(compilationDef, {SystemWindowsFormsRef, SystemDrawingRef}, TestOptions.ReleaseExe.WithMainTypeName("Test"))
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(compilationDef, {SystemWindowsFormsRef, SystemDrawingRef}, TestOptions.ReleaseExe.WithMainTypeName("Test"))
 
             compilation.MyTemplate = GroupClassTests.WindowsFormsMyTemplateTree
 
@@ -296,7 +296,7 @@ End Class
     ]]></file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(compilationDef, {SystemWindowsFormsRef, SystemDrawingRef}, TestOptions.ReleaseExe.WithMainTypeName("Test"))
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(compilationDef, {SystemWindowsFormsRef, SystemDrawingRef}, TestOptions.ReleaseExe.WithMainTypeName("Test"))
 
             AssertTheseDiagnostics(compilation,
 <expected><![CDATA[
@@ -327,7 +327,7 @@ End Class
     ]]></file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(compilationDef, {SystemWindowsFormsRef, SystemDrawingRef}, TestOptions.ReleaseExe.WithMainTypeName("Test"))
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(compilationDef, {SystemWindowsFormsRef, SystemDrawingRef}, TestOptions.ReleaseExe.WithMainTypeName("Test"))
 
             compilation.MyTemplate = GroupClassTests.WindowsFormsMyTemplateTree
 
@@ -360,7 +360,7 @@ End Class
     ]]></file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(compilationDef, {SystemWindowsFormsRef, SystemDrawingRef}, TestOptions.ReleaseExe.WithMainTypeName("Test"))
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(compilationDef, {SystemWindowsFormsRef, SystemDrawingRef}, TestOptions.ReleaseExe.WithMainTypeName("Test"))
 
             AssertTheseDiagnostics(compilation,
 <expected><![CDATA[
@@ -388,7 +388,7 @@ End Class
     ]]></file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(compilationDef, {SystemWindowsFormsRef, SystemDrawingRef}, TestOptions.ReleaseExe.WithMainTypeName("Test"))
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(compilationDef, {SystemWindowsFormsRef, SystemDrawingRef}, TestOptions.ReleaseExe.WithMainTypeName("Test"))
 
             compilation.MyTemplate = GroupClassTests.WindowsFormsMyTemplateTree
 
@@ -417,7 +417,7 @@ End Class
     ]]></file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(compilationDef, {SystemWindowsFormsRef, SystemDrawingRef}, TestOptions.ReleaseExe.WithMainTypeName("Test"))
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(compilationDef, {SystemWindowsFormsRef, SystemDrawingRef}, TestOptions.ReleaseExe.WithMainTypeName("Test"))
 
             AssertTheseDiagnostics(compilation,
 <expected><![CDATA[
@@ -444,7 +444,7 @@ End Class
     ]]></file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(compilationDef, {SystemWindowsFormsRef, SystemDrawingRef}, TestOptions.ReleaseExe.WithMainTypeName("Test"))
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(compilationDef, {SystemWindowsFormsRef, SystemDrawingRef}, TestOptions.ReleaseExe.WithMainTypeName("Test"))
 
             compilation.MyTemplate = GroupClassTests.WindowsFormsMyTemplateTree
 
@@ -475,7 +475,7 @@ End Class
     ]]></file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(compilationDef, {SystemWindowsFormsRef, SystemDrawingRef}, TestOptions.ReleaseExe.WithMainTypeName("Test"))
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(compilationDef, {SystemWindowsFormsRef, SystemDrawingRef}, TestOptions.ReleaseExe.WithMainTypeName("Test"))
 
             Dim verifier = CompileAndVerify(compilation).VerifyDiagnostics()
         End Sub

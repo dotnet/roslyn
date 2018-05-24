@@ -2168,7 +2168,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         !ContainsModifier(propertyDecl.Modifiers, SyntaxKind.AbstractKeyword) &&
                         !ContainsModifier(propertyDecl.Modifiers, SyntaxKind.ExternKeyword) &&
                         propertyDecl.AccessorList != null &&
-                        All(propertyDecl.AccessorList.Accessors, a => a.Body == null);
+                        All(propertyDecl.AccessorList.Accessors, a => a.Body == null && a.ExpressionBody == null);
                 case SyntaxKind.EventFieldDeclaration:
                     // field-like event declaration
                     var eventFieldDecl = (EventFieldDeclarationSyntax)m;
@@ -2439,7 +2439,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             DiagnosticBag diagnostics)
         {
             //key and value will be the same object
-            var methodsBySignature = new Dictionary<MethodSymbol, SourceMemberMethodSymbol>(MemberSignatureComparer.DuplicateSourceComparer);
+            var methodsBySignature = new Dictionary<MethodSymbol, SourceMemberMethodSymbol>(MemberSignatureComparer.PartialMethodsComparer);
 
             foreach (var name in memberNames)
             {

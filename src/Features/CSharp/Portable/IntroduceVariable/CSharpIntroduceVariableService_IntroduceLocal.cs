@@ -115,7 +115,9 @@ namespace Microsoft.CodeAnalysis.CSharp.IntroduceVariable
                 ? SyntaxFactory.Block(declarationStatement)
                 : SyntaxFactory.Block(declarationStatement, SyntaxFactory.ReturnStatement(rewrittenBody));
 
-            newBody = newBody.WithAdditionalAnnotations(Formatter.Annotation);
+            // Add an elastic newline so that the formatter will place this new lambda body across multiple lines.
+            newBody = newBody.WithOpenBraceToken(newBody.OpenBraceToken.WithAppendedTrailingTrivia(SyntaxFactory.ElasticCarriageReturnLineFeed))
+                             .WithAdditionalAnnotations(Formatter.Annotation);
 
             var newLambda = oldLambda is ParenthesizedLambdaExpressionSyntax
                 ? ((ParenthesizedLambdaExpressionSyntax)oldLambda).WithBody(newBody)
@@ -144,18 +146,6 @@ namespace Microsoft.CodeAnalysis.CSharp.IntroduceVariable
         private TypeSyntax GetTypeSyntax(SemanticDocument document, DocumentOptionSet options, ExpressionSyntax expression, bool isConstant, CancellationToken cancellationToken)
         {
             var typeSymbol = GetTypeSymbol(document, expression, cancellationToken);
-            if (typeSymbol.ContainsAnonymousType())
-            {
-                return SyntaxFactory.IdentifierName("var");
-            }
-
-            if (!isConstant && 
-                CanUseVar(typeSymbol) && 
-                TypeStyleHelper.IsImplicitTypePreferred(expression, document.SemanticModel, options, cancellationToken))
-            {
-                return SyntaxFactory.IdentifierName("var");
-            }
-
             return typeSymbol.GenerateTypeSyntax();
         }
 

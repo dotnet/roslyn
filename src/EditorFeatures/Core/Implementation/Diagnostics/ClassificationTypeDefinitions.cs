@@ -15,19 +15,5 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
         [Name(UnnecessaryCode)]
         [BaseDefinition(PredefinedClassificationTypeNames.FormalLanguage)]
         internal ClassificationTypeDefinition UnnecessaryCodeTypeDefinition { get; set; }
-
-        [Export(typeof(EditorFormatDefinition))]
-        [ClassificationType(ClassificationTypeNames = UnnecessaryCode)]
-        [Name(UnnecessaryCode)]
-        [Order(After = Priority.High)]
-        [UserVisible(false)]
-        private class UnnecessaryCodeFormatDefinition : ClassificationFormatDefinition
-        {
-            private UnnecessaryCodeFormatDefinition()
-            {
-                this.DisplayName = EditorFeaturesResources.Unnecessary_Code;
-                this.ForegroundOpacity = 0.6;
-            }
-        }
     }
 }

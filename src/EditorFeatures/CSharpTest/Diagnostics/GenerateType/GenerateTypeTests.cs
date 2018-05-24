@@ -1,7 +1,5 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
@@ -10,6 +8,7 @@ using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.CodeFixes.GenerateType;
 using Microsoft.CodeAnalysis.CSharp.Diagnostics;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -4874,6 +4873,57 @@ internal class Goo
 }",
     expectedContainers: ImmutableArray<string>.Empty,
     expectedDocumentName: "Goo.cs");
+        }
+
+        [WorkItem(22293, "https://github.com/dotnet/roslyn/issues/22293")]
+        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [InlineData("void")]
+        [InlineData("int")]
+        public async Task TestMethodGroupWithMissingSystemActionAndFunc(string returnType)
+        {
+            await TestInRegularAndScriptAsync(
+    $@"
+<Workspace>
+    <Project Language=""C#"" CommonReferences=""false"">
+        <Document><![CDATA[
+class C
+{{
+    void M()
+    {{
+        new [|Class|](Method);
+    }}
+
+    {returnType} Method()
+    {{
+    }}
+}}
+]]>
+        </Document>
+    </Project>
+</Workspace>",
+    $@"
+class C
+{{
+    void M()
+    {{
+        new Class(Method);
+    }}
+
+    {returnType} Method()
+    {{
+    }}
+}}
+
+internal class Class
+{{
+    private global::System.Object method;
+
+    public Class(global::System.Object method)
+    {{
+        this.method = method;
+    }}
+}}",
+    index: 1);
         }
     }
 

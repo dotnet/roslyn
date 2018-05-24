@@ -1,7 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Text;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -486,6 +486,30 @@ class C {
             await VerifyKeywordAsync(@"
 class C {
     public C(object arg1) : this(arg1, $$");
+        }
+
+        [Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.ReadOnlyReferences)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WorkItem(24079, "https://github.com/dotnet/roslyn/issues/24079")]
+        public async Task TestInAsParameterModifierInConversionOperators()
+        {
+            await VerifyKeywordAsync(@"
+class Program
+{
+    public static explicit operator double($$) { }
+}");
+        }
+
+        [Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.ReadOnlyReferences)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WorkItem(24079, "https://github.com/dotnet/roslyn/issues/24079")]
+        public async Task TestInAsParameterModifierInBinaryOperators()
+        {
+            await VerifyKeywordAsync(@"
+class Program
+{
+    public static Program operator +($$) { }
+}");
         }
 
         [Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.ReadOnlyReferences)]
