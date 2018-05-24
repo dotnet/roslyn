@@ -7,6 +7,7 @@ using System.Collections.Immutable;
 using System.Composition;
 using System.Linq;
 using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.ConvertLinq;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
@@ -21,12 +22,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertLinq
     [ExportCodeRefactoringProvider(LanguageNames.CSharp, Name = nameof(CSharpConvertForEachToLinqQueryProvider)), Shared]
     internal sealed class CSharpConvertForEachToLinqQueryProvider : AbstractConvertForEachToLinqQueryProvider<ForEachStatementSyntax, StatementSyntax>
     {
-        // TODO actually can consider conversion for ForEachVariableStatement, need to add as a separate requirement
-        // TODO what if no using System.Linq; is it required?
         // TODO what if comments are not in foreach but in related statements we're removing or modifying, e.g. return or list = new List<int>()
-        // TODO test: foreach(var q in largequeryexpression1) { foreach(var q1 in largequeryexpression2) {....}}
-        // TODO test case with empty residuary statement, e.g. empty body of foreach loop
-        // TODO test residuary statement is a declaration
         protected override ForEachStatementSyntax FindNodeToRefactor(SyntaxNode root, TextSpan span)
             => root.FindNode(span) as ForEachStatementSyntax;
 
@@ -43,9 +39,9 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertLinq
 
         // Do not try to refactor queries with comments or conditional compilation in them.
         // We can consider supporting queries with comments in the future.
-        protected override bool Validate(ForEachStatementSyntax forEachStatement)
-         => !(forEachStatement.ContainsDirectives ||
-            forEachStatement.DescendantTrivia().Any(trivia => trivia.MatchesKind(
+        protected override bool Validate(StatementSyntax statement)
+         => !(statement.ContainsDirectives ||
+            statement.DescendantTrivia().Any(trivia => trivia.MatchesKind(
              SyntaxKind.SingleLineCommentTrivia,
              SyntaxKind.MultiLineCommentTrivia,
              SyntaxKind.MultiLineDocumentationCommentTrivia)));
@@ -58,6 +54,15 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertLinq
             var current = forEachStatement.Statement;
             IEnumerable<StatementSyntax> statementsCannotBeConverted = null;
 
+            void ProcessLocalDeclarationStatement(LocalDeclarationStatementSyntax localDeclarationStatement)
+            {
+                foreach (var variable in localDeclarationStatement.Declaration.Variables)
+                {
+                    convertingNodes.Add(variable);
+                    identifiers.Add(variable.Identifier);
+                }
+            }
+
             // Setting statementsCannotBeConverted to anything means that we stop processing.
             while (statementsCannotBeConverted == null)
             {
@@ -66,27 +71,30 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertLinq
                     case SyntaxKind.Block:
                         var block = (BlockSyntax)current;
                         var array = block.Statements.ToArray();
-                        // Process all statements except the last one.
-                        for (int i = 0; i < array.Length - 1; i++)
+                        if (array.Any())
                         {
-                            var statement = array[i];
-                            if (statement is LocalDeclarationStatementSyntax localDeclarationStatement)
+                            // Process all statements except the last one.
+                            for (int i = 0; i < array.Length - 1; i++)
                             {
-                                foreach (var variable in localDeclarationStatement.Declaration.Variables)
+                                var statement = array[i];
+                                if (statement is LocalDeclarationStatementSyntax localDeclarationStatement)
                                 {
-                                    convertingNodes.Add(variable);
-                                    identifiers.Add(variable.Identifier);
+                                    ProcessLocalDeclarationStatement(localDeclarationStatement);
+                                }
+                                else
+                                {
+                                    statementsCannotBeConverted = array.Skip(i);
+                                    break;
                                 }
                             }
-                            else
-                            {
-                                statementsCannotBeConverted = array.Skip(i);
-                                break;
-                            }
-                        }
 
-                        // Process the last statement separately.
-                        current = array.Last();
+                            // Process the last statement separately.
+                            current = array.Last();
+                        }
+                        else
+                        {
+                            statementsCannotBeConverted = Enumerable.Empty<StatementSyntax>();
+                        }
                         break;
 
                     case SyntaxKind.ForEachStatement:
@@ -109,6 +117,16 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertLinq
                             statementsCannotBeConverted = new[] { current };
                             break;
                         }
+
+                    case SyntaxKind.LocalDeclarationStatement:
+                        // This is a situation with "var a = something;" s the most internal statements inside the loop.
+                        ProcessLocalDeclarationStatement((LocalDeclarationStatementSyntax)current);
+                        statementsCannotBeConverted = Enumerable.Empty<StatementSyntax>();
+                        break;
+
+                    case SyntaxKind.EmptyStatement:
+                        statementsCannotBeConverted = Enumerable.Empty<StatementSyntax>();
+                        break;
 
                     default:
                         statementsCannotBeConverted = new[] { current };
@@ -167,8 +185,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertLinq
                     var memberDeclaration = semanticModel.GetEnclosingSymbol(forEachStatement.SpanStart, cancellationToken).DeclaringSyntaxReferences.Single().GetSyntax();
                     var yieldStatements = memberDeclaration.DescendantNodes().OfType<YieldStatementSyntax>();
 
-                    if (forEachStatement.IsParentKind(SyntaxKind.Block) &&
-                        forEachStatement.Parent.Parent == memberDeclaration)
+                    if (forEachStatement.IsParentKind(SyntaxKind.Block) && forEachStatement.Parent.Parent == memberDeclaration)
                     {
                         var statementsOnBlockWithForEach = ((BlockSyntax)forEachStatement.Parent).Statements;
                         var lastStatement = statementsOnBlockWithForEach.Last();
@@ -199,6 +216,23 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertLinq
 
             converter = default;
             return false;
+        }
+
+        protected override async Task AddLinqUsing(Document document, SyntaxEditor syntaxEditor, SemanticModel semanticModel, CancellationToken cancellationToken)
+        {
+            const string linqNamespaceName = "System.Linq";
+            var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+            if (root is CompilationUnitSyntax compilationUnit)
+            {
+                var existingUsings = compilationUnit.Usings;
+                // TODO anything better?
+                if (!existingUsings.Any(existingUsing => existingUsing.Name.ToString().Equals(linqNamespaceName)))
+                {
+                    var linqName = SyntaxFactory.ParseName(linqNamespaceName);
+                    // TODO what if no usings at all?
+                    syntaxEditor.InsertAfter(compilationUnit.Usings.Last(), SyntaxFactory.UsingDirective(linqName));
+                }
+            }
         }
 
         private static bool IsList(ITypeSymbol typeSymbol, SemanticModel semanticModel)
@@ -260,6 +294,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertLinq
             {
                 var queryExpression = CreateQueryExpression(_forEachStatement, _convertingNodes, _yieldStatement.Expression);
                 editor.ReplaceNode(_forEachStatement, SyntaxFactory.ReturnStatement(queryExpression).WithAdditionalAnnotations(Formatter.Annotation));
+                // Delete the yield break just after the loop.
                 if (_nodeToDelete != null)
                 {
                     editor.RemoveNode(_nodeToDelete);
@@ -295,7 +330,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertLinq
                 // Wrap statements with a block.
                 var block = WrapWithBlockIfNecessary(_statements.Select(statement => statement.WithoutTrivia().WithTrailingTrivia(SyntaxFactory.ElasticEndOfLine(Environment.NewLine))));
 
-                editor.ReplaceNode(_forEachStatement, CreateDefaultReplacementStatement(_forEachStatement, _convertingNodes, identifiersUsedInStatements, block));
+                editor.ReplaceNode(_forEachStatement, CreateDefaultReplacementStatement(_forEachStatement, _convertingNodes, identifiersUsedInStatements, block).WithAdditionalAnnotations(Formatter.Annotation));
             }
 
             private static StatementSyntax CreateDefaultReplacementStatement(
@@ -307,11 +342,12 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertLinq
                 var identifiersCount = identifiers.Count();
                 if (identifiersCount == 0)
                 {
-                    // Generate foreach(var _ ... select (a,b))
+                    // Generate foreach(var _ ... select new {})
                     return SyntaxFactory.ForEachStatement(VarNameIdentifier, SyntaxFactory.Identifier("_"), CreateQueryExpression(forEachStatement, convertingNodes, SyntaxFactory.AnonymousObjectCreationExpression()), block);
                 }
                 else if (identifiersCount == 1)
                 {
+                    // Generate foreach(var singleIdentifier from ... select singleIdentifier)
                     return SyntaxFactory.ForEachStatement(VarNameIdentifier, identifiers.Single(), CreateQueryExpression(forEachStatement, convertingNodes, SyntaxFactory.IdentifierName(identifiers.Single())), block);
                 }
                 else
@@ -322,6 +358,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertLinq
                         SyntaxFactory.ParenthesizedVariableDesignation(
                             SyntaxFactory.SeparatedList<VariableDesignationSyntax>(identifiers.Select(identifier => SyntaxFactory.SingleVariableDesignation(identifier)))));
 
+                    // Generate foreach(var (a,b) ... select (a, b))
                     return SyntaxFactory.ForEachVariableStatement(declaration, CreateQueryExpression(forEachStatement, convertingNodes, tupleForSelectExpression), block);
                 }
             }
@@ -400,6 +437,10 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertLinq
                     case SyntaxKind.LocalDeclarationStatement:
                         var variables = ((LocalDeclarationStatementSyntax)previous).Declaration.Variables;
                         var lastDeclaration = variables.Last();
+                        // Check if 
+                        // var ...., list = new List<T>(); or var ..., counter = 0;
+                        // is just before the foreach.
+                        // If so, join the declaration with the query.
                         if (_modifyingExpression is IdentifierNameSyntax identifierName &&
                             lastDeclaration.Identifier.ValueText.Equals(identifierName.Identifier.ValueText) &&
                             CanReplaceInitialization(lastDeclaration.Initializer.Value, semanticModel, cancellationToken))
@@ -411,6 +452,10 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertLinq
                         break;
 
                     case SyntaxKind.ExpressionStatement:
+                        // Check if 
+                        // list = new List<T>(); or counter = 0;
+                        // is just before the foreach.
+                        // If so, join the assignment with the query.
                         if (((ExpressionStatementSyntax)previous).Expression is AssignmentExpressionSyntax assignmentExpression &&
                             SymbolEquivalenceComparer.Instance.Equals(
                                 semanticModel.GetSymbolInfo(assignmentExpression.Left, cancellationToken).Symbol,
@@ -424,9 +469,13 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertLinq
                         break;
                 }
 
+                // At least, we already can convert to 
+                // list.AddRange(query) or counter += query.Count();
                 editor.ReplaceNode(_forEachStatement, CreateDefaultStatement(queryExpression, _modifyingExpression).WithAdditionalAnnotations(Formatter.Annotation));
             }
 
+            // query => query.Method()
+            // like query.Count() or query.ToList()
             protected InvocationExpressionSyntax CreateInvocationExpression(QueryExpressionSyntax queryExpression)
                 => SyntaxFactory.InvocationExpression(
                         SyntaxFactory.MemberAccessExpression(
@@ -473,13 +522,14 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertLinq
 
             protected override string MethodName => nameof(Enumerable.ToList);
 
-            /// Checks that the expression is "new List()"
-            /// TODO check for "new List( abc )"
-            /// TODO check for "new List() { abc }"
+            /// Checks that the expression is "new List();"
+            /// Exclude "new List(a);" and new List() { 1, 2, 3}
             protected override bool CanReplaceInitialization(ExpressionSyntax expression, SemanticModel semanticModel, CancellationToken cancellationToken)
                 => expression is ObjectCreationExpressionSyntax objectCreationExpression &&
                 semanticModel.GetSymbolInfo(objectCreationExpression.Type, cancellationToken).Symbol is ITypeSymbol typeSymbol &&
-                IsList(typeSymbol, semanticModel);
+                IsList(typeSymbol, semanticModel) &&
+                !objectCreationExpression.ArgumentList.Arguments.Any() &&
+                objectCreationExpression.Initializer == null;
 
             /// Input:
             /// foreach(...)
