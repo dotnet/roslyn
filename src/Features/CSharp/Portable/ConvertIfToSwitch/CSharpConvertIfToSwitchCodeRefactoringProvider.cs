@@ -239,14 +239,13 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertIfToSwitch
 
             protected override ExpressionSyntax UnwrapCast(ExpressionSyntax expression)
             {
-                switch (expression)
+                switch (expression.Kind())
                 {
-                    case BinaryExpressionSyntax binaryExpression
-                        when expression.IsKind(SyntaxKind.AsExpression):
-                        return binaryExpression.Left;
+                    case SyntaxKind.AsExpression:
+                        return ((BinaryExpressionSyntax)expression).Left;
 
-                    case CastExpressionSyntax castExpression:
-                        return castExpression.Expression;
+                    case SyntaxKind.CastExpression:
+                        return ((CastExpressionSyntax)expression).Expression;
 
                     default:
                         return expression;
