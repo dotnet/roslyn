@@ -1,10 +1,8 @@
 Microsoft.CodeAnalysis.CommandLineProject
 Microsoft.CodeAnalysis.FileTextLoader (forwarded, contained in Microsoft.CodeAnalysis.Workspaces)
 Microsoft.CodeAnalysis.FileTextLoader.DefaultEncoding.get -> System.Text.Encoding (forwarded, contained in Microsoft.CodeAnalysis.Workspaces)
-Microsoft.CodeAnalysis.FileTextLoader.DefaultEncoding { get; } -> System.Text.Encoding (forwarded, contained in Microsoft.CodeAnalysis.Workspaces)
 Microsoft.CodeAnalysis.FileTextLoader.FileTextLoader(string path, System.Text.Encoding defaultEncoding) -> void (forwarded, contained in Microsoft.CodeAnalysis.Workspaces)
 Microsoft.CodeAnalysis.FileTextLoader.Path.get -> string (forwarded, contained in Microsoft.CodeAnalysis.Workspaces)
-Microsoft.CodeAnalysis.FileTextLoader.Path { get; } -> string (forwarded, contained in Microsoft.CodeAnalysis.Workspaces)
 Microsoft.CodeAnalysis.Host.Mef.DesktopMefHostServices
 Microsoft.CodeAnalysis.Host.Mef.MefV1HostServices
 Microsoft.CodeAnalysis.Host.Mef.MefV1HostServices.GetExports<TExtension, TMetadata>() -> System.Collections.Generic.IEnumerable<System.Lazy<TExtension, TMetadata>>

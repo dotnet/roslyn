@@ -180,6 +180,10 @@ namespace Microsoft.CodeAnalysis.UseObjectInitializer
                 property.DeclaredAccessibility == Accessibility.Private;
         }
 
+        protected override bool ShouldAnalyze() => true;
+
+        protected override bool ShouldAnalyze() => true;
+
         private bool ImplicitMemberAccessWouldBeAffected(SyntaxNode node)
         {
             if (node != null)

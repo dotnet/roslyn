@@ -150,7 +150,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
                     return true;
                 }
             }
-            else if (typeName.Parent is ForEachStatementSyntax foreachStatement)
+            else if (typeName.Parent is ForEachStatementSyntax foreachStatement &&
+                     foreachStatement.Type == typeName)
             {
                 var foreachStatementInfo = semanticModel.GetForEachStatementInfo(foreachStatement);
                 if (foreachStatementInfo.ElementConversion.IsIdentity)

@@ -32,5 +32,8 @@
     <file src="Dlls\RazorServiceHub\Microsoft.CodeAnalysis.Remote.Razor.ServiceHub.dll" target="lib\net46" />
     <file src="Dlls\RazorServiceHub\Microsoft.CodeAnalysis.Remote.Razor.ServiceHub.xml" target="lib\net46" />
     <file src="$thirdPartyNoticesPath$" target="" />
+
+    <!-- Satellite assemblies -->
+    <file src="Dlls\RazorServiceHub\**\Microsoft.CodeAnalysis.Remote.Razor.ServiceHub.resources.dll" target="lib\net46" />
   </files>
 </package>
