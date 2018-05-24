@@ -473,5 +473,54 @@ Class Foo
 End Class
 ")
         End Function
+
+        <WorkItem(23368, "https://github.com/dotnet/roslyn/issues/23368")>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseObjectInitializer)>
+        Public Async Function TestWithExplicitImplementedInterfaceMembers4() As Task
+            Await TestInRegularAndScriptAsync(
+"
+class C
+    Sub Bar()
+        Dim c As IExample = [||]New Foo
+        c.LastName = String.Empty
+        c.Name = String.Empty
+    End Sub
+End Class
+
+Interface IExample
+    Property Name As String
+    Property LastName As String
+End Interface
+
+Class Foo
+    Implements IExample
+
+    Private Property Name As String Implements IExample.Name
+    Public Property MyLastName As String Implements IExample.LastName
+End Class
+",
+"
+class C
+    Sub Bar()
+        Dim c As IExample = New Foo With {
+            .LastName = String.Empty
+        }
+        c.Name = String.Empty
+    End Sub
+End Class
+
+Interface IExample
+    Property Name As String
+    Property LastName As String
+End Interface
+
+Class Foo
+    Implements IExample
+
+    Private Property Name As String Implements IExample.Name
+    Public Property MyLastName As String Implements IExample.LastName
+End Class
+")
+        End Function
     End Class
 End Namespace
