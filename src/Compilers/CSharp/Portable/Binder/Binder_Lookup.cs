@@ -1204,7 +1204,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             bool IsBadIvtSpecification()
             {
-                if (unwrappedSymbol.DeclaredAccessibility == Accessibility.Internal)
+                if (unwrappedSymbol.DeclaredAccessibility == Accessibility.Internal
+                // Ensures that during binding we don't ask for public key which results in attribute binding and stack overflow.
+                // If looking up attributes, don't ask for public key.
+                    && !options.IsAttributeTypeLookup())
                 {
                     foreach (ImmutableArray<byte> key in unwrappedSymbol.ContainingAssembly.GetInternalsVisibleToPublicKeys(this.Compilation.AssemblyName))
                     {
