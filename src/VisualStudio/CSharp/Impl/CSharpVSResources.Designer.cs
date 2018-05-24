@@ -295,7 +295,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to In arithmetic operators:  *  /  %  +  -  &lt;&lt;  &gt;&gt;  &amp;  ^  |.
+        ///   Looks up a localized string similar to In arithmetic operators:  *   /   %   +   -   &lt;&lt;   &gt;&gt;   &amp;   ^   |.
         /// </summary>
         internal static string In_arithmetic_binary_operators {
             get {
@@ -304,11 +304,20 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to In other binary operators:  &lt;  &gt;  &lt;=  &gt;=  is  as  ==  !=  &amp;&amp;  ||  ??.
+        ///   Looks up a localized string similar to In other binary operators:  &amp;&amp;   ||   ??.
         /// </summary>
         internal static string In_other_binary_operators {
             get {
                 return ResourceManager.GetString("In_other_binary_operators", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to In relational operators:  &lt;   &gt;   &lt;=   &gt;=   is   as   ==   !=.
+        /// </summary>
+        internal static string In_relational_binary_operators {
+            get {
+                return ResourceManager.GetString("In_relational_binary_operators", resourceCulture);
             }
         }
         
