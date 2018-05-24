@@ -5018,8 +5018,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal sealed partial class BoundCollectionElementInitializer : BoundExpression
     {
-        public BoundCollectionElementInitializer(SyntaxNode syntax, MethodSymbol addMethod, ImmutableArray<BoundExpression> arguments, bool expanded, ImmutableArray<int> argsToParamsOpt, bool invokedAsExtensionMethod, LookupResultKind resultKind, TypeSymbol type, bool hasErrors = false)
-            : base(BoundKind.CollectionElementInitializer, syntax, type, hasErrors || arguments.HasErrors())
+        public BoundCollectionElementInitializer(SyntaxNode syntax, MethodSymbol addMethod, ImmutableArray<BoundExpression> arguments, BoundExpression implicitReceiverOpt, bool expanded, ImmutableArray<int> argsToParamsOpt, bool invokedAsExtensionMethod, LookupResultKind resultKind, Binder binderOpt, TypeSymbol type, bool hasErrors = false)
+            : base(BoundKind.CollectionElementInitializer, syntax, type, hasErrors || arguments.HasErrors() || implicitReceiverOpt.HasErrors())
         {
 
             Debug.Assert(addMethod != null, "Field 'addMethod' cannot be null (use Null=\"allow\" in BoundNodes.xml to remove this check)");
@@ -5028,16 +5028,20 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             this.AddMethod = addMethod;
             this.Arguments = arguments;
+            this.ImplicitReceiverOpt = implicitReceiverOpt;
             this.Expanded = expanded;
             this.ArgsToParamsOpt = argsToParamsOpt;
             this.InvokedAsExtensionMethod = invokedAsExtensionMethod;
             this._ResultKind = resultKind;
+            this.BinderOpt = binderOpt;
         }
 
 
         public MethodSymbol AddMethod { get; }
 
         public ImmutableArray<BoundExpression> Arguments { get; }
+
+        public BoundExpression ImplicitReceiverOpt { get; }
 
         public bool Expanded { get; }
 
@@ -5048,16 +5052,18 @@ namespace Microsoft.CodeAnalysis.CSharp
         private readonly LookupResultKind _ResultKind;
         public override LookupResultKind ResultKind { get { return _ResultKind;} }
 
+        public Binder BinderOpt { get; }
+
         public override BoundNode Accept(BoundTreeVisitor visitor)
         {
             return visitor.VisitCollectionElementInitializer(this);
         }
 
-        public BoundCollectionElementInitializer Update(MethodSymbol addMethod, ImmutableArray<BoundExpression> arguments, bool expanded, ImmutableArray<int> argsToParamsOpt, bool invokedAsExtensionMethod, LookupResultKind resultKind, TypeSymbol type)
+        public BoundCollectionElementInitializer Update(MethodSymbol addMethod, ImmutableArray<BoundExpression> arguments, BoundExpression implicitReceiverOpt, bool expanded, ImmutableArray<int> argsToParamsOpt, bool invokedAsExtensionMethod, LookupResultKind resultKind, Binder binderOpt, TypeSymbol type)
         {
-            if (addMethod != this.AddMethod || arguments != this.Arguments || expanded != this.Expanded || argsToParamsOpt != this.ArgsToParamsOpt || invokedAsExtensionMethod != this.InvokedAsExtensionMethod || resultKind != this.ResultKind || type != this.Type)
+            if (addMethod != this.AddMethod || arguments != this.Arguments || implicitReceiverOpt != this.ImplicitReceiverOpt || expanded != this.Expanded || argsToParamsOpt != this.ArgsToParamsOpt || invokedAsExtensionMethod != this.InvokedAsExtensionMethod || resultKind != this.ResultKind || binderOpt != this.BinderOpt || type != this.Type)
             {
-                var result = new BoundCollectionElementInitializer(this.Syntax, addMethod, arguments, expanded, argsToParamsOpt, invokedAsExtensionMethod, resultKind, type, this.HasErrors);
+                var result = new BoundCollectionElementInitializer(this.Syntax, addMethod, arguments, implicitReceiverOpt, expanded, argsToParamsOpt, invokedAsExtensionMethod, resultKind, binderOpt, type, this.HasErrors);
                 result.WasCompilerGenerated = this.WasCompilerGenerated;
                 return result;
             }
@@ -5067,20 +5073,24 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal sealed partial class BoundDynamicCollectionElementInitializer : BoundExpression
     {
-        public BoundDynamicCollectionElementInitializer(SyntaxNode syntax, ImmutableArray<BoundExpression> arguments, ImmutableArray<MethodSymbol> applicableMethods, TypeSymbol type, bool hasErrors = false)
-            : base(BoundKind.DynamicCollectionElementInitializer, syntax, type, hasErrors || arguments.HasErrors())
+        public BoundDynamicCollectionElementInitializer(SyntaxNode syntax, ImmutableArray<BoundExpression> arguments, BoundImplicitReceiver implicitReceiver, ImmutableArray<MethodSymbol> applicableMethods, TypeSymbol type, bool hasErrors = false)
+            : base(BoundKind.DynamicCollectionElementInitializer, syntax, type, hasErrors || arguments.HasErrors() || implicitReceiver.HasErrors())
         {
 
             Debug.Assert(!arguments.IsDefault, "Field 'arguments' cannot be null (use Null=\"allow\" in BoundNodes.xml to remove this check)");
+            Debug.Assert(implicitReceiver != null, "Field 'implicitReceiver' cannot be null (use Null=\"allow\" in BoundNodes.xml to remove this check)");
             Debug.Assert(!applicableMethods.IsDefault, "Field 'applicableMethods' cannot be null (use Null=\"allow\" in BoundNodes.xml to remove this check)");
             Debug.Assert(type != null, "Field 'type' cannot be null (use Null=\"allow\" in BoundNodes.xml to remove this check)");
 
             this.Arguments = arguments;
+            this.ImplicitReceiver = implicitReceiver;
             this.ApplicableMethods = applicableMethods;
         }
 
 
         public ImmutableArray<BoundExpression> Arguments { get; }
+
+        public BoundImplicitReceiver ImplicitReceiver { get; }
 
         public ImmutableArray<MethodSymbol> ApplicableMethods { get; }
 
@@ -5089,11 +5099,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             return visitor.VisitDynamicCollectionElementInitializer(this);
         }
 
-        public BoundDynamicCollectionElementInitializer Update(ImmutableArray<BoundExpression> arguments, ImmutableArray<MethodSymbol> applicableMethods, TypeSymbol type)
+        public BoundDynamicCollectionElementInitializer Update(ImmutableArray<BoundExpression> arguments, BoundImplicitReceiver implicitReceiver, ImmutableArray<MethodSymbol> applicableMethods, TypeSymbol type)
         {
-            if (arguments != this.Arguments || applicableMethods != this.ApplicableMethods || type != this.Type)
+            if (arguments != this.Arguments || implicitReceiver != this.ImplicitReceiver || applicableMethods != this.ApplicableMethods || type != this.Type)
             {
-                var result = new BoundDynamicCollectionElementInitializer(this.Syntax, arguments, applicableMethods, type, this.HasErrors);
+                var result = new BoundDynamicCollectionElementInitializer(this.Syntax, arguments, implicitReceiver, applicableMethods, type, this.HasErrors);
                 result.WasCompilerGenerated = this.WasCompilerGenerated;
                 return result;
             }
@@ -8522,11 +8532,13 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override BoundNode VisitCollectionElementInitializer(BoundCollectionElementInitializer node)
         {
             this.VisitList(node.Arguments);
+            this.Visit(node.ImplicitReceiverOpt);
             return null;
         }
         public override BoundNode VisitDynamicCollectionElementInitializer(BoundDynamicCollectionElementInitializer node)
         {
             this.VisitList(node.Arguments);
+            this.Visit(node.ImplicitReceiver);
             return null;
         }
         public override BoundNode VisitImplicitReceiver(BoundImplicitReceiver node)
@@ -9408,14 +9420,16 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override BoundNode VisitCollectionElementInitializer(BoundCollectionElementInitializer node)
         {
             ImmutableArray<BoundExpression> arguments = (ImmutableArray<BoundExpression>)this.VisitList(node.Arguments);
+            BoundExpression implicitReceiverOpt = (BoundExpression)this.Visit(node.ImplicitReceiverOpt);
             TypeSymbol type = this.VisitType(node.Type);
-            return node.Update(node.AddMethod, arguments, node.Expanded, node.ArgsToParamsOpt, node.InvokedAsExtensionMethod, node.ResultKind, type);
+            return node.Update(node.AddMethod, arguments, implicitReceiverOpt, node.Expanded, node.ArgsToParamsOpt, node.InvokedAsExtensionMethod, node.ResultKind, node.BinderOpt, type);
         }
         public override BoundNode VisitDynamicCollectionElementInitializer(BoundDynamicCollectionElementInitializer node)
         {
             ImmutableArray<BoundExpression> arguments = (ImmutableArray<BoundExpression>)this.VisitList(node.Arguments);
+            BoundImplicitReceiver implicitReceiver = (BoundImplicitReceiver)this.Visit(node.ImplicitReceiver);
             TypeSymbol type = this.VisitType(node.Type);
-            return node.Update(arguments, node.ApplicableMethods, type);
+            return node.Update(arguments, implicitReceiver, node.ApplicableMethods, type);
         }
         public override BoundNode VisitImplicitReceiver(BoundImplicitReceiver node)
         {
@@ -10882,10 +10896,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 new TreeDumperNode("addMethod", node.AddMethod, null),
                 new TreeDumperNode("arguments", null, from x in node.Arguments select Visit(x, null)),
+                new TreeDumperNode("implicitReceiverOpt", null, new TreeDumperNode[] { Visit(node.ImplicitReceiverOpt, null) }),
                 new TreeDumperNode("expanded", node.Expanded, null),
                 new TreeDumperNode("argsToParamsOpt", node.ArgsToParamsOpt, null),
                 new TreeDumperNode("invokedAsExtensionMethod", node.InvokedAsExtensionMethod, null),
                 new TreeDumperNode("resultKind", node.ResultKind, null),
+                new TreeDumperNode("binderOpt", node.BinderOpt, null),
                 new TreeDumperNode("type", node.Type, null)
             }
             );
@@ -10895,6 +10911,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return new TreeDumperNode("dynamicCollectionElementInitializer", null, new TreeDumperNode[]
             {
                 new TreeDumperNode("arguments", null, from x in node.Arguments select Visit(x, null)),
+                new TreeDumperNode("implicitReceiver", null, new TreeDumperNode[] { Visit(node.ImplicitReceiver, null) }),
                 new TreeDumperNode("applicableMethods", node.ApplicableMethods, null),
                 new TreeDumperNode("type", node.Type, null)
             }

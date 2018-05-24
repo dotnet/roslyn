@@ -34,6 +34,7 @@
     <ValueType Name="SourceMemberFlags"/>
     <ValueType Name="NoOpStatementFlavor"/>
     <ValueType Name="BoundTypeOrValueData"/>
+    <ValueType Name="BitVector" />
 
   <AbstractNode Name="BoundExpression" Base="BoundNode">
     <Field Name="Type" Type="TypeSymbol" Null="allow"/>
@@ -642,6 +643,8 @@
       
         <Field Name="ReceiverOpt" Type="BoundExpression" Null="allow"/>
         <Field Name="Arguments" Type="ImmutableArray(Of BoundExpression)"/>
+        <!-- Which arguments are default. Used by IOperation for determining ArgumentKind. -->
+        <Field Name="DefaultArguments" Type="BitVector" Null="NotApplicable" />
 
         <Field Name="ConstantValueOpt" PropertyOverrides="true" Type="ConstantValue" Null="allow"/>
         <Field Name="IsLValue" PropertyOverrides="true" Type="Boolean"/>
@@ -776,7 +779,7 @@
  
      dim x as integer = new integer()        
   -->
-    <Node Name="BoundObjectCreationExpression" Base="BoundObjectCreationExpressionBase">
+    <Node Name="BoundObjectCreationExpression" Base="BoundObjectCreationExpressionBase" HasValidate="true">
         <!-- Constructor symbol may only be omitted in case the type being constructed 
              is a ValueType AND the constructor is inaccessible. 
              Details: Because metadata loader creates a synthesized constructor for ValueTypes 
@@ -791,6 +794,8 @@
         <Field Name="MethodGroupOpt" Type="BoundMethodGroup" Null="allow" SkipInVisitor="true" />
 
         <Field Name="Arguments" Type="ImmutableArray(Of BoundExpression)"/>
+        <!-- Which arguments are default. Used by IOperation for determining ArgumentKind. -->
+        <Field Name="DefaultArguments" Type="BitVector" Null="NotApplicable" />
     </Node>
 
     <Node Name="BoundNoPiaObjectCreationExpression" Base="BoundObjectCreationExpressionBase">
@@ -958,6 +963,8 @@
 
         <Field Name="ReceiverOpt" Type="BoundExpression" Null="allow"/>
         <Field Name="Arguments" Type="ImmutableArray(Of BoundExpression)"/>
+        <!-- Which arguments are default. Used by IOperation for determining ArgumentKind. -->
+        <Field Name="DefaultArguments" Type="BitVector" Null="NotApplicable" />
     </Node>
 
     <Node Name="BoundEventAccess" Base="BoundExpression">

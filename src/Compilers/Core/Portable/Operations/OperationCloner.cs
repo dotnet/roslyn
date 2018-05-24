@@ -380,11 +380,6 @@ namespace Microsoft.CodeAnalysis.Operations
             return new MemberInitializerExpression(Visit(operation.InitializedMember), Visit(operation.Initializer), ((Operation)operation).SemanticModel, operation.Syntax, operation.Type, operation.ConstantValue, operation.IsImplicit);
         }
 
-        public override IOperation VisitCollectionElementInitializer(ICollectionElementInitializerOperation operation, object argument)
-        {
-            return new CollectionElementInitializerExpression(operation.AddMethod, operation.IsDynamic, VisitArray(operation.Arguments), ((Operation)operation).SemanticModel, operation.Syntax, operation.Type, operation.ConstantValue, operation.IsImplicit);
-        }
-
         public override IOperation VisitFieldInitializer(IFieldInitializerOperation operation, object argument)
         {
             return new FieldInitializer(operation.Locals, operation.InitializedFields, Visit(operation.Value), operation.Kind, ((Operation)operation).SemanticModel, operation.Syntax, operation.Type, operation.ConstantValue, operation.IsImplicit);

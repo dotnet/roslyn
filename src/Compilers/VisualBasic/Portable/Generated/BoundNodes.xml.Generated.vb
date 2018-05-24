@@ -209,6 +209,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
 
 
+
     Friend MustInherit Partial Class BoundExpression
         Inherits BoundNode
 
@@ -3176,7 +3177,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
     Friend NotInheritable Partial Class BoundCall
         Inherits BoundExpression
 
-        Public Sub New(syntax As SyntaxNode, method As MethodSymbol, methodGroupOpt As BoundMethodGroup, receiverOpt As BoundExpression, arguments As ImmutableArray(Of BoundExpression), constantValueOpt As ConstantValue, isLValue As Boolean, suppressObjectClone As Boolean, type As TypeSymbol, Optional hasErrors As Boolean = False)
+        Public Sub New(syntax As SyntaxNode, method As MethodSymbol, methodGroupOpt As BoundMethodGroup, receiverOpt As BoundExpression, arguments As ImmutableArray(Of BoundExpression), defaultArguments As BitVector, constantValueOpt As ConstantValue, isLValue As Boolean, suppressObjectClone As Boolean, type As TypeSymbol, Optional hasErrors As Boolean = False)
             MyBase.New(BoundKind.Call, syntax, type, hasErrors OrElse methodGroupOpt.NonNullAndHasErrors() OrElse receiverOpt.NonNullAndHasErrors() OrElse arguments.NonNullAndHasErrors())
 
             Debug.Assert(method IsNot Nothing, "Field 'method' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
@@ -3187,6 +3188,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Me._MethodGroupOpt = methodGroupOpt
             Me._ReceiverOpt = receiverOpt
             Me._Arguments = arguments
+            Me._DefaultArguments = defaultArguments
             Me._ConstantValueOpt = constantValueOpt
             Me._IsLValue = isLValue
             Me._SuppressObjectClone = suppressObjectClone
@@ -3226,6 +3228,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
+        Private ReadOnly _DefaultArguments As BitVector
+        Public ReadOnly Property DefaultArguments As BitVector
+            Get
+                Return _DefaultArguments
+            End Get
+        End Property
+
         Private ReadOnly _ConstantValueOpt As ConstantValue
         Public Overrides ReadOnly Property ConstantValueOpt As ConstantValue
             Get
@@ -3251,9 +3260,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return visitor.VisitCall(Me)
         End Function
 
-        Public Function Update(method As MethodSymbol, methodGroupOpt As BoundMethodGroup, receiverOpt As BoundExpression, arguments As ImmutableArray(Of BoundExpression), constantValueOpt As ConstantValue, isLValue As Boolean, suppressObjectClone As Boolean, type As TypeSymbol) As BoundCall
-            If method IsNot Me.Method OrElse methodGroupOpt IsNot Me.MethodGroupOpt OrElse receiverOpt IsNot Me.ReceiverOpt OrElse arguments <> Me.Arguments OrElse constantValueOpt IsNot Me.ConstantValueOpt OrElse isLValue <> Me.IsLValue OrElse suppressObjectClone <> Me.SuppressObjectClone OrElse type IsNot Me.Type Then
-                Dim result = New BoundCall(Me.Syntax, method, methodGroupOpt, receiverOpt, arguments, constantValueOpt, isLValue, suppressObjectClone, type, Me.HasErrors)
+        Public Function Update(method As MethodSymbol, methodGroupOpt As BoundMethodGroup, receiverOpt As BoundExpression, arguments As ImmutableArray(Of BoundExpression), defaultArguments As BitVector, constantValueOpt As ConstantValue, isLValue As Boolean, suppressObjectClone As Boolean, type As TypeSymbol) As BoundCall
+            If method IsNot Me.Method OrElse methodGroupOpt IsNot Me.MethodGroupOpt OrElse receiverOpt IsNot Me.ReceiverOpt OrElse arguments <> Me.Arguments OrElse defaultArguments <> Me.DefaultArguments OrElse constantValueOpt IsNot Me.ConstantValueOpt OrElse isLValue <> Me.IsLValue OrElse suppressObjectClone <> Me.SuppressObjectClone OrElse type IsNot Me.Type Then
+                Dim result = New BoundCall(Me.Syntax, method, methodGroupOpt, receiverOpt, arguments, defaultArguments, constantValueOpt, isLValue, suppressObjectClone, type, Me.HasErrors)
                 
                 If Me.WasCompilerGenerated Then
                     result.SetWasCompilerGenerated()
@@ -3662,7 +3671,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
     Friend NotInheritable Partial Class BoundObjectCreationExpression
         Inherits BoundObjectCreationExpressionBase
 
-        Public Sub New(syntax As SyntaxNode, constructorOpt As MethodSymbol, methodGroupOpt As BoundMethodGroup, arguments As ImmutableArray(Of BoundExpression), initializerOpt As BoundObjectInitializerExpressionBase, type As TypeSymbol, Optional hasErrors As Boolean = False)
+        Public Sub New(syntax As SyntaxNode, constructorOpt As MethodSymbol, methodGroupOpt As BoundMethodGroup, arguments As ImmutableArray(Of BoundExpression), defaultArguments As BitVector, initializerOpt As BoundObjectInitializerExpressionBase, type As TypeSymbol, Optional hasErrors As Boolean = False)
             MyBase.New(BoundKind.ObjectCreationExpression, syntax, initializerOpt, type, hasErrors OrElse methodGroupOpt.NonNullAndHasErrors() OrElse arguments.NonNullAndHasErrors() OrElse initializerOpt.NonNullAndHasErrors())
 
             Debug.Assert(Not (arguments.IsDefault), "Field 'arguments' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
@@ -3671,6 +3680,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Me._ConstructorOpt = constructorOpt
             Me._MethodGroupOpt = methodGroupOpt
             Me._Arguments = arguments
+            Me._DefaultArguments = defaultArguments
+
+            Validate()
+        End Sub
+
+        Private Partial Sub Validate()
         End Sub
 
 
@@ -3695,13 +3710,20 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
+        Private ReadOnly _DefaultArguments As BitVector
+        Public ReadOnly Property DefaultArguments As BitVector
+            Get
+                Return _DefaultArguments
+            End Get
+        End Property
+
         Public Overrides Function Accept(visitor as BoundTreeVisitor) As BoundNode
             Return visitor.VisitObjectCreationExpression(Me)
         End Function
 
-        Public Function Update(constructorOpt As MethodSymbol, methodGroupOpt As BoundMethodGroup, arguments As ImmutableArray(Of BoundExpression), initializerOpt As BoundObjectInitializerExpressionBase, type As TypeSymbol) As BoundObjectCreationExpression
-            If constructorOpt IsNot Me.ConstructorOpt OrElse methodGroupOpt IsNot Me.MethodGroupOpt OrElse arguments <> Me.Arguments OrElse initializerOpt IsNot Me.InitializerOpt OrElse type IsNot Me.Type Then
-                Dim result = New BoundObjectCreationExpression(Me.Syntax, constructorOpt, methodGroupOpt, arguments, initializerOpt, type, Me.HasErrors)
+        Public Function Update(constructorOpt As MethodSymbol, methodGroupOpt As BoundMethodGroup, arguments As ImmutableArray(Of BoundExpression), defaultArguments As BitVector, initializerOpt As BoundObjectInitializerExpressionBase, type As TypeSymbol) As BoundObjectCreationExpression
+            If constructorOpt IsNot Me.ConstructorOpt OrElse methodGroupOpt IsNot Me.MethodGroupOpt OrElse arguments <> Me.Arguments OrElse defaultArguments <> Me.DefaultArguments OrElse initializerOpt IsNot Me.InitializerOpt OrElse type IsNot Me.Type Then
+                Dim result = New BoundObjectCreationExpression(Me.Syntax, constructorOpt, methodGroupOpt, arguments, defaultArguments, initializerOpt, type, Me.HasErrors)
                 
                 If Me.WasCompilerGenerated Then
                     result.SetWasCompilerGenerated()
@@ -4391,7 +4413,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
     Friend NotInheritable Partial Class BoundPropertyAccess
         Inherits BoundExpression
 
-        Public Sub New(syntax As SyntaxNode, propertySymbol As PropertySymbol, propertyGroupOpt As BoundPropertyGroup, accessKind As PropertyAccessKind, isWriteable As Boolean, isLValue As Boolean, receiverOpt As BoundExpression, arguments As ImmutableArray(Of BoundExpression), type As TypeSymbol, Optional hasErrors As Boolean = False)
+        Public Sub New(syntax As SyntaxNode, propertySymbol As PropertySymbol, propertyGroupOpt As BoundPropertyGroup, accessKind As PropertyAccessKind, isWriteable As Boolean, isLValue As Boolean, receiverOpt As BoundExpression, arguments As ImmutableArray(Of BoundExpression), defaultArguments As BitVector, type As TypeSymbol, Optional hasErrors As Boolean = False)
             MyBase.New(BoundKind.PropertyAccess, syntax, type, hasErrors OrElse propertyGroupOpt.NonNullAndHasErrors() OrElse receiverOpt.NonNullAndHasErrors() OrElse arguments.NonNullAndHasErrors())
 
             Debug.Assert(propertySymbol IsNot Nothing, "Field 'propertySymbol' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
@@ -4405,6 +4427,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Me._IsLValue = isLValue
             Me._ReceiverOpt = receiverOpt
             Me._Arguments = arguments
+            Me._DefaultArguments = defaultArguments
 
             Validate()
         End Sub
@@ -4462,13 +4485,20 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
+        Private ReadOnly _DefaultArguments As BitVector
+        Public ReadOnly Property DefaultArguments As BitVector
+            Get
+                Return _DefaultArguments
+            End Get
+        End Property
+
         Public Overrides Function Accept(visitor as BoundTreeVisitor) As BoundNode
             Return visitor.VisitPropertyAccess(Me)
         End Function
 
-        Public Function Update(propertySymbol As PropertySymbol, propertyGroupOpt As BoundPropertyGroup, accessKind As PropertyAccessKind, isWriteable As Boolean, isLValue As Boolean, receiverOpt As BoundExpression, arguments As ImmutableArray(Of BoundExpression), type As TypeSymbol) As BoundPropertyAccess
-            If propertySymbol IsNot Me.PropertySymbol OrElse propertyGroupOpt IsNot Me.PropertyGroupOpt OrElse accessKind <> Me.AccessKind OrElse isWriteable <> Me.IsWriteable OrElse isLValue <> Me.IsLValue OrElse receiverOpt IsNot Me.ReceiverOpt OrElse arguments <> Me.Arguments OrElse type IsNot Me.Type Then
-                Dim result = New BoundPropertyAccess(Me.Syntax, propertySymbol, propertyGroupOpt, accessKind, isWriteable, isLValue, receiverOpt, arguments, type, Me.HasErrors)
+        Public Function Update(propertySymbol As PropertySymbol, propertyGroupOpt As BoundPropertyGroup, accessKind As PropertyAccessKind, isWriteable As Boolean, isLValue As Boolean, receiverOpt As BoundExpression, arguments As ImmutableArray(Of BoundExpression), defaultArguments As BitVector, type As TypeSymbol) As BoundPropertyAccess
+            If propertySymbol IsNot Me.PropertySymbol OrElse propertyGroupOpt IsNot Me.PropertyGroupOpt OrElse accessKind <> Me.AccessKind OrElse isWriteable <> Me.IsWriteable OrElse isLValue <> Me.IsLValue OrElse receiverOpt IsNot Me.ReceiverOpt OrElse arguments <> Me.Arguments OrElse defaultArguments <> Me.DefaultArguments OrElse type IsNot Me.Type Then
+                Dim result = New BoundPropertyAccess(Me.Syntax, propertySymbol, propertyGroupOpt, accessKind, isWriteable, isLValue, receiverOpt, arguments, defaultArguments, type, Me.HasErrors)
                 
                 If Me.WasCompilerGenerated Then
                     result.SetWasCompilerGenerated()
@@ -12816,7 +12846,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim receiverOpt As BoundExpression = DirectCast(Me.Visit(node.ReceiverOpt), BoundExpression)
             Dim arguments As ImmutableArray(Of BoundExpression) = Me.VisitList(node.Arguments)
             Dim type as TypeSymbol = Me.VisitType(node.Type)
-            Return node.Update(node.Method, methodGroupOpt, receiverOpt, arguments, node.ConstantValueOpt, node.IsLValue, node.SuppressObjectClone, type)
+            Return node.Update(node.Method, methodGroupOpt, receiverOpt, arguments, node.DefaultArguments, node.ConstantValueOpt, node.IsLValue, node.SuppressObjectClone, type)
         End Function
 
         Public Overrides Function VisitAttribute(node As BoundAttribute) As BoundNode
@@ -12866,7 +12896,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim arguments As ImmutableArray(Of BoundExpression) = Me.VisitList(node.Arguments)
             Dim initializerOpt As BoundObjectInitializerExpressionBase = DirectCast(Me.Visit(node.InitializerOpt), BoundObjectInitializerExpressionBase)
             Dim type as TypeSymbol = Me.VisitType(node.Type)
-            Return node.Update(node.ConstructorOpt, methodGroupOpt, arguments, initializerOpt, type)
+            Return node.Update(node.ConstructorOpt, methodGroupOpt, arguments, node.DefaultArguments, initializerOpt, type)
         End Function
 
         Public Overrides Function VisitNoPiaObjectCreationExpression(node As BoundNoPiaObjectCreationExpression) As BoundNode
@@ -12954,7 +12984,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim receiverOpt As BoundExpression = DirectCast(Me.Visit(node.ReceiverOpt), BoundExpression)
             Dim arguments As ImmutableArray(Of BoundExpression) = Me.VisitList(node.Arguments)
             Dim type as TypeSymbol = Me.VisitType(node.Type)
-            Return node.Update(node.PropertySymbol, propertyGroupOpt, node.AccessKind, node.IsWriteable, node.IsLValue, receiverOpt, arguments, type)
+            Return node.Update(node.PropertySymbol, propertyGroupOpt, node.AccessKind, node.IsWriteable, node.IsLValue, receiverOpt, arguments, node.DefaultArguments, type)
         End Function
 
         Public Overrides Function VisitEventAccess(node As BoundEventAccess) As BoundNode
@@ -14025,6 +14055,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 New TreeDumperNode("methodGroupOpt", Nothing, new TreeDumperNode() { Visit(node.MethodGroupOpt, Nothing) }),
                 New TreeDumperNode("receiverOpt", Nothing, new TreeDumperNode() { Visit(node.ReceiverOpt, Nothing) }),
                 New TreeDumperNode("arguments", Nothing, From x In node.Arguments Select Visit(x, Nothing)),
+                New TreeDumperNode("defaultArguments", node.DefaultArguments, Nothing),
                 New TreeDumperNode("constantValueOpt", node.ConstantValueOpt, Nothing),
                 New TreeDumperNode("isLValue", node.IsLValue, Nothing),
                 New TreeDumperNode("suppressObjectClone", node.SuppressObjectClone, Nothing),
@@ -14095,6 +14126,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 New TreeDumperNode("constructorOpt", node.ConstructorOpt, Nothing),
                 New TreeDumperNode("methodGroupOpt", Nothing, new TreeDumperNode() { Visit(node.MethodGroupOpt, Nothing) }),
                 New TreeDumperNode("arguments", Nothing, From x In node.Arguments Select Visit(x, Nothing)),
+                New TreeDumperNode("defaultArguments", node.DefaultArguments, Nothing),
                 New TreeDumperNode("initializerOpt", Nothing, new TreeDumperNode() { Visit(node.InitializerOpt, Nothing) }),
                 New TreeDumperNode("type", node.Type, Nothing)
             })
@@ -14219,6 +14251,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 New TreeDumperNode("isLValue", node.IsLValue, Nothing),
                 New TreeDumperNode("receiverOpt", Nothing, new TreeDumperNode() { Visit(node.ReceiverOpt, Nothing) }),
                 New TreeDumperNode("arguments", Nothing, From x In node.Arguments Select Visit(x, Nothing)),
+                New TreeDumperNode("defaultArguments", node.DefaultArguments, Nothing),
                 New TreeDumperNode("type", node.Type, Nothing)
             })
         End Function

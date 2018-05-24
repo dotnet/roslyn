@@ -1136,6 +1136,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                      isLValue:=False,
                                                      receiverOpt:=access.ReceiverOpt,
                                                      arguments:=access.Arguments,
+                                                     defaultArguments:=access.DefaultArguments,
                                                      type:=access.Type,
                                                      hasErrors:=access.HasErrors)
 
@@ -1147,7 +1148,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Case BoundKind.Call
                     Dim [call] = DirectCast(result, BoundCall)
                     result = New BoundCall(typeExpr.Syntax, [call].Method, [call].MethodGroupOpt, [call].ReceiverOpt, [call].Arguments,
-                                           [call].ConstantValueOpt,
+                                           [call].DefaultArguments, [call].ConstantValueOpt,
                                            isLValue:=False,
                                            suppressObjectClone:=[call].SuppressObjectClone,
                                            type:=[call].Type,

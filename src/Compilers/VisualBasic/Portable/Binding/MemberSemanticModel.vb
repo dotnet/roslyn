@@ -711,8 +711,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             If boundForEach IsNot Nothing Then
                 Return GetForEachStatementInfo(boundForEach, Compilation,
                                                getEnumeratorArguments:=Nothing,
+                                               getEnumeratorDefaultArguments:=Nothing,
                                                moveNextArguments:=Nothing,
-                                               currentArguments:=Nothing)
+                                               moveNextDefaultArguments:=Nothing,
+                                               currentArguments:=Nothing,
+                                               currentDefaultArguments:=Nothing)
             Else
                 Return Nothing
             End If
@@ -722,8 +725,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             boundForEach As BoundForEachStatement,
             compilation As VisualBasicCompilation,
             <Out> ByRef getEnumeratorArguments As ImmutableArray(Of BoundExpression),
+            <Out> ByRef getEnumeratorDefaultArguments As BitVector,
             <Out> ByRef moveNextArguments As ImmutableArray(Of BoundExpression),
-            <Out> ByRef currentArguments As ImmutableArray(Of BoundExpression)
+            <Out> ByRef moveNextDefaultArguments As BitVector,
+            <Out> ByRef currentArguments As ImmutableArray(Of BoundExpression),
+            <Out> ByRef currentDefaultArguments As BitVector
         ) As ForEachStatementInfo
             getEnumeratorArguments = Nothing
             moveNextArguments = Nothing
@@ -736,6 +742,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Dim getEnumeratorCall As BoundCall = DirectCast(enumeratorInfo.GetEnumerator, BoundCall)
                 getEnumerator = getEnumeratorCall.Method
                 getEnumeratorArguments = getEnumeratorCall.Arguments
+                getEnumeratorDefaultArguments = getEnumeratorCall.DefaultArguments
             End If
 
             Dim moveNext As MethodSymbol = Nothing
@@ -743,6 +750,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Dim moveNextCall As BoundCall = DirectCast(enumeratorInfo.MoveNext, BoundCall)
                 moveNext = moveNextCall.Method
                 moveNextArguments = moveNextCall.Arguments
+                moveNextDefaultArguments = moveNextCall.DefaultArguments
             End If
 
             Dim current As PropertySymbol = Nothing
@@ -750,6 +758,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Dim currentProperty As BoundPropertyAccess = DirectCast(enumeratorInfo.Current, BoundPropertyAccess)
                 current = currentProperty.PropertySymbol
                 currentArguments = currentProperty.Arguments
+                currentDefaultArguments = currentProperty.DefaultArguments
             End If
 
             ' The batch compiler doesn't actually use this conversion, so we'll just compute it here.

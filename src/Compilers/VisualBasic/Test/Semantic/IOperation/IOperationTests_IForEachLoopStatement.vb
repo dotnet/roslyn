@@ -2926,7 +2926,7 @@ Block[B1] - Block
               Instance Receiver: 
                 IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: C) (Syntax: 'x')
               Arguments(1):
-                  IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: member) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'x')
+                  IArgumentOperation (ArgumentKind.DefaultValue, Matching Parameter: member) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'x')
                     ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: "M", IsImplicit) (Syntax: 'x')
                     InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                     OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
@@ -2940,7 +2940,7 @@ Block[B2] - Block
           Instance Receiver: 
             IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: C, IsImplicit) (Syntax: 'x')
           Arguments(1):
-              IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: s) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'x')
+              IArgumentOperation (ArgumentKind.DefaultValue, Matching Parameter: s) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'x')
                 ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: "ABC", IsImplicit) (Syntax: 'x')
                 InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                 OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
@@ -2962,7 +2962,7 @@ Block[B2] - Block
                   Instance Receiver: 
                     IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: C, IsImplicit) (Syntax: 'x')
                   Arguments(1):
-                      IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: d) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'x')
+                      IArgumentOperation (ArgumentKind.DefaultValue, Matching Parameter: d) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'x')
                         ILiteralOperation (OperationKind.Literal, Type: System.Double, Constant: 123.45, IsImplicit) (Syntax: 'x')
                         InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                         OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)

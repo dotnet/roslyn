@@ -171,7 +171,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (_inExpressionLambda)
             {
-                return initializer.Update(addMethod, rewrittenArguments, false, default(ImmutableArray<int>), initializer.InvokedAsExtensionMethod, initializer.ResultKind, rewrittenType);
+                return initializer.Update(addMethod, rewrittenArguments, rewrittenReceiver, expanded: false, argsToParamsOpt: default, initializer.InvokedAsExtensionMethod, initializer.ResultKind, initializer.BinderOpt, rewrittenType);
             }
 
             return MakeCall(null, syntax, rewrittenReceiver, addMethod, rewrittenArguments, default(ImmutableArray<RefKind>), initializer.InvokedAsExtensionMethod, initializer.ResultKind, addMethod.ReturnType, temps);

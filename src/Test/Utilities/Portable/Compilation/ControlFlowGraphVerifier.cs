@@ -1,7 +1,5 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.CodeAnalysis.Operations;
@@ -659,7 +657,7 @@ endRegion:
                 case OperationKind.StaticLocalInitializationSemaphore:
                 case OperationKind.Discard:
                 case OperationKind.ObjectOrCollectionInitializer: // PROTOTYPE(dataflow): it looks like this node is leaking through in some error scenarios, at least for now.
-                case OperationKind.CollectionElementInitializer:  // PROTOTYPE(dataflow): It looks like there is a bug in IOperation tree generation for non-error scenario in 
+                                                                  // PROTOTYPE(dataflow): It looks like there is a bug in IOperation tree generation for non-error scenario in
                                                                   //                      Microsoft.CodeAnalysis.CSharp.UnitTests.SemanticModelGetSemanticInfoTests.ObjectCreation3
                     return true;
             }
