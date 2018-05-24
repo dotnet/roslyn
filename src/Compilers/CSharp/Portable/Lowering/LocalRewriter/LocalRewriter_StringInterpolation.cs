@@ -55,11 +55,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         private static string Unescape(string s)
         {
             var builder = PooledStringBuilder.GetInstance();
+            var stringBuilder = builder.Builder;
             int formatLength = s.Length;
             for (int i = 0; i < formatLength; i++)
             {
                 char c = s[i];
-                builder.Builder.Append(c);
+                stringBuilder.Append(c);
                 if ((c == '{' || c == '}') && (i + 1) < formatLength && s[i + 1] == c)
                 {
                     i++;
@@ -130,66 +131,28 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return _factory.StringLiteral("");
                 }
 
-                if (length == 1)
+                result = null;
+                for (int i = 0; i < length; i++)
                 {
-                    var part = node.Parts[0];
-
+                    var part = node.Parts[i];
                     if (part is BoundStringInsert fillin)
                     {
-                        // $"{part}"
-                        // this is the filled-in expression
+                        // this is one of the filled-in expressions
                         part = fillin.Value;
-
-                        if (part.ConstantValue != null)
-                        {
-                            if (part.ConstantValue.StringValue == null)
-                            {
-                                return _factory.StringLiteral("");
-                            }
-                            else
-                            {
-                                result = part;
-                            }
-                        }
-                        else if (part is BoundBinaryOperator bbo && bbo.OperatorKind == BinaryOperatorKind.StringConcatenation)
-                        {
-                            // $"{a + b}" -> a + b
-                            result = part;
-                        }
-                        else
-                        {
-                            result = _factory.Coalesce(part, _factory.StringLiteral(""));
-                        }
                     }
                     else
                     {
-                        // $"abc" -> "abc"
-                        // this is the literal part
-                        return _factory.StringLiteral(Unescape(part.ConstantValue.StringValue));
+                        // this is one of the literal parts
+                        Debug.Assert(part is BoundLiteral && part.ConstantValue != null);
+                        part = _factory.StringLiteral(Unescape(part.ConstantValue.StringValue));
                     }
-                }
-                else
-                {
-                    result = null;
-                    for (int i = 0; i < length; i++)
-                    {
-                        var part = node.Parts[i];
-                        if (part is BoundStringInsert fillin)
-                        {
-                            // this is one of the filled-in expressions
-                            part = fillin.Value;
-                        }
-                        else
-                        {
-                            // this is one of the literal parts
-                            part = _factory.StringLiteral(Unescape(part.ConstantValue.StringValue));
-                        }
 
-                        result = result == null ?
-                            part :
-                            _factory.Binary(BinaryOperatorKind.StringConcatenation, node.Type, result, part);
-                    }
+                    result = result == null ?
+                        part :
+                        _factory.Binary(BinaryOperatorKind.StringConcatenation, node.Type, result, part);
                 }
+
+                result = _factory.Coalesce(result, _factory.StringLiteral(""));
             }
             else
             {
