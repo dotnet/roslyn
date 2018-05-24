@@ -11,6 +11,6 @@ namespace Microsoft.CodeAnalysis.Options
     /// </summary>
     interface IDocumentOptions
     {
-        bool TryGetDocumentOption(Document document, OptionKey option, OptionSet underlyingOptions, out object value);
+        bool TryGetDocumentOption(OptionKey option, OptionSet underlyingOptions, out object value);
     }
 }

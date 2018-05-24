@@ -215,7 +215,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
 
         /// <summary>
-        /// Is the following set of tokens, interpreted as a type, the type `var`?
+        /// Is the following set of tokens, interpreted as a type, the type <c>var</c>?
         /// </summary>
         private bool IsVarType()
         {

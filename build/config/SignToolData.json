@@ -54,7 +54,7 @@
         "Dlls\\EditorFeatures\\Microsoft.CodeAnalysis.EditorFeatures.dll",
         "Dlls\\EditorFeatures\\*\\Microsoft.CodeAnalysis.EditorFeatures.resources.dll",
         "Dlls\\EditorFeatures.Wpf\\Microsoft.CodeAnalysis.EditorFeatures.Wpf.dll",
-        "Dlls\\EditorFeatures.Wpf\\*\\Microsoft.CodeAnalysis.EditorFeatures.Wpf.dll",
+        "Dlls\\EditorFeatures.Wpf\\*\\Microsoft.CodeAnalysis.EditorFeatures.Wpf.resources.dll",
         "Dlls\\Features\\Microsoft.CodeAnalysis.Features.dll",
         "Dlls\\Features\\*\\Microsoft.CodeAnalysis.Features.resources.dll",
         "Dlls\\InteractiveEditorFeatures\\Microsoft.CodeAnalysis.InteractiveEditorFeatures.dll",
@@ -108,7 +108,7 @@
       "strongName": null,
       "values": [
         "Dlls\\ServicesTestUtilities\\Roslyn.Services.Test.Utilities.dll",
-        "Dlls\\TestUtilities\\net461\\Roslyn.Test.Utilities.dll",
+        "Dlls\\TestUtilities\\net46\\Roslyn.Test.Utilities.dll",
         "Dlls\\VisualStudioIntegrationTestUtilities\\Microsoft.VisualStudio.IntegrationTest.Utilities.dll",
         "Vsix\\VisualStudioIntegrationTestSetup\\Microsoft.VisualStudio.IntegrationTest.Setup.dll"
       ]
@@ -151,7 +151,7 @@
       ]
     },
     {
-      "certificate": null,
+      "certificate": "NuGet",
       "strongName": null,
       "values": [
         "Nuget\\PerBuildPreRelease\\*.nupkg",
@@ -216,6 +216,7 @@
     "System.Composition.Runtime.dll",
     "System.Composition.TypedParts.dll",
     "System.Console.dll",
+    "System.Diagnostics.DiagnosticSource.dll",
     "System.Diagnostics.FileVersionInfo.dll",
     "System.Diagnostics.Process.dll",
     "System.Diagnostics.StackTrace.dll",

@@ -3697,5 +3697,123 @@ class Test
                 //         M(_);
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "_").WithArguments("_").WithLocation(9, 11));
         }
+
+        [Fact, WorkItem(26418, "https://github.com/dotnet/roslyn/issues/26418")]
+        public void OutArgumentsDeclaration_Ref()
+        {
+            CreateCompilation(@"
+class Test
+{
+	void M(out int p)
+    {
+        p = 0;
+    }
+    void N()
+    {
+        M(out ref int x);
+        M(out ref var y);
+
+        M(out ref int _);
+        M(out ref var _);
+    }
+}").VerifyDiagnostics(
+                // (10,15): error CS8387: An out variable cannot be declared as a ref local
+                //         M(out ref int x);
+                Diagnostic(ErrorCode.ERR_OutVariableCannotBeByRef, "ref int").WithLocation(10, 15),
+                // (11,15): error CS8387: An out variable cannot be declared as a ref local
+                //         M(out ref var y);
+                Diagnostic(ErrorCode.ERR_OutVariableCannotBeByRef, "ref var").WithLocation(11, 15),
+                // (13,15): error CS8387: An out variable cannot be declared as a ref local
+                //         M(out ref int _);
+                Diagnostic(ErrorCode.ERR_OutVariableCannotBeByRef, "ref int").WithLocation(13, 15),
+                // (14,15): error CS8387: An out variable cannot be declared as a ref local
+                //         M(out ref var _);
+                Diagnostic(ErrorCode.ERR_OutVariableCannotBeByRef, "ref var").WithLocation(14, 15));
+        }
+
+        [Fact, WorkItem(26418, "https://github.com/dotnet/roslyn/issues/26418")]
+        public void OutArgumentsDeclaration_RefReadOnly()
+        {
+            CreateCompilation(@"
+class Test
+{
+	void M(out int p)
+    {
+        p = 0;
+    }
+    void N()
+    {
+        M(out ref readonly int x);
+        M(out ref readonly var y);
+
+        M(out ref readonly int _);
+        M(out ref readonly var _);
+    }
+}").VerifyDiagnostics(
+                // (10,15): error CS8387: An out variable cannot be declared as a ref local
+                //         M(out ref readonly int x);
+                Diagnostic(ErrorCode.ERR_OutVariableCannotBeByRef, "ref readonly int").WithLocation(10, 15),
+                // (11,15): error CS8387: An out variable cannot be declared as a ref local
+                //         M(out ref readonly var y);
+                Diagnostic(ErrorCode.ERR_OutVariableCannotBeByRef, "ref readonly var").WithLocation(11, 15),
+                // (13,15): error CS8387: An out variable cannot be declared as a ref local
+                //         M(out ref readonly int _);
+                Diagnostic(ErrorCode.ERR_OutVariableCannotBeByRef, "ref readonly int").WithLocation(13, 15),
+                // (14,15): error CS8387: An out variable cannot be declared as a ref local
+                //         M(out ref readonly var _);
+                Diagnostic(ErrorCode.ERR_OutVariableCannotBeByRef, "ref readonly var").WithLocation(14, 15));
+        }
+
+        [Fact, WorkItem(26418, "https://github.com/dotnet/roslyn/issues/26418")]
+        public void OutArgumentsDeclaration_Out()
+        {
+            CreateCompilation(@"
+class Test
+{
+	void M(out int p)
+    {
+        p = 0;
+    }
+    void N()
+    {
+        M(out out int x);
+    }
+}").GetParseDiagnostics().Verify(
+                // (10,15): error CS1525: Invalid expression term 'out'
+                //         M(out out int x);
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "out").WithArguments("out").WithLocation(10, 15),
+                // (10,15): error CS1003: Syntax error, ',' expected
+                //         M(out out int x);
+                Diagnostic(ErrorCode.ERR_SyntaxError, "out").WithArguments(",", "out").WithLocation(10, 15));
+        }
+
+        [Fact, WorkItem(26418, "https://github.com/dotnet/roslyn/issues/26418")]
+        public void OutArgumentsDeclaration_In()
+        {
+            CreateCompilation(@"
+class Test
+{
+	void M(out int p)
+    {
+        p = 0;
+    }
+    void N()
+    {
+        M(out in int x);
+    }
+}").GetParseDiagnostics().Verify(
+                // (10,15): error CS1525: Invalid expression term 'in'
+                //         M(out in int x);
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "in").WithArguments("in").WithLocation(10, 15),
+                // (10,15): error CS1003: Syntax error, ',' expected
+                //         M(out in int x);
+                Diagnostic(ErrorCode.ERR_SyntaxError, "in").WithArguments(",", "in").WithLocation(10, 15),
+                // (10,18): error CS1525: Invalid expression term 'int'
+                //         M(out in int x);
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "int").WithArguments("int").WithLocation(10, 18),
+                // (10,22): error CS1003: Syntax error, ',' expected
+                //         M(out in int x);
+                Diagnostic(ErrorCode.ERR_SyntaxError, "x").WithArguments(",", "").WithLocation(10, 22));
+        }
     }
 }

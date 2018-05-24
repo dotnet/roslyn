@@ -1026,7 +1026,7 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// Returns a new anonymous type symbol with the given member types member names.
         /// Anonymous type members will be readonly by default.  Writable properties are
-        /// supported in VB and can be created by passing in <code>false</code> in the
+        /// supported in VB and can be created by passing in <see langword="false"/> in the
         /// appropriate locations in <paramref name="memberIsReadOnly"/>.
         ///
         /// Source locations can also be provided through <paramref name="memberLocations"/>
@@ -2577,9 +2577,9 @@ namespace Microsoft.CodeAnalysis
 
         /// <summary>
         /// Returns a tuple of streams where
-        /// * `peStream` is a stream which will carry the output PE bits
-        /// * `signingStream` is the stream which will be signed by the legacy strong name signer, or null if we aren't using the legacy signer
-        /// * `selectedStream` is an alias of either peStream or signingStream, and is the stream that will be written to by the emitter.
+        /// * <c>peStream</c> is a stream which will carry the output PE bits
+        /// * <c>signingStream</c> is the stream which will be signed by the legacy strong name signer, or null if we aren't using the legacy signer
+        /// * <c>selectedStream</c> is an alias of either peStream or signingStream, and is the stream that will be written to by the emitter.
         /// </summary>
         private (Stream peStream, Stream signingStream, Stream selectedStream) GetPeStream(DiagnosticBag metadataDiagnostics, EmitStreamProvider peStreamProvider, bool metadataOnly)
         {
@@ -2906,6 +2906,20 @@ namespace Microsoft.CodeAnalysis
         /// Return source declaration symbols whose name meets given predicate.
         /// </summary>
         public abstract IEnumerable<ISymbol> GetSymbolsWithName(Func<string, bool> predicate, SymbolFilter filter = SymbolFilter.TypeAndMember, CancellationToken cancellationToken = default(CancellationToken));
+
+        /// <summary>
+        /// Return true if there is a source declaration symbol name that matches the provided name.
+        /// This may be faster than <see cref="ContainsSymbolsWithName(Func{string, bool}, SymbolFilter, CancellationToken)"/>
+        /// when predicate is just a simple string check.
+        /// </summary>
+        internal abstract bool ContainsSymbolsWithName(string name, SymbolFilter filter = SymbolFilter.TypeAndMember, CancellationToken cancellationToken = default(CancellationToken));
+
+        /// <summary>
+        /// Return source declaration symbols whose name matches the provided name.  This may be
+        /// faster than <see cref="GetSymbolsWithName(Func{string, bool}, SymbolFilter, CancellationToken)"/>
+        /// when predicate is just a simple string check.
+        /// </summary>
+        internal abstract IEnumerable<ISymbol> GetSymbolsWithName(string name, SymbolFilter filter = SymbolFilter.TypeAndMember, CancellationToken cancellationToken = default(CancellationToken));
 
         #endregion
 

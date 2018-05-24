@@ -15554,7 +15554,7 @@ unsafe class Test
 {
   // Code size       25 (0x19)
   .maxstack  3
-  .locals init (pinned int*& V_0,
+  .locals init (pinned int& V_0,
                 int V_1)
   IL_0000:  ldarg.0
   IL_0001:  ldflda     ""S Test.field""

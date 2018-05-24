@@ -8,9 +8,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
 {
     public static class TestOptions
     {
-        // Disable documentation comments by default so that we don't need to
+        // Disable diagnosing documentation comments by default so that we don't need to
         // document every public member of every test input.
-        public static readonly CSharpParseOptions Regular = new CSharpParseOptions(kind: SourceCodeKind.Regular, documentationMode: DocumentationMode.None).WithLanguageVersion(LanguageVersion.Latest);
+        public static readonly CSharpParseOptions Regular = new CSharpParseOptions(kind: SourceCodeKind.Regular, documentationMode: DocumentationMode.Parse).WithLanguageVersion(LanguageVersion.Latest);
         public static readonly CSharpParseOptions Script = Regular.WithKind(SourceCodeKind.Script);
         public static readonly CSharpParseOptions Regular6 = Regular.WithLanguageVersion(LanguageVersion.CSharp6);
         public static readonly CSharpParseOptions Regular7 = Regular.WithLanguageVersion(LanguageVersion.CSharp7);

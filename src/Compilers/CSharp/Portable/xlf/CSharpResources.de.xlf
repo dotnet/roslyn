@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
   <file datatype="xml" source-language="en" target-language="de" original="../CSharpResources.resx">
     <body>
@@ -50,6 +50,11 @@
       <trans-unit id="ERR_MissingPattern">
         <source>Pattern missing</source>
         <target state="new">Pattern missing</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_OutVariableCannotBeByRef">
+        <source>An out variable cannot be declared as a ref local</source>
+        <target state="new">An out variable cannot be declared as a ref local</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_PropertyPatternNameMissing">
@@ -477,6 +482,16 @@
         <target state="translated">Typvarianz</target>
         <note />
       </trans-unit>
+      <trans-unit id="SyntaxTreeNotFound">
+        <source>SyntaxTree is not part of the compilation</source>
+        <target state="new">SyntaxTree is not part of the compilation</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="SyntaxTreeNotFoundToRemove">
+        <source>SyntaxTree is not part of the compilation, so it cannot be removed</source>
+        <target state="new">SyntaxTree is not part of the compilation, so it cannot be removed</target>
+        <note />
+      </trans-unit>
       <trans-unit id="WRN_GivenExpressionAlwaysMatchesConstant">
         <source>The given expression always matches the provided constant.</source>
         <target state="new">The given expression always matches the provided constant.</target>
@@ -515,6 +530,16 @@
       <trans-unit id="WRN_SwitchExpressionNotExhaustive_Title">
         <source>The switch expression does not handle all possible inputs (it is not exhaustive).</source>
         <target state="new">The switch expression does not handle all possible inputs (it is not exhaustive).</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_TypeParameterSameAsOuterMethodTypeParameter">
+        <source>Type parameter '{0}' has the same name as the type parameter from outer method '{1}'</source>
+        <target state="new">Type parameter '{0}' has the same name as the type parameter from outer method '{1}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_TypeParameterSameAsOuterMethodTypeParameter_Title">
+        <source>Type parameter has the same type as the type parameter from outer method.</source>
+        <target state="new">Type parameter has the same type as the type parameter from outer method.</target>
         <note />
       </trans-unit>
       <trans-unit id="XML_InvalidToken">
@@ -3896,8 +3921,8 @@ Ein catch()-Block nach einem catch (System.Exception e)-Block kann nicht-CLS-Aus
         <note />
       </trans-unit>
       <trans-unit id="ERR_NoSuchMemberOrExtension">
-        <source>'{0}' does not contain a definition for '{1}' and no extension method '{1}' accepting a first argument of type '{0}' could be found (are you missing a using directive or an assembly reference?)</source>
-        <target state="translated">'"{0}" enthält keine Definition für "{1}", und es konnte keine {1}-Erweiterungsmethode gefunden werden, die ein erstes Argument vom Typ "{0}" akzeptiert (möglicherweise fehlt eine using-Direktive oder ein Assemblyverweis).</target>
+        <source>'{0}' does not contain a definition for '{1}' and no accessible extension method '{1}' accepting a first argument of type '{0}' could be found (are you missing a using directive or an assembly reference?)</source>
+        <target state="needs-review-translation">'"{0}" enthält keine Definition für "{1}", und es konnte keine {1}-Erweiterungsmethode gefunden werden, die ein erstes Argument vom Typ "{0}" akzeptiert (möglicherweise fehlt eine using-Direktive oder ein Assemblyverweis).</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NoSuchMemberOrExtensionNeedUsing">
@@ -7088,11 +7113,6 @@ Um die Warnung zu beheben, können Sie stattdessen /reference verwenden (Einbett
         <target state="translated">Es kann nur ein Syntaxbaum übermittelt werden.</target>
         <note />
       </trans-unit>
-      <trans-unit id="SyntaxTreeNotFoundTo">
-        <source>SyntaxTree '{0}' not found to remove</source>
-        <target state="translated">SyntaxTree "{0}" wurde zum Entfernen nicht gefunden.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="TreeMustHaveARootNodeWith">
         <source>tree must have a root node with SyntaxKind.CompilationUnit</source>
         <target state="translated">Der Baum muss einen Stammknoten mit SyntaxKind.CompilationUnit aufweisen.</target>
@@ -7951,8 +7971,8 @@ Um die Warnung zu beheben, können Sie stattdessen /reference verwenden (Einbett
         <note>File path referenced in source (#load) could not be resolved.</note>
       </trans-unit>
       <trans-unit id="SyntaxTreeFromLoadNoRemoveReplace">
-        <source>SyntaxTree '{0}' resulted from a #load directive and cannot be removed or replaced directly.</source>
-        <target state="translated">SyntaxTree "{0}" ist das Ergebnis einer #load-Direktive und kann nicht direkt entfernt oder ersetzt werden.</target>
+        <source>SyntaxTree resulted from a #load directive and cannot be removed or replaced directly.</source>
+        <target state="needs-review-translation">SyntaxTree "{0}" ist das Ergebnis einer #load-Direktive und kann nicht direkt entfernt oder ersetzt werden.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_SourceFileReferencesNotSupported">

@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.MakeFieldReadonly
             : base(
                 IDEDiagnosticIds.MakeFieldReadonlyDiagnosticId,
                 new LocalizableResourceString(nameof(FeaturesResources.Add_readonly_modifier), FeaturesResources.ResourceManager, typeof(FeaturesResources)),
-                new LocalizableResourceString(nameof(FeaturesResources.Make_field_readonly), WorkspacesResources.ResourceManager, typeof(WorkspacesResources)))
+                new LocalizableResourceString(nameof(FeaturesResources.Make_field_readonly), FeaturesResources.ResourceManager, typeof(FeaturesResources)))
         {
         }
 
@@ -150,7 +150,7 @@ namespace Microsoft.CodeAnalysis.MakeFieldReadonly
                     var isInAnonymousOrLocalFunction = false;
                     for (var current = descendant.Parent; current != ctorNode; current = current.Parent)
                     {
-                        if (syntaxFactsService.IsAnonymousFunction(current) || syntaxFactsService.IsLocalFunction(current))
+                        if (syntaxFactsService.IsAnonymousOrLocalFunctionStatement(current))
                         {
                             isInAnonymousOrLocalFunction = true;
                             break;

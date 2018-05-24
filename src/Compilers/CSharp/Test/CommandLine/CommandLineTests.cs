@@ -6950,6 +6950,7 @@ public class C
             Assert.Contains(source + "(6,16): warning CS0168: The variable 'x' is declared but never used", outWriter.ToString(), StringComparison.Ordinal);
 
             CleanupAllGeneratedFiles(source);
+            CleanupAllGeneratedFiles(Path.Combine(Path.GetDirectoryName(Path.GetDirectoryName(source)), Path.GetFileName(source)));
         }
 
         [Fact]

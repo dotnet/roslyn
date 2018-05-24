@@ -49,6 +49,7 @@
     <PackageReference Include="System.Collections.Immutable" Version="$(SystemCollectionsImmutableVersion)" />
     <PackageReference Include="System.Reflection.Metadata" Version="$(SystemReflectionMetadataVersion)" />
     <PackageReference Include="System.Text.Encoding.CodePages" Version="$(SystemTextEncodingCodePagesVersion)" />
+    <PackageReference Include="System.Threading.Tasks.Extensions" Version="$(SystemThreadingTasksExtensionsVersion)" />
     <PackageReference Include="System.ValueTuple" Version="$(SystemValueTupleVersion)" />
   </ItemGroup>
   <ItemGroup>

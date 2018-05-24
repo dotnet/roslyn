@@ -5072,12 +5072,9 @@ public static class FixableExt
             var compVerifier = CreateCompilationWithMscorlib46(text, options: TestOptions.UnsafeReleaseExe);
 
             compVerifier.VerifyDiagnostics(
-                // (6,25): error CS9385: The given expression cannot be used in a fixed statement
+                // (6,25): error CS8385: The given expression cannot be used in a fixed statement
                 //         fixed (int* p = new Fixable(1))
-                Diagnostic(ErrorCode.ERR_ExprCannotBeFixed, "new Fixable(1)").WithLocation(6, 25),
-                // (6,25): error CS0122: 'FixableExt.GetPinnableReference(Fixable)' is inaccessible due to its protection level
-                //         fixed (int* p = new Fixable(1))
-                Diagnostic(ErrorCode.ERR_BadAccess, "new Fixable(1)").WithArguments("FixableExt.GetPinnableReference(Fixable)").WithLocation(6, 25)
+                Diagnostic(ErrorCode.ERR_ExprCannotBeFixed, "new Fixable(1)").WithLocation(6, 25)
                 );
         }
 
@@ -10350,7 +10347,7 @@ unsafe public struct FixedStruct
 {
   // Code size       20 (0x14)
   .maxstack  1
-  .locals init (pinned char*& V_0)
+  .locals init (pinned char& V_0)
   IL_0000:  ldarg.0
   IL_0001:  ldflda     ""char* FixedStruct.c""
   IL_0006:  ldflda     ""char FixedStruct.<c>e__FixedBuffer.FixedElementField""
@@ -10403,7 +10400,7 @@ unsafe public struct FixedStruct
 {
   // Code size       45 (0x2d)
   .maxstack  3
-  .locals init (pinned char*& V_0)
+  .locals init (pinned char& V_0)
   IL_0000:  ldarg.0
   IL_0001:  ldflda     ""char* FixedStruct.c""
   IL_0006:  ldflda     ""char FixedStruct.<c>e__FixedBuffer.FixedElementField""

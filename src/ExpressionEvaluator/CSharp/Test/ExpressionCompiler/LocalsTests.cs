@@ -5067,15 +5067,16 @@ class C
                 {
                     {methodToken, debugInfo}
                 }.ToImmutableDictionary());
-            var context = EvaluationContext.CreateMethodContext(
-                default(CSharpMetadataContext),
+            var context = CreateMethodContext(
+                new AppDomain(),
                 blocks,
                 symReader,
                 moduleVersionId,
                 methodToken,
                 methodVersion: 1,
                 ilOffset: 0,
-                localSignatureToken: localSignatureToken);
+                localSignatureToken: localSignatureToken,
+                kind: MakeAssemblyReferencesKind.AllAssemblies);
 
             string typeName;
             var assembly = context.CompileGetLocals(locals, argumentsOnly: false, typeName: out typeName, testData: null);
