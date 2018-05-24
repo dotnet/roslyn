@@ -39,6 +39,14 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertAnonymousTypeToTuple
             Document document, SyntaxEditor editor,
             Diagnostic diagnostic, CancellationToken cancellationToken)
         {
+            // For the standard invocation of the code-fix, we want to fixup all creations of the
+            // "same" anonymous type within the containing method.  We define same-ness as meaning
+            // "they have the type symbol".  this means both have the same member names, in the same
+            // order, with the same member types.  We fix all these up in the method because the
+            // user may be creating several instances of this anonymous type in that method and
+            // then combining them in interesting ways (i.e. checking them for equality, using them
+            // in collections, etc.).  The language guarantees within a method boundary that these
+            // will be the same type and can be used together in this fashion.
             var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
 
             var creationNode = TryGetCreationNode(diagnostic, cancellationToken);
@@ -82,25 +90,20 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertAnonymousTypeToTuple
         {
             foreach (var diagnostic in diagnostics)
             {
-                // We're doing a fix all, so we only have to fix this specific diagnostic.
-                // Any other anonymous types will have their own diagnostic and can be 
-                // fixed up.
-                FixOne(editor, diagnostic, cancellationToken);
+                // During a fix-all we don't need to bother with the work to go to the containing
+                // method.  Because it's a fix-all, by definition, we'll always be processing all
+                // the anon-creation nodes for any given method that is within our scope.
+                var node = TryGetCreationNode(diagnostic, cancellationToken);
+                if (node == null)
+                {
+                    Debug.Fail("We should always be able to find the anonymous creation we were invoked from.");
+                    continue;
+                }
+
+                ReplaceWithTuple(editor, node);
             }
 
             return SpecializedTasks.EmptyTask;
-        }
-
-        private void FixOne(
-            SyntaxEditor editor, Diagnostic diagnostic, CancellationToken cancellationToken)
-        {
-            var node = TryGetCreationNode(diagnostic, cancellationToken);
-            if (node == null)
-            {
-                return;
-            }
-
-            ReplaceWithTuple(editor, node);
         }
 
         private static void ReplaceWithTuple(SyntaxEditor editor, AnonymousObjectCreationExpressionSyntax node)
