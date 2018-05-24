@@ -1724,21 +1724,23 @@ True";
 }");
             compVerifier.VerifyIL("TestHelper.IsValueTypeT1<T>(T)",
 @"{
-  // Code size       17 (0x11)
-  .maxstack  2
+  // Code size       20 (0x14)
+  .maxstack  1
   .locals init (T V_0, //v
                 bool V_1)
   IL_0000:  nop
   IL_0001:  ldarg.0
-  IL_0002:  dup
-  IL_0003:  stloc.0
-  IL_0004:  box        ""T""
-  IL_0009:  ldnull
-  IL_000a:  cgt.un
-  IL_000c:  stloc.1
-  IL_000d:  br.s       IL_000f
-  IL_000f:  ldloc.1
-  IL_0010:  ret
+  IL_0002:  box        ""T""
+  IL_0007:  brfalse.s  IL_000e
+  IL_0009:  ldarg.0
+  IL_000a:  stloc.0
+  IL_000b:  ldc.i4.1
+  IL_000c:  br.s       IL_000f
+  IL_000e:  ldc.i4.0
+  IL_000f:  stloc.1
+  IL_0010:  br.s       IL_0012
+  IL_0012:  ldloc.1
+  IL_0013:  ret
 }");
             compVerifier.VerifyIL("TestHelper.IsValueTypeT2<T>(T)",
 @"{
@@ -1802,24 +1804,26 @@ True";
             var compVerifier = CompileAndVerify(compilation, expectedOutput: expectedOutput);
             compVerifier.VerifyIL("ConsoleApp1.TestHelper.IsValueTypeT<T>(ConsoleApp1.Result<T>)",
 @"{
-  // Code size       28 (0x1c)
+  // Code size       31 (0x1f)
   .maxstack  2
   .locals init (T V_0, //v
                 bool V_1)
   IL_0000:  nop
   IL_0001:  ldarg.0
   IL_0002:  callvirt   ""T ConsoleApp1.Result<T>.Value.get""
-  IL_0007:  dup
-  IL_0008:  stloc.0
+  IL_0007:  stloc.0
+  IL_0008:  ldloc.0
   IL_0009:  box        ""T""
   IL_000e:  ldnull
-  IL_000f:  ceq
-  IL_0011:  stloc.1
-  IL_0012:  ldloc.1
-  IL_0013:  brfalse.s  IL_001b
-  IL_0015:  newobj     ""ConsoleApp1.NotPossibleException..ctor()""
-  IL_001a:  throw
-  IL_001b:  ret
+  IL_000f:  cgt.un
+  IL_0011:  ldc.i4.0
+  IL_0012:  ceq
+  IL_0014:  stloc.1
+  IL_0015:  ldloc.1
+  IL_0016:  brfalse.s  IL_001e
+  IL_0018:  newobj     ""ConsoleApp1.NotPossibleException..ctor()""
+  IL_001d:  throw
+  IL_001e:  ret
 }");
         }
     }
