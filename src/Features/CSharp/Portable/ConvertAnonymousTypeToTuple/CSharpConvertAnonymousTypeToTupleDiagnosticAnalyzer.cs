@@ -25,6 +25,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertAnonymousTypeToTuple
         protected override void InitializeWorker(AnalysisContext context)
             => context.RegisterCompilationStartAction(csac =>
             {
+                // Only bother to offer to convert to a tuple if we actually know about System.ValueTuple.
                 var valueTupleType = csac.Compilation.GetTypeByMetadataName(typeof(ValueTuple).FullName);
                 if (valueTupleType != null)
                 {
@@ -34,10 +35,9 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertAnonymousTypeToTuple
                 }
             });
 
+        // Analysis is trivial.  All anonymous types are marked as being convertible to a tuple.
         private void AnalyzeSyntax(SyntaxNodeAnalysisContext context)
-        {
-            context.ReportDiagnostic(
+            => context.ReportDiagnostic(
                 Diagnostic.Create(HiddenDescriptor, context.Node.GetFirstToken().GetLocation()));
-        }
     }
 }
