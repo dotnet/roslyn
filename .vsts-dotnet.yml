@@ -1,0 +1,42 @@
+phases:
+- phase: Windows_Unit_Tests
+  queue:
+    timeoutInMinutes: 90
+    parallel: 2
+    matrix:
+      debug:
+        _configuration: Debug
+      release: 
+        _configuration: Release
+  steps:
+    - script: build/scripts/cibuild.cmd -$(_configuration) -testDesktop -test32
+
+    - task: PublishTestResults@1
+      inputs:
+        testRunner: XUnit
+        testResultsFiles: '**/xUnitResults/*.xml'
+        mergeTestResults: true
+        testRunTitle: '$(_configuration) Unit Tests'
+      condition: succeededOrFailed()
+
+    - task: PublishBuildArtifacts@1
+      inputs:
+        PathtoPublish: '$(Build.SourcesDirectory)\Binaries\$(_configuration)\Logs'
+        ArtifactName: 'Build Diagnostic Files $(_configuration)'
+        publishLocation: Container
+      continueOnError: true
+      condition: failed()
+           
+- phase: Windows_Determinism_Test
+  queue:
+    timeoutInMinutes: 90
+  steps:
+    - script: build/scripts/cibuild.cmd -testDeterminism
+
+    - task: PublishBuildArtifacts@1
+      inputs:
+        PathtoPublish: '$(Build.SourcesDirectory)\Binaries\Debug\Logs'
+        ArtifactName: 'Build Determinism Files'
+        publishLocation: Container
+      continueOnError: true
+      condition: failed()

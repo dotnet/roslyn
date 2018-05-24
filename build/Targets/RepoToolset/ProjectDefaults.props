@@ -43,7 +43,7 @@
     -->
     <DebugType Condition="'$(RoslynDebugType)' == ''">full</DebugType>
     <DebugType Condition="'$(OfficialBuild)' == 'true'">portable</DebugType>
-    <DebugType Condition="'$(JenkinsBuild)' == 'true'">embedded</DebugType>
+    <DebugType Condition="'$(JenkinsBuild)' == 'true' or '$(VstsBuild)' == 'true'">embedded</DebugType>
 
     <!-- 
       This controls the places MSBuild will consult to resolve assembly references.  This is 
