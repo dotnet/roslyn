@@ -718,8 +718,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             TypeSymbolWithAnnotations returnType = GetReturnType(compilation, _currentMethodOrLambda);
             if ((object)returnType != null)
             {
-                TypeSymbolWithAnnotations resultType = ApplyConversion(expr, expr, conversion, returnType.TypeSymbol, result.Type, checkConversion: true, fromExplicitCast: false, out bool canConvert);
-                if (conversion.Exists && !canConvert)
+                TypeSymbolWithAnnotations resultType = ApplyConversion(expr, expr, conversion, returnType.TypeSymbol, result.Type, checkConversion: true, fromExplicitCast: false, out bool canConvertNestedNullability);
+                if (!canConvertNestedNullability)
                 {
                     ReportStaticNullCheckingDiagnostics(ErrorCode.WRN_NullabilityMismatchInAssignment, expr.Syntax, GetTypeAsDiagnosticArgument(result.Type?.TypeSymbol), returnType.TypeSymbol);
                 }
@@ -822,10 +822,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             else
             {
                 var unconvertedType = valueType;
-                valueType = ApplyConversion(initializer, initializer, conversion, type.TypeSymbol, valueType, checkConversion: true, fromExplicitCast: false, out bool canConvert);
+                valueType = ApplyConversion(initializer, initializer, conversion, type.TypeSymbol, valueType, checkConversion: true, fromExplicitCast: false, out bool canConvertNestedNullability);
                 // Need to report all warnings that apply since the warnings can be suppressed individually.
                 ReportNullReferenceAssignmentIfNecessary(initializer, type, valueType, useLegacyWarnings: true);
-                if (conversion.Exists && !canConvert)
+                if (!canConvertNestedNullability)
                 {
                     ReportStaticNullCheckingDiagnostics(ErrorCode.WRN_NullabilityMismatchInAssignment, initializer.Syntax, GetTypeAsDiagnosticArgument(unconvertedType?.TypeSymbol), type.TypeSymbol);
                 }
@@ -1136,9 +1136,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                     var sourceType = resultType?.TypeSymbol;
                     if (elementTypeIsReferenceType)
                     {
-                        resultType = ApplyConversion(element, element, conversion, elementType.TypeSymbol, resultType, checkConversion: true, fromExplicitCast: false, out bool canConvert);
+                        resultType = ApplyConversion(element, element, conversion, elementType.TypeSymbol, resultType, checkConversion: true, fromExplicitCast: false, out bool canConvertNestedNullability);
                         ReportNullReferenceAssignmentIfNecessary(element, elementType, resultType, useLegacyWarnings: false);
-                        if (conversion.Exists && !canConvert)
+                        if (!canConvertNestedNullability)
                         {
                             ReportStaticNullCheckingDiagnostics(ErrorCode.WRN_NullabilityMismatchInAssignment, element.Syntax, sourceType, elementType.TypeSymbol);
                         }
@@ -1949,9 +1949,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case RefKind.None:
                 case RefKind.In:
                     {
-                        resultType = ApplyConversion(argument, argument, conversion, parameterType.TypeSymbol, resultType, checkConversion: true, fromExplicitCast: false, out bool canConvert);
+                        resultType = ApplyConversion(argument, argument, conversion, parameterType.TypeSymbol, resultType, checkConversion: true, fromExplicitCast: false, out bool canConvertNestedNullability);
                         if (!ReportNullReferenceArgumentIfNecessary(argument, resultType, parameter, parameterType) &&
-                            !canConvert)
+                            !canConvertNestedNullability)
                         {
                             ReportNullabilityMismatchInArgument(argument, argumentType, parameter, parameterType.TypeSymbol);
                         }
@@ -2190,8 +2190,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         private Conversion GenerateConversionForConditionalOperator(BoundExpression sourceExpression, TypeSymbol sourceType, TypeSymbol destinationType, bool reportMismatch)
         {
             var conversion = GenerateConversion(_conversions, sourceExpression, sourceType, destinationType);
-            bool canConvert = conversion.Exists;
-            if (!canConvert && reportMismatch)
+            bool canConvertNestedNullability = conversion.Exists;
+            if (!canConvertNestedNullability && reportMismatch)
             {
                 ReportStaticNullCheckingDiagnostics(ErrorCode.WRN_NullabilityMismatchInAssignment, sourceExpression.Syntax, GetTypeAsDiagnosticArgument(sourceType), destinationType);
             }
@@ -2307,22 +2307,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 return symbol;
             }
-            var underlyingType = tupleType.UnderlyingNamedType;
             switch (symbol.Kind)
             {
                 case SymbolKind.Field:
-                    {
-                        var index = ((FieldSymbol)symbol).TupleElementIndex;
-                        if (index >= 0)
-                        {
-                            return tupleType.TupleElements[index];
-                        }
-                        return new TupleFieldSymbol(tupleType, (FieldSymbol)AsMemberOfType(underlyingType, ((TupleFieldSymbol)symbol).UnderlyingField), index);
-                    }
+                    return tupleType.GetTupleMemberSymbolForUnderlyingMember(((TupleFieldSymbol)symbol).UnderlyingField);
                 case SymbolKind.Property:
-                    return new TuplePropertySymbol(tupleType, (PropertySymbol)AsMemberOfType(underlyingType, ((TuplePropertySymbol)symbol).UnderlyingProperty));
+                    return tupleType.GetTupleMemberSymbolForUnderlyingMember(((TuplePropertySymbol)symbol).UnderlyingProperty);
                 case SymbolKind.Event:
-                    return new TupleEventSymbol(tupleType, (EventSymbol)AsMemberOfType(underlyingType, ((TupleEventSymbol)symbol).UnderlyingEvent));
+                    return tupleType.GetTupleMemberSymbolForUnderlyingMember(((TupleEventSymbol)symbol).UnderlyingEvent);
                 default:
                     throw ExceptionUtilities.UnexpectedValue(symbol.Kind);
             }
@@ -2446,11 +2438,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// Apply the conversion to the type of the operand and return the resulting type. (If the
         /// operand does not have an explicit type, the operand expression is used for the type.)
-        /// If `checkConversion` is set, the incoming conversion is assumed to be from binding and
-        /// will be re-calculated, this time considering nullability. (Note that the conversion calculation
-        /// considers nested nullability only. The caller is responsible for checking the top-level nullability
-        /// of the type returned by this method.) `canConvert` is set if the conversion succeeded.
-        /// `node` is used only for the location of any diagnostics.
+        /// If `checkConversion` is set, the incoming conversion is assumed to be from binding and will be
+        /// re-calculated, this time considering nullability. (Note that the conversion calculation considers
+        /// nested nullability only. The caller is responsible for checking the top-level nullability of
+        /// the type returned by this method.) `canConvertNestedNullability` is set if the conversion
+        /// considering nested nullability succeeded. `node` is used only for the location of diagnostics.
         /// </summary>
         private TypeSymbolWithAnnotations ApplyConversion(
             BoundNode node,
@@ -2460,14 +2452,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             TypeSymbolWithAnnotations operandType,
             bool checkConversion,
             bool fromExplicitCast,
-            out bool canConvert)
+            out bool canConvertNestedNullability)
         {
             Debug.Assert(node != null);
             Debug.Assert(operandOpt != null || (object)operandType != null);
             Debug.Assert((object)targetType != null);
 
             bool? isNullableIfReferenceType = null;
-            canConvert = true;
+            canConvertNestedNullability = true;
 
             switch (conversion.Kind)
             {
@@ -2490,7 +2482,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         if (!conversion.IsValid)
                         {
-                            canConvert = false;
                             break;
                         }
 
@@ -2559,7 +2550,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ConversionKind.NoConversion:
                 case ConversionKind.DefaultOrNullLiteral:
                     checkConversion = false;
-                    canConvert = conversion.Exists;
                     goto case ConversionKind.Identity;
 
                 case ConversionKind.Identity:
@@ -2579,7 +2569,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         {
                             // PROTOTYPE(NullableReferenceTypes): Assert conversion is similar to original.
                             conversion = GenerateConversion(_conversions, operandOpt, operandType?.TypeSymbol, targetType, fromExplicitCast);
-                            canConvert = conversion.Exists;
+                            canConvertNestedNullability = conversion.Exists;
                         }
                         isNullableIfReferenceType = operandType?.IsNullable;
                     }
@@ -2734,10 +2724,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             else
             {
                 TypeSymbolWithAnnotations leftType = leftResult.Type;
-                TypeSymbolWithAnnotations rightType = ApplyConversion(right, right, conversion, leftType.TypeSymbol, rightResult.Type, checkConversion: true, fromExplicitCast: false, out bool canConvert);
+                TypeSymbolWithAnnotations rightType = ApplyConversion(right, right, conversion, leftType.TypeSymbol, rightResult.Type, checkConversion: true, fromExplicitCast: false, out bool canConvertNestedNullability);
                 // Need to report all warnings that apply since the warnings can be suppressed individually.
                 ReportNullReferenceAssignmentIfNecessary(right, leftType, rightType, UseLegacyWarnings(left));
-                if (conversion.Exists && !canConvert)
+                if (!canConvertNestedNullability)
                 {
                     ReportStaticNullCheckingDiagnostics(ErrorCode.WRN_NullabilityMismatchInAssignment, right.Syntax, GetTypeAsDiagnosticArgument(rightResult.Type?.TypeSymbol), leftType.TypeSymbol);
                 }
@@ -3087,7 +3077,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     TypeSymbolWithAnnotations destinationType = iterationVariable.Type;
                     HashSet<DiagnosticInfo> useSiteDiagnostics = null;
                     Conversion conversion = _conversions.ClassifyImplicitConversionFromType(sourceType.TypeSymbol, destinationType.TypeSymbol, ref useSiteDiagnostics);
-                    TypeSymbolWithAnnotations result = ApplyConversion(node.IterationVariableType, operandOpt: null, conversion, destinationType.TypeSymbol, sourceType, checkConversion: false, fromExplicitCast: true, out bool canConvert);
+                    TypeSymbolWithAnnotations result = ApplyConversion(node.IterationVariableType, operandOpt: null, conversion, destinationType.TypeSymbol, sourceType, checkConversion: false, fromExplicitCast: true, out bool canConvertNestedNullability);
                     if (destinationType.IsReferenceType && destinationType.IsNullable == false && sourceType.IsNullable == true)
                     {
                         ReportStaticNullCheckingDiagnostics(ErrorCode.WRN_ConvertingNullableToNonNullable, node.IterationVariableType.Syntax);

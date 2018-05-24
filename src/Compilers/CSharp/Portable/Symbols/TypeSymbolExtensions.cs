@@ -92,11 +92,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return type.GetNullableUnderlyingTypeWithAnnotations().TypeSymbol;
         }
 
-        public static TypeSymbolWithAnnotations GetNullableUnderlyingType(this TypeSymbolWithAnnotations type)
-        {
-            return type.TypeSymbol.GetNullableUnderlyingTypeWithAnnotations();
-        }
-
         public static TypeSymbolWithAnnotations GetNullableUnderlyingTypeWithAnnotations(this TypeSymbol type)
         {
             Debug.Assert((object)type != null);
