@@ -641,19 +641,17 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics
             Assert.Equal(null, type.IsNullable);
         }
 
-        // PROTOTYPE(NullableReferenceTypes): `var s0 = b ? string.Empty : string.Empty;`
-        // should declare non-nullable string.
-        [Fact(Skip = "TODO")]
+        [Fact]
         public void LocalVar_ConditionalOperator()
         {
             var source =
 @"class C
 {
-    static void F(bool b)
+    static void F(bool b, string s)
     {
-        var s0 = b ? string.Empty : string.Empty;
-        var s1 = b ? string.Empty : null;
-        var s2 = b ? null : string.Empty;
+        var s0 = b ? s : s;
+        var s1 = b ? s : null;
+        var s2 = b ? null : s;
     }
 }";
 
@@ -668,15 +666,15 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics
 
             var symbol = (LocalSymbol)model.GetDeclaredSymbol(declarators[0]);
             Assert.Equal("System.String", symbol.Type.ToTestDisplayString());
-            Assert.Equal(false, symbol.Type.IsNullable);
+            Assert.Equal(null, symbol.Type.IsNullable);  // PROTOTYPE(NullableReferenceTypes): Inferred nullability: false
 
             symbol = (LocalSymbol)model.GetDeclaredSymbol(declarators[1]);
             Assert.Equal("System.String", symbol.Type.ToTestDisplayString());
-            Assert.Equal(true, symbol.Type.IsNullable);
+            Assert.Equal(null, symbol.Type.IsNullable); // PROTOTYPE(NullableReferenceTypes): Inferred nullability: true
 
             symbol = (LocalSymbol)model.GetDeclaredSymbol(declarators[2]);
             Assert.Equal("System.String", symbol.Type.ToTestDisplayString());
-            Assert.Equal(true, symbol.Type.IsNullable);
+            Assert.Equal(null, symbol.Type.IsNullable); // PROTOTYPE(NullableReferenceTypes): Inferred nullability: true
         }
 
         [Fact]
@@ -709,9 +707,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "t[0]").WithLocation(8, 9));
         }
 
-        // PROTOTYPE(NullableReferenceTypes): Ignore untyped
-        // expressions in BestTypeInferrer.GetBestType.
-        [Fact(Skip = "TODO")]
+        [Fact]
         public void LocalVar_Array_02()
         {
             var source =
@@ -1686,8 +1682,7 @@ static class E
             comp.VerifyDiagnostics();
         }
 
-        // PROTOTYPE(NullableReferenceTypes): Deconstruction declaration ignores nullability.
-        [Fact(Skip = "TODO")]
+        [Fact]
         public void DeconstructionTypeInference_01()
         {
             var source =
@@ -1703,17 +1698,17 @@ static class E
     }
 }";
             var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
+            // PROTOTYPE(NullableReferenceTypes): Deconstruction should infer `string?` for `var x`.
             comp.VerifyDiagnostics(
-                // (6,9): warning CS8602: Possible dereference of a null reference.
-                //         x.ToString();
-                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "x").WithLocation(6, 9),
+                // (8,13): warning CS8600: Converting null literal or possible null value to non-nullable type.
+                //         x = null;
+                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "null").WithLocation(8, 13),
                 // (9,13): warning CS8600: Converting null literal or possible null value to non-nullable type.
                 //         y = null;
                 Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "null").WithLocation(9, 13));
         }
 
-        // PROTOTYPE(NullableReferenceTypes): Deconstruction declaration ignores nullability.
-        [Fact(Skip = "TODO")]
+        [Fact]
         public void DeconstructionTypeInference_02()
         {
             var source =
@@ -1730,17 +1725,17 @@ static class E
     }
 }";
             var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
+            // PROTOTYPE(NullableReferenceTypes): Deconstruction should infer `string?` for `var x`.
             comp.VerifyDiagnostics(
-                // (7,9): warning CS8602: Possible dereference of a null reference.
-                //         x.ToString();
-                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "x").WithLocation(7, 9),
+                // (9,13): warning CS8600: Converting null literal or possible null value to non-nullable type.
+                //         x = null;
+                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "null").WithLocation(9, 13),
                 // (10,13): warning CS8600: Converting null literal or possible null value to non-nullable type.
                 //         y = null;
                 Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "null").WithLocation(10, 13));
         }
 
-        // PROTOTYPE(NullableReferenceTypes): Deconstruction declaration ignores nullability.
-        [Fact(Skip = "TODO")]
+        [Fact]
         public void DeconstructionTypeInference_03()
         {
             var source =
@@ -1761,16 +1756,16 @@ static class E
     }
 }";
             var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
+            // PROTOTYPE(NullableReferenceTypes): Deconstruction should infer `string?` for `var x`.
             comp.VerifyDiagnostics(
-                // (11,9): warning CS8602: Possible dereference of a null reference.
-                //         x.ToString();
-                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "x").WithLocation(11, 9),
+                // (13,13): warning CS8600: Converting null literal or possible null value to non-nullable type.
+                //         x = null;
+                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "null").WithLocation(13, 13),
                 // (14,13): warning CS8600: Converting null literal or possible null value to non-nullable type.
                 //         y = null;
                 Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "null").WithLocation(14, 13));
         }
 
-        // PROTOTYPE(NullableReferenceTypes): Deconstruction ignores nullability.
         [Fact]
         public void DeconstructionTypeInference_04()
         {
@@ -1799,8 +1794,7 @@ static class E
                 Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(11, 15));
         }
 
-        // PROTOTYPE(NullableReferenceTypes): Deconstruction declaration ignores nullability.
-        [Fact(Skip = "TODO")]
+        [Fact]
         public void DeconstructionTypeInference_05()
         {
             var source =
@@ -1819,10 +1813,11 @@ class C
     }
 }";
             var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
-            comp.VerifyDiagnostics(
-                // (11,13): warning CS8602: Possible dereference of a null reference.
-                //             y.ToString();
-                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "y").WithLocation(11, 13));
+            // PROTOTYPE(NullableReferenceTypes): Deconstruction should infer `string?` for `var y`.
+            comp.VerifyDiagnostics();
+                //// (11,13): warning CS8602: Possible dereference of a null reference.
+                ////             y.ToString();
+                //Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "y").WithLocation(11, 13));
         }
 
         [Fact]

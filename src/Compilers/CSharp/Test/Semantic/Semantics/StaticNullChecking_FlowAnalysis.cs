@@ -2744,11 +2744,12 @@ class C
         // PROTOTYPE(NullableReferenceTypes): Update this method to use types from unannotated assemblies
         // rather than `x!`, particularly because `x!` should result in IsNullable=false rather than IsNullable=null.
         // PROTOTYPE(NullableReferenceTypes): Should report the same warnings (or no warnings) for { x, x! } and { x!, x }.
-        [Fact(Skip = "TODO")]
+        [Fact]
         public void IdentityConversion_ArrayInitializer_IsNullableNull()
         {
             var source =
 @"#pragma warning disable 0649
+#pragma warning disable 8618
 class A<T>
 {
     internal T F;
@@ -2771,13 +2772,19 @@ class B
     }
 }";
             var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
-            comp.VerifyDiagnostics();
+            comp.VerifyDiagnostics(
+                // (11,9): warning CS8602: Possible dereference of a null reference.
+                //         (new[] { x, x! })[0].ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "(new[] { x, x! })[0]").WithLocation(11, 9),
+                // (18,9): warning CS8602: Possible dereference of a null reference.
+                //         (new[] { z, z! })[0].F.ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "(new[] { z, z! })[0].F").WithLocation(18, 9));
         }
 
         // PROTOTYPE(NullableReferenceTypes): Update this method to use types from unannotated assemblies
         // rather than `x!`, particularly because `x!` should result in IsNullable=false rather than IsNullable=null.
         // PROTOTYPE(NullableReferenceTypes): Should report the same warnings (or no warnings) for (x, x!) and (x!, x).
-        [Fact(Skip = "TODO")]
+        [Fact]
         public void IdentityConversion_TypeInference_IsNullableNull()
         {
             var source =
@@ -2810,11 +2817,16 @@ class B
     }
 }";
             var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
-            comp.VerifyDiagnostics();
+            comp.VerifyDiagnostics(
+                // (12,9): warning CS8602: Possible dereference of a null reference.
+                //         F1(x, x!).ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "F1(x, x!)").WithLocation(12, 9),
+                // (23,9): warning CS8602: Possible dereference of a null reference.
+                //         F2(z, z!).ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "F2(z, z!)").WithLocation(23, 9));
         }
 
-        // PROTOTYPE(NullableReferenceTypes): Conversions: Other
-        [Fact(Skip = "TODO")]
+        [Fact]
         public void IdentityConversion_ArrayInitializer_ExplicitType()
         {
             var source =
@@ -3044,8 +3056,7 @@ class C
                 Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "true ? x : y").WithArguments("IOut<object?>", "IOut<object>").WithLocation(33, 13));
         }
 
-        // PROTOTYPE(NullableReferenceTypes): Conversions: Other
-        [Fact(Skip = "TODO")]
+        [Fact]
         public void IdentityConversion_CompoundAssignment()
         {
             var source =
@@ -3074,23 +3085,23 @@ class C
     }
 }";
             var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
-            comp.VerifyDiagnostics(
-                // (12,9): warning CS8619: Nullability of reference types in value of type 'I<object?>' doesn't match target type 'I<object>'.
-                //         y += c;
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "y").WithArguments("I<object?>", "I<object>").WithLocation(12, 9),
-                // (12,9): warning CS8619: Nullability of reference types in value of type 'I<object>' doesn't match target type 'I<object?>'.
-                //         y += c;
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "y += c").WithArguments("I<object>", "I<object?>").WithLocation(12, 9),
-                // (17,9): warning CS8619: Nullability of reference types in value of type 'IIn<object>' doesn't match target type 'IIn<object?>'.
-                //         y += c;
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "y += c").WithArguments("IIn<object>", "IIn<object?>").WithLocation(17, 9),
-                // (22,9): warning CS8619: Nullability of reference types in value of type 'IOut<object?>' doesn't match target type 'IOut<object>'.
-                //         y += c;
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "y").WithArguments("IOut<object?>", "IOut<object>").WithLocation(22, 9));
+            // PROTOTYPE(NullableReferenceTypes): Report WRN_NullabilityMismatchInAssignment for compound assignment.
+            comp.VerifyDiagnostics();
+                //// (12,9): warning CS8619: Nullability of reference types in value of type 'I<object?>' doesn't match target type 'I<object>'.
+                ////         y += c;
+                //Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "y").WithArguments("I<object?>", "I<object>").WithLocation(12, 9),
+                //// (12,9): warning CS8619: Nullability of reference types in value of type 'I<object>' doesn't match target type 'I<object?>'.
+                ////         y += c;
+                //Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "y += c").WithArguments("I<object>", "I<object?>").WithLocation(12, 9),
+                //// (17,9): warning CS8619: Nullability of reference types in value of type 'IIn<object>' doesn't match target type 'IIn<object?>'.
+                ////         y += c;
+                //Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "y += c").WithArguments("IIn<object>", "IIn<object?>").WithLocation(17, 9),
+                //// (22,9): warning CS8619: Nullability of reference types in value of type 'IOut<object?>' doesn't match target type 'IOut<object>'.
+                ////         y += c;
+                //Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "y").WithArguments("IOut<object?>", "IOut<object>").WithLocation(22, 9));
         }
 
-        // PROTOTYPE(NullableReferenceTypes): Assign each of the deconstructed values.
-        [Fact(Skip = "TODO")]
+        [Fact]
         public void IdentityConversion_DeconstructionAssignment()
         {
             var source =
@@ -3115,16 +3126,15 @@ class C<T>
         (x, y) = c;
     }
 }";
-            var comp = CreateCompilation(
-                source,
-                parseOptions: TestOptions.Regular8);
-            comp.VerifyDiagnostics(
-                // (13,18): warning CS8619: Nullability of reference types in value of type 'C<object>' doesn't match target type '(IIn<object?> x, IOut<object?> y)'.
-                //         (x, y) = c;
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "c").WithArguments("C<object>", "(IIn<object?> x, IOut<object?> y)").WithLocation(13, 18),
-                // (19,18): warning CS8619: Nullability of reference types in value of type 'C<object?>' doesn't match target type '(IIn<object> x, IOut<object> y)'.
-                //         (x, y) = c;
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "c").WithArguments("C<object?>", "(IIn<object> x, IOut<object> y)").WithLocation(19, 18));
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
+            // PROTOTYPE(NullableReferenceTypes): Assign each of the deconstructed values.
+            comp.VerifyDiagnostics();
+                //// (13,18): warning CS8619: Nullability of reference types in value of type 'C<object>' doesn't match target type '(IIn<object?> x, IOut<object?> y)'.
+                ////         (x, y) = c;
+                //Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "c").WithArguments("C<object>", "(IIn<object?> x, IOut<object?> y)").WithLocation(13, 18),
+                //// (19,18): warning CS8619: Nullability of reference types in value of type 'C<object?>' doesn't match target type '(IIn<object> x, IOut<object> y)'.
+                ////         (x, y) = c;
+                //Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "c").WithArguments("C<object?>", "(IIn<object> x, IOut<object> y)").WithLocation(19, 18));
         }
 
         [Fact]

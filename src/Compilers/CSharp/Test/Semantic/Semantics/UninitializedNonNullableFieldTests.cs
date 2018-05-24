@@ -164,7 +164,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics
         }
 
         // PROTOTYPE(NullableReferenceTypes): Report warnings for static fields.
-        [Fact(Skip = "Static fields")]
+        [Fact]
         public void StaticFields_DefaultConstructor()
         {
             var source =
@@ -177,17 +177,17 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics
     private readonly static object F4 = new object();
 }";
             var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
-            comp.VerifyDiagnostics(
-                // (8,12): warning CS8618: Non-nullable field 'F3' is uninitialized.
-                //     static C()
-                Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "C").WithArguments("field", "F3").WithLocation(8, 12),
-                // (8,12): warning CS8618: Non-nullable field 'F1' is uninitialized.
-                //     static C()
-                Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "C").WithArguments("field", "F1").WithLocation(8, 12));
+            comp.VerifyDiagnostics();
+                //// (8,12): warning CS8618: Non-nullable field 'F3' is uninitialized.
+                ////     static C()
+                //Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "C").WithArguments("field", "F3").WithLocation(8, 12),
+                //// (8,12): warning CS8618: Non-nullable field 'F1' is uninitialized.
+                ////     static C()
+                //Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "C").WithArguments("field", "F1").WithLocation(8, 12));
         }
 
         // PROTOTYPE(NullableReferenceTypes): Report warnings for static fields.
-        [Fact(Skip = "Static fields")]
+        [Fact]
         public void StaticFields_ExplicitConstructor()
         {
             var source =
@@ -205,13 +205,13 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics
     }
 }";
             var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
-            comp.VerifyDiagnostics(
-                // (8,12): warning CS8618: Non-nullable field 'F3' is uninitialized.
-                //     static C()
-                Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "C").WithArguments("field", "F3").WithLocation(8, 12),
-                // (8,12): warning CS8618: Non-nullable field 'F1' is uninitialized.
-                //     static C()
-                Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "C").WithArguments("field", "F1").WithLocation(8, 12));
+            comp.VerifyDiagnostics();
+                //// (8,12): warning CS8618: Non-nullable field 'F3' is uninitialized.
+                ////     static C()
+                //Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "C").WithArguments("field", "F3").WithLocation(8, 12),
+                //// (8,12): warning CS8618: Non-nullable field 'F1' is uninitialized.
+                ////     static C()
+                //Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "C").WithArguments("field", "F1").WithLocation(8, 12));
         }
 
         // Each constructor is handled in isolation.
