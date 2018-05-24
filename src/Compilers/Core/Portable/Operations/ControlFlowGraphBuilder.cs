@@ -2195,10 +2195,8 @@ oneMoreTime:
                 if (ITypeSymbolHelpers.IsNullableType(operation.Type) && !ITypeSymbolHelpers.IsNullableType(currentConditionalAccess.WhenNotNull.Type))
                 {
                     IOperation access = Visit(currentConditionalAccess.WhenNotNull);
-                    IOperation nullableCapture = ((INamedTypeSymbol)operation.Type).TypeArguments[0].Equals(access.Type) ?
-                        MakeNullable(access, operation.Type) :
-                        MakeInvalidOperation(operation.Type, access);
-                    AddStatement(new FlowCapture(resultCaptureId, currentConditionalAccess.WhenNotNull.Syntax, nullableCapture));
+                    AddStatement(new FlowCapture(resultCaptureId, currentConditionalAccess.WhenNotNull.Syntax,
+                        MakeNullable(access, operation.Type)));
                 }
                 else
                 {
@@ -2231,41 +2229,6 @@ oneMoreTime:
 
                 return new FlowCaptureReference(resultCaptureId, operation.Syntax, operation.Type, operation.ConstantValue);
             }
-        }
-
-        private static IOperation TryMakeNullableValue(INamedTypeSymbol type, IOperation underlyingValue, Compilation compilation)
-        {
-            Debug.Assert(ITypeSymbolHelpers.IsNullableType(type));
-
-            var method = (IMethodSymbol)compilation.CommonGetSpecialTypeMember(SpecialMember.System_Nullable_T__ctor);
-
-            if (method != null)
-            {
-                foreach (ISymbol candidate in type.InstanceConstructors)
-                {
-                    if (candidate.OriginalDefinition.Equals(method))
-                    {
-                        method = (IMethodSymbol)candidate;
-                        return new ObjectCreationExpression(method, initializer: null,
-                                                            ImmutableArray.Create<IArgumentOperation>(
-                                                                        new ArgumentOperation(underlyingValue,
-                                                                                              ArgumentKind.Explicit,
-                                                                                              method.Parameters[0],
-                                                                                              inConversionOpt: null,
-                                                                                              outConversionOpt: null,
-                                                                                              semanticModel: null,
-                                                                                              underlyingValue.Syntax,
-                                                                                              isImplicit: true)),
-                                                            semanticModel: null,
-                                                            underlyingValue.Syntax,
-                                                            type,
-                                                            constantValue: default,
-                                                            isImplicit: true);
-                    }
-                }
-            }
-
-            return null;
         }
 
         public override IOperation VisitConditionalAccessInstance(IConditionalAccessInstanceOperation operation, int? captureIdForResult)

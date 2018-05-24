@@ -7625,7 +7625,6 @@ End Class
 ]]>.Value
 
             Dim compilation = CreateCompilationWithMscorlib45(source, options:=TestOptions.ReleaseDebugDll, parseOptions:=TestOptions.RegularWithFlowAnalysisFeature)
-            compilation.MakeMemberMissing(WellKnownMember.Microsoft_VisualBasic_CompilerServices_ObjectFlowControl_ForLoopControl__ForLoopInitObj)
 
             Dim expectedDiagnostics = String.Empty
 
@@ -7688,81 +7687,6 @@ Block[B3] - Exit
         <CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)>
         <Fact()>
         Public Sub ForToFlow_39()
-            Dim source = <![CDATA[
-Imports System
-Public Class C
-    Sub M(i As Object, init As Object, limit As Object, result As Object) 'BIND:"Sub M"
-        For i = init To limit
-            result = i
-        Next
-    End Sub
-End Class
-]]>.Value
-
-            Dim compilation = CreateCompilationWithMscorlib45(source, options:=TestOptions.ReleaseDebugDll, parseOptions:=TestOptions.RegularWithFlowAnalysisFeature)
-            compilation.MakeMemberMissing(WellKnownMember.Microsoft_VisualBasic_CompilerServices_ObjectFlowControl_ForLoopControl__ForNextCheckObj)
-
-            Dim expectedDiagnostics = String.Empty
-
-            Dim expectedFlowGraph = <![CDATA[
-Block[B0] - Entry
-    Statements (0)
-    Next (Regular) Block[B1]
-        Entering: {R1}
-
-.locals {R1}
-{
-    Locals: [<anonymous local> As System.Object]
-    Block[B1] - Block
-        Predecessors: [B0]
-        Statements (0)
-        Jump if False (Regular) to Block[B3]
-            IInvalidOperation (OperationKind.Invalid, Type: System.Boolean, IsImplicit) (Syntax: 'limit')
-              Children(5):
-                  IParameterReferenceOperation: i (OperationKind.ParameterReference, Type: System.Object) (Syntax: 'i')
-                  IParameterReferenceOperation: init (OperationKind.ParameterReference, Type: System.Object) (Syntax: 'init')
-                  IParameterReferenceOperation: limit (OperationKind.ParameterReference, Type: System.Object) (Syntax: 'limit')
-                  IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Object, IsImplicit) (Syntax: 'For i = ini ... Next')
-                    Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                      (WideningValue)
-                    Operand: 
-                      ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1, IsImplicit) (Syntax: 'For i = ini ... Next')
-                  ILocalReferenceOperation:  (IsDeclaration: True) (OperationKind.LocalReference, Type: System.Object, IsImplicit) (Syntax: 'i')
-            Leaving: {R1}
-
-        Next (Regular) Block[B2]
-    Block[B2] - Block
-        Predecessors: [B1] [B2]
-        Statements (1)
-            IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'result = i')
-              Expression: 
-                ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Object, IsImplicit) (Syntax: 'result = i')
-                  Left: 
-                    IParameterReferenceOperation: result (OperationKind.ParameterReference, Type: System.Object) (Syntax: 'result')
-                  Right: 
-                    IParameterReferenceOperation: i (OperationKind.ParameterReference, Type: System.Object) (Syntax: 'i')
-
-        Jump if False (Regular) to Block[B3]
-            IInvalidOperation (OperationKind.Invalid, Type: System.Boolean, IsImplicit) (Syntax: 'limit')
-              Children(2):
-                  IParameterReferenceOperation: i (OperationKind.ParameterReference, Type: System.Object, IsImplicit) (Syntax: 'i')
-                  ILocalReferenceOperation:  (OperationKind.LocalReference, Type: System.Object, IsImplicit) (Syntax: 'i')
-            Leaving: {R1}
-
-        Next (Regular) Block[B2]
-}
-
-Block[B3] - Exit
-    Predecessors: [B1] [B2]
-    Statements (0)
-]]>.Value
-
-            VerifyFlowGraphAndDiagnosticsForTest(Of MethodBlockSyntax)(compilation, expectedFlowGraph, expectedDiagnostics)
-        End Sub
-
-        <CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)>
-        <Fact()>
-        Public Sub ForToFlow_40()
             Dim source = <![CDATA[
 Imports System
 Public Class C
