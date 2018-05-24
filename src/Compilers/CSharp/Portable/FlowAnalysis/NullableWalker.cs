@@ -2005,8 +2005,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // PROTOTYPE(NullableReferenceTypes): Should `RefKind.In` be treated similarly to `RefKind.None`?
                     if (refKind == RefKind.None)
                     {
+                        var before = argument;
                         (argument, conversion) = RemoveConversion(argument, includeExplicitConversions: false);
-                        if (argument != arguments[i])
+                        if (argument != before)
                         {
                             includedConversion = true;
                         }
@@ -2310,7 +2311,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             switch (symbol.Kind)
             {
                 case SymbolKind.Field:
-                    return tupleType.GetTupleMemberSymbolForUnderlyingMember(((TupleFieldSymbol)symbol).UnderlyingField);
+                    {
+                        var index = ((FieldSymbol)symbol).TupleElementIndex;
+                        if (index >= 0)
+                        {
+                            return tupleType.TupleElements[index];
+                        }
+                        return tupleType.GetTupleMemberSymbolForUnderlyingMember(((TupleFieldSymbol)symbol).UnderlyingField);
+                    }
                 case SymbolKind.Property:
                     return tupleType.GetTupleMemberSymbolForUnderlyingMember(((TuplePropertySymbol)symbol).UnderlyingProperty);
                 case SymbolKind.Event:
@@ -2561,10 +2569,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                     else
                     {
-                        // Inherit state from the operand
-                        // PROTOTYPE(NullableReferenceTypes): Should an explicit cast cast away
-                        // outermost nullability? For instance, is `s` a `string!` or `string?`?
-                        // object? obj = ...; var s = (string)obj;
+                        // Inherit state from the operand.
                         if (checkConversion)
                         {
                             // PROTOTYPE(NullableReferenceTypes): Assert conversion is similar to original.

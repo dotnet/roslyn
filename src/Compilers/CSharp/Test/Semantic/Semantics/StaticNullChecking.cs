@@ -20945,10 +20945,12 @@ namespace System
         {
             Item1 = item1;
             Item2 = item2;
+            F1 = item1;
             E2 = null;
         }
         public T1 Item1;
         public T2 Item2;
+        internal T1 F1;
         internal T1 P1 => Item1;
         internal event D<T2>? E2;
     }
@@ -20958,41 +20960,46 @@ class C
     static void F(object? x)
     {
         var y = (x, x);
+        y.F1.ToString();
         y.P1.ToString();
         y.E2?.Invoke().ToString();
         if (x == null) return;
         var z = (x, x);
+        z.F1.ToString();
         z.P1.ToString();
         z.E2?.Invoke().ToString();
     }
 }";
-            // PROTOTYPE(NullableReferenceTypes): Should not report warnings for `z.P1` or `z.E2?.Invoke()`.
+            // PROTOTYPE(NullableReferenceTypes): Should not report warnings for `z.E2?.Invoke()`.
             var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
-                // (24,11): error CS0070: The event '(object?, object?).E2' can only appear on the left hand side of += or -= (except when used from within the type '(object?, object?)')
+                // (27,11): error CS0070: The event '(object?, object?).E2' can only appear on the left hand side of += or -= (except when used from within the type '(object?, object?)')
                 //         y.E2?.Invoke().ToString();
-                Diagnostic(ErrorCode.ERR_BadEventUsage, "E2").WithArguments("(object?, object?).E2", "(object?, object?)").WithLocation(24, 11),
-                // (28,11): error CS0070: The event '(object?, object?).E2' can only appear on the left hand side of += or -= (except when used from within the type '(object?, object?)')
+                Diagnostic(ErrorCode.ERR_BadEventUsage, "E2").WithArguments("(object?, object?).E2", "(object?, object?)").WithLocation(27, 11),
+                // (32,11): error CS0070: The event '(object?, object?).E2' can only appear on the left hand side of += or -= (except when used from within the type '(object?, object?)')
                 //         z.E2?.Invoke().ToString();
-                Diagnostic(ErrorCode.ERR_BadEventUsage, "E2").WithArguments("(object?, object?).E2", "(object?, object?)").WithLocation(28, 11),
-                // (23,9): warning CS8602: Possible dereference of a null reference.
+                Diagnostic(ErrorCode.ERR_BadEventUsage, "E2").WithArguments("(object?, object?).E2", "(object?, object?)").WithLocation(32, 11),
+                // (25,9): warning CS8602: Possible dereference of a null reference.
+                //         y.F1.ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "y.F1").WithLocation(25, 9),
+                // (26,9): warning CS8602: Possible dereference of a null reference.
                 //         y.P1.ToString();
-                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "y.P1").WithLocation(23, 9),
-                // (24,9): hidden CS8607: Expression is probably never null.
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "y.P1").WithLocation(26, 9),
+                // (27,9): hidden CS8607: Expression is probably never null.
                 //         y.E2?.Invoke().ToString();
-                Diagnostic(ErrorCode.HDN_ExpressionIsProbablyNeverNull, "y.E2").WithLocation(24, 9),
-                // (24,14): warning CS8602: Possible dereference of a null reference.
+                Diagnostic(ErrorCode.HDN_ExpressionIsProbablyNeverNull, "y.E2").WithLocation(27, 9),
+                // (27,14): warning CS8602: Possible dereference of a null reference.
                 //         y.E2?.Invoke().ToString();
-                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, ".Invoke()").WithLocation(24, 14),
-                // (28,9): hidden CS8607: Expression is probably never null.
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, ".Invoke()").WithLocation(27, 14),
+                // (32,9): hidden CS8607: Expression is probably never null.
                 //         z.E2?.Invoke().ToString();
-                Diagnostic(ErrorCode.HDN_ExpressionIsProbablyNeverNull, "z.E2").WithLocation(28, 9),
-                // (28,14): warning CS8602: Possible dereference of a null reference.
+                Diagnostic(ErrorCode.HDN_ExpressionIsProbablyNeverNull, "z.E2").WithLocation(32, 9),
+                // (32,14): warning CS8602: Possible dereference of a null reference.
                 //         z.E2?.Invoke().ToString();
-                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, ".Invoke()").WithLocation(28, 14),
-                // (15,31): warning CS0414: The field 'ValueTuple<T1, T2>.E2' is assigned but its value is never used
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, ".Invoke()").WithLocation(32, 14),
+                // (17,31): warning CS0414: The field 'ValueTuple<T1, T2>.E2' is assigned but its value is never used
                 //         internal event D<T2>? E2;
-                Diagnostic(ErrorCode.WRN_UnreferencedFieldAssg, "E2").WithArguments("System.ValueTuple<T1, T2>.E2").WithLocation(15, 31));
+                Diagnostic(ErrorCode.WRN_UnreferencedFieldAssg, "E2").WithArguments("System.ValueTuple<T1, T2>.E2").WithLocation(17, 31));
         }
 
         [Fact]
@@ -21542,16 +21549,16 @@ class C<T> where T : class
             var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
                 // (17,14): warning CS8619: Nullability of reference types in value of type 'B<T?>' doesn't match target type 'B<T>'.
-                //         y = ((B<T>)x1)/*T:B<T?>*/;
+                //         y = ((B<T>)x1)/*T:B<T!>*/;
                 Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "(B<T>)x1").WithArguments("B<T?>", "B<T>").WithLocation(17, 14),
                 // (19,14): warning CS8619: Nullability of reference types in value of type 'B<T?>' doesn't match target type 'B<T>'.
-                //         y = ((B<T>)y1)/*T:B<T?>*/;
+                //         y = ((B<T>)y1)/*T:B<T!>*/;
                 Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "(B<T>)y1").WithArguments("B<T?>", "B<T>").WithLocation(19, 14),
                 // (26,14): warning CS8619: Nullability of reference types in value of type 'B<T?>' doesn't match target type 'B<T>'.
                 //         y = ((B<T>)x2)/*T:B<T!>*/;
                 Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "(B<T>)x2").WithArguments("B<T?>", "B<T>").WithLocation(26, 14),
                 // (27,14): warning CS8619: Nullability of reference types in value of type 'B<T>' doesn't match target type 'B<T?>'.
-                //         x = ((B<T?>)y2)/*T:B<T!>*/;
+                //         x = ((B<T?>)y2)/*T:B<T?>*/;
                 Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "(B<T?>)y2").WithArguments("B<T>", "B<T?>").WithLocation(27, 14));
             comp.VerifyTypes();
         }
