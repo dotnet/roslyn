@@ -1006,13 +1006,12 @@ IObjectOrCollectionInitializerOperation (OperationKind.ObjectOrCollectionInitial
         End Sub
 
         <CompilerTrait(CompilerFeature.IOperation)>
-        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/27034")>
+        <Fact()>
         Public Sub ObjectCreationCollectionInitializerLateBoundAddMethod()
             Dim source = <![CDATA[
 Imports System
 Imports System.Collections
 Imports System.Collections.Generic
-Imports System.Runtime.CompilerServices
 
 Module Mod1
     Class C
@@ -1041,9 +1040,87 @@ End Module]]>.Value
             Dim expectedDiagnostics = String.Empty
 
             Dim expectedOperationTree = <![CDATA[
+IObjectCreationOperation (Constructor: Sub Mod1.C..ctor()) (OperationKind.ObjectCreation, Type: Mod1.C) (Syntax: 'New C From {a, b}')
+  Arguments(0)
+  Initializer: 
+    IObjectOrCollectionInitializerOperation (OperationKind.ObjectOrCollectionInitializer, Type: Mod1.C) (Syntax: 'From {a, b}')
+      Initializers(2):
+          IDynamicInvocationOperation (OperationKind.DynamicInvocation, Type: System.Object, IsImplicit) (Syntax: 'a')
+            Expression: 
+              IDynamicMemberReferenceOperation (Member Name: "Add", Containing Type: null) (OperationKind.DynamicMemberReference, Type: System.Object, IsImplicit) (Syntax: 'a')
+                Type Arguments(0)
+                Instance Receiver: 
+                  IInstanceReferenceOperation (ReferenceKind: ImplicitReceiver) (OperationKind.InstanceReference, Type: Mod1.C, IsImplicit) (Syntax: 'New C From {a, b}')
+            Arguments(1):
+                IParameterReferenceOperation: a (OperationKind.ParameterReference, Type: System.Object) (Syntax: 'a')
+            ArgumentNames(0)
+            ArgumentRefKinds: null
+          IDynamicInvocationOperation (OperationKind.DynamicInvocation, Type: System.Object, IsImplicit) (Syntax: 'b')
+            Expression: 
+              IDynamicMemberReferenceOperation (Member Name: "Add", Containing Type: null) (OperationKind.DynamicMemberReference, Type: System.Object, IsImplicit) (Syntax: 'b')
+                Type Arguments(0)
+                Instance Receiver: 
+                  IInstanceReferenceOperation (ReferenceKind: ImplicitReceiver) (OperationKind.InstanceReference, Type: Mod1.C, IsImplicit) (Syntax: 'New C From {a, b}')
+            Arguments(1):
+                IParameterReferenceOperation: b (OperationKind.ParameterReference, Type: System.Object) (Syntax: 'b')
+            ArgumentNames(0)
+            ArgumentRefKinds: null
 ]]>.Value
 
             VerifyOperationTreeAndDiagnosticsForTest(Of ObjectCreationExpressionSyntax)(source, expectedOperationTree, expectedDiagnostics)
+        End Sub
+
+        <CompilerTrait(CompilerFeature.IOperation)>
+        <Fact()>
+        Public Sub ObjectCreationWithInitializerAddCallInInitializer()
+            ' Ensures that the Add DynamicMemberReference is still treated as explicit
+            Dim source = <![CDATA[
+Imports System
+Imports System.Collections
+Imports System.Collections.Generic
+
+Module Mod1
+    Class C
+        Implements IEnumerable(Of Integer)
+
+        Sub M(a As Object, b As Object)
+            Dim c = New C With { .P = .Add(a) }'BIND:".Add(a)"
+        End Sub
+
+        Public Function GetEnumerator() As IEnumerator(Of Integer) Implements IEnumerable(Of Integer).GetEnumerator
+            Throw New NotImplementedException()
+        End Function
+
+        Private Function IEnumerable_GetEnumerator() As IEnumerator Implements IEnumerable.GetEnumerator
+            Throw New NotImplementedException()
+        End Function
+
+        Public Property P As Object
+
+        Public Sub Add(i As Integer)
+        End Sub
+
+        Public Sub Add(l As Long)
+        End Sub
+    End Class
+End Module]]>.Value
+
+            Dim expectedDiagnostics = String.Empty
+
+            Dim expectedOperationTree = <![CDATA[
+IDynamicInvocationOperation (OperationKind.DynamicInvocation, Type: System.Object) (Syntax: '.Add(a)')
+  Expression: 
+    IDynamicMemberReferenceOperation (Member Name: "Add", Containing Type: null) (OperationKind.DynamicMemberReference, Type: System.Object) (Syntax: '.Add')
+      Type Arguments(0)
+      Instance Receiver: 
+        IInstanceReferenceOperation (ReferenceKind: ImplicitReceiver) (OperationKind.InstanceReference, Type: Mod1.C, IsImplicit) (Syntax: 'New C With  ... = .Add(a) }')
+  Arguments(1):
+      IParameterReferenceOperation: a (OperationKind.ParameterReference, Type: System.Object) (Syntax: 'a')
+  ArgumentNames(0)
+  ArgumentRefKinds: null
+]]>.Value
+
+            VerifyOperationTreeAndDiagnosticsForTest(Of InvocationExpressionSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
 
         <CompilerTrait(CompilerFeature.IOperation)>
