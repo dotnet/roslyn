@@ -2557,8 +2557,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                     break;
 
                 case ConversionKind.NoConversion:
-                case ConversionKind.Identity:
                 case ConversionKind.DefaultOrNullLiteral:
+                    checkConversion = false;
+                    canConvert = conversion.Exists;
+                    goto case ConversionKind.Identity;
+
+                case ConversionKind.Identity:
                 case ConversionKind.ImplicitReference:
                 case ConversionKind.ExplicitReference:
                     if (operandType is null && operandOpt.IsLiteralNullOrDefault())
