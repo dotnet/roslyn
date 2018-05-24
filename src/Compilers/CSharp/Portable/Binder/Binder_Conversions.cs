@@ -100,7 +100,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (conversion.IsStackAlloc)
             {
-                return CreateStackAllocConversion(syntax, source, conversion, isCast, destination, diagnostics);
+                return CreateStackAllocConversion(syntax, source, conversion, isCast, conversionGroupOpt, destination, diagnostics);
             }
 
             if (conversion.IsTupleLiteralConversion ||
@@ -228,8 +228,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     conversion,
                     @checked: false, // There are no checked user-defined conversions, but the conversions on either side might be checked.
                     explicitCastInCode: isCast,
-                    // PROTOTYPE(NullableReferenceTypes): Should use `isExplicitlyNullable` from
-                    // the caller at the point in the conversion chain where nullable is introduced.
                     conversionGroup,
                     constantValueOpt: ConstantValue.NotAvailable,
                     type: conversionReturnType)
@@ -267,8 +265,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     conversion,
                     @checked: false,
                     explicitCastInCode: isCast,
-                    // PROTOTYPE(NullableReferenceTypes): Should use `isExplicitlyNullable` from
-                    // the caller at the point in the conversion chain where nullable is introduced.
                     conversionGroup,
                     constantValueOpt: ConstantValue.NotAvailable,
                     type: conversionToType)
@@ -339,7 +335,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return new BoundConversion(syntax, group, conversion, @checked: false, explicitCastInCode: isCast, conversionGroup, constantValueOpt: ConstantValue.NotAvailable, type: destination, hasErrors: hasErrors) { WasCompilerGenerated = source.WasCompilerGenerated };
         }
 
-        private BoundExpression CreateStackAllocConversion(SyntaxNode syntax, BoundExpression source, Conversion conversion, bool isCast, TypeSymbol destination, DiagnosticBag diagnostics)
+        private BoundExpression CreateStackAllocConversion(SyntaxNode syntax, BoundExpression source, Conversion conversion, bool isCast, ConversionGroup conversionGroup, TypeSymbol destination, DiagnosticBag diagnostics)
         {
             Debug.Assert(conversion.IsStackAlloc);
 
@@ -364,7 +360,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var convertedNode = new BoundConvertedStackAllocExpression(syntax, elementType, boundStackAlloc.Count, boundStackAlloc.InitializerOpt, stackAllocType, boundStackAlloc.HasErrors);
 
             var underlyingConversion = conversion.UnderlyingConversions.Single();
-            return CreateConversion(syntax, convertedNode, underlyingConversion, isCast: isCast, conversionGroupOpt: null, destination, diagnostics);
+            return CreateConversion(syntax, convertedNode, underlyingConversion, isCast: isCast, conversionGroup, destination, diagnostics);
         }
 
         private BoundExpression CreateTupleLiteralConversion(SyntaxNode syntax, BoundTupleLiteral sourceTuple, Conversion conversion, bool isCast, ConversionGroup conversionGroup, TypeSymbol destination, DiagnosticBag diagnostics)

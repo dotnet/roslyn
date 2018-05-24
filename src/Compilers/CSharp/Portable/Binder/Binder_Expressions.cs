@@ -2062,7 +2062,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // Section 6.2.3 of the spec only applies when the non-null version of the types involved have a
             // built in conversion.
             HashSet<DiagnosticInfo> unused = null;
-            var underlyingTargetType = targetType.GetNullableUnderlyingType();
+            TypeSymbolWithAnnotations underlyingTargetType = targetType.GetNullableUnderlyingType();
             var underlyingConversion = Conversions.ClassifyBuiltInConversion(operand.Type, underlyingTargetType.TypeSymbol, ref unused);
             if (!underlyingConversion.Exists)
             {

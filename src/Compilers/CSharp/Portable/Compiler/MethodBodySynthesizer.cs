@@ -134,7 +134,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             foreach (var field in synthesizedFields.FieldSymbols)
             {
-                var targetScriptType = field.Type.TypeSymbol;
+                var targetScriptType = (ImplicitNamedTypeSymbol)field.Type.TypeSymbol;
                 var targetSubmissionIndex = targetScriptType.DeclaringCompilation.GetSubmissionSlotIndex();
                 Debug.Assert(targetSubmissionIndex >= 0);
 

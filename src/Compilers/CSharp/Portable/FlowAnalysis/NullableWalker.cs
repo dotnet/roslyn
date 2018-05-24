@@ -1113,7 +1113,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // Should do the same here.
                 HashSet<DiagnosticInfo> useSiteDiagnostics = null;
                 // If there are error types, use the first error type. (Matches InferBestType(ImmutableArray<BoundExpression>, ...).)
-                var bestType = resultTypes.FirstOrDefault(t => t?.IsErrorType() ==true) ??
+                var bestType = resultTypes.FirstOrDefault(t => t?.IsErrorType() == true) ??
                     BestTypeInferrer.InferBestType(resultTypes, _conversions, useSiteDiagnostics: ref useSiteDiagnostics);
                 // PROTOTYPE(NullableReferenceTypes): Report a special ErrorCode.WRN_NoBestNullabilityArrayElements
                 // when InferBestType fails, and avoid reporting conversion warnings for each element in those cases.
@@ -2338,18 +2338,18 @@ namespace Microsoft.CodeAnalysis.CSharp
                 ReplayReadsAndWrites(localFunc, syntax, writes: false);
             }
 
-            var (operand, conversion) = RemoveConversion(node, includeExplicitConversions: true);
+            (BoundExpression operand, Conversion conversion) = RemoveConversion(node, includeExplicitConversions: true);
             Debug.Assert(operand != null);
 
             Visit(operand);
-            var operandType = _result.Type;
-            var explicitType = node.ConversionGroupOpt?.ExplicitType;
+            TypeSymbolWithAnnotations operandType = _result.Type;
+            TypeSymbolWithAnnotations explicitType = node.ConversionGroupOpt?.ExplicitType;
             bool fromExplicitCast = (object)explicitType != null;
-            var resultType = ApplyConversion(node, operand, conversion, explicitType?.TypeSymbol ?? node.Type, operandType, checkConversion: !fromExplicitCast, fromExplicitCast: fromExplicitCast, out bool _);
+            TypeSymbolWithAnnotations resultType = ApplyConversion(node, operand, conversion, explicitType?.TypeSymbol ?? node.Type, operandType, checkConversion: !fromExplicitCast, fromExplicitCast: fromExplicitCast, out bool _);
 
             if (fromExplicitCast && explicitType.IsNullable == false)
             {
-                var targetType = explicitType.TypeSymbol;
+                TypeSymbol targetType = explicitType.TypeSymbol;
                 bool reportNullable = false;
                 if (targetType.IsReferenceType && IsUnconstrainedTypeParameter(resultType?.TypeSymbol))
                 {
@@ -2720,7 +2720,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             VisitLvalue(left);
             Result leftResult = _result;
 
-            var (right, conversion) = RemoveConversion(node.Right, includeExplicitConversions: false);
+            (BoundExpression right, Conversion conversion) = RemoveConversion(node.Right, includeExplicitConversions: false);
             VisitRvalue(right);
             Result rightResult = _result;
 
@@ -2733,8 +2733,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else
             {
-                var leftType = leftResult.Type;
-                var rightType = ApplyConversion(right, right, conversion, leftType.TypeSymbol, rightResult.Type, checkConversion: true, fromExplicitCast: false, out bool canConvert);
+                TypeSymbolWithAnnotations leftType = leftResult.Type;
+                TypeSymbolWithAnnotations rightType = ApplyConversion(right, right, conversion, leftType.TypeSymbol, rightResult.Type, checkConversion: true, fromExplicitCast: false, out bool canConvert);
                 // Need to report all warnings that apply since the warnings can be suppressed individually.
                 ReportNullReferenceAssignmentIfNecessary(right, leftType, rightType, UseLegacyWarnings(left));
                 if (conversion.Exists && !canConvert)
