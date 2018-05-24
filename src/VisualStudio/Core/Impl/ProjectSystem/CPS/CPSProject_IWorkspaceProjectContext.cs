@@ -196,6 +196,15 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.C
         #endregion
 
         #region Files
+        public void AddSourceFile(string filePath, bool isInCurrentContext, IEnumerable<string> folderNames, SourceCodeKind sourceCodeKind)
+        {
+            ExecuteForegroundAction(() =>
+            {
+                AddFile(filePath, sourceCodeKind, _ => isInCurrentContext, _ => folderNames.ToImmutableArrayOrEmpty(), documentServiceFactory: null);
+            });
+        }
+
+
         public void AddSourceFile(
             string filePath, bool isInCurrentContext = true, IEnumerable<string> folderNames = null,
             SourceCodeKind sourceCodeKind = SourceCodeKind.Regular, IDocumentServiceFactory documentServiceFactory = null)
