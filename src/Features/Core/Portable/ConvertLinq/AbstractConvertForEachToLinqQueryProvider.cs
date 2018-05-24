@@ -13,7 +13,8 @@ using Microsoft.CodeAnalysis.Text;
 namespace Microsoft.CodeAnalysis.ConvertLinq
 {
     internal abstract class AbstractConvertForEachToLinqQueryProvider<TForEachStatement, TStatement> : CodeRefactoringProvider
-        where TForEachStatement : SyntaxNode
+        where TForEachStatement : TStatement
+        where TStatement : SyntaxNode
     {
         public override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
         {
@@ -37,11 +38,12 @@ namespace Microsoft.CodeAnalysis.ConvertLinq
             if (TryBuildConverter(forEachStatement, semanticModel, cancellationToken, out IConverter converter) &&
                 !semanticModel.GetDiagnostics(forEachStatement.Span, cancellationToken).Any(diagnostic => diagnostic.DefaultSeverity == DiagnosticSeverity.Error))
             {
-                context.RegisterRefactoring(new ForEachToLinqQueryCodeAction(Title, c =>
+                context.RegisterRefactoring(new ForEachToLinqQueryCodeAction(Title, async c =>
                 {
                     var editor = new SyntaxEditor(semanticModel.SyntaxTree.GetRoot(c), document.Project.Solution.Workspace);
                     converter.Convert(editor, semanticModel, c);
-                    return Task.FromResult(document.WithSyntaxRoot(editor.GetChangedRoot()));
+                    await AddLinqUsing(document, editor, semanticModel, cancellationToken).ConfigureAwait(false);
+                    return document.WithSyntaxRoot(editor.GetChangedRoot());
                 }));
             }
         }
@@ -50,8 +52,10 @@ namespace Microsoft.CodeAnalysis.ConvertLinq
 
         protected abstract TForEachStatement FindNodeToRefactor(SyntaxNode root, TextSpan span);
 
-        // Performs a validation of the foreach statement.
-        protected abstract bool Validate(TForEachStatement forEachStatement);
+        /// <summary>
+        /// Performs a validation of the foreach statement.
+        /// </summary>
+        protected abstract bool Validate(TStatement statement);
 
         /// <summary>
         /// Parses the forEachStatement until a child node cannot be converted into a query clause.
@@ -124,6 +128,8 @@ namespace Microsoft.CodeAnalysis.ConvertLinq
             converter = default;
             return false;
         }
+
+        protected abstract Task AddLinqUsing(Document document, SyntaxEditor syntaxEditor, SemanticModel semanticModel, CancellationToken cancellationToken);
 
         protected interface IConverter
         {
