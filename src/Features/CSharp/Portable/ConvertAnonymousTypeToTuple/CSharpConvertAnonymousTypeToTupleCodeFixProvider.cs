@@ -110,6 +110,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertAnonymousTypeToTuple
             => editor.ReplaceNode(
                 node, (current, _) =>
                 {
+                    // Use the callback form as anonymous types may be nested, and we want to
+                    // properly replace them even in that case.
                     var anonCreation = current as AnonymousObjectCreationExpressionSyntax;
                     if (anonCreation == null)
                     {
@@ -120,9 +122,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertAnonymousTypeToTuple
                 });
 
         private static AnonymousObjectCreationExpressionSyntax TryGetCreationNode(Diagnostic diagnostic, CancellationToken cancellationToken)
-        {
-            return diagnostic.Location.FindToken(cancellationToken).Parent as AnonymousObjectCreationExpressionSyntax;
-        }
+            => diagnostic.Location.FindToken(cancellationToken).Parent as AnonymousObjectCreationExpressionSyntax;
 
         private static TupleExpressionSyntax ConvertToTuple(AnonymousObjectCreationExpressionSyntax anonCreation)
             => SyntaxFactory.TupleExpression(
