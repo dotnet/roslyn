@@ -367,7 +367,7 @@ function Build-InsertionItems() {
 }
 
 function Build-Installer () {
-    #  Copying Artifacts
+    ## Copying Artifacts
     $installerDir = Join-Path $configDir "Installer"
     if (Test-Path $installerDir) {
         Remove-Item -Path $installerDir -Recurse -Force

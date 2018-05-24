@@ -22,10 +22,12 @@
     <Copyright>© Microsoft Corporation. All rights reserved.</Copyright>
     <Authors>Microsoft</Authors>
 
-    <JenkinsBuild>false</JenkinsBuild>
-    <JenkinsBuild Condition="'$(JENKINS_HOME)' != ''">true</JenkinsBuild>
+    <_JenkinsBuild>false</_JenkinsBuild>
+    <_JenkinsBuild Condition="'$(JENKINS_HOME)' != ''">true</_JenkinsBuild>
+    <_VstsBuild>false</_VstsBuild>
+    <_VstsBuild Condition="'$(BUILD_REPOSITORY_ID)' != ''">true</_VstsBuild>
     <DeveloperBuild>false</DeveloperBuild>
-    <DeveloperBuild Condition="'$(OfficialBuild)' != 'true' AND '$(JenkinsBuild)' != 'true'">true</DeveloperBuild>
+    <DeveloperBuild Condition="'$(OfficialBuild)' != 'true' AND '$(_JenkinsBuild)' != 'true' AND '$(_VstsBuild)' != 'true'">true</DeveloperBuild>
     <ContinuousIntegrationBuild Condition="!$(DeveloperBuild)">true</ContinuousIntegrationBuild>
 
     <NuGetToolPath>$(RepoRoot)nuget.exe</NuGetToolPath>
@@ -104,11 +106,11 @@
       Developer build:
        - Build Windows PDBs in order to provide stack traces in xUnit on .NET Framework (4.7.1)
        - TODO: https://github.com/dotnet/roslyn/issues/25184
-         Use embedded PDBs once .NET Framework 4.7.2 is released and xUnit runner includes configuration switch to enable Portable PDBs
+         Use embedded PDBs once .NET Framework 4.7.2 is released and xUnit runner includes configuration switch to enable Portable PDBs 
     -->
     <RoslynDebugType Condition="'$(RoslynDebugType)' == ''">full</RoslynDebugType>
     <RoslynDebugType Condition="'$(OfficialBuild)' == 'true'">portable</RoslynDebugType>
-    <RoslynDebugType Condition="'$(JenkinsBuild)' == 'true'">embedded</RoslynDebugType>
+    <RoslynDebugType Condition="'$(_JenkinsBuild)' == 'true' OR '$(_VstsBuild)' == 'true'">embedded</RoslynDebugType>
 
     <ChecksumAlgorithm>SHA256</ChecksumAlgorithm>
 
