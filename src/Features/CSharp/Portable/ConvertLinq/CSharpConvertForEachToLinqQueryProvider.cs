@@ -22,7 +22,6 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertLinq
     [ExportCodeRefactoringProvider(LanguageNames.CSharp, Name = nameof(CSharpConvertForEachToLinqQueryProvider)), Shared]
     internal sealed class CSharpConvertForEachToLinqQueryProvider : AbstractConvertForEachToLinqQueryProvider<ForEachStatementSyntax, StatementSyntax>
     {
-        // TODO what if comments are not in foreach but in related statements we're removing or modifying, e.g. return or list = new List<int>()
         protected override ForEachStatementSyntax FindNodeToRefactor(SyntaxNode root, TextSpan span)
             => root.FindNode(span) as ForEachStatementSyntax;
 
@@ -218,21 +217,20 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertLinq
             return false;
         }
 
-        protected override async Task AddLinqUsing(Document document, SyntaxEditor syntaxEditor, SemanticModel semanticModel, CancellationToken cancellationToken)
+        protected override SyntaxNode AddLinqUsing(SyntaxNode root)
         {
             const string linqNamespaceName = "System.Linq";
-            var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             if (root is CompilationUnitSyntax compilationUnit)
             {
                 var existingUsings = compilationUnit.Usings;
-                // TODO anything better?
                 if (!existingUsings.Any(existingUsing => existingUsing.Name.ToString().Equals(linqNamespaceName)))
                 {
                     var linqName = SyntaxFactory.ParseName(linqNamespaceName);
-                    // TODO what if no usings at all?
-                    syntaxEditor.InsertAfter(compilationUnit.Usings.Last(), SyntaxFactory.UsingDirective(linqName));
+                    return compilationUnit.AddUsings(SyntaxFactory.UsingDirective(linqName));
                 }
             }
+
+            return root;
         }
 
         private static bool IsList(ITypeSymbol typeSymbol, SemanticModel semanticModel)

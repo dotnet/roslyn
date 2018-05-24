@@ -443,7 +443,7 @@ class C
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertForEachToQuery)]
-        public async Task AddUsing()
+        public async Task AddUsingToExistingList()
         {
             string source = @"
 using System.Collections.Generic;
@@ -477,7 +477,37 @@ class C
             await TestInRegularAndScriptAsync(source, output);
         }
 
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertForEachToQuery)]
+        public async Task AddFirstUsing()
+        {
+            string source = @"
+class C
+{
+    void M(int[] nums)
+    {
+        [|foreach (int n1 in nums)
+        {
+            foreach (int n2 in nums);
+        }|]
+    }
+}
+";
+            string output = @"using System.Linq;
 
+class C
+{
+    void M(int[] nums)
+    {
+        foreach (var _ in from int n1 in nums
+                          from int n2 in nums
+                          select new { })
+        {
+        }
+    }
+}
+";
+            await TestInRegularAndScriptAsync(source, output);
+        }
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertForEachToQuery)]
         public async Task EmptyBodyDeclarationAsLast()
         {
