@@ -986,6 +986,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             LogString($"{nameof(IEventAssignmentOperation)} ({kindStr})");
             LogCommonPropertiesAndNewLine(operation);
 
+            Assert.NotNull(operation.EventReference);
             Visit(operation.EventReference, header: "Event Reference");
             Visit(operation.HandlerValue, header: "Handler");
         }

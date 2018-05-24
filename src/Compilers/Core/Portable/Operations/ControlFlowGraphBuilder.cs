@@ -5258,18 +5258,59 @@ oneMoreTime:
 
         public override IOperation VisitEventAssignment(IEventAssignmentOperation operation, int? captureIdForResult)
         {
-            var instance = operation.EventReference.Event.IsStatic ? null : operation.EventReference.Instance;
-            if (instance != null)
-            {
-                _evalStack.Push(Visit(instance));
-            }
+            IOperation visitedEventReference, visitedHandler;
 
-            IOperation visitedHandler = Visit(operation.HandlerValue);
-            IOperation visitedInstance = instance == null ? null : _evalStack.Pop();
-            var visitedEventReference = new EventReferenceExpression(operation.EventReference.Event, visitedInstance,
-                semanticModel: null, operation.EventReference.Syntax, operation.EventReference.Type, operation.EventReference.ConstantValue, IsImplicit(operation.EventReference));
+            // Get the IEventReferenceOperation, digging through IParenthesizedOperation.
+            // Note that for error cases, the event reference might be an IInvalidOperation.
+            IEventReferenceOperation eventReference = getEventReference();
+            if (eventReference != null)
+            {
+                // Preserve the IEventReferenceOperation.
+                var eventReferenceInstance = eventReference.Event.IsStatic ? null : eventReference.Instance;
+                if (eventReferenceInstance != null)
+                {
+                    _evalStack.Push(Visit(eventReferenceInstance));
+                }
+
+                visitedHandler = Visit(operation.HandlerValue);
+
+                IOperation visitedInstance = eventReferenceInstance == null ? null : _evalStack.Pop();
+                visitedEventReference = new EventReferenceExpression(eventReference.Event, visitedInstance,
+                    semanticModel: null, operation.EventReference.Syntax, operation.EventReference.Type, operation.EventReference.ConstantValue, IsImplicit(operation.EventReference));
+            }
+            else
+            {
+                Debug.Assert(operation.EventReference != null);
+                Debug.Assert(operation.EventReference.Kind == OperationKind.Invalid);
+
+                _evalStack.Push(Visit(operation.EventReference));
+                visitedHandler = Visit(operation.HandlerValue);
+                visitedEventReference = _evalStack.Pop();
+            }
+            
             return new EventAssignmentOperation(visitedEventReference, visitedHandler, operation.Adds, semanticModel: null,
                 operation.Syntax, operation.Type, operation.ConstantValue, IsImplicit(operation));
+
+            IEventReferenceOperation getEventReference()
+            {
+                IOperation current = operation.EventReference;
+
+                while (true)
+                {
+                    switch (current.Kind)
+                    {
+                        case OperationKind.EventReference:
+                            return (IEventReferenceOperation)current;
+
+                        case OperationKind.Parenthesized:
+                            current = ((IParenthesizedOperation)current).Operand;
+                            continue;
+
+                        default:
+                            return null;
+                    }
+                }
+            }
         }
 
         public override IOperation VisitRaiseEvent(IRaiseEventOperation operation, int? captureIdForResult)

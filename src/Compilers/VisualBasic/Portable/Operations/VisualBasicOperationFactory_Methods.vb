@@ -410,11 +410,11 @@ Namespace Microsoft.CodeAnalysis.Operations
         End Function
 
         Private Function GetAddRemoveHandlerStatementExpression(statement As BoundAddRemoveHandlerStatement) As IOperation
-            Dim eventAccess As BoundEventAccess = TryCast(statement.EventAccess, BoundEventAccess)
-            Dim eventReference = If(eventAccess Is Nothing, Nothing, CreateBoundEventAccessOperation(eventAccess))
+            Dim eventAccess As IOperation = Create(statement.EventAccess)
+            Dim handler As IOperation = Create(statement.Handler)
             Dim adds = statement.Kind = BoundKind.AddHandlerStatement
             Return New EventAssignmentOperation(
-                eventReference, Create(statement.Handler), adds:=adds, semanticModel:=_semanticModel, syntax:=statement.Syntax, type:=Nothing, constantValue:=Nothing, isImplicit:=True)
+                eventAccess, handler, adds:=adds, semanticModel:=_semanticModel, syntax:=statement.Syntax, type:=Nothing, constantValue:=Nothing, isImplicit:=True)
         End Function
 
 #Region "Conversions"
