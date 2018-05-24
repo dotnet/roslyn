@@ -881,10 +881,12 @@ namespace System
                     case WellKnownMember.System_Collections_Generic_IAsyncEnumerator_T__TryGetNext:
                     case WellKnownMember.System_Collections_Generic_IAsyncEnumerator_T__WaitForNextAsync:
                     case WellKnownMember.System_Threading_Tasks_ManualResetValueTaskSourceLogic_T__ctor:
+                    case WellKnownMember.System_Threading_Tasks_ManualResetValueTaskSourceLogic_T__get_Version:
                     case WellKnownMember.System_Threading_Tasks_ManualResetValueTaskSourceLogic_T__GetResult:
                     case WellKnownMember.System_Threading_Tasks_ManualResetValueTaskSourceLogic_T__GetStatus:
                     case WellKnownMember.System_Threading_Tasks_ManualResetValueTaskSourceLogic_T__OnCompleted:
                     case WellKnownMember.System_Threading_Tasks_ManualResetValueTaskSourceLogic_T__Reset:
+                    case WellKnownMember.System_Threading_Tasks_ManualResetValueTaskSourceLogic_T__SetResult:
                     case WellKnownMember.System_Runtime_CompilerServices_IStrongBox_T__Value:
                     case WellKnownMember.System_Runtime_CompilerServices_IStrongBox_T__get_Value:
                     case WellKnownMember.System_Threading_Tasks_Sources_IValueTaskSource_T__GetResult:
