@@ -131,13 +131,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertAnonymousTypeToTuple
                     SyntaxFactory.Token(SyntaxKind.CloseParenToken).WithTriviaFrom(anonCreation.CloseBraceToken))
                             .WithPrependedLeadingTrivia(anonCreation.GetLeadingTrivia());
 
-        private static SeparatedSyntaxList<ArgumentSyntax> ConvertInitializers(
-            SeparatedSyntaxList<AnonymousObjectMemberDeclaratorSyntax> initializers)
-        {
-            return SyntaxFactory.SeparatedList(
-                initializers.Select(ConvertInitializer),
-                initializers.GetSeparators());
-        }
+        private static SeparatedSyntaxList<ArgumentSyntax> ConvertInitializers(SeparatedSyntaxList<AnonymousObjectMemberDeclaratorSyntax> initializers)
+            => SyntaxFactory.SeparatedList(initializers.Select(ConvertInitializer), initializers.GetSeparators());
 
         private static ArgumentSyntax ConvertInitializer(AnonymousObjectMemberDeclaratorSyntax declarator)
             => SyntaxFactory.Argument(ConvertName(declarator.NameEquals), default, declarator.Expression)
