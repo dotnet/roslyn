@@ -1122,7 +1122,7 @@ namespace Microsoft.CodeAnalysis.Operations
             )
         {
 #if DEBUG
-            Debug.Assert(spillingTheStack || _evalStack.All(o => o.Kind == OperationKind.FlowCaptureReference || o.Kind == OperationKind.DeclarationExpression));
+            Debug.Assert(spillingTheStack || _evalStack.All(o => o.Kind == OperationKind.FlowCaptureReference || o.Kind == OperationKind.DeclarationExpression || o.Kind == OperationKind.Discard));
 #endif
             if (statement == null)
             {
@@ -1411,7 +1411,9 @@ namespace Microsoft.CodeAnalysis.Operations
             {
                 IOperation operation = _evalStack[i];
                 // Declarations cannot have control flow, so we don't need to spill them.
-                if (operation.Kind != OperationKind.FlowCaptureReference && operation.Kind != OperationKind.DeclarationExpression)
+                if (operation.Kind != OperationKind.FlowCaptureReference 
+                    && operation.Kind != OperationKind.DeclarationExpression
+                    && operation.Kind != OperationKind.Discard)
                 {
                     int captureId = _availableCaptureId++;
 
@@ -5294,6 +5296,11 @@ oneMoreTime:
             bool isDecrement = operation.Kind == OperationKind.Decrement;
             return new IncrementExpression(isDecrement, operation.IsPostfix, operation.IsLifted, operation.IsChecked, Visit(operation.Target), operation.OperatorMethod, 
                 semanticModel: null, operation.Syntax, operation.Type, operation.ConstantValue, IsImplicit(operation));
+	}
+
+        public override IOperation VisitDiscardOperation(IDiscardOperation operation, int? captureIdForResult)
+        {
+            return new DiscardOperation(operation.DiscardSymbol, semanticModel: null, operation.Syntax, operation.Type, operation.ConstantValue, IsImplicit(operation));
         }
 
         public override IOperation VisitIsPattern(IIsPatternOperation operation, int? captureIdForResult)
@@ -5492,10 +5499,6 @@ oneMoreTime:
             return new TranslatedQueryExpression(Visit(operation.Operation), semanticModel: null, operation.Syntax, operation.Type, operation.ConstantValue, IsImplicit(operation));
         }
 
-        public override IOperation VisitDiscardOperation(IDiscardOperation operation, int? captureIdForResult)
-        {
-            return new DiscardOperation(operation.DiscardSymbol, semanticModel: null, operation.Syntax, operation.Type, operation.ConstantValue, IsImplicit(operation));
-        }
         #endregion
     }
 }
