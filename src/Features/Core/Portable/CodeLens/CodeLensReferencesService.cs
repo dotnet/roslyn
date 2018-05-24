@@ -224,7 +224,7 @@ namespace Microsoft.CodeAnalysis.CodeLens
             return null;
         }
 
-        private static async Task<ReferenceMethodDescriptor> GetMethodDescriptorAsync(Location commonLocation, Solution solution, CancellationToken cancellationToken)
+        private static async Task<ReferenceMethodDescriptor> TryGetMethodDescriptorAsync(Location commonLocation, Solution solution, CancellationToken cancellationToken)
         {
             var doc = solution.GetDocument(commonLocation.SourceTree);
             if (doc == null)
@@ -246,12 +246,12 @@ namespace Microsoft.CodeAnalysis.CodeLens
                 {
                     var descriptorTasks =
                         progress.Locations
-                        .Select(location => GetMethodDescriptorAsync(location, solution, cancellationToken))
+                        .Select(location => TryGetMethodDescriptorAsync(location, solution, cancellationToken))
                         .ToArray();
 
                     var result = await Task.WhenAll(descriptorTasks).ConfigureAwait(false);
 
-                    return (IEnumerable<ReferenceMethodDescriptor>)result;
+                    return result.OfType<ReferenceMethodDescriptor>();
                 }, onCapped: null, searchCap: 0, cancellationToken: cancellationToken);
         }
 
