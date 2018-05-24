@@ -38,12 +38,13 @@ namespace Microsoft.CodeAnalysis.ConvertLinq
             if (TryBuildConverter(forEachStatement, semanticModel, cancellationToken, out IConverter converter) &&
                 !semanticModel.GetDiagnostics(forEachStatement.Span, cancellationToken).Any(diagnostic => diagnostic.DefaultSeverity == DiagnosticSeverity.Error))
             {
-                context.RegisterRefactoring(new ForEachToLinqQueryCodeAction(Title, async c =>
+                context.RegisterRefactoring(new ForEachToLinqQueryCodeAction(Title, c =>
                 {
                     var editor = new SyntaxEditor(semanticModel.SyntaxTree.GetRoot(c), document.Project.Solution.Workspace);
                     converter.Convert(editor, semanticModel, c);
-                    await AddLinqUsing(document, editor, semanticModel, cancellationToken).ConfigureAwait(false);
-                    return document.WithSyntaxRoot(editor.GetChangedRoot());
+                    var newRoot = editor.GetChangedRoot();
+                    var rootWithLinqUsing = AddLinqUsing(newRoot);
+                    return Task.FromResult(document.WithSyntaxRoot(rootWithLinqUsing));
                 }));
             }
         }
@@ -129,7 +130,7 @@ namespace Microsoft.CodeAnalysis.ConvertLinq
             return false;
         }
 
-        protected abstract Task AddLinqUsing(Document document, SyntaxEditor syntaxEditor, SemanticModel semanticModel, CancellationToken cancellationToken);
+        protected abstract SyntaxNode AddLinqUsing(SyntaxNode root);
 
         protected interface IConverter
         {
