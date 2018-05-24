@@ -4,6 +4,7 @@ namespace Microsoft.CodeAnalysis.AddRequiredParentheses
 {
     internal static class AddRequiredParenthesesConstants
     {
+        public const string EquivalenceKey = nameof(EquivalenceKey);
         public const string IncludeInFixAll = nameof(IncludeInFixAll);
     }
 }

@@ -227,7 +227,7 @@ commitPullList.each { isPr ->
         }
       }
 
-      def triggerPhraseOnly = false
+      def triggerPhraseOnly = true
       def triggerPhraseExtra = ""
       Utilities.setMachineAffinity(myJob, 'Windows.10.Amd64.ClientRS3.DevEx.Open')
       Utilities.addXUnitDotNETResults(myJob, '**/xUnitResults/*.xml')
