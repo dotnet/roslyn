@@ -819,18 +819,18 @@ namespace Microsoft.CodeAnalysis.Operations
         public IMethodSymbol UnaryOperatorMethod { get; }
 
         /// <summary>
-        /// <code>true</code> if this is a 'lifted' binary operator.  When there is an
+        /// <see langword="true"/> if this is a 'lifted' binary operator.  When there is an
         /// operator that is defined to work on a value type, 'lifted' operators are
         /// created to work on the <see cref="System.Nullable{T}"/> versions of those
         /// value types.
         /// </summary>
         public bool IsLifted { get; }
         /// <summary>
-        /// <code>true</code> if overflow checking is performed for the arithmetic operation.
+        /// <see langword="true"/> if overflow checking is performed for the arithmetic operation.
         /// </summary>
         public bool IsChecked { get; }
         /// <summary>
-        /// <code>true</code> if the comparison is text based for string or object comparison in VB.
+        /// <see langword="true"/> if the comparison is text based for string or object comparison in VB.
         /// </summary>
         public bool IsCompareText { get; }
         public override IEnumerable<IOperation> Children
@@ -1249,11 +1249,11 @@ namespace Microsoft.CodeAnalysis.Operations
         /// </summary>
         public BinaryOperatorKind OperatorKind { get; }
         /// <summary>
-        /// <code>true</code> if this assignment contains a 'lifted' binary operation.
+        /// <see langword="true"/> if this assignment contains a 'lifted' binary operation.
         /// </summary>
         public bool IsLifted { get; }
         /// <summary>
-        /// <code>true</code> if overflow checking is performed for the arithmetic operation.
+        /// <see langword="true"/> if overflow checking is performed for the arithmetic operation.
         /// </summary>
         public bool IsChecked { get; }
         /// <summary>
@@ -2540,19 +2540,19 @@ namespace Microsoft.CodeAnalysis.Operations
             OperatorMethod = operatorMethod;
         }
         /// <summary>
-        /// <code>true</code> if this is a postfix expression.
-        /// <code>false</code> if this is a prefix expression.
+        /// <see langword="true"/> if this is a postfix expression.
+        /// <see langword="false"/> if this is a prefix expression.
         /// </summary>
         public bool IsPostfix { get; }
         /// <summary>
-        /// <code>true</code> if this is a 'lifted' increment operator.  When there is an
+        /// <see langword="true"/> if this is a 'lifted' increment operator.  When there is an
         /// operator that is defined to work on a value type, 'lifted' operators are
         /// created to work on the <see cref="System.Nullable{T}"/> versions of those
         /// value types.
         /// </summary>
         public bool IsLifted { get; }
         /// <summary>
-        /// <code>true</code> if overflow checking is performed for the arithmetic operation.
+        /// <see langword="true"/> if overflow checking is performed for the arithmetic operation.
         /// </summary>
         public bool IsChecked { get; }
         /// <summary>
@@ -5440,14 +5440,14 @@ namespace Microsoft.CodeAnalysis.Operations
         /// </summary>
         public IMethodSymbol OperatorMethod { get; }
         /// <summary>
-        /// <code>true</code> if this is a 'lifted' binary operator.  When there is an
+        /// <see langword="true"/> if this is a 'lifted' binary operator.  When there is an
         /// operator that is defined to work on a value type, 'lifted' operators are
         /// created to work on the <see cref="System.Nullable{T}"/> versions of those
         /// value types.
         /// </summary>
         public bool IsLifted { get; }
         /// <summary>
-        /// <code>true</code> if overflow checking is performed for the arithmetic operation.
+        /// <see langword="true"/> if overflow checking is performed for the arithmetic operation.
         /// </summary>
         public bool IsChecked { get; }
         public override IEnumerable<IOperation> Children

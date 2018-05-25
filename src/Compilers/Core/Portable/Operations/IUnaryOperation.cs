@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.Operations
         IMethodSymbol OperatorMethod { get; }
 
         /// <summary>
-        /// <code>true</code> if this is a 'lifted' unary operator.  When there is an 
+        /// <see langword="true"/> if this is a 'lifted' unary operator.  When there is an 
         /// operator that is defined to work on a value type, 'lifted' operators are 
         /// created to work on the <see cref="System.Nullable{T}"/> versions of those
         /// value types.
@@ -40,7 +40,7 @@ namespace Microsoft.CodeAnalysis.Operations
         bool IsLifted { get; }
 
         /// <summary>
-        /// <code>true</code> if overflow checking is performed for the arithmetic operation.
+        /// <see langword="true"/> if overflow checking is performed for the arithmetic operation.
         /// </summary>
         bool IsChecked { get; }
     }

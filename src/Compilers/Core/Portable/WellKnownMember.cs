@@ -433,6 +433,15 @@ namespace Microsoft.CodeAnalysis
 
         System_Runtime_CompilerServices_IsUnmanagedAttribute__ctor,
 
+        Microsoft_VisualBasic_Conversion__FixSingle,
+        Microsoft_VisualBasic_Conversion__FixDouble,
+        Microsoft_VisualBasic_Conversion__IntSingle,
+        Microsoft_VisualBasic_Conversion__IntDouble,
+
+        System_Math__CeilingDouble,
+        System_Math__FloorDouble,
+        System_Math__TruncateDouble,
+
         Count
     }
 }
