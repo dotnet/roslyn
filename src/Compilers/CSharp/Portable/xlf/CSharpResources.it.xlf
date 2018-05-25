@@ -4611,8 +4611,8 @@ Un blocco catch() dopo un blocco catch (System.Exception e) è in grado di rilev
         <note />
       </trans-unit>
       <trans-unit id="ERR_CantConvAnonMethParams">
-        <source>Cannot convert {0} to delegate type '{1}' because the parameter types do not match the delegate parameter types</source>
-        <target state="translated">Non è possibile convertire {0} nel tipo delegato '{1}' perché i tipi di parametro non corrispondono ai tipi di parametro del delegato</target>
+        <source>Cannot convert {0} to type '{1}' because the parameter types do not match the delegate parameter types</source>
+        <target state="needs-review-translation">Non è possibile convertire {0} nel tipo delegato '{1}' perché i tipi di parametro non corrispondono ai tipi di parametro del delegato</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CantConvAnonMethReturns">

@@ -4611,8 +4611,8 @@ Un bloque catch() después de un bloque catch (System.Exception e) puede abarcar
         <note />
       </trans-unit>
       <trans-unit id="ERR_CantConvAnonMethParams">
-        <source>Cannot convert {0} to delegate type '{1}' because the parameter types do not match the delegate parameter types</source>
-        <target state="translated">No se puede convertir {0} en el tipo delegado '{1}' porque los tipos de parámetros no coinciden con los tipos de parámetros delegados</target>
+        <source>Cannot convert {0} to type '{1}' because the parameter types do not match the delegate parameter types</source>
+        <target state="needs-review-translation">No se puede convertir {0} en el tipo delegado '{1}' porque los tipos de parámetros no coinciden con los tipos de parámetros delegados</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CantConvAnonMethReturns">
