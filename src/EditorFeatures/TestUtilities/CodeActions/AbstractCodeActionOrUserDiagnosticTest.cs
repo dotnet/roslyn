@@ -1,5 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+//#define IGNORE_TRIVIA
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -415,7 +417,11 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
             var fixedRoot = await document.GetSyntaxRootAsync();
             var actualText = fixedRoot.ToFullString();
 
+#if IGNORE_TRIVIA
+            TokenUtilities.AssertTokensEqual(expectedText, actualText, GetLanguage());
+#else
             Assert.Equal(expectedText, actualText);
+#endif
 
             TestAnnotations(conflictSpans, ConflictAnnotation.Kind);
             TestAnnotations(renameSpans, RenameAnnotation.Kind);
