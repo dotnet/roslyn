@@ -1,20 +1,20 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
-using System.Linq;
 using System.Collections.Generic;
+using System.Collections.Immutable;
+using System.Diagnostics;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
+using Microsoft.CodeAnalysis.Editing;
+using Microsoft.CodeAnalysis.Formatting;
+using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
-using Microsoft.CodeAnalysis.Editing;
-using Microsoft.CodeAnalysis.LanguageServices;
-using System.Collections.Immutable;
-using System.Diagnostics;
-using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
-using Microsoft.CodeAnalysis.Formatting;
 
 namespace Microsoft.CodeAnalysis.CodeRefactorings.InvertIf
 {
@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.InvertIf
         where TIfStatementSyntax : SyntaxNode
         where TEmbeddedStatement : class
     {
-        protected enum InvertIfStyle
+        private enum InvertIfStyle
         {
             IfWithElse_SwapIfBodyWithElseBody,
             IfWithoutElse_SwapIfBodyWithSubsequentStatements,
@@ -259,7 +259,8 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.InvertIf
 
         private static bool SingleSubsequentStatement(ImmutableArray<StatementRange> subsequentStatementRanges)
         {
-            return subsequentStatementRanges.Length == 1 && subsequentStatementRanges[0].IsSingleStatement;
+            return subsequentStatementRanges.Length == 1 && 
+                   subsequentStatementRanges[0].IsSingleStatement;
         }
 
         private Task<Document> InvertIfAsync(
@@ -302,6 +303,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.InvertIf
                     statementRange,
                     out subsequentEndPointIsReachable,
                     out subsequentSingleExitPointOpt);
+
                 if (!subsequentEndPointIsReachable)
                 {
                     return;
@@ -318,6 +320,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.InvertIf
             var flow = semanticModel.AnalyzeControlFlow(
                 statementRange.FirstStatement,
                 statementRange.LastStatement);
+
             endPointIsReachable = flow.EndPointIsReachable;
             singleExitPointOpt = flow.ExitPoints.Length == 1 ? flow.ExitPoints[0] : null;
         }
@@ -327,7 +330,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.InvertIf
             ImmutableArray<StatementRange> subsequentStatementRanges)
         {
             Debug.Assert(subsequentStatementRanges.Length > 0);
-            return ifNode.Parent == subsequentStatementRanges[0].FirstStatement.Parent;
+            return ifNode.Parent == subsequentStatementRanges[0].Parent;
         }
 
         private int GetNearmostParentJumpStatementRawKind(SyntaxNode ifNode)
@@ -399,20 +402,26 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.InvertIf
             return builder.ToImmutableAndFree();
         }
 
-        protected abstract int GetJumpStatementRawKind(SyntaxNode node);
+        protected abstract string GetTitle();
+
+        protected abstract SyntaxList<SyntaxNode> GetStatements(SyntaxNode node);
+        protected abstract SyntaxNode GetNextExecutableStatement(SyntaxNode node);
+
         protected abstract SyntaxNode GetJumpStatement(int rawKind);
+        protected abstract int GetJumpStatementRawKind(SyntaxNode node);
+
         protected abstract bool IsNoOpSyntaxNode(SyntaxNode node);
         protected abstract bool IsStatement(SyntaxNode node);
         protected abstract bool IsStatementContainer(SyntaxNode node);
-        protected abstract SyntaxList<SyntaxNode> GetStatements(SyntaxNode node);
-        protected abstract SyntaxNode GetNextExecutableStatement(SyntaxNode node);
+
         protected abstract bool CanControlFlowOut(SyntaxNode node);
-        protected abstract StatementRange GetIfBodyStatementRange(TIfStatementSyntax ifNode);
+
         protected abstract bool CanInvert(TIfStatementSyntax ifNode);
         protected abstract bool IsElseless(TIfStatementSyntax ifNode);
+
+        protected abstract StatementRange GetIfBodyStatementRange(TIfStatementSyntax ifNode);
         protected abstract SyntaxNode GetCondition(TIfStatementSyntax ifNode);
         protected abstract TextSpan GetHeaderSpan(TIfStatementSyntax ifNode);
-        protected abstract string GetTitle();
 
         protected abstract IEnumerable<SyntaxNode> UnwrapBlock(TEmbeddedStatement ifBody);
         protected abstract TEmbeddedStatement GetIfBody(TIfStatementSyntax ifNode);

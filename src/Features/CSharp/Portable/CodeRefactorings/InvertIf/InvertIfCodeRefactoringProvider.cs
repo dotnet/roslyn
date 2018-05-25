@@ -2,14 +2,11 @@
 
 using System.Collections.Generic;
 using System.Composition;
-using System.Diagnostics;
 using System.Linq;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.CodeRefactorings.InvertIf;
-using Microsoft.CodeAnalysis.CSharp.CodeGeneration;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
@@ -18,199 +15,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InvertIf
     [ExportCodeRefactoringProvider(LanguageNames.CSharp, Name = PredefinedCodeRefactoringProviderNames.InvertIf), Shared]
     internal sealed class CSharpInvertIfCodeRefactoringProvider : AbstractInvertIfCodeRefactoringProvider<IfStatementSyntax, StatementSyntax>
     {
-        protected override string GetTitle() => CSharpFeaturesResources.Invert_if;
-
-#if false
-        protected override SyntaxNode GetRootWithInvertIfStatement(
-            SyntaxNode root,
-            IfStatementSyntax ifNode,
-            InvertIfStyle invertIfStyle,
-            SyntaxNode subsequentSingleExitPointOpt,
-            SyntaxNode negatedExpression)
-        {
-            var negatedCondition = (ExpressionSyntax)negatedExpression;
-
-            switch (invertIfStyle)
-            {
-                case InvertIfStyle.IfWithElse_SwapIfBodyWithElseBody:
-                    {
-                        // For single line statement, we swap the TrailingTrivia to preserve the single line
-                        StatementSyntax newIfNodeStatement;
-                        ElseClauseSyntax newElseStatement;
-
-                        var hasNewLineAfterClosingBrace = ifNode.Statement.GetTrailingTrivia().Any(trivia => trivia.Kind() == SyntaxKind.EndOfLineTrivia);
-                        if (hasNewLineAfterClosingBrace)
-                        {
-                            newIfNodeStatement = ifNode.Else.Statement.Kind() != SyntaxKind.Block
-                                ? SyntaxFactory.Block(ifNode.Else.Statement)
-                                : ifNode.Else.Statement;
-                            newElseStatement = ifNode.Else.WithStatement(ifNode.Statement);
-                        }
-                        else
-                        {
-                            var elseTrailingTrivia = ifNode.Else.GetTrailingTrivia();
-                            var ifTrailingTrivia = ifNode.Statement.GetTrailingTrivia();
-                            newIfNodeStatement = ifNode.Else.Statement.WithTrailingTrivia(ifTrailingTrivia);
-                            newElseStatement = ifNode.Else.WithStatement(ifNode.Statement).WithTrailingTrivia(elseTrailingTrivia);
-                        }
-
-                        var newIfStatment = ifNode.Else.Statement.Kind() == SyntaxKind.IfStatement && newIfNodeStatement.Kind() != SyntaxKind.Block
-                            ? SyntaxFactory.Block(newIfNodeStatement)
-                            : newIfNodeStatement;
-
-                        var updatedIfStatement = ifNode.WithCondition(negatedCondition)
-                            .WithStatement(newIfStatment)
-                            .WithElse(newElseStatement);
-
-                        if (hasNewLineAfterClosingBrace)
-                        {
-                            updatedIfStatement = updatedIfStatement.WithAdditionalAnnotations(Formatter.Annotation);
-                        }
-
-                        return root.ReplaceNode(ifNode, updatedIfStatement);
-                    }
-
-                case InvertIfStyle.IfWithoutElse_MoveIfBodyToElseClause:
-                    {
-                        var updatedIf = ifNode
-                            .WithCondition(negatedCondition)
-                            .WithStatement(SyntaxFactory.Block())
-                            .WithElse(SyntaxFactory.ElseClause(ifNode.Statement.WithoutLeadingTrivia()));
-
-                        return root.ReplaceNode(ifNode, updatedIf);
-                    }
-
-                case InvertIfStyle.IfWithoutElse_WithNegatedCondition:
-                    {
-                        var updatedIf = ifNode
-                            .WithCondition(negatedCondition);
-                        
-                        return root.ReplaceNode(ifNode, updatedIf);
-                    }
-
-                case InvertIfStyle.IfWithoutElse_SwapIfBodyWithSubsequentStatements:
-                    {
-                        var ifBody = ifNode.Statement;
-
-                        var currentParent = ifNode.Parent;
-                        var statements = GetStatements(currentParent);
-                        var index = statements.IndexOf(ifNode);
-
-                        var statementsBeforeIf = statements.Take(index);
-                        var statementsAfterIf = statements.Skip(index + 1).ToArray();
-
-                        var updatedIf = ifNode
-                            .WithCondition(negatedCondition)
-                            .WithStatement(ReplaceEmbeddedStatement(ifNode.Statement, statementsAfterIf));
-
-                        var updatedParent = WithStatements(currentParent, statementsBeforeIf.Concat(updatedIf).Concat(UnwrapBlock(ifBody)))
-                            .WithAdditionalAnnotations(Formatter.Annotation);
-
-                        return root.ReplaceNode(currentParent, updatedParent);
-                    }
-
-                case InvertIfStyle.IfWithoutElse_WithNearmostJumpStatement:
-                    {
-                        var newIfBody = GetNearmostParentJumpStatement();
-                        var updatedIf = ifNode.WithCondition(negatedCondition)
-                            .WithStatement(SyntaxFactory.Block(newIfBody));
-
-                        var currentParent = ifNode.Parent;
-                        var statements = GetStatements(currentParent);
-                        var index = statements.IndexOf(ifNode);
-
-                        var statementsBeforeIf = statements.Take(index);
-
-                        var updatedParent = WithStatements(currentParent, statementsBeforeIf.Concat(updatedIf).Concat(UnwrapBlock(ifNode.Statement)))
-                            .WithAdditionalAnnotations(Formatter.Annotation);
-
-                        return root.ReplaceNode(currentParent, updatedParent);
-                    }
-
-                    StatementSyntax GetNearmostParentJumpStatement()
-                    {
-                        switch ((SyntaxKind)GetNearmostParentJumpStatementRawKind(ifNode))
-                        {
-                            case SyntaxKind.ContinueStatement:
-                                return SyntaxFactory.ContinueStatement();
-                            case SyntaxKind.BreakStatement:
-                                return SyntaxFactory.BreakStatement();
-                            case SyntaxKind.ReturnStatement:
-                                return SyntaxFactory.ReturnStatement();
-                            default:
-                                throw ExceptionUtilities.Unreachable;
-                        }
-                    }
-
-                case InvertIfStyle.IfWithoutElse_WithSubsequentExitPointStatement:
-                    {
-                        var newIfBody = (StatementSyntax)subsequentSingleExitPointOpt;
-                        var updatedIf = ifNode.WithCondition(negatedCondition)
-                            .WithStatement(SyntaxFactory.Block(newIfBody));
-
-                        var currentParent = ifNode.Parent;
-                        var statements = GetStatements(currentParent);
-                        var index = statements.IndexOf(ifNode);
-
-                        var statementsBeforeIf = statements.Take(index);
-
-                        var updatedParent = WithStatements(currentParent, statementsBeforeIf.Concat(updatedIf).Concat(UnwrapBlock(ifNode.Statement)).Concat(newIfBody))
-                            .WithAdditionalAnnotations(Formatter.Annotation);
-
-                        return root.ReplaceNode(currentParent, updatedParent);
-                    }
-
-                case InvertIfStyle.IfWithoutElse_MoveSubsequentStatementsToIfBody:
-                    {
-                        var currentParent = ifNode.Parent;
-                        var statements = GetStatements(currentParent);
-                        var index = statements.IndexOf(ifNode);
-
-                        var statementsBeforeIf = statements.Take(index);
-                        var statementsAfterIf = statements.Skip(index + 1).ToArray();
-
-                        var updatedIf = ifNode
-                            .WithCondition(negatedCondition)
-                            .WithStatement(ReplaceEmbeddedStatement(ifNode.Statement, statementsAfterIf));
-
-                        var updatedParent = WithStatements(currentParent, statementsBeforeIf.Concat(updatedIf))
-                            .WithAdditionalAnnotations(Formatter.Annotation);
-
-                        return root.ReplaceNode(currentParent, updatedParent);
-                    }
-
-                case InvertIfStyle.IfWithoutElse_WithElseClause:
-                    {
-                        var currentParent = ifNode.Parent;
-                        var statements = GetStatements(currentParent);
-                        var index = statements.IndexOf(ifNode);
-
-                        var statementsBeforeIf = statements.Take(index);
-                        var statementsAfterIf = statements.Skip(index + 1).ToArray();
-
-                        var updatedIf = ifNode
-                            .WithCondition(negatedCondition)
-                            .WithStatement(ReplaceEmbeddedStatement(ifNode.Statement, statementsAfterIf))
-                            .WithElse(SyntaxFactory.ElseClause(ifNode.Statement));
-
-                        var updatedParent = WithStatements(currentParent, statementsBeforeIf.Concat(updatedIf))
-                            .WithAdditionalAnnotations(Formatter.Annotation);
-
-                        return root.ReplaceNode(currentParent, updatedParent);
-                    }
-
-                default:
-                    throw ExceptionUtilities.UnexpectedValue(invertIfStyle);
-            }
-        }
-#endif
-
-        protected override TextSpan GetHeaderSpan(IfStatementSyntax ifNode)
-        {
-            return TextSpan.FromBounds(
-                ifNode.IfKeyword.SpanStart,
-                ifNode.CloseParenToken.Span.End);
-        }
+        protected override string GetTitle()
+            => CSharpFeaturesResources.Invert_if;
 
         protected override bool IsElseless(IfStatementSyntax ifNode)
             => ifNode.Else == null;
@@ -235,6 +41,22 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InvertIf
 
         protected override SyntaxNode GetNextExecutableStatement(SyntaxNode node)
             => CSharpSyntaxFactsService.Instance.GetNextExecutableStatement(node);
+
+        protected override StatementSyntax GetIfBody(IfStatementSyntax ifNode)
+            => ifNode.Statement;
+
+        protected override StatementSyntax GetEmptyEmbeddedStatement()
+            => SyntaxFactory.Block();
+
+        protected override StatementSyntax GetElseBody(IfStatementSyntax ifNode)
+            => ifNode.Else.Statement;
+
+        protected override TextSpan GetHeaderSpan(IfStatementSyntax ifNode)
+        {
+            return TextSpan.FromBounds(
+                ifNode.IfKeyword.SpanStart,
+                ifNode.CloseParenToken.Span.End);
+        }
 
         protected override bool CanControlFlowOut(SyntaxNode node)
         {
@@ -326,34 +148,22 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InvertIf
             }
         }
 
-        protected override StatementSyntax GetIfBody(IfStatementSyntax ifNode)
-        {
-            return ifNode.Statement;
-        }
-
         protected override StatementSyntax AsEmbeddedStatement(
             StatementSyntax originalStatement,
             IEnumerable<SyntaxNode> newStatements)
         {
-            var statementsArray = newStatements.ToArray();
-
-            if (statementsArray.Length > 0)
+            var statements = newStatements.ToArray();
+            if (statements.Length > 0)
             {
                 // FIXME preserve comments
-                statementsArray[0] = statementsArray[0].WithoutLeadingTrivia();
+                statements[0] = statements[0].WithoutLeadingTrivia();
             }
 
-            // FIXME remove leading trivia except for comments
             return originalStatement is BlockSyntax block
-                ? block.WithStatements(SyntaxFactory.List(statementsArray))
-                : statementsArray.Length == 1
-                    ? (StatementSyntax)statementsArray.Single()
-                    : SyntaxFactory.Block(statementsArray.Cast<StatementSyntax>());
-        }
-
-        protected override StatementSyntax GetEmptyEmbeddedStatement()
-        {
-            return SyntaxFactory.Block();
+                ? block.WithStatements(SyntaxFactory.List(statements))
+                : statements.Length == 1
+                    ? (StatementSyntax)statements[0]
+                    : SyntaxFactory.Block(statements.Cast<StatementSyntax>());
         }
 
         protected override SyntaxNode UpdateIf(
@@ -393,12 +203,6 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InvertIf
             }
         }
 
-        protected override StatementSyntax GetElseBody(IfStatementSyntax ifNode)
-        {
-            Debug.Assert(ifNode.Else != null);
-            return ifNode.Else.Statement;
-        }
-
         protected override IEnumerable<SyntaxNode> UnwrapBlock(StatementSyntax ifBody)
         {
             return ifBody is BlockSyntax block
@@ -407,4 +211,3 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InvertIf
         }
     }
 }
-
