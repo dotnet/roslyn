@@ -21,7 +21,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Progression
 
             While nodes.Count > 0
 
-                If cancellationToken.IsCancellationRequested Then Continue While
+                If cancellationToken.IsCancellationRequested Then Exit While
 
                 Dim node = nodes.Pop()
 
