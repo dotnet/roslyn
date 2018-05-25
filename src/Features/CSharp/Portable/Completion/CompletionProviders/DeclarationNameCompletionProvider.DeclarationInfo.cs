@@ -48,7 +48,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 var semanticModel = await document.GetSemanticModelForSpanAsync(new Text.TextSpan(token.SpanStart, 0), cancellationToken).ConfigureAwait(false);
                 var typeInferenceService = document.GetLanguageService<ITypeInferenceService>();
 
-                if (IsTupleElementDeclaration(token, semanticModel, position, cancellationToken, out var result)
+                if (IsTupleTypeElement(token, semanticModel, position, cancellationToken, out var result)
                     || IsParameterDeclaration(token, semanticModel, position, cancellationToken, out result)
                     || IsTypeParameterDeclaration(token, semanticModel, position, cancellationToken, out result)
                     || IsVariableDeclaration(token, semanticModel, position, cancellationToken, out result)
@@ -57,7 +57,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                     || IsMethodDeclaration(token, semanticModel, position, cancellationToken, out result)
                     || IsPropertyDeclaration(token, semanticModel, position, cancellationToken, out result)
                     || IsPossibleOutVariableDeclaration(token, semanticModel, position, typeInferenceService, cancellationToken, out result)
-                    || IsTupleExpressionDeclaration(token, semanticModel, position, cancellationToken, out result)
+                    || IsTupleLiteralElement(token, semanticModel, position, cancellationToken, out result)
                     || IsPossibleVariableOrLocalMethodDeclaration(token, semanticModel, position, cancellationToken, out result))
                 {
                     return result;
@@ -66,7 +66,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 return default;
             }
 
-            private static bool IsTupleElementDeclaration(
+            private static bool IsTupleTypeElement(
                 SyntaxToken token, SemanticModel semanticModel, int position,
                 CancellationToken cancellationToken, out NameDeclarationInfo result)
             {
@@ -80,10 +80,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 return result.Type != null;
             }
 
-            private static bool IsTupleExpressionDeclaration(
+            private static bool IsTupleLiteralElement(
                 SyntaxToken token, SemanticModel semanticModel, int position,
                 CancellationToken cancellationToken, out NameDeclarationInfo result)
             {
+                // Incomplete code like
+                // void Do()
+                // {
+                //    (System.Array array, System.Action $$ 
+                // gets parsed as a tuple expression. We can figure out the type in such cases.
+                // For a legit tuple expression we can't provide any completion.
                 if (token.GetAncestor(node => node.IsKind(SyntaxKind.TupleExpression)) != null)
                 {
                     result = IsFollowingTypeOrComma<ArgumentSyntax>(
