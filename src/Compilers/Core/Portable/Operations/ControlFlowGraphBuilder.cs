@@ -5320,8 +5320,7 @@ oneMoreTime:
             else
             {
                 Debug.Assert(operation.EventReference != null);
-                Debug.Assert(operation.EventReference.Kind == OperationKind.Invalid);
-
+                
                 _evalStack.Push(Visit(operation.EventReference));
                 visitedHandler = Visit(operation.HandlerValue);
                 visitedEventReference = _evalStack.Pop();
