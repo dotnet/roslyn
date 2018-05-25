@@ -4611,8 +4611,8 @@ catch (System.Exception e) 블록 뒤의 catch() 블록은 RuntimeCompatibilityA
         <note />
       </trans-unit>
       <trans-unit id="ERR_CantConvAnonMethParams">
-        <source>Cannot convert {0} to delegate type '{1}' because the parameter types do not match the delegate parameter types</source>
-        <target state="translated">매개 변수 형식이 대리자 매개 변수 형식과 일치하지 않으므로 {0}을(를) 대리자 형식 '{1}'(으)로 변환할 수 없습니다.</target>
+        <source>Cannot convert {0} to type '{1}' because the parameter types do not match the delegate parameter types</source>
+        <target state="needs-review-translation">매개 변수 형식이 대리자 매개 변수 형식과 일치하지 않으므로 {0}을(를) 대리자 형식 '{1}'(으)로 변환할 수 없습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CantConvAnonMethReturns">
