@@ -42,7 +42,7 @@ To regenerate the jobs do the following:
 - Navigate to the Roslyn folder in Jenkins: https://ci.dot.net/job/dotnet_roslyn/
 - Click on the feature folder. Example https://ci.dot.net/job/dotnet_roslyn/job/features_mono
 - Click on the generator job link 
-- Click the "Build with Parameters" link
+- Click the "Build with Parameters" link (that link only appears if you are logged in)
 - Click the "Build" button
 
 Once that job completes new PRs into dotnet/roslyn will reflect the changes to the netci.groovy script.

@@ -4,7 +4,7 @@
     <body>
       <trans-unit id="cmdidCSharpInteractiveToolWindow|ButtonText">
         <source>C# Interactive</source>
-        <target state="new">C# Interactive</target>
+        <target state="translated">Интерактивный C#</target>
         <note />
       </trans-unit>
     </body>

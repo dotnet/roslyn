@@ -16,14 +16,14 @@
       $commitPathMessage$
     </description>
     <dependencies>
-      <dependency id="Microsoft.CodeAnalysis.Remote.Workspaces" version="$version$" />
+      <dependency id="Microsoft.CodeAnalysis.Remote.Workspaces" version="[$version$]" />
     </dependencies>
 
     <language>en-US</language>
     <requireLicenseAcceptance>true</requireLicenseAcceptance>
     <version>$version$</version>
     <authors>$authors$</authors>
-    <licenseUrl>$licenseUrl$</licenseUrl>
+    <licenseUrl>$licenseUrlNonRedist$</licenseUrl>
     <projectUrl>$projectUrl$</projectUrl>
     <releaseNotes>$releaseNotes$</releaseNotes>
     <tags>$tags$</tags>
@@ -32,5 +32,8 @@
     <file src="Dlls\RazorServiceHub\Microsoft.CodeAnalysis.Remote.Razor.ServiceHub.dll" target="lib\net46" />
     <file src="Dlls\RazorServiceHub\Microsoft.CodeAnalysis.Remote.Razor.ServiceHub.xml" target="lib\net46" />
     <file src="$thirdPartyNoticesPath$" target="" />
+
+    <!-- Satellite assemblies -->
+    <file src="Dlls\RazorServiceHub\**\Microsoft.CodeAnalysis.Remote.Razor.ServiceHub.resources.dll" target="lib\net46" />
   </files>
 </package>

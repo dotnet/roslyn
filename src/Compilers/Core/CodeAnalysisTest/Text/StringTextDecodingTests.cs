@@ -48,7 +48,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             }
         }
 
-        [Fact]
+        [ConditionalFact(typeof(DesktopOnly))]
         public void ShiftJisGetEncoding()
         {
             var sjis = Encoding.GetEncoding(932);
@@ -58,7 +58,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             Assert.Equal(sjis.GetString(TestResources.General.ShiftJisSource), data.ToString());
         }
 
-        [Fact]
+        [ConditionalFact(typeof(DesktopOnly))]
         public void ShiftJisFile()
         {
             var sjis = Encoding.GetEncoding(932);
@@ -323,7 +323,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             }
         }
 
-        [ConditionalFact(typeof(IsEnglishLocal))]
+        [ConditionalFact(typeof(HasEnglishDefaultEncoding))]
         [WorkItem(2081, "https://github.com/dotnet/roslyn/issues/2081")]
         [WorkItem(5663, "https://github.com/dotnet/roslyn/issues/5663")]
         public void HorizontalEllipsis()

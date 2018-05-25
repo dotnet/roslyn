@@ -6,6 +6,7 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.UseIsNullCheck;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -216,6 +217,86 @@ class C
             return;
     }
 }");
+        }
+
+        [WorkItem(23581, "https://github.com/dotnet/roslyn/issues/23581")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseIsNullCheck)]
+        public async Task TestValueParameterTypeIsUnconstrainedGeneric()
+        {
+            await TestInRegularAndScriptAsync(
+@"
+class C
+{
+    public static void NotNull<T>(T value)
+    {
+        if ([||]ReferenceEquals(value, null))
+        {
+            return;
+        }
+    }
+}
+", @"
+class C
+{
+    public static void NotNull<T>(T value)
+    {
+        if (value == null)
+        {
+            return;
+        }
+    }
+}
+");
+        }
+
+        [WorkItem(23581, "https://github.com/dotnet/roslyn/issues/23581")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseIsNullCheck)]
+        public async Task TestValueParameterTypeIsRefConstraintGeneric()
+        {
+            await TestInRegularAndScriptAsync(
+@"
+class C
+{
+    public static void NotNull<T>(T value) where T:class
+    {
+        if ([||]ReferenceEquals(value, null))
+        {
+            return;
+        }
+    }
+}
+",
+@"
+class C
+{
+    public static void NotNull<T>(T value) where T:class
+    {
+        if (value is null)
+        {
+            return;
+        }
+    }
+}
+");
+        }
+
+        [WorkItem(23581, "https://github.com/dotnet/roslyn/issues/23581")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseIsNullCheck)]
+        public async Task TestValueParameterTypeIsValueConstraintGeneric()
+        {
+            await TestMissingAsync(
+@"
+class C
+{
+    public static void NotNull<T>(T value) where T:struct
+    {
+        if ([||]ReferenceEquals(value, null))
+        {
+            return;
+        }
+    }
+}
+");
         }
     }
 }

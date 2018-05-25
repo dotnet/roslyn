@@ -1422,7 +1422,7 @@ class Query
        Console.WriteLine(r1);
     }
 }";
-            var compilation = CreateStandardCompilation(csSource);
+            var compilation = CreateCompilation(csSource);
             compilation.VerifyDiagnostics();
             var tree = compilation.SyntaxTrees[0];
             var model = compilation.GetSemanticModel(tree);
@@ -1626,7 +1626,7 @@ class Query
        Console.WriteLine(r1);
     }
 }";
-            var compilation = CreateStandardCompilation(csSource, new[] { LinqAssemblyRef });
+            var compilation = CreateCompilation(csSource, new[] { LinqAssemblyRef });
             foreach (var dd in compilation.GetDiagnostics()) Console.WriteLine(dd);
             compilation.VerifyDiagnostics();
             var tree = compilation.SyntaxTrees[0];
@@ -1687,7 +1687,7 @@ class Query
        Console.WriteLine(r1);
     }
 }";
-            var compilation = CreateStandardCompilation(csSource);
+            var compilation = CreateCompilation(csSource);
             compilation.VerifyDiagnostics();
             var tree = compilation.SyntaxTrees[0];
             var model = compilation.GetSemanticModel(tree);
@@ -1725,7 +1725,7 @@ class Query
         Console.WriteLine(r);
     }
 }";
-            var compilation = CreateStandardCompilation(csSource);
+            var compilation = CreateCompilation(csSource);
             compilation.VerifyDiagnostics();
             var tree = compilation.SyntaxTrees[0];
             var model = compilation.GetSemanticModel(tree);
@@ -1902,7 +1902,7 @@ class Program
     }
 }";
 
-            CompileAndVerify(csSource, additionalRefs: new[] { LinqAssemblyRef }, expectedOutput: "3 3 4 4");
+            CompileAndVerify(csSource, references: new[] { LinqAssemblyRef }, expectedOutput: "3 3 4 4");
         }
 
         [WorkItem(541782, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541782")]
@@ -1929,7 +1929,7 @@ class Program
         System.Console.Write(serializer.Trim());
     }
 }";
-            CompileAndVerify(csSource, additionalRefs: new[] { LinqAssemblyRef }, expectedOutput: "3 4");
+            CompileAndVerify(csSource, references: new[] { LinqAssemblyRef }, expectedOutput: "3 4");
         }
 
 
@@ -1959,7 +1959,7 @@ class Program
     }
 }";
 
-            CompileAndVerify(csSource, additionalRefs: new[] { LinqAssemblyRef }, expectedOutput: "1 2 3");
+            CompileAndVerify(csSource, references: new[] { LinqAssemblyRef }, expectedOutput: "1 2 3");
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
@@ -2093,7 +2093,7 @@ class Program
     }
 }";
 
-            CompileAndVerify(csSource, additionalRefs: new[] { LinqAssemblyRef }, expectedOutput: "3 4");
+            CompileAndVerify(csSource, references: new[] { LinqAssemblyRef }, expectedOutput: "3 4");
         }
 
         [WorkItem(541942, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541942")]
@@ -2124,7 +2124,7 @@ class P
     }
 }";
 
-            CompileAndVerify(csSource, additionalRefs: new[] { LinqAssemblyRef }, expectedOutput: "45");
+            CompileAndVerify(csSource, references: new[] { LinqAssemblyRef }, expectedOutput: "45");
         }
 
         [Fact]
@@ -2143,7 +2143,7 @@ public class Test2
                  select x;
     }
 }";
-            var compilation = CreateCompilationWithMscorlibAndSystemCore(sourceCode);
+            var compilation = CreateCompilationWithMscorlib40AndSystemCore(sourceCode);
             var tree = compilation.SyntaxTrees[0];
             var semanticModel = compilation.GetSemanticModel(tree);
 
@@ -2173,7 +2173,7 @@ public class Test2
                  select w;
     }
 }";
-            var compilation = CreateCompilationWithMscorlibAndSystemCore(sourceCode);
+            var compilation = CreateCompilationWithMscorlib40AndSystemCore(sourceCode);
             var tree = compilation.SyntaxTrees[0];
             var semanticModel = compilation.GetSemanticModel(tree);
 
@@ -2199,7 +2199,7 @@ public class Test2
                  select w+1;
     }
 }";
-            var compilation = CreateCompilationWithMscorlibAndSystemCore(sourceCode);
+            var compilation = CreateCompilationWithMscorlib40AndSystemCore(sourceCode);
             var tree = compilation.SyntaxTrees[0];
             compilation.VerifyDiagnostics();
             var semanticModel = compilation.GetSemanticModel(tree);
@@ -2238,7 +2238,7 @@ public class Test2
                  select w;
     }
 }";
-            var compilation = CreateCompilationWithMscorlibAndSystemCore(sourceCode);
+            var compilation = CreateCompilationWithMscorlib40AndSystemCore(sourceCode);
             var tree = compilation.SyntaxTrees[0];
             var semanticModel = compilation.GetSemanticModel(tree);
 
@@ -2266,7 +2266,7 @@ public class Test2
                  select 5;
     }
 }";
-            var compilation = CreateCompilationWithMscorlibAndSystemCore(sourceCode);
+            var compilation = CreateCompilationWithMscorlib40AndSystemCore(sourceCode);
             var tree = compilation.SyntaxTrees[0];
             var semanticModel = compilation.GetSemanticModel(tree);
             var selectExpression = tree.GetCompilationUnitRoot().FindToken(sourceCode.IndexOf('5'));
@@ -2291,7 +2291,7 @@ static class Test
                       select x8;
     }
 }";
-            var compilation = CreateCompilationWithMscorlibAndSystemCore(sourceCode);
+            var compilation = CreateCompilationWithMscorlib40AndSystemCore(sourceCode);
             var tree = compilation.SyntaxTrees[0];
             var semanticModel = compilation.GetSemanticModel(tree);
 
@@ -2323,7 +2323,7 @@ public class QueryExpressionTest
         var query2 = from int
     }
 }";
-            var compilation = CreateCompilationWithMscorlibAndSystemCore(sourceCode);
+            var compilation = CreateCompilationWithMscorlib40AndSystemCore(sourceCode);
             var tree = compilation.SyntaxTrees[0];
             var semanticModel = compilation.GetSemanticModel(tree);
 
@@ -2350,7 +2350,7 @@ class Test
                  select num1;
     }
 }";
-            var compilation = CreateCompilationWithMscorlibAndSystemCore(sourceCode);
+            var compilation = CreateCompilationWithMscorlib40AndSystemCore(sourceCode);
             var tree = compilation.SyntaxTrees[0];
             var semanticModel = compilation.GetSemanticModel(tree);
 
@@ -2394,7 +2394,7 @@ public class QueryExpressionTest
             select x;
     }
 }";
-            var compilation = CreateCompilationWithMscorlibAndSystemCore(sourceCode);
+            var compilation = CreateCompilationWithMscorlib40AndSystemCore(sourceCode);
             var tree = compilation.SyntaxTrees[0];
             var model = compilation.GetSemanticModel(tree);
             int count = 0;
@@ -2450,7 +2450,7 @@ class Program
                  select num;
     }
 }";
-            var compilation = CreateCompilationWithMscorlibAndSystemCore(sourceCode);
+            var compilation = CreateCompilationWithMscorlib40AndSystemCore(sourceCode);
             var tree = compilation.SyntaxTrees[0];
             var semanticModel = compilation.GetSemanticModel(tree);
 
@@ -2488,7 +2488,7 @@ class Program
                  select num;
     }
 }";
-            var compilation = CreateCompilationWithMscorlibAndSystemCore(sourceCode);
+            var compilation = CreateCompilationWithMscorlib40AndSystemCore(sourceCode);
             var tree = compilation.SyntaxTrees[0];
             var semanticModel = compilation.GetSemanticModel(tree);
 
@@ -2514,7 +2514,7 @@ class Program
                  select x1 + 5;
     }
 }";
-            var compilation = CreateCompilationWithMscorlibAndSystemCore(sourceCode);
+            var compilation = CreateCompilationWithMscorlib40AndSystemCore(sourceCode);
             var tree = compilation.SyntaxTrees[0];
             var semanticModel = compilation.GetSemanticModel(tree);
 
@@ -2544,7 +2544,7 @@ class Program
     }
 }";
 
-            var compilation = CreateCompilationWithMscorlibAndSystemCore(sourceCode);
+            var compilation = CreateCompilationWithMscorlib40AndSystemCore(sourceCode);
             compilation.VerifyDiagnostics(
                 // (10,30): error CS1936: Could not find an implementation of the query pattern for source type 'int'.  'OrderBy' not found.
                 //         var q1 = from num in numbers.Single()
@@ -2577,7 +2577,7 @@ class Program
 ";
             using (var output = new MemoryStream())
             {
-                Assert.False(CreateCompilationWithMscorlibAndSystemCore(sourceCode).Emit(output).Success);
+                Assert.False(CreateCompilationWithMscorlib40AndSystemCore(sourceCode).Emit(output).Success);
             }
         }
 
@@ -2599,7 +2599,7 @@ class Program
 }";
             using (var output = new MemoryStream())
             {
-                Assert.False(CreateCompilationWithMscorlibAndSystemCore(sourceCode).Emit(output).Success);
+                Assert.False(CreateCompilationWithMscorlib40AndSystemCore(sourceCode).Emit(output).Success);
             }
         }
 
@@ -2629,7 +2629,7 @@ class C<T>
 {
     public C<V> SelectMany";
 
-            var compilation = CreateCompilationWithMscorlibAndSystemCore(sourceCode);
+            var compilation = CreateCompilationWithMscorlib40AndSystemCore(sourceCode);
             var tree = compilation.SyntaxTrees[0];
             var semanticModel = compilation.GetSemanticModel(tree);
 
@@ -2657,7 +2657,7 @@ class Program
     }
 }";
 
-            var compilation = CreateCompilationWithMscorlibAndSystemCore(sourceCode);
+            var compilation = CreateCompilationWithMscorlib40AndSystemCore(sourceCode);
             var tree = compilation.SyntaxTrees[0];
             var semanticModel = compilation.GetSemanticModel(tree);
             var diags = semanticModel.GetDiagnostics();
@@ -2683,7 +2683,7 @@ public class QueryExpressionTest
     }
 }";
 
-            var compilation = CreateCompilationWithMscorlibAndSystemCore(sourceCode, parseOptions: TestOptions.Script);
+            var compilation = CreateCompilationWithMscorlib40AndSystemCore(sourceCode, parseOptions: TestOptions.Script);
             var tree = compilation.SyntaxTrees[0];
             var semanticModel = compilation.GetSemanticModel(tree);
             var queryExpr = tree.GetCompilationUnitRoot().DescendantNodes().OfType<QueryExpressionSyntax>().Where(x => x.ToFullString() == "from i in expr1 let ").Single();
@@ -2709,7 +2709,7 @@ class P
                select x + one;
 }";
 
-            var compilation = CreateCompilationWithMscorlibAndSystemCore(sourceCode, parseOptions: TestOptions.Script);
+            var compilation = CreateCompilationWithMscorlib40AndSystemCore(sourceCode, parseOptions: TestOptions.Script);
             var tree = compilation.SyntaxTrees[0];
             var semanticModel = compilation.GetSemanticModel(tree);
             var queryExpr = tree.GetCompilationUnitRoot().DescendantNodes().OfType<QueryExpressionSyntax>().Single();
@@ -2736,7 +2736,16 @@ class C
     }
 }
 ";
-            string expectedOperationTree = @"
+            var expectedDiagnostics = new DiagnosticDescription[] {
+                // CS0718: 'GC': static types cannot be used as type arguments
+                //         var q2 = string.Empty.Cast<GC>().Select(x => x);
+                Diagnostic(ErrorCode.ERR_GenericArgIsStaticClass, "string.Empty.Cast<GC>").WithArguments("System.GC").WithLocation(9, 18),
+                // CS0718: 'GC': static types cannot be used as type arguments
+                //         var q1 = /*<bind>*/from GC x in string.Empty select x/*</bind>*/;
+                Diagnostic(ErrorCode.ERR_GenericArgIsStaticClass, "from GC x in string.Empty").WithArguments("System.GC").WithLocation(10, 28)
+            };
+
+            VerifyOperationTreeAndDiagnosticsForTest<QueryExpressionSyntax>(source, @"
 ITranslatedQueryOperation (OperationKind.TranslatedQuery, Type: ?, IsInvalid) (Syntax: 'from GC x i ... ty select x')
   Expression: 
     IInvalidOperation (OperationKind.Invalid, Type: ?, IsImplicit) (Syntax: 'select x')
@@ -2759,17 +2768,37 @@ ITranslatedQueryOperation (OperationKind.TranslatedQuery, Type: ?, IsInvalid) (S
               IReturnOperation (OperationKind.Return, Type: null, IsImplicit) (Syntax: 'x')
                 ReturnedValue: 
                   IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: System.GC) (Syntax: 'x')
-";
-            var expectedDiagnostics = new DiagnosticDescription[] {
+", new DiagnosticDescription[] {
                 // CS0718: 'GC': static types cannot be used as type arguments
                 //         var q2 = string.Empty.Cast<GC>().Select(x => x);
                 Diagnostic(ErrorCode.ERR_GenericArgIsStaticClass, "string.Empty.Cast<GC>").WithArguments("System.GC").WithLocation(9, 18),
                 // CS0718: 'GC': static types cannot be used as type arguments
                 //         var q1 = /*<bind>*/from GC x in string.Empty select x/*</bind>*/;
                 Diagnostic(ErrorCode.ERR_GenericArgIsStaticClass, "from GC x in string.Empty").WithArguments("System.GC").WithLocation(10, 28)
-            };
-
-            VerifyOperationTreeAndDiagnosticsForTest<QueryExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
+            }, parseOptions: TestOptions.WithoutImprovedOverloadCandidates);
+            VerifyOperationTreeAndDiagnosticsForTest<QueryExpressionSyntax>(source, @"
+ITranslatedQueryOperation (OperationKind.TranslatedQuery, Type: ?, IsInvalid) (Syntax: 'from GC x i ... ty select x')
+  Expression: 
+    IInvalidOperation (OperationKind.Invalid, Type: ?, IsImplicit) (Syntax: 'select x')
+      Children(2):
+          IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid, IsImplicit) (Syntax: 'from GC x i ... tring.Empty')
+            Children(1):
+                IFieldReferenceOperation: System.String System.String.Empty (Static) (OperationKind.FieldReference, Type: System.String, IsInvalid) (Syntax: 'string.Empty')
+                  Instance Receiver: 
+                    null
+          IAnonymousFunctionOperation (Symbol: lambda expression) (OperationKind.AnonymousFunction, Type: null, IsImplicit) (Syntax: 'x')
+            IBlockOperation (1 statements) (OperationKind.Block, Type: null, IsImplicit) (Syntax: 'x')
+              IReturnOperation (OperationKind.Return, Type: null, IsImplicit) (Syntax: 'x')
+                ReturnedValue: 
+                  IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: ?) (Syntax: 'x')
+", new DiagnosticDescription[] {
+                // file.cs(9,18): error CS1929: 'string' does not contain a definition for 'Cast' and the best extension method overload 'Queryable.Cast<GC>(IQueryable)' requires a receiver of type 'IQueryable'
+                //         var q2 = string.Empty.Cast<GC>().Select(x => x);
+                Diagnostic(ErrorCode.ERR_BadInstanceArgType, "string.Empty").WithArguments("string", "Cast", "System.Linq.Queryable.Cast<System.GC>(System.Linq.IQueryable)", "System.Linq.IQueryable").WithLocation(9, 18),
+                // file.cs(10,41): error CS1929: 'string' does not contain a definition for 'Cast' and the best extension method overload 'Queryable.Cast<GC>(IQueryable)' requires a receiver of type 'IQueryable'
+                //         var q1 = /*<bind>*/from GC x in string.Empty select x/*</bind>*/;
+                Diagnostic(ErrorCode.ERR_BadInstanceArgType, "string.Empty").WithArguments("string", "Cast", "System.Linq.Queryable.Cast<System.GC>(System.Linq.IQueryable)", "System.Linq.IQueryable").WithLocation(10, 41)
+            });
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
@@ -2834,7 +2863,7 @@ class C
 
     static IEnumerable<T> Select<T>(Func<int, T> f) { return null; }
 }";
-            var compilation = CreateCompilationWithMscorlibAndSystemCore(sourceCode);
+            var compilation = CreateCompilationWithMscorlib40AndSystemCore(sourceCode);
             compilation.VerifyDiagnostics();
             var tree = compilation.SyntaxTrees[0];
             var model = compilation.GetSemanticModel(tree);
@@ -2867,7 +2896,7 @@ class C
 
     static Func<Func<int, object>, IEnumerable<object>> Select = null;
 }";
-            var compilation = CreateCompilationWithMscorlibAndSystemCore(sourceCode);
+            var compilation = CreateCompilationWithMscorlib40AndSystemCore(sourceCode);
             compilation.VerifyDiagnostics();
             var tree = compilation.SyntaxTrees[0];
             var model = compilation.GetSemanticModel(tree);
@@ -2912,7 +2941,7 @@ class Program
         var q2 = from x in Flavor select x;
     }
 }";
-            var compilation = CreateCompilationWithMscorlibAndSystemCore(sourceCode);
+            var compilation = CreateCompilationWithMscorlib40AndSystemCore(sourceCode);
             compilation.VerifyDiagnostics(
                 // (17,11): warning CS0169: The field 'Program.Color' is never used
                 //     Color Color;
@@ -2955,7 +2984,7 @@ class Test
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlibAndSystemCore(source);
+            var compilation = CreateCompilationWithMscorlib40AndSystemCore(source);
             compilation.VerifyDiagnostics();
         }
 
@@ -3024,7 +3053,7 @@ public class QueryExpressionTest
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlibAndSystemCore(source);
+            var compilation = CreateCompilationWithMscorlib40AndSystemCore(source);
             Assert.NotEmpty(compilation.GetDiagnostics());
         }
 
@@ -3047,7 +3076,7 @@ class Test
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlibAndSystemCore(source);
+            var compilation = CreateCompilationWithMscorlib40AndSystemCore(source);
             var tree = compilation.SyntaxTrees.First();
             var index = source.IndexOf("select i", StringComparison.Ordinal);
             var selectNode = tree.GetCompilationUnitRoot().FindToken(index).Parent as SelectClauseSyntax;
@@ -3074,7 +3103,7 @@ class Test
 	}
 }
 ";
-            var compilation = CreateCompilationWithMscorlibAndSystemCore(source);
+            var compilation = CreateCompilationWithMscorlib40AndSystemCore(source);
             var tree = compilation.SyntaxTrees.First();
             var index = source.IndexOf("join int delegate in expr2 on i equals delegate", StringComparison.Ordinal);
             var joinNode = tree.GetCompilationUnitRoot().FindToken(index).Parent as JoinClauseSyntax;
@@ -3202,7 +3231,7 @@ class Test
        Expression<Func<int, int, int>> F = (x, y) => ref1.M(x, y);
    }
 }";
-            var compilation = CreateCompilationWithMscorlibAndSystemCore(source);
+            var compilation = CreateCompilationWithMscorlib40AndSystemCore(source);
             compilation.VerifyDiagnostics(
                 // (22,54): error CS2037: An expression tree lambda may not contain a COM call with ref omitted on arguments
                 //        Expression<Func<int, int, int>> F = (x, y) => ref1.M(x, y);
@@ -3249,7 +3278,7 @@ class Test1
         Test(ref1 => ref1.M(1, ));
     }
 }";
-            var compilation = CreateCompilationWithMscorlibAndSystemCore(source);
+            var compilation = CreateCompilationWithMscorlib40AndSystemCore(source);
             compilation.VerifyDiagnostics(
     // (34,32): error CS1525: Invalid expression term ')'
     //         Test(ref1 => ref1.M(1, ));
@@ -3279,7 +3308,7 @@ class A
                  select t;
     }
 }";
-            var compilation = CreateCompilationWithMscorlibAndSystemCore(source);
+            var compilation = CreateCompilationWithMscorlib40AndSystemCore(source);
             compilation.VerifyDiagnostics(
                 // (10,48): error CS1061: 'System.Reflection.Assembly' does not contain a definition for 'UNDEFINED' and no extension method 'UNDEFINED' accepting a first argument of type 'System.Reflection.Assembly' could be found (are you missing a using directive or an assembly reference?)
                 //         var q2 = a.SelectMany(assem2 => assem2.UNDEFINED, (assem2, t) => t);
@@ -3331,7 +3360,7 @@ class Query
 ";
             var queryStatement = (LocalDeclarationStatementSyntax)SyntaxFactory.ParseStatement(speculatedSource);
 
-            var compilation = CreateStandardCompilation(csSource);
+            var compilation = CreateCompilation(csSource);
             compilation.VerifyDiagnostics();
             var tree = compilation.SyntaxTrees[0];
             var model = compilation.GetSemanticModel(tree);
@@ -3375,7 +3404,7 @@ class Query
 
             var queryStatement = (LocalDeclarationStatementSyntax)SyntaxFactory.ParseStatement(speculatedSource);
 
-            var compilation = CreateStandardCompilation(csSource);
+            var compilation = CreateCompilation(csSource);
             compilation.VerifyDiagnostics();
             var tree = compilation.SyntaxTrees[0];
             var model = compilation.GetSemanticModel(tree);
@@ -3422,7 +3451,7 @@ public class Test
 
             var queryStatement = SyntaxFactory.ParseStatement(speculatedSource);
 
-            var compilation = CreateCompilationWithMscorlibAndSystemCore(sourceCode);
+            var compilation = CreateCompilationWithMscorlib40AndSystemCore(sourceCode);
             compilation.VerifyDiagnostics();
             var tree = compilation.SyntaxTrees[0];
             var model = compilation.GetSemanticModel(tree);
@@ -3461,7 +3490,7 @@ public class Test2
 
             var queryStatement = SyntaxFactory.ParseStatement(speculatedSource);
 
-            var compilation = CreateCompilationWithMscorlibAndSystemCore(sourceCode);
+            var compilation = CreateCompilationWithMscorlib40AndSystemCore(sourceCode);
             compilation.VerifyDiagnostics();
             var tree = compilation.SyntaxTrees[0];
             var model = compilation.GetSemanticModel(tree);
@@ -3505,7 +3534,7 @@ public class QueryExpressionTest
 
             var queryStatement = SyntaxFactory.ParseStatement(speculatedSource);
 
-            var compilation = CreateCompilationWithMscorlibAndSystemCore(sourceCode);
+            var compilation = CreateCompilationWithMscorlib40AndSystemCore(sourceCode);
             compilation.VerifyDiagnostics(
                 // (2,1): info CS8019: Unnecessary using directive.
                 // using System.Linq; // Needed for speculative code.
@@ -3678,7 +3707,7 @@ public static class TestExtensions
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlibAndSystemCore(sourceCode);
+            var compilation = CreateCompilationWithMscorlib40AndSystemCore(sourceCode);
                 
             compilation.VerifyDiagnostics(
                 // (6,34): error CS1936: Could not find an implementation of the query pattern for source type 'Test'.  'Select' not found.
@@ -3717,15 +3746,15 @@ static class TestExtensions
         return null;
     }
 }";
-            var compilation = CreateCompilationWithMscorlibAndSystemCore(sourceCode);
+            var compilation = CreateCompilationWithMscorlib40AndSystemCore(sourceCode);
 
             compilation.VerifyDiagnostics(
                 // (7,34): error CS1936: Could not find an implementation of the query pattern for source type 'Test'.  'Where' not found.
                 //         var x02 = from a in Test where a > 0 select a + 1;
                 Diagnostic(ErrorCode.ERR_QueryNoProvider, "where a > 0").WithArguments("Test", "Where").WithLocation(7, 34),
-                // (7,46): error CS0176: Member 'Test.Select<int>(Func<int, int>)' cannot be accessed with an instance reference; qualify it with a type name instead
+                // (7,46): error CS1936: Could not find an implementation of the query pattern for source type 'Test'.  'Select' not found.
                 //         var x02 = from a in Test where a > 0 select a + 1;
-                Diagnostic(ErrorCode.ERR_ObjectProhibited, "select a + 1").WithArguments("Test.Select<int>(System.Func<int, int>)").WithLocation(7, 46)
+                Diagnostic(ErrorCode.ERR_QueryNoProvider, "select a + 1").WithArguments("Test", "Select").WithLocation(7, 46)
                 );
         }
         
@@ -3760,7 +3789,7 @@ static class TestExtensions
         return null;
     }
 }";
-            var compilation = CreateCompilationWithMscorlibAndSystemCore(sourceCode);
+            var compilation = CreateCompilationWithMscorlib40AndSystemCore(sourceCode);
 
             compilation.VerifyDiagnostics(
                 // (6,34): error CS1936: Could not find an implementation of the query pattern for source type 'Test'.  'Select' not found.
@@ -3794,7 +3823,7 @@ class Test
         return null;
     }
 }";
-            var compilation = CreateCompilationWithMscorlibAndSystemCore(sourceCode, options: TestOptions.DebugExe);
+            var compilation = CreateCompilationWithMscorlib40AndSystemCore(sourceCode, options: TestOptions.DebugExe);
 
             CompileAndVerify(compilation, expectedOutput: "Select");
         }
@@ -3828,44 +3857,46 @@ class Program
     }
     public static T M<T>(T x, out T z) => z = x;
 }";
-            CreateCompilationWithMscorlibAndSystemCore(csSource).VerifyDiagnostics(
-                // (10,53): error CS8201: Out variable and pattern variable declarations are not allowed within a query clause.
+            CreateCompilationWithMscorlib40AndSystemCore(csSource, parseOptions: TestOptions.Regular7_2).VerifyDiagnostics(
+                // (10,53): error CS8320: Feature 'declaration of expression variables in member initializers and queries' is not available in C# 7.2. Please use language version 7.3 or greater.
                 //         var zc = from x in a from y in M(a, out var z) select x; // error 1
-                Diagnostic(ErrorCode.ERR_ExpressionVariableInQueryClause, "z").WithLocation(10, 53),
-                // (11,57): error CS8201: Out variable and pattern variable declarations are not allowed within a query clause.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_2, "z").WithArguments("declaration of expression variables in member initializers and queries", "7.3").WithLocation(10, 53),
+                // (11,57): error CS8320: Feature 'declaration of expression variables in member initializers and queries' is not available in C# 7.2. Please use language version 7.3 or greater.
                 //         var zd = from x in a from int y in M(a, out var z) select x; // error 2
-                Diagnostic(ErrorCode.ERR_ExpressionVariableInQueryClause, "z").WithLocation(11, 57),
-                // (12,53): error CS8201: Out variable and pattern variable declarations are not allowed within a query clause.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_2, "z").WithArguments("declaration of expression variables in member initializers and queries", "7.3").WithLocation(11, 57),
+                // (12,53): error CS8320: Feature 'declaration of expression variables in member initializers and queries' is not available in C# 7.2. Please use language version 7.3 or greater.
                 //         var ze = from x in a from y in M(a, out var z) where true select x; // error 3
-                Diagnostic(ErrorCode.ERR_ExpressionVariableInQueryClause, "z").WithLocation(12, 53),
-                // (13,57): error CS8201: Out variable and pattern variable declarations are not allowed within a query clause.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_2, "z").WithArguments("declaration of expression variables in member initializers and queries", "7.3").WithLocation(12, 53),
+                // (13,57): error CS8320: Feature 'declaration of expression variables in member initializers and queries' is not available in C# 7.2. Please use language version 7.3 or greater.
                 //         var zf = from x in a from int y in M(a, out var z) where true select x; // error 4
-                Diagnostic(ErrorCode.ERR_ExpressionVariableInQueryClause, "z").WithLocation(13, 57),
-                // (14,51): error CS8201: Out variable and pattern variable declarations are not allowed within a query clause.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_2, "z").WithArguments("declaration of expression variables in member initializers and queries", "7.3").WithLocation(13, 57),
+                // (14,51): error CS8320: Feature 'declaration of expression variables in member initializers and queries' is not available in C# 7.2. Please use language version 7.3 or greater.
                 //         var zg = from x in a let y = M(a, out var z) select x; // error 5
-                Diagnostic(ErrorCode.ERR_ExpressionVariableInQueryClause, "z").WithLocation(14, 51),
-                // (15,49): error CS8201: Out variable and pattern variable declarations are not allowed within a query clause.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_2, "z").WithArguments("declaration of expression variables in member initializers and queries", "7.3").WithLocation(14, 51),
+                // (15,49): error CS8320: Feature 'declaration of expression variables in member initializers and queries' is not available in C# 7.2. Please use language version 7.3 or greater.
                 //         var zh = from x in a where M(x, out var z) == 1 select x; // error 6
-                Diagnostic(ErrorCode.ERR_ExpressionVariableInQueryClause, "z").WithLocation(15, 49),
-                // (17,58): error CS8201: Out variable and pattern variable declarations are not allowed within a query clause.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_2, "z").WithArguments("declaration of expression variables in member initializers and queries", "7.3").WithLocation(15, 49),
+                // (17,58): error CS8320: Feature 'declaration of expression variables in member initializers and queries' is not available in C# 7.2. Please use language version 7.3 or greater.
                 //         var zj = from x in a join y in a on M(x, out var z) equals y select x; // error 7
-                Diagnostic(ErrorCode.ERR_ExpressionVariableInQueryClause, "z").WithLocation(17, 58),
-                // (18,67): error CS8201: Out variable and pattern variable declarations are not allowed within a query clause.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_2, "z").WithArguments("declaration of expression variables in member initializers and queries", "7.3").WithLocation(17, 58),
+                // (18,67): error CS8320: Feature 'declaration of expression variables in member initializers and queries' is not available in C# 7.2. Please use language version 7.3 or greater.
                 //         var zk = from x in a join y in a on x equals M(y, out var z) select x; // error 8
-                Diagnostic(ErrorCode.ERR_ExpressionVariableInQueryClause, "z").WithLocation(18, 67),
-                // (19,51): error CS8201: Out variable and pattern variable declarations are not allowed within a query clause.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_2, "z").WithArguments("declaration of expression variables in member initializers and queries", "7.3").WithLocation(18, 67),
+                // (19,51): error CS8320: Feature 'declaration of expression variables in member initializers and queries' is not available in C# 7.2. Please use language version 7.3 or greater.
                 //         var zl = from x in a orderby M(x, out var z) select x; // error 9
-                Diagnostic(ErrorCode.ERR_ExpressionVariableInQueryClause, "z").WithLocation(19, 51),
-                // (20,54): error CS8201: Out variable and pattern variable declarations are not allowed within a query clause.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_2, "z").WithArguments("declaration of expression variables in member initializers and queries", "7.3").WithLocation(19, 51),
+                // (20,54): error CS8320: Feature 'declaration of expression variables in member initializers and queries' is not available in C# 7.2. Please use language version 7.3 or greater.
                 //         var zm = from x in a orderby x, M(x, out var z) select x; // error 10
-                Diagnostic(ErrorCode.ERR_ExpressionVariableInQueryClause, "z").WithLocation(20, 54),
-                // (21,49): error CS8201: Out variable and pattern variable declarations are not allowed within a query clause.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_2, "z").WithArguments("declaration of expression variables in member initializers and queries", "7.3").WithLocation(20, 54),
+                // (21,49): error CS8320: Feature 'declaration of expression variables in member initializers and queries' is not available in C# 7.2. Please use language version 7.3 or greater.
                 //         var zn = from x in a group M(x, out var z) by x; // error 11
-                Diagnostic(ErrorCode.ERR_ExpressionVariableInQueryClause, "z").WithLocation(21, 49),
-                // (22,54): error CS8201: Out variable and pattern variable declarations are not allowed within a query clause.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_2, "z").WithArguments("declaration of expression variables in member initializers and queries", "7.3").WithLocation(21, 49),
+                // (22,54): error CS8320: Feature 'declaration of expression variables in member initializers and queries' is not available in C# 7.2. Please use language version 7.3 or greater.
                 //         var zo = from x in a group x by M(x, out var z); // error 12
-                Diagnostic(ErrorCode.ERR_ExpressionVariableInQueryClause, "z").WithLocation(22, 54)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_2, "z").WithArguments("declaration of expression variables in member initializers and queries", "7.3").WithLocation(22, 54)
                 );
+
+            CreateCompilationWithMscorlib40AndSystemCore(csSource).VerifyDiagnostics();
         }
 
         [WorkItem(15910, "https://github.com/dotnet/roslyn/issues/15910")]
@@ -3897,44 +3928,46 @@ class Program
     }
     public static T M<T>(T x, bool b) => x;
 }";
-            CreateCompilationWithMscorlibAndSystemCore(csSource).VerifyDiagnostics(
-                // (10,54): error CS8201: Out variable and pattern variable declarations are not allowed within a query clause.
+            CreateCompilationWithMscorlib40AndSystemCore(csSource, parseOptions: TestOptions.Regular7_2).VerifyDiagnostics(
+                // (10,54): error CS8320: Feature 'declaration of expression variables in member initializers and queries' is not available in C# 7.2. Please use language version 7.3 or greater.
                 //         var zc = from x in a from y in M(a, a is var z) select x; // error 1
-                Diagnostic(ErrorCode.ERR_ExpressionVariableInQueryClause, "z").WithLocation(10, 54),
-                // (11,58): error CS8201: Out variable and pattern variable declarations are not allowed within a query clause.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_2, "z").WithArguments("declaration of expression variables in member initializers and queries", "7.3").WithLocation(10, 54),
+                // (11,58): error CS8320: Feature 'declaration of expression variables in member initializers and queries' is not available in C# 7.2. Please use language version 7.3 or greater.
                 //         var zd = from x in a from int y in M(a, a is var z) select x; // error 2
-                Diagnostic(ErrorCode.ERR_ExpressionVariableInQueryClause, "z").WithLocation(11, 58),
-                // (12,54): error CS8201: Out variable and pattern variable declarations are not allowed within a query clause.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_2, "z").WithArguments("declaration of expression variables in member initializers and queries", "7.3").WithLocation(11, 58),
+                // (12,54): error CS8320: Feature 'declaration of expression variables in member initializers and queries' is not available in C# 7.2. Please use language version 7.3 or greater.
                 //         var ze = from x in a from y in M(a, a is var z) where true select x; // error 3
-                Diagnostic(ErrorCode.ERR_ExpressionVariableInQueryClause, "z").WithLocation(12, 54),
-                // (13,58): error CS8201: Out variable and pattern variable declarations are not allowed within a query clause.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_2, "z").WithArguments("declaration of expression variables in member initializers and queries", "7.3").WithLocation(12, 54),
+                // (13,58): error CS8320: Feature 'declaration of expression variables in member initializers and queries' is not available in C# 7.2. Please use language version 7.3 or greater.
                 //         var zf = from x in a from int y in M(a, a is var z) where true select x; // error 4
-                Diagnostic(ErrorCode.ERR_ExpressionVariableInQueryClause, "z").WithLocation(13, 58),
-                // (14,52): error CS8201: Out variable and pattern variable declarations are not allowed within a query clause.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_2, "z").WithArguments("declaration of expression variables in member initializers and queries", "7.3").WithLocation(13, 58),
+                // (14,52): error CS8320: Feature 'declaration of expression variables in member initializers and queries' is not available in C# 7.2. Please use language version 7.3 or greater.
                 //         var zg = from x in a let y = M(a, a is var z) select x; // error 5
-                Diagnostic(ErrorCode.ERR_ExpressionVariableInQueryClause, "z").WithLocation(14, 52),
-                // (15,50): error CS8201: Out variable and pattern variable declarations are not allowed within a query clause.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_2, "z").WithArguments("declaration of expression variables in member initializers and queries", "7.3").WithLocation(14, 52),
+                // (15,50): error CS8320: Feature 'declaration of expression variables in member initializers and queries' is not available in C# 7.2. Please use language version 7.3 or greater.
                 //         var zh = from x in a where M(x, x is var z) == 1 select x; // error 6
-                Diagnostic(ErrorCode.ERR_ExpressionVariableInQueryClause, "z").WithLocation(15, 50),
-                // (17,59): error CS8201: Out variable and pattern variable declarations are not allowed within a query clause.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_2, "z").WithArguments("declaration of expression variables in member initializers and queries", "7.3").WithLocation(15, 50),
+                // (17,59): error CS8320: Feature 'declaration of expression variables in member initializers and queries' is not available in C# 7.2. Please use language version 7.3 or greater.
                 //         var zj = from x in a join y in a on M(x, x is var z) equals y select x; // error 7
-                Diagnostic(ErrorCode.ERR_ExpressionVariableInQueryClause, "z").WithLocation(17, 59),
-                // (18,68): error CS8201: Out variable and pattern variable declarations are not allowed within a query clause.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_2, "z").WithArguments("declaration of expression variables in member initializers and queries", "7.3").WithLocation(17, 59),
+                // (18,68): error CS8320: Feature 'declaration of expression variables in member initializers and queries' is not available in C# 7.2. Please use language version 7.3 or greater.
                 //         var zk = from x in a join y in a on x equals M(y, y is var z) select x; // error 8
-                Diagnostic(ErrorCode.ERR_ExpressionVariableInQueryClause, "z").WithLocation(18, 68),
-                // (19,52): error CS8201: Out variable and pattern variable declarations are not allowed within a query clause.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_2, "z").WithArguments("declaration of expression variables in member initializers and queries", "7.3").WithLocation(18, 68),
+                // (19,52): error CS8320: Feature 'declaration of expression variables in member initializers and queries' is not available in C# 7.2. Please use language version 7.3 or greater.
                 //         var zl = from x in a orderby M(x, x is var z) select x; // error 9
-                Diagnostic(ErrorCode.ERR_ExpressionVariableInQueryClause, "z").WithLocation(19, 52),
-                // (20,55): error CS8201: Out variable and pattern variable declarations are not allowed within a query clause.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_2, "z").WithArguments("declaration of expression variables in member initializers and queries", "7.3").WithLocation(19, 52),
+                // (20,55): error CS8320: Feature 'declaration of expression variables in member initializers and queries' is not available in C# 7.2. Please use language version 7.3 or greater.
                 //         var zm = from x in a orderby x, M(x, x is var z) select x; // error 10
-                Diagnostic(ErrorCode.ERR_ExpressionVariableInQueryClause, "z").WithLocation(20, 55),
-                // (21,50): error CS8201: Out variable and pattern variable declarations are not allowed within a query clause.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_2, "z").WithArguments("declaration of expression variables in member initializers and queries", "7.3").WithLocation(20, 55),
+                // (21,50): error CS8320: Feature 'declaration of expression variables in member initializers and queries' is not available in C# 7.2. Please use language version 7.3 or greater.
                 //         var zn = from x in a group M(x, x is var z) by x; // error 11
-                Diagnostic(ErrorCode.ERR_ExpressionVariableInQueryClause, "z").WithLocation(21, 50),
-                // (22,55): error CS8201: Out variable and pattern variable declarations are not allowed within a query clause.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_2, "z").WithArguments("declaration of expression variables in member initializers and queries", "7.3").WithLocation(21, 50),
+                // (22,55): error CS8320: Feature 'declaration of expression variables in member initializers and queries' is not available in C# 7.2. Please use language version 7.3 or greater.
                 //         var zo = from x in a group x by M(x, x is var z); // error 12
-                Diagnostic(ErrorCode.ERR_ExpressionVariableInQueryClause, "z").WithLocation(22, 55)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_2, "z").WithArguments("declaration of expression variables in member initializers and queries", "7.3").WithLocation(22, 55)
                 );
+
+            CreateCompilationWithMscorlib40AndSystemCore(csSource).VerifyDiagnostics();
         }
 
         [WorkItem(15910, "https://github.com/dotnet/roslyn/issues/15910")]
@@ -3980,47 +4013,52 @@ namespace System
     }
 }
 ";
-            CreateCompilationWithMscorlibAndSystemCore(csSource)
+            CreateCompilationWithMscorlib40AndSystemCore(csSource, parseOptions: TestOptions.Regular7_2)
                 .GetDiagnostics()
                 .Where(d => d.Code != (int)ErrorCode.ERR_DeclarationExpressionNotPermitted)
                 .Verify(
-                // (10,50): error CS8201: Out variable and pattern variable declarations are not allowed within a query clause.
+                // (10,50): error CS8320: Feature 'declaration of expression variables in member initializers and queries' is not available in C# 7.2. Please use language version 7.3 or greater.
                 //         var zc = from x in a from y in M(a, (int z, int w) = x) select x; // error 1
-                Diagnostic(ErrorCode.ERR_ExpressionVariableInQueryClause, "z").WithLocation(10, 50),
-                // (11,54): error CS8201: Out variable and pattern variable declarations are not allowed within a query clause.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_2, "z").WithArguments("declaration of expression variables in member initializers and queries", "7.3").WithLocation(10, 50),
+                // (11,54): error CS8320: Feature 'declaration of expression variables in member initializers and queries' is not available in C# 7.2. Please use language version 7.3 or greater.
                 //         var zd = from x in a from int y in M(a, (int z, int w) = x) select x; // error 2
-                Diagnostic(ErrorCode.ERR_ExpressionVariableInQueryClause, "z").WithLocation(11, 54),
-                // (12,50): error CS8201: Out variable and pattern variable declarations are not allowed within a query clause.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_2, "z").WithArguments("declaration of expression variables in member initializers and queries", "7.3").WithLocation(11, 54),
+                // (12,50): error CS8320: Feature 'declaration of expression variables in member initializers and queries' is not available in C# 7.2. Please use language version 7.3 or greater.
                 //         var ze = from x in a from y in M(a, (int z, int w) = x) where true select x; // error 3
-                Diagnostic(ErrorCode.ERR_ExpressionVariableInQueryClause, "z").WithLocation(12, 50),
-                // (13,54): error CS8201: Out variable and pattern variable declarations are not allowed within a query clause.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_2, "z").WithArguments("declaration of expression variables in member initializers and queries", "7.3").WithLocation(12, 50),
+                // (13,54): error CS8320: Feature 'declaration of expression variables in member initializers and queries' is not available in C# 7.2. Please use language version 7.3 or greater.
                 //         var zf = from x in a from int y in M(a, (int z, int w) = x) where true select x; // error 4
-                Diagnostic(ErrorCode.ERR_ExpressionVariableInQueryClause, "z").WithLocation(13, 54),
-                // (14,48): error CS8201: Out variable and pattern variable declarations are not allowed within a query clause.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_2, "z").WithArguments("declaration of expression variables in member initializers and queries", "7.3").WithLocation(13, 54),
+                // (14,48): error CS8320: Feature 'declaration of expression variables in member initializers and queries' is not available in C# 7.2. Please use language version 7.3 or greater.
                 //         var zg = from x in a let y = M(x, (int z, int w) = x) select x; // error 5
-                Diagnostic(ErrorCode.ERR_ExpressionVariableInQueryClause, "z").WithLocation(14, 48),
-                // (15,46): error CS8201: Out variable and pattern variable declarations are not allowed within a query clause.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_2, "z").WithArguments("declaration of expression variables in member initializers and queries", "7.3").WithLocation(14, 48),
+                // (15,46): error CS8320: Feature 'declaration of expression variables in member initializers and queries' is not available in C# 7.2. Please use language version 7.3 or greater.
                 //         var zh = from x in a where M(x, (int z, int w) = x).Item1 == 1 select x; // error 6
-                Diagnostic(ErrorCode.ERR_ExpressionVariableInQueryClause, "z").WithLocation(15, 46),
-                // (17,55): error CS8201: Out variable and pattern variable declarations are not allowed within a query clause.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_2, "z").WithArguments("declaration of expression variables in member initializers and queries", "7.3").WithLocation(15, 46),
+                // (17,55): error CS8320: Feature 'declaration of expression variables in member initializers and queries' is not available in C# 7.2. Please use language version 7.3 or greater.
                 //         var zj = from x in a join y in a on M(x, (int z, int w) = x) equals y select x; // error 7
-                Diagnostic(ErrorCode.ERR_ExpressionVariableInQueryClause, "z").WithLocation(17, 55),
-                // (18,64): error CS8201: Out variable and pattern variable declarations are not allowed within a query clause.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_2, "z").WithArguments("declaration of expression variables in member initializers and queries", "7.3").WithLocation(17, 55),
+                // (18,64): error CS8320: Feature 'declaration of expression variables in member initializers and queries' is not available in C# 7.2. Please use language version 7.3 or greater.
                 //         var zk = from x in a join y in a on x equals M(y, (int z, int w) = y) select x; // error 8
-                Diagnostic(ErrorCode.ERR_ExpressionVariableInQueryClause, "z").WithLocation(18, 64),
-                // (19,48): error CS8201: Out variable and pattern variable declarations are not allowed within a query clause.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_2, "z").WithArguments("declaration of expression variables in member initializers and queries", "7.3").WithLocation(18, 64),
+                // (19,48): error CS8320: Feature 'declaration of expression variables in member initializers and queries' is not available in C# 7.2. Please use language version 7.3 or greater.
                 //         var zl = from x in a orderby M(x, (int z, int w) = x) select x; // error 9
-                Diagnostic(ErrorCode.ERR_ExpressionVariableInQueryClause, "z").WithLocation(19, 48),
-                // (20,51): error CS8201: Out variable and pattern variable declarations are not allowed within a query clause.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_2, "z").WithArguments("declaration of expression variables in member initializers and queries", "7.3").WithLocation(19, 48),
+                // (20,51): error CS8320: Feature 'declaration of expression variables in member initializers and queries' is not available in C# 7.2. Please use language version 7.3 or greater.
                 //         var zm = from x in a orderby x, M(x, (int z, int w) = x) select x; // error 10
-                Diagnostic(ErrorCode.ERR_ExpressionVariableInQueryClause, "z").WithLocation(20, 51),
-                // (21,46): error CS8201: Out variable and pattern variable declarations are not allowed within a query clause.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_2, "z").WithArguments("declaration of expression variables in member initializers and queries", "7.3").WithLocation(20, 51),
+                // (21,46): error CS8320: Feature 'declaration of expression variables in member initializers and queries' is not available in C# 7.2. Please use language version 7.3 or greater.
                 //         var zn = from x in a group M(x, (int z, int w) = x) by x; // error 11
-                Diagnostic(ErrorCode.ERR_ExpressionVariableInQueryClause, "z").WithLocation(21, 46),
-                // (22,51): error CS8201: Out variable and pattern variable declarations are not allowed within a query clause.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_2, "z").WithArguments("declaration of expression variables in member initializers and queries", "7.3").WithLocation(21, 46),
+                // (22,51): error CS8320: Feature 'declaration of expression variables in member initializers and queries' is not available in C# 7.2. Please use language version 7.3 or greater.
                 //         var zo = from x in a group x by M(x, (int z, int w) = x); // error 12
-                Diagnostic(ErrorCode.ERR_ExpressionVariableInQueryClause, "z").WithLocation(22, 51)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_2, "z").WithArguments("declaration of expression variables in member initializers and queries", "7.3").WithLocation(22, 51)
                 );
+
+            CreateCompilationWithMscorlib40AndSystemCore(csSource)
+                .GetDiagnostics()
+                .Where(d => d.Code != (int)ErrorCode.ERR_DeclarationExpressionNotPermitted)
+                .Verify();
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
@@ -4290,7 +4328,7 @@ class Program
     }
 }
 ";
-            var comp = CreateCompilationWithMscorlibAndSystemCore(code);
+            var comp = CreateCompilationWithMscorlib40AndSystemCore(code);
             comp.VerifyDiagnostics(
                 // (10,22): error CS0120: An object reference is required for the non-static field, method, or property 'Enumerable.Cast<object>(IEnumerable)'
                 //         var query1 = from object a in IEnumerable select 1;

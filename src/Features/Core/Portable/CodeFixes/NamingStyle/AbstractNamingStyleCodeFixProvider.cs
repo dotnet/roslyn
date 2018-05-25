@@ -11,15 +11,19 @@ using System.Xml.Linq;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeActions.WorkspaceServices;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.NamingStyles;
 using Microsoft.CodeAnalysis.Rename;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CodeFixes.NamingStyles
 {
     [ExportCodeFixProvider(LanguageNames.CSharp, LanguageNames.VisualBasic,
         Name = PredefinedCodeFixProviderNames.ApplyNamingStyle), Shared]
+#pragma warning disable RS1016 // Code fix providers should provide FixAll support. https://github.com/dotnet/roslyn/issues/23528
     internal class NamingStyleCodeFixProvider : CodeFixProvider
+#pragma warning restore RS1016 // Code fix providers should provide FixAll support.
     {
         public override ImmutableArray<string> FixableDiagnosticIds { get; }
             = ImmutableArray.Create(IDEDiagnosticIds.NamingRuleId);
@@ -35,6 +39,17 @@ namespace Microsoft.CodeAnalysis.CodeFixes.NamingStyles
 
             var root = await document.GetSyntaxRootAsync(context.CancellationToken).ConfigureAwait(false);
             var node = root.FindNode(span);
+
+            if (document.GetLanguageService<ISyntaxFactsService>().IsIdentifierName(node))
+            {
+                // The location we get from the analyzer only contains the identifier token and when we get its containing node,
+                // it is usually the right one (such as a variable declarator, designation or a foreach statement)
+                // because there is no other node in between. But there is one case in a VB catch clause where the token
+                // is wrapped in an identifier name. So if what we found is an identifier, take the parent node instead.
+                // Note that this is the correct thing to do because GetDeclaredSymbol never works on identifier names.
+                node = node.Parent;
+            }
+
             var model = await document.GetSemanticModelAsync(context.CancellationToken).ConfigureAwait(false);
             var symbol = model.GetDeclaredSymbol(node, context.CancellationToken);
 

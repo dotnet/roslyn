@@ -642,7 +642,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var methodToContainerTypeParametersMap = containerDef.TypeMap;
 
             ImmutableArray<LocalSymbol> temps = MakeTempsForDiscardArguments(ref loweredArguments);
-             
+
             var callSiteType = callSiteTypeGeneric.Construct(new[] { delegateTypeOverMethodTypeParameters });
             var callSiteFactoryMethod = callSiteFactoryGeneric.AsMember(callSiteType);
             var callSiteTargetField = callSiteTargetFieldGeneric.AsMember(callSiteType);
@@ -799,6 +799,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 flags |= CSharpArgumentInfoFlags.NamedArgument;
             }
+
+            Debug.Assert(refKind == RefKind.None || refKind == RefKind.Ref || refKind == RefKind.Out, "unexpected refKind in dynamic");
 
             // by-ref type doesn't trigger dynamic dispatch and it can't be a null literal => set UseCompileTimeType
             if (refKind == RefKind.Out)

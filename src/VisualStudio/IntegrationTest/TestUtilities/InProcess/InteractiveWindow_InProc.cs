@@ -4,6 +4,7 @@ using Microsoft.VisualStudio.InteractiveWindow;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using System;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
@@ -214,7 +215,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
             var beginTime = DateTime.UtcNow;
             while (!predicate() && DateTime.UtcNow < beginTime.AddMilliseconds(_timeoutInMilliseconds))
             {
-                Task.Delay(50);
+                Thread.Sleep(50);
             }
 
             if (!predicate())

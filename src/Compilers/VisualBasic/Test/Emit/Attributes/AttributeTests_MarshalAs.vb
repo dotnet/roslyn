@@ -232,7 +232,7 @@ End Class
     </file>
 </compilation>
 
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+            CreateCompilationWithMscorlib40(source).VerifyDiagnostics(
                 Diagnostic(ERRID.ERR_BadAttribute1, "CType(-1, UnmanagedType)").WithArguments("System.Runtime.InteropServices.MarshalAsAttribute"),
                 Diagnostic(ERRID.ERR_BadAttribute1, "CType(&H20000000, UnmanagedType)").WithArguments("System.Runtime.InteropServices.MarshalAsAttribute"))
         End Sub
@@ -314,7 +314,7 @@ End Class
     </file>
 </compilation>
 
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+            CreateCompilationWithMscorlib40(source).VerifyDiagnostics(
                 Diagnostic(ERRID.ERR_BadAttribute1, "IidParameterIndex:=-1").WithArguments("System.Runtime.InteropServices.MarshalAsAttribute"),
                 Diagnostic(ERRID.ERR_BadAttribute1, "IidParameterIndex:=-1").WithArguments("System.Runtime.InteropServices.MarshalAsAttribute"),
                 Diagnostic(ERRID.ERR_BadAttribute1, "IidParameterIndex:=-1").WithArguments("System.Runtime.InteropServices.MarshalAsAttribute"),
@@ -436,7 +436,7 @@ End Class
     </file>
 </compilation>
 
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+            CreateCompilationWithMscorlib40(source).VerifyDiagnostics(
                 Diagnostic(ERRID.ERR_ParameterNotValidForType, "SafeArraySubType:=VarEnum.VT_BSTR"),
                 Diagnostic(ERRID.ERR_BadAttribute1, "SizeConst:=-1").WithArguments("System.Runtime.InteropServices.MarshalAsAttribute"),
                 Diagnostic(ERRID.ERR_BadAttribute1, "SizeParamIndex:=-1").WithArguments("System.Runtime.InteropServices.MarshalAsAttribute"),
@@ -548,7 +548,7 @@ End Class
     </file>
 </compilation>
 
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+            CreateCompilationWithMscorlib40(source).VerifyDiagnostics(
                 Diagnostic(ERRID.ERR_ParameterNotValidForType, "SafeArraySubType:=VarEnum.VT_BSTR"),
                 Diagnostic(ERRID.ERR_BadAttribute1, "SizeConst:=-1").WithArguments("System.Runtime.InteropServices.MarshalAsAttribute"),
                 Diagnostic(ERRID.ERR_ParameterNotValidForType, "SizeParamIndex:=-1"),
@@ -724,7 +724,7 @@ End Class
     </file>
 </compilation>
 
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+            CreateCompilationWithMscorlib40(source).VerifyDiagnostics(
                 Diagnostic(ERRID.ERR_ParameterNotValidForType, "ArraySubType:=UnmanagedType.ByValTStr"),
                 Diagnostic(ERRID.ERR_ParameterNotValidForType, "SizeConst:=-1"),
                 Diagnostic(ERRID.ERR_ParameterNotValidForType, "SizeParamIndex:=-1"),
@@ -805,7 +805,7 @@ End Class
     </file>
 </compilation>
 
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+            CreateCompilationWithMscorlib40(source).VerifyDiagnostics(
                 Diagnostic(ERRID.ERR_ParameterNotValidForType, "ArraySubType:=UnmanagedType.ByValTStr"),
                 Diagnostic(ERRID.ERR_BadAttribute1, "SizeConst:=-1").WithArguments("System.Runtime.InteropServices.MarshalAsAttribute"),
                 Diagnostic(ERRID.ERR_ParameterNotValidForType, "SizeParamIndex:=-1"),
@@ -923,7 +923,7 @@ End Class
     </file>
 </compilation>
 
-            CreateCompilationWithMscorlibAndVBRuntime(source).VerifyDiagnostics(
+            CreateCompilationWithMscorlib40AndVBRuntime(source).VerifyDiagnostics(
                 Diagnostic(ERRID.ERR_AttributeParameterRequired2, "MarshalAs").WithArguments("MarshalType", "MarshalTypeRef"),
                 Diagnostic(ERRID.ERR_BadAttribute1, "MarshalType:=""a"" & ChrW(&HDC00) & ""b""").WithArguments("System.Runtime.InteropServices.MarshalAsAttribute"),
                 Diagnostic(ERRID.ERR_BadAttribute1, "MarshalCookie:=""y"" & ChrW(&HDC00)").WithArguments("System.Runtime.InteropServices.MarshalAsAttribute"))
@@ -945,7 +945,7 @@ End Class
     </file>
 </compilation>
 
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+            CreateCompilationWithMscorlib40(source).VerifyDiagnostics(
                 Diagnostic(ERRID.ERR_InvalidAttributeUsage2, "MarshalAs").WithArguments("MarshalAsAttribute", "e"))
         End Sub
 
@@ -1161,7 +1161,7 @@ End Module
     </file>
 </compilation>
 
-            Dim c = CreateCompilationWithMscorlibAndVBRuntime(source)
+            Dim c = CreateCompilationWithMscorlib40AndVBRuntime(source)
 
             CompilationUtils.AssertTheseDiagnostics(c,
 <errors><![CDATA[
@@ -1342,7 +1342,7 @@ End Class
     </file>
 </compilation>
 
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+            CreateCompilationWithMscorlib40(source).VerifyDiagnostics(
                 Diagnostic(ERRID.ERR_MarshalUnmanagedTypeOnlyValidForFields, "UnmanagedType.ByValArray").WithArguments("ByValArray"),
                 Diagnostic(ERRID.ERR_MarshalUnmanagedTypeOnlyValidForFields, "UnmanagedType.ByValTStr").WithArguments("ByValTStr"),
                 Diagnostic(ERRID.ERR_MarshalUnmanagedTypeOnlyValidForFields, "UnmanagedType.ByValArray").WithArguments("ByValArray"),

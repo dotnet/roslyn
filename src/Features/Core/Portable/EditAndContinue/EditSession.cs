@@ -13,6 +13,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.ErrorReporting;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.EditAndContinue
@@ -180,7 +181,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 return analysis.Results;
             }
 
-            var analyzer = document.Project.LanguageServices.GetService<IEditAndContinueAnalyzer>();
+            var analyzer = document.GetLanguageService<IEditAndContinueAnalyzer>();
             if (!_baseActiveStatements.TryGetValue(document.Id, out var activeStatements))
             {
                 activeStatements = ImmutableArray.Create<ActiveStatementSpan>();

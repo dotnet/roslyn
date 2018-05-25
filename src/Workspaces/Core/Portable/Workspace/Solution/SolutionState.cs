@@ -603,7 +603,22 @@ namespace Microsoft.CodeAnalysis
 
             CheckContainsProject(projectId);
 
-            return this.ForkProject(this.GetProjectState(projectId).UpdateOutputPath(outputFilePath));
+            return this.ForkProject(this.GetProjectState(projectId).UpdateOutputFilePath(outputFilePath));
+        }
+
+        /// <summary>
+        /// Creates a new solution instance with the project specified updated to have the output file path.
+        /// </summary>
+        public SolutionState WithProjectOutputRefFilePath(ProjectId projectId, string outputRefFilePath)
+        {
+            if (projectId == null)
+            {
+                throw new ArgumentNullException(nameof(projectId));
+            }
+
+            CheckContainsProject(projectId);
+
+            return this.ForkProject(this.GetProjectState(projectId).UpdateOutputRefFilePath(outputRefFilePath));
         }
 
         /// <summary>
@@ -1668,7 +1683,7 @@ namespace Microsoft.CodeAnalysis
         }
 
         /// <summary>
-        /// Returns the compilation for the specified <see cref="ProjectId"/>.  Can return <code>null</code> when the project
+        /// Returns the compilation for the specified <see cref="ProjectId"/>.  Can return <see langword="null"/> when the project
         /// does not support compilations.
         /// </summary>
         private Task<Compilation> GetCompilationAsync(ProjectId projectId, CancellationToken cancellationToken)
@@ -1677,7 +1692,7 @@ namespace Microsoft.CodeAnalysis
         }
 
         /// <summary>
-        /// Returns the compilation for the specified <see cref="ProjectState"/>.  Can return <code>null</code> when the project
+        /// Returns the compilation for the specified <see cref="ProjectState"/>.  Can return <see langword="null"/> when the project
         /// does not support compilations.
         /// </summary>
         public Task<Compilation> GetCompilationAsync(ProjectState project, CancellationToken cancellationToken)

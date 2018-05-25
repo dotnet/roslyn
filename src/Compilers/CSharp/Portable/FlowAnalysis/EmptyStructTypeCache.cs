@@ -210,7 +210,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     case TypeKind.TypeParameter:
                         return false;
                     case TypeKind.Array:
-                        type = ((ArrayTypeSymbol)type).BaseType;
+                        type = ((ArrayTypeSymbol)type).BaseTypeNoUseSiteDiagnostics;
                         continue;
                     default:
                         return true;

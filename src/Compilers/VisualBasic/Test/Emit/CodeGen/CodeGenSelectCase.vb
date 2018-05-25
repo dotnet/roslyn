@@ -1,8 +1,9 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports Microsoft.CodeAnalysis.CodeGen
-Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.Test.Utilities
+Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
+Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Roslyn.Test.Utilities
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
@@ -4211,6 +4212,8 @@ End Module
             VerifySynthesizedStringHashMethod(compVerifier, expected:=True)
         End Sub
 
+        <CompilerTrait(CompilerFeature.IOperation)>
+        <WorkItem(23818, "https://github.com/dotnet/roslyn/issues/23818")>
         <Fact()>
         Public Sub SelectCase_IfList_String_RelationalRangeClauses()
             Dim compVerifier = CompileAndVerify(
@@ -4350,6 +4353,22 @@ End Module
 }
 ]]>)
             VerifySynthesizedStringHashMethod(compVerifier, expected:=False)
+
+            Dim compilation = compVerifier.Compilation
+
+            Dim tree = compilation.SyntaxTrees.Single()
+            Dim node = tree.GetRoot().DescendantNodes().OfType(Of RangeCaseClauseSyntax)().First()
+
+            Assert.Equal("""6"" To ""8""", node.ToString())
+
+            compilation.VerifyOperationTree(node, expectedOperationTree:=
+            <![CDATA[
+IRangeCaseClauseOperation (CaseKind.Range) (OperationKind.CaseClause, Type: null) (Syntax: '"6" To "8"')
+  Min: 
+    null
+  Max: 
+    null
+]]>.Value)
         End Sub
 
         <Fact, WorkItem(651996, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/651996")>
@@ -4569,7 +4588,7 @@ End Module
 
         <Fact()>
         Public Sub MissingReferenceToVBRuntime()
-            CompilationUtils.CreateCompilationWithMscorlib(
+            CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation>
     <file name="a.vb"><![CDATA[
 Imports System        
@@ -4597,7 +4616,7 @@ End Class
         <WorkItem(529047, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529047")>
         <Fact>
         Public Sub SelectOutOfMethod()
-            CompilationUtils.CreateCompilationWithMscorlib(
+            CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation>
     <file name="a.vb"><![CDATA[
 Class m1
@@ -4613,7 +4632,7 @@ End Class
         <WorkItem(529047, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529047")>
         <Fact>
         Public Sub SelectOutOfMethod_1()
-            CompilationUtils.CreateCompilationWithMscorlib(
+            CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation>
     <file name="a.vb"><![CDATA[
     Select ""
@@ -4653,7 +4672,7 @@ End Module
         <WorkItem(913556, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/913556")>
         <Fact()>
         Public Sub MissingCharsProperty()
-            CompilationUtils.CreateCompilationWithReferences(
+            CompilationUtils.CreateEmptyCompilationWithReferences(
 <compilation>
     <file name="a.vb"><![CDATA[
 Class M1

@@ -4,12 +4,12 @@
     <body>
       <trans-unit id="RemoveAndSortNamespacesWithAccelerator">
         <source>Remove &amp;and Sort Namespaces</source>
-        <target state="new">Remove &amp;and Sort Namespaces</target>
+        <target state="translated">N&amp;amespaces entfernen und sortieren</target>
         <note />
       </trans-unit>
       <trans-unit id="RemoveUnnecessaryNamespaces">
         <source>Remove Unnecessary Namespaces</source>
-        <target state="new">Remove Unnecessary Namespaces</target>
+        <target state="translated">Unnötige Namespaces entfernen</target>
         <note />
       </trans-unit>
     </body>

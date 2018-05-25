@@ -4,7 +4,7 @@
     <body>
       <trans-unit id="cmdidVisualBasicInteractiveToolWindow|ButtonText">
         <source>Visual Basic Interactive</source>
-        <target state="new">Visual Basic Interactive</target>
+        <target state="translated">Visual Basic インタラクティブ</target>
         <note />
       </trans-unit>
     </body>

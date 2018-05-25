@@ -4,7 +4,7 @@
     <body>
       <trans-unit id="Microsoft_R_Roslyn_Visual_Basic_Compiler_version_0">
         <source>Microsoft (R) Roslyn Visual Basic Compiler version {0}</source>
-        <target state="new">Microsoft (R) Roslyn Visual Basic Compiler version {0}</target>
+        <target state="translated">Microsoft (R) Roslyn Visual Basic 컴파일러 버전 {0}</target>
         <note />
       </trans-unit>
     </body>

@@ -41,7 +41,7 @@ End Module
 ]]>
                     </file>
                 </compilation>
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(source, {reference})
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(source, {reference})
             compilation.AssertTheseDiagnostics(
 <expected>
 BC30455: Argument not specified for parameter 'Param' of 'Sub M(Param As Object, Param As Object)'.

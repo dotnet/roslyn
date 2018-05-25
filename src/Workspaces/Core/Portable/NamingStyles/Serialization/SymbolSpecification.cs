@@ -57,7 +57,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
                     new SymbolKindOrTypeKind(SymbolKind.Method),
                     new SymbolKindOrTypeKind(SymbolKind.Field),
                     new SymbolKindOrTypeKind(SymbolKind.Event),
-                    new SymbolKindOrTypeKind(SymbolKind.Parameter)),
+                    new SymbolKindOrTypeKind(SymbolKind.Parameter),
+                    new SymbolKindOrTypeKind(SymbolKind.Local)),
                 accessibilityList: ImmutableArray.Create(
                     Accessibility.Public,
                     Accessibility.Internal,

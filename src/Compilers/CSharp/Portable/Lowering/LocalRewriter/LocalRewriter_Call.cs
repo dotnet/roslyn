@@ -296,6 +296,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                         // A ref to a local variable or formal parameter is safe to reorder; it
                         // never has a side effect or consumes one.
                         return kind != RefKind.None;
+                    case BoundKind.PassByCopy:
+                        return IsSafeForReordering(((BoundPassByCopy)current).Expression, kind);
                     case BoundKind.Conversion:
                         {
                             BoundConversion conv = (BoundConversion)current;
@@ -457,14 +459,23 @@ namespace Microsoft.CodeAnalysis.CSharp
             // Step one: Store everything that is non-trivial into a temporary; record the
             // stores in storesToTemps and make the actual argument a reference to the temp.
             // Do not yet attempt to deal with params arrays or optional arguments.
-            BuildStoresToTemps(expanded, argsToParamsOpt, parameters, argumentRefKindsOpt, rewrittenArguments, actualArguments, refKinds, storesToTemps);
+            BuildStoresToTemps(
+                expanded,
+                argsToParamsOpt,
+                parameters,
+                argumentRefKindsOpt,
+                rewrittenArguments,
+                forceLambdaSpilling: false, // lambda conversions can be re-orderd in calls without side affects
+                actualArguments,
+                refKinds,
+                storesToTemps);
 
 
             // all the formal arguments, except missing optionals, are now in place. 
             // Optimize away unnecessary temporaries.
             // Necessary temporaries have their store instructions merged into the appropriate 
             // argument expression.
-            OptimizeTemporaries(actualArguments, refKinds, storesToTemps, temporariesBuilder);
+            OptimizeTemporaries(actualArguments, storesToTemps, temporariesBuilder);
 
             // Step two: If we have a params array, build the array and fill in the argument.
             if (expanded)
@@ -473,7 +484,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             // Step three: Now fill in the optional arguments.
-            InsertMissingOptionalArguments(syntax, optionalParametersMethod.Parameters, actualArguments, enableCallerInfo);
+            InsertMissingOptionalArguments(syntax, optionalParametersMethod.Parameters, actualArguments, refKinds, enableCallerInfo);
 
             if (isComReceiver)
             {
@@ -554,7 +565,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             // Either the methodOrIndexer is a property, in which case the method used
             // for optional parameters is an accessor of that property (or an overridden
             // property), or the methodOrIndexer is used for optional parameters directly.
-            Debug.Assert(((methodOrIndexer.Kind == SymbolKind.Property) && optionalParametersMethod.IsAccessor()) ||
+            Debug.Assert(((methodOrIndexer.Kind == SymbolKind.Property) && 
+                (optionalParametersMethod.IsAccessor() || 
+                 ((PropertySymbol)methodOrIndexer).MustCallMethodsDirectly)) || // This condition is a temporary workaround for https://github.com/dotnet/roslyn/issues/23852
                 (object)methodOrIndexer == optionalParametersMethod);
 
             // We need to do a fancy rewrite under the following circumstances:
@@ -661,6 +674,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             ImmutableArray<ParameterSymbol> parameters,
             ImmutableArray<RefKind> argumentRefKinds,
             ImmutableArray<BoundExpression> rewrittenArguments,
+            bool forceLambdaSpilling,
             /* out */ BoundExpression[] arguments,
             /* out */ ArrayBuilder<RefKind> refKinds,
             /* out */ ArrayBuilder<BoundAssignmentOperator> storesToTemps)
@@ -715,7 +729,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return;
                 }
 
-                if (IsSafeForReordering(argument, argRefKind))
+                if ((!forceLambdaSpilling || !isLambdaConversion(argument)) &&
+                    IsSafeForReordering(argument, argRefKind))
                 {
                     arguments[p] = argument;
                 }
@@ -728,6 +743,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
                 refKinds[p] = argRefKind;
             }
+
+            return;
+
+            bool isLambdaConversion(BoundExpression expr)
+                => expr is BoundConversion conv && conv.ConversionKind == ConversionKind.AnonymousFunction;
         }
 
         // This fills in the arguments and parameters arrays in evaluation order.
@@ -940,19 +960,16 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private static void OptimizeTemporaries(
             BoundExpression[] arguments,
-            ArrayBuilder<RefKind> refKinds,
             ArrayBuilder<BoundAssignmentOperator> storesToTemps,
             ArrayBuilder<LocalSymbol> temporariesBuilder)
         {
             Debug.Assert(arguments != null);
-            Debug.Assert(refKinds != null);
-            Debug.Assert(arguments.Length == refKinds.Count);
             Debug.Assert(storesToTemps != null);
             Debug.Assert(temporariesBuilder != null);
 
             if (storesToTemps.Count > 0)
             {
-                int tempsNeeded = MergeArgumentsAndSideEffects(arguments, refKinds, storesToTemps);
+                int tempsNeeded = MergeArgumentsAndSideEffects(arguments,storesToTemps);
                 if (tempsNeeded > 0)
                 {
                     foreach (BoundAssignmentOperator s in storesToTemps)
@@ -973,11 +990,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         private static int MergeArgumentsAndSideEffects(
             BoundExpression[] arguments,
-            ArrayBuilder<RefKind> refKinds,
             ArrayBuilder<BoundAssignmentOperator> tempStores)
         {
             Debug.Assert(arguments != null);
-            Debug.Assert(refKinds != null);
             Debug.Assert(tempStores != null);
 
             int tempsRemainedInUse = tempStores.Count;
@@ -1023,11 +1038,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         var value = tempStores[correspondingStore].Right;
 
-                        // When we created the temp, we dropped the argument RefKind
-                        // since the local contained its own RefKind. Since we're removing
-                        // the temp, the argument RefKind needs to be restored.
-                        refKinds[a] = ((BoundLocal)argument).LocalSymbol.RefKind;
-
                         // the matched store will not need to go into side-effects, only ones before it will
                         // remove the store to signal that we are not using its temp.
                         tempStores[correspondingStore] = null;
@@ -1070,16 +1080,26 @@ namespace Microsoft.CodeAnalysis.CSharp
         private void InsertMissingOptionalArguments(SyntaxNode syntax,
             ImmutableArray<ParameterSymbol> parameters,
             BoundExpression[] arguments,
+            ArrayBuilder<RefKind> refKinds,
             ThreeState enableCallerInfo = ThreeState.Unknown)
         {
+            Debug.Assert(refKinds.Count == arguments.Length);
+
             for (int p = 0; p < arguments.Length; ++p)
             {
                 if (arguments[p] == null)
                 {
                     ParameterSymbol parameter = parameters[p];
                     Debug.Assert(parameter.IsOptional);
+
                     arguments[p] = GetDefaultParameterValue(syntax, parameter, enableCallerInfo);
                     Debug.Assert(arguments[p].Type == parameter.Type);
+
+                    if (parameters[p].RefKind == RefKind.In)
+                    {
+                        Debug.Assert(refKinds[p] == RefKind.None);
+                        refKinds[p] = RefKind.In;
+                    }
                 }
             }
         }

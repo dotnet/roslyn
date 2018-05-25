@@ -26,7 +26,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             /// </summary>
             private readonly DocumentProvider _documentProvider;
             private readonly string _itemMoniker;
-            private readonly ITextUndoHistoryRegistry _textUndoHistoryRegistry;
             private readonly FileChangeTracker _fileChangeTracker;
             private readonly ReiteratedVersionSnapshotTracker _snapshotTracker;
             private readonly TextLoader _doNotAccessDirectlyLoader;
@@ -38,7 +37,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
             public DocumentId Id { get; }
             public IReadOnlyList<string> Folders { get; }
-            public IVisualStudioHostProject Project { get; }
+            public AbstractProject Project { get; }
             public SourceCodeKind SourceCodeKind { get; }
             public DocumentKey Key { get; }
 
@@ -52,11 +51,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             /// </summary>
             public StandardTextDocument(
                 DocumentProvider documentProvider,
-                IVisualStudioHostProject project,
+                AbstractProject project,
                 DocumentKey documentKey,
                 Func<uint, IReadOnlyList<string>> getFolderNames,
                 SourceCodeKind sourceCodeKind,
-                ITextUndoHistoryRegistry textUndoHistoryRegistry,
                 IVsFileChangeEx fileChangeService,
                 ITextBuffer openTextBuffer,
                 DocumentId id,
@@ -79,7 +77,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
                 this.Key = documentKey;
                 this.SourceCodeKind = sourceCodeKind;
-                _textUndoHistoryRegistry = textUndoHistoryRegistry;
                 _fileChangeTracker = new FileChangeTracker(fileChangeService, this.FilePath);
                 _fileChangeTracker.UpdatedOnDisk += OnUpdatedOnDisk;
 
@@ -211,42 +208,20 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 // expensive source control check if the file is already checked out.
                 if (_openTextBuffer != null)
                 {
-                    UpdateText(newText, _openTextBuffer, EditOptions.DefaultMinimalChange);
+                    TextEditApplication.UpdateText(newText, _openTextBuffer, EditOptions.DefaultMinimalChange);
                 }
                 else
                 {
                     using (var invisibleEditor = ((VisualStudioWorkspaceImpl)this.Project.Workspace).OpenInvisibleEditor(this))
                     {
-                        UpdateText(newText, invisibleEditor.TextBuffer, EditOptions.None);
+                        TextEditApplication.UpdateText(newText, invisibleEditor.TextBuffer, EditOptions.None);
                     }
                 }
             }
 
-            private static void UpdateText(SourceText newText, ITextBuffer buffer, EditOptions options)
+            public ITextBuffer GetTextUndoHistoryBuffer()
             {
-                using (var edit = buffer.CreateEdit(options, reiteratedVersionNumber: null, editTag: null))
-                {
-                    var oldSnapshot = buffer.CurrentSnapshot;
-                    var oldText = oldSnapshot.AsText();
-                    var changes = newText.GetTextChanges(oldText);
-                    if (CodeAnalysis.Workspace.TryGetWorkspace(oldText.Container, out var workspace))
-                    {
-                        var undoService = workspace.Services.GetService<ISourceTextUndoService>();
-                        undoService.BeginUndoTransaction(oldSnapshot);
-                    }
-
-                    foreach (var change in changes)
-                    {
-                        edit.Replace(change.Span.Start, change.Span.Length, change.NewText);
-                    }
-                    
-                    edit.ApplyAndLogExceptions();
-                }
-            }
-
-            public ITextUndoHistory GetTextUndoHistory()
-            {
-                return _textUndoHistoryRegistry.GetHistory(GetOpenTextBuffer());
+                return GetOpenTextBuffer();
             }
 
             private string GetDebuggerDisplay()

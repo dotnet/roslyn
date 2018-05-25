@@ -16,7 +16,8 @@ namespace BuildBoss
         UnitTestPortable,
         Vsix,
         Depedency,
-        Custom
+        SourcePackage,
+        Custom,
     }
 
     internal static class RoslynProjectKindUtil
@@ -38,6 +39,8 @@ namespace BuildBoss
                     return RoslynProjectKind.Depedency;
                 case "Custom":
                     return RoslynProjectKind.Custom;
+                case "SourcePackage":
+                    return RoslynProjectKind.SourcePackage;
                 default:
                     return null;
             }

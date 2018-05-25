@@ -414,7 +414,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 CollectTupleFieldMemberName(inferredName, i, numElements, inferredElementNames)
             Next
 
-            RemoveDuplicateInferredTupleNames(inferredElementNames, uniqueFieldNames)
+            RemoveDuplicateInferredTupleNamesAndFreeIfEmptied(inferredElementNames, uniqueFieldNames)
 
             Dim result = MergeTupleElementNames(elementNames, inferredElementNames)
             elementNames?.Free()
@@ -453,7 +453,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return (elementNames.ToImmutable(), builder.ToImmutableAndFree())
         End Function
 
-        Private Shared Sub RemoveDuplicateInferredTupleNames(inferredElementNames As ArrayBuilder(Of String), uniqueFieldNames As HashSet(Of String))
+        ''' <summary>
+        ''' Removes duplicate entries in <paramref name="inferredElementNames"/> and frees it if only nulls remain.
+        ''' </summary>
+        Private Shared Sub RemoveDuplicateInferredTupleNamesAndFreeIfEmptied(ByRef inferredElementNames As ArrayBuilder(Of String), uniqueFieldNames As HashSet(Of String))
             If inferredElementNames Is Nothing Then
                 Return
             End If
@@ -472,6 +475,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     inferredElementNames(index) = Nothing
                 End If
             Next
+
+            If inferredElementNames.All(Function(n) n Is Nothing) Then
+                inferredElementNames.Free()
+                inferredElementNames = Nothing
+            End If
         End Sub
 
         Private Shared Function InferTupleElementName(element As ExpressionSyntax) As String

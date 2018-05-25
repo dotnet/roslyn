@@ -4,7 +4,7 @@
     <body>
       <trans-unit id="Microsoft_R_Roslyn_CSharp_Compiler_version_0">
         <source>Microsoft (R) Roslyn C# Compiler version {0}</source>
-        <target state="new">Microsoft (R) Roslyn C# Compiler version {0}</target>
+        <target state="translated">Компилятор Microsoft (R) Roslyn C# версии {0}</target>
         <note />
       </trans-unit>
     </body>

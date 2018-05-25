@@ -811,7 +811,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             MethodSymbol localFunc,
             out BoundExpression receiver,
             out MethodSymbol method,
-            ref ImmutableArray<BoundExpression> parameters)
+            ref ImmutableArray<BoundExpression> arguments,
+            ref ImmutableArray<RefKind> argRefKinds)
         {
             Debug.Assert(localFunc.MethodKind == MethodKind.LocalFunction);
 
@@ -823,12 +824,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             var frameCount = loweredSymbol.ExtraSynthesizedParameterCount;
             if (frameCount != 0)
             {
-                Debug.Assert(!parameters.IsDefault);
+                Debug.Assert(!arguments.IsDefault);
 
-                // Build a new list of parameters to pass to the local function
+                // Build a new list of arguments to pass to the local function
                 // call that includes any necessary capture frames
-                var parametersBuilder = ArrayBuilder<BoundExpression>.GetInstance();
-                parametersBuilder.AddRange(parameters);
+                var argumentsBuilder = ArrayBuilder<BoundExpression>.GetInstance(loweredSymbol.ParameterCount);
+                argumentsBuilder.AddRange(arguments);
 
                 var start = loweredSymbol.ParameterCount - frameCount;
                 for (int i = start; i < loweredSymbol.ParameterCount; i++)
@@ -847,9 +848,25 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
 
                     var frame = FrameOfType(syntax, frameType);
-                    parametersBuilder.Add(frame);
+                    argumentsBuilder.Add(frame);
                 }
-                parameters = parametersBuilder.ToImmutableAndFree();
+
+                // frame arguments are passed by ref
+                // add corresponding refkinds
+                var refkindsBuilder = ArrayBuilder<RefKind>.GetInstance(argumentsBuilder.Count);
+                if (!argRefKinds.IsDefault)
+                {
+                    refkindsBuilder.AddRange(argRefKinds);
+                }
+                else
+                {
+                    refkindsBuilder.AddMany(RefKind.None, arguments.Length);
+                }
+
+                refkindsBuilder.AddMany(RefKind.Ref, frameCount);
+
+                arguments = argumentsBuilder.ToImmutableAndFree();
+                argRefKinds = refkindsBuilder.ToImmutableAndFree();
             }
 
             method = loweredSymbol;
@@ -989,21 +1006,25 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (node.Method.MethodKind == MethodKind.LocalFunction)
             {
                 var args = VisitList(node.Arguments);
+                var argRefKinds = node.ArgumentRefKindsOpt;
                 var type = VisitType(node.Type);
+
+                Debug.Assert(node.ArgsToParamsOpt.IsDefault, "should be done with argument reordering by now");
 
                 RemapLocalFunction(
                     node.Syntax,
                     node.Method,
                     out var receiver,
                     out var method,
-                    ref args);
+                    ref args,
+                    ref argRefKinds);
 
                 return node.Update(
                     receiver,
                     method,
                     args,
                     node.ArgumentNamesOpt,
-                    node.ArgumentRefKindsOpt,
+                    argRefKinds,
                     node.IsDelegateCall,
                     node.Expanded,
                     node.InvokedAsExtensionMethod,
@@ -1256,12 +1277,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (node.MethodOpt?.MethodKind == MethodKind.LocalFunction)
             {
                 var arguments = default(ImmutableArray<BoundExpression>);
+                var argRefKinds = default(ImmutableArray<RefKind>);
+
                 RemapLocalFunction(
                     node.Syntax,
                     node.MethodOpt,
                     out var receiver,
                     out var method,
-                    ref arguments);
+                    ref arguments,
+                    ref argRefKinds);
 
                 return new BoundDelegateCreationExpression(
                     node.Syntax,
