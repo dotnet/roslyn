@@ -366,13 +366,13 @@ namespace Microsoft.CodeAnalysis.CSharp.UseLocalFunction
             SemanticModel semanticModel,
             CancellationToken cancellationToken)
         {
-            var delegateTypeParamNames = delegateType.GetAllTypeParameters().Select(p => p.Name).ToImmutableHashSet();
             var delegateContainingType = delegateType.ContainingType;
-            if (delegateTypeParamNames.Count == 0 || delegateContainingType == null)
+            if (delegateContainingType is null || !delegateContainingType.IsGenericType)
             {
                 return true;
             }
 
+            var delegateTypeParamNames = delegateType.GetAllTypeParameters().Select(p => p.Name).ToImmutableHashSet();
             var localEnclosingSymbol = semanticModel.GetEnclosingSymbol(localDeclaration.SpanStart, cancellationToken);
             while (localEnclosingSymbol != null)
             {
