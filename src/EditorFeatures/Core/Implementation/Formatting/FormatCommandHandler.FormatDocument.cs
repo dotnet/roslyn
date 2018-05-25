@@ -75,6 +75,14 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Formatting
                     using (var transaction = new CaretPreservingEditTransaction(
                         EditorFeaturesResources.Formatting, args.TextView, _undoHistoryRegistry, _editorOperationsFactoryService))
                     {
+                        var formattingService = document.GetLanguageService<IEditorFormattingService>();
+                        if (formattingService == null || !formattingService.SupportsFormatDocument)
+                        {
+                            return false;
+                        }
+
+                        Format(args.TextView, document, null, cancellationToken);
+
                         var oldDocument = document;
                         var codeFixChanges = _codeCleanupService.GetChangesForCleanupDocument(document, cancellationToken).Result.ToList();
 
@@ -83,14 +91,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Formatting
                         {
                             ApplyChanges(oldDocument, codeFixChanges, selectionOpt: null, cancellationToken);
                         }
-
-                        var formattingService = document.GetLanguageService<IEditorFormattingService>();
-                        if (formattingService == null || !formattingService.SupportsFormatDocument)
-                        {
-                            return false;
-                        }
-
-                        Format(args.TextView, document, null, cancellationToken);
 
                         transaction.Complete();
                     }

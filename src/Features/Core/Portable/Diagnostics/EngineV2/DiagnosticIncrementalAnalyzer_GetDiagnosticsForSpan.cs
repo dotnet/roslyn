@@ -53,6 +53,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             private readonly TextSpan _range;
             private readonly bool _blockForData;
             private readonly bool _includeSuppressedDiagnostics;
+            private readonly string _diagnosticId;
 
             // cache of project result
             private ImmutableDictionary<DiagnosticAnalyzer, DiagnosticAnalysisResult> _projectResultCache;
@@ -77,7 +78,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 
                 var analyzerDriverOpt = await owner._compilationManager.CreateAnalyzerDriverAsync(document.Project, stateSets, includeSuppressedDiagnostics, cancellationToken).ConfigureAwait(false);
 
-                return new LatestDiagnosticsForSpanGetter(owner, analyzerDriverOpt, document, stateSets, range, blockForData, includeSuppressedDiagnostics);
+                return new LatestDiagnosticsForSpanGetter(owner, analyzerDriverOpt, document, stateSets, diagnosticIdOpt, range, blockForData, includeSuppressedDiagnostics);
             }
 
             private LatestDiagnosticsForSpanGetter(
@@ -85,6 +86,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 CompilationWithAnalyzers analyzerDriverOpt,
                 Document document,
                 IEnumerable<StateSet> stateSets,
+                string diagnosticId,
                 TextSpan range, bool blockForData, bool includeSuppressedDiagnostics)
             {
                 _owner = owner;
@@ -93,6 +95,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 _document = document;
 
                 _stateSets = stateSets;
+                _diagnosticId = diagnosticId;
                 _analyzerDriverOpt = analyzerDriverOpt;
                 _compilerAnalyzer = _owner.HostAnalyzerManager.GetCompilerDiagnosticAnalyzer(_document.Project.Language);
 
@@ -397,7 +400,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 
             private bool ShouldInclude(DiagnosticData diagnostic)
             {
-                return diagnostic.DocumentId == _document.Id && _range.IntersectsWith(diagnostic.TextSpan) && (_includeSuppressedDiagnostics || !diagnostic.IsSuppressed);
+                return diagnostic.DocumentId == _document.Id && _range.IntersectsWith(diagnostic.TextSpan) 
+                    && (_includeSuppressedDiagnostics || !diagnostic.IsSuppressed)
+                    && (_diagnosticId == null || _diagnosticId == diagnostic.Id);
             }
 
             private bool BlockForData(AnalysisKind kind, bool supportsSemanticInSpan)
