@@ -2271,10 +2271,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 return null;
             }
-            if (containingType.IsTupleType)
-            {
-                return AsMemberOfTupleType((TupleTypeSymbol)containingType, symbol);
-            }
             if (symbol.Kind == SymbolKind.Method)
             {
                 if (((MethodSymbol)symbol).MethodKind == MethodKind.LocalFunction)
@@ -2289,6 +2285,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 if (containingType.OriginalDefinition.Equals(symbolDefContainer, TypeCompareKind.ConsiderEverything))
                 {
+                    if (symbolDefContainer.IsTupleType)
+                    {
+                        return AsMemberOfTupleType((TupleTypeSymbol)containingType, symbol);
+                    }
                     return symbolDef.SymbolAsMember(containingType);
                 }
                 containingType = containingType.BaseTypeNoUseSiteDiagnostics;
@@ -2738,7 +2738,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
                 TrackNullableStateForAssignment(right, leftType, leftResult.Slot, rightType, rightResult.Slot);
                 // PROTOTYPE(NullableReferenceTypes): Check node.Type.IsErrorType() instead?
-                _result = node.HasErrors ? Result.Create(TypeSymbolWithAnnotations.Create(node.Type)) : leftResult;
+                _result = node.HasErrors ? TypeSymbolWithAnnotations.Create(node.Type) : rightType;
             }
 
             return null;
@@ -3108,7 +3108,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override BoundNode VisitBadExpression(BoundBadExpression node)
         {
             var result = base.VisitBadExpression(node);
-            _result = TypeSymbolWithAnnotations.Create(node.Type);
+            _result = TypeSymbolWithAnnotations.Create(node.Type, isNullableIfReferenceType: null);
             return result;
         }
 

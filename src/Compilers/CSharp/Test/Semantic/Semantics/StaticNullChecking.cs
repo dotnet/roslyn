@@ -20933,7 +20933,7 @@ class C
         }
 
         [Fact]
-        public void Tuple_OtherMembers()
+        public void Tuple_OtherMembers_01()
         {
             var source =
 @"internal delegate T D<T>();
@@ -20971,7 +20971,7 @@ class C
     }
 }";
             // PROTOTYPE(NullableReferenceTypes): Should not report warnings for `z.E2?.Invoke()`.
-            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Mscorlib46, parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
                 // (27,11): error CS0070: The event '(object?, object?).E2' can only appear on the left hand side of += or -= (except when used from within the type '(object?, object?)')
                 //         y.E2?.Invoke().ToString();
@@ -20985,21 +20985,110 @@ class C
                 // (26,9): warning CS8602: Possible dereference of a null reference.
                 //         y.P1.ToString();
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "y.P1").WithLocation(26, 9),
-                // (27,9): hidden CS8607: Expression is probably never null.
-                //         y.E2?.Invoke().ToString();
-                Diagnostic(ErrorCode.HDN_ExpressionIsProbablyNeverNull, "y.E2").WithLocation(27, 9),
                 // (27,14): warning CS8602: Possible dereference of a null reference.
                 //         y.E2?.Invoke().ToString();
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, ".Invoke()").WithLocation(27, 14),
-                // (32,9): hidden CS8607: Expression is probably never null.
-                //         z.E2?.Invoke().ToString();
-                Diagnostic(ErrorCode.HDN_ExpressionIsProbablyNeverNull, "z.E2").WithLocation(32, 9),
                 // (32,14): warning CS8602: Possible dereference of a null reference.
                 //         z.E2?.Invoke().ToString();
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, ".Invoke()").WithLocation(32, 14),
                 // (17,31): warning CS0414: The field 'ValueTuple<T1, T2>.E2' is assigned but its value is never used
                 //         internal event D<T2>? E2;
                 Diagnostic(ErrorCode.WRN_UnreferencedFieldAssg, "E2").WithArguments("System.ValueTuple<T1, T2>.E2").WithLocation(17, 31));
+        }
+
+        [Fact]
+        public void Tuple_OtherMembers_02()
+        {
+            // Cannot test Derived<T> since tuple types are considered sealed and the base type
+            // is dropped: "error CS0509: 'Derived<T>': cannot derive from sealed type '(T, T)'".
+            var source =
+@"namespace System
+{
+    public class Base<T>
+    {
+        public Base(T t) { F = t; }
+        public T F;
+    }
+    public class ValueTuple<T1, T2> : Base<T1>
+    {
+        public ValueTuple(T1 item1, T2 item2) : base(item1)
+        {
+            Item1 = item1;
+            Item2 = item2;
+        }
+        public T1 Item1;
+        public T2 Item2;
+    }
+    //public class Derived<T> : ValueTuple<T, T>
+    //{
+    //    public Derived(T t) : base(t, t) { }
+    //    public T P { get; set; }
+    //}
+}
+class C
+{
+    static void F(object? x)
+    {
+        var y = (x, x);
+        y.F.ToString();
+        y.Item2.ToString();
+        if (x == null) return;
+        var z = (x, x);
+        z.F.ToString();
+        z.Item2.ToString();
+    }
+}";
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Mscorlib46, parseOptions: TestOptions.Regular8);
+            comp.VerifyDiagnostics(
+                // (29,9): warning CS8602: Possible dereference of a null reference.
+                //         y.F.ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "y.F").WithLocation(29, 9),
+                // (30,9): warning CS8602: Possible dereference of a null reference.
+                //         y.Item2.ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "y.Item2").WithLocation(30, 9));
+        }
+
+        [Fact]
+        public void Tuple_OtherMembers_03()
+        {
+            var source =
+@"namespace System
+{
+    public class Object
+    {
+        public string ToString() => throw null;
+        public object? F;
+    }
+    public class String { }
+    public abstract class ValueType
+    {
+        public object? P { get; set; }
+    }
+    public struct Void { }
+    public struct ValueTuple<T1, T2>
+    {
+        public ValueTuple(T1 item1, T2 item2)
+        {
+        }
+    }
+}
+class C
+{
+    static void M(object x)
+    {
+        var y = (x, x);
+        y.F.ToString();
+        y.P.ToString();
+    }
+}";
+            var comp = CreateEmptyCompilation(source, parseOptions: TestOptions.Regular8);
+            comp.VerifyDiagnostics(
+                // (26,9): warning CS8602: Possible dereference of a null reference.
+                //         y.F.ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "y.F").WithLocation(26, 9),
+                // (27,9): warning CS8602: Possible dereference of a null reference.
+                //         y.P.ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "y.P").WithLocation(27, 9));
         }
 
         [Fact]
@@ -22393,6 +22482,38 @@ class C
                 // (5,35): error CS1968: Constraint cannot be a dynamic type 'I<dynamic>'
                 //     static void F2<T>() where T : I<dynamic?> { }
                 Diagnostic(ErrorCode.ERR_ConstructedDynamicTypeAsBound, "I<dynamic?>").WithArguments("I<dynamic?>").WithLocation(5, 35));
+        }
+
+        [Fact]
+        public void AssignmentNullability()
+        {
+            var source =
+@"class C
+{
+    static void F1(string? x1, string y1)
+    {
+        object? z1;
+        (z1 = x1).ToString();
+        (z1 = y1).ToString();
+    }
+    static void F2(string? x2, string y2)
+    {
+        object z2;
+        (z2 = x2).ToString();
+        (z2 = y2).ToString();
+    }
+}";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
+            comp.VerifyDiagnostics(
+                // (6,10): warning CS8602: Possible dereference of a null reference.
+                //         (z1 = x1).ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "z1 = x1").WithLocation(6, 10),
+                // (12,15): warning CS8600: Converting null literal or possible null value to non-nullable type.
+                //         (z2 = x2).ToString();
+                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "x2").WithLocation(12, 15),
+                // (12,10): warning CS8602: Possible dereference of a null reference.
+                //         (z2 = x2).ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "z2 = x2").WithLocation(12, 10));
         }
     }
 }
