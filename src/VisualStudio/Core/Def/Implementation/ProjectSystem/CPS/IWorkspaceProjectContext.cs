@@ -32,6 +32,7 @@ namespace Microsoft.VisualStudio.LanguageServices.ProjectSystem
         void RemoveAnalyzerReference(string referencePath);
 
         // Files.
+        void AddSourceFile(string filePath, bool isInCurrentContext, IEnumerable<string> folderNames, SourceCodeKind sourceCodeKind); // This overload just for binary compat with existing code
         void AddSourceFile(string filePath, bool isInCurrentContext = true, IEnumerable<string> folderNames = null, SourceCodeKind sourceCodeKind = SourceCodeKind.Regular, IDocumentServiceFactory documentServiceFactory = null);
         void AddSourceFile(string filePath, SourceTextContainer container, bool isInCurrentContext = true, IEnumerable<string> folderNames = null, SourceCodeKind sourceCodeKind = SourceCodeKind.Regular, IDocumentServiceFactory documentServiceFactory = null);
 
