@@ -253,5 +253,101 @@ RoOt = TruE");
                 EditorConfig.ReservedKeys.Select(k => KeyValuePair.Create(k, "my_val")).ToList(),
                 config.GlobalSection.Properties);
         }
+
+        [Fact]
+        public void CombineNonOverlapping()
+        {
+            var parent = EditorConfig.Parse(@"
+[*.cs]
+key1 = val1", @"C:\");
+            var nested = EditorConfig.Parse(@"
+[*.vb]
+key2 = val1", @"C:\nested");
+            var combined = EditorConfig.Combine(nested, parent);
+            Assert.NotSame(parent, combined);
+            Assert.NotSame(nested, combined);
+            Assert.Equal(@"C:\nested", combined.Directory);
+
+            Assert.Equal("*.cs", combined.NamedSections[0].Name);
+            AssertEx.SetEqual(
+                parent.NamedSections[0].Properties,
+                combined.NamedSections[0].Properties);
+
+            Assert.Equal("*.vb", combined.NamedSections[1].Name);
+            AssertEx.SetEqual(
+                nested.NamedSections[0].Properties,
+                combined.NamedSections[1].Properties);
+            Assert.Equal(2, combined.NamedSections.Length);
+        }
+
+        [Fact]
+        public void DifferentPropertiesSameSection()
+        {
+            var parent = EditorConfig.Parse(@"
+[*.cs]
+key1 = val", @"C:\");
+            var nested = EditorConfig.Parse(@"
+[*.cs]
+key2 = val", @"C:\nested");
+            var combined = EditorConfig.Combine(nested, parent);
+            Assert.NotSame(parent, combined);
+            Assert.NotSame(nested, combined);
+            Assert.Equal(@"C:\nested", combined.Directory);
+
+            Assert.Equal("*.cs", combined.NamedSections[0].Name);
+            AssertEx.SetEqual(
+                new[] { KeyValuePair.Create("key1", "val"),
+                        KeyValuePair.Create("key2", "val")
+                }, combined.NamedSections[0].Properties);
+        }
+
+        [Fact]
+        public void ConflictingProperties()
+        {
+            var parent = EditorConfig.Parse(@"
+[*.cs]
+key1 = val1
+key2 = val2", @"C:\");
+            var nested = EditorConfig.Parse(@"
+[*.cs]
+key1 = val3
+key3 = val4", @"C:\nested");
+            var combined = EditorConfig.Combine(nested, parent);
+            Assert.NotSame(parent, combined);
+            Assert.NotSame(nested, combined);
+            Assert.Equal(@"C:\nested", combined.Directory);
+
+            Assert.Equal("*.cs", combined.NamedSections[0].Name);
+            AssertEx.SetEqual(
+                new[] { KeyValuePair.Create("key1", "val3"),
+                        KeyValuePair.Create("key2", "val2"),
+                        KeyValuePair.Create("key3", "val4")
+                }, combined.NamedSections[0].Properties);
+            Assert.Equal(1, combined.NamedSections.Length);
+        }
+
+        [Fact]
+        public void GlobalsNotInherited()
+        {
+            var parent = EditorConfig.Parse(@"
+root = true
+global = val", @"C:\");
+            Assert.True(parent.IsRoot);
+
+            var nested = EditorConfig.Parse(@"
+global2 = val2", @"C:\nested");
+            Assert.False(nested.IsRoot);
+
+            var combined = EditorConfig.Combine(nested, parent);
+            Assert.False(combined.IsRoot);
+            Assert.NotSame(parent, combined);
+            Assert.NotSame(nested, combined);
+            Assert.Equal(@"C:\nested", combined.Directory);
+
+            AssertEx.SetEqual(
+                new[] { KeyValuePair.Create("global2", "val2"),
+                }, combined.GlobalSection.Properties);
+            Assert.Empty(combined.NamedSections);
+        }
     }
 }
