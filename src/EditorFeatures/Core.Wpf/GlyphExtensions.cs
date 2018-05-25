@@ -1,5 +1,4 @@
-﻿﻿using System;
-using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
+﻿using System;
 using Microsoft.VisualStudio.Imaging;
 using Microsoft.VisualStudio.Imaging.Interop;
 
