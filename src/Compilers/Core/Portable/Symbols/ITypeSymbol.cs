@@ -118,22 +118,27 @@ namespace Microsoft.CodeAnalysis
 
         internal static bool IsBooleanType(ITypeSymbol type)
         {
-            return type.SpecialType == SpecialType.System_Boolean;
+            return type?.SpecialType == SpecialType.System_Boolean;
+        }
+
+        internal static bool IsObjectType(ITypeSymbol type)
+        {
+            return type?.SpecialType == SpecialType.System_Object;
         }
 
         internal static bool IsSignedIntegralType(ITypeSymbol type)
         {
-            return type.SpecialType.IsSignedIntegralType();
+            return type?.SpecialType.IsSignedIntegralType() == true;
         }
 
         internal static bool IsUnsignedIntegralType(ITypeSymbol type)
         {
-            return type.SpecialType.IsUnsignedIntegralType();
+            return type?.SpecialType.IsUnsignedIntegralType() == true;
         }
 
         internal static bool IsNumericType(ITypeSymbol type)
         {
-            return type.SpecialType.IsNumericType();
+            return type?.SpecialType.IsNumericType() == true;
         }
 
         internal static ITypeSymbol GetEnumUnderlyingType(ITypeSymbol type)

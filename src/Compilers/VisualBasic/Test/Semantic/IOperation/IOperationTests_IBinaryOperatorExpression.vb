@@ -4585,5 +4585,1944 @@ Block[B10] - Exit
             VerifyFlowGraphAndDiagnosticsForTest(Of MethodBlockSyntax)(source, expectedGraph, expectedDiagnostics)
         End Sub
 
+        <CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)>
+        <Fact()>
+        Public Sub LogicalUserDefinedFlow_01()
+            Dim source = <![CDATA[
+Imports System
+Public Class C
+
+    Sub M(a As C, b As C, result As C) 'BIND:"Sub M"
+        result = a OrElse b
+    End Sub
+
+    Public Shared Operator And(x As C, y As C) As C
+        Return Nothing
+    End Operator
+
+    Public Shared Operator Or(x As C, y As C) As C
+        Return Nothing
+    End Operator
+
+    Public Shared Operator IsFalse(x As C) As Boolean
+        Return Nothing
+    End Operator
+
+    Public Shared Operator IsTrue(x As C) As Boolean
+        Return Nothing
+    End Operator
+End Class
+]]>.Value
+
+            Dim expectedDiagnostics = String.Empty
+
+            Dim expectedGraph = <![CDATA[
+Block[B0] - Entry
+    Statements (0)
+    Next (Regular) Block[B1]
+Block[B1] - Block
+    Predecessors: [B0]
+    Statements (2)
+        IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'result')
+          Value: 
+            IParameterReferenceOperation: result (OperationKind.ParameterReference, Type: C) (Syntax: 'result')
+
+        IFlowCaptureOperation: 1 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'a')
+          Value: 
+            IParameterReferenceOperation: a (OperationKind.ParameterReference, Type: C) (Syntax: 'a')
+
+    Jump if False (Regular) to Block[B3]
+        IUnaryOperation (UnaryOperatorKind.True) (OperatorMethod: Function C.op_True(x As C) As System.Boolean) (OperationKind.UnaryOperator, Type: System.Boolean, IsImplicit) (Syntax: 'a')
+          Operand: 
+            IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: C, IsImplicit) (Syntax: 'a')
+
+    Next (Regular) Block[B2]
+Block[B2] - Block
+    Predecessors: [B1]
+    Statements (1)
+        IFlowCaptureOperation: 2 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'a OrElse b')
+          Value: 
+            IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: C, IsImplicit) (Syntax: 'a')
+
+    Next (Regular) Block[B4]
+Block[B3] - Block
+    Predecessors: [B1]
+    Statements (1)
+        IFlowCaptureOperation: 2 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'a OrElse b')
+          Value: 
+            IBinaryOperation (BinaryOperatorKind.Or) (OperatorMethod: Function C.op_BitwiseOr(x As C, y As C) As C) (OperationKind.BinaryOperator, Type: C) (Syntax: 'a OrElse b')
+              Left: 
+                IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: C, IsImplicit) (Syntax: 'a')
+              Right: 
+                IParameterReferenceOperation: b (OperationKind.ParameterReference, Type: C) (Syntax: 'b')
+
+    Next (Regular) Block[B4]
+Block[B4] - Block
+    Predecessors: [B2] [B3]
+    Statements (1)
+        IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'result = a OrElse b')
+          Expression: 
+            ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: C, IsImplicit) (Syntax: 'result = a OrElse b')
+              Left: 
+                IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: C, IsImplicit) (Syntax: 'result')
+              Right: 
+                IFlowCaptureReferenceOperation: 2 (OperationKind.FlowCaptureReference, Type: C, IsImplicit) (Syntax: 'a OrElse b')
+
+    Next (Regular) Block[B5]
+Block[B5] - Exit
+    Predecessors: [B4]
+    Statements (0)
+]]>.Value
+
+            VerifyFlowGraphAndDiagnosticsForTest(Of MethodBlockSyntax)(source, expectedGraph, expectedDiagnostics)
+        End Sub
+
+        <CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)>
+        <Fact()>
+        Public Sub LogicalUserDefinedFlow_02()
+            Dim source = <![CDATA[
+Imports System
+Public Class C
+
+    Sub M(a As C, b As C, result As C) 'BIND:"Sub M"
+        result = a AndAlso b
+    End Sub
+
+    Public Shared Operator And(x As C, y As C) As C
+        Return Nothing
+    End Operator
+
+    Public Shared Operator Or(x As C, y As C) As C
+        Return Nothing
+    End Operator
+
+    Public Shared Operator IsFalse(x As C) As Boolean
+        Return Nothing
+    End Operator
+
+    Public Shared Operator IsTrue(x As C) As Boolean
+        Return Nothing
+    End Operator
+End Class
+]]>.Value
+
+            Dim expectedDiagnostics = String.Empty
+
+            Dim expectedGraph = <![CDATA[
+Block[B0] - Entry
+    Statements (0)
+    Next (Regular) Block[B1]
+Block[B1] - Block
+    Predecessors: [B0]
+    Statements (2)
+        IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'result')
+          Value: 
+            IParameterReferenceOperation: result (OperationKind.ParameterReference, Type: C) (Syntax: 'result')
+
+        IFlowCaptureOperation: 1 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'a')
+          Value: 
+            IParameterReferenceOperation: a (OperationKind.ParameterReference, Type: C) (Syntax: 'a')
+
+    Jump if False (Regular) to Block[B3]
+        IUnaryOperation (UnaryOperatorKind.False) (OperatorMethod: Function C.op_False(x As C) As System.Boolean) (OperationKind.UnaryOperator, Type: System.Boolean, IsImplicit) (Syntax: 'a')
+          Operand: 
+            IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: C, IsImplicit) (Syntax: 'a')
+
+    Next (Regular) Block[B2]
+Block[B2] - Block
+    Predecessors: [B1]
+    Statements (1)
+        IFlowCaptureOperation: 2 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'a AndAlso b')
+          Value: 
+            IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: C, IsImplicit) (Syntax: 'a')
+
+    Next (Regular) Block[B4]
+Block[B3] - Block
+    Predecessors: [B1]
+    Statements (1)
+        IFlowCaptureOperation: 2 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'a AndAlso b')
+          Value: 
+            IBinaryOperation (BinaryOperatorKind.And) (OperatorMethod: Function C.op_BitwiseAnd(x As C, y As C) As C) (OperationKind.BinaryOperator, Type: C) (Syntax: 'a AndAlso b')
+              Left: 
+                IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: C, IsImplicit) (Syntax: 'a')
+              Right: 
+                IParameterReferenceOperation: b (OperationKind.ParameterReference, Type: C) (Syntax: 'b')
+
+    Next (Regular) Block[B4]
+Block[B4] - Block
+    Predecessors: [B2] [B3]
+    Statements (1)
+        IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'result = a AndAlso b')
+          Expression: 
+            ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: C, IsImplicit) (Syntax: 'result = a AndAlso b')
+              Left: 
+                IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: C, IsImplicit) (Syntax: 'result')
+              Right: 
+                IFlowCaptureReferenceOperation: 2 (OperationKind.FlowCaptureReference, Type: C, IsImplicit) (Syntax: 'a AndAlso b')
+
+    Next (Regular) Block[B5]
+Block[B5] - Exit
+    Predecessors: [B4]
+    Statements (0)
+]]>.Value
+
+            VerifyFlowGraphAndDiagnosticsForTest(Of MethodBlockSyntax)(source, expectedGraph, expectedDiagnostics)
+        End Sub
+
+        <CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)>
+        <Fact()>
+        Public Sub LogicalUserDefinedFlow_03()
+            Dim source = <![CDATA[
+Imports System
+Public Class C
+
+    Sub M(a As C, b As C, c As C, result As C) 'BIND:"Sub M"
+        result = if(a, c) OrElse b
+    End Sub
+
+    Public Shared Operator And(x As C, y As C) As C
+        Return Nothing
+    End Operator
+
+    Public Shared Operator Or(x As C, y As C) As C
+        Return Nothing
+    End Operator
+
+    Public Shared Operator IsFalse(x As C) As Boolean
+        Return Nothing
+    End Operator
+
+    Public Shared Operator IsTrue(x As C) As Boolean
+        Return Nothing
+    End Operator
+End Class
+]]>.Value
+
+            Dim expectedDiagnostics = String.Empty
+
+            Dim expectedGraph = <![CDATA[
+Block[B0] - Entry
+    Statements (0)
+    Next (Regular) Block[B1]
+Block[B1] - Block
+    Predecessors: [B0]
+    Statements (2)
+        IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'result')
+          Value: 
+            IParameterReferenceOperation: result (OperationKind.ParameterReference, Type: C) (Syntax: 'result')
+
+        IFlowCaptureOperation: 1 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'a')
+          Value: 
+            IParameterReferenceOperation: a (OperationKind.ParameterReference, Type: C) (Syntax: 'a')
+
+    Jump if True (Regular) to Block[B3]
+        IIsNullOperation (OperationKind.IsNull, Type: System.Boolean, IsImplicit) (Syntax: 'a')
+          Operand: 
+            IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: C, IsImplicit) (Syntax: 'a')
+
+    Next (Regular) Block[B2]
+Block[B2] - Block
+    Predecessors: [B1]
+    Statements (1)
+        IFlowCaptureOperation: 2 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'a')
+          Value: 
+            IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: C, IsImplicit) (Syntax: 'a')
+
+    Next (Regular) Block[B4]
+Block[B3] - Block
+    Predecessors: [B1]
+    Statements (1)
+        IFlowCaptureOperation: 2 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'c')
+          Value: 
+            IParameterReferenceOperation: c (OperationKind.ParameterReference, Type: C) (Syntax: 'c')
+
+    Next (Regular) Block[B4]
+Block[B4] - Block
+    Predecessors: [B2] [B3]
+    Statements (0)
+    Jump if False (Regular) to Block[B6]
+        IUnaryOperation (UnaryOperatorKind.True) (OperatorMethod: Function C.op_True(x As C) As System.Boolean) (OperationKind.UnaryOperator, Type: System.Boolean, IsImplicit) (Syntax: 'if(a, c)')
+          Operand: 
+            IFlowCaptureReferenceOperation: 2 (OperationKind.FlowCaptureReference, Type: C, IsImplicit) (Syntax: 'if(a, c)')
+
+    Next (Regular) Block[B5]
+Block[B5] - Block
+    Predecessors: [B4]
+    Statements (1)
+        IFlowCaptureOperation: 3 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'if(a, c) OrElse b')
+          Value: 
+            IFlowCaptureReferenceOperation: 2 (OperationKind.FlowCaptureReference, Type: C, IsImplicit) (Syntax: 'if(a, c)')
+
+    Next (Regular) Block[B7]
+Block[B6] - Block
+    Predecessors: [B4]
+    Statements (1)
+        IFlowCaptureOperation: 3 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'if(a, c) OrElse b')
+          Value: 
+            IBinaryOperation (BinaryOperatorKind.Or) (OperatorMethod: Function C.op_BitwiseOr(x As C, y As C) As C) (OperationKind.BinaryOperator, Type: C) (Syntax: 'if(a, c) OrElse b')
+              Left: 
+                IFlowCaptureReferenceOperation: 2 (OperationKind.FlowCaptureReference, Type: C, IsImplicit) (Syntax: 'if(a, c)')
+              Right: 
+                IParameterReferenceOperation: b (OperationKind.ParameterReference, Type: C) (Syntax: 'b')
+
+    Next (Regular) Block[B7]
+Block[B7] - Block
+    Predecessors: [B5] [B6]
+    Statements (1)
+        IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'result = if ... c) OrElse b')
+          Expression: 
+            ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: C, IsImplicit) (Syntax: 'result = if ... c) OrElse b')
+              Left: 
+                IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: C, IsImplicit) (Syntax: 'result')
+              Right: 
+                IFlowCaptureReferenceOperation: 3 (OperationKind.FlowCaptureReference, Type: C, IsImplicit) (Syntax: 'if(a, c) OrElse b')
+
+    Next (Regular) Block[B8]
+Block[B8] - Exit
+    Predecessors: [B7]
+    Statements (0)
+]]>.Value
+
+            VerifyFlowGraphAndDiagnosticsForTest(Of MethodBlockSyntax)(source, expectedGraph, expectedDiagnostics)
+        End Sub
+
+        <CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)>
+        <Fact()>
+        Public Sub LogicalUserDefinedFlow_04()
+            Dim source = <![CDATA[
+Imports System
+Public Class C
+
+    Sub M(a As C, b As C, c As C, result As C) 'BIND:"Sub M"
+        result = a AndAlso If(b, c)
+    End Sub
+
+    Public Shared Operator And(x As C, y As C) As C
+        Return Nothing
+    End Operator
+
+    Public Shared Operator Or(x As C, y As C) As C
+        Return Nothing
+    End Operator
+
+    Public Shared Operator IsFalse(x As C) As Boolean
+        Return Nothing
+    End Operator
+
+    Public Shared Operator IsTrue(x As C) As Boolean
+        Return Nothing
+    End Operator
+End Class
+]]>.Value
+
+            Dim expectedDiagnostics = String.Empty
+
+            Dim expectedGraph = <![CDATA[
+Block[B0] - Entry
+    Statements (0)
+    Next (Regular) Block[B1]
+Block[B1] - Block
+    Predecessors: [B0]
+    Statements (2)
+        IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'result')
+          Value: 
+            IParameterReferenceOperation: result (OperationKind.ParameterReference, Type: C) (Syntax: 'result')
+
+        IFlowCaptureOperation: 1 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'a')
+          Value: 
+            IParameterReferenceOperation: a (OperationKind.ParameterReference, Type: C) (Syntax: 'a')
+
+    Jump if False (Regular) to Block[B3]
+        IUnaryOperation (UnaryOperatorKind.False) (OperatorMethod: Function C.op_False(x As C) As System.Boolean) (OperationKind.UnaryOperator, Type: System.Boolean, IsImplicit) (Syntax: 'a')
+          Operand: 
+            IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: C, IsImplicit) (Syntax: 'a')
+
+    Next (Regular) Block[B2]
+Block[B2] - Block
+    Predecessors: [B1]
+    Statements (1)
+        IFlowCaptureOperation: 2 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'a AndAlso If(b, c)')
+          Value: 
+            IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: C, IsImplicit) (Syntax: 'a')
+
+    Next (Regular) Block[B7]
+Block[B3] - Block
+    Predecessors: [B1]
+    Statements (1)
+        IFlowCaptureOperation: 3 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'b')
+          Value: 
+            IParameterReferenceOperation: b (OperationKind.ParameterReference, Type: C) (Syntax: 'b')
+
+    Jump if True (Regular) to Block[B5]
+        IIsNullOperation (OperationKind.IsNull, Type: System.Boolean, IsImplicit) (Syntax: 'b')
+          Operand: 
+            IFlowCaptureReferenceOperation: 3 (OperationKind.FlowCaptureReference, Type: C, IsImplicit) (Syntax: 'b')
+
+    Next (Regular) Block[B4]
+Block[B4] - Block
+    Predecessors: [B3]
+    Statements (1)
+        IFlowCaptureOperation: 4 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'b')
+          Value: 
+            IFlowCaptureReferenceOperation: 3 (OperationKind.FlowCaptureReference, Type: C, IsImplicit) (Syntax: 'b')
+
+    Next (Regular) Block[B6]
+Block[B5] - Block
+    Predecessors: [B3]
+    Statements (1)
+        IFlowCaptureOperation: 4 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'c')
+          Value: 
+            IParameterReferenceOperation: c (OperationKind.ParameterReference, Type: C) (Syntax: 'c')
+
+    Next (Regular) Block[B6]
+Block[B6] - Block
+    Predecessors: [B4] [B5]
+    Statements (1)
+        IFlowCaptureOperation: 2 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'a AndAlso If(b, c)')
+          Value: 
+            IBinaryOperation (BinaryOperatorKind.And) (OperatorMethod: Function C.op_BitwiseAnd(x As C, y As C) As C) (OperationKind.BinaryOperator, Type: C) (Syntax: 'a AndAlso If(b, c)')
+              Left: 
+                IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: C, IsImplicit) (Syntax: 'a')
+              Right: 
+                IFlowCaptureReferenceOperation: 4 (OperationKind.FlowCaptureReference, Type: C, IsImplicit) (Syntax: 'If(b, c)')
+
+    Next (Regular) Block[B7]
+Block[B7] - Block
+    Predecessors: [B2] [B6]
+    Statements (1)
+        IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'result = a  ... so If(b, c)')
+          Expression: 
+            ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: C, IsImplicit) (Syntax: 'result = a  ... so If(b, c)')
+              Left: 
+                IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: C, IsImplicit) (Syntax: 'result')
+              Right: 
+                IFlowCaptureReferenceOperation: 2 (OperationKind.FlowCaptureReference, Type: C, IsImplicit) (Syntax: 'a AndAlso If(b, c)')
+
+    Next (Regular) Block[B8]
+Block[B8] - Exit
+    Predecessors: [B7]
+    Statements (0)
+]]>.Value
+
+            VerifyFlowGraphAndDiagnosticsForTest(Of MethodBlockSyntax)(source, expectedGraph, expectedDiagnostics)
+        End Sub
+
+        <CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)>
+        <Fact()>
+        Public Sub LogicalUserDefinedFlow_05()
+            Dim source = <![CDATA[
+Imports System
+Public Class C
+
+    Sub M(a As C, b As C, result As C) 'BIND:"Sub M"
+        result = a OrElse b
+    End Sub
+
+End Class
+]]>.Value
+
+            Dim expectedDiagnostics = <![CDATA[
+BC30452: Operator 'OrElse' is not defined for types 'C' and 'C'.
+        result = a OrElse b
+                 ~~~~~~~~~~
+]]>.Value
+
+            Dim expectedGraph = <![CDATA[
+Block[B0] - Entry
+    Statements (0)
+    Next (Regular) Block[B1]
+Block[B1] - Block
+    Predecessors: [B0]
+    Statements (1)
+        IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null, IsInvalid) (Syntax: 'result = a OrElse b')
+          Expression: 
+            ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: C, IsInvalid, IsImplicit) (Syntax: 'result = a OrElse b')
+              Left: 
+                IParameterReferenceOperation: result (OperationKind.ParameterReference, Type: C) (Syntax: 'result')
+              Right: 
+                IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: C, IsInvalid, IsImplicit) (Syntax: 'a OrElse b')
+                  Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                    (DelegateRelaxationLevelNone)
+                  Operand: 
+                    IBinaryOperation (BinaryOperatorKind.ConditionalOr, Checked) (OperationKind.BinaryOperator, Type: ?, IsInvalid) (Syntax: 'a OrElse b')
+                      Left: 
+                        IParameterReferenceOperation: a (OperationKind.ParameterReference, Type: C, IsInvalid) (Syntax: 'a')
+                      Right: 
+                        IParameterReferenceOperation: b (OperationKind.ParameterReference, Type: C, IsInvalid) (Syntax: 'b')
+
+    Next (Regular) Block[B2]
+Block[B2] - Exit
+    Predecessors: [B1]
+    Statements (0)
+]]>.Value
+
+            VerifyFlowGraphAndDiagnosticsForTest(Of MethodBlockSyntax)(source, expectedGraph, expectedDiagnostics)
+        End Sub
+
+        <CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)>
+        <Fact()>
+        Public Sub LogicalUserDefinedFlow_06()
+            Dim source = <![CDATA[
+Imports System
+Public Class B
+End Class
+
+Public Class C
+    Inherits B
+
+    Sub M(a As C, b As C, result As C) 'BIND:"Sub M"
+        result = a OrElse b
+    End Sub
+
+    Public Shared Operator And(x As C, y As C) As B
+        Return Nothing
+    End Operator
+
+    Public Shared Operator Or(x As C, y As C) As B
+        Return Nothing
+    End Operator
+
+    Public Shared Operator IsFalse(x As C) As Boolean
+        Return Nothing
+    End Operator
+
+    Public Shared Operator IsTrue(x As C) As Boolean
+        Return Nothing
+    End Operator
+
+End Class
+]]>.Value
+
+            Dim expectedDiagnostics = <![CDATA[
+BC33034: Return and parameter types of 'Public Shared Operator Or(x As C, y As C) As B' must be 'C' to be used in a 'OrElse' expression.
+        result = a OrElse b
+                 ~~~~~~~~~~
+]]>.Value
+
+            Dim expectedGraph = <![CDATA[
+Block[B0] - Entry
+    Statements (0)
+    Next (Regular) Block[B1]
+Block[B1] - Block
+    Predecessors: [B0]
+    Statements (2)
+        IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'result')
+          Value: 
+            IParameterReferenceOperation: result (OperationKind.ParameterReference, Type: C) (Syntax: 'result')
+
+        IFlowCaptureOperation: 1 (OperationKind.FlowCapture, Type: null, IsInvalid, IsImplicit) (Syntax: 'a')
+          Value: 
+            IParameterReferenceOperation: a (OperationKind.ParameterReference, Type: C, IsInvalid) (Syntax: 'a')
+
+    Jump if False (Regular) to Block[B3]
+        IInvalidOperation (OperationKind.Invalid, Type: System.Boolean, IsInvalid, IsImplicit) (Syntax: 'a')
+          Children(1):
+              IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: C, IsInvalid, IsImplicit) (Syntax: 'a')
+
+    Next (Regular) Block[B2]
+Block[B2] - Block
+    Predecessors: [B1]
+    Statements (1)
+        IFlowCaptureOperation: 2 (OperationKind.FlowCapture, Type: null, IsInvalid, IsImplicit) (Syntax: 'a OrElse b')
+          Value: 
+            IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: C, IsInvalid, IsImplicit) (Syntax: 'a')
+
+    Next (Regular) Block[B4]
+Block[B3] - Block
+    Predecessors: [B1]
+    Statements (1)
+        IFlowCaptureOperation: 2 (OperationKind.FlowCapture, Type: null, IsInvalid, IsImplicit) (Syntax: 'a OrElse b')
+          Value: 
+            IBinaryOperation (BinaryOperatorKind.Or) (OperatorMethod: Function C.op_BitwiseOr(x As C, y As C) As B) (OperationKind.BinaryOperator, Type: B, IsInvalid) (Syntax: 'a OrElse b')
+              Left: 
+                IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: C, IsInvalid, IsImplicit) (Syntax: 'a')
+              Right: 
+                IParameterReferenceOperation: b (OperationKind.ParameterReference, Type: C, IsInvalid) (Syntax: 'b')
+
+    Next (Regular) Block[B4]
+Block[B4] - Block
+    Predecessors: [B2] [B3]
+    Statements (1)
+        IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null, IsInvalid) (Syntax: 'result = a OrElse b')
+          Expression: 
+            ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: C, IsInvalid, IsImplicit) (Syntax: 'result = a OrElse b')
+              Left: 
+                IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: C, IsImplicit) (Syntax: 'result')
+              Right: 
+                IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: C, IsInvalid, IsImplicit) (Syntax: 'a OrElse b')
+                  Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
+                    (NarrowingReference)
+                  Operand: 
+                    IFlowCaptureReferenceOperation: 2 (OperationKind.FlowCaptureReference, Type: B, IsInvalid, IsImplicit) (Syntax: 'a OrElse b')
+
+    Next (Regular) Block[B5]
+Block[B5] - Exit
+    Predecessors: [B4]
+    Statements (0)
+]]>.Value
+
+            VerifyFlowGraphAndDiagnosticsForTest(Of MethodBlockSyntax)(source, expectedGraph, expectedDiagnostics)
+        End Sub
+
+        <CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)>
+        <Fact()>
+        Public Sub LogicalUserDefinedFlow_07()
+            Dim source = <![CDATA[
+Imports System
+Public Class C
+
+    Sub M(a As C, b As C, result As C) 'BIND:"Sub M"
+        result = a AndAlso b
+    End Sub
+
+    Public Shared Operator And(x As C, y As C) As C
+        Return Nothing
+    End Operator
+
+    Public Shared Operator Or(x As C, y As C) As C
+        Return Nothing
+    End Operator
+
+End Class
+]]>.Value
+
+            Dim expectedDiagnostics = <![CDATA[
+BC33035: Type 'C' must define operator 'IsFalse' to be used in a 'AndAlso' expression.
+        result = a AndAlso b
+                 ~~~~~~~~~~~
+]]>.Value
+
+            Dim expectedGraph = <![CDATA[
+Block[B0] - Entry
+    Statements (0)
+    Next (Regular) Block[B1]
+Block[B1] - Block
+    Predecessors: [B0]
+    Statements (2)
+        IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'result')
+          Value: 
+            IParameterReferenceOperation: result (OperationKind.ParameterReference, Type: C) (Syntax: 'result')
+
+        IFlowCaptureOperation: 1 (OperationKind.FlowCapture, Type: null, IsInvalid, IsImplicit) (Syntax: 'a')
+          Value: 
+            IParameterReferenceOperation: a (OperationKind.ParameterReference, Type: C, IsInvalid) (Syntax: 'a')
+
+    Jump if False (Regular) to Block[B3]
+        IInvalidOperation (OperationKind.Invalid, Type: System.Boolean, IsInvalid, IsImplicit) (Syntax: 'a')
+          Children(1):
+              IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: C, IsInvalid, IsImplicit) (Syntax: 'a')
+
+    Next (Regular) Block[B2]
+Block[B2] - Block
+    Predecessors: [B1]
+    Statements (1)
+        IFlowCaptureOperation: 2 (OperationKind.FlowCapture, Type: null, IsInvalid, IsImplicit) (Syntax: 'a AndAlso b')
+          Value: 
+            IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: C, IsInvalid, IsImplicit) (Syntax: 'a')
+
+    Next (Regular) Block[B4]
+Block[B3] - Block
+    Predecessors: [B1]
+    Statements (1)
+        IFlowCaptureOperation: 2 (OperationKind.FlowCapture, Type: null, IsInvalid, IsImplicit) (Syntax: 'a AndAlso b')
+          Value: 
+            IBinaryOperation (BinaryOperatorKind.And) (OperatorMethod: Function C.op_BitwiseAnd(x As C, y As C) As C) (OperationKind.BinaryOperator, Type: C, IsInvalid) (Syntax: 'a AndAlso b')
+              Left: 
+                IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: C, IsInvalid, IsImplicit) (Syntax: 'a')
+              Right: 
+                IParameterReferenceOperation: b (OperationKind.ParameterReference, Type: C, IsInvalid) (Syntax: 'b')
+
+    Next (Regular) Block[B4]
+Block[B4] - Block
+    Predecessors: [B2] [B3]
+    Statements (1)
+        IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null, IsInvalid) (Syntax: 'result = a AndAlso b')
+          Expression: 
+            ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: C, IsInvalid, IsImplicit) (Syntax: 'result = a AndAlso b')
+              Left: 
+                IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: C, IsImplicit) (Syntax: 'result')
+              Right: 
+                IFlowCaptureReferenceOperation: 2 (OperationKind.FlowCaptureReference, Type: C, IsInvalid, IsImplicit) (Syntax: 'a AndAlso b')
+
+    Next (Regular) Block[B5]
+Block[B5] - Exit
+    Predecessors: [B4]
+    Statements (0)
+]]>.Value
+
+            VerifyFlowGraphAndDiagnosticsForTest(Of MethodBlockSyntax)(source, expectedGraph, expectedDiagnostics)
+        End Sub
+
+        <CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)>
+        <Fact()>
+        Public Sub LogicalUserDefinedFlow_08()
+            Dim source = <![CDATA[
+Imports System
+Public Class C
+
+    Sub M(a As B3, b As B2, result As Object) 'BIND:"Sub M"
+        result = a AndAlso b
+    End Sub
+
+    Class B2
+        Public Shared Operator And(x As B3, y As B2) As B2
+            Return Nothing
+        End Operator
+
+        Public Shared Operator Or(x As B3, y As B2) As B2
+            Return Nothing
+        End Operator
+    End Class
+
+    Class B3
+        Public Shared Operator And(x As B3, y As B2) As B3
+            Return Nothing
+        End Operator
+
+        Public Shared Operator Or(x As B3, y As B2) As B3
+            Return Nothing
+        End Operator
+    End Class
+
+End Class
+]]>.Value
+
+            Dim expectedDiagnostics = <![CDATA[
+BC30521: Overload resolution failed because no accessible 'And' is most specific for these arguments:
+    'Public Shared Operator C.B3.And(x As C.B3, y As C.B2) As C.B3': Not most specific.
+    'Public Shared Operator C.B2.And(x As C.B3, y As C.B2) As C.B2': Not most specific.
+        result = a AndAlso b
+                 ~~~~~~~~~~~
+]]>.Value
+
+            Dim expectedGraph = <![CDATA[
+Block[B0] - Entry
+    Statements (0)
+    Next (Regular) Block[B1]
+Block[B1] - Block
+    Predecessors: [B0]
+    Statements (1)
+        IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null, IsInvalid) (Syntax: 'result = a AndAlso b')
+          Expression: 
+            ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Object, IsInvalid, IsImplicit) (Syntax: 'result = a AndAlso b')
+              Left: 
+                IParameterReferenceOperation: result (OperationKind.ParameterReference, Type: System.Object) (Syntax: 'result')
+              Right: 
+                IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Object, IsInvalid, IsImplicit) (Syntax: 'a AndAlso b')
+                  Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                    (DelegateRelaxationLevelNone)
+                  Operand: 
+                    IBinaryOperation (BinaryOperatorKind.ConditionalAnd) (OperationKind.BinaryOperator, Type: ?, IsInvalid) (Syntax: 'a AndAlso b')
+                      Left: 
+                        IParameterReferenceOperation: a (OperationKind.ParameterReference, Type: C.B3, IsInvalid) (Syntax: 'a')
+                      Right: 
+                        IParameterReferenceOperation: b (OperationKind.ParameterReference, Type: C.B2, IsInvalid) (Syntax: 'b')
+
+    Next (Regular) Block[B2]
+Block[B2] - Exit
+    Predecessors: [B1]
+    Statements (0)
+]]>.Value
+
+            VerifyFlowGraphAndDiagnosticsForTest(Of MethodBlockSyntax)(source, expectedGraph, expectedDiagnostics)
+        End Sub
+
+        <CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)>
+        <Fact()>
+        Public Sub LogicalUserDefinedFlow_09()
+            Dim source = <![CDATA[
+Imports System
+Public Structure C
+
+    Sub M(a As C?, b As C?, result As C?) 'BIND:"Sub M"
+        result = a OrElse b
+    End Sub
+
+    Public Shared Operator And(x As C, y As C) As C
+        Return Nothing
+    End Operator
+
+    Public Shared Operator Or(x As C, y As C) As C
+        Return Nothing
+    End Operator
+
+    Public Shared Operator IsFalse(x As C) As Boolean
+        Return Nothing
+    End Operator
+
+    Public Shared Operator IsTrue(x As C) As Boolean
+        Return Nothing
+    End Operator
+End Structure
+]]>.Value
+
+            Dim expectedDiagnostics = String.Empty
+
+            Dim expectedGraph = <![CDATA[
+Block[B0] - Entry
+    Statements (0)
+    Next (Regular) Block[B1]
+Block[B1] - Block
+    Predecessors: [B0]
+    Statements (2)
+        IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'result')
+          Value: 
+            IParameterReferenceOperation: result (OperationKind.ParameterReference, Type: System.Nullable(Of C)) (Syntax: 'result')
+
+        IFlowCaptureOperation: 1 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'a')
+          Value: 
+            IParameterReferenceOperation: a (OperationKind.ParameterReference, Type: System.Nullable(Of C)) (Syntax: 'a')
+
+    Jump if True (Regular) to Block[B4]
+        IIsNullOperation (OperationKind.IsNull, Type: System.Boolean, IsImplicit) (Syntax: 'a')
+          Operand: 
+            IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: System.Nullable(Of C), IsImplicit) (Syntax: 'a')
+
+    Next (Regular) Block[B2]
+Block[B2] - Block
+    Predecessors: [B1]
+    Statements (0)
+    Jump if False (Regular) to Block[B4]
+        IUnaryOperation (UnaryOperatorKind.True) (OperatorMethod: Function C.op_True(x As C) As System.Boolean) (OperationKind.UnaryOperator, Type: System.Boolean, IsImplicit) (Syntax: 'a')
+          Operand: 
+            IInvocationOperation ( Function System.Nullable(Of C).GetValueOrDefault() As C) (OperationKind.Invocation, Type: C, IsImplicit) (Syntax: 'a')
+              Instance Receiver: 
+                IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: System.Nullable(Of C), IsImplicit) (Syntax: 'a')
+              Arguments(0)
+
+    Next (Regular) Block[B3]
+Block[B3] - Block
+    Predecessors: [B2]
+    Statements (1)
+        IFlowCaptureOperation: 2 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'a OrElse b')
+          Value: 
+            IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: System.Nullable(Of C), IsImplicit) (Syntax: 'a')
+
+    Next (Regular) Block[B5]
+Block[B4] - Block
+    Predecessors: [B1] [B2]
+    Statements (1)
+        IFlowCaptureOperation: 2 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'a OrElse b')
+          Value: 
+            IBinaryOperation (BinaryOperatorKind.Or, IsLifted) (OperatorMethod: Function C.op_BitwiseOr(x As C, y As C) As C) (OperationKind.BinaryOperator, Type: System.Nullable(Of C)) (Syntax: 'a OrElse b')
+              Left: 
+                IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: System.Nullable(Of C), IsImplicit) (Syntax: 'a')
+              Right: 
+                IParameterReferenceOperation: b (OperationKind.ParameterReference, Type: System.Nullable(Of C)) (Syntax: 'b')
+
+    Next (Regular) Block[B5]
+Block[B5] - Block
+    Predecessors: [B3] [B4]
+    Statements (1)
+        IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'result = a OrElse b')
+          Expression: 
+            ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Nullable(Of C), IsImplicit) (Syntax: 'result = a OrElse b')
+              Left: 
+                IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.Nullable(Of C), IsImplicit) (Syntax: 'result')
+              Right: 
+                IFlowCaptureReferenceOperation: 2 (OperationKind.FlowCaptureReference, Type: System.Nullable(Of C), IsImplicit) (Syntax: 'a OrElse b')
+
+    Next (Regular) Block[B6]
+Block[B6] - Exit
+    Predecessors: [B5]
+    Statements (0)
+]]>.Value
+
+            VerifyFlowGraphAndDiagnosticsForTest(Of MethodBlockSyntax)(source, expectedGraph, expectedDiagnostics)
+        End Sub
+
+        <CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)>
+        <Fact()>
+        Public Sub LogicalUserDefinedFlow_10()
+            Dim source = <![CDATA[
+Imports System
+Public Structure C
+
+    Sub M(a As C?, b As C?, result As C?) 'BIND:"Sub M"
+        result = a OrElse b
+    End Sub
+
+    Public Shared Operator And(x As C?, y As C?) As C?
+        Return Nothing
+    End Operator
+
+    Public Shared Operator Or(x As C?, y As C?) As C?
+        Return Nothing
+    End Operator
+
+    Public Shared Operator IsFalse(x As C?) As Boolean
+        Return Nothing
+    End Operator
+
+    Public Shared Operator IsTrue(x As C?) As Boolean
+        Return Nothing
+    End Operator
+End Structure
+]]>.Value
+
+            Dim expectedDiagnostics = String.Empty
+
+            Dim expectedGraph = <![CDATA[
+Block[B0] - Entry
+    Statements (0)
+    Next (Regular) Block[B1]
+Block[B1] - Block
+    Predecessors: [B0]
+    Statements (2)
+        IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'result')
+          Value: 
+            IParameterReferenceOperation: result (OperationKind.ParameterReference, Type: System.Nullable(Of C)) (Syntax: 'result')
+
+        IFlowCaptureOperation: 1 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'a')
+          Value: 
+            IParameterReferenceOperation: a (OperationKind.ParameterReference, Type: System.Nullable(Of C)) (Syntax: 'a')
+
+    Jump if False (Regular) to Block[B3]
+        IUnaryOperation (UnaryOperatorKind.True) (OperatorMethod: Function C.op_True(x As System.Nullable(Of C)) As System.Boolean) (OperationKind.UnaryOperator, Type: System.Boolean, IsImplicit) (Syntax: 'a')
+          Operand: 
+            IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: System.Nullable(Of C), IsImplicit) (Syntax: 'a')
+
+    Next (Regular) Block[B2]
+Block[B2] - Block
+    Predecessors: [B1]
+    Statements (1)
+        IFlowCaptureOperation: 2 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'a OrElse b')
+          Value: 
+            IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: System.Nullable(Of C), IsImplicit) (Syntax: 'a')
+
+    Next (Regular) Block[B4]
+Block[B3] - Block
+    Predecessors: [B1]
+    Statements (1)
+        IFlowCaptureOperation: 2 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'a OrElse b')
+          Value: 
+            IBinaryOperation (BinaryOperatorKind.Or) (OperatorMethod: Function C.op_BitwiseOr(x As System.Nullable(Of C), y As System.Nullable(Of C)) As System.Nullable(Of C)) (OperationKind.BinaryOperator, Type: System.Nullable(Of C)) (Syntax: 'a OrElse b')
+              Left: 
+                IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: System.Nullable(Of C), IsImplicit) (Syntax: 'a')
+              Right: 
+                IParameterReferenceOperation: b (OperationKind.ParameterReference, Type: System.Nullable(Of C)) (Syntax: 'b')
+
+    Next (Regular) Block[B4]
+Block[B4] - Block
+    Predecessors: [B2] [B3]
+    Statements (1)
+        IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'result = a OrElse b')
+          Expression: 
+            ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Nullable(Of C), IsImplicit) (Syntax: 'result = a OrElse b')
+              Left: 
+                IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.Nullable(Of C), IsImplicit) (Syntax: 'result')
+              Right: 
+                IFlowCaptureReferenceOperation: 2 (OperationKind.FlowCaptureReference, Type: System.Nullable(Of C), IsImplicit) (Syntax: 'a OrElse b')
+
+    Next (Regular) Block[B5]
+Block[B5] - Exit
+    Predecessors: [B4]
+    Statements (0)
+]]>.Value
+
+            VerifyFlowGraphAndDiagnosticsForTest(Of MethodBlockSyntax)(source, expectedGraph, expectedDiagnostics)
+        End Sub
+
+        <CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)>
+        <Fact()>
+        Public Sub LogicalUserDefinedFlow_11()
+            Dim source = <![CDATA[
+Imports System
+Public Structure C
+
+    Sub M(a As C?, b As C?, result As C?) 'BIND:"Sub M"
+        result = a AndAlso b
+    End Sub
+
+    Public Shared Operator And(x As C, y As C) As C
+        Return Nothing
+    End Operator
+
+    Public Shared Operator Or(x As C, y As C) As C
+        Return Nothing
+    End Operator
+
+End Structure
+]]>.Value
+
+            Dim expectedDiagnostics = <![CDATA[
+BC33035: Type 'C?' must define operator 'IsFalse' to be used in a 'AndAlso' expression.
+        result = a AndAlso b
+                 ~~~~~~~~~~~
+]]>.Value
+
+            Dim expectedGraph = <![CDATA[
+Block[B0] - Entry
+    Statements (0)
+    Next (Regular) Block[B1]
+Block[B1] - Block
+    Predecessors: [B0]
+    Statements (2)
+        IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'result')
+          Value: 
+            IParameterReferenceOperation: result (OperationKind.ParameterReference, Type: System.Nullable(Of C)) (Syntax: 'result')
+
+        IFlowCaptureOperation: 1 (OperationKind.FlowCapture, Type: null, IsInvalid, IsImplicit) (Syntax: 'a')
+          Value: 
+            IParameterReferenceOperation: a (OperationKind.ParameterReference, Type: System.Nullable(Of C), IsInvalid) (Syntax: 'a')
+
+    Jump if True (Regular) to Block[B4]
+        IIsNullOperation (OperationKind.IsNull, Type: System.Boolean, IsInvalid, IsImplicit) (Syntax: 'a')
+          Operand: 
+            IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: System.Nullable(Of C), IsInvalid, IsImplicit) (Syntax: 'a')
+
+    Next (Regular) Block[B2]
+Block[B2] - Block
+    Predecessors: [B1]
+    Statements (0)
+    Jump if False (Regular) to Block[B4]
+        IInvalidOperation (OperationKind.Invalid, Type: System.Boolean, IsInvalid, IsImplicit) (Syntax: 'a')
+          Children(1):
+              IInvocationOperation ( Function System.Nullable(Of C).GetValueOrDefault() As C) (OperationKind.Invocation, Type: C, IsInvalid, IsImplicit) (Syntax: 'a')
+                Instance Receiver: 
+                  IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: System.Nullable(Of C), IsInvalid, IsImplicit) (Syntax: 'a')
+                Arguments(0)
+
+    Next (Regular) Block[B3]
+Block[B3] - Block
+    Predecessors: [B2]
+    Statements (1)
+        IFlowCaptureOperation: 2 (OperationKind.FlowCapture, Type: null, IsInvalid, IsImplicit) (Syntax: 'a AndAlso b')
+          Value: 
+            IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: System.Nullable(Of C), IsInvalid, IsImplicit) (Syntax: 'a')
+
+    Next (Regular) Block[B5]
+Block[B4] - Block
+    Predecessors: [B1] [B2]
+    Statements (1)
+        IFlowCaptureOperation: 2 (OperationKind.FlowCapture, Type: null, IsInvalid, IsImplicit) (Syntax: 'a AndAlso b')
+          Value: 
+            IBinaryOperation (BinaryOperatorKind.And, IsLifted) (OperatorMethod: Function C.op_BitwiseAnd(x As C, y As C) As C) (OperationKind.BinaryOperator, Type: System.Nullable(Of C), IsInvalid) (Syntax: 'a AndAlso b')
+              Left: 
+                IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: System.Nullable(Of C), IsInvalid, IsImplicit) (Syntax: 'a')
+              Right: 
+                IParameterReferenceOperation: b (OperationKind.ParameterReference, Type: System.Nullable(Of C), IsInvalid) (Syntax: 'b')
+
+    Next (Regular) Block[B5]
+Block[B5] - Block
+    Predecessors: [B3] [B4]
+    Statements (1)
+        IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null, IsInvalid) (Syntax: 'result = a AndAlso b')
+          Expression: 
+            ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Nullable(Of C), IsInvalid, IsImplicit) (Syntax: 'result = a AndAlso b')
+              Left: 
+                IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.Nullable(Of C), IsImplicit) (Syntax: 'result')
+              Right: 
+                IFlowCaptureReferenceOperation: 2 (OperationKind.FlowCaptureReference, Type: System.Nullable(Of C), IsInvalid, IsImplicit) (Syntax: 'a AndAlso b')
+
+    Next (Regular) Block[B6]
+Block[B6] - Exit
+    Predecessors: [B5]
+    Statements (0)
+]]>.Value
+
+            VerifyFlowGraphAndDiagnosticsForTest(Of MethodBlockSyntax)(source, expectedGraph, expectedDiagnostics)
+        End Sub
+
+        <CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)>
+        <Fact()>
+        Public Sub LogicalUserDefinedFlow_12()
+            Dim source = <![CDATA[
+Imports System
+Public Structure C
+
+    Sub M(a As C, b As C, result As C?) 'BIND:"Sub M"
+        result = a OrElse b
+    End Sub
+
+    Public Shared Operator And(x As C?, y As C?) As C?
+        Return Nothing
+    End Operator
+
+    Public Shared Operator Or(x As C?, y As C?) As C?
+        Return Nothing
+    End Operator
+
+    Public Shared Operator IsFalse(x As C?) As Boolean
+        Return Nothing
+    End Operator
+
+    Public Shared Operator IsTrue(x As C?) As Boolean
+        Return Nothing
+    End Operator
+End Structure
+]]>.Value
+
+            Dim expectedDiagnostics = String.Empty
+
+            Dim expectedGraph = <![CDATA[
+Block[B0] - Entry
+    Statements (0)
+    Next (Regular) Block[B1]
+Block[B1] - Block
+    Predecessors: [B0]
+    Statements (2)
+        IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'result')
+          Value: 
+            IParameterReferenceOperation: result (OperationKind.ParameterReference, Type: System.Nullable(Of C)) (Syntax: 'result')
+
+        IFlowCaptureOperation: 1 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'a')
+          Value: 
+            IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Nullable(Of C), IsImplicit) (Syntax: 'a')
+              Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                (WideningNullable)
+              Operand: 
+                IParameterReferenceOperation: a (OperationKind.ParameterReference, Type: C) (Syntax: 'a')
+
+    Jump if False (Regular) to Block[B3]
+        IUnaryOperation (UnaryOperatorKind.True) (OperatorMethod: Function C.op_True(x As System.Nullable(Of C)) As System.Boolean) (OperationKind.UnaryOperator, Type: System.Boolean, IsImplicit) (Syntax: 'a')
+          Operand: 
+            IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: System.Nullable(Of C), IsImplicit) (Syntax: 'a')
+
+    Next (Regular) Block[B2]
+Block[B2] - Block
+    Predecessors: [B1]
+    Statements (1)
+        IFlowCaptureOperation: 2 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'a OrElse b')
+          Value: 
+            IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: System.Nullable(Of C), IsImplicit) (Syntax: 'a')
+
+    Next (Regular) Block[B4]
+Block[B3] - Block
+    Predecessors: [B1]
+    Statements (1)
+        IFlowCaptureOperation: 2 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'a OrElse b')
+          Value: 
+            IBinaryOperation (BinaryOperatorKind.Or) (OperatorMethod: Function C.op_BitwiseOr(x As System.Nullable(Of C), y As System.Nullable(Of C)) As System.Nullable(Of C)) (OperationKind.BinaryOperator, Type: System.Nullable(Of C)) (Syntax: 'a OrElse b')
+              Left: 
+                IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: System.Nullable(Of C), IsImplicit) (Syntax: 'a')
+              Right: 
+                IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Nullable(Of C), IsImplicit) (Syntax: 'b')
+                  Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                    (WideningNullable)
+                  Operand: 
+                    IParameterReferenceOperation: b (OperationKind.ParameterReference, Type: C) (Syntax: 'b')
+
+    Next (Regular) Block[B4]
+Block[B4] - Block
+    Predecessors: [B2] [B3]
+    Statements (1)
+        IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'result = a OrElse b')
+          Expression: 
+            ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Nullable(Of C), IsImplicit) (Syntax: 'result = a OrElse b')
+              Left: 
+                IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.Nullable(Of C), IsImplicit) (Syntax: 'result')
+              Right: 
+                IFlowCaptureReferenceOperation: 2 (OperationKind.FlowCaptureReference, Type: System.Nullable(Of C), IsImplicit) (Syntax: 'a OrElse b')
+
+    Next (Regular) Block[B5]
+Block[B5] - Exit
+    Predecessors: [B4]
+    Statements (0)
+]]>.Value
+
+            VerifyFlowGraphAndDiagnosticsForTest(Of MethodBlockSyntax)(source, expectedGraph, expectedDiagnostics)
+        End Sub
+
+        <CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)>
+        <Fact()>
+        Public Sub LogicalUserDefinedFlow_13()
+            Dim source = <![CDATA[
+Imports System
+Public Structure C
+
+    Sub M(a As C, b As C, result As C) 'BIND:"Sub M"
+        result = a OrElse b
+    End Sub
+
+    Public Shared Operator And(x As C?, y As C?) As C
+        Return Nothing
+    End Operator
+
+    Public Shared Operator Or(x As C?, y As C?) As C
+        Return Nothing
+    End Operator
+
+    Public Shared Operator IsFalse(x As C) As Boolean
+        Return Nothing
+    End Operator
+
+    Public Shared Operator IsTrue(x As C) As Boolean
+        Return Nothing
+    End Operator
+End Structure
+]]>.Value
+
+            Dim expectedDiagnostics = <![CDATA[
+BC33034: Return and parameter types of 'Public Shared Operator Or(x As C?, y As C?) As C' must be 'C' to be used in a 'OrElse' expression.
+        result = a OrElse b
+                 ~~~~~~~~~~
+]]>.Value
+
+            Dim expectedGraph = <![CDATA[
+Block[B0] - Entry
+    Statements (0)
+    Next (Regular) Block[B1]
+Block[B1] - Block
+    Predecessors: [B0]
+    Statements (2)
+        IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'result')
+          Value: 
+            IParameterReferenceOperation: result (OperationKind.ParameterReference, Type: C) (Syntax: 'result')
+
+        IFlowCaptureOperation: 1 (OperationKind.FlowCapture, Type: null, IsInvalid, IsImplicit) (Syntax: 'a')
+          Value: 
+            IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Nullable(Of C), IsInvalid, IsImplicit) (Syntax: 'a')
+              Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                (WideningNullable)
+              Operand: 
+                IParameterReferenceOperation: a (OperationKind.ParameterReference, Type: C, IsInvalid) (Syntax: 'a')
+
+    Jump if False (Regular) to Block[B3]
+        IInvalidOperation (OperationKind.Invalid, Type: System.Boolean, IsInvalid, IsImplicit) (Syntax: 'a')
+          Children(1):
+              IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: System.Nullable(Of C), IsInvalid, IsImplicit) (Syntax: 'a')
+
+    Next (Regular) Block[B2]
+Block[B2] - Block
+    Predecessors: [B1]
+    Statements (1)
+        IFlowCaptureOperation: 2 (OperationKind.FlowCapture, Type: null, IsInvalid, IsImplicit) (Syntax: 'a OrElse b')
+          Value: 
+            IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: System.Nullable(Of C), IsInvalid, IsImplicit) (Syntax: 'a')
+
+    Next (Regular) Block[B4]
+Block[B3] - Block
+    Predecessors: [B1]
+    Statements (1)
+        IFlowCaptureOperation: 2 (OperationKind.FlowCapture, Type: null, IsInvalid, IsImplicit) (Syntax: 'a OrElse b')
+          Value: 
+            IBinaryOperation (BinaryOperatorKind.Or) (OperatorMethod: Function C.op_BitwiseOr(x As System.Nullable(Of C), y As System.Nullable(Of C)) As C) (OperationKind.BinaryOperator, Type: C, IsInvalid) (Syntax: 'a OrElse b')
+              Left: 
+                IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: System.Nullable(Of C), IsInvalid, IsImplicit) (Syntax: 'a')
+              Right: 
+                IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Nullable(Of C), IsInvalid, IsImplicit) (Syntax: 'b')
+                  Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                    (WideningNullable)
+                  Operand: 
+                    IParameterReferenceOperation: b (OperationKind.ParameterReference, Type: C, IsInvalid) (Syntax: 'b')
+
+    Next (Regular) Block[B4]
+Block[B4] - Block
+    Predecessors: [B2] [B3]
+    Statements (1)
+        IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null, IsInvalid) (Syntax: 'result = a OrElse b')
+          Expression: 
+            ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: C, IsInvalid, IsImplicit) (Syntax: 'result = a OrElse b')
+              Left: 
+                IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: C, IsImplicit) (Syntax: 'result')
+              Right: 
+                IFlowCaptureReferenceOperation: 2 (OperationKind.FlowCaptureReference, Type: C, IsInvalid, IsImplicit) (Syntax: 'a OrElse b')
+
+    Next (Regular) Block[B5]
+Block[B5] - Exit
+    Predecessors: [B4]
+    Statements (0)
+]]>.Value
+
+            VerifyFlowGraphAndDiagnosticsForTest(Of MethodBlockSyntax)(source, expectedGraph, expectedDiagnostics)
+        End Sub
+
+        <CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)>
+        <Fact()>
+        Public Sub LogicalUserDefinedFlow_14()
+            Dim source = <![CDATA[
+Imports System
+Public Structure C
+
+    Sub M(a As C, b As C, result As C) 'BIND:"Sub M"
+        result = a OrElse b
+    End Sub
+
+    Public Shared Operator And(x As C, y As C) As C
+        Return Nothing
+    End Operator
+
+    Public Shared Operator Or(x As C, y As C) As C
+        Return Nothing
+    End Operator
+
+    Public Shared Operator IsFalse(x As C?) As Boolean
+        Return Nothing
+    End Operator
+
+    Public Shared Operator IsTrue(x As C?) As Boolean
+        Return Nothing
+    End Operator
+End Structure
+]]>.Value
+
+            Dim expectedDiagnostics = <![CDATA[
+BC30452: Operator 'OrElse' is not defined for types 'C' and 'C'.
+        result = a OrElse b
+                 ~~~~~~~~~~
+]]>.Value
+
+            Dim expectedGraph = <![CDATA[
+Block[B0] - Entry
+    Statements (0)
+    Next (Regular) Block[B1]
+Block[B1] - Block
+    Predecessors: [B0]
+    Statements (2)
+        IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'result')
+          Value: 
+            IParameterReferenceOperation: result (OperationKind.ParameterReference, Type: C) (Syntax: 'result')
+
+        IFlowCaptureOperation: 1 (OperationKind.FlowCapture, Type: null, IsInvalid, IsImplicit) (Syntax: 'a')
+          Value: 
+            IParameterReferenceOperation: a (OperationKind.ParameterReference, Type: C, IsInvalid) (Syntax: 'a')
+
+    Jump if False (Regular) to Block[B3]
+        IUnaryOperation (UnaryOperatorKind.True) (OperatorMethod: Function C.op_True(x As System.Nullable(Of C)) As System.Boolean) (OperationKind.UnaryOperator, Type: System.Boolean, IsInvalid, IsImplicit) (Syntax: 'a')
+          Operand: 
+            IInvalidOperation (OperationKind.Invalid, Type: System.Nullable(Of C), IsInvalid, IsImplicit) (Syntax: 'a')
+              Children(1):
+                  IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: C, IsInvalid, IsImplicit) (Syntax: 'a')
+
+    Next (Regular) Block[B2]
+Block[B2] - Block
+    Predecessors: [B1]
+    Statements (1)
+        IFlowCaptureOperation: 2 (OperationKind.FlowCapture, Type: null, IsInvalid, IsImplicit) (Syntax: 'a OrElse b')
+          Value: 
+            IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: C, IsInvalid, IsImplicit) (Syntax: 'a')
+
+    Next (Regular) Block[B4]
+Block[B3] - Block
+    Predecessors: [B1]
+    Statements (1)
+        IFlowCaptureOperation: 2 (OperationKind.FlowCapture, Type: null, IsInvalid, IsImplicit) (Syntax: 'a OrElse b')
+          Value: 
+            IBinaryOperation (BinaryOperatorKind.Or) (OperatorMethod: Function C.op_BitwiseOr(x As C, y As C) As C) (OperationKind.BinaryOperator, Type: C, IsInvalid) (Syntax: 'a OrElse b')
+              Left: 
+                IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: C, IsInvalid, IsImplicit) (Syntax: 'a')
+              Right: 
+                IParameterReferenceOperation: b (OperationKind.ParameterReference, Type: C, IsInvalid) (Syntax: 'b')
+
+    Next (Regular) Block[B4]
+Block[B4] - Block
+    Predecessors: [B2] [B3]
+    Statements (1)
+        IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null, IsInvalid) (Syntax: 'result = a OrElse b')
+          Expression: 
+            ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: C, IsInvalid, IsImplicit) (Syntax: 'result = a OrElse b')
+              Left: 
+                IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: C, IsImplicit) (Syntax: 'result')
+              Right: 
+                IFlowCaptureReferenceOperation: 2 (OperationKind.FlowCaptureReference, Type: C, IsInvalid, IsImplicit) (Syntax: 'a OrElse b')
+
+    Next (Regular) Block[B5]
+Block[B5] - Exit
+    Predecessors: [B4]
+    Statements (0)
+]]>.Value
+
+            VerifyFlowGraphAndDiagnosticsForTest(Of MethodBlockSyntax)(source, expectedGraph, expectedDiagnostics)
+        End Sub
+
+        <CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)>
+        <Fact()>
+        Public Sub LogicalUserDefinedFlow_15()
+            Dim source = <![CDATA[
+Imports System
+Public Structure C
+
+    Sub M(a As C?, b As C?, result As C?) 'BIND:"Sub M"
+        result = a OrElse b
+    End Sub
+
+    Public Shared Operator And(x As C?, y As C?) As C?
+        Return Nothing
+    End Operator
+
+    Public Shared Operator Or(x As C?, y As C?) As C?
+        Return Nothing
+    End Operator
+
+    Public Shared Operator IsFalse(x As C) As Boolean
+        Return Nothing
+    End Operator
+
+    Public Shared Operator IsTrue(x As C) As Boolean
+        Return Nothing
+    End Operator
+End Structure
+]]>.Value
+
+            Dim expectedDiagnostics = String.Empty
+
+            Dim expectedGraph = <![CDATA[
+Block[B0] - Entry
+    Statements (0)
+    Next (Regular) Block[B1]
+Block[B1] - Block
+    Predecessors: [B0]
+    Statements (2)
+        IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'result')
+          Value: 
+            IParameterReferenceOperation: result (OperationKind.ParameterReference, Type: System.Nullable(Of C)) (Syntax: 'result')
+
+        IFlowCaptureOperation: 1 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'a')
+          Value: 
+            IParameterReferenceOperation: a (OperationKind.ParameterReference, Type: System.Nullable(Of C)) (Syntax: 'a')
+
+    Jump if True (Regular) to Block[B4]
+        IIsNullOperation (OperationKind.IsNull, Type: System.Boolean, IsImplicit) (Syntax: 'a')
+          Operand: 
+            IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: System.Nullable(Of C), IsImplicit) (Syntax: 'a')
+
+    Next (Regular) Block[B2]
+Block[B2] - Block
+    Predecessors: [B1]
+    Statements (0)
+    Jump if False (Regular) to Block[B4]
+        IUnaryOperation (UnaryOperatorKind.True) (OperatorMethod: Function C.op_True(x As C) As System.Boolean) (OperationKind.UnaryOperator, Type: System.Boolean, IsImplicit) (Syntax: 'a')
+          Operand: 
+            IInvocationOperation ( Function System.Nullable(Of C).GetValueOrDefault() As C) (OperationKind.Invocation, Type: C, IsImplicit) (Syntax: 'a')
+              Instance Receiver: 
+                IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: System.Nullable(Of C), IsImplicit) (Syntax: 'a')
+              Arguments(0)
+
+    Next (Regular) Block[B3]
+Block[B3] - Block
+    Predecessors: [B2]
+    Statements (1)
+        IFlowCaptureOperation: 2 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'a OrElse b')
+          Value: 
+            IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: System.Nullable(Of C), IsImplicit) (Syntax: 'a')
+
+    Next (Regular) Block[B5]
+Block[B4] - Block
+    Predecessors: [B1] [B2]
+    Statements (1)
+        IFlowCaptureOperation: 2 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'a OrElse b')
+          Value: 
+            IBinaryOperation (BinaryOperatorKind.Or) (OperatorMethod: Function C.op_BitwiseOr(x As System.Nullable(Of C), y As System.Nullable(Of C)) As System.Nullable(Of C)) (OperationKind.BinaryOperator, Type: System.Nullable(Of C)) (Syntax: 'a OrElse b')
+              Left: 
+                IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: System.Nullable(Of C), IsImplicit) (Syntax: 'a')
+              Right: 
+                IParameterReferenceOperation: b (OperationKind.ParameterReference, Type: System.Nullable(Of C)) (Syntax: 'b')
+
+    Next (Regular) Block[B5]
+Block[B5] - Block
+    Predecessors: [B3] [B4]
+    Statements (1)
+        IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'result = a OrElse b')
+          Expression: 
+            ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Nullable(Of C), IsImplicit) (Syntax: 'result = a OrElse b')
+              Left: 
+                IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.Nullable(Of C), IsImplicit) (Syntax: 'result')
+              Right: 
+                IFlowCaptureReferenceOperation: 2 (OperationKind.FlowCaptureReference, Type: System.Nullable(Of C), IsImplicit) (Syntax: 'a OrElse b')
+
+    Next (Regular) Block[B6]
+Block[B6] - Exit
+    Predecessors: [B5]
+    Statements (0)
+]]>.Value
+
+            VerifyFlowGraphAndDiagnosticsForTest(Of MethodBlockSyntax)(source, expectedGraph, expectedDiagnostics)
+        End Sub
+
+        <CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)>
+        <Fact()>
+        Public Sub LogicalUserDefinedFlow_16()
+            Dim source = <![CDATA[
+Imports System
+Public Structure C
+
+    Sub M(a As C?, b As C?, result As C?) 'BIND:"Sub M"
+        result = a OrElse b
+    End Sub
+
+    Public Shared Operator And(x As C, y As C) As C?
+        Return Nothing
+    End Operator
+
+    Public Shared Operator Or(x As C, y As C) As C?
+        Return Nothing
+    End Operator
+
+    Public Shared Operator IsFalse(x As C?) As Boolean
+        Return Nothing
+    End Operator
+
+    Public Shared Operator IsTrue(x As C?) As Boolean
+        Return Nothing
+    End Operator
+End Structure
+]]>.Value
+
+            Dim expectedDiagnostics = String.Empty
+
+            Dim expectedGraph = <![CDATA[
+Block[B0] - Entry
+    Statements (0)
+    Next (Regular) Block[B1]
+Block[B1] - Block
+    Predecessors: [B0]
+    Statements (2)
+        IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'result')
+          Value: 
+            IParameterReferenceOperation: result (OperationKind.ParameterReference, Type: System.Nullable(Of C)) (Syntax: 'result')
+
+        IFlowCaptureOperation: 1 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'a')
+          Value: 
+            IParameterReferenceOperation: a (OperationKind.ParameterReference, Type: System.Nullable(Of C)) (Syntax: 'a')
+
+    Jump if False (Regular) to Block[B3]
+        IUnaryOperation (UnaryOperatorKind.True) (OperatorMethod: Function C.op_True(x As System.Nullable(Of C)) As System.Boolean) (OperationKind.UnaryOperator, Type: System.Boolean, IsImplicit) (Syntax: 'a')
+          Operand: 
+            IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: System.Nullable(Of C), IsImplicit) (Syntax: 'a')
+
+    Next (Regular) Block[B2]
+Block[B2] - Block
+    Predecessors: [B1]
+    Statements (1)
+        IFlowCaptureOperation: 2 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'a OrElse b')
+          Value: 
+            IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: System.Nullable(Of C), IsImplicit) (Syntax: 'a')
+
+    Next (Regular) Block[B4]
+Block[B3] - Block
+    Predecessors: [B1]
+    Statements (1)
+        IFlowCaptureOperation: 2 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'a OrElse b')
+          Value: 
+            IBinaryOperation (BinaryOperatorKind.Or, IsLifted) (OperatorMethod: Function C.op_BitwiseOr(x As C, y As C) As System.Nullable(Of C)) (OperationKind.BinaryOperator, Type: System.Nullable(Of C)) (Syntax: 'a OrElse b')
+              Left: 
+                IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: System.Nullable(Of C), IsImplicit) (Syntax: 'a')
+              Right: 
+                IParameterReferenceOperation: b (OperationKind.ParameterReference, Type: System.Nullable(Of C)) (Syntax: 'b')
+
+    Next (Regular) Block[B4]
+Block[B4] - Block
+    Predecessors: [B2] [B3]
+    Statements (1)
+        IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'result = a OrElse b')
+          Expression: 
+            ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Nullable(Of C), IsImplicit) (Syntax: 'result = a OrElse b')
+              Left: 
+                IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.Nullable(Of C), IsImplicit) (Syntax: 'result')
+              Right: 
+                IFlowCaptureReferenceOperation: 2 (OperationKind.FlowCaptureReference, Type: System.Nullable(Of C), IsImplicit) (Syntax: 'a OrElse b')
+
+    Next (Regular) Block[B5]
+Block[B5] - Exit
+    Predecessors: [B4]
+    Statements (0)
+]]>.Value
+
+            VerifyFlowGraphAndDiagnosticsForTest(Of MethodBlockSyntax)(source, expectedGraph, expectedDiagnostics)
+        End Sub
+
+        <CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)>
+        <Fact()>
+        Public Sub LogicalUserDefinedFlow_17()
+            Dim source = <![CDATA[
+Imports System
+Public Structure C
+
+    Sub M(a As C?, b As C?, result As C?) 'BIND:"Sub M"
+        result = a OrElse b
+    End Sub
+
+    Public Shared Operator And(x As C?, y As C?) As C?
+        Return Nothing
+    End Operator
+
+    Public Shared Operator Or(x As C?, y As C?) As C?
+        Return Nothing
+    End Operator
+
+    Public Shared Operator IsFalse(x As C?) As Boolean?
+        Return Nothing
+    End Operator
+
+    Public Shared Operator IsTrue(x As C?) As Boolean?
+        Return Nothing
+    End Operator
+End Structure
+]]>.Value
+
+            Dim expectedDiagnostics = <![CDATA[
+BC33035: Type 'C?' must define operator 'IsTrue' to be used in a 'OrElse' expression.
+        result = a OrElse b
+                 ~~~~~~~~~~
+BC33023: Operator 'IsFalse' must have a return type of Boolean.
+    Public Shared Operator IsFalse(x As C?) As Boolean?
+                           ~~~~~~~
+BC33023: Operator 'IsTrue' must have a return type of Boolean.
+    Public Shared Operator IsTrue(x As C?) As Boolean?
+                           ~~~~~~
+]]>.Value
+
+            Dim expectedGraph = <![CDATA[
+Block[B0] - Entry
+    Statements (0)
+    Next (Regular) Block[B1]
+Block[B1] - Block
+    Predecessors: [B0]
+    Statements (2)
+        IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'result')
+          Value: 
+            IParameterReferenceOperation: result (OperationKind.ParameterReference, Type: System.Nullable(Of C)) (Syntax: 'result')
+
+        IFlowCaptureOperation: 1 (OperationKind.FlowCapture, Type: null, IsInvalid, IsImplicit) (Syntax: 'a')
+          Value: 
+            IParameterReferenceOperation: a (OperationKind.ParameterReference, Type: System.Nullable(Of C), IsInvalid) (Syntax: 'a')
+
+    Jump if False (Regular) to Block[B3]
+        IInvalidOperation (OperationKind.Invalid, Type: System.Boolean, IsInvalid, IsImplicit) (Syntax: 'a')
+          Children(1):
+              IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: System.Nullable(Of C), IsInvalid, IsImplicit) (Syntax: 'a')
+
+    Next (Regular) Block[B2]
+Block[B2] - Block
+    Predecessors: [B1]
+    Statements (1)
+        IFlowCaptureOperation: 2 (OperationKind.FlowCapture, Type: null, IsInvalid, IsImplicit) (Syntax: 'a OrElse b')
+          Value: 
+            IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: System.Nullable(Of C), IsInvalid, IsImplicit) (Syntax: 'a')
+
+    Next (Regular) Block[B4]
+Block[B3] - Block
+    Predecessors: [B1]
+    Statements (1)
+        IFlowCaptureOperation: 2 (OperationKind.FlowCapture, Type: null, IsInvalid, IsImplicit) (Syntax: 'a OrElse b')
+          Value: 
+            IBinaryOperation (BinaryOperatorKind.Or) (OperatorMethod: Function C.op_BitwiseOr(x As System.Nullable(Of C), y As System.Nullable(Of C)) As System.Nullable(Of C)) (OperationKind.BinaryOperator, Type: System.Nullable(Of C), IsInvalid) (Syntax: 'a OrElse b')
+              Left: 
+                IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: System.Nullable(Of C), IsInvalid, IsImplicit) (Syntax: 'a')
+              Right: 
+                IParameterReferenceOperation: b (OperationKind.ParameterReference, Type: System.Nullable(Of C), IsInvalid) (Syntax: 'b')
+
+    Next (Regular) Block[B4]
+Block[B4] - Block
+    Predecessors: [B2] [B3]
+    Statements (1)
+        IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null, IsInvalid) (Syntax: 'result = a OrElse b')
+          Expression: 
+            ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Nullable(Of C), IsInvalid, IsImplicit) (Syntax: 'result = a OrElse b')
+              Left: 
+                IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.Nullable(Of C), IsImplicit) (Syntax: 'result')
+              Right: 
+                IFlowCaptureReferenceOperation: 2 (OperationKind.FlowCaptureReference, Type: System.Nullable(Of C), IsInvalid, IsImplicit) (Syntax: 'a OrElse b')
+
+    Next (Regular) Block[B5]
+Block[B5] - Exit
+    Predecessors: [B4]
+    Statements (0)
+]]>.Value
+
+            VerifyFlowGraphAndDiagnosticsForTest(Of MethodBlockSyntax)(source, expectedGraph, expectedDiagnostics)
+        End Sub
+
+        <CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)>
+        <Fact()>
+        Public Sub LogicalUserDefinedFlow_18()
+            Dim source = <![CDATA[
+Imports System
+Public Class B
+    Public Shared Operator IsFalse(x As B) As Boolean
+        Return Nothing
+    End Operator
+
+    Public Shared Operator IsTrue(x As B) As Boolean
+        Return Nothing
+    End Operator
+End Class
+
+Public Class C
+    Inherits B
+
+    Sub M(a As C, b As C, result As C) 'BIND:"Sub M"
+        result = a OrElse b
+    End Sub
+
+    Public Shared Operator And(x As C, y As C) As C
+        Return Nothing
+    End Operator
+
+    Public Shared Operator Or(x As C, y As C) As C
+        Return Nothing
+    End Operator
+
+End Class
+]]>.Value
+
+            Dim expectedDiagnostics = <![CDATA[
+BC30452: Operator 'OrElse' is not defined for types 'C' and 'C'.
+        result = a OrElse b
+                 ~~~~~~~~~~
+]]>.Value
+
+            Dim expectedGraph = <![CDATA[
+Block[B0] - Entry
+    Statements (0)
+    Next (Regular) Block[B1]
+Block[B1] - Block
+    Predecessors: [B0]
+    Statements (2)
+        IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'result')
+          Value: 
+            IParameterReferenceOperation: result (OperationKind.ParameterReference, Type: C) (Syntax: 'result')
+
+        IFlowCaptureOperation: 1 (OperationKind.FlowCapture, Type: null, IsInvalid, IsImplicit) (Syntax: 'a')
+          Value: 
+            IParameterReferenceOperation: a (OperationKind.ParameterReference, Type: C, IsInvalid) (Syntax: 'a')
+
+    Jump if False (Regular) to Block[B3]
+        IUnaryOperation (UnaryOperatorKind.True) (OperatorMethod: Function B.op_True(x As B) As System.Boolean) (OperationKind.UnaryOperator, Type: System.Boolean, IsInvalid, IsImplicit) (Syntax: 'a')
+          Operand: 
+            IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: C, IsInvalid, IsImplicit) (Syntax: 'a')
+
+    Next (Regular) Block[B2]
+Block[B2] - Block
+    Predecessors: [B1]
+    Statements (1)
+        IFlowCaptureOperation: 2 (OperationKind.FlowCapture, Type: null, IsInvalid, IsImplicit) (Syntax: 'a OrElse b')
+          Value: 
+            IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: C, IsInvalid, IsImplicit) (Syntax: 'a')
+
+    Next (Regular) Block[B4]
+Block[B3] - Block
+    Predecessors: [B1]
+    Statements (1)
+        IFlowCaptureOperation: 2 (OperationKind.FlowCapture, Type: null, IsInvalid, IsImplicit) (Syntax: 'a OrElse b')
+          Value: 
+            IBinaryOperation (BinaryOperatorKind.Or) (OperatorMethod: Function C.op_BitwiseOr(x As C, y As C) As C) (OperationKind.BinaryOperator, Type: C, IsInvalid) (Syntax: 'a OrElse b')
+              Left: 
+                IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: C, IsInvalid, IsImplicit) (Syntax: 'a')
+              Right: 
+                IParameterReferenceOperation: b (OperationKind.ParameterReference, Type: C, IsInvalid) (Syntax: 'b')
+
+    Next (Regular) Block[B4]
+Block[B4] - Block
+    Predecessors: [B2] [B3]
+    Statements (1)
+        IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null, IsInvalid) (Syntax: 'result = a OrElse b')
+          Expression: 
+            ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: C, IsInvalid, IsImplicit) (Syntax: 'result = a OrElse b')
+              Left: 
+                IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: C, IsImplicit) (Syntax: 'result')
+              Right: 
+                IFlowCaptureReferenceOperation: 2 (OperationKind.FlowCaptureReference, Type: C, IsInvalid, IsImplicit) (Syntax: 'a OrElse b')
+
+    Next (Regular) Block[B5]
+Block[B5] - Exit
+    Predecessors: [B4]
+    Statements (0)
+]]>.Value
+
+            VerifyFlowGraphAndDiagnosticsForTest(Of MethodBlockSyntax)(source, expectedGraph, expectedDiagnostics)
+        End Sub
+
+        <CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)>
+        <Fact()>
+        Public Sub LogicalUserDefinedFlow_19()
+            Dim source = <![CDATA[
+Imports System
+Public Class B
+    Public Shared Operator And(x As B, y As B) As B
+        Return Nothing
+    End Operator
+
+    Public Shared Operator Or(x As B, y As B) As B
+        Return Nothing
+    End Operator
+End Class
+
+Public Class C
+    Inherits B
+
+    Sub M(a As C, b As C, result As B) 'BIND:"Sub M"
+        result = a OrElse b
+    End Sub
+
+    Public Shared Operator IsFalse(x As C) As Boolean
+        Return Nothing
+    End Operator
+
+    Public Shared Operator IsTrue(x As C) As Boolean
+        Return Nothing
+    End Operator
+
+End Class
+]]>.Value
+
+            Dim expectedDiagnostics = <![CDATA[
+BC33035: Type 'B' must define operator 'IsTrue' to be used in a 'OrElse' expression.
+        result = a OrElse b
+                 ~~~~~~~~~~
+]]>.Value
+
+            Dim expectedGraph = <![CDATA[
+Block[B0] - Entry
+    Statements (0)
+    Next (Regular) Block[B1]
+Block[B1] - Block
+    Predecessors: [B0]
+    Statements (2)
+        IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'result')
+          Value: 
+            IParameterReferenceOperation: result (OperationKind.ParameterReference, Type: B) (Syntax: 'result')
+
+        IFlowCaptureOperation: 1 (OperationKind.FlowCapture, Type: null, IsInvalid, IsImplicit) (Syntax: 'a')
+          Value: 
+            IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: B, IsInvalid, IsImplicit) (Syntax: 'a')
+              Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
+                (WideningReference)
+              Operand: 
+                IParameterReferenceOperation: a (OperationKind.ParameterReference, Type: C, IsInvalid) (Syntax: 'a')
+
+    Jump if False (Regular) to Block[B3]
+        IInvalidOperation (OperationKind.Invalid, Type: System.Boolean, IsInvalid, IsImplicit) (Syntax: 'a')
+          Children(1):
+              IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: B, IsInvalid, IsImplicit) (Syntax: 'a')
+
+    Next (Regular) Block[B2]
+Block[B2] - Block
+    Predecessors: [B1]
+    Statements (1)
+        IFlowCaptureOperation: 2 (OperationKind.FlowCapture, Type: null, IsInvalid, IsImplicit) (Syntax: 'a OrElse b')
+          Value: 
+            IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: B, IsInvalid, IsImplicit) (Syntax: 'a')
+
+    Next (Regular) Block[B4]
+Block[B3] - Block
+    Predecessors: [B1]
+    Statements (1)
+        IFlowCaptureOperation: 2 (OperationKind.FlowCapture, Type: null, IsInvalid, IsImplicit) (Syntax: 'a OrElse b')
+          Value: 
+            IBinaryOperation (BinaryOperatorKind.Or) (OperatorMethod: Function B.op_BitwiseOr(x As B, y As B) As B) (OperationKind.BinaryOperator, Type: B, IsInvalid) (Syntax: 'a OrElse b')
+              Left: 
+                IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: B, IsInvalid, IsImplicit) (Syntax: 'a')
+              Right: 
+                IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: B, IsInvalid, IsImplicit) (Syntax: 'b')
+                  Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
+                    (WideningReference)
+                  Operand: 
+                    IParameterReferenceOperation: b (OperationKind.ParameterReference, Type: C, IsInvalid) (Syntax: 'b')
+
+    Next (Regular) Block[B4]
+Block[B4] - Block
+    Predecessors: [B2] [B3]
+    Statements (1)
+        IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null, IsInvalid) (Syntax: 'result = a OrElse b')
+          Expression: 
+            ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: B, IsInvalid, IsImplicit) (Syntax: 'result = a OrElse b')
+              Left: 
+                IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: B, IsImplicit) (Syntax: 'result')
+              Right: 
+                IFlowCaptureReferenceOperation: 2 (OperationKind.FlowCaptureReference, Type: B, IsInvalid, IsImplicit) (Syntax: 'a OrElse b')
+
+    Next (Regular) Block[B5]
+Block[B5] - Exit
+    Predecessors: [B4]
+    Statements (0)
+]]>.Value
+
+            VerifyFlowGraphAndDiagnosticsForTest(Of MethodBlockSyntax)(source, expectedGraph, expectedDiagnostics)
+        End Sub
+
+        <CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)>
+        <Fact()>
+        Public Sub LogicalUserDefinedFlow_20()
+            Dim source = <![CDATA[
+Imports System
+Public Structure C
+
+    Sub M(a As C?, b As C?, result As C?) 'BIND:"Sub M"
+        result = a OrElse b
+    End Sub
+
+    Public Shared Operator And(x As C, y As C) As C
+        Return Nothing
+    End Operator
+
+    Public Shared Operator Or(x As C, y As C) As C
+        Return Nothing
+    End Operator
+
+    Public Shared Operator IsFalse(x As C?) As Boolean
+        Return Nothing
+    End Operator
+
+    Public Shared Operator IsTrue(x As C?) As Boolean
+        Return Nothing
+    End Operator
+End Structure
+]]>.Value
+
+            Dim expectedDiagnostics = String.Empty
+
+            Dim expectedGraph = <![CDATA[
+Block[B0] - Entry
+    Statements (0)
+    Next (Regular) Block[B1]
+Block[B1] - Block
+    Predecessors: [B0]
+    Statements (2)
+        IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'result')
+          Value: 
+            IParameterReferenceOperation: result (OperationKind.ParameterReference, Type: System.Nullable(Of C)) (Syntax: 'result')
+
+        IFlowCaptureOperation: 1 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'a')
+          Value: 
+            IParameterReferenceOperation: a (OperationKind.ParameterReference, Type: System.Nullable(Of C)) (Syntax: 'a')
+
+    Jump if False (Regular) to Block[B3]
+        IUnaryOperation (UnaryOperatorKind.True) (OperatorMethod: Function C.op_True(x As System.Nullable(Of C)) As System.Boolean) (OperationKind.UnaryOperator, Type: System.Boolean, IsImplicit) (Syntax: 'a')
+          Operand: 
+            IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: System.Nullable(Of C), IsImplicit) (Syntax: 'a')
+
+    Next (Regular) Block[B2]
+Block[B2] - Block
+    Predecessors: [B1]
+    Statements (1)
+        IFlowCaptureOperation: 2 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'a OrElse b')
+          Value: 
+            IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: System.Nullable(Of C), IsImplicit) (Syntax: 'a')
+
+    Next (Regular) Block[B4]
+Block[B3] - Block
+    Predecessors: [B1]
+    Statements (1)
+        IFlowCaptureOperation: 2 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'a OrElse b')
+          Value: 
+            IBinaryOperation (BinaryOperatorKind.Or, IsLifted) (OperatorMethod: Function C.op_BitwiseOr(x As C, y As C) As C) (OperationKind.BinaryOperator, Type: System.Nullable(Of C)) (Syntax: 'a OrElse b')
+              Left: 
+                IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: System.Nullable(Of C), IsImplicit) (Syntax: 'a')
+              Right: 
+                IParameterReferenceOperation: b (OperationKind.ParameterReference, Type: System.Nullable(Of C)) (Syntax: 'b')
+
+    Next (Regular) Block[B4]
+Block[B4] - Block
+    Predecessors: [B2] [B3]
+    Statements (1)
+        IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'result = a OrElse b')
+          Expression: 
+            ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Nullable(Of C), IsImplicit) (Syntax: 'result = a OrElse b')
+              Left: 
+                IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.Nullable(Of C), IsImplicit) (Syntax: 'result')
+              Right: 
+                IFlowCaptureReferenceOperation: 2 (OperationKind.FlowCaptureReference, Type: System.Nullable(Of C), IsImplicit) (Syntax: 'a OrElse b')
+
+    Next (Regular) Block[B5]
+Block[B5] - Exit
+    Predecessors: [B4]
+    Statements (0)
+]]>.Value
+
+            VerifyFlowGraphAndDiagnosticsForTest(Of MethodBlockSyntax)(source, expectedGraph, expectedDiagnostics)
+        End Sub
+
     End Class
 End Namespace

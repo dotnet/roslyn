@@ -1979,21 +1979,41 @@ Block[B0] - Entry
     Next (Regular) Block[B1]
 Block[B1] - Block
     Predecessors: [B0]
-    Statements (1)
+    Statements (2)
         IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'input')
           Value: 
             IParameterReferenceOperation: input (OperationKind.ParameterReference, Type: C) (Syntax: 'input')
 
-    Jump if False (Regular) to Block[B3]
-        IUnaryOperation (UnaryOperatorKind.True) (OperatorMethod: Function C.op_True(x As C) As System.Boolean) (OperationKind.UnaryOperator, Type: System.Boolean, IsImplicit) (Syntax: 'Case other1, other2')
-          Operand: 
-            IBinaryOperation (BinaryOperatorKind.ConditionalOr) (OperatorMethod: Function C.op_BitwiseOr(x As C, y As C) As C) (OperationKind.BinaryOperator, Type: C, IsImplicit) (Syntax: 'Case other1, other2')
+        IFlowCaptureOperation: 1 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'other1')
+          Value: 
+            IBinaryOperation (BinaryOperatorKind.Equals, Checked) (OperatorMethod: Function C.op_Equality(x As C, y As C) As C) (OperationKind.BinaryOperator, Type: C, IsImplicit) (Syntax: 'other1')
               Left: 
-                IBinaryOperation (BinaryOperatorKind.Equals, Checked) (OperatorMethod: Function C.op_Equality(x As C, y As C) As C) (OperationKind.BinaryOperator, Type: C, IsImplicit) (Syntax: 'other1')
-                  Left: 
-                    IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: C, IsImplicit) (Syntax: 'input')
-                  Right: 
-                    IParameterReferenceOperation: other1 (OperationKind.ParameterReference, Type: C) (Syntax: 'other1')
+                IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: C, IsImplicit) (Syntax: 'input')
+              Right: 
+                IParameterReferenceOperation: other1 (OperationKind.ParameterReference, Type: C) (Syntax: 'other1')
+
+    Jump if False (Regular) to Block[B3]
+        IUnaryOperation (UnaryOperatorKind.True) (OperatorMethod: Function C.op_True(x As C) As System.Boolean) (OperationKind.UnaryOperator, Type: System.Boolean, IsImplicit) (Syntax: 'other1')
+          Operand: 
+            IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: C, IsImplicit) (Syntax: 'other1')
+
+    Next (Regular) Block[B2]
+Block[B2] - Block
+    Predecessors: [B1]
+    Statements (1)
+        IFlowCaptureOperation: 2 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'Case other1, other2')
+          Value: 
+            IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: C, IsImplicit) (Syntax: 'other1')
+
+    Next (Regular) Block[B4]
+Block[B3] - Block
+    Predecessors: [B1]
+    Statements (1)
+        IFlowCaptureOperation: 2 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'Case other1, other2')
+          Value: 
+            IBinaryOperation (BinaryOperatorKind.Or) (OperatorMethod: Function C.op_BitwiseOr(x As C, y As C) As C) (OperationKind.BinaryOperator, Type: C, IsImplicit) (Syntax: 'Case other1, other2')
+              Left: 
+                IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: C, IsImplicit) (Syntax: 'other1')
               Right: 
                 IBinaryOperation (BinaryOperatorKind.Equals, Checked) (OperatorMethod: Function C.op_Equality(x As C, y As C) As C) (OperationKind.BinaryOperator, Type: C, IsImplicit) (Syntax: 'other2')
                   Left: 
@@ -2001,9 +2021,18 @@ Block[B1] - Block
                   Right: 
                     IParameterReferenceOperation: other2 (OperationKind.ParameterReference, Type: C) (Syntax: 'other2')
 
-    Next (Regular) Block[B2]
-Block[B2] - Block
-    Predecessors: [B1]
+    Next (Regular) Block[B4]
+Block[B4] - Block
+    Predecessors: [B2] [B3]
+    Statements (0)
+    Jump if False (Regular) to Block[B6]
+        IUnaryOperation (UnaryOperatorKind.True) (OperatorMethod: Function C.op_True(x As C) As System.Boolean) (OperationKind.UnaryOperator, Type: System.Boolean, IsImplicit) (Syntax: 'Case other1, other2')
+          Operand: 
+            IFlowCaptureReferenceOperation: 2 (OperationKind.FlowCaptureReference, Type: C, IsImplicit) (Syntax: 'Case other1, other2')
+
+    Next (Regular) Block[B5]
+Block[B5] - Block
+    Predecessors: [B4]
     Statements (1)
         IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'result = False')
           Expression: 
@@ -2013,9 +2042,9 @@ Block[B2] - Block
               Right: 
                 ILiteralOperation (OperationKind.Literal, Type: System.Boolean, Constant: False) (Syntax: 'False')
 
-    Next (Regular) Block[B3]
-Block[B3] - Exit
-    Predecessors: [B1] [B2]
+    Next (Regular) Block[B6]
+Block[B6] - Exit
+    Predecessors: [B4] [B5]
     Statements (0)
 ]]>.Value
 
@@ -3963,21 +3992,41 @@ Block[B0] - Entry
     Next (Regular) Block[B1]
 Block[B1] - Block
     Predecessors: [B0]
-    Statements (1)
+    Statements (2)
         IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'input')
           Value: 
             IParameterReferenceOperation: input (OperationKind.ParameterReference, Type: C) (Syntax: 'input')
 
-    Jump if False (Regular) to Block[B3]
-        IUnaryOperation (UnaryOperatorKind.True) (OperatorMethod: Function C.op_True(x As C) As System.Boolean) (OperationKind.UnaryOperator, Type: System.Boolean, IsImplicit) (Syntax: 'Case = other1, = other2')
-          Operand: 
-            IBinaryOperation (BinaryOperatorKind.ConditionalOr) (OperatorMethod: Function C.op_BitwiseOr(x As C, y As C) As C) (OperationKind.BinaryOperator, Type: C, IsImplicit) (Syntax: 'Case = other1, = other2')
+        IFlowCaptureOperation: 1 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: '= other1')
+          Value: 
+            IBinaryOperation (BinaryOperatorKind.Equals, Checked) (OperatorMethod: Function C.op_Equality(x As C, y As C) As C) (OperationKind.BinaryOperator, Type: C, IsImplicit) (Syntax: '= other1')
               Left: 
-                IBinaryOperation (BinaryOperatorKind.Equals, Checked) (OperatorMethod: Function C.op_Equality(x As C, y As C) As C) (OperationKind.BinaryOperator, Type: C, IsImplicit) (Syntax: '= other1')
-                  Left: 
-                    IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: C, IsImplicit) (Syntax: 'input')
-                  Right: 
-                    IParameterReferenceOperation: other1 (OperationKind.ParameterReference, Type: C) (Syntax: 'other1')
+                IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: C, IsImplicit) (Syntax: 'input')
+              Right: 
+                IParameterReferenceOperation: other1 (OperationKind.ParameterReference, Type: C) (Syntax: 'other1')
+
+    Jump if False (Regular) to Block[B3]
+        IUnaryOperation (UnaryOperatorKind.True) (OperatorMethod: Function C.op_True(x As C) As System.Boolean) (OperationKind.UnaryOperator, Type: System.Boolean, IsImplicit) (Syntax: '= other1')
+          Operand: 
+            IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: C, IsImplicit) (Syntax: '= other1')
+
+    Next (Regular) Block[B2]
+Block[B2] - Block
+    Predecessors: [B1]
+    Statements (1)
+        IFlowCaptureOperation: 2 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'Case = other1, = other2')
+          Value: 
+            IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: C, IsImplicit) (Syntax: '= other1')
+
+    Next (Regular) Block[B4]
+Block[B3] - Block
+    Predecessors: [B1]
+    Statements (1)
+        IFlowCaptureOperation: 2 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'Case = other1, = other2')
+          Value: 
+            IBinaryOperation (BinaryOperatorKind.Or) (OperatorMethod: Function C.op_BitwiseOr(x As C, y As C) As C) (OperationKind.BinaryOperator, Type: C, IsImplicit) (Syntax: 'Case = other1, = other2')
+              Left: 
+                IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: C, IsImplicit) (Syntax: '= other1')
               Right: 
                 IBinaryOperation (BinaryOperatorKind.Equals, Checked) (OperatorMethod: Function C.op_Equality(x As C, y As C) As C) (OperationKind.BinaryOperator, Type: C, IsImplicit) (Syntax: '= other2')
                   Left: 
@@ -3985,9 +4034,18 @@ Block[B1] - Block
                   Right: 
                     IParameterReferenceOperation: other2 (OperationKind.ParameterReference, Type: C) (Syntax: 'other2')
 
-    Next (Regular) Block[B2]
-Block[B2] - Block
-    Predecessors: [B1]
+    Next (Regular) Block[B4]
+Block[B4] - Block
+    Predecessors: [B2] [B3]
+    Statements (0)
+    Jump if False (Regular) to Block[B6]
+        IUnaryOperation (UnaryOperatorKind.True) (OperatorMethod: Function C.op_True(x As C) As System.Boolean) (OperationKind.UnaryOperator, Type: System.Boolean, IsImplicit) (Syntax: 'Case = other1, = other2')
+          Operand: 
+            IFlowCaptureReferenceOperation: 2 (OperationKind.FlowCaptureReference, Type: C, IsImplicit) (Syntax: 'Case = other1, = other2')
+
+    Next (Regular) Block[B5]
+Block[B5] - Block
+    Predecessors: [B4]
     Statements (1)
         IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'result = False')
           Expression: 
@@ -3997,9 +4055,9 @@ Block[B2] - Block
               Right: 
                 ILiteralOperation (OperationKind.Literal, Type: System.Boolean, Constant: False) (Syntax: 'False')
 
-    Next (Regular) Block[B3]
-Block[B3] - Exit
-    Predecessors: [B1] [B2]
+    Next (Regular) Block[B6]
+Block[B6] - Exit
+    Predecessors: [B4] [B5]
     Statements (0)
 ]]>.Value
 
@@ -5695,21 +5753,41 @@ Block[B0] - Entry
     Next (Regular) Block[B1]
 Block[B1] - Block
     Predecessors: [B0]
-    Statements (1)
+    Statements (2)
         IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'input')
           Value: 
             IParameterReferenceOperation: input (OperationKind.ParameterReference, Type: C) (Syntax: 'input')
 
-    Jump if False (Regular) to Block[B3]
-        IUnaryOperation (UnaryOperatorKind.True) (OperatorMethod: Function C.op_True(x As C) As System.Boolean) (OperationKind.UnaryOperator, Type: System.Boolean, IsImplicit) (Syntax: 'Case < other1, > other2')
-          Operand: 
-            IBinaryOperation (BinaryOperatorKind.ConditionalOr) (OperatorMethod: Function C.op_BitwiseOr(x As C, y As C) As C) (OperationKind.BinaryOperator, Type: C, IsImplicit) (Syntax: 'Case < other1, > other2')
+        IFlowCaptureOperation: 1 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: '< other1')
+          Value: 
+            IBinaryOperation (BinaryOperatorKind.LessThan, Checked) (OperatorMethod: Function C.op_LessThan(x As C, y As C) As C) (OperationKind.BinaryOperator, Type: C, IsImplicit) (Syntax: '< other1')
               Left: 
-                IBinaryOperation (BinaryOperatorKind.LessThan, Checked) (OperatorMethod: Function C.op_LessThan(x As C, y As C) As C) (OperationKind.BinaryOperator, Type: C, IsImplicit) (Syntax: '< other1')
-                  Left: 
-                    IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: C, IsImplicit) (Syntax: 'input')
-                  Right: 
-                    IParameterReferenceOperation: other1 (OperationKind.ParameterReference, Type: C) (Syntax: 'other1')
+                IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: C, IsImplicit) (Syntax: 'input')
+              Right: 
+                IParameterReferenceOperation: other1 (OperationKind.ParameterReference, Type: C) (Syntax: 'other1')
+
+    Jump if False (Regular) to Block[B3]
+        IUnaryOperation (UnaryOperatorKind.True) (OperatorMethod: Function C.op_True(x As C) As System.Boolean) (OperationKind.UnaryOperator, Type: System.Boolean, IsImplicit) (Syntax: '< other1')
+          Operand: 
+            IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: C, IsImplicit) (Syntax: '< other1')
+
+    Next (Regular) Block[B2]
+Block[B2] - Block
+    Predecessors: [B1]
+    Statements (1)
+        IFlowCaptureOperation: 2 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'Case < other1, > other2')
+          Value: 
+            IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: C, IsImplicit) (Syntax: '< other1')
+
+    Next (Regular) Block[B4]
+Block[B3] - Block
+    Predecessors: [B1]
+    Statements (1)
+        IFlowCaptureOperation: 2 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'Case < other1, > other2')
+          Value: 
+            IBinaryOperation (BinaryOperatorKind.Or) (OperatorMethod: Function C.op_BitwiseOr(x As C, y As C) As C) (OperationKind.BinaryOperator, Type: C, IsImplicit) (Syntax: 'Case < other1, > other2')
+              Left: 
+                IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: C, IsImplicit) (Syntax: '< other1')
               Right: 
                 IBinaryOperation (BinaryOperatorKind.GreaterThan, Checked) (OperatorMethod: Function C.op_GreaterThan(x As C, y As C) As C) (OperationKind.BinaryOperator, Type: C, IsImplicit) (Syntax: '> other2')
                   Left: 
@@ -5717,9 +5795,18 @@ Block[B1] - Block
                   Right: 
                     IParameterReferenceOperation: other2 (OperationKind.ParameterReference, Type: C) (Syntax: 'other2')
 
-    Next (Regular) Block[B2]
-Block[B2] - Block
-    Predecessors: [B1]
+    Next (Regular) Block[B4]
+Block[B4] - Block
+    Predecessors: [B2] [B3]
+    Statements (0)
+    Jump if False (Regular) to Block[B6]
+        IUnaryOperation (UnaryOperatorKind.True) (OperatorMethod: Function C.op_True(x As C) As System.Boolean) (OperationKind.UnaryOperator, Type: System.Boolean, IsImplicit) (Syntax: 'Case < other1, > other2')
+          Operand: 
+            IFlowCaptureReferenceOperation: 2 (OperationKind.FlowCaptureReference, Type: C, IsImplicit) (Syntax: 'Case < other1, > other2')
+
+    Next (Regular) Block[B5]
+Block[B5] - Block
+    Predecessors: [B4]
     Statements (1)
         IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'result = False')
           Expression: 
@@ -5729,9 +5816,9 @@ Block[B2] - Block
               Right: 
                 ILiteralOperation (OperationKind.Literal, Type: System.Boolean, Constant: False) (Syntax: 'False')
 
-    Next (Regular) Block[B3]
-Block[B3] - Exit
-    Predecessors: [B1] [B2]
+    Next (Regular) Block[B6]
+Block[B6] - Exit
+    Predecessors: [B4] [B5]
     Statements (0)
 ]]>.Value
 
@@ -7020,21 +7107,41 @@ Block[B0] - Entry
     Next (Regular) Block[B1]
 Block[B1] - Block
     Predecessors: [B0]
-    Statements (1)
+    Statements (2)
         IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'input')
           Value: 
             IParameterReferenceOperation: input (OperationKind.ParameterReference, Type: C) (Syntax: 'input')
 
-    Jump if False (Regular) to Block[B3]
-        IUnaryOperation (UnaryOperatorKind.True) (OperatorMethod: Function C.op_True(x As C) As System.Boolean) (OperationKind.UnaryOperator, Type: System.Boolean, IsImplicit) (Syntax: 'other1 To other2')
-          Operand: 
-            IBinaryOperation (BinaryOperatorKind.ConditionalAnd) (OperatorMethod: Function C.op_BitwiseAnd(x As C, y As C) As C) (OperationKind.BinaryOperator, Type: C, IsImplicit) (Syntax: 'other1 To other2')
+        IFlowCaptureOperation: 1 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'other1 To other2')
+          Value: 
+            IBinaryOperation (BinaryOperatorKind.GreaterThanOrEqual, Checked) (OperatorMethod: Function C.op_GreaterThanOrEqual(x As C, y As C) As C) (OperationKind.BinaryOperator, Type: C, IsImplicit) (Syntax: 'other1 To other2')
               Left: 
-                IBinaryOperation (BinaryOperatorKind.GreaterThanOrEqual, Checked) (OperatorMethod: Function C.op_GreaterThanOrEqual(x As C, y As C) As C) (OperationKind.BinaryOperator, Type: C, IsImplicit) (Syntax: 'other1 To other2')
-                  Left: 
-                    IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: C, IsImplicit) (Syntax: 'input')
-                  Right: 
-                    IParameterReferenceOperation: other1 (OperationKind.ParameterReference, Type: C) (Syntax: 'other1')
+                IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: C, IsImplicit) (Syntax: 'input')
+              Right: 
+                IParameterReferenceOperation: other1 (OperationKind.ParameterReference, Type: C) (Syntax: 'other1')
+
+    Jump if False (Regular) to Block[B3]
+        IUnaryOperation (UnaryOperatorKind.False) (OperatorMethod: Function C.op_False(x As C) As System.Boolean) (OperationKind.UnaryOperator, Type: System.Boolean, IsImplicit) (Syntax: 'other1 To other2')
+          Operand: 
+            IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: C, IsImplicit) (Syntax: 'other1 To other2')
+
+    Next (Regular) Block[B2]
+Block[B2] - Block
+    Predecessors: [B1]
+    Statements (1)
+        IFlowCaptureOperation: 2 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'other1 To other2')
+          Value: 
+            IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: C, IsImplicit) (Syntax: 'other1 To other2')
+
+    Next (Regular) Block[B4]
+Block[B3] - Block
+    Predecessors: [B1]
+    Statements (1)
+        IFlowCaptureOperation: 2 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'other1 To other2')
+          Value: 
+            IBinaryOperation (BinaryOperatorKind.And) (OperatorMethod: Function C.op_BitwiseAnd(x As C, y As C) As C) (OperationKind.BinaryOperator, Type: C, IsImplicit) (Syntax: 'other1 To other2')
+              Left: 
+                IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: C, IsImplicit) (Syntax: 'other1 To other2')
               Right: 
                 IBinaryOperation (BinaryOperatorKind.LessThanOrEqual, Checked) (OperatorMethod: Function C.op_LessThanOrEqual(x As C, y As C) As C) (OperationKind.BinaryOperator, Type: C, IsImplicit) (Syntax: 'other1 To other2')
                   Left: 
@@ -7042,9 +7149,18 @@ Block[B1] - Block
                   Right: 
                     IParameterReferenceOperation: other2 (OperationKind.ParameterReference, Type: C) (Syntax: 'other2')
 
-    Next (Regular) Block[B2]
-Block[B2] - Block
-    Predecessors: [B1]
+    Next (Regular) Block[B4]
+Block[B4] - Block
+    Predecessors: [B2] [B3]
+    Statements (0)
+    Jump if False (Regular) to Block[B6]
+        IUnaryOperation (UnaryOperatorKind.True) (OperatorMethod: Function C.op_True(x As C) As System.Boolean) (OperationKind.UnaryOperator, Type: System.Boolean, IsImplicit) (Syntax: 'other1 To other2')
+          Operand: 
+            IFlowCaptureReferenceOperation: 2 (OperationKind.FlowCaptureReference, Type: C, IsImplicit) (Syntax: 'other1 To other2')
+
+    Next (Regular) Block[B5]
+Block[B5] - Block
+    Predecessors: [B4]
     Statements (1)
         IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'result = False')
           Expression: 
@@ -7054,9 +7170,9 @@ Block[B2] - Block
               Right: 
                 ILiteralOperation (OperationKind.Literal, Type: System.Boolean, Constant: False) (Syntax: 'False')
 
-    Next (Regular) Block[B3]
-Block[B3] - Exit
-    Predecessors: [B1] [B2]
+    Next (Regular) Block[B6]
+Block[B6] - Exit
+    Predecessors: [B4] [B5]
     Statements (0)
 ]]>.Value
 
@@ -7831,49 +7947,107 @@ Block[B0] - Entry
     Next (Regular) Block[B1]
 Block[B1] - Block
     Predecessors: [B0]
-    Statements (1)
+    Statements (2)
         IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'input')
           Value: 
             IParameterReferenceOperation: input (OperationKind.ParameterReference, Type: C) (Syntax: 'input')
 
+        IFlowCaptureOperation: 1 (OperationKind.FlowCapture, Type: null, IsInvalid, IsImplicit) (Syntax: 'other1 To other2')
+          Value: 
+            IBinaryOperation (BinaryOperatorKind.GreaterThanOrEqual, Checked) (OperatorMethod: Function C.op_GreaterThanOrEqual(x As C, y As C) As C) (OperationKind.BinaryOperator, Type: C, IsInvalid, IsImplicit) (Syntax: 'other1 To other2')
+              Left: 
+                IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: C, IsImplicit) (Syntax: 'input')
+              Right: 
+                IParameterReferenceOperation: other1 (OperationKind.ParameterReference, Type: C, IsInvalid) (Syntax: 'other1')
+
     Jump if False (Regular) to Block[B3]
+        IUnaryOperation (UnaryOperatorKind.False) (OperatorMethod: Function C.op_False(x As C) As System.Boolean) (OperationKind.UnaryOperator, Type: System.Boolean, IsInvalid, IsImplicit) (Syntax: 'other1 To other2')
+          Operand: 
+            IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: C, IsInvalid, IsImplicit) (Syntax: 'other1 To other2')
+
+    Next (Regular) Block[B2]
+Block[B2] - Block
+    Predecessors: [B1]
+    Statements (1)
+        IFlowCaptureOperation: 2 (OperationKind.FlowCapture, Type: null, IsInvalid, IsImplicit) (Syntax: 'other1 To other2')
+          Value: 
+            IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: C, IsInvalid, IsImplicit) (Syntax: 'other1 To other2')
+
+    Next (Regular) Block[B4]
+Block[B3] - Block
+    Predecessors: [B1]
+    Statements (1)
+        IFlowCaptureOperation: 2 (OperationKind.FlowCapture, Type: null, IsInvalid, IsImplicit) (Syntax: 'other1 To other2')
+          Value: 
+            IBinaryOperation (BinaryOperatorKind.And) (OperatorMethod: Function C.op_BitwiseAnd(x As C, y As C) As C) (OperationKind.BinaryOperator, Type: C, IsInvalid, IsImplicit) (Syntax: 'other1 To other2')
+              Left: 
+                IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: C, IsInvalid, IsImplicit) (Syntax: 'other1 To other2')
+              Right: 
+                IBinaryOperation (BinaryOperatorKind.LessThanOrEqual, Checked) (OperatorMethod: Function C.op_LessThanOrEqual(x As C, y As C) As C) (OperationKind.BinaryOperator, Type: C, IsInvalid, IsImplicit) (Syntax: 'other1 To other2')
+                  Left: 
+                    IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: C, IsImplicit) (Syntax: 'input')
+                  Right: 
+                    IParameterReferenceOperation: other2 (OperationKind.ParameterReference, Type: C, IsInvalid) (Syntax: 'other2')
+
+    Next (Regular) Block[B4]
+Block[B4] - Block
+    Predecessors: [B2] [B3]
+    Statements (1)
+        IFlowCaptureOperation: 3 (OperationKind.FlowCapture, Type: null, IsInvalid, IsImplicit) (Syntax: 'other3 To other4')
+          Value: 
+            IBinaryOperation (BinaryOperatorKind.GreaterThanOrEqual, Checked) (OperatorMethod: Function C.op_GreaterThanOrEqual(x As C, y As C) As C) (OperationKind.BinaryOperator, Type: C, IsInvalid, IsImplicit) (Syntax: 'other3 To other4')
+              Left: 
+                IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: C, IsImplicit) (Syntax: 'input')
+              Right: 
+                IParameterReferenceOperation: other3 (OperationKind.ParameterReference, Type: C, IsInvalid) (Syntax: 'other3')
+
+    Jump if False (Regular) to Block[B6]
+        IUnaryOperation (UnaryOperatorKind.False) (OperatorMethod: Function C.op_False(x As C) As System.Boolean) (OperationKind.UnaryOperator, Type: System.Boolean, IsInvalid, IsImplicit) (Syntax: 'other3 To other4')
+          Operand: 
+            IFlowCaptureReferenceOperation: 3 (OperationKind.FlowCaptureReference, Type: C, IsInvalid, IsImplicit) (Syntax: 'other3 To other4')
+
+    Next (Regular) Block[B5]
+Block[B5] - Block
+    Predecessors: [B4]
+    Statements (1)
+        IFlowCaptureOperation: 4 (OperationKind.FlowCapture, Type: null, IsInvalid, IsImplicit) (Syntax: 'other3 To other4')
+          Value: 
+            IFlowCaptureReferenceOperation: 3 (OperationKind.FlowCaptureReference, Type: C, IsInvalid, IsImplicit) (Syntax: 'other3 To other4')
+
+    Next (Regular) Block[B7]
+Block[B6] - Block
+    Predecessors: [B4]
+    Statements (1)
+        IFlowCaptureOperation: 4 (OperationKind.FlowCapture, Type: null, IsInvalid, IsImplicit) (Syntax: 'other3 To other4')
+          Value: 
+            IBinaryOperation (BinaryOperatorKind.And) (OperatorMethod: Function C.op_BitwiseAnd(x As C, y As C) As C) (OperationKind.BinaryOperator, Type: C, IsInvalid, IsImplicit) (Syntax: 'other3 To other4')
+              Left: 
+                IFlowCaptureReferenceOperation: 3 (OperationKind.FlowCaptureReference, Type: C, IsInvalid, IsImplicit) (Syntax: 'other3 To other4')
+              Right: 
+                IBinaryOperation (BinaryOperatorKind.LessThanOrEqual, Checked) (OperatorMethod: Function C.op_LessThanOrEqual(x As C, y As C) As C) (OperationKind.BinaryOperator, Type: C, IsInvalid, IsImplicit) (Syntax: 'other3 To other4')
+                  Left: 
+                    IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: C, IsImplicit) (Syntax: 'input')
+                  Right: 
+                    IParameterReferenceOperation: other4 (OperationKind.ParameterReference, Type: C, IsInvalid) (Syntax: 'other4')
+
+    Next (Regular) Block[B7]
+Block[B7] - Block
+    Predecessors: [B5] [B6]
+    Statements (0)
+    Jump if False (Regular) to Block[B9]
         IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Boolean, IsInvalid, IsImplicit) (Syntax: 'Case other1 ... 3 To other4')
           Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
             (DelegateRelaxationLevelNone)
           Operand: 
             IBinaryOperation (BinaryOperatorKind.ConditionalOr, Checked) (OperationKind.BinaryOperator, Type: ?, IsInvalid, IsImplicit) (Syntax: 'Case other1 ... 3 To other4')
               Left: 
-                IBinaryOperation (BinaryOperatorKind.ConditionalAnd) (OperatorMethod: Function C.op_BitwiseAnd(x As C, y As C) As C) (OperationKind.BinaryOperator, Type: C, IsInvalid, IsImplicit) (Syntax: 'other1 To other2')
-                  Left: 
-                    IBinaryOperation (BinaryOperatorKind.GreaterThanOrEqual, Checked) (OperatorMethod: Function C.op_GreaterThanOrEqual(x As C, y As C) As C) (OperationKind.BinaryOperator, Type: C, IsInvalid, IsImplicit) (Syntax: 'other1 To other2')
-                      Left: 
-                        IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: C, IsImplicit) (Syntax: 'input')
-                      Right: 
-                        IParameterReferenceOperation: other1 (OperationKind.ParameterReference, Type: C, IsInvalid) (Syntax: 'other1')
-                  Right: 
-                    IBinaryOperation (BinaryOperatorKind.LessThanOrEqual, Checked) (OperatorMethod: Function C.op_LessThanOrEqual(x As C, y As C) As C) (OperationKind.BinaryOperator, Type: C, IsInvalid, IsImplicit) (Syntax: 'other1 To other2')
-                      Left: 
-                        IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: C, IsImplicit) (Syntax: 'input')
-                      Right: 
-                        IParameterReferenceOperation: other2 (OperationKind.ParameterReference, Type: C, IsInvalid) (Syntax: 'other2')
+                IFlowCaptureReferenceOperation: 2 (OperationKind.FlowCaptureReference, Type: C, IsInvalid, IsImplicit) (Syntax: 'other1 To other2')
               Right: 
-                IBinaryOperation (BinaryOperatorKind.ConditionalAnd) (OperatorMethod: Function C.op_BitwiseAnd(x As C, y As C) As C) (OperationKind.BinaryOperator, Type: C, IsInvalid, IsImplicit) (Syntax: 'other3 To other4')
-                  Left: 
-                    IBinaryOperation (BinaryOperatorKind.GreaterThanOrEqual, Checked) (OperatorMethod: Function C.op_GreaterThanOrEqual(x As C, y As C) As C) (OperationKind.BinaryOperator, Type: C, IsInvalid, IsImplicit) (Syntax: 'other3 To other4')
-                      Left: 
-                        IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: C, IsImplicit) (Syntax: 'input')
-                      Right: 
-                        IParameterReferenceOperation: other3 (OperationKind.ParameterReference, Type: C, IsInvalid) (Syntax: 'other3')
-                  Right: 
-                    IBinaryOperation (BinaryOperatorKind.LessThanOrEqual, Checked) (OperatorMethod: Function C.op_LessThanOrEqual(x As C, y As C) As C) (OperationKind.BinaryOperator, Type: C, IsInvalid, IsImplicit) (Syntax: 'other3 To other4')
-                      Left: 
-                        IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: C, IsImplicit) (Syntax: 'input')
-                      Right: 
-                        IParameterReferenceOperation: other4 (OperationKind.ParameterReference, Type: C, IsInvalid) (Syntax: 'other4')
+                IFlowCaptureReferenceOperation: 4 (OperationKind.FlowCaptureReference, Type: C, IsInvalid, IsImplicit) (Syntax: 'other3 To other4')
 
-    Next (Regular) Block[B2]
-Block[B2] - Block
-    Predecessors: [B1]
+    Next (Regular) Block[B8]
+Block[B8] - Block
+    Predecessors: [B7]
     Statements (1)
         IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'result = False')
           Expression: 
@@ -7883,9 +8057,9 @@ Block[B2] - Block
               Right: 
                 ILiteralOperation (OperationKind.Literal, Type: System.Boolean, Constant: False) (Syntax: 'False')
 
-    Next (Regular) Block[B3]
-Block[B3] - Exit
-    Predecessors: [B1] [B2]
+    Next (Regular) Block[B9]
+Block[B9] - Exit
+    Predecessors: [B7] [B8]
     Statements (0)
 ]]>.Value
 
@@ -7939,47 +8113,130 @@ Block[B0] - Entry
     Next (Regular) Block[B1]
 Block[B1] - Block
     Predecessors: [B0]
-    Statements (1)
+    Statements (2)
         IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'input')
           Value: 
             IParameterReferenceOperation: input (OperationKind.ParameterReference, Type: C) (Syntax: 'input')
 
-    Jump if False (Regular) to Block[B3]
-        IUnaryOperation (UnaryOperatorKind.True) (OperatorMethod: Function C.op_True(x As C) As System.Boolean) (OperationKind.UnaryOperator, Type: System.Boolean, IsImplicit) (Syntax: 'Case other1 ... 3 To other4')
-          Operand: 
-            IBinaryOperation (BinaryOperatorKind.ConditionalOr) (OperatorMethod: Function C.op_BitwiseOr(x As C, y As C) As C) (OperationKind.BinaryOperator, Type: C, IsImplicit) (Syntax: 'Case other1 ... 3 To other4')
+        IFlowCaptureOperation: 1 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'other1 To other2')
+          Value: 
+            IBinaryOperation (BinaryOperatorKind.GreaterThanOrEqual, Checked) (OperatorMethod: Function C.op_GreaterThanOrEqual(x As C, y As C) As C) (OperationKind.BinaryOperator, Type: C, IsImplicit) (Syntax: 'other1 To other2')
               Left: 
-                IBinaryOperation (BinaryOperatorKind.ConditionalAnd) (OperatorMethod: Function C.op_BitwiseAnd(x As C, y As C) As C) (OperationKind.BinaryOperator, Type: C, IsImplicit) (Syntax: 'other1 To other2')
-                  Left: 
-                    IBinaryOperation (BinaryOperatorKind.GreaterThanOrEqual, Checked) (OperatorMethod: Function C.op_GreaterThanOrEqual(x As C, y As C) As C) (OperationKind.BinaryOperator, Type: C, IsImplicit) (Syntax: 'other1 To other2')
-                      Left: 
-                        IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: C, IsImplicit) (Syntax: 'input')
-                      Right: 
-                        IParameterReferenceOperation: other1 (OperationKind.ParameterReference, Type: C) (Syntax: 'other1')
-                  Right: 
-                    IBinaryOperation (BinaryOperatorKind.LessThanOrEqual, Checked) (OperatorMethod: Function C.op_LessThanOrEqual(x As C, y As C) As C) (OperationKind.BinaryOperator, Type: C, IsImplicit) (Syntax: 'other1 To other2')
-                      Left: 
-                        IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: C, IsImplicit) (Syntax: 'input')
-                      Right: 
-                        IParameterReferenceOperation: other2 (OperationKind.ParameterReference, Type: C) (Syntax: 'other2')
+                IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: C, IsImplicit) (Syntax: 'input')
               Right: 
-                IBinaryOperation (BinaryOperatorKind.ConditionalAnd) (OperatorMethod: Function C.op_BitwiseAnd(x As C, y As C) As C) (OperationKind.BinaryOperator, Type: C, IsImplicit) (Syntax: 'other3 To other4')
-                  Left: 
-                    IBinaryOperation (BinaryOperatorKind.GreaterThanOrEqual, Checked) (OperatorMethod: Function C.op_GreaterThanOrEqual(x As C, y As C) As C) (OperationKind.BinaryOperator, Type: C, IsImplicit) (Syntax: 'other3 To other4')
-                      Left: 
-                        IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: C, IsImplicit) (Syntax: 'input')
-                      Right: 
-                        IParameterReferenceOperation: other3 (OperationKind.ParameterReference, Type: C) (Syntax: 'other3')
-                  Right: 
-                    IBinaryOperation (BinaryOperatorKind.LessThanOrEqual, Checked) (OperatorMethod: Function C.op_LessThanOrEqual(x As C, y As C) As C) (OperationKind.BinaryOperator, Type: C, IsImplicit) (Syntax: 'other3 To other4')
-                      Left: 
-                        IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: C, IsImplicit) (Syntax: 'input')
-                      Right: 
-                        IParameterReferenceOperation: other4 (OperationKind.ParameterReference, Type: C) (Syntax: 'other4')
+                IParameterReferenceOperation: other1 (OperationKind.ParameterReference, Type: C) (Syntax: 'other1')
+
+    Jump if False (Regular) to Block[B3]
+        IUnaryOperation (UnaryOperatorKind.False) (OperatorMethod: Function C.op_False(x As C) As System.Boolean) (OperationKind.UnaryOperator, Type: System.Boolean, IsImplicit) (Syntax: 'other1 To other2')
+          Operand: 
+            IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: C, IsImplicit) (Syntax: 'other1 To other2')
 
     Next (Regular) Block[B2]
 Block[B2] - Block
     Predecessors: [B1]
+    Statements (1)
+        IFlowCaptureOperation: 2 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'other1 To other2')
+          Value: 
+            IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: C, IsImplicit) (Syntax: 'other1 To other2')
+
+    Next (Regular) Block[B4]
+Block[B3] - Block
+    Predecessors: [B1]
+    Statements (1)
+        IFlowCaptureOperation: 2 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'other1 To other2')
+          Value: 
+            IBinaryOperation (BinaryOperatorKind.And) (OperatorMethod: Function C.op_BitwiseAnd(x As C, y As C) As C) (OperationKind.BinaryOperator, Type: C, IsImplicit) (Syntax: 'other1 To other2')
+              Left: 
+                IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: C, IsImplicit) (Syntax: 'other1 To other2')
+              Right: 
+                IBinaryOperation (BinaryOperatorKind.LessThanOrEqual, Checked) (OperatorMethod: Function C.op_LessThanOrEqual(x As C, y As C) As C) (OperationKind.BinaryOperator, Type: C, IsImplicit) (Syntax: 'other1 To other2')
+                  Left: 
+                    IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: C, IsImplicit) (Syntax: 'input')
+                  Right: 
+                    IParameterReferenceOperation: other2 (OperationKind.ParameterReference, Type: C) (Syntax: 'other2')
+
+    Next (Regular) Block[B4]
+Block[B4] - Block
+    Predecessors: [B2] [B3]
+    Statements (0)
+    Jump if False (Regular) to Block[B6]
+        IUnaryOperation (UnaryOperatorKind.True) (OperatorMethod: Function C.op_True(x As C) As System.Boolean) (OperationKind.UnaryOperator, Type: System.Boolean, IsImplicit) (Syntax: 'other1 To other2')
+          Operand: 
+            IFlowCaptureReferenceOperation: 2 (OperationKind.FlowCaptureReference, Type: C, IsImplicit) (Syntax: 'other1 To other2')
+
+    Next (Regular) Block[B5]
+Block[B5] - Block
+    Predecessors: [B4]
+    Statements (1)
+        IFlowCaptureOperation: 3 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'Case other1 ... 3 To other4')
+          Value: 
+            IFlowCaptureReferenceOperation: 2 (OperationKind.FlowCaptureReference, Type: C, IsImplicit) (Syntax: 'other1 To other2')
+
+    Next (Regular) Block[B10]
+Block[B6] - Block
+    Predecessors: [B4]
+    Statements (1)
+        IFlowCaptureOperation: 4 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'other3 To other4')
+          Value: 
+            IBinaryOperation (BinaryOperatorKind.GreaterThanOrEqual, Checked) (OperatorMethod: Function C.op_GreaterThanOrEqual(x As C, y As C) As C) (OperationKind.BinaryOperator, Type: C, IsImplicit) (Syntax: 'other3 To other4')
+              Left: 
+                IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: C, IsImplicit) (Syntax: 'input')
+              Right: 
+                IParameterReferenceOperation: other3 (OperationKind.ParameterReference, Type: C) (Syntax: 'other3')
+
+    Jump if False (Regular) to Block[B8]
+        IUnaryOperation (UnaryOperatorKind.False) (OperatorMethod: Function C.op_False(x As C) As System.Boolean) (OperationKind.UnaryOperator, Type: System.Boolean, IsImplicit) (Syntax: 'other3 To other4')
+          Operand: 
+            IFlowCaptureReferenceOperation: 4 (OperationKind.FlowCaptureReference, Type: C, IsImplicit) (Syntax: 'other3 To other4')
+
+    Next (Regular) Block[B7]
+Block[B7] - Block
+    Predecessors: [B6]
+    Statements (1)
+        IFlowCaptureOperation: 5 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'other3 To other4')
+          Value: 
+            IFlowCaptureReferenceOperation: 4 (OperationKind.FlowCaptureReference, Type: C, IsImplicit) (Syntax: 'other3 To other4')
+
+    Next (Regular) Block[B9]
+Block[B8] - Block
+    Predecessors: [B6]
+    Statements (1)
+        IFlowCaptureOperation: 5 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'other3 To other4')
+          Value: 
+            IBinaryOperation (BinaryOperatorKind.And) (OperatorMethod: Function C.op_BitwiseAnd(x As C, y As C) As C) (OperationKind.BinaryOperator, Type: C, IsImplicit) (Syntax: 'other3 To other4')
+              Left: 
+                IFlowCaptureReferenceOperation: 4 (OperationKind.FlowCaptureReference, Type: C, IsImplicit) (Syntax: 'other3 To other4')
+              Right: 
+                IBinaryOperation (BinaryOperatorKind.LessThanOrEqual, Checked) (OperatorMethod: Function C.op_LessThanOrEqual(x As C, y As C) As C) (OperationKind.BinaryOperator, Type: C, IsImplicit) (Syntax: 'other3 To other4')
+                  Left: 
+                    IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: C, IsImplicit) (Syntax: 'input')
+                  Right: 
+                    IParameterReferenceOperation: other4 (OperationKind.ParameterReference, Type: C) (Syntax: 'other4')
+
+    Next (Regular) Block[B9]
+Block[B9] - Block
+    Predecessors: [B7] [B8]
+    Statements (1)
+        IFlowCaptureOperation: 3 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'Case other1 ... 3 To other4')
+          Value: 
+            IBinaryOperation (BinaryOperatorKind.Or) (OperatorMethod: Function C.op_BitwiseOr(x As C, y As C) As C) (OperationKind.BinaryOperator, Type: C, IsImplicit) (Syntax: 'Case other1 ... 3 To other4')
+              Left: 
+                IFlowCaptureReferenceOperation: 2 (OperationKind.FlowCaptureReference, Type: C, IsImplicit) (Syntax: 'other1 To other2')
+              Right: 
+                IFlowCaptureReferenceOperation: 5 (OperationKind.FlowCaptureReference, Type: C, IsImplicit) (Syntax: 'other3 To other4')
+
+    Next (Regular) Block[B10]
+Block[B10] - Block
+    Predecessors: [B5] [B9]
+    Statements (0)
+    Jump if False (Regular) to Block[B12]
+        IUnaryOperation (UnaryOperatorKind.True) (OperatorMethod: Function C.op_True(x As C) As System.Boolean) (OperationKind.UnaryOperator, Type: System.Boolean, IsImplicit) (Syntax: 'Case other1 ... 3 To other4')
+          Operand: 
+            IFlowCaptureReferenceOperation: 3 (OperationKind.FlowCaptureReference, Type: C, IsImplicit) (Syntax: 'Case other1 ... 3 To other4')
+
+    Next (Regular) Block[B11]
+Block[B11] - Block
+    Predecessors: [B10]
     Statements (1)
         IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'result = False')
           Expression: 
@@ -7989,9 +8246,9 @@ Block[B2] - Block
               Right: 
                 ILiteralOperation (OperationKind.Literal, Type: System.Boolean, Constant: False) (Syntax: 'False')
 
-    Next (Regular) Block[B3]
-Block[B3] - Exit
-    Predecessors: [B1] [B2]
+    Next (Regular) Block[B12]
+Block[B12] - Exit
+    Predecessors: [B10] [B11]
     Statements (0)
 ]]>.Value
 

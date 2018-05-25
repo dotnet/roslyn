@@ -589,8 +589,9 @@ endRegion:
                 case OperationKind.BinaryOperator:
                     var binary = (IBinaryOperation)n;
                     return (binary.OperatorKind != Operations.BinaryOperatorKind.ConditionalAnd && binary.OperatorKind != Operations.BinaryOperatorKind.ConditionalOr) ||
-                            binary.OperatorMethod != null || // PROTOTYPE(dataflow): no proper support for user-defined operators yet.
-                            binary.Type.SpecialType != SpecialType.System_Boolean; // PROTOTYPE(dataflow): no proper support for nullable conditional operators yet.
+                            (binary.OperatorMethod == null && 
+                             !ITypeSymbolHelpers.IsBooleanType(binary.Type) &&
+                             !ITypeSymbolHelpers.IsNullableOfBoolean(binary.Type));
 
                 case OperationKind.InstanceReference:
                     // Implicit instance receivers are expected to have been removed when dealing with creations.
