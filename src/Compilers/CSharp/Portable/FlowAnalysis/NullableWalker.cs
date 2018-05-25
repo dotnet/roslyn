@@ -2513,15 +2513,18 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                         // conversion "from" type -> method parameter type
                         operandType = ClassifyAndApplyConversion(node, parameter.Type.TypeSymbol, operandType);
+                        ReportNullReferenceArgumentIfNecessary(operandOpt, operandType, parameter, parameter.Type);
 
                         // method parameter type -> method return type
-                        ReportArgumentWarnings(operandOpt, operandType, parameter);
                         operandType = methodOpt.ReturnType;
 
                         // method return type -> conversion "to" type
                         operandType = ClassifyAndApplyConversion(node, conversion.BestUserDefinedConversionAnalysis.ToType, operandType);
 
                         // conversion "to" type -> final type
+                        // PROTOTYPE(NullableReferenceTypes): If the original conversion was
+                        // explicit, this conversion should not report nested nullability mismatches.
+                        // (see StaticNullChecking.ExplicitCast_UserDefined_02).
                         operandType = ClassifyAndApplyConversion(node, targetType, operandType);
                         return operandType;
                     }

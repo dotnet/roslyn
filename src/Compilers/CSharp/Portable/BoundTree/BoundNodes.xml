@@ -596,9 +596,17 @@
     <Field Name="ExplicitCastInCode" Type="bool"/>
     <Field Name="ConstantValueOpt" Type="ConstantValue" Null="allow"/>
      <!--
-         Reference to a group instance common to all BoundConversions from a single
-         Conversion. Also contains the target type specified in source in the case of explicit
-         conversions. ConversionGroupOpt may be null for implicit conversions if the
+         A group instance common to all BoundConversions that represent a single Conversion. The
+         field is used in NullableWalker to identify the chained conversions in user-defined
+         conversions in particular. For instance, with the following declarations, an explicit conversion
+         from B to D: expr -> ImplicitReference conversion -> ExplicitUserDefined conversion ->
+         ExplicitReference conversion.
+            class A { public static explicit operator C(A a) => new D(); }
+            class B : A { }
+            class C { }
+            class D : C { }
+         ConversionGroupOpt also contains the target type specified in source in the case of
+         explicit conversions. ConversionGroupOpt may be null for implicit conversions if the
          Conversion is represented by a single BoundConversion.
          -->
     <Field Name="ConversionGroupOpt" Type="ConversionGroup" Null="allow"/>

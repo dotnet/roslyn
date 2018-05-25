@@ -3128,6 +3128,8 @@ class C<T>
 }";
             var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
             // PROTOTYPE(NullableReferenceTypes): Assign each of the deconstructed values.
+            // PROTOTYPE(NullableReferenceTypes): The expected warning is confusing: "warning CS8619: Nullability of
+            // reference types in value of type 'C<object>' doesn't match target type '(IIn<object?> x, IOut<object?> y)'".
             comp.VerifyDiagnostics();
                 //// (13,18): warning CS8619: Nullability of reference types in value of type 'C<object>' doesn't match target type '(IIn<object?> x, IOut<object?> y)'.
                 ////         (x, y) = c;
