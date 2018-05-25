@@ -62,15 +62,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings.InvertIf
         Protected NotOverridable Overrides Function GetNextExecutableStatement(node As SyntaxNode) As SyntaxNode
             Dim parent = node.Parent
             Dim statements = parent.GetStatements
-            Dim index = statements.IndexOf(DirectCast(node, StatementSyntax))
-            If index + 1 < statements.Count - 1 Then
-                Return statements(index + 1)
+            Dim nextIndex = 1 + statements.IndexOf(DirectCast(node, StatementSyntax))
+            If nextIndex < statements.Count - 1 Then
+                Return statements(nextIndex)
             End If
 
             Return Nothing
-
-            ' Return DirectCast(node, StatementSyntax).GetNextStatement()
-            ' Return VisualBasicSyntaxFactsService.Instance.GetNextExecutableStatement(node)
         End Function
 
         Protected NotOverridable Overrides Function GetJumpStatement(rawKind As Integer) As SyntaxNode
