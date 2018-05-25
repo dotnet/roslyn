@@ -17,7 +17,7 @@ using RoslynCompletionItem = Microsoft.CodeAnalysis.Completion.CompletionItem;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.EditorImplementation
 {
-    internal class CompletionCommitManager : IAsyncCompletionCommitManager
+    internal sealed class CompletionCommitManager : IAsyncCompletionCommitManager
     {
         private ImmutableArray<char> CommitChars => ImmutableArray.Create(
             ' ', '{', '}', '[', ']', '(', ')', '.', ',', ':',
