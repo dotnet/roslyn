@@ -5,29 +5,31 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading;
+using Microsoft.CodeAnalysis.Operations;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.Operations
+namespace Microsoft.CodeAnalysis.FlowAnalysis
 {
     /// <summary>
     /// PROTOTYPE(dataflow): Add documentation
+    /// PROTOTYPE(dataflow): Should we also expose array of control flow branches?
     /// </summary>
     public sealed partial class ControlFlowGraph
     {
         // PROTOTYPE(dataflow): This dictionary will hold on to the original IOperation tree and that will keep SemanticModel alive too.
         //                      Is this a problem? Should we simply build all sub-graphs eagerly?
-        private readonly ImmutableDictionary<IMethodSymbol, (Region region, IOperation operation, int ordinal)> _methodsMap;
+        private readonly ImmutableDictionary<IMethodSymbol, (ControlFlowRegion region, IOperation operation, int ordinal)> _methodsMap;
         private ControlFlowGraph[] _lazySubGraphs;
 
-        internal ControlFlowGraph(ImmutableArray<BasicBlock> blocks, Region root,
+        internal ControlFlowGraph(ImmutableArray<BasicBlock> blocks, ControlFlowRegion root,
                                   ImmutableArray<IMethodSymbol> methods,
-                                  ImmutableDictionary<IMethodSymbol, (Region region, IOperation operation, int ordinal)> methodsMap)
+                                  ImmutableDictionary<IMethodSymbol, (ControlFlowRegion region, IOperation operation, int ordinal)> methodsMap)
         {
             Debug.Assert(!blocks.IsDefault);
             Debug.Assert(blocks.First().Kind == BasicBlockKind.Entry);
             Debug.Assert(blocks.Last().Kind == BasicBlockKind.Exit);
             Debug.Assert(root != null);
-            Debug.Assert(root.Kind == RegionKind.Root);
+            Debug.Assert(root.Kind == ControlFlowRegionKind.Root);
             Debug.Assert(root.FirstBlockOrdinal == 0);
             Debug.Assert(root.LastBlockOrdinal == blocks.Length - 1);
             Debug.Assert(!methods.IsDefault);
@@ -54,9 +56,9 @@ namespace Microsoft.CodeAnalysis.Operations
         public ImmutableArray<BasicBlock> Blocks { get; }
 
         /// <summary>
-        /// Root (<see cref="RegionKind.Root"/>) region for the graph.
+        /// Root (<see cref="ControlFlowRegionKind.Root"/>) region for the graph.
         /// </summary>
-        public Region Root { get; }
+        public ControlFlowRegion Root { get; }
 
         /// <summary>
         /// PROTOTYPE(dataflow): Add documentation
@@ -75,7 +77,7 @@ namespace Microsoft.CodeAnalysis.Operations
                 //                      In any case, we need to add unit tests to cover behavior of this API with respect to
                 //                      an invalid input (including null).
 
-                (Region enclosing, IOperation operation, int ordinal) = _methodsMap[method];
+                (ControlFlowRegion enclosing, IOperation operation, int ordinal) = _methodsMap[method];
                 Debug.Assert(method == Methods[ordinal]);
 
                 if (_lazySubGraphs == null)

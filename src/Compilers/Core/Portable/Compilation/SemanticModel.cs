@@ -90,7 +90,7 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// PROTOTYPE(dataflow): Add documentation.
         /// </summary>
-        public static Operations.ControlFlowGraph GetControlFlowGraph(Operations.IBlockOperation body)
+        public static FlowAnalysis.ControlFlowGraph GetControlFlowGraph(Operations.IBlockOperation body)
         {
             if (body == null)
             {
@@ -109,7 +109,7 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// PROTOTYPE(dataflow): Add documentation.
         /// </summary>
-        public static Operations.ControlFlowGraph GetControlFlowGraph(Operations.IFieldInitializerOperation initializer)
+        public static FlowAnalysis.ControlFlowGraph GetControlFlowGraph(Operations.IFieldInitializerOperation initializer)
         {
             if (initializer == null)
             {
@@ -128,7 +128,7 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// PROTOTYPE(dataflow): Add documentation.
         /// </summary>
-        public static Operations.ControlFlowGraph GetControlFlowGraph(Operations.IPropertyInitializerOperation initializer)
+        public static FlowAnalysis.ControlFlowGraph GetControlFlowGraph(Operations.IPropertyInitializerOperation initializer)
         {
             if (initializer == null)
             {
@@ -147,7 +147,7 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// PROTOTYPE(dataflow): Add documentation.
         /// </summary>
-        public static Operations.ControlFlowGraph GetControlFlowGraph(Operations.IParameterInitializerOperation initializer)
+        public static FlowAnalysis.ControlFlowGraph GetControlFlowGraph(Operations.IParameterInitializerOperation initializer)
         {
             if (initializer == null)
             {
@@ -166,7 +166,7 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// PROTOTYPE(dataflow): Add documentation.
         /// </summary>
-        public static Operations.ControlFlowGraph GetControlFlowGraph(Operations.IConstructorBodyOperation constructorBody)
+        public static FlowAnalysis.ControlFlowGraph GetControlFlowGraph(Operations.IConstructorBodyOperation constructorBody)
         {
             if (constructorBody == null)
             {
@@ -185,7 +185,7 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// PROTOTYPE(dataflow): Add documentation.
         /// </summary>
-        public static Operations.ControlFlowGraph GetControlFlowGraph(Operations.IMethodBodyOperation methodBody)
+        public static FlowAnalysis.ControlFlowGraph GetControlFlowGraph(Operations.IMethodBodyOperation methodBody)
         {
             if (methodBody == null)
             {
@@ -201,7 +201,7 @@ namespace Microsoft.CodeAnalysis
             return GetControlFlowGraphCore(methodBody);
         }
 
-        private static Operations.ControlFlowGraph GetControlFlowGraphCore(IOperation operation)
+        private static FlowAnalysis.ControlFlowGraph GetControlFlowGraphCore(IOperation operation)
         {
             if (((Operation)operation).SemanticModel == null)
             {
@@ -216,7 +216,7 @@ namespace Microsoft.CodeAnalysis
 
             try
             {
-                return Operations.ControlFlowGraphBuilder.Create(operation);
+                return FlowAnalysis.ControlFlowGraphBuilder.Create(operation);
             }
             catch (Exception e) when (FatalError.ReportWithoutCrashUnlessCanceled(e))
             {

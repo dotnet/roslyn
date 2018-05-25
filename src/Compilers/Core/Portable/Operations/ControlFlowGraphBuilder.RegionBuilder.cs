@@ -5,13 +5,13 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.PooledObjects;
 
-namespace Microsoft.CodeAnalysis.Operations
+namespace Microsoft.CodeAnalysis.FlowAnalysis
 {
     internal sealed partial class ControlFlowGraphBuilder
     {
         private class RegionBuilder
         {
-            public ControlFlowGraph.RegionKind Kind;
+            public ControlFlowRegionKind Kind;
             public RegionBuilder Enclosing { get; private set; } = null;
             public readonly ITypeSymbol ExceptionType;
             public BasicBlock FirstBlock = null;
@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.Operations
             private bool _aboutToFree = false;
 #endif 
 
-            public RegionBuilder(ControlFlowGraph.RegionKind kind, ITypeSymbol exceptionType = null, ImmutableArray<ILocalSymbol> locals = default)
+            public RegionBuilder(ControlFlowRegionKind kind, ITypeSymbol exceptionType = null, ImmutableArray<ILocalSymbol> locals = default)
             {
                 Kind = kind;
                 ExceptionType = exceptionType;
@@ -40,7 +40,7 @@ namespace Microsoft.CodeAnalysis.Operations
 
             public void Add(IMethodSymbol symbol, IOperation operation)
             {
-                Debug.Assert(Kind != ControlFlowGraph.RegionKind.Root);
+                Debug.Assert(Kind != ControlFlowRegionKind.Root);
 
                 if (Methods == null)
                 {
@@ -52,7 +52,7 @@ namespace Microsoft.CodeAnalysis.Operations
 
             public void AddRange(ArrayBuilder<(IMethodSymbol, IOperation)> others)
             {
-                Debug.Assert(Kind != ControlFlowGraph.RegionKind.Root);
+                Debug.Assert(Kind != ControlFlowRegionKind.Root);
 
                 if (others == null)
                 {
@@ -81,42 +81,42 @@ namespace Microsoft.CodeAnalysis.Operations
                 Regions.Add(region);
 
 #if DEBUG
-                ControlFlowGraph.RegionKind lastKind = Regions.Last().Kind;
+                ControlFlowRegionKind lastKind = Regions.Last().Kind;
                 switch (Kind)
                 {
-                    case ControlFlowGraph.RegionKind.FilterAndHandler:
+                    case ControlFlowRegionKind.FilterAndHandler:
                         Debug.Assert(Regions.Count <= 2);
-                        Debug.Assert(lastKind == (Regions.Count < 2 ? ControlFlowGraph.RegionKind.Filter : ControlFlowGraph.RegionKind.Catch));
+                        Debug.Assert(lastKind == (Regions.Count < 2 ? ControlFlowRegionKind.Filter : ControlFlowRegionKind.Catch));
                         break;
 
-                    case ControlFlowGraph.RegionKind.TryAndCatch:
+                    case ControlFlowRegionKind.TryAndCatch:
                         if (Regions.Count == 1)
                         {
-                            Debug.Assert(lastKind == ControlFlowGraph.RegionKind.Try);
+                            Debug.Assert(lastKind == ControlFlowRegionKind.Try);
                         }
                         else
                         {
-                            Debug.Assert(lastKind == ControlFlowGraph.RegionKind.Catch || lastKind == ControlFlowGraph.RegionKind.FilterAndHandler);
+                            Debug.Assert(lastKind == ControlFlowRegionKind.Catch || lastKind == ControlFlowRegionKind.FilterAndHandler);
                         }
                         break;
 
-                    case ControlFlowGraph.RegionKind.TryAndFinally:
+                    case ControlFlowRegionKind.TryAndFinally:
                         Debug.Assert(Regions.Count <= 2);
                         if (Regions.Count == 1)
                         {
-                            Debug.Assert(lastKind == ControlFlowGraph.RegionKind.Try);
+                            Debug.Assert(lastKind == ControlFlowRegionKind.Try);
                         }
                         else
                         {
-                            Debug.Assert(lastKind == ControlFlowGraph.RegionKind.Finally);
+                            Debug.Assert(lastKind == ControlFlowRegionKind.Finally);
                         }
                         break;
 
                     default:
-                        Debug.Assert(lastKind != ControlFlowGraph.RegionKind.Filter);
-                        Debug.Assert(lastKind != ControlFlowGraph.RegionKind.Catch);
-                        Debug.Assert(lastKind != ControlFlowGraph.RegionKind.Finally);
-                        Debug.Assert(lastKind != ControlFlowGraph.RegionKind.Try);
+                        Debug.Assert(lastKind != ControlFlowRegionKind.Filter);
+                        Debug.Assert(lastKind != ControlFlowRegionKind.Catch);
+                        Debug.Assert(lastKind != ControlFlowRegionKind.Finally);
+                        Debug.Assert(lastKind != ControlFlowRegionKind.Try);
                         break;
                 }
 #endif
@@ -186,9 +186,9 @@ namespace Microsoft.CodeAnalysis.Operations
 
             public void ExtendToInclude(BasicBlock block)
             {
-                Debug.Assert((Kind != ControlFlowGraph.RegionKind.FilterAndHandler &&
-                              Kind != ControlFlowGraph.RegionKind.TryAndCatch &&
-                              Kind != ControlFlowGraph.RegionKind.TryAndFinally) ||
+                Debug.Assert((Kind != ControlFlowRegionKind.FilterAndHandler &&
+                              Kind != ControlFlowRegionKind.TryAndCatch &&
+                              Kind != ControlFlowRegionKind.TryAndFinally) ||
                               Regions.Last().LastBlock == block);
 
                 if (FirstBlock == null)
@@ -228,10 +228,10 @@ namespace Microsoft.CodeAnalysis.Operations
                 Methods = null;
             }
 
-            public ControlFlowGraph.Region ToImmutableRegionAndFree(ArrayBuilder<BasicBlock> blocks,
+            public ControlFlowRegion ToImmutableRegionAndFree(ArrayBuilder<BasicBlock> blocks,
                                                                     ArrayBuilder<IMethodSymbol> methods,
-                                                                    ImmutableDictionary<IMethodSymbol, (ControlFlowGraph.Region region, IOperation operation, int ordinal)>.Builder methodsMap,
-                                                                    ControlFlowGraph.Region enclosing)
+                                                                    ImmutableDictionary<IMethodSymbol, (ControlFlowRegion region, IOperation operation, int ordinal)>.Builder methodsMap,
+                                                                    ControlFlowRegion enclosing)
             {
 #if DEBUG
                 Debug.Assert(!_aboutToFree);
@@ -248,11 +248,11 @@ namespace Microsoft.CodeAnalysis.Operations
                     }
                 }
 
-                ImmutableArray<ControlFlowGraph.Region> subRegions;
+                ImmutableArray<ControlFlowRegion> subRegions;
 
                 if (HasRegions)
                 {
-                    var builder = ArrayBuilder<ControlFlowGraph.Region>.GetInstance(Regions.Count);
+                    var builder = ArrayBuilder<ControlFlowRegion>.GetInstance(Regions.Count);
 
                     foreach (RegionBuilder region in Regions)
                     {
@@ -263,10 +263,10 @@ namespace Microsoft.CodeAnalysis.Operations
                 }
                 else
                 {
-                    subRegions = ImmutableArray<ControlFlowGraph.Region>.Empty;
+                    subRegions = ImmutableArray<ControlFlowRegion>.Empty;
                 }
 
-                var result = new ControlFlowGraph.Region(Kind, FirstBlock.Ordinal, LastBlock.Ordinal, subRegions,
+                var result = new ControlFlowRegion(Kind, FirstBlock.Ordinal, LastBlock.Ordinal, subRegions,
                                                          Locals, Methods?.SelectAsArray(((IMethodSymbol, IOperation) tuple) => tuple.Item1) ?? default,
                                                          ExceptionType,
                                                          enclosing);
@@ -281,7 +281,7 @@ namespace Microsoft.CodeAnalysis.Operations
 
                 int firstBlockWithoutRegion = FirstBlock.Ordinal;
 
-                foreach (ControlFlowGraph.Region region in subRegions)
+                foreach (ControlFlowRegion region in subRegions)
                 {
                     for (int i = firstBlockWithoutRegion; i < region.FirstBlockOrdinal; i++)
                     {
