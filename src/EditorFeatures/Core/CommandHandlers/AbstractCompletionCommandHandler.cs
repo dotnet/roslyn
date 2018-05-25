@@ -77,11 +77,11 @@ namespace Microsoft.CodeAnalysis.Editor.CommandHandlers
             where TCommandArgs : EditorCommandArgs
         {
             AssertIsForeground();
-            //if (TryGetControllerCommandHandler(args, out var commandHandler))
-            //{
-            //    commandHandler.ExecuteCommand(args, nextHandler, context);
-            //}
-            //else
+            if (TryGetControllerCommandHandler(args, out var commandHandler))
+            {
+                commandHandler.ExecuteCommand(args, nextHandler, context);
+            }
+            else
             {
                 nextHandler();
             }
