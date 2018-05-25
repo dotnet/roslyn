@@ -31,15 +31,15 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
         public InlineRenameService(
             IWaitIndicator waitIndicator,
             ITextBufferAssociatedViewService textBufferAssociatedViewService,
-            // ITextBufferFactoryService textBufferFactoryService,
-            // IFeatureServiceFactory featureServiceFactory,
+            ITextBufferFactoryService textBufferFactoryService,
+            IFeatureServiceFactory featureServiceFactory,
             [ImportMany] IEnumerable<IRefactorNotifyService> refactorNotifyServices,
             IAsynchronousOperationListenerProvider listenerProvider)
         {
             _waitIndicator = waitIndicator;
             _textBufferAssociatedViewService = textBufferAssociatedViewService;
-            _textBufferFactoryService = null; // textBufferFactoryService;
-            _featureServiceFactory = null; // featureServiceFactory;
+            _textBufferFactoryService = textBufferFactoryService;
+            _featureServiceFactory = featureServiceFactory;
             _refactorNotifyServices = refactorNotifyServices;
             _asyncListener = listenerProvider.GetListener(FeatureAttribute.Rename);
         }
