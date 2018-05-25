@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -130,7 +130,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
         public int GetMemberNavigationPoint(string pszClassName, string pszUniqueMemberID, TextSpan[] pSpanNavPoint, out uint pItemID)
         {
             uint itemId = 0;
-            TextSpan textSpan = default(TextSpan);
+            TextSpan textSpan = default;
             var succeeded = false;
 
             var waitIndicator = this.ComponentModel.GetService<IWaitIndicator>();

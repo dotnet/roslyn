@@ -1,11 +1,2 @@
-*REMOVED*override Microsoft.CodeAnalysis.Semantics.OperationWalker.VisitCatch(Microsoft.CodeAnalysis.Semantics.ICatchClause operation) -> void
-*REMOVED*virtual Microsoft.CodeAnalysis.Semantics.OperationVisitor.VisitCatch(Microsoft.CodeAnalysis.Semantics.ICatchClause operation) -> void
-*REMOVED*virtual Microsoft.CodeAnalysis.Semantics.OperationVisitor<TArgument, TResult>.VisitCatch(Microsoft.CodeAnalysis.Semantics.ICatchClause operation, TArgument argument) -> TResult
-Microsoft.CodeAnalysis.CommandLineReference.CommandLineReference(string reference, Microsoft.CodeAnalysis.MetadataReferenceProperties properties) -> void
-Microsoft.CodeAnalysis.CommandLineSourceFile.CommandLineSourceFile(string path, bool isScript) -> void
-Microsoft.CodeAnalysis.ParseOptions.Errors.get -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Diagnostic>
-Microsoft.CodeAnalysis.ParseOptions.SpecifiedKind.get -> Microsoft.CodeAnalysis.SourceCodeKind
-override Microsoft.CodeAnalysis.Semantics.OperationWalker.VisitCatchClause(Microsoft.CodeAnalysis.Semantics.ICatchClause operation) -> void
-static Microsoft.CodeAnalysis.Compilation.GetRequiredLanguageVersion(Microsoft.CodeAnalysis.Diagnostic diagnostic) -> string
-virtual Microsoft.CodeAnalysis.Semantics.OperationVisitor.VisitCatchClause(Microsoft.CodeAnalysis.Semantics.ICatchClause operation) -> void
-virtual Microsoft.CodeAnalysis.Semantics.OperationVisitor<TArgument, TResult>.VisitCatchClause(Microsoft.CodeAnalysis.Semantics.ICatchClause operation, TArgument argument) -> TResult
+Microsoft.CodeAnalysis.Diagnostics.Telemetry.AnalyzerTelemetryInfo.Concurrent.get -> bool
+Microsoft.CodeAnalysis.Diagnostics.Telemetry.AnalyzerTelemetryInfo.Concurrent.set -> void

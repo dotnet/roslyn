@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using Microsoft.CodeAnalysis;
@@ -7,6 +7,8 @@ using Microsoft.VisualStudio.Shell.Interop;
 
 namespace Microsoft.VisualStudio.LanguageServices
 {
+    using Workspace = Microsoft.CodeAnalysis.Workspace;
+
     internal class WorkspaceFailureOutputPane : ForegroundThreadAffinitizedObject
     {
         private static readonly Guid s_workspacePaneGuid = new Guid("53D7CABD-085E-46AF-ACCA-EF5A640641CA");

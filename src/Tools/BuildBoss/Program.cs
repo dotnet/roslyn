@@ -1,4 +1,5 @@
-﻿using Newtonsoft.Json;
+﻿using Mono.Options;
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -13,30 +14,70 @@ namespace BuildBoss
     {
         internal static int Main(string[] args)
         {
-            if (args.Length == 0)
-            { 
-                Usage();
+            try
+            {
+                return MainCore(args) ? 0 : 1;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Unhandled exception: {ex.Message}");
+                Console.WriteLine(ex.StackTrace);
                 return 1;
             }
+        }
 
-            var allGood = true;
-            foreach (var arg in args)
+        private static bool MainCore(string[] args)
+        {
+            string repositoryDirectory = null;
+            bool isRelease = false;
+            List<string> solutionFiles;
+
+            var options = new OptionSet
             {
-                if (SharedUtil.IsSolutionFile(arg))
-                {
-                    allGood &= ProcessSolution(arg);
-                }
-                else if (Path.GetExtension(arg) == ".xml")
-                {
-                    allGood &= ProcessStructuredLog(arg);
-                }
-                else
-                {
-                    allGood &= ProcessTargets(arg);
-                }
+                { "r|root=", "The repository root", r => repositoryDirectory = r },
+                { "release", "Use a release build", r => isRelease = true }
+            };
+
+            try
+            {
+                solutionFiles = options.Parse(args);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.Message);
+                options.WriteOptionDescriptions(Console.Out);
+                return false;
             }
 
-            return allGood ? 0 : 1;
+            if (string.IsNullOrEmpty(repositoryDirectory))
+            {
+                repositoryDirectory = AppContext.BaseDirectory;
+            }
+
+            return Go(repositoryDirectory, isRelease, solutionFiles);
+        }
+
+        private static bool Go(string repositoryDirectory, bool isRelease, List<string> solutionFileNames)
+        { 
+            var allGood = true;
+            foreach (var solutionFileName in solutionFileNames)
+            {
+                allGood &= ProcessSolution(Path.Combine(repositoryDirectory, solutionFileName));
+            }
+
+            var configDirectory = Path.Combine(repositoryDirectory, "Binaries");
+            configDirectory = Path.Combine(configDirectory, isRelease ? "Release" : "Debug");
+
+            allGood &= ProcessStructuredLog(configDirectory);
+            allGood &= ProcessTargets(repositoryDirectory);
+            allGood &= ProcessCompilerNuGet(repositoryDirectory, configDirectory);
+
+            if (!allGood)
+            {
+                Console.WriteLine("Failed");
+            }
+
+            return allGood;
         }
 
         private static bool CheckCore(ICheckerUtil util, string title)
@@ -62,21 +103,24 @@ namespace BuildBoss
             return CheckCore(util, $"Solution {solutionFilePath}");
         }
 
-        private static bool ProcessTargets(string targets)
+        private static bool ProcessTargets(string repositoryDirectory)
         {
-            var checker = new TargetsCheckerUtil(targets);
-            return CheckCore(checker, $"Targets {targets}");
+            var targetsDirectory = Path.Combine(repositoryDirectory, @"build\Targets");
+            var checker = new TargetsCheckerUtil(targetsDirectory);
+            return CheckCore(checker, $"Targets {targetsDirectory}");
         }
 
-        private static bool ProcessStructuredLog(string logFilePath)
+        private static bool ProcessStructuredLog(string configDirectory)
         {
-            var util = new StructuredLoggerCheckerUtil(XDocument.Load(logFilePath));
+            var logFilePath = Path.Combine(configDirectory, @"Logs\Roslyn.binlog");
+            var util = new StructuredLoggerCheckerUtil(logFilePath);
             return CheckCore(util, $"Structured log {logFilePath}");
         }
 
-        private static void Usage()
+        private static bool ProcessCompilerNuGet(string repositoryDirectory, string configDirectory)
         {
-            Console.WriteLine($"BuildBoss <solution paths>");
+            var util = new CompilerNuGetCheckerUtil(repositoryDirectory, configDirectory);
+            return CheckCore(util, $"Compiler NuGets");
         }
     }
 }

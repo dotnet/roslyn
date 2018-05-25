@@ -2,7 +2,11 @@
 
 using System;
 using System.Globalization;
+using System.IO;
 using System.Text;
+using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Test.Utilities;
+using Roslyn.Utilities;
 using Xunit;
 
 namespace Roslyn.Test.Utilities
@@ -43,6 +47,13 @@ namespace Roslyn.Test.Utilities
         public override string SkipReason => "OS default codepage is not Shift-JIS (932).";
     }
 
+    public class HasEnglishDefaultEncoding : ExecutionCondition
+    {
+        public override bool ShouldSkip => Encoding.GetEncoding(0)?.CodePage != 1252;
+
+        public override string SkipReason => "OS default codepage is not Windows-1252.";
+    }
+
     public class IsEnglishLocal : ExecutionCondition
     {
         public override bool ShouldSkip =>
@@ -60,6 +71,36 @@ namespace Roslyn.Test.Utilities
         public override bool ShouldSkip => false;
 #endif
 
-        public override string SkipReason => "Not in release mode.";
+        public override string SkipReason => "Test not supported in DEBUG";
+    }
+
+    public class WindowsOnly : ExecutionCondition
+    {
+        public override bool ShouldSkip => Path.DirectorySeparatorChar != '\\';
+        public override string SkipReason => "Test not supported on Mac and Linux";
+    }
+
+    public class UnixLikeOnly : ExecutionCondition
+    {
+        public override bool ShouldSkip => !PathUtilities.IsUnixLikePlatform;
+        public override string SkipReason => "Test not supported on Windows";
+    }
+
+    public class ClrOnly : ExecutionCondition
+    {
+        public override bool ShouldSkip => MonoHelpers.IsRunningOnMono();
+        public override string SkipReason => "Test not supported on Mono";
+    }
+
+    public class DesktopOnly : ExecutionCondition
+    {
+        public override bool ShouldSkip => CoreClrShim.AssemblyLoadContext.Type != null;
+        public override string SkipReason => "Test not supported on CoreCLR";
+    }
+
+    public class NoIOperationValidation : ExecutionCondition
+    {
+        public override bool ShouldSkip => !CompilationExtensions.EnableVerifyIOperation;
+        public override string SkipReason => "Test not supported in TEST_IOPERATION_INTERFACE";
     }
 }

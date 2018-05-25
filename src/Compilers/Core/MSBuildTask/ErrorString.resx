@@ -151,6 +151,19 @@
   <data name="General_ExpectedFileMissing" xml:space="preserve">
     <value>Expected file "{0}" does not exist.</value>
   </data>
+  <data name="CopyRefAssembly_SkippingCopy1" xml:space="preserve">
+    <value>Reference assembly "{0}" already has latest information. Leaving it untouched.</value>
+  </data>
+  <data name="CopyRefAssembly_SourceNotRef1" xml:space="preserve">
+    <value>Could not extract the MVID from "{0}". Are you sure it is a reference assembly?</value>
+  </data>
+  <data name="CopyRefAssembly_BadSource3" xml:space="preserve">
+    <value>Failed to check the content hash of the source ref assembly '{0}': {1}
+{2}</value>
+  </data>
+  <data name="CopyRefAssembly_BadDestination1" xml:space="preserve">
+    <value>Failed to check the content hash of the destination ref assembly '{0}'. It will be overwritten.</value>
+  </data>
   <data name="General_ToolFileNotFound" xml:space="preserve">
     <value>MSB3082: Task failed because "{0}" was not found.</value>
     <comment>{StrBegin="MSB3082: "}</comment>
@@ -185,5 +198,17 @@
   <data name="Vbc_RenamePDB" xml:space="preserve">
     <value>MSB3402: There was an error creating the pdb file "{0}". {1}</value>
     <comment>{StrBegin="MSB3402: "}</comment>
+  </data>
+  <data name="MapSourceRoots.ContainsDuplicate">
+    <value>{0} contains duplicate items '{1}' with conflicting metadata '{2}': '{3}' and '{4}'</value>
+  </data>
+  <data name="MapSourceRoots.NoSuchTopLevelSourceRoot">
+    <value>The value of {0} not found in {1} items, or the corresponding item is not a top-level source root: '{2}'</value>
+  </data>
+  <data name="MapSourceRoots.PathMustEndWithSlashOrBackslash">
+    <value>{0} paths are required to end with a slash or backslash: '{1}'</value>
+  </data>
+  <data name="MapSourceRoots.NoTopLevelSourceRoot">
+    <value>{0} items must include at least one top-level (not nested) item when {1} is true</value>
   </data>
 </root>

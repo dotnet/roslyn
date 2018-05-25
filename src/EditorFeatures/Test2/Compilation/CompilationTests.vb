@@ -1,10 +1,11 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 
 Namespace Microsoft.CodeAnalysis.Editor.Implementation.Compilation.UnitTests
 
+    <[UseExportProvider]>
     Public Class CompilationTests
         Private Function GetProject(snapshot As Solution, assemblyName As String) As Project
             Return snapshot.Projects.Single(Function(p) p.AssemblyName = assemblyName)

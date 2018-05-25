@@ -169,13 +169,11 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
             {
                 currentHash = CombineNamedTypeHashCode(x, currentHash);
 
-                var errorType = x as IErrorTypeSymbol;
-                if (errorType != null)
+                if (x is IErrorTypeSymbol errorType)
                 {
                     foreach (var candidate in errorType.CandidateSymbols)
                     {
-                        var candidateNamedType = candidate as INamedTypeSymbol;
-                        if (candidateNamedType != null)
+                        if (candidate is INamedTypeSymbol candidateNamedType)
                         {
                             currentHash = CombineNamedTypeHashCode(candidateNamedType, currentHash);
                         }

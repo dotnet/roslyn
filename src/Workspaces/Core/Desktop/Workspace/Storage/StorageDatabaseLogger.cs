@@ -11,12 +11,26 @@ namespace Microsoft.CodeAnalysis.Storage
         private const string Kind = nameof(Kind);
         private const string Reason = nameof(Reason);
 
-        private static readonly ConcurrentDictionary<Type, object> s_set = new ConcurrentDictionary<Type, object>(concurrencyLevel: 2, capacity: 10);
+        private static readonly StorageDatabaseLogger Instance = new StorageDatabaseLogger();
+
+        private Exception _reportedException;
+        private string _reportedExceptionMessage;
+
+        private readonly ConcurrentDictionary<Type, Exception> _set = new ConcurrentDictionary<Type, Exception>(concurrencyLevel: 2, capacity: 10);
 
         internal static void LogException(Exception ex)
         {
+            Instance.LogExceptionWorker(ex);
+        }
+
+        private void LogExceptionWorker(Exception ex)
+        {
+            // hold onto last exception to make investigation easier
+            _reportedException = ex;
+            _reportedExceptionMessage = ex.ToString();
+
             // we already reported about this exception. also don't hold onto too many exceptions.
-            if (s_set.Count > 10 || !s_set.TryAdd(ex.GetType(), null))
+            if (_set.Count > 10 || !_set.TryAdd(ex.GetType(), ex))
             {
                 return;
             }

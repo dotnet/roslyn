@@ -4,7 +4,6 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -97,24 +96,20 @@ namespace Microsoft.CodeAnalysis.CSharp
             return base.VisitBaseReference(node);
         }
 
-        public override BoundNode VisitLockStatement(BoundLockStatement node)
+        public override BoundNode VisitDeconstructionAssignmentOperator(BoundDeconstructionAssignmentOperator node)
         {
-            this.Visit(node.Argument);
-            this.Visit(node.Body);
-            return null;
-        }
+            if (!node.HasAnyErrors)
+            {
+                CheckForDeconstructionAssignmentToSelf((BoundTupleLiteral)node.Left, node.Right);
+            }
 
-        public override BoundNode VisitTryStatement(BoundTryStatement node)
-        {
-            this.Visit(node.TryBlock);
-            this.VisitList(node.CatchBlocks);
-            this.Visit(node.FinallyBlockOpt);
-            return null;
+            return base.VisitDeconstructionAssignmentOperator(node);
         }
 
         public override BoundNode VisitAssignmentOperator(BoundAssignmentOperator node)
         {
             CheckForAssignmentToSelf(node);
+
             if (_inExpressionLambda && node.Left.Kind != BoundKind.ObjectInitializerMember && node.Left.Kind != BoundKind.DynamicObjectInitializerMember)
             {
                 Error(ErrorCode.ERR_ExpressionTreeContainsAssignment, node);
@@ -596,7 +591,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode VisitNullCoalescingOperator(BoundNullCoalescingOperator node)
         {
-            if (_inExpressionLambda && node.LeftOperand.IsLiteralNull())
+            if (_inExpressionLambda && (node.LeftOperand.IsLiteralNull() || node.LeftOperand.IsLiteralDefault()))
             {
                 Error(ErrorCode.ERR_ExpressionTreeContainsBadCoalesce, node.LeftOperand);
             }
@@ -689,6 +684,16 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             return base.VisitTupleLiteral(node);
+        }
+
+        public override BoundNode VisitTupleBinaryOperator(BoundTupleBinaryOperator node)
+        {
+            if (_inExpressionLambda)
+            {
+                Error(ErrorCode.ERR_ExpressionTreeContainsTupleBinOp, node);
+            }
+
+            return base.VisitTupleBinaryOperator(node);
         }
 
         public override BoundNode VisitThrowExpression(BoundThrowExpression node)

@@ -1,6 +1,7 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
+Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Roslyn.Test.Utilities
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Semantics
@@ -8,6 +9,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Semantics
     Partial Public Class IOperationTests
         Inherits SemanticModelTestBase
 
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact>
         Public Sub IBlockStatement_SubMethodBlock()
             Dim source = <![CDATA[
@@ -19,14 +21,24 @@ Class Program
 End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IBlockStatement (3 statements) (OperationKind.BlockStatement) (Syntax: 'Sub Method( ... End Sub')
-  IIfStatement (OperationKind.IfStatement) (Syntax: 'If 1 > 2 Th ... End If')
-    Condition: IBinaryOperatorExpression (BinaryOperationKind.IntegerGreaterThan) (OperationKind.BinaryOperatorExpression, Type: System.Boolean, Constant: False) (Syntax: '1 > 2')
-        Left: ILiteralExpression (Text: 1) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
-        Right: ILiteralExpression (Text: 2) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 2) (Syntax: '2')
-    IfTrue: IBlockStatement (0 statements) (OperationKind.BlockStatement) (Syntax: 'If 1 > 2 Th ... End If')
-  ILabelStatement (Label: exit) (OperationKind.LabelStatement) (Syntax: 'End Sub')
-  IReturnStatement (OperationKind.ReturnStatement) (Syntax: 'End Sub')
+IBlockOperation (3 statements) (OperationKind.Block, Type: null) (Syntax: 'Sub Method( ... End Sub')
+  IConditionalOperation (OperationKind.Conditional, Type: null) (Syntax: 'If 1 > 2 Th ... End If')
+    Condition: 
+      IBinaryOperation (BinaryOperatorKind.GreaterThan, Checked) (OperationKind.BinaryOperator, Type: System.Boolean, Constant: False) (Syntax: '1 > 2')
+        Left: 
+          ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
+        Right: 
+          ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2) (Syntax: '2')
+    WhenTrue: 
+      IBlockOperation (0 statements) (OperationKind.Block, Type: null, IsImplicit) (Syntax: 'If 1 > 2 Th ... End If')
+    WhenFalse: 
+      null
+  ILabeledOperation (Label: exit) (OperationKind.Labeled, Type: null, IsImplicit) (Syntax: 'End Sub')
+    Statement: 
+      null
+  IReturnOperation (OperationKind.Return, Type: null, IsImplicit) (Syntax: 'End Sub')
+    ReturnedValue: 
+      null
 ]]>.Value
 
             Dim expectedDiagnostics = String.Empty
@@ -34,6 +46,7 @@ IBlockStatement (3 statements) (OperationKind.BlockStatement) (Syntax: 'Sub Meth
             VerifyOperationTreeAndDiagnosticsForTest(Of MethodBlockSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
 
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact>
         Public Sub IBlockStatement_SubNewBlock()
             Dim source = <![CDATA[
@@ -45,14 +58,24 @@ Class Program
 End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IBlockStatement (3 statements) (OperationKind.BlockStatement) (Syntax: 'Sub New()'B ... End Sub')
-  IIfStatement (OperationKind.IfStatement) (Syntax: 'If 1 > 2 Th ... End If')
-    Condition: IBinaryOperatorExpression (BinaryOperationKind.IntegerGreaterThan) (OperationKind.BinaryOperatorExpression, Type: System.Boolean, Constant: False) (Syntax: '1 > 2')
-        Left: ILiteralExpression (Text: 1) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
-        Right: ILiteralExpression (Text: 2) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 2) (Syntax: '2')
-    IfTrue: IBlockStatement (0 statements) (OperationKind.BlockStatement) (Syntax: 'If 1 > 2 Th ... End If')
-  ILabelStatement (Label: exit) (OperationKind.LabelStatement) (Syntax: 'End Sub')
-  IReturnStatement (OperationKind.ReturnStatement) (Syntax: 'End Sub')
+IBlockOperation (3 statements) (OperationKind.Block, Type: null) (Syntax: 'Sub New()'B ... End Sub')
+  IConditionalOperation (OperationKind.Conditional, Type: null) (Syntax: 'If 1 > 2 Th ... End If')
+    Condition: 
+      IBinaryOperation (BinaryOperatorKind.GreaterThan, Checked) (OperationKind.BinaryOperator, Type: System.Boolean, Constant: False) (Syntax: '1 > 2')
+        Left: 
+          ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
+        Right: 
+          ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2) (Syntax: '2')
+    WhenTrue: 
+      IBlockOperation (0 statements) (OperationKind.Block, Type: null, IsImplicit) (Syntax: 'If 1 > 2 Th ... End If')
+    WhenFalse: 
+      null
+  ILabeledOperation (Label: exit) (OperationKind.Labeled, Type: null, IsImplicit) (Syntax: 'End Sub')
+    Statement: 
+      null
+  IReturnOperation (OperationKind.Return, Type: null, IsImplicit) (Syntax: 'End Sub')
+    ReturnedValue: 
+      null
 ]]>.Value
 
             Dim expectedDiagnostics = String.Empty
@@ -60,6 +83,7 @@ IBlockStatement (3 statements) (OperationKind.BlockStatement) (Syntax: 'Sub New(
             VerifyOperationTreeAndDiagnosticsForTest(Of ConstructorBlockSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
 
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact>
         Public Sub IBlockStatement_FunctionMethodBlock()
             Dim source = <![CDATA[
@@ -73,18 +97,28 @@ Class Program
 End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IBlockStatement (4 statements, 1 locals) (OperationKind.BlockStatement) (Syntax: 'Function Me ... nd Function')
+IBlockOperation (4 statements, 1 locals) (OperationKind.Block, Type: null) (Syntax: 'Function Me ... nd Function')
   Locals: Local_1: Method As System.Boolean
-  IIfStatement (OperationKind.IfStatement) (Syntax: 'If 1 > 2 Th ... End If')
-    Condition: IBinaryOperatorExpression (BinaryOperationKind.IntegerGreaterThan) (OperationKind.BinaryOperatorExpression, Type: System.Boolean, Constant: False) (Syntax: '1 > 2')
-        Left: ILiteralExpression (Text: 1) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
-        Right: ILiteralExpression (Text: 2) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 2) (Syntax: '2')
-    IfTrue: IBlockStatement (0 statements) (OperationKind.BlockStatement) (Syntax: 'If 1 > 2 Th ... End If')
-  IReturnStatement (OperationKind.ReturnStatement) (Syntax: 'Return True')
-    ILiteralExpression (Text: True) (OperationKind.LiteralExpression, Type: System.Boolean, Constant: True) (Syntax: 'True')
-  ILabelStatement (Label: exit) (OperationKind.LabelStatement) (Syntax: 'End Function')
-  IReturnStatement (OperationKind.ReturnStatement) (Syntax: 'End Function')
-    ILocalReferenceExpression: Method (OperationKind.LocalReferenceExpression, Type: System.Boolean) (Syntax: 'End Function')
+  IConditionalOperation (OperationKind.Conditional, Type: null) (Syntax: 'If 1 > 2 Th ... End If')
+    Condition: 
+      IBinaryOperation (BinaryOperatorKind.GreaterThan, Checked) (OperationKind.BinaryOperator, Type: System.Boolean, Constant: False) (Syntax: '1 > 2')
+        Left: 
+          ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
+        Right: 
+          ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2) (Syntax: '2')
+    WhenTrue: 
+      IBlockOperation (0 statements) (OperationKind.Block, Type: null, IsImplicit) (Syntax: 'If 1 > 2 Th ... End If')
+    WhenFalse: 
+      null
+  IReturnOperation (OperationKind.Return, Type: null) (Syntax: 'Return True')
+    ReturnedValue: 
+      ILiteralOperation (OperationKind.Literal, Type: System.Boolean, Constant: True) (Syntax: 'True')
+  ILabeledOperation (Label: exit) (OperationKind.Labeled, Type: null, IsImplicit) (Syntax: 'End Function')
+    Statement: 
+      null
+  IReturnOperation (OperationKind.Return, Type: null, IsImplicit) (Syntax: 'End Function')
+    ReturnedValue: 
+      ILocalReferenceOperation: Method (OperationKind.LocalReference, Type: System.Boolean, IsImplicit) (Syntax: 'End Function')
 ]]>.Value
 
             Dim expectedDiagnostics = String.Empty
@@ -92,6 +126,7 @@ IBlockStatement (4 statements, 1 locals) (OperationKind.BlockStatement) (Syntax:
             VerifyOperationTreeAndDiagnosticsForTest(Of MethodBlockSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
 
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact>
         Public Sub IBlockStatement_PropertyGetBlock()
             Dim source = <![CDATA[
@@ -105,16 +140,25 @@ Class Program
 End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IBlockStatement (3 statements, 1 locals) (OperationKind.BlockStatement) (Syntax: 'Get'BIND:"G ... End Get')
+IBlockOperation (3 statements, 1 locals) (OperationKind.Block, Type: null) (Syntax: 'Get'BIND:"G ... End Get')
   Locals: Local_1: Prop As System.Int32
-  IIfStatement (OperationKind.IfStatement) (Syntax: 'If 1 > 2 Th ... End If')
-    Condition: IBinaryOperatorExpression (BinaryOperationKind.IntegerGreaterThan) (OperationKind.BinaryOperatorExpression, Type: System.Boolean, Constant: False) (Syntax: '1 > 2')
-        Left: ILiteralExpression (Text: 1) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
-        Right: ILiteralExpression (Text: 2) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 2) (Syntax: '2')
-    IfTrue: IBlockStatement (0 statements) (OperationKind.BlockStatement) (Syntax: 'If 1 > 2 Th ... End If')
-  ILabelStatement (Label: exit) (OperationKind.LabelStatement) (Syntax: 'End Get')
-  IReturnStatement (OperationKind.ReturnStatement) (Syntax: 'End Get')
-    ILocalReferenceExpression: Prop (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'End Get')
+  IConditionalOperation (OperationKind.Conditional, Type: null) (Syntax: 'If 1 > 2 Th ... End If')
+    Condition: 
+      IBinaryOperation (BinaryOperatorKind.GreaterThan, Checked) (OperationKind.BinaryOperator, Type: System.Boolean, Constant: False) (Syntax: '1 > 2')
+        Left: 
+          ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
+        Right: 
+          ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2) (Syntax: '2')
+    WhenTrue: 
+      IBlockOperation (0 statements) (OperationKind.Block, Type: null, IsImplicit) (Syntax: 'If 1 > 2 Th ... End If')
+    WhenFalse: 
+      null
+  ILabeledOperation (Label: exit) (OperationKind.Labeled, Type: null, IsImplicit) (Syntax: 'End Get')
+    Statement: 
+      null
+  IReturnOperation (OperationKind.Return, Type: null, IsImplicit) (Syntax: 'End Get')
+    ReturnedValue: 
+      ILocalReferenceOperation: Prop (OperationKind.LocalReference, Type: System.Int32, IsImplicit) (Syntax: 'End Get')
 ]]>.Value
 
             Dim expectedDiagnostics = <![CDATA[
@@ -126,6 +170,7 @@ BC42355: Property 'Prop' doesn't return a value on all code paths. Are you missi
             VerifyOperationTreeAndDiagnosticsForTest(Of AccessorBlockSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
 
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact>
         Public Sub IBlockStatement_PropertySetBlock()
             Dim source = <![CDATA[
@@ -139,14 +184,24 @@ Class Program
 End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IBlockStatement (3 statements) (OperationKind.BlockStatement) (Syntax: 'Set(Value A ... End Set')
-  IIfStatement (OperationKind.IfStatement) (Syntax: 'If 1 > 2 Th ... End If')
-    Condition: IBinaryOperatorExpression (BinaryOperationKind.IntegerGreaterThan) (OperationKind.BinaryOperatorExpression, Type: System.Boolean, Constant: False) (Syntax: '1 > 2')
-        Left: ILiteralExpression (Text: 1) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
-        Right: ILiteralExpression (Text: 2) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 2) (Syntax: '2')
-    IfTrue: IBlockStatement (0 statements) (OperationKind.BlockStatement) (Syntax: 'If 1 > 2 Th ... End If')
-  ILabelStatement (Label: exit) (OperationKind.LabelStatement) (Syntax: 'End Set')
-  IReturnStatement (OperationKind.ReturnStatement) (Syntax: 'End Set')
+IBlockOperation (3 statements) (OperationKind.Block, Type: null) (Syntax: 'Set(Value A ... End Set')
+  IConditionalOperation (OperationKind.Conditional, Type: null) (Syntax: 'If 1 > 2 Th ... End If')
+    Condition: 
+      IBinaryOperation (BinaryOperatorKind.GreaterThan, Checked) (OperationKind.BinaryOperator, Type: System.Boolean, Constant: False) (Syntax: '1 > 2')
+        Left: 
+          ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
+        Right: 
+          ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2) (Syntax: '2')
+    WhenTrue: 
+      IBlockOperation (0 statements) (OperationKind.Block, Type: null, IsImplicit) (Syntax: 'If 1 > 2 Th ... End If')
+    WhenFalse: 
+      null
+  ILabeledOperation (Label: exit) (OperationKind.Labeled, Type: null, IsImplicit) (Syntax: 'End Set')
+    Statement: 
+      null
+  IReturnOperation (OperationKind.Return, Type: null, IsImplicit) (Syntax: 'End Set')
+    ReturnedValue: 
+      null
 ]]>.Value
 
             Dim expectedDiagnostics = String.Empty
@@ -154,6 +209,7 @@ IBlockStatement (3 statements) (OperationKind.BlockStatement) (Syntax: 'Set(Valu
             VerifyOperationTreeAndDiagnosticsForTest(Of AccessorBlockSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
 
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact>
         Public Sub IBlockStatement_CustomEventAddBlock()
             Dim source = <![CDATA[
@@ -175,14 +231,24 @@ Class C
 End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IBlockStatement (3 statements) (OperationKind.BlockStatement) (Syntax: 'AddHandler( ...  AddHandler')
-  IIfStatement (OperationKind.IfStatement) (Syntax: 'If 1 > 2 Th ... End If')
-    Condition: IBinaryOperatorExpression (BinaryOperationKind.IntegerGreaterThan) (OperationKind.BinaryOperatorExpression, Type: System.Boolean, Constant: False) (Syntax: '1 > 2')
-        Left: ILiteralExpression (Text: 1) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
-        Right: ILiteralExpression (Text: 2) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 2) (Syntax: '2')
-    IfTrue: IBlockStatement (0 statements) (OperationKind.BlockStatement) (Syntax: 'If 1 > 2 Th ... End If')
-  ILabelStatement (Label: exit) (OperationKind.LabelStatement) (Syntax: 'End AddHandler')
-  IReturnStatement (OperationKind.ReturnStatement) (Syntax: 'End AddHandler')
+IBlockOperation (3 statements) (OperationKind.Block, Type: null) (Syntax: 'AddHandler( ...  AddHandler')
+  IConditionalOperation (OperationKind.Conditional, Type: null) (Syntax: 'If 1 > 2 Th ... End If')
+    Condition: 
+      IBinaryOperation (BinaryOperatorKind.GreaterThan, Checked) (OperationKind.BinaryOperator, Type: System.Boolean, Constant: False) (Syntax: '1 > 2')
+        Left: 
+          ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
+        Right: 
+          ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2) (Syntax: '2')
+    WhenTrue: 
+      IBlockOperation (0 statements) (OperationKind.Block, Type: null, IsImplicit) (Syntax: 'If 1 > 2 Th ... End If')
+    WhenFalse: 
+      null
+  ILabeledOperation (Label: exit) (OperationKind.Labeled, Type: null, IsImplicit) (Syntax: 'End AddHandler')
+    Statement: 
+      null
+  IReturnOperation (OperationKind.Return, Type: null, IsImplicit) (Syntax: 'End AddHandler')
+    ReturnedValue: 
+      null
 ]]>.Value
 
             Dim expectedDiagnostics = String.Empty
@@ -190,6 +256,7 @@ IBlockStatement (3 statements) (OperationKind.BlockStatement) (Syntax: 'AddHandl
             VerifyOperationTreeAndDiagnosticsForTest(Of AccessorBlockSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
 
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact>
         Public Sub IBlockStatement_CustomEventRemoveBlock()
             Dim source = <![CDATA[
@@ -211,14 +278,24 @@ Class C
 End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IBlockStatement (3 statements) (OperationKind.BlockStatement) (Syntax: 'RemoveHandl ... moveHandler')
-  IIfStatement (OperationKind.IfStatement) (Syntax: 'If 1 > 2 Th ... End If')
-    Condition: IBinaryOperatorExpression (BinaryOperationKind.IntegerGreaterThan) (OperationKind.BinaryOperatorExpression, Type: System.Boolean, Constant: False) (Syntax: '1 > 2')
-        Left: ILiteralExpression (Text: 1) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
-        Right: ILiteralExpression (Text: 2) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 2) (Syntax: '2')
-    IfTrue: IBlockStatement (0 statements) (OperationKind.BlockStatement) (Syntax: 'If 1 > 2 Th ... End If')
-  ILabelStatement (Label: exit) (OperationKind.LabelStatement) (Syntax: 'End RemoveHandler')
-  IReturnStatement (OperationKind.ReturnStatement) (Syntax: 'End RemoveHandler')
+IBlockOperation (3 statements) (OperationKind.Block, Type: null) (Syntax: 'RemoveHandl ... moveHandler')
+  IConditionalOperation (OperationKind.Conditional, Type: null) (Syntax: 'If 1 > 2 Th ... End If')
+    Condition: 
+      IBinaryOperation (BinaryOperatorKind.GreaterThan, Checked) (OperationKind.BinaryOperator, Type: System.Boolean, Constant: False) (Syntax: '1 > 2')
+        Left: 
+          ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
+        Right: 
+          ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2) (Syntax: '2')
+    WhenTrue: 
+      IBlockOperation (0 statements) (OperationKind.Block, Type: null, IsImplicit) (Syntax: 'If 1 > 2 Th ... End If')
+    WhenFalse: 
+      null
+  ILabeledOperation (Label: exit) (OperationKind.Labeled, Type: null, IsImplicit) (Syntax: 'End RemoveHandler')
+    Statement: 
+      null
+  IReturnOperation (OperationKind.Return, Type: null, IsImplicit) (Syntax: 'End RemoveHandler')
+    ReturnedValue: 
+      null
 ]]>.Value
 
             Dim expectedDiagnostics = String.Empty
@@ -226,6 +303,7 @@ IBlockStatement (3 statements) (OperationKind.BlockStatement) (Syntax: 'RemoveHa
             VerifyOperationTreeAndDiagnosticsForTest(Of AccessorBlockSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
 
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact>
         Public Sub IBlockStatement_CustomEventRaiseBlock()
             Dim source = <![CDATA[
@@ -247,14 +325,24 @@ Class C
 End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IBlockStatement (3 statements) (OperationKind.BlockStatement) (Syntax: 'RaiseEvent( ...  RaiseEvent')
-  IIfStatement (OperationKind.IfStatement) (Syntax: 'If 1 > 2 Th ... End If')
-    Condition: IBinaryOperatorExpression (BinaryOperationKind.IntegerGreaterThan) (OperationKind.BinaryOperatorExpression, Type: System.Boolean, Constant: False) (Syntax: '1 > 2')
-        Left: ILiteralExpression (Text: 1) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
-        Right: ILiteralExpression (Text: 2) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 2) (Syntax: '2')
-    IfTrue: IBlockStatement (0 statements) (OperationKind.BlockStatement) (Syntax: 'If 1 > 2 Th ... End If')
-  ILabelStatement (Label: exit) (OperationKind.LabelStatement) (Syntax: 'End RaiseEvent')
-  IReturnStatement (OperationKind.ReturnStatement) (Syntax: 'End RaiseEvent')
+IBlockOperation (3 statements) (OperationKind.Block, Type: null) (Syntax: 'RaiseEvent( ...  RaiseEvent')
+  IConditionalOperation (OperationKind.Conditional, Type: null) (Syntax: 'If 1 > 2 Th ... End If')
+    Condition: 
+      IBinaryOperation (BinaryOperatorKind.GreaterThan, Checked) (OperationKind.BinaryOperator, Type: System.Boolean, Constant: False) (Syntax: '1 > 2')
+        Left: 
+          ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
+        Right: 
+          ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2) (Syntax: '2')
+    WhenTrue: 
+      IBlockOperation (0 statements) (OperationKind.Block, Type: null, IsImplicit) (Syntax: 'If 1 > 2 Th ... End If')
+    WhenFalse: 
+      null
+  ILabeledOperation (Label: exit) (OperationKind.Labeled, Type: null, IsImplicit) (Syntax: 'End RaiseEvent')
+    Statement: 
+      null
+  IReturnOperation (OperationKind.Return, Type: null, IsImplicit) (Syntax: 'End RaiseEvent')
+    ReturnedValue: 
+      null
 ]]>.Value
 
             Dim expectedDiagnostics = String.Empty
@@ -262,6 +350,7 @@ IBlockStatement (3 statements) (OperationKind.BlockStatement) (Syntax: 'RaiseEve
             VerifyOperationTreeAndDiagnosticsForTest(Of AccessorBlockSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
 
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact>
         Public Sub IBlockStatement_OperatorBlock()
             Dim source = <![CDATA[
@@ -275,18 +364,28 @@ Class Program
 End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IBlockStatement (4 statements, 1 locals) (OperationKind.BlockStatement) (Syntax: 'Public Shar ... nd Operator')
+IBlockOperation (4 statements, 1 locals) (OperationKind.Block, Type: null) (Syntax: 'Public Shar ... nd Operator')
   Locals: Local_1: <anonymous local> As System.Int32
-  IIfStatement (OperationKind.IfStatement) (Syntax: 'If 1 > 2 Th ... End If')
-    Condition: IBinaryOperatorExpression (BinaryOperationKind.IntegerGreaterThan) (OperationKind.BinaryOperatorExpression, Type: System.Boolean, Constant: False) (Syntax: '1 > 2')
-        Left: ILiteralExpression (Text: 1) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
-        Right: ILiteralExpression (Text: 2) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 2) (Syntax: '2')
-    IfTrue: IBlockStatement (0 statements) (OperationKind.BlockStatement) (Syntax: 'If 1 > 2 Th ... End If')
-  IReturnStatement (OperationKind.ReturnStatement) (Syntax: 'Return 0')
-    ILiteralExpression (Text: 0) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0) (Syntax: '0')
-  ILabelStatement (Label: exit) (OperationKind.LabelStatement) (Syntax: 'End Operator')
-  IReturnStatement (OperationKind.ReturnStatement) (Syntax: 'End Operator')
-    ILocalReferenceExpression:  (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'End Operator')
+  IConditionalOperation (OperationKind.Conditional, Type: null) (Syntax: 'If 1 > 2 Th ... End If')
+    Condition: 
+      IBinaryOperation (BinaryOperatorKind.GreaterThan, Checked) (OperationKind.BinaryOperator, Type: System.Boolean, Constant: False) (Syntax: '1 > 2')
+        Left: 
+          ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
+        Right: 
+          ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2) (Syntax: '2')
+    WhenTrue: 
+      IBlockOperation (0 statements) (OperationKind.Block, Type: null, IsImplicit) (Syntax: 'If 1 > 2 Th ... End If')
+    WhenFalse: 
+      null
+  IReturnOperation (OperationKind.Return, Type: null) (Syntax: 'Return 0')
+    ReturnedValue: 
+      ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0) (Syntax: '0')
+  ILabeledOperation (Label: exit) (OperationKind.Labeled, Type: null, IsImplicit) (Syntax: 'End Operator')
+    Statement: 
+      null
+  IReturnOperation (OperationKind.Return, Type: null, IsImplicit) (Syntax: 'End Operator')
+    ReturnedValue: 
+      ILocalReferenceOperation:  (OperationKind.LocalReference, Type: System.Int32, IsImplicit) (Syntax: 'End Operator')
 ]]>.Value
 
             Dim expectedDiagnostics = String.Empty
@@ -294,6 +393,7 @@ IBlockStatement (4 statements, 1 locals) (OperationKind.BlockStatement) (Syntax:
             VerifyOperationTreeAndDiagnosticsForTest(Of OperatorBlockSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
 
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact>
         Public Sub IBlockStatement_MustOverrideSubMethodStatement()
             Dim source = "
@@ -304,6 +404,7 @@ End Class"
             VerifyNoOperationTreeForTest(Of MethodStatementSyntax)(source)
         End Sub
 
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact>
         Public Sub IBlockStatement_InterfaceSub()
             Dim source = "
@@ -314,6 +415,7 @@ End Interface"
             VerifyNoOperationTreeForTest(Of MethodStatementSyntax)(source)
         End Sub
 
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact>
         Public Sub IBlockStatement_InterfaceFunction()
             Dim source = "
@@ -324,6 +426,7 @@ End Interface"
             VerifyNoOperationTreeForTest(Of MethodStatementSyntax)(source)
         End Sub
 
+        <CompilerTrait(CompilerFeature.IOperation)>
         <Fact>
         Public Sub IBlockStatement_NormalEvent()
             Dim source = "

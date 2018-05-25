@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -12,6 +12,8 @@ using Microsoft.VisualStudio.Shell.Interop;
 
 namespace Microsoft.VisualStudio.LanguageServices
 {
+    using Workspace = Microsoft.CodeAnalysis.Workspace;
+
     /// <summary>
     /// A Workspace specific to Visual Studio.
     /// </summary>
@@ -20,25 +22,19 @@ namespace Microsoft.VisualStudio.LanguageServices
         private BackgroundCompiler _backgroundCompiler;
         private readonly BackgroundParser _backgroundParser;
 
-        internal VisualStudioWorkspace(HostServices hostServices, WorkspaceBackgroundWork backgroundWork)
+        internal VisualStudioWorkspace(HostServices hostServices)
             : base(hostServices, WorkspaceKind.Host)
         {
-            if ((backgroundWork & WorkspaceBackgroundWork.Compile) != 0)
-            {
-                _backgroundCompiler = new BackgroundCompiler(this);
+            _backgroundCompiler = new BackgroundCompiler(this);
 
-                var cacheService = Services.GetService<IWorkspaceCacheService>();
-                if (cacheService != null)
-                {
-                    cacheService.CacheFlushRequested += OnCacheFlushRequested;
-                }
+            var cacheService = Services.GetService<IWorkspaceCacheService>();
+            if (cacheService != null)
+            {
+                cacheService.CacheFlushRequested += OnCacheFlushRequested;
             }
 
-            if ((backgroundWork & WorkspaceBackgroundWork.Parse) != 0)
-            {
-                _backgroundParser = new BackgroundParser(this);
-                _backgroundParser.Start();
-            }
+            _backgroundParser = new BackgroundParser(this);
+            _backgroundParser.Start();
         }
 
         private void OnCacheFlushRequested(object sender, EventArgs e)
@@ -97,8 +93,6 @@ namespace Microsoft.VisualStudio.LanguageServices
         /// Returns the <see cref="EnvDTE.FileCodeModel"/> for a given document.
         /// </summary>
         public abstract EnvDTE.FileCodeModel GetFileCodeModel(DocumentId documentId);
-
-        internal abstract bool RenameFileCodeModelInstance(DocumentId documentId, string newFilePath);
 
         internal abstract object GetBrowseObject(SymbolListItem symbolListItem);
 

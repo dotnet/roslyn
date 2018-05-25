@@ -28,16 +28,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator.UnitTests
         <Fact>
         Public Sub ErrorsWithAssemblySymbolArguments()
             Dim identity = New AssemblyIdentity(GetUniqueName())
-            Dim assembly = CreateCompilation(identity, {}, {}).Assembly
+            Dim assembly = CreateEmptyCompilation(identity, {}, {}).Assembly
             Assert.Same(identity, GetMissingAssemblyIdentities(ERRID.ERR_UnreferencedAssemblyEvent3, assembly).Single())
         End Sub
 
         <Fact>
         Public Sub ErrorsWithAssemblyMultipleSymbolArguments()
             Dim identity1 = New AssemblyIdentity(GetUniqueName())
-            Dim assembly1 = CreateCompilation(identity1, {}, {}).Assembly
+            Dim assembly1 = CreateEmptyCompilation(identity1, {}, {}).Assembly
             Dim identity2 = New AssemblyIdentity(GetUniqueName())
-            Dim assembly2 = CreateCompilation(identity2, {}, {}).Assembly
+            Dim assembly2 = CreateEmptyCompilation(identity2, {}, {}).Assembly
             Assert.Same(identity2, GetMissingAssemblyIdentities(ERRID.ERR_ForwardedTypeUnavailable3, "dummy", assembly1, assembly2).Single())
             Assert.Same(identity1, GetMissingAssemblyIdentities(ERRID.ERR_ForwardedTypeUnavailable3, "dummy", assembly2, assembly1).Single())
             Assert.True(GetMissingAssemblyIdentities(ERRID.ERR_ForwardedTypeUnavailable3, "dummy", assembly1).IsDefault)
@@ -85,8 +85,8 @@ Public Class C
     End Sub
 End Class
 "
-            Dim libRef = CreateCompilationWithMscorlib({libSource}, {}, TestOptions.DebugDll, assemblyName:="Lib").EmitToImageReference()
-            Dim comp = CreateCompilationWithMscorlib({source}, {libRef}, TestOptions.DebugDll)
+            Dim libRef = CreateCompilationWithMscorlib40({libSource}, {}, TestOptions.DebugDll, assemblyName:="Lib").EmitToImageReference()
+            Dim comp = CreateCompilationWithMscorlib40({source}, {libRef}, TestOptions.DebugDll)
             WithRuntimeInstance(comp, {MscorlibRef},
                 Sub(runtime)
                     Dim context = CreateMethodContext(runtime, "C.M")
@@ -145,8 +145,8 @@ Class C
 End Class
 "
 
-            Dim ilRef = CompileIL(il, appendDefaultHeader:=False)
-            Dim comp = CreateCompilationWithMscorlib({vb}, {ilRef}, TestOptions.DebugDll)
+            Dim ilRef = CompileIL(il, prependDefaultHeader:=False)
+            Dim comp = CreateCompilationWithMscorlib40({vb}, {ilRef}, TestOptions.DebugDll)
             WithRuntimeInstance(comp,
                 Sub(runtime)
                     Dim context = CreateMethodContext(runtime, "C.M")
@@ -182,7 +182,7 @@ Public Class C
     End Sub
 End Class
 "
-            Dim comp = CreateCompilationWithMscorlib({source}, {SystemRef, SystemCoreRef, SystemXmlRef, SystemXmlLinqRef}, TestOptions.DebugDll)
+            Dim comp = CreateCompilationWithMscorlib40({source}, {SystemRef, SystemCoreRef, SystemXmlRef, SystemXmlLinqRef}, TestOptions.DebugDll)
             WithRuntimeInstance(comp, {MscorlibRef},
                 Sub(runtime)
                     Dim context = CreateMethodContext(runtime, "C.M")
@@ -220,7 +220,7 @@ Public Class C
     End Sub
 End Class
 "
-            Dim comp = CreateCompilationWithMscorlib({source}, options:=TestOptions.DebugDll)
+            Dim comp = CreateCompilationWithMscorlib40({source}, options:=TestOptions.DebugDll)
             WithRuntimeInstance(comp, {MscorlibRef},
                 Sub(runtime)
                     Dim context = CreateMethodContext(runtime, "C.M")
@@ -257,7 +257,7 @@ Class C
 End Class
 "
 
-            Dim comp = CreateCompilationWithReferences({VisualBasicSyntaxTree.ParseText(source)}, {MscorlibRef}.Concat(WinRtRefs), TestOptions.DebugDll)
+            Dim comp = CreateEmptyCompilationWithReferences({VisualBasicSyntaxTree.ParseText(source)}, {MscorlibRef}.Concat(WinRtRefs), TestOptions.DebugDll)
 
             Dim runtimeAssemblies = ExpressionCompilerTestHelpers.GetRuntimeWinMds("Windows.UI")
             Assert.True(runtimeAssemblies.Any())
@@ -301,7 +301,7 @@ Public Class C
     End Sub
 End Class
 "
-            Dim comp = CreateCompilationWithMscorlib({source}, {SystemCoreRef}, TestOptions.DebugDll)
+            Dim comp = CreateCompilationWithMscorlib40({source}, {SystemCoreRef}, TestOptions.DebugDll)
             WithRuntimeInstance(comp, {MscorlibRef},
                 Sub(runtime)
                     Dim context = CreateMethodContext(runtime, "C.M")
@@ -351,7 +351,7 @@ Public Class C
     End Sub
 End Class
 "
-            Dim comp = CreateCompilationWithMscorlib({source}, {}, TestOptions.DebugDll)
+            Dim comp = CreateCompilationWithMscorlib40({source}, {}, TestOptions.DebugDll)
             WithRuntimeInstance(comp, {CSharpRef},
                 Sub(runtime)
                     Dim context = CreateMethodContext(runtime, "C.M")
@@ -393,7 +393,7 @@ Class C
 End Class
 "
 
-            Dim comp = CreateCompilationWithReferences({VisualBasicSyntaxTree.ParseText(source)}, {MscorlibRef}.Concat(WinRtRefs), TestOptions.DebugDll)
+            Dim comp = CreateEmptyCompilationWithReferences({VisualBasicSyntaxTree.ParseText(source)}, {MscorlibRef}.Concat(WinRtRefs), TestOptions.DebugDll)
             Dim runtimeAssemblies = ExpressionCompilerTestHelpers.GetRuntimeWinMds("Windows.Storage")
             Assert.True(runtimeAssemblies.Any())
 
@@ -435,7 +435,7 @@ Class C
 End Class
 "
 
-            Dim comp = CreateCompilationWithReferences({VisualBasicSyntaxTree.ParseText(source)}, {MscorlibRef}.Concat(WinRtRefs), TestOptions.DebugDll)
+            Dim comp = CreateEmptyCompilationWithReferences({VisualBasicSyntaxTree.ParseText(source)}, {MscorlibRef}.Concat(WinRtRefs), TestOptions.DebugDll)
             Dim runtimeAssemblies = ExpressionCompilerTestHelpers.GetRuntimeWinMds("Windows.UI")
             Assert.True(runtimeAssemblies.Any())
 
@@ -474,7 +474,7 @@ Class C
 End Class
 "
 
-            Dim comp = CreateCompilationWithReferences({VisualBasicSyntaxTree.ParseText(source)}, {MscorlibRef}.Concat(WinRtRefs), TestOptions.DebugDll)
+            Dim comp = CreateEmptyCompilationWithReferences({VisualBasicSyntaxTree.ParseText(source)}, {MscorlibRef}.Concat(WinRtRefs), TestOptions.DebugDll)
 
             Dim runtimeAssemblies = ExpressionCompilerTestHelpers.GetRuntimeWinMds("Windows.Storage")
             Assert.True(runtimeAssemblies.Any())
@@ -513,7 +513,7 @@ Class C
     End Sub 
 End Class 
 "
-            Dim comp = CreateCompilationWithMscorlib({source}, options:=TestOptions.DebugDll)
+            Dim comp = CreateCompilationWithMscorlib40({source}, options:=TestOptions.DebugDll)
             WithRuntimeInstance(comp,
                 Sub(runtime)
                     Dim context = CreateMethodContext(runtime, "C.M")
@@ -539,7 +539,7 @@ End Class
                         errorMessage)
 
                     Assert.Equal(2, numRetries) ' Ensure that we actually retried and that we bailed out on the second retry if the same identity was seen in the diagnostics.
-                    Assert.Equal($"error BC30652: Reference required to assembly '{missingIdentity}' containing the type 'MissingType'. Add one to your project.", errorMessage)
+                    Assert.Equal($"error BC30652: { String.Format(VBResources.ERR_UnreferencedAssembly3, missingIdentity, "MissingType")}", errorMessage)
                 End Sub)
         End Sub
 
@@ -555,13 +555,13 @@ Class UseLinq
     Dim b = Enumerable.Any(Of Integer)(Nothing)
 End Class"
 
-            Dim comp = CreateCompilationWithMscorlib({source}, references:={SystemCoreRef})
+            Dim comp = CreateCompilationWithMscorlib40({source}, references:={SystemCoreRef})
             WithRuntimeInstance(comp, {MscorlibRef},
                 Sub(runtime)
                     Dim context = CreateMethodContext(runtime, "C.Main")
 
                     Dim systemCore = SystemCoreRef.ToModuleInstance()
-                    Dim fakeSystemLinq = CreateCompilationWithMscorlib({""}, options:=TestOptions.ReleaseDll, assemblyName:="System.Linq").ToModuleInstance()
+                    Dim fakeSystemLinq = CreateCompilationWithMscorlib40({""}, options:=TestOptions.ReleaseDll, assemblyName:="System.Linq").ToModuleInstance()
 
                     Dim errorMessage As String = Nothing
                     Dim testData As CompilationTestData = Nothing
@@ -595,7 +595,7 @@ End Class"
         End Sub
 
         <Fact>
-        Public Sub TupleNoSystemRuntime()
+        Public Sub TupleNoSystemRuntimeWithVB15()
             Const source =
 "Class C
     Shared Sub M()
@@ -612,11 +612,36 @@ End Class"
   // Code size        2 (0x2)
   .maxstack  1
   .locals init (Integer V_0, //x
-                (Integer, Integer) V_1, //y
+                (x As Integer, Integer) V_1, //y
                 (Integer, Integer, (Integer, Integer)) V_2) //z
   IL_0000:  ldloc.1
   IL_0001:  ret
 }")
+        End Sub
+
+        <Fact>
+        Public Sub TupleNoSystemRuntimeWithVB15_3()
+            Const source =
+"Class C
+    Shared Sub M()
+        Dim x = 1
+        Dim y = (x, 2)
+        Dim z = (3, 4, (5, 6))
+    End Sub
+End Class"
+            TupleContextNoSystemRuntime(
+                source,
+                "C.M",
+                "y",
+"{
+  // Code size        2 (0x2)
+  .maxstack  1
+  .locals init (Integer V_0, //x
+                (x As Integer, Integer) V_1, //y
+                (Integer, Integer, (Integer, Integer)) V_2) //z
+  IL_0000:  ldloc.1
+  IL_0001:  ret
+}", LanguageVersion.VisualBasic15_3)
         End Sub
 
         <WorkItem(16879, "https://github.com/dotnet/roslyn/issues/16879")>
@@ -638,15 +663,17 @@ End Class"
   // Code size        2 (0x2)
   .maxstack  1
   .locals init (Integer V_0, //x
-                (Integer, Integer) V_1, //y
+                (x As Integer, Integer) V_1, //y
                 (Integer, Integer, (Integer, Integer)) V_2) //z
   IL_0000:  ldloc.0
   IL_0001:  ret
 }")
         End Sub
 
-        Private Shared Sub TupleContextNoSystemRuntime(source As String, methodName As String, expression As String, expectedIL As String)
-            Dim comp = CreateCompilationWithMscorlib({source}, references:={ValueTupleRef, SystemRuntimeFacadeRef}, options:=TestOptions.DebugDll)
+        Private Shared Sub TupleContextNoSystemRuntime(source As String, methodName As String, expression As String, expectedIL As String,
+                                                       Optional languageVersion As LanguageVersion = LanguageVersion.VisualBasic15)
+            Dim comp = CreateCompilationWithMscorlib40({source}, references:={ValueTupleRef, SystemRuntimeFacadeRef}, options:=TestOptions.DebugDll,
+                                                     parseOptions:=TestOptions.Regular.WithLanguageVersion(languageVersion))
             Using systemRuntime = SystemRuntimeFacadeRef.ToModuleInstance()
                 WithRuntimeInstance(comp, {MscorlibRef, ValueTupleRef},
                     Sub(runtime)

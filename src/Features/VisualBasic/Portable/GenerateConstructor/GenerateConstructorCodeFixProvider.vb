@@ -1,13 +1,14 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-Imports System.Threading
 Imports System.Collections.Immutable
+Imports System.Composition
+Imports System.Threading
 Imports Microsoft.CodeAnalysis.CodeActions
 Imports Microsoft.CodeAnalysis.CodeFixes
 Imports Microsoft.CodeAnalysis.CodeFixes.GenerateMember
-Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
+Imports Microsoft.CodeAnalysis.Diagnostics
 Imports Microsoft.CodeAnalysis.GenerateMember.GenerateConstructor
-Imports System.Composition
+Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.GenerateConstructor
     Friend Class GenerateConstructorDiagnosticIds
@@ -19,9 +20,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.GenerateConstructor
         Friend Const BC30512 As String = "BC30512" ' error BC30512: Option Strict On disallows implicit conversions from 'Object' to 'Integer'.
         Friend Const BC32006 As String = "BC32006" ' error BC32006: 'Char' values cannot be converted to 'Integer'. 
         Friend Const BC30387 As String = "BC30387" ' error BC32006: Class 'Derived' must declare a 'Sub New' because its base class 'Base' does not have an accessible 'Sub New' that can be called with no arguments. 
+        Friend Const BC30516 As String = "BC30516" ' error BC30516: Overload resolution failed because no accessible 'Blah' accepts this number of arguments.
 
-        Friend Shared ReadOnly AllDiagnosticIds As ImmutableArray(Of String) = ImmutableArray.Create(BC30057, BC30272, BC30274, BC30389, BC30455, BC32006, BC30512, BC30387)
-        Friend Shared ReadOnly TooManyArgumentsDiagnosticIds As ImmutableArray(Of String) = ImmutableArray.Create(BC30057)
+        Friend Shared ReadOnly AllDiagnosticIds As ImmutableArray(Of String) = ImmutableArray.Create(BC30057, IDEDiagnosticIds.UnboundConstructorId, BC30272, BC30274, BC30389, BC30455, BC32006, BC30512, BC30387, BC30516)
+        Friend Shared ReadOnly TooManyArgumentsDiagnosticIds As ImmutableArray(Of String) = ImmutableArray.Create(BC30057, IDEDiagnosticIds.UnboundConstructorId)
     End Class
 
     <ExportCodeFixProvider(LanguageNames.VisualBasic, Name:=PredefinedCodeFixProviderNames.GenerateConstructor), [Shared]>
@@ -60,19 +62,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.GenerateConstructor
         End Function
 
         Protected Overrides Function IsCandidate(node As SyntaxNode, token As SyntaxToken, diagnostic As Diagnostic) As Boolean
-            If TypeOf node Is InvocationExpressionSyntax OrElse
-               TypeOf node Is ObjectCreationExpressionSyntax OrElse
-               TypeOf node Is AttributeSyntax Then
-                Return True
-            End If
-
-            Return diagnostic.Id = GenerateConstructorDiagnosticIds.BC30387 AndAlso
-                TypeOf node Is ClassBlockSyntax AndAlso
-                IsInClassDeclarationHeader(DirectCast(node, ClassBlockSyntax), token)
-        End Function
-
-        Private Function IsInClassDeclarationHeader(node As ClassBlockSyntax, token As SyntaxToken) As Boolean
-            Return node.ClassStatement.Span.Contains(token.Span)
+            Return TypeOf node Is InvocationExpressionSyntax OrElse
+                   TypeOf node Is ObjectCreationExpressionSyntax OrElse
+                   TypeOf node Is AttributeSyntax
         End Function
     End Class
 End Namespace

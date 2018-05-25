@@ -119,7 +119,7 @@ End Module
 
         <Fact>
         Public Sub LocalAsNewArrayError()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation name="LocalAsNewArrayError">
     <file name="a.vb">
 Imports System   
@@ -148,7 +148,7 @@ BC30053: Arrays cannot be declared with 'New'.
 
         <Fact>
         Public Sub LocalAsNewArrayError001()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation name="LocalAsNewArrayError">
     <file name="a.vb">
 Imports System   
@@ -201,7 +201,7 @@ BC30205: End of statement expected.
         <WorkItem(545766, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545766")>
         <Fact>
         Public Sub LocalSameNameAsOperatorAllowed()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation name="LocalSameNameAsOperatorAllowed">
     <file name="a.vb">
 Imports System   
@@ -234,13 +234,13 @@ End Module
     <file name="a.vb">
 Imports System        
 Module M1
-    Sub Foo()
+    Sub Goo()
         Console.WriteLine("Hello, world")
         Console.WriteLine()
         Console.WriteLine("Goodbye, world")
     End Sub
     Sub Main()
-        Foo
+        Goo
     End Sub
 End Module
     </file>
@@ -260,11 +260,11 @@ Goodbye, world
 Imports System        
 Module M1
 
-    Sub Foo()
+    Sub Goo()
         Console.WriteLine("Call without parameters")
     End Sub
 
-    Sub Foo(s as string)
+    Sub Goo(s as string)
        Console.WriteLine(s)
     End Sub
 
@@ -277,10 +277,10 @@ Module M1
     End Function
 
     Sub Main()
-       Foo(SayHi)
-       foo
-       call foo
-       call foo("call with parameters")
+       Goo(SayHi)
+       goo
+       call goo
+       call goo("call with parameters")
        dim i = One + One
        Console.WriteLine(i)
        i = One
@@ -301,13 +301,13 @@ call with parameters
 
         <Fact>
         Public Sub CallStatementMethodNotFound()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation name="CallStatementMethodNotFound">
     <file name="a.vb">
 Imports System        
 Module M1
     Sub Main()
-       call foo
+       call goo
     End Sub
 End Module
     </file>
@@ -315,8 +315,8 @@ End Module
 
             CompilationUtils.AssertTheseDiagnostics(compilation,
 <expected>
-BC30451: 'foo' is not declared. It may be inaccessible due to its protection level.
-       call foo
+BC30451: 'goo' is not declared. It may be inaccessible due to its protection level.
+       call goo
             ~~~
 </expected>)
         End Sub
@@ -324,9 +324,9 @@ BC30451: 'foo' is not declared. It may be inaccessible due to its protection lev
         <WorkItem(538590, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538590")>
         <Fact>
         Public Sub CallStatementNothingAsInvocationExpression_Bug_4247()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation name="CallStatementMethodIsNothing">
-    <file name="foo.vb">
+    <file name="goo.vb">
         Module M1
             Sub Main()
                 Dim myLocalArr as Integer()
@@ -369,9 +369,9 @@ BC30454: Expression is not a method.
         ' related to bug 4247
         <Fact>
         Public Sub CallStatementNamespaceAsInvocationExpression()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation name="CallStatementMethodIsNothing">
-    <file name="foo.vb">
+    <file name="goo.vb">
         Namespace N1.N2
             Module M1
                 Sub Main()
@@ -401,9 +401,9 @@ BC30112: 'N1.N2' is a namespace and cannot be used as an expression.
         <WorkItem(545166, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545166")>
         <Fact>
         Public Sub CallStatementTypeAsInvocationExpression()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation name="CallStatementMethodIsNothing">
-    <file name="foo.vb">
+    <file name="goo.vb">
             Class Class1
             End Class
 
@@ -500,7 +500,7 @@ a
 
         <Fact>
         Public Sub AssignmentWithBadLValue()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation name="AssignmentWithBadLValue">
     <file name="a.vb">
 Imports System  
@@ -930,7 +930,7 @@ End Module
 
         <Fact>
         Public Sub BadExit()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation name="BadExit">
     <file name="a.vb">
 Imports System        
@@ -971,7 +971,7 @@ BC30089: 'Exit Do' can only appear inside a 'Do' statement.
 
         <Fact>
         Public Sub BadContinue()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation name="BadContinue">
     <file name="a.vb">
 Imports System        
@@ -1050,7 +1050,7 @@ End Module
 
         <Fact>
         Public Sub BadReturn()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation name="BadReturn">
     <file name="a.vb">
 Imports System        
@@ -1080,12 +1080,12 @@ BC30647: 'Return' statement in a Sub or a Set cannot return a value.
 
         <Fact>
         Public Sub NoReturnUnreachableEnd()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation name="NoReturnUnreachableEnd">
     <file name="a.vb">
 Imports System        
 Module M1
-    Function foo() As Boolean
+    Function goo() As Boolean
         While True
         End While
     End Function
@@ -1095,7 +1095,7 @@ End Module
 
             CompilationUtils.AssertTheseDiagnostics(compilation,
 <expected>
-BC42353: Function 'foo' doesn't return a value on all code paths. Are you missing a 'Return' statement?
+BC42353: Function 'goo' doesn't return a value on all code paths. Are you missing a 'Return' statement?
     End Function
     ~~~~~~~~~~~~
 </expected>)
@@ -1103,7 +1103,7 @@ BC42353: Function 'foo' doesn't return a value on all code paths. Are you missin
 
         <Fact>
         Public Sub BadArrayInitWithExplicitArraySize()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation name="BadArrayInitWithExplicitArraySize">
     <file name="a.vb">
 Imports System        
@@ -1130,7 +1130,7 @@ BC30311: Value of type 'Integer' cannot be converted to 'Integer()'.
 
         <Fact>
         Public Sub BadArrayWithNegativeSize()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation name="BadArrayWithNegativeSize">
     <file name="a.vb">
 Imports System        
@@ -1158,7 +1158,7 @@ BC30611: Array dimensions cannot have a negative size.
 
         <Fact>
         Public Sub ArrayWithMinusOneUpperBound()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation name="BadArrayWithNegativeSize">
     <file name="a.vb">
 Imports System        
@@ -1181,7 +1181,7 @@ End Module
         <WorkItem(542987, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542987")>
         <Fact()>
         Public Sub MultiDimensionalArrayWithTooFewInitializers()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation name="MultiDimensionalArrayWithTooFewInitializers">
     <file name="Program.vb">
 Module Program
@@ -1203,7 +1203,7 @@ BC30567: Array initializer is missing 2 elements.
         <WorkItem(542988, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542988")>
         <Fact()>
         Public Sub Max32ArrayDimensionsAreAllowed()
-            CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
+            CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation name="Max32ArrayDimensionsAreAllowed">
     <file name="Program.vb">
 Module Program
@@ -1296,7 +1296,7 @@ Jump into Select
 
         <Fact()>
         Public Sub GotoIntoBlockErrors()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation name="GotoIntoBlockErrors">
     <file name="a.vb">
 Imports System        
@@ -1376,7 +1376,7 @@ BC30132: Label 'l1' is not defined.
 
         <Fact()>
         Public Sub GotoDecimalLabels()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation name="GotoDecimalLabels">
     <file name="a.vb">
 Imports System        
@@ -1397,7 +1397,7 @@ End Module
         <WorkItem(543381, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543381")>
         <Fact()>
         Public Sub GotoUndefinedLabel()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation name="GotoUndefinedLabel">
     <file name="a.vb">
 Imports System
@@ -1420,7 +1420,7 @@ BC30132: Label 'lab1' is not defined.
         <WorkItem(538574, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538574")>
         <Fact()>
         Public Sub ArrayModifiersOnVariableAndType()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation name="ArrayModifiersOnVariableAndType">
     <file name="a.vb">
 Imports System        
@@ -1463,7 +1463,7 @@ BC31087: Array modifiers cannot be specified on both a variable and its type.
         <Fact()>
         Public Sub Bug6663()
             ' Test dependent on referenced mscorlib, but NOT system.dll.
-            Dim comp = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
+            Dim comp = CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(
 <compilation name="Bug6663">
     <file name="a.vb">
 Imports System
@@ -1482,7 +1482,7 @@ Module Program
         <Fact()>
         Public Sub Bug6637()
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
             <compilation name="BadArrayInitWithExplicitArraySize">
                 <file name="a.vb">
 Option Infer Off
@@ -1512,7 +1512,7 @@ BC30451: 'i' is not declared. It may be inaccessible due to its protection level
         <Fact()>
         Public Sub Bug6662()
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
             <compilation name="BadArrayInitWithExplicitArraySize">
                 <file name="a.vb">
 Option Infer Off
@@ -1544,7 +1544,7 @@ BC30451: 'i' is not declared. It may be inaccessible due to its protection level
         <WorkItem(542801, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542801")>
         <Fact()>
         Public Sub ExtTryFromFinally()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(
 <compilation>
     <file name="a.vb">
 Imports System
@@ -1583,9 +1583,9 @@ BC30393: 'Exit Try' can only appear inside a 'Try' statement.
 
         <Fact()>
         Public Sub CatchNotLocal()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation name="CatchNotLocal">
-    <file name="foo.vb">
+    <file name="goo.vb">
             Module M1
                 Private ex as System.Exception
 
@@ -1609,9 +1609,9 @@ BC31082: 'ex' is not a local variable or parameter, and so cannot be used as a '
         <Fact(), WorkItem(651622, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/651622")>
         Public Sub Bug651622()
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
-    <file name="foo.vb">
+    <file name="goo.vb">
 Module Module1
     Sub Main()
         Try
@@ -1633,9 +1633,9 @@ BC31082: 'Main' is not a local variable or parameter, and so cannot be used as a
 
         <Fact()>
         Public Sub CatchStatic()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation name="CatchStatic">
-    <file name="foo.vb">
+    <file name="goo.vb">
             Imports System
 
             Module M1
@@ -1660,9 +1660,9 @@ BC31082: 'ex' is not a local variable or parameter, and so cannot be used as a '
 
         <Fact()>
         Public Sub CatchUndeclared()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation name="CatchUndeclared">
-    <file name="foo.vb">
+    <file name="goo.vb">
             Option Explicit Off
 
             Module M1
@@ -1687,9 +1687,9 @@ BC30451: 'ex' is not declared. It may be inaccessible due to its protection leve
 
         <Fact()>
         Public Sub CatchNotException()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation name="CatchNotException">
-    <file name="foo.vb">
+    <file name="goo.vb">
             Option Explicit Off
 
             Module M1
@@ -1720,18 +1720,18 @@ BC30392: 'Catch' cannot catch type 'String' because it is not 'System.Exception'
 
         <Fact()>
         Public Sub CatchNotVariableOrParameter()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation name="CatchNotVariableOrParameter">
-    <file name="foo.vb">
+    <file name="goo.vb">
             Option Explicit Off
 
             Module M1
-                Sub Foo
+                Sub Goo
                 End Sub
 
                 Sub Main()
                     Try                   
-                    Catch Foo
+                    Catch Goo
                     End Try
                 End Sub
             End Module
@@ -1740,8 +1740,8 @@ BC30392: 'Catch' cannot catch type 'String' because it is not 'System.Exception'
 
             CompilationUtils.AssertTheseDiagnostics(compilation,
 <expected>
-BC31082: 'Foo' is not a local variable or parameter, and so cannot be used as a 'Catch' variable.
-                    Catch Foo
+BC31082: 'Goo' is not a local variable or parameter, and so cannot be used as a 'Catch' variable.
+                    Catch Goo
                           ~~~
 </expected>)
         End Sub
@@ -1749,9 +1749,9 @@ BC31082: 'Foo' is not a local variable or parameter, and so cannot be used as a 
 
         <Fact()>
         Public Sub CatchDuplicate()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation name="CatchNotException">
-    <file name="foo.vb">
+    <file name="goo.vb">
             Imports System
 
             Module M1
@@ -1782,9 +1782,9 @@ BC42031: 'Catch' block never reached; 'Exception' handled above in the same Try 
 
         <Fact()>
         Public Sub CatchDuplicate1()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation name="CatchNotException">
-    <file name="foo.vb">
+    <file name="goo.vb">
             Imports System
 
             Module M1
@@ -1815,9 +1815,9 @@ BC42031: 'Catch' block never reached; 'Exception' handled above in the same Try 
 
         <Fact()>
         Public Sub CatchDuplicate2()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation name="CatchNotException">
-    <file name="foo.vb">
+    <file name="goo.vb">
             Imports System
 
             Module M1
@@ -1859,9 +1859,9 @@ BC42031: 'Catch' block never reached; 'Exception' handled above in the same Try 
 
         <Fact()>
         Public Sub CatchOverlapped()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation name="CatchNotException">
-    <file name="foo.vb">
+    <file name="goo.vb">
 Imports System
 
 Module M1
@@ -1900,22 +1900,22 @@ BC42029: 'Catch' block never reached, because 'ArgumentException' inherits from 
 
         <Fact()>
         Public Sub CatchShadowing()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation name="CatchNotException">
-    <file name="foo.vb">
+    <file name="goo.vb">
 Imports System
 
 Module M1
     Dim field As String
 
-    Function Foo(Of T)(ex As Exception) As Exception
+    Function Goo(Of T)(ex As Exception) As Exception
         Dim ex1 As SystemException = Nothing
 
         Try
             Dim ex2 As Exception = nothing
         Catch ex As Exception
         Catch ex1 As Exception
-        Catch Foo As ArgumentException When True
+        Catch Goo As ArgumentException When True
 
             ' this is ok
         Catch ex2 As exception
@@ -1950,10 +1950,10 @@ BC30616: Variable 'ex1' hides a variable in an enclosing block.
         Catch ex1 As Exception
               ~~~
 BC42029: 'Catch' block never reached, because 'ArgumentException' inherits from 'Exception'.
-        Catch Foo As ArgumentException When True
+        Catch Goo As ArgumentException When True
         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 BC30290: Local variable cannot have the same name as the function containing it.
-        Catch Foo As ArgumentException When True
+        Catch Goo As ArgumentException When True
               ~~~
 BC42031: 'Catch' block never reached; 'Exception' handled above in the same Try statement.
         Catch ex2 As exception
@@ -1970,9 +1970,9 @@ BC42031: 'Catch' block never reached; 'Exception' handled above in the same Try 
         <WorkItem(837820, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/837820")>
         <Fact()>
         Public Sub CatchShadowingGeneric()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation name="CatchNotException">
-    <file name="foo.vb">
+    <file name="goo.vb">
 Imports System
 
 Module M1
@@ -2008,9 +2008,9 @@ End Module
 
         <Fact()>
         Public Sub GotoOutOfFinally()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation name="GotoOutOfFinally">
-    <file name="foo.vb">
+    <file name="goo.vb">
             Imports System
 
             Module M1
@@ -2038,9 +2038,9 @@ BC30101: Branching out of a 'Finally' is not valid.
 
         <Fact()>
         Public Sub BranchOutOfFinally1()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation name="BranchOutOfFinally1">
-    <file name="foo.vb">
+    <file name="goo.vb">
             Imports System
 
             Module M1
@@ -2053,7 +2053,7 @@ BC30101: Branching out of a 'Finally' is not valid.
                     Next
                 End Sub
 
-                Function Foo() as integer
+                Function Goo() as integer
 l1:
                     Try                   
                     Finally
@@ -2085,9 +2085,9 @@ BC30101: Branching out of a 'Finally' is not valid.
 
         <Fact()>
         Public Sub GotoFromCatchToTry()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation name="GotoFromCatchToTry">
-    <file name="foo.vb">
+    <file name="goo.vb">
 Imports System
 
 Module M1
@@ -2118,9 +2118,9 @@ End Module
 
         <Fact()>
         Public Sub GotoFromCatchToTry1()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation name="GotoFromCatchToTry">
-    <file name="foo.vb">
+    <file name="goo.vb">
 Imports System
 
 Module M1
@@ -2150,9 +2150,9 @@ End Module
 
         <Fact()>
         Public Sub UnassignedVariableInLateAddressOf()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation name="UnassignedVariableInCatchFinallyFilter">
-    <file name="foo.vb">
+    <file name="goo.vb">
 Option Strict Off
 Imports System
 
@@ -2163,7 +2163,7 @@ Module Program
     Sub Main()
         Dim obj As Object '= New cls1
 
-        Dim o As d1 = AddressOf obj.foo
+        Dim o As d1 = AddressOf obj.goo
 
         Dim l As Integer = 0
         o(l, 2)
@@ -2172,7 +2172,7 @@ Module Program
     End Sub
 
     Class cls1
-        Shared Sub foo(ByRef x As Integer, y As Integer)
+        Shared Sub goo(ByRef x As Integer, y As Integer)
             x = 42
             Console.WriteLine(x + y)
         End Sub
@@ -2185,7 +2185,7 @@ End Module
             CompilationUtils.AssertTheseDiagnostics(compilation,
 <expected>
 BC42104: Variable 'obj' is used before it has been assigned a value. A null reference exception could result at runtime.
-        Dim o As d1 = AddressOf obj.foo
+        Dim o As d1 = AddressOf obj.goo
                                 ~~~
 </expected>)
         End Sub
@@ -2193,9 +2193,9 @@ BC42104: Variable 'obj' is used before it has been assigned a value. A null refe
 
         <Fact()>
         Public Sub UnassignedVariableInCatchFinallyFilter()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation name="UnassignedVariableInCatchFinallyFilter">
-    <file name="foo.vb">
+    <file name="goo.vb">
 Imports System
 
 Module M1
@@ -2242,9 +2242,9 @@ BC42104: Variable 'C' is used before it has been assigned a value. A null refere
 
         <Fact()>
         Public Sub UnassignedVariableInCatchFinallyFilter1()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation name="UnassignedVariableInCatchFinallyFilter1">
-    <file name="foo.vb">
+    <file name="goo.vb">
 Imports System
 
 Module M1
@@ -2281,9 +2281,9 @@ BC42104: Variable 'A' is used before it has been assigned a value. A null refere
 
         <Fact()>
         Public Sub UnassignedVariableInCatchFinallyFilter2()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation name="UnassignedVariableInCatchFinallyFilter2">
-    <file name="foo.vb">
+    <file name="goo.vb">
 Imports System
 
 Module M1
@@ -2315,9 +2315,9 @@ BC42104: Variable 'A' is used before it has been assigned a value. A null refere
 
         <Fact()>
         Public Sub UnassignedVariableInCatchFinallyFilter3()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation name="UnassignedVariableInCatchFinallyFilter3">
-    <file name="foo.vb">
+    <file name="goo.vb">
 Imports System
 
 Module M1
@@ -2349,9 +2349,9 @@ End Module
 
         <Fact()>
         Public Sub UnassignedVariableInCatchFinallyFilter4()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation name="UnassignedVariableInCatchFinallyFilter4">
-    <file name="foo.vb">
+    <file name="goo.vb">
 Imports System
 
 Module M1
@@ -2386,9 +2386,9 @@ BC42104: Variable 'A' is used before it has been assigned a value. A null refere
 
         <Fact()>
         Public Sub ThrowNotValue()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation name="ThrowNotValue">
-    <file name="foo.vb">
+    <file name="goo.vb">
 Imports System        
 Module M1
     ReadOnly Property Moo As Exception
@@ -2421,9 +2421,9 @@ BC30524: Property 'Boo' is 'WriteOnly'.
 
         <Fact()>
         Public Sub ThrowNotException()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation name="ThrowNotValue">
-    <file name="foo.vb">
+    <file name="goo.vb">
 Imports System        
 Module M1
     ReadOnly e as new Exception
@@ -2447,9 +2447,9 @@ BC30665: 'Throw' operand must derive from 'System.Exception'.
 
         <Fact()>
         Public Sub RethrowNotInCatch()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation name="RethrowNotInCatch">
-    <file name="foo.vb">
+    <file name="goo.vb">
 Imports System        
 Module M1
     Sub Main()
@@ -2502,9 +2502,9 @@ BC30666: 'Throw' statement cannot omit operand outside a 'Catch' statement or in
 
         <Fact()>
         Public Sub ForNotValue()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation name="ThrowNotValue">
-    <file name="foo.vb">
+    <file name="goo.vb">
 Imports System        
 Module M1
     ReadOnly Property Moo As Integer
@@ -2551,7 +2551,7 @@ BC30524: Property 'Boo' is 'WriteOnly'.
         Public Sub CustomDatatypeForLoop()
             Dim source =
 <compilation>
-    <file name="foo.vb"><![CDATA[
+    <file name="goo.vb"><![CDATA[
 Imports System
 
 Module Module1
@@ -2785,7 +2785,7 @@ End Module
 
         <Fact()>
         Public Sub EndStatementsInMethodBodyShouldNotThrowNYI()
-            Dim compilation1 = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation1 = CompilationUtils.CreateCompilationWithMscorlib40(
     <compilation name="EndStatementsInMethodBodyShouldNotThrowNYI">
         <file name="a.vb">
 Namespace N1
@@ -2956,9 +2956,9 @@ BC30429: 'End Sub' must be preceded by a matching 'Sub'.
 
         <Fact()>
         Public Sub AddHandlerMissingStuff()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation name="AddHandlerNotSimple">
-    <file name="foo.vb">
+    <file name="goo.vb">
 Imports System        
 Module M1
     Sub Main()
@@ -3000,9 +3000,9 @@ BC30201: Expression expected.
 
         <Fact()>
         Public Sub AddHandlerUninitialized()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation name="AddHandlerNotSimple">
-    <file name="foo.vb">
+    <file name="goo.vb">
 Imports System
 Module M1
     Sub Main()
@@ -3029,9 +3029,9 @@ BC42104: Variable 'del' is used before it has been assigned a value. A null refe
 
         <Fact()>
         Public Sub AddHandlerNotSimple()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation name="AddHandlerNotSimple">
-    <file name="foo.vb">
+    <file name="goo.vb">
 Imports System        
 Module M1
     Sub Main()
@@ -3064,9 +3064,9 @@ BC30677: 'AddHandler' or 'RemoveHandler' statement event operand must be a dot-q
 
         <Fact()>
         Public Sub RemoveHandlerLambda()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation name="AddHandlerNotSimple">
-    <file name="foo.vb">
+    <file name="goo.vb">
 Imports System
 
 Module MyClass1
@@ -3093,9 +3093,9 @@ End Module
 
         <Fact()>
         Public Sub RemoveHandlerNotEvent()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation name="AddHandlerNotSimple">
-    <file name="foo.vb">
+    <file name="goo.vb">
 Imports System        
 Module M1
     Sub Main()
@@ -3128,9 +3128,9 @@ BC30456: 'GetTyp' is not a member of 'AppDomain'.
 
         <Fact()>
         Public Sub AddHandlerNoConversion()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation name="AddHandlerNotSimple">
-    <file name="foo.vb">
+    <file name="goo.vb">
 Imports System        
 Module M1
     Sub Main()
@@ -3168,7 +3168,7 @@ BC30311: Value of type 'Action(Of Object, EventArgs)' cannot be converted to 'Ev
 
         <Fact()>
         Public Sub LegalGotoCasesTryCatchFinally()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation name="LegalGotoCasesTryCatchFinally">
     <file name="a.vb">
 Module M1
@@ -3226,7 +3226,7 @@ LabelOK3:
         <WorkItem(543055, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543055")>
         <Fact()>
         Public Sub Bug10583()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation name="LegalGotoCasesTryCatchFinally">
     <file name="a.vb">
 Imports System
@@ -3260,7 +3260,7 @@ BC30754: 'GoTo label5' is not valid because 'label5' is inside a 'Try', 'Catch' 
         <WorkItem(543060, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543060")>
         <Fact()>
         Public Sub SelectCase_ImplicitOperator()
-            Dim compilation1 = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation1 = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation name="SelectCase">
     <file name="a.vb"><![CDATA[
 Imports System
@@ -3319,7 +3319,7 @@ End Module
         <WorkItem(543333, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543333")>
         <Fact()>
         Public Sub Binding_Return_As_Declaration()
-            Dim compilation1 = CreateCompilationWithMscorlib(
+            Dim compilation1 = CreateCompilationWithMscorlib40(
 <compilation name="SelectCase">
     <file name="a.vb"><![CDATA[
 Class Program
@@ -3351,7 +3351,7 @@ While (true)
     </file>
 </compilation>
 
-            CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source).VerifyDiagnostics(Diagnostic(ERRID.ERR_ExecutableAsDeclaration, "While (true)"))
+            CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(source).VerifyDiagnostics(Diagnostic(ERRID.ERR_ExecutableAsDeclaration, "While (true)"))
         End Sub
 
         <WorkItem(529050, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529050")>
@@ -3366,7 +3366,7 @@ End Class
     </file>
 </compilation>
 
-            CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source).VerifyDiagnostics(Diagnostic(ERRID.ERR_ExecutableAsDeclaration, "While (true)"))
+            CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(source).VerifyDiagnostics(Diagnostic(ERRID.ERR_ExecutableAsDeclaration, "While (true)"))
         End Sub
 
         <WorkItem(529051, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529051")>
@@ -3379,7 +3379,7 @@ If (true)
     </file>
 </compilation>
 
-            CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source).VerifyDiagnostics(Diagnostic(ERRID.ERR_ExecutableAsDeclaration, "If (true)"))
+            CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(source).VerifyDiagnostics(Diagnostic(ERRID.ERR_ExecutableAsDeclaration, "If (true)"))
         End Sub
 
         <WorkItem(529051, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529051")>
@@ -3394,7 +3394,7 @@ End Class
     </file>
 </compilation>
 
-            CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source).VerifyDiagnostics(Diagnostic(ERRID.ERR_ExecutableAsDeclaration, "If (true)"))
+            CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(source).VerifyDiagnostics(Diagnostic(ERRID.ERR_ExecutableAsDeclaration, "If (true)"))
         End Sub
 
         <WorkItem(529052, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529052")>
@@ -3408,7 +3408,7 @@ Catch
     </file>
 </compilation>
 
-            CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source).VerifyDiagnostics(Diagnostic(ERRID.ERR_ExecutableAsDeclaration, "Try"),
+            CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(source).VerifyDiagnostics(Diagnostic(ERRID.ERR_ExecutableAsDeclaration, "Try"),
     Diagnostic(ERRID.ERR_ExecutableAsDeclaration, "Catch"))
         End Sub
 
@@ -3425,7 +3425,7 @@ End Class
     </file>
 </compilation>
 
-            CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source).VerifyDiagnostics(Diagnostic(ERRID.ERR_ExecutableAsDeclaration, "Try"),
+            CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(source).VerifyDiagnostics(Diagnostic(ERRID.ERR_ExecutableAsDeclaration, "Try"),
     Diagnostic(ERRID.ERR_ExecutableAsDeclaration, "Catch"))
         End Sub
 
@@ -3439,7 +3439,7 @@ Do
     </file>
 </compilation>
 
-            CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source).VerifyDiagnostics(Diagnostic(ERRID.ERR_ExecutableAsDeclaration, "Do"))
+            CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(source).VerifyDiagnostics(Diagnostic(ERRID.ERR_ExecutableAsDeclaration, "Do"))
         End Sub
 
         <WorkItem(529053, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529053")>
@@ -3454,7 +3454,7 @@ End Class
     </file>
 </compilation>
 
-            CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source).VerifyDiagnostics(Diagnostic(ERRID.ERR_ExecutableAsDeclaration, "Do"))
+            CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(source).VerifyDiagnostics(Diagnostic(ERRID.ERR_ExecutableAsDeclaration, "Do"))
         End Sub
 
         <WorkItem(11031, "DevDiv_Projects/Roslyn")>
@@ -3467,7 +3467,7 @@ Else
     </file>
 </compilation>
 
-            CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source).VerifyDiagnostics(Diagnostic(ERRID.ERR_ExecutableAsDeclaration, "Else"))
+            CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(source).VerifyDiagnostics(Diagnostic(ERRID.ERR_ExecutableAsDeclaration, "Else"))
         End Sub
 
         <WorkItem(11031, "DevDiv_Projects/Roslyn")>
@@ -3482,7 +3482,7 @@ End Class
     </file>
 </compilation>
 
-            CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source).VerifyDiagnostics(Diagnostic(ERRID.ERR_ExecutableAsDeclaration, "Else"))
+            CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(source).VerifyDiagnostics(Diagnostic(ERRID.ERR_ExecutableAsDeclaration, "Else"))
         End Sub
 
         <WorkItem(544465, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544465")>
@@ -3501,7 +3501,7 @@ End Module
     </file>
     </compilation>
 
-            CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source).VerifyDiagnostics(
+            CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(source).VerifyDiagnostics(
                     Diagnostic(ERRID.ERR_CantSpecifyNullableOnBoth, "As Integer?"),
                     Diagnostic(ERRID.ERR_DuplicateLocals1, "A?").WithArguments("A"))
         End Sub
@@ -3518,12 +3518,12 @@ End Class
     </file>
 </compilation>
 
-            CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source).VerifyDiagnostics(Diagnostic(ERRID.ERR_InvalidUseOfCustomModifier, "Custom"))
+            CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(source).VerifyDiagnostics(Diagnostic(ERRID.ERR_InvalidUseOfCustomModifier, "Custom"))
         End Sub
 
         <Fact()>
         Public Sub InvalidCode_ConstInterface()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation>
     <file name="a.vb">
 Const Interface
@@ -3545,7 +3545,7 @@ Const Interface
         <WorkItem(545196, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545196")>
         <Fact()>
         Public Sub InvalidCode_Event()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation>
     <file name="a.vb">
 Event
@@ -3599,7 +3599,7 @@ End Module
     </file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.ReleaseExe)
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(source, TestOptions.ReleaseExe)
 
             Dim compilationVerifier = CompileAndVerify(compilation,
                                                        symbolValidator:=Sub(m As ModuleSymbol)
@@ -3666,7 +3666,7 @@ End Module
     </file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.ReleaseExe)
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(source, TestOptions.ReleaseExe)
 
             AssertTheseDiagnostics(compilation,
 <expected>
@@ -3725,7 +3725,7 @@ End Namespace
     </file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.ReleaseExe)
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(source, TestOptions.ReleaseExe)
 
             Dim compilationVerifier = CompileAndVerify(compilation, expectedOutput:=
             <![CDATA[
@@ -3754,7 +3754,7 @@ End C
     </file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(source, additionalRefs:=XmlReferences)
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(source, references:=XmlReferences)
 
             AssertTheseDiagnostics(compilation,
 <expected>
@@ -3790,7 +3790,7 @@ End Class
     </file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(source)
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(source)
 
             AssertTheseDiagnostics(compilation,
 <expected>
@@ -4770,13 +4770,13 @@ Module M
 
     Sub Test1()
         Console.WriteLine(">1")
-        Dim x = <a/>.@xml:foo
+        Dim x = <a/>.@xml:goo
         Console.WriteLine("<1")
     End Sub
 
     Sub Test2()
         Console.WriteLine(">2")
-        Dim x = <a/>.@xml:foo:foo
+        Dim x = <a/>.@xml:goo:goo
         Console.WriteLine("<2")
     End Sub
 
@@ -4794,7 +4794,7 @@ Module M
 
     Sub Test5()
         Console.WriteLine(">5")
-        Dim x = <a/>.@xml~foo
+        Dim x = <a/>.@xml~goo
         Console.WriteLine("<5")
     End Sub
 
@@ -4806,7 +4806,7 @@ Module M
 
     Sub Test7()
         Console.WriteLine(">7")
-        Dim x = <a/>.@xml~foo~return
+        Dim x = <a/>.@xml~goo~return
         Console.WriteLine("<7")
     End Sub
 
@@ -4816,8 +4816,8 @@ Module M
         Console.WriteLine("<8")
     End Sub
 
-    Sub foo
-        Console.WriteLine("foo")
+    Sub goo
+        Console.WriteLine("goo")
     End Sub
 
     Sub [return]
@@ -4829,7 +4829,7 @@ Module M
     End Sub
 End Module]]>.Value.Replace("~"c, SyntaxFacts.FULLWIDTH_COLON)
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(
                 <compilation name="FullWidthColonInXmlNames">
                     <file name="M.vb"><%= source %></file>
                 </compilation>,
@@ -4840,17 +4840,17 @@ End Module]]>.Value.Replace("~"c, SyntaxFacts.FULLWIDTH_COLON)
 >1
 <1
 >2
-foo
+goo
 <2
 >3
 <3
 >4
 >5
-foo
+goo
 <5
 >6
 >7
-foo
+goo
 >8
 <8]]>.Value.Replace(vbLf, vbCrLf))
         End Sub

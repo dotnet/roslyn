@@ -59,7 +59,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Fact]
         public void TestMissingMetadataSymbol()
         {
-            AssemblyIdentity missingAssemblyId = new AssemblyIdentity("foo");
+            AssemblyIdentity missingAssemblyId = new AssemblyIdentity("goo");
             AssemblySymbol assem = new MockAssemblySymbol("banana");
             ModuleSymbol module = new MissingModuleSymbol(assem, ordinal: -1);
             NamedTypeSymbol container = new MockNamedTypeSymbol("TestClass", Enumerable.Empty<Symbol>(), TypeKind.Class);
@@ -69,7 +69,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal("Elvis", mms1.NamespaceName);
             Assert.Equal("Lives", mms1.Name);
             Assert.Equal("Elvis.Lives<,>[missing]", mms1.ToTestDisplayString());
-            Assert.Equal("foo", mms1.ContainingAssembly.Identity.Name);
+            Assert.Equal("goo", mms1.ContainingAssembly.Identity.Name);
 
             var mms2 = new MissingMetadataTypeSymbol.TopLevel(module, "Elvis.Is", "Cool", 0, true);
             Assert.Equal(0, mms2.Arity);
@@ -84,7 +84,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Fact]
         public void TestNamespaceExtent()
         {
-            AssemblySymbol assem1 = new MockAssemblySymbol("foo");
+            AssemblySymbol assem1 = new MockAssemblySymbol("goo");
 
             NamespaceExtent ne1 = new NamespaceExtent(assem1);
             Assert.Equal(ne1.Kind, NamespaceKind.Assembly);
@@ -114,7 +114,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     break;
 
                 default:
-                    throw new ApplicationException("unexpected xml element");
+                    throw new InvalidOperationException("unexpected xml element");
             }
 
             foreach (IMockSymbol child in childSymbols)
@@ -137,7 +137,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             }
             else
             {
-                throw new ApplicationException("Unexpected symbol kind");
+                throw new InvalidOperationException("Unexpected symbol kind");
             }
 
             if (sym is NamespaceOrTypeSymbol && ((NamespaceOrTypeSymbol)sym).GetMembers().Any())

@@ -7,11 +7,12 @@ using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Emit;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
-    internal sealed class SourcePropertyAccessorSymbol : SourceMethodSymbol
+    internal sealed class SourcePropertyAccessorSymbol : SourceMemberMethodSymbol
     {
         private readonly SourcePropertySymbol _property;
         private ImmutableArray<ParameterSymbol> _lazyParameters;
@@ -143,7 +144,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             Location location,
             ArrowExpressionClauseSyntax syntax,
             DiagnosticBag diagnostics) :
-            base(containingType, syntax.GetReference(), syntax.GetReference(), location)
+            base(containingType, syntax.GetReference(), location)
         {
             _property = property;
             _explicitInterfaceImplementations = explicitInterfaceImplementations;
@@ -168,7 +169,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 diagnostics.Add(info, location);
             }
 
-            this.CheckModifiers(location, isAutoPropertyOrExpressionBodied: true, diagnostics: diagnostics);
+            this.CheckModifiers(location, hasBody: true, isAutoPropertyOrExpressionBodied: true, diagnostics: diagnostics);
 
             if (this.IsOverride)
             {
@@ -196,7 +197,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             DiagnosticBag diagnostics)
             : base(containingType,
                    syntax.GetReference(),
-                   ((SyntaxNode)syntax.Body ?? syntax.ExpressionBody)?.GetReference(),
                    location)
         {
             _property = property;
@@ -238,7 +238,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             if (!modifierErrors)
             {
-                this.CheckModifiers(location, isAutoPropertyAccessor, diagnostics);
+                this.CheckModifiers(location, hasBody || hasExpressionBody, isAutoPropertyAccessor, diagnostics);
             }
 
             if (this.IsOverride)
@@ -338,7 +338,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return ImmutableArray<TypeParameterSymbol>.Empty; }
         }
 
-        internal override RefKind RefKind
+        public override ImmutableArray<TypeParameterConstraintClause> TypeParameterConstraintClauses
+            => ImmutableArray<TypeParameterConstraintClause>.Empty;
+
+        public override RefKind RefKind
         {
             get { return _property.RefKind; }
         }
@@ -431,7 +434,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return mods;
         }
 
-        private void CheckModifiers(Location location, bool isAutoPropertyOrExpressionBodied, DiagnosticBag diagnostics)
+        private void CheckModifiers(Location location, bool hasBody, bool isAutoPropertyOrExpressionBodied, DiagnosticBag diagnostics)
         {
             // Check accessibility against the accessibility declared on the accessor not the property.
             var localAccessibility = this.LocalAccessibility;
@@ -446,7 +449,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 // '{0}' is a new virtual member in sealed class '{1}'
                 diagnostics.Add(ErrorCode.ERR_NewVirtualInSealed, location, this, ContainingType);
             }
-            else if (bodySyntaxReferenceOpt == null && !IsExtern && !IsAbstract && !isAutoPropertyOrExpressionBodied)
+            else if (!hasBody && !IsExtern && !IsAbstract && !isAutoPropertyOrExpressionBodied)
             {
                 diagnostics.Add(ErrorCode.ERR_ConcreteMissingBody, location, this);
             }
@@ -558,9 +561,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return parameters.ToImmutableAndFree();
         }
 
-        internal override void AddSynthesizedAttributes(ModuleCompilationState compilationState, ref ArrayBuilder<SynthesizedAttributeData> attributes)
+        internal override void AddSynthesizedAttributes(PEModuleBuilder moduleBuilder, ref ArrayBuilder<SynthesizedAttributeData> attributes)
         {
-            base.AddSynthesizedAttributes(compilationState, ref attributes);
+            base.AddSynthesizedAttributes(moduleBuilder, ref attributes);
 
             if (_isAutoPropertyAccessor)
             {

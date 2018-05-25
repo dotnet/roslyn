@@ -9,11 +9,11 @@ using Microsoft.CodeAnalysis.Host;
 namespace Microsoft.CodeAnalysis.Execution
 {
     /// <summary>
-    /// builder to create custom asset which is not part of solution but want to participate in ISolutionSynchronizationService
+    /// builder to create custom asset which is not part of solution but want to participate in <see cref="IRemotableDataService"/>
     /// </summary>
     internal class CustomAssetBuilder
     {
-        private readonly Serializer _serializer;
+        private readonly ISerializerService _serializer;
 
         public CustomAssetBuilder(Solution solution) : this(solution.Workspace)
         {
@@ -25,14 +25,14 @@ namespace Microsoft.CodeAnalysis.Execution
 
         public CustomAssetBuilder(HostWorkspaceServices services)
         {
-            _serializer = new Serializer(services);
+            _serializer = services.GetService<ISerializerService>();
         }
 
         public CustomAsset Build(OptionSet options, string language, CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
 
-            return new SimpleCustomAsset(WellKnownSynchronizationKinds.OptionSet,
+            return new SimpleCustomAsset(WellKnownSynchronizationKind.OptionSet,
                 (writer, cancellationTokenOnStreamWriting) =>
                     _serializer.SerializeOptionSet(options, language, writer, cancellationTokenOnStreamWriting));
         }

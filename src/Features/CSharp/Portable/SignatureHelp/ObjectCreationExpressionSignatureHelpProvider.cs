@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Composition;
 using System.Linq;
@@ -70,9 +70,9 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
                 return null;
             }
 
-            var symbolDisplayService = document.Project.LanguageServices.GetService<ISymbolDisplayService>();
-            var anonymousTypeDisplayService = document.Project.LanguageServices.GetService<IAnonymousTypeDisplayService>();
-            var documentationCommentFormattingService = document.Project.LanguageServices.GetService<IDocumentationCommentFormattingService>();
+            var symbolDisplayService = document.GetLanguageService<ISymbolDisplayService>();
+            var anonymousTypeDisplayService = document.GetLanguageService<IAnonymousTypeDisplayService>();
+            var documentationCommentFormattingService = document.GetLanguageService<IDocumentationCommentFormattingService>();
             var textSpan = SignatureHelpUtilities.GetSignatureHelpSpan(objectCreationExpression.ArgumentList);
             var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
 

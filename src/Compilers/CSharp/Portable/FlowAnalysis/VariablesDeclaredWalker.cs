@@ -32,16 +32,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private HashSet<Symbol> _variablesDeclared = new HashSet<Symbol>();
 
-        private void Analyze()
-        {
-            // only one pass needed.
-            regionPlace = RegionPlace.Before;
-            bool badRegion = false;
-            SetState(ReachableState());
-            Scan(ref badRegion);
-            if (badRegion) _variablesDeclared.Clear();
-        }
-
         internal VariablesDeclaredWalker(CSharpCompilation compilation, Symbol member, BoundNode node, BoundNode firstInRegion, BoundNode lastInRegion)
             : base(compilation, member, node, firstInRegion, lastInRegion)
         {
@@ -131,12 +121,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 if (deconstructionAssignment == null)
                 {
-                    // regular, not deconstructing, foreach declares exactly one iteration variable
-                    _variablesDeclared.Add(node.IterationVariables.Single());
+                    _variablesDeclared.AddAll(node.IterationVariables);
                 }
                 else
                 {
-                    // deconstruction foreach declares multiple variables
+                    // Deconstruction foreach declares multiple variables.
                     ((BoundTupleExpression)deconstructionAssignment.Left).VisitAllElements((x, self) => self.Visit(x), this);
                 }
             }

@@ -5,6 +5,7 @@ Imports System.Collections.Generic
 Imports System.Collections.Immutable
 Imports System.Collections.ObjectModel
 Imports Microsoft.Cci
+Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols

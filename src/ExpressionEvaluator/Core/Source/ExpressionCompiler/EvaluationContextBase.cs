@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -8,6 +8,7 @@ using System.Diagnostics;
 using System.Globalization;
 using System.Linq;
 using Microsoft.CodeAnalysis.CodeGen;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.VisualStudio.Debugger.Evaluation;
 using Roslyn.Utilities;
 
@@ -94,7 +95,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
 
         // ILOffset == 0xffffffff indicates an instruction outside of IL.
         // Treat such values as the beginning of the IL.
-        protected static int NormalizeILOffset(uint ilOffset)
+        internal static int NormalizeILOffset(uint ilOffset)
         {
             return (ilOffset == uint.MaxValue) ? 0 : (int)ilOffset;
         }

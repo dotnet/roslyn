@@ -2,6 +2,7 @@
 
 using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Emit;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 using System;
 using System.Collections.Immutable;
@@ -28,8 +29,8 @@ namespace Microsoft.CodeAnalysis.CodeGen
     {
         private readonly Cci.ICustomAttribute _sourceAttribute;
         private readonly string _resolvedPermissionSetFilePath;
-        internal static readonly string FilePropertyName = "File";
-        internal static readonly string HexPropertyName = "Hex";
+        internal const string FilePropertyName = "File";
+        internal const string HexPropertyName = "Hex";
 
         public PermissionSetAttributeWithFileReference(Cci.ICustomAttribute sourceAttribute, string resolvedPermissionSetFilePath)
         {
@@ -50,8 +51,8 @@ namespace Microsoft.CodeAnalysis.CodeGen
         /// <summary>
         /// A reference to the constructor that will be used to instantiate this custom attribute during execution (if the attribute is inspected via Reflection).
         /// </summary>
-        public Cci.IMethodReference Constructor(EmitContext context)
-            => _sourceAttribute.Constructor(context);
+        public Cci.IMethodReference Constructor(EmitContext context, bool reportDiagnostics)
+            => _sourceAttribute.Constructor(context, reportDiagnostics);
 
         /// <summary>
         /// Zero or more named arguments that specify values for fields and properties of the attribute.

@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -69,7 +69,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                     return _noopRule;
                 }
 
-                var textContainer = document.GetTextAsync(CancellationToken.None).WaitAndGetResult(CancellationToken.None).Container;
+                var textContainer = document.GetTextSynchronously(CancellationToken.None).Container;
                 var buffer = textContainer.TryGetTextBuffer() as IProjectionBuffer;
                 if (buffer == null)
                 {

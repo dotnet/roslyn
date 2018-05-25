@@ -1,4 +1,4 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Runtime.InteropServices
 Imports System.Runtime.InteropServices.ComTypes
@@ -7,6 +7,7 @@ Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.ErrorReporting
 Imports Microsoft.CodeAnalysis.Host
 Imports Microsoft.CodeAnalysis.VisualBasic
+Imports Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
 Imports Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 Imports Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.Legacy
 Imports Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
@@ -16,10 +17,9 @@ Imports Microsoft.VisualStudio.Text
 Imports Microsoft.VisualStudio.TextManager.Interop
 
 Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.ProjectSystemShim
-    Partial Friend MustInherit Class VisualBasicProject
+    Partial Friend NotInheritable Class VisualBasicProject
         Inherits AbstractLegacyProject
         Implements IVbCompilerProject
-        Implements IVisualStudioHostProject
 
         Private ReadOnly _compilerHost As IVbCompilerHost
         Private ReadOnly _imports As New List(Of GlobalImport)
@@ -51,6 +51,8 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.ProjectSystemShim
             _compilerHost = compilerHost
 
             projectTracker.AddProject(Me)
+
+            ProjectCodeModel = New ProjectCodeModel(Me.Id, New VisualBasicCodeModelInstanceFactory(Me), visualStudioWorkspaceOpt, serviceProvider)
         End Sub
 
         Public Sub AddApplicationObjectVariable(wszClassName As String, wszMemberName As String) Implements IVbCompilerProject.AddApplicationObjectVariable
@@ -191,9 +193,26 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.ProjectSystemShim
         End Sub
 
 #End Region
+        Public Function CreateCodeModel(pProject As EnvDTE.Project, pProjectItem As EnvDTE.ProjectItem, ByRef ppCodeModel As EnvDTE.CodeModel) As Integer Implements IVbCompilerProject.CreateCodeModel
+            ppCodeModel = ProjectCodeModel.GetOrCreateRootCodeModel(pProject)
 
-        Public MustOverride Function CreateCodeModel(pProject As EnvDTE.Project, pProjectItem As EnvDTE.ProjectItem, ByRef ppCodeModel As EnvDTE.CodeModel) As Integer Implements IVbCompilerProject.CreateCodeModel
-        Public MustOverride Function CreateFileCodeModel(pProject As EnvDTE.Project, pProjectItem As EnvDTE.ProjectItem, ByRef ppFileCodeModel As EnvDTE.FileCodeModel) As Integer Implements IVbCompilerProject.CreateFileCodeModel
+            Return VSConstants.S_OK
+        End Function
+
+        Public Function CreateFileCodeModel(pProject As EnvDTE.Project, pProjectItem As EnvDTE.ProjectItem, ByRef ppFileCodeModel As EnvDTE.FileCodeModel) As Integer Implements IVbCompilerProject.CreateFileCodeModel
+            ppFileCodeModel = Nothing
+
+            If pProjectItem IsNot Nothing Then
+                Dim fileName = pProjectItem.FileNames(1)
+
+                If Not String.IsNullOrWhiteSpace(fileName) Then
+                    ppFileCodeModel = ProjectCodeModel.GetOrCreateFileCodeModel(fileName, pProjectItem)
+                    Return VSConstants.S_OK
+                End If
+            End If
+
+            Return VSConstants.E_INVALIDARG
+        End Function
 
         Public Sub DeleteAllImports() Implements IVbCompilerProject.DeleteAllImports
             Try
@@ -387,12 +406,23 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.ProjectSystemShim
         Protected Overrides Function CreateCompilationOptions(commandLineArguments As CommandLineArguments, newParseOptions As ParseOptions) As CompilationOptions
             Dim baseCompilationOptions = DirectCast(MyBase.CreateCompilationOptions(commandLineArguments, newParseOptions), VisualBasicCompilationOptions)
             Dim vbParseOptions = DirectCast(newParseOptions, VisualBasicParseOptions)
-            Return VisualBasicProjectOptionsHelper.CreateCompilationOptions(baseCompilationOptions, vbParseOptions, _rawOptions, _compilerHost, _imports, ContainingDirectoryPathOpt, RuleSetFile)
+            Return VisualBasicProjectOptionsHelper.CreateCompilationOptions(baseCompilationOptions, vbParseOptions, _rawOptions, _compilerHost, _imports, ContainingDirectoryPathOpt, RuleSetFile?.Target)
         End Function
 
         Protected Overrides Function CreateParseOptions(commandLineArguments As CommandLineArguments) As ParseOptions
             Dim baseParseOptions = DirectCast(MyBase.CreateParseOptions(commandLineArguments), VisualBasicParseOptions)
-            Return VisualBasicProjectOptionsHelper.CreateParseOptions(baseParseOptions, _rawOptions)
+
+            Dim resultParseOptions = VisualBasicProjectOptionsHelper.CreateParseOptions(baseParseOptions, _rawOptions)
+
+            Dim commandLineOptions = DirectCast(commandLineArguments.ParseOptions, VisualBasicParseOptions)
+            If commandLineOptions.LanguageVersion > LanguageVersion.VisualBasic15 Then
+                ' For language versions after VB 15, we expect the version to be passed from MSBuild to the IDE
+                ' via command-line arguments (`ICompilerOptionsHostObject.SetCompilerOptions`)
+                ' instead of using `IVbcHostObject3.SetLanguageVersion`
+                resultParseOptions = resultParseOptions.WithLanguageVersion(commandLineOptions.LanguageVersion)
+            End If
+
+            Return resultParseOptions
         End Function
 
         Private Shadows Sub UpdateOptions()
@@ -492,13 +522,5 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.ProjectSystemShim
                 SetOptions(lastCompilationOptions.WithGlobalImports(_imports), CurrentParseOptions)
             End If
         End Sub
-
-#If DEBUG Then
-        Public Overrides ReadOnly Property Debug_VBEmbeddedCoreOptionOn As Boolean
-            Get
-                Return DirectCast(CurrentCompilationOptions, VisualBasicCompilationOptions).EmbedVbCoreRuntime
-            End Get
-        End Property
-#End If
     End Class
 End Namespace

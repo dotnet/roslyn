@@ -423,5 +423,13 @@ namespace Microsoft.CodeAnalysis
         {
             return node.WithTrailingTrivia((IEnumerable<SyntaxTrivia>)trivia);
         }
+
+        /// <summary>
+        /// Attaches the node to a SyntaxTree that the same options as <paramref name="oldTree"/>
+        /// </summary>
+        internal static SyntaxNode AsRootOfNewTreeWithOptionsFrom(this SyntaxNode node, SyntaxTree oldTree)
+        {
+            return oldTree.WithRootAndOptions(node, oldTree.Options).GetRoot();
+        }
     }
 }

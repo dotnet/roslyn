@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -10,6 +10,7 @@ using System.Windows.Controls;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Common;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Imaging.Interop;
 using Microsoft.VisualStudio.Shell.TableControl;
@@ -19,29 +20,28 @@ using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
 {
+    using Workspace = Microsoft.CodeAnalysis.Workspace;
+
     internal abstract partial class VisualStudioBaseDiagnosticListTable
     {
         protected class LiveTableDataSource : AbstractRoslynTableDataSource<DiagnosticData>
         {
             private readonly string _identifier;
             private readonly IDiagnosticService _diagnosticService;
-            private readonly IServiceProvider _serviceProvider;
             private readonly Workspace _workspace;
             private readonly OpenDocumentTracker<DiagnosticData> _tracker;
 
-            public LiveTableDataSource(IServiceProvider serviceProvider, Workspace workspace, IDiagnosticService diagnosticService, string identifier) :
+            public LiveTableDataSource(Workspace workspace, IDiagnosticService diagnosticService, string identifier) :
                 base(workspace)
             {
                 _workspace = workspace;
-                _serviceProvider = serviceProvider;
                 _identifier = identifier;
 
                 _tracker = new OpenDocumentTracker<DiagnosticData>(_workspace);
 
                 _diagnosticService = diagnosticService;
-                _diagnosticService.DiagnosticsUpdated += OnDiagnosticsUpdated;
 
-                PopulateInitialData(workspace, diagnosticService);
+                ConnectToDiagnosticService(workspace, diagnosticService);
             }
 
             public override string DisplayName => ServicesVSResources.CSharp_VB_Diagnostics_Table_Data_Source;
@@ -142,31 +142,47 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
 
             private void OnDiagnosticsUpdated(object sender, DiagnosticsUpdatedArgs e)
             {
-                if (_workspace != e.Workspace)
+                using (Logger.LogBlock(FunctionId.LiveTableDataSource_OnDiagnosticsUpdated, a => GetDiagnosticUpdatedMessage(a), e, CancellationToken.None))
                 {
-                    return;
-                }
+                    if (_workspace != e.Workspace)
+                    {
+                        return;
+                    }
 
-                if (e.Diagnostics.Length == 0)
-                {
-                    OnDataRemoved(e);
-                    return;
-                }
+                    if (e.Diagnostics.Length == 0)
+                    {
+                        OnDataRemoved(e);
+                        return;
+                    }
 
-                var count = e.Diagnostics.Where(ShouldInclude).Count();
-                if (count <= 0)
-                {
-                    OnDataRemoved(e);
-                    return;
-                }
+                    var count = e.Diagnostics.Where(ShouldInclude).Count();
+                    if (count <= 0)
+                    {
+                        OnDataRemoved(e);
+                        return;
+                    }
 
-                OnDataAddedOrChanged(e);
+                    OnDataAddedOrChanged(e);
+                }
             }
 
             public override AbstractTableEntriesSource<DiagnosticData> CreateTableEntriesSource(object data)
             {
                 var item = (UpdatedEventArgs)data;
                 return new TableEntriesSource(this, item.Workspace, item.ProjectId, item.DocumentId, item.Id);
+            }
+
+            private void ConnectToDiagnosticService(Workspace workspace, IDiagnosticService diagnosticService)
+            {
+                if (diagnosticService == null)
+                {
+                    // it can be null in unit test
+                    return;
+                }
+
+                _diagnosticService.DiagnosticsUpdated += OnDiagnosticsUpdated;
+
+                PopulateInitialData(workspace, diagnosticService);
             }
 
             private static bool ShouldInclude(DiagnosticData diagnostic)
@@ -447,7 +463,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                     var item = GetItem(index)?.Primary;
                     if (item == null)
                     {
-                        expandedContent = default(FrameworkElement);
+                        expandedContent = default;
                         return false;
                     }
 
@@ -460,13 +476,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                     var item = GetItem(index)?.Primary;
                     if (item == null)
                     {
-                        content = default(string);
+                        content = default;
                         return false;
                     }
 
                     if (string.IsNullOrWhiteSpace(item.Description))
                     {
-                        content = default(string);
+                        content = default;
                         return false;
                     }
 
@@ -504,36 +520,51 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                 // unused ones                    
                 public bool TryCreateColumnContent(int index, string columnName, bool singleColumnView, out FrameworkElement content)
                 {
-                    content = default(FrameworkElement);
+                    content = default;
                     return false;
                 }
 
                 public bool TryCreateImageContent(int index, string columnName, bool singleColumnView, out ImageMoniker content)
                 {
-                    content = default(ImageMoniker);
+                    content = default;
                     return false;
                 }
 
                 public bool TryCreateStringContent(int index, string columnName, bool truncatedText, bool singleColumnView, out string content)
                 {
-                    content = default(string);
+                    content = default;
                     return false;
                 }
 
                 public bool TryCreateToolTip(int index, string columnName, out object toolTip)
                 {
-                    toolTip = default(object);
+                    toolTip = default;
                     return false;
                 }
 
                 // remove this once we moved to new drop
                 public bool TryCreateStringContent(int index, string columnName, bool singleColumnView, out string content)
                 {
-                    content = default(string);
+                    content = default;
                     return false;
                 }
 
                 #endregion
+            }
+
+            private static string GetDiagnosticUpdatedMessage(DiagnosticsUpdatedArgs e)
+            {
+                var id = e.Id.ToString();
+                if (e.Id is LiveDiagnosticUpdateArgsId live)
+                {
+                    id = $"{live.Analyzer.ToString()}/{live.Kind}";
+                }
+                else if (e.Id is AnalyzerUpdateArgsId analyzer)
+                {
+                    id = analyzer.Analyzer.ToString();
+                }
+
+                return $"Kind:{e.Workspace.Kind}, Analyzer:{id}, Update:{e.Kind}, {(object)e.DocumentId ?? e.ProjectId}, ({string.Join(Environment.NewLine, e.Diagnostics)})";
             }
         }
     }

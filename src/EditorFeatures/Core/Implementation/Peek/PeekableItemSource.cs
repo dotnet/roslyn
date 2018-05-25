@@ -1,14 +1,14 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
 using System.Threading;
 using Microsoft.CodeAnalysis.Editor.Host;
 using Microsoft.CodeAnalysis.Editor.Peek;
-using Microsoft.CodeAnalysis.Editor.SymbolMapping;
 using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.Navigation;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.SymbolMapping;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Language.Intellisense;
 using Microsoft.VisualStudio.Text;
@@ -120,7 +120,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Peek
                     var document = item.Document;
                     if (navigationService.CanNavigateToPosition(workspace, document.Id, item.SourceSpan.Start))
                     {
-                        var text = document.GetTextAsync(cancellationToken).WaitAndGetResult(cancellationToken);
+                        var text = document.GetTextSynchronously(cancellationToken);
                         var linePositionSpan = text.Lines.GetLinePositionSpan(item.SourceSpan);
                         yield return new ExternalFilePeekableItem(
                             new FileLinePositionSpan(document.FilePath, linePositionSpan),

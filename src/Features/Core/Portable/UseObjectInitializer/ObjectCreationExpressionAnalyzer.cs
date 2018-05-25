@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Threading;
 using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.UseCollectionInitializer;
 using Roslyn.Utilities;
@@ -162,6 +163,8 @@ namespace Microsoft.CodeAnalysis.UseObjectInitializer
                     statement, leftMemberAccess, rightExpression));
             }
         }
+
+        protected override bool ShouldAnalyze() => true;
 
         private bool ImplicitMemberAccessWouldBeAffected(SyntaxNode node)
         {

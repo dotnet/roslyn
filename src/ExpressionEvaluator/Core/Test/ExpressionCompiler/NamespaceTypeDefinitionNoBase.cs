@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator.UnitTests
 
         ISpecializedNestedTypeReference ITypeReference.AsSpecializedNestedTypeReference => UnderlyingType.AsSpecializedNestedTypeReference;
 
-        IEnumerable<IEventDefinition> ITypeDefinition.Events => UnderlyingType.Events;
+        IEnumerable<IEventDefinition> ITypeDefinition.GetEvents(EmitContext context) => UnderlyingType.GetEvents(context);
 
         ushort INamedTypeReference.GenericParameterCount => 0;
 

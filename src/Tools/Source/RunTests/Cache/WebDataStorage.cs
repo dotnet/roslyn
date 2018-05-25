@@ -126,8 +126,7 @@ namespace RunTests.Cache
                 // For PR runs include extra data about the PR.  This enables us to track down bugs server 
                 // side when PRs are believed to hit test / cache issues.
                 var idStr = Environment.GetEnvironmentVariable("ghprbPullId");
-                int id;
-                if (idStr != null && int.TryParse(idStr, out id))
+                if (idStr != null && int.TryParse(idStr, out var id))
                 {
                     data.IsPullRequest = true;
                     data.PullRequestId = id;

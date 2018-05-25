@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Generic;
 using System.Linq;
@@ -189,7 +189,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
                 var syntaxTreeWithOriginalName = syntaxTree.WithChangedText(newFullText);
                 var documentWithOriginalName = document.WithSyntaxRoot(syntaxTreeWithOriginalName.GetRoot(cancellationToken));
 
-                Contract.Requires(newFullText.ToString() == documentWithOriginalName.GetTextAsync(cancellationToken).WaitAndGetResult(cancellationToken).ToString());
+                Contract.Requires(newFullText.ToString() == documentWithOriginalName.GetTextSynchronously(cancellationToken).ToString());
 #endif
 
                 // Apply the original name to all linked documents to construct a consistent solution

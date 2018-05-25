@@ -1,9 +1,11 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeFixes;
+using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.MakeMethodAsynchronous;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -21,9 +23,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.MakeMethodA
 @"using System;
 using System.Threading.Tasks;
 
-class Program 
+class Program
 {
-    public static void Test() 
+    public static void Test()
     {
         [|await Task.Delay(1);|]
     }
@@ -33,15 +35,80 @@ class Program
 @"using System;
 using System.Threading.Tasks;
 
-class Program 
+class Program
 {
-    public static async void TestAsync() 
+    public static async void TestAsync()
     {
         await Task.Delay(1);
     }
 }";
             await TestInRegularAndScriptAsync(initial, expected, index: 1);
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeMethodAsynchronous)]
+        [WorkItem(26312, "https://github.com/dotnet/roslyn/issues/26312")]
+        public async Task AwaitInTaskMainMethodWithModifiers()
+        {
+            var initial =
+@"using System;
+using System.Threading.Tasks;
+
+class Program
+{
+    public static void Main()
+    {
+        [|await Task.Delay(1);|]
+    }
+}";
+
+            var expected =
+@"using System;
+using System.Threading.Tasks;
+
+class Program
+{
+    public static async Task Main()
+    {
+        await Task.Delay(1);
+    }
+}";
+            await TestAsync(initial, expected, parseOptions: CSharpParseOptions.Default,
+                compilationOptions: new CSharpCompilationOptions(OutputKind.ConsoleApplication));
+
+            // no option offered to keep void
+            await TestActionCountAsync(initial, count: 1, new TestParameters(compilationOptions: new CSharpCompilationOptions(OutputKind.ConsoleApplication)));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeMethodAsynchronous)]
+        [WorkItem(26312, "https://github.com/dotnet/roslyn/issues/26312")]
+        public async Task AwaitInVoidMainMethodWithModifiers_NotEntryPoint()
+        {
+            var initial =
+@"using System;
+using System.Threading.Tasks;
+
+class Program
+{
+    public void Main()
+    {
+        [|await Task.Delay(1);|]
+    }
+}";
+
+            var expected =
+@"using System;
+using System.Threading.Tasks;
+
+class Program
+{
+    public async void MainAsync()
+    {
+        await Task.Delay(1);
+    }
+}";
+            await TestInRegularAndScriptAsync(initial, expected, index: 1);
+        }
+
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeMethodAsynchronous)]
         public async Task AwaitInVoidMethodWithModifiers2()
         {
@@ -598,6 +665,181 @@ class Program
     }
 }";
             await TestInRegularAndScriptAsync(initial, expected);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeMethodAsynchronous)]
+        [WorkItem(14133, "https://github.com/dotnet/roslyn/issues/14133")]
+        public async Task AddAsyncInLocalFunction()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System.Threading.Tasks;
+
+class C
+{
+    public void M1()
+    {
+        void M2()
+        {
+            [|await M3Async();|]
+        }
+    }
+
+    async Task<int> M3Async()
+    {
+        return 1;
+    }
+}",
+@"using System.Threading.Tasks;
+
+class C
+{
+    public void M1()
+    {
+        async Task M2Async()
+        {
+            await M3Async();
+        }
+    }
+
+    async Task<int> M3Async()
+    {
+        return 1;
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeMethodAsynchronous)]
+        [WorkItem(14133, "https://github.com/dotnet/roslyn/issues/14133")]
+        public async Task AddAsyncInLocalFunctionKeepVoidReturn()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System.Threading.Tasks;
+
+class C
+{
+    public void M1()
+    {
+        void M2()
+        {
+            [|await M3Async();|]
+        }
+    }
+
+    async Task<int> M3Async()
+    {
+        return 1;
+    }
+}",
+@"using System.Threading.Tasks;
+
+class C
+{
+    public void M1()
+    {
+        async void M2Async()
+        {
+            await M3Async();
+        }
+    }
+
+    async Task<int> M3Async()
+    {
+        return 1;
+    }
+}",
+index: 1);
+        }
+
+        [Theory]
+        [InlineData(0, "void", "Task")]
+        [InlineData(1, "void", "void")]
+        [InlineData(0, "int", "Task<int>")]
+        [InlineData(0, "Task", "Task")]
+        [Trait(Traits.Feature, Traits.Features.CodeActionsMakeMethodAsynchronous)]
+        [WorkItem(18307, "https://github.com/dotnet/roslyn/issues/18307")]
+        public async Task AddAsyncInLocalFunctionKeepsTrivia(int codeFixIndex, string initialReturn, string expectedReturn)
+        {
+            await TestInRegularAndScriptAsync(
+$@"using System.Threading.Tasks;
+
+class C
+{{
+    public void M1()
+    {{
+        // Leading trivia
+        /*1*/ {initialReturn} /*2*/ M2/*3*/() /*4*/
+        {{
+            [|await M3Async();|]
+        }}
+    }}
+
+    async Task<int> M3Async()
+    {{
+        return 1;
+    }}
+}}",
+$@"using System.Threading.Tasks;
+
+class C
+{{
+    public void M1()
+    {{
+        // Leading trivia
+        /*1*/ async {expectedReturn} /*2*/ M2Async/*3*/() /*4*/
+        {{
+            await M3Async();
+        }}
+    }}
+
+    async Task<int> M3Async()
+    {{
+        return 1;
+    }}
+}}",
+                index: codeFixIndex);
+        }
+
+        [Theory]
+        [InlineData("", 0, "Task")]
+        [InlineData("", 1, "void")]
+        [InlineData("public", 0, "Task")]
+        [InlineData("public", 1, "void")]
+        [Trait(Traits.Feature, Traits.Features.CodeActionsMakeMethodAsynchronous)]
+        [WorkItem(18307, "https://github.com/dotnet/roslyn/issues/18307")]
+        public async Task AddAsyncKeepsTrivia(string modifiers, int codeFixIndex, string expectedReturn)
+        {
+            await TestInRegularAndScriptAsync(
+$@"using System.Threading.Tasks;
+
+class C
+{{
+    // Leading trivia
+    {modifiers}/*1*/ void /*2*/ M2/*3*/() /*4*/
+    {{
+        [|await M3Async();|]
+    }}
+
+    async Task<int> M3Async()
+    {{
+        return 1;
+    }}
+}}",
+$@"using System.Threading.Tasks;
+
+class C
+{{
+    // Leading trivia
+    {modifiers}/*1*/ async {expectedReturn} /*2*/ M2Async/*3*/() /*4*/
+    {{
+        await M3Async();
+    }}
+
+    async Task<int> M3Async()
+    {{
+        return 1;
+    }}
+}}",
+                index: codeFixIndex);
         }
     }
 }

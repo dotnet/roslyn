@@ -177,6 +177,10 @@ namespace System
     {
     }
 
+    public class Void
+    {
+    }
+
     public class Array : Object
     {
     }
@@ -193,10 +197,10 @@ namespace System
 ";
 
             // Fine in corlib.
-            CreateCompilation(source1 + source2).VerifyDiagnostics();
+            CreateEmptyCompilation(source1 + source2).VerifyDiagnostics();
 
             // Error elsewhere.
-            CreateCompilationWithMscorlib(source2).VerifyDiagnostics(
+            CreateCompilation(source2).VerifyDiagnostics(
                 // (4,20): error CS0644: 'System.ArrayContract' cannot derive from special class 'System.Array'
                 //     internal class ArrayContract : Array
                 Diagnostic(ErrorCode.ERR_DeriveFromEnumOrValueType, "ArrayContract").WithArguments("System.ArrayContract", "System.Array"));

@@ -3,6 +3,7 @@
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Structure;
 using Microsoft.CodeAnalysis.Text;
 
@@ -100,7 +101,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Structure
                 // portion.  Also, while outlining might be ok, the Indent-Guide
                 // would look very strange for nodes like:
                 //
-                //      if (foo)
+                //      if (goo)
                 //      {
                 //      }
                 //      else

@@ -1,13 +1,13 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
-using System.Linq;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim.Framework;
 using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Roslyn.VisualStudio.CSharp.UnitTests.ProjectSystemShim
 {
+    [UseExportProvider]
     public class LifetimeTests
     {
         [WpfFact]

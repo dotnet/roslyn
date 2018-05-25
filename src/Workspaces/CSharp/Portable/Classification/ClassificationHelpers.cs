@@ -1,10 +1,10 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System.Collections.Generic;
 using System.Threading;
 using Microsoft.CodeAnalysis.Classification;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.CSharp.Classification
@@ -14,6 +14,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification
         private const string FromKeyword = "from";
         private const string ValueKeyword = "value";
         private const string VarKeyword = "var";
+        private const string UnmanagedKeyword = "unmanaged";
+        private const string DynamicKeyword = "dynamic";
         private const string AwaitKeyword = "await";
 
         /// <summary>
@@ -23,6 +25,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification
         /// <returns>The correct syntactic classification for the token.</returns>
         public static string GetClassification(SyntaxToken token)
         {
+            if (token.IsKind(SyntaxKind.DiscardDesignation, SyntaxKind.UnderscoreToken))
+            {
+                return ClassificationTypeNames.Identifier;
+            }
             if (SyntaxFacts.IsKeywordKind(token.Kind()))
             {
                 return ClassificationTypeNames.Keyword;
@@ -101,9 +107,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification
 
         private static string GetClassificationForIdentifier(SyntaxToken token)
         {
-            var typeDeclaration = token.Parent as BaseTypeDeclarationSyntax;
 
-            if (typeDeclaration != null && typeDeclaration.Identifier == token)
+            if (token.Parent is BaseTypeDeclarationSyntax typeDeclaration && typeDeclaration.Identifier == token)
             {
                 return GetClassificationForTypeDeclarationIdentifier(token);
             }
@@ -115,6 +120,44 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification
             {
                 return ClassificationTypeNames.TypeParameterName;
             }
+            else if (token.Parent is MethodDeclarationSyntax methodDeclaration && methodDeclaration.Identifier == token)
+            {
+                return IsExtensionMethod(methodDeclaration) ? ClassificationTypeNames.ExtensionMethodName : ClassificationTypeNames.MethodName;
+            }
+            else if (token.Parent is PropertyDeclarationSyntax propertyDeclaration && propertyDeclaration.Identifier == token)
+            {
+                return ClassificationTypeNames.PropertyName;
+            }
+            else if (token.Parent is EnumMemberDeclarationSyntax enumMemberDeclaration && enumMemberDeclaration.Identifier == token)
+            {
+                return ClassificationTypeNames.EnumMemberName;
+            }
+            else if (token.Parent is VariableDeclaratorSyntax variableDeclarator && variableDeclarator.Identifier == token)
+            {
+                var varDecl = variableDeclarator.Parent as VariableDeclarationSyntax;
+                switch (varDecl.Parent)
+                {
+                    case FieldDeclarationSyntax fieldDeclaration:
+                        return fieldDeclaration.Modifiers.Any(SyntaxKind.ConstKeyword) ? ClassificationTypeNames.ConstantName : ClassificationTypeNames.FieldName;
+                    case LocalDeclarationStatementSyntax localDeclarationStatement:
+                        return localDeclarationStatement.IsConst ? ClassificationTypeNames.ConstantName : ClassificationTypeNames.LocalName;
+                    case EventFieldDeclarationSyntax aventFieldDeclarationSyntax:
+                        return ClassificationTypeNames.EventName;
+                }
+                return ClassificationTypeNames.LocalName;
+            }
+            else if (token.Parent is ParameterSyntax parameterSyntax && parameterSyntax.Identifier == token)
+            {
+                return ClassificationTypeNames.ParameterName;
+            }
+            else if (token.Parent is ForEachStatementSyntax forEachStatementSyntax && forEachStatementSyntax.Identifier == token)
+            {
+                return ClassificationTypeNames.LocalName;
+            }
+            else if (token.Parent is EventDeclarationSyntax eventDeclarationSyntax && eventDeclarationSyntax.Identifier == token)
+            {
+                return ClassificationTypeNames.EventName;
+            }
             else if (IsActualContextualKeyword(token))
             {
                 return ClassificationTypeNames.Keyword;
@@ -123,6 +166,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification
             {
                 return ClassificationTypeNames.Identifier;
             }
+        }
+
+        private static bool IsExtensionMethod(MethodDeclarationSyntax methodDeclaration)
+        {
+            return methodDeclaration.ParameterList.Parameters.FirstOrDefault()?.Modifiers.Any(SyntaxKind.ThisKeyword) == true;
         }
 
         private static string GetClassificationForTypeDeclarationIdentifier(SyntaxToken identifier)
@@ -281,13 +329,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification
                             token.Parent.Parent is VariableDeclarationSyntax &&
                             !(token.Parent.Parent.Parent is FieldDeclarationSyntax) &&
                             !(token.Parent.Parent.Parent is EventFieldDeclarationSyntax);
+
+                    case UnmanagedKeyword:
+                        return token.Parent is IdentifierNameSyntax
+                            && token.Parent.Parent is TypeConstraintSyntax
+                            && token.Parent.Parent.Parent is TypeParameterConstraintClauseSyntax;
                 }
             }
 
             return false;
         }
 
-        internal static void AddLexicalClassifications(SourceText text, TextSpan textSpan, List<ClassifiedSpan> result, CancellationToken cancellationToken)
+        internal static void AddLexicalClassifications(SourceText text, TextSpan textSpan, ArrayBuilder<ClassifiedSpan> result, CancellationToken cancellationToken)
         {
             var text2 = text.ToString(textSpan);
             var tokens = SyntaxFactory.ParseTokens(text2, initialTokenPosition: textSpan.Start);
@@ -322,15 +375,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification
                 var token = SyntaxFactory.ParseToken(text);
                 if (token.Span.Length == span.Length)
                 {
-                    // var and dynamic are not contextual keywords.  They are always identifiers
+                    // var, dynamic, and unmanaged are not contextual keywords.  They are always identifiers
                     // (that we classify as keywords).  Because we are just parsing a token we don't
                     // know if we're in the right context for them to be identifiers or keywords.
                     // So, we base on decision on what they were before.  i.e. if we had a keyword
-                    // before, then assume it stays a keyword if we see 'var' or 'dynamic.
+                    // before, then assume it stays a keyword if we see 'var', 'dynamic', or 'unmanaged'.
+                    var tokenString = token.ToString();
                     var isKeyword = SyntaxFacts.IsKeywordKind(token.Kind())
                         || (wasKeyword && SyntaxFacts.GetContextualKeywordKind(text) != SyntaxKind.None)
-                        || (wasKeyword && token.ToString() == "var")
-                        || (wasKeyword && token.ToString() == "dynamic");
+                        || (wasKeyword && (tokenString == VarKeyword || tokenString == DynamicKeyword || tokenString == UnmanagedKeyword));
 
                     var isIdentifier = token.Kind() == SyntaxKind.IdentifierToken;
 

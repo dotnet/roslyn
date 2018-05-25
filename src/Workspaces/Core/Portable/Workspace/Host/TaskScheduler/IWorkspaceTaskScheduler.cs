@@ -14,24 +14,24 @@ namespace Microsoft.CodeAnalysis.Host
         /// <summary>
         /// Execute the task action on a thread owned by a task scheduler.
         /// </summary>
-        Task ScheduleTask(Action taskAction, string taskName, CancellationToken cancellationToken = default(CancellationToken));
+        Task ScheduleTask(Action taskAction, string taskName, CancellationToken cancellationToken = default);
 
         /// <summary>
         /// Execute the task function on a thread owned by a task scheduler and return the schedule
         /// task that can be used to wait for the result.
         /// </summary>
-        Task<T> ScheduleTask<T>(Func<T> taskFunc, string taskName, CancellationToken cancellationToken = default(CancellationToken));
+        Task<T> ScheduleTask<T>(Func<T> taskFunc, string taskName, CancellationToken cancellationToken = default);
 
         /// <summary>
         /// Execute the task function on a thread owned by a task scheduler and return the schedule
         /// task that can be used to wait for the result.
         /// </summary>
-        Task ScheduleTask(Func<Task> taskFunc, string taskName, CancellationToken cancellationToken = default(CancellationToken));
+        Task ScheduleTask(Func<Task> taskFunc, string taskName, CancellationToken cancellationToken = default);
 
         /// <summary>
         /// Execute the task function on a thread owned by a task scheduler and return the schedule
         /// task that can be used to wait for the result.
         /// </summary>
-        Task<T> ScheduleTask<T>(Func<Task<T>> taskFunc, string taskName, CancellationToken cancellationToken = default(CancellationToken));
+        Task<T> ScheduleTask<T>(Func<Task<T>> taskFunc, string taskName, CancellationToken cancellationToken = default);
     }
 }

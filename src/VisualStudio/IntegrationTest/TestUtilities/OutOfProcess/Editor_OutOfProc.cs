@@ -1,17 +1,17 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System.Linq;
-using System.Windows.Automation;
 using System.Collections.Generic;
+using System.Collections.Immutable;
+using System.Linq;
 using System.Threading;
 using System.Windows;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
-using System.Collections.Immutable;
-using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.Common;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.Input;
+using UIAutomationClient;
 
 namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
 {
@@ -127,11 +127,18 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
             PlaceCaret(text, charsOffset: 0, occurrence: 0, extendSelection: true, selectBlock: false);
         }
 
+        public int GetLine() => _editorInProc.GetLine();
+
+        public int GetColumn() => _editorInProc.GetColumn();
+
         public void DeleteText(string text)
         {
             SelectTextInCurrentDocument(text);
             SendKeys(VirtualKey.Delete);
         }
+
+        public void ReplaceText(string oldText, string newText)
+            => _editorInProc.ReplaceText(oldText, newText);
 
         public bool IsCaretOnScreen()
             => _editorInProc.IsCaretOnScreen();
@@ -165,7 +172,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
         public void MessageBox(string message)
             => _editorInProc.MessageBox(message);
 
-        public AutomationElement GetDialog(string dialogAutomationId)
+        public IUIAutomationElement GetDialog(string dialogAutomationId)
         {
             var dialog = DialogHelpers.GetOpenDialogById(_instance.Shell.GetHWnd(), dialogAutomationId);
             return dialog;
@@ -205,6 +212,9 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
 
         public void NavigateToSendKeys(string keys)
             => _editorInProc.SendKeysToNavigateTo(keys);
+            
+        public ClassifiedToken[] GetLightbulbPreviewClassification(string menuText) =>
+            _editorInProc.GetLightbulbPreviewClassifications(menuText);
 
         public void WaitForActiveView(string viewName)
             => _editorInProc.WaitForActiveView(viewName);
@@ -296,6 +306,12 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
         public TextSpan[] GetKeywordHighlightTags()
             => Deserialize(_editorInProc.GetHighlightTags());
 
+        public TextSpan[] GetOutliningSpans()
+        {
+            _instance.Workspace.WaitForAsyncOperations(FeatureAttribute.Outlining);
+            return Deserialize(_editorInProc.GetOutliningSpans());
+        }
+
         private TextSpan[] Deserialize(string[] v)
         {
             // returned tag looks something like 'text'[12-13]
@@ -315,5 +331,8 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
 
         public void GoToImplementation()
             => _editorInProc.GoToImplementation();
+
+        public void SendExplicitFocus()
+            => _editorInProc.SendExplicitFocus();
     }
 }

@@ -13,8 +13,8 @@ namespace Microsoft.CodeAnalysis.UnitTests
         public void TestAddSameWithStringBuilderProducesSameStringInstance()
         {
             var st = new StringTable();
-            var sb1 = new StringBuilder("foo");
-            var sb2 = new StringBuilder("foo");
+            var sb1 = new StringBuilder("goo");
+            var sb2 = new StringBuilder("goo");
             var s1 = st.Add(sb1);
             var s2 = st.Add(sb2);
             Assert.Same(s1, s2);
@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         public void TestAddDifferentWithStringBuilderProducesDifferentStringInstance()
         {
             var st = new StringTable();
-            var sb1 = new StringBuilder("foo");
+            var sb1 = new StringBuilder("goo");
             var sb2 = new StringBuilder("bar");
             var s1 = st.Add(sb1);
             var s2 = st.Add(sb2);
@@ -62,8 +62,8 @@ namespace Microsoft.CodeAnalysis.UnitTests
         [Fact]
         public void TestSharedAddSameWithStringBuilderProducesSameStringInstance()
         {
-            var sb1 = new StringBuilder("foo");
-            var sb2 = new StringBuilder("foo");
+            var sb1 = new StringBuilder("goo");
+            var sb2 = new StringBuilder("goo");
             var s1 = new StringTable().Add(sb1);
             var s2 = new StringTable().Add(sb2);
             Assert.Same(s1, s2);
@@ -117,6 +117,22 @@ namespace Microsoft.CodeAnalysis.UnitTests
             Assert.False(TestTextEqualsASCII("\u1234", "a"));
             Assert.False(TestTextEqualsASCII("\ud800", "xx"));
             Assert.False(TestTextEqualsASCII("\uffff", ""));
+        }
+
+        [Fact]
+        public void TestAddEqualSubstringsFromDifferentStringsWorks()
+        {
+            // Make neither of the strings equal to the result of the substring call
+            // to test an issue that was surfaced by pooling the wrong string.
+            var str1 = "abcd1";
+            var str2 = "abcd2";
+            var st = new StringTable();
+
+            var s1 = st.Add(str1, 0, 4);
+            var s2 = st.Add(str2, 0, 4);
+
+            Assert.Same(s1, s2);
+            Assert.Equal("abcd", s1);
         }
     }
 }

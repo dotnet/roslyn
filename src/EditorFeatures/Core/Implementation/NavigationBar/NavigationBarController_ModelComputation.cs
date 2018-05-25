@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Internal.Log;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Text;
@@ -64,7 +65,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationBar
         private async Task<NavigationBarModel> ComputeModelAsync(Document document, ITextSnapshot snapshot, CancellationToken cancellationToken)
         {
             // TODO: remove .FirstOrDefault()
-            var languageService = document.Project.LanguageServices.GetService<INavigationBarItemService>();
+            var languageService = document.GetLanguageService<INavigationBarItemService>();
             if (languageService != null)
             {
                 // check whether we can re-use lastCompletedModel. otherwise, update lastCompletedModel here.

@@ -1,17 +1,19 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <!-- Copyright (c)  Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information. -->
 <Project ToolsVersion="14.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-  <Import Project="..\..\..\..\build\Targets\Settings.props" />
+  <Import Project="..\Settings.props" />
 
   <PropertyGroup>
     <OutputArchitecture>neutral</OutputArchitecture>
     <OutputLocalized>false</OutputLocalized>
-    <OutputPath>$(OutDir)Insertion</OutputPath>
+    <OutputPath>$(OutputPath)\Vsix\PortableFacades</OutputPath>
     <IsPackage>true</IsPackage>
     <OutputType>vsix</OutputType>
+    <ImportDirectoryBuildProps>false</ImportDirectoryBuildProps>
+    <ImportDirectoryBuildTargets>false</ImportDirectoryBuildTargets>
   </PropertyGroup>
 
-  <Import Project="$(NuGetPackageRoot)\MicroBuild.Core\$(MicroBuildCoreVersion)\build\MicroBuild.Core.props" />
+  <Import Project="$(SwixBuildPath)build\MicroBuild.Plugins.*.props" />
 
   <PropertyGroup>
     <PackagePreprocessorDefinitions>$(PackagePreprocessorDefinitions);NuGetPackageRoot=$(NuGetPackageRoot)</PackagePreprocessorDefinitions>
@@ -22,5 +24,5 @@
     <Package Include="PortableFacades.swr" />
   </ItemGroup>
 
-  <Import Project="$(NuGetPackageRoot)\MicroBuild.Core\$(MicroBuildCoreVersion)\build\MicroBuild.Core.targets" />
+  <Import Project="$(SwixBuildPath)build\MicroBuild.Plugins.*.targets" />
 </Project>

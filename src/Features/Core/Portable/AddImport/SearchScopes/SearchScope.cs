@@ -7,12 +7,12 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.FindSymbols;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
+namespace Microsoft.CodeAnalysis.AddImport
 {
-    internal abstract partial class AbstractAddImportCodeFixProvider<TSimpleNameSyntax>
+    internal abstract partial class AbstractAddImportFeatureService<TSimpleNameSyntax>
     {
         /// <summary>
-        /// SearchScope is used to control where the <see cref="AbstractAddImportCodeFixProvider{TSimpleNameSyntax}"/>
+        /// SearchScope is used to control where the <see cref="AbstractAddImportFeatureService{TSimpleNameSyntax}"/>
         /// searches.  We search different scopes in different ways.  For example we use 
         /// SymbolTreeInfos to search unreferenced projects and metadata dlls.  However,
         /// for the current project we're editing we defer to the compiler to do the 
@@ -21,17 +21,17 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
         private abstract class SearchScope
         {
             public readonly bool Exact;
-            protected readonly AbstractAddImportCodeFixProvider<TSimpleNameSyntax> provider;
+            protected readonly AbstractAddImportFeatureService<TSimpleNameSyntax> provider;
             public readonly CancellationToken CancellationToken;
 
-            protected SearchScope(AbstractAddImportCodeFixProvider<TSimpleNameSyntax> provider, bool exact, CancellationToken cancellationToken)
+            protected SearchScope(AbstractAddImportFeatureService<TSimpleNameSyntax> provider, bool exact, CancellationToken cancellationToken)
             {
                 this.provider = provider;
                 Exact = exact;
                 CancellationToken = cancellationToken;
             }
 
-            protected abstract Task<ImmutableArray<ISymbol>> FindDeclarationsAsync(string name, SymbolFilter filter, SearchQuery query);
+            protected abstract Task<ImmutableArray<ISymbol>> FindDeclarationsAsync(SymbolFilter filter, SearchQuery query);
             public abstract SymbolReference CreateReference<T>(SymbolResult<T> symbol) where T : INamespaceOrTypeSymbol;
 
             public async Task<ImmutableArray<SymbolResult<ISymbol>>> FindDeclarationsAsync(
@@ -42,29 +42,34 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
                     return ImmutableArray<SymbolResult<ISymbol>>.Empty;
                 }
 
-                var query = this.Exact ? SearchQuery.Create(name, ignoreCase: true) : SearchQuery.CreateFuzzy(name);
-                var symbols = await FindDeclarationsAsync(name, filter, query).ConfigureAwait(false);
-
-                if (Exact)
+                using (var query = this.Exact ? SearchQuery.Create(name, ignoreCase: true) : SearchQuery.CreateFuzzy(name))
                 {
-                    // We did an exact, case insensitive, search.  Case sensitive matches should
-                    // be preferred though over insensitive ones.
-                    return symbols.SelectAsArray(s =>
-                        SymbolResult.Create(s.Name, nameNode, s, weight: s.Name == name ? 0 : 1));
-                }
+                    var symbols = await FindDeclarationsAsync(filter, query).ConfigureAwait(false);
 
-                // TODO(cyrusn): It's a shame we have to compute this twice.  However, there's no
-                // great way to store the original value we compute because it happens deep in the 
-                // compiler bowels when we call FindDeclarations.
-                using (var similarityChecker = new WordSimilarityChecker(name, substringsAreSimilar: false))
-                {
-                    return symbols.SelectAsArray(s =>
+                    if (Exact)
+                    {
+                        // We did an exact, case insensitive, search.  Case sensitive matches should
+                        // be preferred though over insensitive ones.
+                        return symbols.SelectAsArray(s =>
+                            SymbolResult.Create(s.Name, nameNode, s, weight: s.Name == name ? 0 : 1));
+                    }
+
+                    // TODO(cyrusn): It's a shame we have to compute this twice.  However, there's no
+                    // great way to store the original value we compute because it happens deep in the 
+                    // compiler bowels when we call FindDeclarations.
+                    var similarityChecker = WordSimilarityChecker.Allocate(name, substringsAreSimilar: false);
+
+                    var result = symbols.SelectAsArray(s =>
                     {
                         var areSimilar = similarityChecker.AreSimilar(s.Name, out var matchCost);
 
                         Debug.Assert(areSimilar);
                         return SymbolResult.Create(s.Name, nameNode, s, matchCost);
                     });
+
+                    similarityChecker.Free();
+
+                    return result;
                 }
             }
         }

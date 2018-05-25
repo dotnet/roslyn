@@ -12,7 +12,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.ExtensionMethods
 
         <Fact>
         Public Sub Test_1()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation>
     <file name="a.vb"><![CDATA[
 Option Strict Off
@@ -78,7 +78,7 @@ End Namespace
 
         <Fact>
         Public Sub Test_2()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation>
     <file name="a.vb"><![CDATA[
 Option Strict Off
@@ -136,7 +136,7 @@ End Namespace
 
         <Fact>
         Public Sub Test_3()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation>
     <file name="a.vb"><![CDATA[
 Option Strict Off
@@ -203,7 +203,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Semantics
 
         <Fact>
         Public Sub ExtensionMethodsLookupSymbols1()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation>
     <file name="a.vb"><![CDATA[
 Option Strict Off
@@ -256,7 +256,7 @@ End Namespace
 
         <Fact>
         Public Sub ExtensionMethodsLookupSymbols2()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation>
     <file name="a.vb"><![CDATA[
 Option Strict Off
@@ -306,7 +306,7 @@ End Namespace
 
         <Fact>
         Public Sub ExtensionMethodsLookupSymbols3()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation>
     <file name="a.vb">
 Imports System.Console
@@ -432,7 +432,7 @@ End Namespace
 
         <Fact>
         Public Sub ExtensionMethodsLookupSymbols4()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation>
     <file name="a.vb">
 Imports System.Console
@@ -554,7 +554,7 @@ End Namespace
 
         <Fact>
         Public Sub ExtensionMethodsLookupSymbols5()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation>
     <file name="a.vb">
 Imports System.Console
@@ -681,7 +681,7 @@ End Namespace
 
         <Fact>
         Public Sub ExtensionMethodsLookupSymbols6()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation>
     <file name="a.vb">
 Imports System.Console
@@ -806,7 +806,7 @@ End Namespace
 
         <Fact>
         Public Sub ExtensionMethodsLookupSymbols7()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation>
     <file name="a.vb">
 Imports System.Console
@@ -938,7 +938,7 @@ End Namespace
 
         <Fact>
         Public Sub ExtensionMethodsLookupSymbols8()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation>
     <file name="a.vb">
 Imports System.Console
@@ -1065,7 +1065,7 @@ End Namespace
 
         <Fact>
         Public Sub ExtensionMethodsLookupSymbols9()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation>
     <file name="a.vb">
 Imports System.Console
@@ -1185,7 +1185,7 @@ End Namespace
 
         <Fact>
         Public Sub ExtensionMethodsLookupSymbols10()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation>
     <file name="a.vb">
 Imports System.Console
@@ -1303,7 +1303,7 @@ End Namespace
 
         <Fact>
         Public Sub Bug8942_1()
-            Dim compilation = CreateCompilationWithMscorlib(
+            Dim compilation = CreateCompilationWithMscorlib40(
 <compilation>
     <file name="a.vb">
 Imports System
@@ -1311,14 +1311,14 @@ Imports System.Runtime.CompilerServices
 
 Module M
     &lt;Extension()&gt;
-    Sub Foo(x As Exception)
+    Sub Goo(x As Exception)
     End Sub
 End Module
 
 Class E
     Inherits Exception
     Sub Bar()
-        Me.Foo() 'BIND:"Foo"
+        Me.Goo() 'BIND:"Goo"
     End Sub
 End Class
 
@@ -1339,20 +1339,20 @@ End Namespace
             Assert.Null(semanticInfo.ConvertedType)
             Assert.Equal(ConversionKind.Identity, semanticInfo.ImplicitConversion.Kind)
 
-            Assert.Equal("Sub System.Exception.Foo()", semanticInfo.Symbol.ToTestDisplayString())
+            Assert.Equal("Sub System.Exception.Goo()", semanticInfo.Symbol.ToTestDisplayString())
             Assert.Equal(SymbolKind.Method, semanticInfo.Symbol.Kind)
             Assert.Equal(0, semanticInfo.CandidateSymbols.Length)
 
             Assert.Equal(1, semanticInfo.MemberGroup.Length)
             Dim sortedMethodGroup = semanticInfo.MemberGroup.AsEnumerable().OrderBy(Function(s) s.ToTestDisplayString()).ToArray()
-            Assert.Equal("Sub System.Exception.Foo()", sortedMethodGroup(0).ToTestDisplayString())
+            Assert.Equal("Sub System.Exception.Goo()", sortedMethodGroup(0).ToTestDisplayString())
 
             Assert.False(semanticInfo.ConstantValue.HasValue)
         End Sub
 
         <Fact>
         Public Sub Bug8942_2()
-            Dim compilation = CreateCompilationWithMscorlib(
+            Dim compilation = CreateCompilationWithMscorlib40(
 <compilation>
     <file name="a.vb">
 Imports System
@@ -1360,14 +1360,14 @@ Imports System.Runtime.CompilerServices
 
 Module M
     &lt;Extension()&gt;
-    Sub Foo(x As Exception)
+    Sub Goo(x As Exception)
     End Sub
 End Module
 
 Class E
     Inherits Exception
     Sub Bar()
-        Foo() 'BIND:"Foo"
+        Goo() 'BIND:"Goo"
     End Sub
 End Class
 
@@ -1388,13 +1388,13 @@ End Namespace
             Assert.Null(semanticInfo.ConvertedType)
             Assert.Equal(ConversionKind.Identity, semanticInfo.ImplicitConversion.Kind)
 
-            Assert.Equal("Sub System.Exception.Foo()", semanticInfo.Symbol.ToTestDisplayString())
+            Assert.Equal("Sub System.Exception.Goo()", semanticInfo.Symbol.ToTestDisplayString())
             Assert.Equal(SymbolKind.Method, semanticInfo.Symbol.Kind)
             Assert.Equal(0, semanticInfo.CandidateSymbols.Length)
 
             Assert.Equal(1, semanticInfo.MemberGroup.Length)
             Dim sortedMethodGroup = semanticInfo.MemberGroup.AsEnumerable().OrderBy(Function(s) s.ToTestDisplayString()).ToArray()
-            Assert.Equal("Sub System.Exception.Foo()", sortedMethodGroup(0).ToTestDisplayString())
+            Assert.Equal("Sub System.Exception.Goo()", sortedMethodGroup(0).ToTestDisplayString())
 
             Assert.False(semanticInfo.ConstantValue.HasValue)
         End Sub
@@ -1402,7 +1402,7 @@ End Namespace
         <WorkItem(544933, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544933")>
         <Fact>
         Public Sub LookupSymbolsGenericExtensionMethodWithConstraints()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(
 <compilation>
     <file name="a.vb"><![CDATA[
 Imports System.Runtime.CompilerServices
@@ -1446,7 +1446,7 @@ BC30456: 'F' is not a member of 'B'.
 
         <Fact, WorkItem(963125, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/963125")>
         Public Sub Bug963125()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
     <file name="a.vb">
 Imports alias2 = System

@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Generic;
 using System.Linq;
@@ -13,18 +13,23 @@ namespace Microsoft.CodeAnalysis.CSharp.OrganizeImports
         private class Rewriter : CSharpSyntaxRewriter
         {
             private readonly bool _placeSystemNamespaceFirst;
+            private readonly bool _separateGroups;
+
             public readonly IList<TextChange> TextChanges = new List<TextChange>();
 
-            public Rewriter(bool placeSystemNamespaceFirst)
+            public Rewriter(bool placeSystemNamespaceFirst,
+                            bool separateGroups)
             {
                 _placeSystemNamespaceFirst = placeSystemNamespaceFirst;
+                _separateGroups = separateGroups;
             }
 
             public override SyntaxNode VisitCompilationUnit(CompilationUnitSyntax node)
             {
                 node = (CompilationUnitSyntax)base.VisitCompilationUnit(node);
                 UsingsAndExternAliasesOrganizer.Organize(
-                    node.Externs, node.Usings, _placeSystemNamespaceFirst,
+                    node.Externs, node.Usings,
+                    _placeSystemNamespaceFirst, _separateGroups,
                     out var organizedExternAliasList, out var organizedUsingList);
 
                 var result = node.WithExterns(organizedExternAliasList).WithUsings(organizedUsingList);
@@ -41,7 +46,8 @@ namespace Microsoft.CodeAnalysis.CSharp.OrganizeImports
             {
                 node = (NamespaceDeclarationSyntax)base.VisitNamespaceDeclaration(node);
                 UsingsAndExternAliasesOrganizer.Organize(
-                    node.Externs, node.Usings, _placeSystemNamespaceFirst,
+                    node.Externs, node.Usings,
+                    _placeSystemNamespaceFirst, _separateGroups,
                     out var organizedExternAliasList, out var organizedUsingList);
 
                 var result = node.WithExterns(organizedExternAliasList).WithUsings(organizedUsingList);

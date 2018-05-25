@@ -8,6 +8,7 @@ using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
@@ -47,19 +48,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public abstract ImmutableArray<TypeParameterSymbol> TypeParameters { get; }
 
         /// <summary>
-        /// Returns the type arguments that have been substituted for the type parameters. 
-        /// If nothing has been substituted for a give type parameters,
-        /// then the type parameter itself is consider the type argument.
-        /// </summary>
-        public ImmutableArray<TypeSymbol> TypeArguments
-        {
-            get
-            {
-                return TypeArgumentsNoUseSiteDiagnostics;
-            }
-        }
-
-        /// <summary>
         /// Returns custom modifiers for the type argument that has been substituted for the type parameter. 
         /// The modifiers correspond to the type argument at the same ordinal within the <see cref="TypeArgumentsNoUseSiteDiagnostics"/>
         /// array.
@@ -78,6 +66,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal abstract bool HasTypeArgumentsCustomModifiers { get; }
 
+        /// <summary>
+        /// Returns the type arguments that have been substituted for the type parameters. 
+        /// If nothing has been substituted for a give type parameters,
+        /// then the type parameter itself is consider the type argument.
+        /// </summary>
         internal abstract ImmutableArray<TypeSymbol> TypeArgumentsNoUseSiteDiagnostics { get; }
 
         internal ImmutableArray<TypeSymbol> TypeArgumentsWithDefinitionUseSiteDiagnostics(ref HashSet<DiagnosticInfo> useSiteDiagnostics)
@@ -374,6 +367,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     if (method.IsExtensionMethod &&
                         ((options & LookupOptions.AllMethodsOnArityZero) != 0 || arity == method.Arity))
                     {
+                        var thisParam = method.Parameters.First();
+
+                        if ((thisParam.RefKind == RefKind.Ref && !thisParam.Type.IsValueType) ||
+                            (thisParam.RefKind == RefKind.In && thisParam.Type.TypeKind != TypeKind.Struct))
+                        {
+                            // For ref and ref-readonly extension methods, receivers need to be of the correct types to be considered in lookup
+                            continue;
+                        }
+
                         Debug.Assert(method.MethodKind != MethodKind.ReducedExtension);
                         methods.Add(method);
                     }
@@ -824,6 +826,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return this.ConstructUnboundGenericType();
         }
 
+        /// <summary>
+        /// Gets a value indicating whether this type has an EmbeddedAttribute or not.
+        /// </summary>
+        internal abstract bool HasCodeAnalysisEmbeddedAttribute { get; }
+
         internal static readonly Func<TypeWithModifiers, bool> TypeSymbolIsNullFunction = type => (object)type.Type == null;
 
         internal static readonly Func<TypeWithModifiers, bool> TypeSymbolIsErrorType = type => (object)type.Type != null && type.Type.IsErrorType();
@@ -912,7 +919,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         /// <summary>
         /// True if this is a reference to an <em>unbound</em> generic type.  These occur only
-        /// within a <code>typeof</code> expression.  A generic type is considered <em>unbound</em>
+        /// within a <c>typeof</c> expression.  A generic type is considered <em>unbound</em>
         /// if all of the type argument lists in its fully qualified name are empty.
         /// Note that the type arguments of an unbound generic type will be returned as error
         /// types because they do not really have type arguments.  An unbound generic type
@@ -1125,10 +1132,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // problems with constraints. We recurse into type *arguments* in the overload
             // in ConstructedNamedTypeSymbol.
             //
-            // When we are binding a name with a nested type, Foo.Bar, then we ask for
-            // use-site errors to be reported on both Foo and Foo.Bar. Therefore we should
+            // When we are binding a name with a nested type, Goo.Bar, then we ask for
+            // use-site errors to be reported on both Goo and Goo.Bar. Therefore we should
             // not recurse into the containing type here; doing so will result in errors
-            // being reported twice if Foo is bad.
+            // being reported twice if Goo is bad.
 
             var @base = this.BaseTypeNoUseSiteDiagnostics;
             if ((object)@base != null && @base.GetUnificationUseSiteDiagnosticRecursive(ref result, owner, ref checkedTypes))
@@ -1143,7 +1150,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         #endregion
 
         /// <summary>
-        /// True if the type itself is excluded from code covarage instrumentation.
+        /// True if the type itself is excluded from code coverage instrumentation.
         /// True for source types marked with <see cref="AttributeDescription.ExcludeFromCodeCoverageAttribute"/>.
         /// </summary>
         internal virtual bool IsDirectlyExcludedFromCodeCoverage { get => false; }
@@ -1202,7 +1209,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// <summary>
         /// True if the type is serializable (has Serializable metadata flag).
         /// </summary>
-        internal abstract bool IsSerializable { get; }
+        public abstract bool IsSerializable { get; }
 
         /// <summary>
         /// Type layout information (ClassLayout metadata and layout kind flags).

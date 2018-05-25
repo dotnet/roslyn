@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections;
 using System.Collections.Generic;
@@ -8,6 +8,7 @@ using System.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Internal.Log;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.VisualStudio.Language.Intellisense;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
 using Microsoft.VisualStudio.Shell;
@@ -73,7 +74,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
                 // The set of AnalyzerItems hasn't been realized yet. Just signal that HasItems
                 // may have changed.
 
-                NotifyPropertyChanged("HasItems");
+                NotifyPropertyChanged(nameof(HasItems));
                 return;
             }
 
@@ -114,7 +115,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
 
                 _analyzerItems.EndBulkOperation();
 
-                NotifyPropertyChanged("HasItems");
+                NotifyPropertyChanged(nameof(HasItems));
             }
         }
 
@@ -185,8 +186,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
 
         private ImmutableHashSet<string> GetAnalyzersWithLoadErrors()
         {
-            var vsWorkspace = _analyzersFolder.Workspace as VisualStudioWorkspaceImpl;
-            if (vsWorkspace != null)
+            if (_analyzersFolder.Workspace is VisualStudioWorkspaceImpl vsWorkspace)
             {
                 var vsProject = vsWorkspace.DeferredState?.ProjectTracker.GetProject(_analyzersFolder.ProjectId);
                 var vsAnalyzersMap = vsProject?.GetProjectAnalyzersMap();

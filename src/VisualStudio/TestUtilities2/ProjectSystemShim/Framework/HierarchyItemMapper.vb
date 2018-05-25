@@ -1,4 +1,4 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
@@ -15,7 +15,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim.Fr
             _tracker = projectTracker
         End Sub
 
-        Public Function TryGetProjectId(hierarchyItem As IVsHierarchyItem, ByRef projectId As ProjectId) As Boolean Implements IHierarchyItemToProjectIdMap.TryGetProjectId
+        Public Function TryGetProjectId(hierarchyItem As IVsHierarchyItem, targetFrameworkMoniker As String, ByRef projectId As ProjectId) As Boolean Implements IHierarchyItemToProjectIdMap.TryGetProjectId
 
             Dim project = _tracker.ImmutableProjects.
                 Where(Function(p) p.Hierarchy Is hierarchyItem.HierarchyIdentity.NestedHierarchy).

@@ -1,7 +1,8 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis
+Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Roslyn.Test.Utilities
 
 Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel.CSharp
@@ -16,7 +17,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel.CSharp
 <Code>
 class C
 {
-    int $$foo;
+    int $$goo;
 }
 </Code>
 
@@ -49,7 +50,7 @@ class C
 <Code>
 enum E
 {
-    $$Foo
+    $$Goo
 }
 </Code>
 
@@ -86,7 +87,7 @@ enum E
 <Code>
 class C
 {
-    int $$foo;
+    int $$goo;
 }
 </Code>
 
@@ -119,7 +120,7 @@ class C
 <Code>
 enum E
 {
-    $$Foo
+    $$Goo
 }
 </Code>
 
@@ -234,7 +235,7 @@ class C
 <Code>
 enum E
 {
-    $$Foo
+    $$Goo
 }
 </Code>
 
@@ -251,7 +252,7 @@ enum E
 <Code>
 class C
 {
-    int $$Foo;
+    int $$Goo;
 }
 </Code>
 
@@ -267,7 +268,7 @@ using System;
 class C
 {
     [Serializable]
-    int $$Foo;
+    int $$Goo;
 }
 </Code>
 
@@ -283,7 +284,7 @@ class C
 {
     [Serializable]
     [CLSCompliant(true)]
-    int $$Foo;
+    int $$Goo;
 }
 </Code>
 
@@ -298,7 +299,7 @@ class C
 class C
 {
     [Serializable, CLSCompliant(true)]
-    int $$Foo;
+    int $$Goo;
 }
 </Code>
 
@@ -399,7 +400,7 @@ class C
 <Code>
 enum E
 {
-    $$Foo
+    $$Goo
 }
 </Code>
 
@@ -468,12 +469,12 @@ class C
 <Code>
 enum E
 {
-    $$Foo = 1,
+    $$Goo = 1,
     Bar
 }
 </Code>
 
-            TestFullName(code, "E.Foo")
+            TestFullName(code, "E.Goo")
         End Sub
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -482,7 +483,7 @@ enum E
 <Code>
 enum E
 {
-    Foo = 1,
+    Goo = 1,
     $$Bar
 }
 </Code>
@@ -543,7 +544,7 @@ enum E
 <Code>
 enum E
 {
-    $$Foo
+    $$Goo
 }
 </Code>
 
@@ -629,12 +630,12 @@ class C
 <Code>
 enum E
 {
-    $$Foo = 1,
+    $$Goo = 1,
     Bar
 }
 </Code>
 
-            TestName(code, "Foo")
+            TestName(code, "Goo")
         End Sub
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -643,7 +644,7 @@ enum E
 <Code>
 enum E
 {
-    Foo = 1,
+    Goo = 1,
     $$Bar
 }
 </Code>
@@ -838,7 +839,7 @@ class C
 <Code>
 enum E
 {
-    $$Foo
+    $$Goo
 }
 </Code>
 
@@ -846,7 +847,7 @@ enum E
 <Code>
 enum E
 {
-    Foo
+    Goo
 }
 </Code>
 
@@ -859,7 +860,7 @@ enum E
 <Code>
 enum E
 {
-    $$Foo
+    $$Goo
 }
 </Code>
 
@@ -867,7 +868,7 @@ enum E
 <Code>
 enum E
 {
-    Foo
+    Goo
 }
 </Code>
 
@@ -880,7 +881,7 @@ enum E
 <Code>
 enum E
 {
-    $$Foo
+    $$Goo
 }
 </Code>
 
@@ -888,7 +889,7 @@ enum E
 <Code>
 enum E
 {
-    Foo
+    Goo
 }
 </Code>
 
@@ -1006,7 +1007,7 @@ class C
 <Code>
 class C
 {
-    #region Foo
+    #region Goo
     
     int x;
 
@@ -1020,7 +1021,7 @@ class C
 <Code>
 class C
 {
-    #region Foo
+    #region Goo
     
     int x;
 
@@ -1039,7 +1040,7 @@ class C
 <Code>
 class C
 {
-    #region Foo
+    #region Goo
     
     int x;
 
@@ -1053,7 +1054,7 @@ class C
 <Code>
 class C
 {
-    #region Foo
+    #region Goo
     
     int x;
 
@@ -1072,7 +1073,7 @@ class C
 <Code>
 class C
 {
-    #region Foo
+    #region Goo
     
     int x;
 
@@ -1086,7 +1087,7 @@ class C
 <Code>
 class C
 {
-    #region Foo
+    #region Goo
     
     int x;
 
@@ -1105,7 +1106,7 @@ class C
 <Code>
 class C
 {
-    #region Foo
+    #region Goo
 
     int $$x;
 
@@ -1117,7 +1118,7 @@ class C
 <Code>
 class C
 {
-    #region Foo
+    #region Goo
 
     public int x;
 
@@ -1134,7 +1135,7 @@ class C
 <Code>
 class C
 {
-    #region Foo
+    #region Goo
 
     public int $$x;
 
@@ -1146,7 +1147,7 @@ class C
 <Code>
 class C
 {
-    #region Foo
+    #region Goo
 
     int x;
 
@@ -1163,7 +1164,7 @@ class C
 <Code>
 class C
 {
-    #region Foo
+    #region Goo
 
     public int $$x;
 
@@ -1175,7 +1176,7 @@ class C
 <Code>
 class C
 {
-    #region Foo
+    #region Goo
 
     protected internal int x;
 
@@ -1192,9 +1193,9 @@ class C
 <Code>
 class C
 {
-    #region Foo
+    #region Goo
 
-    [Foo]
+    [Goo]
     public int $$x;
 
     #endregion
@@ -1205,9 +1206,9 @@ class C
 <Code>
 class C
 {
-    #region Foo
+    #region Goo
 
-    [Foo]
+    [Goo]
     protected internal int x;
 
     #endregion
@@ -1223,7 +1224,7 @@ class C
 <Code>
 class C
 {
-    #region Foo
+    #region Goo
 
     // Comment comment comment
     public int $$x;
@@ -1236,7 +1237,7 @@ class C
 <Code>
 class C
 {
-    #region Foo
+    #region Goo
 
     // Comment comment comment
     protected internal int x;
@@ -1254,7 +1255,7 @@ class C
 <Code><![CDATA[
 class C
 {
-    #region Foo
+    #region Goo
 
     /// <summary>
     /// Comment comment comment
@@ -1269,7 +1270,7 @@ class C
 <Code><![CDATA[
 class C
 {
-    #region Foo
+    #region Goo
 
     /// <summary>
     /// Comment comment comment
@@ -1293,7 +1294,7 @@ class C
 <Code>
 enum E
 {
-    $$Foo
+    $$Goo
 }
 </Code>
 
@@ -1301,7 +1302,7 @@ enum E
 <Code>
 enum E
 {
-    Foo
+    Goo
 }
 </Code>
 
@@ -1314,7 +1315,7 @@ enum E
 <Code>
 enum E
 {
-    $$Foo
+    $$Goo
 }
 </Code>
 
@@ -1322,7 +1323,7 @@ enum E
 <Code>
 enum E
 {
-    Foo
+    Goo
 }
 </Code>
 
@@ -1335,7 +1336,7 @@ enum E
 <Code>
 enum E
 {
-    $$Foo
+    $$Goo
 }
 </Code>
 
@@ -1343,7 +1344,7 @@ enum E
 <Code>
 enum E
 {
-    Foo
+    Goo
 }
 </Code>
 
@@ -1654,7 +1655,7 @@ class C
 <Code>
 enum E
 {
-    $$Foo
+    $$Goo
 }
 </Code>
 
@@ -1662,7 +1663,7 @@ enum E
 <Code>
 enum E
 {
-    Foo = 42
+    Goo = 42
 }
 </Code>
 
@@ -1675,7 +1676,7 @@ enum E
 <Code>
 enum E
 {
-    $$Foo = 42
+    $$Goo = 42
 }
 </Code>
 
@@ -1683,7 +1684,7 @@ enum E
 <Code>
 enum E
 {
-    Foo
+    Goo
 }
 </Code>
 
@@ -1700,7 +1701,7 @@ enum E
 <Code>
 enum E
 {
-    $$Foo
+    $$Goo
 }
 </Code>
 
@@ -1708,7 +1709,7 @@ enum E
 <Code>
 enum E
 {
-    Foo
+    Goo
 }
 </Code>
 
@@ -1721,7 +1722,7 @@ enum E
 <Code>
 enum E
 {
-    $$Foo
+    $$Goo
 }
 </Code>
 
@@ -1729,7 +1730,7 @@ enum E
 <Code>
 enum E
 {
-    Foo
+    Goo
 }
 </Code>
 
@@ -1918,7 +1919,7 @@ class C
 <Code>
 class C
 {
-    int $$Foo;
+    int $$Goo;
 }
 </Code>
 
@@ -1939,8 +1940,8 @@ class C
 <Code>
 class C
 {
-    #region Foo
-    int $$Foo;
+    #region Goo
+    int $$Goo;
     #endregion
 }
 </Code>
@@ -1949,7 +1950,7 @@ class C
 <Code>
 class C
 {
-    #region Foo
+    #region Goo
     int Bar;
     #endregion
 }

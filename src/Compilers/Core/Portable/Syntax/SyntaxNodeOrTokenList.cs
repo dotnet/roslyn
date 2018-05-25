@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
+using Microsoft.CodeAnalysis.Syntax;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
@@ -14,7 +15,7 @@ namespace Microsoft.CodeAnalysis
     /// <summary>
     /// A list of <see cref="SyntaxNodeOrToken"/> structures.
     /// </summary>
-    public struct SyntaxNodeOrTokenList : IEquatable<SyntaxNodeOrTokenList>, IReadOnlyCollection<SyntaxNodeOrToken>
+    public readonly struct SyntaxNodeOrTokenList : IEquatable<SyntaxNodeOrTokenList>, IReadOnlyCollection<SyntaxNodeOrToken>
     {
         /// <summary>
         /// The underlying field
@@ -40,6 +41,36 @@ namespace Microsoft.CodeAnalysis
                 _node = node;
                 this.index = index;
             }
+        }
+
+        /// <summary>
+        /// Create a <see cref="SyntaxNodeOrTokenList"/> from a sequence of <see cref="SyntaxNodeOrToken"/>.
+        /// </summary>
+        /// <param name="nodesAndTokens">The sequence of nodes and tokens</param>
+        public SyntaxNodeOrTokenList(IEnumerable<SyntaxNodeOrToken> nodesAndTokens)
+            : this(CreateNode(nodesAndTokens), 0)
+        {
+        }
+
+        /// <summary>
+        /// Create a <see cref="SyntaxNodeOrTokenList"/> from one or more <see cref="SyntaxNodeOrToken"/>.
+        /// </summary>
+        /// <param name="nodesAndTokens">The nodes and tokens</param>
+        public SyntaxNodeOrTokenList(params SyntaxNodeOrToken[] nodesAndTokens)
+            : this((IEnumerable<SyntaxNodeOrToken>)nodesAndTokens)
+        {
+        }
+
+        private static SyntaxNode CreateNode(IEnumerable<SyntaxNodeOrToken> nodesAndTokens)
+        {
+            if (nodesAndTokens == null)
+            {
+                throw new ArgumentNullException(nameof(nodesAndTokens));
+            }
+
+            var builder = new SyntaxNodeOrTokenListBuilder(8);
+            builder.Add(nodesAndTokens);
+            return builder.ToList().Node;
         }
 
         /// <summary>
@@ -469,7 +500,7 @@ namespace Microsoft.CodeAnalysis
             private SyntaxNodeOrTokenList _list;
             private int _index;
 
-            internal Enumerator(SyntaxNodeOrTokenList list)
+            internal Enumerator(in SyntaxNodeOrTokenList list)
                 : this()
             {
                 _list = list;

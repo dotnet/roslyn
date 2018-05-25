@@ -130,24 +130,23 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 PrintReferences(resolvedReferences, consoleOutput)
             End If
 
-            Dim strongNameProvider = New LoggingStrongNameProvider(Arguments.KeyFileSearchPaths, touchedFilesLogger, _tempDirectory)
             Dim xmlFileResolver = New LoggingXmlFileResolver(Arguments.BaseDirectory, touchedFilesLogger)
 
             ' TODO: support for #load search paths
             Dim sourceFileResolver = New LoggingSourceFileResolver(ImmutableArray(Of String).Empty, Arguments.BaseDirectory, Arguments.PathMap, touchedFilesLogger)
 
-            Dim result = VisualBasicCompilation.Create(
+            Dim loggingFileSystem = New LoggingStrongNameFileSystem(touchedFilesLogger)
+
+            Return VisualBasicCompilation.Create(
                  Arguments.CompilationName,
                  trees,
                  resolvedReferences,
                  Arguments.CompilationOptions.
                      WithMetadataReferenceResolver(referenceDirectiveResolver).
                      WithAssemblyIdentityComparer(assemblyIdentityComparer).
-                     WithStrongNameProvider(strongNameProvider).
                      WithXmlReferenceResolver(xmlFileResolver).
+                     WithStrongNameProvider(Arguments.GetStrongNameProvider(loggingFileSystem, _tempDirectory)).
                      WithSourceReferenceResolver(sourceFileResolver))
-
-            Return result
         End Function
 
         Private Sub PrintReferences(resolvedReferences As List(Of MetadataReference), consoleOutput As TextWriter)
@@ -203,6 +202,22 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             consoleOutput.WriteLine(ErrorFactory.IdToString(ERRID.IDS_VBCHelp, Culture))
         End Sub
 
+        Public Overrides Sub PrintLangVersions(consoleOutput As TextWriter)
+            consoleOutput.WriteLine(ErrorFactory.IdToString(ERRID.IDS_LangVersions, Culture))
+            Dim defaultVersion = LanguageVersion.Default.MapSpecifiedToEffectiveVersion()
+            Dim latestVersion = LanguageVersion.Latest.MapSpecifiedToEffectiveVersion()
+            For Each v As LanguageVersion In System.Enum.GetValues(GetType(LanguageVersion))
+                If v = defaultVersion Then
+                    consoleOutput.WriteLine($"{v.ToDisplayString()} (default)")
+                ElseIf v = latestVersion Then
+                    consoleOutput.WriteLine($"{v.ToDisplayString()} (latest)")
+                Else
+                    consoleOutput.WriteLine(v.ToDisplayString())
+                End If
+            Next
+            consoleOutput.WriteLine()
+        End Sub
+
         Protected Overrides Function TryGetCompilerDiagnosticCode(diagnosticId As String, ByRef code As UInteger) As Boolean
             Return CommonCompiler.TryGetCompilerDiagnosticCode(diagnosticId, "BC", code)
         End Function
@@ -217,7 +232,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             tree As SyntaxTree,
             resolver As SourceReferenceResolver,
             embeddedFiles As OrderedSet(Of String),
-            diagnostics As IList(Of Diagnostic))
+            diagnostics As DiagnosticBag)
 
             For Each directive As ExternalSourceDirectiveTriviaSyntax In tree.GetRoot().GetDirectives(
                 Function(d) d.Kind() = SyntaxKind.ExternalSourceDirectiveTrivia)

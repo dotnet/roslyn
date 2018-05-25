@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using Microsoft.CodeAnalysis.Text;
 
@@ -72,13 +72,13 @@ namespace Microsoft.CodeAnalysis.Structure
             => With(isCollapsible: isCollapsible);
 
         internal BlockSpan With(
-            Optional<bool> isCollapsible = default(Optional<bool>),
-            Optional<TextSpan> textSpan = default(Optional<TextSpan>),
-            Optional<TextSpan> hintSpan = default(Optional<TextSpan>),
-            Optional<string> type = default(Optional<string>),
-            Optional<string> bannerText = default(Optional<string>),
-            Optional<bool> autoCollapse = default(Optional<bool>),
-            Optional<bool> isDefaultCollapsed = default(Optional<bool>))
+            Optional<bool> isCollapsible = default,
+            Optional<TextSpan> textSpan = default,
+            Optional<TextSpan> hintSpan = default,
+            Optional<string> type = default,
+            Optional<string> bannerText = default,
+            Optional<bool> autoCollapse = default,
+            Optional<bool> isDefaultCollapsed = default)
         {
             var newIsCollapsible = isCollapsible.HasValue ? isCollapsible.Value : IsCollapsible;
             var newTextSpan = textSpan.HasValue ? textSpan.Value : TextSpan;

@@ -1,4 +1,4 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Composition
 Imports Microsoft.CodeAnalysis.Editor.GoToDefinition
@@ -15,9 +15,5 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.GoToDefinition
         Public Sub New(<ImportMany> streamingPresenters As IEnumerable(Of Lazy(Of IStreamingFindUsagesPresenter)))
             MyBase.New(streamingPresenters)
         End Sub
-
-        Protected Overrides Function FindRelatedExplicitlyDeclaredSymbol(symbol As ISymbol, compilation As Compilation) As ISymbol
-            Return symbol.FindRelatedExplicitlyDeclaredSymbol(compilation)
-        End Function
     End Class
 End Namespace

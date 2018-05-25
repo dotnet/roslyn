@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 using System.Diagnostics;
 using System.Linq;
@@ -48,7 +49,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     if (map.ContainsKey(key))
                     {
-#if DEBUG && PATTERNS_FIXED
+#if DEBUG
                         // It's possible that AddToMap was previously called with a subtree of root.  If this is the case,
                         // then we'll see an entry in the map.  Since the incremental binder should also have seen the
                         // pre-existing map entry, the entry in addition map should be identical.
@@ -84,7 +85,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                     Debug.Assert(
                                         ((BoundTypeExpression)existing[i]).Type == ((BoundTypeOrValueExpression)added[i]).Type,
                                         string.Format(
-                                            CultureInfo.InvariantCulture,
+                                            System.Globalization.CultureInfo.InvariantCulture,
                                             "((BoundTypeExpression)existing[{0}]).Type == ((BoundTypeOrValueExpression)added[{0}]).Type", i));
                                 }
                                 else if (existing[i].Kind == BoundKind.TypeOrValueExpression && added[i].Kind == BoundKind.TypeExpression)
@@ -92,7 +93,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                     Debug.Assert(
                                         ((BoundTypeOrValueExpression)existing[i]).Type == ((BoundTypeExpression)added[i]).Type,
                                         string.Format(
-                                            CultureInfo.InvariantCulture,
+                                            System.Globalization.CultureInfo.InvariantCulture,
                                             "((BoundTypeOrValueExpression)existing[{0}]).Type == ((BoundTypeExpression)added[{0}]).Type", i));
                                 }
                                 else
@@ -105,7 +106,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 Debug.Assert(
                                     (object)existing[i] == added[i] || !(key is StatementSyntax),
                                     string.Format(
-                                        CultureInfo.InvariantCulture,
+                                        System.Globalization.CultureInfo.InvariantCulture,
                                         "(object)existing[{0}] == added[{0}] || !(key is StatementSyntax)", i));
                             }
                         }
@@ -223,13 +224,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             /// <param name="currentBoundNode">The bound node.</param>
             private bool ShouldAddNode(BoundNode currentBoundNode)
             {
-                BoundBlock block;
-
                 // Do not add compiler generated nodes.
-                if (currentBoundNode.WasCompilerGenerated &&
-                    (currentBoundNode.Kind != BoundKind.Block ||
-                     (block = (BoundBlock)currentBoundNode).Statements.Length != 1 ||
-                     block.Statements.Single().WasCompilerGenerated))
+                if (currentBoundNode.WasCompilerGenerated)
                 {
                     return false;
                 }
@@ -250,9 +246,22 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return null;
             }
 
+            public override BoundNode VisitRangeVariable(BoundRangeVariable node)
+            {
+                return null;
+            }
+
             public override BoundNode VisitBinaryOperator(BoundBinaryOperator node)
             {
                 throw ExceptionUtilities.Unreachable;
+            }
+
+            public override BoundNode VisitTupleBinaryOperator(BoundTupleBinaryOperator node)
+            {
+                // We skip the unconverted left and right, they are only meant for lowering
+                this.Visit(node.ConvertedLeft);
+                this.Visit(node.ConvertedRight);
+                return null;
             }
 
             protected override bool ConvertInsufficientExecutionStackExceptionToCancelledByStackGuardException()

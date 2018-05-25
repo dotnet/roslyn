@@ -30,8 +30,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                 return;
             }
 
-            var block = node as BlockSyntax;
-            if (block != null)
+            if (node is BlockSyntax block)
             {
                 // if it is not nested block, then its anchor will be first token that this block is
                 // associated with. otherwise, "{" of block is the anchor token its children would follow
@@ -49,46 +48,26 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                 }
             }
 
-            var statement = node as StatementSyntax;
-            if (statement != null)
+            switch (node)
             {
-                AddAnchorIndentationOperation(list, statement);
-                return;
-            }
-
-            var usingNode = node as UsingDirectiveSyntax;
-            if (usingNode != null)
-            {
-                AddAnchorIndentationOperation(list, usingNode);
-                return;
-            }
-
-            var namespaceNode = node as NamespaceDeclarationSyntax;
-            if (namespaceNode != null)
-            {
-                AddAnchorIndentationOperation(list, namespaceNode);
-                return;
-            }
-
-            var typeNode = node as TypeDeclarationSyntax;
-            if (typeNode != null)
-            {
-                AddAnchorIndentationOperation(list, typeNode);
-                return;
-            }
-
-            var memberDeclNode = node as MemberDeclarationSyntax;
-            if (memberDeclNode != null)
-            {
-                AddAnchorIndentationOperation(list, memberDeclNode);
-                return;
-            }
-
-            var accessorDeclNode = node as AccessorDeclarationSyntax;
-            if (accessorDeclNode != null)
-            {
-                AddAnchorIndentationOperation(list, accessorDeclNode);
-                return;
+                case StatementSyntax statement:
+                    AddAnchorIndentationOperation(list, statement);
+                    return;
+                case UsingDirectiveSyntax usingNode:
+                    AddAnchorIndentationOperation(list, usingNode);
+                    return;
+                case NamespaceDeclarationSyntax namespaceNode:
+                    AddAnchorIndentationOperation(list, namespaceNode);
+                    return;
+                case TypeDeclarationSyntax typeNode:
+                    AddAnchorIndentationOperation(list, typeNode);
+                    return;
+                case MemberDeclarationSyntax memberDeclNode:
+                    AddAnchorIndentationOperation(list, memberDeclNode);
+                    return;
+                case AccessorDeclarationSyntax accessorDeclNode:
+                    AddAnchorIndentationOperation(list, accessorDeclNode);
+                    return;
             }
         }
 

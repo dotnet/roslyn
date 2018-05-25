@@ -24,27 +24,13 @@
           <Interface Name="IDkmModuleModifiedNotification"/>
           <Interface Name="IDkmModuleInstanceUnloadNotification"/>
         </InterfaceGroup>
-      </Implements>
-    </Class>
-    <Class Name="Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.CSharpFrameDecoder">
-      <Implements>
-        <InterfaceGroup Priority="Low">
-          <Filter>
-            <RuntimeId RequiredValue="DkmRuntimeId.Clr"/>
-            <RuntimeId RequiredValue="DkmRuntimeId.ClrNativeCompilation"/>
-          </Filter>
-          <Interface Name="IDkmLanguageFrameDecoder"/>
-        </InterfaceGroup>
-      </Implements>
-    </Class>
-    <Class Name="Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.CSharpLanguageInstructionDecoder">
-      <Implements>
         <InterfaceGroup Priority="Low">
           <Filter>
             <RuntimeId RequiredValue="DkmRuntimeId.Clr"/>
             <RuntimeId RequiredValue="DkmRuntimeId.ClrNativeCompilation"/>
           </Filter>
           <Interface Name="IDkmLanguageInstructionDecoder"/>
+          <Interface Name="IDkmLanguageFrameDecoder"/>
         </InterfaceGroup>
       </Implements>
     </Class>

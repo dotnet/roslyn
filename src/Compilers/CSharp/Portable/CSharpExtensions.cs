@@ -7,9 +7,8 @@ using System.Threading;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
-using Roslyn.Utilities;
-using System.ComponentModel;
 using Microsoft.CodeAnalysis.Syntax;
+using Microsoft.CodeAnalysis.Operations;
 
 namespace Microsoft.CodeAnalysis
 {
@@ -686,6 +685,79 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
+        /// <summary>
+        /// Gets the underlying <see cref="Conversion"/> information from this <see cref="IConversionOperation"/>. This
+        /// <see cref="IConversionOperation"/> must have been created from CSharp code.
+        /// </summary>
+        /// <param name="conversionExpression">The conversion expression to get original info from.</param>
+        /// <returns>The underlying <see cref="Conversion"/>.</returns>
+        /// <exception cref="InvalidCastException">If the <see cref="IConversionOperation"/> was not created from CSharp code.</exception>
+        public static Conversion GetConversion(this IConversionOperation conversionExpression)
+        {
+            if (conversionExpression is BaseCSharpConversionExpression csharpConversionExpression)
+            {
+                return csharpConversionExpression.ConversionInternal;
+            }
+            else
+            {
+                throw new ArgumentException(string.Format(CSharpResources.IConversionExpressionIsNotCSharpConversion,
+                                                          nameof(IConversionOperation)),
+                                            nameof(conversionExpression));
+            }
+        }
+
+        /// <summary>
+        /// Gets the underlying <see cref="Conversion"/> information from this <see cref="ICompoundAssignmentOperation"/>. This
+        /// conversion is applied before the operator is applied to the result of this conversion and <see cref="IAssignmentOperation.Value"/>.
+        /// </summary>
+        /// <remarks>
+        /// This compound assignment must have been created from C# code.
+        /// </remarks>
+        public static Conversion GetInConversion(this ICompoundAssignmentOperation compoundAssignment)
+        {
+            if (compoundAssignment == null)
+            {
+                throw new ArgumentNullException(nameof(compoundAssignment));
+            }
+
+            if (compoundAssignment is BaseCSharpCompoundAssignmentOperation csharpCompoundAssignment)
+            {
+                return csharpCompoundAssignment.InConversionInternal;
+            }
+            else
+            {
+                throw new ArgumentException(string.Format(CSharpResources.ICompoundAssignmentOperationIsNotCSharpCompoundAssignment,
+                                                          nameof(compoundAssignment)),
+                                            nameof(compoundAssignment));
+            }
+        }
+
+        /// <summary>
+        /// Gets the underlying <see cref="Conversion"/> information from this <see cref="ICompoundAssignmentOperation"/>. This
+        /// conversion is applied after the operator is applied, before the result is assigned to <see cref="IAssignmentOperation.Target"/>.
+        /// </summary>
+        /// <remarks>
+        /// This compound assignment must have been created from C# code.
+        /// </remarks>
+        public static Conversion GetOutConversion(this ICompoundAssignmentOperation compoundAssignment)
+        {
+            if (compoundAssignment == null)
+            {
+                throw new ArgumentNullException(nameof(compoundAssignment));
+            }
+
+            if (compoundAssignment is BaseCSharpCompoundAssignmentOperation csharpCompoundAssignemnt)
+            {
+                return csharpCompoundAssignemnt.OutConversionInternal;
+            }
+            else
+            {
+                throw new ArgumentException(string.Format(CSharpResources.ICompoundAssignmentOperationIsNotCSharpCompoundAssignment,
+                                                          nameof(compoundAssignment)),
+                                            nameof(compoundAssignment));
+            }
+        }
+
         public static Conversion GetSpeculativeConversion(this SemanticModel semanticModel, int position, ExpressionSyntax expression, SpeculativeBindingOption bindingOption)
         {
             var csmodel = semanticModel as CSharpSemanticModel;
@@ -723,6 +795,16 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 return default(ForEachStatementInfo);
             }
+        }
+
+        public static DeconstructionInfo GetDeconstructionInfo(this SemanticModel semanticModel, AssignmentExpressionSyntax assignment)
+        {
+            return semanticModel is CSharpSemanticModel csmodel ? csmodel.GetDeconstructionInfo(assignment) : default;
+        }
+
+        public static DeconstructionInfo GetDeconstructionInfo(this SemanticModel semanticModel, ForEachVariableStatementSyntax @foreach)
+        {
+            return semanticModel is CSharpSemanticModel csmodel ? csmodel.GetDeconstructionInfo(@foreach) : default;
         }
 
         public static AwaitExpressionInfo GetAwaitExpressionInfo(this SemanticModel semanticModel, AwaitExpressionSyntax awaitExpression)

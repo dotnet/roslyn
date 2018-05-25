@@ -63,7 +63,7 @@ namespace Microsoft.CodeAnalysis.Host
                 {
                     if (_nodes[i].Data != null && _nodes[i].LastTouched < expirationTime)
                     {
-                        _nodes[i] = default(Node);
+                        _nodes[i] = default;
                     }
                 }
             }
@@ -92,7 +92,7 @@ namespace Microsoft.CodeAnalysis.Host
             private readonly SemaphoreSlim _gate;
 
             public ImplicitCacheMonitor(ProjectCacheService owner, int backOffTimeSpanInMS) :
-                base(AggregateAsynchronousOperationListener.CreateEmptyListener(),
+                base(AsynchronousOperationListenerProvider.NullListener,
                      backOffTimeSpanInMS,
                      CancellationToken.None)
             {

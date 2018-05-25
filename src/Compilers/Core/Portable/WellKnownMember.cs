@@ -414,7 +414,33 @@ namespace Microsoft.CodeAnalysis
 
         System_String__Format_IFormatProvider,
 
-        Microsoft_CodeAnalysis_Runtime_Instrumentation__CreatePayload,
+        Microsoft_CodeAnalysis_Runtime_Instrumentation__CreatePayloadForMethodsSpanningSingleFile,
+        Microsoft_CodeAnalysis_Runtime_Instrumentation__CreatePayloadForMethodsSpanningMultipleFiles,
+
+        System_Runtime_CompilerServices_ReferenceAssemblyAttribute__ctor,
+        System_Runtime_CompilerServices_IsReadOnlyAttribute__ctor,
+        System_Runtime_CompilerServices_IsByRefLikeAttribute__ctor,
+
+        System_ObsoleteAttribute__ctor,
+
+        System_Span_T__ctor,
+        System_Span_T__get_Item,
+        System_Span_T__get_Length,
+
+        System_ReadOnlySpan_T__ctor,
+        System_ReadOnlySpan_T__get_Item,
+        System_ReadOnlySpan_T__get_Length,
+
+        System_Runtime_CompilerServices_IsUnmanagedAttribute__ctor,
+
+        Microsoft_VisualBasic_Conversion__FixSingle,
+        Microsoft_VisualBasic_Conversion__FixDouble,
+        Microsoft_VisualBasic_Conversion__IntSingle,
+        Microsoft_VisualBasic_Conversion__IntDouble,
+
+        System_Math__CeilingDouble,
+        System_Math__FloorDouble,
+        System_Math__TruncateDouble,
 
         Count
     }

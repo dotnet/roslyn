@@ -31,8 +31,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml
 
         private static string GetProjectName(IVsHierarchy hierarchy)
         {
-            string name;
-            return hierarchy.TryGetName(out name) ? name : null;
+            return hierarchy.TryGetName(out var name) ? name : null;
         }
 
         private string GetDebuggerDisplay()

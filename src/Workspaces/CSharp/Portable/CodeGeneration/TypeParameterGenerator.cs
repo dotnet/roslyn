@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         {
             var varianceKeyword =
                 symbol.Variance == VarianceKind.In ? SyntaxFactory.Token(SyntaxKind.InKeyword) :
-                symbol.Variance == VarianceKind.Out ? SyntaxFactory.Token(SyntaxKind.OutKeyword) : default(SyntaxToken);
+                symbol.Variance == VarianceKind.Out ? SyntaxFactory.Token(SyntaxKind.OutKeyword) : default;
 
             return SyntaxFactory.TypeParameter(
                 AttributeGenerator.GenerateAttributeLists(symbol.GetAttributes(), options),

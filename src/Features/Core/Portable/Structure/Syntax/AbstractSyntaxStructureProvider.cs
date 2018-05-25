@@ -2,6 +2,7 @@
 
 using System.Collections.Immutable;
 using System.Threading;
+using Microsoft.CodeAnalysis.PooledObjects;
 
 namespace Microsoft.CodeAnalysis.Structure
 {

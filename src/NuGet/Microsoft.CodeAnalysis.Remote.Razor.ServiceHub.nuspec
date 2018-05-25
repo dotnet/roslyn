@@ -3,13 +3,17 @@
   <metadata>
     <id>Microsoft.CodeAnalysis.Remote.Razor.ServiceHub</id>
     <summary>
-      A shared package used by the .NET Compiler Platform ("Roslyn") including support for coordinating analysis of projects and solutions using a separate server process.
+      A private package for the Razor team to grant access to certain internal APIs.
     </summary>
     <description>
-      A shared package used by the .NET Compiler Platform ("Roslyn") including support for coordinating analysis of projects and solutions using a separate server process. Do not install this package manually, it will be added as a prerequisite by other packages that require it.
+      A private package for the Razor team to grant access to certain internal APIs.
 
-Supported Platforms:
-- .NET Framework 4.6
+      Supported Platforms:
+      - .NET Framework 4.6
+
+      More details at https://aka.ms/roslyn-packages
+
+      $commitPathMessage$
     </description>
     <dependencies>
       <dependency id="Microsoft.CodeAnalysis.Remote.Workspaces" version="[$version$]" />
@@ -19,7 +23,7 @@ Supported Platforms:
     <requireLicenseAcceptance>true</requireLicenseAcceptance>
     <version>$version$</version>
     <authors>$authors$</authors>
-    <licenseUrl>$licenseUrl$</licenseUrl>
+    <licenseUrl>$licenseUrlNonRedist$</licenseUrl>
     <projectUrl>$projectUrl$</projectUrl>
     <releaseNotes>$releaseNotes$</releaseNotes>
     <tags>$tags$</tags>
@@ -28,5 +32,8 @@ Supported Platforms:
     <file src="Dlls\RazorServiceHub\Microsoft.CodeAnalysis.Remote.Razor.ServiceHub.dll" target="lib\net46" />
     <file src="Dlls\RazorServiceHub\Microsoft.CodeAnalysis.Remote.Razor.ServiceHub.xml" target="lib\net46" />
     <file src="$thirdPartyNoticesPath$" target="" />
+
+    <!-- Satellite assemblies -->
+    <file src="Dlls\RazorServiceHub\**\Microsoft.CodeAnalysis.Remote.Razor.ServiceHub.resources.dll" target="lib\net46" />
   </files>
 </package>

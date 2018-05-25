@@ -1,7 +1,8 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis
+Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel.Extenders
 Imports Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel.Interop
 Imports Roslyn.Test.Utilities
@@ -186,7 +187,7 @@ class C
 <Code>
 interface I
 {
-    int $$Foo();
+    int $$Goo();
 }
 </Code>
 
@@ -316,7 +317,7 @@ class Class2
 <Code>
 abstract class C
 {
-    protected abstract void $$Foo();
+    protected abstract void $$Goo();
 }
 </Code>
 
@@ -329,7 +330,7 @@ abstract class C
 <Code>
 interface I
 {
-    void $$Foo();
+    void $$Goo();
 }
 </Code>
 
@@ -342,7 +343,7 @@ interface I
 <Code>
 class C
 {
-    protected virtual void $$Foo() { }
+    protected virtual void $$Goo() { }
 }
 </Code>
 
@@ -355,7 +356,7 @@ class C
 <Code>
 class C
 {
-    protected void $$Foo() { }
+    protected void $$Goo() { }
 }
 </Code>
 
@@ -368,16 +369,16 @@ class C
 <Code>
 class B
 {
-    protected virtual void Foo()
+    protected virtual void Goo()
     {
     }
 }
 
 class C : B
 {
-    protected override void $$Foo()
+    protected override void $$Goo()
     {
-        base.Foo();
+        base.Goo();
     }
 }
 </Code>
@@ -585,7 +586,7 @@ public class C
 <Code>
 abstract class C
 {
-    protected abstract void $$Foo();
+    protected abstract void $$Goo();
 }
 </Code>
 
@@ -598,7 +599,7 @@ abstract class C
 <Code>
 interface I
 {
-    void $$Foo();
+    void $$Goo();
 }
 </Code>
 
@@ -611,7 +612,7 @@ interface I
 <Code>
 class C
 {
-    protected virtual void $$Foo() { }
+    protected virtual void $$Goo() { }
 }
 </Code>
 
@@ -624,7 +625,7 @@ class C
 <Code>
 class C
 {
-    protected void $$Foo() { }
+    protected void $$Goo() { }
 }
 </Code>
 
@@ -637,16 +638,16 @@ class C
 <Code>
 class B
 {
-    protected virtual void Foo()
+    protected virtual void Goo()
     {
     }
 }
 
 class C : B
 {
-    protected override void $$Foo()
+    protected override void $$Goo()
     {
-        base.Foo();
+        base.Goo();
     }
 }
 </Code>
@@ -772,7 +773,7 @@ public class ComplexType
 <Code>
 abstract class C
 {
-    protected abstract void $$Foo();
+    protected abstract void $$Goo();
 }
 </Code>
 
@@ -785,7 +786,7 @@ abstract class C
 <Code>
 class C
 {
-    protected virtual void $$Foo() { }
+    protected virtual void $$Goo() { }
 }
 </Code>
 
@@ -798,7 +799,7 @@ class C
 <Code>
 class C
 {
-    protected sealed void $$Foo() { }
+    protected sealed void $$Goo() { }
 }
 </Code>
 
@@ -811,12 +812,12 @@ class C
 <Code>
 abstract class B
 {
-    protected abstract void Foo();
+    protected abstract void Goo();
 }
 
 class C : B
 {
-    protected override void $$Foo() { }
+    protected override void $$Goo() { }
 }
 </Code>
 
@@ -829,12 +830,12 @@ class C : B
 <Code>
 abstract class B
 {
-    protected void Foo();
+    protected void Goo();
 }
 
 class C : B
 {
-    protected new void $$Foo() { }
+    protected new void $$Goo() { }
 }
 </Code>
 
@@ -1471,7 +1472,7 @@ class C
 <Code>
 class C
 {
-    int $$Foo()
+    int $$Goo()
     {
         throw new System.NotImplementedException();
     }
@@ -1482,7 +1483,7 @@ class C
 <Code>
 class C
 {
-    public int Foo()
+    public int Goo()
     {
         throw new System.NotImplementedException();
     }
@@ -1498,7 +1499,7 @@ class C
 <Code>
 class C
 {
-    public int $$Foo()
+    public int $$Goo()
     {
         throw new System.NotImplementedException();
     }
@@ -1509,7 +1510,7 @@ class C
 <Code>
 class C
 {
-    internal int Foo()
+    internal int Goo()
     {
         throw new System.NotImplementedException();
     }
@@ -1525,7 +1526,7 @@ class C
 <Code>
 class C
 {
-    protected internal int $$Foo()
+    protected internal int $$Goo()
     {
         throw new System.NotImplementedException();
     }
@@ -1536,7 +1537,7 @@ class C
 <Code>
 class C
 {
-    public int Foo()
+    public int Goo()
     {
         throw new System.NotImplementedException();
     }
@@ -1552,7 +1553,7 @@ class C
 <Code>
 class C
 {
-    public int $$Foo()
+    public int $$Goo()
     {
         throw new System.NotImplementedException();
     }
@@ -1563,7 +1564,7 @@ class C
 <Code>
 class C
 {
-    protected internal int Foo()
+    protected internal int Goo()
     {
         throw new System.NotImplementedException();
     }
@@ -1579,7 +1580,7 @@ class C
 <Code>
 class C
 {
-    public int $$Foo()
+    public int $$Goo()
     {
         throw new System.NotImplementedException();
     }
@@ -1590,7 +1591,7 @@ class C
 <Code>
 class C
 {
-    int Foo()
+    int Goo()
     {
         throw new System.NotImplementedException();
     }
@@ -1606,7 +1607,7 @@ class C
 <Code>
 interface I
 {
-    int $$Foo();
+    int $$Goo();
 }
 </Code>
 
@@ -1614,7 +1615,7 @@ interface I
 <Code>
 interface I
 {
-    int Foo();
+    int Goo();
 }
 </Code>
 
@@ -1627,7 +1628,7 @@ interface I
 <Code>
 interface I
 {
-    int $$Foo();
+    int $$Goo();
 }
 </Code>
 
@@ -1635,7 +1636,7 @@ interface I
 <Code>
 interface I
 {
-    int Foo();
+    int Goo();
 }
 </Code>
 
@@ -1652,7 +1653,7 @@ interface I
 <Code>
 class C
 {
-    void $$Foo()
+    void $$Goo()
     {
     }
 }
@@ -1662,7 +1663,7 @@ class C
 <Code>
 class C
 {
-    static void Foo()
+    static void Goo()
     {
     }
 }
@@ -1677,7 +1678,7 @@ class C
 <Code>
 class C
 {
-    static void $$Foo()
+    static void $$Goo()
     {
     }
 }
@@ -1687,7 +1688,7 @@ class C
 <Code>
 class C
 {
-    void Foo()
+    void Goo()
     {
     }
 }
@@ -1756,7 +1757,7 @@ class C
 <Code>
 class C
 {
-    void $$Foo()
+    void $$Goo()
     {
     }
 }
@@ -1766,7 +1767,7 @@ class C
 <Code>
 class C
 {
-    virtual void Foo()
+    virtual void Goo()
     {
     }
 }
@@ -1781,7 +1782,7 @@ class C
 <Code>
 class C
 {
-    virtual void $$Foo()
+    virtual void $$Goo()
     {
     }
 }
@@ -1791,7 +1792,7 @@ class C
 <Code>
 class C
 {
-    virtual void Foo()
+    virtual void Goo()
     {
     }
 }
@@ -1806,7 +1807,7 @@ class C
 <Code>
 class C
 {
-    void $$Foo()
+    void $$Goo()
     {
     }
 }
@@ -1816,7 +1817,7 @@ class C
 <Code>
 class C
 {
-    void Foo()
+    void Goo()
     {
     }
 }
@@ -1831,7 +1832,7 @@ class C
 <Code>
 class C
 {
-    virtual void $$Foo()
+    virtual void $$Goo()
     {
     }
 }
@@ -1841,7 +1842,7 @@ class C
 <Code>
 class C
 {
-    void Foo()
+    void Goo()
     {
     }
 }
@@ -1856,7 +1857,7 @@ class C
 <Code>
 interface I
 {
-    void $$Foo();
+    void $$Goo();
 }
 </Code>
 
@@ -1864,7 +1865,7 @@ interface I
 <Code>
 interface I
 {
-    void Foo();
+    void Goo();
 }
 </Code>
 
@@ -1877,7 +1878,7 @@ interface I
 <Code>
 interface I
 {
-    void $$Foo();
+    void $$Goo();
 }
 </Code>
 
@@ -1885,7 +1886,7 @@ interface I
 <Code>
 interface I
 {
-    void Foo();
+    void Goo();
 }
 </Code>
 
@@ -1902,7 +1903,7 @@ interface I
 <Code>
 abstract class C
 {
-    abstract void $$Foo()
+    abstract void $$Goo()
     {
     }
 }
@@ -1912,7 +1913,7 @@ abstract class C
 <Code>
 abstract class C
 {
-    abstract void Foo();
+    abstract void Goo();
 }
 </Code>
 
@@ -1925,7 +1926,7 @@ abstract class C
 <Code>
 abstract class C
 {
-    void $$Foo()
+    void $$Goo()
     {
         int i = 0;
     }
@@ -1936,7 +1937,7 @@ abstract class C
 <Code>
 abstract class C
 {
-    abstract void Foo()
+    abstract void Goo()
     {
         int i = 0;
     }
@@ -1952,7 +1953,7 @@ abstract class C
 <Code>
 abstract class C
 {
-    abstract void $$Foo();
+    abstract void $$Goo();
 }
 </Code>
 
@@ -1960,7 +1961,7 @@ abstract class C
 <Code>
 abstract class C
 {
-    void Foo()
+    void Goo()
     {
 
     }
@@ -1976,7 +1977,7 @@ abstract class C
 <Code>
 abstract class C
 {
-    abstract void $$Foo();
+    abstract void $$Goo();
 }
 </Code>
 
@@ -1984,7 +1985,7 @@ abstract class C
 <Code>
 abstract class C
 {
-    abstract void Foo();
+    abstract void Goo();
 }
 </Code>
 
@@ -1997,7 +1998,7 @@ abstract class C
 <Code>
 abstract class C
 {
-    void $$Foo()
+    void $$Goo()
     {
     }
 }
@@ -2007,7 +2008,7 @@ abstract class C
 <Code>
 abstract class C
 {
-    void Foo()
+    void Goo()
     {
     }
 }
@@ -2022,7 +2023,7 @@ abstract class C
 <Code>
 class C
 {
-    void $$Foo()
+    void $$Goo()
     {
     }
 }
@@ -2032,7 +2033,7 @@ class C
 <Code>
 class C
 {
-    void Foo()
+    void Goo()
     {
     }
 }
@@ -2047,7 +2048,7 @@ class C
 <Code>
 class C
 {
-    void $$Foo()
+    void $$Goo()
     {
     }
 }
@@ -2057,7 +2058,7 @@ class C
 <Code>
 class C
 {
-    void Foo()
+    void Goo()
     {
     }
 }
@@ -2072,7 +2073,7 @@ class C
 <Code>
 interface I
 {
-    void $$Foo()
+    void $$Goo()
     {
     }
 }
@@ -2082,7 +2083,7 @@ interface I
 <Code>
 interface I
 {
-    void Foo()
+    void Goo()
     {
     }
 }
@@ -2097,7 +2098,7 @@ interface I
 <Code>
 interface I
 {
-    void $$Foo()
+    void $$Goo()
     {
     }
 }
@@ -2107,7 +2108,7 @@ interface I
 <Code>
 interface I
 {
-    void Foo()
+    void Goo()
     {
     }
 }
@@ -2126,7 +2127,7 @@ interface I
 <Code>
 class C
 {
-    void $$Foo()
+    void $$Goo()
     {
     }
 }
@@ -2136,7 +2137,7 @@ class C
 <Code>
 class C
 {
-    virtual void Foo()
+    virtual void Goo()
     {
     }
 }
@@ -2151,7 +2152,7 @@ class C
 <Code>
 class C
 {
-    void $$Foo()
+    void $$Goo()
     {
     }
 }
@@ -2161,7 +2162,7 @@ class C
 <Code>
 class C
 {
-    sealed void Foo()
+    sealed void Goo()
     {
     }
 }
@@ -2176,7 +2177,7 @@ class C
 <Code>
 abstract class C
 {
-    void $$Foo()
+    void $$Goo()
     {
     }
 }
@@ -2186,7 +2187,7 @@ abstract class C
 <Code>
 abstract class C
 {
-    abstract void Foo();
+    abstract void Goo();
 }
 </Code>
 
@@ -2203,7 +2204,7 @@ abstract class C
 <Code>
 class C
 {
-    void $$Foo()
+    void $$Goo()
     {
     }
 }
@@ -2232,7 +2233,7 @@ class C
 <Code>
 class C
 {
-    void $$Foo()
+    void $$Goo()
     {
     }
 }
@@ -2242,7 +2243,7 @@ class C
 <Code>
 class C
 {
-    int Foo()
+    int Goo()
     {
     }
 }
@@ -2261,7 +2262,7 @@ class C
 <Code>
 public static class C
 {
-    public static void $$Foo(this C c)
+    public static void $$Goo(this C c)
     {
     }
 }
@@ -2276,7 +2277,7 @@ public static class C
 <Code>
 public static class C
 {
-    public static void $$Foo(C c)
+    public static void $$Goo(C c)
     {
     }
 }
@@ -2501,16 +2502,16 @@ public partial class C
 <Code>
 public static class C
 {
-    public static void $$Foo()
+    public static void $$Goo()
     {
     }
 
-    public static void Foo(C c)
+    public static void Goo(C c)
     {
     }
 }
 </Code>
-            TestOverloadsUniqueSignatures(code, "C.Foo()", "C.Foo(C)")
+            TestOverloadsUniqueSignatures(code, "C.Goo()", "C.Goo(C)")
         End Sub
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -2519,12 +2520,12 @@ public static class C
 <Code>
 public static class C
 {
-    public static void $$Foo()
+    public static void $$Goo()
     {
     }
 }
 </Code>
-            TestOverloadsUniqueSignatures(code, "C.Foo()")
+            TestOverloadsUniqueSignatures(code, "C.Goo()")
         End Sub
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -2553,7 +2554,7 @@ class A
 <Code>
 public class C
 {
-    public void $$Foo(int @int)
+    public void $$Goo(int @int)
     {
     }
 }
@@ -2568,7 +2569,7 @@ public class C
 <Code>
 public class C
 {
-    public void $$Foo(int @int, string @string)
+    public void $$Goo(int @int, string @string)
     {
     }
 }

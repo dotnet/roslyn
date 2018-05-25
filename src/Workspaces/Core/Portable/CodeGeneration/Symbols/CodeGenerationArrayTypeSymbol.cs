@@ -32,12 +32,12 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
         {
             get
             {
-                return default(ImmutableArray<int>);
+                return default;
             }
         }
 
         public CodeGenerationArrayTypeSymbol(ITypeSymbol elementType, int rank)
-            : base(null, default(ImmutableArray<AttributeData>), Accessibility.NotApplicable, default(DeclarationModifiers), string.Empty, SpecialType.None)
+            : base(null, default, Accessibility.NotApplicable, default, string.Empty, SpecialType.None)
         {
             this.ElementType = elementType;
             this.Rank = rank;

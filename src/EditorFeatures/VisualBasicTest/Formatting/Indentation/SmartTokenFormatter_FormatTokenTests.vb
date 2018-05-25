@@ -1,4 +1,4 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Threading
 Imports Microsoft.CodeAnalysis
@@ -12,6 +12,7 @@ Imports Microsoft.VisualStudio.Text.Editor
 Imports Moq
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Formatting.Indentation
+    <[UseExportProvider]>
     Public Class SmartTokenFormatter_FormatTokenTests
         <Fact>
         <Trait(Traits.Feature, Traits.Features.SmartTokenFormatting)>

@@ -280,7 +280,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Fact]
         public void TestDescendantNodesAndTokensAndSelfForDocumentationComment()
         {
-            var text = "/// Foo\r\n x";
+            var text = "/// Goo\r\n x";
             var expr = SyntaxFactory.ParseExpression(text);
 
             var nodesAndTokens = expr.DescendantNodesAndTokensAndSelf(descendIntoTrivia: true).ToList();
@@ -334,7 +334,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Fact]
         public void TestDescendantTokens()
         {
-            var s1 = "using Foo;";
+            var s1 = "using Goo;";
             var t1 = SyntaxFactory.ParseSyntaxTree(s1);
             var tokens = t1.GetCompilationUnitRoot().DescendantTokens().ToList();
             Assert.Equal(4, tokens.Count);
@@ -347,7 +347,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Fact]
         public void TestDescendantTokensWithExtraWhitespace()
         {
-            var s1 = "  using Foo  ;  ";
+            var s1 = "  using Goo  ;  ";
             var t1 = SyntaxFactory.ParseSyntaxTree(s1);
             var tokens = t1.GetCompilationUnitRoot().DescendantTokens().ToList();
             Assert.Equal(4, tokens.Count);
@@ -360,7 +360,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Fact]
         public void TestDescendantTokensEntireRange()
         {
-            var s1 = "extern alias Bar;\r\n" + "using Foo;";
+            var s1 = "extern alias Bar;\r\n" + "using Goo;";
             var t1 = SyntaxFactory.ParseSyntaxTree(s1);
             var tokens = t1.GetCompilationUnitRoot().DescendantTokens().ToList();
             Assert.Equal(8, tokens.Count);
@@ -377,7 +377,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Fact]
         public void TestDescendantTokensOverFullSpan()
         {
-            var s1 = "extern alias Bar;\r\n" + "using Foo;";
+            var s1 = "extern alias Bar;\r\n" + "using Goo;";
             var t1 = SyntaxFactory.ParseSyntaxTree(s1);
             var tokens = t1.GetCompilationUnitRoot().DescendantTokens(new TextSpan(0, 16)).ToList();
             Assert.Equal(3, tokens.Count);
@@ -389,7 +389,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Fact]
         public void TestDescendantTokensOverInsideSpan()
         {
-            var s1 = "extern alias Bar;\r\n" + "using Foo;";
+            var s1 = "extern alias Bar;\r\n" + "using Goo;";
             var t1 = SyntaxFactory.ParseSyntaxTree(s1);
             var tokens = t1.GetCompilationUnitRoot().DescendantTokens(new TextSpan(1, 14)).ToList();
             Assert.Equal(3, tokens.Count);
@@ -401,7 +401,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Fact]
         public void TestDescendantTokensOverFullSpanOffset()
         {
-            var s1 = "extern alias Bar;\r\n" + "using Foo;";
+            var s1 = "extern alias Bar;\r\n" + "using Goo;";
             var t1 = SyntaxFactory.ParseSyntaxTree(s1);
             var tokens = t1.GetCompilationUnitRoot().DescendantTokens(new TextSpan(7, 17)).ToList();
             Assert.Equal(4, tokens.Count);
@@ -414,7 +414,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Fact]
         public void TestDescendantTokensOverInsideSpanOffset()
         {
-            var s1 = "extern alias Bar;\r\n" + "using Foo;";
+            var s1 = "extern alias Bar;\r\n" + "using Goo;";
             var t1 = SyntaxFactory.ParseSyntaxTree(s1);
             var tokens = t1.GetCompilationUnitRoot().DescendantTokens(new TextSpan(8, 15)).ToList();
             Assert.Equal(4, tokens.Count);
@@ -427,7 +427,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Fact]
         public void TestDescendantTrivia()
         {
-            var text = "// foo\r\na + b";
+            var text = "// goo\r\na + b";
             var expr = SyntaxFactory.ParseExpression(text);
 
             var list = expr.DescendantTrivia().ToList();
@@ -442,8 +442,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void TestDescendantTriviaIntoStructuredTrivia()
         {
             var text = @"
-/// <foo >
-/// </foo>
+/// <goo >
+/// </goo>
 a + b";
             var expr = SyntaxFactory.ParseExpression(text);
 
@@ -461,23 +461,23 @@ a + b";
         [Fact]
         public void Bug877223()
         {
-            var s1 = "using Foo;";
+            var s1 = "using Goo;";
             var t1 = SyntaxFactory.ParseSyntaxTree(s1);
 
             // var node = t1.GetCompilationUnitRoot().Usings[0].GetTokens(new TextSpan(6, 3)).First();
             var node = t1.GetCompilationUnitRoot().DescendantTokens(new TextSpan(6, 3)).First();
-            Assert.Equal(node.ToString(), "Foo");
+            Assert.Equal(node.ToString(), "Goo");
         }
 
         [Fact]
         public void TestFindToken()
         {
-            var text = "class\n #if XX\n#endif\n foo { }";
+            var text = "class\n #if XX\n#endif\n goo { }";
             var tree = SyntaxFactory.ParseSyntaxTree(text);
 
             var token = tree.GetCompilationUnitRoot().FindToken("class\n #i".Length);
             Assert.Equal(SyntaxKind.IdentifierToken, token.Kind());
-            Assert.Equal("foo", token.ToString());
+            Assert.Equal("goo", token.ToString());
             token = tree.GetCompilationUnitRoot().FindToken("class\n #i".Length, findInsideTrivia: true);
             Assert.Equal(SyntaxKind.IfKeyword, token.Kind());
         }
@@ -524,7 +524,7 @@ a + b";
         [Fact]
         public void TestFindNode()
         {
-            var text = "class\n #if XX\n#endif\n foo { }\n class bar { }";
+            var text = "class\n #if XX\n#endif\n goo { }\n class bar { }";
             var tree = SyntaxFactory.ParseSyntaxTree(text);
 
             var root = tree.GetRoot();
@@ -579,7 +579,7 @@ a + b";
         [Fact]
         public void TestFindTriviaNoTriviaExistsAtPosition()
         {
-            var code = @"class Foo
+            var code = @"class Goo
 {
     void Bar()
     {
@@ -599,7 +599,7 @@ a + b";
         [Fact]
         public void TestTreeEquivalentToSelf()
         {
-            var text = "class foo { }";
+            var text = "class goo { }";
             var tree = SyntaxFactory.ParseSyntaxTree(text);
             Assert.True(tree.GetCompilationUnitRoot().IsEquivalentTo(tree.GetCompilationUnitRoot()));
         }
@@ -607,7 +607,7 @@ a + b";
         [Fact]
         public void TestTreeNotEquivalentToNull()
         {
-            var text = "class foo { }";
+            var text = "class goo { }";
             var tree = SyntaxFactory.ParseSyntaxTree(text);
             Assert.False(tree.GetCompilationUnitRoot().IsEquivalentTo(null));
         }
@@ -615,7 +615,7 @@ a + b";
         [Fact]
         public void TestTreesFromSameSourceEquivalent()
         {
-            var text = "class foo { }";
+            var text = "class goo { }";
             var tree1 = SyntaxFactory.ParseSyntaxTree(text);
             var tree2 = SyntaxFactory.ParseSyntaxTree(text);
             Assert.NotEqual(tree1.GetCompilationUnitRoot(), tree2.GetCompilationUnitRoot());
@@ -625,7 +625,7 @@ a + b";
         [Fact]
         public void TestDifferentTreesNotEquivalent()
         {
-            var tree1 = SyntaxFactory.ParseSyntaxTree("class foo { }");
+            var tree1 = SyntaxFactory.ParseSyntaxTree("class goo { }");
             var tree2 = SyntaxFactory.ParseSyntaxTree("class bar { }");
             Assert.NotEqual(tree1.GetCompilationUnitRoot(), tree2.GetCompilationUnitRoot());
             Assert.False(tree1.GetCompilationUnitRoot().IsEquivalentTo(tree2.GetCompilationUnitRoot()));
@@ -634,7 +634,7 @@ a + b";
         [Fact]
         public void TestVastlyDifferentTreesNotEquivalent()
         {
-            var tree1 = SyntaxFactory.ParseSyntaxTree("class foo { }");
+            var tree1 = SyntaxFactory.ParseSyntaxTree("class goo { }");
             var tree2 = SyntaxFactory.ParseSyntaxTree(string.Empty);
             Assert.NotEqual(tree1.GetCompilationUnitRoot(), tree2.GetCompilationUnitRoot());
             Assert.False(tree1.GetCompilationUnitRoot().IsEquivalentTo(tree2.GetCompilationUnitRoot()));
@@ -643,7 +643,7 @@ a + b";
         [Fact]
         public void TestSimilarSubtreesEquivalent()
         {
-            var tree1 = SyntaxFactory.ParseSyntaxTree("class foo { void M() { } }");
+            var tree1 = SyntaxFactory.ParseSyntaxTree("class goo { void M() { } }");
             var tree2 = SyntaxFactory.ParseSyntaxTree("class bar { void M() { } }");
             var m1 = ((TypeDeclarationSyntax)tree1.GetCompilationUnitRoot().Members[0]).Members[0];
             var m2 = ((TypeDeclarationSyntax)tree2.GetCompilationUnitRoot().Members[0]).Members[0];
@@ -656,15 +656,15 @@ a + b";
         [Fact]
         public void TestTreesWithDifferentTriviaAreNotEquivalent()
         {
-            var tree1 = SyntaxFactory.ParseSyntaxTree("class foo {void M() { }}");
-            var tree2 = SyntaxFactory.ParseSyntaxTree("class foo { void M() { } }");
+            var tree1 = SyntaxFactory.ParseSyntaxTree("class goo {void M() { }}");
+            var tree2 = SyntaxFactory.ParseSyntaxTree("class goo { void M() { } }");
             Assert.False(tree1.GetCompilationUnitRoot().IsEquivalentTo(tree2.GetCompilationUnitRoot()));
         }
 
         [Fact, WorkItem(536664, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/536664")]
         public void TestTriviaNodeCached()
         {
-            var tree = SyntaxFactory.ParseSyntaxTree(" class foo {}");
+            var tree = SyntaxFactory.ParseSyntaxTree(" class goo {}");
 
             // get to the trivia node
             var trivia = tree.GetCompilationUnitRoot().Members[0].GetLeadingTrivia()[0];
@@ -679,7 +679,7 @@ a + b";
         [Fact]
         public void TestGetFirstToken()
         {
-            var tree = SyntaxFactory.ParseSyntaxTree("public static class foo { }");
+            var tree = SyntaxFactory.ParseSyntaxTree("public static class goo { }");
             var first = tree.GetCompilationUnitRoot().GetFirstToken();
             Assert.Equal(SyntaxKind.PublicKeyword, first.Kind());
         }
@@ -687,7 +687,7 @@ a + b";
         [Fact]
         public void TestGetFirstTokenIncludingZeroWidth()
         {
-            var tree = SyntaxFactory.ParseSyntaxTree("public static class foo { }");
+            var tree = SyntaxFactory.ParseSyntaxTree("public static class goo { }");
             var first = tree.GetCompilationUnitRoot().GetFirstToken(includeZeroWidth: true);
             Assert.Equal(SyntaxKind.PublicKeyword, first.Kind());
         }
@@ -695,7 +695,7 @@ a + b";
         [Fact]
         public void TestGetLastToken()
         {
-            var tree = SyntaxFactory.ParseSyntaxTree("public static class foo { }");
+            var tree = SyntaxFactory.ParseSyntaxTree("public static class goo { }");
             var last = tree.GetCompilationUnitRoot().GetLastToken();
             Assert.Equal(SyntaxKind.CloseBraceToken, last.Kind());
         }
@@ -703,7 +703,7 @@ a + b";
         [Fact]
         public void TestGetLastTokenIncludingZeroWidth()
         {
-            var tree = SyntaxFactory.ParseSyntaxTree("public static class foo { ");
+            var tree = SyntaxFactory.ParseSyntaxTree("public static class goo { ");
             var last = tree.GetCompilationUnitRoot().GetLastToken(includeZeroWidth: true);
             Assert.Equal(SyntaxKind.EndOfFileToken, last.Kind());
 
@@ -739,7 +739,7 @@ a + b";
         [Fact]
         public void TestGetNextToken()
         {
-            var tree = SyntaxFactory.ParseSyntaxTree("public static class foo { }");
+            var tree = SyntaxFactory.ParseSyntaxTree("public static class goo { }");
             var tokens = tree.GetCompilationUnitRoot().DescendantTokens().ToList();
 
             var list = new List<SyntaxToken>();
@@ -763,7 +763,7 @@ a + b";
         {
             var text =
 @"garbage
-using foo.bar;
+using goo.bar;
 ";
             var tree = SyntaxFactory.ParseSyntaxTree(text);
             Assert.Equal(text, tree.GetCompilationUnitRoot().ToFullString());
@@ -792,7 +792,7 @@ using foo.bar;
         {
             var tree = SyntaxFactory.ParseSyntaxTree(
 @"garbage
-using foo.bar;
+using goo.bar;
 ");
             var tokens = tree.GetCompilationUnitRoot().DescendantTokens().ToList();
             Assert.Equal(6, tokens.Count);
@@ -816,7 +816,7 @@ using foo.bar;
         [Fact]
         public void TestGetNextTokenCommon()
         {
-            SyntaxTree syntaxTree = SyntaxFactory.ParseSyntaxTree("public static class foo { }");
+            SyntaxTree syntaxTree = SyntaxFactory.ParseSyntaxTree("public static class goo { }");
             List<SyntaxToken> tokens = syntaxTree.GetRoot().DescendantTokens().ToList();
 
             List<SyntaxToken> list = new List<SyntaxToken>();
@@ -838,7 +838,7 @@ using foo.bar;
         [Fact]
         public void TestGetPreviousToken()
         {
-            var tree = SyntaxFactory.ParseSyntaxTree("public static class foo { }");
+            var tree = SyntaxFactory.ParseSyntaxTree("public static class goo { }");
             var tokens = tree.GetCompilationUnitRoot().DescendantTokens().ToList();
 
             var list = new List<SyntaxToken>();
@@ -863,7 +863,7 @@ using foo.bar;
         {
             var text =
 @"garbage
-using foo.bar;
+using goo.bar;
 ";
             var tree = SyntaxFactory.ParseSyntaxTree(text);
             Assert.Equal(text, tree.GetCompilationUnitRoot().ToFullString());
@@ -893,7 +893,7 @@ using foo.bar;
         {
             var text =
 @"garbage
-using foo.bar;
+using goo.bar;
 ";
             var tree = SyntaxFactory.ParseSyntaxTree(text);
             Assert.Equal(text, tree.GetCompilationUnitRoot().ToFullString());
@@ -921,7 +921,7 @@ using foo.bar;
         [Fact]
         public void TestGetPreviousTokenCommon()
         {
-            SyntaxTree syntaxTree = SyntaxFactory.ParseSyntaxTree("public static class foo { }");
+            SyntaxTree syntaxTree = SyntaxFactory.ParseSyntaxTree("public static class goo { }");
             List<SyntaxToken> tokens = syntaxTree.GetRoot().DescendantTokens().ToList();
 
             List<SyntaxToken> list = new List<SyntaxToken>();
@@ -945,7 +945,7 @@ using foo.bar;
         [Fact]
         public void TestGetNextTokenIncludingZeroWidth()
         {
-            var tree = SyntaxFactory.ParseSyntaxTree("public static class foo {");
+            var tree = SyntaxFactory.ParseSyntaxTree("public static class goo {");
             var tokens = tree.GetCompilationUnitRoot().DescendantTokens().ToList();
 
             var list = new List<SyntaxToken>();
@@ -966,7 +966,7 @@ using foo.bar;
         [Fact]
         public void TestGetNextTokenIncludingZeroWidthCommon()
         {
-            SyntaxTree syntaxTree = SyntaxFactory.ParseSyntaxTree("public static class foo {");
+            SyntaxTree syntaxTree = SyntaxFactory.ParseSyntaxTree("public static class goo {");
             List<SyntaxToken> tokens = syntaxTree.GetRoot().DescendantTokens().ToList();
 
             List<SyntaxToken> list = new List<SyntaxToken>();
@@ -987,7 +987,7 @@ using foo.bar;
         [Fact]
         public void TestGetPreviousTokenIncludingZeroWidth()
         {
-            var tree = SyntaxFactory.ParseSyntaxTree("public static class foo {");
+            var tree = SyntaxFactory.ParseSyntaxTree("public static class goo {");
             var tokens = tree.GetCompilationUnitRoot().DescendantTokens().ToList();
 
             var list = new List<SyntaxToken>();
@@ -1011,7 +1011,7 @@ using foo.bar;
         [Fact]
         public void TestGetPreviousTokenIncludingZeroWidthCommon()
         {
-            SyntaxTree syntaxTree = SyntaxFactory.ParseSyntaxTree("public static class foo {");
+            SyntaxTree syntaxTree = SyntaxFactory.ParseSyntaxTree("public static class goo {");
             List<SyntaxToken> tokens = syntaxTree.GetRoot().DescendantTokens().ToList();
 
             List<SyntaxToken> list = new List<SyntaxToken>();
@@ -1034,7 +1034,7 @@ using foo.bar;
         [Fact]
         public void TestGetNextSibling()
         {
-            var tree = SyntaxFactory.ParseSyntaxTree("public static class foo { }");
+            var tree = SyntaxFactory.ParseSyntaxTree("public static class goo { }");
             var children = tree.GetCompilationUnitRoot().Members[0].ChildNodesAndTokens().ToList();
             var list = new List<SyntaxNodeOrToken>();
             for (var child = children[0]; child.Kind() != SyntaxKind.None; child = child.GetNextSibling())
@@ -1052,7 +1052,7 @@ using foo.bar;
         [Fact]
         public void TestGetPreviousSibling()
         {
-            var tree = SyntaxFactory.ParseSyntaxTree("public static class foo { }");
+            var tree = SyntaxFactory.ParseSyntaxTree("public static class goo { }");
             var children = tree.GetCompilationUnitRoot().Members[0].ChildNodesAndTokens().ToList();
             var reversed = children.AsEnumerable().Reverse().ToList();
             var list = new List<SyntaxNodeOrToken>();
@@ -1071,7 +1071,7 @@ using foo.bar;
         [Fact]
         public void TestSyntaxNodeOrTokenEquality()
         {
-            var tree = SyntaxFactory.ParseSyntaxTree("public static class foo { }");
+            var tree = SyntaxFactory.ParseSyntaxTree("public static class goo { }");
             var child = tree.GetCompilationUnitRoot().ChildNodesAndTokens()[0];
             var member = (TypeDeclarationSyntax)tree.GetCompilationUnitRoot().Members[0];
             Assert.Equal((SyntaxNodeOrToken)member, child);
@@ -1088,7 +1088,7 @@ using foo.bar;
         [Fact]
         public void TestStructuredTriviaHasNoParent()
         {
-            var tree = SyntaxFactory.ParseSyntaxTree("#define FOO");
+            var tree = SyntaxFactory.ParseSyntaxTree("#define GOO");
             var trivia = tree.GetCompilationUnitRoot().EndOfFileToken.GetLeadingTrivia()[0];
             Assert.Equal(SyntaxKind.DefineDirectiveTrivia, trivia.Kind());
             Assert.True(trivia.HasStructure);
@@ -1099,7 +1099,7 @@ using foo.bar;
         [Fact]
         public void TestStructuredTriviaHasParentTrivia()
         {
-            var tree = SyntaxFactory.ParseSyntaxTree("#define FOO");
+            var tree = SyntaxFactory.ParseSyntaxTree("#define GOO");
             var trivia = tree.GetCompilationUnitRoot().EndOfFileToken.GetLeadingTrivia()[0];
             Assert.Equal(SyntaxKind.DefineDirectiveTrivia, trivia.Kind());
             Assert.True(trivia.HasStructure);
@@ -1112,7 +1112,7 @@ using foo.bar;
         [Fact]
         public void TestStructuredTriviaParentTrivia()
         {
-            var def = SyntaxFactory.DefineDirectiveTrivia(SyntaxFactory.Identifier("FOO"), false);
+            var def = SyntaxFactory.DefineDirectiveTrivia(SyntaxFactory.Identifier("GOO"), false);
 
             // unrooted structured trivia should report parent trivia as default 
             Assert.Equal(default(SyntaxTrivia), def.ParentTrivia);
@@ -1135,7 +1135,7 @@ using foo.bar;
         [Fact]
         public void TestGetFirstDirective()
         {
-            var tree = SyntaxFactory.ParseSyntaxTree("#define FOO");
+            var tree = SyntaxFactory.ParseSyntaxTree("#define GOO");
             var d = tree.GetCompilationUnitRoot().GetFirstDirective();
             Assert.NotNull(d);
             Assert.Equal(SyntaxKind.DefineDirectiveTrivia, d.Kind());
@@ -1145,8 +1145,8 @@ using foo.bar;
         public void TestGetLastDirective()
         {
             var tree = SyntaxFactory.ParseSyntaxTree(
-@"#define FOO
-#undef FOO
+@"#define GOO
+#undef GOO
 ");
             var d = tree.GetCompilationUnitRoot().GetLastDirective();
             Assert.NotNull(d);
@@ -1157,10 +1157,10 @@ using foo.bar;
         public void TestGetNextDirective()
         {
             var tree = SyntaxFactory.ParseSyntaxTree(
-@"#define FOO
+@"#define GOO
 #define BAR
 class C {
-#if FOO
+#if GOO
    void M() { }
 #endif
 }
@@ -1185,10 +1185,10 @@ class C {
         public void TestGetPreviousDirective()
         {
             var tree = SyntaxFactory.ParseSyntaxTree(
-@"#define FOO
+@"#define GOO
 #define BAR
 class C {
-#if FOO
+#if GOO
    void M() { }
 #endif
 }
@@ -1213,8 +1213,8 @@ class C {
         public void TestGetDirectivesRelatedToIf()
         {
             var tree = SyntaxFactory.ParseSyntaxTree(
-@"#define FOO
-#if FOO
+@"#define GOO
+#if GOO
 class A { }
 #elif BAR
 class B { }
@@ -1244,8 +1244,8 @@ class C { }
         public void TestGetDirectivesRelatedToIfElements()
         {
             var tree = SyntaxFactory.ParseSyntaxTree(
-@"#define FOO
-#if FOO
+@"#define GOO
+#if GOO
 class A { }
 #elif BAR
 class B { }
@@ -1283,8 +1283,8 @@ class C { }
         public void TestGetDirectivesRelatedToEndIf()
         {
             var tree = SyntaxFactory.ParseSyntaxTree(
-@"#define FOO
-#if FOO
+@"#define GOO
+#if GOO
 class A { }
 #elif BAR
 class B { }
@@ -1311,8 +1311,8 @@ class C { }
         public void TestGetDirectivesRelatedToIfWithNestedIfEndIF()
         {
             var tree = SyntaxFactory.ParseSyntaxTree(
-@"#define FOO
-#if FOO
+@"#define GOO
+#if GOO
 class A { }
 #if ZED
   class A1 { }
@@ -1345,8 +1345,8 @@ class C { }
         public void TestGetDirectivesRelatedToIfWithNestedRegionEndRegion()
         {
             var tree = SyntaxFactory.ParseSyntaxTree(
-@"#define FOO
-#if FOO
+@"#define GOO
+#if GOO
 class A { }
 #region some region
   class A1 { }
@@ -1379,8 +1379,8 @@ class C { }
         public void TestGetDirectivesRelatedToEndIfWithNestedIfEndIf()
         {
             var tree = SyntaxFactory.ParseSyntaxTree(
-@"#define FOO
-#if FOO
+@"#define GOO
+#if GOO
 class A { }
 #if ZED
   class A1 { }
@@ -1410,8 +1410,8 @@ class C { }
         public void TestGetDirectivesRelatedToEndIfWithNestedRegionEndRegion()
         {
             var tree = SyntaxFactory.ParseSyntaxTree(
-@"#define FOO
-#if FOO
+@"#define GOO
+#if GOO
 #region some region
 class A { }
 #endregion
@@ -1443,7 +1443,7 @@ class C { }
 @"#region Some Region
 class A { }
 #endregion
-#if FOO
+#if GOO
 #endif
 ");
             var d = tree.GetCompilationUnitRoot().GetFirstDirective();
@@ -1461,7 +1461,7 @@ class A { }
         {
             var tree = SyntaxFactory.ParseSyntaxTree(
 @"
-#if FOO
+#if GOO
 #endif
 #region Some Region
 class A { }
@@ -1562,12 +1562,12 @@ namespace Microsoft.CSharp.Test
             var gp = SyntaxFactory.SingletonSeparatedList<TypeSyntax>(SyntaxFactory.PredefinedType(SyntaxFactory.Token(SyntaxKind.IntKeyword)));
 
             var externAlias = SyntaxFactory.IdentifierName("alias");
-            var foo = SyntaxFactory.IdentifierName("Foo");
+            var goo = SyntaxFactory.IdentifierName("Goo");
             var bar = SyntaxFactory.IdentifierName("Bar");
 
-            // Foo.Bar
-            var qualified = SyntaxFactory.QualifiedName(foo, dot, bar);
-            Assert.Equal("Foo.Bar", qualified.ToString());
+            // Goo.Bar
+            var qualified = SyntaxFactory.QualifiedName(goo, dot, bar);
+            Assert.Equal("Goo.Bar", qualified.ToString());
             Assert.Equal("Bar", qualified.GetUnqualifiedName().Identifier.ValueText);
 
             // Bar<int>
@@ -1575,29 +1575,29 @@ namespace Microsoft.CSharp.Test
             Assert.Equal("Bar<int>", generic.ToString());
             Assert.Equal("Bar", generic.GetUnqualifiedName().Identifier.ValueText);
 
-            // Foo.Bar<int>
-            var qualifiedGeneric = SyntaxFactory.QualifiedName(foo, dot, generic);
-            Assert.Equal("Foo.Bar<int>", qualifiedGeneric.ToString());
+            // Goo.Bar<int>
+            var qualifiedGeneric = SyntaxFactory.QualifiedName(goo, dot, generic);
+            Assert.Equal("Goo.Bar<int>", qualifiedGeneric.ToString());
             Assert.Equal("Bar", qualifiedGeneric.GetUnqualifiedName().Identifier.ValueText);
 
-            // alias::Foo
-            var alias = SyntaxFactory.AliasQualifiedName(externAlias, cc, foo);
-            Assert.Equal("alias::Foo", alias.ToString());
-            Assert.Equal("Foo", alias.GetUnqualifiedName().Identifier.ValueText);
+            // alias::Goo
+            var alias = SyntaxFactory.AliasQualifiedName(externAlias, cc, goo);
+            Assert.Equal("alias::Goo", alias.ToString());
+            Assert.Equal("Goo", alias.GetUnqualifiedName().Identifier.ValueText);
 
             // alias::Bar<int>
             var aliasGeneric = SyntaxFactory.AliasQualifiedName(externAlias, cc, generic);
             Assert.Equal("alias::Bar<int>", aliasGeneric.ToString());
             Assert.Equal("Bar", aliasGeneric.GetUnqualifiedName().Identifier.ValueText);
 
-            // alias::Foo.Bar
+            // alias::Goo.Bar
             var aliasQualified = SyntaxFactory.QualifiedName(alias, dot, bar);
-            Assert.Equal("alias::Foo.Bar", aliasQualified.ToString());
+            Assert.Equal("alias::Goo.Bar", aliasQualified.ToString());
             Assert.Equal("Bar", aliasQualified.GetUnqualifiedName().Identifier.ValueText);
 
-            // alias::Foo.Bar<int>
+            // alias::Goo.Bar<int>
             var aliasQualifiedGeneric = SyntaxFactory.QualifiedName(alias, dot, generic);
-            Assert.Equal("alias::Foo.Bar<int>", aliasQualifiedGeneric.ToString());
+            Assert.Equal("alias::Goo.Bar<int>", aliasQualifiedGeneric.ToString());
             Assert.Equal("Bar", aliasQualifiedGeneric.GetUnqualifiedName().Identifier.ValueText);
         }
 
@@ -1645,7 +1645,7 @@ namespace Microsoft.CSharp.Test
             Assert.Equal(0, zeroWidth.Width);
 
             // create token with more than one instance of same zero width structured trivia!
-            var someToken = SyntaxFactory.Identifier(default(SyntaxTriviaList), "foo", SyntaxFactory.TriviaList(SyntaxFactory.Trivia(zeroWidth), SyntaxFactory.Trivia(zeroWidth)));
+            var someToken = SyntaxFactory.Identifier(default(SyntaxTriviaList), "goo", SyntaxFactory.TriviaList(SyntaxFactory.Trivia(zeroWidth), SyntaxFactory.Trivia(zeroWidth)));
 
             // create node with this token
             var someNode = SyntaxFactory.IdentifierName(someToken);
@@ -1719,10 +1719,10 @@ namespace Microsoft.CSharp.Test
 @"
 class Test
 {
-  int IX.FOO
+  int IX.GOO
 ");
 
-            // Verify the kind of the CSharpSyntaxNode "int IX.FOO" is MethodDeclaration and NOT FieldDeclaration
+            // Verify the kind of the CSharpSyntaxNode "int IX.GOO" is MethodDeclaration and NOT FieldDeclaration
             Assert.Equal(SyntaxKind.MethodDeclaration, tree.GetCompilationUnitRoot().ChildNodesAndTokens()[0].ChildNodesAndTokens()[3].Kind());
         }
 
@@ -2049,7 +2049,7 @@ class Test
         [Fact]
         public void ReplaceEndOfCommentToken()
         {
-            var text = "/// Foo\r\n return x;";
+            var text = "/// Goo\r\n return x;";
             var expr = SyntaxFactory.ParseStatement(text);
 
             var tokens = expr.DescendantTokens(descendIntoTrivia: true).ToList();
@@ -2058,7 +2058,7 @@ class Test
             var expr2 = expr.ReplaceToken(token, SyntaxFactory.Token(SyntaxTriviaList.Create(SyntaxFactory.Whitespace("garbage")), token.Kind(), default(SyntaxTriviaList)));
             var text2 = expr2.ToFullString();
 
-            Assert.Equal("/// Foo\r\ngarbage return x;", text2);
+            Assert.Equal("/// Goo\r\ngarbage return x;", text2);
         }
 
         [Fact]
@@ -2163,7 +2163,7 @@ class Test
         [Fact]
         public void TestReplaceMultipleTriviaInToken()
         {
-            var id = SyntaxFactory.ParseToken("a // foo\r\n");
+            var id = SyntaxFactory.ParseToken("a // goo\r\n");
 
             // replace each trivia with a single space
             var id2 = id.ReplaceTrivia(id.GetAllTrivia(), (tr, tr2) => SyntaxFactory.Space);
@@ -2187,6 +2187,80 @@ class Test
         }
 
         [Fact]
+        public void TestRemoveNodeInSeparatedList_KeepExteriorTrivia_2()
+        {
+            var expr = SyntaxFactory.ParseExpression(@"m(a, b, /* trivia */
+c)");
+
+            var b = expr.DescendantTokens().Where(t => t.Text == "b").Select(t => t.Parent.FirstAncestorOrSelf<ArgumentSyntax>()).FirstOrDefault();
+            Assert.NotNull(b);
+
+            var expr2 = expr.RemoveNode(b, SyntaxRemoveOptions.KeepExteriorTrivia);
+
+            var text = expr2.ToFullString();
+            Assert.Equal(@"m(a,  /* trivia */
+c)", text);
+        }
+
+        [Fact]
+        public void TestRemoveNodeInSeparatedList_KeepExteriorTrivia_3()
+        {
+            var expr = SyntaxFactory.ParseExpression(@"m(a, b,
+/* trivia */ c)");
+
+            var b = expr.DescendantTokens().Where(t => t.Text == "b").Select(t => t.Parent.FirstAncestorOrSelf<ArgumentSyntax>()).FirstOrDefault();
+            Assert.NotNull(b);
+
+            var expr2 = expr.RemoveNode(b, SyntaxRemoveOptions.KeepExteriorTrivia);
+
+            var text = expr2.ToFullString();
+            Assert.Equal(@"m(a, 
+/* trivia */ c)", text);
+        }
+
+        [Fact]
+        public void TestRemoveNodeInSeparatedList_KeepExteriorTrivia_4()
+        {
+            var expr = SyntaxFactory.ParseExpression(@"SomeMethod(/*arg1:*/ a,
+    /*arg2:*/ b,
+    /*arg3:*/ c)");
+
+            var b = expr.DescendantTokens().Where(t => t.Text == "b").Select(t => t.Parent.FirstAncestorOrSelf<ArgumentSyntax>()).FirstOrDefault();
+            Assert.NotNull(b);
+
+            var expr2 = expr.RemoveNode(b, SyntaxRemoveOptions.KeepExteriorTrivia);
+
+            var text = expr2.ToFullString();
+            Assert.Equal(@"SomeMethod(/*arg1:*/ a,
+    /*arg2:*/ 
+    /*arg3:*/ c)", text);
+        }
+
+        [Fact]
+        public void TestRemoveNodeInSeparatedList_KeepExteriorTrivia_5()
+        {
+            var expr = SyntaxFactory.ParseExpression(@"SomeMethod(// comment about a
+           a,
+           // some comment about b
+           b,
+           // some comment about c
+           c)");
+
+            var b = expr.DescendantTokens().Where(t => t.Text == "b").Select(t => t.Parent.FirstAncestorOrSelf<ArgumentSyntax>()).FirstOrDefault();
+            Assert.NotNull(b);
+
+            var expr2 = expr.RemoveNode(b, SyntaxRemoveOptions.KeepExteriorTrivia);
+
+            var text = expr2.ToFullString();
+            Assert.Equal(@"SomeMethod(// comment about a
+           a,
+           // some comment about b
+           
+           // some comment about c
+           c)", text);
+        }
+
+        [Fact]
         public void TestRemoveNodeInSeparatedList_KeepNoTrivia()
         {
             var expr = SyntaxFactory.ParseExpression("m(a, b, /* trivia */ c)");
@@ -2198,6 +2272,77 @@ class Test
 
             var text = expr2.ToFullString();
             Assert.Equal("m(a, /* trivia */ c)", text);
+        }
+
+        [Fact]
+        public void TestRemoveNodeInSeparatedList_KeepNoTrivia_2()
+        {
+            var expr = SyntaxFactory.ParseExpression(
+                @"m(a, b, /* trivia */ 
+c)");
+
+            var b = expr.DescendantTokens().Where(t => t.Text == "b").Select(t => t.Parent.FirstAncestorOrSelf<ArgumentSyntax>()).FirstOrDefault();
+            Assert.NotNull(b);
+
+            var expr2 = expr.RemoveNode(b, SyntaxRemoveOptions.KeepNoTrivia);
+
+            var text = expr2.ToFullString();
+            Assert.Equal(@"m(a, c)", text);
+        }
+
+        [Fact]
+        public void TestRemoveNodeInSeparatedList_KeepNoTrivia_3()
+        {
+            var expr = SyntaxFactory.ParseExpression(
+                @"m(a, b,
+/* trivia */ c)");
+
+            var b = expr.DescendantTokens().Where(t => t.Text == "b").Select(t => t.Parent.FirstAncestorOrSelf<ArgumentSyntax>()).FirstOrDefault();
+            Assert.NotNull(b);
+
+            var expr2 = expr.RemoveNode(b, SyntaxRemoveOptions.KeepNoTrivia);
+
+            var text = expr2.ToFullString();
+            Assert.Equal(@"m(a, /* trivia */ c)", text);
+        }
+
+        [Fact]
+        public void TestRemoveNodeInSeparatedList_KeepNoTrivia_4()
+        {
+            var expr = SyntaxFactory.ParseExpression(@"SomeMethod(/*arg1:*/ a,
+    /*arg2:*/ b,
+    /*arg3:*/ c)");
+
+            var b = expr.DescendantTokens().Where(t => t.Text == "b").Select(t => t.Parent.FirstAncestorOrSelf<ArgumentSyntax>()).FirstOrDefault();
+            Assert.NotNull(b);
+
+            var expr2 = expr.RemoveNode(b, SyntaxRemoveOptions.KeepNoTrivia);
+
+            var text = expr2.ToFullString();
+            Assert.Equal(@"SomeMethod(/*arg1:*/ a,
+    /*arg3:*/ c)", text);
+        }
+
+        [Fact]
+        public void TestRemoveNodeInSeparatedList_KeepNoTrivia_5()
+        {
+            var expr = SyntaxFactory.ParseExpression(@"SomeMethod(// comment about a
+           a,
+           // some comment about b
+           b,
+           // some comment about c
+           c)");
+
+            var b = expr.DescendantTokens().Where(t => t.Text == "b").Select(t => t.Parent.FirstAncestorOrSelf<ArgumentSyntax>()).FirstOrDefault();
+            Assert.NotNull(b);
+
+            var expr2 = expr.RemoveNode(b, SyntaxRemoveOptions.KeepNoTrivia);
+
+            var text = expr2.ToFullString();
+            Assert.Equal(@"SomeMethod(// comment about a
+           a,
+           // some comment about c
+           c)", text);
         }
 
         [Fact]
@@ -2396,7 +2541,7 @@ class C
         [Fact]
         public void SeparatorsOfSeparatedSyntaxLists()
         {
-            var s1 = "int foo(int a, int b, int c) {}";
+            var s1 = "int goo(int a, int b, int c) {}";
             var tree = SyntaxFactory.ParseSyntaxTree(s1);
 
             dynamic root = tree.GetCompilationUnitRoot();
@@ -2833,7 +2978,7 @@ namespace HelloWorld
         public void TestTriviaExists()
         {
             // token constructed using factory w/o specifying trivia (should have zero-width elastic trivia)
-            var idToken = SyntaxFactory.Identifier("foo");
+            var idToken = SyntaxFactory.Identifier("goo");
             Assert.Equal(true, idToken.HasLeadingTrivia);
             Assert.Equal(1, idToken.LeadingTrivia.Count);
             Assert.Equal(0, idToken.LeadingTrivia.Span.Length); // zero-width elastic trivia
@@ -2858,7 +3003,7 @@ namespace HelloWorld
             Assert.Equal(2, idToken.TrailingTrivia.Span.Length);
 
             // node constructed using factory w/o specifying trivia
-            SyntaxNode namedNode = SyntaxFactory.IdentifierName("foo");
+            SyntaxNode namedNode = SyntaxFactory.IdentifierName("goo");
             Assert.Equal(true, namedNode.HasLeadingTrivia);
             Assert.Equal(1, namedNode.GetLeadingTrivia().Count);
             Assert.Equal(0, namedNode.GetLeadingTrivia().Span.Length);  // zero-width elastic trivia
@@ -2867,14 +3012,14 @@ namespace HelloWorld
             Assert.Equal(0, namedNode.GetTrailingTrivia().Span.Length);  // zero-width elastic trivia
 
             // node constructed by parse w/o trivia
-            namedNode = SyntaxFactory.ParseExpression("foo");
+            namedNode = SyntaxFactory.ParseExpression("goo");
             Assert.Equal(false, namedNode.HasLeadingTrivia);
             Assert.Equal(0, namedNode.GetLeadingTrivia().Count);
             Assert.Equal(false, namedNode.HasTrailingTrivia);
             Assert.Equal(0, namedNode.GetTrailingTrivia().Count);
 
             // node constructed by parse with trivia
-            namedNode = SyntaxFactory.ParseExpression(" foo  ");
+            namedNode = SyntaxFactory.ParseExpression(" goo  ");
             Assert.Equal(true, namedNode.HasLeadingTrivia);
             Assert.Equal(1, namedNode.GetLeadingTrivia().Count);
             Assert.Equal(1, namedNode.GetLeadingTrivia().Span.Length);
@@ -2883,7 +3028,7 @@ namespace HelloWorld
             Assert.Equal(2, namedNode.GetTrailingTrivia().Span.Length);
 
             // nodeOrToken with token constructed from factory w/o specifying trivia
-            SyntaxNodeOrToken nodeOrToken = SyntaxFactory.Identifier("foo");
+            SyntaxNodeOrToken nodeOrToken = SyntaxFactory.Identifier("goo");
             Assert.Equal(true, nodeOrToken.HasLeadingTrivia);
             Assert.Equal(1, nodeOrToken.GetLeadingTrivia().Count);
             Assert.Equal(0, nodeOrToken.GetLeadingTrivia().Span.Length); // zero-width elastic trivia
@@ -2892,7 +3037,7 @@ namespace HelloWorld
             Assert.Equal(0, nodeOrToken.GetTrailingTrivia().Span.Length); // zero-width elastic trivia
 
             // nodeOrToken with node constructed from factory w/o specifying trivia
-            nodeOrToken = SyntaxFactory.IdentifierName("foo");
+            nodeOrToken = SyntaxFactory.IdentifierName("goo");
             Assert.Equal(true, nodeOrToken.HasLeadingTrivia);
             Assert.Equal(1, nodeOrToken.GetLeadingTrivia().Count);
             Assert.Equal(0, nodeOrToken.GetLeadingTrivia().Span.Length); // zero-width elastic trivia
@@ -2901,21 +3046,21 @@ namespace HelloWorld
             Assert.Equal(0, nodeOrToken.GetTrailingTrivia().Span.Length); // zero-width elastic trivia
 
             // nodeOrToken with token parsed from factory w/o trivia
-            nodeOrToken = SyntaxFactory.ParseToken("foo");
+            nodeOrToken = SyntaxFactory.ParseToken("goo");
             Assert.Equal(false, nodeOrToken.HasLeadingTrivia);
             Assert.Equal(0, nodeOrToken.GetLeadingTrivia().Count);
             Assert.Equal(false, nodeOrToken.HasTrailingTrivia);
             Assert.Equal(0, nodeOrToken.GetTrailingTrivia().Count);
 
             // nodeOrToken with node parsed from factory w/o trivia
-            nodeOrToken = SyntaxFactory.ParseExpression("foo");
+            nodeOrToken = SyntaxFactory.ParseExpression("goo");
             Assert.Equal(false, nodeOrToken.HasLeadingTrivia);
             Assert.Equal(0, nodeOrToken.GetLeadingTrivia().Count);
             Assert.Equal(false, nodeOrToken.HasTrailingTrivia);
             Assert.Equal(0, nodeOrToken.GetTrailingTrivia().Count);
 
             // nodeOrToken with token parsed from factory with trivia
-            nodeOrToken = SyntaxFactory.ParseToken(" foo  ");
+            nodeOrToken = SyntaxFactory.ParseToken(" goo  ");
             Assert.Equal(true, nodeOrToken.HasLeadingTrivia);
             Assert.Equal(1, nodeOrToken.GetLeadingTrivia().Count);
             Assert.Equal(1, nodeOrToken.GetLeadingTrivia().Span.Length); // zero-width elastic trivia
@@ -2924,7 +3069,7 @@ namespace HelloWorld
             Assert.Equal(2, nodeOrToken.GetTrailingTrivia().Span.Length); // zero-width elastic trivia
 
             // nodeOrToken with node parsed from factory with trivia
-            nodeOrToken = SyntaxFactory.ParseExpression(" foo  ");
+            nodeOrToken = SyntaxFactory.ParseExpression(" goo  ");
             Assert.Equal(true, nodeOrToken.HasLeadingTrivia);
             Assert.Equal(1, nodeOrToken.GetLeadingTrivia().Count);
             Assert.Equal(1, nodeOrToken.GetLeadingTrivia().Span.Length); // zero-width elastic trivia
@@ -2940,7 +3085,7 @@ namespace HelloWorld
         {
             StringBuilder code = new StringBuilder();
             code.Append(
-@"class Foo
+@"class Goo
 {
     void Bar()
     {

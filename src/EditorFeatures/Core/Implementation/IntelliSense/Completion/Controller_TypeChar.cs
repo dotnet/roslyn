@@ -3,19 +3,21 @@
 using System;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.Completion;
-using Microsoft.CodeAnalysis.Editor.Commands;
+using Microsoft.VisualStudio.Commanding;
+using Microsoft.VisualStudio.Text.Editor.Commanding.Commands;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Options;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Text;
 using Roslyn.Utilities;
+using VSCommanding = Microsoft.VisualStudio.Commanding;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
 {
     internal partial class Controller
     {
-        CommandState ICommandHandler<TypeCharCommandArgs>.GetCommandState(TypeCharCommandArgs args, Func<CommandState> nextHandler)
+        VSCommanding.CommandState IChainedCommandHandler<TypeCharCommandArgs>.GetCommandState(TypeCharCommandArgs args, Func<VSCommanding.CommandState> nextHandler)
         {
             AssertIsForeground();
 
@@ -23,7 +25,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
             return nextHandler();
         }
 
-        void ICommandHandler<TypeCharCommandArgs>.ExecuteCommand(TypeCharCommandArgs args, Action nextHandler)
+        void IChainedCommandHandler<TypeCharCommandArgs>.ExecuteCommand(TypeCharCommandArgs args, Action nextHandler, CommandExecutionContext context)
         {
             AssertIsForeground();
 
@@ -258,18 +260,19 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
 
         private Document GetDocument()
         {
-            return this.SubjectBuffer.CurrentSnapshot.GetOpenDocumentInCurrentContextWithChanges();
+            // Documents can be closed while we are computing in the background.
+            // This can only be called from the foreground.
+            AssertIsForeground();
+
+            // Crash if we don't find a document, we're already in a bad state.
+            var document = this.SubjectBuffer.CurrentSnapshot.GetOpenDocumentInCurrentContextWithChanges();
+            Contract.ThrowIfNull(document, nameof(document));
+            return document;
         }
 
-        private CompletionHelper GetCompletionHelper()
+        private CompletionHelper GetCompletionHelper(Document document)
         {
-            var document = GetDocument();
-            if (document != null)
-            {
-                return CompletionHelper.GetHelper(document);
-            }
-
-            return null;
+            return CompletionHelper.GetHelper(document);
         }
 
         private bool IsTextualTriggerCharacter(CompletionService completionService, char ch, OptionSet options)

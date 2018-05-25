@@ -8,6 +8,7 @@ using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
 /*
@@ -147,7 +148,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             //    void M<U>(T t, U u); 
             // }
             // ...
-            // static void Foo<V>(V v, I<V> iv) 
+            // static void Goo<V>(V v, I<V> iv) 
             // {
             //   iv.M(v, "");
             // }
@@ -284,15 +285,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     sb.Append(", ");
                 }
 
-                var refKind = GetRefKind(i);
-                if (refKind == RefKind.Out)
-                {
-                    sb.Append("out ");
-                }
-                else if (refKind == RefKind.Ref)
-                {
-                    sb.Append("ref ");
-                }
+                sb.Append(GetRefKind(i).ToParameterPrefix());
                 sb.Append(_formalParameterTypes[i]);
             }
 
@@ -529,11 +522,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             // SPEC: For each of the method arguments Ei:
             for (int arg = 0, length = this.NumberArgumentsToProcess; arg < length; arg++)
             {
-                var argument = _arguments[arg];
-
-                bool isExactInference = GetRefKind(arg) != RefKind.None;
-
+                BoundExpression argument = _arguments[arg];
                 TypeSymbol target = _formalParameterTypes[arg];
+                bool isExactInference = GetRefKind(arg).IsManagedReference() || target.IsPointerType();
+
                 MakeExplicitParameterTypeInferences(binder, argument, target, isExactInference, ref useSiteDiagnostics);
             }
         }
@@ -545,7 +537,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // that has no name text. This is because of the following scenario:
             //
             // void M<T>(T t) { }
-            // void Foo()
+            // void Goo()
             // {
             //     UnknownType t;
             //     M(t);
@@ -586,55 +578,26 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 ExplicitParameterTypeInference(argument, target, ref useSiteDiagnostics);
             }
-            else if (argument.Kind == BoundKind.TupleLiteral)
+            else if (argument.Kind != BoundKind.TupleLiteral ||
+                !MakeExplicitParameterTypeInferences(binder, (BoundTupleLiteral)argument, target, isExactInference, ref useSiteDiagnostics))
             {
-                MakeExplicitParameterTypeInferences(binder, (BoundTupleLiteral)argument, target, isExactInference, ref useSiteDiagnostics);
-            }
-            else if (IsReallyAType(source))
-            {
-                if (isExactInference)
+                // Either the argument is not a tuple literal, or we were unable to do the inference from its elements, let's try to infer from argument type
+                if (IsReallyAType(source))
                 {
-                    ExactInference(source, target, ref useSiteDiagnostics);
-                }
-                else
-                {
-                    LowerBoundInference(source, target, ref useSiteDiagnostics);
+                    if (isExactInference)
+                    {
+                        ExactInference(source, target, ref useSiteDiagnostics);
+                    }
+                    else
+                    {
+                        LowerBoundInference(source, target, ref useSiteDiagnostics);
+                    }
                 }
             }
         }
 
-        private void MakeExplicitParameterTypeInferences(Binder binder, BoundTupleLiteral argument, TypeSymbol target, bool isExactInference, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
+        private bool MakeExplicitParameterTypeInferences(Binder binder, BoundTupleLiteral argument, TypeSymbol target, bool isExactInference, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
         {
-            // if tuple has a type we will try to match the type as a single input
-            // Example:
-            //      if   "(a: 1, b: 2)" is passed as   T arg
-            //      then T becomes (int a, int b)
-            var source = argument.Type;
-            if (IsReallyAType(source))
-            {
-                if (isExactInference)
-                {
-                    // SPEC: * If V is one of the unfixed Xi then U is added to the set of
-                    // SPEC:   exact bounds for Xi.
-                    if (ExactTypeParameterInference(source, target))
-                    {
-                        return;
-                    }
-                }
-                else
-                {
-                    // SPEC: A lower-bound inference from a type U to a type V is made as follows:
-
-                    // SPEC: * If V is one of the unfixed Xi then U is added to the set of 
-                    // SPEC:   lower bounds for Xi.
-
-                    if (LowerBoundTypeParameterInference(source, target))
-                    {
-                        return;
-                    }
-                }
-            }
-
             // try match up element-wise to the destination tuple (or underlying type)
             // Example:
             //      if   "(a: 1, b: "qq")" is passed as   (T, U) arg
@@ -642,7 +605,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (target.Kind != SymbolKind.NamedType)
             {
                 // tuples can only match to tuples or tuple underlying types.
-                return;
+                return false;
             }
 
             var destination = (NamedTypeSymbol)target;
@@ -652,7 +615,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (!destination.IsTupleOrCompatibleWithTupleOfCardinality(sourceArguments.Length))
             {
                 // target is not a tuple of appropriate shape
-                return;
+                return false;
             }
 
             var destTypes = destination.GetElementTypesOfTupleOrCompatible();
@@ -668,6 +631,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var destType = destTypes[i];
                 MakeExplicitParameterTypeInferences(binder, sourceArgument, destType, isExactInference, ref useSiteDiagnostics);
             }
+
+            return true;
         }
 
         ////////////////////////////////////////////////////////////////////////////////
@@ -1354,10 +1319,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // this part of the code is only called if the targetType has an unfixed type argument in the output 
             // type, which is not the case for invalid delegate invoke methods.
-            Debug.Assert((object)delegateType.DelegateInvokeMethod != null && !delegateType.DelegateInvokeMethod.HasUseSiteError,
+            var delegateInvokeMethod = delegateType.DelegateInvokeMethod;
+            Debug.Assert((object)delegateInvokeMethod != null && !delegateType.DelegateInvokeMethod.HasUseSiteError,
                          "This method should only be called for valid delegate types");
 
-            TypeSymbol delegateReturnType = delegateType.DelegateInvokeMethod.ReturnType;
+            TypeSymbol delegateReturnType = delegateInvokeMethod.ReturnType;
             if ((object)delegateReturnType == null || delegateReturnType.SpecialType == SpecialType.System_Void)
             {
                 return false;
@@ -1371,7 +1337,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return false;
             }
 
-            var returnType = MethodGroupReturnType(binder, (BoundMethodGroup)source, fixedDelegateParameters, ref useSiteDiagnostics);
+            var returnType = MethodGroupReturnType(binder, (BoundMethodGroup)source, fixedDelegateParameters, delegateInvokeMethod.RefKind, ref useSiteDiagnostics);
             if ((object)returnType == null || returnType.SpecialType == SpecialType.System_Void)
             {
                 return false;
@@ -1382,12 +1348,19 @@ namespace Microsoft.CodeAnalysis.CSharp
             return true;
         }
 
-        private static TypeSymbol MethodGroupReturnType(Binder binder, BoundMethodGroup source, ImmutableArray<ParameterSymbol> delegateParameters, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
+        private static TypeSymbol MethodGroupReturnType(
+            Binder binder, BoundMethodGroup source,
+            ImmutableArray<ParameterSymbol> delegateParameters,
+            RefKind delegateRefKind,
+            ref HashSet<DiagnosticInfo> useSiteDiagnostics)
         {
             var analyzedArguments = AnalyzedArguments.GetInstance();
             Conversions.GetDelegateArguments(source.Syntax, analyzedArguments, delegateParameters, binder.Compilation);
 
-            var resolution = binder.ResolveMethodGroup(source, analyzedArguments, isMethodGroupConversion: true, useSiteDiagnostics: ref useSiteDiagnostics);
+            var resolution = binder.ResolveMethodGroup(source, analyzedArguments, useSiteDiagnostics: ref useSiteDiagnostics,
+                isMethodGroupConversion: true, returnRefKind: delegateRefKind,
+                // Since we are trying to infer the return type, it is not an input to resolving the method group
+                returnType: null);
 
             TypeSymbol type = null;
 
@@ -1512,6 +1485,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return;
             }
 
+            // This can be valid via (where T : unmanaged) constraints
+            if (ExactPointerInference(source, target, ref useSiteDiagnostics))
+            {
+                return;
+            }
+
             // SPEC: * Otherwise no inferences are made.
         }
 
@@ -1603,13 +1582,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             // SPEC:   type C<U1...Uk> then an exact inference 
             // SPEC:   is made from each Ui to the corresponding Vi.
 
-            var namedSource = source as NamedTypeSymbol;
+            var namedSource = source.TupleUnderlyingTypeOrSelf() as NamedTypeSymbol;
             if ((object)namedSource == null)
             {
                 return false;
             }
 
-            var namedTarget = target as NamedTypeSymbol;
+            var namedTarget = target.TupleUnderlyingTypeOrSelf() as NamedTypeSymbol;
             if ((object)namedTarget == null)
             {
                 return false;
@@ -1622,6 +1601,17 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             ExactTypeArgumentInference(namedSource, namedTarget, ref useSiteDiagnostics);
             return true;
+        }
+
+        private bool ExactPointerInference(TypeSymbol source, TypeSymbol target, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
+        {
+            if (source.TypeKind == TypeKind.Pointer && target.TypeKind == TypeKind.Pointer)
+            {
+                ExactInference(((PointerTypeSymbol)source).PointedAtType, ((PointerTypeSymbol)target).PointedAtType, ref useSiteDiagnostics);
+                return true;
+            }
+
+            return false;
         }
 
         private void ExactTypeArgumentInference(NamedTypeSymbol source, NamedTypeSymbol target, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
@@ -1866,6 +1856,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             Debug.Assert((object)source != null);
             Debug.Assert((object)target != null);
+
+            source = source.TupleUnderlyingTypeOrSelf();
+            target = target.TupleUnderlyingTypeOrSelf();
 
             var constructedTarget = target as NamedTypeSymbol;
             if ((object)constructedTarget == null)
@@ -2184,6 +2177,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             Debug.Assert((object)source != null);
             Debug.Assert((object)target != null);
+            source = source.TupleUnderlyingTypeOrSelf();
+            target = target.TupleUnderlyingTypeOrSelf();
 
             var constructedSource = source as NamedTypeSymbol;
             if ((object)constructedSource == null)
@@ -2656,7 +2651,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 for (int p = 0; p < anonymousFunction.ParameterCount; ++p)
                 {
-                    if (anonymousFunction.ParameterType(p) != fixedDelegateParameters[p].Type)
+                    if (!anonymousFunction.ParameterType(p).Equals(fixedDelegateParameters[p].Type, TypeCompareKind.IgnoreDynamicAndTupleNames))
                     {
                         return null;
                     }
@@ -2712,17 +2707,17 @@ namespace Microsoft.CodeAnalysis.CSharp
         // In error recovery and reporting scenarios we sometimes end up in a situation
         // like this:
         //
-        // x.Foo( y=>
+        // x.Goo( y=>
         //
-        // and the question is, "is Foo a valid extension method of x?"  If Foo is
-        // generic, then Foo will be something like:
+        // and the question is, "is Goo a valid extension method of x?"  If Goo is
+        // generic, then Goo will be something like:
         //
-        // static Blah Foo<T>(this Bar<T> bar, Func<T, T> f){ ... }
+        // static Blah Goo<T>(this Bar<T> bar, Func<T, T> f){ ... }
         //
         // What we would like to know is: given _only_ the expression x, can we infer
         // what T is in Bar<T> ?  If we can, then for error recovery and reporting
-        // we can provisionally consider Foo to be an extension method of x. If we 
-        // cannot deduce this just from x then we should consider Foo to not be an
+        // we can provisionally consider Goo to be an extension method of x. If we 
+        // cannot deduce this just from x then we should consider Goo to not be an
         // extension method of x, at least until we have more information.
         //
         // Clearly it is pointless to run multiple phases

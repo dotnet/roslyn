@@ -1,4 +1,4 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Collections.Immutable
 Imports Microsoft.CodeAnalysis
@@ -28,32 +28,34 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Completion.Complet
                 code As String, position As Integer,
                 expectedItemOrNull As String, expectedDescriptionOrNull As String,
                 sourceCodeKind As SourceCodeKind, usePreviousCharAsTrigger As Boolean,
-                checkForAbsence As Boolean, glyph As Integer?, matchPriority As Integer?) As Task
+                checkForAbsence As Boolean, glyph As Integer?, matchPriority As Integer?,
+                hasSuggestionItem As Boolean?) As Task
             Return MyBase.VerifyWorkerAsync(
                 code, position, expectedItemOrNull, expectedDescriptionOrNull,
                 sourceCodeKind, usePreviousCharAsTrigger, checkForAbsence,
-                glyph, matchPriority)
+                glyph, matchPriority, hasSuggestionItem)
         End Function
 
         Protected Overrides Async Function VerifyWorkerAsync(
                 code As String, position As Integer,
                 expectedItemOrNull As String, expectedDescriptionOrNull As String,
                 sourceCodeKind As SourceCodeKind, usePreviousCharAsTrigger As Boolean,
-                checkForAbsence As Boolean, glyph As Integer?, matchPriority As Integer?) As Task
+                checkForAbsence As Boolean, glyph As Integer?, matchPriority As Integer?,
+                hasSuggestionItem As Boolean?) As Task
             ' Script/interactive support removed for now.
             ' TODO: Re-enable these when interactive is back in the product.
             If sourceCodeKind <> Microsoft.CodeAnalysis.SourceCodeKind.Regular Then
                 Return
             End If
 
-            Await VerifyAtPositionAsync(code, position, usePreviousCharAsTrigger, expectedItemOrNull, expectedDescriptionOrNull, sourceCodeKind, checkForAbsence, glyph, matchPriority)
-            Await VerifyAtEndOfFileAsync(code, position, usePreviousCharAsTrigger, expectedItemOrNull, expectedDescriptionOrNull, sourceCodeKind, checkForAbsence, glyph, matchPriority)
+            Await VerifyAtPositionAsync(code, position, usePreviousCharAsTrigger, expectedItemOrNull, expectedDescriptionOrNull, sourceCodeKind, checkForAbsence, glyph, matchPriority, hasSuggestionItem)
+            Await VerifyAtEndOfFileAsync(code, position, usePreviousCharAsTrigger, expectedItemOrNull, expectedDescriptionOrNull, sourceCodeKind, checkForAbsence, glyph, matchPriority, hasSuggestionItem)
 
             ' Items cannot be partially written if we're checking for their absence,
             ' or if we're verifying that the list will show up (without specifying an actual item)
             If Not checkForAbsence AndAlso expectedItemOrNull <> Nothing Then
-                Await VerifyAtPosition_ItemPartiallyWrittenAsync(code, position, usePreviousCharAsTrigger, expectedItemOrNull, expectedDescriptionOrNull, sourceCodeKind, checkForAbsence, glyph, matchPriority)
-                Await VerifyAtEndOfFile_ItemPartiallyWrittenAsync(code, position, usePreviousCharAsTrigger, expectedItemOrNull, expectedDescriptionOrNull, sourceCodeKind, checkForAbsence, glyph, matchPriority)
+                Await VerifyAtPosition_ItemPartiallyWrittenAsync(code, position, usePreviousCharAsTrigger, expectedItemOrNull, expectedDescriptionOrNull, sourceCodeKind, checkForAbsence, glyph, matchPriority, hasSuggestionItem)
+                Await VerifyAtEndOfFile_ItemPartiallyWrittenAsync(code, position, usePreviousCharAsTrigger, expectedItemOrNull, expectedDescriptionOrNull, sourceCodeKind, checkForAbsence, glyph, matchPriority, hasSuggestionItem)
             End If
         End Function
 
@@ -109,11 +111,11 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Completion.Complet
         Protected Sub TestCommonIsTextualTriggerCharacter()
             Dim alwaysTriggerList =
             {
-                "foo$$.",
-                "foo$$[",
-                "foo$$#",
-                "foo$$ ",
-                "foo$$="
+                "goo$$.",
+                "goo$$[",
+                "goo$$#",
+                "goo$$ ",
+                "goo$$="
             }
 
             For Each markup In alwaysTriggerList
@@ -132,8 +134,8 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Completion.Complet
 
             Dim neverTriggerList =
             {
-                "foo$$x",
-                "foo$$_"
+                "goo$$x",
+                "goo$$_"
             }
 
             For Each markup In neverTriggerList

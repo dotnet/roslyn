@@ -384,7 +384,37 @@ class C
                 N(SyntaxKind.ClassDeclaration);
                 {
                     N(SyntaxKind.ClassKeyword);
-                    N(SyntaxKind.IdentifierToken);
+                    N(SyntaxKind.IdentifierToken, "C");
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.IncompleteMember);
+                    {
+                        N(SyntaxKind.AsyncKeyword);
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "async");
+                        }
+                    }
+                    M(SyntaxKind.CloseBraceToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void CompleteAsyncAsync1()
+        {
+            UsingTree(@"
+class C
+{
+    async async;
+");
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.ClassDeclaration);
+                {
+                    N(SyntaxKind.ClassKeyword);
+                    N(SyntaxKind.IdentifierToken, "C");
                     N(SyntaxKind.OpenBraceToken);
                     N(SyntaxKind.FieldDeclaration);
                     {
@@ -392,19 +422,65 @@ class C
                         {
                             N(SyntaxKind.IdentifierName);
                             {
-                                N(SyntaxKind.IdentifierToken);
+                                N(SyntaxKind.IdentifierToken, "async");
                             }
                             N(SyntaxKind.VariableDeclarator);
                             {
-                                N(SyntaxKind.IdentifierToken);
+                                N(SyntaxKind.IdentifierToken, "async");
                             }
                         }
-                        M(SyntaxKind.SemicolonToken);
+                        N(SyntaxKind.SemicolonToken);
                     }
                     M(SyntaxKind.CloseBraceToken);
                 }
                 N(SyntaxKind.EndOfFileToken);
             }
+            EOF();
+        }
+
+        [Fact]
+        public void CompleteAsyncAsync2()
+        {
+            UsingTree(@"
+class C
+{
+    async async = 1;
+");
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.ClassDeclaration);
+                {
+                    N(SyntaxKind.ClassKeyword);
+                    N(SyntaxKind.IdentifierToken, "C");
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.FieldDeclaration);
+                    {
+                        N(SyntaxKind.VariableDeclaration);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "async");
+                            }
+                            N(SyntaxKind.VariableDeclarator);
+                            {
+                                N(SyntaxKind.IdentifierToken, "async");
+                                N(SyntaxKind.EqualsValueClause);
+                                {
+                                    N(SyntaxKind.EqualsToken);
+                                    N(SyntaxKind.NumericLiteralExpression);
+                                    {
+                                        N(SyntaxKind.NumericLiteralToken, "1");
+                                    }
+                                }
+                            }
+                        }
+                        N(SyntaxKind.SemicolonToken);
+                    }
+                    M(SyntaxKind.CloseBraceToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
         }
 
         [Fact]
@@ -420,7 +496,38 @@ class C
                 N(SyntaxKind.ClassDeclaration);
                 {
                     N(SyntaxKind.ClassKeyword);
-                    N(SyntaxKind.IdentifierToken);
+                    N(SyntaxKind.IdentifierToken, "C");
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.IncompleteMember);
+                    {
+                        N(SyntaxKind.AsyncKeyword);
+                        N(SyntaxKind.AsyncKeyword);
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "async");
+                        }
+                    }
+                    M(SyntaxKind.CloseBraceToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void CompleteAsyncAsyncAsync()
+        {
+            UsingTree(@"
+class C
+{
+    async async async;
+");
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.ClassDeclaration);
+                {
+                    N(SyntaxKind.ClassKeyword);
+                    N(SyntaxKind.IdentifierToken, "C");
                     N(SyntaxKind.OpenBraceToken);
                     N(SyntaxKind.FieldDeclaration);
                     {
@@ -429,19 +536,20 @@ class C
                         {
                             N(SyntaxKind.IdentifierName);
                             {
-                                N(SyntaxKind.IdentifierToken);
+                                N(SyntaxKind.IdentifierToken, "async");
                             }
                             N(SyntaxKind.VariableDeclarator);
                             {
-                                N(SyntaxKind.IdentifierToken);
+                                N(SyntaxKind.IdentifierToken, "async");
                             }
                         }
-                        M(SyntaxKind.SemicolonToken);
+                        N(SyntaxKind.SemicolonToken);
                     }
                     M(SyntaxKind.CloseBraceToken);
                 }
                 N(SyntaxKind.EndOfFileToken);
             }
+            EOF();
         }
 
         [Fact]
@@ -457,7 +565,39 @@ class C
                 N(SyntaxKind.ClassDeclaration);
                 {
                     N(SyntaxKind.ClassKeyword);
-                    N(SyntaxKind.IdentifierToken);
+                    N(SyntaxKind.IdentifierToken, "C");
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.IncompleteMember);
+                    {
+                        N(SyntaxKind.AsyncKeyword);
+                        N(SyntaxKind.AsyncKeyword);
+                        N(SyntaxKind.AsyncKeyword);
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "async");
+                        }
+                    }
+                    M(SyntaxKind.CloseBraceToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void CompleteAsyncAsyncAsyncAsync()
+        {
+            UsingTree(@"
+class C
+{
+    async async async async;
+");
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.ClassDeclaration);
+                {
+                    N(SyntaxKind.ClassKeyword);
+                    N(SyntaxKind.IdentifierToken, "C");
                     N(SyntaxKind.OpenBraceToken);
                     N(SyntaxKind.FieldDeclaration);
                     {
@@ -467,19 +607,20 @@ class C
                         {
                             N(SyntaxKind.IdentifierName);
                             {
-                                N(SyntaxKind.IdentifierToken);
+                                N(SyntaxKind.IdentifierToken, "async");
                             }
                             N(SyntaxKind.VariableDeclarator);
                             {
-                                N(SyntaxKind.IdentifierToken);
+                                N(SyntaxKind.IdentifierToken, "async");
                             }
                         }
-                        M(SyntaxKind.SemicolonToken);
+                        N(SyntaxKind.SemicolonToken);
                     }
                     M(SyntaxKind.CloseBraceToken);
                 }
                 N(SyntaxKind.EndOfFileToken);
             }
+            EOF();
         }
 
         [WorkItem(609912, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/609912")]
@@ -967,7 +1108,7 @@ class C
             UsingTree(@"
 class C
 {
-    public async delegate void Foo();
+    public async delegate void Goo();
 }
 ");
             N(SyntaxKind.CompilationUnit);
@@ -1304,6 +1445,499 @@ class C
     async partial C this
 ");
             Check(SyntaxKind.IndexerDeclaration);
+        }
+
+        [Fact]
+        public void AsyncTypeEndOfFile()
+        {
+            UsingTree("class C { async T");
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.ClassDeclaration);
+                {
+                    N(SyntaxKind.ClassKeyword);
+                    N(SyntaxKind.IdentifierToken, "C");
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.IncompleteMember);
+                    {
+                        N(SyntaxKind.AsyncKeyword);
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "T");
+                        }
+                    }
+                    M(SyntaxKind.CloseBraceToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void AsyncTypeCloseCurly()
+        {
+            UsingTree("class C { async T }");
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.ClassDeclaration);
+                {
+                    N(SyntaxKind.ClassKeyword);
+                    N(SyntaxKind.IdentifierToken, "C");
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.IncompleteMember);
+                    {
+                        N(SyntaxKind.AsyncKeyword);
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "T");
+                        }
+                    }
+                    N(SyntaxKind.CloseBraceToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void AsyncTypePredefinedType()
+        {
+            UsingTree(
+@"class C {
+    async T
+    int");
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.ClassDeclaration);
+                {
+                    N(SyntaxKind.ClassKeyword);
+                    N(SyntaxKind.IdentifierToken, "C");
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.IncompleteMember);
+                    {
+                        N(SyntaxKind.AsyncKeyword);
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "T");
+                        }
+                    }
+                    N(SyntaxKind.IncompleteMember);
+                    {
+                        N(SyntaxKind.PredefinedType);
+                        {
+                            N(SyntaxKind.IntKeyword);
+                        }
+                    }
+                    M(SyntaxKind.CloseBraceToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void AsyncTypeModifier()
+        {
+            UsingTree(
+@"class C {
+    async T
+    public");
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.ClassDeclaration);
+                {
+                    N(SyntaxKind.ClassKeyword);
+                    N(SyntaxKind.IdentifierToken, "C");
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.IncompleteMember);
+                    {
+                        N(SyntaxKind.AsyncKeyword);
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "T");
+                        }
+                    }
+                    N(SyntaxKind.IncompleteMember);
+                    {
+                        N(SyntaxKind.PublicKeyword);
+                    }
+                    M(SyntaxKind.CloseBraceToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void AsyncTypeFollowedByTypeDecl()
+        {
+            UsingTree(
+@"class C {
+    async T
+class");
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.ClassDeclaration);
+                {
+                    N(SyntaxKind.ClassKeyword);
+                    N(SyntaxKind.IdentifierToken, "C");
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.IncompleteMember);
+                    {
+                        N(SyntaxKind.AsyncKeyword);
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "T");
+                        }
+                    }
+                    N(SyntaxKind.ClassDeclaration);
+                    {
+                        N(SyntaxKind.ClassKeyword);
+                        M(SyntaxKind.IdentifierToken);
+                        M(SyntaxKind.OpenBraceToken);
+                        M(SyntaxKind.CloseBraceToken);
+                    }
+                    M(SyntaxKind.CloseBraceToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Fact]
+        public void AsyncTypeFollowedByNamespaceDecl()
+        {
+            UsingTree(
+@"class C {
+    async T
+namespace");
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.ClassDeclaration);
+                {
+                    N(SyntaxKind.ClassKeyword);
+                    N(SyntaxKind.IdentifierToken, "C");
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.IncompleteMember);
+                    {
+                        N(SyntaxKind.AsyncKeyword);
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "T");
+                        }
+                    }
+                    M(SyntaxKind.CloseBraceToken);
+                }
+                N(SyntaxKind.NamespaceDeclaration);
+                {
+                    N(SyntaxKind.NamespaceKeyword);
+                    M(SyntaxKind.IdentifierName);
+                    {
+                        M(SyntaxKind.IdentifierToken);
+                    }
+                    M(SyntaxKind.OpenBraceToken);
+                    M(SyntaxKind.CloseBraceToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Fact, WorkItem(18621, "https://github.com/dotnet/roslyn/issues/18621")]
+        public void AsyncGenericType()
+        {
+            UsingTree(
+@"class Program
+{
+    public async Task<IReadOnlyCollection<ProjectConfiguration>>
+}");
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.ClassDeclaration);
+                {
+                    N(SyntaxKind.ClassKeyword);
+                    N(SyntaxKind.IdentifierToken, "Program");
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.IncompleteMember);
+                    {
+                        N(SyntaxKind.PublicKeyword);
+                        N(SyntaxKind.AsyncKeyword);
+                        N(SyntaxKind.GenericName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "Task");
+                            N(SyntaxKind.TypeArgumentList);
+                            {
+                                N(SyntaxKind.LessThanToken);
+                                N(SyntaxKind.GenericName);
+                                {
+                                    N(SyntaxKind.IdentifierToken, "IReadOnlyCollection");
+                                    N(SyntaxKind.TypeArgumentList);
+                                    {
+                                        N(SyntaxKind.LessThanToken);
+                                        N(SyntaxKind.IdentifierName);
+                                        {
+                                            N(SyntaxKind.IdentifierToken, "ProjectConfiguration");
+                                        }
+                                        N(SyntaxKind.GreaterThanToken);
+                                    }
+                                }
+                                N(SyntaxKind.GreaterThanToken);
+                            }
+                        }
+                    }
+                    N(SyntaxKind.CloseBraceToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Fact]
+        [WorkItem(16044, "https://github.com/dotnet/roslyn/issues/16044")]
+        public void AsyncAsType_Property_ExpressionBody()
+        {
+            UsingTree("class async { async async => null; }").GetDiagnostics().Verify(
+                // (1,27): error CS8026: Feature 'expression-bodied property' is not available in C# 5. Please use language version 6 or greater.
+                // class async { async async => null; }
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion5, "=> null").WithArguments("expression-bodied property", "6").WithLocation(1, 27)
+                );
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.ClassDeclaration);
+                {
+                    N(SyntaxKind.ClassKeyword);
+                    N(SyntaxKind.IdentifierToken, "async");
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.PropertyDeclaration);
+                    {
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "async");
+                        }
+                        N(SyntaxKind.IdentifierToken, "async");
+                        N(SyntaxKind.ArrowExpressionClause);
+                        {
+                            N(SyntaxKind.EqualsGreaterThanToken);
+                            N(SyntaxKind.NullLiteralExpression);
+                            {
+                                N(SyntaxKind.NullKeyword);
+                            }
+                        }
+                        N(SyntaxKind.SemicolonToken);
+                    }
+                    N(SyntaxKind.CloseBraceToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Fact]
+        [WorkItem(16044, "https://github.com/dotnet/roslyn/issues/16044")]
+        public void AsyncAsType_Property()
+        {
+            UsingTree("class async { async async { get; } }").GetDiagnostics().Verify();
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.ClassDeclaration);
+                {
+                    N(SyntaxKind.ClassKeyword);
+                    N(SyntaxKind.IdentifierToken, "async");
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.PropertyDeclaration);
+                    {
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "async");
+                        }
+                        N(SyntaxKind.IdentifierToken, "async");
+                        N(SyntaxKind.AccessorList);
+                        {
+                            N(SyntaxKind.OpenBraceToken);
+                            N(SyntaxKind.GetAccessorDeclaration);
+                            {
+                                N(SyntaxKind.GetKeyword);
+                                N(SyntaxKind.SemicolonToken);
+                            }
+                            N(SyntaxKind.CloseBraceToken);
+                        }
+                    }
+                    N(SyntaxKind.CloseBraceToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Fact]
+        [WorkItem(16044, "https://github.com/dotnet/roslyn/issues/16044")]
+        public void AsyncAsType_Indexer_ExpressionBody_ErrorCase()
+        {
+            UsingTree("interface async { async this[async i] => null; }").GetDiagnostics().Verify(
+                // (1,39): error CS8026: Feature 'expression-bodied indexer' is not available in C# 5. Please use language version 6 or greater.
+                // interface async { async this[async i] => null; }
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion5, "=> null").WithArguments("expression-bodied indexer", "6").WithLocation(1, 39)
+                );
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.InterfaceDeclaration);
+                {
+                    N(SyntaxKind.InterfaceKeyword);
+                    N(SyntaxKind.IdentifierToken, "async");
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.IndexerDeclaration);
+                    {
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "async");
+                        }
+                        N(SyntaxKind.ThisKeyword);
+                        N(SyntaxKind.BracketedParameterList);
+                        {
+                            N(SyntaxKind.OpenBracketToken);
+                            N(SyntaxKind.Parameter);
+                            {
+                                N(SyntaxKind.IdentifierName);
+                                {
+                                    N(SyntaxKind.IdentifierToken, "async");
+                                }
+                                N(SyntaxKind.IdentifierToken, "i");
+                            }
+                            N(SyntaxKind.CloseBracketToken);
+                        }
+                        N(SyntaxKind.ArrowExpressionClause);
+                        {
+                            N(SyntaxKind.EqualsGreaterThanToken);
+                            N(SyntaxKind.NullLiteralExpression);
+                            {
+                                N(SyntaxKind.NullKeyword);
+                            }
+                        }
+                        N(SyntaxKind.SemicolonToken);
+                    }
+                    N(SyntaxKind.CloseBraceToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Fact]
+        [WorkItem(16044, "https://github.com/dotnet/roslyn/issues/16044")]
+        public void AsyncAsType_Indexer()
+        {
+            UsingTree("interface async { async this[async i] { get; } }").GetDiagnostics().Verify();
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.InterfaceDeclaration);
+                {
+                    N(SyntaxKind.InterfaceKeyword);
+                    N(SyntaxKind.IdentifierToken, "async");
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.IndexerDeclaration);
+                    {
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "async");
+                        }
+                        N(SyntaxKind.ThisKeyword);
+                        N(SyntaxKind.BracketedParameterList);
+                        {
+                            N(SyntaxKind.OpenBracketToken);
+                            N(SyntaxKind.Parameter);
+                            {
+                                N(SyntaxKind.IdentifierName);
+                                {
+                                    N(SyntaxKind.IdentifierToken, "async");
+                                }
+                                N(SyntaxKind.IdentifierToken, "i");
+                            }
+                            N(SyntaxKind.CloseBracketToken);
+                        }
+                        N(SyntaxKind.AccessorList);
+                        {
+                            N(SyntaxKind.OpenBraceToken);
+                            N(SyntaxKind.GetAccessorDeclaration);
+                            {
+                                N(SyntaxKind.GetKeyword);
+                                N(SyntaxKind.SemicolonToken);
+                            }
+                            N(SyntaxKind.CloseBraceToken);
+                        }
+                    }
+                    N(SyntaxKind.CloseBraceToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Fact]
+        [WorkItem(16044, "https://github.com/dotnet/roslyn/issues/16044")]
+        public void AsyncAsType_Property_ExplicitInterface()
+        {
+            UsingTree("class async : async { async async.async => null; }").GetDiagnostics().Verify(
+                // (1,41): error CS8026: Feature 'expression-bodied property' is not available in C# 5. Please use language version 6 or greater.
+                // class async : async { async async.async => null; }
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion5, "=> null").WithArguments("expression-bodied property", "6").WithLocation(1, 41)
+                );
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.ClassDeclaration);
+                {
+                    N(SyntaxKind.ClassKeyword);
+                    N(SyntaxKind.IdentifierToken, "async");
+                    N(SyntaxKind.BaseList);
+                    {
+                        N(SyntaxKind.ColonToken);
+                        N(SyntaxKind.SimpleBaseType);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "async");
+                            }
+                        }
+                    }
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.PropertyDeclaration);
+                    {
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "async");
+                        }
+                        N(SyntaxKind.ExplicitInterfaceSpecifier);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "async");
+                            }
+                            N(SyntaxKind.DotToken);
+                        }
+                        N(SyntaxKind.IdentifierToken, "async");
+                        N(SyntaxKind.ArrowExpressionClause);
+                        {
+                            N(SyntaxKind.EqualsGreaterThanToken);
+                            N(SyntaxKind.NullLiteralExpression);
+                            {
+                                N(SyntaxKind.NullKeyword);
+                            }
+                        }
+                        N(SyntaxKind.SemicolonToken);
+                    }
+                    N(SyntaxKind.CloseBraceToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
         }
     }
 }

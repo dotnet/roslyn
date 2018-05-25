@@ -3,6 +3,7 @@
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using Microsoft.CodeAnalysis.PooledObjects;
 
 namespace Microsoft.CodeAnalysis.Emit
 {
@@ -42,10 +43,11 @@ namespace Microsoft.CodeAnalysis.Emit
                 stringStreamLengthAdded: baseline.StringStreamLengthAdded,
                 userStringStreamLengthAdded: baseline.UserStringStreamLengthAdded,
                 guidStreamLengthAdded: baseline.GuidStreamLengthAdded,
-                anonymousTypeMap: this.MapAnonymousTypes(baseline.AnonymousTypeMap),
+                anonymousTypeMap: MapAnonymousTypes(baseline.AnonymousTypeMap),
                 synthesizedMembers: mappedSynthesizedMembers,
-                addedOrChangedMethods: this.MapAddedOrChangedMethods(baseline.AddedOrChangedMethods),
-                debugInformationProvider: baseline.DebugInformationProvider);
+                addedOrChangedMethods: MapAddedOrChangedMethods(baseline.AddedOrChangedMethods),
+                debugInformationProvider: baseline.DebugInformationProvider, 
+                localSignatureProvider: baseline.LocalSignatureProvider);
         }
 
         private IReadOnlyDictionary<K, V> MapDefinitions<K, V>(IReadOnlyDictionary<K, V> items)

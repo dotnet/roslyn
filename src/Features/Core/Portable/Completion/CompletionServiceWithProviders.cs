@@ -29,6 +29,7 @@ namespace Microsoft.CodeAnalysis.Completion
         private readonly Dictionary<string, CompletionProvider> _nameToProvider = new Dictionary<string, CompletionProvider>();
         private readonly Dictionary<ImmutableHashSet<string>, ImmutableArray<CompletionProvider>> _rolesToProviders;
         private readonly Func<ImmutableHashSet<string>, ImmutableArray<CompletionProvider>> _createRoleProviders;
+        private readonly Func<string, CompletionProvider> _getProviderByName;
 
         private readonly Workspace _workspace;
 
@@ -52,6 +53,7 @@ namespace Microsoft.CodeAnalysis.Completion
             ExclusiveProviders = exclusiveProviders;
             _rolesToProviders = new Dictionary<ImmutableHashSet<string>, ImmutableArray<CompletionProvider>>(this);
             _createRoleProviders = CreateRoleProviders;
+            _getProviderByName = GetProviderByName;
         }
 
         public override CompletionRules GetRules()
@@ -194,11 +196,17 @@ namespace Microsoft.CodeAnalysis.Completion
             {
                 lock (_gate)
                 {
-                    _nameToProvider.TryGetValue(name, out provider);
+                    provider = _nameToProvider.GetOrAdd(name, _getProviderByName);
                 }
             }
 
             return provider;
+        }
+
+        private CompletionProvider GetProviderByName(string providerName)
+        {
+            var providers = GetAllProviders(roles: ImmutableHashSet<string>.Empty);
+            return providers.FirstOrDefault(p => p.Name == providerName);
         }
 
         public override async Task<CompletionList> GetCompletionsAsync(
@@ -400,9 +408,9 @@ namespace Microsoft.CodeAnalysis.Completion
             return item;
         }
 
-        private Dictionary<CompletionProvider, int> GetCompletionProviderToIndex(IEnumerable<CompletionProvider> completionProviders)
+        private static Dictionary<CompletionProvider, int> GetCompletionProviderToIndex(ImmutableArray<CompletionProvider> completionProviders)
         {
-            var result = new Dictionary<CompletionProvider, int>();
+            var result = new Dictionary<CompletionProvider, int>(completionProviders.Length);
 
             int i = 0;
             foreach (var completionProvider in completionProviders)
@@ -450,17 +458,12 @@ namespace Microsoft.CodeAnalysis.Completion
             return context;
         }
 
-        public override Task<CompletionDescription> GetDescriptionAsync(Document document, CompletionItem item, CancellationToken cancellationToken = default(CancellationToken))
+        public override Task<CompletionDescription> GetDescriptionAsync(Document document, CompletionItem item, CancellationToken cancellationToken = default)
         {
             var provider = GetProvider(item);
-            if (provider != null)
-            {
-                return provider.GetDescriptionAsync(document, item, cancellationToken);
-            }
-            else
-            {
-                return Task.FromResult(CompletionDescription.Empty);
-            }
+            return provider != null
+                ? provider.GetDescriptionAsync(document, item, cancellationToken)
+                : Task.FromResult(CompletionDescription.Empty);
         }
 
         public override bool ShouldTriggerCompletion(

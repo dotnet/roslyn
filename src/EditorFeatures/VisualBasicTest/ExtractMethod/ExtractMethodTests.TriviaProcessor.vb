@@ -1,8 +1,9 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.ExtractMethod
     Partial Public Class ExtractMethodTests
+        <[UseExportProvider]>
         Public Class TriviaProcessor
 
             <WorkItem(539281, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539281")>

@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Generic;
 using System.ComponentModel.Composition;
@@ -21,18 +21,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.QuickInfo
     [ExportQuickInfoProvider(PredefinedQuickInfoProviderNames.Syntactic, LanguageNames.CSharp)]
     internal class SyntacticQuickInfoProvider : AbstractQuickInfoProvider
     {
-        [ImportingConstructor]
-        public SyntacticQuickInfoProvider(
-            IProjectionBufferFactoryService projectionBufferFactoryService,
-            IEditorOptionsFactoryService editorOptionsFactoryService,
-            ITextEditorFactoryService textEditorFactoryService,
-            IGlyphService glyphService,
-            ClassificationTypeMap typeMap)
-            : base(projectionBufferFactoryService, editorOptionsFactoryService,
-                   textEditorFactoryService, glyphService, typeMap)
-        {
-        }
-
         protected override async Task<IDeferredQuickInfoContent> BuildContentAsync(
             Document document,
             SyntaxToken token,
@@ -84,7 +72,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.QuickInfo
             }
 
             var span = new SnapshotSpan(textSnapshot, Span.FromBounds(spanStart, spanEnd));
-            return this.CreateElisionBufferDeferredContent(span);
+            return this.CreateProjectionBufferDeferredContent(span);
         }
 
         private static bool IsScopeBlock(SyntaxNode node)

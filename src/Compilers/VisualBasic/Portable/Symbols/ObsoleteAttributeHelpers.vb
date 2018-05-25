@@ -1,16 +1,21 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Diagnostics
-Imports System.Threading
 Imports System.Reflection.Metadata
-Imports Microsoft.CodeAnalysis.Text
+Imports System.Threading
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
-Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
-Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
-    Friend Class ObsoleteAttributeHelpers
+    Friend Enum ObsoleteDiagnosticKind
+        NotObsolete
+        Suppressed
+        Diagnostic
+        Lazy
+        LazyPotentiallySuppressed
+    End Enum
+
+    Friend NotInheritable Class ObsoleteAttributeHelpers
 
         ''' <summary>
         ''' Initialize the ObsoleteAttributeData by fetching attributes and decoding ObsoleteAttributeData. This can be 
@@ -25,8 +30,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Friend Shared Function GetObsoleteDataFromMetadata(token As EntityHandle, containingModule As PEModuleSymbol) As ObsoleteAttributeData
             Dim obsoleteAttributeData As ObsoleteAttributeData = Nothing
-            Dim isObsolete As Boolean = containingModule.Module.HasDeprecatedOrObsoleteAttribute(token, obsoleteAttributeData)
-            Debug.Assert(isObsolete = (obsoleteAttributeData IsNot Nothing))
+            ' ignoreByRefLikeMarker := False, since VB does not support ref-like types
+            obsoleteAttributeData = containingModule.Module.TryGetDeprecatedOrExperimentalOrObsoleteAttribute(token, ignoreByRefLikeMarker:=False)
             Debug.Assert(obsoleteAttributeData Is Nothing OrElse Not obsoleteAttributeData.IsUninitialized)
             Return obsoleteAttributeData
         End Function
@@ -39,36 +44,58 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' symbol's Obsoleteness is Unknown. False, if we are certain that no symbol in the parent
         ''' hierarchy is Obsolete.
         ''' </returns>
-        Friend Shared Function GetObsoleteContextState(symbol As Symbol, Optional forceComplete As Boolean = False) As ThreeState
-            If symbol Is Nothing Then
-                Return ThreeState.False
-            End If
+        Private Shared Function GetObsoleteContextState(symbol As Symbol, forceComplete As Boolean) As ThreeState
+            While symbol IsNot Nothing
+                If forceComplete Then
+                    symbol.ForceCompleteObsoleteAttribute()
+                End If
 
-            If forceComplete Then
-                symbol.ForceCompleteObsoleteAttribute()
-            End If
+                Dim state = symbol.ObsoleteState
+                If state <> ThreeState.False Then
+                    Return state
+                End If
 
-            Dim associatedPropertyOrEvent = If(symbol.IsAccessor(), DirectCast(symbol, MethodSymbol).AssociatedSymbol, Nothing)
+                ' For property or event accessors, check the associated property or event instead.
+                If symbol.IsAccessor() Then
+                    symbol = DirectCast(symbol, MethodSymbol).AssociatedSymbol
+                Else
+                    symbol = symbol.ContainingSymbol
+                End If
+            End While
 
-            ' If this is an event accessor, then consider the event itself for context since
-            ' event accessors cannot be marked obsolete.
-            If associatedPropertyOrEvent IsNot Nothing AndAlso associatedPropertyOrEvent.Kind = SymbolKind.Event Then
-                symbol = DirectCast(symbol, MethodSymbol).AssociatedSymbol
-            End If
-
-            If symbol.ObsoleteState <> ThreeState.False Then
-                Return symbol.ObsoleteState
-            End If
-
-            ' If this is a property accessor then check the property for obsoleteness as well so that we suppress
-            ' obsolete diagnostics anywhere inside a property.
-            If associatedPropertyOrEvent IsNot Nothing AndAlso associatedPropertyOrEvent.Kind = SymbolKind.Property Then
-                Return GetObsoleteContextState(associatedPropertyOrEvent, forceComplete)
-            Else
-                Return GetObsoleteContextState(symbol.ContainingSymbol, forceComplete)
-            End If
+            Return ThreeState.False
         End Function
 
+        Friend Shared Function GetObsoleteDiagnosticKind(context As Symbol, symbol As Symbol, Optional forceComplete As Boolean = False) As ObsoleteDiagnosticKind
+            Debug.Assert(context IsNot Nothing)
+            Debug.Assert(symbol IsNot Nothing)
+
+            Select Case symbol.ObsoleteKind
+                Case ObsoleteAttributeKind.None
+                    Return ObsoleteDiagnosticKind.NotObsolete
+                Case ObsoleteAttributeKind.Experimental
+                    Return ObsoleteDiagnosticKind.Diagnostic
+                Case ObsoleteAttributeKind.Uninitialized
+                    ' If we haven't cracked attributes on the symbol at all or we haven't
+                    ' cracked attribute arguments enough to be able to report diagnostics for
+                    ' ObsoleteAttribute, store the symbol so that we can report diagnostics at a 
+                    ' later stage.
+                    Return ObsoleteDiagnosticKind.Lazy
+            End Select
+
+            Select Case GetObsoleteContextState(context, forceComplete)
+                Case ThreeState.False
+                    Return ObsoleteDiagnosticKind.Diagnostic
+                Case ThreeState.True
+                    ' If we are in a context that is already obsolete, there is no point reporting
+                    ' more obsolete diagnostics.
+                    Return ObsoleteDiagnosticKind.Suppressed
+                Case Else
+                    ' If the context is unknown, then store the symbol so that we can do this check at a
+                    ' later stage
+                    Return ObsoleteDiagnosticKind.LazyPotentiallySuppressed
+            End Select
+        End Function
 
         ''' <summary>
         ''' Create a diagnostic for the given symbol. This could be an error or a warning based on
@@ -76,15 +103,22 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' </summary>
         Friend Shared Function CreateObsoleteDiagnostic(symbol As Symbol) As DiagnosticInfo
             Dim data = symbol.ObsoleteAttributeData
+            Debug.Assert(data IsNot Nothing)
 
-            If (data Is Nothing) Then
-                ' ObsoleteAttribute had errors.
+            If data Is Nothing Then
                 Return Nothing
             End If
 
             ' At this point, we are going to issue diagnostics and therefore the data shouldn't be
             ' uninitialized.
             Debug.Assert(Not data.IsUninitialized)
+
+            If data.Kind = ObsoleteAttributeKind.Experimental Then
+                Debug.Assert(data.Message Is Nothing)
+                Debug.Assert(Not data.IsError)
+                ' Provide an explicit format for fully-qualified type names.
+                Return ErrorFactory.ErrorInfo(ERRID.WRN_Experimental, New FormattedSymbol(symbol, SymbolDisplayFormat.VisualBasicErrorMessageFormat))
+            End If
 
             ' For property accessors we report a special diagnostic which indicates whether the getter or setter is obsolete.
             ' For all other symbols, report the regular diagnostic.

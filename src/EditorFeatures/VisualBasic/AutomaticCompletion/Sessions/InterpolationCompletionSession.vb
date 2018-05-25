@@ -1,4 +1,4 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.Editor.Implementation.AutomaticCompletion
@@ -34,7 +34,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.AutomaticCompletion.Sessions
 
             ' Check to see if the character to the left of the position is an open curly brace. Note that we have to
             ' count braces to ensure that the character isn't actually an escaped brace.
-            Dim text = document.GetTextAsync(cancellationToken).WaitAndGetResult(cancellationToken)
+            Dim text = document.GetTextSynchronously(cancellationToken)
             Dim index = position - 1
             Dim openCurlyCount = 0
             For index = index To 0 Step -1

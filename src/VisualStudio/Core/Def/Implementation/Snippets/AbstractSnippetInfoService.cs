@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -40,12 +40,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
         // complete.
         protected object cacheGuard = new object();
 
-        private readonly AggregateAsynchronousOperationListener _waiter;
+        private readonly IAsynchronousOperationListener _waiter;
 
         public AbstractSnippetInfoService(
             Shell.SVsServiceProvider serviceProvider,
             Guid languageGuidForSnippets,
-            IEnumerable<Lazy<IAsynchronousOperationListener, FeatureMetadata>> asyncListeners)
+            IAsynchronousOperationListenerProvider listenerProvider)
         {
             AssertIsForeground();
 
@@ -55,7 +55,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
                 if (textManager.GetExpansionManager(out _expansionManager) == VSConstants.S_OK)
                 {
                     ComEventSink.Advise<IVsExpansionEvents>(_expansionManager, this);
-                    _waiter = new AggregateAsynchronousOperationListener(asyncListeners, FeatureAttribute.Snippets);
+                    _waiter = listenerProvider.GetListener(FeatureAttribute.Snippets);
                     _languageGuidForSnippets = languageGuidForSnippets;
                     PopulateSnippetCaches();
                 }
@@ -113,32 +113,16 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
         {
             Debug.Assert(_expansionManager != null);
 
-            // If the expansion manager is an IExpansionManager, then we can use the asynchronous
-            // population mechanism it provides. Otherwise, getting snippet information from the
-            // IVsExpansionManager must be done synchronously on the UI thread.
-
-            // IExpansionManager was introduced in Visual Studio 2015 Update 1, but will be enabled
-            // by default for the first time in Visual Studio 2015 Update 2. However, the platform
-            // still supports returning the IVsExpansionManager if a major problem in the 
-            // IExpansionManager is discovered, so we must continue supporting the fallback.            
-
             var token = _waiter.BeginAsyncOperation(GetType().Name + ".Start");
 
-            var asyncExpansionManager = _expansionManager as IExpansionManager;
-            if (asyncExpansionManager != null)
-            {
-                // Call the asynchronous IExpansionManager API from a background thread
-                Task.Run(() => PopulateSnippetCacheAsync(asyncExpansionManager))
-                    .CompletesAsyncOperation(token);
-            }
-            else
-            {
-                // Call the synchronous IVsExpansionManager API from the UI thread
-                Task.Factory.StartNew(() => PopulateSnippetCacheOnForeground(_expansionManager),
-                    CancellationToken.None,
-                    TaskCreationOptions.None,
-                    ForegroundTaskScheduler).CompletesAsyncOperation(token);                
-            }
+            // In Dev14 Update2+ the platform always provides an IExpansion Manager
+            var asyncExpansionManager = (IExpansionManager)_expansionManager;
+            // Call the asynchronous IExpansionManager API from a background thread
+            Task.Factory.StartNew(() => PopulateSnippetCacheAsync(asyncExpansionManager),
+                            CancellationToken.None,
+                            TaskCreationOptions.None,
+                            TaskScheduler.Default).CompletesAsyncOperation(token);
+
         }
 
         private async Task PopulateSnippetCacheAsync(IExpansionManager expansionManager)
@@ -163,26 +147,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
         }
 
         /// <remarks>
-        /// Changes to the <see cref="IVsExpansionManager.EnumerateExpansions"/> invocation
-        /// should also be made to the IExpansionManager.EnumerateExpansionsAsync
-        /// invocation in <see cref="PopulateSnippetCacheAsync(IExpansionManager)"/>.
-        /// </remarks>
-        private void PopulateSnippetCacheOnForeground(IVsExpansionManager expansionManager)
-        {
-            AssertIsForeground();
-            expansionManager.EnumerateExpansions(
-                _languageGuidForSnippets,
-                fShortCutOnly: 0,
-                bstrTypes: null,
-                iCountTypes: 0,
-                fIncludeNULLType: 1,
-                fIncludeDuplicates: 1, // Allows snippets with the same title but different shortcuts
-                pEnum: out var expansionEnumerator);
-
-            PopulateSnippetCacheFromExpansionEnumeration(expansionEnumerator);
-        }
-
-        /// <remarks>
         /// This method must be called on the UI thread because it eventually calls into
         /// IVsExpansionEnumeration.Next, which must be called on the UI thread due to an issue
         /// with how the call is marshalled.
@@ -194,14 +158,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
         /// eventually calls into the native CExpansionEnumeratorShim::Next method, which has the
         /// same contract of expecting a non-null rgelt that it can drop expansion data into. When
         /// we call from the UI thread, this transition from managed code to the
-        /// CExpansionEnumeratorShim` goes smoothly and everything works.
+        /// CExpansionEnumeratorShim goes smoothly and everything works.
         ///
         /// When we call from a background thread, the COM marshaller has to move execution to the
         /// UI thread, and as part of this process it uses the interface as defined in the idl to
         /// set up the appropriate arguments to pass. The same parameter from the idl is defined as
         ///    [out, size_is(celt), length_is(*pceltFetched)] VsExpansion **rgelt
         ///
-        /// Because rgelt is specified as an `out` parameter, the marshaller is discarding the
+        /// Because rgelt is specified as an <c>out</c> parameter, the marshaller is discarding the
         /// pointer we passed and substituting the null reference. This then causes a null
         /// reference exception in the shim. Calling from the UI thread avoids this marshaller.
         /// </remarks>

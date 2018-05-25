@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Generic;
 using System.Linq;
@@ -38,7 +38,7 @@ namespace Microsoft.CodeAnalysis.AddConstructorParametersFromMembers
             protected override Task<Document> GetChangedDocumentAsync(CancellationToken cancellationToken)
             {
                 var workspace = _document.Project.Solution.Workspace;
-                var declarationService = _document.Project.LanguageServices.GetService<ISymbolDeclarationService>();
+                var declarationService = _document.GetLanguageService<ISymbolDeclarationService>();
                 var constructor = declarationService.GetDeclarations(_state.DelegatedConstructor).Select(r => r.GetSyntax(cancellationToken)).First();
 
                 var newConstructor = constructor;

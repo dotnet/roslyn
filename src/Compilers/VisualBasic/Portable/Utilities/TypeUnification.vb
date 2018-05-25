@@ -2,6 +2,7 @@
 
 Imports System.Collections.Immutable
 Imports System.Diagnostics
+Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 
 Namespace Microsoft.CodeAnalysis.VisualBasic

@@ -3,6 +3,7 @@
 Imports System.Collections.Immutable
 Imports System.Diagnostics
 Imports System.Runtime.InteropServices
+Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
@@ -219,7 +220,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Return boundMonitorEnterCallStatement
             End If
 
-            Return New BoundBadExpression(syntaxNode, LookupResultKind.NotReferencable, ImmutableArray(Of Symbol).Empty, StaticCast(Of BoundNode).From(parameters), ErrorTypeSymbol.UnknownResultType, hasErrors:=True).ToStatement()
+            Return New BoundBadExpression(syntaxNode, LookupResultKind.NotReferencable, ImmutableArray(Of Symbol).Empty, parameters, ErrorTypeSymbol.UnknownResultType, hasErrors:=True).ToStatement()
         End Function
 
         Private Function GenerateMonitorExit(
@@ -243,7 +244,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                      exitMethod.ReturnType,
                                                      suppressObjectClone:=True)
             Else
-                boundMonitorExitCall = New BoundBadExpression(syntaxNode, LookupResultKind.NotReferencable, ImmutableArray(Of Symbol).Empty, ImmutableArray.Create(Of BoundNode)(boundLockObject), ErrorTypeSymbol.UnknownResultType, hasErrors:=True)
+                boundMonitorExitCall = New BoundBadExpression(syntaxNode, LookupResultKind.NotReferencable, ImmutableArray(Of Symbol).Empty, ImmutableArray.Create(boundLockObject), ErrorTypeSymbol.UnknownResultType, hasErrors:=True)
             End If
 
             Dim boundMonitorExitCallStatement = boundMonitorExitCall.ToStatement

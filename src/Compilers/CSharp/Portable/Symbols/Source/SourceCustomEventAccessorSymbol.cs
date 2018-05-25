@@ -29,7 +29,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             DiagnosticBag diagnostics)
             : base(@event,
                    syntax.GetReference(),
-                   ((SyntaxNode)syntax.Body ?? syntax.ExpressionBody)?.GetReference(),
                    ImmutableArray.Create(syntax.Keyword.GetLocation()))
         {
             Debug.Assert(syntax != null);
@@ -68,8 +67,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
             else
             {
-                var bodyOpt = syntax.Body;
-                if (bodyOpt != null)
+                if (syntax.Body != null || syntax.ExpressionBody != null)
                 {
                     if (IsExtern && !IsAbstract)
                     {

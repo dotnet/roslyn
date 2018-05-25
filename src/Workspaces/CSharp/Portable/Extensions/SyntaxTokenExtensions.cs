@@ -1,13 +1,12 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
@@ -298,6 +297,30 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
         public static bool IsOpenBraceOfAccessorList(this SyntaxToken token)
         {
             return token.IsKind(SyntaxKind.OpenBraceToken) && token.Parent.IsKind(SyntaxKind.AccessorList);
+        }
+
+        /// <summary>
+        /// Returns true if this token is something that looks like a C# keyword. This includes 
+        /// actual keywords, contextual keywords, and even 'var' and 'dynamic'
+        /// </summary>
+        /// <param name="token"></param>
+        /// <returns></returns>
+        public static bool CouldBeKeyword(this SyntaxToken token)
+        {
+            if (token.IsKeyword())
+            {
+                return true;
+            }
+
+            if (token.Kind() == SyntaxKind.IdentifierToken)
+            {
+                var simpleNameText = token.ValueText;
+                return simpleNameText == "var" ||
+                       simpleNameText == "dynamic" ||
+                       SyntaxFacts.GetContextualKeywordKind(simpleNameText) != SyntaxKind.None;
+            }
+
+            return false;
         }
     }
 }

@@ -10,6 +10,7 @@ using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.ExpressionEvaluator;
 using Microsoft.CodeAnalysis.ExpressionEvaluator.UnitTests;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.VisualStudio.Debugger.Clr;
 using Microsoft.VisualStudio.Debugger.Evaluation;
@@ -32,7 +33,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
         (int, int) o;
     }
 }";
-            var comp = CreateCompilationWithMscorlib(source, new[] { ValueTupleRef, SystemRuntimeFacadeRef }, options: TestOptions.DebugDll);
+            var comp = CreateCompilationWithMscorlib40(source, new[] { ValueTupleRef, SystemRuntimeFacadeRef }, options: TestOptions.DebugDll);
             WithRuntimeInstance(comp, new[] { ValueTupleRef, SystemRuntimeFacadeRef, MscorlibRef }, runtime =>
             {
                 var context = CreateMethodContext(runtime, "C.M");
@@ -49,7 +50,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
                 var methodData = testData.GetMethodData("<>x.<>m0");
                 var method = methodData.Method;
                 Assert.True(method.ReturnType.IsTupleType);
-                Assert.NotNull(GetTupleElementNamesAttributeIfAny(method));
+                CheckAttribute(result.Assembly, method, AttributeDescription.TupleElementNamesAttribute, expected: true);
                 methodData.VerifyIL(
 @"{
   // Code size        8 (0x8)
@@ -97,11 +98,11 @@ namespace System
         public ValueTuple(T1 item1, T2 item2) => (Item1, Item2) = (item1, item2);
     }
 }";
-            var corlibWithoutVT = CreateCompilation(new[] { Parse(String.Format(versionTemplate, "1") + corlib_cs) }, assemblyName: "corlib");
+            var corlibWithoutVT = CreateEmptyCompilation(new[] { Parse(String.Format(versionTemplate, "1") + corlib_cs) }, assemblyName: "corlib");
             corlibWithoutVT.VerifyDiagnostics();
             var corlibWithoutVTRef = corlibWithoutVT.EmitToImageReference();
 
-            var corlibWithVT = CreateCompilation(new[] { Parse(String.Format(versionTemplate, "2") + corlib_cs + valuetuple_cs) }, assemblyName: "corlib");
+            var corlibWithVT = CreateEmptyCompilation(new[] { Parse(String.Format(versionTemplate, "2") + corlib_cs + valuetuple_cs) }, assemblyName: "corlib");
             corlibWithVT.VerifyDiagnostics();
 
             var source =
@@ -114,7 +115,7 @@ namespace System
     }
 }
 ";
-            var app = CreateCompilation(source + valuetuple_cs, references: new[] { corlibWithoutVTRef }, options: TestOptions.DebugDll);
+            var app = CreateEmptyCompilation(source + valuetuple_cs, references: new[] { corlibWithoutVTRef }, options: TestOptions.DebugDll);
             app.VerifyDiagnostics();
 
             // Create EE context with app assembly (including ValueTuple) and a more recent corlib (also including ValueTuple)
@@ -133,9 +134,9 @@ namespace System
                 AssertEx.SetEqual(new[] { "corlib 2.0", appRef + " 0.0" }, reader.DumpAssemblyReferences());
 
                 AssertEx.SetEqual(new[] {
-                        "Object, System, AssemblyRef:corlib",
-                        "ValueTuple`2, System, AssemblyRef:" + appRef, // ValueTuple comes from app, not corlib
-                        ", System, AssemblyRef:" + appRef },
+                        "Object, System, AssemblyReference:corlib",
+                        "ValueTuple`2, System, AssemblyReference:" + appRef, // ValueTuple comes from app, not corlib
+                        ", System, AssemblyReference:" + appRef },
                     reader.DumpTypeReferences());
             }
         }
@@ -164,7 +165,7 @@ class C
         (int, int) o;
     }
 }";
-            var comp = CreateCompilationWithMscorlib(source, options: TestOptions.DebugDll);
+            var comp = CreateCompilationWithMscorlib40(source, options: TestOptions.DebugDll);
             WithRuntimeInstance(comp, runtime =>
             {
                 var context = CreateMethodContext(runtime, "C.M");
@@ -178,7 +179,7 @@ class C
                 var methodData = testData.GetMethodData("<>x.<>m0");
                 var method = methodData.Method;
                 Assert.True(method.ReturnType.IsTupleType);
-                Assert.Null(GetTupleElementNamesAttributeIfAny(method));
+                CheckAttribute(result.Assembly, method, AttributeDescription.TupleElementNamesAttribute, expected: false);
                 methodData.VerifyIL(
 @"{
   // Code size        8 (0x8)
@@ -203,7 +204,7 @@ class C
         (int A\u1234, int \u1234B) o = (1, 2);
     }
 }";
-            var comp = CreateCompilationWithMscorlib(source, new[] { ValueTupleRef, SystemRuntimeFacadeRef }, options: TestOptions.DebugDll);
+            var comp = CreateCompilationWithMscorlib40(source, new[] { ValueTupleRef, SystemRuntimeFacadeRef }, options: TestOptions.DebugDll);
             WithRuntimeInstance(comp, new[] { ValueTupleRef, SystemRuntimeFacadeRef, MscorlibRef }, runtime =>
             {
                 var context = CreateMethodContext(runtime, "C.M");
@@ -219,7 +220,7 @@ class C
                 CustomTypeInfo.Decode(customTypeInfoId, customTypeInfo, out dynamicFlags, out tupleElementNames);
                 Assert.Equal(new[] { "A\u1234", "\u1234B" }, tupleElementNames);
                 var method = testData.Methods.Single().Value.Method;
-                Assert.NotNull(GetTupleElementNamesAttributeIfAny(method));
+                CheckAttribute(assembly, method, AttributeDescription.TupleElementNamesAttribute, expected: true);
                 Assert.True(method.ReturnType.IsTupleType);
                 VerifyLocal(testData, typeName, locals[0], "<>m0", "o", expectedILOpt:
 string.Format(@"{{
@@ -251,7 +252,7 @@ class C
         const A<(int, int A)>.B<(object B, object)>[] c = null;
     }
 }";
-            var comp = CreateCompilationWithMscorlib(source, new[] { ValueTupleRef, SystemRuntimeFacadeRef }, options: TestOptions.DebugDll);
+            var comp = CreateCompilationWithMscorlib40(source, new[] { ValueTupleRef, SystemRuntimeFacadeRef }, options: TestOptions.DebugDll);
             WithRuntimeInstance(comp, new[] { ValueTupleRef, SystemRuntimeFacadeRef, MscorlibRef }, runtime =>
             {
                 var context = CreateMethodContext(runtime, "C.M");
@@ -267,7 +268,7 @@ class C
                 CustomTypeInfo.Decode(customTypeInfoId, customTypeInfo, out dynamicFlags, out tupleElementNames);
                 Assert.Equal(new[] { null, "A", "B", null }, tupleElementNames);
                 var method = (MethodSymbol)testData.Methods.Single().Value.Method;
-                Assert.NotNull(GetTupleElementNamesAttributeIfAny(method));
+                CheckAttribute(assembly, method, AttributeDescription.TupleElementNamesAttribute, expected: true);
                 var returnType = method.ReturnType;
                 Assert.False(returnType.IsTupleType);
                 Assert.True(returnType.ContainsTuple());
@@ -294,7 +295,7 @@ class C
         var x = (1, 2, 3, 4, 5, 6, 7, 8);
     }
 }";
-            var comp = CreateCompilationWithMscorlib(source, new[] { SystemRuntimeFacadeRef, ValueTupleRef }, options: TestOptions.DebugDll);
+            var comp = CreateCompilationWithMscorlib40(source, new[] { SystemRuntimeFacadeRef, ValueTupleRef }, options: TestOptions.DebugDll);
             WithRuntimeInstance(comp, new[] { MscorlibRef, SystemCoreRef, SystemRuntimeFacadeRef, ValueTupleRef }, runtime =>
             {
                 var context = CreateMethodContext(runtime, "C.M");
@@ -328,7 +329,7 @@ class C
         var x = (1, 2, Three: 3, Four: 4, 5, 6, 7, Eight: 8);
     }
 }";
-            var comp = CreateCompilationWithMscorlib(source, new[] { SystemRuntimeFacadeRef, ValueTupleRef }, options: TestOptions.DebugDll);
+            var comp = CreateCompilationWithMscorlib40(source, new[] { SystemRuntimeFacadeRef, ValueTupleRef }, options: TestOptions.DebugDll);
             WithRuntimeInstance(comp, new[] { MscorlibRef, SystemCoreRef, SystemRuntimeFacadeRef, ValueTupleRef }, runtime =>
             {
                 var context = CreateMethodContext(runtime, "C.M");
@@ -363,7 +364,7 @@ class C
         var x = (1, 2);
     }
 }";
-            var comp = CreateCompilationWithMscorlib(source, new[] { ValueTupleRef, SystemRuntimeFacadeRef }, options: TestOptions.DebugDll);
+            var comp = CreateCompilationWithMscorlib40(source, new[] { ValueTupleRef, SystemRuntimeFacadeRef }, options: TestOptions.DebugDll);
             WithRuntimeInstance(comp, new[] { ValueTupleRef, SystemRuntimeFacadeRef, MscorlibRef }, runtime =>
             {
                 var context = CreateMethodContext(runtime, "C.M");
@@ -391,7 +392,7 @@ class C
                 Assert.Null(tupleElementNames);
                 var methodData = testData.GetMethodData("<>x.<>m0");
                 var method = methodData.Method;
-                Assert.Null(GetTupleElementNamesAttributeIfAny(method));
+                CheckAttribute(result.Assembly, method, AttributeDescription.TupleElementNamesAttribute, expected: false);
                 methodData.VerifyIL(
 @"{
   // Code size       64 (0x40)
@@ -429,7 +430,7 @@ class C
     {
     }
 }";
-            var comp = CreateCompilationWithMscorlib(source, new[] { ValueTupleRef, SystemRuntimeFacadeRef }, options: TestOptions.DebugDll);
+            var comp = CreateCompilationWithMscorlib40(source, new[] { ValueTupleRef, SystemRuntimeFacadeRef }, options: TestOptions.DebugDll);
             WithRuntimeInstance(comp, new[] { ValueTupleRef, SystemRuntimeFacadeRef, MscorlibRef }, runtime =>
             {
                 var context = CreateMethodContext(
@@ -448,7 +449,7 @@ class C
                 string typeName;
                 var diagnostics = DiagnosticBag.GetInstance();
                 var testData = new CompilationTestData();
-                context.CompileGetLocals(
+                var assembly = context.CompileGetLocals(
                     locals,
                     argumentsOnly: false,
                     aliases: ImmutableArray.Create(alias),
@@ -465,7 +466,7 @@ class C
                 CustomTypeInfo.Decode(customTypeInfoId, customTypeInfo, out dynamicFlags, out tupleElementNames);
                 Assert.Equal(aliasElementNames, tupleElementNames);
                 var method = testData.Methods.Single().Value.Method;
-                Assert.NotNull(GetTupleElementNamesAttributeIfAny(method));
+                CheckAttribute(assembly, method, AttributeDescription.TupleElementNamesAttribute, expected: true);
                 var returnType = (TypeSymbol)method.ReturnType;
                 Assert.False(returnType.IsTupleType);
                 Assert.True(((ArrayTypeSymbol)returnType).ElementType.IsTupleType);
@@ -494,7 +495,7 @@ class C
     {
     }
 }";
-            var comp = CreateCompilationWithMscorlib(source, new[] { SystemRuntimeFacadeRef, ValueTupleRef }, options: TestOptions.DebugDll);
+            var comp = CreateCompilationWithMscorlib40(source, new[] { SystemRuntimeFacadeRef, ValueTupleRef }, options: TestOptions.DebugDll);
             WithRuntimeInstance(comp, new[] { MscorlibRef, SystemCoreRef, SystemRuntimeFacadeRef, ValueTupleRef }, runtime =>
             {
                 var context = CreateMethodContext(runtime, "C.M");

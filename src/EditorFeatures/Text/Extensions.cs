@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.Text
             => TryGetTextBuffer(textContainer) ?? throw new ArgumentException(TextEditorResources.textContainer_is_not_a_SourceTextContainer_that_was_created_from_an_ITextBuffer, nameof(textContainer));
 
         public static ITextBuffer TryGetTextBuffer(this SourceTextContainer textContainer)
-            => (textContainer as TextBufferContainer)?.EditorTextBuffer;
+            => (textContainer as TextBufferContainer)?.TryFindEditorTextBuffer();
 
         /// <summary>
         /// Returns the ITextSnapshot behind this SourceText, or null if it wasn't created from one.
@@ -28,16 +28,22 @@ namespace Microsoft.CodeAnalysis.Text
         /// </summary>
         /// <returns>The underlying ITextSnapshot.</returns>
         public static ITextSnapshot FindCorrespondingEditorTextSnapshot(this SourceText text)
-            => (text as SnapshotSourceText)?.EditorSnapshot;
+            => (text as SnapshotSourceText)?.TryFindEditorSnapshot();
+
+        internal static ITextImage TryFindCorrespondingEditorTextImage(this SourceText text)
+            => (text as SnapshotSourceText)?.TextImage;
 
         internal static TextLine AsTextLine(this ITextSnapshotLine line)
             => line.Snapshot.AsText().Lines[line.LineNumber];
 
         public static SourceText AsText(this ITextSnapshot textSnapshot)
-            => SnapshotSourceText.From(textSnapshot);
+        {
+            textSnapshot.TextBuffer.Properties.TryGetProperty<ITextBufferCloneService>(typeof(ITextBufferCloneService), out var textBufferCloneServiceOpt);
+            return SnapshotSourceText.From(textBufferCloneServiceOpt, textSnapshot);
+        }
 
-        internal static SourceText AsRoslynText(this ITextSnapshot textSnapshot, Encoding encoding)
-            => new SnapshotSourceText.ClosedSnapshotSourceText(textSnapshot, encoding);
+        internal static SourceText AsRoslynText(this ITextSnapshot textSnapshot, ITextBufferCloneService textBufferCloneServiceOpt, Encoding encoding)
+            => new SnapshotSourceText.ClosedSnapshotSourceText(textBufferCloneServiceOpt, ((ITextSnapshot2)textSnapshot).TextImage, encoding);
 
         /// <summary>
         /// Gets the workspace corresponding to the text buffer.
@@ -84,16 +90,10 @@ namespace Microsoft.CodeAnalysis.Text
         /// with the specified text's container, or the text's container isn't associated with a workspace,
         /// then the method returns false.
         /// </summary>
-        internal static async Task<Document> GetDocumentWithFrozenPartialSemanticsAsync(this SourceText text, CancellationToken cancellationToken)
+        internal static Document GetDocumentWithFrozenPartialSemantics(this SourceText text, CancellationToken cancellationToken)
         {
             var document = text.GetOpenDocumentInCurrentContextWithChanges();
-
-            if (document != null)
-            {
-                return await document.WithFrozenPartialSemanticsAsync(cancellationToken).ConfigureAwait(false);
-            }
-
-            return null;
+            return document?.WithFrozenPartialSemantics(cancellationToken);
         }
 
         internal static bool CanApplyChangeDocumentToWorkspace(this ITextBuffer buffer)

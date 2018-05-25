@@ -9,6 +9,7 @@ using System.Threading;
 using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
@@ -97,9 +98,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // define all of the extern aliases first. They may used by the target of a using
 
-            // using Bar=Foo::Bar;
-            // using Foo::Baz;
-            // extern alias Foo;
+            // using Bar=Goo::Bar;
+            // using Goo::Baz;
+            // extern alias Goo;
 
             var diagnostics = new DiagnosticBag();
 
@@ -564,13 +565,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             // Check constraints within named aliases.
 
             // Force resolution of named aliases.
-            foreach (var alias in UsingAliases.Values)
+            foreach (var (_, alias) in UsingAliases)
             {
                 alias.Alias.GetAliasTarget(basesBeingResolved: null);
                 semanticDiagnostics.AddRange(alias.Alias.AliasTargetDiagnostics);
             }
 
-            foreach (var alias in UsingAliases.Values)
+            foreach (var (_, alias) in UsingAliases)
             {
                 alias.Alias.CheckConstraints(semanticDiagnostics);
             }
@@ -823,7 +824,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal void AddLookupSymbolsInfoInAliases(LookupSymbolsInfo result, LookupOptions options, Binder originalBinder)
         {
-            foreach (var usingAlias in this.UsingAliases.Values)
+            foreach (var (_, usingAlias) in this.UsingAliases)
             {
                 AddAliasSymbolToResult(result, usingAlias.Alias, options, originalBinder);
             }
@@ -837,7 +838,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private static void AddAliasSymbolToResult(LookupSymbolsInfo result, AliasSymbol aliasSymbol, LookupOptions options, Binder originalBinder)
         {
             var targetSymbol = aliasSymbol.GetAliasTarget(basesBeingResolved: null);
-            if (originalBinder.CanAddLookupSymbolInfo(targetSymbol, options, null))
+            if (originalBinder.CanAddLookupSymbolInfo(targetSymbol, options, result, accessThroughType: null, aliasSymbol: aliasSymbol))
             {
                 result.AddSymbol(aliasSymbol, aliasSymbol.Name, 0);
             }
@@ -858,7 +859,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 foreach (var member in namespaceSymbol.NamespaceOrType.GetMembersUnordered())
                 {
-                    if (IsValidLookupCandidateInUsings(member) && originalBinder.CanAddLookupSymbolInfo(member, options, null))
+                    if (IsValidLookupCandidateInUsings(member) && originalBinder.CanAddLookupSymbolInfo(member, options, result, null))
                     {
                         result.AddSymbol(member, member.Name, member.GetArity());
                     }

@@ -5,6 +5,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
@@ -81,16 +82,17 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
         protected override async Task<ImmutableArray<ReferenceLocation>> FindReferencesInDocumentAsync(
             IPropertySymbol symbol,
             Document document,
+            SemanticModel semanticModel,
             CancellationToken cancellationToken)
         {
-            var nameReferences = await FindReferencesInDocumentUsingSymbolNameAsync(symbol, document, cancellationToken).ConfigureAwait(false);
+            var nameReferences = await FindReferencesInDocumentUsingSymbolNameAsync(symbol, document, semanticModel, cancellationToken).ConfigureAwait(false);
 
             var forEachReferences = IsForEachProperty(symbol)
-                ? await FindReferencesInForEachStatementsAsync(symbol, document, cancellationToken).ConfigureAwait(false)
+                ? await FindReferencesInForEachStatementsAsync(symbol, document, semanticModel, cancellationToken).ConfigureAwait(false)
                 : ImmutableArray<ReferenceLocation>.Empty;
 
             var elementAccessReferences = symbol.IsIndexer
-                ? await FindElementAccessReferencesAndIndexerMemberCrefReferencesAsync(symbol, document, cancellationToken).ConfigureAwait(false)
+                ? await FindElementAccessReferencesAndIndexerMemberCrefReferencesAsync(symbol, document, semanticModel, cancellationToken).ConfigureAwait(false)
                 : ImmutableArray<ReferenceLocation>.Empty;
 
             return nameReferences.Concat(forEachReferences)
@@ -120,12 +122,12 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
         private async Task<ImmutableArray<ReferenceLocation>> FindElementAccessReferencesAndIndexerMemberCrefReferencesAsync(
             IPropertySymbol symbol,
             Document document,
+            SemanticModel semanticModel,
             CancellationToken cancellationToken)
         {
             var symbolsMatch = GetStandardSymbolsNodeMatchFunction(symbol, document.Project.Solution, cancellationToken);
 
             var syntaxRoot = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-            var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
             var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
 
             // Now that we have Doc Comments in place, We are searching for References in the Trivia as well by setting descendIntoTrivia: true
@@ -141,7 +143,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
                 cancellationToken.ThrowIfCancellationRequested();
 
                 var match = symbolsMatch(node, semanticModel);
-                if (match.Item1)
+                if (match.matched)
                 {
                     SyntaxNode nodeToBeReferenced = null;
 
@@ -153,7 +155,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
                     {
                         var childNodes = node.ChildNodes();
                         var leftOfInvocation = childNodes.First();
-                        if (symbolsMatch(leftOfInvocation, semanticModel).Item1)
+                        if (symbolsMatch(leftOfInvocation, semanticModel).matched)
                         {
                             // Element access with explicit member name (allowed in VB).
                             // We have already added a reference location for the member name identifier, so skip this one.
@@ -166,7 +168,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
                     if (nodeToBeReferenced != null)
                     {
                         var location = nodeToBeReferenced.SyntaxTree.GetLocation(new TextSpan(nodeToBeReferenced.SpanStart, 0));
-                        locations.Add(new ReferenceLocation(document, null, location, isImplicit: false, isWrittenTo: false, candidateReason: match.Item2));
+                        locations.Add(new ReferenceLocation(document, null, location, isImplicit: false, isWrittenTo: false, candidateReason: match.reason));
                     }
                 }
             }

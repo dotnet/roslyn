@@ -9,6 +9,7 @@ using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.PooledObjects;
 
 namespace Microsoft.CodeAnalysis.Shared.Extensions
 {
@@ -116,5 +117,8 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 
         public static INamedTypeSymbol DynamicAttributeType(this Compilation compilation)
             => compilation.GetTypeByMetadataName("System.Runtime.CompilerServices.DynamicAttribute");
+
+        public static INamedTypeSymbol LazyOfTType(this Compilation compilation)
+            => compilation.GetTypeByMetadataName(typeof(Lazy<>).FullName);
     }
 }

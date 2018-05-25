@@ -4,13 +4,13 @@ Imports System.Collections.Immutable
 Imports System.Globalization
 Imports System.IO
 Imports System.Runtime.InteropServices
+Imports System.Security.Cryptography
 Imports System.Text
-Imports Microsoft.CodeAnalysis.Collections
 Imports Microsoft.CodeAnalysis.Emit
+Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Microsoft.CodeAnalysis.VisualBasic.SyntaxFacts
-Imports Roslyn.Utilities
 
 Namespace Microsoft.CodeAnalysis.VisualBasic
     ''' <summary>
@@ -21,19 +21,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <summary>
         ''' Gets the current command line parser.
         ''' </summary>
-        Public Shared ReadOnly Property [Default] As VisualBasicCommandLineParser = New VisualBasicCommandLineParser()
+        Public Shared ReadOnly Property [Default] As New VisualBasicCommandLineParser()
 
         ''' <summary>
         ''' Gets the current interactive command line parser.
         ''' </summary>
-        Friend Shared ReadOnly Property ScriptRunner As VisualBasicCommandLineParser = New VisualBasicCommandLineParser(isScriptRunner:=True)
+        Public Shared ReadOnly Property Script As New VisualBasicCommandLineParser(isScriptCommandLineParser:=True)
 
         ''' <summary>
         ''' Creates a new command line parser.
         ''' </summary>
-        ''' <param name="isScriptRunner">An optional parameter indicating whether to create a interactive command line parser.</param>
-        Friend Sub New(Optional isScriptRunner As Boolean = False)
-            MyBase.New(VisualBasic.MessageProvider.Instance, isScriptRunner)
+        ''' <param name="isScriptCommandLineParser">An optional parameter indicating whether to create a interactive command line parser.</param>
+        Friend Sub New(Optional isScriptCommandLineParser As Boolean = False)
+            MyBase.New(VisualBasic.MessageProvider.Instance, isScriptCommandLineParser)
         End Sub
 
         Private Const s_win32Manifest As String = "win32manifest"
@@ -77,7 +77,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             Dim diagnostics As List(Of Diagnostic) = New List(Of Diagnostic)()
             Dim flattenedArgs As List(Of String) = New List(Of String)()
-            Dim scriptArgs As List(Of String) = If(IsScriptRunner, New List(Of String)(), Nothing)
+            Dim scriptArgs As List(Of String) = If(IsScriptCommandLineParser, New List(Of String)(), Nothing)
 
             ' normalized paths to directories containing response files:
             Dim responsePaths As New List(Of String)
@@ -86,6 +86,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim displayLogo As Boolean = True
             Dim displayHelp As Boolean = False
             Dim displayVersion As Boolean = False
+            Dim displayLangVersions As Boolean = False
             Dim outputLevel As OutputLevel = OutputLevel.Normal
             Dim optimize As Boolean = False
             Dim checkOverflow As Boolean = True
@@ -96,6 +97,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim noStdLib As Boolean = False
             Dim utf8output As Boolean = False
             Dim outputFileName As String = Nothing
+            Dim outputRefFileName As String = Nothing
+            Dim refOnly As Boolean = False
             Dim outputDirectory As String = baseDirectory
             Dim documentationPath As String = Nothing
             Dim errorLogPath As String = Nothing
@@ -157,10 +160,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim interactiveMode As Boolean = False
             Dim instrumentationKinds As ArrayBuilder(Of InstrumentationKind) = ArrayBuilder(Of InstrumentationKind).GetInstance()
             Dim sourceLink As String = Nothing
+            Dim ruleSetPath As String = Nothing
 
             ' Process ruleset files first so that diagnostic severity settings specified on the command line via
             ' /nowarn and /warnaserror can override diagnostic severity settings specified in the ruleset file.
-            If Not IsScriptRunner Then
+            If Not IsScriptCommandLineParser Then
                 For Each arg In flattenedArgs
                     Dim name As String = Nothing
                     Dim value As String = Nothing
@@ -171,7 +175,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                             Continue For
                         End If
 
-                        generalDiagnosticOption = GetDiagnosticOptionsFromRulesetFile(specificDiagnosticOptionsFromRuleSet, diagnostics, unquoted, baseDirectory)
+                        ruleSetPath = ParseGenericPathToFile(unquoted, diagnostics, baseDirectory)
+                        generalDiagnosticOption = GetDiagnosticOptionsFromRulesetFile(ruleSetPath, specificDiagnosticOptionsFromRuleSet, diagnostics)
                     End If
                 Next
             End If
@@ -414,7 +419,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 #End If
                 End Select
 
-                If IsScriptRunner Then
+                If IsScriptCommandLineParser Then
                     Select Case name
                         Case "i", "i+"
                             If value IsNot Nothing Then
@@ -454,6 +459,24 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                 ParseOutputFile(value, diagnostics, baseDirectory, outputFileName, outputDirectory)
                             End If
                             Continue For
+
+                        Case "refout"
+                            Dim unquoted = RemoveQuotesAndSlashes(value)
+                            If String.IsNullOrEmpty(unquoted) Then
+                                AddDiagnostic(diagnostics, ERRID.ERR_ArgumentRequired, name, ":<file>")
+                            Else
+                                outputRefFileName = ParseGenericPathToFile(unquoted, diagnostics, baseDirectory)
+                            End If
+                            Continue For
+
+                        Case "refonly", "refonly+"
+                            If value IsNot Nothing Then
+                                AddDiagnostic(diagnostics, ERRID.ERR_SwitchNeedsBool, "refonly")
+                            End If
+
+                            refOnly = True
+                            Continue For
+
 
                         Case "t", "target"
                             value = RemoveQuotesAndSlashes(value)
@@ -799,13 +822,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                         Case "langversion"
                             value = RemoveQuotesAndSlashes(value)
-                            If value Is Nothing Then
-                                AddDiagnostic(diagnostics, ERRID.ERR_ArgumentRequired, "langversion", ":<number>")
-                                Continue For
-                            End If
-
                             If String.IsNullOrEmpty(value) Then
                                 AddDiagnostic(diagnostics, ERRID.ERR_ArgumentRequired, "langversion", ":<number>")
+                            ElseIf value = "?" Then
+                                displayLangVersions = True
                             Else
                                 If Not value.TryParse(languageVersion) Then
                                     AddDiagnostic(diagnostics, ERRID.ERR_InvalidSwitchValue, "langversion", value)
@@ -1047,11 +1067,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                         Case "pathmap"
                             ' "/pathmap:K1=V1,K2=V2..."
-                            If value = Nothing Then
+                            Dim unquoted = RemoveQuotesAndSlashes(value)
+                            If unquoted = Nothing Then
                                 Exit Select
                             End If
 
-                            pathMap = pathMap.Concat(ParsePathMap(value, diagnostics))
+                            pathMap = pathMap.Concat(ParsePathMap(unquoted, diagnostics))
                             Continue For
 
                         Case "reportanalyzer"
@@ -1177,7 +1198,15 @@ lVbRuntimePlus:
                 specificDiagnosticOptions(item.Key) = item.Value
             Next
 
-            If Not IsScriptRunner AndAlso Not hasSourceFiles AndAlso managedResources.IsEmpty() Then
+            If refOnly AndAlso outputRefFileName IsNot Nothing Then
+                AddDiagnostic(diagnostics, ERRID.ERR_NoRefOutWhenRefOnly)
+            End If
+
+            If outputKind = OutputKind.NetModule AndAlso (refOnly OrElse outputRefFileName IsNot Nothing) Then
+                AddDiagnostic(diagnostics, ERRID.ERR_NoNetModuleOutputWhenRefOutOrRefOnly)
+            End If
+
+            If Not IsScriptCommandLineParser AndAlso Not hasSourceFiles AndAlso managedResources.IsEmpty() Then
                 ' VB displays help when there is nothing specified on the command line
                 If flattenedArgs.Any Then
                     AddDiagnostic(diagnostics, ERRID.ERR_NoSources)
@@ -1237,22 +1266,16 @@ lVbRuntimePlus:
 
             ValidateWin32Settings(noWin32Manifest, win32ResourceFile, win32IconFile, win32ManifestFile, outputKind, diagnostics)
 
-            If sourceLink IsNot Nothing Then
-                If Not emitPdb OrElse debugInformationFormat <> DebugInformationFormat.PortablePdb AndAlso debugInformationFormat <> DebugInformationFormat.Embedded Then
-                    AddDiagnostic(diagnostics, ERRID.ERR_SourceLinkRequiresPortablePdb)
-                End If
+            If sourceLink IsNot Nothing And Not emitPdb Then
+                AddDiagnostic(diagnostics, ERRID.ERR_SourceLinkRequiresPdb)
             End If
 
             If embedAllSourceFiles Then
                 embeddedFiles.AddRange(sourceFiles)
             End If
 
-            If embeddedFiles.Count > 0 Then
-                ' Restricted to portable PDBs for now, but the IsPortable condition should be removed
-                ' And the error message adjusted accordingly when native PDB support Is added.
-                If Not emitPdb OrElse Not debugInformationFormat.IsPortable() Then
-                    AddDiagnostic(diagnostics, ERRID.ERR_CannotEmbedWithoutPdb)
-                End If
+            If embeddedFiles.Count > 0 And Not emitPdb Then
+                AddDiagnostic(diagnostics, ERRID.ERR_CannotEmbedWithoutPdb)
             End If
 
             ' Validate root namespace if specified
@@ -1278,7 +1301,7 @@ lVbRuntimePlus:
             Dim compilationName As String = Nothing
             GetCompilationAndModuleNames(diagnostics, outputKind, sourceFiles, moduleAssemblyName, outputFileName, moduleName, compilationName)
 
-            If Not IsScriptRunner AndAlso
+            If Not IsScriptCommandLineParser AndAlso
                 Not hasSourceFiles AndAlso
                 Not managedResources.IsEmpty() AndAlso
                 outputFileName = Nothing AndAlso
@@ -1290,7 +1313,7 @@ lVbRuntimePlus:
             Dim parseOptions = New VisualBasicParseOptions(
                 languageVersion:=languageVersion,
                 documentationMode:=If(parseDocumentationComments, DocumentationMode.Diagnose, DocumentationMode.None),
-                kind:=If(IsScriptRunner, SourceCodeKind.Script, SourceCodeKind.Regular),
+                kind:=If(IsScriptCommandLineParser, SourceCodeKind.Script, SourceCodeKind.Regular),
                 preprocessorSymbols:=AddPredefinedPreprocessorSymbols(outputKind, defines.AsImmutableOrEmpty()),
                 features:=parsedFeatures)
 
@@ -1325,7 +1348,8 @@ lVbRuntimePlus:
                 reportSuppressedDiagnostics:=reportSuppressedDiagnostics)
 
             Dim emitOptions = New EmitOptions(
-                metadataOnly:=False,
+                metadataOnly:=refOnly,
+                includePrivateMembers:=Not refOnly AndAlso outputRefFileName Is Nothing,
                 debugInformationFormat:=debugInformationFormat,
                 pdbFilePath:=Nothing, ' to be determined later
                 outputNameOverride:=Nothing,  ' to be determined later
@@ -1334,7 +1358,8 @@ lVbRuntimePlus:
                 highEntropyVirtualAddressSpace:=highEntropyVA,
                 subsystemVersion:=ssVersion,
                 runtimeMetadataVersion:=Nothing,
-                instrumentationKinds:=instrumentationKinds.ToImmutableAndFree())
+                instrumentationKinds:=instrumentationKinds.ToImmutableAndFree(),
+                pdbChecksumAlgorithm:=HashAlgorithmName.SHA256) ' TODO: set from /checksumalgorithm (see https://github.com/dotnet/roslyn/issues/24735)
 
             ' add option incompatibility errors if any (parse options will be included in options.Errors)
             diagnostics.AddRange(options.Errors)
@@ -1346,17 +1371,18 @@ lVbRuntimePlus:
 
             ' Enable interactive mode if either `\i` option is passed in or no arguments are specified (`vbi`, `vbi script.vbx \i`).
             ' If the script is passed without the `\i` option simply execute the script (`vbi script.vbx`).
-            interactiveMode = interactiveMode Or (IsScriptRunner AndAlso sourceFiles.Count = 0)
+            interactiveMode = interactiveMode Or (IsScriptCommandLineParser AndAlso sourceFiles.Count = 0)
 
             Return New VisualBasicCommandLineArguments With
             {
-                .IsScriptRunner = IsScriptRunner,
+                .IsScriptRunner = IsScriptCommandLineParser,
                 .InteractiveMode = interactiveMode,
                 .BaseDirectory = baseDirectory,
                 .Errors = diagnostics.AsImmutable(),
                 .Utf8Output = utf8output,
                 .CompilationName = compilationName,
                 .OutputFileName = outputFileName,
+                .OutputRefFilePath = outputRefFileName,
                 .OutputDirectory = outputDirectory,
                 .DocumentationPath = documentationPath,
                 .ErrorLogPath = errorLogPath,
@@ -1377,6 +1403,7 @@ lVbRuntimePlus:
                 .DisplayLogo = displayLogo,
                 .DisplayHelp = displayHelp,
                 .DisplayVersion = displayVersion,
+                .DisplayLangVersions = displayLangVersions,
                 .ManifestResources = managedResources.AsImmutable(),
                 .CompilationOptions = options,
                 .ParseOptions = parseOptions,
@@ -1384,8 +1411,9 @@ lVbRuntimePlus:
                 .ScriptArguments = scriptArgs.AsImmutableOrEmpty(),
                 .TouchedFilesPath = touchedFilesPath,
                 .OutputLevel = outputLevel,
-                .EmitPdb = emitPdb,
+                .EmitPdb = emitPdb AndAlso Not refOnly, ' Silently ignore emitPdb when refOnly is set
                 .SourceLink = sourceLink,
+                .RuleSetPath = ruleSetPath,
                 .DefaultCoreLibraryReference = defaultCoreLibraryReference,
                 .PreferredUILang = preferredUILang,
                 .ReportAnalyzer = reportAnalyzer,
@@ -1597,8 +1625,8 @@ lVbRuntimePlus:
                 Return Nothing
             End If
 
-            If fullPath Is Nothing OrElse fileName.IndexOfAny(Path.GetInvalidFileNameChars()) >= 0 Then
-                AddDiagnostic(diagnostics, ERRID.FTL_InputFileNameTooLong, filePath)
+            If fullPath Is Nothing OrElse Not PathUtilities.IsValidFilePath(fileName) Then
+                AddDiagnostic(diagnostics, ERRID.FTL_InvalidInputFileName, filePath)
                 Return Nothing
             End If
 
@@ -1913,20 +1941,14 @@ lVbRuntimePlus:
                             End If
 
                             ' Expression evaluated successfully --> add to 'defines'
-                            If defines.ContainsKey(symbolName) Then
-                                defines = defines.Remove(symbolName)
-                            End If
-                            defines = defines.Add(symbolName, value)
+                            defines = defines.SetItem(symbolName, value)
 
                         ElseIf tokens.Current.Kind = SyntaxKind.CommaToken OrElse
                             tokens.Current.Kind = SyntaxKind.ColonToken OrElse
                             tokens.Current.Kind = SyntaxKind.EndOfFileToken Then
                             ' We have no value being assigned, so we'll just assign it to true
 
-                            If defines.ContainsKey(symbolName) Then
-                                defines = defines.Remove(symbolName)
-                            End If
-                            defines = defines.Add(symbolName, InternalSyntax.CConst.Create(True))
+                            defines = defines.SetItem(symbolName, InternalSyntax.CConst.Create(True))
 
                         ElseIf tokens.Current.Kind = SyntaxKind.BadToken Then
                             GetErrorStringForRemainderOfConditionalCompilation(tokens, parsedTokensAsString)
@@ -2032,6 +2054,8 @@ lVbRuntimePlus:
                         Return Platform.AnyCpu32BitPreferred
                     Case "arm"
                         Return Platform.Arm
+                    Case "arm64"
+                        Return Platform.Arm64
                     Case Else
                         AddDiagnostic(errors, ERRID.ERR_InvalidSwitchValue, name, value)
                 End Select
@@ -2184,7 +2208,7 @@ lVbRuntimePlus:
                     outputFileName = simpleName & kind.GetDefaultExtension()
 
                     If simpleName.Length = 0 AndAlso Not kind.IsNetModule() Then
-                        AddDiagnostic(diagnostics, ERRID.FTL_InputFileNameTooLong, outputFileName)
+                        AddDiagnostic(diagnostics, ERRID.FTL_InvalidInputFileName, outputFileName)
                         simpleName = Nothing
                         outputFileName = Nothing
                     End If
@@ -2211,7 +2235,7 @@ lVbRuntimePlus:
                         ' /out:".exe"
                         ' Dev11 emits assembly with an empty name, we don't
                         If simpleName.Length = 0 Then
-                            AddDiagnostic(diagnostics, ERRID.FTL_InputFileNameTooLong, outputFileName)
+                            AddDiagnostic(diagnostics, ERRID.FTL_InvalidInputFileName, outputFileName)
                             simpleName = Nothing
                             outputFileName = Nothing
                         End If
@@ -2220,7 +2244,7 @@ lVbRuntimePlus:
             End If
 
             If kind.IsNetModule() Then
-                Debug.Assert(Not IsScriptRunner)
+                Debug.Assert(Not IsScriptCommandLineParser)
 
                 compilationName = moduleAssemblyName
             Else

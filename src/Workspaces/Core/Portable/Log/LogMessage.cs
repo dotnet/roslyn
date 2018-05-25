@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Internal.Log
@@ -156,7 +157,7 @@ namespace Microsoft.CodeAnalysis.Internal.Log
                 }
 
                 _messageGetter = null;
-                _arg = default(TArg0);
+                _arg = default;
                 s_pool.Free(this);
             }
         }
@@ -192,8 +193,8 @@ namespace Microsoft.CodeAnalysis.Internal.Log
                 }
 
                 _messageGetter = null;
-                _arg0 = default(TArg0);
-                _arg1 = default(TArg1);
+                _arg0 = default;
+                _arg1 = default;
                 s_pool.Free(this);
             }
         }
@@ -231,9 +232,9 @@ namespace Microsoft.CodeAnalysis.Internal.Log
                 }
 
                 _messageGetter = null;
-                _arg0 = default(TArg0);
-                _arg1 = default(TArg1);
-                _arg2 = default(TArg2);
+                _arg0 = default;
+                _arg1 = default;
+                _arg2 = default;
                 s_pool.Free(this);
             }
         }
@@ -273,10 +274,10 @@ namespace Microsoft.CodeAnalysis.Internal.Log
                 }
 
                 _messageGetter = null;
-                _arg0 = default(TArg0);
-                _arg1 = default(TArg1);
-                _arg2 = default(TArg2);
-                _arg3 = default(TArg3);
+                _arg0 = default;
+                _arg1 = default;
+                _arg2 = default;
+                _arg3 = default;
                 s_pool.Free(this);
             }
         }

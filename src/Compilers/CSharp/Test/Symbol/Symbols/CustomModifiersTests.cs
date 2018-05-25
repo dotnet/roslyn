@@ -13,7 +13,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols
 {
     public class CustomModifiersTests : CSharpTestBase
     {
-        [Fact, WorkItem(4163, "https://github.com/dotnet/roslyn/issues/4163")]
+        [ConditionalFact(typeof(DesktopOnly))]
+        [WorkItem(4163, "https://github.com/dotnet/roslyn/issues/4163")]
+        [WorkItem(18411, "https://github.com/dotnet/roslyn/issues/18411")]
         public void ModifiedTypeArgument_01()
         {
             var ilSource = @"
@@ -53,7 +55,7 @@ class Module1
     }
 }
 ";
-            var compilation = CreateCompilationWithCustomILSource(source, ilSource, options: TestOptions.ReleaseExe);
+            var compilation = CreateCompilationWithILAndMscorlib40(source, ilSource, options: TestOptions.ReleaseExe);
 
             var test = compilation.GetTypeByMetadataName("Test1").GetMember<MethodSymbol>("Test");
             var type = (INamedTypeSymbol)test.Parameters.First().Type;
@@ -81,7 +83,9 @@ class Module1
             CompileAndVerify(compilation, expectedOutput: "Test");
         }
 
-        [Fact, WorkItem(4163, "https://github.com/dotnet/roslyn/issues/4163")]
+        [ConditionalFact(typeof(DesktopOnly))]
+        [WorkItem(4163, "https://github.com/dotnet/roslyn/issues/4163")]
+        [WorkItem(18411, "https://github.com/dotnet/roslyn/issues/18411")]
         public void ModifiedTypeArgument_02()
         {
             var ilSource = @"
@@ -121,7 +125,7 @@ class Module1
     }
 }
 ";
-            var compilation = CreateCompilationWithCustomILSource(source, ilSource, options: TestOptions.ReleaseExe);
+            var compilation = CreateCompilationWithILAndMscorlib40(source, ilSource, options: TestOptions.ReleaseExe);
 
             var test = compilation.GetTypeByMetadataName("Test1").GetMember<MethodSymbol>("Test");
             var type = (INamedTypeSymbol)test.Parameters.First().Type;
@@ -153,7 +157,9 @@ class Module1
             CompileAndVerify(compilation, expectedOutput: "Test");
         }
 
-        [Fact, WorkItem(4163, "https://github.com/dotnet/roslyn/issues/4163")]
+        [ConditionalFact(typeof(DesktopOnly))]
+        [WorkItem(4163, "https://github.com/dotnet/roslyn/issues/4163")]
+        [WorkItem(18411, "https://github.com/dotnet/roslyn/issues/18411")]
         public void ConcatModifiers_01()
         {
             var ilSource = @"
@@ -204,12 +210,14 @@ class Module1
     }
 }
 ";
-            var compilation = CreateCompilationWithCustomILSource(source, ilSource, options: TestOptions.ReleaseExe);
+            var compilation = CreateCompilationWithILAndMscorlib40(source, ilSource, options: TestOptions.ReleaseExe);
 
             CompileAndVerify(compilation, expectedOutput: "Test");
         }
 
-        [Fact, WorkItem(4163, "https://github.com/dotnet/roslyn/issues/4163")]
+        [ConditionalFact(typeof(DesktopOnly))]
+        [WorkItem(4163, "https://github.com/dotnet/roslyn/issues/4163")]
+        [WorkItem(18411, "https://github.com/dotnet/roslyn/issues/18411")]
         public void ConcatModifiers_02()
         {
             var ilSource = @"
@@ -272,14 +280,14 @@ class CL3
     }
 }
 ";
-            var compilation = CreateCompilationWithCustomILSource(source, ilSource, options: TestOptions.ReleaseExe);
+            var compilation = CreateCompilationWithILAndMscorlib40(source, ilSource, options: TestOptions.ReleaseExe);
 
             var cl3 = compilation.GetTypeByMetadataName("CL3");
             var test = cl3.GetMember<MethodSymbol>("Test");
             Assert.Equal("void CL3.Test(System.Int32 modopt(System.Runtime.CompilerServices.IsConst) modopt(System.Runtime.CompilerServices.IsLong) x)", test.ToTestDisplayString());
 
-            var withModifiers = cl3.BaseType.BaseType;
-            var withoutModifiers = withModifiers.OriginalDefinition.Construct(withModifiers.TypeArguments);
+            var withModifiers = cl3.BaseType().BaseType();
+            var withoutModifiers = withModifiers.OriginalDefinition.Construct(withModifiers.TypeArguments());
             Assert.True(withModifiers.HasTypeArgumentsCustomModifiers);
             Assert.False(withoutModifiers.HasTypeArgumentsCustomModifiers);
             Assert.True(withoutModifiers.Equals(withModifiers, TypeCompareKind.IgnoreCustomModifiersAndArraySizesAndLowerBounds));
@@ -288,7 +296,9 @@ class CL3
             CompileAndVerify(compilation, expectedOutput: "Overridden");
         }
 
-        [Fact, WorkItem(4163, "https://github.com/dotnet/roslyn/issues/4163")]
+        [ConditionalFact(typeof(DesktopOnly))]
+        [WorkItem(4163, "https://github.com/dotnet/roslyn/issues/4163")]
+        [WorkItem(18411, "https://github.com/dotnet/roslyn/issues/18411")]
         public void ConcatModifiersAndByRef_01()
         {
             var ilSource = @"
@@ -350,7 +360,7 @@ class CL3
     }
 }
 ";
-            var compilation = CreateCompilationWithCustomILSource(source, ilSource, options: TestOptions.ReleaseExe);
+            var compilation = CreateCompilationWithILAndMscorlib40(source, ilSource, options: TestOptions.ReleaseExe);
 
             var cl3 = compilation.GetTypeByMetadataName("CL3");
             var test = cl3.GetMember<MethodSymbol>("Test");
@@ -359,7 +369,9 @@ class CL3
             CompileAndVerify(compilation, expectedOutput: "Overridden");
         }
 
-        [Fact, WorkItem(4163, "https://github.com/dotnet/roslyn/issues/4163")]
+        [ConditionalFact(typeof(DesktopOnly))]
+        [WorkItem(4163, "https://github.com/dotnet/roslyn/issues/4163")]
+        [WorkItem(18411, "https://github.com/dotnet/roslyn/issues/18411")]
         public void ConcatModifiersAndByRef_02()
         {
             var ilSource = @"
@@ -421,7 +433,7 @@ class CL3
     }
 }
 ";
-            var compilation = CreateCompilationWithCustomILSource(source, ilSource, options: TestOptions.ReleaseExe);
+            var compilation = CreateCompilationWithILAndMscorlib40(source, ilSource, options: TestOptions.ReleaseExe);
 
             var cl3 = compilation.GetTypeByMetadataName("CL3");
             var test = cl3.GetMember<MethodSymbol>("Test");
@@ -430,7 +442,9 @@ class CL3
             CompileAndVerify(compilation, expectedOutput: "Overridden");
         }
 
-        [Fact, WorkItem(4163, "https://github.com/dotnet/roslyn/issues/4163")]
+        [ConditionalFact(typeof(DesktopOnly))]
+        [WorkItem(4163, "https://github.com/dotnet/roslyn/issues/4163")]
+        [WorkItem(18411, "https://github.com/dotnet/roslyn/issues/18411")]
         public void ConcatModifiersAndByRef_03()
         {
             var ilSource = @"
@@ -492,7 +506,7 @@ class CL3
     }
 }
 ";
-            var compilation = CreateCompilationWithCustomILSource(source, ilSource, options: TestOptions.ReleaseExe);
+            var compilation = CreateCompilationWithILAndMscorlib40(source, ilSource, options: TestOptions.ReleaseExe);
 
             var cl3 = compilation.GetTypeByMetadataName("CL3");
             var test = cl3.GetMember<MethodSymbol>("Test");
@@ -501,7 +515,9 @@ class CL3
             CompileAndVerify(compilation, expectedOutput: "Overridden");
         }
 
-        [Fact, WorkItem(4163, "https://github.com/dotnet/roslyn/issues/4163")]
+        [ConditionalFact(typeof(DesktopOnly))]
+        [WorkItem(4163, "https://github.com/dotnet/roslyn/issues/4163")]
+        [WorkItem(18411, "https://github.com/dotnet/roslyn/issues/18411")]
         public void ConcatModifiersAndByRef_04()
         {
             var ilSource = @"
@@ -564,7 +580,7 @@ class CL3
     }
 }
 ";
-            var compilation = CreateCompilationWithCustomILSource(source, ilSource, options: TestOptions.ReleaseExe);
+            var compilation = CreateCompilationWithILAndMscorlib40(source, ilSource, options: TestOptions.ReleaseExe);
 
             var cl3 = compilation.GetTypeByMetadataName("CL3");
             var test = cl3.GetMember<MethodSymbol>("Test");
@@ -573,7 +589,9 @@ class CL3
             CompileAndVerify(compilation, expectedOutput: "Overridden");
         }
 
-        [Fact, WorkItem(8948, "https://github.com/dotnet/roslyn/issues/8948")]
+        [ConditionalFact(typeof(DesktopOnly))]
+        [WorkItem(8948, "https://github.com/dotnet/roslyn/issues/8948")]
+        [WorkItem(18411, "https://github.com/dotnet/roslyn/issues/18411")]
         public void ConcatModifiersAndByRefReturn_01()
         {
             var ilSource = @"
@@ -667,7 +685,7 @@ class CL3
     }
 }
 ";
-            var compilation = CreateCompilationWithCustomILSource(source, ilSource, options: TestOptions.ReleaseExe);
+            var compilation = CreateCompilationWithILAndMscorlib40(source, ilSource, options: TestOptions.ReleaseExe);
 
             var cl3 = compilation.GetTypeByMetadataName("CL3");
             Assert.Equal("ref System.Int32 modopt(System.Runtime.CompilerServices.IsConst) modopt(System.Runtime.CompilerServices.IsLong) CL3.Test()", cl3.GetMember<MethodSymbol>("Test").ToTestDisplayString());
@@ -682,7 +700,9 @@ class CL3
 Overridden P");
         }
 
-        [Fact, WorkItem(8948, "https://github.com/dotnet/roslyn/issues/8948")]
+        [ConditionalFact(typeof(DesktopOnly))]
+        [WorkItem(8948, "https://github.com/dotnet/roslyn/issues/8948")]
+        [WorkItem(18411, "https://github.com/dotnet/roslyn/issues/18411")]
         public void ConcatModifiersAndByRefReturn_02()
         {
             var ilSource = @"
@@ -775,7 +795,7 @@ class CL3
     }
 }
 ";
-            var compilation = CreateCompilationWithCustomILSource(source, ilSource, options: TestOptions.ReleaseExe);
+            var compilation = CreateCompilationWithILAndMscorlib40(source, ilSource, options: TestOptions.ReleaseExe);
 
             var cl3 = compilation.GetTypeByMetadataName("CL3");
             Assert.Equal("ref modopt(System.Runtime.CompilerServices.IsConst) System.Int32 modopt(System.Runtime.CompilerServices.IsLong) CL3.Test()", cl3.GetMember<MethodSymbol>("Test").ToTestDisplayString());
@@ -790,7 +810,9 @@ class CL3
 Overridden P");
         }
 
-        [Fact, WorkItem(8948, "https://github.com/dotnet/roslyn/issues/8948")]
+        [ConditionalFact(typeof(DesktopOnly))]
+        [WorkItem(8948, "https://github.com/dotnet/roslyn/issues/8948")]
+        [WorkItem(18411, "https://github.com/dotnet/roslyn/issues/18411")]
         public void ConcatModifiersAndByRefReturn_03()
         {
             var ilSource = @"
@@ -883,7 +905,7 @@ class CL3
     }
 }
 ";
-            var compilation = CreateCompilationWithCustomILSource(source, ilSource, options: TestOptions.ReleaseExe);
+            var compilation = CreateCompilationWithILAndMscorlib40(source, ilSource, options: TestOptions.ReleaseExe);
 
             var cl3 = compilation.GetTypeByMetadataName("CL3");
             Assert.Equal("ref System.Int32 modopt(System.Runtime.CompilerServices.IsLong) CL3.Test()", cl3.GetMember<MethodSymbol>("Test").ToTestDisplayString());
@@ -898,7 +920,9 @@ class CL3
 Overridden P");
         }
 
-        [Fact, WorkItem(8948, "https://github.com/dotnet/roslyn/issues/8948")]
+        [ConditionalFact(typeof(DesktopOnly))]
+        [WorkItem(8948, "https://github.com/dotnet/roslyn/issues/8948")]
+        [WorkItem(18411, "https://github.com/dotnet/roslyn/issues/18411")]
         public void ConcatModifiersAndByRefReturn_04()
         {
             var ilSource = @"
@@ -991,7 +1015,7 @@ class CL3
     }
 }
 ";
-            var compilation = CreateCompilationWithCustomILSource(source, ilSource, options: TestOptions.ReleaseExe);
+            var compilation = CreateCompilationWithILAndMscorlib40(source, ilSource, options: TestOptions.ReleaseExe);
 
             var cl3 = compilation.GetTypeByMetadataName("CL3");
             Assert.Equal("ref modopt(System.Runtime.CompilerServices.IsConst) System.Int32 modopt(System.Runtime.CompilerServices.IsVolatile) modopt(System.Runtime.CompilerServices.IsLong) CL3.Test()", cl3.GetMember<MethodSymbol>("Test").ToTestDisplayString());
@@ -1006,7 +1030,9 @@ class CL3
 Overridden P");
         }
 
-        [Fact, WorkItem(8948, "https://github.com/dotnet/roslyn/issues/8948")]
+        [ConditionalFact(typeof(DesktopOnly))]
+        [WorkItem(8948, "https://github.com/dotnet/roslyn/issues/8948")]
+        [WorkItem(18411, "https://github.com/dotnet/roslyn/issues/18411")]
         public void ConcatModifiersAndByRefReturn_05()
         {
             var ilSource = @"
@@ -1083,7 +1109,7 @@ class CL3 : I1
     }
 }
 ";
-            var compilation = CreateCompilationWithCustomILSource(source, ilSource, options: TestOptions.ReleaseExe);
+            var compilation = CreateCompilationWithILAndMscorlib40(source, ilSource, options: TestOptions.ReleaseExe);
 
             var cl3 = compilation.GetTypeByMetadataName("CL3");
             Assert.Equal("ref modopt(System.Runtime.CompilerServices.IsConst) System.Int32 modopt(System.Runtime.CompilerServices.IsVolatile) CL3.I1.M()",
@@ -1099,7 +1125,9 @@ CL3.P
 ");
         }
 
-        [Fact, WorkItem(4163, "https://github.com/dotnet/roslyn/issues/4163")]
+        [ConditionalFact(typeof(DesktopOnly))]
+        [WorkItem(4163, "https://github.com/dotnet/roslyn/issues/4163")]
+        [WorkItem(18411, "https://github.com/dotnet/roslyn/issues/18411")]
         public void ConcatModifiers_03()
         {
             var ilSource = @"
@@ -1188,7 +1216,7 @@ class CL3
     }
 }
 ";
-            var compilation = CreateCompilationWithCustomILSource(source, ilSource, options: TestOptions.ReleaseExe);
+            var compilation = CreateCompilationWithILAndMscorlib40(source, ilSource, options: TestOptions.ReleaseExe);
 
             var cl3 = compilation.GetTypeByMetadataName("CL3");
             var test = cl3.GetMember<PropertySymbol>("Test");
@@ -1200,7 +1228,9 @@ class CL3
 Get Overridden");
         }
 
-        [Fact, WorkItem(4163, "https://github.com/dotnet/roslyn/issues/4163")]
+        [ConditionalFact(typeof(DesktopOnly))]
+        [WorkItem(4163, "https://github.com/dotnet/roslyn/issues/4163")]
+        [WorkItem(18411, "https://github.com/dotnet/roslyn/issues/18411")]
         public void ConcatModifiers_04()
         {
             var ilSource = @"
@@ -1261,7 +1291,7 @@ class CL3
     }
 }
 ";
-            var compilation = CreateCompilationWithCustomILSource(source, ilSource, options: TestOptions.ReleaseExe);
+            var compilation = CreateCompilationWithILAndMscorlib40(source, ilSource, options: TestOptions.ReleaseExe);
 
             var cl3 = compilation.GetTypeByMetadataName("CL3");
             var test = cl3.GetMember<MethodSymbol>("Test");
@@ -1270,7 +1300,9 @@ class CL3
             CompileAndVerify(compilation, expectedOutput: "Overridden");
         }
 
-        [Fact, WorkItem(4163, "https://github.com/dotnet/roslyn/issues/4163")]
+        [ConditionalFact(typeof(DesktopOnly))]
+        [WorkItem(4163, "https://github.com/dotnet/roslyn/issues/4163")]
+        [WorkItem(18411, "https://github.com/dotnet/roslyn/issues/18411")]
         public void ConcatModifiers_05()
         {
             var ilSource = @"
@@ -1326,10 +1358,10 @@ class Module1
     }
 }
 ";
-            var compilation = CreateCompilationWithCustomILSource(source, ilSource, options: TestOptions.ReleaseExe);
+            var compilation = CreateCompilationWithILAndMscorlib40(source, ilSource, options: TestOptions.ReleaseExe);
 
             var cl2 = compilation.GetTypeByMetadataName("CL2");
-            Assert.Equal("System.Int32 modopt(System.Runtime.CompilerServices.IsConst) modopt(System.Runtime.CompilerServices.IsLong) CL1<System.Int32 modopt(System.Runtime.CompilerServices.IsLong)>.Test", cl2.BaseType.GetMember("Test").ToTestDisplayString());
+            Assert.Equal("System.Int32 modopt(System.Runtime.CompilerServices.IsConst) modopt(System.Runtime.CompilerServices.IsLong) CL1<System.Int32 modopt(System.Runtime.CompilerServices.IsLong)>.Test", cl2.BaseType().GetMember("Test").ToTestDisplayString());
 
             CompileAndVerify(compilation, expectedOutput: "123");
         }
@@ -1412,11 +1444,11 @@ class Module1
     }
 }
 ";
-            var compilation = CreateCompilationWithCustomILSource(source, ilSource, options: TestOptions.ReleaseExe);
+            var compilation = CreateCompilationWithILAndMscorlib40(source, ilSource, options: TestOptions.ReleaseExe);
 
-            var base1 = compilation.GetTypeByMetadataName("CL2").BaseType;
-            var base2 = compilation.GetTypeByMetadataName("CL3").BaseType;
-            var base3 = compilation.GetTypeByMetadataName("CL4").BaseType;
+            var base1 = compilation.GetTypeByMetadataName("CL2").BaseType();
+            var base2 = compilation.GetTypeByMetadataName("CL3").BaseType();
+            var base3 = compilation.GetTypeByMetadataName("CL4").BaseType();
 
             Assert.True(base1.HasTypeArgumentsCustomModifiers);
             Assert.True(base2.HasTypeArgumentsCustomModifiers);
@@ -1429,7 +1461,9 @@ class Module1
             Assert.NotSame(base1, base3);
         }
 
-        [Fact, WorkItem(4163, "https://github.com/dotnet/roslyn/issues/4163")]
+        [ConditionalFact(typeof(DesktopOnly))]
+        [WorkItem(4163, "https://github.com/dotnet/roslyn/issues/4163")]
+        [WorkItem(18411, "https://github.com/dotnet/roslyn/issues/18411")]
         public void RetargetingModifiedTypeArgument_01()
         {
             var ilSource = @"
@@ -1467,7 +1501,7 @@ class Module1
     }
 }
 ";
-            var compilation1 = CreateCompilationWithCustomILSource(source, ilSource, options: TestOptions.ReleaseDll);
+            var compilation1 = CreateCompilationWithILAndMscorlib40(source, ilSource, options: TestOptions.ReleaseDll);
 
             CompileAndVerify(compilation1);
 
@@ -1517,7 +1551,7 @@ interface ITest4<T, U>
     : ITest2<T>, ITest1<U>
 {}
 ";
-            var compilation = CreateCompilationWithCustomILSource(source, ilSource, options: TestOptions.ReleaseDll);
+            var compilation = CreateCompilationWithILAndMscorlib40(source, ilSource, options: TestOptions.ReleaseDll);
 
             compilation.VerifyDiagnostics(
     // (2,11): error CS0695: 'ITest3<T, U>' cannot implement both 'ITest0<T>' and 'ITest0<U>' because they may unify for some type parameter substitutions
@@ -1556,7 +1590,7 @@ interface ITest4<T, U>
     : ITest2<T>, ITest1<U>
 {}
 ";
-            var compilation = CreateCompilationWithCustomILSource(source, ilSource, options: TestOptions.ReleaseDll);
+            var compilation = CreateCompilationWithILAndMscorlib40(source, ilSource, options: TestOptions.ReleaseDll);
 
             compilation.VerifyDiagnostics(
     // (2,11): error CS0695: 'ITest3<T, U>' cannot implement both 'ITest0<T>' and 'ITest0<U>' because they may unify for some type parameter substitutions
@@ -1595,7 +1629,7 @@ interface ITest4<T, U>
     : ITest2<T>, ITest1<U>
 {}
 ";
-            var compilation = CreateCompilationWithCustomILSource(source, ilSource, options: TestOptions.ReleaseDll);
+            var compilation = CreateCompilationWithILAndMscorlib40(source, ilSource, options: TestOptions.ReleaseDll);
 
             compilation.VerifyDiagnostics();
         }
@@ -1627,7 +1661,7 @@ interface ITest4<T, U>
     : ITest2<T>, ITest1<U>
 {}
 ";
-            var compilation = CreateCompilationWithCustomILSource(source, ilSource, options: TestOptions.ReleaseDll);
+            var compilation = CreateCompilationWithILAndMscorlib40(source, ilSource, options: TestOptions.ReleaseDll);
 
             compilation.VerifyDiagnostics(
     // (2,11): error CS0695: 'ITest3<T, U>' cannot implement both 'ITest0<T>' and 'ITest0<U>' because they may unify for some type parameter substitutions
@@ -1666,10 +1700,10 @@ interface ITest4<T, U>
     : ITest2<T>, ITest1<U>
 {}
 ";
-            var compilation = CreateCompilationWithCustomILSource(source, ilSource, options: TestOptions.ReleaseDll);
+            var compilation = CreateCompilationWithILAndMscorlib40(source, ilSource, options: TestOptions.ReleaseDll);
 
-            Assert.Equal("ITest0<T modopt(System.Runtime.CompilerServices.IsConst) modopt(System.Runtime.CompilerServices.IsLong)>", compilation.GetTypeByMetadataName("ITest1`1").Interfaces.First().ToTestDisplayString());
-            Assert.Equal("ITest0<T modopt(System.Runtime.CompilerServices.IsConst)>", compilation.GetTypeByMetadataName("ITest2`1").Interfaces.First().ToTestDisplayString());
+            Assert.Equal("ITest0<T modopt(System.Runtime.CompilerServices.IsConst) modopt(System.Runtime.CompilerServices.IsLong)>", compilation.GetTypeByMetadataName("ITest1`1").Interfaces().First().ToTestDisplayString());
+            Assert.Equal("ITest0<T modopt(System.Runtime.CompilerServices.IsConst)>", compilation.GetTypeByMetadataName("ITest2`1").Interfaces().First().ToTestDisplayString());
 
             compilation.VerifyDiagnostics(
     // (2,11): error CS0695: 'ITest3<T, U>' cannot implement both 'ITest0<T>' and 'ITest0<U>' because they may unify for some type parameter substitutions
@@ -1708,15 +1742,17 @@ interface ITest4<T, U>
     : ITest2<T>, ITest1<U>
 {}
 ";
-            var compilation = CreateCompilationWithCustomILSource(source, ilSource, options: TestOptions.ReleaseDll);
+            var compilation = CreateCompilationWithILAndMscorlib40(source, ilSource, options: TestOptions.ReleaseDll);
 
-            Assert.Equal("ITest0<T modopt(System.Runtime.CompilerServices.IsLong) modopt(System.Runtime.CompilerServices.IsConst)>", compilation.GetTypeByMetadataName("ITest1`1").Interfaces.First().ToTestDisplayString());
-            Assert.Equal("ITest0<T modopt(System.Runtime.CompilerServices.IsConst)>", compilation.GetTypeByMetadataName("ITest2`1").Interfaces.First().ToTestDisplayString());
+            Assert.Equal("ITest0<T modopt(System.Runtime.CompilerServices.IsLong) modopt(System.Runtime.CompilerServices.IsConst)>", compilation.GetTypeByMetadataName("ITest1`1").Interfaces().First().ToTestDisplayString());
+            Assert.Equal("ITest0<T modopt(System.Runtime.CompilerServices.IsConst)>", compilation.GetTypeByMetadataName("ITest2`1").Interfaces().First().ToTestDisplayString());
 
             compilation.VerifyDiagnostics();
         }
 
-        [ClrOnlyFact(ClrOnlyReason.Ilasm), WorkItem(4163, "https://github.com/dotnet/roslyn/issues/4163")]
+        [ConditionalFact(typeof(ClrOnly), typeof(DesktopOnly))]
+        [WorkItem(4163, "https://github.com/dotnet/roslyn/issues/4163")]
+        [WorkItem(18411, "https://github.com/dotnet/roslyn/issues/18411")]
         public void DynamicEncodingDecoding_01()
         {
             var ilSource = @"
@@ -1781,7 +1817,7 @@ class CL3 : CL2
         }
     }
 ";
-            var compilation = CreateCompilationWithCustomILSource(source, ilSource, options: TestOptions.ReleaseExe, references: new[] { SystemCoreRef });
+            var compilation = CreateCompilationWithILAndMscorlib40(source, ilSource, options: TestOptions.ReleaseExe, targetFramework: TargetFramework.Mscorlib40, references: new[] { SystemCoreRef });
 
             System.Action<IModuleSymbol> validator = (m) =>
             {
@@ -1797,7 +1833,9 @@ class CL3 : CL2
                              sourceSymbolValidator: validator, symbolValidator: validator);
         }
 
-        [Fact, WorkItem(4163, "https://github.com/dotnet/roslyn/issues/4163")]
+        [ConditionalFact(typeof(DesktopOnly))]
+        [WorkItem(4163, "https://github.com/dotnet/roslyn/issues/4163")]
+        [WorkItem(18411, "https://github.com/dotnet/roslyn/issues/18411")]
         public void Delegates_01()
         {
             var ilSource = @"
@@ -1924,7 +1962,7 @@ class CL3 : CL2
     }
 }
 ";
-            var compilation = CreateCompilationWithCustomILSource(source, ilSource, options: TestOptions.ReleaseExe);
+            var compilation = CreateCompilationWithILAndMscorlib40(source, ilSource, options: TestOptions.ReleaseExe);
 
             CompileAndVerify(compilation, expectedOutput: @"Test 1
 Test 2
@@ -1938,7 +1976,9 @@ MyDelegate
 Test 6");
         }
 
-        [Fact, WorkItem(4623, "https://github.com/dotnet/roslyn/issues/4623")]
+        [ConditionalFact(typeof(DesktopOnly))]
+        [WorkItem(4623, "https://github.com/dotnet/roslyn/issues/4623")]
+        [WorkItem(18411, "https://github.com/dotnet/roslyn/issues/18411")]
         public void MultiDimensionalArray_01()
         {
             var ilSource = @"
@@ -1986,13 +2026,15 @@ class Test11 : Test1
         System.Console.WriteLine(""Overridden"");
     }
 }";
-            var compilation = CreateCompilationWithCustomILSource(source, ilSource, options: TestOptions.ReleaseExe);
+            var compilation = CreateCompilationWithILAndMscorlib40(source, ilSource, options: TestOptions.ReleaseExe);
 
             CompileAndVerify(compilation, expectedOutput: @"Test
 Overridden");
         }
 
-        [ClrOnlyFact(ClrOnlyReason.Ilasm), WorkItem(5725, "https://github.com/dotnet/roslyn/issues/5725")]
+        [ConditionalFact(typeof(ClrOnly), typeof(DesktopOnly))]
+        [WorkItem(5725, "https://github.com/dotnet/roslyn/issues/5725")]
+        [WorkItem(18411, "https://github.com/dotnet/roslyn/issues/18411")]
         public void ModifiersWithConstructedType_01()
         {
             var ilSource = @"
@@ -2055,13 +2097,15 @@ class CL3 : CL2
         System.Console.WriteLine(""Overridden"");
     }
 }";
-            var compilation = CreateCompilationWithCustomILSource(source, ilSource, options: TestOptions.ReleaseExe);
+            var compilation = CreateCompilationWithILAndMscorlib40(source, ilSource, options: TestOptions.ReleaseExe);
 
             CompileAndVerify(compilation, expectedOutput: @"Test
 Overridden");
         }
 
-        [ClrOnlyFact(ClrOnlyReason.Ilasm), WorkItem(5725, "https://github.com/dotnet/roslyn/issues/5725")]
+        [ConditionalFact(typeof(ClrOnly), typeof(DesktopOnly))]
+        [WorkItem(5725, "https://github.com/dotnet/roslyn/issues/5725")]
+        [WorkItem(18411, "https://github.com/dotnet/roslyn/issues/18411")]
         public void ModifiersWithConstructedType_02()
         {
             var ilSource = @"
@@ -2124,13 +2168,15 @@ class CL3 : CL2
         System.Console.WriteLine(""Overridden"");
     }
 }";
-            var compilation = CreateCompilationWithCustomILSource(source, ilSource, options: TestOptions.ReleaseExe);
+            var compilation = CreateCompilationWithILAndMscorlib40(source, ilSource, options: TestOptions.ReleaseExe);
 
             CompileAndVerify(compilation, expectedOutput: @"Test
 Overridden");
         }
 
-        [ClrOnlyFact(ClrOnlyReason.Ilasm), WorkItem(5725, "https://github.com/dotnet/roslyn/issues/5725")]
+        [ConditionalFact(typeof(DesktopOnly), typeof(ClrOnly))]
+        [WorkItem(5725, "https://github.com/dotnet/roslyn/issues/5725")]
+        [WorkItem(18411, "https://github.com/dotnet/roslyn/issues/18411")]
         public void ModifiersWithConstructedType_03()
         {
             var ilSource = @"
@@ -2195,13 +2241,15 @@ class CL3 : CL2
         return null;
     }
 }";
-            var compilation = CreateCompilationWithCustomILSource(source, ilSource, options: TestOptions.ReleaseExe);
+            var compilation = CreateCompilationWithILAndMscorlib40(source, ilSource, options: TestOptions.ReleaseExe);
 
             CompileAndVerify(compilation, expectedOutput: @"Test
 Overridden");
         }
 
-        [ClrOnlyFact(ClrOnlyReason.Ilasm), WorkItem(14453, "https://github.com/dotnet/roslyn/issues/14453")]
+        [ConditionalFact(typeof(ClrOnly),typeof(DesktopOnly))]
+        [WorkItem(14453, "https://github.com/dotnet/roslyn/issues/14453")]
+        [WorkItem(18411, "https://github.com/dotnet/roslyn/issues/18411")]
         public void ModifiersWithConstructedType_04()
         {
             var source = @"
@@ -2222,7 +2270,7 @@ class CL2 : CL1
         return c;
     }
 }";
-            var compilation = CreateCompilationWithMscorlib(source, references: new[] { TestReferences.SymbolsTests.CustomModifiers.GenericMethodWithModifiers.dll }, 
+            var compilation = CreateCompilation(source, references: new[] { TestReferences.SymbolsTests.CustomModifiers.GenericMethodWithModifiers.dll }, 
                                                             options: TestOptions.ReleaseExe);
 
             var cl2 = compilation.GetTypeByMetadataName("CL2");
@@ -2233,7 +2281,9 @@ class CL2 : CL1
             CompileAndVerify(compilation, expectedOutput: @"Overridden");
         }
 
-        [ClrOnlyFact(ClrOnlyReason.Ilasm), WorkItem(14453, "https://github.com/dotnet/roslyn/issues/14453")]
+        [ConditionalFact(typeof(ClrOnly), typeof(DesktopOnly))]
+        [WorkItem(14453, "https://github.com/dotnet/roslyn/issues/14453")]
+        [WorkItem(18411, "https://github.com/dotnet/roslyn/issues/18411")]
         public void ModifiersWithConstructedType_05()
         {
             var source = @"
@@ -2266,7 +2316,7 @@ class CL3 : I1
         return c;
     }
 }";
-            var compilation = CreateCompilationWithMscorlib(source, references: new[] { TestReferences.SymbolsTests.CustomModifiers.GenericMethodWithModifiers.dll },
+            var compilation = CreateCompilation(source, references: new[] { TestReferences.SymbolsTests.CustomModifiers.GenericMethodWithModifiers.dll },
                                                             options: TestOptions.ReleaseExe);
 
             var cl3 = compilation.GetTypeByMetadataName("CL3");
@@ -2279,11 +2329,13 @@ class CL3 : I1
 CL3.Test");
         }
 
-        [ClrOnlyFact(ClrOnlyReason.Ilasm), WorkItem(5993, "https://github.com/dotnet/roslyn/issues/5993")]
+        [ConditionalFact(typeof(DesktopOnly), typeof(ClrOnly))]
+        [WorkItem(5993, "https://github.com/dotnet/roslyn/issues/5993")]
+        [WorkItem(18411, "https://github.com/dotnet/roslyn/issues/18411")]
         public void ConcatModifiersAndByRef_05()
         {
             var ilSource = @"
-.class interface public abstract auto ansi beforefieldinit X.I
+.class interface public abstract auto ansi beforefieldinit I
 {
   .method public newslot abstract virtual 
           instance void  A(uint32& modopt([mscorlib]System.Runtime.CompilerServices.IsImplicitlyDereferenced) x) cil managed
@@ -2295,42 +2347,79 @@ CL3.Test");
   {
   } // end of method I::B
 
-} // end of class X.I
+} // end of class I
 ";
 
             var source = @"
-using X;
-
-namespace ConsoleApplication21
+class CI : I 
 {
-    class CI : I 
+    public void A(ref uint x)
     {
-        public void A(ref uint x)
-        {
-            System.Console.WriteLine(""Implemented A"");
-        }
-
-        public void B(ref uint x)
-        {
-            System.Console.WriteLine(""Implemented B"");
-        }
+        System.Console.WriteLine(""Implemented A"");
     }
 
-    internal class Program
+    public void B(ref uint x)
     {
-        private static void Main()
-        {
-            I x = new CI();
-            uint y = 0;
-            x.A(ref y);
-            x.B(ref y);
-        }
+        System.Console.WriteLine(""Implemented B"");
+    }
+}
+
+internal class Program
+{
+    private static void Main()
+    {
+        I x = new CI();
+        uint y = 0;
+        x.A(ref y);
+        x.B(ref y);
     }
 }";
-            var compilation = CreateCompilationWithCustomILSource(source, ilSource, options: TestOptions.ReleaseExe);
+            var compilation = CreateCompilationWithILAndMscorlib40(source, ilSource, options: TestOptions.ReleaseExe);
 
-            CompileAndVerify(compilation, expectedOutput: @"Implemented A
-Implemented B");
+            CompileAndVerifyCommon(compilation, expectedOutput: @"Implemented A
+Implemented B",
+                assemblyValidator: assembly =>
+                {
+                    var reader = assembly.GetMetadataReader();
+                    // Verify synthesized forwarding method I.A was generated.
+                    AssertEx.SetEqual(new[] { "A", "B", ".ctor", "I.A", "Main", ".ctor" }, new[] { reader }.GetStrings(reader.GetMethodDefNames()));
+                });
+        }
+
+        [ConditionalFact(typeof(DesktopOnly), typeof(ClrOnly))]
+        [WorkItem(18411, "https://github.com/dotnet/roslyn/issues/18411")]
+        public void ConcatModifiersAndByRef_06()
+        {
+            var ilSource =
+@".class interface public abstract I
+{
+  .method public abstract virtual instance int32& modopt([mscorlib]System.Runtime.CompilerServices.IsImplicitlyDereferenced) F()
+  {
+  }
+}";
+            var source =
+@"class C : I 
+{
+    private int _f;
+    public ref int F()
+    {
+        return ref _f;
+    }
+    static void Main()
+    {
+        I x = new C();
+        x.F() = 2;
+        System.Console.WriteLine(x.F());
+    }
+}";
+            var compilation = CreateCompilationWithILAndMscorlib40(source, ilSource, options: TestOptions.ReleaseExe);
+            CompileAndVerifyCommon(compilation, expectedOutput: "2",
+                assemblyValidator: assembly =>
+                {
+                    var reader = assembly.GetMetadataReader();
+                    // Verify synthesized forwarding method I.F was generated.
+                    AssertEx.SetEqual(new[] { ".ctor", "F", "I.F", "Main" }, new[] { reader }.GetStrings(reader.GetMethodDefNames()));
+                });
         }
 
         [Fact, WorkItem(6372, "https://github.com/dotnet/roslyn/issues/6372")]
@@ -2371,7 +2460,7 @@ Implemented B");
 } // end of class CL1`1
 ";
             var source = @"";
-            var compilation = CreateCompilationWithCustomILSource(source, ilSource, options: TestOptions.ReleaseExe);
+            var compilation = CreateCompilationWithILAndMscorlib40(source, ilSource, options: TestOptions.ReleaseExe);
 
             var cl1 = compilation.GetTypeByMetadataName("CL1`1");
             var test1 = cl1.GetMember<MethodSymbol>("Test1");
@@ -2390,7 +2479,9 @@ Implemented B");
             Assert.True(t2.Equals(t1, TypeCompareKind.IgnoreCustomModifiersAndArraySizesAndLowerBounds));
         }
 
-        [Fact, WorkItem(7674, "https://github.com/dotnet/roslyn/issues/7674")]
+        [ConditionalFact(typeof(DesktopOnly))]
+        [WorkItem(7674, "https://github.com/dotnet/roslyn/issues/7674")]
+        [WorkItem(18411, "https://github.com/dotnet/roslyn/issues/18411")]
         public void PropertyWithDynamic()
         {
             var ilSource = @"
@@ -2486,7 +2577,7 @@ class CL3
     }
 }
 ";
-            var compilation = CreateCompilationWithCustomILSource(source, ilSource, new[] { CSharpRef, SystemCoreRef }, options: TestOptions.ReleaseExe);
+            var compilation = CreateCompilationWithILAndMscorlib40(source, ilSource, references: new[] { CSharpRef }, options: TestOptions.ReleaseExe, targetFramework: TargetFramework.Standard);
 
             var cl2 = compilation.GetTypeByMetadataName("CL2");
             var test2 = cl2.GetMember<PropertySymbol>("Test");
@@ -2504,7 +2595,9 @@ Set Overridden3
 Get Overridden3");
         }
 
-        [Fact, WorkItem(7674, "https://github.com/dotnet/roslyn/issues/7674")]
+        [ConditionalFact(typeof(DesktopOnly))]
+        [WorkItem(7674, "https://github.com/dotnet/roslyn/issues/7674")]
+        [WorkItem(18411, "https://github.com/dotnet/roslyn/issues/18411")]
         public void EventWithDynamic()
         {
             var ilSource = @"
@@ -2598,7 +2691,7 @@ class CL3
     }
 }
 ";
-            var compilation = CreateCompilationWithCustomILSource(source, ilSource, new[] { CSharpRef, SystemCoreRef }, options: TestOptions.ReleaseExe);
+            var compilation = CreateCompilationWithILAndMscorlib40(source, ilSource, references: new[] { CSharpRef }, options: TestOptions.ReleaseExe, targetFramework: TargetFramework.Standard);
 
             var cl2 = compilation.GetTypeByMetadataName("CL2");
             var test2 = cl2.GetMember<EventSymbol>("Test");
@@ -2616,7 +2709,9 @@ Add Overridden3
 Remove Overridden3");
         }
 
-        [Fact, WorkItem(7845, "https://github.com/dotnet/roslyn/issues/7845")]
+        [ConditionalFact(typeof(DesktopOnly))]
+        [WorkItem(7845, "https://github.com/dotnet/roslyn/issues/7845")]
+        [WorkItem(18411, "https://github.com/dotnet/roslyn/issues/18411")]
         public void EventFieldWithDynamic()
         {
             var ilSource = @"
@@ -2690,7 +2785,7 @@ class CL3 : CL1
     public void Raise() => Test(null);
 }
 ";
-            var compilation = CreateCompilationWithCustomILSource(source, ilSource, new[] { CSharpRef, SystemCoreRef }, options: TestOptions.ReleaseExe);
+            var compilation = CreateCompilationWithILAndMscorlib40(source, ilSource, references: new[] { CSharpRef }, options: TestOptions.ReleaseExe, targetFramework: TargetFramework.Standard);
 
             var cl2 = compilation.GetTypeByMetadataName("CL2");
             var test2 = cl2.GetMember<EventSymbol>("Test");

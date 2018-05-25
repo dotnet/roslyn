@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Immutable;
@@ -42,7 +42,7 @@ class Class : CppCli.CppInterface1
 
             var ilAssemblyReference = TestReferences.SymbolsTests.CustomModifiers.CppCli.dll;
 
-            var comp = CreateCompilationWithMscorlib(text, new MetadataReference[] { ilAssemblyReference });
+            var comp = CreateCompilation(text, new MetadataReference[] { ilAssemblyReference });
             var global = comp.GlobalNamespace;
 
             comp.VerifyDiagnostics();
@@ -85,7 +85,7 @@ class Class : CppCli.CppInterface1, CppCli.CppInterface2
 
             var ilAssemblyReference = TestReferences.SymbolsTests.CustomModifiers.CppCli.dll;
 
-            var comp = CreateCompilationWithMscorlib(text, new MetadataReference[] { ilAssemblyReference });
+            var comp = CreateCompilation(text, new MetadataReference[] { ilAssemblyReference });
             var global = comp.GlobalNamespace;
 
             comp.VerifyDiagnostics();
@@ -136,7 +136,7 @@ class Class : CppCli.CppBase1
 
             var ilAssemblyReference = TestReferences.SymbolsTests.CustomModifiers.CppCli.dll;
 
-            var comp = CreateCompilationWithMscorlib(text, new MetadataReference[] { ilAssemblyReference });
+            var comp = CreateCompilation(text, new MetadataReference[] { ilAssemblyReference });
             var global = comp.GlobalNamespace;
 
             comp.VerifyDiagnostics();
@@ -185,7 +185,7 @@ class Derived : Base
 
             var ilAssemblyReference = TestReferences.SymbolsTests.CustomModifiers.CppCli.dll;
 
-            var comp = CreateCompilationWithMscorlib(text, new MetadataReference[] { ilAssemblyReference });
+            var comp = CreateCompilation(text, new MetadataReference[] { ilAssemblyReference });
             var global = comp.GlobalNamespace;
 
             comp.VerifyDiagnostics();
@@ -247,7 +247,7 @@ class Derived : MethodCustomModifierCombinations
 
             var ilAssemblyReference = TestReferences.SymbolsTests.CustomModifiers.Modifiers.dll;
 
-            var comp = CreateCompilationWithMscorlib(text, new MetadataReference[] { ilAssemblyReference });
+            var comp = CreateCompilation(text, new MetadataReference[] { ilAssemblyReference });
             var global = comp.GlobalNamespace;
 
             comp.VerifyDiagnostics();
@@ -283,7 +283,7 @@ class Derived : PropertyCustomModifierCombinations
 
             var ilAssemblyReference = TestReferences.SymbolsTests.CustomModifiers.Modifiers.dll;
 
-            var comp = CreateCompilationWithMscorlib(text, new MetadataReference[] { ilAssemblyReference });
+            var comp = CreateCompilation(text, new MetadataReference[] { ilAssemblyReference });
             var global = comp.GlobalNamespace;
 
             comp.VerifyDiagnostics();
@@ -392,7 +392,7 @@ class Class3 : CppCli.CppBase2, CppCli.CppInterface1
 
             var ilAssemblyReference = TestReferences.SymbolsTests.CustomModifiers.CppCli.dll;
 
-            var comp = CreateCompilationWithMscorlib(text, new MetadataReference[] { ilAssemblyReference });
+            var comp = CreateCompilation(text, new MetadataReference[] { ilAssemblyReference });
             var global = comp.GlobalNamespace;
 
             comp.VerifyDiagnostics();
@@ -461,7 +461,7 @@ class Class : I2
 
             var ilAssemblyReference = TestReferences.SymbolsTests.CustomModifiers.Modifiers.dll;
 
-            var comp = CreateCompilationWithMscorlib(text, new MetadataReference[] { ilAssemblyReference });
+            var comp = CreateCompilation(text, new MetadataReference[] { ilAssemblyReference });
             var global = comp.GlobalNamespace;
 
             comp.VerifyDiagnostics();
@@ -508,7 +508,7 @@ public class Derived2 : Derived
 }
 ";
 
-            var comp = CreateCompilationWithMscorlib(text);
+            var comp = CreateCompilation(text);
             comp.VerifyDiagnostics();
 
             var global = comp.GlobalNamespace;
@@ -552,7 +552,7 @@ class Explicit : CppCli.CppIndexerInterface
 
             var ilAssemblyReference = TestReferences.SymbolsTests.CustomModifiers.CppCli.dll;
 
-            var comp = CreateCompilationWithMscorlib(text, new MetadataReference[] { ilAssemblyReference });
+            var comp = CreateCompilation(text, new MetadataReference[] { ilAssemblyReference });
             var global = comp.GlobalNamespace;
 
             comp.VerifyDiagnostics();
@@ -585,7 +585,7 @@ class Implicit : CppCli.CppIndexerInterface
 
             var ilAssemblyReference = TestReferences.SymbolsTests.CustomModifiers.CppCli.dll;
 
-            var comp = CreateCompilationWithMscorlib(text, new MetadataReference[] { ilAssemblyReference });
+            var comp = CreateCompilation(text, new MetadataReference[] { ilAssemblyReference });
             var global = comp.GlobalNamespace;
 
             comp.VerifyDiagnostics();
@@ -626,7 +626,7 @@ class Override : CppCli.CppIndexerBase
 
             var ilAssemblyReference = TestReferences.SymbolsTests.CustomModifiers.CppCli.dll;
 
-            var comp = CreateCompilationWithMscorlib(text, new MetadataReference[] { ilAssemblyReference });
+            var comp = CreateCompilation(text, new MetadataReference[] { ilAssemblyReference });
             var global = comp.GlobalNamespace;
 
             comp.VerifyDiagnostics();
@@ -667,7 +667,7 @@ public class Derived2 : Derived
 }
 ";
 
-            var comp = CreateCompilationWithMscorlib(text);
+            var comp = CreateCompilation(text);
             comp.VerifyDiagnostics();
 
             var global = comp.GlobalNamespace;
@@ -692,7 +692,8 @@ public class Derived2 : Derived
             Assert.False(derived2Indexer2.Parameters.Single().IsParams, "Derived2.Indexer2.IsParams should be false");
         }
 
-        [ClrOnlyFact]
+        [ConditionalFact(typeof(ClrOnly), typeof(DesktopOnly))]
+        [WorkItem(18411, "https://github.com/dotnet/roslyn/issues/18411")]
         [WorkItem(819774, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/819774")]
         public void Repro819774()
         {
@@ -713,11 +714,11 @@ class Bug813305 : IBug813305
 {
     void IBug813305.M(dynamic x)
     {
-        x.Foo();
+        x.Goo();
         System.Console.WriteLine(""Bug813305.M"");
     }
  
-    public void Foo() {}
+    public void Goo() {}
 }
  
 class Test
@@ -729,9 +730,10 @@ class Test
     }
 }
 ";
-            var comp = CreateCompilationWithCustomILSource(source, il,
+            var comp = CreateCompilationWithILAndMscorlib40(source, il,
                 options: TestOptions.ReleaseExe.WithMetadataImportOptions(MetadataImportOptions.All),
-                references: new[] { CSharpRef, SystemCoreRef });
+                targetFramework: TargetFramework.Standard,
+                references: new[] { CSharpRef });
 
             CompileAndVerify(comp, expectedOutput: "Bug813305.M",
                 symbolValidator: m =>
@@ -762,7 +764,7 @@ class C : I
     void I.M(dynamic x) { }
 }
 ";
-            var comp = CreateCompilationWithCustomILSource(source, il, new[] { SystemCoreRef });
+            var comp = CreateCompilationWithILAndMscorlib40(source, il, targetFramework: TargetFramework.Standard);
             comp.VerifyDiagnostics();
 
             var global = comp.GlobalNamespace;
@@ -805,8 +807,8 @@ class C : I
     void I.M(object x) { }
 }
 ";
-            var ilRef = CompileIL(il, appendDefaultHeader: false);
-            var comp = CreateCompilation(source, new[] { MscorlibRef, SystemCoreRef, ilRef });
+            var ilRef = CompileIL(il, prependDefaultHeader: false);
+            var comp = CreateEmptyCompilation(source, new[] { MscorlibRef, SystemCoreRef, ilRef });
             comp.VerifyDiagnostics();
 
             var global = comp.GlobalNamespace;
@@ -849,8 +851,8 @@ class C : I
     (object a, object b) I.M((object c, object d) x) { return x; }
 }
 ";
-            var ilRef = CompileIL(il, appendDefaultHeader: false);
-            var comp1 = CreateCompilation(source1, new[] { MscorlibRef, SystemCoreRef, ilRef, ValueTupleRef, SystemRuntimeFacadeRef, CSharpRef });
+            var ilRef = CompileIL(il, prependDefaultHeader: false);
+            var comp1 = CreateEmptyCompilation(source1, new[] { MscorlibRef, SystemCoreRef, ilRef, ValueTupleRef, SystemRuntimeFacadeRef, CSharpRef });
             comp1.VerifyDiagnostics();
 
             var interfaceMethod1 = comp1.GlobalNamespace.GetMember<MethodSymbol>("I.M");
@@ -874,7 +876,7 @@ class C : I
     (object a, object b) I.M((object, object) x) { return x; }
 }
 ";
-            var comp2 = CreateCompilation(source2, new[] { MscorlibRef, SystemCoreRef, ilRef, ValueTupleRef, SystemRuntimeFacadeRef, CSharpRef });
+            var comp2 = CreateEmptyCompilation(source2, new[] { MscorlibRef, SystemCoreRef, ilRef, ValueTupleRef, SystemRuntimeFacadeRef, CSharpRef });
             comp2.VerifyDiagnostics(
                 // (4,28): error CS8141: The tuple element names in the signature of method 'C.I.M((object, object))' must match the tuple element names of interface method 'I.M((object c, object d))' (including on the return type).
                 //     (object a, object b) I.M((object, object) x) { return x; }
@@ -896,7 +898,7 @@ class C : I
     (object, object) I.M((object c, object d) x) { return x; }
 }
 ";
-            var comp3 = CreateCompilation(source3, new[] { MscorlibRef, SystemCoreRef, ilRef, ValueTupleRef, SystemRuntimeFacadeRef, CSharpRef });
+            var comp3 = CreateEmptyCompilation(source3, new[] { MscorlibRef, SystemCoreRef, ilRef, ValueTupleRef, SystemRuntimeFacadeRef, CSharpRef });
             comp3.VerifyDiagnostics(
                 // (4,24): error CS8141: The tuple element names in the signature of method 'C.I.M((object c, object d))' must match the tuple element names of interface method 'I.M((object c, object d))' (including on the return type).
                 //     (object, object) I.M((object c, object d) x) { return x; }
@@ -917,7 +919,7 @@ class C : I
     public (object a, object b) M((object c, object d) x) { return x; }
 }
 ";
-            var comp4 = CreateCompilation(source4, new[] { MscorlibRef, SystemCoreRef, ilRef, ValueTupleRef, SystemRuntimeFacadeRef, CSharpRef });
+            var comp4 = CreateEmptyCompilation(source4, new[] { MscorlibRef, SystemCoreRef, ilRef, ValueTupleRef, SystemRuntimeFacadeRef, CSharpRef });
             comp4.VerifyDiagnostics();
 
             var classMethod4 = comp4.GlobalNamespace.GetMember<NamedTypeSymbol>("C").GetMethod("M");
@@ -969,8 +971,8 @@ class C : I
     (object a, object b) I.P { get; set; }
 }
 ";
-            var ilRef = CompileIL(il, appendDefaultHeader: false);
-            var comp1 = CreateCompilation(source1, new[] { MscorlibRef, SystemCoreRef, ilRef, ValueTupleRef, SystemRuntimeFacadeRef, CSharpRef });
+            var ilRef = CompileIL(il, prependDefaultHeader: false);
+            var comp1 = CreateEmptyCompilation(source1, new[] { MscorlibRef, SystemCoreRef, ilRef, ValueTupleRef, SystemRuntimeFacadeRef, CSharpRef });
             comp1.VerifyDiagnostics();
 
             var interfaceProperty1 = comp1.GlobalNamespace.GetMember<PropertySymbol>("I.P");
@@ -990,12 +992,8 @@ class C : I
     (object, object) I.P { get; set; }
 }
 ";
-            var comp2 = CreateCompilation(source2, new[] { MscorlibRef, SystemCoreRef, ilRef, ValueTupleRef, SystemRuntimeFacadeRef, CSharpRef });
-            comp2.VerifyDiagnostics(
-                // (4,24): error CS8141: The tuple element names in the signature of method 'C.I.P' must match the tuple element names of interface method 'I.P' (including on the return type).
-                //     (object, object) I.P { get; set; }
-                Diagnostic(ErrorCode.ERR_ImplBadTupleNames, "P").WithArguments("C.I.P", "I.P").WithLocation(4, 24)
-                );
+            var comp2 = CreateEmptyCompilation(source2, new[] { MscorlibRef, SystemCoreRef, ilRef, ValueTupleRef, SystemRuntimeFacadeRef, CSharpRef });
+            comp2.VerifyDiagnostics();
 
             var classProperty2 = comp2.GlobalNamespace.GetMember<NamedTypeSymbol>("C").GetProperty("I.P");
 
@@ -1008,7 +1006,7 @@ class C : I
     public (object a, object b) P { get; set; }
 }
 ";
-            var comp3 = CreateCompilation(source3, new[] { MscorlibRef, SystemCoreRef, ilRef, ValueTupleRef, SystemRuntimeFacadeRef, CSharpRef });
+            var comp3 = CreateEmptyCompilation(source3, new[] { MscorlibRef, SystemCoreRef, ilRef, ValueTupleRef, SystemRuntimeFacadeRef, CSharpRef });
             comp3.VerifyDiagnostics();
 
             var classProperty3 = comp3.GlobalNamespace.GetMember<NamedTypeSymbol>("C").GetProperty("P");
@@ -1116,8 +1114,8 @@ class C : Base
     public override (object a, object b) M((object c, object d) y) { return y; }
 }
 ";
-            var ilRef = CompileIL(il, appendDefaultHeader: false);
-            var comp1 = CreateCompilation(source1, new[] { MscorlibRef, SystemCoreRef, ilRef, ValueTupleRef, SystemRuntimeFacadeRef, CSharpRef });
+            var ilRef = CompileIL(il, prependDefaultHeader: false);
+            var comp1 = CreateEmptyCompilation(source1, new[] { MscorlibRef, SystemCoreRef, ilRef, ValueTupleRef, SystemRuntimeFacadeRef, CSharpRef });
             comp1.VerifyDiagnostics();
 
             var baseMethod1 = comp1.GlobalNamespace.GetMember<MethodSymbol>("Base.M");
@@ -1154,20 +1152,11 @@ class C : Base
     public override (object, object) M((object c, object d) y) { return y; }
 }
 ";
-            var comp2 = CreateCompilation(source2, new[] { MscorlibRef, SystemCoreRef, ilRef, ValueTupleRef, SystemRuntimeFacadeRef, CSharpRef });
+            var comp2 = CreateEmptyCompilation(source2, new[] { MscorlibRef, SystemCoreRef, ilRef, ValueTupleRef, SystemRuntimeFacadeRef, CSharpRef });
             comp2.VerifyDiagnostics(
                 // (5,38): error CS8139: 'C.M((object c, object d))': cannot change tuple element names when overriding inherited member 'Base.M((object c, object d))'
                 //     public override (object, object) M((object c, object d) y) { return y; }
-                Diagnostic(ErrorCode.ERR_CantChangeTupleNamesOnOverride, "M").WithArguments("C.M((object c, object d))", "Base.M((object c, object d))").WithLocation(5, 38),
-                // (4,38): error CS8139: 'C.P': cannot change tuple element names when overriding inherited member 'Base.P'
-                //     public override (object, object) P { get; set; }
-                Diagnostic(ErrorCode.ERR_CantChangeTupleNamesOnOverride, "P").WithArguments("C.P", "Base.P").WithLocation(4, 38),
-                // (4,42): error CS8139: 'C.P.get': cannot change tuple element names when overriding inherited member 'Base.P.get'
-                //     public override (object, object) P { get; set; }
-                Diagnostic(ErrorCode.ERR_CantChangeTupleNamesOnOverride, "get").WithArguments("C.P.get", "Base.P.get").WithLocation(4, 42),
-                // (4,47): error CS8139: 'C.P.set': cannot change tuple element names when overriding inherited member 'Base.P.set'
-                //     public override (object, object) P { get; set; }
-                Diagnostic(ErrorCode.ERR_CantChangeTupleNamesOnOverride, "set").WithArguments("C.P.set", "Base.P.set").WithLocation(4, 47)
+                Diagnostic(ErrorCode.ERR_CantChangeTupleNamesOnOverride, "M").WithArguments("C.M((object c, object d))", "Base.M((object c, object d))").WithLocation(5, 38)
                 );
 
             var classProperty2 = comp2.GlobalNamespace.GetMember<NamedTypeSymbol>("C").GetProperty("P");
@@ -1190,7 +1179,7 @@ class C : Base
     public override (object a, object b) M((object, object) y) { return y; }
 }
 ";
-            var comp3 = CreateCompilation(source3, new[] { MscorlibRef, SystemCoreRef, ilRef, ValueTupleRef, SystemRuntimeFacadeRef, CSharpRef });
+            var comp3 = CreateEmptyCompilation(source3, new[] { MscorlibRef, SystemCoreRef, ilRef, ValueTupleRef, SystemRuntimeFacadeRef, CSharpRef });
             comp3.VerifyDiagnostics(
                 // (5,42): error CS8139: 'C.M((object, object))': cannot change tuple element names when overriding inherited member 'Base.M((object c, object d))'
                 //     public override (object a, object b) M((object, object) y) { return y; }
@@ -1236,8 +1225,8 @@ class C : I
     object I.M() { throw null; }
 }
 ";
-            var ilRef = CompileIL(il, appendDefaultHeader: false);
-            var comp = CreateCompilation(source, new[] { MscorlibRef, SystemCoreRef, ilRef });
+            var ilRef = CompileIL(il, prependDefaultHeader: false);
+            var comp = CreateEmptyCompilation(source, new[] { MscorlibRef, SystemCoreRef, ilRef });
             comp.VerifyDiagnostics();
 
             var global = comp.GlobalNamespace;
@@ -1276,8 +1265,8 @@ class C : I
     dynamic I.M() { throw null; }
 }
 ";
-            var ilRef = CompileIL(il, appendDefaultHeader: false);
-            var comp = CreateCompilation(source, new[] { MscorlibRef, SystemCoreRef, ilRef });
+            var ilRef = CompileIL(il, prependDefaultHeader: false);
+            var comp = CreateEmptyCompilation(source, new[] { MscorlibRef, SystemCoreRef, ilRef });
             comp.VerifyDiagnostics();
 
             var global = comp.GlobalNamespace;
@@ -1321,8 +1310,8 @@ public class C : I<byte, char>
     void I<byte, char>.M(ref I<dynamic[], object[]> c) { } // object to dynamic and vice versa
 }
 ";
-            var ilRef = CompileIL(il, appendDefaultHeader: false);
-            var comp = CreateCompilation(source, new[] { MscorlibRef, SystemCoreRef, ilRef });
+            var ilRef = CompileIL(il, prependDefaultHeader: false);
+            var comp = CreateEmptyCompilation(source, new[] { MscorlibRef, SystemCoreRef, ilRef });
             comp.VerifyDiagnostics();
 
             var global = comp.GlobalNamespace;
@@ -1365,8 +1354,8 @@ public class C : I<byte, char>
     I<dynamic[], object[]> I<byte, char>.M() { throw null; } // object to dynamic and vice versa
 }
 ";
-            var ilRef = CompileIL(il, appendDefaultHeader: false);
-            var comp = CreateCompilation(source, new[] { MscorlibRef, SystemCoreRef, ilRef });
+            var ilRef = CompileIL(il, prependDefaultHeader: false);
+            var comp = CreateEmptyCompilation(source, new[] { MscorlibRef, SystemCoreRef, ilRef });
             comp.VerifyDiagnostics();
 
             var global = comp.GlobalNamespace;
@@ -1420,8 +1409,8 @@ class Derived : Base
     public override void M(dynamic o, object d) { }
 }
 ";
-            var ilRef = CompileIL(il, appendDefaultHeader: false);
-            var comp = CreateCompilation(source, new[] { MscorlibRef, SystemCoreRef, ilRef });
+            var ilRef = CompileIL(il, prependDefaultHeader: false);
+            var comp = CreateEmptyCompilation(source, new[] { MscorlibRef, SystemCoreRef, ilRef });
             comp.VerifyDiagnostics();
 
             var global = comp.GlobalNamespace;
@@ -1474,8 +1463,8 @@ class Derived : Base
     public override object M() { throw null; }
 }
 ";
-            var ilRef = CompileIL(il, appendDefaultHeader: false);
-            var comp = CreateCompilation(source, new[] { MscorlibRef, SystemCoreRef, ilRef });
+            var ilRef = CompileIL(il, prependDefaultHeader: false);
+            var comp = CreateEmptyCompilation(source, new[] { MscorlibRef, SystemCoreRef, ilRef });
             comp.VerifyDiagnostics();
 
             var global = comp.GlobalNamespace;
@@ -1524,8 +1513,8 @@ class Derived : Base
     public override dynamic M() { throw null; }
 }
 ";
-            var ilRef = CompileIL(il, appendDefaultHeader: false);
-            var comp = CreateCompilation(source, new[] { MscorlibRef, SystemCoreRef, ilRef });
+            var ilRef = CompileIL(il, prependDefaultHeader: false);
+            var comp = CreateEmptyCompilation(source, new[] { MscorlibRef, SystemCoreRef, ilRef });
             comp.VerifyDiagnostics();
 
             var global = comp.GlobalNamespace;
@@ -1609,8 +1598,8 @@ class Derived : Base
     public override int this[bool x] { get { return 0; } set { } }
 }
 ";
-            var ilRef = CompileIL(il, appendDefaultHeader: false);
-            var comp = CreateCompilation(source, new[] { MscorlibRef, SystemCoreRef, ilRef });
+            var ilRef = CompileIL(il, prependDefaultHeader: false);
+            var comp = CreateEmptyCompilation(source, new[] { MscorlibRef, SystemCoreRef, ilRef });
             comp.VerifyDiagnostics();
 
             var global = comp.GlobalNamespace;
@@ -1726,8 +1715,8 @@ class Derived : Base
     public override int this[bool x] { get { return 0; } set { } }
 }
 ";
-            var ilRef = CompileIL(il, appendDefaultHeader: false);
-            var comp = CreateCompilation(source, new[] { MscorlibRef, SystemCoreRef, ilRef });
+            var ilRef = CompileIL(il, prependDefaultHeader: false);
+            var comp = CreateEmptyCompilation(source, new[] { MscorlibRef, SystemCoreRef, ilRef });
             comp.VerifyDiagnostics();
 
             var global = comp.GlobalNamespace;
@@ -1821,8 +1810,8 @@ class Implementation : I
     int I.this[bool x] { get { return 0; } set { } }
 }
 ";
-            var ilRef = CompileIL(il, appendDefaultHeader: false);
-            var comp = CreateCompilation(source, new[] { MscorlibRef, SystemCoreRef, ilRef });
+            var ilRef = CompileIL(il, prependDefaultHeader: false);
+            var comp = CreateEmptyCompilation(source, new[] { MscorlibRef, SystemCoreRef, ilRef });
             comp.VerifyDiagnostics();
 
             var global = comp.GlobalNamespace;
@@ -1923,8 +1912,8 @@ class Implementation : I
     int I.this[bool x] { get { return 0; } set { } }
 }
 ";
-            var ilRef = CompileIL(il, appendDefaultHeader: false);
-            var comp = CreateCompilation(source, new[] { MscorlibRef, SystemCoreRef, ilRef });
+            var ilRef = CompileIL(il, prependDefaultHeader: false);
+            var comp = CreateEmptyCompilation(source, new[] { MscorlibRef, SystemCoreRef, ilRef });
             comp.VerifyDiagnostics();
 
             var global = comp.GlobalNamespace;

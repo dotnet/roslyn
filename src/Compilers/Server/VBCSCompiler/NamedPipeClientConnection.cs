@@ -49,79 +49,18 @@ namespace Microsoft.CodeAnalysis.CompilerServer
             // starting listening.
             NamedPipeServerStream pipeStream = ConstructPipe(_pipeName);
 
-            // Unfortunately the version of .Net we are using doesn't support the WaitForConnectionAsync
-            // method.  When it is available it should absolutely be used here.  In the meantime we
-            // have to deal with the idea that this WaitForConnection call will block a thread
-            // for a significant period of time.  It is unadvisable to do this to a thread pool thread 
-            // hence we will use an explicit thread here.
-            var listenSource = new TaskCompletionSource<NamedPipeServerStream>();
-            var listenTask = listenSource.Task;
-            var listenThread = new Thread(() =>
+            CompilerServerLogger.Log("Waiting for new connection");
+            await pipeStream.WaitForConnectionAsync(cancellationToken).ConfigureAwait(false);
+            CompilerServerLogger.Log("Pipe connection detected.");
+
+            if (Environment.Is64BitProcess || MemoryHelper.IsMemoryAvailable())
             {
-                try
-                {
-                    CompilerServerLogger.Log("Waiting for new connection");
-                    pipeStream.WaitForConnection();
-                    CompilerServerLogger.Log("Pipe connection detected.");
-
-                    if (Environment.Is64BitProcess || MemoryHelper.IsMemoryAvailable())
-                    {
-                        CompilerServerLogger.Log("Memory available - accepting connection");
-                        listenSource.SetResult(pipeStream);
-                        return;
-                    }
-
-                    listenSource.SetException(new Exception("Insufficient resources to process new connection."));
-                }
-                catch (Exception ex)
-                {
-                    listenSource.SetException(ex);
-                }
-
-                // If the task didn't complete for whatever reason ensure that we did close out the 
-                // named pipe so the client can continue processing locally.
-                if (listenSource.Task.Status != TaskStatus.RanToCompletion)
-                {
-                    if (pipeStream.IsConnected)
-                    {
-                        try
-                        {
-                            pipeStream.Close();
-                        }
-                        catch
-                        {
-                            // Okay for Close failure here
-                        }
-                    }
-                }
-            });
-            listenThread.Start();
-
-            // Create a tasks that waits indefinitely (-1) and completes only when cancelled.
-            var waitCancellationTokenSource = new CancellationTokenSource();
-            var waitTask = Task.Delay(
-                Timeout.Infinite,
-                CancellationTokenSource.CreateLinkedTokenSource(waitCancellationTokenSource.Token, cancellationToken).Token);
-            await Task.WhenAny(listenTask, waitTask).ConfigureAwait(false);
-            if (listenTask.IsCompleted)
-            {
-                waitCancellationTokenSource.Cancel();
-                return await listenTask.ConfigureAwait(false);
+                CompilerServerLogger.Log("Memory available - accepting connection");
+                return pipeStream;
             }
 
-            // The listen operation was cancelled.  Close the pipe stream throw a cancellation exception to
-            // simulate the cancel operation.
-            waitCancellationTokenSource.Cancel();
-            try
-            {
-                pipeStream.Close();
-            }
-            catch
-            {
-                // Okay for Close failure here.
-            }
-
-            throw new OperationCanceledException();
+            pipeStream.Close();
+            throw new Exception("Insufficient resources to process new connection.");
         }
 
         /// <summary>
@@ -133,6 +72,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
         {
             CompilerServerLogger.Log("Constructing pipe '{0}'.", pipeName);
 
+#if NET46
             SecurityIdentifier identifier = WindowsIdentity.GetCurrent().Owner;
             PipeSecurity security = new PipeSecurity();
 
@@ -151,6 +91,24 @@ namespace Microsoft.CodeAnalysis.CompilerServer
                 PipeBufferSize, // Default output buffer
                 security,
                 HandleInheritability.None);
+#else
+            // The overload of NamedPipeServerStream with the PipeAccessRule
+            // parameter was removed in netstandard. However, the default
+            // constructor does not provide WRITE_DAC, so attempting to use
+            // SetAccessControl will always fail. So, completely ignore ACLs on
+            // netcore, and trust that our `ClientAndOurIdentitiesMatch`
+            // verification will catch any invalid connections.
+            // Issue to add WRITE_DAC support:
+            // https://github.com/dotnet/corefx/issues/24040
+            NamedPipeServerStream pipeStream = new NamedPipeServerStream(
+                pipeName,
+                PipeDirection.InOut,
+                NamedPipeServerStream.MaxAllowedServerInstances, // Maximum connections.
+                PipeTransmissionMode.Byte,
+                PipeOptions.Asynchronous | PipeOptions.WriteThrough,
+                PipeBufferSize, // Default input buffer
+                PipeBufferSize);// Default output buffer
+#endif
 
             CompilerServerLogger.Log("Successfully constructed pipe '{0}'.", pipeName);
 
@@ -194,28 +152,35 @@ namespace Microsoft.CodeAnalysis.CompilerServer
         /// </summary>
         private static bool ClientAndOurIdentitiesMatch(NamedPipeServerStream pipeStream)
         {
-            var serverIdentity = GetIdentity(impersonating: false);
+            if (PlatformInformation.IsWindows)
+            {
+                var serverIdentity = GetIdentity(impersonating: false);
 
-            Tuple<string, bool> clientIdentity = null;
-            pipeStream.RunAsClient(() => { clientIdentity = GetIdentity(impersonating: true); });
+                (string name, bool admin) clientIdentity = default;
+                pipeStream.RunAsClient(() => { clientIdentity = GetIdentity(impersonating: true); });
 
-            CompilerServerLogger.Log($"Server identity = '{serverIdentity.Item1}', server elevation='{serverIdentity.Item2}'.");
-            CompilerServerLogger.Log($"Client identity = '{clientIdentity.Item1}', client elevation='{serverIdentity.Item2}'.");
+                CompilerServerLogger.Log($"Server identity = '{serverIdentity.name}', server elevation='{serverIdentity.admin}'.");
+                CompilerServerLogger.Log($"Client identity = '{clientIdentity.name}', client elevation='{serverIdentity.admin}'.");
 
-            return
-                StringComparer.OrdinalIgnoreCase.Equals(serverIdentity.Item1, clientIdentity.Item1) &&
-                serverIdentity.Item2 == clientIdentity.Item2;
+                return
+                    StringComparer.OrdinalIgnoreCase.Equals(serverIdentity.name, clientIdentity.name) &&
+                    serverIdentity.admin == clientIdentity.admin;
+            }
+            else
+            {
+                return BuildServerConnection.CheckIdentityUnix(pipeStream);
+            }
         }
 
         /// <summary>
         /// Return the current user name and whether the current user is in the administrator role.
         /// </summary>
-        private static Tuple<string, bool> GetIdentity(bool impersonating)
+        private static (string name, bool admin) GetIdentity(bool impersonating)
         {
             WindowsIdentity currentIdentity = WindowsIdentity.GetCurrent(impersonating);
             WindowsPrincipal currentPrincipal = new WindowsPrincipal(currentIdentity);
             var elevatedToAdmin = currentPrincipal.IsInRole(WindowsBuiltInRole.Administrator);
-            return Tuple.Create(currentIdentity.Name, elevatedToAdmin);
+            return (currentIdentity.Name, elevatedToAdmin);
         }
 
         public override void Close()

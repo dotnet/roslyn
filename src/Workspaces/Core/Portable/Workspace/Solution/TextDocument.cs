@@ -70,23 +70,43 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// Gets the current text for the document asynchronously.
         /// </summary>
-        public Task<SourceText> GetTextAsync(CancellationToken cancellationToken = default(CancellationToken))
+        public Task<SourceText> GetTextAsync(CancellationToken cancellationToken = default)
         {
             return State.GetTextAsync(cancellationToken);
         }
 
         /// <summary>
+        /// Fetches the current text for the document synchronously.
+        /// </summary>
+        /// <remarks>This is internal for the same reason <see cref="Document.GetSyntaxTreeSynchronously(CancellationToken)"/> is internal:
+        /// we have specialized cases where we need it, but we worry that making it public will do more harm than good.</remarks>
+        internal SourceText GetTextSynchronously(CancellationToken cancellationToken)
+        {
+            return State.GetTextSynchronously(cancellationToken);
+        }
+
+        /// <summary>
         /// Gets the version of the document's text.
         /// </summary>
-        public Task<VersionStamp> GetTextVersionAsync(CancellationToken cancellationToken = default(CancellationToken))
+        public Task<VersionStamp> GetTextVersionAsync(CancellationToken cancellationToken = default)
         {
             return State.GetTextVersionAsync(cancellationToken);
         }
 
         /// <summary>
+        /// Fetches the current version for the document synchronously.
+        /// </summary>
+        /// <remarks>This is internal for the same reason <see cref="Document.GetSyntaxTreeSynchronously(CancellationToken)"/> is internal:
+        /// we have specialized cases where we need it, but we worry that making it public will do more harm than good.</remarks>
+        internal VersionStamp GetTextVersionSynchronously(CancellationToken cancellationToken)
+        {
+            return State.GetTextVersionSynchronously(cancellationToken);
+        }
+
+        /// <summary>
         /// Gets the version of the document's top level signature.
         /// </summary>
-        internal Task<VersionStamp> GetTopLevelChangeTextVersionAsync(CancellationToken cancellationToken = default(CancellationToken))
+        internal Task<VersionStamp> GetTopLevelChangeTextVersionAsync(CancellationToken cancellationToken = default)
         {
             return State.GetTopLevelChangeTextVersionAsync(cancellationToken);
         }

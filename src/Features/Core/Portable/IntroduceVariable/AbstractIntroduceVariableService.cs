@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -12,17 +12,19 @@ using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
+using Microsoft.CodeAnalysis.Simplification;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.IntroduceVariable
 {
-    internal abstract partial class AbstractIntroduceVariableService<TService, TExpressionSyntax, TTypeSyntax, TTypeDeclarationSyntax, TQueryExpressionSyntax> : IIntroduceVariableService
-        where TService : AbstractIntroduceVariableService<TService, TExpressionSyntax, TTypeSyntax, TTypeDeclarationSyntax, TQueryExpressionSyntax>
+    internal abstract partial class AbstractIntroduceVariableService<TService, TExpressionSyntax, TTypeSyntax, TTypeDeclarationSyntax, TQueryExpressionSyntax, TNameSyntax> : IIntroduceVariableService
+        where TService : AbstractIntroduceVariableService<TService, TExpressionSyntax, TTypeSyntax, TTypeDeclarationSyntax, TQueryExpressionSyntax, TNameSyntax>
         where TExpressionSyntax : SyntaxNode
         where TTypeSyntax : TExpressionSyntax
         where TTypeDeclarationSyntax : SyntaxNode
         where TQueryExpressionSyntax : TExpressionSyntax
+        where TNameSyntax : TTypeSyntax
     {
         protected abstract bool IsInNonFirstQueryClause(TExpressionSyntax expression);
         protected abstract bool IsInFieldInitializer(TExpressionSyntax expression);
@@ -66,7 +68,7 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
                     }
                 }
 
-                return default(ImmutableArray<CodeAction>);
+                return default;
             }
         }
 
@@ -193,16 +195,17 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
         }
 
         protected static SyntaxToken GenerateUniqueFieldName(
-            SemanticDocument document,
+            SemanticDocument semanticDocument,
             TExpressionSyntax expression,
             bool isConstant,
             CancellationToken cancellationToken)
         {
-            var syntaxFacts = document.Project.LanguageServices.GetService<ISyntaxFactsService>();
-            var semanticFacts = document.Project.LanguageServices.GetService<ISemanticFactsService>();
+            var syntaxFacts = semanticDocument.Document.GetLanguageService<ISyntaxFactsService>();
+            var semanticFacts = semanticDocument.Document.GetLanguageService<ISemanticFactsService>();
 
-            var semanticModel = document.SemanticModel;
-            var baseName = semanticFacts.GenerateNameForExpression(semanticModel, expression, isConstant);
+            var semanticModel = semanticDocument.SemanticModel;
+            var baseName = semanticFacts.GenerateNameForExpression(
+                semanticModel, expression, isConstant, cancellationToken);
 
             // A field can't conflict with any existing member names.
             var declaringType = semanticModel.GetEnclosingNamedType(expression.SpanStart, cancellationToken);
@@ -213,64 +216,21 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
         }
 
         protected static SyntaxToken GenerateUniqueLocalName(
-            SemanticDocument document,
+            SemanticDocument semanticDocument,
             TExpressionSyntax expression,
             bool isConstant,
-            SyntaxNode container,
+            SyntaxNode containerOpt,
             CancellationToken cancellationToken)
         {
-            var syntaxFacts = document.Document.GetLanguageService<ISyntaxFactsService>();
-            var semanticFacts = document.Document.GetLanguageService<ISemanticFactsService>();
+            var semanticModel = semanticDocument.SemanticModel;
 
-            var semanticModel = document.SemanticModel;
-            var existingSymbols = GetExistingSymbols(semanticModel, container, cancellationToken);
+            var semanticFacts = semanticDocument.Document.GetLanguageService<ISemanticFactsService>();
+            var baseName = semanticFacts.GenerateNameForExpression(
+                semanticModel, expression, capitalize: isConstant, cancellationToken: cancellationToken);
 
-            var baseName = semanticFacts.GenerateNameForExpression(semanticModel, expression, capitalize: isConstant);
-            var reservedNames = semanticModel.LookupSymbols(expression.SpanStart)
-                                             .Select(s => s.Name)
-                                             .Concat(existingSymbols.Select(s => s.Name));
-
-            return syntaxFacts.ToIdentifierToken(
-                NameGenerator.EnsureUniqueness(baseName, reservedNames, syntaxFacts.IsCaseSensitive));
+            return semanticFacts.GenerateUniqueLocalName(
+                semanticModel, expression, containerOpt, baseName, cancellationToken);
         }
-
-        private static HashSet<ISymbol> GetExistingSymbols(
-            SemanticModel semanticModel, SyntaxNode container, CancellationToken cancellationToken)
-        {
-            var symbols = new HashSet<ISymbol>();
-            if (container != null)
-            {
-                GetExistingSymbols(semanticModel, container, symbols, cancellationToken);
-            }
-
-            return symbols;
-        }
-
-        private static void GetExistingSymbols(
-            SemanticModel semanticModel, SyntaxNode node, 
-            HashSet<ISymbol> symbols, CancellationToken cancellationToken)
-        {
-            var symbol = semanticModel.GetDeclaredSymbol(node, cancellationToken);
-
-            // Ignore an annonymous type property.  It's ok if they have a name that 
-            // matches the name of the local we're introducing.
-            if (symbol != null &&
-                !IsAnonymousTypeProperty(symbol))
-            {
-                symbols.Add(symbol);
-            }
-
-            foreach (var child in node.ChildNodesAndTokens())
-            {
-                if (child.IsNode)
-                {
-                    GetExistingSymbols(semanticModel, child.AsNode(), symbols, cancellationToken);
-                }
-            }
-        }
-
-        private static bool IsAnonymousTypeProperty(ISymbol symbol)
-            => symbol.Kind == SymbolKind.Property && symbol.ContainingType.IsAnonymousType;
 
         protected ISet<TExpressionSyntax> FindMatches(
             SemanticDocument originalDocument,
@@ -312,7 +272,7 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
                 if (allOccurrences &&
                     this.CanReplace(nodeInCurrent))
                 {
-                    return SemanticEquivalence.AreSemanticallyEquivalent(
+                    return SemanticEquivalence.AreEquivalent(
                         originalSemanticModel, currentSemanticModel, expressionInOriginal, nodeInCurrent);
                 }
             }
@@ -391,6 +351,51 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
                                                        .OfType<IParameterSymbol>()
                                                        .Where(p => p.ContainingSymbol.IsAnonymousFunction());
             return anonymousMethodParameters;
+        }
+
+        protected static async Task<(SemanticDocument newSemanticDocument, ISet<TExpressionSyntax> newMatches)> ComplexifyParentingStatements(
+            SemanticDocument semanticDocument,
+            ISet<TExpressionSyntax> matches,
+            CancellationToken cancellationToken)
+        {
+            // First, track the matches so that we can get back to them later.
+            var newRoot = semanticDocument.Root.TrackNodes(matches);
+            var newDocument = semanticDocument.Document.WithSyntaxRoot(newRoot);
+            var newSemanticDocument = await SemanticDocument.CreateAsync(newDocument, cancellationToken).ConfigureAwait(false);
+            var newMatches = newSemanticDocument.Root.GetCurrentNodes(matches.AsEnumerable()).ToSet();
+
+            // Next, expand the topmost parenting expression of each match, being careful
+            // not to expand the matches themselves.
+            var topMostExpressions = newMatches
+                .Select(m => m.AncestorsAndSelf().OfType<TExpressionSyntax>().Last())
+                .Distinct();
+
+            newRoot = await newSemanticDocument.Root
+                .ReplaceNodesAsync(
+                    topMostExpressions,
+                    computeReplacementAsync: async (oldNode, newNode, ct) =>
+                    {
+                        return await Simplifier
+                            .ExpandAsync(
+                                oldNode,
+                                newSemanticDocument.Document,
+                                expandInsideNode: node =>
+                                {
+                                    var expression = node as TExpressionSyntax;
+                                    return expression == null
+                                        || !newMatches.Contains(expression);
+                                },
+                                cancellationToken: ct)
+                            .ConfigureAwait(false);
+                    },
+                    cancellationToken: cancellationToken)
+                .ConfigureAwait(false);
+
+            newDocument = newSemanticDocument.Document.WithSyntaxRoot(newRoot);
+            newSemanticDocument = await SemanticDocument.CreateAsync(newDocument, cancellationToken).ConfigureAwait(false);
+            newMatches = newSemanticDocument.Root.GetCurrentNodes(matches.AsEnumerable()).ToSet();
+
+            return (newSemanticDocument, newMatches);
         }
     }
 }

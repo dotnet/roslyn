@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -18,7 +19,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.VisualBasic
         {
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.GoToImplementation)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.GoToImplementation)]
         public void SimpleGoToImplementation()
         {
             var project = new ProjectUtils.Project(ProjectName);
@@ -26,14 +27,14 @@ namespace Roslyn.VisualStudio.IntegrationTests.VisualBasic
             VisualStudio.SolutionExplorer.OpenFile(project, "FileImplementation.vb");
             VisualStudio.Editor.SetText(
 @"Class Implementation
-  Implements IFoo
+  Implements IGoo
 End Class");
             VisualStudio.SolutionExplorer.AddFile(project, "FileInterface.vb");
             VisualStudio.SolutionExplorer.OpenFile(project, "FileInterface.vb");
             VisualStudio.Editor.SetText(
-@"Interface IFoo 
+@"Interface IGoo 
 End Interface");
-            VisualStudio.Editor.PlaceCaret("Interface IFoo");
+            VisualStudio.Editor.PlaceCaret("Interface IGoo");
             VisualStudio.Editor.GoToImplementation();
             VisualStudio.Editor.Verify.TextContains(@"Class Implementation$$", assertCaretPosition: true);
             Assert.False(VisualStudio.Shell.IsActiveTabProvisional());

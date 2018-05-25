@@ -301,6 +301,12 @@
     <Field Name="RefKeyword" Type="SyntaxToken">
       <Kind Name="RefKeyword"/>
     </Field>
+    <Field Name="ReadOnlyKeyword" Type="SyntaxToken" Optional="true">
+      <Kind Name="ReadOnlyKeyword"/>
+      <PropertyComment>
+        <summary>Gets the optional "readonly" keyword.</summary>
+      </PropertyComment>
+    </Field>
     <Field Name="Type" Type="TypeSyntax"/>
   </Node>
   <!-- Expressions -->
@@ -646,8 +652,8 @@
       <FactoryComment>
         <summary>Creates an AssignmentExpressionSyntax node.</summary>
       </FactoryComment>
-    </Node>
-    <Node Name="ConditionalExpressionSyntax" Base="ExpressionSyntax">
+  </Node>
+  <Node Name="ConditionalExpressionSyntax" Base="ExpressionSyntax">
     <Kind Name="ConditionalExpression"/>
     <Field Name="Condition" Type="ExpressionSyntax">
       <PropertyComment>
@@ -726,6 +732,7 @@
     <Kind Name="TrueLiteralExpression"/>
     <Kind Name="FalseLiteralExpression"/>
     <Kind Name="NullLiteralExpression"/>
+    <Kind Name="DefaultLiteralExpression"/>
     <Field Name="Token" Type="SyntaxToken">
       <Kind Name="ArgListKeyword"/>
       <Kind Name="NumericLiteralToken"/>
@@ -734,6 +741,7 @@
       <Kind Name="TrueKeyword"/>
       <Kind Name="FalseKeyword"/>
       <Kind Name="NullKeyword"/>
+      <Kind Name="DefaultKeyword"/>
       <PropertyComment>
         <summary>SyntaxToken representing the keyword corresponding to the kind of the literal expression.</summary>
       </PropertyComment>
@@ -1089,9 +1097,10 @@
         <summary>NameColonSyntax node representing the optional name arguments.</summary>
       </PropertyComment>
     </Field>
-    <Field Name="RefOrOutKeyword" Type="SyntaxToken" Optional="true">
+    <Field Name="RefKindKeyword" Type="SyntaxToken" Optional="true">
       <Kind Name="RefKeyword"/>
       <Kind Name="OutKeyword"/>
+      <Kind Name="InKeyword"/>
       <PropertyComment>
         <summary>SyntaxToken representing the optional ref or out keyword.</summary>
       </PropertyComment>
@@ -1489,11 +1498,48 @@
         <summary>TypeSyntax node representing the type of the stackalloc array.</summary>
       </PropertyComment>
     </Field>
+    <Field Name="Initializer" Type="InitializerExpressionSyntax" Optional="true">
+      <PropertyComment>
+        <summary>InitializerExpressionSyntax node representing the initializer of the stackalloc array creation expression.</summary>
+      </PropertyComment>
+    </Field>
     <TypeComment>
       <summary>Class which represents the syntax node for stackalloc array creation expression.</summary>
     </TypeComment>
     <FactoryComment>
       <summary>Creates a StackAllocArrayCreationExpressionSyntax node.</summary>
+    </FactoryComment>
+  </Node>
+  <Node Name="ImplicitStackAllocArrayCreationExpressionSyntax" Base="ExpressionSyntax">
+    <Kind Name="ImplicitStackAllocArrayCreationExpression"/>
+    <Field Name="StackAllocKeyword" Type="SyntaxToken">
+      <Kind Name="StackAllocKeyword"/>
+      <PropertyComment>
+        <summary>SyntaxToken representing the stackalloc keyword.</summary>
+      </PropertyComment>
+    </Field>
+    <Field Name="OpenBracketToken" Type="SyntaxToken">
+      <Kind Name="OpenBracketToken"/>
+      <PropertyComment>
+        <summary>SyntaxToken representing the open bracket.</summary>
+      </PropertyComment>
+    </Field>
+    <Field Name="CloseBracketToken" Type="SyntaxToken">
+      <Kind Name="CloseBracketToken"/>
+      <PropertyComment>
+        <summary>SyntaxToken representing the close bracket.</summary>
+      </PropertyComment>
+    </Field>
+    <Field Name="Initializer" Type="InitializerExpressionSyntax">
+      <PropertyComment>
+        <summary>InitializerExpressionSyntax representing the initializer expression of the implicit stackalloc array creation expression.</summary>
+      </PropertyComment>
+    </Field>
+    <TypeComment>
+      <summary>Class which represents the syntax node for implicit stackalloc array creation expression.</summary>
+    </TypeComment>
+    <FactoryComment>
+      <summary>Creates an ImplicitStackAllocArrayCreationExpressionSyntax node.</summary>
     </FactoryComment>
   </Node>
   <AbstractNode Name="QueryClauseSyntax" Base="CSharpSyntaxNode">
@@ -1688,7 +1734,7 @@
       </PropertyComment>
     </Field>
     <TypeComment>
-      <summary>Class which represents a simple pattern-maching expresion using the "is" keyword.</summary>
+      <summary>Class which represents a simple pattern-matching expression using the "is" keyword.</summary>
     </TypeComment>
     <FactoryComment>
       <summary>Creates an IsPatternExpressionSyntax node.</summary>
@@ -3836,9 +3882,10 @@
       </summary>
     </TypeComment>
     <Kind Name="CrefParameter"/>
-    <Field Name="RefOrOutKeyword" Type="SyntaxToken" Optional="true">
+    <Field Name="RefKindKeyword" Type="SyntaxToken" Optional="true">
       <Kind Name="RefKeyword"/>
       <Kind Name="OutKeyword"/>
+      <Kind Name="InKeyword"/>
     </Field>
     <Field Name="Type" Type="TypeSyntax"/>
   </Node>

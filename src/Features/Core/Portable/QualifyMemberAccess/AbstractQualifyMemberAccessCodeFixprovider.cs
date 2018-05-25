@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Immutable;
@@ -12,51 +12,46 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.QualifyMemberAccess
 {
-    internal abstract class AbstractQualifyMemberAccessCodeFixprovider<TSyntaxNode> : CodeFixProvider where TSyntaxNode : SyntaxNode
+    internal abstract class AbstractQualifyMemberAccessCodeFixprovider<TSimpleNameSyntax> 
+        : SyntaxEditorBasedCodeFixProvider 
+        where TSimpleNameSyntax : SyntaxNode
     {
+        protected abstract string GetTitle();
+
         public sealed override ImmutableArray<string> FixableDiagnosticIds
             => ImmutableArray.Create(IDEDiagnosticIds.AddQualificationDiagnosticId);
 
-        public override async Task RegisterCodeFixesAsync(CodeFixContext context)
+        public override Task RegisterCodeFixesAsync(CodeFixContext context)
         {
-            var document = context.Document;
-            var span = context.Span;
-            var cancellationToken = context.CancellationToken;
-
-            var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-            var model = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-
-            var token = root.FindToken(span.Start);
-            if (!token.Span.IntersectsWith(span))
-            {
-                return;
-            }
-
-            var node = token.GetAncestor<TSyntaxNode>();
-            if (node == null)
-            {
-                return;
-            }
-
-            var generator = document.GetLanguageService<SyntaxGenerator>();
-            var title = this.GetTitle();
-            var codeAction = new MyCodeAction(
-                title, c => document.ReplaceNodeAsync(node, GetReplacementSyntax(node, generator), c));
-            context.RegisterCodeFix(codeAction, context.Diagnostics);
+            context.RegisterCodeFix(new MyCodeAction(
+                this.GetTitle(),
+                c => FixAsync(context.Document, context.Diagnostics[0], c)),
+                context.Diagnostics);
+            return Task.CompletedTask;
         }
 
-        protected abstract string GetTitle();
-
-        public override FixAllProvider GetFixAllProvider() => BatchFixAllProvider.Instance;
-
-        private static SyntaxNode GetReplacementSyntax(SyntaxNode node, SyntaxGenerator generator)
+        protected override async Task FixAllAsync(
+            Document document, ImmutableArray<Diagnostic> diagnostics, 
+            SyntaxEditor editor, CancellationToken cancellationToken)
         {
-            var qualifiedAccess =
-                generator.MemberAccessExpression(
-                    generator.ThisExpression(),
-                    node.WithLeadingTrivia())
-                .WithLeadingTrivia(node.GetLeadingTrivia());
-            return qualifiedAccess;
+            var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+            var model = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+            var generator = document.GetLanguageService<SyntaxGenerator>();
+
+            foreach (var diagnostic in diagnostics)
+            {
+                var node = diagnostic.Location.FindNode(getInnermostNodeForTie: true, cancellationToken) as TSimpleNameSyntax;
+                if (node != null)
+                {
+                    var qualifiedAccess =
+                        generator.MemberAccessExpression(
+                            generator.ThisExpression(),
+                            node.WithLeadingTrivia())
+                        .WithLeadingTrivia(node.GetLeadingTrivia());
+
+                    editor.ReplaceNode(node, qualifiedAccess);
+                }
+            }
         }
 
         private class MyCodeAction : CodeAction.DocumentChangeAction

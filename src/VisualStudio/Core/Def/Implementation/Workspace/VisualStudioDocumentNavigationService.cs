@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -26,6 +26,8 @@ using VsTextSpan = Microsoft.VisualStudio.TextManager.Interop.TextSpan;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation
 {
+    using Workspace = Microsoft.CodeAnalysis.Workspace;
+
     internal sealed class VisualStudioDocumentNavigationService : ForegroundThreadAffinitizedObject, IDocumentNavigationService
     {
         private readonly IServiceProvider _serviceProvider;
@@ -50,7 +52,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             }
 
             var document = workspace.CurrentSolution.GetDocument(documentId);
-            var text = document.GetTextAsync(CancellationToken.None).WaitAndGetResult(CancellationToken.None);
+            var text = document.GetTextSynchronously(CancellationToken.None);
 
             var boundedTextSpan = GetSpanWithinDocumentBounds(textSpan, text.Length);
             if (boundedTextSpan != textSpan)
@@ -82,7 +84,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             }
 
             var document = workspace.CurrentSolution.GetDocument(documentId);
-            var text = document.GetTextAsync(CancellationToken.None).WaitAndGetResult(CancellationToken.None);
+            var text = document.GetTextSynchronously(CancellationToken.None);
             var vsTextSpan = text.GetVsTextSpanForLineOffset(lineNumber, offset);
 
             return CanMapFromSecondaryBufferToPrimaryBuffer(workspace, documentId, vsTextSpan);
@@ -99,7 +101,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             }
 
             var document = workspace.CurrentSolution.GetDocument(documentId);
-            var text = document.GetTextAsync(CancellationToken.None).WaitAndGetResult(CancellationToken.None);
+            var text = document.GetTextSynchronously(CancellationToken.None);
 
             var boundedPosition = GetPositionWithinDocumentBounds(position, text.Length);
             if (boundedPosition != position)
@@ -136,7 +138,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                 return false;
             }
 
-            var text = document.GetTextAsync(CancellationToken.None).WaitAndGetResult(CancellationToken.None);
+            var text = document.GetTextSynchronously(CancellationToken.None);
             var textBuffer = text.Container.GetTextBuffer();
 
             var boundedTextSpan = GetSpanWithinDocumentBounds(textSpan, text.Length);
@@ -178,7 +180,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                 return false;
             }
 
-            var text = document.GetTextAsync(CancellationToken.None).WaitAndGetResult(CancellationToken.None);
+            var text = document.GetTextSynchronously(CancellationToken.None);
             var textBuffer = text.Container.GetTextBuffer();
 
             var vsTextSpan = text.GetVsTextSpanForLineOffset(lineNumber, offset);
@@ -208,7 +210,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                 return false;
             }
 
-            var text = document.GetTextAsync(CancellationToken.None).WaitAndGetResult(CancellationToken.None);
+            var text = document.GetTextSynchronously(CancellationToken.None);
             var textBuffer = text.Container.GetTextBuffer();
 
             var boundedPosition = GetPositionWithinDocumentBounds(position, text.Length);
@@ -275,7 +277,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             {
                 if (options.GetOption(NavigationOptions.PreferProvisionalTab))
                 {
-                    using (NewDocumentStateScope ndss = new NewDocumentStateScope(__VSNEWDOCUMENTSTATE.NDS_Provisional, VSConstants.NewDocumentStateReason.Navigation))
+                    // If we're just opening the provisional tab, then do not "activate" the document
+                    // (i.e. don't give it focus).  This way if a user is just arrowing through a set 
+                    // of FindAllReferences results, they don't have their cursor placed into the document.
+                    var state = __VSNEWDOCUMENTSTATE.NDS_Provisional | __VSNEWDOCUMENTSTATE.NDS_NoActivate;
+                    using (var scope = new NewDocumentStateScope(state, VSConstants.NewDocumentStateReason.Navigation))
                     {
                         workspace.OpenDocument(documentId);
                     }

@@ -43,19 +43,19 @@ namespace Microsoft.CodeAnalysis.CSharp
                         // the range variable maps directly to a use of the parameter of that name
                         var value = base.parameterMap[qv.Name];
                         Debug.Assert(value.Count == 1);
-                        translation = new BoundParameter(node, value.Single()) { WasCompilerGenerated = true };
+                        translation = new BoundParameter(node, value.Single());
                     }
                     else
                     {
                         // if the query variable map for this variable is non empty, we always start with the current
                         // lambda's first parameter, which is a transparent identifier.
                         Debug.Assert(base.lambdaSymbol.Parameters[0].Name.StartsWith(transparentIdentifierPrefix, StringComparison.Ordinal));
-                        translation = new BoundParameter(node, base.lambdaSymbol.Parameters[0]) { WasCompilerGenerated = true };
+                        translation = new BoundParameter(node, base.lambdaSymbol.Parameters[0]);
                         for (int i = path.Length - 1; i >= 0; i--)
                         {
+                            translation.WasCompilerGenerated = true;
                             var nextField = path[i];
                             translation = SelectField(node, translation, nextField, diagnostics);
-                            translation.WasCompilerGenerated = true;
                         }
                     }
 
@@ -82,7 +82,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         node,
                         LookupResultKind.Empty,
                         ImmutableArray.Create<Symbol>(receiver.ExpressionSymbol),
-                        ImmutableArray.Create<BoundNode>(receiver),
+                        ImmutableArray.Create(receiver),
                         new ExtendedErrorTypeSymbol(this.Compilation, "", 0, info));
                 }
 
@@ -92,8 +92,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 LookupMembersWithFallback(lookupResult, receiver.Type, name, 0, ref useSiteDiagnostics, basesBeingResolved: null, options: options);
                 diagnostics.Add(node, useSiteDiagnostics);
 
-                var result = BindMemberOfType(node, node, name, 0, receiver, default(SeparatedSyntaxList<TypeSyntax>), default(ImmutableArray<TypeSymbol>), lookupResult, BoundMethodGroupFlags.None, diagnostics);
-                result.WasCompilerGenerated = true;
+                var result = BindMemberOfType(node, node, name, 0, indexed: false, receiver, default(SeparatedSyntaxList<TypeSyntax>), default(ImmutableArray<TypeSymbol>), lookupResult, BoundMethodGroupFlags.None, diagnostics);
                 lookupResult.Free();
                 return result;
             }

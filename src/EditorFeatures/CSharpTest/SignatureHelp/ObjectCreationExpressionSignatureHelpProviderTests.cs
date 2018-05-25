@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Generic;
 using System.Threading.Tasks;
@@ -6,6 +6,7 @@ using Microsoft.CodeAnalysis.CSharp.SignatureHelp;
 using Microsoft.CodeAnalysis.Editor.UnitTests.SignatureHelp;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.SignatureHelp;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -30,7 +31,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SignatureHelp
             var markup = @"
 class C
 {
-    void foo()
+    void goo()
     {
         var c = [|new C($$|]);
     }
@@ -53,7 +54,7 @@ class C
     /// </summary>
     C() { }
 
-    void Foo()
+    void Goo()
     {
         C c = [|new C($$|]);
     }
@@ -72,7 +73,7 @@ class C
 {
     C(int a, int b) { }
 
-    void Foo()
+    void Goo()
     {
         C c = [|new C($$2, 3|]);
     }
@@ -97,7 +98,7 @@ class C
     /// <param name=""b"">Param b</param>
     C(int a, int b) { }
 
-    void Foo()
+    void Goo()
     {
         C c = [|new C($$2, 3|]);
     }
@@ -117,7 +118,7 @@ class C
 {
     C(int a, int b) { }
 
-    void Foo()
+    void Goo()
     {
         C c = [|new C(2, $$3|]);
     }
@@ -141,7 +142,7 @@ class C
     /// <param name=""b"">Param b</param>
     C(int a, int b) { }
 
-    void Foo()
+    void Goo()
     {
         C c = [|new C(2, $$3|]);
     }
@@ -158,7 +159,7 @@ class C
             var markup = @"
 class C
 {
-    void foo()
+    void goo()
     {
         var c = [|new C($$
     |]}
@@ -178,7 +179,7 @@ class C
 {
     C(int a, int b) { }
 
-    void Foo()
+    void Goo()
     {
         C c = [|new C($$2, 3
     |]}
@@ -198,7 +199,7 @@ class C
 {
     C(int a, int b) { }
 
-    void Foo()
+    void Goo()
     {
         C c = [|new C(2, $$3
     |]}
@@ -218,7 +219,7 @@ using System;
 
 class C
 {
-    void foo()
+    void goo()
     {
         var bar = [|new Action<int, int>($$
     |]}
@@ -244,7 +245,7 @@ class C
     {
     }
 
-    void foo()
+    void goo()
     {
         var c = [|new C(b: string.Empty, $$a: 2|]);
     }
@@ -263,7 +264,7 @@ class C
             var markup = @"
 class C
 {
-    void foo()
+    void goo()
     {
         var c = [|new C($$|]);
     }
@@ -285,7 +286,7 @@ class C
     {
     }
 
-    void foo()
+    void goo()
     {
         var c = [|new C(2,$$string.Empty|]);
     }
@@ -307,7 +308,7 @@ class C
     {
     }
 
-    void foo()
+    void goo()
     {
         var c = [|new C(2, $$string.Empty|]);
     }
@@ -338,21 +339,21 @@ class Program
 {
     void M()
     {
-        new Foo($$
+        new Goo($$
     }
 }";
 
             var referencedCode = @"
-public class Foo
+public class Goo
 {
     [System.ComponentModel.EditorBrowsableAttribute(System.ComponentModel.EditorBrowsableState.Always)]
-    public Foo(int x)
+    public Goo(int x)
     {
     }
 }";
 
             var expectedOrderedItems = new List<SignatureHelpTestItem>();
-            expectedOrderedItems.Add(new SignatureHelpTestItem("Foo(int x)", string.Empty, string.Empty, currentParameterIndex: 0));
+            expectedOrderedItems.Add(new SignatureHelpTestItem("Goo(int x)", string.Empty, string.Empty, currentParameterIndex: 0));
 
             await TestSignatureHelpInEditorBrowsableContextsAsync(markup: markup,
                                                 referencedCode: referencedCode,
@@ -371,21 +372,21 @@ class Program
 {
     void M()
     {
-        new Foo($$
+        new Goo($$
     }
 }";
 
             var referencedCode = @"
-public class Foo
+public class Goo
 {
     [System.ComponentModel.EditorBrowsableAttribute(System.ComponentModel.EditorBrowsableState.Never)]
-    public Foo(int x)
+    public Goo(int x)
     {
     }
 }";
 
             var expectedOrderedItems = new List<SignatureHelpTestItem>();
-            expectedOrderedItems.Add(new SignatureHelpTestItem("Foo(int x)", string.Empty, string.Empty, currentParameterIndex: 0));
+            expectedOrderedItems.Add(new SignatureHelpTestItem("Goo(int x)", string.Empty, string.Empty, currentParameterIndex: 0));
 
             await TestSignatureHelpInEditorBrowsableContextsAsync(markup: markup,
                                                 referencedCode: referencedCode,
@@ -404,20 +405,20 @@ class Program
 {
     void M()
     {
-        new Foo($$
+        new Goo($$
     }
 }";
 
             var referencedCode = @"
-public class Foo
+public class Goo
 {
     [System.ComponentModel.EditorBrowsableAttribute(System.ComponentModel.EditorBrowsableState.Advanced)]
-    public Foo()
+    public Goo()
     {
     }
 }";
             var expectedOrderedItems = new List<SignatureHelpTestItem>();
-            expectedOrderedItems.Add(new SignatureHelpTestItem("Foo()", string.Empty, null, currentParameterIndex: 0));
+            expectedOrderedItems.Add(new SignatureHelpTestItem("Goo()", string.Empty, null, currentParameterIndex: 0));
 
             await TestSignatureHelpInEditorBrowsableContextsAsync(markup: markup,
                                                 referencedCode: referencedCode,
@@ -445,28 +446,28 @@ class Program
 {
     void M()
     {
-        new Foo($$
+        new Goo($$
     }
 }";
 
             var referencedCode = @"
-public class Foo
+public class Goo
 {
     [System.ComponentModel.EditorBrowsableAttribute(System.ComponentModel.EditorBrowsableState.Always)]
-    public Foo(int x)
+    public Goo(int x)
     {
     }
     [System.ComponentModel.EditorBrowsableAttribute(System.ComponentModel.EditorBrowsableState.Never)]
-    public Foo(long y)
+    public Goo(long y)
     {
     }
 }";
             var expectedOrderedItemsMetadataReference = new List<SignatureHelpTestItem>();
-            expectedOrderedItemsMetadataReference.Add(new SignatureHelpTestItem("Foo(int x)", string.Empty, string.Empty, currentParameterIndex: 0));
+            expectedOrderedItemsMetadataReference.Add(new SignatureHelpTestItem("Goo(int x)", string.Empty, string.Empty, currentParameterIndex: 0));
 
             var expectedOrderedItemsSameSolution = new List<SignatureHelpTestItem>();
-            expectedOrderedItemsSameSolution.Add(new SignatureHelpTestItem("Foo(int x)", string.Empty, string.Empty, currentParameterIndex: 0));
-            expectedOrderedItemsSameSolution.Add(new SignatureHelpTestItem("Foo(long y)", string.Empty, string.Empty, currentParameterIndex: 0));
+            expectedOrderedItemsSameSolution.Add(new SignatureHelpTestItem("Goo(int x)", string.Empty, string.Empty, currentParameterIndex: 0));
+            expectedOrderedItemsSameSolution.Add(new SignatureHelpTestItem("Goo(long y)", string.Empty, string.Empty, currentParameterIndex: 0));
 
             await TestSignatureHelpInEditorBrowsableContextsAsync(markup: markup,
                                                 referencedCode: referencedCode,
@@ -482,16 +483,16 @@ public class Foo
         public async Task FieldUnavailableInOneLinkedFile()
         {
             var markup = @"<Workspace>
-    <Project Language=""C#"" CommonReferences=""true"" AssemblyName=""Proj1"" PreprocessorSymbols=""FOO"">
+    <Project Language=""C#"" CommonReferences=""true"" AssemblyName=""Proj1"" PreprocessorSymbols=""GOO"">
         <Document FilePath=""SourceDocument""><![CDATA[
 class C
 {
-#if FOO
+#if GOO
     class D
     {
     }
 #endif
-    void foo()
+    void goo()
     {
         var x = new D($$
     }
@@ -511,18 +512,18 @@ class C
         public async Task ExcludeFilesWithInactiveRegions()
         {
             var markup = @"<Workspace>
-    <Project Language=""C#"" CommonReferences=""true"" AssemblyName=""Proj1"" PreprocessorSymbols=""FOO,BAR"">
+    <Project Language=""C#"" CommonReferences=""true"" AssemblyName=""Proj1"" PreprocessorSymbols=""GOO,BAR"">
         <Document FilePath=""SourceDocument""><![CDATA[
 class C
 {
-#if FOO
+#if GOO
     class D
     {
     }
 #endif
 
 #if BAR
-    void foo()
+    void goo()
     {
         var x = new D($$
     }
@@ -548,7 +549,7 @@ class C
         public async Task InvokedWithNoToken()
         {
             var markup = @"
-// new foo($$";
+// new goo($$";
 
             await TestAsync(markup);
         }
@@ -560,9 +561,9 @@ class C
             var markup = @"
 class C
 {
-    void foo(C c)
+    void goo(C c)
     {
-        foo([|new C{$$|]
+        goo([|new C{$$|]
     }
 }";
 

@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Threading;
@@ -55,11 +55,18 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Threading
         public CancellationToken CancellationToken => _cancellationTokenSource.Token;
 
         public void CancelCurrentWork()
+            => CancelCurrentWork(remainCancelled: false);
+
+        public void CancelCurrentWork(bool remainCancelled)
         {
             lock (_gate)
             {
+                remainCancelled |= _cancellationTokenSource.IsCancellationRequested;
                 _cancellationTokenSource.Cancel();
-                _cancellationTokenSource = new CancellationTokenSource();
+                if (!remainCancelled)
+                {
+                    _cancellationTokenSource = new CancellationTokenSource();
+                }
             }
         }
 

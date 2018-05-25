@@ -88,8 +88,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             get
             {
-                var syntax = Syntax;
-                return syntax == null ? null : syntax.SyntaxTree;
+                return Syntax?.SyntaxTree;
             }
         }
 

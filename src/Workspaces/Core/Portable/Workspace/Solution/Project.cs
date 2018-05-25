@@ -58,10 +58,15 @@ namespace Microsoft.CodeAnalysis
         public string OutputFilePath => _projectState.OutputFilePath;
 
         /// <summary>
-        /// <code>true</code> if this <see cref="Project"/> supports providing data through the
+        /// The path to the reference assembly output file, or null if it is not known.
+        /// </summary>
+        public string OutputRefFilePath => _projectState.OutputRefFilePath;
+
+        /// <summary>
+        /// <see langword="true"/> if this <see cref="Project"/> supports providing data through the
         /// <see cref="GetCompilationAsync(CancellationToken)"/> method.
         /// 
-        /// If <code>false</code> then this method will return <code>null</code> instead.
+        /// If <see langword="false"/> then this method will return <see langword="null"/> instead.
         /// </summary>
         public bool SupportsCompilation => this.LanguageServices.GetService<ICompilationFactoryService>() != null;
 
@@ -219,9 +224,10 @@ namespace Microsoft.CodeAnalysis
             return _projectState.GetAdditionalDocumentState(documentId);
         }
 
-        internal Task<bool> ContainsSymbolsWithNameAsync(Func<string, bool> predicate, SymbolFilter filter, CancellationToken cancellationToken)
+        internal async Task<bool> ContainsSymbolsWithNameAsync(Func<string, bool> predicate, SymbolFilter filter, CancellationToken cancellationToken)
         {
-            return _solution.State.ContainsSymbolsWithNameAsync(Id, predicate, filter, cancellationToken);
+            return this.SupportsCompilation &&
+                   await _solution.State.ContainsSymbolsWithNameAsync(Id, predicate, filter, cancellationToken).ConfigureAwait(false);
         }
 
         internal async Task<IEnumerable<Document>> GetDocumentsWithNameAsync(Func<string, bool> predicate, SymbolFilter filter, CancellationToken cancellationToken)
@@ -254,7 +260,7 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// Get the <see cref="Compilation"/> for this project asynchronously.
         /// </summary>
-        public Task<Compilation> GetCompilationAsync(CancellationToken cancellationToken = default(CancellationToken))
+        public Task<Compilation> GetCompilationAsync(CancellationToken cancellationToken = default)
         {
             return _solution.State.GetCompilationAsync(_projectState, cancellationToken);
         }
@@ -263,7 +269,7 @@ namespace Microsoft.CodeAnalysis
         /// Determines if the compilation returned by <see cref="GetCompilationAsync"/> and all its referenced compilaton are from fully loaded projects.
         /// </summary>
         // TODO: make this public
-        internal Task<bool> HasSuccessfullyLoadedAsync(CancellationToken cancellationToken = default(CancellationToken))
+        internal Task<bool> HasSuccessfullyLoadedAsync(CancellationToken cancellationToken = default)
         {
             return _solution.State.HasSuccessfullyLoadedAsync(_projectState, cancellationToken);
         }
@@ -289,7 +295,7 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// The version of the most recently modified document.
         /// </summary>
-        public Task<VersionStamp> GetLatestDocumentVersionAsync(CancellationToken cancellationToken = default(CancellationToken))
+        public Task<VersionStamp> GetLatestDocumentVersionAsync(CancellationToken cancellationToken = default)
         {
             return _projectState.GetLatestDocumentVersionAsync(cancellationToken);
         }
@@ -297,7 +303,7 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// The most recent version of the project, its documents and all dependent projects and documents.
         /// </summary>
-        public Task<VersionStamp> GetDependentVersionAsync(CancellationToken cancellationToken = default(CancellationToken))
+        public Task<VersionStamp> GetDependentVersionAsync(CancellationToken cancellationToken = default)
         {
             return _solution.State.GetDependentVersionAsync(this.Id, cancellationToken);
         }
@@ -306,7 +312,7 @@ namespace Microsoft.CodeAnalysis
         /// The semantic version of this project including the semantics of referenced projects.
         /// This version changes whenever the consumable declarations of this project and/or projects it depends on change.
         /// </summary>
-        public Task<VersionStamp> GetDependentSemanticVersionAsync(CancellationToken cancellationToken = default(CancellationToken))
+        public Task<VersionStamp> GetDependentSemanticVersionAsync(CancellationToken cancellationToken = default)
         {
             return _solution.State.GetDependentSemanticVersionAsync(this.Id, cancellationToken);
         }
@@ -315,7 +321,7 @@ namespace Microsoft.CodeAnalysis
         /// The semantic version of this project not including the semantics of referenced projects.
         /// This version changes only when the consumable declarations of this project change.
         /// </summary>
-        public async Task<VersionStamp> GetSemanticVersionAsync(CancellationToken cancellationToken = default(CancellationToken))
+        public async Task<VersionStamp> GetSemanticVersionAsync(CancellationToken cancellationToken = default)
         {
             var projVersion = this.Version;
             var docVersion = await _projectState.GetLatestDocumentTopLevelChangeVersionAsync(cancellationToken).ConfigureAwait(false);

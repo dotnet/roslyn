@@ -5,6 +5,7 @@ using System.Collections.Immutable;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Experimentation;
 using Microsoft.CodeAnalysis.Shared.Options;
 using Microsoft.CodeAnalysis.Workspaces.Diagnostics;
 using Roslyn.Utilities;
@@ -223,6 +224,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 }
 
                 await SerializeAsync(serializer, project, result.ProjectId, _owner.NonLocalStateName, result.Others).ConfigureAwait(false);
+
+                AnalyzerABTestLogger.LogProjectDiagnostics(project, _owner.StateName, result);
             }
 
             public void ResetVersion()
@@ -240,6 +243,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 
                 var syntax = state.GetAnalysisData(AnalysisKind.Syntax);
                 var semantic = state.GetAnalysisData(AnalysisKind.Semantic);
+
+                AnalyzerABTestLogger.LogDocumentDiagnostics(document, _owner.StateName, syntax.Items, semantic.Items);
 
                 var project = document.Project;
 
@@ -407,7 +412,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 // after initial deserialization, we track actual document/project that actually have diagnostics so no data won't be a common
                 // case.
                 // check cache first
-                if (InMemoryStorage.TryGetValue(_owner.Analyzer, ValueTuple.Create(key, stateKey), out var entry) && serializer.Version == entry.Version)
+                if (InMemoryStorage.TryGetValue(_owner.Analyzer, (key, stateKey), out var entry) && serializer.Version == entry.Version)
                 {
                     if (entry.Diagnostics.Length == 0)
                     {

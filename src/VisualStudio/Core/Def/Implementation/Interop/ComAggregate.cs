@@ -46,8 +46,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Interop
         {
             Contract.ThrowIfNull(value, "value");
 
-            var wrapper = value as IComWrapper;
-            if (wrapper != null)
+            if (value is IComWrapper wrapper)
             {
                 return GetManagedObject<T>(wrapper);
             }
@@ -70,8 +69,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Interop
 
         internal static T TryGetManagedObject<T>(object value) where T : class
         {
-            var wrapper = value as IComWrapper;
-            if (wrapper != null)
+            if (value is IComWrapper wrapper)
             {
                 return TryGetManagedObject<T>(wrapper);
             }

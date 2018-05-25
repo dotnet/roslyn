@@ -1,8 +1,9 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports Microsoft.CodeAnalysis.Rename.ConflictEngine
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename.CSharp
+    <[UseExportProvider]>
     Public Class EscapingTests
         Private ReadOnly _outputHelper As Abstractions.ITestOutputHelper
 
@@ -17,9 +18,9 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename.CSharp
                 <Workspace>
                     <Project Language="C#" CommonReferences="true">
                         <Document>
-class [|$$Foo|]
+class [|$$Goo|]
 {
-    [|Foo|] foo;
+    [|Goo|] goo;
 }
                             </Document>
                     </Project>
@@ -35,9 +36,9 @@ class [|$$Foo|]
                 <Workspace>
                     <Project Language="C#" CommonReferences="true">
                         <Document>
-class {|escaped:$$Foo|}
+class {|escaped:$$Goo|}
 {
-    {|escaped:Foo|} foo;
+    {|escaped:Goo|} goo;
 }
                             </Document>
                     </Project>
@@ -109,7 +110,7 @@ class {|escaped:$$MainAttribute|} : System.Attribute
                         <Document>
                             class[|$$@class|]
                             {
-                              static void Foo(ref{|escaped:@class|}@c) { }
+                              static void Goo(ref{|escaped:@class|}@c) { }
                             }
                             </Document>
                     </Project>
@@ -129,7 +130,7 @@ class {|escaped:$$MainAttribute|} : System.Attribute
                         <Document>
                             class{|escaped:$$@class|}
                             {
-                              static void Foo(ref{|escaped:@class|}@c) { }
+                              static void Goo(ref{|escaped:@class|}@c) { }
                             }
                             </Document>
                     </Project>
@@ -148,7 +149,7 @@ class {|escaped:$$MainAttribute|} : System.Attribute
                         <Document>
                             class A
                             {
-                                static void Foo() 
+                                static void Goo() 
                                 { 
                                     var [|$$@a|] = 12;
                                 }
@@ -169,7 +170,7 @@ class {|escaped:$$MainAttribute|} : System.Attribute
                         <Document>
                             class A
                             {
-                                static void Foo() 
+                                static void Goo() 
                                 { 
                                     var {|stmt1:$$@a|} = 12;
                                 }
@@ -198,7 +199,7 @@ class {|escaped:$$MainAttribute|} : System.Attribute
 
                             class A
                             {
-                                static void Foo() 
+                                static void Goo() 
                                 { 
                                     var x = new @B.{|stmt1:$$@C|}();
                                 }

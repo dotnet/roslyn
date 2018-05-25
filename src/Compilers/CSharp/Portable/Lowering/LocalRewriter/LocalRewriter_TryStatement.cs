@@ -47,7 +47,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             switch (statement.Kind)
             {
                 case BoundKind.NoOpStatement:
-                    return true;
+                    return false;
                 case BoundKind.Block:
                     {
                         var block = (BoundBlock)statement;
@@ -77,6 +77,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (node.ExceptionFilterOpt == null)
             {
                 return base.VisitCatchBlock(node);
+            }
+
+            if (node.ExceptionFilterOpt.ConstantValue?.BooleanValue == false)
+            {
+                return null;
             }
 
             BoundExpression rewrittenExceptionSourceOpt = (BoundExpression)this.Visit(node.ExceptionSourceOpt);

@@ -60,7 +60,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             If Not typeParameters.IsEmpty Then
                 For Each typeParameter In typeParameters
-                    If originalBinder.CanAddLookupSymbolInfo(typeParameter, options, Nothing) Then
+                    If originalBinder.CanAddLookupSymbolInfo(typeParameter, options, nameSet, Nothing) Then
                         nameSet.AddSymbol(typeParameter, typeParameter.Name, 0)
                     End If
                 Next

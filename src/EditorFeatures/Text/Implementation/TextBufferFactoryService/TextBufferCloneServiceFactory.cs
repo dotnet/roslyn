@@ -1,11 +1,6 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
-using System.Collections.Generic;
 using System.Composition;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.VisualStudio.Text;
@@ -21,9 +16,9 @@ namespace Microsoft.CodeAnalysis.Text.Implementation.TextBufferFactoryService
         [ImportingConstructor]
         public TextBufferCloneServiceFactory(
             ITextBufferFactoryService textBufferFactoryService,
-            IContentTypeRegistryService contentTypeRegistry)
+            IContentTypeRegistryService contentTypeRegistryService)
         {
-            _singleton = new TextBufferCloneService((ITextBufferFactoryService2)textBufferFactoryService, contentTypeRegistry.UnknownContentType);
+            _singleton = new TextBufferCloneService((ITextBufferFactoryService3)textBufferFactoryService, contentTypeRegistryService);
         }
 
         public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
@@ -31,21 +26,24 @@ namespace Microsoft.CodeAnalysis.Text.Implementation.TextBufferFactoryService
             return _singleton;
         }
 
+        [Export(typeof(ITextBufferCloneService)), Shared]
         private class TextBufferCloneService : ITextBufferCloneService
         {
-            private readonly ITextBufferFactoryService2 _textBufferFactoryService;
+            private readonly ITextBufferFactoryService3 _textBufferFactoryService;
             private readonly IContentType _unknownContentType;
 
-            public TextBufferCloneService(ITextBufferFactoryService2 textBufferFactoryService, IContentType unknownContentType)
+            [ImportingConstructor]
+            public TextBufferCloneService(ITextBufferFactoryService3 textBufferFactoryService, IContentTypeRegistryService contentTypeRegistryService)
             {
                 _textBufferFactoryService = textBufferFactoryService;
-                _unknownContentType = unknownContentType;
+                _unknownContentType = contentTypeRegistryService.UnknownContentType;
             }
 
             public ITextBuffer Clone(SnapshotSpan span)
-            {
-                return _textBufferFactoryService.CreateTextBuffer(span, _unknownContentType);
-            }
+                => _textBufferFactoryService.CreateTextBuffer(span, _unknownContentType);
+
+            public ITextBuffer Clone(ITextImage textImage)
+                => _textBufferFactoryService.CreateTextBuffer(textImage, _unknownContentType);
         }
     }
 }

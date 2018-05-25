@@ -10,7 +10,9 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.CodeFixes.Async
 {
+#pragma warning disable RS1016 // Code fix providers should provide FixAll support. https://github.com/dotnet/roslyn/issues/23528
     internal abstract partial class AbstractAsyncCodeFix : CodeFixProvider
+#pragma warning restore RS1016 // Code fix providers should provide FixAll support.
     {
         protected abstract Task<CodeAction> GetCodeActionAsync(
             SyntaxNode root, SyntaxNode node, Document document, Diagnostic diagnostic, CancellationToken cancellationToken);

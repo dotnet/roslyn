@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Linq;
@@ -26,7 +26,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
 {
     internal abstract partial class AbstractLanguageService<TPackage, TLanguageService>
     {
-        internal class VsLanguageDebugInfo : IVsLanguageDebugInfo
+        internal sealed class VsLanguageDebugInfo
         {
             private readonly Guid _languageId;
             private readonly TLanguageService _languageService;
@@ -68,7 +68,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
             public int GetLocationOfName(string pszName, out string pbstrMkDoc, out VsTextSpan pspanLocation)
             {
                 pbstrMkDoc = null;
-                pspanLocation = default(VsTextSpan);
+                pspanLocation = default;
                 return VSConstants.E_NOTIMPL;
             }
 
@@ -92,21 +92,25 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
                             var textBuffer = _languageService.EditorAdaptersFactoryService.GetDataBuffer(pBuffer);
                             if (textBuffer != null)
                             {
-                                var point = textBuffer.CurrentSnapshot.GetPoint(iLine, iCol);
-                                var document = point.Snapshot.GetOpenDocumentInCurrentContextWithChanges();
-
-                                if (document != null)
+                                var nullablePoint = textBuffer.CurrentSnapshot.TryGetPoint(iLine, iCol);
+                                if (nullablePoint.HasValue)
                                 {
-                                    // NOTE(cyrusn): We have to wait here because the debuggers' 
-                                    // GetNameOfLocation is a blocking call.  In the future, it 
-                                    // would be nice if they could make it async.
-                                    var debugLocationInfo = _languageDebugInfo.GetLocationInfoAsync(document, point, cancellationToken).WaitAndGetResult(cancellationToken);
+                                    var point = nullablePoint.Value;
+                                    var document = point.Snapshot.GetOpenDocumentInCurrentContextWithChanges();
 
-                                    if (!debugLocationInfo.IsDefault)
+                                    if (document != null)
                                     {
-                                        succeeded = true;
-                                        name = debugLocationInfo.Name;
-                                        lineOffset = debugLocationInfo.LineOffset;
+                                        // NOTE(cyrusn): We have to wait here because the debuggers' 
+                                        // GetNameOfLocation is a blocking call.  In the future, it 
+                                        // would be nice if they could make it async.
+                                        var debugLocationInfo = _languageDebugInfo.GetLocationInfoAsync(document, point, cancellationToken).WaitAndGetResult(cancellationToken);
+
+                                        if (!debugLocationInfo.IsDefault)
+                                        {
+                                            succeeded = true;
+                                            name = debugLocationInfo.Name;
+                                            lineOffset = debugLocationInfo.LineOffset;
+                                        }
                                     }
                                 }
                             }
@@ -146,16 +150,20 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
                         if (textBuffer != null)
                         {
                             var snapshot = textBuffer.CurrentSnapshot;
-                            Document document = snapshot.GetOpenDocumentInCurrentContextWithChanges();
-                            if (document != null)
+                            var nullablePoint = snapshot.TryGetPoint(iLine, iCol);
+                            if (nullablePoint.HasValue)
                             {
-                                var point = snapshot.GetPoint(iLine, iCol);
-                                var proximityExpressions = _proximityExpressionsService.GetProximityExpressionsAsync(document, point.Position, waitContext.CancellationToken).WaitAndGetResult(waitContext.CancellationToken);
-
-                                if (proximityExpressions != null)
+                                Document document = snapshot.GetOpenDocumentInCurrentContextWithChanges();
+                                if (document != null)
                                 {
-                                    enumBSTR = new VsEnumBSTR(proximityExpressions);
-                                    succeeded = true;
+                                    var point = nullablePoint.Value;
+                                    var proximityExpressions = _proximityExpressionsService.GetProximityExpressionsAsync(document, point.Position, waitContext.CancellationToken).WaitAndGetResult(waitContext.CancellationToken);
+
+                                    if (proximityExpressions != null)
+                                    {
+                                        enumBSTR = new VsEnumBSTR(proximityExpressions);
+                                        succeeded = true;
+                                    }
                                 }
                             }
                         }
@@ -232,7 +240,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
             {
                 var document = breakpoint.Document;
                 var filePath = _languageService.Workspace.GetFilePath(document.Id);
-                var text = document.GetTextAsync(cancellationToken).WaitAndGetResult(cancellationToken);
+                var text = document.GetTextSynchronously(cancellationToken);
                 var span = text.GetVsTextSpanForSpan(breakpoint.TextSpan);
                 // If we're inside an Venus code nugget, we need to map the span to the surface buffer.
                 // Otherwise, we'll just use the original span.
@@ -278,17 +286,24 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
                 if (textBuffer != null)
                 {
                     var snapshot = textBuffer.CurrentSnapshot;
-                    Document document = snapshot.AsText().GetDocumentWithFrozenPartialSemanticsAsync(cancellationToken).WaitAndGetResult(cancellationToken);
+                    var nullablePoint = snapshot.TryGetPoint(iLine, iCol);
+                    if (nullablePoint == null)
+                    {
+                        // The point disappeared between sessions. Do not allow a breakpoint here.
+                        return VSConstants.E_FAIL;
+                    }
+
+                    Document document = snapshot.AsText().GetDocumentWithFrozenPartialSemantics(cancellationToken);
                     if (document != null)
                     {
-                        var point = snapshot.GetPoint(iLine, iCol);
+                        var point = nullablePoint.Value;
                         var length = 0;
                         if (pCodeSpan != null && pCodeSpan.Length > 0)
                         {
                             // If we have a non-empty span then it means that the debugger is asking us to adjust an
                             // existing span.  In Everett we didn't do this so we had some good and some bad
-                            // behavior.  For example if you had a breakpoint on: "int i;" and you changed it to "int
-                            // i = 4;", then the breakpoint wouldn't adjust.  That was bad.  However, if you had the
+                            // behavior.  For example if you had a breakpoint on: "int i = 1;" and you changed it to "int
+                            // i = 1, j = 2;", then the breakpoint wouldn't adjust.  That was bad.  However, if you had the
                             // breakpoint on an open or close curly brace then it would always "stick" to that brace
                             // which was good.
                             //
@@ -308,7 +323,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
                                 var tree = document.GetSyntaxTreeSynchronously(cancellationToken);
                                 if (tree.GetDiagnostics(cancellationToken).Any(d => d.Severity == DiagnosticSeverity.Error))
                                 {
-                                    return VSConstants.E_FAIL;
+                                    // Keep the span as is.
+                                    return VSConstants.S_OK;
                                 }
                             }
 
@@ -325,7 +341,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
                         // NOTE(cyrusn): we need to wait here because ValidateBreakpointLocation is
                         // synchronous.  In the future, it would be nice for the debugger to provide
                         // an async entry point for this.
-                        var breakpoint = _breakpointService.ResolveBreakpointAsync(document, new CodeAnalysis.Text.TextSpan(point.Position, length), cancellationToken).WaitAndGetResult(cancellationToken);
+                        var breakpoint = _breakpointService.ResolveBreakpointAsync(document, new TextSpan(point.Position, length), cancellationToken).WaitAndGetResult(cancellationToken);
                         if (breakpoint == null)
                         {
                             // There should *not* be a breakpoint here.  E_FAIL to let the debugger know

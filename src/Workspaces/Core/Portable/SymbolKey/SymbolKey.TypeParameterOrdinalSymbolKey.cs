@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis
                 var method = reader.ResolveMethod(methodIndex);
                 var typeParameter = method?.TypeParameters[ordinal];
                 return typeParameter == null
-                    ? default(SymbolKeyResolution)
+                    ? default
                     : new SymbolKeyResolution(typeParameter);
             }
         }

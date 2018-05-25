@@ -2,6 +2,7 @@
 
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -9,6 +10,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ExtractMethod
 {
     public partial class ExtractMethodTests
     {
+        [UseExportProvider]
         public class LanguageInteraction : ExtractMethodBase
         {
             #region Generics
@@ -1278,8 +1280,8 @@ unsafe class C
 
 class X
 {
-    static void Foo(Func<X, byte> x, string y) { Console.WriteLine(1); }
-    static void Foo(Func<int?, byte> x, object y) { Console.WriteLine(2); }
+    static void Goo(Func<X, byte> x, string y) { Console.WriteLine(1); }
+    static void Goo(Func<int?, byte> x, object y) { Console.WriteLine(2); }
 
     const int Value = 1000;
 
@@ -1287,7 +1289,7 @@ class X
     {
         unchecked
         {
-            [|Foo(X => (byte)X.Value, null);|] // Extract method
+            [|Goo(X => (byte)X.Value, null);|] // Extract method
         }
     }
 }";
@@ -1295,8 +1297,8 @@ class X
 
 class X
 {
-    static void Foo(Func<X, byte> x, string y) { Console.WriteLine(1); }
-    static void Foo(Func<int?, byte> x, object y) { Console.WriteLine(2); }
+    static void Goo(Func<X, byte> x, string y) { Console.WriteLine(1); }
+    static void Goo(Func<int?, byte> x, object y) { Console.WriteLine(2); }
 
     const int Value = 1000;
 
@@ -1312,7 +1314,7 @@ class X
     {
         unchecked
         {
-            Foo(X => (byte)X.Value, null);
+            Goo(X => (byte)X.Value, null);
         }
     }
 }";
@@ -1327,8 +1329,8 @@ class X
 
 class X
 {
-    static void Foo(Func<X, byte> x, string y) { Console.WriteLine(1); }
-    static void Foo(Func<int?, byte> x, object y) { Console.WriteLine(2); }
+    static void Goo(Func<X, byte> x, string y) { Console.WriteLine(1); }
+    static void Goo(Func<int?, byte> x, object y) { Console.WriteLine(2); }
 
     const int Value = 1000;
 
@@ -1336,7 +1338,7 @@ class X
     {
         unchecked
         [|{
-            Foo(X => (byte)X.Value, null); // Extract method
+            Goo(X => (byte)X.Value, null); // Extract method
         }|]
     }
 }";
@@ -1344,8 +1346,8 @@ class X
 
 class X
 {
-    static void Foo(Func<X, byte> x, string y) { Console.WriteLine(1); }
-    static void Foo(Func<int?, byte> x, object y) { Console.WriteLine(2); }
+    static void Goo(Func<X, byte> x, string y) { Console.WriteLine(1); }
+    static void Goo(Func<int?, byte> x, object y) { Console.WriteLine(2); }
 
     const int Value = 1000;
 
@@ -1358,7 +1360,7 @@ class X
     {
         unchecked
         {
-            Foo(X => (byte)X.Value, null); // Extract method
+            Goo(X => (byte)X.Value, null); // Extract method
         }
     }
 }";
@@ -1373,8 +1375,8 @@ class X
 
 class X
 {
-    static void Foo(Func<X, byte> x, string y) { Console.WriteLine(1); }
-    static void Foo(Func<int?, byte> x, object y) { Console.WriteLine(2); }
+    static void Goo(Func<X, byte> x, string y) { Console.WriteLine(1); }
+    static void Goo(Func<int?, byte> x, object y) { Console.WriteLine(2); }
 
     const int Value = 1000;
 
@@ -1383,7 +1385,7 @@ class X
         unchecked
         {
             [|{
-                Foo(X => (byte)X.Value, null); // Extract method
+                Goo(X => (byte)X.Value, null); // Extract method
             }|]
         }
     }
@@ -1392,8 +1394,8 @@ class X
 
 class X
 {
-    static void Foo(Func<X, byte> x, string y) { Console.WriteLine(1); }
-    static void Foo(Func<int?, byte> x, object y) { Console.WriteLine(2); }
+    static void Goo(Func<X, byte> x, string y) { Console.WriteLine(1); }
+    static void Goo(Func<int?, byte> x, object y) { Console.WriteLine(2); }
 
     const int Value = 1000;
 
@@ -1409,7 +1411,7 @@ class X
     {
         unchecked
         {
-            Foo(X => (byte)X.Value, null); // Extract method
+            Goo(X => (byte)X.Value, null); // Extract method
         }
     }
 }";
@@ -1424,22 +1426,22 @@ class X
 
 class X
 {
-    static int Foo(Func<X, byte> x, string y) { return 1; } // This Foo is invoked before refactoring
-    static int Foo(Func<int?, byte> x, object y) { return 2; }
+    static int Goo(Func<X, byte> x, string y) { return 1; } // This Goo is invoked before refactoring
+    static int Goo(Func<int?, byte> x, object y) { return 2; }
 
     const int Value = 1000;
 
     static void Main()
     {
-        var s = unchecked(1 + [|Foo(X => (byte)X.Value, null)|]);
+        var s = unchecked(1 + [|Goo(X => (byte)X.Value, null)|]);
     }
 }";
                 var expected = @"using System;
 
 class X
 {
-    static int Foo(Func<X, byte> x, string y) { return 1; } // This Foo is invoked before refactoring
-    static int Foo(Func<int?, byte> x, object y) { return 2; }
+    static int Goo(Func<X, byte> x, string y) { return 1; } // This Goo is invoked before refactoring
+    static int Goo(Func<int?, byte> x, object y) { return 2; }
 
     const int Value = 1000;
 
@@ -1450,7 +1452,7 @@ class X
 
     private static int NewMethod()
     {
-        return unchecked(Foo(X => (byte)X.Value, null));
+        return unchecked(Goo(X => (byte)X.Value, null));
     }
 }";
                 await TestExtractMethodAsync(code, expected);
@@ -1924,6 +1926,45 @@ namespace N
         private static FormattableString NewMethod()
         {
             return $"""";
+        }
+    }
+}";
+
+            await TestExtractMethodAsync(code, expected);
+        }
+
+        [WorkItem(17971, "https://github.com/dotnet/roslyn/issues/17971")]
+        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        public async Task BrokenForeachLoop()
+        {
+            var code = @"using System;
+namespace ConsoleApp1
+{
+    class Program
+    {
+        static void Main(string[] args)
+        {
+            [|Console.WriteLine(1);
+            foreach ()
+            Console.WriteLine(2);|]
+        }
+    }
+}";
+            var expected = @"using System;
+namespace ConsoleApp1
+{
+    class Program
+    {
+        static void Main(string[] args)
+        {
+            NewMethod();
+        }
+
+        private static void NewMethod()
+        {
+            Console.WriteLine(1);
+            foreach ()
+                Console.WriteLine(2);
         }
     }
 }";

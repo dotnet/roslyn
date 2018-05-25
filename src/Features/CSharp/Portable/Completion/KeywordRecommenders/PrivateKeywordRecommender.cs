@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery;
@@ -75,11 +75,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
 
         private static bool CheckPreviousAccessibilityModifiers(CSharpSyntaxContext context)
         {
+            // We can show up after 'protected'.
             var precedingModifiers = context.PrecedingModifiers;
             return
                 !precedingModifiers.Contains(SyntaxKind.PublicKeyword) &&
                 !precedingModifiers.Contains(SyntaxKind.InternalKeyword) &&
-                !precedingModifiers.Contains(SyntaxKind.ProtectedKeyword) &&
                 !precedingModifiers.Contains(SyntaxKind.PrivateKeyword);
         }
     }

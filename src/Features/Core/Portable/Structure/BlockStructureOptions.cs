@@ -33,5 +33,11 @@ namespace Microsoft.CodeAnalysis.Structure
         public static readonly PerLanguageOption<bool> CollapseRegionsWhenCollapsingToDefinitions = new PerLanguageOption<bool>(
             nameof(BlockStructureOptions), nameof(CollapseRegionsWhenCollapsingToDefinitions), defaultValue: false,
              storageLocations: new RoamingProfileStorageLocation($"TextEditor.%LANGUAGE%.Specific.{nameof(CollapseRegionsWhenCollapsingToDefinitions)}"));
+
+        public static readonly PerLanguageOption<int> MaximumBannerLength = new PerLanguageOption<int>(
+            nameof(BlockStructureOptions), 
+            nameof(MaximumBannerLength), defaultValue: 80,
+            storageLocations: new RoamingProfileStorageLocation($"TextEditor.%LANGUAGE%.Specific.{nameof(MaximumBannerLength)}"));
+
     }
 }

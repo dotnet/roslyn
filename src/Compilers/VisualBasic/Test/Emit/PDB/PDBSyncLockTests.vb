@@ -1,4 +1,5 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+Imports Microsoft.CodeAnalysis.Test.Utilities
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.PDB
 
@@ -34,7 +35,7 @@ End Class
     </file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.DebugExe)
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(source, TestOptions.DebugExe)
             Dim v = CompileAndVerify(compilation)
 
             v.VerifyIL("C1.Main", "
@@ -93,6 +94,9 @@ End Class
 
             v.VerifyPdb("C1.Main",
 <symbols>
+    <files>
+      <file id="1" name="" language="VB" />
+    </files>
     <entryPoint declaringType="C1" methodName="Main"/>
     <methods>
         <method containingType="C1" name="Main">
@@ -105,19 +109,19 @@ End Class
                 </encLocalSlotMap>
             </customDebugInfo>
             <sequencePoints>
-                <entry offset="0x0" startLine="10" startColumn="5" endLine="10" endColumn="29"/>
-                <entry offset="0x1" startLine="11" startColumn="9" endLine="11" endColumn="12"/>
-                <entry offset="0x2" startLine="12" startColumn="17" endLine="12" endColumn="37"/>
-                <entry offset="0xd" startLine="13" startColumn="13" endLine="13" endColumn="35"/>
-                <entry offset="0xe" startLine="13" startColumn="22" endLine="13" endColumn="35"/>
-                <entry offset="0x21" startLine="14" startColumn="21" endLine="14" endColumn="38"/>
-                <entry offset="0x24" startLine="15" startColumn="17" endLine="15" endColumn="38"/>
-                <entry offset="0x2a" hidden="true"/>
-                <entry offset="0x34" startLine="17" startColumn="13" endLine="17" endColumn="25"/>
-                <entry offset="0x36" hidden="true"/>
-                <entry offset="0x3b" startLine="18" startColumn="9" endLine="18" endColumn="14"/>
-                <entry offset="0x43" startLine="19" startColumn="9" endLine="19" endColumn="16"/>
-                <entry offset="0x44" startLine="20" startColumn="5" endLine="20" endColumn="12"/>
+                <entry offset="0x0" startLine="10" startColumn="5" endLine="10" endColumn="29" document="1"/>
+                <entry offset="0x1" startLine="11" startColumn="9" endLine="11" endColumn="12" document="1"/>
+                <entry offset="0x2" startLine="12" startColumn="17" endLine="12" endColumn="37" document="1"/>
+                <entry offset="0xd" startLine="13" startColumn="13" endLine="13" endColumn="35" document="1"/>
+                <entry offset="0xe" startLine="13" startColumn="22" endLine="13" endColumn="35" document="1"/>
+                <entry offset="0x21" startLine="14" startColumn="21" endLine="14" endColumn="38" document="1"/>
+                <entry offset="0x24" startLine="15" startColumn="17" endLine="15" endColumn="38" document="1"/>
+                <entry offset="0x2a" hidden="true" document="1"/>
+                <entry offset="0x34" startLine="17" startColumn="13" endLine="17" endColumn="25" document="1"/>
+                <entry offset="0x36" hidden="true" document="1"/>
+                <entry offset="0x3b" startLine="18" startColumn="9" endLine="18" endColumn="14" document="1"/>
+                <entry offset="0x43" startLine="19" startColumn="9" endLine="19" endColumn="16" document="1"/>
+                <entry offset="0x44" startLine="20" startColumn="5" endLine="20" endColumn="12" document="1"/>
             </sequencePoints>
             <scope startOffset="0x0" endOffset="0x45">
                 <importsforward declaringType="C1" methodName="Something" parameterNames="x"/>

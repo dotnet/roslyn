@@ -300,7 +300,7 @@ class C
         }
     }
 }";
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics();
+            CreateCompilation(source).VerifyDiagnostics();
         }
 
         [Fact]
@@ -895,6 +895,7 @@ public class Test
             );
         }
 
+        [Fact]
         public void DegenerateSwitch007()
         {
             var text = @"using System;
@@ -2350,10 +2351,10 @@ class Program
                 break;
         }
 
-        Foo(1);
+        Goo(1);
     }
 
-    static void Foo(sbyte? p)
+    static void Goo(sbyte? p)
     {
         switch (p)
         {
@@ -2394,7 +2395,7 @@ class Program
   IL_0035:  ldc.i4.1
   IL_0036:  conv.i1
   IL_0037:  newobj     ""sbyte?..ctor(sbyte)""
-  IL_003c:  call       ""void Program.Foo(sbyte?)""
+  IL_003c:  call       ""void Program.Goo(sbyte?)""
   IL_0041:  ret
 }");
         }
@@ -2408,11 +2409,11 @@ class Program
 {
     static void Main()
     {
-        Foo(null);
-        Foo(100);
+        Goo(null);
+        Goo(100);
     }
 
-    static void Foo(short? p)
+    static void Goo(short? p)
     {
         switch (p)
         {
@@ -2494,7 +2495,7 @@ class Program
 }
 ";
             var verifier = CompileAndVerify(text, expectedOutput: "null default 100 default ");
-            verifier.VerifyIL("Program.Foo", @"
+            verifier.VerifyIL("Program.Goo", @"
 {
   // Code size      373 (0x175)
   .maxstack  2
@@ -2746,14 +2747,14 @@ class Program
     {
         switch (x)
         {
-            case (int)Foo.X:
+            case (int)Goo.X:
                 return true;
             default:
                 return false;
         }
     }
 
-    public enum Foo : int { X  = 1 }
+    public enum Goo : int { X  = 1 }
 
     static void Main()
     {
@@ -3665,7 +3666,7 @@ class Test
             var text = @"
 using System;
 
-class Foo
+class Goo
 {
   public static void Main()
   {
@@ -4191,12 +4192,12 @@ class Program
     }
 }
 ";
-            var comp = CreateCompilation(
-                trees: new[] { Parse(text) },
+            var comp = CreateEmptyCompilation(
+                source: new[] { Parse(text) },
                 references: new[] { AacorlibRef });
 
 
-            var verifier = CompileAndVerify(comp, verify: false);
+            var verifier = CompileAndVerify(comp, verify: Verification.Fails);
             verifier.VerifyIL("Program.Main", @"
 {
   // Code size      223 (0xdf)
@@ -4955,7 +4956,7 @@ namespace ConsoleApplication24
             WRN_EqualityOpWithoutEquals = 660,
             WRN_EqualityOpWithoutGetHashCode = 661,
             ERR_OutAttrOnRefParam = 662,
-            ERR_OverloadRefOut = 663,
+            ERR_OverloadRefKind = 663,
             ERR_LiteralDoubleCast = 664,
             WRN_IncorrectBooleanAssg = 665,
             ERR_ProtectedInStruct = 666,
@@ -5084,7 +5085,7 @@ namespace ConsoleApplication24
             ERR_ExpressionTreeContainsBadCoalesce = 845,
             ERR_ArrayInitializerExpected = 846,
             ERR_ArrayInitializerIncorrectLength = 847,
-            ERR_OverloadRefOutCtor = 851,
+            // ERR_OverloadRefOutCtor = 851,                                Replaced By ERR_OverloadRefKind
             ERR_ExpressionTreeContainsNamedArgument = 853,
             ERR_ExpressionTreeContainsOptionalArgument = 854,
             ERR_ExpressionTreeContainsIndexedProperty = 855,
@@ -5533,7 +5534,7 @@ namespace ConsoleApplication24
             //FTL_NoMessagesDLL = 2018,
             FTL_InvalidTarget = 2019,
             //ERR_BadTargetForSecondInputSet = 2020,    Roslyn doesn't support building two binaries at once!
-            FTL_InputFileNameTooLong = 2021,
+            FTL_InvalidInputFileName = 2021,
             //ERR_NoSourcesInLastInputSet = 2022,       Roslyn doesn't support building two binaries at once!
             WRN_NoConfigNotOnCommandLine = 2023,
             ERR_BadFileAlignment = 2024,
@@ -6338,22 +6339,22 @@ class SwitchTest
     public static int Main()
     {
         int n = 3;
-        int foo;        // unassigned foo
+        int goo;        // unassigned goo
 
         switch (n)
         {
             case 1:
             case 2:
-                foo = n;
+                goo = n;
                 break;
             case 3:
             default:
-                foo = 0;
+                goo = 0;
                 break;
         }
         
-        Console.Write(foo);     // foo must be definitely assigned here        
-        return foo;
+        Console.Write(goo);     // goo must be definitely assigned here        
+        return goo;
     }
 }
 ";
@@ -6364,7 +6365,7 @@ class SwitchTest
   // Code size       28 (0x1c)
   .maxstack  2
   .locals init (int V_0, //n
-                int V_1) //foo
+                int V_1) //goo
   IL_0000:  ldc.i4.3
   IL_0001:  stloc.0
   IL_0002:  ldloc.0
@@ -6399,13 +6400,13 @@ class SwitchTest
     {
         int n = 3;
         int cost = 0;
-        int foo;        // unassigned foo
+        int goo;        // unassigned goo
 
         switch (n)
         {
             case 1:
                 cost = 1;
-                foo = n;
+                goo = n;
                 break;
             case 2:
                 cost = 2;
@@ -6414,7 +6415,7 @@ class SwitchTest
                 cost = 3;
                 if(cost > n)
                 {
-                    foo = n - 1;
+                    goo = n - 1;
                 }
                 else
                 {
@@ -6424,13 +6425,13 @@ class SwitchTest
 
             default:
                 cost = 4;
-                foo = n - 1;
+                goo = n - 1;
                 break;
         }
 
-        if (foo != n)       // foo must be reported as definitely assigned
+        if (goo != n)       // goo must be reported as definitely assigned
         {
-            Console.Write(foo);
+            Console.Write(goo);
         }
         else
         {
@@ -6452,7 +6453,7 @@ class SwitchTest
   .maxstack  2
   .locals init (int V_0, //n
   int V_1, //cost
-  int V_2) //foo
+  int V_2) //goo
   IL_0000:  ldc.i4.3
   IL_0001:  stloc.0
   IL_0002:  ldc.i4.0
@@ -6516,7 +6517,7 @@ class SwitchTest
 {
     public static int Main()
     {
-        int foo;        // unassigned foo
+        int goo;        // unassigned goo
         switch (3)
         {
             case 1:
@@ -6527,7 +6528,7 @@ class SwitchTest
                 }
                 catch(Exception)
                 {
-                    foo = 0;
+                    goo = 0;
                 }
                 break;
             case 2:
@@ -6542,8 +6543,8 @@ class SwitchTest
                 break;
         }
 
-        Console.Write(foo);    // foo should be definitely assigned here
-        return foo;
+        Console.Write(goo);    // goo should be definitely assigned here
+        return goo;
     }
 }
 ";
@@ -6562,7 +6563,7 @@ class SwitchTest
                 {
                     // Code size       20 (0x14)
                     .maxstack  1
-                    .locals init (int V_0) //foo
+                    .locals init (int V_0) //goo
                     IL_0000:  nop
                     .try
                     {
@@ -6595,7 +6596,7 @@ class SwitchTest
 
 class A
 {
-    static void Foo(DayOfWeek x)
+    static void Goo(DayOfWeek x)
     {
         switch (x)
         {
@@ -6615,7 +6616,7 @@ class A
             //                 goto case 1; // warning CS0469: The 'goto case' value is not implicitly convertible to type 'System.DayOfWeek'
                 Diagnostic(ErrorCode.WRN_GotoCaseShouldConvert, "goto case 1;").WithArguments("System.DayOfWeek"));
 
-            compVerifier.VerifyIL("A.Foo", @"
+            compVerifier.VerifyIL("A.Goo", @"
 {
   // Code size        7 (0x7)
   .maxstack  2
@@ -6882,7 +6883,7 @@ public class Test
     }
 }";
 
-            var comp = CreateCompilationWithMscorlib(text, options: TestOptions.ReleaseExe.WithModuleName("MODULE"));
+            var comp = CreateCompilation(text, options: TestOptions.ReleaseExe.WithModuleName("MODULE"));
             CompileAndVerify(comp).VerifyIL("Test.Main", @"
 {
   // Code size      328 (0x148)
@@ -7049,7 +7050,7 @@ public class Test
     }
 }";
 
-            var comp = CreateCompilationWithMscorlib(text, options: TestOptions.ReleaseExe.WithModuleName("MODULE"));
+            var comp = CreateCompilation(text, options: TestOptions.ReleaseExe.WithModuleName("MODULE"));
 
             // With special members available, we use a hashtable approach.
             CompileAndVerify(comp).VerifyIL("Test.Main", @"
@@ -7180,7 +7181,7 @@ public class Test
 }
 ");
 
-            comp = CreateCompilationWithMscorlib(text);
+            comp = CreateCompilation(text);
             comp.MakeMemberMissing(SpecialMember.System_String__Chars);
 
             // Can't use the hash version when String.Chars is unavailable.
@@ -7272,7 +7273,7 @@ class Program {
     static string boo(int i) {
         switch (i) {
             case 42:
-                var x = ""foo"";
+                var x = ""goo"";
                 if (x != ""bar"")
                 break;
             return x;
@@ -7296,7 +7297,7 @@ class Program {
   IL_0000:  ldarg.0
   IL_0001:  ldc.i4.s   42
   IL_0003:  bne.un.s   IL_001a
-  IL_0005:  ldstr      ""foo""
+  IL_0005:  ldstr      ""goo""
   IL_000a:  stloc.0
   IL_000b:  ldloc.0
   IL_000c:  ldstr      ""bar""
@@ -7322,7 +7323,7 @@ class Program {
     static string boo(int i) {
         switch (i) {
             case 42:
-                var x = ""foo"";
+                var x = ""goo"";
                 if (x != ""bar"")
                 break;
              break;
@@ -7345,7 +7346,7 @@ class Program {
   IL_0000:  ldarg.0
   IL_0001:  ldc.i4.s   42
   IL_0003:  bne.un.s   IL_0015
-  IL_0005:  ldstr      ""foo""
+  IL_0005:  ldstr      ""goo""
   IL_000a:  ldstr      ""bar""
   IL_000f:  call       ""bool string.op_Inequality(string, string)""
   IL_0014:  pop
@@ -7368,7 +7369,7 @@ class Program {
         var ii = i;
         switch (++ii) {
             case 42:
-                var x = ""foo"";
+                var x = ""goo"";
                 if (x != ""bar"")
                 {
                     return false;
@@ -7398,7 +7399,7 @@ class Program {
   IL_0004:  ldloc.0
   IL_0005:  ldc.i4.s   42
   IL_0007:  bne.un.s   IL_001c
-  IL_0009:  ldstr      ""foo""
+  IL_0009:  ldstr      ""goo""
   IL_000e:  ldstr      ""bar""
   IL_0013:  call       ""bool string.op_Inequality(string, string)""
   IL_0018:  brfalse.s  IL_001c
@@ -7423,7 +7424,7 @@ class Program {
         var ii = i;
         switch (ii++) {
             case 42:
-                var x = ""foo"";
+                var x = ""goo"";
                 if (x != ""bar"")
                 {
                     return false;
@@ -7451,7 +7452,7 @@ class Program {
   IL_0002:  ldloc.0
   IL_0003:  ldc.i4.s   42
   IL_0005:  bne.un.s   IL_001a
-  IL_0007:  ldstr      ""foo""
+  IL_0007:  ldstr      ""goo""
   IL_000c:  ldstr      ""bar""
   IL_0011:  call       ""bool string.op_Inequality(string, string)""
   IL_0016:  brfalse.s  IL_001a
@@ -7612,5 +7613,1968 @@ namespace ConsoleApplication1
         }
 
         #endregion
+
+        #region regression tests
+
+        [Fact, WorkItem(18859, "https://github.com/dotnet/roslyn/issues/18859")]
+        public void BoxInPatternSwitch_01()
+        {
+            var source = @"using System;
+
+public class Program
+{
+    public static void Main()
+    {
+        switch (StringSplitOptions.RemoveEmptyEntries)
+        {
+            case object o:
+                Console.WriteLine(o);
+                break;
+        }
+    }
+}";
+            var compVerifier = CompileAndVerify(source,
+                options: TestOptions.ReleaseDll.WithOutputKind(OutputKind.ConsoleApplication),
+                expectedOutput: "RemoveEmptyEntries");
+            compVerifier.VerifyIL("Program.Main",
+@"{
+  // Code size       14 (0xe)
+  .maxstack  1
+  .locals init (object V_0)
+  IL_0000:  ldc.i4.1
+  IL_0001:  box        ""System.StringSplitOptions""
+  IL_0006:  stloc.0
+  IL_0007:  ldloc.0
+  IL_0008:  call       ""void System.Console.WriteLine(object)""
+  IL_000d:  ret
+}"
+            );
+            compVerifier = CompileAndVerify(source,
+                options: TestOptions.DebugDll.WithOutputKind(OutputKind.ConsoleApplication),
+                expectedOutput: "RemoveEmptyEntries");
+            compVerifier.VerifyIL("Program.Main",
+@"{
+  // Code size       26 (0x1a)
+  .maxstack  1
+  .locals init (object V_0,
+                object V_1, //o
+                System.StringSplitOptions V_2)
+  IL_0000:  nop
+  IL_0001:  ldc.i4.1
+  IL_0002:  stloc.2
+  IL_0003:  ldc.i4.1
+  IL_0004:  box        ""System.StringSplitOptions""
+  IL_0009:  stloc.0
+  IL_000a:  br.s       IL_000c
+  IL_000c:  ldloc.0
+  IL_000d:  stloc.1
+  IL_000e:  br.s       IL_0010
+  IL_0010:  ldloc.1
+  IL_0011:  call       ""void System.Console.WriteLine(object)""
+  IL_0016:  nop
+  IL_0017:  br.s       IL_0019
+  IL_0019:  ret
+}"
+            );
+        }
+
+        [Fact, WorkItem(18859, "https://github.com/dotnet/roslyn/issues/18859")]
+        public void ExplicitNullablePatternSwitch_02()
+        {
+            var source = @"using System;
+
+public class Program
+{
+    public static void Main()
+    {
+        M(null);
+        M(1);
+    }
+    public static void M(int? x)
+    {
+        switch (x)
+        {
+            case int i: // explicit nullable conversion
+                Console.Write(i);
+                break;
+            case null:
+                Console.Write(""null"");
+                break;
+        }
+    }
+}";
+            var compVerifier = CompileAndVerify(source,
+                options: TestOptions.ReleaseDll.WithOutputKind(OutputKind.ConsoleApplication),
+                expectedOutput: "null1");
+            compVerifier.VerifyIL("Program.M",
+@"{
+  // Code size       37 (0x25)
+  .maxstack  1
+  .locals init (int? V_0,
+                int V_1)
+  IL_0000:  ldarg.0
+  IL_0001:  stloc.0
+  IL_0002:  ldloca.s   V_0
+  IL_0004:  call       ""bool int?.HasValue.get""
+  IL_0009:  brfalse.s  IL_001a
+  IL_000b:  ldloca.s   V_0
+  IL_000d:  call       ""int int?.GetValueOrDefault()""
+  IL_0012:  stloc.1
+  IL_0013:  ldloc.1
+  IL_0014:  call       ""void System.Console.Write(int)""
+  IL_0019:  ret
+  IL_001a:  ldstr      ""null""
+  IL_001f:  call       ""void System.Console.Write(string)""
+  IL_0024:  ret
+}"
+            );
+            compVerifier = CompileAndVerify(source,
+                options: TestOptions.DebugDll.WithOutputKind(OutputKind.ConsoleApplication),
+                expectedOutput: "null1");
+            compVerifier.VerifyIL("Program.M",
+@"{
+  // Code size       53 (0x35)
+  .maxstack  1
+  .locals init (int? V_0,
+                int V_1,
+                int V_2, //i
+                int? V_3)
+  IL_0000:  nop
+  IL_0001:  ldarg.0
+  IL_0002:  stloc.3
+  IL_0003:  ldloc.3
+  IL_0004:  stloc.0
+  IL_0005:  ldloca.s   V_0
+  IL_0007:  call       ""bool int?.HasValue.get""
+  IL_000c:  brtrue.s   IL_0010
+  IL_000e:  br.s       IL_0027
+  IL_0010:  ldloca.s   V_0
+  IL_0012:  call       ""int int?.GetValueOrDefault()""
+  IL_0017:  stloc.1
+  IL_0018:  br.s       IL_001a
+  IL_001a:  ldloc.1
+  IL_001b:  stloc.2
+  IL_001c:  br.s       IL_001e
+  IL_001e:  ldloc.2
+  IL_001f:  call       ""void System.Console.Write(int)""
+  IL_0024:  nop
+  IL_0025:  br.s       IL_0034
+  IL_0027:  ldstr      ""null""
+  IL_002c:  call       ""void System.Console.Write(string)""
+  IL_0031:  nop
+  IL_0032:  br.s       IL_0034
+  IL_0034:  ret
+}"
+            );
+        }
+
+        [Fact, WorkItem(18859, "https://github.com/dotnet/roslyn/issues/18859")]
+        public void BoxInPatternSwitch_04()
+        {
+            var source = @"using System;
+
+public class Program
+{
+    public static void Main()
+    {
+        M(1);
+    }
+    public static void M(int x)
+    {
+        switch (x)
+        {
+            case System.IComparable i:
+                Console.Write(i);
+                break;
+        }
+    }
+}";
+            var compVerifier = CompileAndVerify(source,
+                options: TestOptions.ReleaseDll.WithOutputKind(OutputKind.ConsoleApplication),
+                expectedOutput: "1");
+            compVerifier.VerifyIL("Program.M",
+@"{
+  // Code size       14 (0xe)
+  .maxstack  1
+  .locals init (System.IComparable V_0)
+  IL_0000:  ldarg.0
+  IL_0001:  box        ""int""
+  IL_0006:  stloc.0
+  IL_0007:  ldloc.0
+  IL_0008:  call       ""void System.Console.Write(object)""
+  IL_000d:  ret
+}"
+            );
+            compVerifier = CompileAndVerify(source,
+                options: TestOptions.DebugDll.WithOutputKind(OutputKind.ConsoleApplication),
+                expectedOutput: "1");
+            compVerifier.VerifyIL("Program.M",
+@"{
+  // Code size       28 (0x1c)
+  .maxstack  1
+  .locals init (int V_0,
+                System.IComparable V_1,
+                System.IComparable V_2, //i
+                int V_3)
+  IL_0000:  nop
+  IL_0001:  ldarg.0
+  IL_0002:  stloc.3
+  IL_0003:  ldloc.3
+  IL_0004:  stloc.0
+  IL_0005:  ldloc.0
+  IL_0006:  box        ""int""
+  IL_000b:  stloc.1
+  IL_000c:  br.s       IL_000e
+  IL_000e:  ldloc.1
+  IL_000f:  stloc.2
+  IL_0010:  br.s       IL_0012
+  IL_0012:  ldloc.2
+  IL_0013:  call       ""void System.Console.Write(object)""
+  IL_0018:  nop
+  IL_0019:  br.s       IL_001b
+  IL_001b:  ret
+}"
+            );
+        }
+
+        [Fact, WorkItem(18859, "https://github.com/dotnet/roslyn/issues/18859")]
+        public void BoxInPatternSwitch_05()
+        {
+            var source = @"using System;
+
+public class Program
+{
+    public static void Main()
+    {
+        M(1);
+        M(null);
+    }
+    public static void M(int? x)
+    {
+        switch (x)
+        {
+            case System.IComparable i:
+                Console.Write(i);
+                break;
+        }
+    }
+}";
+            var compVerifier = CompileAndVerify(source,
+                options: TestOptions.ReleaseDll.WithOutputKind(OutputKind.ConsoleApplication),
+                expectedOutput: "1");
+            compVerifier.VerifyIL("Program.M",
+@"{
+  // Code size       31 (0x1f)
+  .maxstack  1
+  .locals init (int? V_0,
+                System.IComparable V_1)
+  IL_0000:  ldarg.0
+  IL_0001:  stloc.0
+  IL_0002:  ldloca.s   V_0
+  IL_0004:  call       ""bool int?.HasValue.get""
+  IL_0009:  brfalse.s  IL_001e
+  IL_000b:  ldloca.s   V_0
+  IL_000d:  call       ""int int?.GetValueOrDefault()""
+  IL_0012:  box        ""int""
+  IL_0017:  stloc.1
+  IL_0018:  ldloc.1
+  IL_0019:  call       ""void System.Console.Write(object)""
+  IL_001e:  ret
+}"
+            );
+            compVerifier = CompileAndVerify(source,
+                options: TestOptions.DebugDll.WithOutputKind(OutputKind.ConsoleApplication),
+                expectedOutput: "1");
+            compVerifier.VerifyIL("Program.M",
+@"{
+  // Code size       47 (0x2f)
+  .maxstack  1
+  .locals init (int? V_0,
+                System.IComparable V_1,
+                System.IComparable V_2, //i
+                int? V_3)
+  IL_0000:  nop
+  IL_0001:  ldarg.0
+  IL_0002:  stloc.3
+  IL_0003:  ldloc.3
+  IL_0004:  stloc.0
+  IL_0005:  ldloca.s   V_0
+  IL_0007:  call       ""bool int?.HasValue.get""
+  IL_000c:  brtrue.s   IL_0010
+  IL_000e:  br.s       IL_001f
+  IL_0010:  ldloca.s   V_0
+  IL_0012:  call       ""int int?.GetValueOrDefault()""
+  IL_0017:  box        ""int""
+  IL_001c:  stloc.1
+  IL_001d:  br.s       IL_0021
+  IL_001f:  br.s       IL_002e
+  IL_0021:  ldloc.1
+  IL_0022:  stloc.2
+  IL_0023:  br.s       IL_0025
+  IL_0025:  ldloc.2
+  IL_0026:  call       ""void System.Console.Write(object)""
+  IL_002b:  nop
+  IL_002c:  br.s       IL_002e
+  IL_002e:  ret
+}"
+            );
+        }
+
+        [Fact, WorkItem(18859, "https://github.com/dotnet/roslyn/issues/18859")]
+        public void UnboxInPatternSwitch_06()
+        {
+            var source = @"using System;
+
+public class Program
+{
+    public static void Main()
+    {
+        M(1);
+        M(null);
+        M(nameof(Main));
+    }
+    public static void M(object x)
+    {
+        switch (x)
+        {
+            case int i:
+                Console.Write(i);
+                break;
+        }
+    }
+}";
+            var compVerifier = CompileAndVerify(source,
+                options: TestOptions.ReleaseDll.WithOutputKind(OutputKind.ConsoleApplication),
+                expectedOutput: "1");
+            compVerifier.VerifyIL("Program.M",
+@"{
+  // Code size       29 (0x1d)
+  .maxstack  2
+  .locals init (object V_0,
+                int V_1,
+                object V_2)
+  IL_0000:  ldarg.0
+  IL_0001:  stloc.0
+  IL_0002:  ldloc.0
+  IL_0003:  brfalse.s  IL_001c
+  IL_0005:  ldloc.0
+  IL_0006:  dup
+  IL_0007:  stloc.2
+  IL_0008:  isinst     ""int""
+  IL_000d:  brfalse.s  IL_001c
+  IL_000f:  ldloc.2
+  IL_0010:  unbox.any  ""int""
+  IL_0015:  stloc.1
+  IL_0016:  ldloc.1
+  IL_0017:  call       ""void System.Console.Write(int)""
+  IL_001c:  ret
+}"
+            );
+            compVerifier = CompileAndVerify(source,
+                options: TestOptions.DebugDll.WithOutputKind(OutputKind.ConsoleApplication),
+                expectedOutput: "1");
+            compVerifier.VerifyIL("Program.M",
+@"{
+  // Code size       47 (0x2f)
+  .maxstack  2
+  .locals init (object V_0,
+                int V_1,
+                int V_2, //i
+                object V_3,
+                object V_4)
+  IL_0000:  nop
+  IL_0001:  ldarg.0
+  IL_0002:  stloc.3
+  IL_0003:  ldloc.3
+  IL_0004:  stloc.0
+  IL_0005:  ldloc.0
+  IL_0006:  brtrue.s   IL_000a
+  IL_0008:  br.s       IL_001f
+  IL_000a:  ldloc.0
+  IL_000b:  dup
+  IL_000c:  stloc.s    V_4
+  IL_000e:  isinst     ""int""
+  IL_0013:  brfalse.s  IL_001f
+  IL_0015:  ldloc.s    V_4
+  IL_0017:  unbox.any  ""int""
+  IL_001c:  stloc.1
+  IL_001d:  br.s       IL_0021
+  IL_001f:  br.s       IL_002e
+  IL_0021:  ldloc.1
+  IL_0022:  stloc.2
+  IL_0023:  br.s       IL_0025
+  IL_0025:  ldloc.2
+  IL_0026:  call       ""void System.Console.Write(int)""
+  IL_002b:  nop
+  IL_002c:  br.s       IL_002e
+  IL_002e:  ret
+}"
+            );
+        }
+
+        [Fact, WorkItem(18859, "https://github.com/dotnet/roslyn/issues/18859")]
+        public void UnboxInPatternSwitch_07()
+        {
+            var source = @"using System;
+
+public class Program
+{
+    public static void Main()
+    {
+        M<int>(1);
+        M<int>(null);
+        M<int>(10.5);
+    }
+    public static void M<T>(object x)
+    {
+        // when T is not known to be a reference type, there is an unboxing conversion from
+        // the effective base class C of T to T and from any base class of C to T.
+        switch (x)
+        {
+            case T i:
+                Console.Write(i);
+                break;
+        }
+    }
+}";
+            var compVerifier = CompileAndVerify(source,
+                options: TestOptions.ReleaseDll.WithOutputKind(OutputKind.ConsoleApplication),
+                expectedOutput: "1");
+            compVerifier.VerifyIL("Program.M<T>",
+@"{
+  // Code size       34 (0x22)
+  .maxstack  2
+  .locals init (object V_0,
+                T V_1,
+                object V_2)
+  IL_0000:  ldarg.0
+  IL_0001:  stloc.0
+  IL_0002:  ldloc.0
+  IL_0003:  brfalse.s  IL_0021
+  IL_0005:  ldloc.0
+  IL_0006:  dup
+  IL_0007:  stloc.2
+  IL_0008:  isinst     ""T""
+  IL_000d:  brfalse.s  IL_0021
+  IL_000f:  ldloc.2
+  IL_0010:  unbox.any  ""T""
+  IL_0015:  stloc.1
+  IL_0016:  ldloc.1
+  IL_0017:  box        ""T""
+  IL_001c:  call       ""void System.Console.Write(object)""
+  IL_0021:  ret
+}"
+            );
+            compVerifier = CompileAndVerify(source,
+                options: TestOptions.DebugDll.WithOutputKind(OutputKind.ConsoleApplication),
+                expectedOutput: "1");
+            compVerifier.VerifyIL("Program.M<T>",
+@"{
+  // Code size       52 (0x34)
+  .maxstack  2
+  .locals init (object V_0,
+                T V_1,
+                T V_2, //i
+                object V_3,
+                object V_4)
+  IL_0000:  nop
+  IL_0001:  ldarg.0
+  IL_0002:  stloc.3
+  IL_0003:  ldloc.3
+  IL_0004:  stloc.0
+  IL_0005:  ldloc.0
+  IL_0006:  brtrue.s   IL_000a
+  IL_0008:  br.s       IL_001f
+  IL_000a:  ldloc.0
+  IL_000b:  dup
+  IL_000c:  stloc.s    V_4
+  IL_000e:  isinst     ""T""
+  IL_0013:  brfalse.s  IL_001f
+  IL_0015:  ldloc.s    V_4
+  IL_0017:  unbox.any  ""T""
+  IL_001c:  stloc.1
+  IL_001d:  br.s       IL_0021
+  IL_001f:  br.s       IL_0033
+  IL_0021:  ldloc.1
+  IL_0022:  stloc.2
+  IL_0023:  br.s       IL_0025
+  IL_0025:  ldloc.2
+  IL_0026:  box        ""T""
+  IL_002b:  call       ""void System.Console.Write(object)""
+  IL_0030:  nop
+  IL_0031:  br.s       IL_0033
+  IL_0033:  ret
+}"
+            );
+        }
+
+        [Fact, WorkItem(18859, "https://github.com/dotnet/roslyn/issues/18859")]
+        public void UnboxInPatternSwitch_08()
+        {
+            var source = @"using System;
+
+public class Program
+{
+    public static void Main()
+    {
+        M<int>(1);
+        M<int>(null);
+        M<int>(10.5);
+    }
+    public static void M<T>(IComparable x)
+    {
+        // when T is not known to be a reference type, there is an unboxing conversion from
+        // any interface type to T.
+        switch (x)
+        {
+            case T i:
+                Console.Write(i);
+                break;
+        }
+    }
+}";
+            var compVerifier = CompileAndVerify(source,
+                options: TestOptions.ReleaseDll.WithOutputKind(OutputKind.ConsoleApplication),
+                expectedOutput: "1");
+            compVerifier.VerifyIL("Program.M<T>",
+@"{
+  // Code size       34 (0x22)
+  .maxstack  2
+  .locals init (System.IComparable V_0,
+                T V_1,
+                System.IComparable V_2)
+  IL_0000:  ldarg.0
+  IL_0001:  stloc.0
+  IL_0002:  ldloc.0
+  IL_0003:  brfalse.s  IL_0021
+  IL_0005:  ldloc.0
+  IL_0006:  dup
+  IL_0007:  stloc.2
+  IL_0008:  isinst     ""T""
+  IL_000d:  brfalse.s  IL_0021
+  IL_000f:  ldloc.2
+  IL_0010:  unbox.any  ""T""
+  IL_0015:  stloc.1
+  IL_0016:  ldloc.1
+  IL_0017:  box        ""T""
+  IL_001c:  call       ""void System.Console.Write(object)""
+  IL_0021:  ret
+}"
+            );
+            compVerifier = CompileAndVerify(source,
+                options: TestOptions.DebugDll.WithOutputKind(OutputKind.ConsoleApplication),
+                expectedOutput: "1");
+            compVerifier.VerifyIL("Program.M<T>",
+@"{
+  // Code size       52 (0x34)
+  .maxstack  2
+  .locals init (System.IComparable V_0,
+                T V_1,
+                T V_2, //i
+                System.IComparable V_3,
+                System.IComparable V_4)
+  IL_0000:  nop
+  IL_0001:  ldarg.0
+  IL_0002:  stloc.3
+  IL_0003:  ldloc.3
+  IL_0004:  stloc.0
+  IL_0005:  ldloc.0
+  IL_0006:  brtrue.s   IL_000a
+  IL_0008:  br.s       IL_001f
+  IL_000a:  ldloc.0
+  IL_000b:  dup
+  IL_000c:  stloc.s    V_4
+  IL_000e:  isinst     ""T""
+  IL_0013:  brfalse.s  IL_001f
+  IL_0015:  ldloc.s    V_4
+  IL_0017:  unbox.any  ""T""
+  IL_001c:  stloc.1
+  IL_001d:  br.s       IL_0021
+  IL_001f:  br.s       IL_0033
+  IL_0021:  ldloc.1
+  IL_0022:  stloc.2
+  IL_0023:  br.s       IL_0025
+  IL_0025:  ldloc.2
+  IL_0026:  box        ""T""
+  IL_002b:  call       ""void System.Console.Write(object)""
+  IL_0030:  nop
+  IL_0031:  br.s       IL_0033
+  IL_0033:  ret
+}"
+            );
+        }
+
+        [Fact, WorkItem(18859, "https://github.com/dotnet/roslyn/issues/18859")]
+        public void UnboxInPatternSwitch_09()
+        {
+            var source = @"using System;
+
+public class Program
+{
+    public static void Main()
+    {
+        M<int, object>(1);
+        M<int, object>(null);
+        M<int, object>(10.5);
+    }
+    public static void M<T, U>(U x) where T : U
+    {
+        // when T is not known to be a reference type, there is an unboxing conversion from
+        // a type parameter U to T, provided T depends on U.
+        switch (x)
+        {
+            case T i:
+                Console.Write(i);
+                break;
+        }
+    }
+}";
+            var compVerifier = CompileAndVerify(source,
+                options: TestOptions.ReleaseDll.WithOutputKind(OutputKind.ConsoleApplication),
+                expectedOutput: "1");
+            compVerifier.VerifyIL("Program.M<T, U>",
+@"{
+  // Code size       49 (0x31)
+  .maxstack  2
+  .locals init (U V_0,
+                T V_1,
+                U V_2)
+  IL_0000:  ldarg.0
+  IL_0001:  stloc.0
+  IL_0002:  ldloc.0
+  IL_0003:  box        ""U""
+  IL_0008:  brfalse.s  IL_0030
+  IL_000a:  ldloc.0
+  IL_000b:  dup
+  IL_000c:  stloc.2
+  IL_000d:  box        ""U""
+  IL_0012:  isinst     ""T""
+  IL_0017:  brfalse.s  IL_0030
+  IL_0019:  ldloc.2
+  IL_001a:  box        ""U""
+  IL_001f:  unbox.any  ""T""
+  IL_0024:  stloc.1
+  IL_0025:  ldloc.1
+  IL_0026:  box        ""T""
+  IL_002b:  call       ""void System.Console.Write(object)""
+  IL_0030:  ret
+}"
+            );
+            compVerifier = CompileAndVerify(source,
+                options: TestOptions.DebugDll.WithOutputKind(OutputKind.ConsoleApplication),
+                expectedOutput: "1");
+            compVerifier.VerifyIL("Program.M<T, U>",
+@"{
+  // Code size       67 (0x43)
+  .maxstack  2
+  .locals init (U V_0,
+                T V_1,
+                T V_2, //i
+                U V_3,
+                U V_4)
+  IL_0000:  nop
+  IL_0001:  ldarg.0
+  IL_0002:  stloc.3
+  IL_0003:  ldloc.3
+  IL_0004:  stloc.0
+  IL_0005:  ldloc.0
+  IL_0006:  box        ""U""
+  IL_000b:  brtrue.s   IL_000f
+  IL_000d:  br.s       IL_002e
+  IL_000f:  ldloc.0
+  IL_0010:  dup
+  IL_0011:  stloc.s    V_4
+  IL_0013:  box        ""U""
+  IL_0018:  isinst     ""T""
+  IL_001d:  brfalse.s  IL_002e
+  IL_001f:  ldloc.s    V_4
+  IL_0021:  box        ""U""
+  IL_0026:  unbox.any  ""T""
+  IL_002b:  stloc.1
+  IL_002c:  br.s       IL_0030
+  IL_002e:  br.s       IL_0042
+  IL_0030:  ldloc.1
+  IL_0031:  stloc.2
+  IL_0032:  br.s       IL_0034
+  IL_0034:  ldloc.2
+  IL_0035:  box        ""T""
+  IL_003a:  call       ""void System.Console.Write(object)""
+  IL_003f:  nop
+  IL_0040:  br.s       IL_0042
+  IL_0042:  ret
+}"
+            );
+        }
+
+        [Fact, WorkItem(18859, "https://github.com/dotnet/roslyn/issues/18859")]
+        public void BoxInPatternIf_02()
+        {
+            var source = @"using System;
+
+public class Program
+{
+    public static void Main()
+    {
+        if (StringSplitOptions.RemoveEmptyEntries is object o)
+        {
+            Console.WriteLine(o);
+        }
+    }
+}";
+            var compVerifier = CompileAndVerify(source,
+                options: TestOptions.ReleaseDll.WithOutputKind(OutputKind.ConsoleApplication),
+                expectedOutput: "RemoveEmptyEntries");
+            compVerifier.VerifyIL("Program.Main",
+@"{
+  // Code size       14 (0xe)
+  .maxstack  1
+  .locals init (object V_0) //o
+  IL_0000:  ldc.i4.1
+  IL_0001:  box        ""System.StringSplitOptions""
+  IL_0006:  stloc.0
+  IL_0007:  ldloc.0
+  IL_0008:  call       ""void System.Console.WriteLine(object)""
+  IL_000d:  ret
+}"
+            );
+            compVerifier = CompileAndVerify(source,
+                options: TestOptions.DebugDll.WithOutputKind(OutputKind.ConsoleApplication),
+                expectedOutput: "RemoveEmptyEntries");
+            compVerifier.VerifyIL("Program.Main",
+@"{
+  // Code size       23 (0x17)
+  .maxstack  1
+  .locals init (object V_0, //o
+                bool V_1)
+  IL_0000:  nop
+  IL_0001:  ldc.i4.1
+  IL_0002:  box        ""System.StringSplitOptions""
+  IL_0007:  stloc.0
+  IL_0008:  ldc.i4.1
+  IL_0009:  stloc.1
+  IL_000a:  ldloc.1
+  IL_000b:  brfalse.s  IL_0016
+  IL_000d:  nop
+  IL_000e:  ldloc.0
+  IL_000f:  call       ""void System.Console.WriteLine(object)""
+  IL_0014:  nop
+  IL_0015:  nop
+  IL_0016:  ret
+}"
+            );
+        }
+
+        [Fact, WorkItem(16195, "https://github.com/dotnet/roslyn/issues/16195")]
+        public void TestMatchWithTypeParameter_01()
+        {
+            var source =
+@"using System;
+class Program
+{
+    public static void Main(string[] args)
+    {
+        Console.Write(M1<int>(2));
+        Console.Write(M2<int>(3));
+        Console.Write(M1<int>(1.1));
+        Console.Write(M2<int>(1.1));
+    }
+    public static T M1<T>(ValueType o)
+    {
+        return o is T t ? t : default(T);
+    }
+    public static T M2<T>(ValueType o)
+    {
+        switch (o)
+        {
+            case T t:
+                return t;
+            default:
+                return default(T);
+        }
+    }
+}
+";
+            CreateCompilation(source, parseOptions: TestOptions.Regular7).VerifyDiagnostics(
+                // (13,21): error CS9003: An expression of type 'ValueType' cannot be handled by a pattern of type 'T' in C# 7.0. Please use language version 7.1 or greater.
+                //         return o is T t ? t : default(T);
+                Diagnostic(ErrorCode.ERR_PatternWrongGenericTypeInVersion, "T").WithArguments("System.ValueType", "T", "7.0", "7.1").WithLocation(13, 21),
+                // (19,18): error CS9003: An expression of type 'ValueType' cannot be handled by a pattern of type 'T' in C# 7.0. Please use language version 7.1 or greater.
+                //             case T t:
+                Diagnostic(ErrorCode.ERR_PatternWrongGenericTypeInVersion, "T").WithArguments("System.ValueType", "T", "7.0", "7.1").WithLocation(19, 18)
+                );
+            var compVerifier = CompileAndVerify(source,
+                options: TestOptions.ReleaseDll.WithOutputKind(OutputKind.ConsoleApplication),
+                parseOptions: TestOptions.Regular7_1,
+                expectedOutput: "2300");
+            compVerifier.VerifyIL("Program.M1<T>",
+@"{
+  // Code size       31 (0x1f)
+  .maxstack  2
+  .locals init (T V_0, //t
+                System.ValueType V_1,
+                T V_2)
+  IL_0000:  ldarg.0
+  IL_0001:  dup
+  IL_0002:  stloc.1
+  IL_0003:  isinst     ""T""
+  IL_0008:  brfalse.s  IL_0013
+  IL_000a:  ldloc.1
+  IL_000b:  unbox.any  ""T""
+  IL_0010:  stloc.0
+  IL_0011:  br.s       IL_001d
+  IL_0013:  ldloca.s   V_2
+  IL_0015:  initobj    ""T""
+  IL_001b:  ldloc.2
+  IL_001c:  ret
+  IL_001d:  ldloc.0
+  IL_001e:  ret
+}"
+            );
+            compVerifier.VerifyIL("Program.M2<T>",
+@"{
+  // Code size       34 (0x22)
+  .maxstack  2
+  .locals init (System.ValueType V_0,
+                T V_1,
+                System.ValueType V_2,
+                T V_3)
+  IL_0000:  ldarg.0
+  IL_0001:  stloc.0
+  IL_0002:  ldloc.0
+  IL_0003:  brfalse.s  IL_0018
+  IL_0005:  ldloc.0
+  IL_0006:  dup
+  IL_0007:  stloc.2
+  IL_0008:  isinst     ""T""
+  IL_000d:  brfalse.s  IL_0018
+  IL_000f:  ldloc.2
+  IL_0010:  unbox.any  ""T""
+  IL_0015:  stloc.1
+  IL_0016:  ldloc.1
+  IL_0017:  ret
+  IL_0018:  ldloca.s   V_3
+  IL_001a:  initobj    ""T""
+  IL_0020:  ldloc.3
+  IL_0021:  ret
+}"
+            );
+            compVerifier = CompileAndVerify(source,
+                options: TestOptions.DebugDll.WithOutputKind(OutputKind.ConsoleApplication),
+                parseOptions: TestOptions.Regular7_1,
+                expectedOutput: "2300");
+            compVerifier.VerifyIL("Program.M1<T>",
+@"{
+  // Code size       37 (0x25)
+  .maxstack  2
+  .locals init (T V_0, //t
+                System.ValueType V_1,
+                T V_2,
+                T V_3)
+  IL_0000:  nop
+  IL_0001:  ldarg.0
+  IL_0002:  dup
+  IL_0003:  stloc.1
+  IL_0004:  isinst     ""T""
+  IL_0009:  brfalse.s  IL_0014
+  IL_000b:  ldloc.1
+  IL_000c:  unbox.any  ""T""
+  IL_0011:  stloc.0
+  IL_0012:  br.s       IL_001f
+  IL_0014:  ldloca.s   V_2
+  IL_0016:  initobj    ""T""
+  IL_001c:  ldloc.2
+  IL_001d:  br.s       IL_0020
+  IL_001f:  ldloc.0
+  IL_0020:  stloc.3
+  IL_0021:  br.s       IL_0023
+  IL_0023:  ldloc.3
+  IL_0024:  ret
+}"
+            );
+            compVerifier.VerifyIL("Program.M2<T>",
+@"{
+  // Code size       59 (0x3b)
+  .maxstack  2
+  .locals init (System.ValueType V_0,
+                T V_1,
+                T V_2, //t
+                System.ValueType V_3,
+                System.ValueType V_4,
+                T V_5,
+                T V_6)
+  IL_0000:  nop
+  IL_0001:  ldarg.0
+  IL_0002:  stloc.3
+  IL_0003:  ldloc.3
+  IL_0004:  stloc.0
+  IL_0005:  ldloc.0
+  IL_0006:  brtrue.s   IL_000a
+  IL_0008:  br.s       IL_001f
+  IL_000a:  ldloc.0
+  IL_000b:  dup
+  IL_000c:  stloc.s    V_4
+  IL_000e:  isinst     ""T""
+  IL_0013:  brfalse.s  IL_001f
+  IL_0015:  ldloc.s    V_4
+  IL_0017:  unbox.any  ""T""
+  IL_001c:  stloc.1
+  IL_001d:  br.s       IL_0021
+  IL_001f:  br.s       IL_002a
+  IL_0021:  ldloc.1
+  IL_0022:  stloc.2
+  IL_0023:  br.s       IL_0025
+  IL_0025:  ldloc.2
+  IL_0026:  stloc.s    V_5
+  IL_0028:  br.s       IL_0038
+  IL_002a:  ldloca.s   V_6
+  IL_002c:  initobj    ""T""
+  IL_0032:  ldloc.s    V_6
+  IL_0034:  stloc.s    V_5
+  IL_0036:  br.s       IL_0038
+  IL_0038:  ldloc.s    V_5
+  IL_003a:  ret
+}"
+            );
+        }
+
+        [Fact, WorkItem(16195, "https://github.com/dotnet/roslyn/issues/16195")]
+        public void TestMatchWithTypeParameter_02()
+        {
+            var source =
+@"using System;
+class Program
+{
+    public static void Main(string[] args)
+    {
+        Console.Write(M1(2));
+        Console.Write(M2(3));
+        Console.Write(M1(1.1));
+        Console.Write(M2(1.1));
+    }
+    public static int M1<T>(T o)
+    {
+        return o is int t ? t : default(int);
+    }
+    public static int M2<T>(T o)
+    {
+        switch (o)
+        {
+            case int t:
+                return t;
+            default:
+                return default(int);
+        }
+    }
+}";
+            CreateCompilation(source, parseOptions: TestOptions.Regular7).VerifyDiagnostics(
+                // (13,21): error CS9003: An expression of type 'T' cannot be handled by a pattern of type 'int' in C# 7.0. Please use language version 7.1 or greater.
+                //         return o is int t ? t : default(int);
+                Diagnostic(ErrorCode.ERR_PatternWrongGenericTypeInVersion, "int").WithArguments("T", "int", "7.0", "7.1").WithLocation(13, 21),
+                // (19,18): error CS9003: An expression of type 'T' cannot be handled by a pattern of type 'int' in C# 7.0. Please use language version 7.1 or greater.
+                //             case int t:
+                Diagnostic(ErrorCode.ERR_PatternWrongGenericTypeInVersion, "int").WithArguments("T", "int", "7.0", "7.1").WithLocation(19, 18)
+                );
+            var compVerifier = CompileAndVerify(source,
+                options: TestOptions.ReleaseDll.WithOutputKind(OutputKind.ConsoleApplication),
+                parseOptions: TestOptions.Regular7_1,
+                expectedOutput: "2300");
+            compVerifier.VerifyIL("Program.M1<T>",
+@"{
+  // Code size       33 (0x21)
+  .maxstack  2
+  .locals init (int V_0, //t
+                T V_1)
+  IL_0000:  ldarg.0
+  IL_0001:  dup
+  IL_0002:  stloc.1
+  IL_0003:  box        ""T""
+  IL_0008:  isinst     ""int""
+  IL_000d:  brfalse.s  IL_001d
+  IL_000f:  ldloc.1
+  IL_0010:  box        ""T""
+  IL_0015:  unbox.any  ""int""
+  IL_001a:  stloc.0
+  IL_001b:  br.s       IL_001f
+  IL_001d:  ldc.i4.0
+  IL_001e:  ret
+  IL_001f:  ldloc.0
+  IL_0020:  ret
+}"
+            );
+            compVerifier.VerifyIL("Program.M2<T>",
+@"{
+  // Code size       41 (0x29)
+  .maxstack  2
+  .locals init (T V_0,
+                int V_1,
+                T V_2)
+  IL_0000:  ldarg.0
+  IL_0001:  stloc.0
+  IL_0002:  ldloc.0
+  IL_0003:  box        ""T""
+  IL_0008:  brfalse.s  IL_0027
+  IL_000a:  ldloc.0
+  IL_000b:  dup
+  IL_000c:  stloc.2
+  IL_000d:  box        ""T""
+  IL_0012:  isinst     ""int""
+  IL_0017:  brfalse.s  IL_0027
+  IL_0019:  ldloc.2
+  IL_001a:  box        ""T""
+  IL_001f:  unbox.any  ""int""
+  IL_0024:  stloc.1
+  IL_0025:  ldloc.1
+  IL_0026:  ret
+  IL_0027:  ldc.i4.0
+  IL_0028:  ret
+}"
+            );
+            compVerifier = CompileAndVerify(source,
+                options: TestOptions.DebugDll.WithOutputKind(OutputKind.ConsoleApplication),
+                parseOptions: TestOptions.Regular7_1,
+                expectedOutput: "2300");
+            compVerifier.VerifyIL("Program.M1<T>",
+@"{
+  // Code size       39 (0x27)
+  .maxstack  2
+  .locals init (int V_0, //t
+                T V_1,
+                int V_2)
+  IL_0000:  nop
+  IL_0001:  ldarg.0
+  IL_0002:  dup
+  IL_0003:  stloc.1
+  IL_0004:  box        ""T""
+  IL_0009:  isinst     ""int""
+  IL_000e:  brfalse.s  IL_001e
+  IL_0010:  ldloc.1
+  IL_0011:  box        ""T""
+  IL_0016:  unbox.any  ""int""
+  IL_001b:  stloc.0
+  IL_001c:  br.s       IL_0021
+  IL_001e:  ldc.i4.0
+  IL_001f:  br.s       IL_0022
+  IL_0021:  ldloc.0
+  IL_0022:  stloc.2
+  IL_0023:  br.s       IL_0025
+  IL_0025:  ldloc.2
+  IL_0026:  ret
+}"
+            );
+            compVerifier.VerifyIL("Program.M2<T>",
+@"{
+  // Code size       65 (0x41)
+  .maxstack  2
+  .locals init (T V_0,
+                int V_1,
+                int V_2, //t
+                T V_3,
+                T V_4,
+                int V_5)
+  IL_0000:  nop
+  IL_0001:  ldarg.0
+  IL_0002:  stloc.3
+  IL_0003:  ldloc.3
+  IL_0004:  stloc.0
+  IL_0005:  ldloc.0
+  IL_0006:  box        ""T""
+  IL_000b:  brtrue.s   IL_000f
+  IL_000d:  br.s       IL_002e
+  IL_000f:  ldloc.0
+  IL_0010:  dup
+  IL_0011:  stloc.s    V_4
+  IL_0013:  box        ""T""
+  IL_0018:  isinst     ""int""
+  IL_001d:  brfalse.s  IL_002e
+  IL_001f:  ldloc.s    V_4
+  IL_0021:  box        ""T""
+  IL_0026:  unbox.any  ""int""
+  IL_002b:  stloc.1
+  IL_002c:  br.s       IL_0030
+  IL_002e:  br.s       IL_0039
+  IL_0030:  ldloc.1
+  IL_0031:  stloc.2
+  IL_0032:  br.s       IL_0034
+  IL_0034:  ldloc.2
+  IL_0035:  stloc.s    V_5
+  IL_0037:  br.s       IL_003e
+  IL_0039:  ldc.i4.0
+  IL_003a:  stloc.s    V_5
+  IL_003c:  br.s       IL_003e
+  IL_003e:  ldloc.s    V_5
+  IL_0040:  ret
+}"
+            );
+        }
+
+        [Fact, WorkItem(16195, "https://github.com/dotnet/roslyn/issues/16195")]
+        public void TestMatchWithTypeParameter_03()
+        {
+            var source =
+@"using System;
+class Program
+{
+    public static void Main(string[] args)
+    {
+        Console.Write(M1<int>(2));
+        Console.Write(M2<int>(3));
+        Console.Write(M1<int>(1.1));
+        Console.Write(M2<int>(1.1));
+    }
+    public static T M1<T>(ValueType o) where T : struct
+    {
+        return o is T t ? t : default(T);
+    }
+    public static T M2<T>(ValueType o) where T : struct
+    {
+        switch (o)
+        {
+            case T t:
+                return t;
+            default:
+                return default(T);
+        }
+    }
+}
+";
+            var compVerifier = CompileAndVerify(source,
+                options: TestOptions.DebugDll.WithOutputKind(OutputKind.ConsoleApplication),
+                expectedOutput: "2300");
+        }
+
+        [Fact, WorkItem(16195, "https://github.com/dotnet/roslyn/issues/16195")]
+        public void TestMatchWithTypeParameter_04()
+        {
+            var source =
+@"using System;
+class Program
+{
+    public static void Main(string[] args)
+    {
+        var x = new X();
+        Console.Write(M1<B>(new A()) ?? x);
+        Console.Write(M2<B>(new A()) ?? x);
+        Console.Write(M1<B>(new B()) ?? x);
+        Console.Write(M2<B>(new B()) ?? x);
+    }
+    public static T M1<T>(A o) where T : class
+    {
+        return o is T t ? t : default(T);
+    }
+    public static T M2<T>(A o) where T : class
+    {
+        switch (o)
+        {
+            case T t:
+                return t;
+            default:
+                return default(T);
+        }
+    }
+}
+class A
+{
+}
+class B : A
+{
+}
+class X : B { }
+";
+            CreateCompilation(source, parseOptions: TestOptions.Regular7).VerifyDiagnostics(
+                // (14,21): error CS9003: An expression of type 'A' cannot be handled by a pattern of type 'T' in C# 7.0. Please use language version 7.1 or greater.
+                //         return o is T t ? t : default(T);
+                Diagnostic(ErrorCode.ERR_PatternWrongGenericTypeInVersion, "T").WithArguments("A", "T", "7.0", "7.1").WithLocation(14, 21),
+                // (20,18): error CS9003: An expression of type 'A' cannot be handled by a pattern of type 'T' in C# 7.0. Please use language version 7.1 or greater.
+                //             case T t:
+                Diagnostic(ErrorCode.ERR_PatternWrongGenericTypeInVersion, "T").WithArguments("A", "T", "7.0", "7.1").WithLocation(20, 18)
+                );
+            var compVerifier = CompileAndVerify(source,
+                options: TestOptions.DebugDll.WithOutputKind(OutputKind.ConsoleApplication),
+                parseOptions: TestOptions.Regular7_1,
+                expectedOutput: "XXBB");
+        }
+
+        [Fact, WorkItem(16195, "https://github.com/dotnet/roslyn/issues/16195")]
+        public void TestMatchWithTypeParameter_05()
+        {
+            var source =
+@"using System;
+class Program
+{
+    public static void Main(string[] args)
+    {
+        var x = new X();
+        Console.Write(M1<B>(new A()) ?? x);
+        Console.Write(M2<B>(new A()) ?? x);
+        Console.Write(M1<B>(new B()) ?? x);
+        Console.Write(M2<B>(new B()) ?? x);
+    }
+    public static T M1<T>(A o) where T : I1
+    {
+        return o is T t ? t : default(T);
+    }
+    public static T M2<T>(A o) where T : I1
+    {
+        switch (o)
+        {
+            case T t:
+                return t;
+            default:
+                return default(T);
+        }
+    }
+}
+interface I1
+{
+}
+class A : I1
+{
+}
+class B : A
+{
+}
+class X : B { }
+";
+            CreateCompilation(source, parseOptions: TestOptions.Regular7).VerifyDiagnostics(
+                // (14,21): error CS9003: An expression of type 'A' cannot be handled by a pattern of type 'T' in C# 7.0. Please use language version 7.1 or greater.
+                //         return o is T t ? t : default(T);
+                Diagnostic(ErrorCode.ERR_PatternWrongGenericTypeInVersion, "T").WithArguments("A", "T", "7.0", "7.1").WithLocation(14, 21),
+                // (20,18): error CS9003: An expression of type 'A' cannot be handled by a pattern of type 'T' in C# 7.0. Please use language version 7.1 or greater.
+                //             case T t:
+                Diagnostic(ErrorCode.ERR_PatternWrongGenericTypeInVersion, "T").WithArguments("A", "T", "7.0", "7.1").WithLocation(20, 18)
+                );
+            var compVerifier = CompileAndVerify(source,
+                options: TestOptions.DebugDll.WithOutputKind(OutputKind.ConsoleApplication),
+                parseOptions: TestOptions.Regular7_1,
+                expectedOutput: "XXBB");
+        }
+
+        [Fact, WorkItem(16195, "https://github.com/dotnet/roslyn/issues/16195")]
+        public void TestMatchWithTypeParameter_06()
+        {
+            var source =
+@"using System;
+class Program
+{
+    public static void Main(string[] args)
+    {
+        Console.Write(M1<B>(new A()));
+        Console.Write(M2<B>(new A()));
+        Console.Write(M1<A>(new A()));
+        Console.Write(M2<A>(new A()));
+    }
+    public static bool M1<T>(A o) where T : I1
+    {
+        return o is T t;
+    }
+    public static bool M2<T>(A o) where T : I1
+    {
+        switch (o)
+        {
+            case T t:
+                return true;
+            default:
+                return false;
+        }
+    }
+}
+interface I1
+{
+}
+struct A : I1
+{
+}
+struct B : I1
+{
+}
+";
+            CreateCompilation(source, parseOptions: TestOptions.Regular7).VerifyDiagnostics(
+                // (13,21): error CS9003: An expression of type 'A' cannot be handled by a pattern of type 'T' in C# 7.0. Please use language version 7.1 or greater.
+                //         return o is T t;
+                Diagnostic(ErrorCode.ERR_PatternWrongGenericTypeInVersion, "T").WithArguments("A", "T", "7.0", "7.1").WithLocation(13, 21),
+                // (19,18): error CS9003: An expression of type 'A' cannot be handled by a pattern of type 'T' in C# 7.0. Please use language version 7.1 or greater.
+                //             case T t:
+                Diagnostic(ErrorCode.ERR_PatternWrongGenericTypeInVersion, "T").WithArguments("A", "T", "7.0", "7.1").WithLocation(19, 18)
+                );
+            var compilation = CreateCompilation(source,
+                    options: TestOptions.DebugDll.WithOutputKind(OutputKind.ConsoleApplication),
+                    parseOptions: TestOptions.Regular7_1)
+                .VerifyDiagnostics();
+            var compVerifier = CompileAndVerify(compilation,
+                expectedOutput: "FalseFalseTrueTrue");
+        }
+
+        [Fact, WorkItem(16195, "https://github.com/dotnet/roslyn/issues/16195")]
+        public void TestMatchWithTypeParameter_07()
+        {
+            var source =
+@"using System;
+class Program
+{
+    public static void Main(string[] args)
+    {
+        Console.Write(M1<B>(new A()));
+        Console.Write(M2<B>(new A()));
+        Console.Write(M1<A>(new A()));
+        Console.Write(M2<A>(new A()));
+    }
+    public static bool M1<T>(A o) where T : new()
+    {
+        return o is T t;
+    }
+    public static bool M2<T>(A o) where T : new()
+    {
+        switch (o)
+        {
+            case T t:
+                return true;
+            default:
+                return false;
+        }
+    }
+}
+struct A
+{
+}
+struct B
+{
+}
+";
+            CreateCompilation(source, parseOptions: TestOptions.Regular7).VerifyDiagnostics(
+                // (13,21): error CS9003: An expression of type 'A' cannot be handled by a pattern of type 'T' in C# 7.0. Please use language version 7.1 or greater.
+                //         return o is T t;
+                Diagnostic(ErrorCode.ERR_PatternWrongGenericTypeInVersion, "T").WithArguments("A", "T", "7.0", "7.1").WithLocation(13, 21),
+                // (19,18): error CS9003: An expression of type 'A' cannot be handled by a pattern of type 'T' in C# 7.0. Please use language version 7.1 or greater.
+                //             case T t:
+                Diagnostic(ErrorCode.ERR_PatternWrongGenericTypeInVersion, "T").WithArguments("A", "T", "7.0", "7.1").WithLocation(19, 18)
+                );
+            var compilation = CreateCompilation(source,
+                    options: TestOptions.DebugDll.WithOutputKind(OutputKind.ConsoleApplication),
+                    parseOptions: TestOptions.Regular7_1)
+                .VerifyDiagnostics();
+            var compVerifier = CompileAndVerify(compilation,
+                expectedOutput: "FalseFalseTrueTrue");
+            compVerifier.VerifyDiagnostics();
+        }
+
+        [Fact, WorkItem(16195, "https://github.com/dotnet/roslyn/issues/16195")]
+        public void TestIgnoreDynamicVsObjectAndTupleElementNames_01()
+        {
+            var source =
+@"public class Generic<T>
+{
+    public enum Color { Red, Blue }
+}
+class Program
+{
+    public static void Main(string[] args)
+    {
+    }
+    public static void M2(object o)
+    {
+        switch (o)
+        {
+            case Generic<long>.Color c:
+            case Generic<object>.Color.Red:
+            case Generic<(int x, int y)>.Color.Blue:
+            case Generic<string>.Color.Red:
+            case Generic<dynamic>.Color.Red: // error: duplicate case
+            case Generic<(int z, int w)>.Color.Blue: // error: duplicate case
+            case Generic<(int z, long w)>.Color.Blue:
+            default:
+                break;
+        }
+    }
+}
+";
+            CreateCompilation(source).VerifyDiagnostics(
+                // (18,13): error CS8120: The switch case has already been handled by a previous case.
+                //             case Generic<dynamic>.Color.Red: // error: duplicate case
+                Diagnostic(ErrorCode.ERR_PatternIsSubsumed, "case Generic<dynamic>.Color.Red:").WithLocation(18, 13),
+                // (19,13): error CS8120: The switch case has already been handled by a previous case.
+                //             case Generic<(int z, int w)>.Color.Blue: // error: duplicate case
+                Diagnostic(ErrorCode.ERR_PatternIsSubsumed, "case Generic<(int z, int w)>.Color.Blue:").WithLocation(19, 13)
+                );
+        }
+
+        [Fact, WorkItem(16195, "https://github.com/dotnet/roslyn/issues/16195")]
+        public void TestIgnoreDynamicVsObjectAndTupleElementNames_02()
+        {
+            var source =
+@"using System;
+public class Generic<T>
+{
+    public enum Color { Red, Blue }
+}
+class Program
+{
+    public static void Main(string[] args)
+    {
+        Console.WriteLine(M1<Generic<int>.Color>(Generic<long>.Color.Red));                      // False
+        Console.WriteLine(M1<Generic<string>.Color>(Generic<object>.Color.Red));                 // False
+        Console.WriteLine(M1<Generic<(int x, int y)>.Color>(Generic<(int z, int w)>.Color.Red)); // True
+        Console.WriteLine(M1<Generic<object>.Color>(Generic<dynamic>.Color.Blue));               // True
+
+        Console.WriteLine(M2(Generic<long>.Color.Red));    // Generic<long>.Color.Red
+        Console.WriteLine(M2(Generic<object>.Color.Blue)); // Generic<dynamic>.Color.Blue
+        Console.WriteLine(M2(Generic<int>.Color.Red));     // None
+        Console.WriteLine(M2(Generic<dynamic>.Color.Red)); // Generic<object>.Color.Red
+    }
+    public static bool M1<T>(object o)
+    {
+        return o is T t;
+    }
+    public static string M2(object o)
+    {
+        switch (o)
+        {
+            case Generic<long>.Color c:
+                return ""Generic<long>.Color."" + c;
+            case Generic<object>.Color.Red:
+                return ""Generic<object>.Color.Red"";
+            case Generic<dynamic>.Color.Blue:
+                return ""Generic<dynamic>.Color.Blue"";
+            default:
+                return ""None"";
+        }
+    }
+}
+";
+            var compilation = CreateCompilation(source,
+                    options: TestOptions.DebugDll.WithOutputKind(OutputKind.ConsoleApplication))
+                .VerifyDiagnostics();
+            var compVerifier = CompileAndVerify(compilation,
+                expectedOutput: @"False
+False
+True
+True
+Generic<long>.Color.Red
+Generic<dynamic>.Color.Blue
+None
+Generic<object>.Color.Red");
+            compVerifier.VerifyIL("Program.M2",
+@"{
+  // Code size      128 (0x80)
+  .maxstack  2
+  .locals init (object V_0,
+                Generic<long>.Color V_1,
+                Generic<object>.Color V_2,
+                Generic<long>.Color V_3, //c
+                object V_4,
+                object V_5,
+                int V_6,
+                string V_7)
+  IL_0000:  nop
+  IL_0001:  ldarg.0
+  IL_0002:  stloc.s    V_4
+  IL_0004:  ldloc.s    V_4
+  IL_0006:  stloc.0
+  IL_0007:  ldloc.0
+  IL_0008:  brtrue.s   IL_000c
+  IL_000a:  br.s       IL_0048
+  IL_000c:  ldloc.0
+  IL_000d:  dup
+  IL_000e:  stloc.s    V_5
+  IL_0010:  isinst     ""Generic<long>.Color""
+  IL_0015:  brfalse.s  IL_0021
+  IL_0017:  ldloc.s    V_5
+  IL_0019:  unbox.any  ""Generic<long>.Color""
+  IL_001e:  stloc.1
+  IL_001f:  br.s       IL_004a
+  IL_0021:  ldloc.0
+  IL_0022:  dup
+  IL_0023:  stloc.s    V_5
+  IL_0025:  isinst     ""Generic<object>.Color""
+  IL_002a:  brfalse.s  IL_0048
+  IL_002c:  ldloc.s    V_5
+  IL_002e:  unbox.any  ""Generic<object>.Color""
+  IL_0033:  stloc.2
+  IL_0034:  ldloc.2
+  IL_0035:  stloc.s    V_6
+  IL_0037:  ldloc.s    V_6
+  IL_0039:  brfalse.s  IL_0044
+  IL_003b:  br.s       IL_003d
+  IL_003d:  ldloc.s    V_6
+  IL_003f:  ldc.i4.1
+  IL_0040:  beq.s      IL_0046
+  IL_0042:  br.s       IL_0048
+  IL_0044:  br.s       IL_0062
+  IL_0046:  br.s       IL_006b
+  IL_0048:  br.s       IL_0074
+  IL_004a:  ldloc.1
+  IL_004b:  stloc.3
+  IL_004c:  br.s       IL_004e
+  IL_004e:  ldstr      ""Generic<long>.Color.""
+  IL_0053:  ldloc.3
+  IL_0054:  box        ""Generic<long>.Color""
+  IL_0059:  call       ""string string.Concat(object, object)""
+  IL_005e:  stloc.s    V_7
+  IL_0060:  br.s       IL_007d
+  IL_0062:  ldstr      ""Generic<object>.Color.Red""
+  IL_0067:  stloc.s    V_7
+  IL_0069:  br.s       IL_007d
+  IL_006b:  ldstr      ""Generic<dynamic>.Color.Blue""
+  IL_0070:  stloc.s    V_7
+  IL_0072:  br.s       IL_007d
+  IL_0074:  ldstr      ""None""
+  IL_0079:  stloc.s    V_7
+  IL_007b:  br.s       IL_007d
+  IL_007d:  ldloc.s    V_7
+  IL_007f:  ret
+}"
+            );
+        }
+
+        [Fact, WorkItem(16129, "https://github.com/dotnet/roslyn/issues/16129")]
+        public void ExactPatternMatch()
+        {
+            var source =
+@"using System;
+
+class C
+{
+    static void Main()
+    {
+        if (TrySomething() is ValueTuple<string, bool> v && v.Item2)
+        {
+            System.Console.Write(v.Item1 == null);
+        }
+    }
+
+    static (string Value, bool Success) TrySomething()
+    {
+        return (null, true);
+    }
+}";
+            var compilation = CreateCompilation(source,
+                    options: TestOptions.ReleaseDll.WithOutputKind(OutputKind.ConsoleApplication))
+                .VerifyDiagnostics();
+            var compVerifier = CompileAndVerify(compilation,
+                expectedOutput: @"True");
+            compVerifier.VerifyIL("C.Main",
+@"{
+  // Code size       29 (0x1d)
+  .maxstack  2
+  .locals init (System.ValueTuple<string, bool> V_0) //v
+  IL_0000:  call       ""(string Value, bool Success) C.TrySomething()""
+  IL_0005:  stloc.0
+  IL_0006:  ldloc.0
+  IL_0007:  ldfld      ""bool System.ValueTuple<string, bool>.Item2""
+  IL_000c:  brfalse.s  IL_001c
+  IL_000e:  ldloc.0
+  IL_000f:  ldfld      ""string System.ValueTuple<string, bool>.Item1""
+  IL_0014:  ldnull
+  IL_0015:  ceq
+  IL_0017:  call       ""void System.Console.Write(bool)""
+  IL_001c:  ret
+}"
+            );
+        }
+
+        [Fact, WorkItem(19280, "https://github.com/dotnet/roslyn/issues/19280")]
+        public void ShareLikeKindedTemps_01()
+        {
+            var source = @"using System;
+public class Program
+{
+    public static void Main()
+    {
+    }
+    static bool b = false;
+    public static void M(object o)
+    {
+        switch (o)
+        {
+            case int i when b: break;
+            case var _ when b: break;
+            case int i when b: break;
+            case var _ when b: break;
+            case int i when b: break;
+            case var _ when b: break;
+            case int i when b: break;
+            case var _ when b: break;
+        }
+    }
+}";
+            var compVerifier = CompileAndVerify(source,
+                options: TestOptions.ReleaseDll.WithOutputKind(OutputKind.ConsoleApplication),
+                expectedOutput: "");
+            compVerifier.VerifyIL("Program.M",
+@"{
+  // Code size      152 (0x98)
+  .maxstack  2
+  .locals init (object V_0,
+                int V_1,
+                object V_2)
+  IL_0000:  ldarg.0
+  IL_0001:  stloc.0
+  IL_0002:  ldloc.0
+  IL_0003:  brfalse.s  IL_0061
+  IL_0005:  ldloc.0
+  IL_0006:  dup
+  IL_0007:  stloc.2
+  IL_0008:  isinst     ""int""
+  IL_000d:  brfalse.s  IL_0061
+  IL_000f:  ldloc.2
+  IL_0010:  unbox.any  ""int""
+  IL_0015:  stloc.1
+  IL_0016:  br.s       IL_005a
+  IL_0018:  ldloc.0
+  IL_0019:  brfalse.s  IL_0071
+  IL_001b:  ldloc.0
+  IL_001c:  dup
+  IL_001d:  stloc.2
+  IL_001e:  isinst     ""int""
+  IL_0023:  brfalse.s  IL_0071
+  IL_0025:  ldloc.2
+  IL_0026:  unbox.any  ""int""
+  IL_002b:  stloc.1
+  IL_002c:  br.s       IL_006a
+  IL_002e:  ldloc.0
+  IL_002f:  brfalse.s  IL_0081
+  IL_0031:  ldloc.0
+  IL_0032:  dup
+  IL_0033:  stloc.2
+  IL_0034:  isinst     ""int""
+  IL_0039:  brfalse.s  IL_0081
+  IL_003b:  ldloc.2
+  IL_003c:  unbox.any  ""int""
+  IL_0041:  stloc.1
+  IL_0042:  br.s       IL_007a
+  IL_0044:  ldloc.0
+  IL_0045:  brfalse.s  IL_0091
+  IL_0047:  ldloc.0
+  IL_0048:  dup
+  IL_0049:  stloc.2
+  IL_004a:  isinst     ""int""
+  IL_004f:  brfalse.s  IL_0091
+  IL_0051:  ldloc.2
+  IL_0052:  unbox.any  ""int""
+  IL_0057:  stloc.1
+  IL_0058:  br.s       IL_008a
+  IL_005a:  ldsfld     ""bool Program.b""
+  IL_005f:  brtrue.s   IL_0097
+  IL_0061:  ldsfld     ""bool Program.b""
+  IL_0066:  brtrue.s   IL_0097
+  IL_0068:  br.s       IL_0018
+  IL_006a:  ldsfld     ""bool Program.b""
+  IL_006f:  brtrue.s   IL_0097
+  IL_0071:  ldsfld     ""bool Program.b""
+  IL_0076:  brtrue.s   IL_0097
+  IL_0078:  br.s       IL_002e
+  IL_007a:  ldsfld     ""bool Program.b""
+  IL_007f:  brtrue.s   IL_0097
+  IL_0081:  ldsfld     ""bool Program.b""
+  IL_0086:  brtrue.s   IL_0097
+  IL_0088:  br.s       IL_0044
+  IL_008a:  ldsfld     ""bool Program.b""
+  IL_008f:  brtrue.s   IL_0097
+  IL_0091:  ldsfld     ""bool Program.b""
+  IL_0096:  pop
+  IL_0097:  ret
+}"
+            );
+            compVerifier = CompileAndVerify(source,
+                options: TestOptions.DebugDll.WithOutputKind(OutputKind.ConsoleApplication),
+                expectedOutput: "");
+            compVerifier.VerifyIL("Program.M",
+@"{
+  // Code size      220 (0xdc)
+  .maxstack  2
+  .locals init (object V_0,
+                int V_1,
+                int V_2, //i
+                int V_3, //i
+                int V_4, //i
+                int V_5, //i
+                object V_6,
+                object V_7)
+  IL_0000:  nop
+  IL_0001:  ldarg.0
+  IL_0002:  stloc.s    V_6
+  IL_0004:  ldloc.s    V_6
+  IL_0006:  stloc.0
+  IL_0007:  ldloc.0
+  IL_0008:  brtrue.s   IL_000c
+  IL_000a:  br.s       IL_0021
+  IL_000c:  ldloc.0
+  IL_000d:  dup
+  IL_000e:  stloc.s    V_7
+  IL_0010:  isinst     ""int""
+  IL_0015:  brfalse.s  IL_0021
+  IL_0017:  ldloc.s    V_7
+  IL_0019:  unbox.any  ""int""
+  IL_001e:  stloc.1
+  IL_001f:  br.s       IL_0079
+  IL_0021:  br.s       IL_0086
+  IL_0023:  ldloc.0
+  IL_0024:  brtrue.s   IL_0028
+  IL_0026:  br.s       IL_003d
+  IL_0028:  ldloc.0
+  IL_0029:  dup
+  IL_002a:  stloc.s    V_7
+  IL_002c:  isinst     ""int""
+  IL_0031:  brfalse.s  IL_003d
+  IL_0033:  ldloc.s    V_7
+  IL_0035:  unbox.any  ""int""
+  IL_003a:  stloc.1
+  IL_003b:  br.s       IL_0091
+  IL_003d:  br.s       IL_009e
+  IL_003f:  ldloc.0
+  IL_0040:  brtrue.s   IL_0044
+  IL_0042:  br.s       IL_0059
+  IL_0044:  ldloc.0
+  IL_0045:  dup
+  IL_0046:  stloc.s    V_7
+  IL_0048:  isinst     ""int""
+  IL_004d:  brfalse.s  IL_0059
+  IL_004f:  ldloc.s    V_7
+  IL_0051:  unbox.any  ""int""
+  IL_0056:  stloc.1
+  IL_0057:  br.s       IL_00a9
+  IL_0059:  br.s       IL_00b7
+  IL_005b:  ldloc.0
+  IL_005c:  brtrue.s   IL_0060
+  IL_005e:  br.s       IL_0075
+  IL_0060:  ldloc.0
+  IL_0061:  dup
+  IL_0062:  stloc.s    V_7
+  IL_0064:  isinst     ""int""
+  IL_0069:  brfalse.s  IL_0075
+  IL_006b:  ldloc.s    V_7
+  IL_006d:  unbox.any  ""int""
+  IL_0072:  stloc.1
+  IL_0073:  br.s       IL_00c2
+  IL_0075:  br.s       IL_00d0
+  IL_0077:  br.s       IL_00db
+  IL_0079:  ldloc.1
+  IL_007a:  stloc.2
+  IL_007b:  ldsfld     ""bool Program.b""
+  IL_0080:  brtrue.s   IL_0084
+  IL_0082:  br.s       IL_0021
+  IL_0084:  br.s       IL_00db
+  IL_0086:  ldsfld     ""bool Program.b""
+  IL_008b:  brtrue.s   IL_008f
+  IL_008d:  br.s       IL_0023
+  IL_008f:  br.s       IL_00db
+  IL_0091:  ldloc.1
+  IL_0092:  stloc.3
+  IL_0093:  ldsfld     ""bool Program.b""
+  IL_0098:  brtrue.s   IL_009c
+  IL_009a:  br.s       IL_003d
+  IL_009c:  br.s       IL_00db
+  IL_009e:  ldsfld     ""bool Program.b""
+  IL_00a3:  brtrue.s   IL_00a7
+  IL_00a5:  br.s       IL_003f
+  IL_00a7:  br.s       IL_00db
+  IL_00a9:  ldloc.1
+  IL_00aa:  stloc.s    V_4
+  IL_00ac:  ldsfld     ""bool Program.b""
+  IL_00b1:  brtrue.s   IL_00b5
+  IL_00b3:  br.s       IL_0059
+  IL_00b5:  br.s       IL_00db
+  IL_00b7:  ldsfld     ""bool Program.b""
+  IL_00bc:  brtrue.s   IL_00c0
+  IL_00be:  br.s       IL_005b
+  IL_00c0:  br.s       IL_00db
+  IL_00c2:  ldloc.1
+  IL_00c3:  stloc.s    V_5
+  IL_00c5:  ldsfld     ""bool Program.b""
+  IL_00ca:  brtrue.s   IL_00ce
+  IL_00cc:  br.s       IL_0075
+  IL_00ce:  br.s       IL_00db
+  IL_00d0:  ldsfld     ""bool Program.b""
+  IL_00d5:  brtrue.s   IL_00d9
+  IL_00d7:  br.s       IL_0077
+  IL_00d9:  br.s       IL_00db
+  IL_00db:  ret
+}"
+            );
+            compVerifier.VerifyPdb(
+@"<symbols>
+  <files>
+    <file id=""1"" name="""" language=""C#"" />
+  </files>
+  <entryPoint declaringType=""Program"" methodName=""Main"" />
+  <methods>
+    <method containingType=""Program"" name=""Main"">
+      <customDebugInfo>
+        <using>
+          <namespace usingCount=""1"" />
+        </using>
+      </customDebugInfo>
+      <sequencePoints>
+        <entry offset=""0x0"" startLine=""5"" startColumn=""5"" endLine=""5"" endColumn=""6"" document=""1"" />
+        <entry offset=""0x1"" startLine=""6"" startColumn=""5"" endLine=""6"" endColumn=""6"" document=""1"" />
+      </sequencePoints>
+      <scope startOffset=""0x0"" endOffset=""0x2"">
+        <namespace name=""System"" />
+      </scope>
+    </method>
+    <method containingType=""Program"" name=""M"" parameterNames=""o"">
+      <customDebugInfo>
+        <forward declaringType=""Program"" methodName=""Main"" />
+        <encLocalSlotMap>
+          <slot kind=""35"" offset=""11"" />
+          <slot kind=""35"" offset=""11"" />
+          <slot kind=""0"" offset=""55"" />
+          <slot kind=""0"" offset=""133"" />
+          <slot kind=""0"" offset=""211"" />
+          <slot kind=""0"" offset=""289"" />
+          <slot kind=""1"" offset=""11"" />
+          <slot kind=""temp"" />
+        </encLocalSlotMap>
+      </customDebugInfo>
+      <sequencePoints>
+        <entry offset=""0x0"" startLine=""9"" startColumn=""5"" endLine=""9"" endColumn=""6"" document=""1"" />
+        <entry offset=""0x1"" startLine=""10"" startColumn=""9"" endLine=""10"" endColumn=""19"" document=""1"" />
+        <entry offset=""0x4"" hidden=""true"" document=""1"" />
+        <entry offset=""0x79"" hidden=""true"" document=""1"" />
+        <entry offset=""0x7b"" startLine=""12"" startColumn=""24"" endLine=""12"" endColumn=""30"" document=""1"" />
+        <entry offset=""0x84"" startLine=""12"" startColumn=""32"" endLine=""12"" endColumn=""38"" document=""1"" />
+        <entry offset=""0x86"" startLine=""13"" startColumn=""24"" endLine=""13"" endColumn=""30"" document=""1"" />
+        <entry offset=""0x8f"" startLine=""13"" startColumn=""32"" endLine=""13"" endColumn=""38"" document=""1"" />
+        <entry offset=""0x91"" hidden=""true"" document=""1"" />
+        <entry offset=""0x93"" startLine=""14"" startColumn=""24"" endLine=""14"" endColumn=""30"" document=""1"" />
+        <entry offset=""0x9c"" startLine=""14"" startColumn=""32"" endLine=""14"" endColumn=""38"" document=""1"" />
+        <entry offset=""0x9e"" startLine=""15"" startColumn=""24"" endLine=""15"" endColumn=""30"" document=""1"" />
+        <entry offset=""0xa7"" startLine=""15"" startColumn=""32"" endLine=""15"" endColumn=""38"" document=""1"" />
+        <entry offset=""0xa9"" hidden=""true"" document=""1"" />
+        <entry offset=""0xac"" startLine=""16"" startColumn=""24"" endLine=""16"" endColumn=""30"" document=""1"" />
+        <entry offset=""0xb5"" startLine=""16"" startColumn=""32"" endLine=""16"" endColumn=""38"" document=""1"" />
+        <entry offset=""0xb7"" startLine=""17"" startColumn=""24"" endLine=""17"" endColumn=""30"" document=""1"" />
+        <entry offset=""0xc0"" startLine=""17"" startColumn=""32"" endLine=""17"" endColumn=""38"" document=""1"" />
+        <entry offset=""0xc2"" hidden=""true"" document=""1"" />
+        <entry offset=""0xc5"" startLine=""18"" startColumn=""24"" endLine=""18"" endColumn=""30"" document=""1"" />
+        <entry offset=""0xce"" startLine=""18"" startColumn=""32"" endLine=""18"" endColumn=""38"" document=""1"" />
+        <entry offset=""0xd0"" startLine=""19"" startColumn=""24"" endLine=""19"" endColumn=""30"" document=""1"" />
+        <entry offset=""0xd9"" startLine=""19"" startColumn=""32"" endLine=""19"" endColumn=""38"" document=""1"" />
+        <entry offset=""0xdb"" startLine=""21"" startColumn=""5"" endLine=""21"" endColumn=""6"" document=""1"" />
+      </sequencePoints>
+      <scope startOffset=""0x0"" endOffset=""0xdc"">
+        <scope startOffset=""0x79"" endOffset=""0x86"">
+          <local name=""i"" il_index=""2"" il_start=""0x79"" il_end=""0x86"" attributes=""0"" />
+        </scope>
+        <scope startOffset=""0x91"" endOffset=""0x9e"">
+          <local name=""i"" il_index=""3"" il_start=""0x91"" il_end=""0x9e"" attributes=""0"" />
+        </scope>
+        <scope startOffset=""0xa9"" endOffset=""0xb7"">
+          <local name=""i"" il_index=""4"" il_start=""0xa9"" il_end=""0xb7"" attributes=""0"" />
+        </scope>
+        <scope startOffset=""0xc2"" endOffset=""0xd0"">
+          <local name=""i"" il_index=""5"" il_start=""0xc2"" il_end=""0xd0"" attributes=""0"" />
+        </scope>
+      </scope>
+    </method>
+    <method containingType=""Program"" name="".cctor"">
+      <customDebugInfo>
+        <forward declaringType=""Program"" methodName=""Main"" />
+      </customDebugInfo>
+      <sequencePoints>
+        <entry offset=""0x0"" startLine=""7"" startColumn=""5"" endLine=""7"" endColumn=""27"" document=""1"" />
+      </sequencePoints>
+    </method>
+  </methods>
+</symbols>");
+        }
+
+        [Fact, WorkItem(19280, "https://github.com/dotnet/roslyn/issues/19280")]
+        public void TestSignificanceOfDynamicVersusObjectAndTupleNamesInUniquenessOfPatternMatchingTemps()
+        {
+            var source =
+@"using System;
+public class Generic<T,U>
+{
+}
+class Program
+{
+    public static void Main(string[] args)
+    {
+        var g = new Generic<object, (int, int)>();
+        M2(g, true, false, false);
+        M2(g, false, true, false);
+        M2(g, false, false, true);
+    }
+    public static void M2(object o, bool b1, bool b2, bool b3)
+    {
+        switch (o)
+        {
+            case Generic<object, (int a, int b)> g when b1: Console.Write(""a""); break;
+            case var _ when b2: Console.Write(""b""); break;
+            case Generic<dynamic, (int x, int y)> g when b3: Console.Write(""c""); break;
+        }
+    }
+}
+";
+            var compilation = CreateCompilation(source,
+                    options: TestOptions.DebugDll.WithOutputKind(OutputKind.ConsoleApplication))
+                .VerifyDiagnostics();
+            var compVerifier = CompileAndVerify(compilation, expectedOutput: "abc");
+            compVerifier.VerifyIL("Program.M2",
+@"{
+  // Code size      105 (0x69)
+  .maxstack  2
+  .locals init (object V_0,
+                Generic<object, (int a, int b)> V_1,
+                Generic<dynamic, (int x, int y)> V_2,
+                Generic<object, (int a, int b)> V_3, //g
+                Generic<dynamic, (int x, int y)> V_4, //g
+                object V_5)
+  IL_0000:  nop
+  IL_0001:  ldarg.0
+  IL_0002:  stloc.s    V_5
+  IL_0004:  ldloc.s    V_5
+  IL_0006:  stloc.0
+  IL_0007:  ldloc.0
+  IL_0008:  brtrue.s   IL_000c
+  IL_000a:  br.s       IL_0018
+  IL_000c:  ldloc.0
+  IL_000d:  isinst     ""Generic<object, (int a, int b)>""
+  IL_0012:  dup
+  IL_0013:  stloc.1
+  IL_0014:  brfalse.s  IL_0018
+  IL_0016:  br.s       IL_002d
+  IL_0018:  br.s       IL_0041
+  IL_001a:  ldloc.0
+  IL_001b:  brtrue.s   IL_001f
+  IL_001d:  br.s       IL_002b
+  IL_001f:  ldloc.0
+  IL_0020:  isinst     ""Generic<dynamic, (int x, int y)>""
+  IL_0025:  dup
+  IL_0026:  stloc.2
+  IL_0027:  brfalse.s  IL_002b
+  IL_0029:  br.s       IL_0053
+  IL_002b:  br.s       IL_0068
+  IL_002d:  ldloc.1
+  IL_002e:  stloc.3
+  IL_002f:  ldarg.1
+  IL_0030:  brtrue.s   IL_0034
+  IL_0032:  br.s       IL_0018
+  IL_0034:  ldstr      ""a""
+  IL_0039:  call       ""void System.Console.Write(string)""
+  IL_003e:  nop
+  IL_003f:  br.s       IL_0068
+  IL_0041:  ldarg.2
+  IL_0042:  brtrue.s   IL_0046
+  IL_0044:  br.s       IL_001a
+  IL_0046:  ldstr      ""b""
+  IL_004b:  call       ""void System.Console.Write(string)""
+  IL_0050:  nop
+  IL_0051:  br.s       IL_0068
+  IL_0053:  ldloc.2
+  IL_0054:  stloc.s    V_4
+  IL_0056:  ldarg.3
+  IL_0057:  brtrue.s   IL_005b
+  IL_0059:  br.s       IL_002b
+  IL_005b:  ldstr      ""c""
+  IL_0060:  call       ""void System.Console.Write(string)""
+  IL_0065:  nop
+  IL_0066:  br.s       IL_0068
+  IL_0068:  ret
+}"
+            );
+        }
+
+        #endregion "regression tests"
     }
 }

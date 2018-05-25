@@ -1,10 +1,11 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis.CSharp
 Imports Microsoft.CodeAnalysis.Editor.Options
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
+    <[UseExportProvider]>
     Public Class CSharpSignatureHelpCommandHandlerTests
         <WpfFact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
         Public Async Function TestCreateAndDismiss() As Task
@@ -12,15 +13,15 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
                               <Document>
 class C
 {
-    void Foo()
+    void Goo()
     {
-        Foo$$
+        Goo$$
     }
 }
                               </Document>)
 
                 state.SendTypeChars("(")
-                Await state.AssertSelectedSignatureHelpItem(displayText:="void C.Foo()")
+                Await state.AssertSelectedSignatureHelpItem(displayText:="void C.Goo()")
                 state.SendTypeChars(")")
                 Await state.AssertNoSignatureHelpSession()
             End Using
@@ -32,17 +33,17 @@ class C
                               <Document>
 class C
 {
-    void Foo(int i, string j)
+    void Goo(int i, string j)
     {
-        Foo$$
+        Goo$$
     }
 }
                               </Document>)
 
                 state.SendTypeChars("(")
-                Await state.AssertSelectedSignatureHelpItem(displayText:="void C.Foo(int i, string j)", selectedParameter:="int i")
+                Await state.AssertSelectedSignatureHelpItem(displayText:="void C.Goo(int i, string j)", selectedParameter:="int i")
                 state.SendTypeChars("1,")
-                Await state.AssertSelectedSignatureHelpItem(displayText:="void C.Foo(int i, string j)", selectedParameter:="string j")
+                Await state.AssertSelectedSignatureHelpItem(displayText:="void C.Goo(int i, string j)", selectedParameter:="string j")
             End Using
         End Function
 
@@ -52,19 +53,19 @@ class C
                               <Document>
 class C
 {
-    void Foo(int i, string j)
+    void Goo(int i, string j)
     {
-        Foo(1$$
+        Goo(1$$
     }
 }
                               </Document>)
 
                 state.SendTypeChars(",")
-                Await state.AssertSelectedSignatureHelpItem(displayText:="void C.Foo(int i, string j)", selectedParameter:="string j")
+                Await state.AssertSelectedSignatureHelpItem(displayText:="void C.Goo(int i, string j)", selectedParameter:="string j")
                 state.SendLeftKey()
-                Await state.AssertSelectedSignatureHelpItem(displayText:="void C.Foo(int i, string j)", selectedParameter:="int i")
+                Await state.AssertSelectedSignatureHelpItem(displayText:="void C.Goo(int i, string j)", selectedParameter:="int i")
                 state.SendRightKey()
-                Await state.AssertSelectedSignatureHelpItem(displayText:="void C.Foo(int i, string j)", selectedParameter:="string j")
+                Await state.AssertSelectedSignatureHelpItem(displayText:="void C.Goo(int i, string j)", selectedParameter:="string j")
             End Using
         End Function
 
@@ -74,15 +75,15 @@ class C
                               <Document>
 class C
 {
-    void Foo()
+    void Goo()
     {
-        Foo($$)
+        Goo($$)
     }
 }
                               </Document>)
 
                 state.SendInvokeSignatureHelp()
-                Await state.AssertSelectedSignatureHelpItem(displayText:="void C.Foo()")
+                Await state.AssertSelectedSignatureHelpItem(displayText:="void C.Goo()")
                 state.SendRightKey()
                 Await state.AssertNoSignatureHelpSession()
             End Using
@@ -95,19 +96,19 @@ class C
 class C
 {
     void Bar() { }
-    void Foo()
+    void Goo()
     {
-        Foo$$
+        Goo$$
     }
 }
                               </Document>)
 
                 state.SendTypeChars("(")
-                Await state.AssertSelectedSignatureHelpItem(displayText:="void C.Foo()")
+                Await state.AssertSelectedSignatureHelpItem(displayText:="void C.Goo()")
                 state.SendTypeChars("Bar(")
                 Await state.AssertSelectedSignatureHelpItem(displayText:="void C.Bar()")
                 state.SendTypeChars(")")
-                Await state.AssertSelectedSignatureHelpItem(displayText:="void C.Foo()")
+                Await state.AssertSelectedSignatureHelpItem(displayText:="void C.Goo()")
             End Using
         End Function
 
@@ -133,7 +134,7 @@ class G&lt;S, T&gt; { };
 
 class C
 {
-    void Foo()
+    void Goo()
     {
         G&lt;int, $$
     }
@@ -484,7 +485,7 @@ class C
                               <Document>
 class C
 {
-    void Foo()
+    void Goo()
     {
         (int, int x) t = (5$$
     }
@@ -502,7 +503,7 @@ class C
                               <Document>
 class C
 {
-    void Foo()
+    void Goo()
     {
         (int a, string b) x = (b$$
     }

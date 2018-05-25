@@ -76,7 +76,7 @@ Class Program
         RaiseEvent E1()
     End Sub
 
-    Shared Sub foo() Handles MyClass.E1
+    Shared Sub goo() Handles MyClass.E1
         Console.WriteLine("handled")
     End Sub
 End Class
@@ -88,7 +88,7 @@ End Class
   // Code size       18 (0x12)
   .maxstack  2
   IL_0000:  ldnull
-  IL_0001:  ldftn      "Sub Program.foo()"
+  IL_0001:  ldftn      "Sub Program.goo()"
   IL_0007:  newobj     "Sub Program.E1EventHandler..ctor(Object, System.IntPtr)"
   IL_000c:  call       "Sub Program.add_E1(Program.E1EventHandler)"
   IL_0011:  ret
@@ -119,7 +119,7 @@ Class Program
         raiser
     End Sub
 
-    Shared Sub foo() Handles MyClass.E1
+    Shared Sub goo() Handles MyClass.E1
         Console.WriteLine("handled")
     End Sub
 End Class
@@ -131,7 +131,7 @@ End Class
   // Code size       18 (0x12)
   .maxstack  2
   IL_0000:  ldnull
-  IL_0001:  ldftn      "Sub Program.foo()"
+  IL_0001:  ldftn      "Sub Program.goo()"
   IL_0007:  newobj     "Sub Base.E1EventHandler..ctor(Object, System.IntPtr)"
   IL_000c:  call       "Sub Base.add_E1(Base.E1EventHandler)"
   IL_0011:  ret
@@ -158,7 +158,7 @@ Class Program
         RaiseEvent E1()
     End Sub
 
-    Shared Sub foo() Handles MyClass.e1
+    Shared Sub goo() Handles MyClass.e1
         Console.WriteLine("handled")
     End Sub
 End Class
@@ -173,7 +173,7 @@ End Class
   IL_0001:  call       "Sub Object..ctor()"
   IL_0006:  ldarg.0
   IL_0007:  ldnull
-  IL_0008:  ldftn      "Sub Program.foo()"
+  IL_0008:  ldftn      "Sub Program.goo()"
   IL_000e:  newobj     "Sub Program.E1EventHandler..ctor(Object, System.IntPtr)"
   IL_0013:  call       "Sub Program.add_E1(Program.E1EventHandler)"
   IL_0018:  ret
@@ -212,7 +212,7 @@ Class Program
         RaiseEvent E1(123)
     End Sub
 
-    Shared Sub foo() Handles MyClass.e1
+    Shared Sub goo() Handles MyClass.e1
         Console.WriteLine("handled")
     End Sub
 End Class
@@ -300,11 +300,11 @@ Class Program
         MyBase.Raiser()
     End Sub
 
-    Sub foo1() Handles MyClass.E1
+    Sub goo1() Handles MyClass.E1
         Console.WriteLine("handled1")
     End Sub
 
-    Shared Sub foo2() Handles MyClass.E2
+    Shared Sub goo2() Handles MyClass.E2
         Console.WriteLine("handled2")
     End Sub
 End Class
@@ -369,11 +369,11 @@ Class Program
         MyBase.Raiser()
     End Sub
 
-    Sub foo1() Handles MyClass.E1
+    Sub goo1() Handles MyClass.E1
         Console.WriteLine("handled1")
     End Sub
 
-    Shared Function foo2(arg As Long) As Integer Handles MyClass.E1
+    Shared Function goo2(arg As Long) As Integer Handles MyClass.E1
         Console.WriteLine("handled2")
         Return 123
     End Function
@@ -892,7 +892,7 @@ End Class
 Class c3
     Inherits c2
 
-    Sub foo() Handles MyBase.e
+    Sub goo() Handles MyBase.e
         gstrexpectedresult = "working!!"
     End Sub
 End Class
@@ -1142,17 +1142,17 @@ End Module]]>,
             Dim comp = CreateVisualBasicCompilation("TestNameOfWithEventsSetterParameter",
             <![CDATA[Public Class c1
     Sub New()
-        foo = Me
+        goo = Me
     End Sub
-    Public WithEvents foo As c1
+    Public WithEvents goo As c1
 End Class]]>,
                 compilationOptions:=New VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary))
 
             Dim verifier = CompileAndVerify(comp, expectedSignatures:=
             {
-                Signature("c1", "foo", ".property readwrite instance c1 foo"),
-                Signature("c1", "set_foo", ".method [System.Runtime.CompilerServices.CompilerGeneratedAttribute()] public newslot strict specialname virtual instance System.Void set_foo(c1 WithEventsValue) cil managed synchronized"),
-                Signature("c1", "get_foo", ".method [System.Runtime.CompilerServices.CompilerGeneratedAttribute()] public newslot strict specialname virtual instance c1 get_foo() cil managed")
+                Signature("c1", "goo", ".property readwrite instance c1 goo"),
+                Signature("c1", "set_goo", ".method [System.Runtime.CompilerServices.CompilerGeneratedAttribute()] public newslot strict specialname virtual instance System.Void set_goo(c1 WithEventsValue) cil managed synchronized"),
+                Signature("c1", "get_goo", ".method [System.Runtime.CompilerServices.CompilerGeneratedAttribute()] public newslot strict specialname virtual instance c1 get_goo() cil managed")
             })
 
             verifier.VerifyDiagnostics()
@@ -1171,13 +1171,13 @@ End Interface
 Class C1(Of T As {Exception, I1(Of T)})
     Dim WithEvents x As T
 
-    'Native compiler used to report an incorrect error on the below line - "Method 'Public Sub foo(a As T)' cannot handle event 'Public Event E1(a As U)' because they do not have a compatible signature".
+    'Native compiler used to report an incorrect error on the below line - "Method 'Public Sub goo(a As T)' cannot handle event 'Public Event E1(a As U)' because they do not have a compatible signature".
     'This was a bug in the native compiler (see Bug: VSWhidbey/544224) that got fixed in Roslyn.
     'See Vladimir's comments in bug 13489  for more details.
-    Sub foo(ByVal a As T) Handles x.E1
+    Sub goo(ByVal a As T) Handles x.E1
     End Sub
     Sub bar()
-        AddHandler x.E1, AddressOf foo 'AddHandler should also work
+        AddHandler x.E1, AddressOf goo 'AddHandler should also work
     End Sub
 End Class]]>,
                 compilationOptions:=New VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary))
@@ -1196,15 +1196,15 @@ Imports System
 Class Program
     Shared Sub Main()
         Dim c1 = GetType(C1)
-        Dim _Foo = c1.GetField("_Foo", Reflection.BindingFlags.NonPublic Or Reflection.BindingFlags.Static Or Reflection.BindingFlags.Instance)
-        Dim obsolete = _Foo.GetCustomAttributes(GetType(ObsoleteAttribute), False)
+        Dim _Goo = c1.GetField("_Goo", Reflection.BindingFlags.NonPublic Or Reflection.BindingFlags.Static Or Reflection.BindingFlags.Instance)
+        Dim obsolete = _Goo.GetCustomAttributes(GetType(ObsoleteAttribute), False)
 
         System.Console.WriteLine(obsolete.Length = 1)
     End Sub
 End Class
 
 Class C1
-    <Obsolete> WithEvents Foo as C1
+    <Obsolete> WithEvents Goo as C1
 End Class
     ]]></file>
 </compilation>, expectedOutput:="True")
@@ -1506,12 +1506,12 @@ Public Class Base(Of T,
 
             Public Shadows WithEvents Base3 As Base(Of A, U, V, D, C, IList(Of IList(Of A))) = Me
 
-            Function Foo(x As HashSet(Of A), y As Dictionary(Of A, D)) As Integer Handles Base33.e
+            Function Goo(x As HashSet(Of A), y As Dictionary(Of A, D)) As Integer Handles Base33.e
                 Console.WriteLine("1")
                 Return 0
             End Function
 
-            Function Foo(x As List(Of A)) As Dictionary(Of T, A) Handles Base3.e
+            Function Goo(x As List(Of A)) As Dictionary(Of T, A) Handles Base3.e
                 Console.WriteLine("2")
                 Return New Dictionary(Of T, A)
             End Function
@@ -1539,16 +1539,16 @@ Public Class Derived(Of T As {Base(Of ArgumentException, String, S, ArgumentExce
         Dictionary(Of String, S), List(Of IList(Of ArgumentException))).
         Base2(Of ArgumentException, String, Dictionary(Of String, S), ArgumentNullException).
         Base3
-    Shadows Sub Foo(x As HashSet(Of ArgumentException), y As Dictionary(Of ArgumentException, ArgumentNullException)) Handles Base2.e
+    Shadows Sub Goo(x As HashSet(Of ArgumentException), y As Dictionary(Of ArgumentException, ArgumentNullException)) Handles Base2.e
         Console.WriteLine("3")
     End Sub
-    Shadows Sub Foo() Handles Base3.e
+    Shadows Sub Goo() Handles Base3.e
         Console.WriteLine("4")
     End Sub
-    Shadows Sub Foo(x As List(Of ArgumentException)) Handles w.e, Me.e, MyClass.e
+    Shadows Sub Goo(x As List(Of ArgumentException)) Handles w.e, Me.e, MyClass.e
         Console.WriteLine("5")
     End Sub
-    Overloads Function foo2$(x As HashSet(Of ArgumentException), y As Dictionary(Of ArgumentException, ArgumentNullException)) Handles w2.e
+    Overloads Function goo2$(x As HashSet(Of ArgumentException), y As Dictionary(Of ArgumentException, ArgumentNullException)) Handles w2.e
         Console.WriteLine("6")
         Return 1.0
     End Function
@@ -1692,32 +1692,32 @@ Derived H2]]>)
             <![CDATA[Imports System
 Public Class VBClass : Inherits CSClass
     Public WithEvents w As CSClass = New CSClass
-    Function Foo(x As String) Handles w.ev, MyBase.ev, MyClass.ev
+    Function Goo(x As String) Handles w.ev, MyBase.ev, MyClass.ev
         Console.WriteLine(x)
         Console.WriteLine("DERIVED1")
         Return 0
     End Function
-    Function Foo(x As String, ParamArray y() As Integer) Handles w.ev, MyBase.ev, MyClass.ev
+    Function Goo(x As String, ParamArray y() As Integer) Handles w.ev, MyBase.ev, MyClass.ev
         Console.WriteLine(x)
         Console.WriteLine("DERIVED2")
         Return 0
     End Function
-    Function Foo2(Optional x As String = "") Handles w.ev, MyBase.ev, MyClass.ev
+    Function Goo2(Optional x As String = "") Handles w.ev, MyBase.ev, MyClass.ev
         Console.WriteLine(x)
         Console.WriteLine("DERIVED3")
         Return 0
     End Function
-    Function Foo2(ParamArray x() As String) Handles w.ev, MyBase.ev, MyClass.ev
+    Function Goo2(ParamArray x() As String) Handles w.ev, MyBase.ev, MyClass.ev
         Console.WriteLine(x)
         Console.WriteLine("DERIVED4")
         Return 0
     End Function
-    Function Foo2(x As String, Optional y As Integer = 0) Handles w.ev, MyBase.ev, MyClass.ev
+    Function Goo2(x As String, Optional y As Integer = 0) Handles w.ev, MyBase.ev, MyClass.ev
         Console.WriteLine(x)
         Console.WriteLine("DERIVED5")
         Return 0
     End Function
-    Function Foo3(Optional x As String = "", Optional y As Integer = 0) Handles w.ev, MyBase.ev, MyClass.ev
+    Function Goo3(Optional x As String = "", Optional y As Integer = 0) Handles w.ev, MyBase.ev, MyClass.ev
         Console.WriteLine(x)
         Console.WriteLine("DERIVED6")
         Return 0
@@ -1792,12 +1792,12 @@ DERIVED6]]>)
             <![CDATA[Imports System
 Public Class VBClass : Inherits CSClass
     Public WithEvents w As CSClass = New CSClass
-    Function Foo(x As Integer()) Handles w.ev, MyBase.ev, Me.ev
+    Function Goo(x As Integer()) Handles w.ev, MyBase.ev, Me.ev
         Console.WriteLine(x)
         Console.WriteLine("DERIVED1")
         Return 0
     End Function
-    Function Foo2(ParamArray x As Integer()) Handles w.ev, MyBase.ev, Me.ev
+    Function Goo2(ParamArray x As Integer()) Handles w.ev, MyBase.ev, Me.ev
         Console.WriteLine(x)
         Console.WriteLine("DERIVED2")
         Return 0
@@ -1846,12 +1846,12 @@ DERIVED2]]>)
             <![CDATA[Imports System
 Public Class VBClass : Inherits CSClass
     Public WithEvents w As CSClass = New CSClass
-    Function Foo2(x As Integer) Handles w.ev, MyBase.ev, Me.ev
+    Function Goo2(x As Integer) Handles w.ev, MyBase.ev, Me.ev
         Console.WriteLine(x)
         Console.WriteLine("DERIVED1")
         Return 0
     End Function
-    Function Foo2(x As Integer, Optional y As Integer = 1) Handles w.ev, MyBase.ev, Me.ev
+    Function Goo2(x As Integer, Optional y As Integer = 1) Handles w.ev, MyBase.ev, Me.ev
         Console.WriteLine(x)
         Console.WriteLine("DERIVED2")
         Return 0
@@ -1868,12 +1868,12 @@ End Module]]>,
                 referencedCompilations:={csCompilation})
 
             vbCompilation.VerifyDiagnostics(
-                Diagnostic(ERRID.ERR_EventHandlerSignatureIncompatible2, "ev").WithArguments("Foo2", "ev"),
-                Diagnostic(ERRID.ERR_EventHandlerSignatureIncompatible2, "ev").WithArguments("Foo2", "ev"),
-                Diagnostic(ERRID.ERR_EventHandlerSignatureIncompatible2, "ev").WithArguments("Foo2", "ev"),
-                Diagnostic(ERRID.ERR_EventHandlerSignatureIncompatible2, "ev").WithArguments("Foo2", "ev"),
-                Diagnostic(ERRID.ERR_EventHandlerSignatureIncompatible2, "ev").WithArguments("Foo2", "ev"),
-                Diagnostic(ERRID.ERR_EventHandlerSignatureIncompatible2, "ev").WithArguments("Foo2", "ev"))
+                Diagnostic(ERRID.ERR_EventHandlerSignatureIncompatible2, "ev").WithArguments("Goo2", "ev"),
+                Diagnostic(ERRID.ERR_EventHandlerSignatureIncompatible2, "ev").WithArguments("Goo2", "ev"),
+                Diagnostic(ERRID.ERR_EventHandlerSignatureIncompatible2, "ev").WithArguments("Goo2", "ev"),
+                Diagnostic(ERRID.ERR_EventHandlerSignatureIncompatible2, "ev").WithArguments("Goo2", "ev"),
+                Diagnostic(ERRID.ERR_EventHandlerSignatureIncompatible2, "ev").WithArguments("Goo2", "ev"),
+                Diagnostic(ERRID.ERR_EventHandlerSignatureIncompatible2, "ev").WithArguments("Goo2", "ev"))
         End Sub
 
         <Fact, WorkItem(545257, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545257")>
@@ -1894,7 +1894,7 @@ End Module]]>,
             <![CDATA[Imports System
 Public Class VBClass : Inherits CSClass
     Public WithEvents w As CSClass = New CSClass
-    Function Foo(Optional x As Integer = 1) Handles w.ev, MyBase.ev, Me.ev
+    Function Goo(Optional x As Integer = 1) Handles w.ev, MyBase.ev, Me.ev
         Console.WriteLine(x)
         Console.WriteLine("PASS")
         Return 0
@@ -1910,9 +1910,9 @@ End Module]]>,
                 compilationOptions:=New VisualBasicCompilationOptions(OutputKind.ConsoleApplication),
                 referencedCompilations:={csCompilation})
             vbCompilation.VerifyDiagnostics(
-                Diagnostic(ERRID.ERR_EventHandlerSignatureIncompatible2, "ev").WithArguments("Foo", "ev"),
-                Diagnostic(ERRID.ERR_EventHandlerSignatureIncompatible2, "ev").WithArguments("Foo", "ev"),
-                Diagnostic(ERRID.ERR_EventHandlerSignatureIncompatible2, "ev").WithArguments("Foo", "ev"))
+                Diagnostic(ERRID.ERR_EventHandlerSignatureIncompatible2, "ev").WithArguments("Goo", "ev"),
+                Diagnostic(ERRID.ERR_EventHandlerSignatureIncompatible2, "ev").WithArguments("Goo", "ev"),
+                Diagnostic(ERRID.ERR_EventHandlerSignatureIncompatible2, "ev").WithArguments("Goo", "ev"))
         End Sub
 
         <Fact>

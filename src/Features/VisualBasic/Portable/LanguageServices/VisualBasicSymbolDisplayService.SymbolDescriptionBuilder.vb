@@ -1,4 +1,4 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Collections.Immutable
 Imports System.Threading
@@ -149,6 +149,14 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LanguageServices
             Protected Overrides Sub AddAwaitableUsageText(method As IMethodSymbol, semanticModel As SemanticModel, position As Integer)
                 AddToGroup(SymbolDescriptionGroups.AwaitableUsageText,
                     method.ToAwaitableParts(SyntaxFacts.GetText(SyntaxKind.AwaitKeyword), "r", semanticModel, position))
+            End Sub
+
+            Protected Overrides Sub AddCaptures(symbol As ISymbol)
+                Dim method = TryCast(symbol, IMethodSymbol)
+                If method IsNot Nothing AndAlso method.ContainingSymbol.IsKind(SymbolKind.Method) Then
+                    Dim syntax = method.DeclaringSyntaxReferences.FirstOrDefault()?.GetSyntax()
+                    AddCaptures(syntax)
+                End If
             End Sub
 
             Protected Overrides ReadOnly Property MinimallyQualifiedFormat As SymbolDisplayFormat

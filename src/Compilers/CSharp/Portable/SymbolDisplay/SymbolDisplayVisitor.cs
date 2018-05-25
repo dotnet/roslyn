@@ -1,7 +1,9 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.SymbolDisplay;
 using Roslyn.Utilities;
 
@@ -29,14 +31,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             int positionOpt,
             bool escapeKeywordIdentifiers,
             IDictionary<INamespaceOrTypeSymbol, IAliasSymbol> aliasMap,
-            bool isFirstSymbolVisited)
-            : base(builder, format, isFirstSymbolVisited, semanticModelOpt, positionOpt)
+            bool isFirstSymbolVisited,
+            bool inNamespaceOrType = false)
+            : base(builder, format, isFirstSymbolVisited, semanticModelOpt, positionOpt, inNamespaceOrType)
         {
             _escapeKeywordIdentifiers = escapeKeywordIdentifiers;
             _lazyAliasMap = aliasMap;
         }
 
-        protected override AbstractSymbolDisplayVisitor MakeNotFirstVisitor()
+        protected override AbstractSymbolDisplayVisitor MakeNotFirstVisitor(bool inNamespaceOrType = false)
         {
             return new SymbolDisplayVisitor(
                 this.builder,
@@ -45,7 +48,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 this.positionOpt,
                 _escapeKeywordIdentifiers,
                 _lazyAliasMap,
-                isFirstSymbolVisited: false);
+                isFirstSymbolVisited: false,
+                inNamespaceOrType: inNamespaceOrType);
         }
 
         internal SymbolDisplayPart CreatePart(SymbolDisplayPartKind kind, ISymbol symbol, string text)
@@ -182,6 +186,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 AddKeyword(SyntaxKind.RefKeyword);
                 AddSpace();
+
+                if (symbol.RefKind == RefKind.RefReadOnly)
+                {
+                    AddKeyword(SyntaxKind.ReadOnlyKeyword);
+                    AddSpace();
+                }
             }
 
             if (format.LocalOptions.IncludesOption(SymbolDisplayLocalOptions.IncludeType))
@@ -192,9 +202,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             builder.Add(CreatePart(SymbolDisplayPartKind.LocalName, symbol, symbol.Name));
 
-            if (symbol.IsConst &&
+            if (format.LocalOptions.IncludesOption(SymbolDisplayLocalOptions.IncludeConstantValue) &&
+                symbol.IsConst &&
                 symbol.HasConstantValue &&
-                format.LocalOptions.IncludesOption(SymbolDisplayLocalOptions.IncludeConstantValue) &&
                 CanAddConstant(symbol.Type, symbol.ConstantValue))
             {
                 AddSpace();
@@ -278,10 +288,20 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (format.MemberOptions.IncludesOption(SymbolDisplayMemberOptions.IncludeAccessibility) &&
                 (containingType == null ||
-                 (containingType.TypeKind != TypeKind.Interface && !IsEnumMember(symbol))))
+                 (containingType.TypeKind != TypeKind.Interface && !IsEnumMember(symbol) & !IsLocalFunction(symbol))))
             {
                 AddAccessibility(symbol);
             }
+        }
+
+        private static bool IsLocalFunction(ISymbol symbol)
+        {
+            if (symbol.Kind != SymbolKind.Method)
+            {
+                return false;
+            }
+
+            return ((IMethodSymbol)symbol).MethodKind == MethodKind.LocalFunction;
         }
 
         private void AddAccessibility(ISymbol symbol)
@@ -295,6 +315,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                     AddKeyword(SyntaxKind.InternalKeyword);
                     break;
                 case Accessibility.ProtectedAndInternal:
+                    AddKeyword(SyntaxKind.PrivateKeyword);
+                    AddSpace();
+                    AddKeyword(SyntaxKind.ProtectedKeyword);
+                    break;
                 case Accessibility.Protected:
                     AddKeyword(SyntaxKind.ProtectedKeyword);
                     break;

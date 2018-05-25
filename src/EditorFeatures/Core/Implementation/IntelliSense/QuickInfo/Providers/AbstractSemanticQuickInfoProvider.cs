@@ -23,17 +23,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo
 {
     internal abstract partial class AbstractSemanticQuickInfoProvider : AbstractQuickInfoProvider
     {
-        public AbstractSemanticQuickInfoProvider(
-            IProjectionBufferFactoryService projectionBufferFactoryService,
-            IEditorOptionsFactoryService editorOptionsFactoryService,
-            ITextEditorFactoryService textEditorFactoryService,
-            IGlyphService glyphService,
-            ClassificationTypeMap typeMap)
-            : base(projectionBufferFactoryService, editorOptionsFactoryService,
-                   textEditorFactoryService, glyphService, typeMap)
-        {
-        }
-
         protected override async Task<IDeferredQuickInfoContent> BuildContentAsync(
             Document document,
             SyntaxToken token,
@@ -57,8 +46,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo
                     cancellationToken: cancellationToken).ConfigureAwait(false);
             }
 
-            // Linked files/shared projects: imagine the following when FOO is false
-            // #if FOO
+            // Linked files/shared projects: imagine the following when GOO is false
+            // #if GOO
             // int x = 3;
             // #endif 
             // var y = x$$;
@@ -78,7 +67,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo
                 var linkedDocument = document.Project.Solution.GetDocument(link);
                 var linkedToken = await FindTokenInLinkedDocument(token, document, linkedDocument, cancellationToken).ConfigureAwait(false);
 
-                if (linkedToken != default(SyntaxToken))
+                if (linkedToken != default)
                 {
                     // Not in an inactive region, so this file is a candidate.
                     candidateProjects.Add(link.ProjectId);
@@ -121,7 +110,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo
         {
             if (!linkedDocument.SupportsSyntaxTree)
             {
-                return default(SyntaxToken);
+                return default;
             }
 
             var root = await linkedDocument.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
@@ -143,12 +132,14 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo
                 // Capturing more information for https://devdiv.visualstudio.com/DevDiv/_workitems?id=209299
                 var originalText = await originalDocument.GetTextAsync().ConfigureAwait(false);
                 var linkedText = await linkedDocument.GetTextAsync().ConfigureAwait(false);
-
                 var linkedFileException = new LinkedFileDiscrepancyException(thrownException, originalText.ToString(), linkedText.ToString());
-                FatalError.Report(linkedFileException);
+
+                // This problem itself does not cause any corrupted state, it just changes the set
+                // of symbols included in QuickInfo, so we report and continue running.
+                FatalError.ReportWithoutCrash(linkedFileException);
             }
 
-            return default(SyntaxToken);
+            return default;
         }
 
         protected async Task<IDeferredQuickInfoContent> CreateContentAsync(
@@ -163,16 +154,16 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo
 
             var sections = await descriptionService.ToDescriptionGroupsAsync(workspace, semanticModel, token.SpanStart, symbols.AsImmutable(), cancellationToken).ConfigureAwait(false);
 
+
             var mainDescriptionBuilder = new List<TaggedText>();
-            if (sections.ContainsKey(SymbolDescriptionGroups.MainDescription))
+            if (sections.TryGetValue(SymbolDescriptionGroups.MainDescription, out var parts))
             {
-                mainDescriptionBuilder.AddRange(sections[SymbolDescriptionGroups.MainDescription]);
+                mainDescriptionBuilder.AddRange(parts);
             }
 
             var typeParameterMapBuilder = new List<TaggedText>();
-            if (sections.ContainsKey(SymbolDescriptionGroups.TypeParameterMap))
+            if (sections.TryGetValue(SymbolDescriptionGroups.TypeParameterMap, out parts))
             {
-                var parts = sections[SymbolDescriptionGroups.TypeParameterMap];
                 if (!parts.IsDefaultOrEmpty)
                 {
                     typeParameterMapBuilder.AddLineBreak();
@@ -181,9 +172,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo
             }
 
             var anonymousTypesBuilder = new List<TaggedText>();
-            if (sections.ContainsKey(SymbolDescriptionGroups.AnonymousTypes))
+            if (sections.TryGetValue(SymbolDescriptionGroups.AnonymousTypes, out parts))
             {
-                var parts = sections[SymbolDescriptionGroups.AnonymousTypes];
                 if (!parts.IsDefaultOrEmpty)
                 {
                     anonymousTypesBuilder.AddLineBreak();
@@ -192,9 +182,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo
             }
 
             var usageTextBuilder = new List<TaggedText>();
-            if (sections.ContainsKey(SymbolDescriptionGroups.AwaitableUsageText))
+            if (sections.TryGetValue(SymbolDescriptionGroups.AwaitableUsageText, out parts))
             {
-                var parts = sections[SymbolDescriptionGroups.AwaitableUsageText];
                 if (!parts.IsDefaultOrEmpty)
                 {
                     usageTextBuilder.AddRange(parts);
@@ -207,13 +196,18 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo
             }
 
             var exceptionsTextBuilder = new List<TaggedText>();
-            if (sections.ContainsKey(SymbolDescriptionGroups.Exceptions))
+            if (sections.TryGetValue(SymbolDescriptionGroups.Exceptions, out parts))
             {
-                var parts = sections[SymbolDescriptionGroups.Exceptions];
                 if (!parts.IsDefaultOrEmpty)
                 {
                     exceptionsTextBuilder.AddRange(parts);
                 }
+            }
+
+            var capturesTextBuilder = new List<TaggedText>();
+            if (sections.TryGetValue(SymbolDescriptionGroups.Captures, out parts) && !parts.IsDefaultOrEmpty)
+            {
+                capturesTextBuilder.AddRange(parts);
             }
 
             var formatter = workspace.Services.GetLanguageServices(semanticModel.Language).GetService<IDocumentationCommentFormattingService>();
@@ -238,7 +232,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo
                 typeParameterMap: typeParameterMapBuilder,
                 anonymousTypes: anonymousTypesBuilder,
                 usageText: usageTextBuilder,
-                exceptionText: exceptionsTextBuilder);
+                exceptionText: exceptionsTextBuilder,
+                capturesText: capturesTextBuilder);
         }
 
         private IDeferredQuickInfoContent GetDocumentationContent(
@@ -250,10 +245,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo
             ISyntaxFactsService syntaxFactsService,
             CancellationToken cancellationToken)
         {
-            if (sections.ContainsKey(SymbolDescriptionGroups.Documentation))
+            if (sections.TryGetValue(SymbolDescriptionGroups.Documentation, out var parts))
             {
                 var documentationBuilder = new List<TaggedText>();
-                documentationBuilder.AddRange(sections[SymbolDescriptionGroups.Documentation]);
+                documentationBuilder.AddRange(parts);
                 return CreateClassifiableDeferredContent(documentationBuilder);
             }
             else if (symbols.Any())
@@ -278,18 +273,29 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo
             return CreateDocumentationCommentDeferredContent(null);
         }
 
+        protected abstract bool GetBindableNodeForTokenIndicatingLambda(SyntaxToken token, out SyntaxNode found);
+
         private async Task<ValueTuple<SemanticModel, ImmutableArray<ISymbol>>> BindTokenAsync(
             Document document,
             SyntaxToken token,
             CancellationToken cancellationToken)
         {
-            var semanticModel = await document.GetSemanticModelForNodeAsync(token.Parent, cancellationToken).ConfigureAwait(false);
+            var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
+            var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
             var enclosingType = semanticModel.GetEnclosingNamedType(token.SpanStart, cancellationToken);
 
-            var symbols = semanticModel.GetSemanticInfo(token, document.Project.Solution.Workspace, cancellationToken)
-                                       .GetSymbols(includeType: true);
+            ImmutableArray<ISymbol> symbols;
+            if (GetBindableNodeForTokenIndicatingLambda(token, out SyntaxNode lambdaSyntax))
+            {
+                symbols = ImmutableArray.Create(semanticModel.GetSymbolInfo(lambdaSyntax).Symbol);
+            }
+            else
+            {
+                symbols = semanticModel.GetSemanticInfo(token, document.Project.Solution.Workspace, cancellationToken)
+                    .GetSymbols(includeType: true);
+            }
 
-            var bindableParent = document.GetLanguageService<ISyntaxFactsService>().GetBindableParent(token);
+            var bindableParent = syntaxFacts.GetBindableParent(token);
             var overloads = semanticModel.GetMemberGroup(bindableParent, cancellationToken);
 
             symbols = symbols.Where(IsOk)
@@ -300,33 +306,27 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo
 
             if (symbols.Any())
             {
-                var typeParameter = symbols.First() as ITypeParameterSymbol;
-                return ValueTuple.Create(
-                    semanticModel,
-                    typeParameter != null && typeParameter.TypeParameterKind == TypeParameterKind.Cref
-                        ? ImmutableArray<ISymbol>.Empty
-                        : symbols);
+                var discardSymbols = (symbols.First() as ITypeParameterSymbol)?.TypeParameterKind == TypeParameterKind.Cref;
+                return (semanticModel, discardSymbols ? ImmutableArray<ISymbol>.Empty : symbols);
             }
 
             // Couldn't bind the token to specific symbols.  If it's an operator, see if we can at
             // least bind it to a type.
-            var syntaxFacts = document.Project.LanguageServices.GetService<ISyntaxFactsService>();
             if (syntaxFacts.IsOperator(token))
             {
                 var typeInfo = semanticModel.GetTypeInfo(token.Parent, cancellationToken);
                 if (IsOk(typeInfo.Type))
                 {
-                    return ValueTuple.Create(semanticModel,
-                        ImmutableArray.Create<ISymbol>(typeInfo.Type));
+                    return (semanticModel, ImmutableArray.Create<ISymbol>(typeInfo.Type));
                 }
             }
 
-            return ValueTuple.Create(semanticModel, ImmutableArray<ISymbol>.Empty);
+            return (semanticModel, ImmutableArray<ISymbol>.Empty);
         }
 
         private static bool IsOk(ISymbol symbol)
         {
-            return symbol != null && !symbol.IsErrorType() && !symbol.IsAnonymousFunction();
+            return symbol != null && !symbol.IsErrorType();
         }
 
         private static bool IsAccessible(ISymbol symbol, INamedTypeSymbol within)

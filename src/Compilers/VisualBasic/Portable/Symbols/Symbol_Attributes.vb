@@ -2,12 +2,9 @@
 
 Imports System.Collections.Generic
 Imports System.Collections.Immutable
-Imports System.Globalization
 Imports System.Runtime.InteropServices
-Imports System.Text
 Imports System.Threading
-Imports Microsoft.CodeAnalysis.CodeGen
-Imports Microsoft.CodeAnalysis.Text
+Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports TypeKind = Microsoft.CodeAnalysis.TypeKind
@@ -141,49 +138,42 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return Nothing
         End Function
 
-        Friend Function EarlyDecodeDeprecatedOrObsoleteAttribute(
+        Friend Function EarlyDecodeDeprecatedOrExperimentalOrObsoleteAttribute(
             ByRef arguments As EarlyDecodeWellKnownAttributeArguments(Of EarlyWellKnownAttributeBinder, NamedTypeSymbol, AttributeSyntax, AttributeLocation),
             <Out> ByRef boundAttribute As VisualBasicAttributeData,
             <Out> ByRef obsoleteData As ObsoleteAttributeData
         ) As Boolean
 
+            Dim type = arguments.AttributeType
+            Dim syntax = arguments.AttributeSyntax
+
+            Dim kind As ObsoleteAttributeKind
+
+            If VisualBasicAttributeData.IsTargetEarlyAttribute(type, syntax, AttributeDescription.ObsoleteAttribute) Then
+                kind = ObsoleteAttributeKind.Obsolete
+            ElseIf VisualBasicAttributeData.IsTargetEarlyAttribute(type, syntax, AttributeDescription.DeprecatedAttribute) Then
+                kind = ObsoleteAttributeKind.Deprecated
+            ElseIf VisualBasicAttributeData.IsTargetEarlyAttribute(type, syntax, AttributeDescription.ExperimentalAttribute) Then
+                kind = ObsoleteAttributeKind.Experimental
+            Else
+                boundAttribute = Nothing
+                obsoleteData = Nothing
+                Return False
+            End If
+
             Dim hasAnyDiagnostics As Boolean = False
-
-            If VisualBasicAttributeData.IsTargetEarlyAttribute(arguments.AttributeType, arguments.AttributeSyntax, AttributeDescription.ObsoleteAttribute) Then
-                ' Handle ObsoleteAttribute
-                boundAttribute = arguments.Binder.GetAttribute(arguments.AttributeSyntax, arguments.AttributeType, hasAnyDiagnostics)
-                If Not boundAttribute.HasErrors Then
-                    obsoleteData = boundAttribute.DecodeObsoleteAttribute()
-                    If hasAnyDiagnostics Then
-                        boundAttribute = Nothing
-                    End If
-                Else
-                    obsoleteData = Nothing
+            boundAttribute = arguments.Binder.GetAttribute(syntax, type, hasAnyDiagnostics)
+            If Not boundAttribute.HasErrors Then
+                obsoleteData = boundAttribute.DecodeObsoleteAttribute(kind)
+                If hasAnyDiagnostics Then
                     boundAttribute = Nothing
                 End If
-
-                Return True
+            Else
+                obsoleteData = Nothing
+                boundAttribute = Nothing
             End If
+            Return True
 
-            If VisualBasicAttributeData.IsTargetEarlyAttribute(arguments.AttributeType, arguments.AttributeSyntax, AttributeDescription.DeprecatedAttribute) Then
-                ' Handle DeprecatedAttribute
-                boundAttribute = arguments.Binder.GetAttribute(arguments.AttributeSyntax, arguments.AttributeType, hasAnyDiagnostics)
-                If Not boundAttribute.HasErrors Then
-                    obsoleteData = boundAttribute.DecodeDeprecatedAttribute()
-                    If hasAnyDiagnostics Then
-                        boundAttribute = Nothing
-                    End If
-                Else
-                    obsoleteData = Nothing
-                    boundAttribute = Nothing
-                End If
-
-                Return True
-            End If
-
-            boundAttribute = Nothing
-            obsoleteData = Nothing
-            Return False
         End Function
 
         ''' <summary>

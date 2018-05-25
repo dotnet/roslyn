@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Linq;
 using Microsoft.CodeAnalysis.CodeFixes;
@@ -7,15 +7,17 @@ using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.VisualStudio.Composition;
 using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeFixes
 {
+    [UseExportProvider]
     public class ExtensionOrderingTests
     {
-        private readonly ExportProvider _exportProvider = TestExportProvider.ExportProviderWithCSharpAndVisualBasic;
+        private ExportProvider ExportProvider => TestExportProvider.ExportProviderWithCSharpAndVisualBasic;
 
         [ConditionalFact(typeof(x86))]
         public void TestNoCyclesInFixProviders()
@@ -23,7 +25,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeFixes
             // This test will fail if a cycle is detected in the ordering of our code fix providers.
             // If this test fails, you can break the cycle by inspecting and fixing up the contents of
             // any [ExtensionOrder()] attributes present on our code fix providers.
-            var providers = _exportProvider.GetExports<CodeFixProvider, CodeChangeProviderMetadata>();
+            var providers = ExportProvider.GetExports<CodeFixProvider, CodeChangeProviderMetadata>();
             var providersPerLanguage = providers.ToPerLanguageMapWithMultipleLanguages();
 
             var csharpProviders = providersPerLanguage[LanguageNames.CSharp];
@@ -52,7 +54,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeFixes
             // This test will fail if a cycle is detected in the ordering of our suppression fix providers.
             // If this test fails, you can break the cycle by inspecting and fixing up the contents of
             // any [ExtensionOrder()] attributes present on our suppression fix providers.
-            var providers = _exportProvider.GetExports<ISuppressionFixProvider, CodeChangeProviderMetadata>();
+            var providers = ExportProvider.GetExports<ISuppressionFixProvider, CodeChangeProviderMetadata>();
             var providersPerLanguage = providers.ToPerLanguageMapWithMultipleLanguages();
 
             var csharpProviders = providersPerLanguage[LanguageNames.CSharp];
@@ -77,7 +79,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeFixes
             // This test will fail if a cycle is detected in the ordering of our code refactoring providers.
             // If this test fails, you can break the cycle by inspecting and fixing up the contents of
             // any [ExtensionOrder()] attributes present on our code refactoring providers.
-            var providers = _exportProvider.GetExports<CodeRefactoringProvider, CodeChangeProviderMetadata>();
+            var providers = ExportProvider.GetExports<CodeRefactoringProvider, CodeChangeProviderMetadata>();
             var providersPerLanguage = providers.ToPerLanguageMapWithMultipleLanguages();
 
             var csharpProviders = providersPerLanguage[LanguageNames.CSharp];

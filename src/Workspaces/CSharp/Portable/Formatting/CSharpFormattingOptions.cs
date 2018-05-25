@@ -123,7 +123,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
 
         public static Option<BinaryOperatorSpacingOptions> SpacingAroundBinaryOperator { get; } = new Option<BinaryOperatorSpacingOptions>(nameof(CSharpFormattingOptions), nameof(SpacingAroundBinaryOperator), defaultValue: BinaryOperatorSpacingOptions.Single,
             storageLocations: new OptionStorageLocation[] {
-                new EditorConfigStorageLocation<BinaryOperatorSpacingOptions>("csharp_space_around_binary_operators ", s => ParseEditorConfigSpacingAroundBinaryOperator(s)),
+                new EditorConfigStorageLocation<BinaryOperatorSpacingOptions>("csharp_space_around_binary_operators", s => ParseEditorConfigSpacingAroundBinaryOperator(s)),
                 new RoamingProfileStorageLocation("TextEditor.CSharp.Specific.SpacingAroundBinaryOperator")});
 
         public static Option<bool> IndentBraces { get; } = new Option<bool>(nameof(CSharpFormattingOptions), nameof(IndentBraces), defaultValue: false,
@@ -145,6 +145,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             storageLocations: new OptionStorageLocation[] {
                 EditorConfigStorageLocation.ForBoolOption("csharp_indent_case_contents"),
                 new RoamingProfileStorageLocation("TextEditor.CSharp.Specific.IndentSwitchCaseSection")});
+
+        public static Option<bool> IndentSwitchCaseSectionWhenBlock { get; } = new Option<bool>(
+            nameof(CSharpFormattingOptions),
+            nameof(IndentSwitchCaseSectionWhenBlock), defaultValue: true,
+            storageLocations: new OptionStorageLocation[] {
+                EditorConfigStorageLocation.ForBoolOption("csharp_indent_case_contents_when_block"),
+                new RoamingProfileStorageLocation("TextEditor.CSharp.Specific.IndentSwitchCaseSectionWhenBlock")});
 
         public static Option<LabelPositionOptions> LabelPositioning { get; } = new Option<LabelPositionOptions>(nameof(CSharpFormattingOptions), nameof(LabelPositioning), defaultValue: LabelPositionOptions.OneLess,
             storageLocations: new OptionStorageLocation[] {

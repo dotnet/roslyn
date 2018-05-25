@@ -1,8 +1,10 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Reflection.Metadata;
+using System.Reflection.Metadata.Ecma335;
 using System.Text;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE;
@@ -133,18 +135,25 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
         internal override CSharpCompilation GetCompilation(DkmClrModuleInstance moduleInstance)
         {
             var appDomain = moduleInstance.AppDomain;
+            var moduleVersionId = moduleInstance.Mvid;
             var previous = appDomain.GetMetadataContext<CSharpMetadataContext>();
-            var metadataBlocks = moduleInstance.RuntimeInstance.GetMetadataBlocks(appDomain);
+            var metadataBlocks = moduleInstance.RuntimeInstance.GetMetadataBlocks(appDomain, previous.MetadataBlocks);
 
-            CSharpCompilation compilation;
-            if (previous.Matches(metadataBlocks))
+            var kind = GetMakeAssemblyReferencesKind();
+            var contextId = MetadataContextId.GetContextId(moduleVersionId, kind);
+            var assemblyContexts = previous.Matches(metadataBlocks) ? previous.AssemblyContexts : ImmutableDictionary<MetadataContextId, CSharpMetadataContext>.Empty;
+            CSharpMetadataContext previousContext;
+            assemblyContexts.TryGetValue(contextId, out previousContext);
+
+            var compilation = previousContext.Compilation;
+            if (compilation == null)
             {
-                compilation = previous.Compilation;
-            }
-            else
-            {
-                compilation = metadataBlocks.ToCompilation();
-                appDomain.SetMetadataContext(new CSharpMetadataContext(metadataBlocks, compilation));
+                compilation = metadataBlocks.ToCompilation(moduleVersionId, kind);
+                appDomain.SetMetadataContext(
+                    new MetadataContext<CSharpMetadataContext>(
+                        metadataBlocks,
+                        assemblyContexts.SetItem(contextId, new CSharpMetadataContext(compilation))),
+                    report: kind == MakeAssemblyReferencesKind.AllReferences);
             }
 
             return compilation;
@@ -152,7 +161,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
 
         internal override MethodSymbol GetMethod(CSharpCompilation compilation, DkmClrInstructionAddress instructionAddress)
         {
-            return compilation.GetSourceMethod(instructionAddress.ModuleInstance.Mvid, instructionAddress.MethodId.Token);
+            var methodHandle = (MethodDefinitionHandle)MetadataTokens.Handle(instructionAddress.MethodId.Token);
+            return compilation.GetSourceMethod(instructionAddress.ModuleInstance.Mvid, methodHandle);
         }
 
         internal override TypeNameDecoder<PEModuleSymbol, TypeSymbol> GetTypeNameDecoder(CSharpCompilation compilation, MethodSymbol method)

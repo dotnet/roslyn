@@ -71,7 +71,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 if (containingAssembly.IsMissing)
                 {
-                    // error CS0012: The type 'Blah' is defined in an assembly that is not referenced. You must add a reference to assembly 'Foo'.
+                    // error CS0012: The type 'Blah' is defined in an assembly that is not referenced. You must add a reference to assembly 'Goo'.
                     return new CSDiagnosticInfo(ErrorCode.ERR_NoTypeDef, this, containingAssembly.Identity);
                 }
                 else

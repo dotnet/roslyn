@@ -4,6 +4,7 @@ Imports System.Collections.Concurrent
 Imports System.Collections.Immutable
 Imports System.Threading
 Imports Microsoft.Cci
+Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
@@ -361,10 +362,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
             diagnostics As DiagnosticBag,
             Optional needDeclaration As Boolean = False
         ) As Microsoft.Cci.IMethodReference
-            Dim container As NamedTypeSymbol = methodSymbol.ContainingType
-
+            Debug.Assert(Not methodSymbol.IsDefaultValueTypeConstructor())
             Debug.Assert(methodSymbol Is methodSymbol.OriginalDefinition OrElse
                                             Not methodSymbol.Equals(methodSymbol.OriginalDefinition))
+
+            Dim container As NamedTypeSymbol = methodSymbol.ContainingType
 
             ' Method of anonymous type being translated
             If container.IsAnonymousType Then

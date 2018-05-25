@@ -5,6 +5,7 @@ Imports System.Collections.Immutable
 Imports System.Runtime.InteropServices
 Imports System.Text
 Imports System.Threading
+Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
@@ -38,17 +39,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Public MustOverride ReadOnly Property TypeParameters As ImmutableArray(Of TypeParameterSymbol)
 
         ''' <summary>
-        ''' Returns the type arguments that have been substituted for the type parameters. 
-        ''' If nothing has been substituted for a give type parameters,
-        ''' then the type parameter itself is consider the type argument.
-        ''' </summary>
-        Public ReadOnly Property TypeArguments As ImmutableArray(Of TypeSymbol)
-            Get
-                Return TypeArgumentsNoUseSiteDiagnostics
-            End Get
-        End Property
-
-        ''' <summary>
         ''' Returns custom modifiers for the type argument that has been substituted for the type parameter. 
         ''' The modifiers correspond to the type argument at the same ordinal within the <see cref="TypeArgumentsNoUseSiteDiagnostics"/>
         ''' array.
@@ -65,6 +55,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Friend MustOverride ReadOnly Property HasTypeArgumentsCustomModifiers As Boolean
 
+        ''' <summary>
+        ''' Returns the type arguments that have been substituted for the type parameters. 
+        ''' If nothing has been substituted for a give type parameters,
+        ''' then the type parameter itself is consider the type argument.
+        ''' </summary>
         Friend MustOverride ReadOnly Property TypeArgumentsNoUseSiteDiagnostics As ImmutableArray(Of TypeSymbol)
 
         Friend Function TypeArgumentsWithDefinitionUseSiteDiagnostics(<[In], Out> ByRef useSiteDiagnostics As HashSet(Of DiagnosticInfo)) As ImmutableArray(Of TypeSymbol)
@@ -192,7 +187,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' <summary>
         '''  True if this type is considered serializable (metadata flag Serializable is set).
         ''' </summary>
-        Friend MustOverride ReadOnly Property IsSerializable As Boolean
+        Public MustOverride ReadOnly Property IsSerializable As Boolean Implements INamedTypeSymbol.IsSerializable
 
         ''' <summary>
         ''' Type layout information (ClassLayout metadata and layout kind flags).
@@ -271,9 +266,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Public MustOverride ReadOnly Property MightContainExtensionMethods As Boolean Implements INamedTypeSymbol.MightContainExtensionMethods
 
         ''' <summary>
+        ''' Returns True if the type is marked by 'Microsoft.CodeAnalysis.Embedded' attribute. 
+        ''' </summary>
+        Friend MustOverride ReadOnly Property HasCodeAnalysisEmbeddedAttribute As Boolean
+
+        ''' <summary>
         ''' Returns True if the type is marked by 'Microsoft.VisualBasic.Embedded' attribute. 
         ''' </summary>
-        Friend MustOverride ReadOnly Property HasEmbeddedAttribute As Boolean
+        Friend MustOverride ReadOnly Property HasVisualBasicEmbeddedAttribute As Boolean
 
         ''' <summary>
         ''' A Named type is an extensible interface if both the following are true:
@@ -1033,7 +1033,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         ''' <summary>
         ''' True if this is a reference to an <em>unbound</em> generic type.  These occur only
-        ''' within a <code>GetType</code> expression.  A generic type is considered <em>unbound</em>
+        ''' within a <c>GetType</c> expression.  A generic type is considered <em>unbound</em>
         ''' if all of the type argument lists in its fully qualified name are empty.
         ''' Note that the type arguments of an unbound generic type will be returned as error
         ''' types because they do not really have type arguments.  An unbound generic type

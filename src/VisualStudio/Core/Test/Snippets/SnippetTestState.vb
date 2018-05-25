@@ -1,22 +1,24 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Threading
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Completion
 Imports Microsoft.CodeAnalysis.Editor
 Imports Microsoft.CodeAnalysis.Editor.CommandHandlers
-Imports Microsoft.CodeAnalysis.Editor.Commands
 Imports Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
 Imports Microsoft.CodeAnalysis.Editor.Shared.Options
 Imports Microsoft.CodeAnalysis.Editor.UnitTests
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
 Imports Microsoft.CodeAnalysis.Shared.TestHooks
+Imports Microsoft.CodeAnalysis.Test.Utilities
+Imports Microsoft.VisualStudio.Commanding
 Imports Microsoft.VisualStudio.Composition
 Imports Microsoft.VisualStudio.Editor
 Imports Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
 Imports Microsoft.VisualStudio.Shell
 Imports Microsoft.VisualStudio.Text
 Imports Microsoft.VisualStudio.Text.BraceCompletion
+Imports Microsoft.VisualStudio.Text.Editor.Commanding.Commands
 Imports Microsoft.VisualStudio.Text.Operations
 Imports Microsoft.VisualStudio.TextManager.Interop
 Imports Moq
@@ -25,12 +27,13 @@ Imports MSXML
 Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Snippets
     Friend NotInheritable Class SnippetTestState
         Inherits AbstractCommandHandlerTestState
-        Implements IIntelliSenseTestState
 
         Public Sub New(workspaceElement As XElement, languageName As String, startActiveSession As Boolean, extraParts As IEnumerable(Of Type), Optional workspaceKind As String = Nothing)
             MyBase.New(workspaceElement, extraParts:=CreatePartCatalog(extraParts), workspaceKind:=workspaceKind)
 
             Workspace.Options = Workspace.Options.WithChangedOption(InternalFeatureOnOffOptions.Snippets, True)
+
+            SessionTestState = Workspace.GetService(Of IIntelliSenseTestState)
 
             Dim mockEditorAdaptersFactoryService = New Mock(Of IVsEditorAdaptersFactoryService)
             Dim mockSVsServiceProvider = New Mock(Of SVsServiceProvider)
@@ -44,17 +47,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Snippets
                 Dim completionService = DirectCast(Workspace.Services.GetLanguageServices(languageName).GetService(Of CompletionService), CommonCompletionService)
                 completionService.SetTestProviders({snippetProvider})
 
-                Dim asyncCompletionService = New AsyncCompletionService(
-                    GetService(Of IEditorOperationsFactoryService)(),
-                    UndoHistoryRegistry,
-                    GetService(Of IInlineRenameService)(),
-                    New TestCompletionPresenter(Me),
-                    GetExports(Of IAsynchronousOperationListener, FeatureMetadata)(),
-                    GetExports(Of IBraceCompletionSessionProvider, BraceCompletionMetadata)())
-
-                Dim CompletionCommandHandler = New CompletionCommandHandler(asyncCompletionService)
-
-                Me._completionCommandHandler = CompletionCommandHandler
+                _completionCommandHandler = Workspace.GetService(Of CompletionCommandHandler)
             End If
 
             SnippetExpansionClient = New MockSnippetExpansionClient(startActiveSession)
@@ -64,29 +57,24 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Snippets
         Public ReadOnly SnippetCommandHandler As AbstractSnippetCommandHandler
         Private ReadOnly _completionCommandHandler As CompletionCommandHandler
         Private _currentCompletionPresenterSession As TestCompletionPresenterSession
+        Private ReadOnly SessionTestState As IIntelliSenseTestState
+
         Public Property SnippetExpansionClient As MockSnippetExpansionClient
 
         Private Shared Function CreatePartCatalog(types As IEnumerable(Of Type)) As ComposableCatalog
-            Dim extraParts = types.Concat({GetType(SignatureHelpWaiter), GetType(CompletionWaiter)})
-            Return MinimalTestExportProvider.CreateTypeCatalog(extraParts)
+            Return ExportProviderCache.CreateTypeCatalog(types).WithParts(GetType(TestCompletionPresenter), GetType(IntelliSenseTestState))
         End Function
 
-        Public Property CurrentCompletionPresenterSession As TestCompletionPresenterSession Implements IIntelliSenseTestState.CurrentCompletionPresenterSession
+        Friend ReadOnly Property CurrentSignatureHelpPresenterSession As TestSignatureHelpPresenterSession
             Get
-                Return _currentCompletionPresenterSession
+                Return SessionTestState.CurrentSignatureHelpPresenterSession
             End Get
-            Set(value As TestCompletionPresenterSession)
-                _currentCompletionPresenterSession = value
-            End Set
         End Property
 
-        Public Property CurrentSignatureHelpPresenterSession As TestSignatureHelpPresenterSession Implements IIntelliSenseTestState.CurrentSignatureHelpPresenterSession
+        Friend ReadOnly Property CurrentCompletionPresenterSession As TestCompletionPresenterSession
             Get
-                Throw New NotImplementedException()
+                Return SessionTestState.CurrentCompletionPresenterSession
             End Get
-            Set(value As TestSignatureHelpPresenterSession)
-                Throw New NotImplementedException()
-            End Set
         End Property
 
         Public Shared Function CreateTestState(markup As String, languageName As String, Optional startActiveSession As Boolean = False, Optional extraParts As IEnumerable(Of Type) = Nothing) As SnippetTestState
@@ -114,25 +102,38 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Snippets
         End Function
 
         Friend Overloads Sub SendTabToCompletion()
-            Dim handler = DirectCast(_completionCommandHandler, ICommandHandler(Of TabKeyCommandArgs))
+            Dim handler = DirectCast(_completionCommandHandler, IChainedCommandHandler(Of TabKeyCommandArgs))
 
             SendTab(AddressOf handler.ExecuteCommand, AddressOf SendTab)
         End Sub
 
         Friend Overloads Sub SendTab()
-            SendTab(AddressOf SnippetCommandHandler.ExecuteCommand, Function() EditorOperations.InsertText("    "))
+            If Not SendTab(AddressOf SnippetCommandHandler.ExecuteCommand) Then
+                EditorOperations.InsertText("    ")
+            End If
         End Sub
 
         Friend Overloads Sub SendBackTab()
-            SendBackTab(AddressOf SnippetCommandHandler.ExecuteCommand, Function() EditorOperations.Unindent())
+            If Not SendBackTab(AddressOf SnippetCommandHandler.ExecuteCommand) Then
+                EditorOperations.Unindent()
+            End If
         End Sub
 
         Friend Overloads Sub SendReturn()
-            SendReturn(AddressOf SnippetCommandHandler.ExecuteCommand, Function() EditorOperations.InsertNewLine())
+            If Not SendReturn(AddressOf SnippetCommandHandler.ExecuteCommand) Then
+                EditorOperations.InsertNewLine()
+            End If
         End Sub
 
         Friend Overloads Sub SendEscape()
-            SendEscape(AddressOf SnippetCommandHandler.ExecuteCommand, Function() EditorOperations.InsertText("EscapePassedThrough!"))
+            If Not SendEscape(AddressOf SnippetCommandHandler.ExecuteCommand) Then
+                EditorOperations.InsertText("EscapePassedThrough!")
+            End If
+        End Sub
+
+        Public Overloads Sub SendTypeChars(typeChars As String)
+            Dim handler = DirectCast(_completionCommandHandler, IChainedCommandHandler(Of TypeCharCommandArgs))
+            MyBase.SendTypeChars(typeChars, AddressOf handler.ExecuteCommand)
         End Sub
 
         Private Class MockOrderableContentTypeMetadata

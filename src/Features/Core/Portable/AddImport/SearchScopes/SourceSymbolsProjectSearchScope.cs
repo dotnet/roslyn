@@ -8,9 +8,9 @@ using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.FindSymbols.SymbolTree;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
+namespace Microsoft.CodeAnalysis.AddImport
 {
-    internal abstract partial class AbstractAddImportCodeFixProvider<TSimpleNameSyntax>
+    internal abstract partial class AbstractAddImportFeatureService<TSimpleNameSyntax>
     {
         /// <summary>
         /// SearchScope used for searching *only* the source symbols contained within a project/compilation.
@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
             private readonly ConcurrentDictionary<Project, AsyncLazy<IAssemblySymbol>> _projectToAssembly;
 
             public SourceSymbolsProjectSearchScope(
-                AbstractAddImportCodeFixProvider<TSimpleNameSyntax> provider,
+                AbstractAddImportFeatureService<TSimpleNameSyntax> provider,
                 ConcurrentDictionary<Project, AsyncLazy<IAssemblySymbol>> projectToAssembly,
                 Project project, bool ignoreCase, CancellationToken cancellationToken)
                 : base(provider, project, ignoreCase, cancellationToken)
@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
             }
 
             protected override async Task<ImmutableArray<ISymbol>> FindDeclarationsAsync(
-                string name, SymbolFilter filter, SearchQuery searchQuery)
+                SymbolFilter filter, SearchQuery searchQuery)
             {
                 var service = _project.Solution.Workspace.Services.GetService<ISymbolTreeInfoCacheService>();
                 var info = await service.TryGetSourceSymbolTreeInfoAsync(_project, CancellationToken).ConfigureAwait(false);
@@ -45,7 +45,11 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
                 // needed.
                 var lazyAssembly = _projectToAssembly.GetOrAdd(_project, CreateLazyAssembly);
 
-                return await info.FindAsync(searchQuery, lazyAssembly, filter, CancellationToken).ConfigureAwait(false);
+                var declarations = await info.FindAsync(
+                    searchQuery, lazyAssembly, _project.Id,
+                    filter, CancellationToken).ConfigureAwait(false);
+
+                return declarations.SelectAsArray(d => d.Symbol);
             }
 
             private static AsyncLazy<IAssemblySymbol> CreateLazyAssembly(Project project)

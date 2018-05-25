@@ -1,43 +1,45 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis
 {
+    internal enum ObsoleteAttributeKind
+    {
+        None,
+        Uninitialized,
+        Obsolete,
+        Deprecated,
+        Experimental,
+    }
+
     /// <summary>
     /// Information decoded from <see cref="ObsoleteAttribute"/>.
     /// </summary>
-    internal class ObsoleteAttributeData
+    internal sealed class ObsoleteAttributeData
     {
-        private readonly string _message;
-        private readonly bool _isError;
-        public static readonly ObsoleteAttributeData Uninitialized = new ObsoleteAttributeData();
+        public static readonly ObsoleteAttributeData Uninitialized = new ObsoleteAttributeData(ObsoleteAttributeKind.Uninitialized, null, false);
+        public static readonly ObsoleteAttributeData Experimental = new ObsoleteAttributeData(ObsoleteAttributeKind.Experimental, null, false);
 
-        private ObsoleteAttributeData() : this(null, false)
+        public ObsoleteAttributeData(ObsoleteAttributeKind kind, string message, bool isError)
         {
+            Kind = kind;
+            Message = message;
+            IsError = isError;
         }
 
-        public ObsoleteAttributeData(string message, bool isError)
-        {
-            _message = message;
-            _isError = isError;
-        }
+        public readonly ObsoleteAttributeKind Kind;
 
         /// <summary>
         /// True if an error should be thrown for the <see cref="ObsoleteAttribute"/>. Default is false in which case
         /// a warning is thrown.
         /// </summary>
-        public bool IsError { get { return _isError; } }
+        public readonly bool IsError;
 
         /// <summary>
         /// The message that will be shown when an error/warning is created for <see cref="ObsoleteAttribute"/>.
         /// </summary>
-        public string Message { get { return _message; } }
+        public readonly string Message;
 
         internal bool IsUninitialized
         {

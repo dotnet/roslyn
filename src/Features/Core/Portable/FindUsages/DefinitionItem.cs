@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.Completion;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.FindUsages
 {
@@ -18,11 +19,40 @@ namespace Microsoft.CodeAnalysis.FindUsages
     /// </summary>
     internal abstract partial class DefinitionItem
     {
+        // Existing behavior is to do up to two lookups for 3rd party navigation for FAR.  One
+        // for the symbol itself and one for a 'fallback' symbol.  For example, if we're FARing
+        // on a constructor, then the fallback symbol will be the actual type that the constructor
+        // is contained within.
+        internal const string RQNameKey1 = nameof(RQNameKey1);
+        internal const string RQNameKey2 = nameof(RQNameKey2);
+
+        /// <summary>
+        /// For metadata symbols we encode information in the <see cref="Properties"/> so we can 
+        /// retrieve the symbol later on when navigating.  This is needed so that we can go to
+        /// metadata-as-source for metadata symbols.  We need to store the <see cref="SymbolKey"/>
+        /// for the symbol and the project ID that originated the symbol.  With these we can correctly recover the symbol.
+        /// </summary>
+        private const string MetadataSymbolKey = nameof(MetadataSymbolKey);
+        private const string MetadataSymbolOriginatingProjectIdGuid = nameof(MetadataSymbolOriginatingProjectIdGuid);
+        private const string MetadataSymbolOriginatingProjectIdDebugName = nameof(MetadataSymbolOriginatingProjectIdDebugName);
+
+        /// <summary>
+        /// If this item is something that cannot be navigated to.  We store this in our
+        /// <see cref="Properties"/> to act as an explicit marker that navigation is not possible.
+        /// </summary>
+        private const string NonNavigable = nameof(NonNavigable);
+
         /// <summary>
         /// Descriptive tags from <see cref="CompletionTags"/>. These tags may influence how the 
         /// item is displayed.
         /// </summary>
         public ImmutableArray<string> Tags { get; }
+
+        /// <summary>
+        /// Additional properties that can be attached to the definition for clients that want to
+        /// keep track of additional data.
+        /// </summary>
+        public ImmutableDictionary<string, string> Properties { get; }
 
         /// <summary>
         /// The DisplayParts just for the name of this definition.  Generally used only for 
@@ -66,26 +96,34 @@ namespace Microsoft.CodeAnalysis.FindUsages
             ImmutableArray<string> tags,
             ImmutableArray<TaggedText> displayParts,
             ImmutableArray<TaggedText> nameDisplayParts,
-            ImmutableArray<TaggedText> originationParts = default(ImmutableArray<TaggedText>),
-            ImmutableArray<DocumentSpan> sourceSpans = default(ImmutableArray<DocumentSpan>),
-            bool displayIfNoReferences = true)
+            ImmutableArray<TaggedText> originationParts,
+            ImmutableArray<DocumentSpan> sourceSpans,
+            ImmutableDictionary<string, string> properties,
+            bool displayIfNoReferences)
         {
             Tags = tags;
             DisplayParts = displayParts;
             NameDisplayParts = nameDisplayParts.IsDefaultOrEmpty ? displayParts : nameDisplayParts;
             OriginationParts = originationParts.NullToEmpty();
             SourceSpans = sourceSpans.NullToEmpty();
+            Properties = properties ?? ImmutableDictionary<string, string>.Empty;
             DisplayIfNoReferences = displayIfNoReferences;
+
+            if (Properties.ContainsKey(MetadataSymbolKey))
+            {
+                Contract.ThrowIfFalse(Properties.ContainsKey(MetadataSymbolOriginatingProjectIdGuid));
+                Contract.ThrowIfFalse(Properties.ContainsKey(MetadataSymbolOriginatingProjectIdDebugName));
+            }
         }
 
-        public abstract bool CanNavigateTo();
-        public abstract bool TryNavigateTo();
+        public abstract bool CanNavigateTo(Workspace workspace);
+        public abstract bool TryNavigateTo(Workspace workspace, bool isPreview);
 
         public static DefinitionItem Create(
             ImmutableArray<string> tags,
             ImmutableArray<TaggedText> displayParts,
             DocumentSpan sourceSpan,
-            ImmutableArray<TaggedText> nameDisplayParts = default(ImmutableArray<TaggedText>),
+            ImmutableArray<TaggedText> nameDisplayParts = default,
             bool displayIfNoReferences = true)
         {
             return Create(
@@ -93,11 +131,25 @@ namespace Microsoft.CodeAnalysis.FindUsages
                 nameDisplayParts, displayIfNoReferences);
         }
 
+        // Kept around for binary compat with F#/TypeScript.
         public static DefinitionItem Create(
             ImmutableArray<string> tags,
             ImmutableArray<TaggedText> displayParts,
             ImmutableArray<DocumentSpan> sourceSpans,
-            ImmutableArray<TaggedText> nameDisplayParts = default(ImmutableArray<TaggedText>),
+            ImmutableArray<TaggedText> nameDisplayParts,
+            bool displayIfNoReferences)
+        {
+            return Create(
+                tags, displayParts, sourceSpans, nameDisplayParts,
+                properties: null, displayIfNoReferences: displayIfNoReferences);
+        }
+
+        public static DefinitionItem Create(
+            ImmutableArray<string> tags,
+            ImmutableArray<TaggedText> displayParts,
+            ImmutableArray<DocumentSpan> sourceSpans,
+            ImmutableArray<TaggedText> nameDisplayParts = default,
+            ImmutableDictionary<string, string> properties = null,
             bool displayIfNoReferences = true)
         {
             if (sourceSpans.Length == 0)
@@ -105,30 +157,70 @@ namespace Microsoft.CodeAnalysis.FindUsages
                 throw new ArgumentException($"{nameof(sourceSpans)} cannot be empty.");
             }
 
-            return new DocumentLocationDefinitionItem(
-                tags, displayParts, nameDisplayParts, sourceSpans, displayIfNoReferences);
+            var firstDocument = sourceSpans[0].Document;
+            var originationParts = ImmutableArray.Create(
+                new TaggedText(TextTags.Text, firstDocument.Project.Name));
+
+            return new DefaultDefinitionItem(
+                tags, displayParts, nameDisplayParts, originationParts,
+                sourceSpans, properties, displayIfNoReferences);
         }
 
         internal static DefinitionItem CreateMetadataDefinition(
             ImmutableArray<string> tags,
             ImmutableArray<TaggedText> displayParts,
             ImmutableArray<TaggedText> nameDisplayParts,
-            Solution solution, ISymbol symbol,
+            Project project,
+            ISymbol symbol,
+            ImmutableDictionary<string, string> properties = null,
             bool displayIfNoReferences = true)
         {
-            return new MetadataDefinitionItem(
-                tags, displayParts, nameDisplayParts, 
-                displayIfNoReferences, solution, symbol);
+            properties = properties ?? ImmutableDictionary<string, string>.Empty;
+
+            var symbolKey = symbol.GetSymbolKey().ToString();
+
+            properties = properties.Add(MetadataSymbolKey, symbolKey)
+                                   .Add(MetadataSymbolOriginatingProjectIdGuid, project.Id.Id.ToString())
+                                   .Add(MetadataSymbolOriginatingProjectIdDebugName, project.Id.DebugName);
+
+            var originationParts = GetOriginationParts(symbol);
+            return new DefaultDefinitionItem(
+                tags, displayParts, nameDisplayParts, originationParts,
+                sourceSpans: ImmutableArray<DocumentSpan>.Empty,
+                properties: properties,
+                displayIfNoReferences: displayIfNoReferences);
+        }
+
+        // Kept around for binary compat with F#/TypeScript.
+        public static DefinitionItem CreateNonNavigableItem(
+            ImmutableArray<string> tags,
+            ImmutableArray<TaggedText> displayParts,
+            ImmutableArray<TaggedText> originationParts,
+            bool displayIfNoReferences)
+        {
+            return CreateNonNavigableItem(
+                tags, displayParts, originationParts,
+                properties: null, displayIfNoReferences: displayIfNoReferences);
         }
 
         public static DefinitionItem CreateNonNavigableItem(
             ImmutableArray<string> tags,
             ImmutableArray<TaggedText> displayParts,
-            ImmutableArray<TaggedText> originationParts = default(ImmutableArray<TaggedText>),
+            ImmutableArray<TaggedText> originationParts = default,
+            ImmutableDictionary<string, string> properties = null,
             bool displayIfNoReferences = true)
         {
-            return new NonNavigatingDefinitionItem(
-                tags, displayParts, originationParts, displayIfNoReferences);
+            properties = properties ?? ImmutableDictionary<string, string>.Empty;
+            properties = properties.Add(NonNavigable, "");
+
+            return new DefaultDefinitionItem(
+                tags: tags, 
+                displayParts: displayParts,
+                nameDisplayParts: ImmutableArray<TaggedText>.Empty,
+                originationParts: originationParts,
+                sourceSpans: ImmutableArray<DocumentSpan>.Empty,
+                properties: properties,
+                displayIfNoReferences: displayIfNoReferences);
         }
 
         internal static ImmutableArray<TaggedText> GetOriginationParts(ISymbol symbol)

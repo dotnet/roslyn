@@ -1,4 +1,4 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Host
@@ -18,8 +18,8 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Snippets
         Inherits AbstractSnippetInfoService
 
         <ImportingConstructor>
-        Public Sub New(serviceProvider As SVsServiceProvider, <ImportMany> asyncListeners As IEnumerable(Of Lazy(Of IAsynchronousOperationListener, FeatureMetadata)))
-            MyBase.New(serviceProvider, Guids.VisualBasicDebuggerLanguageId, asyncListeners)
+        Public Sub New(serviceProvider As SVsServiceProvider, listenerProvider As IAsynchronousOperationListenerProvider)
+            MyBase.New(serviceProvider, Guids.VisualBasicDebuggerLanguageId, listenerProvider)
         End Sub
     End Class
 End Namespace

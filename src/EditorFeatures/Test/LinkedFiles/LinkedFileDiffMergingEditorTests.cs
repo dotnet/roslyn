@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Linq;
@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.LinkedFiles
         protected override CodeRefactoringProvider CreateCodeRefactoringProvider(Workspace workspace, TestParameters parameters)
             => new TestCodeRefactoringProvider();
 
-        [WpfFact]
+        [WpfFact(Skip = "https://github.com/dotnet/roslyn/issues/20370")]
         public async Task TestCodeActionPreviewAndApply()
         {
             using (var workspace = TestWorkspace.Create(WorkspaceXml))
@@ -39,11 +39,10 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.LinkedFiles
 
                 var expectedCode = "private class D { }";
 
-                await TestActionsOnLinkedFiles(
+                await TestActionOnLinkedFiles(
                     workspace,
                     expectedText: expectedCode,
-                    index: 0,
-                    actions: codeIssueOrRefactoring.Actions,
+                    action: codeIssueOrRefactoring.Actions[0],
                     expectedPreviewContents: expectedCode);
             }
         }

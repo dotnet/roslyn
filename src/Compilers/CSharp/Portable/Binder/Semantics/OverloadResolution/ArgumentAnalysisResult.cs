@@ -2,9 +2,6 @@
 
 using System.Collections.Immutable;
 using System.Diagnostics;
-using Microsoft.CodeAnalysis.CSharp.Symbols;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -60,9 +57,19 @@ namespace Microsoft.CodeAnalysis.CSharp
             return new ArgumentAnalysisResult(ArgumentAnalysisResultKind.NoCorrespondingNamedParameter, argumentPosition, 0, default(ImmutableArray<int>));
         }
 
+        public static ArgumentAnalysisResult DuplicateNamedArgument(int argumentPosition)
+        {
+            return new ArgumentAnalysisResult(ArgumentAnalysisResultKind.DuplicateNamedArgument, argumentPosition, 0, default(ImmutableArray<int>));
+        }
+
         public static ArgumentAnalysisResult RequiredParameterMissing(int parameterPosition)
         {
             return new ArgumentAnalysisResult(ArgumentAnalysisResultKind.RequiredParameterMissing, 0, parameterPosition, default(ImmutableArray<int>));
+        }
+
+        public static ArgumentAnalysisResult BadNonTrailingNamedArgument(int argumentPosition)
+        {
+            return new ArgumentAnalysisResult(ArgumentAnalysisResultKind.BadNonTrailingNamedArgument, argumentPosition, 0, default(ImmutableArray<int>));
         }
 
         public static ArgumentAnalysisResult NormalForm(ImmutableArray<int> argsToParamsOpt)
@@ -90,6 +97,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ArgumentAnalysisResultKind.NameUsedForPositional:
                     s += "Invalid because argument " + ArgumentPosition + " had a name.";
                     break;
+                case ArgumentAnalysisResultKind.DuplicateNamedArgument:
+                    s += "Invalid because named argument " + ArgumentPosition + " was specified twice.";
+                    break;
                 case ArgumentAnalysisResultKind.NoCorrespondingParameter:
                     s += "Invalid because argument " + ArgumentPosition + " has no corresponding parameter.";
                     break;
@@ -98,6 +108,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                     break;
                 case ArgumentAnalysisResultKind.RequiredParameterMissing:
                     s += "Invalid because parameter " + ParameterPosition + " has no corresponding argument.";
+                    break;
+                case ArgumentAnalysisResultKind.BadNonTrailingNamedArgument:
+                    s += "Invalid because named argument " + ParameterPosition + " is used out of position but some following argument(s) are not named.";
                     break;
             }
 

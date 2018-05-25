@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Composition;
@@ -95,9 +95,9 @@ namespace Microsoft.VisualStudio.LanguageServices
                                 _workspace.Options = _workspace.Options.WithChangedOption(RuntimeOptions.FullSolutionAnalysisInfoBarShown, true);
 
                                 _workspace.Services.GetService<IErrorReportingService>().ShowGlobalErrorInfo(ServicesVSResources.Visual_Studio_has_suspended_some_advanced_features_to_improve_performance,
-                                    new ErrorReportingUI(ServicesVSResources.Re_enable, ErrorReportingUI.UIKind.Button, () =>
+                                    new InfoBarUI(ServicesVSResources.Re_enable, InfoBarUI.UIKind.Button, () =>
                                         _workspace.Options = _workspace.Options.WithChangedOption(RuntimeOptions.FullSolutionAnalysis, true)),
-                                    new ErrorReportingUI(ServicesVSResources.Learn_more, ErrorReportingUI.UIKind.HyperLink, () =>
+                                    new InfoBarUI(ServicesVSResources.Learn_more, InfoBarUI.UIKind.HyperLink, () =>
                                         BrowserHelper.StartBrowser(new Uri(LowVMMoreInfoLink)), closeAfterAction: false));
                             }
                         }

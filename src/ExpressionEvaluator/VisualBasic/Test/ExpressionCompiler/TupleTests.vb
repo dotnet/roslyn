@@ -6,6 +6,7 @@ Imports System.IO
 Imports Microsoft.CodeAnalysis.CodeGen
 Imports Microsoft.CodeAnalysis.ExpressionEvaluator
 Imports Microsoft.CodeAnalysis.ExpressionEvaluator.UnitTests
+Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.UnitTests
@@ -28,7 +29,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator.UnitTests
         Dim o As (Integer, Integer)
     End Sub
 End Class"
-            Dim comp = CreateCompilationWithMscorlib({source}, references:={ValueTupleRef, SystemRuntimeFacadeRef}, options:=TestOptions.DebugDll)
+            Dim comp = CreateCompilationWithMscorlib40({source}, references:={ValueTupleRef, SystemRuntimeFacadeRef}, options:=TestOptions.DebugDll)
             WithRuntimeInstance(comp, {MscorlibRef, ValueTupleRef, SystemRuntimeFacadeRef},
                 Sub(runtime)
                     Dim context = CreateMethodContext(runtime, "C.M")
@@ -51,7 +52,7 @@ End Class"
                     Dim methodData = testData.GetMethodData("<>x.<>m0")
                     Dim method = methodData.Method
                     Assert.True(method.ReturnType.IsTupleType)
-                    Assert.NotNull(GetTupleElementNamesAttributeIfAny(method))
+                    CheckAttribute(result.Assembly, method, AttributeDescription.TupleElementNamesAttribute, expected:=True)
                     methodData.VerifyIL(
 "{
   // Code size        8 (0x8)
@@ -97,7 +98,7 @@ Namespace System.Reflection
 End Namespace
 "
 
-            Dim corlibWithoutVT = CreateCompilation({String.Format(versionTemplate, "1") + corlib_vb}, options:=TestOptions.DebugDll, assemblyName:="corlib")
+            Dim corlibWithoutVT = CreateEmptyCompilation({String.Format(versionTemplate, "1") + corlib_vb}, options:=TestOptions.DebugDll, assemblyName:="corlib")
             corlibWithoutVT.AssertTheseDiagnostics()
             Dim corlibWithoutVTRef = corlibWithoutVT.EmitToImageReference()
 
@@ -113,7 +114,7 @@ Namespace System
 End Namespace
 "
 
-            Dim corlibWithVT = CreateCompilation({String.Format(versionTemplate, "2") + corlib_vb + valuetuple_vb}, options:=TestOptions.DebugDll, assemblyName:="corlib")
+            Dim corlibWithVT = CreateEmptyCompilation({String.Format(versionTemplate, "2") + corlib_vb + valuetuple_vb}, options:=TestOptions.DebugDll, assemblyName:="corlib")
             corlibWithVT.AssertTheseDiagnostics()
 
             Const source As String =
@@ -124,7 +125,7 @@ End Namespace
     End Function
 End Class"
 
-            Dim app = CreateCompilation(source + valuetuple_vb, references:={corlibWithoutVTRef}, options:=TestOptions.DebugDll)
+            Dim app = CreateEmptyCompilation(source + valuetuple_vb, references:={corlibWithoutVTRef}, options:=TestOptions.DebugDll)
             app.AssertTheseDiagnostics()
 
             Dim runtime = CreateRuntimeInstance({app.ToModuleInstance(), corlibWithVT.ToModuleInstance()})
@@ -142,9 +143,9 @@ End Class"
                 Dim appRef = app.Assembly.Identity.Name
                 AssertEx.SetEqual({"corlib 2.0", appRef + " 0.0"}, reader.DumpAssemblyReferences())
 
-                AssertEx.SetEqual({"Object, System, AssemblyRef:corlib",
-                    "ValueTuple`2, System, AssemblyRef:" + appRef, ' ValueTuple comes from app, not corlib
-                    ", System, AssemblyRef:" + appRef},
+                AssertEx.SetEqual({"Object, System, AssemblyReference:corlib",
+                    "ValueTuple`2, System, AssemblyReference:" + appRef, ' ValueTuple comes from app, not corlib
+                    ", System, AssemblyReference:" + appRef},
                     reader.DumpTypeReferences())
             End Using
         End Sub
@@ -167,7 +168,7 @@ Class C
         Dim o As (Integer, Integer)
     End Sub
 End Class"
-            Dim comp = CreateCompilationWithMscorlib({source}, options:=TestOptions.DebugDll)
+            Dim comp = CreateCompilationWithMscorlib40({source}, options:=TestOptions.DebugDll)
             WithRuntimeInstance(comp,
                 Sub(runtime)
                     Dim context = CreateMethodContext(runtime, "C.M")
@@ -186,7 +187,7 @@ End Class"
                     Dim methodData = testData.GetMethodData("<>x.<>m0")
                     Dim method = methodData.Method
                     Assert.True(method.ReturnType.IsTupleType)
-                    Assert.Null(GetTupleElementNamesAttributeIfAny(method))
+                    CheckAttribute(result.Assembly, method, AttributeDescription.TupleElementNamesAttribute, expected:=False)
                     methodData.VerifyIL(
 "{
   // Code size        8 (0x8)
@@ -227,7 +228,7 @@ End Class"
                     CustomTypeInfo.Decode(typeInfoId, typeInfo, dynamicFlags, tupleElementNames)
                     Assert.Equal({"A", "B"}, tupleElementNames)
                     Dim method = testData.Methods.Single().Value.Method
-                    Assert.NotNull(GetTupleElementNamesAttributeIfAny(method))
+                    CheckAttribute(assembly, method, AttributeDescription.TupleElementNamesAttribute, expected:=True)
                     Assert.True(method.ReturnType.IsTupleType)
                     VerifyLocal(testData, typeName, locals(0), "<>m0", "o", expectedILOpt:=
 "{
@@ -275,7 +276,7 @@ class C
                     CustomTypeInfo.Decode(typeInfoId, typeInfo, dynamicFlags, tupleElementNames)
                     Assert.Equal({Nothing, "A", "B", Nothing}, tupleElementNames)
                     Dim method = DirectCast(testData.Methods.Single().Value.Method, MethodSymbol)
-                    Assert.NotNull(GetTupleElementNamesAttributeIfAny(method))
+                    CheckAttribute(assembly, method, AttributeDescription.TupleElementNamesAttribute, expected:=True)
                     Dim returnType = method.ReturnType
                     Assert.False(returnType.IsTupleType)
                     Assert.True(returnType.ContainsTuple())
@@ -299,7 +300,7 @@ class C
         Dim x = (1, 2, 3, 4, 5, 6, 7, 8)
     End Sub
 End Class"
-            Dim comp = CreateCompilationWithMscorlib({source}, references:={SystemRuntimeFacadeRef, ValueTupleRef}, options:=TestOptions.DebugDll)
+            Dim comp = CreateCompilationWithMscorlib40({source}, references:={SystemRuntimeFacadeRef, ValueTupleRef}, options:=TestOptions.DebugDll)
             WithRuntimeInstance(comp,
                 {MscorlibRef, SystemCoreRef, SystemRuntimeFacadeRef, ValueTupleRef},
                 Sub(runtime)
@@ -336,7 +337,7 @@ End Class"
         Dim x = (1, 2, Three:=3, Four:=4, 5, 6, 7, Eight:=8)
     End Sub
 End Class"
-            Dim comp = CreateCompilationWithMscorlib({source}, references:={SystemRuntimeFacadeRef, ValueTupleRef}, options:=TestOptions.DebugDll)
+            Dim comp = CreateCompilationWithMscorlib40({source}, references:={SystemRuntimeFacadeRef, ValueTupleRef}, options:=TestOptions.DebugDll)
             WithRuntimeInstance(comp,
                 {MscorlibRef, SystemCoreRef, SystemRuntimeFacadeRef, ValueTupleRef},
                 Sub(runtime)
@@ -379,7 +380,7 @@ End Class"
         Dim x = (1, 2)
     End Sub
 End Class"
-            Dim comp = CreateCompilationWithMscorlib({source}, references:={ValueTupleRef, SystemRuntimeFacadeRef}, options:=TestOptions.DebugDll)
+            Dim comp = CreateCompilationWithMscorlib40({source}, references:={ValueTupleRef, SystemRuntimeFacadeRef}, options:=TestOptions.DebugDll)
             WithRuntimeInstance(comp, references:={MscorlibRef, ValueTupleRef, SystemRuntimeFacadeRef},
                 validator:=Sub(runtime)
                                Dim context = CreateMethodContext(runtime, "C.M")
@@ -397,7 +398,7 @@ End Class"
                                Assert.Null(typeInfo)
                                Dim methodData = testData.GetMethodData("<>x.<>m0")
                                Dim method = methodData.Method
-                               Assert.Null(GetTupleElementNamesAttributeIfAny(method))
+                               CheckAttribute(result.Assembly, method, AttributeDescription.TupleElementNamesAttribute, expected:=False)
                                methodData.VerifyIL(
            "{
   // Code size       48 (0x30)
@@ -431,7 +432,7 @@ End Class"
     Shared Sub M()
     End Sub
 End Class"
-            Dim comp = CreateCompilationWithMscorlib({source}, references:={ValueTupleRef, SystemRuntimeFacadeRef}, options:=TestOptions.DebugDll)
+            Dim comp = CreateCompilationWithMscorlib40({source}, references:={ValueTupleRef, SystemRuntimeFacadeRef}, options:=TestOptions.DebugDll)
             WithRuntimeInstance(comp, {MscorlibRef, ValueTupleRef, SystemRuntimeFacadeRef},
                 Sub(runtime)
                     Dim context = CreateMethodContext(runtime, "C.M")
@@ -464,7 +465,7 @@ End Class"
                     CustomTypeInfo.Decode(typeInfoId, typeInfo, dynamicFlags, tupleElementNames)
                     Assert.Equal(aliasElementNames, tupleElementNames)
                     Dim method = testData.Methods.Single().Value.Method
-                    Assert.NotNull(GetTupleElementNamesAttributeIfAny(method))
+                    CheckAttribute(assembly, method, AttributeDescription.TupleElementNamesAttribute, expected:=True)
                     Dim returnType = DirectCast(method.ReturnType, TypeSymbol)
                     Assert.False(returnType.IsTupleType)
                     Assert.True(DirectCast(returnType, ArrayTypeSymbol).ElementType.IsTupleType)
@@ -490,7 +491,7 @@ End Class"
     Shared Sub M()
     End Sub
 End Class"
-            Dim comp = CreateCompilationWithMscorlib({source}, references:={SystemRuntimeFacadeRef, ValueTupleRef}, options:=TestOptions.DebugDll)
+            Dim comp = CreateCompilationWithMscorlib40({source}, references:={SystemRuntimeFacadeRef, ValueTupleRef}, options:=TestOptions.DebugDll)
             WithRuntimeInstance(comp,
                 {MscorlibRef, SystemCoreRef, SystemRuntimeFacadeRef, ValueTupleRef},
                 Sub(runtime)

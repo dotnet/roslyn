@@ -1,7 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using Microsoft.CodeAnalysis.CSharp.Symbols;
-using System.Diagnostics;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -35,9 +34,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (fieldSymbol.IsFixed)
             {
                 // a reference to a fixed buffer is translated into its address
-                result = new BoundConversion(syntax,
-                    new BoundAddressOfOperator(syntax, result, syntax != null && SyntaxFacts.IsFixedStatementExpression(syntax), type, false),
-                    Conversion.PointerToPointer, false, false, default(ConstantValue), type, false);
+                result = new BoundAddressOfOperator(syntax, result, type, false);
             }
 
             return result;
@@ -67,6 +64,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return _factory.BadExpression(tupleField.Type);
             }
 
+            if (rewrittenReceiver.Kind == BoundKind.DefaultExpression)
+            {
+                // Optimization: `default((int, string)).Item2` is simply `default(string)`
+                return new BoundDefaultExpression(syntax, tupleField.Type);
+            }
+
             if (underlyingField.ContainingType != currentLinkType)
             {
                 WellKnownMember wellKnownTupleRest = TupleTypeSymbol.GetTupleTypeMember(TupleTypeSymbol.RestPosition, TupleTypeSymbol.RestPosition);
@@ -91,6 +94,21 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // make a field access for the most local access
             return _factory.Field(rewrittenReceiver, underlyingField);
+        }
+
+        private BoundExpression MakeTupleFieldAccessAndReportUseSiteDiagnostics(BoundExpression tuple, SyntaxNode syntax, FieldSymbol field)
+        {
+            // Use default field rather than implicitly named fields since
+            // fields from inferred names are not usable in C# 7.0.
+            field = field.CorrespondingTupleField ?? field;
+
+            DiagnosticInfo useSiteInfo = field.GetUseSiteDiagnostic();
+            if ((object)useSiteInfo != null && useSiteInfo.Severity == DiagnosticSeverity.Error)
+            {
+                Symbol.ReportUseSiteDiagnostic(useSiteInfo, _diagnostics, syntax.Location);
+            }
+
+            return MakeTupleFieldAccess(syntax, field, tuple, null, LookupResultKind.Empty);
         }
     }
 }

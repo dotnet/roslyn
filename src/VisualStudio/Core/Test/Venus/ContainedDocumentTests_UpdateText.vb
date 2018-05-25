@@ -1,4 +1,4 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 #If False Then
 Imports Microsoft.CodeAnalysis.Editor.UnitTests
@@ -387,7 +387,7 @@ b
         ''' the file, we want to make sure to NOT replace where the boundaries between the projected
         ''' spans are.  In expression scenarios (Razor inline "@" expressions, and &lt;%= or &lt;%:
         ''' nuggets for aspx files, they end up generating code like:
-        '''     #line "Foo.aspx", 3
+        '''     #line "Goo.aspx", 3
         '''         __o = |expr|;
         '''     
         '''     #line default
@@ -405,18 +405,18 @@ class C
 {
     static void M()
     {
-#line "Foo", 1
+#line "Goo", 1
         [|foreach (var item in new[] { 1, 2, 3 })
         {|]
 
 #line default
 #line hidden
-#line "Foo", 2
+#line "Goo", 2
             __o = [|item|]
 
 #line default
 #line hidden
-#line "Foo", 3
+#line "Goo", 3
         [|}|]
 
 #line default
@@ -430,18 +430,18 @@ class C
 {
     static void M()
     {
-#line "Foo", 1
+#line "Goo", 1
         [|foreach (var itemss in new[] { 1, 2, 3 })
         {
 
 |]#line default
 #line hidden
-#line "Foo", 2
+#line "Goo", 2
             [|__o = itemss;
 
 |]#line default
 #line hidden
-#line "Foo", 3
+#line "Goo", 3
         [|}
 
 |]#line default
@@ -463,7 +463,7 @@ class C
 {
     static void M()
     {
-#line "Foo", 1
+#line "Goo", 1
         </text>.NormalizedValue),
                 New TextChange(TextSpan.FromBounds(66, 116), <text>foreach (var itemss in new[] { 1, 2, 3 })
         {
@@ -471,12 +471,12 @@ class C
 </text>.NormalizedValue),
                 New TextChange(TextSpan.FromBounds(116, 165), <text>#line default
 #line hidden
-#line "Foo", 2
+#line "Goo", 2
             </text>.NormalizedValue),
                 New TextChange(TextSpan.FromBounds(183, 187), <text>itemss</text>.NormalizedValue),
                 New TextChange(TextSpan.FromBounds(187, 236), <text>#line default
 #line hidden
-#line "Foo", 3
+#line "Goo", 3
         </text>.NormalizedValue),
                 New TextChange(TextSpan.FromBounds(244, 245), <text>}
 

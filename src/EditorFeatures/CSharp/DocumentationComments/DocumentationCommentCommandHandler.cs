@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Generic;
 using System.ComponentModel.Composition;
@@ -13,10 +13,13 @@ using Microsoft.CodeAnalysis.Editor.Implementation.DocumentationComments;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.VisualStudio.Text.Operations;
 using Microsoft.VisualStudio.Utilities;
+using VSCommanding = Microsoft.VisualStudio.Commanding;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.DocumentationComments
 {
-    [ExportCommandHandler(PredefinedCommandHandlerNames.DocumentationComments, ContentTypeNames.CSharpContentType)]
+    [Export(typeof(VSCommanding.ICommandHandler))]
+    [ContentType(ContentTypeNames.CSharpContentType)]
+    [Name(PredefinedCommandHandlerNames.DocumentationComments)]
     [Order(After = PredefinedCommandHandlerNames.Rename)]
     [Order(After = PredefinedCommandHandlerNames.Completion)]
     internal class DocumentationCommentCommandHandler
@@ -159,7 +162,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.DocumentationComments
             }
 
             return syntaxTree.GetRoot(cancellationToken).FindTokenOnLeftOfPosition(
-                position - 1, includeDirectives: true, includeDocumentationComments: true);
+                position - 1, includeDirectives: true, includeDocumentationComments: true, includeSkipped: true);
         }
 
         protected override bool IsDocCommentNewLine(SyntaxToken token)
@@ -285,5 +288,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.DocumentationComments
         {
             get { return true; }
         }
+
+        internal override bool HasSkippedTrailingTrivia(SyntaxToken token) => token.TrailingTrivia.Any(t => t.Kind() == SyntaxKind.SkippedTokensTrivia);
     }
 }

@@ -1,9 +1,0 @@
-{
-  "dependencies": {
-    "Microsoft.VisualStudio.Language.Intellisense": "15.0.26201-alpha",
-    "Microsoft.VisualStudio.Text.UI.Wpf": "15.0.26201-alpha"
-  },
-  "frameworks": {
-    "net46": {}
-  }
-}

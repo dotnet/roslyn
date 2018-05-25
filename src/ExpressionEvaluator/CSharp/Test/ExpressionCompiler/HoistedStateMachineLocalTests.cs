@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Immutable;
@@ -7,6 +7,7 @@ using Microsoft.CodeAnalysis.CodeGen;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.ExpressionEvaluator;
 using Microsoft.CodeAnalysis.ExpressionEvaluator.UnitTests;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.DiaSymReader;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -104,7 +105,7 @@ class C
 }}
 ";
 
-            var comp = CreateCompilationWithMscorlib(source, options: TestOptions.DebugDll, assemblyName: GetUniqueName());
+            var comp = CreateCompilation(source, options: TestOptions.DebugDll, assemblyName: GetUniqueName());
             WithRuntimeInstance(comp, runtime =>
             {
                 EvaluationContext context;
@@ -1355,7 +1356,7 @@ class C
         }
     }
 }";
-            var compilation0 = CreateCompilationWithMscorlib(source, options: TestOptions.DebugDll);
+            var compilation0 = CreateCompilation(source, options: TestOptions.DebugDll);
             WithRuntimeInstance(compilation0, runtime =>
             {
                 ImmutableArray<MetadataBlock> blocks;
@@ -1365,16 +1366,18 @@ class C
                 int localSignatureToken;
                 GetContextState(runtime, "C.<M>d__0.MoveNext", out blocks, out moduleVersionId, out symReader, out methodToken, out localSignatureToken);
 
+                var appDomain = new AppDomain();
                 uint ilOffset = ExpressionCompilerTestHelpers.GetOffset(methodToken, symReader, atLineNumber: 100);
-                var context = EvaluationContext.CreateMethodContext(
-                    default(CSharpMetadataContext),
+                var context = CreateMethodContext(
+                    appDomain,
                     blocks,
                     symReader,
                     moduleVersionId,
                     methodToken: methodToken,
                     methodVersion: 1,
                     ilOffset: ilOffset,
-                    localSignatureToken: localSignatureToken);
+                    localSignatureToken: localSignatureToken,
+                    kind: MakeAssemblyReferencesKind.AllAssemblies);
 
                 string error;
                 context.CompileExpression("x", out error);
@@ -1383,15 +1386,16 @@ class C
                 Assert.Equal("error CS0103: The name 'y' does not exist in the current context", error);
 
                 ilOffset = ExpressionCompilerTestHelpers.GetOffset(methodToken, symReader, atLineNumber: 200);
-                context = EvaluationContext.CreateMethodContext(
-                    new CSharpMetadataContext(blocks, context),
+                context = CreateMethodContext(
+                    appDomain,
                     blocks,
                     symReader,
                     moduleVersionId,
                     methodToken: methodToken,
                     methodVersion: 1,
                     ilOffset: ilOffset,
-                    localSignatureToken: localSignatureToken);
+                    localSignatureToken: localSignatureToken,
+                    kind: MakeAssemblyReferencesKind.AllAssemblies);
 
                 context.CompileExpression("x", out error);
                 Assert.Null(error);

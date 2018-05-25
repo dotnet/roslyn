@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using Roslyn.VisualStudio.Setup;
 
@@ -27,6 +27,7 @@ using Roslyn.VisualStudio.Setup;
 //[assembly: ProvideDependencyBindingRedirection("System.Text.Encoding.dll")] // no implementation assembly for net46
 //[assembly: ProvideDependencyBindingRedirection("System.Text.Encoding.Extensions.dll")] // no implementation assembly for net46
 //[assembly: ProvideDependencyBindingRedirection("System.Text.RegularExpressions.dll")] // no implementation assembly for net46
+[assembly: ProvideDependencyBindingRedirection("System.Threading.Tasks.Extensions.dll")]
 //[assembly: ProvideDependencyBindingRedirection("System.Threading.Tasks.Parallel.dll")] // no implementation assembly for net46
 [assembly: ProvideDependencyBindingRedirection("System.Text.Encoding.CodePages.dll")]
 [assembly: ProvideDependencyBindingRedirection("System.ValueTuple.dll")]

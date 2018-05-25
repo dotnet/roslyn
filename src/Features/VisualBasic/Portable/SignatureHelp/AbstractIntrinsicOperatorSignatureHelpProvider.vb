@@ -1,4 +1,4 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.LanguageServices
@@ -65,8 +65,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SignatureHelp
 
             Dim suffixParts = documentation.GetSuffix(semanticModel, position, Nothing, cancellationToken)
 
-            Dim symbolDisplayService = document.Project.LanguageServices.GetService(Of ISymbolDisplayService)()
-            Dim anonymousTypeDisplayService = document.Project.LanguageServices.GetService(Of IAnonymousTypeDisplayService)()
+            Dim symbolDisplayService = document.GetLanguageService(Of ISymbolDisplayService)()
+            Dim anonymousTypeDisplayService = document.GetLanguageService(Of IAnonymousTypeDisplayService)()
 
             Return CreateItem(
                 Nothing, semanticModel, position,

@@ -5,6 +5,7 @@ Imports System.Globalization
 Imports System.Runtime.InteropServices
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.Collections
+Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Display = Microsoft.CodeAnalysis.VisualBasic.SymbolDisplay
@@ -17,7 +18,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
     ''' </summary>
     <DebuggerDisplay("{GetDebuggerDisplay(), nq}")>
     Friend MustInherit Class Symbol
-        Implements ISymbol, IMessageSerializable
+        Implements ISymbol, IFormattable
 
         ' !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
         ' Changes to the public interface of this class should remain synchronized with the C# version of Symbol.
@@ -424,14 +425,21 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' </summary>
         Friend ReadOnly Property ObsoleteState As ThreeState
             Get
+                Select Case ObsoleteKind
+                    Case ObsoleteAttributeKind.None, ObsoleteAttributeKind.Experimental
+                        Return ThreeState.False
+                    Case ObsoleteAttributeKind.Uninitialized
+                        Return ThreeState.Unknown
+                    Case Else
+                        Return ThreeState.True
+                End Select
+            End Get
+        End Property
+
+        Friend ReadOnly Property ObsoleteKind As ObsoleteAttributeKind
+            Get
                 Dim data = Me.ObsoleteAttributeData
-                If data Is Nothing Then
-                    Return ThreeState.False
-                ElseIf data Is ObsoleteAttributeData.Uninitialized Then
-                    Return ThreeState.Unknown
-                Else
-                    Return ThreeState.True
-                End If
+                Return If(data Is Nothing, ObsoleteAttributeKind.None, data.Kind)
             End Get
         End Property
 
@@ -1183,5 +1191,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
 #End Region
+
+        Private Overloads Function IFormattable_ToString(format As String, formatProvider As IFormatProvider) As String Implements IFormattable.ToString
+            Return ToString()
+        End Function
     End Class
 End Namespace

@@ -10,7 +10,7 @@ using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.LanguageServices;
-using Microsoft.CodeAnalysis.Semantics;
+using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.InitializeParameter
@@ -27,18 +27,17 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
         where TExpressionSyntax : SyntaxNode
         where TBinaryExpressionSyntax : TExpressionSyntax
     {
-        private static MethodInfo s_getOperationInfo =
-            typeof(SemanticModel).GetTypeInfo().GetDeclaredMethod("GetOperationInternal");
-
         protected abstract SyntaxNode GetBody(TMemberDeclarationSyntax containingMember);
         protected abstract bool IsImplicitConversion(Compilation compilation, ITypeSymbol source, ITypeSymbol destination);
         protected abstract SyntaxNode GetTypeBlock(SyntaxNode node);
 
         protected abstract void InsertStatement(
-            SyntaxEditor editor, SyntaxNode body,
+            SyntaxEditor editor, TMemberDeclarationSyntax memberDeclaration,
             SyntaxNode statementToAddAfterOpt, TStatementSyntax statement);
 
-        protected abstract Task<ImmutableArray<CodeAction>> GetRefactoringsAsync(Document document, IParameterSymbol parameter, IBlockStatement blockStatement, CancellationToken cancellationToken);
+        protected abstract Task<ImmutableArray<CodeAction>> GetRefactoringsAsync(
+            Document document, IParameterSymbol parameter, TMemberDeclarationSyntax containingMember,
+            IBlockOperation blockStatementOpt, CancellationToken cancellationToken);
 
         public override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
         {
@@ -79,8 +78,15 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
 
             var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
             var method = (IMethodSymbol)semanticModel.GetDeclaredSymbol(containingMember, cancellationToken);
-            var parameter = (IParameterSymbol)semanticModel.GetDeclaredSymbol(parameterNode, cancellationToken);
+            if (method.IsAbstract ||
+                method.IsExtern ||
+                method.PartialImplementationPart != null ||
+                method.ContainingType.TypeKind == TypeKind.Interface)
+            {
+                return;
+            }
 
+            var parameter = (IParameterSymbol)semanticModel.GetDeclaredSymbol(parameterNode, cancellationToken);
             if (!method.Parameters.Contains(parameter))
             {
                 return;
@@ -92,22 +98,25 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
             }
 
             // Only offered on method-like things that have a body (i.e. non-interface/non-abstract).
-            var body = GetBody(containingMember);
-            if (body == null)
-            {
-                return;
-            }
+            var bodyOpt = GetBody(containingMember);
 
-            var memberOperation = GetOperation(semanticModel, body, cancellationToken);
-            if (!(memberOperation is IBlockStatement blockStatement))
+            // We support initializing parameters, even when the containing member doesn't have a
+            // body. This is useful for when the user is typing a new constructor and hasn't written
+            // the body yet.
+            var blockStatementOpt = default(IBlockOperation);
+            if (bodyOpt != null)
             {
-                return;
+                blockStatementOpt = semanticModel.GetOperation(bodyOpt, cancellationToken) as IBlockOperation;
+                if (blockStatementOpt == null)
+                {
+                    return;
+                }
             }
 
             // Ok.  Looks like a reasonable parameter to analyze.  Defer to subclass to 
             // actually determine if there are any viable refactorings here.
             context.RegisterRefactorings(await GetRefactoringsAsync(
-                document, parameter, blockStatement, cancellationToken).ConfigureAwait(false));
+                document, parameter, containingMember, blockStatementOpt, cancellationToken).ConfigureAwait(false));
         }
 
         private TParameterSyntax GetParameterNode(SyntaxToken token, int position)
@@ -129,11 +138,11 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
         }
 
         protected static bool IsParameterReference(IOperation operation, IParameterSymbol parameter)
-            => UnwrapImplicitConversion(operation) is IParameterReferenceExpression parameterReference &&
+            => UnwrapImplicitConversion(operation) is IParameterReferenceOperation parameterReference &&
                parameter.Equals(parameterReference.Parameter);
 
         protected static IOperation UnwrapImplicitConversion(IOperation operation)
-            => operation is IConversionExpression conversion && !conversion.IsExplicit
+            => operation is IConversionOperation conversion && conversion.IsImplicit
                 ? conversion.Operand
                 : operation;
 
@@ -145,7 +154,7 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
         {
             foreach (var child in condition.Syntax.DescendantNodes().OfType<TExpressionSyntax>())
             {
-                var childOperation = GetOperation(semanticModel, child, cancellationToken);
+                var childOperation = semanticModel.GetOperation(child, cancellationToken);
                 if (IsParameterReference(childOperation, parameter))
                 {
                     return true;
@@ -155,16 +164,16 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
             return false;
         }
 
-        protected static bool IsFieldOrPropertyAssignment(IOperation statement, INamedTypeSymbol containingType, out IAssignmentExpression assignmentExpression)
+        protected static bool IsFieldOrPropertyAssignment(IOperation statement, INamedTypeSymbol containingType, out IAssignmentOperation assignmentExpression)
             => IsFieldOrPropertyAssignment(statement, containingType, out assignmentExpression, out var fieldOrProperty);
 
         protected static bool IsFieldOrPropertyAssignment(
             IOperation statement, INamedTypeSymbol containingType, 
-            out IAssignmentExpression assignmentExpression, out ISymbol fieldOrProperty)
+            out IAssignmentOperation assignmentExpression, out ISymbol fieldOrProperty)
         {
-            if (statement is IExpressionStatement expressionStatement)
+            if (statement is IExpressionStatementOperation expressionStatement)
             {
-                assignmentExpression = expressionStatement.Expression as IAssignmentExpression;
+                assignmentExpression = expressionStatement.Operation as IAssignmentOperation;
                 return IsFieldOrPropertyReference(assignmentExpression?.Target, containingType, out fieldOrProperty);
             }
 
@@ -179,7 +188,7 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
         protected static bool IsFieldOrPropertyReference(
             IOperation operation, INamedTypeSymbol containingType, out ISymbol fieldOrProperty)
         {
-            if (operation is IMemberReferenceExpression memberReference &&
+            if (operation is IMemberReferenceOperation memberReference &&
                 memberReference.Member.ContainingType.Equals(containingType))
             {
                 if (memberReference.Member is IFieldSymbol ||
@@ -192,15 +201,6 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
 
             fieldOrProperty = null;
             return false;
-        }
-
-        protected static IOperation GetOperation(
-            SemanticModel semanticModel,
-            SyntaxNode node,
-            CancellationToken cancellationToken)
-        {
-            return (IOperation)s_getOperationInfo.Invoke(
-                semanticModel, new object[] { node, cancellationToken });
         }
 
         protected class MyCodeAction : CodeAction.DocumentChangeAction

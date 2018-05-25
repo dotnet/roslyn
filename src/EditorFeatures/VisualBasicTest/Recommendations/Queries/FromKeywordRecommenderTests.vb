@@ -1,4 +1,4 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations.Queries
     Public Class FromKeywordRecommenderTests
@@ -15,22 +15,22 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations.Qu
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Async Function FromAfterArgument1Test() As Task
-            Await VerifyRecommendationsContainAsync(<MethodBody>Foo(|</MethodBody>, "From")
+            Await VerifyRecommendationsContainAsync(<MethodBody>Goo(|</MethodBody>, "From")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Async Function FromAfterArgument2Test() As Task
-            Await VerifyRecommendationsContainAsync(<MethodBody>Foo(bar, |</MethodBody>, "From")
+            Await VerifyRecommendationsContainAsync(<MethodBody>Goo(bar, |</MethodBody>, "From")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Async Function FromAfterBinaryExpressionTest() As Task
-            Await VerifyRecommendationsContainAsync(<MethodBody>Foo(bar + |</MethodBody>, "From")
+            Await VerifyRecommendationsContainAsync(<MethodBody>Goo(bar + |</MethodBody>, "From")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Async Function FromAfterNotTest() As Task
-            Await VerifyRecommendationsContainAsync(<MethodBody>Foo(Not |</MethodBody>, "From")
+            Await VerifyRecommendationsContainAsync(<MethodBody>Goo(Not |</MethodBody>, "From")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
@@ -130,10 +130,10 @@ Loop Until |</MethodBody>, "From")
 <File>
 Module Program
     Sub Main(args As String())
-        Dim f1 As New Foo2( |
+        Dim f1 As New Goo2( |
     End Sub
 
-    Delegate Sub Foo2()
+    Delegate Sub Goo2()
 
     Function Bar2() As Object
         Return Nothing

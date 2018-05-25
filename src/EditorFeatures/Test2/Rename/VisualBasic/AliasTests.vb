@@ -1,8 +1,9 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports Microsoft.CodeAnalysis.Rename.ConflictEngine
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename.VisualBasic
+    <[UseExportProvider]>
     Public Class AliasTests
         Private ReadOnly _outputHelper As Abstractions.ITestOutputHelper
 
@@ -17,10 +18,10 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename.VisualBasic
                 <Workspace>
                     <Project Language="Visual Basic" CommonReferences="true">
                         <Document>
-                            Imports Foo = System.Int32
+                            Imports Goo = System.Int32
                             Class C
                                 Sub Main(args As String())
-                                    Dim [|$$x|] As Foo = 23
+                                    Dim [|$$x|] As Goo = 23
                                 End Sub
                             End Class
                         </Document>
@@ -37,7 +38,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename.VisualBasic
                 <Workspace>
                     <Project Language="Visual Basic" CommonReferences="true">
                         <Document>
-                            Imports Foo = System.Int32
+                            Imports Goo = System.Int32
                             Imports Bar = System.Int32
                             Class C
                                 Sub Main(args As String())
@@ -58,11 +59,11 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename.VisualBasic
                 <Workspace>
                     <Project Language="Visual Basic" CommonReferences="true">
                         <Document>
-                            Imports Foo = C
+                            Imports Goo = C
 
                             Class C
-                                Public Sub Foo()
-                                    Dim [|$$x|] As Foo = Nothing
+                                Public Sub Goo()
+                                    Dim [|$$x|] As Goo = Nothing
                                 End Sub
                             End Class
                         </Document>
@@ -78,12 +79,12 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename.VisualBasic
                 <Workspace>
                     <Project Language="Visual Basic" CommonReferences="true">
                         <Document>
-                            Imports [|Foo|] = C3
+                            Imports [|Goo|] = C3
 
                             Namespace N1
                                 Class C1
-                                    Public Sub Foo()
-                                        Dim f As {|stmt1:$$Foo|} = Nothing
+                                    Public Sub Goo()
+                                        Dim f As {|stmt1:$$Goo|} = Nothing
                                         Dim c As C1 = Nothing
                                     End Sub
                                 End Class
@@ -107,12 +108,12 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename.VisualBasic
                 <Workspace>
                     <Project Language="Visual Basic" CommonReferences="true">
                         <Document>
-                            Imports [|Foo|] = N1.C1
+                            Imports [|Goo|] = N1.C1
 
                             Namespace N1
                                 Class C1
-                                    Public Sub Foo()
-                                        Dim f As [|$$Foo|] = Nothing
+                                    Public Sub Goo()
+                                        Dim f As [|$$Goo|] = Nothing
                                         Dim c As C1 = Nothing
                                     End Sub
                                 End Class
@@ -132,12 +133,12 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename.VisualBasic
                 <Workspace>
                     <Project Language="Visual Basic" CommonReferences="true">
                         <Document>
-                            Imports Foo = System.Int32
+                            Imports Goo = System.Int32
                             Imports [|Bar|] = System.Int32
 
                             Class C1
-                                Public Sub Foo()
-                                    Dim f As Foo = 1
+                                Public Sub Goo()
+                                    Dim f As Goo = 1
                                     Dim b As [|$$Bar|] = 2
                                 End Sub
                             End Class
@@ -298,21 +299,21 @@ End Class
                 <Workspace>
                     <Project Language="Visual Basic" CommonReferences="true">
                         <Document><![CDATA[
-Imports [|$$FooAttribute|] = System.ObsoleteAttribute
+Imports [|$$GooAttribute|] = System.ObsoleteAttribute
 
-<{|long:FooAttribute|}>
+<{|long:GooAttribute|}>
 class C
 End class
 
-<{|short:Foo|}>
+<{|short:Goo|}>
 class D
 end class
 
-<{|long:FooAttribute|}()>
+<{|long:GooAttribute|}()>
 class B
 end class
 
-<{|short:Foo|}()]> 
+<{|short:Goo|}()]> 
 class Program
 end class
                         ]]></Document>
@@ -333,22 +334,22 @@ end class
                 <Workspace>
                     <Project Language="Visual Basic" CommonReferences="true">
                         <Document><![CDATA[
-Imports [|$$FooAttribute|] = System.ObsoleteAttribute
+Imports [|$$GooAttribute|] = System.ObsoleteAttribute
 Imports Bar = System.ContextStaticAttribute
 
-<{|long:FooAttribute|}>
+<{|long:GooAttribute|}>
 class C
 End class
 
-<{|short:Foo|}>
+<{|short:Goo|}>
 class D
 end class
 
-<{|long:FooAttribute|}()>
+<{|long:GooAttribute|}()>
 class B
 end class
 
-<{|short:Foo|}()]> 
+<{|short:Goo|}()]> 
 class Program
 end class
                         ]]></Document>
@@ -369,22 +370,22 @@ end class
                 <Workspace>
                     <Project Language="Visual Basic" CommonReferences="true">
                         <Document><![CDATA[
-Imports [|$$FooAttribute|] = System.ObsoleteAttribute
+Imports [|$$GooAttribute|] = System.ObsoleteAttribute
 Imports BarAttribute = System.ContextStaticAttribute
 
-<{|long:FooAttribute|}>
+<{|long:GooAttribute|}>
 class C
 End class
 
-<{|short:Foo|}>
+<{|short:Goo|}>
 class D
 end class
 
-<{|long:FooAttribute|}()>
+<{|long:GooAttribute|}()>
 class B
 end class
 
-<{|short:Foo|}()> 
+<{|short:Goo|}()> 
 class Program
 end class
                         ]]></Document>

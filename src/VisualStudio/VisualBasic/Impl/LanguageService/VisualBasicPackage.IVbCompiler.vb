@@ -1,4 +1,4 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Host
@@ -25,14 +25,13 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic
 
             Dim projectTracker = Workspace.GetProjectTrackerAndInitializeIfNecessary(Me)
 
-            projectTracker.TryDisconnectExistingDeferredProject(pProjHier, wszName)
-
-            Return New VisualBasicProjectShimWithServices(
+            Return New VisualBasicProject(
                 projectTracker,
-                pVbCompilerHost,
                 wszName,
+                pVbCompilerHost,
                 pProjHier,
                 Me,
+                Function(id) New ProjectExternalErrorReporter(id, "BC", serviceProvider:=Me),
                 Workspace,
                 hostDiagnosticUpdateSource,
                 commandLineParserServiceOpt:=Workspace.Services.GetLanguageServices(LanguageNames.VisualBasic).GetService(Of ICommandLineParserService))

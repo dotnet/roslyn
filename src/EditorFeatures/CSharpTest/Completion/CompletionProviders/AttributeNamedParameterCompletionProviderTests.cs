@@ -5,6 +5,7 @@ using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.CSharp.Completion.Providers;
 using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionProviders;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -29,7 +30,7 @@ using System;
 class class1
 {
     [Test($$
-    public void Foo()
+    public void Goo()
     {
     }
 }
@@ -52,7 +53,7 @@ using System;
 class class1
 {
     [Test($$
-    public void Foo()
+    public void Goo()
     {
     }
 }
@@ -73,7 +74,7 @@ using System;
 class class1
 {
     [Test($$
-    public void Foo()
+    public void Goo()
     {
     }
 }
@@ -94,7 +95,7 @@ using System;
 class class1
 {
     [Test(Color = ConsoleColor.Black, $$
-    public void Foo()
+    public void Goo()
     {
     }
 }
@@ -117,7 +118,7 @@ using System;
 class class1
 {
     [Test(Color = ConsoleColor.Black, $$
-    public void Foo()
+    public void Goo()
     {
     }
 }
@@ -144,7 +145,7 @@ class TestAttribute : Attribute
 }
  
 [Test($$
-class Foo
+class Goo
 { }
 ";
 
@@ -163,7 +164,7 @@ class TestAttribute : Attribute
 }
 
 [Test(s:"""", $$
-class Foo
+class Goo
 { }
 ";
 
@@ -186,7 +187,7 @@ class TestAttribute : Attribute
 }
  
 [Test($$
-class Foo
+class Goo
 {
 }";
 
@@ -202,7 +203,7 @@ using System;
 class class1
 {
     [Test( //$$
-    public void Foo()
+    public void Goo()
     {
     }
 }

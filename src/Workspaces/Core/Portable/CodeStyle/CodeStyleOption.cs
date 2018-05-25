@@ -14,10 +14,10 @@ namespace Microsoft.CodeAnalysis.CodeStyle
 
     /// <summary>
     /// Represents a code style option and an associated notification option.  Supports
-    /// being instantiated with T as a <see cref="bool"/> or an <code>enum type</code>.
+    /// being instantiated with T as a <see cref="bool"/> or an <c>enum type</c>.
     /// 
     /// CodeStyleOption also has some basic support for migration a <see cref="bool"/> option
-    /// forward to an <code>enum type</code> option.  Specifically, if a previously serialized
+    /// forward to an <c>enum type</c> option.  Specifically, if a previously serialized
     /// bool-CodeStyleOption is then deserialized into an enum-CodeStyleOption then 'false' 
     /// values will be migrated to have the 0-value of the enum, and 'true' values will be
     /// migrated to have the 1-value of the enum.
@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.CodeStyle
     /// </summary>
     public class CodeStyleOption<T> : ICodeStyleOption, IEquatable<CodeStyleOption<T>>
     {
-        public static CodeStyleOption<T> Default => new CodeStyleOption<T>(default(T), NotificationOption.None);
+        public static CodeStyleOption<T> Default => new CodeStyleOption<T>(default, NotificationOption.None);
 
         private const int SerializationVersion = 1;
 
@@ -53,7 +53,11 @@ namespace Microsoft.CodeAnalysis.CodeStyle
 
         private object GetValueForSerialization()
         {
-            if (typeof(T) == typeof(bool))
+            if (typeof(T) == typeof(string))
+            {
+                return Value;
+            }
+            else if (typeof(T) == typeof(bool))
             {
                 return Value;
             }
@@ -69,6 +73,10 @@ namespace Microsoft.CodeAnalysis.CodeStyle
 
         private string GetTypeNameForSerialization()
         {
+            if (typeof(T) == typeof(string))
+            {
+                return nameof(String);
+            }
             if (typeof(T) == typeof(bool) || IsZeroOrOneValueOfEnum())
             {
                 return nameof(Boolean);
@@ -140,6 +148,8 @@ namespace Microsoft.CodeAnalysis.CodeStyle
                     return v => Convert(bool.Parse(v));
                 case nameof(Int32):
                     return v => Convert(int.Parse(v));
+                case nameof(String):
+                    return v => (T)(object)v;
                 default:
                     throw new ArgumentException(nameof(type));
             }

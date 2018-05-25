@@ -1,9 +1,7 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
-using System.Linq;
 using System.Threading;
-using System.Windows.Threading;
 using Microsoft.CodeAnalysis.Editor.Shared.Threading;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
@@ -18,7 +16,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Threading
 
         public AsynchronousWorkerTests()
         {
-            WpfTestCase.RequireWpfFact($"Tests are testing {nameof(AsynchronousSerialWorkQueue)} which is designed to run methods on the UI thread");
+            WpfTestRunner.RequireWpfFact($"Tests are testing {nameof(AsynchronousSerialWorkQueue)} which is designed to run methods on the UI thread");
             TestWorkspace.ResetThreadAffinity();
             _foregroundSyncContext = SynchronizationContext.Current;
             Assert.NotNull(_foregroundSyncContext);
@@ -28,8 +26,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Threading
         [WpfFact]
         public void TestBackgroundAction()
         {
-            var listener = new AggregateAsynchronousOperationListener(Enumerable.Empty<Lazy<IAsynchronousOperationListener, FeatureMetadata>>(), "Test");
-            var worker = new AsynchronousSerialWorkQueue(listener);
+            var worker = new AsynchronousSerialWorkQueue(AsynchronousOperationListenerProvider.NullListener);
             var doneEvent = new AutoResetEvent(initialState: false);
 
             var actionRan = false;
@@ -49,8 +46,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Threading
         public void TestMultipleBackgroundAction()
         {
             // Test that background actions don't run at the same time.
-            var listener = new AggregateAsynchronousOperationListener(Enumerable.Empty<Lazy<IAsynchronousOperationListener, FeatureMetadata>>(), "Test");
-            var worker = new AsynchronousSerialWorkQueue(listener);
+            var worker = new AsynchronousSerialWorkQueue(AsynchronousOperationListenerProvider.NullListener);
             var doneEvent = new AutoResetEvent(false);
 
             var action1Ran = false;
@@ -83,8 +79,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Threading
         public void TestBackgroundCancel1()
         {
             // Ensure that we can cancel a background action.
-            var listener = new AggregateAsynchronousOperationListener(Enumerable.Empty<Lazy<IAsynchronousOperationListener, FeatureMetadata>>(), "Test");
-            var worker = new AsynchronousSerialWorkQueue(listener);
+            var worker = new AsynchronousSerialWorkQueue(AsynchronousOperationListenerProvider.NullListener);
 
             var taskRunningEvent = new AutoResetEvent(false);
             var cancelEvent = new AutoResetEvent(false);
@@ -124,8 +119,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Threading
         {
             // Ensure that when a background action is cancelled the next
             // one starts (if it has a different cancellation token).
-            var listener = new AggregateAsynchronousOperationListener(Enumerable.Empty<Lazy<IAsynchronousOperationListener, FeatureMetadata>>(), "Test");
-            var worker = new AsynchronousSerialWorkQueue(listener);
+            var worker = new AsynchronousSerialWorkQueue(AsynchronousOperationListenerProvider.NullListener);
 
             var taskRunningEvent = new AutoResetEvent(false);
             var cancelEvent = new AutoResetEvent(false);
@@ -188,8 +182,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Threading
         {
             // Ensure that multiple background actions are cancelled if they
             // use the same cancellation token.
-            var listener = new AggregateAsynchronousOperationListener(Enumerable.Empty<Lazy<IAsynchronousOperationListener, FeatureMetadata>>(), "Test");
-            var worker = new AsynchronousSerialWorkQueue(listener);
+            var worker = new AsynchronousSerialWorkQueue(AsynchronousOperationListenerProvider.NullListener);
 
             var taskRunningEvent = new AutoResetEvent(false);
             var cancelEvent = new AutoResetEvent(false);

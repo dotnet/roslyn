@@ -16,7 +16,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Utilities
     {
         public static IOleUndoManager TryGetUndoManager(
             this IVsEditorAdaptersFactoryService editorAdaptersFactoryService, 
-            Workspace workspace,
+            Microsoft.CodeAnalysis.Workspace workspace,
             DocumentId contextDocumentId, 
             CancellationToken cancellationToken)
         {
@@ -30,12 +30,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Utilities
                 var message = contextDocumentId == null
                     ? $"{nameof(contextDocumentId)} was null."
                     : $"{nameof(contextDocumentId)} was not null.";
-                FatalError.ReportWithoutCrash(new InvalidOperationException(
-                    "Could not retrieve document. " + message));
+
+                FatalError.ReportWithoutCrash(new InvalidOperationException("Could not retrieve document. " + message));
+
                 return null;
             }
 
-            var text = document.GetTextAsync(cancellationToken).WaitAndGetResult(cancellationToken);
+            var text = document.GetTextSynchronously(cancellationToken);
             var textSnapshot = text.FindCorrespondingEditorTextSnapshot();
             var textBuffer = textSnapshot?.TextBuffer;
             return editorAdaptersFactoryService.TryGetUndoManager(textBuffer);

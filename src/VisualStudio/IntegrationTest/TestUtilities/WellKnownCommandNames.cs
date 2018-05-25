@@ -33,7 +33,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
         public const string InteractiveConsole_ClearScreen = "InteractiveConsole.ClearScreen";
         public const string InteractiveConsole_ExecuteInInteractive = "InteractiveConsole.ExecuteInInteractive";
 
-        public const string ProjectAndSolutionContextMenus_Solution_RestoreNuGetPackages = "ProjectAndSolutionContextMenus.Solution.RestoreNuGetPackages";
+        public const string ProjectAndSolutionContextMenus_Solution_RestoreNuGetPackages = "ProjectandSolutionContextMenus.Solution.RestoreNuGetPackages";
         public const string ProjectAndSolutionContextMenus_Project_ResetCSharpInteractiveFromProject 
             = "ProjectandSolutionContextMenus.Project.ResetC#InteractiveFromProject";
 

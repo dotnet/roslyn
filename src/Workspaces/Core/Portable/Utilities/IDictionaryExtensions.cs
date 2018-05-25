@@ -27,7 +27,7 @@ namespace Roslyn.Utilities
                 return value;
             }
 
-            return default(TValue);
+            return default;
         }
 
         public static bool DictionaryEquals<K, V>(this IDictionary<K, V> left, IDictionary<K, V> right, IEqualityComparer<KeyValuePair<K, V>> comparer = null)

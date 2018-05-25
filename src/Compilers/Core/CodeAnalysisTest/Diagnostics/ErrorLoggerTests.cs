@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
         public void AdditionalLocationsAsRelatedLocations()
         {
             var stream = new MemoryStream();
-            using (var logger = new StreamErrorLogger(stream, "toolName", "1.2.3.4", new Version(1, 2, 3, 4), new CultureInfo("fr-CA")))
+            using (var logger = new StreamErrorLogger(stream, "toolName", "1.2.3.4", new Version(1, 2, 3, 4), new CultureInfo("fr-CA", useUserOverride: false)))
             {
                 var span = new TextSpan(0, 0);
                 var position = new LinePositionSpan(LinePosition.Zero, LinePosition.Zero);
@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
                 var descriptor = new DiagnosticDescriptor("TST", "_TST_", "", "", DiagnosticSeverity.Error, false);
 
                 IEnumerable<Location> additionalLocations = new[] {
-                    Location.Create(@"Relative Additional\Location.cs", span, position),
+                    Location.Create(@"Relative Additional/Location.cs", span, position),
                     Location.Create(@"a:cannot/interpret/as\uri", span, position),
                 };
                 
@@ -133,7 +133,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
             };
 
             var stream = new MemoryStream();
-            using (var logger = new StreamErrorLogger(stream, "toolName", "1.2.3.4", new Version(1, 2, 3, 4), new CultureInfo("en-US")))
+            using (var logger = new StreamErrorLogger(stream, "toolName", "1.2.3.4", new Version(1, 2, 3, 4), new CultureInfo("en-US", useUserOverride: false)))
             {
                 for (int i = 0; i < 2; i++)
                 {

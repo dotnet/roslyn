@@ -5,6 +5,7 @@ Imports System.Runtime.CompilerServices
 Imports System.Text
 Imports System.Threading
 Imports System.Xml.Linq
+Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.SyntaxFacts

@@ -4,6 +4,7 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.CSharp
@@ -38,7 +39,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundExpression loweredRight,
             TypeSymbol resultType)
         {
-            var children = ArrayBuilder<BoundNode>.GetInstance();
+            var children = ArrayBuilder<BoundExpression>.GetInstance();
             children.AddOptional(loweredReceiver);
             children.AddRange(loweredArguments);
             children.AddOptional(loweredRight);
@@ -46,7 +47,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return LoweredDynamicOperation.Bad(resultType, children.ToImmutableAndFree());
         }
 
-        public static LoweredDynamicOperation Bad(TypeSymbol resultType, ImmutableArray<BoundNode> children)
+        public static LoweredDynamicOperation Bad(TypeSymbol resultType, ImmutableArray<BoundExpression> children)
         {
             Debug.Assert(children.Length > 0);
             var bad = new BoundBadExpression(children[0].Syntax, LookupResultKind.Empty, ImmutableArray<Symbol>.Empty, children, resultType);

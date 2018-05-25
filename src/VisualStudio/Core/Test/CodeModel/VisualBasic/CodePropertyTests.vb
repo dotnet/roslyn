@@ -1,7 +1,8 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis
+Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.VisualStudio.LanguageServices.VisualBasic.CodeModel.Extenders
 Imports Microsoft.VisualStudio.LanguageServices.VisualBasic.CodeModel.Interop
 Imports Roslyn.Test.Utilities
@@ -888,7 +889,7 @@ End Class
             Dim code =
 <Code>
 Class C
-    Property $$Foo As Integer
+    Property $$Goo As Integer
 End Class
 </Code>
 
@@ -906,7 +907,7 @@ End Class
             Dim code =
 <Code>
 Class C
-    Property $$Foo As New System.Text.StringBuilder
+    Property $$Goo As New System.Text.StringBuilder
 End Class
 </Code>
 
@@ -924,7 +925,7 @@ End Class
             Dim code =
 <Code>
 Class C
-    Property $$Foo As String
+    Property $$Goo As String
         Get
 
         End Get
@@ -1346,14 +1347,14 @@ End Class
             Dim code =
 <Code>
 Class C
-    Property $$Foo As Integer
+    Property $$Goo As Integer
 End Class
 </Code>
 
             Dim expected =
 <Code>
 Class C
-    Property Foo As String
+    Property Goo As String
 End Class
 </Code>
 
@@ -1365,14 +1366,14 @@ End Class
             Dim code =
 <Code>
 Class C
-    Property $$Foo As New System.Text.StringBuilder
+    Property $$Goo As New System.Text.StringBuilder
 End Class
 </Code>
 
             Dim expected =
 <Code>
 Class C
-    Property Foo As New Integer
+    Property Goo As New Integer
 End Class
 </Code>
 
@@ -1384,7 +1385,7 @@ End Class
             Dim code =
 <Code>
 Class C
-    Property $$Foo As String
+    Property $$Goo As String
         Get
 
         End Get
@@ -1398,7 +1399,7 @@ End Class
             Dim expected =
 <Code>
 Class C
-    Property Foo As Integer
+    Property Goo As Integer
         Get
 
         End Get
@@ -1417,7 +1418,7 @@ End Class
             Dim code =
 <Code>
 Class C
-    Property $$Foo$
+    Property $$Goo$
         Get
 
         End Get
@@ -1431,7 +1432,7 @@ End Class
             Dim expected =
 <Code>
 Class C
-    Property Foo$ As Integer
+    Property Goo$ As Integer
         Get
 
         End Get

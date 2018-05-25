@@ -2,25 +2,31 @@
 
 using System;
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.ComponentModel;
 using System.ComponentModel.Design;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Threading;
-using System.Windows.Automation;
+using System.Threading.Tasks;
+using System.Windows;
+using System.Windows.Controls;
 using System.Windows.Forms;
+using System.Windows.Media;
 using Microsoft.CodeAnalysis.Editor.Implementation.Highlighting;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
-using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.Common;
 using Microsoft.VisualStudio.Language.Intellisense;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Text;
+using Microsoft.VisualStudio.Text.Classification;
 using Microsoft.VisualStudio.Text.Editor;
-using Microsoft.VisualStudio.Text.Operations;
+using Microsoft.VisualStudio.Text.Outlining;
 using Microsoft.VisualStudio.Text.Tagging;
 using Microsoft.VisualStudio.TextManager.Interop;
+using UIAutomationClient;
+using AutomationElementIdentifiers = System.Windows.Automation.AutomationElementIdentifiers;
+using ControlType = System.Windows.Automation.ControlType;
+using ThreadHelper = Microsoft.VisualStudio.Shell.ThreadHelper;
 
 namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
 {
@@ -73,6 +79,9 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
         public void Activate()
             => GetDTE().ActiveDocument.Activate();
 
+        public bool IsProjectItemDirty()
+            => GetDTE().ActiveDocument.ProjectItem.IsDirty;
+
         public string GetText()
             => ExecuteOnActiveView(view => view.TextSnapshot.GetText());
 
@@ -84,6 +93,21 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
                 view.TextBuffer.Replace(replacementSpan, text);
             });
 
+        public void SelectText(string text)
+        {
+            PlaceCaret(text, charsOffset: -1, occurrence: 0, extendSelection: false, selectBlock: false);
+            PlaceCaret(text, charsOffset: 0, occurrence: 0, extendSelection: true, selectBlock: false);
+        }
+
+        public void ReplaceText(string oldText, string newText)
+            => ExecuteOnActiveView(view =>
+            {
+                var textSnapshot = view.TextSnapshot;
+                SelectText(oldText);                
+                var replacementSpan = new SnapshotSpan(textSnapshot, view.Selection.Start.Position, view.Selection.End.Position - view.Selection.Start.Position);
+                view.TextBuffer.Replace(replacementSpan, newText);
+            });
+
         public string GetCurrentLineText()
             => ExecuteOnActiveView(view =>
             {
@@ -92,6 +116,20 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
                 var line = bufferPosition.GetContainingLine();
 
                 return line.GetText();
+            });
+
+        public int GetLine()
+            => ExecuteOnActiveView(view =>
+            {
+                view.Caret.Position.BufferPosition.GetLineAndColumn(out int lineNumber, out int columnIndex);
+                return lineNumber;
+            });
+
+        public int GetColumn()
+            => ExecuteOnActiveView(view =>
+            {
+                view.Caret.Position.BufferPosition.GetLineAndColumn(out int lineNumber, out int columnIndex);
+                return columnIndex;
             });
 
         public string GetLineTextBeforeCaret()
@@ -150,14 +188,14 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
         public string[] GetHighlightTags()
            => GetTags<ITextMarkerTag>(tag => tag.Type == KeywordHighlightTag.TagId);
 
+        private string PrintSpan(SnapshotSpan span)
+                => $"'{span.GetText()}'[{span.Start.Position}-{span.Start.Position + span.Length}]";
+
         private string[] GetTags<TTag>(Predicate<TTag> filter = null)
             where TTag : ITag
         {
             bool Filter(TTag tag)
                 => true;
-
-            string PrintSpan(SnapshotSpan span)
-                => $"'{span.GetText()}'[{span.Start.Position}-{span.Start.Position + span.Length}]";
 
             if (filter == null)
             {
@@ -215,24 +253,112 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
         public bool IsCaretOnScreen()
             => ExecuteOnActiveView(view =>
             {
-                var editorPrimitivesFactoryService = GetComponentModelService<IEditorPrimitivesFactoryService>();
-                var viewPrimitivies = editorPrimitivesFactoryService.GetViewPrimitives(view);
+                var caret = view.Caret;
 
-                var advancedView = viewPrimitivies.View.AdvancedTextView;
-                var caret = advancedView.Caret;
-
-                return caret.Left >= advancedView.ViewportLeft
-                    && caret.Right <= advancedView.ViewportRight
-                    && caret.Top >= advancedView.ViewportTop
-                    && caret.Bottom <= advancedView.ViewportBottom;
+                return caret.Left >= view.ViewportLeft
+                    && caret.Right <= view.ViewportRight
+                    && caret.Top >= view.ViewportTop
+                    && caret.Bottom <= view.ViewportBottom;
             });
+
+        public ClassifiedToken[] GetLightbulbPreviewClassifications(string menuText)
+        {
+            return ThreadHelper.JoinableTaskFactory.Run(async () =>
+            {
+                await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
+
+                var view = GetActiveTextView();
+                var broker = GetComponentModel().GetService<ILightBulbBroker>();
+                var classifierAggregatorService = GetComponentModelService<IViewClassifierAggregatorService>();
+                return await GetLightbulbPreviewClassificationsAsync(
+                    menuText,
+                    broker,
+                    view,
+                    classifierAggregatorService).ConfigureAwait(false);
+            });
+        }
+
+        private async Task<ClassifiedToken[]> GetLightbulbPreviewClassificationsAsync(
+            string menuText,
+            ILightBulbBroker broker,
+            IWpfTextView view,
+            IViewClassifierAggregatorService viewClassifierAggregator)
+        {
+            await LightBulbHelper.WaitForLightBulbSessionAsync(broker, view).ConfigureAwait(true);
+
+            var bufferType = view.TextBuffer.ContentType.DisplayName;
+            if (!broker.IsLightBulbSessionActive(view))
+            {
+                throw new Exception(string.Format("No Active Smart Tags in View!  Buffer content type={0}", bufferType));
+            }
+
+            var activeSession = broker.GetSession(view);
+            if (activeSession == null || !activeSession.IsExpanded)
+            {
+                throw new InvalidOperationException(string.Format("No expanded light bulb session found after View.ShowSmartTag.  Buffer content type={0}", bufferType));
+            }
+
+            if (!string.IsNullOrEmpty(menuText))
+            {
+                if (activeSession.TryGetSuggestedActionSets(out var actionSets) != QuerySuggestedActionCompletionStatus.Completed)
+                {
+                    actionSets = Array.Empty<SuggestedActionSet>();
+                }
+
+                var set = actionSets.SelectMany(s => s.Actions).FirstOrDefault(a => a.DisplayText == menuText);
+                if (set == null)
+                {
+                    throw new InvalidOperationException(
+                        string.Format("ISuggestionAction {0} not found.  Buffer content type={1}", menuText, bufferType));
+                }
+
+                IWpfTextView preview = null;
+                object pane = await set.GetPreviewAsync(CancellationToken.None).ConfigureAwait(true);
+                if (pane is System.Windows.Controls.UserControl)
+                {
+                    var container = ((System.Windows.Controls.UserControl)pane).FindName("PreviewDockPanel") as DockPanel;
+                    var host = FindDescendants<UIElement>(container).OfType<IWpfTextViewHost>().LastOrDefault();
+                    preview = (host == null) ? null : host.TextView;
+                }
+
+                if (preview == null)
+                {
+                    throw new InvalidOperationException(string.Format("Could not find light bulb preview.  Buffer content type={0}", bufferType));
+                }
+
+                activeSession.Collapse();
+                var classifier = viewClassifierAggregator.GetClassifier(preview);
+                var classifiedSpans = classifier.GetClassificationSpans(new SnapshotSpan(preview.TextBuffer.CurrentSnapshot, 0, preview.TextBuffer.CurrentSnapshot.Length));
+                return classifiedSpans.Select(x => new ClassifiedToken(x.Span.GetText().ToString(), x.ClassificationType.Classification)).ToArray();
+            }
+
+            activeSession.Collapse();
+            return Array.Empty<ClassifiedToken>();
+        }
+
+        private static IEnumerable<T> FindDescendants<T>(DependencyObject rootObject) where T : DependencyObject
+        {
+            if (rootObject != null)
+            {
+                for (int i = 0; i < VisualTreeHelper.GetChildrenCount(rootObject); i++)
+                {
+                    DependencyObject child = VisualTreeHelper.GetChild(rootObject, i);
+
+                    if (child != null && child is T)
+                        yield return (T)child;
+
+                    foreach (T descendant in FindDescendants<T>(child))
+                        yield return descendant;
+                }
+            }
+        }
 
         public void MessageBox(string message)
             => ExecuteOnActiveView(view => System.Windows.MessageBox.Show(message));
 
         public void VerifyDialog(string dialogAutomationId, bool isOpen)
         {
-            var dialogAutomationElement = DialogHelpers.FindDialogByAutomationId(GetDTE().MainWindow.HWnd, dialogAutomationId, isOpen);
+            var dialogAutomationElement = DialogHelpers.FindDialogByAutomationId((IntPtr)GetDTE().MainWindow.HWnd, dialogAutomationId, isOpen);
 
             if ((isOpen && dialogAutomationElement == null) ||
                 (!isOpen && dialogAutomationElement != null))
@@ -243,7 +369,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
 
         public void DialogSendKeys(string dialogAutomationName, string keys)
         {
-            var dialogAutomationElement = DialogHelpers.GetOpenDialogById(GetDTE().MainWindow.HWnd, dialogAutomationName);
+            var dialogAutomationElement = DialogHelpers.GetOpenDialogById((IntPtr)GetDTE().MainWindow.HWnd, dialogAutomationName);
 
             dialogAutomationElement.SetFocus();
             SendKeys.SendWait(keys);
@@ -263,10 +389,10 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
 
         public void PressDialogButton(string dialogAutomationName, string buttonAutomationName)
         {
-            DialogHelpers.PressButton(GetDTE().MainWindow.HWnd, dialogAutomationName, buttonAutomationName);
+            DialogHelpers.PressButton((IntPtr)GetDTE().MainWindow.HWnd, dialogAutomationName, buttonAutomationName);
         }
 
-        private AutomationElement FindDialog(string dialogAutomationName, bool isOpen)
+        private IUIAutomationElement FindDialog(string dialogAutomationName, bool isOpen)
         {
             return Retry(
                 () => FindDialogWorker(dialogAutomationName),
@@ -274,20 +400,23 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
                 delay: TimeSpan.FromMilliseconds(250));
         }
 
-        private static AutomationElement FindDialogWorker(string dialogAutomationName)
+        private static IUIAutomationElement FindDialogWorker(string dialogAutomationName)
         {
-            var vsAutomationElement = AutomationElement.FromHandle(new IntPtr(GetDTE().MainWindow.HWnd));
+            var vsAutomationElement = Helper.Automation.ElementFromHandle((IntPtr)GetDTE().MainWindow.HWnd);
 
-            Condition elementCondition = new AndCondition(
-                new PropertyCondition(AutomationElement.AutomationIdProperty, dialogAutomationName),
-                new PropertyCondition(AutomationElement.ControlTypeProperty, ControlType.Window));
+            var elementCondition = Helper.Automation.CreateAndConditionFromArray(
+                new[]
+                {
+                    Helper.Automation.CreatePropertyCondition(AutomationElementIdentifiers.AutomationIdProperty.Id, dialogAutomationName),
+                    Helper.Automation.CreatePropertyCondition(AutomationElementIdentifiers.ControlTypeProperty.Id, ControlType.Window.Id),
+                });
 
-            return vsAutomationElement.FindFirst(TreeScope.Descendants, elementCondition);
+            return vsAutomationElement.FindFirst(TreeScope.TreeScope_Descendants, elementCondition);
         }
 
-        private static AutomationElement FindNavigateTo()
+        private static IUIAutomationElement FindNavigateTo()
         {
-            var vsAutomationElement = AutomationElement.FromHandle(new IntPtr(GetDTE().MainWindow.HWnd));
+            var vsAutomationElement = Helper.Automation.ElementFromHandle((IntPtr)GetDTE().MainWindow.HWnd);
             return vsAutomationElement.FindDescendantByAutomationId("PART_SearchBox");
         }
 
@@ -330,7 +459,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
                 var componentChangeService = (IComponentChangeService)designerHost;
                 void ComponentAdded(object sender, ComponentEventArgs e)
                 {
-                    var control = e.Component as Control;
+                    var control = (System.Windows.Forms.Control)e.Component;
                     if (control.Name == buttonName)
                     {
                         waitHandle.Set();
@@ -344,7 +473,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
                     var mainForm = (Form)designerHost.RootComponent;
                     InvokeOnUIThread(() =>
                     {
-                        var newControl = (Button)designerHost.CreateComponent(typeof(Button), buttonName);
+                        var newControl = (System.Windows.Forms.Button)designerHost.CreateComponent(typeof(System.Windows.Forms.Button), buttonName);
                         newControl.Parent = mainForm;
                     });
                     waitHandle.WaitOne();
@@ -364,7 +493,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
                 var componentChangeService = (IComponentChangeService)designerHost;
                 void ComponentRemoved(object sender, ComponentEventArgs e)
                 {
-                    var control = e.Component as Control;
+                    var control = (System.Windows.Forms.Control)e.Component;
                     if (control.Name == buttonName)
                     {
                         waitHandle.Set();
@@ -502,6 +631,20 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
             return view.GetBufferContainingCaret();
         }
 
+        public string[] GetOutliningSpans()
+        {
+            return ExecuteOnActiveView(view =>
+            {
+                var manager = GetComponentModelService<IOutliningManagerService>().GetOutliningManager(view);
+                var span = new SnapshotSpan(view.TextSnapshot, 0, view.TextSnapshot.Length);
+                var regions = manager.GetAllRegions(span);
+                return regions
+                    .OrderBy(s => s.Extent.GetStartPoint(view.TextSnapshot))
+                    .Select(r => PrintSpan(r.Extent.GetSpan(view.TextSnapshot)))
+                    .ToArray();
+            });
+        }
+
         public List<string> GetF1Keywords()
         {
             return InvokeOnUIThread(() =>
@@ -557,6 +700,13 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
                 var matchingTags = tagAggregator.GetTags(new SnapshotSpan(view.TextSnapshot, 0, view.TextSnapshot.Length)).Where(t => t.Tag.Type == tagId);
 
                 return matchingTags.Select(t => t.Span.GetSpans(view.TextBuffer).Single().Span.ToTextSpan()).SelectMany(t => new List<int> { t.Start, t.Length }).ToArray();
+            });
+
+        public void SendExplicitFocus()
+            => InvokeOnUIThread(() =>
+            {
+                var view = GetActiveVsTextView();
+                view.SendExplicitFocus();
             });
     }
 }

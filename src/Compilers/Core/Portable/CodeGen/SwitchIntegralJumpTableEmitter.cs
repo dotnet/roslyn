@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Reflection.Metadata;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CodeGen
@@ -466,7 +467,20 @@ namespace Microsoft.CodeAnalysis.CodeGen
             }
             else
             {
-                _builder.EmitIntConstant(endConstant.Int32Value - startConstant.Int32Value);
+                int Int32Value(ConstantValue value)
+                {
+                    // ConstantValue does not correctly convert byte and ushort values to int.
+                    // It sign extends them rather than padding them. We compensate for that here.
+                    // See also https://github.com/dotnet/roslyn/issues/18579
+                    switch (value.Discriminator)
+                    {
+                        case ConstantValueTypeDiscriminator.Byte: return value.ByteValue;
+                        case ConstantValueTypeDiscriminator.UInt16: return value.UInt16Value;
+                        default: return value.Int32Value;
+                    }
+                }
+
+                _builder.EmitIntConstant(Int32Value(endConstant) - Int32Value(startConstant));
             }
 
             _builder.EmitBranch(ILOpCode.Ble_un, targetLabel, ILOpCode.Bgt_un);

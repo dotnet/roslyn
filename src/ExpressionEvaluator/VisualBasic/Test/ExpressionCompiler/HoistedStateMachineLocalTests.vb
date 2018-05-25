@@ -4,6 +4,7 @@ Imports System.Collections.Immutable
 Imports Microsoft.CodeAnalysis.CodeGen
 Imports Microsoft.CodeAnalysis.ExpressionEvaluator
 Imports Microsoft.CodeAnalysis.ExpressionEvaluator.UnitTests
+Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.VisualBasic.UnitTests
 Imports Microsoft.DiaSymReader
 Imports Roslyn.Test.Utilities
@@ -101,7 +102,7 @@ End Class
 }}
 "
             Dim comp = CreateCompilation(source)
-            WithRuntimeInstancePortableBug(comp,
+            WithRuntimeInstance(comp,
                 Sub(runtime)
                     Dim context As EvaluationContext
                     Dim testData As CompilationTestData
@@ -208,7 +209,7 @@ End Class
 }}
 "
             Dim comp = CreateCompilation(source)
-            WithRuntimeInstancePortableBug(comp,
+            WithRuntimeInstance(comp,
                 Sub(runtime)
 
                     Dim context As EvaluationContext
@@ -289,8 +290,8 @@ End Class
   IL_0006:  ret
 }}
 "
-            Dim comp = CreateCompilationWithMscorlib({source}, options:=TestOptions.DebugDll, assemblyName:=GetUniqueName())
-            WithRuntimeInstancePortableBug(comp,
+            Dim comp = CreateCompilationWithMscorlib40({source}, options:=TestOptions.DebugDll, assemblyName:=GetUniqueName())
+            WithRuntimeInstance(comp,
                 Sub(runtime)
 
                     Dim context As EvaluationContext
@@ -1434,8 +1435,8 @@ Class C
     End Function
 End Class
 "
-            Dim comp = CreateCompilationWithMscorlib({source}, options:=TestOptions.DebugDll)
-            WithRuntimeInstancePortableBug(comp,
+            Dim comp = CreateCompilationWithMscorlib40({source}, options:=TestOptions.DebugDll)
+            WithRuntimeInstance(comp,
                 Sub(runtime)
                     Dim blocks As ImmutableArray(Of MetadataBlock) = Nothing
                     Dim moduleVersionId As Guid = Nothing
@@ -1445,9 +1446,10 @@ End Class
                     GetContextState(runtime, "C.VB$StateMachine_1_M.MoveNext", blocks, moduleVersionId, symReader, methodToken, localSignatureToken)
                     Const methodVersion = 1
 
+                    Dim appDomain = New AppDomain()
                     Dim ilOffset = ExpressionCompilerTestHelpers.GetOffset(methodToken, symReader, atLineNumber:=100)
-                    Dim context = EvaluationContext.CreateMethodContext(
-                        Nothing,
+                    Dim context = CreateMethodContext(
+                        appDomain,
                         blocks,
                         MakeDummyLazyAssemblyReaders(),
                         symReader,
@@ -1455,7 +1457,8 @@ End Class
                         methodToken,
                         methodVersion,
                         ilOffset,
-                        localSignatureToken)
+                        localSignatureToken,
+                        MakeAssemblyReferencesKind.AllAssemblies)
 
                     Dim errorMessage As String = Nothing
                     context.CompileExpression("x", errorMessage)
@@ -1464,8 +1467,8 @@ End Class
                     Assert.Equal("error BC30451: 'y' is not declared. It may be inaccessible due to its protection level.", errorMessage)
 
                     ilOffset = ExpressionCompilerTestHelpers.GetOffset(methodToken, symReader, atLineNumber:=200)
-                    context = EvaluationContext.CreateMethodContext(
-                        New VisualBasicMetadataContext(blocks, context),
+                    context = CreateMethodContext(
+                        appDomain,
                         blocks,
                         MakeDummyLazyAssemblyReaders(),
                         symReader,
@@ -1473,7 +1476,8 @@ End Class
                         methodToken,
                         methodVersion,
                         ilOffset,
-                        localSignatureToken)
+                        localSignatureToken,
+                        MakeAssemblyReferencesKind.AllAssemblies)
 
                     context.CompileExpression("x", errorMessage)
                     Assert.Null(errorMessage)
@@ -1490,7 +1494,7 @@ End Class
         End Function
 
         Private Shared Function CreateCompilation(source As String) As VisualBasicCompilation
-            Return CreateCompilationWithReferences(
+            Return CreateEmptyCompilationWithReferences(
                 {VisualBasicSyntaxTree.ParseText(source)},
                 {MscorlibRef_v4_0_30316_17626, MsvbRef_v4_0_30319_17929},
                 options:=TestOptions.DebugDll,

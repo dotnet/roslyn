@@ -1,41 +1,51 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Formatting.Rules;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.VisualStudio.Composition;
 using Roslyn.Test.Utilities;
-using System.Collections.Generic;
 
 namespace Microsoft.CodeAnalysis.Editor.UnitTests
 {
     /// <summary>
-    /// This type caches MEF compositions for our unit tests.  MEF composition is a relatively expensive
-    /// operation and caching yields demonstrable benefits for testing.
+    /// This type provides cached <see cref="IExportProviderFactory"/> instances for use in tests. These factories allow
+    /// for efficient creation of <see cref="ExportProvider"/> instances without sharing mutable state.
     /// </summary>
     public static class TestExportProvider
     {
         private static Lazy<ComposableCatalog> s_lazyEntireAssemblyCatalogWithCSharpAndVisualBasic =
             new Lazy<ComposableCatalog>(() => CreateAssemblyCatalogWithCSharpAndVisualBasic());
 
+        private static Lazy<IExportProviderFactory> s_lazyExportProviderFactoryWithCSharpAndVisualBasic =
+            new Lazy<IExportProviderFactory>(() => ExportProviderCache.GetOrCreateExportProviderFactory(EntireAssemblyCatalogWithCSharpAndVisualBasic));
+
         public static ComposableCatalog EntireAssemblyCatalogWithCSharpAndVisualBasic
             => s_lazyEntireAssemblyCatalogWithCSharpAndVisualBasic.Value;
 
-        private static Lazy<ExportProvider> s_lazyExportProviderWithCSharpAndVisualBasic
-            = new Lazy<ExportProvider>(CreateExportProviderWithCSharpAndVisualBasic);
+        public static IExportProviderFactory ExportProviderFactoryWithCSharpAndVisualBasic
+            => s_lazyExportProviderFactoryWithCSharpAndVisualBasic.Value;
 
         public static ExportProvider ExportProviderWithCSharpAndVisualBasic
-            => s_lazyExportProviderWithCSharpAndVisualBasic.Value;
+            => ExportProviderFactoryWithCSharpAndVisualBasic.CreateExportProvider();
 
         private static Lazy<ComposableCatalog> s_lazyMinimumCatalogWithCSharpAndVisualBasic =
-            new Lazy<ComposableCatalog>(() => MinimalTestExportProvider.CreateTypeCatalog(GetNeutralAndCSharpAndVisualBasicTypes())
-                        .WithParts(MinimalTestExportProvider.CreateAssemblyCatalog(MinimalTestExportProvider.GetVisualStudioAssemblies())));
+            new Lazy<ComposableCatalog>(() => ExportProviderCache.CreateTypeCatalog(GetNeutralAndCSharpAndVisualBasicTypes())
+                        .WithParts(ExportProviderCache.GetOrCreateAssemblyCatalog(MinimalTestExportProvider.GetEditorAssemblies())));
+
+        private static Lazy<IExportProviderFactory> s_lazyMinimumExportProviderFactoryWithCSharpAndVisualBasic =
+            new Lazy<IExportProviderFactory>(() => ExportProviderCache.GetOrCreateExportProviderFactory(MinimumCatalogWithCSharpAndVisualBasic));
 
         public static ComposableCatalog MinimumCatalogWithCSharpAndVisualBasic
             => s_lazyMinimumCatalogWithCSharpAndVisualBasic.Value;
+
+        public static IExportProviderFactory MinimumExportProviderFactoryWithCSharpAndVisualBasic
+            => s_lazyMinimumExportProviderFactoryWithCSharpAndVisualBasic.Value;
 
         private static Type[] GetNeutralAndCSharpAndVisualBasicTypes()
         {
@@ -56,8 +66,12 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests
                 typeof(CodeAnalysis.VisualBasic.CodeGeneration.VisualBasicCodeGenerationServiceFactory),
                 typeof(CodeAnalysis.CSharp.CSharpSyntaxFactsServiceFactory),
                 typeof(CodeAnalysis.VisualBasic.VisualBasicSyntaxFactsServiceFactory),
+                typeof(CodeAnalysis.CSharp.FindSymbols.CSharpDeclaredSymbolInfoFactoryService),
+                typeof(CodeAnalysis.VisualBasic.FindSymbols.VisualBasicDeclaredSymbolInfoFactoryService),
                 typeof(CodeAnalysis.CSharp.CSharpSymbolDeclarationService),
                 typeof(CodeAnalysis.VisualBasic.VisualBasicSymbolDeclarationService),
+                typeof(CodeAnalysis.CSharp.Formatting.CSharpFormattingService),
+                typeof(CodeAnalysis.VisualBasic.Formatting.VisualBasicFormattingService),
                 typeof(CSharp.LanguageServices.CSharpSymbolDisplayServiceFactory),
                 typeof(CSharp.Interactive.CSharpInteractiveEvaluator),
                 typeof(VisualBasic.LanguageServices.VisualBasicSymbolDisplayServiceFactory),
@@ -72,46 +86,49 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests
                 typeof(CodeAnalysis.VisualBasic.CodeGeneration.VisualBasicSyntaxGenerator),
                 typeof(CSharp.LanguageServices.CSharpContentTypeLanguageService),
                 typeof(VisualBasic.LanguageServices.VisualBasicContentTypeLanguageService),
+                typeof(CodeAnalysis.CSharp.Execution.CSharpOptionsSerializationService),
+                typeof(CodeAnalysis.VisualBasic.Execution.VisualBasicOptionsSerializationService),
+                typeof(CodeAnalysis.Execution.DesktopReferenceSerializationServiceFactory),
+                typeof(CodeAnalysis.Execution.SerializerServiceFactory),
+                typeof(CodeAnalysis.Shared.TestHooks.AsynchronousOperationListenerProvider),
+                typeof(PrimaryWorkspace),
                 typeof(TestExportProvider)
             };
 
             return ServiceTestExportProvider.GetLanguageNeutralTypes()
                 .Concat(types)
-                .Concat(TestHelpers.GetAllTypesImplementingGivenInterface(typeof(CodeAnalysis.CSharp.Formatting.DefaultOperationProvider).Assembly, typeof(ISyntaxFormattingService)))
-                .Concat(TestHelpers.GetAllTypesImplementingGivenInterface(typeof(CodeAnalysis.VisualBasic.Formatting.DefaultOperationProvider).Assembly, typeof(ISyntaxFormattingService)))
-                .Concat(TestHelpers.GetAllTypesImplementingGivenInterface(typeof(CodeAnalysis.CSharp.Formatting.DefaultOperationProvider).Assembly, typeof(IFormattingRule)))
-                .Concat(TestHelpers.GetAllTypesImplementingGivenInterface(typeof(CodeAnalysis.VisualBasic.Formatting.DefaultOperationProvider).Assembly, typeof(IFormattingRule)))
-                .Concat(TestHelpers.GetAllTypesImplementingGivenInterface(typeof(CodeAnalysis.CSharp.Formatting.DefaultOperationProvider).Assembly, typeof(ICodeGenerationService)))
-                .Concat(TestHelpers.GetAllTypesImplementingGivenInterface(typeof(CodeAnalysis.VisualBasic.Formatting.DefaultOperationProvider).Assembly, typeof(ICodeGenerationService)))
+                .Concat(DesktopTestHelpers.GetAllTypesImplementingGivenInterface(
+                    typeof(CodeAnalysis.CSharp.Formatting.DefaultOperationProvider).Assembly, typeof(ISyntaxFormattingService)))
+                .Concat(DesktopTestHelpers.GetAllTypesImplementingGivenInterface(
+                    typeof(CodeAnalysis.VisualBasic.Formatting.DefaultOperationProvider).Assembly, typeof(ISyntaxFormattingService)))
+                .Concat(DesktopTestHelpers.GetAllTypesImplementingGivenInterface(
+                    typeof(CodeAnalysis.CSharp.Formatting.DefaultOperationProvider).Assembly, typeof(IFormattingRule)))
+                .Concat(DesktopTestHelpers.GetAllTypesImplementingGivenInterface(
+                    typeof(CodeAnalysis.VisualBasic.Formatting.DefaultOperationProvider).Assembly, typeof(IFormattingRule)))
+                .Concat(DesktopTestHelpers.GetAllTypesImplementingGivenInterface(
+                    typeof(CodeAnalysis.CSharp.Formatting.DefaultOperationProvider).Assembly, typeof(ICodeGenerationService)))
+                .Concat(DesktopTestHelpers.GetAllTypesImplementingGivenInterface(
+                    typeof(CodeAnalysis.VisualBasic.Formatting.DefaultOperationProvider).Assembly, typeof(ICodeGenerationService)))
                 .Concat(TestHelpers.GetAllTypesWithStaticFieldsImplementingType(typeof(CodeAnalysis.CSharp.Formatting.CSharpFormattingOptions).Assembly, typeof(CodeAnalysis.Options.IOption)))
                 .Distinct()
                 .ToArray();
         }
 
-        /// <summary>
-        /// Create fresh ExportProvider that doesn't share anything with others. Tests can use this
-        /// export provider to create all new MEF components not shared with others.
-        /// </summary>
-        public static ExportProvider CreateExportProviderWithCSharpAndVisualBasic()
+        private static IExportProviderFactory CreateExportProviderFactoryWithCSharpAndVisualBasic()
         {
-            return MinimalTestExportProvider.CreateExportProvider(CreateAssemblyCatalogWithCSharpAndVisualBasic());
+            return ExportProviderCache.GetOrCreateExportProviderFactory(EntireAssemblyCatalogWithCSharpAndVisualBasic);
         }
 
-        /// <summary>
-        /// Create fresh ComposableCatalog that doest share anything with others. Everything under
-        /// this catalog should have been created from scratch that doesn't share anything with 
-        /// others.
-        /// </summary>
-        public static ComposableCatalog CreateAssemblyCatalogWithCSharpAndVisualBasic()
+        private static ComposableCatalog CreateAssemblyCatalogWithCSharpAndVisualBasic()
         {
-            return MinimalTestExportProvider.CreateAssemblyCatalog(
-                GetCSharpAndVisualBasicAssemblies(),
-                MinimalTestExportProvider.CreateResolver());
+            return ExportProviderCache
+                .GetOrCreateAssemblyCatalog(GetCSharpAndVisualBasicAssemblies(), ExportProviderCache.CreateResolver())
+                .WithCompositionService();
         }
 
         public static IEnumerable<Assembly> GetCSharpAndVisualBasicAssemblies()
         {
-            return GetNeutralAndCSharpAndVisualBasicTypes().Select(t => t.Assembly).Distinct().Concat(MinimalTestExportProvider.GetVisualStudioAssemblies());
+            return GetNeutralAndCSharpAndVisualBasicTypes().Select(t => t.Assembly).Distinct().Concat(MinimalTestExportProvider.GetEditorAssemblies());
         }
     }
 }

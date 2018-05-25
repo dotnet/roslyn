@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -7,6 +7,7 @@ using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
@@ -128,7 +129,7 @@ class B
         private void IndexedPropertiesBindingChecks(string source, MetadataReference reference, SymbolKind symbolKind, string name)
         {
             var tree = Parse(source);
-            var comp = CreateCompilationWithMscorlib(tree, new[] { reference });
+            var comp = CreateCompilation(tree, new[] { reference });
 
             var model = comp.GetSemanticModel(tree);
             var expr = GetExprSyntaxForBinding(GetExprSyntaxList(tree));
@@ -196,7 +197,7 @@ Public Class A
 End Class
 ";
 
-            var reference = BasicCompilationUtils.CompileToMetadata(COMSource, verify: true);
+            var reference = BasicCompilationUtils.CompileToMetadata(COMSource, verify: Verification.Passes);
             return reference;
         }
     }

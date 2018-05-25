@@ -7,6 +7,7 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.InitializeParameter;
 using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -122,7 +123,7 @@ class C
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
-        public async Task TestNotOnPartialMethod1()
+        public async Task TestNotOnExternParameter()
         {
             await TestMissingInRegularAndScriptAsync(
 @"
@@ -130,16 +131,29 @@ using System;
 
 class C
 {
-    private partial void M([||]string s);
+    extern void M([||]string s);
+}");
+        }
 
-    private void M(string s)
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
+        public async Task TestNotOnPartialMethodDefinition1()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"
+using System;
+
+class C
+{
+    partial void M([||]string s);
+
+    partial void M(string s)
     {
     }
 }");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
-        public async Task TestNotOnPartialMethod2()
+        public async Task TestNotOnPartialMethodDefinition2()
         {
             await TestMissingInRegularAndScriptAsync(
 @"
@@ -147,11 +161,75 @@ using System;
 
 class C
 {
-    private void M(string s)
+    partial void M(string s)
     {
     }
 
-    private partial void M([||]string s);
+    partial void M([||]string s);
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
+        public async Task TestOnPartialMethodImplementation1()
+        {
+            await TestInRegularAndScript1Async(
+@"
+using System;
+
+class C
+{
+    partial void M(string s);
+
+    partial void M([||]string s)
+    {
+    }
+}",
+@"
+using System;
+
+class C
+{
+    partial void M(string s);
+
+    partial void M(string s)
+    {
+        if (s == null)
+        {
+            throw new ArgumentNullException(nameof(s));
+        }
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
+        public async Task TestOnPartialMethodImplementation2()
+        {
+            await TestInRegularAndScript1Async(
+@"
+using System;
+
+class C
+{
+    partial void M([||]string s)
+    {
+    }
+
+    partial void M(string s);
+}",
+@"
+using System;
+
+class C
+{
+    partial void M(string s)
+    {
+        if (s == null)
+        {
+            throw new ArgumentNullException(nameof(s));
+        }
+    }
+
+    partial void M(string s);
 }");
         }
 
@@ -348,7 +426,7 @@ class C
         {
             throw new ArgumentNullException(nameof(s));
         }
-        
+
         Init();
     }
 }");
@@ -377,7 +455,7 @@ class C
         {
             throw new ArgumentNullException(nameof(s));
         }
-        
+
         Init();
     }
 }", parameters: new TestParameters(options:
@@ -642,7 +720,7 @@ class C
 {
     public C()
     {
-        void Foo([||]string s)
+        void Goo([||]string s)
         {
         }
     }
@@ -703,6 +781,265 @@ class C
         }
     }
 }", index: 2);
+        }
+
+        [WorkItem(19173, "https://github.com/dotnet/roslyn/issues/19173")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
+        public async Task TestMissingOnUnboundTypeWithExistingNullCheck()
+        {
+            await TestMissingAsync(
+@"
+class C
+{
+    public C(String [||]s)
+    {
+        if (s == null)
+        {
+            throw new System.Exception();
+        }
+    }
+}");
+        }
+
+        [WorkItem(19174, "https://github.com/dotnet/roslyn/issues/19174")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
+        public async Task TestRespectPredefinedTypePreferences()
+        {
+            await TestInRegularAndScript1Async(
+@"
+using System;
+
+class Program
+{
+    static void Main([||]String bar)
+    {
+    }
+}",
+@"
+using System;
+
+class Program
+{
+    static void Main(String bar)
+    {
+        if (String.IsNullOrEmpty(bar))
+        {
+            throw new ArgumentException(""message"", nameof(bar));
+        }
+    }
+}", index: 1,
+    parameters: new TestParameters(
+        options: Option(
+            CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInMemberAccess,
+            CodeStyleOptions.FalseWithSuggestionEnforcement)));
+        }
+
+        [WorkItem(19172, "https://github.com/dotnet/roslyn/issues/19172")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
+        public async Task TestPreferNoBlock()
+        {
+            await TestInRegularAndScript1Async(
+@"
+using System;
+
+class C
+{
+    public C([||]string s)
+    {
+    }
+}",
+@"
+using System;
+
+class C
+{
+    public C(string s)
+    {
+        if (s == null)
+            throw new ArgumentNullException(nameof(s));
+    }
+}",
+    parameters: new TestParameters(options:
+        Option(CSharpCodeStyleOptions.PreferBraces, CodeStyleOptions.FalseWithNoneEnforcement)));
+        }
+
+        [WorkItem(19956, "https://github.com/dotnet/roslyn/issues/19956")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
+        public async Task TestNoBlock()
+        {
+            await TestInRegularAndScript1Async(
+@"
+using System;
+
+class C
+{
+    public C(string s[||])
+}",
+@"
+using System;
+
+class C
+{
+    public C(string s)
+    {
+        if (s == null)
+        {
+            throw new ArgumentNullException(nameof(s));
+        }
+    }
+}");
+        }
+
+        [WorkItem(21501, "https://github.com/dotnet/roslyn/issues/21501")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
+        public async Task TestInArrowExpression1()
+        {
+            await TestInRegularAndScript1Async(
+@"
+using System;
+using System.Linq;
+
+class C
+{
+    public int Foo(int[] array[||]) =>
+        array.Where(x => x > 3)
+            .OrderBy(x => x)
+            .Count();
+}",
+@"
+using System;
+using System.Linq;
+
+class C
+{
+    public int Foo(int[] array)
+    {
+        if (array == null)
+        {
+            throw new ArgumentNullException(nameof(array));
+        }
+
+        return array.Where(x => x > 3)
+            .OrderBy(x => x)
+            .Count();
+    }
+}");
+        }
+
+        [WorkItem(21501, "https://github.com/dotnet/roslyn/issues/21501")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
+        public async Task TestInArrowExpression2()
+        {
+            await TestInRegularAndScript1Async(
+@"
+using System;
+using System.Linq;
+
+class C
+{
+    public int Foo(int[] array[||]) /* Bar */ => /* Bar */
+        array.Where(x => x > 3)
+            .OrderBy(x => x)
+            .Count(); /* Bar */
+}",
+@"
+using System;
+using System.Linq;
+
+class C
+{
+    public int Foo(int[] array) /* Bar */
+    {
+        if (array == null)
+        {
+            throw new ArgumentNullException(nameof(array));
+        }
+        /* Bar */
+        return array.Where(x => x > 3)
+            .OrderBy(x => x)
+            .Count(); /* Bar */
+    }
+}");
+        }
+
+        [WorkItem(21501, "https://github.com/dotnet/roslyn/issues/21501")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
+        public async Task TestMissingInArrowExpression1()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"
+using System;
+using System.Linq;
+
+class C
+{
+    public void Foo(string bar[||]) =>
+#if DEBUG
+        Console.WriteLine(""debug"" + bar);
+#else
+        Console.WriteLine(""release"" + bar);
+#endif
+}");
+        }
+
+        [WorkItem(21501, "https://github.com/dotnet/roslyn/issues/21501")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
+        public async Task TestMissingInArrowExpression2()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"
+using System;
+using System.Linq;
+
+class C
+{
+    public int Foo(int[] array[||]) =>
+#if DEBUG
+        array.Where(x => x > 3)
+            .OrderBy(x => x)
+            .Count();
+#else
+        array.Where(x => x > 3)
+            .OrderBy(x => x)
+            .Count();
+#endif
+}");
+        }
+
+        [WorkItem(21501, "https://github.com/dotnet/roslyn/issues/21501")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
+        public async Task TestInArrowExpression3()
+        {
+            await TestInRegularAndScript1Async(
+@"
+using System;
+using System.Linq;
+
+class C
+{
+    public void Foo(int[] array[||]) =>
+        array.Where(x => x > 3)
+            .OrderBy(x => x)
+            .Count();
+}",
+@"
+using System;
+using System.Linq;
+
+class C
+{
+    public void Foo(int[] array)
+    {
+        if (array == null)
+        {
+            throw new ArgumentNullException(nameof(array));
+        }
+
+        array.Where(x => x > 3)
+            .OrderBy(x => x)
+            .Count();
+    }
+}");
         }
     }
 }

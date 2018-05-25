@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Composition;
 using System.Linq;
@@ -317,8 +317,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.LanguageService
         {
             var displayString = symbol.ToDisplayString(TypeFormat);
 
-            var type = symbol as ITypeSymbol;
-            if (type != null && type.OriginalDefinition.SpecialType == SpecialType.System_Nullable_T)
+            if (symbol is ITypeSymbol type && type.OriginalDefinition.SpecialType == SpecialType.System_Nullable_T)
             {
                 return "System.Nullable`1";
             }

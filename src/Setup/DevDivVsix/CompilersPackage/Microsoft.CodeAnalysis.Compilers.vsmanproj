@@ -1,32 +1,29 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <!-- Copyright (c)  Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information. -->
 <Project ToolsVersion="14.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-  <Import Project="..\..\..\..\build\Targets\Settings.props" />
+  <Import Project="..\Settings.props" />
 
   <PropertyGroup>
     <FinalizeManifest>true</FinalizeManifest>
     <FinalizeSkipLayout>true</FinalizeSkipLayout>
-    <OutputPath>$(OutDir)Insertion\</OutputPath>
+    <OutputPath>$(OutputPath)Vsix\CodeAnalysisCompilers</OutputPath>
     <IsPackage>true</IsPackage>
     <FinalizeValidate>false</FinalizeValidate>
     <ValidateManifest>false</ValidateManifest>
+    <ImportDirectoryBuildProps>false</ImportDirectoryBuildProps>
+    <ImportDirectoryBuildTargets>false</ImportDirectoryBuildTargets>
   </PropertyGroup>
 
-  <Import Project="$(NuGetPackageRoot)\MicroBuild.Core\$(MicroBuildCoreVersion)\build\MicroBuild.Core.props" />
-  <Import Project="$(NuGetPackageRoot)\MicroBuild.Core\$(MicroBuildCoreVersion)\build\MicroBuild.Core.targets" />
+  <Import Project="$(SwixBuildPath)build\MicroBuild.Plugins.*.props" />
 
   <ItemGroup>
-    <RoslynVsixFileToCopy Include="..\..\MSBuildScripts\roslyn.bat" />
+    <MergeManifest Include="$(OutputPath)\Microsoft.CodeAnalysis.Compilers.json" />
   </ItemGroup>
 
-  <Target Name="BeforeBuild">
-    <Copy SourceFiles="@(RoslynVsixFileToCopy)" DestinationFolder="$(OutputPath)" OverwriteReadOnlyFiles="true" SkipUnchangedFiles="true" />
-    <MSBuild Projects="Microsoft.CodeAnalysis.Compilers.swixproj" Targets="Build" />
-  </Target>
-
-  <ItemGroup>
-    <MergeManifest Include="$(OutputPath)Microsoft.CodeAnalysis.Compilers.json" />
-  </ItemGroup>
+  <Import Project="$(SwixBuildPath)build\MicroBuild.Plugins.*.targets" />
 
   <Target Name="ValidateManifest" />
+
+  <!-- Disable automatic signing. This will be signed in the batch phase -->
+  <Target Name="AddTargetPathToFilesToSign" />
 </Project>

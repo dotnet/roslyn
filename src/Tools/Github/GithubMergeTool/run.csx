@@ -57,6 +57,7 @@ private static async Task RunAsync()
     await MakeRoslynPr("dev15.0.x", "dev15.1.x");
     await MakeRoslynPr("dev15.1.x", "master");
     await MakeRoslynPr("master", "dev16");
+    await MakeRoslynPr("master", "features/ioperation");
 
     // Roslyn-internal branches
     await MakeRoslynInternalPr("dev15.0.x", "dev15.1.x");

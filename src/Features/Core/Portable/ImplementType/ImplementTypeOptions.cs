@@ -10,6 +10,12 @@ namespace Microsoft.CodeAnalysis.ImplementType
         AtTheEnd = 1,
     }
 
+    internal enum ImplementTypePropertyGenerationBehavior
+    {
+        PreferThrowingProperties = 0,
+        PreferAutoProperties = 1,
+    }
+
     internal static class ImplementTypeOptions
     {
         public static readonly PerLanguageOption<ImplementTypeInsertionBehavior> InsertionBehavior = 
@@ -19,5 +25,14 @@ namespace Microsoft.CodeAnalysis.ImplementType
                 defaultValue: ImplementTypeInsertionBehavior.WithOtherMembersOfTheSameKind,
                 storageLocations: new RoamingProfileStorageLocation(
                     $"TextEditor.%LANGUAGE%.{nameof(ImplementTypeOptions)}.{nameof(InsertionBehavior)}"));
+
+        public static readonly PerLanguageOption<ImplementTypePropertyGenerationBehavior> PropertyGenerationBehavior =
+            new PerLanguageOption<ImplementTypePropertyGenerationBehavior>(
+                nameof(ImplementTypeOptions),
+                nameof(PropertyGenerationBehavior),
+                defaultValue: ImplementTypePropertyGenerationBehavior.PreferThrowingProperties,
+                storageLocations: new RoamingProfileStorageLocation(
+                    $"TextEditor.%LANGUAGE%.{nameof(ImplementTypeOptions)}.{nameof(PropertyGenerationBehavior)}"));
+
     }
 }

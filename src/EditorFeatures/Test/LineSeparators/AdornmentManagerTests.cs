@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Linq;
@@ -83,12 +83,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.LineSeparators
 
                 var workspace = new TestWorkspace();
 
-                var listener = new AggregateAsynchronousOperationListener(
-                    Enumerable.Empty<Lazy<IAsynchronousOperationListener, FeatureMetadata>>(),
-                    FeatureAttribute.LineSeparators);
                 Manager = AdornmentManager<Tag>.Create(_textView.Object,
                                                        aggregatorService.Object,
-                                                       listener,
+                                                       AsynchronousOperationListenerProvider.NullListener,
                                                        adornmentLayerName: layerName);
             }
 

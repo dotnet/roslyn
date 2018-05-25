@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis
         private readonly ImmutableArray<string> _aliases;
         private readonly bool _embedInteropTypes;
 
-        public ProjectReference(ProjectId projectId, ImmutableArray<string> aliases = default(ImmutableArray<string>), bool embedInteropTypes = false)
+        public ProjectReference(ProjectId projectId, ImmutableArray<string> aliases = default, bool embedInteropTypes = false)
         {
             Contract.ThrowIfNull(projectId);
 

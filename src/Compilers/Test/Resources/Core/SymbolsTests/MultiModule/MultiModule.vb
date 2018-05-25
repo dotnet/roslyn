@@ -3,7 +3,7 @@
 'vbc /t:library /vbruntime- MultiModule.vb /addmodule:mod2.netmodule,mod3.netmodule
 
 Public Class Class1
-Sub Foo()
+Sub Goo()
 Dim x = {1,2}
 Dim y = x.Count()
 End Sub

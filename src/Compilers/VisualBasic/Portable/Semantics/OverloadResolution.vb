@@ -5,6 +5,7 @@ Imports System.Diagnostics
 Imports System.Linq
 Imports System.Runtime.InteropServices
 Imports Microsoft.CodeAnalysis.Collections
+Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
@@ -2656,7 +2657,7 @@ Done:
         ''' 
         ''' Assumptions: 
         '''    1) This function is never called for a candidate that should be rejected due to parameter count.
-        '''    2) Omitted arguments [ Call Foo(a, , b) ] are represented by OmittedArgumentExpression node in the arguments array.
+        '''    2) Omitted arguments [ Call Goo(a, , b) ] are represented by OmittedArgumentExpression node in the arguments array.
         '''    3) Omitted argument never has name.
         '''    4) argumentNames contains Nothing for all positional arguments.
         ''' 
@@ -2702,10 +2703,29 @@ Done:
             Dim paramIndex = 0
 
             For i As Integer = 0 To arguments.Length - 1 Step 1
-
                 If Not argumentNames.IsDefault AndAlso argumentNames(i) IsNot Nothing Then
-                    ' First named argument
-                    Exit For
+                    ' A named argument
+
+                    If Not candidate.Candidate.TryGetNamedParamIndex(argumentNames(i), paramIndex) Then
+                        ' ERRID_NamedParamNotFound1
+                        ' ERRID_NamedParamNotFound2
+                        candidate.State = CandidateAnalysisResultState.ArgumentMismatch
+                        GoTo Bailout
+                    End If
+
+                    If paramIndex <> i Then
+                        ' all remaining arguments must be named
+                        Exit For
+                    End If
+
+                    If paramIndex = candidate.Candidate.ParameterCount - 1 AndAlso
+                    candidate.Candidate.Parameters(paramIndex).IsParamArray Then
+                        ' ERRID_NamedParamArrayArgument
+                        candidate.State = CandidateAnalysisResultState.ArgumentMismatch
+                        GoTo Bailout
+                    End If
+
+                    Debug.Assert(parameterToArgumentMap(paramIndex) = -1)
                 End If
 
                 positionalArguments += 1
@@ -2723,6 +2743,7 @@ Done:
                         candidate.State = CandidateAnalysisResultState.ArgumentMismatch
                         GoTo Bailout
                     Else
+                        parameterToArgumentMap(paramIndex) = i
                         paramIndex += 1
                     End If
 
@@ -2735,8 +2756,6 @@ Done:
                     paramIndex += 1
                 End If
             Next
-
-            Debug.Assert(argumentNames.IsDefault OrElse positionalArguments < arguments.Length)
 
             '§11.8.2 Applicable Methods
             '2.	Next, match each named argument to a parameter with the given name. 
@@ -2811,7 +2830,6 @@ Bailout:
 
         End Sub
 
-
         ''' <summary>
         ''' Match candidate's parameters to arguments §11.8.2 Applicable Methods.
         ''' 
@@ -2820,7 +2838,7 @@ Bailout:
         ''' 
         ''' Assumptions: 
         '''    1) This function is never called for a candidate that should be rejected due to parameter count.
-        '''    2) Omitted arguments [ Call Foo(a, , b) ] are represented by OmittedArgumentExpression node in the arguments array.
+        '''    2) Omitted arguments [ Call Goo(a, , b) ] are represented by OmittedArgumentExpression node in the arguments array.
         '''    3) Omitted argument never has name.
         '''    4) argumentNames contains Nothing for all positional arguments.
         ''' 
@@ -3046,14 +3064,14 @@ Bailout:
                 Dim argument = If(argIndex = -1, Nothing, arguments(argIndex))
                 Dim defaultArgument As BoundExpression = Nothing
 
-                If argument Is Nothing Then
+                If argument Is Nothing OrElse argument.Kind = BoundKind.OmittedArgument Then
 
                     ' Deal with Optional arguments.
                     If diagnostics Is Nothing Then
                         diagnostics = DiagnosticBag.GetInstance()
                     End If
 
-                    defaultArgument = binder.GetArgumentForParameterDefaultValue(param, methodOrPropertyGroup.Syntax, diagnostics, callerInfoOpt)
+                    defaultArgument = binder.GetArgumentForParameterDefaultValue(param, If(argument, methodOrPropertyGroup).Syntax, diagnostics, callerInfoOpt)
 
                     If defaultArgument IsNot Nothing AndAlso Not diagnostics.HasAnyErrors Then
                         Debug.Assert(Not diagnostics.AsEnumerable().Any())
@@ -4531,8 +4549,8 @@ ContinueCandidatesLoop:
 
             ' Both are generics
             If leftType.Kind = SymbolKind.NamedType AndAlso rightType.Kind = SymbolKind.NamedType Then
-                Dim leftNamedType = DirectCast(leftType, NamedTypeSymbol)
-                Dim rightNamedType = DirectCast(rightType, NamedTypeSymbol)
+                Dim leftNamedType = DirectCast(leftType.GetTupleUnderlyingTypeOrSelf(), NamedTypeSymbol)
+                Dim rightNamedType = DirectCast(rightType.GetTupleUnderlyingTypeOrSelf(), NamedTypeSymbol)
 
                 ' If their arities are equal
                 If leftNamedType.Arity = rightNamedType.Arity Then

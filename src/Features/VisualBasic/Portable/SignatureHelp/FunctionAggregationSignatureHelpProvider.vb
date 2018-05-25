@@ -1,4 +1,4 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Composition
 Imports System.Threading
@@ -66,7 +66,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SignatureHelp
                 Return Nothing
             End If
 
-            Dim symbolDisplayService = document.Project.LanguageServices.GetService(Of ISymbolDisplayService)()
+            Dim symbolDisplayService = document.GetLanguageService(Of ISymbolDisplayService)()
             Dim accessibleMethods = methods.WhereAsArray(Function(m) m.IsAccessibleWithin(within)).
                                             FilterToVisibleAndBrowsableSymbolsAndNotUnsafeSymbols(document.ShouldHideAdvancedMembers(), semanticModel.Compilation).
                                             Sort(symbolDisplayService, semanticModel, functionAggregation.SpanStart)
@@ -75,8 +75,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SignatureHelp
                 Return Nothing
             End If
 
-            Dim anonymousTypeDisplayService = document.Project.LanguageServices.GetService(Of IAnonymousTypeDisplayService)()
-            Dim documentationCommentFormattingService = document.Project.LanguageServices.GetService(Of IDocumentationCommentFormattingService)()
+            Dim anonymousTypeDisplayService = document.GetLanguageService(Of IAnonymousTypeDisplayService)()
+            Dim documentationCommentFormattingService = document.GetLanguageService(Of IDocumentationCommentFormattingService)()
             Dim textSpan = CommonSignatureHelpUtilities.GetSignatureHelpSpan(functionAggregation, functionAggregation.SpanStart, Function(n) n.CloseParenToken)
             Dim syntaxFacts = document.GetLanguageService(Of ISyntaxFactsService)
 

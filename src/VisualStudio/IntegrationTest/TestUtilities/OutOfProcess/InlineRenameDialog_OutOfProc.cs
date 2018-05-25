@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using Microsoft.CodeAnalysis.Editor.Implementation.InlineRename.HighlightTags;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.Input;
 
@@ -9,7 +10,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
     {
         private const string ChangeSignatureDialogAutomationId = "InlineRenameDialog";
 
-        public string ValidRenameTag => "RoslynRenameValidTag";
+        public string ValidRenameTag => RenameFieldBackgroundAndBorderTag.TagId;
 
         public InlineRenameDialog_OutOfProc(VisualStudioInstance visualStudioInstance) 
             : base(visualStudioInstance)

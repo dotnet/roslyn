@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Runtime.InteropServices;
@@ -13,6 +13,8 @@ using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation
 {
+    using Workspace = Microsoft.CodeAnalysis.Workspace;
+
     internal partial class GlobalUndoServiceFactory
     {
         private class WorkspaceUndoTransaction : ForegroundThreadAffinitizedObject, IWorkspaceGlobalUndoTransaction
@@ -117,11 +119,15 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                 }
             }
 
+#pragma warning disable CA1821 // Remove empty Finalizers
+#if DEBUG
             ~WorkspaceUndoTransaction()
             {
                 // make sure we closed it correctly
                 Contract.Requires(!_transactionAlive);
             }
+#endif
+#pragma warning restore CA1821 // Remove empty Finalizers
         }
     }
 }

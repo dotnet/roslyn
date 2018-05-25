@@ -1,4 +1,4 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports Microsoft.CodeAnalysis.CodeRefactorings
 Imports Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.CodeRefactorings
@@ -21,7 +21,8 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.GenerateConstructo
 End Class",
 "Class Program
     Private i As Integer
-    Public Sub New(i As Integer)
+
+    Public Sub New(i As Integer{|Navigation:)|}
         Me.i = i
     End Sub
 End Class")
@@ -37,7 +38,8 @@ End Class",
 "Class Program
     Private i As Integer
     Private b As String
-    Public Sub New(i As Integer, b As String)
+
+    Public Sub New(i As Integer, b As String{|Navigation:)|}
         Me.i = i
         Me.b = b
     End Sub
@@ -60,7 +62,8 @@ End Class",
     Public Sub New(i As Integer)
         Me.i = i
     End Sub
-    Public Sub New(b As String)
+
+    Public Sub New(b As String{|Navigation:)|}
         Me.b = b
     End Sub
 End Class")
@@ -82,7 +85,8 @@ End Class",
     Public Sub New(i As Integer)
         Me.i = i
     End Sub
-    Public Sub New(i As Integer, b As String)
+
+    Public Sub New(i As Integer, b As String{|Navigation:)|}
         Me.i = i
         Me.b = b
     End Sub
@@ -113,7 +117,8 @@ End Class")
 End Structure",
 "Structure S
     Private i As Integer
-    Public Sub New(i As Integer)
+
+    Public Sub New(i As Integer{|Navigation:)|}
         Me.i = i
     End Sub
 End Structure")
@@ -127,7 +132,8 @@ End Structure")
 End Class",
 "Class Program(Of T)
     Private i As Integer
-    Public Sub New(i As Integer)
+
+    Public Sub New(i As Integer{|Navigation:)|}
         Me.i = i
     End Sub
 End Class")
@@ -150,7 +156,8 @@ End Class",
     Public Sub New(i As Integer)
         Me.i = i
     End Sub
-    Public Sub New(i As Integer, b As String)
+
+    Public Sub New(i As Integer, b As String{|Navigation:)|}
         Me.New(i)
         Me.b = b
     End Sub
@@ -167,10 +174,11 @@ index:=1)
     Public Property B As String|]
 End Class",
 "Class Z
-    Public Sub New(a As Integer, b As String)
+    Public Sub New(a As Integer, b As String{|Navigation:)|}
         Me.A = a
         Me.B = b
     End Sub
+
     Public Property A As Integer
     Public Property B As String
 End Class")
@@ -185,7 +193,7 @@ End Class")
     ReadOnly Property Number As Integer|]
 End Class",
 "Class Contribution
-    Public Sub New(title As String, number As Integer)
+    Public Sub New(title As String, number As Integer{|Navigation:)|}
         Me.Title = title
         Me.Number = number
     End Sub
@@ -214,7 +222,8 @@ End Class")
 End Class",
 "Class Program
     Private i As Integer
-    Public Sub New(i As Integer)
+
+    Public Sub New(i As Integer{|Navigation:)|}
         Me.i = i
     End Sub
 End Class", chosenSymbols:={"i"})
@@ -229,7 +238,8 @@ End Class", chosenSymbols:={"i"})
 End Class",
 "Class Program
     Private i As Integer
-    Public Sub New()
+
+    Public Sub New({|Navigation:)|}
     End Sub
 End Class", chosenSymbols:={})
         End Function
@@ -245,7 +255,8 @@ End Class",
 "Class Program
     Private i As Integer
     Private j As String
-    Public Sub New(j As String, i As Integer)
+
+    Public Sub New(j As String, i As Integer{|Navigation:)|}
         Me.j = j
         Me.i = i
     End Sub
@@ -260,7 +271,8 @@ End Class", chosenSymbols:={"j", "i"})
 End Class",
 "Class Program
     Private i As Integer
-    Public Sub New(i As Integer)
+
+    Public Sub New(i As Integer{|Navigation:)|}
         Me.i = i
     End Sub
 End Class", chosenSymbols:={"i"})
@@ -295,6 +307,158 @@ Class Program
     Sub M()
     End Sub
 End Class")
+        End Function
+
+        <WorkItem(17643, "https://github.com/dotnet/roslyn/issues/17643")>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructorFromMembers)>
+        Public Async Function TestWithDialogNoBackingField() As Task
+            Await TestWithPickMembersDialogAsync(
+"
+Class Program
+    Public Property F() As Integer
+    [||]
+End Class",
+"
+Class Program
+    Public Property F() As Integer
+
+    Public Sub New(f As Integer{|Navigation:)|}
+        Me.F = f
+    End Sub
+End Class",
+chosenSymbols:=Nothing)
+        End Function
+
+        <WorkItem(25690, "https://github.com/dotnet/roslyn/issues/25690")>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructorFromMembers)>
+        Public Async Function TestWithDialogNoParameterizedProperty() As Task
+            Await TestWithPickMembersDialogAsync(
+"
+Class Program
+    Public Property P() As Integer
+        Get
+            Return 0
+        End Get
+        Set
+        End Set
+    End Property
+    Public Property I(index As Integer) As Integer
+        Get
+            Return 0
+        End Get
+        Set
+        End Set
+    End Property
+    [||]
+End Class",
+"
+Class Program
+    Public Property P() As Integer
+        Get
+            Return 0
+        End Get
+        Set
+        End Set
+    End Property
+    Public Property I(index As Integer) As Integer
+        Get
+            Return 0
+        End Get
+        Set
+        End Set
+    End Property
+
+    Public Sub New(p As Integer{|Navigation:)|}
+        Me.P = p
+    End Sub
+End Class",
+chosenSymbols:=Nothing)
+        End Function
+
+        <WorkItem(25690, "https://github.com/dotnet/roslyn/issues/25690")>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructorFromMembers)>
+        Public Async Function TestWithDialogNoIndexer() As Task
+            Await TestWithPickMembersDialogAsync(
+"
+Class Program
+    Public Property P() As Integer
+        Get
+            Return 0
+        End Get
+        Set
+        End Set
+    End Property
+    Default Public Property I(index As Integer) As Integer
+        Get
+            Return 0
+        End Get
+        Set
+        End Set
+    End Property
+    [||]
+End Class",
+"
+Class Program
+    Public Property P() As Integer
+        Get
+            Return 0
+        End Get
+        Set
+        End Set
+    End Property
+    Default Public Property I(index As Integer) As Integer
+        Get
+            Return 0
+        End Get
+        Set
+        End Set
+    End Property
+
+    Public Sub New(p As Integer{|Navigation:)|}
+        Me.P = p
+    End Sub
+End Class",
+chosenSymbols:=Nothing)
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructorFromMembers)>
+        Public Async Function TestWithDialogSetterOnlyProperty() As Task
+            Await TestWithPickMembersDialogAsync(
+"
+Class Program
+    Public Property P() As Integer
+        Get
+            Return 0
+        End Get
+        Set
+        End Set
+    End Property
+    Public WriteOnly Property S() As Integer
+        Set
+        End Set
+    End Property
+    [||]
+End Class",
+"
+Class Program
+    Public Property P() As Integer
+        Get
+            Return 0
+        End Get
+        Set
+        End Set
+    End Property
+    Public WriteOnly Property S() As Integer
+        Set
+        End Set
+    End Property
+
+    Public Sub New(p As Integer, s As Integer{|Navigation:)|}
+        Me.P = p
+        Me.S = s
+    End Sub
+End Class",
+chosenSymbols:=Nothing)
         End Function
     End Class
 End Namespace

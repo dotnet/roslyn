@@ -31,11 +31,6 @@ namespace Microsoft.CodeAnalysis.Remote
                 _lazyInstance = CreateNewLazyRemoteHostClient();
             }
 
-            public Task<RemoteHostClient> GetRemoteHostClientAsync(CancellationToken cancellationToken)
-            {
-                return TryGetRemoteHostClientAsync(cancellationToken);
-            }
-
             public Task<RemoteHostClient> TryGetRemoteHostClientAsync(CancellationToken cancellationToken)
             {
                 if (_lazyInstance == null)
@@ -48,7 +43,7 @@ namespace Microsoft.CodeAnalysis.Remote
 
             public async Task RequestNewRemoteHostAsync(CancellationToken cancellationToken)
             {
-                var instance = await GetRemoteHostClientAsync(cancellationToken).ConfigureAwait(false);
+                var instance = await TryGetRemoteHostClientAsync(cancellationToken).ConfigureAwait(false);
                 if (instance == null)
                 {
                     return;

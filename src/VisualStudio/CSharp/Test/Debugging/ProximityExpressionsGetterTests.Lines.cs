@@ -1,8 +1,6 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using Microsoft.CodeAnalysis.CSharp.Symbols;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Text;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.VisualStudio.LanguageServices.CSharp.Debugging;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -585,7 +583,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Debugging
         public void TestAtStartOfLine_50()
         {
             ////                     // an op term is ok if it's a "this" or "base" op it allows us to see
-            ////                     // "this.foo" in the autos window note: it's not a VALIDTERM since we don't
+            ////                     // "this.goo" in the autos window note: it's not a VALIDTERM since we don't
             //// ^
             var tree = GetTree();
             var terms = CSharpProximityExpressionsService.Do(tree, 1913);
@@ -596,7 +594,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Debugging
         [Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)]
         public void TestAtStartOfLine_51()
         {
-            ////                     // "this.foo" in the autos window note: it's not a VALIDTERM since we don't
+            ////                     // "this.goo" in the autos window note: it's not a VALIDTERM since we don't
             ////                     // want "this" showing up in the auto's window twice.
             //// ^
             var tree = GetTree();

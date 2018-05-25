@@ -9,6 +9,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Text
@@ -632,7 +633,19 @@ namespace Microsoft.CodeAnalysis.Text
                 // there can be no overlapping changes
                 if (change.Span.Start < position)
                 {
-                    throw new ArgumentException(CodeAnalysisResources.ChangesMustBeOrderedAndNotOverlapping, nameof(changes));
+                    // Handle the case of unordered changes by sorting the input and retrying. This is inefficient, but
+                    // downstream consumers have been known to hit this case in the past and we want to avoid crashes.
+                    // https://github.com/dotnet/roslyn/pull/26339
+                    if (change.Span.End <= changeRanges.Last().Span.Start)
+                    {
+                        changes = (from c in changes
+                                   where !c.Span.IsEmpty || c.NewText?.Length > 0
+                                   orderby c.Span
+                                   select c).ToList();
+                        return WithChanges(changes);
+                    }
+
+                    throw new ArgumentException(CodeAnalysisResources.ChangesMustNotOverlap, nameof(changes));
                 }
 
                 var newTextLength = change.NewText?.Length ?? 0;
@@ -659,7 +672,7 @@ namespace Microsoft.CodeAnalysis.Text
                 changeRanges.Add(new TextChangeRange(change.Span, newTextLength));
             }
 
-            // no changes actually happend?
+            // no changes actually happened?
             if (position == 0 && segments.Count == 0)
             {
                 changeRanges.Free();

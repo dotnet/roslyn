@@ -6,9 +6,9 @@ using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
@@ -18,8 +18,8 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
     internal abstract partial class AbstractSuppressionCodeFixProvider : ISuppressionFixProvider
     {
         public const string SuppressMessageAttributeName = "System.Diagnostics.CodeAnalysis.SuppressMessage";
-        private static readonly string s_globalSuppressionsFileName = "GlobalSuppressions";
-        private static readonly string s_suppressionsFileCommentTemplate =
+        private const string s_globalSuppressionsFileName = "GlobalSuppressions";
+        private const string s_suppressionsFileCommentTemplate =
 @"
 {0} This file is used by Code Analysis to maintain SuppressMessage 
 {0} attributes that are applied to this project.
@@ -223,9 +223,11 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
 
                     // targetMemberNode could be a declaration node with multiple decls (e.g. field declaration defining multiple variables).
                     // Let us compute all the declarations intersecting the span.
-                    var decls = new List<DeclarationInfo>();
-                    analyzerDriverService.ComputeDeclarationsInSpan(semanticModel, span, true, decls, cancellationToken);
-                    if (decls.Any())
+                    var declsBuilder = ArrayBuilder<DeclarationInfo>.GetInstance();
+                    analyzerDriverService.ComputeDeclarationsInSpan(semanticModel, span, true, declsBuilder, cancellationToken);
+                    var decls = declsBuilder.ToImmutableAndFree();
+
+                    if (!decls.IsEmpty)
                     {
                         var containedDecls = decls.Where(d => span.Contains(d.DeclaredNode.Span));
                         if (containedDecls.Count() == 1)

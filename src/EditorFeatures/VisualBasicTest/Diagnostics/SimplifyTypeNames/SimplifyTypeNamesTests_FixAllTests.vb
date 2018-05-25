@@ -1,4 +1,4 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Option Strict Off
 Imports Microsoft.CodeAnalysis.CodeStyle
@@ -14,8 +14,6 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics.Simpli
         <Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)>
         <Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)>
         Public Async Function TestFixAllInDocument() As Task
-            Dim fixAllActionId = SimplifyTypeNamesCodeFixProvider.GetCodeActionId(IDEDiagnosticIds.SimplifyNamesDiagnosticId, "System.Int32")
-
             Dim input = <Workspace>
                             <Project Language="Visual Basic" AssemblyName="Assembly1" CommonReferences="true">
                                 <Document><![CDATA[
@@ -98,15 +96,13 @@ End Class]]>
                                </Project>
                            </Workspace>.ToString()
 
-            Await TestInRegularAndScriptAsync(input, expected, ignoreTrivia:=False, fixAllActionEquivalenceKey:=fixAllActionId, options:=PreferIntrinsicPredefinedTypeEverywhere())
+            Await TestInRegularAndScriptAsync(input, expected, options:=PreferIntrinsicPredefinedTypeEverywhere())
         End Function
 
         <Fact>
         <Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)>
         <Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)>
         Public Async Function TestFixAllInProject() As Task
-            Dim fixAllActionId = SimplifyTypeNamesCodeFixProvider.GetCodeActionId(IDEDiagnosticIds.SimplifyNamesDiagnosticId, "System.Int32")
-
             Dim input = <Workspace>
                             <Project Language="Visual Basic" AssemblyName="Assembly1" CommonReferences="true">
                                 <Document><![CDATA[
@@ -189,15 +185,13 @@ End Class]]>
                                </Project>
                            </Workspace>.ToString()
 
-            Await TestInRegularAndScriptAsync(input, expected, ignoreTrivia:=False, fixAllActionEquivalenceKey:=fixAllActionId, options:=PreferIntrinsicPredefinedTypeEverywhere())
+            Await TestInRegularAndScriptAsync(input, expected, options:=PreferIntrinsicPredefinedTypeEverywhere())
         End Function
 
         <Fact>
         <Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)>
         <Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)>
         Public Async Function TestFixAllInSolution() As Task
-            Dim fixAllActionId = SimplifyTypeNamesCodeFixProvider.GetCodeActionId(IDEDiagnosticIds.SimplifyNamesDiagnosticId, "System.Int32")
-
             Dim input = <Workspace>
                             <Project Language="Visual Basic" AssemblyName="Assembly1" CommonReferences="true">
                                 <Document><![CDATA[
@@ -280,15 +274,13 @@ End Class]]>
                                </Project>
                            </Workspace>.ToString()
 
-            Await TestInRegularAndScriptAsync(input, expected, ignoreTrivia:=False, fixAllActionEquivalenceKey:=fixAllActionId, options:=PreferIntrinsicPredefinedTypeEverywhere())
+            Await TestInRegularAndScriptAsync(input, expected, options:=PreferIntrinsicPredefinedTypeEverywhere())
         End Function
 
         <Fact>
         <Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)>
         <Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)>
         Public Async Function TestFixAllInSolution_RemoveMe() As Task
-            Dim fixAllActionId = SimplifyTypeNamesCodeFixProvider.GetCodeActionId(IDEDiagnosticIds.RemoveQualificationDiagnosticId, Nothing)
-
             Dim input = <Workspace>
                             <Project Language="Visual Basic" AssemblyName="Assembly1" CommonReferences="true">
                                 <Document><![CDATA[
@@ -487,15 +479,13 @@ End Class]]>
                                </Project>
                            </Workspace>.ToString()
 
-            Await TestInRegularAndScriptAsync(input, expected, ignoreTrivia:=False, fixAllActionEquivalenceKey:=fixAllActionId)
+            Await TestInRegularAndScriptAsync(input, expected)
         End Function
 
         <Fact>
         <Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)>
         <Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)>
         Public Async Function TestFixAllInSolution_SimplifyMemberAccess() As Task
-            Dim fixAllActionId = SimplifyTypeNamesCodeFixProvider.GetCodeActionId(IDEDiagnosticIds.SimplifyMemberAccessDiagnosticId, "System.Console")
-
             Dim input = <Workspace>
                             <Project Language="Visual Basic" AssemblyName="Assembly1" CommonReferences="true">
                                 <Document><![CDATA[
@@ -718,7 +708,7 @@ End Class]]>
                                </Project>
                            </Workspace>.ToString()
 
-            Await TestInRegularAndScriptAsync(input, expected, ignoreTrivia:=False, fixAllActionEquivalenceKey:=fixAllActionId)
+            Await TestInRegularAndScriptAsync(input, expected)
         End Function
 
         <Fact>
@@ -795,9 +785,7 @@ End Class]]>
             Await TestInRegularAndScriptAsync(
                 initialMarkup:=input,
                 expectedMarkup:=expected,
-                options:=options,
-                ignoreTrivia:=False,
-                fixAllActionEquivalenceKey:=VBFeaturesResources.Remove_Me_qualification)
+                options:=options)
         End Function
 
     End Class

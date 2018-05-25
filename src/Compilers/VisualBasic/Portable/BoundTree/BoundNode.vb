@@ -93,7 +93,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
-        Public Overridable Function Accept(visitor As BoundTreeVisitor) As BoundNode
+        Public Overridable Overloads Function Accept(visitor As BoundTreeVisitor) As BoundNode
             Throw ExceptionUtilities.Unreachable
         End Function
 

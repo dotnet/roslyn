@@ -1,11 +1,10 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.GeneratedCodeRecognition;
 using Microsoft.CodeAnalysis.Navigation;
-using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
@@ -19,10 +18,24 @@ namespace Microsoft.CodeAnalysis
         public Document Document { get; }
         public TextSpan SourceSpan { get; }
 
+        /// <summary>
+        /// Additional information attached to a document span by it creator.
+        /// </summary>
+        public ImmutableDictionary<string, object> Properties { get; }
+
         public DocumentSpan(Document document, TextSpan sourceSpan)
+            : this(document, sourceSpan, properties: null)
+        {
+        }
+
+        public DocumentSpan(
+            Document document,
+            TextSpan sourceSpan,
+            ImmutableDictionary<string, object> properties)
         {
             Document = document;
             SourceSpan = sourceSpan;
+            Properties = properties ?? ImmutableDictionary<string, object>.Empty;
         }
 
         public override bool Equals(object obj)
@@ -52,13 +65,13 @@ namespace Microsoft.CodeAnalysis
             return service.CanNavigateToSpan(workspace, documentSpan.Document.Id, documentSpan.SourceSpan);
         }
 
-        public static bool TryNavigateTo(this DocumentSpan documentSpan)
+        public static bool TryNavigateTo(this DocumentSpan documentSpan, bool isPreview)
         {
             var solution = documentSpan.Document.Project.Solution;
             var workspace = solution.Workspace;
             var service = workspace.Services.GetService<IDocumentNavigationService>();
             return service.TryNavigateToSpan(workspace, documentSpan.Document.Id, documentSpan.SourceSpan,
-                options: solution.Options.WithChangedOption(NavigationOptions.PreferProvisionalTab, true));
+                options: solution.Options.WithChangedOption(NavigationOptions.PreferProvisionalTab, isPreview));
         }
 
         public static async Task<bool> IsHiddenAsync(

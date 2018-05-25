@@ -121,8 +121,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
 
                 if (_encoding)
                 {
-                    var userData = textBuffer as IVsUserData;
-                    if (userData != null)
+                    if (textBuffer is IVsUserData userData)
                     {
                         // The editor shims require that the boxed value when setting the PromptOnLoad flag is a uint
                         int hresult = userData.SetData(
@@ -286,7 +285,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             var documentOptions = addedDocument.GetOptionsAsync(cancellationToken).WaitAndGetResult(cancellationToken);
 
             var formattedTextChanges = Formatter.GetFormattedTextChanges(rootToFormat, workspace, documentOptions, cancellationToken);
-            var formattedText = addedDocument.GetTextAsync(cancellationToken).WaitAndGetResult(cancellationToken).WithChanges(formattedTextChanges);
+            var formattedText = addedDocument.GetTextSynchronously(cancellationToken).WithChanges(formattedTextChanges);
 
             // Ensure the line endings are normalized. The formatter doesn't touch everything if it doesn't need to.
             string targetLineEnding = documentOptions.GetOption(FormattingOptions.NewLine);

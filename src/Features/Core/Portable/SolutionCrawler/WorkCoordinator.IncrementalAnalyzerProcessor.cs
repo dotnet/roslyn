@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -13,6 +13,7 @@ using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Notification;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Roslyn.Utilities;
 
@@ -24,7 +25,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
         {
             private partial class IncrementalAnalyzerProcessor
             {
-                private static readonly Func<int, object, bool, string> s_enqueueLogger = (t, i, s) => string.Format("[{0}] {1} : {2}", t, i.ToString(), s);
+                private static readonly Func<int, object, bool, string> s_enqueueLogger = EnqueueLogger;
 
                 private readonly Registration _registration;
                 private readonly IAsynchronousOperationListener _listener;
@@ -193,7 +194,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                     try
                     {
                         var root = await GetOrDefaultAsync(document, (d, c) => d.GetSyntaxRootAsync(c), cancellationToken).ConfigureAwait(false);
-                        var syntaxFactsService = document.Project.LanguageServices.GetService<ISyntaxFactsService>();
+                        var syntaxFactsService = document.GetLanguageService<ISyntaxFactsService>();
                         var reasons = workItem.InvocationReasons;
                         if (root == null || syntaxFactsService == null)
                         {
@@ -230,11 +231,11 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                     }
                     catch (OperationCanceledException)
                     {
-                        return default(TResult);
+                        return default;
                     }
                     catch (AggregateException e) when (CrashUnlessCanceled(e))
                     {
-                        return default(TResult);
+                        return default;
                     }
                     catch (Exception e) when (FatalError.Report(e))
                     {
@@ -271,6 +272,16 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                     }
 
                     return null;
+                }
+
+                private static string EnqueueLogger(int tick, object documentOrProjectId, bool replaced)
+                {
+                    if (documentOrProjectId is DocumentId documentId)
+                    {
+                        return $"Tick:{tick}, {documentId}, {documentId.ProjectId}, Replaced:{replaced}";
+                    }
+
+                    return $"Tick:{tick}, {documentOrProjectId}, Replaced:{replaced}";
                 }
 
                 private static bool CrashUnlessCanceled(AggregateException aggregate)

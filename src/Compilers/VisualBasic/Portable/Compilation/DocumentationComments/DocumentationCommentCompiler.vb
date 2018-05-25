@@ -5,6 +5,7 @@ Imports System.IO
 Imports System.Text
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.Collections
+Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports System.Xml.Linq
 Imports Microsoft.CodeAnalysis.Text

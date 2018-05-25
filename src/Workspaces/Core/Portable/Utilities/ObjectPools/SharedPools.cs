@@ -2,8 +2,9 @@
 
 using System;
 using System.Collections.Generic;
+using Microsoft.CodeAnalysis.PooledObjects;
 
-namespace Roslyn.Utilities
+namespace Microsoft.CodeAnalysis
 {
     /// <summary>
     /// Shared object pool for roslyn

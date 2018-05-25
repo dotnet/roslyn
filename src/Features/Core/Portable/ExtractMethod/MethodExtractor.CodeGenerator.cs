@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Simplification;
 using Roslyn.Utilities;
@@ -51,7 +52,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
             protected abstract SyntaxNode GetOutermostCallSiteContainerToProcess(CancellationToken cancellationToken);
             protected abstract Task<SyntaxNode> GenerateBodyForCallSiteContainerAsync(CancellationToken cancellationToken);
             protected abstract SyntaxNode GetPreviousMember(SemanticDocument document);
-            protected abstract Task<OperationStatus<IMethodSymbol>> GenerateMethodDefinitionAsync(CancellationToken cancellationToken);
+            protected abstract OperationStatus<IMethodSymbol> GenerateMethodDefinition(CancellationToken cancellationToken);
 
             protected abstract SyntaxToken CreateIdentifier(string name);
             protected abstract SyntaxToken CreateMethodName();
@@ -62,7 +63,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
             protected abstract Task<TNodeUnderContainer> GetStatementOrInitializerContainingInvocationToExtractedMethodAsync(SyntaxAnnotation callsiteAnnotation, CancellationToken cancellationToken);
 
             protected abstract TExpression CreateCallSignature();
-            protected abstract Task<TStatement> CreateDeclarationStatementAsync(VariableInfo variable, TExpression initialValue, CancellationToken cancellationToken);
+            protected abstract TStatement CreateDeclarationStatement(VariableInfo variable, TExpression initialValue, CancellationToken cancellationToken);
             protected abstract TStatement CreateAssignmentExpressionStatement(SyntaxToken identifier, TExpression rvalue);
             protected abstract TStatement CreateReturnStatement(string identifierName = null);
 
@@ -85,7 +86,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
 
                 var codeGenerationService = this.SemanticDocument.Document.GetLanguageService<ICodeGenerationService>();
 
-                var result = await this.GenerateMethodDefinitionAsync(cancellationToken).ConfigureAwait(false);
+                var result = this.GenerateMethodDefinition(cancellationToken);
                 var newContainer = codeGenerationService.AddMethod(
                     destination, result.Data,
                     new CodeGenerationOptions(afterThisLocation: previousMemberNode.GetLocation(), generateDefaultAccessibility: true, generateMethodBodies: true),
@@ -174,7 +175,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
                     (TStatement)(SyntaxNode)await GetStatementOrInitializerContainingInvocationToExtractedMethodAsync(this.CallSiteAnnotation, cancellationToken).ConfigureAwait(false));
             }
 
-            protected async Task<IEnumerable<TStatement>> AddAssignmentStatementToCallSiteAsync(
+            protected IEnumerable<TStatement> AddAssignmentStatementToCallSite(
                 IEnumerable<TStatement> statements,
                 CancellationToken cancellationToken)
             {
@@ -189,8 +190,8 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
                     // there must be one decl behavior when there is "return value and initialize" variable
                     Contract.ThrowIfFalse(this.AnalyzerResult.GetVariablesToSplitOrMoveOutToCallSite(cancellationToken).Single(v => v.ReturnBehavior == ReturnBehavior.Initialization) != null);
 
-                    var declarationStatement = await CreateDeclarationStatementAsync(
-                        variable, CreateCallSignature(), cancellationToken).ConfigureAwait(false);
+                    var declarationStatement = CreateDeclarationStatement(
+                        variable, CreateCallSignature(), cancellationToken);
                     declarationStatement = declarationStatement.WithAdditionalAnnotations(this.CallSiteAnnotation);
 
                     return statements.Concat(declarationStatement);
@@ -201,22 +202,22 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
                     CreateAssignmentExpressionStatement(CreateIdentifier(variable.Name), CreateCallSignature()).WithAdditionalAnnotations(this.CallSiteAnnotation));
             }
 
-            protected async Task<IEnumerable<TStatement>> CreateDeclarationStatementsAsync(
+            protected IEnumerable<TStatement> CreateDeclarationStatements(
                 IEnumerable<VariableInfo> variables, CancellationToken cancellationToken)
             {
                 var list = new List<TStatement>();
 
                 foreach (var variable in variables)
                 {
-                    var declaration = await CreateDeclarationStatementAsync(
-                        variable, initialValue: null, cancellationToken: cancellationToken).ConfigureAwait(false);
+                    var declaration = CreateDeclarationStatement(
+                        variable, initialValue: null, cancellationToken: cancellationToken);
                     list.Add(declaration);
                 }
 
                 return list;
             }
 
-            protected async Task<IEnumerable<TStatement>> AddSplitOrMoveDeclarationOutStatementsToCallSiteAsync(
+            protected IEnumerable<TStatement> AddSplitOrMoveDeclarationOutStatementsToCallSite(
                 IEnumerable<TStatement> statements, CancellationToken cancellationToken)
             {
                 var list = new List<TStatement>();
@@ -228,8 +229,8 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
                         continue;
                     }
 
-                    var declaration = await CreateDeclarationStatementAsync(
-                        variable, initialValue: null, cancellationToken: cancellationToken).ConfigureAwait(false);
+                    var declaration = CreateDeclarationStatement(
+                        variable, initialValue: null, cancellationToken: cancellationToken);
                     list.Add(declaration);
                 }
 
@@ -288,7 +289,8 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
 
                     typeParameters.Add(CodeGenerationSymbolFactory.CreateTypeParameter(
                         parameter.GetAttributes(), parameter.Variance, parameter.Name, ImmutableArray.Create<ITypeSymbol>(),
-                        parameter.HasConstructorConstraint, parameter.HasReferenceTypeConstraint, parameter.HasValueTypeConstraint, parameter.Ordinal));
+                        parameter.HasConstructorConstraint, parameter.HasReferenceTypeConstraint, parameter.HasValueTypeConstraint,
+                        parameter.HasUnmanagedTypeConstraint, parameter.Ordinal));
                 }
 
                 return typeParameters.ToImmutableAndFree();

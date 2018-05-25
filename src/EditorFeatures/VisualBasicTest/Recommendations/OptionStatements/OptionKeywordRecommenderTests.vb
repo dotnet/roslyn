@@ -1,4 +1,4 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations.OptionStatements
     Public Class OptionKeywordRecommenderTests
@@ -29,7 +29,7 @@ Option Strict On
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Async Function OptionNotAfterImportsTest() As Task
             Await VerifyRecommendationsMissingAsync(<File>
-Imports Foo
+Imports Goo
 |</File>, "Option")
         End Function
 
@@ -37,7 +37,7 @@ Imports Foo
         <Trait(Traits.Feature, Traits.Features.KeywordRecommending)>
         Public Async Function OptionNotAfterTypeTest() As Task
             Await VerifyRecommendationsMissingAsync(<File>
-Class Foo
+Class Goo
 End Class
 |</File>, "Option")
         End Function

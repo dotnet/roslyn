@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -15,11 +15,16 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
 {
     internal sealed partial class SolutionCrawlerRegistrationService
     {
+        /// <summary>
+        /// this will be used in the unit test to indicate certain action has happened or not.
+        /// </summary>
+        public const string EnqueueItem = nameof(EnqueueItem);
+
         private sealed partial class WorkCoordinator
         {
             private sealed class SemanticChangeProcessor : IdleProcessor
             {
-                private static readonly Func<int, DocumentId, bool, string> s_enqueueLogger = (t, i, b) => string.Format("[{0}] {1} - hint: {2}", t, i.ToString(), b);
+                private static readonly Func<int, DocumentId, bool, string> s_enqueueLogger = (tick, documentId, hint) => $"Tick:{tick}, {documentId}, {documentId.ProjectId}, hint:{hint}";
 
                 private readonly SemaphoreSlim _gate;
 
@@ -48,6 +53,14 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                     _pendingWork = new Dictionary<DocumentId, Data>();
 
                     Start();
+
+                    // Register a clean-up task to ensure pending work items are flushed from the queue if they will
+                    // never be processed.
+                    AsyncProcessorTask.ContinueWith(
+                        _ => ClearQueueWorker(_workGate, _pendingWork, data => data.AsyncToken),
+                        CancellationToken.None,
+                        TaskContinuationOptions.ExecuteSynchronously,
+                        TaskScheduler.Default);
                 }
 
                 public override Task AsyncProcessorTask
@@ -67,15 +80,16 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                 {
                     var data = Dequeue();
 
-                    // we have a hint. check whether we can take advantage of it
-                    if (await TryEnqueueFromHint(data.Document, data.ChangedMember).ConfigureAwait(continueOnCapturedContext: false))
+                    using (data.AsyncToken)
                     {
-                        data.AsyncToken.Dispose();
-                        return;
-                    }
+                        // we have a hint. check whether we can take advantage of it
+                        if (await TryEnqueueFromHint(data.Document, data.ChangedMember).ConfigureAwait(continueOnCapturedContext: false))
+                        {
+                            return;
+                        }
 
-                    EnqueueFullProjectDependency(data.Document);
-                    data.AsyncToken.Dispose();
+                        EnqueueFullProjectDependency(data.Document);
+                    }
                 }
 
                 private Data Dequeue()
@@ -249,14 +263,14 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                         if (_pendingWork.TryGetValue(document.Id, out var data))
                         {
                             // create new async token and dispose old one.
-                            var newAsyncToken = this.Listener.BeginAsyncOperation("EnqueueSemanticChange");
+                            var newAsyncToken = Listener.BeginAsyncOperation(nameof(Enqueue), tag: _registration.Workspace);
                             data.AsyncToken.Dispose();
 
                             _pendingWork[document.Id] = new Data(document, data.ChangedMember == changedMember ? changedMember : null, newAsyncToken);
                             return;
                         }
 
-                        _pendingWork.Add(document.Id, new Data(document, changedMember, this.Listener.BeginAsyncOperation("EnqueueSemanticChange")));
+                        _pendingWork.Add(document.Id, new Data(document, changedMember, Listener.BeginAsyncOperation(nameof(Enqueue), tag: _registration.Workspace)));
                         _gate.Release();
                     }
 
@@ -279,6 +293,19 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                         Contract.Requires(result);
 
                         return first.Value;
+                    }
+                }
+
+                private static void ClearQueueWorker<TKey, TValue>(NonReentrantLock gate, Dictionary<TKey, TValue> map, Func<TValue, IDisposable> disposerSelector)
+                {
+                    using (gate.DisposableWait(CancellationToken.None))
+                    {
+                        foreach (var (_, data) in map)
+                        {
+                            disposerSelector?.Invoke(data)?.Dispose();
+                        }
+
+                        map.Clear();
                     }
                 }
 
@@ -339,6 +366,14 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                         _pendingWork = new Dictionary<ProjectId, Data>();
 
                         Start();
+
+                        // Register a clean-up task to ensure pending work items are flushed from the queue if they will
+                        // never be processed.
+                        AsyncProcessorTask.ContinueWith(
+                            _ => ClearQueueWorker(_workGate, _pendingWork, data => data.AsyncToken),
+                            CancellationToken.None,
+                            TaskContinuationOptions.ExecuteSynchronously,
+                            TaskScheduler.Default);
                     }
 
                     public void Enqueue(ProjectId projectId, bool needDependencyTracking = false)
@@ -353,7 +388,8 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                                 return;
                             }
 
-                            var data = new Data(projectId, needDependencyTracking, this.Listener.BeginAsyncOperation("EnqueueWorkItemForSemanticChangeAsync"));
+                            var data = new Data(projectId, needDependencyTracking, Listener.BeginAsyncOperation(nameof(Enqueue), tag: _registration.Workspace));
+
                             _pendingWork.Add(projectId, data);
                             _gate.Release();
                         }
@@ -372,7 +408,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
 
                         _processor.Enqueue(
                             new WorkItem(document.Id, document.Project.Language, InvocationReasons.SemanticChanged,
-                            isLowPriority, this.Listener.BeginAsyncOperation("Semantic WorkItem")));
+                                isLowPriority, Listener.BeginAsyncOperation(nameof(EnqueueWorkItemAsync), tag: EnqueueItem)));
                     }
 
                     protected override Task WaitAsync(CancellationToken cancellationToken)
@@ -383,6 +419,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                     protected override async Task ExecuteAsync()
                     {
                         var data = Dequeue();
+
                         using (data.AsyncToken)
                         {
                             var project = _registration.CurrentSolution.GetProject(data.ProjectId);

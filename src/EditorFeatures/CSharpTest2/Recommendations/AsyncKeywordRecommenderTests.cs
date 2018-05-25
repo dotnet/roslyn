@@ -1,6 +1,7 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -31,7 +32,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
         {
             await VerifyKeywordAsync(@"class C
 {
-    $$ public void foo() { }
+    $$ public void goo() { }
 }");
         }
 
@@ -54,9 +55,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
         {
             await VerifyKeywordAsync(@"class C
 {
-    void foo()
+    void goo()
     {
-        foo($$
+        goo($$
     }
 }");
         }
@@ -66,7 +67,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
         {
             await VerifyAbsenceAsync(@"class C
 {
-    void foo($$)
+    void goo($$)
     {
     }
 }");
@@ -103,7 +104,7 @@ class Program
         public async Task TestNotInNamespace()
         {
             await VerifyAbsenceAsync(@"
-namespace Foo
+namespace Goo
 {
     $$
 }");
@@ -114,7 +115,7 @@ namespace Foo
         public async Task TestNotAfterPartialInNamespace()
         {
             await VerifyAbsenceAsync(@"
-namespace Foo
+namespace Goo
 {
     partial $$
 }");
@@ -125,7 +126,7 @@ namespace Foo
         public async Task TestNotAfterPartialInClass()
         {
             await VerifyAbsenceAsync(@"
-class Foo
+class Goo
 {
     partial $$
 }");
@@ -137,7 +138,7 @@ class Foo
         public async Task TestLocalFunction()
         {
             await VerifyKeywordAsync(@"
-class Foo
+class Goo
 {
     public void M()
     {
@@ -153,7 +154,7 @@ class Foo
         public async Task TestLocalFunction2()
         {
             await VerifyKeywordAsync(@"
-class Foo
+class Goo
 {
     public void M()
     {
@@ -169,7 +170,7 @@ class Foo
         public async Task TestLocalFunction3()
         {
             await VerifyKeywordAsync(@"
-class Foo
+class Goo
 {
     public void M()
     {
@@ -185,7 +186,7 @@ class Foo
         public async Task TestLocalFunction4()
         {
             await VerifyKeywordAsync(@"
-class Foo
+class Goo
 {
     public void M()
     {
@@ -201,7 +202,7 @@ class Foo
         public async Task TestLocalFunction5()
         {
             await VerifyKeywordAsync(@"
-class Foo
+class Goo
 {
     public void M(Action<int> a)
     {
@@ -220,7 +221,7 @@ class Foo
         public async Task TestLocalFunction6()
         {
             await VerifyAbsenceAsync(@"
-class Foo
+class Goo
 {
     public void M()
     {
@@ -236,7 +237,7 @@ class Foo
         public async Task TestLocalFunction7()
         {
             await VerifyAbsenceAsync(@"
-class Foo
+class Goo
 {
     public void M()
     {

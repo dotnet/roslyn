@@ -1,13 +1,13 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using static Microsoft.CodeAnalysis.CodeGeneration.CodeGenerationHelpers;
 using static Microsoft.CodeAnalysis.CSharp.CodeGeneration.CSharpCodeGenerationHelpers;
 
@@ -60,11 +60,11 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                 parameterList: ParameterGenerator.GenerateParameterList(constructor.Parameters, isExplicit: false, options: options),
                 initializer: GenerateConstructorInitializer(constructor),
                 body: hasNoBody ? null : GenerateBlock(constructor),
-                semicolonToken: hasNoBody ? SyntaxFactory.Token(SyntaxKind.SemicolonToken) : default(SyntaxToken));
+                semicolonToken: hasNoBody ? SyntaxFactory.Token(SyntaxKind.SemicolonToken) : default);
 
             declaration = UseExpressionBodyIfDesired(workspace, declaration, parseOptions);
 
-            return AddCleanupAnnotationsTo(
+            return AddFormatterAndCodeGeneratorAnnotationsTo(
                 ConditionallyAddDocumentationCommentTo(declaration, constructor, options));
         }
 
@@ -75,7 +75,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             {
                 var expressionBodyPreference = workspace.Options.GetOption(CSharpCodeStyleOptions.PreferExpressionBodiedConstructors).Value;
                 if (declaration.Body.TryConvertToExpressionBody(
-                        options, expressionBodyPreference, out var expressionBody, out var semicolonToken))
+                        declaration.Kind(), options, expressionBodyPreference,
+                        out var expressionBody, out var semicolonToken))
                 {
                     return declaration.WithBody(null)
                                       .WithExpressionBody(expressionBody)
@@ -101,7 +102,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                 : SyntaxFactory.ConstructorInitializer(kind).WithArgumentList(GenerateArgumentList(arguments));
         }
 
-        private static ArgumentListSyntax GenerateArgumentList(IList<SyntaxNode> arguments)
+        private static ArgumentListSyntax GenerateArgumentList(ImmutableArray<SyntaxNode> arguments)
         {
             return SyntaxFactory.ArgumentList(SyntaxFactory.SeparatedList(arguments.Select(ArgumentGenerator.GenerateArgument)));
         }
@@ -110,7 +111,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             IMethodSymbol constructor)
         {
             var statements = CodeGenerationConstructorInfo.GetStatements(constructor) == null
-                ? default(SyntaxList<StatementSyntax>)
+                ? default
                 : StatementGenerator.GenerateStatements(CodeGenerationConstructorInfo.GetStatements(constructor));
 
             return SyntaxFactory.Block(statements);

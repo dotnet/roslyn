@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using Microsoft.VisualStudio.Text;
 using Roslyn.Utilities;
@@ -8,7 +8,7 @@ namespace Microsoft.CodeAnalysis.Text.Shared.Extensions
     internal static class TextSpanExtensions
     {
         /// <summary>
-        /// Convert a <see cref="TextSpan"/> instance to an <see cref="TextSpan"/>.
+        /// Convert a <see cref="TextSpan"/> instance to a <see cref="TextSpan"/>.
         /// </summary>
         public static Span ToSpan(this TextSpan textSpan)
         {

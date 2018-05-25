@@ -1,4 +1,4 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Threading.Tasks
 
@@ -16,7 +16,7 @@ namespace ConsoleApplication22
 {
     class Program
     {
-        static public int {|Definition:F$$oo|}
+        static public int {|Definition:G$$oo|}
         {
             get
             {
@@ -25,7 +25,7 @@ namespace ConsoleApplication22
         } 
         static void Main(string[] args)
         {
-            int temp = Program.[|Foo|];
+            int temp = Program.[|Goo|];
         }
     }
 }
@@ -47,7 +47,7 @@ namespace ConsoleApplication22
 {
     class Program
     {
-        static public int {|Definition:Foo|}
+        static public int {|Definition:Goo|}
         {
             get
             {
@@ -56,7 +56,7 @@ namespace ConsoleApplication22
         } 
         static void Main(string[] args)
         {
-            int temp = Program.[|Fo$$o|];
+            int temp = Program.[|Go$$o|];
         }
     }
 }
@@ -693,7 +693,7 @@ End Module
 Class C
     Property {|Definition:$$X|}()
 
-    Sub Foo()
+    Sub Goo()
         Console.WriteLine([|_X|])
     End Sub
 End Class
@@ -713,7 +713,7 @@ End Class
 Class C
     Property {|Definition:X|}()
 
-    Sub Foo()
+    Sub Goo()
         Console.WriteLine([|$$_X|])
     End Sub
 End Class
@@ -831,11 +831,11 @@ class B : A
         <Document>
 Option Strict On
 Public Interface IA
-    Default Property Foo(ByVal x As Integer) As Integer
+    Default Property Goo(ByVal x As Integer) As Integer
 End Interface
 Public Interface IC
     Inherits IA
-    Default Overloads Property {|Definition:$$Foo|}(ByVal x As Long) As String ' Rename Foo to Bar
+    Default Overloads Property {|Definition:$$Goo|}(ByVal x As Long) As String ' Rename Goo to Bar
 End Interface
 
 Class M
@@ -867,11 +867,11 @@ End Class
         <Document>
 Option Strict On
 Public Interface IA
-    Default Property {|Definition:$$Foo|}(ByVal x As Integer) As Integer
+    Default Property {|Definition:$$Goo|}(ByVal x As Integer) As Integer
 End Interface
 Public Interface IC
     Inherits IA
-    Default Overloads Property Foo(ByVal x As Long) As String ' Rename Foo to Bar
+    Default Overloads Property Goo(ByVal x As Long) As String ' Rename Goo to Bar
 End Interface
 
 Class M

@@ -11,8 +11,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 {
     internal static partial class ErrorFacts
     {
-        private static readonly string s_titleSuffix = "_Title";
-        private static readonly string s_descriptionSuffix = "_Description";
+        private const string s_titleSuffix = "_Title";
+        private const string s_descriptionSuffix = "_Description";
         private static readonly Lazy<ImmutableDictionary<ErrorCode, string>> s_helpLinksMap = new Lazy<ImmutableDictionary<ErrorCode, string>>(CreateHelpLinks);
         private static readonly Lazy<ImmutableDictionary<ErrorCode, string>> s_categoriesMap = new Lazy<ImmutableDictionary<ErrorCode, string>>(CreateCategoriesMap);
 
@@ -68,7 +68,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public static string GetMessage(MessageID code, CultureInfo culture)
         {
             string message = ResourceManager.GetString(code.ToString(), culture);
-            Debug.Assert(!string.IsNullOrEmpty(message));
+            Debug.Assert(!string.IsNullOrEmpty(message), code.ToString());
             return message;
         }
 
@@ -76,7 +76,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public static string GetMessage(ErrorCode code, CultureInfo culture)
         {
             string message = ResourceManager.GetString(code.ToString(), culture);
-            Debug.Assert(message != null);
+            Debug.Assert(!string.IsNullOrEmpty(message), code.ToString());
             return message;
         }
 
@@ -163,6 +163,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ErrorCode.WRN_UnreferencedVar:
                 case ErrorCode.WRN_UnreferencedField:
                 case ErrorCode.WRN_UnreferencedVarAssg:
+                case ErrorCode.WRN_UnreferencedLocalFunction:
                 case ErrorCode.WRN_SequentialOnPartialClass:
                 case ErrorCode.WRN_UnreferencedFieldAssg:
                 case ErrorCode.WRN_AmbiguousXMLReference:
@@ -311,12 +312,18 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ErrorCode.WRN_BadUILang:
                 case ErrorCode.WRN_RefCultureMismatch:
                 case ErrorCode.WRN_ConflictingMachineAssembly:
-                case ErrorCode.WRN_FilterIsConstant:
+                case ErrorCode.WRN_FilterIsConstantTrue:
+                case ErrorCode.WRN_FilterIsConstantFalse:
+                case ErrorCode.WRN_FilterIsConstantFalseRedundantTryCatch:
                 case ErrorCode.WRN_IdentifierOrNumericLiteralExpected:
                 case ErrorCode.WRN_ReferencedAssemblyDoesNotHaveStrongName:
                 case ErrorCode.WRN_AlignmentMagnitude:
                 case ErrorCode.WRN_AttributeIgnoredWhenPublicSigning:
                 case ErrorCode.WRN_TupleLiteralNameMismatch:
+                case ErrorCode.WRN_Experimental:
+                case ErrorCode.WRN_AttributesOnBackingFieldsNotAvailable:
+                case ErrorCode.WRN_TupleBinopLiteralNameMismatch:
+                case ErrorCode.WRN_TypeParameterSameAsOuterMethodTypeParameter:
                     return 1;
                 default:
                     return 0;

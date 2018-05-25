@@ -12,43 +12,31 @@ namespace Microsoft.CodeAnalysis.Completion
 {
     internal sealed class CompletionHelper
     {
-        private static readonly CompletionHelper CaseSensitiveInstance = new CompletionHelper(isCaseSensitive: true);
-        private static readonly CompletionHelper CaseInsensitiveInstance = new CompletionHelper(isCaseSensitive: false);
-
         private readonly object _gate = new object();
-        private readonly Dictionary<CultureInfo, Dictionary<string, PatternMatcher>> _patternMatcherMap =
-             new Dictionary<CultureInfo, Dictionary<string, PatternMatcher>>();
-        private readonly Dictionary<CultureInfo, Dictionary<string, PatternMatcher>> _fallbackPatternMatcherMap =
-            new Dictionary<CultureInfo, Dictionary<string, PatternMatcher>>();
+        private readonly Dictionary<(string pattern, CultureInfo, bool includeMatchedSpans), PatternMatcher> _patternMatcherMap =
+             new Dictionary<(string pattern, CultureInfo, bool includeMatchedSpans), PatternMatcher>();
 
         private static readonly CultureInfo EnUSCultureInfo = new CultureInfo("en-US");
         private readonly bool _isCaseSensitive;
 
-        private CompletionHelper(bool isCaseSensitive)
+        // Support for completion items with extra decorative characters in their DisplayText.
+        // This allows bolding and MRU to operate on the "real" display text (without text
+        // decorations). This should be a substring of the corresponding DisplayText.
+        private static string DisplayTextForMatching = nameof(DisplayTextForMatching);
+
+        public CompletionHelper(bool isCaseSensitive)
         {
             _isCaseSensitive = isCaseSensitive;
         }
 
-        public static CompletionHelper GetHelper(Workspace workspace, string language)
-        {
-            var isCaseSensitive = true;
-            var ls = workspace.Services.GetLanguageServices(language);
-            if (ls != null)
-            {
-                var syntaxFacts = ls.GetService<ISyntaxFactsService>();
-                isCaseSensitive = syntaxFacts?.IsCaseSensitive ?? true;
-            }
-
-            return isCaseSensitive ? CaseSensitiveInstance : CaseInsensitiveInstance;
-        }
-
         public static CompletionHelper GetHelper(Document document)
         {
-            return GetHelper(document.Project.Solution.Workspace, document.Project.Language);
+            return document.Project.Solution.Workspace.Services.GetService<ICompletionHelperService>()
+                .GetCompletionHelper(document);
         }
 
         public ImmutableArray<TextSpan> GetHighlightedSpans(
-            string text, string pattern, CultureInfo culture)
+                string text, string pattern, CultureInfo culture)
         {
             var match = GetMatch(text, pattern, includeMatchSpans: true, culture: culture);
             return match == null ? ImmutableArray<TextSpan>.Empty : match.Value.MatchedSpans;
@@ -81,7 +69,7 @@ namespace Microsoft.CodeAnalysis.Completion
                 var afterDotPosition = lastDotIndex + 1;
                 var textAfterLastDot = completionItemText.Substring(afterDotPosition);
 
-                var match = GetMatchWorker(textAfterLastDot, pattern, includeMatchSpans, culture);
+                var match = GetMatchWorker(textAfterLastDot, pattern, culture, includeMatchSpans);
                 if (match != null)
                 {
                     return AdjustMatchedSpans(match.Value, afterDotPosition);
@@ -90,7 +78,7 @@ namespace Microsoft.CodeAnalysis.Completion
 
             // Didn't have a dot, or the user text didn't match the portion after the dot.
             // Just do a normal check against the entire completion item.
-            return GetMatchWorker(completionItemText, pattern, includeMatchSpans, culture);
+            return GetMatchWorker(completionItemText, pattern, culture, includeMatchSpans);
         }
 
         private PatternMatch? AdjustMatchedSpans(PatternMatch value, int offset)
@@ -100,10 +88,10 @@ namespace Microsoft.CodeAnalysis.Completion
 
         private PatternMatch? GetMatchWorker(
             string completionItemText, string pattern,
-            bool includeMatchSpans, CultureInfo culture)
+            CultureInfo culture, bool includeMatchSpans)
         {
-            var patternMatcher = this.GetPatternMatcher(pattern, culture);
-            var match = patternMatcher.GetFirstMatch(completionItemText, includeMatchSpans);
+            var patternMatcher = this.GetPatternMatcher(pattern, culture, includeMatchSpans);
+            var match = patternMatcher.GetFirstMatch(completionItemText);
 
             if (match != null)
             {
@@ -113,8 +101,9 @@ namespace Microsoft.CodeAnalysis.Completion
             // Start with the culture-specific comparison, and fall back to en-US.
             if (!culture.Equals(EnUSCultureInfo))
             {
-                patternMatcher = this.GetEnUSPatternMatcher(pattern);
+                patternMatcher = this.GetPatternMatcher(pattern, EnUSCultureInfo, includeMatchSpans);
                 match = patternMatcher.GetFirstMatch(completionItemText);
+
                 if (match != null)
                 {
                     return match;
@@ -125,33 +114,26 @@ namespace Microsoft.CodeAnalysis.Completion
         }
 
         private PatternMatcher GetPatternMatcher(
-            string pattern, CultureInfo culture, Dictionary<CultureInfo, Dictionary<string, PatternMatcher>> map)
+            string pattern, CultureInfo culture, bool includeMatchedSpans,
+            Dictionary<(string, CultureInfo, bool), PatternMatcher> map)
         {
             lock (_gate)
             {
-                if (!map.TryGetValue(culture, out var innerMap))
+                var key = (pattern, culture, includeMatchedSpans);
+                if (!map.TryGetValue(key, out var patternMatcher))
                 {
-                    innerMap = new Dictionary<string, PatternMatcher>();
-                    map[culture] = innerMap;
-                }
-
-                if (!innerMap.TryGetValue(pattern, out var patternMatcher))
-                {
-                    patternMatcher = new PatternMatcher(pattern, culture,
-                        verbatimIdentifierPrefixIsWordCharacter: true,
+                    patternMatcher = PatternMatcher.CreatePatternMatcher(
+                        pattern, culture, includeMatchedSpans,
                         allowFuzzyMatching: false);
-                    innerMap.Add(pattern, patternMatcher);
+                    map.Add(key, patternMatcher);
                 }
 
                 return patternMatcher;
             }
         }
 
-        private PatternMatcher GetPatternMatcher(string pattern, CultureInfo culture)
-            => GetPatternMatcher(pattern, culture, _patternMatcherMap);
-
-        private PatternMatcher GetEnUSPatternMatcher(string pattern)
-            => GetPatternMatcher(pattern, EnUSCultureInfo, _fallbackPatternMatcherMap);
+        private PatternMatcher GetPatternMatcher(string pattern, CultureInfo culture, bool includeMatchedSpans)
+            => GetPatternMatcher(pattern, culture, includeMatchedSpans, _patternMatcherMap);
 
         /// <summary>
         /// Returns true if item1 is a better completion item than item2 given the provided filter
@@ -275,5 +257,8 @@ namespace Microsoft.CodeAnalysis.Completion
 
             return 0;
         }
+
+        internal static string GetDisplayTextForMatching(CompletionItem item)
+            => item.Properties.TryGetValue(DisplayTextForMatching, out var displayText) ? displayText : item.DisplayText;
     }
 }

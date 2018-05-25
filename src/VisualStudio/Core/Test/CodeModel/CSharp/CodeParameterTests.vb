@@ -1,7 +1,8 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis
+Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Interop
 Imports Roslyn.Test.Utilities
 
@@ -17,7 +18,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel.CSharp
 <Code>
 class C
 {
-    void Foo(string $$s)
+    void Goo(string $$s)
     {
     }
 }
@@ -27,7 +28,7 @@ class C
 <Code>
 class C
 {
-    void Foo([Out()] string s)
+    void Goo([Out()] string s)
     {
     }
 }
@@ -41,7 +42,7 @@ class C
 <Code>
 class C
 {
-    void Foo([Out()]string $$s)
+    void Goo([Out()]string $$s)
     {
     }
 }
@@ -51,12 +52,12 @@ class C
 <Code>
 class C
 {
-    void Foo([Foo()][Out()]string s)
+    void Goo([Goo()][Out()]string s)
     {
     }
 }
 </Code>
-            Await TestAddAttribute(code, expected, New AttributeData With {.Name = "Foo"})
+            Await TestAddAttribute(code, expected, New AttributeData With {.Name = "Goo"})
         End Function
 #End Region
 
@@ -67,11 +68,11 @@ class C
 <Code>
 class C
 {
-    void M(string $$s = "Foo") { }
+    void M(string $$s = "Goo") { }
 }
 </Code>
 
-            TestDefaultValue(code, """Foo""")
+            TestDefaultValue(code, """Goo""")
         End Sub
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -80,7 +81,7 @@ class C
 <Code>
 class C : System.Console
 {
-    void M(string $$s = "Foo") { }
+    void M(string $$s = "Goo") { }
 }
 </Code>
             TestElement(code,
@@ -111,7 +112,7 @@ class C : System.Console
 <Code>
 class C
 {
-    void Foo(string $$s)
+    void Goo(string $$s)
     {
     }
 }
@@ -126,7 +127,7 @@ class C
 <Code>
 class C
 {
-    void Foo(ref string $$s)
+    void Goo(ref string $$s)
     {
     }
 }
@@ -141,7 +142,7 @@ class C
 <Code>
 class C
 {
-    void Foo(out string $$s)
+    void Goo(out string $$s)
     {
     }
 }
@@ -160,7 +161,7 @@ class C
 <Code>
 class C
 {
-    void Foo(string $$s)
+    void Goo(string $$s)
     {
     }
 }
@@ -175,7 +176,7 @@ class C
 <Code>
 class C
 {
-    void Foo(ref string $$s)
+    void Goo(ref string $$s)
     {
     }
 }
@@ -190,7 +191,7 @@ class C
 <Code>
 class C
 {
-    void Foo(out string $$s)
+    void Goo(out string $$s)
     {
     }
 }
@@ -209,7 +210,7 @@ class C
 <Code>
 class C
 {
-    void Foo(string $$s)
+    void Goo(string $$s)
     {
     }
 }
@@ -227,7 +228,7 @@ class C
 <Code>
 class C
 {
-    void Foo(string $$s)
+    void Goo(string $$s)
     {
     }
 }
@@ -242,7 +243,7 @@ class C
 <Code>
 class C
 {
-    void Foo(ref string $$s)
+    void Goo(ref string $$s)
     {
     }
 }
@@ -258,7 +259,7 @@ class C
 <Code>
 class C
 {
-    void Foo(out string $$s)
+    void Goo(out string $$s)
     {
     }
 }
@@ -273,7 +274,7 @@ class C
 <Code>
 class C
 {
-    void Foo(params string[] $$s)
+    void Goo(params string[] $$s)
     {
     }
 }
@@ -288,7 +289,7 @@ class C
 <Code>
 class C
 {
-    void Foo(string $$s = "Foo")
+    void Goo(string $$s = "Goo")
     {
     }
 }
@@ -303,7 +304,7 @@ class C
 <Code>
 class C
 {
-    void Foo(ref string $$s = "Foo")
+    void Goo(ref string $$s = "Goo")
     {
     }
 }
@@ -334,10 +335,10 @@ class C
         Public Sub TestParent2()
             Dim code =
 <Code>
-delegate void Foo(int $$i);
+delegate void Goo(int $$i);
 </Code>
 
-            TestParent(code, IsElement("Foo", kind:=EnvDTE.vsCMElement.vsCMElementDelegate))
+            TestParent(code, IsElement("Goo", kind:=EnvDTE.vsCMElement.vsCMElementDelegate))
         End Sub
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -366,7 +367,7 @@ class C
 <Code>
 class C
 {
-    public void Foo(int i$$ = 0) { }
+    public void Goo(int i$$ = 0) { }
 }
 </Code>
 
@@ -567,10 +568,10 @@ class C
 <Code>
 class C
 {
-    void M(string s = "Foo") { }
+    void M(string s = "Goo") { }
 }
 </Code>
-            Await TestSetDefaultValue(code, expected, """Foo""")
+            Await TestSetDefaultValue(code, expected, """Goo""")
         End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -587,10 +588,10 @@ class C
 <Code>
 class C
 {
-    void M(string s = "Foo") { }
+    void M(string s = "Goo") { }
 }
 </Code>
-            Await TestSetDefaultValue(code, expected, """Foo""")
+            Await TestSetDefaultValue(code, expected, """Goo""")
         End Function
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -623,7 +624,7 @@ class C
 <Code>
 class C
 {
-    public void Foo(int $$i) { }
+    public void Goo(int $$i) { }
 }
 </Code>
 
@@ -631,7 +632,7 @@ class C
 <Code>
 class C
 {
-    public void Foo(byte?[,] i) { }
+    public void Goo(byte?[,] i) { }
 }
 </Code>
 
@@ -642,12 +643,12 @@ class C
         Public Async Function TestSetType2() As Task
             Dim code =
 <Code>
-delegate void Foo(int $$i) { }
+delegate void Goo(int $$i) { }
 </Code>
 
             Dim expected =
 <Code>
-delegate void Foo(byte?[,] i) { }
+delegate void Goo(byte?[,] i) { }
 </Code>
 
             Await TestSetTypeProp(code, expected, "byte?[,]")
@@ -663,7 +664,7 @@ delegate void Foo(byte?[,] i) { }
 <Code>
 class C
 {
-    void Foo(string $$s)
+    void Goo(string $$s)
     {
     }
 }
@@ -678,7 +679,7 @@ class C
 <Code>
 class C
 {
-    void Foo(ref string $$s)
+    void Goo(ref string $$s)
     {
     }
 }
@@ -693,7 +694,7 @@ class C
 <Code>
 class C
 {
-    void Foo(out string $$s)
+    void Goo(out string $$s)
     {
     }
 }
@@ -708,7 +709,7 @@ class C
 <Code>
 class C
 {
-    void Foo(params string[] $$s)
+    void Goo(params string[] $$s)
     {
     }
 }
@@ -723,7 +724,7 @@ class C
 <Code>
 class C
 {
-    void Foo(string $$s = "Foo")
+    void Goo(string $$s = "Goo")
     {
     }
 }
@@ -738,7 +739,7 @@ class C
 <Code>
 class C
 {
-    void Foo(ref string $$s = "Foo")
+    void Goo(ref string $$s = "Goo")
     {
     }
 }

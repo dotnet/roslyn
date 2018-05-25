@@ -100,10 +100,10 @@ namespace Microsoft.CodeAnalysis.Completion
         }
 
         private CompletionList With(
-            Optional<TextSpan> span = default(Optional<TextSpan>),
-            Optional<ImmutableArray<CompletionItem>> items = default(Optional<ImmutableArray<CompletionItem>>),
-            Optional<CompletionRules> rules = default(Optional<CompletionRules>),
-            Optional<CompletionItem> suggestionModeItem = default(Optional<CompletionItem>))
+            Optional<TextSpan> span = default,
+            Optional<ImmutableArray<CompletionItem>> items = default,
+            Optional<CompletionRules> rules = default,
+            Optional<CompletionItem> suggestionModeItem = default)
         {
             var newSpan = span.HasValue ? span.Value : this.Span;
             var newItems = items.HasValue ? items.Value : this.Items;
@@ -165,7 +165,7 @@ namespace Microsoft.CodeAnalysis.Completion
         /// The default <see cref="CompletionList"/> returned when no items are found to populate the list.
         /// </summary>
         public static readonly CompletionList Empty = new CompletionList(
-            default(TextSpan), default(ImmutableArray<CompletionItem>), CompletionRules.Default,
+            default, default, CompletionRules.Default,
             suggestionModeItem: null, isExclusive: false);
     }
 }

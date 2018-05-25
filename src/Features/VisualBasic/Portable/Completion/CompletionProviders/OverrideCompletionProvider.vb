@@ -1,4 +1,4 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Collections.Immutable
 Imports System.Threading
@@ -37,16 +37,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
             Return token.GetAncestor(Of MethodStatementSyntax)()
         End Function
 
-        Protected Overrides Function GetToken(completionItem As CompletionItem, commonTree As SyntaxTree, cancellationToken As CancellationToken) As SyntaxToken
+        Protected Overrides Function GetToken(completionItem As CompletionItem, syntaxTree As SyntaxTree, cancellationToken As CancellationToken) As SyntaxToken
             Dim tokenSpanEnd = MemberInsertionCompletionItem.GetTokenSpanEnd(completionItem)
-            Dim tree = DirectCast(commonTree, SyntaxTree)
-            Return tree.FindTokenOnLeftOfPosition(tokenSpanEnd, cancellationToken)
+            Return syntaxTree.FindTokenOnLeftOfPosition(tokenSpanEnd, cancellationToken)
         End Function
 
 
         Public Overrides Function FindStartingToken(syntaxTree As SyntaxTree, position As Integer, cancellationToken As CancellationToken) As SyntaxToken
-            Dim tree = DirectCast(syntaxTree, SyntaxTree)
-            Dim token = tree.FindTokenOnLeftOfPosition(position, cancellationToken)
+            Dim token = syntaxTree.FindTokenOnLeftOfPosition(position, cancellationToken)
             Return token.GetPreviousTokenIfTouchingWord(position)
         End Function
 

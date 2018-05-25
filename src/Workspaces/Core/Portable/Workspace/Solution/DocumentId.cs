@@ -98,11 +98,13 @@ namespace Microsoft.CodeAnalysis
             return !(left == right);
         }
 
+        bool IObjectWritable.ShouldReuseInSerialization => true;
+
         void IObjectWritable.WriteTo(ObjectWriter writer)
         {
             ProjectId.WriteTo(writer);
 
-            writer.WriteValue(Id.ToByteArray());
+            writer.WriteGuid(Id);
             writer.WriteString(DebugName);
         }
 
@@ -110,7 +112,7 @@ namespace Microsoft.CodeAnalysis
         {
             var projectId = ProjectId.ReadFrom(reader);
 
-            var guid = new Guid((byte[])reader.ReadValue());
+            var guid = reader.ReadGuid();
             var debugName = reader.ReadString();
 
             return CreateFromSerialized(projectId, guid, debugName);

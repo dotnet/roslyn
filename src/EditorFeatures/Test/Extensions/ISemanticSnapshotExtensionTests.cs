@@ -1,17 +1,15 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Linq;
-using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.FindSymbols;
-using Microsoft.CodeAnalysis.Shared.Extensions;
-using Microsoft.CodeAnalysis.Text;
-using Roslyn.Test.Utilities;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.Extensions
 {
+    [UseExportProvider]
     public class ISemanticSnapshotExtensionTests
     {
         [Fact]
@@ -24,7 +22,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Extensions
                     static void Main()
                     {
                         $$#pragma warning disable 612
-                        Foo();
+                        Goo();
                         #pragma warning restore 612
                     }
                 }"))

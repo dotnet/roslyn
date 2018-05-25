@@ -1,7 +1,9 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.Threading.Tasks;
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.Input;
+using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Roslyn.VisualStudio.IntegrationTests.CSharp
@@ -12,16 +14,25 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
         public CSharpInteractiveBoxSelection(VisualStudioInstanceFactory instanceFactory)
             : base(instanceFactory)
         {
+        }
+
+        public override async Task InitializeAsync()
+        {
+            await base.InitializeAsync().ConfigureAwait(true);
             VisualStudio.InteractiveWindow.SubmitText("#cls");
         }
 
-        public new void Dispose()
+        protected override void Dispose(bool disposing)
         {
-            VisualStudio.ExecuteCommand(WellKnownCommandNames.Edit_SelectionCancel);
-            base.Dispose();
+            if (disposing)
+            {
+                VisualStudio.ExecuteCommand(WellKnownCommandNames.Edit_SelectionCancel);
+            }
+
+            base.Dispose(disposing);
         }
 
-        [Fact]
+        [WpfFact]
         public void TopLeftBottomRightPromptToSymbol()
         {
             InsertInputWithXAtLeft();
@@ -40,7 +51,7 @@ __|234567890ABCDEF
 1234567890ABCDEF");
         }
 
-        [Fact]
+        [WpfFact]
         public void BottomRightTopLeftPromptToSymbol()
         {
             InsertInputWithXAtLeft();
@@ -58,7 +69,7 @@ __234567890ABCDEF
 1234567890ABCDEF");
         }
 
-        [Fact]
+        [WpfFact]
         public void TopRightBottomLeftPromptToSymbol()
         {
             InsertInputWithXAtLeft();
@@ -76,7 +87,7 @@ __|234567890ABCDEF
 1234567890ABCDEF");
         }
 
-        [Fact]
+        [WpfFact]
         public void BottomLeftTopRightPromptToSymbol()
         {
             InsertInputWithXAtLeft();
@@ -94,7 +105,7 @@ __234567890ABCDEF
 1234567890ABCDEF");
         }
 
-        [Fact]
+        [WpfFact]
         public void TopLeftBottomRightSymbolToSymbol()
         {
             InsertInputWithSAndEAtLeft();
@@ -112,7 +123,7 @@ __|234567890ABCDEF
 1234567890ABCDEF");
         }
 
-        [Fact]
+        [WpfFact]
         public void BottomRightTopLeftSymbolToSymbol()
         {
             InsertInputWithSAndEAtLeft();
@@ -130,7 +141,7 @@ __234567890ABCDEF
 1234567890ABCDEF");
         }
 
-        [Fact]
+        [WpfFact]
         public void TopRightBottomLeftSymbolToSymbol()
         {
             InsertInputWithSAndEAtLeft();
@@ -149,7 +160,7 @@ __|234567890ABCDEF
         }
 
 
-        [Fact]
+        [WpfFact]
         public void BottomLeftTopRightSymbolToSymbol()
         {
             InsertInputWithSAndEAtLeft();
@@ -167,7 +178,7 @@ __234567890ABCDEF
 1234567890ABCDEF");
         }
 
-        [Fact]
+        [WpfFact]
         public void TopLeftBottomRightSelection1()
         {
             InsertInputWithSAndEAtLeft();
@@ -185,7 +196,7 @@ _34567890ABCDEF
 1234567890ABCDEF");
         }
 
-        [Fact]
+        [WpfFact]
         public void TopLeftBottomRightSelection2()
         {
             InsertInputWithSAndEAtLeft();
@@ -196,7 +207,7 @@ _34567890ABCDEF
             VerifyOriginalCodeWithSAndEAtLeft();
         }
 
-        [Fact]
+        [WpfFact]
         public void TopRightBottomLeftSelection()
         {
             InsertInputWithSAndEAtLeft();
@@ -207,7 +218,7 @@ _34567890ABCDEF
             VerifyOriginalCodeWithSAndEAtLeft();
         }
 
-        [Fact]
+        [WpfFact]
         public void BottomLeftTopRightSelection()
         {
             InsertInputWithSAndEAtLeft();
@@ -218,7 +229,7 @@ _34567890ABCDEF
             VerifyOriginalCodeWithSAndEAtLeft();
         }
 
-        [Fact]
+        [WpfFact]
         public void SelectionTouchingSubmissionBuffer()
         {
             InsertInputWithSAndEAtLeft();
@@ -236,7 +247,7 @@ __e234567890ABCDEF
 1234567890ABCDEF");
         }
 
-        [Fact]
+        [WpfFact]
         public void PrimaryPromptLongerThanSecondaryZeroWidthNextToPromptSelection()
         {
             InsertInputWithSAndEAtLeft();
@@ -254,7 +265,7 @@ __e234567890ABCDEF
 1234567890ABCDEF");
         }
 
-        [Fact]
+        [WpfFact]
         public void Backspace()
         {
             InsertInputWithSAndEInTheMiddle();
@@ -272,7 +283,7 @@ __e234567890ABCDEF
 1234567890ABCDEF");
         }
 
-        [Fact]
+        [WpfFact]
         public void BackspaceBehavesLikeDelete()
         {
             InsertInputWithEInTheMiddle();
@@ -290,7 +301,7 @@ CDEF
 1234567890ABCDEF");
         }
 
-        [Fact]
+        [WpfFact]
         public void LeftToRightReversedBackspace()
         {
             VisualStudio.InteractiveWindow.InsertCode("1234567890ABCDEF");
@@ -301,7 +312,7 @@ CDEF
             VisualStudio.InteractiveWindow.Verify.LastReplInput(@"7890ABCDEF");
         }
 
-        [Fact]
+        [WpfFact]
         public void LeftToRightReversedDelete()
         {
             VisualStudio.InteractiveWindow.InsertCode("1234567890ABCDEF");
@@ -312,7 +323,7 @@ CDEF
             VisualStudio.InteractiveWindow.Verify.LastReplInput(@"4567890ABCDEF");
         }
 
-        [Fact]
+        [WpfFact]
         public void LeftToRightReversedTypeCharacter()
         {
             VisualStudio.InteractiveWindow.InsertCode("1234567890ABCDEF");

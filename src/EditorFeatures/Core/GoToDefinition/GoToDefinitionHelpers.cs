@@ -1,7 +1,8 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.Editor.FindUsages;
@@ -9,27 +10,25 @@ using Microsoft.CodeAnalysis.Editor.Host;
 using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.FindUsages;
 using Microsoft.CodeAnalysis.Navigation;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.GoToDefinition
 {
     internal static class GoToDefinitionHelpers
     {
-        public static bool TryGoToDefinition(
+        public static ImmutableArray<DefinitionItem> GetDefinitions(
             ISymbol symbol,
             Project project,
-            IEnumerable<Lazy<IStreamingFindUsagesPresenter>> streamingPresenters,
-            CancellationToken cancellationToken,
-            bool thirdPartyNavigationAllowed = true,
-            bool throwOnHiddenDefinition = false)
+            bool thirdPartyNavigationAllowed,
+            CancellationToken cancellationToken)
         {
             var alias = symbol as IAliasSymbol;
             if (alias != null)
             {
-                var ns = alias.Target as INamespaceSymbol;
-                if (ns != null && ns.IsGlobalNamespace)
+                if (alias.Target is INamespaceSymbol ns && ns.IsGlobalNamespace)
                 {
-                    return false;
+                    return ImmutableArray.Create<DefinitionItem>();
                 }
             }
 
@@ -53,14 +52,6 @@ namespace Microsoft.CodeAnalysis.Editor.GoToDefinition
 
             symbol = definition ?? symbol;
 
-            var definitions = ArrayBuilder<DefinitionItem>.GetInstance();
-            if (thirdPartyNavigationAllowed)
-            {
-                var factory = solution.Workspace.Services.GetService<IDefinitionsAndReferencesFactory>();
-                var thirdPartyItem = factory?.GetThirdPartyDefinitionItem(solution, symbol, cancellationToken);
-                definitions.AddIfNotNull(thirdPartyItem);
-            }
-
             // If it is a partial method declaration with no body, choose to go to the implementation
             // that has a method body.
             if (symbol is IMethodSymbol method)
@@ -68,38 +59,74 @@ namespace Microsoft.CodeAnalysis.Editor.GoToDefinition
                 symbol = method.PartialImplementationPart ?? symbol;
             }
 
-            var options = project.Solution.Options;
+            var definitions = ArrayBuilder<DefinitionItem>.GetInstance();
 
-            definitions.Add(symbol.ToDefinitionItem(solution, includeHiddenLocations: true));
+            // Going to a symbol may end up actually showing the symbol in the Find-Usages window.
+            // This happens when there is more than one location for the symbol (i.e. for partial
+            // symbols) and we don't know the best place to take you to.
+            //
+            // The FindUsages window supports showing the classified text for an item.  It does this
+            // in two ways.  Either the item can pass along its classified text (and the window will
+            // defer to that), or the item will have no classified text, and the window will compute
+            // it in the BG.
+            //
+            // Passing along the classified information is valuable for OOP scenarios where we want
+            // all that expensive computation done on the OOP side and not in the VS side.
+            // 
+            // However, Go To Definition is all in-process, and is also synchronous.  So we do not
+            // want to fetch the classifications here.  It slows down the command and leads to a 
+            // measurable delay in our perf tests.
+            // 
+            // So, if we only have a single location to go to, this does no unnecessary work.  And,
+            // if we do have multiple locations to show, it will just be done in the BG, unblocking
+            // this command thread so it can return the user faster.
+            var definitionItem = symbol.ToNonClassifiedDefinitionItem(project, includeHiddenLocations: true);
 
-            var presenter = GetFindUsagesPresenter(streamingPresenters);
+            if (thirdPartyNavigationAllowed)
+            {
+                var factory = solution.Workspace.Services.GetService<IDefinitionsAndReferencesFactory>();
+                var thirdPartyItem = factory?.GetThirdPartyDefinitionItem(solution, definitionItem, cancellationToken);
+                definitions.AddIfNotNull(thirdPartyItem);
+            }
+
+            definitions.Add(definitionItem);
+            return definitions.ToImmutableAndFree();
+        }
+
+        public static bool TryGoToDefinition(
+            ISymbol symbol,
+            Project project,
+            IEnumerable<Lazy<IStreamingFindUsagesPresenter>> streamingPresenters,
+            CancellationToken cancellationToken,
+            bool thirdPartyNavigationAllowed = true,
+            bool throwOnHiddenDefinition = false)
+        {
+            var definitions = GetDefinitions(symbol, project, thirdPartyNavigationAllowed, cancellationToken);
+
+            var presenter = streamingPresenters.FirstOrDefault()?.Value;
             var title = string.Format(EditorFeaturesResources._0_declarations,
                 FindUsagesHelpers.GetDisplayName(symbol));
 
             return presenter.TryNavigateToOrPresentItemsAsync(
-                title, definitions.ToImmutableAndFree()).WaitAndGetResult(cancellationToken);
+                project.Solution.Workspace, title, definitions).WaitAndGetResult(cancellationToken);
         }
 
-        private static IStreamingFindUsagesPresenter GetFindUsagesPresenter(
-            IEnumerable<Lazy<IStreamingFindUsagesPresenter>> streamingPresenters)
+        public static bool TryGoToDefinition(
+            ImmutableArray<DefinitionItem> definitions,
+            Project project,
+            string title,
+            IEnumerable<Lazy<IStreamingFindUsagesPresenter>> streamingPresenters,
+            CancellationToken cancellationToken)
         {
-            try
+            if (definitions.IsDefaultOrEmpty)
             {
-                return streamingPresenters.FirstOrDefault()?.Value;
+                return false;
             }
-            catch
-            {
-                return null;
-            }
-        }
 
-        private static bool TryThirdPartyNavigation(
-            ISymbol symbol, Solution solution, CancellationToken cancellationToken)
-        {
-            var symbolNavigationService = solution.Workspace.Services.GetService<ISymbolNavigationService>();
+            var presenter = streamingPresenters.FirstOrDefault()?.Value;
 
-            // Notify of navigation so third parties can intercept the navigation
-            return symbolNavigationService.TrySymbolNavigationNotify(symbol, solution, cancellationToken);
+            return presenter.TryNavigateToOrPresentItemsAsync(
+                project.Solution.Workspace, title, definitions).WaitAndGetResult(cancellationToken);
         }
     }
 }

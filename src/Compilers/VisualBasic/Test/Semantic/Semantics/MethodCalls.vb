@@ -2098,7 +2098,7 @@ End Module
     ]]></file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef, TestOptions.ReleaseExe)
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(compilationDef, TestOptions.ReleaseExe)
 
             Dim verifier = CompileAndVerify(compilation, expectedOutput:=
             <![CDATA[
@@ -2802,7 +2802,7 @@ End Module
     </file>
 </compilation>
 
-            CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
+            CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
                 compilationDef,
                 New VisualBasicCompilationOptions(OutputKind.ConsoleApplication).WithOptionStrict(OptionStrict.Custom)).
             VerifyDiagnostics(Diagnostic(ERRID.WRN_ImplicitConversionCopyBack, "By").WithArguments("a", "Integer", "Byte"))
@@ -2815,41 +2815,41 @@ End Module
 <compilation name="Bug4275">
     <file name="a.vb">
 Module M
-    Sub Foo()
+    Sub Goo()
     End Sub
 
     Sub Bar(Of T)()
     End Sub
 
-    Function Foo1() As Integer
+    Function Goo1() As Integer
         Return 0
     End Function
 
     Sub Main()
-        Foo$()
-        Foo$
-        M.Foo$()
-        M.Foo$
+        Goo$()
+        Goo$
+        M.Goo$()
+        M.Goo$
         Bar%(Of Integer)()
         Bar$(Of Integer)
 
         Dim x As Object
 
-        x=Foo1$
+        x=Goo1$
     End Sub
 End Module
     </file>
 </compilation>
 
-            CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef).
+            CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(compilationDef).
             VerifyDiagnostics(
-                Diagnostic(ERRID.ERR_TypecharNoMatch2, "Foo$()").WithArguments("$", "Void"),
-                Diagnostic(ERRID.ERR_TypecharNoMatch2, "Foo$").WithArguments("$", "Void"),
-                Diagnostic(ERRID.ERR_TypecharNoMatch2, "M.Foo$()").WithArguments("$", "Void"),
-                Diagnostic(ERRID.ERR_TypecharNoMatch2, "M.Foo$").WithArguments("$", "Void"),
+                Diagnostic(ERRID.ERR_TypecharNoMatch2, "Goo$()").WithArguments("$", "Void"),
+                Diagnostic(ERRID.ERR_TypecharNoMatch2, "Goo$").WithArguments("$", "Void"),
+                Diagnostic(ERRID.ERR_TypecharNoMatch2, "M.Goo$()").WithArguments("$", "Void"),
+                Diagnostic(ERRID.ERR_TypecharNoMatch2, "M.Goo$").WithArguments("$", "Void"),
                 Diagnostic(ERRID.ERR_TypecharNoMatch2, "Bar%(Of Integer)()").WithArguments("%", "Void"),
                 Diagnostic(ERRID.ERR_TypecharNoMatch2, "Bar$(Of Integer)").WithArguments("$", "Void"),
-                Diagnostic(ERRID.ERR_TypecharNoMatch2, "Foo1$").WithArguments("$", "Integer"))
+                Diagnostic(ERRID.ERR_TypecharNoMatch2, "Goo1$").WithArguments("$", "Integer"))
         End Sub
 
         <Fact>
@@ -2875,7 +2875,7 @@ End Module
 
         <Fact>
         Public Sub ConstructorCallDiagnostic()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation name="ConstructorCallDiagnostic">
     <file name="a.vb">
 Module Module1
@@ -2908,11 +2908,11 @@ BC30516: Overload resolution failed because no accessible 'New' accepts this num
         <WorkItem(539691, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539691")>
         <Fact>
         Public Sub DiagnosticsOnInvalidConstructorCall()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation name="DiagnosticsOnInvalidConstructorCall">
     <file name="a.vb">
 class C
-   sub Foo()
+   sub Goo()
       dim x = new C(4,5,6)
    end sub
 end class
@@ -2983,7 +2983,7 @@ End Module
             Dim assemblyPath = TestReferences.SymbolsTests.DelegateImplementation.DelegateByRefParamArray
 
             CompileAndVerify(source,
-                        additionalRefs:={assemblyPath},
+                        references:={assemblyPath},
                          expectedOutput:=<![CDATA[
 Called SubWithByRefParamArrayOfReferenceTypes_Identify_1.
 True
@@ -3086,7 +3086,7 @@ End Class
     </file>
 </compilation>
             CompileAndVerify(source,
-                        additionalRefs:={TestReferences.SymbolsTests.PropertiesWithByRef},
+                        references:={TestReferences.SymbolsTests.PropertiesWithByRef},
                          expectedOutput:=<![CDATA[
 get_P1(123)
 123
@@ -3154,7 +3154,7 @@ End Module
     </file>
 </compilation>
             Dim compilationVerifier = CompileAndVerify(source,
-                        additionalRefs:={TestReferences.SymbolsTests.PropertiesWithByRef},
+                        references:={TestReferences.SymbolsTests.PropertiesWithByRef},
                          expectedOutput:=<![CDATA[
 get_P1(1)
 PassByRef: 2, 1.
@@ -3225,7 +3225,7 @@ End Module
     </file>
 </compilation>
             Dim compilationVerifier = CompileAndVerify(source,
-                        additionalRefs:={TestReferences.SymbolsTests.PropertiesWithByRef},
+                        references:={TestReferences.SymbolsTests.PropertiesWithByRef},
                          expectedOutput:=<![CDATA[
 get_P1(1)
 PassByRef: 2, 1.
@@ -3295,7 +3295,7 @@ End Module
     </file>
 </compilation>
             Dim compilationVerifier = CompileAndVerify(source,
-                        additionalRefs:={TestReferences.SymbolsTests.PropertiesWithByRef},
+                        references:={TestReferences.SymbolsTests.PropertiesWithByRef},
                          expectedOutput:=<![CDATA[
 get_P1(1)
 PassByRef: 2, 1.
@@ -3369,7 +3369,7 @@ End Module
     </file>
 </compilation>
             Dim compilationVerifier = CompileAndVerify(source,
-                        additionalRefs:={TestReferences.SymbolsTests.PropertiesWithByRef},
+                        references:={TestReferences.SymbolsTests.PropertiesWithByRef},
                          expectedOutput:=<![CDATA[
 get_P1(1)
 PassByRef: 2, 1.
@@ -3442,7 +3442,7 @@ End Module
     </file>
 </compilation>
             Dim compilationVerifier = CompileAndVerify(source,
-                        additionalRefs:={TestReferences.SymbolsTests.PropertiesWithByRef},
+                        references:={TestReferences.SymbolsTests.PropertiesWithByRef},
                          expectedOutput:=<![CDATA[
 get_P1(1)
 PassByRef: 2, 1.
@@ -3558,7 +3558,7 @@ End Class
     </file>
 </compilation>
             Dim compilationVerifier = CompileAndVerify(source,
-                        additionalRefs:={TestReferences.SymbolsTests.PropertiesWithByRef},
+                        references:={TestReferences.SymbolsTests.PropertiesWithByRef},
                          expectedOutput:=<![CDATA[
 get_P1(123)
 PassByRef: 124, 123.
@@ -3738,7 +3738,7 @@ End Class
     </file>
 </compilation>
             Dim compilationVerifier = CompileAndVerify(source,
-                        additionalRefs:={TestReferences.SymbolsTests.PropertiesWithByRef},
+                        references:={TestReferences.SymbolsTests.PropertiesWithByRef},
                          expectedOutput:=<![CDATA[
 101
 101
@@ -4074,7 +4074,7 @@ End Module
     </file>
 </compilation>
             CompileAndVerify(source,
-                        additionalRefs:={TestReferences.SymbolsTests.PropertiesWithByRef},
+                        references:={TestReferences.SymbolsTests.PropertiesWithByRef},
                          expectedOutput:=<![CDATA[
 get_P1(123)
 123
@@ -4087,7 +4087,7 @@ set_P1(123)
 
         <Fact>
         Public Sub ByRefInInitializer1()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation name="ByRefInInitializer1">
     <file name="a.vb">
 Class T1
@@ -4208,7 +4208,7 @@ End Module
     </file>
 </compilation>
             CompileAndVerify(source,
-                        additionalRefs:={TestReferences.SymbolsTests.PropertiesWithByRef},
+                        references:={TestReferences.SymbolsTests.PropertiesWithByRef},
                          expectedOutput:=<![CDATA[
 100
 0
@@ -4227,7 +4227,7 @@ End Module
 
         <Fact>
         Public Sub ByRefInInitializer3()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation name="ByRefInInitializer3">
     <file name="a.vb">
 Imports System
@@ -4304,25 +4304,25 @@ BC36602: 'ReadOnly' variable cannot be the target of an assignment in a lambda e
 
         <Fact>
         Public Sub NamedArgumentsAndOverriding()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation name="NamedArgumentsAndOverriding">
     <file name="a.vb">
 Class Test1
-    Overridable Sub Foo(x As Integer)
+    Overridable Sub Goo(x As Integer)
     End Sub
 End Class
 
 Class Test2
     Inherits Test1
 
-    Overrides Sub Foo(y As Integer)
+    Overrides Sub Goo(y As Integer)
     End Sub
 End Class
 
 Class Test3
     Inherits Test2
 
-    Overrides Sub Foo(z As Integer)
+    Overrides Sub Goo(z As Integer)
     End Sub
 End Class
 
@@ -4330,9 +4330,9 @@ Module Module1
     Sub Main()
         Dim t3 As New Test3()
 
-        t3.Foo(z:=1)
-        t3.Foo(y:=1)
-        t3.Foo(x:=1)
+        t3.Goo(z:=1)
+        t3.Goo(y:=1)
+        t3.Goo(x:=1)
     End Sub
 End Module
 
@@ -4364,17 +4364,17 @@ End Namespace
 
             CompilationUtils.AssertTheseDiagnostics(compilation,
 <expected>
-BC30455: Argument not specified for parameter 'z' of 'Public Overrides Sub Foo(z As Integer)'.
-        t3.Foo(y:=1)
+BC30455: Argument not specified for parameter 'z' of 'Public Overrides Sub Goo(z As Integer)'.
+        t3.Goo(y:=1)
            ~~~
-BC30272: 'y' is not a parameter of 'Public Overrides Sub Foo(z As Integer)'.
-        t3.Foo(y:=1)
+BC30272: 'y' is not a parameter of 'Public Overrides Sub Goo(z As Integer)'.
+        t3.Goo(y:=1)
                ~
-BC30455: Argument not specified for parameter 'z' of 'Public Overrides Sub Foo(z As Integer)'.
-        t3.Foo(x:=1)
+BC30455: Argument not specified for parameter 'z' of 'Public Overrides Sub Goo(z As Integer)'.
+        t3.Goo(x:=1)
            ~~~
-BC30272: 'x' is not a parameter of 'Public Overrides Sub Foo(z As Integer)'.
-        t3.Foo(x:=1)
+BC30272: 'x' is not a parameter of 'Public Overrides Sub Goo(z As Integer)'.
+        t3.Goo(x:=1)
                ~
 BC30455: Argument not specified for parameter 't2' of 'Public Overrides Function fun1(Of T)(ByRef t2 As T) As Object'.
             c3.fun1(t1:=3US)
@@ -4387,7 +4387,7 @@ BC30272: 't1' is not a parameter of 'Public Overrides Function fun1(Of T)(ByRef 
 
         <Fact()>
         Public Sub SharedThroughInstance1()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation name="NamedArgumentsAndOverriding">
     <file name="a.vb">
 Module Module1
@@ -4424,7 +4424,7 @@ Success
 
         <Fact()>
         Public Sub InaccessibleOverloads1()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation name="NamedArgumentsAndOverriding">
     <file name="a.vb">
 Module Module1
@@ -4475,7 +4475,7 @@ BC30517: Overload resolution failed because no 'Test' is accessible.
 
         <Fact()>
         Public Sub InaccessibleOverloads2()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation name="NamedArgumentsAndOverriding">
     <file name="a.vb">
 Module Module1
@@ -4526,7 +4526,7 @@ BC30517: Overload resolution failed because no 'Test' is accessible.
 
         <Fact()>
         Public Sub InaccessibleOverloads3()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation name="NamedArgumentsAndOverriding">
     <file name="a.vb">
 Module Module1
@@ -4754,7 +4754,7 @@ End Module
     </file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.ReleaseExe)
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(source, TestOptions.ReleaseExe)
 
             Dim compilationVerifier = CompileAndVerify(compilation,
                          expectedOutput:=
@@ -4785,7 +4785,7 @@ End Module
 }
 ]]>)
 
-            compilation = CreateCompilationWithMscorlibAndReferences(source, {SystemRef}, TestOptions.ReleaseExe.WithEmbedVbCoreRuntime(True))
+            compilation = CreateCompilationWithMscorlib40AndReferences(source, {SystemRef}, TestOptions.ReleaseExe.WithEmbedVbCoreRuntime(True))
 
             compilationVerifier = CompileAndVerify(compilation,
                          expectedOutput:=
@@ -4825,28 +4825,28 @@ End Module
 Option Strict On
  
 Class A
-    Shared Sub Foo(Of T)(x As T)
-        System.Console.WriteLine("Foo(Of T)(x As T)")
+    Shared Sub Goo(Of T)(x As T)
+        System.Console.WriteLine("Goo(Of T)(x As T)")
     End Sub
 End Class
  
 Class B
     Inherits A
-    Overloads Shared Sub Foo(Of T)(y As Integer)
+    Overloads Shared Sub Goo(Of T)(y As Integer)
     End Sub
     Shared Sub Main()
-        Foo(x:=1)
+        Goo(x:=1)
     End Sub
 End Class
     </file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.ReleaseExe)
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(source, TestOptions.ReleaseExe)
 
             Dim compilationVerifier = CompileAndVerify(compilation,
                          expectedOutput:=
             <![CDATA[
-Foo(Of T)(x As T)
+Goo(Of T)(x As T)
 ]]>)
         End Sub
 
@@ -4863,29 +4863,29 @@ Imports System.Runtime.CompilerServices
 Module M
     Sub Main()
         Dim s As String = Nothing
-        s.Foo(y:=1)
+        s.Goo(y:=1)
     End Sub
 
     <Extension>
-    Sub Foo(x As Object, y As Integer)
-        System.Console.WriteLine("Foo(x As Object, y As Integer)")
+    Sub Goo(x As Object, y As Integer)
+        System.Console.WriteLine("Goo(x As Object, y As Integer)")
     End Sub
 
     <Extension>
-    Sub Foo(Of T)(x As T, z As Integer)
-        System.Console.WriteLine("Foo(Of T)(x As T, z As Integer)")
+    Sub Goo(Of T)(x As T, z As Integer)
+        System.Console.WriteLine("Goo(Of T)(x As T, z As Integer)")
     End Sub
 End Module
 ]]>
     </file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(source, {SystemCoreRef}, TestOptions.ReleaseExe)
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(source, {SystemCoreRef}, TestOptions.ReleaseExe)
 
             Dim compilationVerifier = CompileAndVerify(compilation,
                          expectedOutput:=
             <![CDATA[
-Foo(x As Object, y As Integer)
+Goo(x As Object, y As Integer)
 ]]>)
         End Sub
 
@@ -4902,17 +4902,17 @@ Imports System.Runtime.CompilerServices
 Module M
     Sub Main()
         Dim s As String = Nothing
-        s.Foo(y:=1)
+        s.Goo(y:=1)
     End Sub
 
     <Extension>
-    Sub Foo(x As String, z As Integer)
-        System.Console.WriteLine("Foo(x As String, z As Integer)")
+    Sub Goo(x As String, z As Integer)
+        System.Console.WriteLine("Goo(x As String, z As Integer)")
     End Sub
 
     <Extension>
-    Sub Foo(x As Object, y As Integer)
-        System.Console.WriteLine("Foo(x As Object, y As Integer)")
+    Sub Goo(x As Object, y As Integer)
+        System.Console.WriteLine("Goo(x As Object, y As Integer)")
     End Sub
 
 End Module
@@ -4920,12 +4920,12 @@ End Module
     </file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(source, {SystemCoreRef}, TestOptions.ReleaseExe)
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(source, {SystemCoreRef}, TestOptions.ReleaseExe)
 
             Dim compilationVerifier = CompileAndVerify(compilation,
                          expectedOutput:=
             <![CDATA[
-Foo(x As Object, y As Integer)
+Goo(x As Object, y As Integer)
 ]]>)
         End Sub
 
@@ -4938,32 +4938,32 @@ Foo(x As Object, y As Integer)
 Option Strict On
 
 Class B
-    Overloads Function Foo(Of T)() As Integer
-        System.Console.WriteLine("Function Foo(Of T)() As Integer")
+    Overloads Function Goo(Of T)() As Integer
+        System.Console.WriteLine("Function Goo(Of T)() As Integer")
         Return 4321
     End Function
 End Class
 
 Class C
     Inherits B
-    Overloads Shared Function Foo() As Integer()
-        System.Console.WriteLine("Function Foo() As Integer()")
+    Overloads Shared Function Goo() As Integer()
+        System.Console.WriteLine("Function Goo() As Integer()")
         Return {1234}
     End Function
     Shared Sub Main()
-        Foo(0).ToString()
+        Goo(0).ToString()
     End Sub
 End Class
     ]]>
     </file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.ReleaseExe)
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(source, TestOptions.ReleaseExe)
 
             Dim compilationVerifier = CompileAndVerify(compilation,
                          expectedOutput:=
             <![CDATA[
-Function Foo() As Integer()
+Function Goo() As Integer()
 ]]>)
         End Sub
 
@@ -4976,8 +4976,8 @@ Function Foo() As Integer()
 Option Strict On
 
 Class B
-    Overloads Function Foo(Of T)() As Integer
-        System.Console.WriteLine("Function Foo(Of T)() As Integer")
+    Overloads Function Goo(Of T)() As Integer
+        System.Console.WriteLine("Function Goo(Of T)() As Integer")
         Return 4321
     End Function
 End Class
@@ -4985,19 +4985,19 @@ End Class
 Class C
     Inherits B
     Shared Sub Main()
-        Foo(0).ToString()
+        Goo(0).ToString()
     End Sub
 End Class
     ]]>
     </file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.ReleaseExe)
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(source, TestOptions.ReleaseExe)
 
             CompilationUtils.AssertTheseDiagnostics(compilation,
 <expected>
-BC30057: Too many arguments to 'Public Overloads Function Foo(Of T)() As Integer'.
-        Foo(0).ToString()
+BC30057: Too many arguments to 'Public Overloads Function Goo(Of T)() As Integer'.
+        Goo(0).ToString()
             ~
 </expected>)
 
@@ -5013,33 +5013,33 @@ Module Program
     Sub Main()
         Dim o As New cls1
         Dim x1 As Object = 1
-        o.foo(x1)
+        o.goo(x1)
     End Sub
 End Module
 Class cls1
-    Sub foo(ByVal x As cls1)
-        System.Console.WriteLine("foo(ByVal x As cls1)")
+    Sub goo(ByVal x As cls1)
+        System.Console.WriteLine("goo(ByVal x As cls1)")
     End Sub
-    Sub foo(ByVal x As Integer)
-        System.Console.WriteLine("foo(ByVal x As Integer)")
+    Sub goo(ByVal x As Integer)
+        System.Console.WriteLine("goo(ByVal x As Integer)")
     End Sub
 End Class
     ]]>
     </file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.ReleaseExe.WithOptionStrict(OptionStrict.Custom))
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(source, TestOptions.ReleaseExe.WithOptionStrict(OptionStrict.Custom))
 
             Dim compilationVerifier = CompileAndVerify(compilation,
                          expectedOutput:=
             <![CDATA[
-foo(ByVal x As Integer)
+goo(ByVal x As Integer)
 ]]>)
 
             AssertTheseDiagnostics(compilation,
 <expected>
 BC42017: Late bound resolution; runtime errors could occur.
-        o.foo(x1)
+        o.goo(x1)
           ~~~
 </expected>)
         End Sub
@@ -5089,7 +5089,7 @@ End Module
     </file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.ReleaseExe)
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(source, TestOptions.ReleaseExe)
 
             Dim compilationVerifier = CompileAndVerify(compilation,
                          expectedOutput:=
@@ -5120,7 +5120,7 @@ End Module
     </file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.ReleaseExe)
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(source, TestOptions.ReleaseExe)
 
             Dim compilationVerifier = CompileAndVerify(compilation,
                          expectedOutput:=
@@ -5156,7 +5156,7 @@ End Module
     </file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.ReleaseExe)
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(source, TestOptions.ReleaseExe)
 
             Dim compilationVerifier = CompileAndVerify(compilation,
                          expectedOutput:=
@@ -5180,11 +5180,11 @@ Friend Class Class1
         System.Console.WriteLine("2")
     End Sub
 
-    Shared Sub Foo(ByVal x As Short, Optional ByVal y As Integer = 0)
+    Shared Sub Goo(ByVal x As Short, Optional ByVal y As Integer = 0)
         System.Console.WriteLine("3")
     End Sub
 
-    Shared Sub Foo(ByVal x As Integer, Optional ByVal y As Short = 0)
+    Shared Sub Goo(ByVal x As Integer, Optional ByVal y As Short = 0)
         System.Console.WriteLine("4")
     End Sub
 
@@ -5195,15 +5195,15 @@ Module Module1
         Dim x As New Class1(CShort(0), )
         Dim y As New Class1(CShort(0))
 
-        Class1.Foo(CShort(0), )
-        Class1.Foo(CShort(0))
+        Class1.Goo(CShort(0), )
+        Class1.Goo(CShort(0))
     End Sub
 End Module
     ]]>
     </file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.ReleaseExe)
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(source, TestOptions.ReleaseExe)
 
             Dim compilationVerifier = CompileAndVerify(compilation,
                          expectedOutput:=
@@ -5227,19 +5227,19 @@ Imports System.Runtime.CompilerServices
 Module Module1
 Sub Main
     Dim x As New C3
-    Dim sResult As String = x.Foo3(1)
+    Dim sResult As String = x.Goo3(1)
     Console.writeline("C3 Pass")
     Console.writeline( sResult)
 End Sub
 
 Class C3
-    Function Foo3(<[ParamArray]()> ByVal x As Integer) As String
+    Function Goo3(<[ParamArray]()> ByVal x As Integer) As String
         Return "C3 Fail"
     End Function
 End Class
 End Module
 Module NonArrayMarkedAsParamArray1
-    <Extension()> Function Foo3(ByVal x As C3, ByVal y As Integer) As String
+    <Extension()> Function Goo3(ByVal x As C3, ByVal y As Integer) As String
         Return "C3 Pass"
     End Function
 End Module
@@ -5247,7 +5247,7 @@ End Module
     </file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(source, {SystemCoreRef}, TestOptions.ReleaseExe)
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(source, {SystemCoreRef}, TestOptions.ReleaseExe)
 
             Dim compilationVerifier = CompileAndVerify(compilation,
                          expectedOutput:=
@@ -5270,32 +5270,32 @@ Imports System.Collections.Generic
 Module Module1
 
     Sub main()
-        Foo("test", "test2")
+        Goo("test", "test2")
         Bar("Test")
         Bar("Test", 2)
-        FooAttributes({"Test", "Test2"})
-        FooAttributes2({"Test2", "Test"})
-        FooAttributes3({"Test", "Test2"}, 1)
+        GooAttributes({"Test", "Test2"})
+        GooAttributes2({"Test2", "Test"})
+        GooAttributes3({"Test", "Test2"}, 1)
     End Sub
 
-    Sub Foo(ByVal ParamArray x() As String)
-        Console.WriteLine("Foo")
+    Sub Goo(ByVal ParamArray x() As String)
+        Console.WriteLine("Goo")
     End Sub
 
     Sub Bar(ByRef x As String, Optional ByVal y As Integer = 1)
         Console.WriteLine("Bar")
     End Sub
 
-    Sub FooAttributes(<Test> <Test2> x() As String)
-        Console.WriteLine("FooAttributes")
+    Sub GooAttributes(<Test> <Test2> x() As String)
+        Console.WriteLine("GooAttributes")
     End Sub
 
-    Sub FooAttributes2(<Test, Test2> x() As String)
-        Console.WriteLine("FooAttributes2")
+    Sub GooAttributes2(<Test, Test2> x() As String)
+        Console.WriteLine("GooAttributes2")
     End Sub
 
-    Sub FooAttributes3(<Test, Test2> x() As String, <Test> z As Integer)
-        Console.WriteLine("FooAttributes3")
+    Sub GooAttributes3(<Test, Test2> x() As String, <Test> z As Integer)
+        Console.WriteLine("GooAttributes3")
     End Sub
 End Module
 
@@ -5311,12 +5311,12 @@ End Class
 ]]>
         </file>
     </compilation>,
-        expectedOutput:=<![CDATA[Foo
+        expectedOutput:=<![CDATA[Goo
 Bar
 Bar
-FooAttributes
-FooAttributes2
-FooAttributes3
+GooAttributes
+GooAttributes2
+GooAttributes3
 ]]>)
 
         End Sub
@@ -5333,21 +5333,21 @@ Imports System.Collections.Generic
 
 Module Module1
     Sub main()
-        Dim x As New Foo
+        Dim x As New Goo
         x.Items = New List(Of String) From {"A", "B", "C"}
         Console.WriteLine(x.Items.Count)
 
-        Dim y As New FooWithInterface
+        Dim y As New GooWithInterface
         Dim i As IPropTest = y
         i.Items = New List(Of String) From {"A", "B", "C"}
     End Sub
 End Module
 
-Class Foo
+Class Goo
     Public Property Items As New List(Of String)
 End Class
 
-Class FooWithInterface
+Class GooWithInterface
     Implements IPropTest
 
     Public Property Items As New List(Of String) Implements IPropTest.Items
@@ -5364,7 +5364,7 @@ End Interface
         <Fact(), WorkItem(758861, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/758861")>
         Public Sub Bug758861()
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
     <file name="a.vb">
 Module Program
@@ -5418,7 +5418,7 @@ End Module
         <Fact(), WorkItem(762717, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/762717")>
         Public Sub Bug762717()
 
-            Dim library = CreateCompilationWithMscorlib(
+            Dim library = CreateCompilationWithMscorlib40(
 <compilation>
     <file name="a.vb"><![CDATA[
 Public Class Test1
@@ -5437,7 +5437,7 @@ End Class
 
             CompileAndVerify(library)
 
-            Dim compilation = CreateCompilationWithMscorlibAndReferences(
+            Dim compilation = CreateCompilationWithMscorlib40AndReferences(
 <compilation>
     <file name="a.vb"><![CDATA[
 Class Module1
@@ -5605,7 +5605,7 @@ End Class
     </file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithReferences(compilationDef, {MscorlibRef_v4_0_30316_17626, MsvbRef_v4_0_30319_17929}, TestOptions.ReleaseExe, parseOptions:=TestOptions.ReleaseExe.ParseOptions)
+            Dim compilation = CompilationUtils.CreateEmptyCompilationWithReferences(compilationDef, {MscorlibRef_v4_0_30316_17626, MsvbRef_v4_0_30319_17929}, TestOptions.ReleaseExe, parseOptions:=TestOptions.ReleaseExe.ParseOptions)
 
             Dim verifier = CompileAndVerify(compilation, expectedOutput:=
             <![CDATA[
@@ -5865,7 +5865,7 @@ End Class
     </file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithReferences(compilationDef, {MscorlibRef_v4_0_30316_17626, MsvbRef_v4_0_30319_17929}, TestOptions.ReleaseExe, parseOptions:=TestOptions.ReleaseExe.ParseOptions)
+            Dim compilation = CompilationUtils.CreateEmptyCompilationWithReferences(compilationDef, {MscorlibRef_v4_0_30316_17626, MsvbRef_v4_0_30319_17929}, TestOptions.ReleaseExe, parseOptions:=TestOptions.ReleaseExe.ParseOptions)
 
             Dim verifier = CompileAndVerify(compilation, expectedOutput:=
             <![CDATA[
@@ -5924,7 +5924,7 @@ Public Delegate Function MessageFormatter(ByVal format As String, <[ParamArray]>
     ]]></file>
 </compilation>
 
-            Dim compilation1 = CreateCompilationWithMscorlib(source1, options:=TestOptions.DebugDll)
+            Dim compilation1 = CreateCompilationWithMscorlib40(source1, options:=TestOptions.DebugDll)
 
             Dim source2 =
 <compilation>
@@ -5953,11 +5953,11 @@ Test
 test
 ]]>
 
-            Dim compilation2 = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(source2, {compilation1.EmitToImageReference()}, options:=TestOptions.DebugExe)
+            Dim compilation2 = CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(source2, {compilation1.EmitToImageReference()}, options:=TestOptions.DebugExe)
 
             CompileAndVerify(compilation2, expectedOutput:=expectedOutput)
 
-            Dim compilation3 = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(source2, {New VisualBasicCompilationReference(compilation1)}, options:=TestOptions.DebugExe)
+            Dim compilation3 = CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(source2, {New VisualBasicCompilationReference(compilation1)}, options:=TestOptions.DebugExe)
 
             CompileAndVerify(compilation3, expectedOutput:=expectedOutput)
 
@@ -5984,7 +5984,7 @@ End Module
     ]]></file>
 </compilation>
 
-            Dim compilation4 = CreateCompilationWithMscorlibAndVBRuntime(source4, options:=TestOptions.DebugExe)
+            Dim compilation4 = CreateCompilationWithMscorlib40AndVBRuntime(source4, options:=TestOptions.DebugExe)
 
             CompileAndVerify(compilation4, expectedOutput:=expectedOutput)
 

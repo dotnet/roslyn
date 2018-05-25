@@ -87,8 +87,6 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             Contract.Requires(within is INamedTypeSymbol || within is IAssemblySymbol);
 
             failedThroughTypeCheck = false;
-            var withinAssembly = (within as IAssemblySymbol) ?? ((INamedTypeSymbol)within).ContainingAssembly;
-
             switch (symbol.Kind)
             {
                 case SymbolKind.Alias:

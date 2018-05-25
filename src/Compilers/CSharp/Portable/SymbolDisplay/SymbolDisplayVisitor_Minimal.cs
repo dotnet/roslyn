@@ -7,6 +7,7 @@ using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
@@ -46,7 +47,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var token = semanticModelOpt.SyntaxTree.GetRoot().FindToken(positionOpt);
             var startNode = token.Parent;
 
-            return SyntaxFacts.IsInNamespaceOrTypeContext(startNode as ExpressionSyntax);
+            return SyntaxFacts.IsInNamespaceOrTypeContext(startNode as ExpressionSyntax) || token.IsKind(SyntaxKind.NewKeyword) || this.inNamespaceOrType;
         }
 
         private void MinimallyQualify(INamespaceSymbol symbol)

@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Diagnostics;
@@ -42,7 +42,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Interactive
             var textView = interactiveWorkspace.Window.TextView;
             var document = interactiveWorkspace.CurrentSolution.GetDocument(documentId);
 
-            var textSnapshot = document.GetTextAsync(CancellationToken.None).WaitAndGetResult(CancellationToken.None).FindCorrespondingEditorTextSnapshot();
+            var textSnapshot = document.GetTextSynchronously(CancellationToken.None).FindCorrespondingEditorTextSnapshot();
             if (textSnapshot == null)
             {
                 return false;

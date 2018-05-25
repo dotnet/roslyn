@@ -1,8 +1,0 @@
-{
-  "dependencies": { },
-  "frameworks": {
-    "netstandard1.3": {
-      "imports": [ "portable-net45+win8", "dotnet" ]
-    }
-  }
-}

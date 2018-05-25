@@ -9,7 +9,9 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.CodeFixes.Iterator
 {
+#pragma warning disable RS1016 // Code fix providers should provide FixAll support. https://github.com/dotnet/roslyn/issues/23528
     internal abstract class AbstractIteratorCodeFixProvider : CodeFixProvider
+#pragma warning restore RS1016 // Code fix providers should provide FixAll support.
     {
         protected abstract Task<CodeAction> GetCodeFixAsync(SyntaxNode root, SyntaxNode node, Document document, Diagnostic diagnostics, CancellationToken cancellationToken);
 
@@ -40,7 +42,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Iterator
                 return false;
             }
 
-            node = ancestors.FirstOrDefault((n) => n.Span.Contains(span) && n != root);
+            node = ancestors.FirstOrDefault(n => n.Span.Contains(span) && n != root);
             return node != null;
         }
     }

@@ -183,7 +183,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 #endif
 
-        protected override void AssignImpl(BoundNode node, BoundExpression value, RefKind refKind, bool written, bool read)
+        protected override void AssignImpl(BoundNode node, BoundExpression value, bool isRef, bool written, bool read)
         {
             if (IsInside)
             {
@@ -209,7 +209,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            base.AssignImpl(node, value, refKind, written, read);
+            base.AssignImpl(node, value, isRef, written, read);
         }
 
         private bool FlowsOut(ParameterSymbol param)
@@ -232,13 +232,16 @@ namespace Microsoft.CodeAnalysis.CSharp
             return base.VisitQueryClause(node);
         }
 
-        protected override void ReportUnassigned(Symbol symbol, SyntaxNode node)
+        protected override void ReportUnassigned(Symbol symbol, SyntaxNode node, int slot, bool skipIfUseBeforeDeclaration)
         {
-            if (!_dataFlowsOut.Contains(symbol) && !(symbol is FieldSymbol) && !IsInside)
+            if (!IsInside)
             {
-                _dataFlowsOut.Add(symbol);
+                // If the field access is reported as unassigned it should mean the original local
+                // or parameter flows out, so we should get the symbol associated with the expression
+                _dataFlowsOut.Add(symbol.Kind == SymbolKind.Field ? GetNonFieldSymbol(slot) : symbol);
             }
-            base.ReportUnassigned(symbol, node);
+
+            base.ReportUnassigned(symbol, node, slot, skipIfUseBeforeDeclaration);
         }
 
         protected override void ReportUnassignedOutParameter(ParameterSymbol parameter, SyntaxNode node, Location location)
@@ -248,21 +251,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 _dataFlowsOut.Add(parameter);
             }
             base.ReportUnassignedOutParameter(parameter, node, location);
-        }
-
-        protected override void ReportUnassigned(FieldSymbol fieldSymbol, int unassignedSlot, SyntaxNode node)
-        {
-            if (!IsInside)
-            {
-                //  if the field access is reported as unassigned it should mean the original local 
-                //  or parameter flows out, so we should get the symbol associated with the expression
-                var symbol = GetNonFieldSymbol(unassignedSlot);
-                if (!_dataFlowsOut.Contains(symbol))
-                {
-                    _dataFlowsOut.Add(symbol);
-                }
-            }
-            base.ReportUnassigned(fieldSymbol, unassignedSlot, node);
         }
     }
 }

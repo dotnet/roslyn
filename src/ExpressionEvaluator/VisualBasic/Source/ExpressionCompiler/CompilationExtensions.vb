@@ -6,6 +6,7 @@ Imports System.Reflection.Metadata
 Imports System.Reflection.Metadata.Ecma335
 Imports System.Runtime.CompilerServices
 Imports Microsoft.CodeAnalysis.ExpressionEvaluator
+Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
 
@@ -23,8 +24,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
         End Function
 
         <Extension>
-        Friend Function GetSourceMethod(compilation As VisualBasicCompilation, moduleVersionId As Guid, methodToken As Integer) As PEMethodSymbol
-            Dim methodHandle = CType(MetadataTokens.Handle(methodToken), MethodDefinitionHandle)
+        Friend Function GetSourceMethod(compilation As VisualBasicCompilation, moduleVersionId As Guid, methodHandle As MethodDefinitionHandle) As PEMethodSymbol
             Dim method = GetMethod(compilation, moduleVersionId, methodHandle)
             Dim metadataDecoder = New MetadataDecoder(DirectCast(method.ContainingModule, PEModuleSymbol))
             Dim containingType = method.ContainingType
@@ -77,22 +77,28 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
 
         <Extension>
         Friend Function ToCompilation(metadataBlocks As ImmutableArray(Of MetadataBlock)) As VisualBasicCompilation
-            Dim references = metadataBlocks.MakeAssemblyReferences(moduleVersionId:=Nothing, identityComparer:=Nothing)
-            Return references.ToCompilation()
+            Return ToCompilation(metadataBlocks, moduleVersionId:=Nothing, MakeAssemblyReferencesKind.AllAssemblies)
         End Function
 
         <Extension>
         Friend Function ToCompilationReferencedModulesOnly(metadataBlocks As ImmutableArray(Of MetadataBlock), moduleVersionId As Guid) As VisualBasicCompilation
-            Dim references = metadataBlocks.MakeAssemblyReferences(moduleVersionId, IdentityComparer)
-            Return references.ToCompilation()
+            Return ToCompilation(metadataBlocks, moduleVersionId, MakeAssemblyReferencesKind.DirectReferencesOnly)
         End Function
 
         <Extension>
-        Friend Function ToCompilation(references As ImmutableArray(Of MetadataReference)) As VisualBasicCompilation
+        Friend Function ToCompilation(metadataBlocks As ImmutableArray(Of MetadataBlock), moduleVersionId As Guid, kind As MakeAssemblyReferencesKind) As VisualBasicCompilation
+            Dim referencesBySimpleName As IReadOnlyDictionary(Of String, ImmutableArray(Of (AssemblyIdentity, MetadataReference))) = Nothing
+            Dim references = metadataBlocks.MakeAssemblyReferences(moduleVersionId, IdentityComparer, kind, referencesBySimpleName)
+            Dim options = s_compilationOptions
+            If referencesBySimpleName IsNot Nothing Then
+                Debug.Assert(kind = MakeAssemblyReferencesKind.AllReferences)
+                Dim resolver = New EEMetadataReferenceResolver(IdentityComparer, referencesBySimpleName)
+                options = options.WithMetadataReferenceResolver(resolver)
+            End If
             Return VisualBasicCompilation.Create(
                 assemblyName:=ExpressionCompilerUtilities.GenerateUniqueName(),
                 references:=references,
-                options:=s_compilationOptions)
+                options:=options)
         End Function
 
         <Extension>

@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -16,7 +16,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options.Style.N
         public ObservableCollection<INamingStylesInfoDialogViewModel> Items { get; set; }
         public string LanguageName { get; private set; }
 
-        public string DialogTitle => "Manage Specifications";
+        public string DialogTitle => ServicesVSResources.Manage_specifications;
 
         public ManageSymbolSpecificationsDialogViewModel(
             ObservableCollection<SymbolSpecification> specifications, 

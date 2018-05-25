@@ -2,9 +2,8 @@
 
 using System.Collections.Generic;
 using System.Diagnostics;
-using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.Collections
+namespace Microsoft.CodeAnalysis.PooledObjects
 {
     // HashSet that can be recycled via an object pool
     // NOTE: these HashSets always have the default comparer.

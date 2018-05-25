@@ -2,10 +2,10 @@
 
 using System;
 using System.Collections.Immutable;
-using System.Diagnostics;
-using System.Runtime.InteropServices;
 using System.Runtime.Remoting.Channels;
 using System.Runtime.Remoting.Channels.Ipc;
+using System.Threading;
+using System.Threading.Tasks;
 using EnvDTE;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.Input;
@@ -25,18 +25,28 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
 
         public CSharpInteractiveWindow_OutOfProc InteractiveWindow { get; }
 
+        public Debugger_OutOfProc Debugger { get; }
+
+        public Dialog_OutOfProc Dialog { get; }
+
         public Editor_OutOfProc Editor { get; }
 
         public EncapsulateField_OutOfProc EncapsulateField { get; }
 
         public ErrorList_OutOfProc ErrorList { get; }
 
+        public ExtractInterfaceDialog_OutOfProc ExtractInterfaceDialog { get; }
+
         public FindReferencesWindow_OutOfProc FindReferencesWindow { get; }
 
         public GenerateTypeDialog_OutOfProc GenerateTypeDialog { get; }
 
-		public InlineRenameDialog_OutOfProc InlineRenameDialog { get; set; }
-		
+        public ImmediateWindow_OutOfProc ImmediateWindow { get; }
+
+        public InlineRenameDialog_OutOfProc InlineRenameDialog { get; set; }
+
+        public LocalsWindow_OutOfProc LocalsWindow { get; set; }
+
         public PreviewChangesDialog_OutOfProc PreviewChangesDialog { get; }
 
         public SendKeys SendKeys { get; }
@@ -89,12 +99,17 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
 
             ChangeSignatureDialog = new ChangeSignatureDialog_OutOfProc(this);
             InteractiveWindow = new CSharpInteractiveWindow_OutOfProc(this);
+            Debugger = new Debugger_OutOfProc(this);
+            Dialog = new Dialog_OutOfProc(this);
             Editor = new Editor_OutOfProc(this);
             EncapsulateField = new EncapsulateField_OutOfProc(this);
             ErrorList = new ErrorList_OutOfProc(this);
+            ExtractInterfaceDialog = new ExtractInterfaceDialog_OutOfProc(this);
             FindReferencesWindow = new FindReferencesWindow_OutOfProc(this);
             GenerateTypeDialog = new GenerateTypeDialog_OutOfProc(this);
-			InlineRenameDialog = new InlineRenameDialog_OutOfProc(this);
+            InlineRenameDialog = new InlineRenameDialog_OutOfProc(this);
+            ImmediateWindow = new ImmediateWindow_OutOfProc(this);
+            LocalsWindow = new LocalsWindow_OutOfProc(this);
             PreviewChangesDialog = new PreviewChangesDialog_OutOfProc(this);
             Shell = new Shell_OutOfProc(this);
             SolutionExplorer = new SolutionExplorer_OutOfProc(this);
@@ -122,11 +137,14 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
             return (T)Activator.GetObject(typeof(T), $"{_integrationService.BaseUri}/{objectUri}");
         }
 
-        public void ActivateMainWindow()
-            => _inProc.ActivateMainWindow();
+        public void ActivateMainWindow(bool skipAttachingThreads = false)
+            => _inProc.ActivateMainWindow(skipAttachingThreads);
 
-        public void WaitForApplicationIdle()
-            => _inProc.WaitForApplicationIdle();
+        public void WaitForApplicationIdle(CancellationToken cancellationToken)
+        {
+            var task = Task.Factory.StartNew(() => _inProc.WaitForApplicationIdle(), cancellationToken, TaskCreationOptions.LongRunning, TaskScheduler.Default);
+            task.Wait(cancellationToken);
+        }
 
         public void ExecuteCommand(string commandName, string argument = "")
             => _inProc.ExecuteCommand(commandName, argument);
@@ -150,7 +168,12 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
             Workspace.CleanUpWaitingService();
             Workspace.CleanUpWorkspace();
             SolutionExplorer.CleanUpOpenSolution();
+
+            // Close any windows leftover from previous (failed) tests
             InteractiveWindow.CloseInteractiveWindow();
+            ChangeSignatureDialog.CloseWindow();
+            GenerateTypeDialog.CloseWindow();
+            ExtractInterfaceDialog.CloseWindow();
         }
 
         public void Close(bool exitHostProcess = true)
@@ -195,9 +218,9 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
         {
             // We use DTE over RPC to start the integration service. All other DTE calls should happen in the host process.
 
-            if (RetryRpcCall(() => dte.Commands.Item(WellKnownCommandNames.Test_IntegrationTestService_Start).IsAvailable))
+            if (dte.Commands.Item(WellKnownCommandNames.Test_IntegrationTestService_Start).IsAvailable)
             {
-                RetryRpcCall(() => dte.ExecuteCommand(WellKnownCommandNames.Test_IntegrationTestService_Start));
+                dte.ExecuteCommand(WellKnownCommandNames.Test_IntegrationTestService_Start);
             }
         }
 
@@ -209,33 +232,38 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
             }
         }
 
-        private static void RetryRpcCall(Action action)
+        public TelemetryVerifier EnableTestTelemetryChannel()
         {
-            do
-            {
-                try
-                {
-                    action();
-                    return;
-                }
-                catch (COMException exception) when ((exception.HResult == VSConstants.RPC_E_CALL_REJECTED) ||
-                                                     (exception.HResult == VSConstants.RPC_E_SERVERCALL_RETRYLATER))
-                {
-                    // We'll just try again in this case
-                }
-            }
-            while (true);
+            _inProc.EnableTestTelemetryChannel();
+            return new TelemetryVerifier(this);
         }
 
-        private static T RetryRpcCall<T>(Func<T> action)
+        private void DisableTestTelemetryChannel()
+            => _inProc.DisableTestTelemetryChannel();
+
+        private void WaitForTelemetryEvents(string[] names)
+            => _inProc.WaitForTelemetryEvents(names);
+
+        public class TelemetryVerifier : IDisposable
         {
-            var result = default(T);
+            internal VisualStudioInstance _instance;
 
-            RetryRpcCall(() => {
-                result = action();
-            });
+            public TelemetryVerifier(VisualStudioInstance instance)
+            {
+                _instance = instance;
+            }
 
-            return result;
+            public void Dispose() => _instance.DisableTestTelemetryChannel();
+
+            /// <summary>
+            /// Asserts that a telemetry event of the given name was fired. Does not
+            /// do any additional validation (of performance numbers, etc).
+            /// </summary>
+            /// <param name="expectedEventNames"></param>
+            public void VerifyFired(params string[] expectedEventNames)
+            {
+                _instance.WaitForTelemetryEvents(expectedEventNames);
+            }
         }
     }
 }

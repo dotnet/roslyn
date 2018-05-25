@@ -172,6 +172,8 @@ Microsoft.CodeAnalysis.Completion.CompletionTrigger.Kind.get -> Microsoft.CodeAn
 Microsoft.CodeAnalysis.Completion.CompletionTriggerKind
 Microsoft.CodeAnalysis.Completion.CompletionTriggerKind.Deletion = 2 -> Microsoft.CodeAnalysis.Completion.CompletionTriggerKind
 Microsoft.CodeAnalysis.Completion.CompletionTriggerKind.Insertion = 1 -> Microsoft.CodeAnalysis.Completion.CompletionTriggerKind
+Microsoft.CodeAnalysis.Completion.CompletionTriggerKind.Invoke = 0 -> Microsoft.CodeAnalysis.Completion.CompletionTriggerKind
+Microsoft.CodeAnalysis.Completion.CompletionTriggerKind.InvokeAndCommitIfUnique = 4 -> Microsoft.CodeAnalysis.Completion.CompletionTriggerKind
 Microsoft.CodeAnalysis.Completion.CompletionTriggerKind.Other = 0 -> Microsoft.CodeAnalysis.Completion.CompletionTriggerKind
 Microsoft.CodeAnalysis.Completion.CompletionTriggerKind.Snippets = 3 -> Microsoft.CodeAnalysis.Completion.CompletionTriggerKind
 Microsoft.CodeAnalysis.Completion.EnterKeyRule
@@ -225,6 +227,7 @@ static readonly Microsoft.CodeAnalysis.Completion.CompletionDescription.Empty ->
 static readonly Microsoft.CodeAnalysis.Completion.CompletionList.Empty -> Microsoft.CodeAnalysis.Completion.CompletionList
 static readonly Microsoft.CodeAnalysis.Completion.CompletionRules.Default -> Microsoft.CodeAnalysis.Completion.CompletionRules
 static readonly Microsoft.CodeAnalysis.Completion.CompletionTrigger.Default -> Microsoft.CodeAnalysis.Completion.CompletionTrigger
+static readonly Microsoft.CodeAnalysis.Completion.CompletionTrigger.Invoke -> Microsoft.CodeAnalysis.Completion.CompletionTrigger
 static readonly Microsoft.CodeAnalysis.Completion.MatchPriority.Default -> int
 static readonly Microsoft.CodeAnalysis.Completion.MatchPriority.Preselect -> int
 virtual Microsoft.CodeAnalysis.Completion.CompletionProvider.GetChangeAsync(Microsoft.CodeAnalysis.Document document, Microsoft.CodeAnalysis.Completion.CompletionItem item, char? commitKey, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task<Microsoft.CodeAnalysis.Completion.CompletionChange>

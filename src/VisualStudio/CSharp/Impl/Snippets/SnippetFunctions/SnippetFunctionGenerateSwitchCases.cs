@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Linq;
@@ -88,7 +88,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Snippets.SnippetFunctio
             var textChange = new TextChange(new TextSpan(startPosition, endPosition - startPosition), str);
             var typeSpanToAnnotate = new TextSpan(startPosition + "case ".Length, fullyQualifiedTypeName.Length);
 
-            var textWithCaseAdded = document.GetTextAsync(cancellationToken).WaitAndGetResult(cancellationToken).WithChanges(textChange);
+            var textWithCaseAdded = document.GetTextSynchronously(cancellationToken).WithChanges(textChange);
             var documentWithCaseAdded = document.WithText(textWithCaseAdded);
 
             var syntaxRoot = documentWithCaseAdded.GetSyntaxRootSynchronously(cancellationToken);

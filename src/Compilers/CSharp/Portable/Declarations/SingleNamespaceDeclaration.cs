@@ -12,8 +12,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             string name,
             SyntaxReference syntaxReference,
             SourceLocation nameLocation,
-            ImmutableArray<SingleNamespaceOrTypeDeclaration> children)
-            : base(name, syntaxReference, nameLocation)
+            ImmutableArray<SingleNamespaceOrTypeDeclaration> children,
+            ImmutableArray<Diagnostic> diagnostics)
+            : base(name, syntaxReference, nameLocation, diagnostics)
         {
             _children = children;
         }
@@ -53,18 +54,21 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool hasExternAliases,
             SyntaxReference syntaxReference,
             SourceLocation nameLocation,
-            ImmutableArray<SingleNamespaceOrTypeDeclaration> children)
+            ImmutableArray<SingleNamespaceOrTypeDeclaration> children,
+            ImmutableArray<Diagnostic> diagnostics)
         {
             // By far the most common case is "no usings and no extern aliases", so optimize for
             // that to minimize space. The other cases are not frequent enough to warrant their own
             // custom types.
             if (!hasUsings && !hasExternAliases)
             {
-                return new SingleNamespaceDeclaration(name, syntaxReference, nameLocation, children);
+                return new SingleNamespaceDeclaration(
+                    name, syntaxReference, nameLocation, children, diagnostics);
             }
             else
             {
-                return new SingleNamespaceDeclarationEx(name, hasUsings, hasExternAliases, syntaxReference, nameLocation, children);
+                return new SingleNamespaceDeclarationEx(
+                    name, hasUsings, hasExternAliases, syntaxReference, nameLocation, children, diagnostics);
             }
         }
     }

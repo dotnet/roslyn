@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Xunit;
 
@@ -36,6 +37,9 @@ namespace Roslyn.Test.Utilities
         Fusion,
     }
 
+    /// <summary>
+    /// Tests that can only be run on the Desktop CLR.
+    /// </summary>
     public sealed class ClrOnlyFactAttribute : FactAttribute
     {
         public readonly ClrOnlyReason Reason;

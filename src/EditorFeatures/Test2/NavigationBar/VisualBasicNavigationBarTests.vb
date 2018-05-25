@@ -1,9 +1,10 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis.Editor.VisualBasic
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.NavigationBar
+    <[UseExportProvider]>
     Partial Public Class VisualBasicNavigationBarTests
         <Fact, Trait(Traits.Feature, Traits.Features.NavigationBar), WorkItem(545000, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545000")>
         Public Async Function TestEventsInInterfaces() As Task
@@ -12,13 +13,13 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.NavigationBar
                     <Project Language="Visual Basic" CommonReferences="true">
                         <Document>
                             Interface I
-                                Event Foo As EventHandler
+                                Event Goo As EventHandler
                             End Interface
                         </Document>
                     </Project>
                 </Workspace>,
                 Item("I", Glyph.InterfaceInternal, bolded:=True, children:={
-                    Item("Foo", Glyph.EventPublic, bolded:=True)}))
+                    Item("Goo", Glyph.EventPublic, bolded:=True)}))
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.NavigationBar), WorkItem(544996, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544996")>
@@ -149,11 +150,11 @@ End Class
                 <Workspace>
                     <Project Language="Visual Basic" CommonReferences="true">
                         <Document>
-                            Delegate Sub Foo()
+                            Delegate Sub Goo()
                         </Document>
                     </Project>
                 </Workspace>,
-                Item("Foo", Glyph.DelegateInternal, children:={}, bolded:=True))
+                Item("Goo", Glyph.DelegateInternal, children:={}, bolded:=True))
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.NavigationBar), WorkItem(544995, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544995"), WorkItem(545283, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545283")>
@@ -409,16 +410,16 @@ End Class
                         </Document>
                         <Document>
 Partial Class C
-    Private Partial Sub Foo()
+    Private Partial Sub Goo()
     End Sub
 End Class
                         </Document>
                     </Project>
                 </Workspace>,
-                "C", "Foo",
+                "C", "Goo",
                 <Result>
 Partial Class C
-    Private Sub Foo()
+    Private Sub Goo()
 
     End Sub
 End Class
@@ -436,7 +437,7 @@ End Class
                         </Document>
                         <Document>
                             Partial Class C
-                                Sub Foo()
+                                Sub Goo()
                                 End Sub
                             End Class
                         </Document>
@@ -445,7 +446,7 @@ End Class
                 Item("C", Glyph.ClassInternal, bolded:=True, children:={
                      Item(VBEditorResources.New_, Glyph.MethodPublic, hasNavigationSymbolId:=False),
                      Item("Finalize", Glyph.MethodProtected, hasNavigationSymbolId:=False),
-                     Item("Foo", Glyph.MethodPublic, grayed:=True)}))
+                     Item("Goo", Glyph.MethodPublic, grayed:=True)}))
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.NavigationBar), WorkItem(544991, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544991")>
@@ -455,7 +456,7 @@ End Class
                     <Project Language="Visual Basic" CommonReferences="true">
                         <Document>
                             Class C
-                                Private WithEvents foo As System.Console
+                                Private WithEvents goo As System.Console
                             End Class
                         </Document>
                     </Project>
@@ -463,7 +464,7 @@ End Class
                 Item("C", Glyph.ClassInternal, bolded:=True, children:={
                      Item(VBEditorResources.New_, Glyph.MethodPublic, hasNavigationSymbolId:=False),
                      Item("Finalize", Glyph.MethodProtected, hasNavigationSymbolId:=False)}),
-                Item("foo", Glyph.FieldPrivate, bolded:=False, hasNavigationSymbolId:=False, indent:=1, children:={
+                Item("goo", Glyph.FieldPrivate, bolded:=False, hasNavigationSymbolId:=False, indent:=1, children:={
                      Item("CancelKeyPress", Glyph.EventPublic, hasNavigationSymbolId:=False)}))
         End Function
 
@@ -675,17 +676,17 @@ End Class
                     <Project Language="Visual Basic" CommonReferences="true">
                         <Document>
 Class C
-    Private WithEvents foo As System.Console
+    Private WithEvents goo As System.Console
 End Class
                         </Document>
                     </Project>
                 </Workspace>,
-                "foo", "CancelKeyPress",
+                "goo", "CancelKeyPress",
                 <Result>
 Class C
-    Private WithEvents foo As System.Console
+    Private WithEvents goo As System.Console
 
-    Private Sub foo_CancelKeyPress(sender As Object, e As ConsoleCancelEventArgs) Handles foo.CancelKeyPress
+    Private Sub goo_CancelKeyPress(sender As Object, e As ConsoleCancelEventArgs) Handles goo.CancelKeyPress
 
     End Sub
 End Class
@@ -749,6 +750,36 @@ End Class
                 </Result>)
         End Function
 
+        <ConditionalWpfFact(GetType(IsEnglishLocal))>
+        <WorkItem(25763, "https://github.com/dotnet/roslyn/issues/25763")>
+        <WorkItem(18792, "https://github.com/dotnet/roslyn/issues/18792")>
+        <Trait(Traits.Feature, Traits.Features.NavigationBar)>
+        Public Async Function TestGenerateEventHandlerWithDuplicate() As Task
+            Await AssertGeneratedResultIsAsync(
+                <Workspace>
+                    <Project Language="Visual Basic" CommonReferences="true">
+                        <Document>
+Public Class ExampleClass
+    Public Event ExampleEvent()
+    Public Event ExampleEvent()
+End Class
+                        </Document>
+                    </Project>
+                </Workspace>,
+                $"(ExampleClass { FeaturesResources.Events })",
+                Function(items) items.First(Function(i) i.Text = "ExampleEvent"),
+                <Result>
+Public Class ExampleClass
+    Public Event ExampleEvent()
+    Public Event ExampleEvent()
+
+    Private Sub ExampleClass_ExampleEvent() Handles Me.ExampleEvent
+
+    End Sub
+End Class
+                </Result>)
+        End Function
+
         <Fact, Trait(Traits.Feature, Traits.Features.NavigationBar)>
         Public Async Function TestNoListedEventToGenerateWithInvalidTypeName() As Task
             Await AssertItemsAreAsync(
@@ -806,9 +837,9 @@ End Enum
                     </Project>
                 </Workspace>,
                 Item("MyEnum", Glyph.EnumInternal, children:={
-                    Item("A", Glyph.EnumMember),
-                    Item("B", Glyph.EnumMember),
-                    Item("C", Glyph.EnumMember)},
+                    Item("A", Glyph.EnumMemberPublic),
+                    Item("B", Glyph.EnumMemberPublic),
+                    Item("C", Glyph.EnumMemberPublic)},
                     bolded:=True))
         End Function
 
@@ -975,7 +1006,7 @@ End Class
                         <Document FilePath="Code.vb">
 Partial Class Program
     Private Sub S(value As Integer) 
-        $$' Foo
+        $$' Goo
     End Sub
 End Class
                         </Document>

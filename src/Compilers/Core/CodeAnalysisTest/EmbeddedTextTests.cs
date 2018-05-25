@@ -126,9 +126,9 @@ class Program
         public void FromBytes_SmallSpan()
         {
             var bytes = Encoding.UTF8.GetBytes(SmallSource);
-            var padddedBytes = new byte[] { 0 }.Concat(bytes).Concat(new byte[] { 0 }).ToArray();
+            var paddedBytes = new byte[] { 0 }.Concat(bytes).Concat(new byte[] { 0 }).ToArray();
             var checksum = SourceText.CalculateChecksum(bytes, 0, bytes.Length, SourceHashAlgorithm.Sha1);
-            var text = EmbeddedText.FromBytes("pathToSmall", new ArraySegment<byte>(padddedBytes, 1, bytes.Length));
+            var text = EmbeddedText.FromBytes("pathToSmall", new ArraySegment<byte>(paddedBytes, 1, bytes.Length));
 
             Assert.Equal("pathToSmall", text.FilePath);
             AssertEx.Equal(checksum, text.Checksum);
@@ -196,30 +196,30 @@ class Program
         public void FromTextReader_Small()
         {
             var expected = SourceText.From(SmallSource, Encoding.UTF8, SourceHashAlgorithm.Sha1);
-            var expectedEmbeded = EmbeddedText.FromSource("pathToSmall", expected);
+            var expectedEmbedded = EmbeddedText.FromSource("pathToSmall", expected);
 
             var actual = SourceText.From(new StringReader(SmallSource), SmallSource.Length, Encoding.UTF8, SourceHashAlgorithm.Sha1);
-            var actualEmbeded = EmbeddedText.FromSource(expectedEmbeded.FilePath, actual);
+            var actualEmbedded = EmbeddedText.FromSource(expectedEmbedded.FilePath, actual);
 
-            Assert.Equal(expectedEmbeded.FilePath, actualEmbeded.FilePath);
-            Assert.Equal(expectedEmbeded.ChecksumAlgorithm, actualEmbeded.ChecksumAlgorithm);
-            AssertEx.Equal(expectedEmbeded.Checksum, actualEmbeded.Checksum);
-            AssertEx.Equal(expectedEmbeded.Blob, actualEmbeded.Blob);
+            Assert.Equal(expectedEmbedded.FilePath, actualEmbedded.FilePath);
+            Assert.Equal(expectedEmbedded.ChecksumAlgorithm, actualEmbedded.ChecksumAlgorithm);
+            AssertEx.Equal(expectedEmbedded.Checksum, actualEmbedded.Checksum);
+            AssertEx.Equal(expectedEmbedded.Blob, actualEmbedded.Blob);
         }
 
         [Fact]
         public void FromTextReader_Large()
         {
             var expected = SourceText.From(LargeSource, Encoding.UTF8, SourceHashAlgorithm.Sha1);
-            var expectedEmbeded = EmbeddedText.FromSource("pathToSmall", expected);
+            var expectedEmbedded = EmbeddedText.FromSource("pathToSmall", expected);
 
             var actual = SourceText.From(new StringReader(LargeSource), LargeSource.Length, Encoding.UTF8, SourceHashAlgorithm.Sha1);
-            var actualEmbeded = EmbeddedText.FromSource(expectedEmbeded.FilePath, actual);
+            var actualEmbedded = EmbeddedText.FromSource(expectedEmbedded.FilePath, actual);
 
-            Assert.Equal(expectedEmbeded.FilePath, actualEmbeded.FilePath);
-            Assert.Equal(expectedEmbeded.ChecksumAlgorithm, actualEmbeded.ChecksumAlgorithm);
-            AssertEx.Equal(expectedEmbeded.Checksum, actualEmbeded.Checksum);
-            AssertEx.Equal(expectedEmbeded.Blob, actualEmbeded.Blob);
+            Assert.Equal(expectedEmbedded.FilePath, actualEmbedded.FilePath);
+            Assert.Equal(expectedEmbedded.ChecksumAlgorithm, actualEmbedded.ChecksumAlgorithm);
+            AssertEx.Equal(expectedEmbedded.Checksum, actualEmbedded.Checksum);
+            AssertEx.Equal(expectedEmbedded.Blob, actualEmbedded.Blob);
         }
 
         [Fact]

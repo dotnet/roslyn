@@ -7,7 +7,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
         Inherits BasicTestBase
         <Fact()>
         Public Sub SyncLockDecimal()
-            CreateCompilationWithMscorlibAndVBRuntime(
+            CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation name="SyncLockDecimal">
     <file name="a.vb">
 Class C1
@@ -26,7 +26,7 @@ End Class
 
         <Fact()>
         Public Sub SyncLockMultiDimensionalArray()
-            CreateCompilationWithMscorlibAndVBRuntime(
+            CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation name="SyncLockMultiDimensionalArray">
     <file name="a.vb">
 Class Test
@@ -42,7 +42,7 @@ End Class
 
         <Fact()>
         Public Sub SyncLockGenericType()
-            CreateCompilationWithMscorlibAndVBRuntime(
+            CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation name="SyncLockGenericType">
     <file name="a.vb">
 Class Program
@@ -50,7 +50,7 @@ Class Program
         SyncLock x
         End SyncLock
     End Sub
-    Private Shared Sub Foo(Of T As D)(x As T)
+    Private Shared Sub Goo(Of T As D)(x As T)
         SyncLock x
         End SyncLock
     End Sub
@@ -69,7 +69,7 @@ End Class
         <Fact()>
         Public Sub SyncLockQuery()
 
-            CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
+            CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(
 <compilation name="SyncLockQuery">
     <file name="a.vb">
 Option Strict On
@@ -90,7 +90,7 @@ End Class
 
         <Fact()>
         Public Sub DeclareVarInSyncLock()
-            CreateCompilationWithMscorlibAndVBRuntime(
+            CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
     <file name="a.vb">
 Class Program
@@ -106,7 +106,7 @@ End Class
 
         <Fact()>
         Public Sub SyncLockLambda()
-            CreateCompilationWithMscorlibAndVBRuntime(
+            CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation name="SyncLockLambda">
     <file name="a.vb">
 Class Program
@@ -145,7 +145,7 @@ End Class
         <Fact()>
         Public Sub SyncLockExtend()
 
-            CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
+            CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(
 <compilation name="SyncLockExtend">
     <file name="a.vb">
 Option Strict On
@@ -185,7 +185,7 @@ End Module
         <Fact()>
         Public Sub SyncLockAnonymous()
 
-            CreateCompilationWithMscorlibAndVBRuntime(
+            CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation name="SyncLockAnonymous">
     <file name="a.vb">
 Module M1
@@ -208,11 +208,11 @@ End Module
         <Fact()>
         Public Sub SyncLockMe_InvalidCase()
 
-            CreateCompilationWithMscorlibAndVBRuntime(
+            CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation name="SyncLockMe_InvalidCase">
     <file name="a.vb">
 Structure S1
-    Sub FOO()
+    Sub GOO()
         SyncLock Me
         End SyncLock
     End Sub
@@ -239,11 +239,11 @@ End Class
         <Fact()>
         Public Sub SyncLockMultiResource()
 
-            CreateCompilationWithMscorlibAndVBRuntime(
+            CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation name="SyncLockMultiResource">
     <file name="a.vb">
 Public Class D
-    Public Sub foo()
+    Public Sub goo()
         Dim x1, x2 As New Object
         SyncLock x1,x2
         End SyncLock
@@ -264,11 +264,11 @@ End Class
         <Fact()>
         Public Sub SyncLockMalformed()
 
-            CreateCompilationWithMscorlibAndVBRuntime(
+            CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation name="SyncLockMalformed">
     <file name="a.vb">
 Public Class D
-    Public Sub foo()
+    Public Sub goo()
         SyncLock
         End SyncLock
         SyncLock SyncLock
@@ -283,7 +283,7 @@ End Class
         <Fact, WorkItem(529545, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529545"), WorkItem(782216, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/782216")>
         Public Sub ExitPropertyInSyncLock()
 
-            CreateCompilationWithMscorlibAndVBRuntime(
+            CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation name="ExitPropertyInSyncLock">
     <file name="a.vb">
 Module M1
@@ -313,7 +313,7 @@ End Module
         <Fact()>
         Public Sub SyncLockInSelect()
 
-            CreateCompilationWithMscorlibAndVBRuntime(
+            CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation name="SyncLockInSelect">
     <file name="a.vb">
 Option Infer On
@@ -340,7 +340,7 @@ End Class
         <Fact()>
         Public Sub UnreachableCode()
 
-            CreateCompilationWithMscorlibAndVBRuntime(
+            CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation name="UnreachableCode">
     <file name="a.vb">
 Option Infer On
@@ -362,7 +362,7 @@ End Class
         <Fact()>
         Public Sub AssignmentInSyncLock()
 
-            CreateCompilationWithMscorlibAndVBRuntime(
+            CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation name="AssignmentInSyncLock">
     <file name="a.vb">
 Option Infer On
@@ -381,7 +381,7 @@ End Class
         <Fact()>
         Public Sub SyncLockEndSyncLockMismatch()
 
-            CreateCompilationWithMscorlibAndVBRuntime(
+            CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation name="SyncLockEndSyncLockMismatch">
     <file name="a.vb">
 Imports System
@@ -402,7 +402,7 @@ End Class
         <WorkItem(11022, "DevDiv_Projects/Roslyn")>
         <Fact>
         Public Sub SyncLockOutOfMethod()
-            CreateCompilationWithMscorlibAndVBRuntime(
+            CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation name="SyncLockOutOfMethod">
     <file name="a.vb">
         SyncLock Nothing
@@ -415,7 +415,7 @@ End Class
         <WorkItem(11022, "DevDiv_Projects/Roslyn")>
         <Fact>
         Public Sub SyncLockOutOfMethod_1()
-            CreateCompilationWithMscorlibAndVBRuntime(
+            CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation name="SyncLockOutOfMethod">
     <file name="a.vb">
 Class m1
@@ -429,7 +429,7 @@ End Class
 
         <Fact(), WorkItem(529059, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529059")>
         Public Sub SingleElseInSyncLock()
-            CreateCompilationWithMscorlibAndVBRuntime(
+            CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation name="SingleElseInSyncLock">
     <file name="a.vb">
 Module Program
@@ -446,7 +446,7 @@ End Module
         <WorkItem(529066, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529066")>
         <Fact()>
         Public Sub SingleCaseElseInSyncLock()
-            CreateCompilationWithMscorlibAndVBRuntime(
+            CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation name="SingleCaseElseInSyncLock">
     <file name="a.vb">
 Module M

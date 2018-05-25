@@ -2,6 +2,7 @@
 
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor;
+using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
@@ -77,7 +78,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Preview
 
         private void ApplyDocumentToBuffer(TextDocument document, SpanChange spanSource, out SourceTextContainer container, out TextDocument documentBackedByTextBuffer)
         {
-            var contentTypeService = document.Project.LanguageServices.GetService<IContentTypeLanguageService>();
+            var contentTypeService = document.GetLanguageService<IContentTypeLanguageService>();
             var contentType = contentTypeService.GetDefaultContentType();
 
             TextView.TextBuffer.ChangeContentType(contentType, null);
@@ -88,7 +89,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Preview
             using (var edit = TextView.TextBuffer.CreateEdit())
             {
                 edit.Replace(new Span(0, TextView.TextBuffer.CurrentSnapshot.Length), documentText);
-                edit.Apply();
+                edit.ApplyAndLogExceptions();
             }
 
             container = TextView.TextBuffer.AsTextContainer();

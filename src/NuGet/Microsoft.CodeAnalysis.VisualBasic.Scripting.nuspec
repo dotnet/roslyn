@@ -2,16 +2,22 @@
 <package xmlns="http://schemas.microsoft.com/packaging/2011/08/nuspec.xsd">
   <metadata>
     <id>Microsoft.CodeAnalysis.VisualBasic.Scripting</id>
-    <summary>Microsoft .NET Compiler Platform ("Roslyn") Visual Basic scripting package.</summary>
+    <summary>
+      Microsoft .NET Compiler Platform ("Roslyn") Visual Basic scripting package.
+    </summary>
     <description>
       Microsoft .NET Compiler Platform ("Roslyn") Visual Basic scripting package.
+      
+      More details at https://aka.ms/roslyn-packages
+
+      $commitPathMessage$
     </description>
 
     <language>en-US</language>
     <requireLicenseAcceptance>true</requireLicenseAcceptance>
     <version>$version$</version>
     <authors>$authors$</authors>
-    <licenseUrl>$licenseUrl$</licenseUrl>
+    <licenseUrl>$licenseUrlRedist$</licenseUrl>
     <projectUrl>$projectUrl$</projectUrl>
     <releaseNotes>$releaseNotes$</releaseNotes>
     <tags>$tags$</tags>
@@ -23,8 +29,13 @@
     </dependencies>
   </metadata>
   <files>
+    <!-- Include PDB unless embedded into DLL -->
     <file src="Dlls\BasicScripting\Microsoft.CodeAnalysis.VisualBasic.Scripting.dll" target="lib\dotnet" />
     <file src="Dlls\BasicScripting\Microsoft.CodeAnalysis.VisualBasic.Scripting.xml" target="lib\dotnet" />
+    <file src="Dlls\BasicScripting\Microsoft.CodeAnalysis.VisualBasic.Scripting.pdb*" target="lib\dotnet" />
     <file src="$thirdPartyNoticesPath$" target="" />
+
+    <!-- Satellite assemblies -->
+    <file src="Dlls\BasicScripting\**\Microsoft.CodeAnalysis.VisualBasic.Scripting.resources.dll" target="lib\dotnet" />
   </files>
 </package>

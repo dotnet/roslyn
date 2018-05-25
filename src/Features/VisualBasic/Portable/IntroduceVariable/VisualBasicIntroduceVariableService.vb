@@ -1,4 +1,4 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Threading
 Imports Microsoft.CodeAnalysis
@@ -10,8 +10,8 @@ Imports System.Composition
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.IntroduceVariable
     <ExportLanguageService(GetType(IIntroduceVariableService), LanguageNames.VisualBasic), [Shared]>
-    Friend Class VisualBasicIntroduceVariableService
-        Inherits AbstractIntroduceVariableService(Of VisualBasicIntroduceVariableService, ExpressionSyntax, TypeSyntax, TypeBlockSyntax, QueryExpressionSyntax)
+    Partial Friend Class VisualBasicIntroduceVariableService
+        Inherits AbstractIntroduceVariableService(Of VisualBasicIntroduceVariableService, ExpressionSyntax, TypeSyntax, TypeBlockSyntax, QueryExpressionSyntax, NameSyntax)
 
         Protected Overrides Function GetContainingExecutableBlocks(expression As ExpressionSyntax) As IEnumerable(Of SyntaxNode)
             Return expression.GetContainingExecutableBlocks()
@@ -113,9 +113,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.IntroduceVariable
 
         Protected Overrides Function IsInAutoPropertyInitializer(expression As ExpressionSyntax) As Boolean
             Dim propertyStatement = expression.GetAncestorOrThis(Of PropertyStatementSyntax)()
+            Dim equalsValueStatement = expression.GetAncestorOrThis(Of EqualsValueSyntax)
+
             If propertyStatement IsNot Nothing Then
                 Return expression.GetAncestorsOrThis(Of AsClauseSyntax).Contains(propertyStatement.AsClause) OrElse
-                    expression.GetAncestorOrThis(Of EqualsValueSyntax).Contains(propertyStatement.Initializer)
+                    (equalsValueStatement IsNot Nothing AndAlso equalsValueStatement.Contains(propertyStatement.Initializer))
             End If
 
             Return False

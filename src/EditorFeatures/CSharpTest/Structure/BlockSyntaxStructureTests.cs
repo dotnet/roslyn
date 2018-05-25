@@ -4,7 +4,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp.Structure;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Structure;
-using Roslyn.Test.Utilities;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Structure
@@ -81,7 +81,7 @@ class C
 {
     void M()
     {
-        {|hint:using (foo){|textspan:
+        {|hint:using (goo){|textspan:
         {$$
         }|}|}
     }
@@ -99,7 +99,7 @@ class C
 {
     void M()
     {
-        {|hint:lock (foo){|textspan:
+        {|hint:lock (goo){|textspan:
         {$$
         }|}|}
     }

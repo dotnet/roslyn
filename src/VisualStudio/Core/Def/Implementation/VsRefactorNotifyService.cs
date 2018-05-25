@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Generic;
 using System.ComponentModel.Composition;
@@ -7,14 +7,13 @@ using System.Runtime.InteropServices;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
-using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
-using Microsoft.VisualStudio.LanguageServices.Implementation.RQName;
 using Microsoft.VisualStudio.Shell.Interop;
-using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation
 {
+    using Workspace = Microsoft.CodeAnalysis.Workspace;
+
     [Export(typeof(IRefactorNotifyService))]
     internal sealed class VsRefactorNotifyService : ForegroundThreadAffinitizedObject, IRefactorNotifyService
     {
@@ -26,9 +25,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                 foreach (var hierarchy in hierarchyToItemIDsMap.Keys)
                 {
                     var itemIDs = hierarchyToItemIDsMap[hierarchy];
-                    var refactorNotify = hierarchy as IVsHierarchyRefactorNotify;
 
-                    if (refactorNotify != null)
+                    if (hierarchy is IVsHierarchyRefactorNotify refactorNotify)
                     {
                         var hresult = refactorNotify.OnBeforeGlobalSymbolRenamed(
                             (uint)itemIDs.Count,
@@ -64,9 +62,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                 foreach (var hierarchy in hierarchyToItemIDsMap.Keys)
                 {
                     var itemIDs = hierarchyToItemIDsMap[hierarchy];
-                    var refactorNotify = hierarchy as IVsHierarchyRefactorNotify;
 
-                    if (refactorNotify != null)
+                    if (hierarchy is IVsHierarchyRefactorNotify refactorNotify)
                     {
                         var hresult = refactorNotify.OnGlobalSymbolRenamed(
                             (uint)itemIDs.Count,
@@ -104,7 +101,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
 
             hierarchyToItemIDsMap = null;
             rqnames = null;
-            if (!TryGetItemIDsAndRQName(workspace, changedDocumentIDs, symbol, out var visualStudioWorkspace, out hierarchyToItemIDsMap, out var rqname))
+            if (!TryGetItemIDsAndRQName(workspace, changedDocumentIDs, symbol, out hierarchyToItemIDsMap, out var rqname))
             {
                 return false;
             }
@@ -117,13 +114,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             Workspace workspace,
             IEnumerable<DocumentId> changedDocumentIDs,
             ISymbol symbol,
-            out VisualStudioWorkspaceImpl visualStudioWorkspace,
             out Dictionary<IVsHierarchy, List<uint>> hierarchyToItemIDsMap,
             out string rqname)
         {
             AssertIsForeground();
 
-            visualStudioWorkspace = null;
             hierarchyToItemIDsMap = null;
             rqname = null;
 
@@ -132,7 +127,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                 return false;
             }
 
-            visualStudioWorkspace = workspace as VisualStudioWorkspaceImpl;
+            var visualStudioWorkspace = workspace as VisualStudioWorkspace;
             if (visualStudioWorkspace == null)
             {
                 return false;
@@ -164,26 +159,36 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             return rqname != null;
         }
 
-        private Dictionary<IVsHierarchy, List<uint>> GetHierarchiesAndItemIDsFromDocumentIDs(VisualStudioWorkspaceImpl visualStudioWorkspace, IEnumerable<DocumentId> changedDocumentIDs)
+        private Dictionary<IVsHierarchy, List<uint>> GetHierarchiesAndItemIDsFromDocumentIDs(VisualStudioWorkspace visualStudioWorkspace, IEnumerable<DocumentId> changedDocumentIDs)
         {
             AssertIsForeground();
 
             var hierarchyToItemIDsMap = new Dictionary<IVsHierarchy, List<uint>>();
 
-            foreach (var docID in changedDocumentIDs)
+            foreach (var documentId in changedDocumentIDs)
             {
-                var project = visualStudioWorkspace.GetHostProject(docID.ProjectId);
-                var itemID = project.GetDocumentOrAdditionalDocument(docID).GetItemId();
+                var hierarchy = visualStudioWorkspace.GetHierarchy(documentId.ProjectId);
+
+                if (hierarchy == null)
+                {
+                    continue;
+                }
+
+                var document = visualStudioWorkspace.CurrentSolution.GetDocument(documentId);
+                if (ErrorHandler.Failed(hierarchy.ParseCanonicalName(document.FilePath, out uint itemID)))
+                {
+                    continue;
+                }
 
                 if (itemID == (uint)VSConstants.VSITEMID.Nil)
                 {
                     continue;
                 }
 
-                if (!hierarchyToItemIDsMap.TryGetValue(project.Hierarchy, out var itemIDsForCurrentHierarchy))
+                if (!hierarchyToItemIDsMap.TryGetValue(hierarchy, out var itemIDsForCurrentHierarchy))
                 {
                     itemIDsForCurrentHierarchy = new List<uint>();
-                    hierarchyToItemIDsMap.Add(project.Hierarchy, itemIDsForCurrentHierarchy);
+                    hierarchyToItemIDsMap.Add(hierarchy, itemIDsForCurrentHierarchy);
                 }
 
                 if (!itemIDsForCurrentHierarchy.Contains(itemID))

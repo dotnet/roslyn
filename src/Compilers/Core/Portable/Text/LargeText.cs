@@ -5,6 +5,7 @@ using System.Collections.Immutable;
 using System.IO;
 using System.Text;
 using System.Threading;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 using System.Diagnostics;
 

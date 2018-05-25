@@ -1,6 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-namespace Microsoft.CodeAnalysis.Semantics
+namespace Microsoft.CodeAnalysis.Operations
 {
     internal class Expression
     {
@@ -42,37 +42,6 @@ namespace Microsoft.CodeAnalysis.Semantics
             }
 
             return ConstantValue.Bad;
-        }
-
-        public static BinaryOperationKind DeriveAdditionKind(ITypeSymbol type)
-        {
-            switch (type.SpecialType)
-            {
-                case SpecialType.System_Int32:
-                case SpecialType.System_Int64:
-                case SpecialType.System_Int16:
-                case SpecialType.System_SByte:
-                    return BinaryOperationKind.IntegerAdd;
-                case SpecialType.System_UInt32:
-                case SpecialType.System_UInt64:
-                case SpecialType.System_UInt16:
-                case SpecialType.System_Byte:
-                case SpecialType.System_Char:
-                case SpecialType.System_Boolean:
-                    return BinaryOperationKind.UnsignedAdd;
-                case SpecialType.System_Single:
-                case SpecialType.System_Double:
-                    return BinaryOperationKind.FloatingAdd;
-                case SpecialType.System_Object:
-                    return BinaryOperationKind.ObjectAdd;
-            }
-
-            if (type.TypeKind == TypeKind.Enum)
-            {
-                return BinaryOperationKind.EnumAdd;
-            }
-
-            return BinaryOperationKind.Invalid;
         }
     }
 }

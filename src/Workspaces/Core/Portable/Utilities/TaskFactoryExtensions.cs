@@ -23,7 +23,7 @@ namespace Roslyn.Utilities
             TaskCreationOptions creationOptions,
             TaskScheduler scheduler)
         {
-            Action wrapped = () =>
+            void wrapped()
             {
                 try
                 {
@@ -33,7 +33,7 @@ namespace Roslyn.Utilities
                 {
                     throw ExceptionUtilities.Unreachable;
                 }
-            };
+            }
 
             // The one and only place we can call StartNew().
             return factory.StartNew(wrapped, cancellationToken, creationOptions, scheduler);
@@ -51,7 +51,7 @@ namespace Roslyn.Utilities
             TaskCreationOptions creationOptions,
             TaskScheduler scheduler)
         {
-            Func<TResult> wrapped = () =>
+            TResult wrapped()
             {
                 try
                 {
@@ -61,7 +61,7 @@ namespace Roslyn.Utilities
                 {
                     throw ExceptionUtilities.Unreachable;
                 }
-            };
+            }
 
             // The one and only place we can call StartNew<>().
             return factory.StartNew(wrapped, cancellationToken, creationOptions, scheduler);

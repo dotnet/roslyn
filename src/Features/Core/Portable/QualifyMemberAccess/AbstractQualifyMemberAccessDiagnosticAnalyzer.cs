@@ -1,19 +1,21 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
-using System.Collections.Immutable;
-using System.Reflection;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.Options;
-using Microsoft.CodeAnalysis.Semantics;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.QualifyMemberAccess
 {
-    internal abstract class AbstractQualifyMemberAccessDiagnosticAnalyzer<TLanguageKindEnum> :
-        AbstractCodeStyleDiagnosticAnalyzer
+    internal abstract class AbstractQualifyMemberAccessDiagnosticAnalyzer<
+        TLanguageKindEnum,
+        TExpressionSyntax,
+        TSimpleNameSyntax>
+        : AbstractCodeStyleDiagnosticAnalyzer
         where TLanguageKindEnum : struct
+        where TExpressionSyntax : SyntaxNode
+        where TSimpleNameSyntax : TExpressionSyntax
     {
         protected AbstractQualifyMemberAccessDiagnosticAnalyzer() 
             : base(IDEDiagnosticIds.AddQualificationDiagnosticId,
@@ -37,22 +39,29 @@ namespace Microsoft.CodeAnalysis.QualifyMemberAccess
 
         protected abstract string GetLanguageName();
 
-        protected abstract bool IsAlreadyQualifiedMemberAccess(SyntaxNode node);
+        /// <summary>
+        /// Reports on whether the specified member is suitable for qualification. Some member
+        /// access expressions cannot be qualified; for instance if they begin with <c>base.</c>,
+        /// <c>MyBase.</c>, or <c>MyClass.</c>.
+        /// </summary>
+        /// <returns>True if the member access can be qualified; otherwise, False.</returns>
+        protected abstract bool CanMemberAccessBeQualified(ISymbol containingSymbol, SyntaxNode node);
 
-        private static MethodInfo s_registerMethod = typeof(AnalysisContext).GetTypeInfo().GetDeclaredMethod("RegisterOperationActionImmutableArrayInternal");
+        protected abstract bool IsAlreadyQualifiedMemberAccess(TExpressionSyntax node);
 
         protected override void InitializeWorker(AnalysisContext context)
-            => s_registerMethod.Invoke(context, new object[]
-               {
-                   new Action<OperationAnalysisContext>(AnalyzeOperation),
-                   ImmutableArray.Create(OperationKind.FieldReferenceExpression, OperationKind.PropertyReferenceExpression, OperationKind.MethodBindingExpression)
-               });
+            => context.RegisterOperationAction(AnalyzeOperation, OperationKind.FieldReference, OperationKind.PropertyReference, OperationKind.MethodReference);
 
         public override DiagnosticAnalyzerCategory GetAnalyzerCategory() => DiagnosticAnalyzerCategory.SemanticSpanAnalysis;
 
         private void AnalyzeOperation(OperationAnalysisContext context)
         {
-            var memberReference = (IMemberReferenceExpression)context.Operation;
+            if (context.ContainingSymbol.IsStatic)
+            {
+                return;
+            }
+
+            var memberReference = (IMemberReferenceOperation)context.Operation;
 
             // this is a static reference so we don't care if it's qualified
             if (memberReference.Instance == null)
@@ -61,7 +70,14 @@ namespace Microsoft.CodeAnalysis.QualifyMemberAccess
             }
 
             // if we're not referencing `this.` or `Me.` (e.g., a parameter, local, etc.)
-            if (memberReference.Instance.Kind != OperationKind.InstanceReferenceExpression)
+            if (memberReference.Instance.Kind != OperationKind.InstanceReference)
+            {
+                return;
+            }
+
+            // If we can't be qualified (e.g., because we're already qualified with `base.`), we're done.
+            var instanceSyntaxOpt = memberReference.Instance.Syntax as TExpressionSyntax;
+            if (!CanMemberAccessBeQualified(context.ContainingSymbol, instanceSyntaxOpt))
             {
                 return;
             }
@@ -74,7 +90,13 @@ namespace Microsoft.CodeAnalysis.QualifyMemberAccess
                 return;
             }
 
-            var syntaxTree = context.Operation.Syntax.SyntaxTree;
+            var simpleName = memberReference.Syntax as TSimpleNameSyntax;
+            if (simpleName == null)
+            {
+                return;
+            }
+
+            var syntaxTree = simpleName.SyntaxTree;
             var cancellationToken = context.CancellationToken;
             var optionSet = context.Options.GetDocumentOptionSetAsync(syntaxTree, cancellationToken).GetAwaiter().GetResult();
             if (optionSet == null)
@@ -82,12 +104,12 @@ namespace Microsoft.CodeAnalysis.QualifyMemberAccess
                 return;
             }
 
-            var language = context.Operation.Syntax.Language;
-            var applicableOption = GetApplicableOptionFromSymbolKind(memberReference.Member.Kind);
-            var optionValue = optionSet.GetOption(applicableOption, language);
+
+            var applicableOption = QualifyMembersHelpers.GetApplicableOptionFromSymbolKind(memberReference.Member.Kind);
+            var optionValue = optionSet.GetOption(applicableOption, simpleName.Language);
 
             var shouldOptionBePresent = optionValue.Value;
-            var isQualificationPresent = IsAlreadyQualifiedMemberAccess(memberReference.Instance.Syntax);
+            var isQualificationPresent = IsAlreadyQualifiedMemberAccess(instanceSyntaxOpt);
             if (shouldOptionBePresent && !isQualificationPresent)
             {
                 var severity = optionValue.Notification.Value;
@@ -95,12 +117,15 @@ namespace Microsoft.CodeAnalysis.QualifyMemberAccess
                 {
                     context.ReportDiagnostic(Diagnostic.Create(
                         GetDescriptorWithSeverity(severity), 
-                        context.Operation.Syntax.GetLocation()));
+                        simpleName.GetLocation()));
                 }
             }
         }
+    }
 
-        internal static PerLanguageOption<CodeStyleOption<bool>> GetApplicableOptionFromSymbolKind(SymbolKind symbolKind)
+    internal static class QualifyMembersHelpers
+    {
+        public static PerLanguageOption<CodeStyleOption<bool>> GetApplicableOptionFromSymbolKind(SymbolKind symbolKind)
         {
             switch (symbolKind)
             {

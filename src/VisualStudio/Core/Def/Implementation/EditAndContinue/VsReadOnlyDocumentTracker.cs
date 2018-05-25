@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Diagnostics;
@@ -16,16 +16,15 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.EditAndContinue
 {
     internal sealed class VsReadOnlyDocumentTracker : ForegroundThreadAffinitizedObject, IDisposable
     {
-        private readonly IEditAndContinueWorkspaceService _encService;
+        private readonly IEditAndContinueService _encService;
         private readonly IVsEditorAdaptersFactoryService _adapters;
         private readonly Workspace _workspace;
-        private readonly AbstractProject _vsProject;
 
         private bool _isDisposed;
 
         internal static readonly TraceLog log = new TraceLog(2048, "VsReadOnlyDocumentTracker");
 
-        public VsReadOnlyDocumentTracker(IEditAndContinueWorkspaceService encService, IVsEditorAdaptersFactoryService adapters, AbstractProject vsProject)
+        public VsReadOnlyDocumentTracker(IEditAndContinueService encService, IVsEditorAdaptersFactoryService adapters)
             : base(assertIsForeground: true)
         {
             Debug.Assert(encService.DebuggingSession != null);
@@ -33,15 +32,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.EditAndContinue
             _encService = encService;
             _adapters = adapters;
             _workspace = encService.DebuggingSession.InitialSolution.Workspace;
-            _vsProject = vsProject;
 
             _workspace.DocumentOpened += OnDocumentOpened;
             UpdateWorkspaceDocuments();
-        }
-
-        public Workspace Workspace
-        {
-            get { return _workspace; }
         }
 
         private void OnDocumentOpened(object sender, DocumentEventArgs e)
@@ -98,11 +91,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.EditAndContinue
         private bool AllowsReadOnly(DocumentId documentId)
         {
             // All documents of regular running projects are read-only until the debugger breaks the app.
-            // However, ASP.NET doesn�t want its views (aspx, cshtml, or vbhtml) to be read-only, so they can be editable
+            // However, ASP.NET doesn’t want its views (aspx, cshtml, or vbhtml) to be read-only, so they can be editable
             // while the code is running and get refreshed next time the web page is hit.
 
             // Note that Razor-like views are modelled as a ContainedDocument but normal code including code-behind are modelled as a StandardTextDocument.
-            var visualStudioWorkspace = _vsProject.Workspace as VisualStudioWorkspaceImpl;
+            var visualStudioWorkspace = _workspace as VisualStudioWorkspaceImpl;
             var containedDocument = visualStudioWorkspace?.GetHostDocument(documentId) as ContainedDocument;
             return containedDocument == null;
         }

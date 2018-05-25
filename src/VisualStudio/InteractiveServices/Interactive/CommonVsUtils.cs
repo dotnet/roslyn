@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.IO;
@@ -18,23 +18,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Interactive
     {
         internal const string OutputWindowId = "34e76e81-ee4a-11d0-ae2e-00a0c90fffc3";
 
-        internal static string GetWorkingDirectory()
-        {
-            var startupProject = GetStartupProject();
-            if (startupProject != null)
-            {
-                return Path.GetDirectoryName(startupProject.FullName);
-            }
-            else
-            {
-                return Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
-            }
-        }
-
         internal static string GetFilePath(ITextBuffer textBuffer)
         {
-            ITextDocument textDocument;
-            if (textBuffer.Properties.TryGetProperty<ITextDocument>(typeof(ITextDocument), out textDocument))
+            if (textBuffer.Properties.TryGetProperty<ITextDocument>(typeof(ITextDocument), out var textDocument))
             {
                 return textDocument.FilePath;
             }
@@ -56,8 +42,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Interactive
                 return null;
             }
 
-            object curDocument;
-            if (ErrorHandler.Failed(monitorSelection.GetCurrentElementValue((uint)VSConstants.VSSELELEMID.SEID_DocumentFrame, out curDocument)))
+            if (ErrorHandler.Failed(monitorSelection.GetCurrentElementValue((uint)VSConstants.VSSELELEMID.SEID_DocumentFrame, out var curDocument)))
             {
                 // TODO: Report error
                 return null;
@@ -70,8 +55,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Interactive
                 return null;
             }
 
-            object docView = null;
-            if (ErrorHandler.Failed(frame.GetProperty((int)__VSFPROPID.VSFPROPID_DocView, out docView)))
+            if (ErrorHandler.Failed(frame.GetProperty((int)__VSFPROPID.VSFPROPID_DocView, out var docView)))
             {
                 // TODO: Report error
                 return null;
@@ -79,8 +63,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Interactive
 
             if (docView is IVsCodeWindow)
             {
-                IVsTextView textView;
-                if (ErrorHandler.Failed(((IVsCodeWindow)docView).GetPrimaryView(out textView)))
+                if (ErrorHandler.Failed(((IVsCodeWindow)docView).GetPrimaryView(out var textView)))
                 {
                     // TODO: Report error
                     return null;
@@ -93,31 +76,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Interactive
             }
 
             return null;
-        }
-
-        private static EnvDTE.Project GetStartupProject()
-        {
-            var buildMgr = (IVsSolutionBuildManager)Package.GetGlobalService(typeof(IVsSolutionBuildManager));
-            IVsHierarchy hierarchy;
-            if (buildMgr != null && ErrorHandler.Succeeded(buildMgr.get_StartupProject(out hierarchy)) && hierarchy != null)
-            {
-                return GetProject(hierarchy);
-            }
-
-            return null;
-        }
-
-        internal static EnvDTE.Project GetProject(IVsHierarchy hierarchy)
-        {
-            object project;
-
-            ErrorHandler.ThrowOnFailure(
-                hierarchy.GetProperty(
-                    VSConstants.VSITEMID_ROOT,
-                    (int)__VSHPROPID.VSHPROPID_ExtObject,
-                    out project));
-
-            return project as EnvDTE.Project;
         }
     }
 }

@@ -1,7 +1,6 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
-using System.Collections.Generic;
 using System.Composition;
 using System.Linq;
 using Microsoft.CodeAnalysis.CodeActions;
@@ -18,11 +17,8 @@ using Microsoft.CodeAnalysis.ReplaceMethodWithProperty;
 namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ReplaceMethodWithProperty
 {
     [ExportLanguageService(typeof(IReplaceMethodWithPropertyService), LanguageNames.CSharp), Shared]
-    internal class CSharpReplaceMethodWithPropertyService : IReplaceMethodWithPropertyService
+    internal class CSharpReplaceMethodWithPropertyService : AbstractReplaceMethodWithPropertyService, IReplaceMethodWithPropertyService
     {
-        public string GetMethodName(SyntaxNode methodNode)
-            => ((MethodDeclarationSyntax)methodNode).Identifier.ValueText;
-
         public SyntaxNode GetMethodDeclaration(SyntaxToken token)
         {
             var containingMethod = token.Parent.FirstAncestorOrSelf<MethodDeclarationSyntax>();
@@ -64,11 +60,12 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ReplaceMethodWithProper
                 return;
             }
 
-            editor.ReplaceNode(getMethodDeclaration,
-                ConvertMethodsToProperty(
-                    documentOptions, parseOptions,
-                    semanticModel, editor.Generator,
-                    getAndSetMethods, propertyName, nameChanged));
+            var newProperty = ConvertMethodsToProperty(
+                documentOptions, parseOptions,
+                semanticModel, editor.Generator,
+                getAndSetMethods, propertyName, nameChanged);
+
+            editor.ReplaceNode(getMethodDeclaration, newProperty);
         }
 
         public SyntaxNode ConvertMethodsToProperty(
@@ -95,7 +92,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ReplaceMethodWithProper
                     }
                     else if (getAccessor.Body != null &&
                              getAccessor.Body.TryConvertToExpressionBody(
-                                 parseOptions, expressionBodyPreference, 
+                                 propertyDeclaration.Kind(), parseOptions, expressionBodyPreference,
                                  out var arrowExpression, out var semicolonToken))
                     {
                         return propertyDeclaration.WithExpressionBody(arrowExpression)
@@ -106,10 +103,12 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ReplaceMethodWithProper
             }
             else
             {
-                if (propertyDeclaration.ExpressionBody != null)
+                if (propertyDeclaration.ExpressionBody != null &&
+                    propertyDeclaration.ExpressionBody.TryConvertToBlock(
+                        propertyDeclaration.SemicolonToken,
+                        createReturnStatementForExpression: true,
+                        block: out var block))
                 {
-                    var block = propertyDeclaration.ExpressionBody.ConvertToBlock(
-                        propertyDeclaration.SemicolonToken, createReturnStatementForExpression: true);
                     var accessor =
                         SyntaxFactory.AccessorDeclaration(SyntaxKind.GetAccessorDeclaration)
                                      .WithBody(block);
@@ -117,7 +116,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ReplaceMethodWithProper
                     var accessorList = SyntaxFactory.AccessorList(SyntaxFactory.SingletonList(accessor));
                     return propertyDeclaration.WithAccessorList(accessorList)
                                               .WithExpressionBody(null)
-                                              .WithSemicolonToken(default(SyntaxToken));
+                                              .WithSemicolonToken(default);
                 }
             }
 
@@ -133,18 +132,20 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ReplaceMethodWithProper
             var getAccessor = CreateGetAccessor(getAndSetMethods, documentOptions, parseOptions);
             var setAccessor = CreateSetAccessor(semanticModel, generator, getAndSetMethods, documentOptions, parseOptions);
 
+            var nameToken = GetPropertyName(getMethodDeclaration.Identifier, propertyName, nameChanged);
+            var warning = GetWarning(getAndSetMethods);
+            if (warning != null)
+            {
+                nameToken = nameToken.WithAdditionalAnnotations(WarningAnnotation.Create(warning));
+            }
+
             var property = SyntaxFactory.PropertyDeclaration(
                 getMethodDeclaration.AttributeLists, getMethodDeclaration.Modifiers,
                 getMethodDeclaration.ReturnType, getMethodDeclaration.ExplicitInterfaceSpecifier,
-                GetPropertyName(getMethodDeclaration.Identifier, propertyName, nameChanged), accessorList: null);
+                nameToken, accessorList: null);
 
-            IEnumerable<SyntaxTrivia> trivia = getMethodDeclaration.GetLeadingTrivia();
-            var setMethodDeclaration = getAndSetMethods.SetMethodDeclaration;
-            if (setMethodDeclaration != null)
-            {
-                trivia = trivia.Concat(setMethodDeclaration.GetLeadingTrivia());
-            }
-            property = property.WithLeadingTrivia(trivia.Where(t => !t.IsDirective));
+            property = SetLeadingTrivia(
+                CSharpSyntaxFactsService.Instance, getAndSetMethods, property);
 
             var accessorList = SyntaxFactory.AccessorList(SyntaxFactory.SingletonList(getAccessor));
             if (setAccessor != null)
@@ -181,7 +182,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ReplaceMethodWithProper
             if (accessorDeclaration?.Body != null && expressionBodyPreference != ExpressionBodyPreference.Never)
             {
                 if (accessorDeclaration.Body.TryConvertToExpressionBody(
-                        parseOptions, expressionBodyPreference, 
+                        accessorDeclaration.Kind(), parseOptions, expressionBodyPreference,
                         out var arrowExpression, out var semicolonToken))
                 {
                     return accessorDeclaration.WithBody(null)
@@ -192,13 +193,16 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ReplaceMethodWithProper
             }
             else if (accessorDeclaration?.ExpressionBody != null && expressionBodyPreference == ExpressionBodyPreference.Never)
             {
-                var block = accessorDeclaration.ExpressionBody.ConvertToBlock(
-                    accessorDeclaration.SemicolonToken,
-                    createReturnStatementForExpression: accessorDeclaration.Kind() == SyntaxKind.GetAccessorDeclaration);
-                return accessorDeclaration.WithExpressionBody(null)
-                                          .WithSemicolonToken(default(SyntaxToken))
-                                          .WithBody(block)
-                                          .WithAdditionalAnnotations(Formatter.Annotation);
+                if (accessorDeclaration.ExpressionBody.TryConvertToBlock(
+                        accessorDeclaration.SemicolonToken,
+                        createReturnStatementForExpression: accessorDeclaration.Kind() == SyntaxKind.GetAccessorDeclaration,
+                        block: out var block))
+                {
+                    return accessorDeclaration.WithExpressionBody(null)
+                                              .WithSemicolonToken(default)
+                                              .WithBody(block)
+                                              .WithAdditionalAnnotations(Formatter.Annotation);
+                }
             }
 
             return accessorDeclaration;
@@ -337,7 +341,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ReplaceMethodWithProper
                 editor.ReplaceNode(invocation, (i, g) =>
                 {
                     var currentInvocation = (InvocationExpressionSyntax)i;
-                    // looks like   a.b.Foo(arg)   =>     a.b.NewName = arg
+                    // looks like   a.b.Goo(arg)   =>     a.b.NewName = arg
                     nameNode = currentInvocation.Expression.GetRightmostName();
                     currentInvocation = (InvocationExpressionSyntax)g.ReplaceNode(currentInvocation, nameNode, newName);
 

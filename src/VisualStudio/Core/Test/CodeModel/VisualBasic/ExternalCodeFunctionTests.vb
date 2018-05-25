@@ -1,7 +1,7 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis
+Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Roslyn.Test.Utilities
 
 Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel.VisualBasic
@@ -15,12 +15,12 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel.VisualBasi
             Dim code =
 <Code>
 Class C
-    Sub $$Foo(string s)
+    Sub $$Goo(string s)
     End Sub
 End Class
 </Code>
 
-            TestFullName(code, "C.Foo")
+            TestFullName(code, "C.Goo")
         End Sub
 
 #End Region
@@ -32,12 +32,12 @@ End Class
             Dim code =
 <Code>
 Class C
-    Sub $$Foo(string s)
+    Sub $$Goo(string s)
     End Sub
 End Class
 </Code>
 
-            TestName(code, "Foo")
+            TestName(code, "Goo")
         End Sub
 
 #End Region

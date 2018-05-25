@@ -108,7 +108,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             var ranges = newText.GetChangeRanges(oldText);
             if (ranges.Count == 0)
             {
-                return default(TextChangeRange);
+                return default;
             }
 
             // simple case.

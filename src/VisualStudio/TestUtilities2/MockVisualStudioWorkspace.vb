@@ -1,4 +1,4 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Threading
 Imports Microsoft.CodeAnalysis
@@ -17,7 +17,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests
         Private ReadOnly _fileCodeModels As New Dictionary(Of DocumentId, ComHandle(Of EnvDTE80.FileCodeModel2, FileCodeModel))
 
         Public Sub New(workspace As TestWorkspace)
-            MyBase.New(workspace.Services.HostServices, backgroundWork:=WorkspaceBackgroundWork.ParseAndCompile)
+            MyBase.New(workspace.Services.HostServices)
 
             _workspace = workspace
             SetCurrentSolution(workspace.CurrentSolution)
@@ -85,10 +85,6 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests
         Friend Function GetFileCodeModelComHandle(id As DocumentId) As ComHandle(Of EnvDTE80.FileCodeModel2, FileCodeModel)
             Return _fileCodeModels(id)
         End Function
-
-        Friend Overrides Function RenameFileCodeModelInstance(documentId As DocumentId, newFilePath As String) As Boolean
-            Throw New NotImplementedException()
-        End Function
     End Class
 
     Public Class MockInvisibleEditor
@@ -96,10 +92,16 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests
 
         Private ReadOnly _documentId As DocumentId
         Private ReadOnly _workspace As TestWorkspace
+        Private ReadOnly _needsClose As Boolean = False
 
         Public Sub New(documentId As DocumentId, workspace As TestWorkspace)
             Me._documentId = documentId
             Me._workspace = workspace
+
+            If Not workspace.IsDocumentOpen(documentId) Then
+                _workspace.OpenDocument(documentId)
+                _needsClose = True
+            End If
         End Sub
 
         Public ReadOnly Property TextBuffer As Global.Microsoft.VisualStudio.Text.ITextBuffer Implements IInvisibleEditor.TextBuffer
@@ -109,6 +111,9 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests
         End Property
 
         Public Sub Dispose() Implements IDisposable.Dispose
+            If _needsClose Then
+                _workspace.CloseDocument(_documentId)
+            End If
         End Sub
 
     End Class

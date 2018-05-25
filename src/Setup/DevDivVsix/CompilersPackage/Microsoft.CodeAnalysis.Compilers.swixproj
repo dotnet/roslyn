@@ -1,20 +1,23 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <!-- Copyright (c)  Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information. -->
 <Project ToolsVersion="14.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-  <Import Project="..\..\..\..\build\Targets\Settings.props" />
+  <Import Project="..\Settings.props" />
 
   <PropertyGroup>
     <OutputArchitecture>neutral</OutputArchitecture>
     <OutputLocalized>false</OutputLocalized>
-    <OutputPath>$(OutDir)Insertion</OutputPath>
+    <RoslynOutputPath>$(OutputPath)</RoslynOutputPath>
+    <OutputPath>$(OutputPath)Vsix\CodeAnalysisCompilers</OutputPath>
     <IsPackage>true</IsPackage>
     <OutputType>vsix</OutputType>
+    <ImportDirectoryBuildProps>false</ImportDirectoryBuildProps>
+    <ImportDirectoryBuildTargets>false</ImportDirectoryBuildTargets>
   </PropertyGroup>
 
-  <Import Project="$(NuGetPackageRoot)\MicroBuild.Core\$(MicroBuildCoreVersion)\build\MicroBuild.Core.props" />
+  <Import Project="$(SwixBuildPath)build\MicroBuild.Plugins.*.props" />
 
   <PropertyGroup>
-    <PackagePreprocessorDefinitions>$(PackagePreprocessorDefinitions);Version=$(VsixVersion);OutputPath=$(OutDir)</PackagePreprocessorDefinitions>
+    <PackagePreprocessorDefinitions>$(PackagePreprocessorDefinitions);Version=$(VsixVersion);OutputPath=$(RoslynOutputPath);RepoRoot=$(RepoRoot)</PackagePreprocessorDefinitions>
     <IntermediateOutputPath>$(BaseIntermediateOutputPath)$(Configuration)\</IntermediateOutputPath>
   </PropertyGroup>
 
@@ -22,5 +25,5 @@
     <Package Include="Microsoft.CodeAnalysis.Compilers.swr" />
   </ItemGroup>
 
-  <Import Project="$(NuGetPackageRoot)\MicroBuild.Core\$(MicroBuildCoreVersion)\build\MicroBuild.Core.targets" />
+  <Import Project="$(SwixBuildPath)build\MicroBuild.Plugins.*.targets" />
 </Project>

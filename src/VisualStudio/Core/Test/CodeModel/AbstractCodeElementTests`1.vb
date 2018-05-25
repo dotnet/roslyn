@@ -1,4 +1,4 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Runtime.InteropServices
 Imports System.Threading.Tasks
@@ -26,6 +26,14 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel
         Protected Overloads Sub TestElement(code As XElement, expected As Action(Of TCodeElement))
             Using state = CreateCodeModelTestState(GetWorkspaceDefinition(code))
                 Dim codeElement = GetCodeElement(state)
+                Assert.NotNull(codeElement)
+
+                expected(codeElement)
+
+                ' Now close the file and ensure the behavior is still the same
+                state.VisualStudioWorkspace.CloseDocument(state.Workspace.Documents.Single().Id)
+
+                codeElement = GetCodeElement(state)
                 Assert.NotNull(codeElement)
 
                 expected(codeElement)

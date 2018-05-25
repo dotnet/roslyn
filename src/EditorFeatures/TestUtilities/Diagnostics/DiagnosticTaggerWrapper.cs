@@ -9,23 +9,21 @@ using Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.SolutionCrawler;
-using Microsoft.VisualStudio.Text.Classification;
 using Microsoft.VisualStudio.Text.Tagging;
 using Roslyn.Test.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
 {
-    internal class DiagnosticTaggerWrapper<TTag> : IDisposable
-        where TTag : ITag
+    internal class DiagnosticTaggerWrapper<TProvider> : IDisposable
+        where TProvider : AbstractDiagnosticsAdornmentTaggerProvider<IErrorTag>
     {
         private readonly TestWorkspace _workspace;
         public readonly DiagnosticAnalyzerService AnalyzerService;
         private readonly ISolutionCrawlerRegistrationService _registrationService;
         private readonly ImmutableArray<IIncrementalAnalyzer> _incrementalAnalyzers;
         private readonly SolutionCrawlerRegistrationService _solutionCrawlerService;
-        private readonly AsynchronousOperationListener _asyncListener;
         public readonly DiagnosticService DiagnosticService;
-        private readonly IEnumerable<Lazy<IAsynchronousOperationListener, FeatureMetadata>> _listeners;
+        private readonly IAsynchronousOperationListenerProvider _listenerProvider;
 
         private ITaggerProvider _taggerProvider;
 
@@ -59,14 +57,11 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
             IDiagnosticUpdateSource updateSource,
             bool createTaggerProvider)
         {
-            _asyncListener = new AsynchronousOperationListener();
-            _listeners = AsynchronousOperationListener.CreateListeners(
-                ValueTuple.Create(FeatureAttribute.DiagnosticService, _asyncListener),
-                ValueTuple.Create(FeatureAttribute.ErrorSquiggles, _asyncListener));
+            _listenerProvider = workspace.ExportProvider.GetExportedValue<IAsynchronousOperationListenerProvider>();
 
             if (analyzerMap != null || updateSource == null)
             {
-                AnalyzerService = CreateDiagnosticAnalyzerService(analyzerMap, _asyncListener);
+                AnalyzerService = CreateDiagnosticAnalyzerService(analyzerMap, _listenerProvider.GetListener(FeatureAttribute.DiagnosticService));
             }
 
             if (updateSource == null)
@@ -79,7 +74,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
             _registrationService = workspace.Services.GetService<ISolutionCrawlerRegistrationService>();
             _registrationService.Register(workspace);
 
-            DiagnosticService = new DiagnosticService(_listeners);
+            DiagnosticService = new DiagnosticService(_listenerProvider);
             DiagnosticService.Register(updateSource);
 
             if (createTaggerProvider)
@@ -100,18 +95,18 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
             {
                 if (_taggerProvider == null)
                 {
-                    WpfTestCase.RequireWpfFact($"{nameof(DiagnosticTaggerWrapper<ITag>)}.{nameof(TaggerProvider)} creates asynchronous taggers");
+                    WpfTestRunner.RequireWpfFact($"{nameof(DiagnosticTaggerWrapper<TProvider>)}.{nameof(TaggerProvider)} creates asynchronous taggers");
 
-                    if (typeof(TTag) == typeof(IErrorTag))
+                    if (typeof(TProvider) == typeof(DiagnosticsSquiggleTaggerProvider))
                     {
                         _taggerProvider = new DiagnosticsSquiggleTaggerProvider(
-                            DiagnosticService, _workspace.GetService<IForegroundNotificationService>(), _listeners);
+                            DiagnosticService, _workspace.GetService<IForegroundNotificationService>(), _listenerProvider);
                     }
-                    else if (typeof(TTag) == typeof(SuggestionTag))
+                    else if (typeof(TProvider) == typeof(DiagnosticsSuggestionTaggerProvider))
                     {
                         _taggerProvider = new DiagnosticsSuggestionTaggerProvider(
-                            _workspace.ExportProvider.GetExportedValue<IEditorFormatMapService>(), DiagnosticService, 
-                            _workspace.GetService<IForegroundNotificationService>(), _listeners);
+                            DiagnosticService,
+                            _workspace.GetService<IForegroundNotificationService>(), _listenerProvider);
                     }
                     else
                     {
@@ -135,7 +130,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
                 _solutionCrawlerService.WaitUntilCompletion_ForTestingPurposesOnly(_workspace, _incrementalAnalyzers);
             }
 
-            await _asyncListener.CreateWaitTask();
+            await _listenerProvider.GetWaiter(FeatureAttribute.DiagnosticService).CreateWaitTask();
+            await _listenerProvider.GetWaiter(FeatureAttribute.ErrorSquiggles).CreateWaitTask();
         }
 
         private class MyDiagnosticAnalyzerService : DiagnosticAnalyzerService

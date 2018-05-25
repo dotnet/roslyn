@@ -11,6 +11,9 @@ using System.Reflection.Metadata;
 using System.Reflection.Metadata.Ecma335;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Debugging;
+using Microsoft.CodeAnalysis.Emit;
+using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.DiaSymReader;
 using Roslyn.Utilities;
 
 namespace Microsoft.Cci
@@ -49,8 +52,8 @@ namespace Microsoft.Cci
                 return;
             }
 
-            bool isIterator = bodyOpt.StateMachineTypeName != null;
-            bool emitDebugInfo = isIterator || bodyOpt.HasAnySequencePoints;
+            bool isKickoffMethod = bodyOpt.StateMachineTypeName != null;
+            bool emitDebugInfo = isKickoffMethod || !bodyOpt.SequencePoints.IsEmpty;
 
             if (!emitDebugInfo)
             {
@@ -65,9 +68,7 @@ namespace Microsoft.Cci
 
             // documents & sequence points:
             DocumentHandle singleDocumentHandle;
-            ArrayBuilder<Cci.SequencePoint> sequencePoints = ArrayBuilder<Cci.SequencePoint>.GetInstance();
-            bodyOpt.GetSequencePoints(sequencePoints);
-            BlobHandle sequencePointsBlob = SerializeSequencePoints(localSignatureHandleOpt, sequencePoints.ToImmutableAndFree(), _documentIndex, out singleDocumentHandle);
+            BlobHandle sequencePointsBlob = SerializeSequencePoints(localSignatureHandleOpt, bodyOpt.SequencePoints, _documentIndex, out singleDocumentHandle);
 
             _debugMetadataOpt.AddMethodDebugInformation(document: singleDocumentHandle, sequencePoints: sequencePointsBlob);
 
@@ -123,14 +124,17 @@ namespace Microsoft.Cci
                 }
             }
 
-            var asyncDebugInfo = bodyOpt.AsyncDebugInfo;
-            if (asyncDebugInfo != null)
+            var moveNextBodyInfo = bodyOpt.MoveNextBodyInfo;
+            if (moveNextBodyInfo != null)
             {
                 _debugMetadataOpt.AddStateMachineMethod(
                     moveNextMethod: methodHandle,
-                    kickoffMethod: GetMethodDefinitionHandle(asyncDebugInfo.KickoffMethod));
+                    kickoffMethod: GetMethodDefinitionHandle(moveNextBodyInfo.KickoffMethod));
 
-                SerializeAsyncMethodSteppingInfo(asyncDebugInfo, methodHandle);
+                if (moveNextBodyInfo is AsyncMoveNextBodyDebugInfo asyncInfo)
+                {
+                    SerializeAsyncMethodSteppingInfo(asyncInfo, methodHandle);
+                }
             }
 
             SerializeStateMachineLocalScopes(bodyOpt, methodHandle);
@@ -556,7 +560,7 @@ namespace Microsoft.Cci
 
         #region State Machines
 
-        private void SerializeAsyncMethodSteppingInfo(AsyncMethodBodyDebugInfo asyncInfo, MethodDefinitionHandle moveNextMethod)
+        private void SerializeAsyncMethodSteppingInfo(AsyncMoveNextBodyDebugInfo asyncInfo, MethodDefinitionHandle moveNextMethod)
         {
             Debug.Assert(asyncInfo.ResumeOffsets.Length == asyncInfo.YieldOffsets.Length);
             Debug.Assert(asyncInfo.CatchHandlerOffset >= -1);
@@ -753,7 +757,7 @@ namespace Microsoft.Cci
         /// </summary>
         /// <remarks>
         /// This is done after serializing method debug info to ensure that we embed all requested
-        /// text even if there are no correspodning sequence points.
+        /// text even if there are no corresponding sequence points.
         /// </remarks>
         public void AddRemainingEmbeddedDocuments(IEnumerable<DebugSourceDocument> documents)
         {
@@ -801,21 +805,21 @@ namespace Microsoft.Cci
 
         private void EmbedSourceLink(Stream stream)
         {
-            // TODO: be more efficient: https://github.com/dotnet/roslyn/issues/12853
-            var memoryStream = new MemoryStream();
+            byte[] bytes;
+
             try
             {
-                stream.CopyTo(memoryStream);
+                bytes = stream.ReadAllBytes();
             }
             catch (Exception e) when (!(e is OperationCanceledException))
             {
-                throw new PdbWritingException(e);
+                throw new SymUnmanagedWriterException(e.Message, e);
             }
 
             _debugMetadataOpt.AddCustomDebugInformation(
                 parent: EntityHandle.ModuleDefinition,
                 kind: _debugMetadataOpt.GetOrAddGuid(PortableCustomDebugInfoKinds.SourceLink),
-                value: _debugMetadataOpt.GetOrAddBlob(memoryStream.ToArray()));
+                value: _debugMetadataOpt.GetOrAddBlob(bytes));
         }
     }
 }

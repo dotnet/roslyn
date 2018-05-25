@@ -5,9 +5,9 @@ using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Editor.SymbolMapping;
 using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.SymbolMapping;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.FindUsages
@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
         /// be searching.
         /// 
         /// Note that the <see cref="Solution"/> returned may absolutely *not* be
-        /// the same as <code>document.Project.Solution</code>.  This is because 
+        /// the same as <c>document.Project.Solution</c>.  This is because 
         /// there may be symbol mapping involved (for example in Metadata-As-Source
         /// scenarios).
         /// </summary>
@@ -72,7 +72,7 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
                 symbol, project, cancellationToken).ConfigureAwait(false);
 
             var filteredSymbols = implementations.WhereAsArray(
-                s => !s.IsAbstract && s.Locations.Any(l => l.IsInSource));
+                s => s.Locations.Any(l => l.IsInSource));
 
             return filteredSymbols.Length == 0
                 ? (symbol, project, filteredSymbols, EditorFeaturesResources.The_symbol_has_no_implementations)

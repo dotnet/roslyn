@@ -14,19 +14,6 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.Interop
         private const string Kernel32 = "kernel32.dll";
         private const string Ole32 = "ole32.dll";
         private const string User32 = "User32.dll";
-        private const string SetupConfigurationNative = "x86\\Microsoft.VisualStudio.Setup.Configuration.Native.dll";
-
-        #region Microsoft.VisualStudio.Setup.Configuration.Native.dll
-
-        public const int REGDB_E_CLASSNOTREG = unchecked((int)0x80040154);
-
-        [DllImport(SetupConfigurationNative, BestFitMapping = false, CallingConvention = CallingConvention.StdCall, CharSet = CharSet.Unicode, EntryPoint = "GetSetupConfiguration", ExactSpelling = true, PreserveSig = true, SetLastError = false, ThrowOnUnmappableChar = false)]
-        public static extern int GetSetupConfiguration(
-            [Out, MarshalAs(UnmanagedType.Interface)] out ISetupConfiguration setupConfiguration,
-            [In] IntPtr pReserved
-        );
-
-        #endregion
 
         #region kernel32.dll
 

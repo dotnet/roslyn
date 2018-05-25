@@ -2,7 +2,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Runtime.Serialization;
 using Microsoft.CodeAnalysis;
 using static Roslyn.Test.Utilities.ExceptionHelper; 
 
@@ -17,13 +16,6 @@ namespace Roslyn.Test.Utilities
         {
             this.Diagnostics = diagnostics;
         }
-    }
-
-    public class PeVerifyException : Exception
-    {
-        public PeVerifyException(string output, string exePath) 
-            : base(GetMessageFromResult(output, exePath)) { }
-
     }
 
     public class ExecutionException : Exception

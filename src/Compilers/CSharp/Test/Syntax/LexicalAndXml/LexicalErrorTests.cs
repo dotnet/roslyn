@@ -259,7 +259,7 @@ public class Test
         {
             var test = @"
 using System;
-# r ""foo""
+# r ""goo""
 ";
 
             ParserErrorMessageTests.ParseAndValidate(test, TestOptions.Script, Diagnostic(ErrorCode.ERR_PPReferenceFollowsToken, "r"));

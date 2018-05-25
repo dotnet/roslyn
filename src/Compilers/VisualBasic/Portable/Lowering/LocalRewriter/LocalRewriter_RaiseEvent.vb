@@ -160,7 +160,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 _diagnostics.Add(info, syntax.GetLocation())
             End If
 
-            Return New BoundBadExpression(syntax, LookupResultKind.NotReferencable, ImmutableArray(Of Symbol).Empty, ImmutableArray.Create(Of BoundNode)(rewrittenReceiver), ErrorTypeSymbol.UnknownResultType, hasErrors:=True)
+            Return New BoundBadExpression(syntax, LookupResultKind.NotReferencable, ImmutableArray(Of Symbol).Empty, ImmutableArray.Create(rewrittenReceiver), ErrorTypeSymbol.UnknownResultType, hasErrors:=True)
         End Function
     End Class
 End Namespace

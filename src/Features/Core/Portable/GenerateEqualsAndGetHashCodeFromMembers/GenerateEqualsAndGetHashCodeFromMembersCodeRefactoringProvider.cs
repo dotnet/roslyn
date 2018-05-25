@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Immutable;
@@ -13,16 +13,13 @@ using Microsoft.CodeAnalysis.GenerateFromMembers;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.PickMembers;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.GenerateEqualsAndGetHashCodeFromMembers
 {
-    [ExportCodeRefactoringProvider(LanguageNames.CSharp, LanguageNames.VisualBasic, 
-        Name = PredefinedCodeRefactoringProviderNames.GenerateEqualsAndGetHashCodeFromMembers), Shared]
-    [ExtensionOrder(After = PredefinedCodeRefactoringProviderNames.GenerateConstructorFromMembers,
-                    Before = PredefinedCodeRefactoringProviderNames.AddConstructorParametersFromMembers)]
-    internal partial class GenerateEqualsAndGetHashCodeFromMembersCodeRefactoringProvider : AbstractGenerateFromMembersCodeRefactoringProvider
+    internal abstract partial class AbstractGenerateEqualsAndGetHashCodeFromMembersCodeRefactoringProvider : AbstractGenerateFromMembersCodeRefactoringProvider
     {
         public const string GenerateOperatorsId = nameof(GenerateOperatorsId);
         public const string ImplementIEquatableId = nameof(ImplementIEquatableId);
@@ -32,14 +29,12 @@ namespace Microsoft.CodeAnalysis.GenerateEqualsAndGetHashCodeFromMembers
 
         private readonly IPickMembersService _pickMembersService_forTestingPurposes;
 
-        public GenerateEqualsAndGetHashCodeFromMembersCodeRefactoringProvider() : this(null)
-        {
-        }
-
-        public GenerateEqualsAndGetHashCodeFromMembersCodeRefactoringProvider(IPickMembersService pickMembersService)
+        protected AbstractGenerateEqualsAndGetHashCodeFromMembersCodeRefactoringProvider(IPickMembersService pickMembersService)
         {
             _pickMembersService_forTestingPurposes = pickMembersService;
         }
+
+        protected abstract ImmutableArray<SyntaxNode> WrapWithUnchecked(ImmutableArray<SyntaxNode> statements);
 
         public override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
         {
@@ -96,7 +91,7 @@ namespace Microsoft.CodeAnalysis.GenerateEqualsAndGetHashCodeFromMembers
 
             // Find all the possible instance fields/properties.  If there are any, then
             // show a dialog to the user to select the ones they want.
-            var viableMembers = containingType.GetMembers().WhereAsArray(IsViableInstanceFieldOrProperty);
+            var viableMembers = containingType.GetMembers().WhereAsArray(IsReadableInstanceFieldOrProperty);
             if (viableMembers.Length == 0)
             {
                 return;
@@ -107,21 +102,24 @@ namespace Microsoft.CodeAnalysis.GenerateEqualsAndGetHashCodeFromMembers
 
             var pickMembersOptions = ArrayBuilder<PickMembersOption>.GetInstance();
 
-            var equatableType = semanticModel.Compilation.GetTypeByMetadataName(typeof(IEquatable<>).FullName);
-            var constructedType = equatableType.Construct(containingType);
-            if (!containingType.AllInterfaces.Contains(constructedType))
+            var equatableTypeOpt = semanticModel.Compilation.GetTypeByMetadataName(typeof(IEquatable<>).FullName);
+            if (equatableTypeOpt != null)
             {
-                var options = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
-                var value = options.GetOption(GenerateEqualsAndGetHashCodeFromMembersOptions.ImplementIEquatable);
+                var constructedType = equatableTypeOpt.Construct(containingType);
+                if (!containingType.AllInterfaces.Contains(constructedType))
+                {
+                    var options = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
+                    var value = options.GetOption(GenerateEqualsAndGetHashCodeFromMembersOptions.ImplementIEquatable);
 
-                var displayName = constructedType.ToDisplayString(new SymbolDisplayFormat(
-                    typeQualificationStyle: SymbolDisplayTypeQualificationStyle.NameOnly,
-                    genericsOptions: SymbolDisplayGenericsOptions.IncludeTypeParameters));
+                    var displayName = constructedType.ToDisplayString(new SymbolDisplayFormat(
+                        typeQualificationStyle: SymbolDisplayTypeQualificationStyle.NameOnly,
+                        genericsOptions: SymbolDisplayGenericsOptions.IncludeTypeParameters));
 
-                pickMembersOptions.Add(new PickMembersOption(
-                    ImplementIEquatableId,
-                    string.Format(FeaturesResources.Implement_0, displayName),
-                    value));
+                    pickMembersOptions.Add(new PickMembersOption(
+                        ImplementIEquatableId,
+                        string.Format(FeaturesResources.Implement_0, displayName),
+                        value));
+                }
             }
 
             if (!HasOperators(containingType))
@@ -175,7 +173,7 @@ namespace Microsoft.CodeAnalysis.GenerateEqualsAndGetHashCodeFromMembers
             {
                 var info = await this.GetSelectedMemberInfoAsync(document, textSpan, cancellationToken).ConfigureAwait(false);
                 if (info != null &&
-                    info.SelectedMembers.All(IsViableInstanceFieldOrProperty))
+                    info.SelectedMembers.All(IsReadableInstanceFieldOrProperty))
                 {
                     if (info.ContainingType != null && info.ContainingType.TypeKind != TypeKind.Interface)
                     {
@@ -189,7 +187,7 @@ namespace Microsoft.CodeAnalysis.GenerateEqualsAndGetHashCodeFromMembers
                     }
                 }
 
-                return default(ImmutableArray<CodeAction>);
+                return default;
             }
         }
 

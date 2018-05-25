@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Generic;
 using System.Linq;
@@ -24,15 +24,15 @@ namespace Microsoft.CodeAnalysis.GenerateType
             // generated.
             public TSimpleNameSyntax SimpleName { get; private set; }
 
-            // The entire expression containing the name, not including the creation.  i.e. "X.Foo"
-            // in "new X.Foo()".
+            // The entire expression containing the name, not including the creation.  i.e. "X.Goo"
+            // in "new X.Goo()".
             public TExpressionSyntax NameOrMemberAccessExpression { get; private set; }
 
-            // The object creation node if we have one.  i.e. if we're on the 'Foo' in "new X.Foo()".
+            // The object creation node if we have one.  i.e. if we're on the 'Goo' in "new X.Goo()".
             public TObjectCreationExpressionSyntax ObjectCreationExpressionOpt { get; private set; }
 
             // One of these will be non null.  It's also possible for both to be non null. For
-            // example, if you have "class C { Foo f; }", then "Foo" can be generated inside C or
+            // example, if you have "class C { Goo f; }", then "Goo" can be generated inside C or
             // inside the global namespace.  The namespace can be null or the type can be null if the
             // user has something like "ExistingType.NewType" or "ExistingNamespace.NewType".  In
             // that case they're being explicit about what they want to generate into.
@@ -41,7 +41,7 @@ namespace Microsoft.CodeAnalysis.GenerateType
 
             // If we can infer a base type or interface for this type. 
             // 
-            // i.e.: "IList<int> foo = new MyList();"
+            // i.e.: "IList<int> goo = new MyList();"
             public INamedTypeSymbol BaseTypeOrInterfaceOpt { get; private set; }
             public bool IsInterface { get; private set; }
             public bool IsStruct { get; private set; }
@@ -82,7 +82,7 @@ namespace Microsoft.CodeAnalysis.GenerateType
 
             private async Task<bool> TryInitializeAsync(
                 TService service,
-                SemanticDocument document,
+                SemanticDocument semanticDocument,
                 SyntaxNode node,
                 CancellationToken cancellationToken)
             {
@@ -92,7 +92,7 @@ namespace Microsoft.CodeAnalysis.GenerateType
                 }
 
                 this.SimpleName = (TSimpleNameSyntax)node;
-                var syntaxFacts = document.Project.LanguageServices.GetService<ISyntaxFactsService>();
+                var syntaxFacts = semanticDocument.Document.GetLanguageService<ISyntaxFactsService>();
                 syntaxFacts.GetNameAndArityOfSimpleName(this.SimpleName, out var name, out var arity);
 
                 this.Name = name;
@@ -101,14 +101,14 @@ namespace Microsoft.CodeAnalysis.GenerateType
                 {
                     return false;
                 }
-                // We only support simple names or dotted names.  i.e. "(some + expr).Foo" is not a
-                // valid place to generate a type for Foo.
-                if (!service.TryInitializeState(document, this.SimpleName, cancellationToken, out var generateTypeServiceStateOptions))
+                // We only support simple names or dotted names.  i.e. "(some + expr).Goo" is not a
+                // valid place to generate a type for Goo.
+                if (!service.TryInitializeState(semanticDocument, this.SimpleName, cancellationToken, out var generateTypeServiceStateOptions))
                 {
                     return false;
                 }
 
-                if (char.IsLower(name[0]) && !document.SemanticModel.Compilation.IsCaseSensitive)
+                if (char.IsLower(name[0]) && !semanticDocument.SemanticModel.Compilation.IsCaseSensitive)
                 {
                     // It's near universal in .Net that types start with a capital letter.  As such,
                     // if this name starts with a lowercase letter, don't even bother to offer 
@@ -121,7 +121,7 @@ namespace Microsoft.CodeAnalysis.GenerateType
                 this.NameOrMemberAccessExpression = generateTypeServiceStateOptions.NameOrMemberAccessExpression;
                 this.ObjectCreationExpressionOpt = generateTypeServiceStateOptions.ObjectCreationExpressionOpt;
 
-                var semanticModel = document.SemanticModel;
+                var semanticModel = semanticDocument.SemanticModel;
                 var info = semanticModel.GetSymbolInfo(this.SimpleName, cancellationToken);
                 if (info.Symbol != null)
                 {
@@ -129,7 +129,7 @@ namespace Microsoft.CodeAnalysis.GenerateType
                     return false;
                 }
 
-                var semanticFacts = document.Project.LanguageServices.GetService<ISemanticFactsService>();
+                var semanticFacts = semanticDocument.Document.GetLanguageService<ISemanticFactsService>();
                 if (!semanticFacts.IsTypeContext(semanticModel, this.NameOrMemberAccessExpression.SpanStart, cancellationToken) &&
                     !semanticFacts.IsExpressionContext(semanticModel, this.NameOrMemberAccessExpression.SpanStart, cancellationToken) &&
                     !semanticFacts.IsStatementContext(semanticModel, this.NameOrMemberAccessExpression.SpanStart, cancellationToken) &&
@@ -165,10 +165,10 @@ namespace Microsoft.CodeAnalysis.GenerateType
                     }
                 }
 
-                await DetermineNamespaceOrTypeToGenerateInAsync(service, document, cancellationToken).ConfigureAwait(false);
+                await DetermineNamespaceOrTypeToGenerateInAsync(service, semanticDocument, cancellationToken).ConfigureAwait(false);
 
                 // Now, try to infer a possible base type for this new class/interface.
-                this.InferBaseType(service, document, cancellationToken);
+                this.InferBaseType(service, semanticDocument, cancellationToken);
                 this.IsInterface = GenerateInterface(service, cancellationToken);
                 this.IsStruct = GenerateStruct(service, semanticModel, cancellationToken);
                 this.IsAttribute = this.BaseTypeOrInterfaceOpt != null && this.BaseTypeOrInterfaceOpt.Equals(semanticModel.Compilation.AttributeType());
@@ -200,12 +200,12 @@ namespace Microsoft.CodeAnalysis.GenerateType
                 // See if we can find a possible base type for the type being generated.
                 // NOTE(cyrusn): I currently limit this to when we have an object creation node.
                 // That's because that's when we would have an expression that could be converted to
-                // something else.  i.e. if the user writes "IList<int> list = new Foo()" then we can
-                // infer a base interface for 'Foo'.  However, if they write "IList<int> list = Foo"
-                // then we don't really want to infer a base type for 'Foo'.
+                // something else.  i.e. if the user writes "IList<int> list = new Goo()" then we can
+                // infer a base interface for 'Goo'.  However, if they write "IList<int> list = Goo"
+                // then we don't really want to infer a base type for 'Goo'.
 
                 // However, there are a few other cases were we can infer a base type.
-                var syntaxFacts = document.Project.LanguageServices.GetService<ISyntaxFactsService>();
+                var syntaxFacts = document.Document.GetLanguageService<ISyntaxFactsService>();
                 if (service.IsInCatchDeclaration(this.NameOrMemberAccessExpression))
                 {
                     this.BaseTypeOrInterfaceOpt = document.SemanticModel.Compilation.ExceptionType();
@@ -220,7 +220,7 @@ namespace Microsoft.CodeAnalysis.GenerateType
                     this.ObjectCreationExpressionOpt != null)
                 {
                     var expr = this.ObjectCreationExpressionOpt ?? this.NameOrMemberAccessExpression;
-                    var typeInference = document.Project.LanguageServices.GetService<ITypeInferenceService>();
+                    var typeInference = document.Document.GetLanguageService<ITypeInferenceService>();
                     var baseType = typeInference.InferType(document.SemanticModel, expr, objectAsDefault: true, cancellationToken: cancellationToken) as INamedTypeSymbol;
                     SetBaseType(baseType);
                 }
@@ -396,8 +396,8 @@ namespace Microsoft.CodeAnalysis.GenerateType
                 else
                 {
                     // If it's a dotted name, then perhaps it's a namespace.  i.e. the user wrote
-                    // "new Foo.Bar.Baz()".  In this case we want to generate a namespace for
-                    // "Foo.Bar".
+                    // "new Goo.Bar.Baz()".  In this case we want to generate a namespace for
+                    // "Goo.Bar".
                     if (service.TryGetNameParts(leftSide, out var nameParts))
                     {
                         this.NamespaceToGenerateInOpt = string.Join(".", nameParts);

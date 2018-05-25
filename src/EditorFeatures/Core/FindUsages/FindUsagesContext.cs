@@ -15,13 +15,9 @@ namespace Microsoft.CodeAnalysis.FindUsages
         {
         }
 
-        public virtual void ReportMessage(string message)
-        {
-        }
+        public virtual Task ReportMessageAsync(string message) => SpecializedTasks.EmptyTask;
 
-        public virtual void SetSearchTitle(string title)
-        {
-        }
+        public virtual Task SetSearchTitleAsync(string title) => SpecializedTasks.EmptyTask;
 
         public virtual Task OnCompletedAsync() => SpecializedTasks.EmptyTask;
 

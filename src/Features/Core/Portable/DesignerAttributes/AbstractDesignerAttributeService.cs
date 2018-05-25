@@ -6,36 +6,35 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.DesignerAttributes
 {
-    internal struct DesignerAttributeResult
-    {
-        public string DesignerAttributeArgument;
-        public bool ContainsErrors;
-        public bool NotApplicable;
-
-        public DesignerAttributeResult(string designerAttributeArgument, bool containsErrors, bool notApplicable)
-        {
-            DesignerAttributeArgument = designerAttributeArgument;
-            ContainsErrors = containsErrors;
-            NotApplicable = notApplicable;
-        }
-    }
-
     internal abstract class AbstractDesignerAttributeService : IDesignerAttributeService
     {
+        // we hold onto workspace to make sure given input (Document) belong to right workspace.
+        // since remote host is from workspace service, different workspace can have different expectation
+        // on remote host, so we need to make sure given input always belong to right workspace where
+        // the session belong to.
+        private readonly Workspace _workspace;
+
+        protected AbstractDesignerAttributeService(Workspace workspace)
+        {
+            _workspace = workspace;
+        }
+
         protected abstract bool ProcessOnlyFirstTypeDefined();
         protected abstract IEnumerable<SyntaxNode> GetAllTopLevelTypeDefined(SyntaxNode root);
         protected abstract bool HasAttributesOrBaseTypeOrIsPartial(SyntaxNode typeNode);
 
         public async Task<DesignerAttributeResult> ScanDesignerAttributesAsync(Document document, CancellationToken cancellationToken)
         {
-            var workspace = document.Project.Solution.Workspace;
+            // make sure given input is right one
+            Contract.ThrowIfFalse(_workspace == document.Project.Solution.Workspace);
 
             // same service run in both inproc and remote host, but remote host will not have RemoteHostClient service, 
             // so inproc one will always run
-            var client = await workspace.TryGetRemoteHostClientAsync(cancellationToken).ConfigureAwait(false);
+            var client = await document.Project.Solution.Workspace.TryGetRemoteHostClientAsync(cancellationToken).ConfigureAwait(false);
             if (client != null && !document.IsOpen())
             {
                 // run designer attributes scanner on remote host
@@ -50,9 +49,11 @@ namespace Microsoft.CodeAnalysis.DesignerAttributes
 
         private async Task<DesignerAttributeResult> ScanDesignerAttributesInRemoteHostAsync(RemoteHostClient client, Document document, CancellationToken cancellationToken)
         {
-            return await client.RunCodeAnalysisServiceOnRemoteHostAsync<DesignerAttributeResult>(
-                    document.Project.Solution, nameof(IRemoteDesignerAttributeService.ScanDesignerAttributesAsync),
-                    document.Id, cancellationToken).ConfigureAwait(false);
+            return await client.TryRunCodeAnalysisRemoteAsync<DesignerAttributeResult>(
+                document.Project.Solution,
+                nameof(IRemoteDesignerAttributeService.ScanDesignerAttributesAsync),
+                document.Id,
+                cancellationToken).ConfigureAwait(false);
         }
 
         private async Task<DesignerAttributeResult> ScanDesignerAttributesInCurrentProcessAsync(Document document, CancellationToken cancellationToken)
@@ -83,7 +84,7 @@ namespace Microsoft.CodeAnalysis.DesignerAttributes
                         {
                             // The DesignerCategoryAttribute doesn't exist. either not applicable or
                             // no idea on design attribute status, just leave things as it is.
-                            return new DesignerAttributeResult(designerAttributeArgument, documentHasError, notApplicable: true);
+                            return new DesignerAttributeResult(designerAttributeArgument, documentHasError, applicable: false);
                         }
                     }
 
@@ -114,7 +115,7 @@ namespace Microsoft.CodeAnalysis.DesignerAttributes
                         if (attribute != null && attribute.ConstructorArguments.Length == 1)
                         {
                             designerAttributeArgument = GetArgumentString(attribute.ConstructorArguments[0]);
-                            return new DesignerAttributeResult(designerAttributeArgument, documentHasError, notApplicable: false);
+                            return new DesignerAttributeResult(designerAttributeArgument, documentHasError, applicable: true);
                         }
                     }
                 }
@@ -126,7 +127,7 @@ namespace Microsoft.CodeAnalysis.DesignerAttributes
                 }
             }
 
-            return new DesignerAttributeResult(designerAttributeArgument, documentHasError, notApplicable: false);
+            return new DesignerAttributeResult(designerAttributeArgument, documentHasError, applicable: true);
         }
 
         private static string GetArgumentString(TypedConstant argument)

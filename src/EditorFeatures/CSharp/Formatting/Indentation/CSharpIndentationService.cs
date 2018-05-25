@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Generic;
 using System.Composition;
@@ -125,8 +125,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.Formatting.Indentation
                     return;
                 }
 
-                var argument = node as BaseArgumentListSyntax;
-                if (argument != null &&
+                if (node is BaseArgumentListSyntax argument &&
                     argument.Parent.Kind() != SyntaxKind.ThisConstructorInitializer &&
                     !IsBracketedArgumentListMissingBrackets(argument as BracketedArgumentListSyntax))
                 {
@@ -135,8 +134,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.Formatting.Indentation
                 }
 
                 // only valid if the user has started to actually type a constructor initializer
-                var constructorInitializer = node as ConstructorInitializerSyntax;
-                if (constructorInitializer != null &&
+                if (node is ConstructorInitializerSyntax constructorInitializer &&
                     constructorInitializer.ArgumentList.OpenParenToken.Kind() != SyntaxKind.None &&
                     !constructorInitializer.ThisOrBaseKeyword.IsMissing)
                 {

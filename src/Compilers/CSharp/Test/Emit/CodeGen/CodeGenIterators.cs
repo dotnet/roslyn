@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -163,7 +163,7 @@ class Program
         foreach (var i in new C(4).IE(5, 6)) Console.Write(i);
     }
 }";
-            var compilation = CompileAndVerify(source, expectedOutput: "12324565");
+            var compilation = CompileAndVerifyWithMscorlib40(source, expectedOutput: "12324565");
 
             compilation.VerifyIL("C.<IE>d__2<T>.System.Collections.Generic.IEnumerable<T>.GetEnumerator()", @"
 {
@@ -1025,7 +1025,8 @@ struct S : IEnumerable
 }");
         }
 
-        [Fact, WorkItem(544908, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544908")]
+        [ConditionalFact(typeof(DesktopOnly))]
+        [WorkItem(544908, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544908")]
         public void TestIteratorWithNullableAsCollectionVariable_Null()
         {
             var source = @"
@@ -1923,7 +1924,7 @@ using System.Collections.Generic;
 
 class Program
 {
-    public static IEnumerable<int> Foo()
+    public static IEnumerable<int> Goo()
     {
         yield return 1;
     }
@@ -1933,7 +1934,7 @@ class Program
             var parsed = new[] { Parse(source) };
             var comp = CreateCompilationWithMscorlib45(parsed);
             var verifier = this.CompileAndVerify(comp);
-            var il = verifier.VisualizeIL("Program.<Foo>d__0.System.Collections.Generic.IEnumerable<int>.GetEnumerator()");
+            var il = verifier.VisualizeIL("Program.<Goo>d__0.System.Collections.Generic.IEnumerable<int>.GetEnumerator()");
             Assert.Contains("System.Environment.CurrentManagedThreadId.get", il, StringComparison.Ordinal);
         }
 
@@ -1947,7 +1948,7 @@ using System.Collections.Generic;
 
 class Program
 {
-    public static IEnumerable<int> Foo()
+    public static IEnumerable<int> Goo()
     {
         yield return 1;
     }
@@ -1963,10 +1964,10 @@ namespace System
 
 ";
             var parsed = new[] { Parse(source) };
-            var comp = CreateCompilationWithMscorlib(parsed);
+            var comp = CreateCompilation(parsed);
             comp.MakeMemberMissing(WellKnownMember.System_Threading_Thread__ManagedThreadId);
             var verifier = this.CompileAndVerify(comp);
-            var il = verifier.VisualizeIL("Program.<Foo>d__0.System.Collections.Generic.IEnumerable<int>.GetEnumerator()");
+            var il = verifier.VisualizeIL("Program.<Goo>d__0.System.Collections.Generic.IEnumerable<int>.GetEnumerator()");
             Assert.Contains("System.Environment.CurrentManagedThreadId.get", il, StringComparison.Ordinal);
         }
 
@@ -2381,8 +2382,8 @@ public class C
     }
 }";
             // The compilation succeeds even though CompilerGeneratedAttribute and DebuggerNonUserCodeAttribute are not available.
-            var compilation = CreateCompilation(new[] { Parse(source), Parse(corlib) });
-            var verifier = CompileAndVerify(compilation, verify: false);
+            var compilation = CreateEmptyCompilation(new[] { Parse(source), Parse(corlib) });
+            var verifier = CompileAndVerify(compilation, verify: Verification.Fails);
             verifier.VerifyDiagnostics(
                 // warning CS8021: No value for RuntimeMetadataVersion found. No assembly containing System.Object was found nor was a value for RuntimeMetadataVersion specified through options.
                 Diagnostic(ErrorCode.WRN_NoRuntimeMetadataVersion).WithLocation(1, 1));
@@ -2425,7 +2426,7 @@ public class C
 {
     public System.Collections.IEnumerable SomeNumbers() { yield return 42; }
 }";
-            var compilation = CreateCompilation(new[] { Parse(source) });
+            var compilation = CreateEmptyCompilation(new[] { Parse(source) });
 
             compilation.VerifyEmitDiagnostics(
                 // warning CS8021: No value for RuntimeMetadataVersion found. No assembly containing System.Object was found nor was a value for RuntimeMetadataVersion specified through options.
@@ -2489,7 +2490,7 @@ public class C
 {
     public System.Collections.IEnumerator SomeNumbers() { yield return 42; }
 }";
-            var compilation = CreateCompilation(new[] { Parse(source) });
+            var compilation = CreateEmptyCompilation(new[] { Parse(source) });
 
             // No error about IEnumerable
             compilation.VerifyEmitDiagnostics(

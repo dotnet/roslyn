@@ -35,7 +35,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             {
                 if (!token1.HasTrailingTrivia && !token2.HasLeadingTrivia)
                 {
-                    return default(AnalysisResult);
+                    return default;
                 }
 
                 var result = default(AnalysisResult);

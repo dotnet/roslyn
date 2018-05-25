@@ -398,6 +398,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         TrueLiteralExpression = 8752,
         FalseLiteralExpression = 8753,
         NullLiteralExpression = 8754,
+        DefaultLiteralExpression = 8755,
 
         // primary function expressions
         TypeOfExpression = 8760,
@@ -562,5 +563,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         RefExpression = 9050,
         RefType = 9051,
         ThrowExpression = 9052,
+
+        ImplicitStackAllocArrayCreationExpression = 9053,
     }
 }

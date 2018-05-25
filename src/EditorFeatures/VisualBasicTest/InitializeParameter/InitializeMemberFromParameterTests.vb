@@ -178,7 +178,6 @@ class C
 end class",
 "
 class C
-
     private s As Integer
 
     public sub new(s As String)
@@ -202,9 +201,8 @@ class C
 end class",
 "
 class C
-
-    private s As Integer
     Private ReadOnly s1 As String
+    private s As Integer
 
     public sub new(s As String)
         s1 = s
@@ -262,6 +260,7 @@ class C
 end class",
 "
 class C
+
     private s As Integer
 
     public sub new([||]s As String)
@@ -294,7 +293,7 @@ class C
 
     public sub new(s As String, t As String)
         Me.s = s
-        Me.t = t
+        Me.t = t   
     end sub
 end class")
         End Function
@@ -344,6 +343,7 @@ class C
     public sub new(s As String)
         if true then
         end if
+
         Me.s = s
     end sub
 end class")
@@ -378,7 +378,6 @@ class C
 end class",
 "
 class C
-
     public sub new(s As String, t As String)
         Me.S = s
         Me.T = t
@@ -403,10 +402,9 @@ class C
 end class",
 "
 class C
-
     public sub new(s As String, t As String)
         Me.S = s
-        Me.T = t
+        Me.T = t   
     end sub
 
     Public ReadOnly Property S As String

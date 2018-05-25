@@ -1,17 +1,21 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Xml.Linq
-Imports Microsoft.CodeAnalysis.Editor.Commands
 Imports Microsoft.CodeAnalysis.Editor.Shared.Options
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Extensions
+Imports Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.Editor.VisualBasic.ImplementInterface
 Imports Microsoft.CodeAnalysis.Text
+Imports Microsoft.VisualStudio.Commanding
 Imports Microsoft.VisualStudio.Text
 Imports Microsoft.VisualStudio.Text.Editor
+Imports Microsoft.VisualStudio.Text.Editor.Commanding.Commands
 Imports Microsoft.VisualStudio.Text.Operations
+Imports VSCommanding = Microsoft.VisualStudio.Commanding
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.ImplementInterface
+    <[UseExportProvider]>
     Public Class ImplementInterfaceCommandHandlerTests
 
         Private Sub Test(code As XElement, expectedText As XElement, nextHandler As Action(Of IWpfTextView, TestWorkspace), assertion As Action(Of String, String, IWpfTextView))
@@ -19,7 +23,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.ImplementInterface
                 Dim commandHandler = MoveCaretAndCreateCommandHandler(workspace)
                 Dim view = workspace.Documents.Single().GetTextView()
 
-                commandHandler.ExecuteCommand(New ReturnKeyCommandArgs(view, view.TextBuffer), Sub() nextHandler(view, workspace))
+                commandHandler.ExecuteCommand(New ReturnKeyCommandArgs(view, view.TextBuffer), Sub() nextHandler(view, workspace), TestCommandExecutionContext.Create())
 
                 Dim text = view.TextBuffer.CurrentSnapshot.AsText().ToString()
 
@@ -27,7 +31,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.ImplementInterface
             End Using
         End Sub
 
-        Private Shared Function MoveCaretAndCreateCommandHandler(workspace As TestWorkspace) As ICommandHandler(Of ReturnKeyCommandArgs)
+        Private Shared Function MoveCaretAndCreateCommandHandler(workspace As TestWorkspace) As VSCommanding.ICommandHandler(Of ReturnKeyCommandArgs)
             Dim document = workspace.Documents.Single()
             Dim view = document.GetTextView()
             Dim cursorPosition = document.CursorPosition.Value
@@ -52,10 +56,10 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.ImplementInterface
             Using workspace = GetWorkspace("
 Imports System
 
-Class Foo
-    Implements IFoo$$
+Class Goo
+    Implements IGoo$$
 End Class
-Interface IFoo
+Interface IGoo
     Sub TestSub()
 End Interface")
 
@@ -64,7 +68,7 @@ End Interface")
 
                 Dim nextHandlerCalled = False
                 Dim view = workspace.Documents.Single().GetTextView()
-                commandHandler.ExecuteCommand(New ReturnKeyCommandArgs(view, view.TextBuffer), Sub() nextHandlerCalled = True)
+                commandHandler.ExecuteCommand(New ReturnKeyCommandArgs(view, view.TextBuffer), Sub() nextHandlerCalled = True, TestCommandExecutionContext.Create())
                 Assert.True(nextHandlerCalled, "Next handler wasn't called, which means the feature did run")
             End Using
         End Sub
@@ -74,15 +78,15 @@ End Interface")
             Dim code = <text>
 Imports System
 
-Class Foo
-    Implements IFoo$$
+Class Goo
+    Implements IGoo$$
 End Class
-Interface IFoo
+Interface IGoo
     Sub TestSub()
 End Interface</text>
 
             Dim expectedText = <text>   
-    Public Sub TestSub() Implements IFoo.TestSub
+    Public Sub TestSub() Implements IGoo.TestSub
         Throw New NotImplementedException()
     End Sub</text>
 
@@ -96,22 +100,22 @@ End Interface</text>
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)>
         Public Sub TestInterfacesWithDuplicateMember()
             Dim code = <text>
-Interface IFoo
-    Sub Foo()
+Interface IGoo
+    Sub Goo()
 End Interface
 Interface IBar
-    Sub Foo()
+    Sub Goo()
 End Interface
 Class Zip
-    Implements IFoo, IBar$$
+    Implements IGoo, IBar$$
 End Class</text>
 
             Dim expectedText = <text>   
-    Public Sub Foo() Implements IFoo.Foo
+    Public Sub Goo() Implements IGoo.Goo
         Throw New NotImplementedException()
     End Sub
 
-    Private Sub IBar_Foo() Implements IBar.Foo
+    Private Sub IBar_Goo() Implements IBar.Goo
         Throw New NotImplementedException()
     End Sub</text>
 
@@ -126,17 +130,17 @@ End Class</text>
             Dim code = <text>
 Imports System
 
-Class Foo
-    Implements IFoo$$
+Class Goo
+    Implements IGoo$$
 End Class
-Interface IFoo
+Interface IGoo
     Sub TestSub()
     Function TestFunc() As Integer
     Property TestProperty As String
 End Interface</text>
 
             Dim expectedText = <text>   
-    Public Property TestProperty As String Implements IFoo.TestProperty
+    Public Property TestProperty As String Implements IGoo.TestProperty
         Get
             Throw New NotImplementedException()
         End Get
@@ -146,11 +150,11 @@ End Interface</text>
         End Set
     End Property
 
-    Public Sub TestSub() Implements IFoo.TestSub
+    Public Sub TestSub() Implements IGoo.TestSub
         Throw New NotImplementedException()
     End Sub
 
-    Public Function TestFunc() As Integer Implements IFoo.TestFunc
+    Public Function TestFunc() As Integer Implements IGoo.TestFunc
         Throw New NotImplementedException()
     End Function</text>
 
@@ -165,10 +169,10 @@ End Interface</text>
             Dim code = <text>
 Imports System
 
-Class Foo
-    Implements IFoo, IBar$$
+Class Goo
+    Implements IGoo, IBar$$
 End Class
-Interface IFoo
+Interface IGoo
     Sub TestSub()
 End Interface
 Interface IBar
@@ -176,7 +180,7 @@ Interface IBar
 End Interface</text>
 
             Dim expectedText = <text>   
-    Public Sub TestSub() Implements IFoo.TestSub
+    Public Sub TestSub() Implements IGoo.TestSub
         Throw New NotImplementedException()
     End Sub
 
@@ -195,10 +199,10 @@ End Interface</text>
             Dim code = <text>
 Imports System
 
-Class Foo
-    Implements IFoo$$, IBar
+Class Goo
+    Implements IGoo$$, IBar
 End Class
-Interface IFoo
+Interface IGoo
     Sub TestSub()
 End Interface
 Interface IBar
@@ -206,8 +210,8 @@ Interface IBar
 End Interface</text>
 
             Dim expectedText = <text>   
-Class Foo
-    Implements IFoo
+Class Goo
+    Implements IGoo
     , IBar
 End Class</text>
 
@@ -228,15 +232,15 @@ End Class</text>
             Dim code = <text>
 Imports System
 
-Class Foo
-    Implements IFoo $$
+Class Goo
+    Implements IGoo $$
 End Class
-Interface IFoo
+Interface IGoo
     Sub TestSub()
 End Interface</text>
 
             Dim expectedText = <text>   
-    Public Sub TestSub() Implements IFoo.TestSub
+    Public Sub TestSub() Implements IGoo.TestSub
         Throw New NotImplementedException()
     End Sub</text>
 
@@ -253,16 +257,16 @@ End Interface</text>
             Dim code = <text>
 Imports System
 
-Class Foo
-    Implements IFoo 'Comment $$
+Class Goo
+    Implements IGoo 'Comment $$
 End Class
-Interface IFoo
+Interface IGoo
     Sub TestSub()
 End Interface</text>
 
 
             Dim expectedText = <text>   
-    Public Sub TestSub() Implements IFoo.TestSub
+    Public Sub TestSub() Implements IGoo.TestSub
         Throw New NotImplementedException()
     End Sub</text>
 
@@ -275,19 +279,19 @@ End Interface</text>
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)>
         Public Sub TestNoMembersToImplement()
             Dim code = <text>
-Class Foo
-    Implements IFoo$$
+Class Goo
+    Implements IGoo$$
 End Class
-Interface IFoo
+Interface IGoo
 End Interface</text>
 
 
             Dim expectedText = <text>   
-Class Foo
-    Implements IFoo
+Class Goo
+    Implements IGoo
 
 End Class
-Interface IFoo
+Interface IGoo
 End Interface</text>
 
             Test(code,
@@ -306,13 +310,13 @@ End Interface</text>
             Dim code = <text>
 Imports System
 
-Class Foo
+Class Goo
     Implements ICloneable$$
 </text>
 
             Dim expectedText = <text>   
 Imports System
-Class Foo
+Class Goo
     Implements ICloneable
 
     Public Function Clone() As Object Implements ICloneable.Clone
@@ -331,22 +335,22 @@ End Class</text>
         Public Sub TestWithEndBlockMissing2()
             Dim code = <text>
 Imports System
-Class Foo
+Class Goo
     Implements ICloneable$$
 
-Interface IFoo
+Interface IGoo
 End Interface</text>
 
             Dim expectedText = <text>
 Imports System
-Class Foo
+Class Goo
     Implements ICloneable
 
     Public Function Clone() As Object Implements ICloneable.Clone
         Throw New NotImplementedException()
     End Function
 
-    Interface IFoo
+    Interface IGoo
     End Interface
 End Class</text>
 
@@ -363,21 +367,21 @@ End Class</text>
         Public Sub TestWithStatementSeparator()
             Dim code = <text>
 Imports System
-Interface IFoo
-    Sub Foo()
+Interface IGoo
+    Sub Goo()
 End Interface
 
-Class CFoo : Implements IFoo$$ : End Class
+Class CGoo : Implements IGoo$$ : End Class
 </text>
 
             Dim expectedText = <text>   
 Imports System
-Interface IFoo
-    Sub Foo()
+Interface IGoo
+    Sub Goo()
 End Interface
 
-Class CFoo : Implements IFoo
-    Public Sub Foo() Implements IFoo.Foo
+Class CGoo : Implements IGoo
+    Public Sub Goo() Implements IGoo.Goo
         Throw New NotImplementedException()
     End Sub
 End Class
@@ -397,22 +401,22 @@ End Class
         Public Sub TestCursorNotOnSameLine()
             Dim code = <text>
 Imports System
-Interface IFoo
+Interface IGoo
     Sub FogBar()
 End Interface
 Public Class Bar
-    Implements IFoo
+    Implements IGoo
 
 $$End Class
 </text>
 
             Dim expectedText = <text>   
 Imports System
-Interface IFoo
+Interface IGoo
     Sub FogBar()
 End Interface
 Public Class Bar
-    Implements IFoo
+    Implements IGoo
 
 
 End Class
@@ -467,11 +471,11 @@ End Class
         Public Sub TestMultipleImplementationWithCaseDifference()
             Dim code = <text>
 Interface IA
-    Sub foo()
+    Sub goo()
 End Interface
 
 Interface IB
-    Sub Foo()
+    Sub Goo()
 End Interface
 
 Class C
@@ -483,11 +487,11 @@ End Class</text>
 Class C
     Implements IA, IB
 
-    Public Sub foo() Implements IA.foo
+    Public Sub goo() Implements IA.goo
         Throw New NotImplementedException()
     End Sub
 
-    Private Sub IB_Foo() Implements IB.Foo
+    Private Sub IB_Goo() Implements IB.Goo
         Throw New NotImplementedException()
     End Sub
 End Class</text>
@@ -504,7 +508,7 @@ End Class</text>
             Dim code = <text>
 Namespace N
     Interface IA
-        Sub foo()
+        Sub goo()
     End Interface
 End Namespace
 
@@ -517,7 +521,7 @@ End Class</text>
 Class C
     Implements N.IA
 
-    Public Sub foo() Implements IA.foo
+    Public Sub goo() Implements IA.goo
         Throw New NotImplementedException()
     End Sub
 End Class</text>

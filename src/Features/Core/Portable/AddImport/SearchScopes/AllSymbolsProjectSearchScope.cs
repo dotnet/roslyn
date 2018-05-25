@@ -5,9 +5,9 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.FindSymbols;
 
-namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
+namespace Microsoft.CodeAnalysis.AddImport
 {
-    internal abstract partial class AbstractAddImportCodeFixProvider<TSimpleNameSyntax>
+    internal abstract partial class AbstractAddImportFeatureService<TSimpleNameSyntax>
     {
         /// <summary>
         /// SearchScope used for searching *all* the symbols contained within a project/compilation.
@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
         private class AllSymbolsProjectSearchScope : ProjectSearchScope
         {
             public AllSymbolsProjectSearchScope(
-                AbstractAddImportCodeFixProvider<TSimpleNameSyntax> provider,
+                AbstractAddImportFeatureService<TSimpleNameSyntax> provider,
                 Project project,
                 bool exact,
                 CancellationToken cancellationToken)
@@ -25,10 +25,13 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
             {
             }
 
-            protected override Task<ImmutableArray<ISymbol>> FindDeclarationsAsync(
-                string name, SymbolFilter filter, SearchQuery searchQuery)
+            protected override async Task<ImmutableArray<ISymbol>> FindDeclarationsAsync(
+                SymbolFilter filter, SearchQuery searchQuery)
             {
-                return SymbolFinder.FindAllDeclarationsWithNormalQueryAsync(_project, searchQuery, filter, CancellationToken);
+                var declarations = await DeclarationFinder.FindAllDeclarationsWithNormalQueryAsync(
+                    _project, searchQuery, filter, CancellationToken).ConfigureAwait(false);
+
+                return declarations.SelectAsArray(d => d.Symbol);
             }
         }
     }
