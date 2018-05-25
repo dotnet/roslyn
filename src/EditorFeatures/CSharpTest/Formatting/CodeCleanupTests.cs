@@ -5,13 +5,12 @@ using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 
-
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Formatting
 {
     public class CodeCleanupTests : FormattingEngineTestBase
     {
-        [WpfFact]
-        [Trait(Traits.Feature, Traits.Features.Formatting)]
+        [Fact]
+        [Trait(Traits.Feature, Traits.Features.CodeCleanup)]
         public void FormatDocumentRemoveUsings()
         {
             var code = @"using System;
@@ -34,13 +33,13 @@ class Program
     }
 }
 ";
-            AssertFormatWithView(expected, code, false,
-                (FeatureOnOffOptions.IsCodeCleanupRulesConfigured, true),
-                (FeatureOnOffOptions.RemoveUnusedUsings, true));
+            AssertFormatWithView(expected, code, debugMode: false,
+                (FeatureOnOffOptions.IsCodeCleanupRulesConfigured, enabled: true),
+                (FeatureOnOffOptions.RemoveUnusedUsings, enabled: true));
         }
 
-        [WpfFact]
-        [Trait(Traits.Feature, Traits.Features.Formatting)]
+        [Fact]
+        [Trait(Traits.Feature, Traits.Features.CodeCleanup)]
         public void FormatDocumentSortUsings()
         {
             var code = @"using System.Collections.Generic;
@@ -66,13 +65,13 @@ class Program
     }
 }
 ";
-            AssertFormatWithView(expected, code, false,
-                (FeatureOnOffOptions.IsCodeCleanupRulesConfigured, true),
-                (FeatureOnOffOptions.SortUsings, true));
+            AssertFormatWithView(expected, code, debugMode: false,
+                (FeatureOnOffOptions.IsCodeCleanupRulesConfigured, enabled: true),
+                (FeatureOnOffOptions.SortUsings, enabled: true));
         }
 
-        [WpfFact(Skip = "disable the test temporarily until figure out how to set up diagnostic analyzer")]
-        [Trait(Traits.Feature, Traits.Features.Formatting)]
+        [Fact(Skip = "disable the test temporarily until figure out how to set up diagnostic analyzer")]
+        [Trait(Traits.Feature, Traits.Features.CodeCleanup)]
         public void FormatDocumentRemoveUnusedVariable()
         {
             var code = @"class Program
@@ -90,9 +89,9 @@ class Program
     }
 }
 ";
-            AssertFormatWithView(expected, code, false,
-                (FeatureOnOffOptions.IsCodeCleanupRulesConfigured, true),
-                (FeatureOnOffOptions.RemoveUnusedVariables, true));
+            AssertFormatWithView(expected, code, debugMode: false,
+                (FeatureOnOffOptions.IsCodeCleanupRulesConfigured, enabled:true),
+                (FeatureOnOffOptions.RemoveUnusedVariables, enabled: true));
 
             //workspace.Options = workspace.Options.WithChangedOption(RemoteFeatureOptions.DiagnosticsEnabled, false);
         }

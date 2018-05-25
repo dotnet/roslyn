@@ -4,16 +4,12 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.ComponentModel.Composition;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Options;
-using Microsoft.CodeAnalysis.Formatting.Rules;
 using Microsoft.CodeAnalysis.Host.Mef;
-using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.OrganizeImports;
 using Microsoft.CodeAnalysis.RemoveUnnecessaryImports;
@@ -30,7 +26,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CodeCleanup
         /// <summary>
         /// Maps format document code cleanup options to DiagnosticId[]
         /// </summary>
-        private static ImmutableDictionary<PerLanguageOption<bool>, string[]> _dictionary = GetCodeCleanupOptionMapping();
+        private static ImmutableDictionary<PerLanguageOption<bool>, ImmutableArray<string>> _optionDiagnosticsMappings = GetCodeCleanupOptionMapping();
 
         private readonly ICodeFixService _codeFixService;
 
@@ -41,54 +37,71 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CodeCleanup
         {
             _codeFixService = codeFixService;
         }
-        public static IDictionary<PerLanguageOption<bool>, string[]> Dictionary
-        {
-            get
-            {
-                return _dictionary;
-            }
-        }
 
-        private static ImmutableDictionary<PerLanguageOption<bool>, string[]> GetCodeCleanupOptionMapping()
+        private static ImmutableDictionary<PerLanguageOption<bool>, ImmutableArray<string>> GetCodeCleanupOptionMapping()
         {
-            var dictionary = new Dictionary<PerLanguageOption<bool>, string[]>();
-            dictionary.Add(FeatureOnOffOptions.FixImplicitExplicitType,
-                new[] { IDEDiagnosticIds.UseImplicitTypeDiagnosticId, IDEDiagnosticIds.UseExplicitTypeDiagnosticId });
-            dictionary.Add(FeatureOnOffOptions.FixThisQualification,
-                new[] { IDEDiagnosticIds.AddQualificationDiagnosticId, IDEDiagnosticIds.RemoveQualificationDiagnosticId });
-            dictionary.Add(FeatureOnOffOptions.FixFrameworkTypes,
-                new[] { IDEDiagnosticIds.PreferFrameworkTypeInDeclarationsDiagnosticId, IDEDiagnosticIds.PreferFrameworkTypeInMemberAccessDiagnosticId });
-            dictionary.Add(FeatureOnOffOptions.FixAddRemoveBraces,
-                new[] { IDEDiagnosticIds.AddBracesDiagnosticId });
-            dictionary.Add(FeatureOnOffOptions.FixAccessibilityModifiers,
-                new[] { IDEDiagnosticIds.AddAccessibilityModifiersDiagnosticId });
-            dictionary.Add(FeatureOnOffOptions.SortAccessibilityModifiers,
-                new[] { IDEDiagnosticIds.OrderModifiersDiagnosticId });
-            dictionary.Add(FeatureOnOffOptions.MakeReadonly,
-                new[] { IDEDiagnosticIds.MakeFieldReadonlyDiagnosticId });
-            dictionary.Add(FeatureOnOffOptions.RemoveUnnecessaryCasts,
-                new[] { IDEDiagnosticIds.RemoveUnnecessaryCastDiagnosticId });
-            dictionary.Add(FeatureOnOffOptions.FixExpressionBodiedMembers,
-                new[] { IDEDiagnosticIds.UseExpressionBodyForConstructorsDiagnosticId,
-                IDEDiagnosticIds.UseExpressionBodyForMethodsDiagnosticId,
-                IDEDiagnosticIds.UseExpressionBodyForConversionOperatorsDiagnosticId,
-                IDEDiagnosticIds.UseExpressionBodyForOperatorsDiagnosticId,
-                IDEDiagnosticIds.UseExpressionBodyForPropertiesDiagnosticId,
-                IDEDiagnosticIds.UseExpressionBodyForIndexersDiagnosticId,
-                IDEDiagnosticIds.UseExpressionBodyForAccessorsDiagnosticId });
-            dictionary.Add(FeatureOnOffOptions.FixInlineVariableDeclarations,
-                new[] { IDEDiagnosticIds.InlineDeclarationDiagnosticId });
-            dictionary.Add(FeatureOnOffOptions.RemoveUnusedVariables,
-                new[] { "CS0168", "CS0219" });
-            dictionary.Add(FeatureOnOffOptions.FixObjectCollectionInitialization,
-                new[] { IDEDiagnosticIds.UseObjectInitializerDiagnosticId, IDEDiagnosticIds.UseCollectionInitializerDiagnosticId });
-            //dictionary.Add(FeatureOnOffOptions.FixLanguageFeatures,
-            //    new[] { IDEDiagnosticIds. });
-            //IDEDiagnosticIds.PreferIntrinsicPredefinedTypeInDeclarationsDiagnosticId,
-            //    IDEDiagnosticIds.PreferIntrinsicPredefinedTypeInMemberAccessDiagnosticId,
-            //    IDEDiagnosticIds.InlineAsTypeCheckId,
-            //    IDEDiagnosticIds.InlineIsTypeCheckId,
-            //    IDEDiagnosticIds.InlineIsTypeWithoutNameCheckDiagnosticsId,
+            var dictionary = new Dictionary<PerLanguageOption<bool>, ImmutableArray<string>>()
+            {
+                {
+                    FeatureOnOffOptions.FixImplicitExplicitType,
+                    ImmutableArray.Create(IDEDiagnosticIds.UseImplicitTypeDiagnosticId,
+                                          IDEDiagnosticIds.UseExplicitTypeDiagnosticId)
+                },
+                {
+                    FeatureOnOffOptions.FixThisQualification,
+                    ImmutableArray.Create(IDEDiagnosticIds.AddQualificationDiagnosticId,
+                                          IDEDiagnosticIds.RemoveQualificationDiagnosticId)
+                },
+                {
+                    FeatureOnOffOptions.FixFrameworkTypes,
+                    ImmutableArray.Create(IDEDiagnosticIds.PreferFrameworkTypeInDeclarationsDiagnosticId,
+                                          IDEDiagnosticIds.PreferFrameworkTypeInMemberAccessDiagnosticId)
+                },
+                {
+                    FeatureOnOffOptions.FixAddRemoveBraces,
+                    ImmutableArray.Create(IDEDiagnosticIds.AddBracesDiagnosticId)
+                },
+                {
+                    FeatureOnOffOptions.FixAccessibilityModifiers,
+                    ImmutableArray.Create(IDEDiagnosticIds.AddAccessibilityModifiersDiagnosticId)
+                },
+                {
+                    FeatureOnOffOptions.SortAccessibilityModifiers,
+                    ImmutableArray.Create(IDEDiagnosticIds.OrderModifiersDiagnosticId)
+                },
+                {
+                    FeatureOnOffOptions.MakeReadonly,
+                    ImmutableArray.Create(IDEDiagnosticIds.MakeFieldReadonlyDiagnosticId)
+                },
+                {
+                    FeatureOnOffOptions.RemoveUnnecessaryCasts,
+                    ImmutableArray.Create(IDEDiagnosticIds.RemoveUnnecessaryCastDiagnosticId)
+                },
+                {
+                    FeatureOnOffOptions.FixExpressionBodiedMembers,
+                    ImmutableArray.Create(IDEDiagnosticIds.UseExpressionBodyForConstructorsDiagnosticId,
+                                          IDEDiagnosticIds.UseExpressionBodyForMethodsDiagnosticId,
+                                          IDEDiagnosticIds.UseExpressionBodyForConversionOperatorsDiagnosticId,
+                                          IDEDiagnosticIds.UseExpressionBodyForOperatorsDiagnosticId,
+                                          IDEDiagnosticIds.UseExpressionBodyForPropertiesDiagnosticId,
+                                          IDEDiagnosticIds.UseExpressionBodyForIndexersDiagnosticId,
+                                          IDEDiagnosticIds.UseExpressionBodyForAccessorsDiagnosticId)
+                },
+                {
+                    FeatureOnOffOptions.FixInlineVariableDeclarations,
+                    ImmutableArray.Create(IDEDiagnosticIds.InlineDeclarationDiagnosticId)
+                },
+                {
+                    FeatureOnOffOptions.RemoveUnusedVariables,
+                    ImmutableArray.Create(IDEDiagnosticIds.DeclaredVariableNeverUsedDiagnosticId,
+                                          IDEDiagnosticIds.AssignedVariableNeverUsedDiagnosticId)
+                },
+                {
+                    FeatureOnOffOptions.FixObjectCollectionInitialization,
+                    ImmutableArray.Create(IDEDiagnosticIds.UseObjectInitializerDiagnosticId,
+                                          IDEDiagnosticIds.UseCollectionInitializerDiagnosticId)
+                }
+            };
 
             return dictionary.ToImmutableDictionary();
         }
@@ -96,14 +109,16 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CodeCleanup
         public Task<IEnumerable<TextChange>> GetChangesForCleanupDocument(Document document, CancellationToken cancellationToken)
         {
             var oldDocument = document;
-            document = RemoveSortUsings(document, cancellationToken);
             document = ApplyCodeFixes(document, cancellationToken);
+            // do the remove usings after code fix, as code fix might remove some code which can results in unused usings.
+            document = RemoveSortUsings(document, cancellationToken);
 
             return document.GetTextChangesAsync(oldDocument, cancellationToken);
         }
+
         private Document RemoveSortUsings(Document document, CancellationToken cancellationToken)
         {
-            // remove and sort usings
+            // remove usings
             if (document.Project.Solution.Workspace.Options.GetOption(FeatureOnOffOptions.RemoveUnusedUsings, LanguageNames.CSharp))
             {
                 var removeUsingsService = document.GetLanguageService<IRemoveUnnecessaryImportsService>();
@@ -146,16 +161,15 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CodeCleanup
             return document;
         }
 
-
         private List<string> GetEnabledDiagnosticIds(Workspace workspace)
         {
             var diagnosticIds = new List<string>();
 
-            foreach (var featureOption in CodeCleanupService.Dictionary.Keys)
+            foreach (var featureOption in _optionDiagnosticsMappings.Keys)
             {
                 if (workspace.Options.GetOption(featureOption, LanguageNames.CSharp))
                 {
-                    diagnosticIds.AddRange(CodeCleanupService.Dictionary[featureOption]);
+                    diagnosticIds.AddRange(_optionDiagnosticsMappings[featureOption]);
                 }
             }
 
