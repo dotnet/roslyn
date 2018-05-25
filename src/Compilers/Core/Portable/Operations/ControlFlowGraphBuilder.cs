@@ -1541,6 +1541,18 @@ namespace Microsoft.CodeAnalysis.Operations
                         // Three-value boolean logic (VB).
                         return VisitNullableBinaryConditionalOperator(operation, captureIdForResult);
                     }
+                    else if (ITypeSymbolHelpers.IsObjectType(operation.Type) &&
+                             ITypeSymbolHelpers.IsObjectType(operation.LeftOperand.Type) &&
+                             ITypeSymbolHelpers.IsObjectType(operation.RightOperand.Type))
+                    {
+                        return VisitObjectBinaryConditionalOperator(operation, captureIdForResult);
+                    }
+                    else if (ITypeSymbolHelpers.IsDynamicType(operation.Type) &&
+                             (ITypeSymbolHelpers.IsDynamicType(operation.LeftOperand.Type) ||
+                             ITypeSymbolHelpers.IsDynamicType(operation.RightOperand.Type)))
+                    {
+                        return VisitDynamicBinaryConditionalOperator(operation, captureIdForResult);
+                    }
                 }
                 else
                 {
@@ -1714,6 +1726,139 @@ namespace Microsoft.CodeAnalysis.Operations
             }
         }
 
+        private IOperation VisitObjectBinaryConditionalOperator(IBinaryOperation binOp, int? captureIdForResult)
+        {
+            SpillEvalStack();
+
+            Compilation compilation = ((Operation)binOp).SemanticModel.Compilation;
+            INamedTypeSymbol booleanType = compilation.GetSpecialType(SpecialType.System_Boolean);
+            IOperation left = binOp.LeftOperand;
+            IOperation right = binOp.RightOperand;
+            IOperation condition;
+
+            bool isAndAlso = CalculateAndOrSense(binOp, true);
+
+
+            var done = new BasicBlock(BasicBlockKind.Block);
+            var checkRight = new BasicBlock(BasicBlockKind.Block);
+
+            condition = new ConversionOperation(Visit(left), ConvertibleConversion.Instance, isTryCast: false, isChecked: false,
+                                                semanticModel: null, left.Syntax, booleanType, constantValue: default, isImplicit: true);
+
+            LinkBlocks(CurrentBasicBlock, (Operation.SetParentOperation(condition, null), JumpIfTrue: isAndAlso, RegularBranch(checkRight)));
+            _currentBasicBlock = null;
+
+            int resultId = _availableCaptureId++;
+            AddStatement(new FlowCapture(resultId, binOp.Syntax, new LiteralExpression(semanticModel: null, left.Syntax, booleanType, constantValue: !isAndAlso, isImplicit: true)));
+            LinkBlocks(CurrentBasicBlock, done);
+            _currentBasicBlock = null;
+
+            AppendNewBlock(checkRight);
+
+            condition = new ConversionOperation(Visit(right), ConvertibleConversion.Instance, isTryCast: false, isChecked: false,
+                                                semanticModel: null, right.Syntax, booleanType, constantValue: default, isImplicit: true);
+
+            AddStatement(new FlowCapture(resultId, binOp.Syntax, condition));
+
+            AppendNewBlock(done);
+
+            return new ConversionOperation(new FlowCaptureReference(resultId, binOp.Syntax, booleanType, constantValue: default),
+                                           ConvertibleConversion.Instance, isTryCast: false, isChecked: false,
+                                           semanticModel: null, binOp.Syntax, binOp.Type, binOp.ConstantValue, isImplicit: true);
+        }
+
+        private IOperation VisitDynamicBinaryConditionalOperator(IBinaryOperation binOp, int? captureIdForResult)
+        {
+            SpillEvalStack();
+
+            INamedTypeSymbol booleanType = ((Operation)binOp).SemanticModel.Compilation.GetSpecialType(SpecialType.System_Boolean);
+            IOperation left = binOp.LeftOperand;
+            IOperation right = binOp.RightOperand;
+            IMethodSymbol unaryOperatorMethod = ((BaseBinaryOperatorExpression)binOp).UnaryOperatorMethod;
+            bool isAndAlso = CalculateAndOrSense(binOp, true);
+            bool jumpIfTrue;
+            IOperation condition;
+
+            // Dynamic logical && and || operators are lowered as follows:
+            //   left && right  ->  IsFalse(left) ? left : And(left, right)
+            //   left || right  ->  IsTrue(left) ? left : Or(left, right)
+
+            var done = new BasicBlock(BasicBlockKind.Block);
+            var doBitWise = new BasicBlock(BasicBlockKind.Block);
+
+            int leftId = VisitAndCapture(left);
+
+            condition = GetCaptureReference(leftId, left);
+
+            if (ITypeSymbolHelpers.IsBooleanType(left.Type))
+            {
+                Debug.Assert(unaryOperatorMethod == null);
+                jumpIfTrue = isAndAlso;
+            }
+            else if (ITypeSymbolHelpers.IsDynamicType(left.Type) || unaryOperatorMethod != null)
+            {
+                jumpIfTrue = false;
+
+                if (unaryOperatorMethod == null || 
+                    (ITypeSymbolHelpers.IsBooleanType(unaryOperatorMethod.ReturnType) &&
+                     (ITypeSymbolHelpers.IsNullableType(left.Type) || !ITypeSymbolHelpers.IsNullableType(unaryOperatorMethod.Parameters[0].Type))))
+                {
+                    condition = new UnaryOperatorExpression(isAndAlso ? UnaryOperatorKind.False : UnaryOperatorKind.True,
+                                                            condition, isLifted: false, isChecked: false, operatorMethod: unaryOperatorMethod,
+                                                            semanticModel: null, condition.Syntax, booleanType, constantValue: default, isImplicit: true);
+                }
+                else
+                {
+                    condition = MakeInvalidOperation(booleanType, condition);
+                }
+            }
+            else
+            {
+                // This is either an error case, or left is implicitly convertible to boolean
+                // PROTOTYPE(dataflow): In case the conversion is user-defined, neither bound node, nor IBinaryOperation
+                //                      has information about that method. For now we create conversion without that information too.
+                condition = new ConversionOperation(condition, ConvertibleConversion.Instance, isTryCast: false, isChecked: false,
+                                                    semanticModel: null, left.Syntax, booleanType, constantValue: default, isImplicit: true);
+                jumpIfTrue = isAndAlso;
+            }
+
+            LinkBlocks(CurrentBasicBlock, (Operation.SetParentOperation(condition, null), jumpIfTrue, RegularBranch(doBitWise)));
+            _currentBasicBlock = null;
+
+            int resultId = captureIdForResult ?? _availableCaptureId++;
+            IOperation resultFromLeft = GetCaptureReference(leftId, left);
+
+            if (!ITypeSymbolHelpers.IsDynamicType(left.Type))
+            {
+                resultFromLeft = new ConversionOperation(resultFromLeft, ConvertibleConversion.Instance, isTryCast: false, isChecked: false,
+                                                         semanticModel: null, left.Syntax, binOp.Type, constantValue: default, isImplicit: true);
+            }
+
+            AddStatement(new FlowCapture(resultId, binOp.Syntax, resultFromLeft));
+            LinkBlocks(CurrentBasicBlock, done);
+            _currentBasicBlock = null;
+
+            AppendNewBlock(doBitWise);
+
+            AddStatement(new FlowCapture(resultId, binOp.Syntax,
+                                         new BinaryOperatorExpression(isAndAlso ? BinaryOperatorKind.And : BinaryOperatorKind.Or,
+                                                                      GetCaptureReference(leftId, left),
+                                                                      Visit(right),
+                                                                      isLifted: false,
+                                                                      binOp.IsChecked,
+                                                                      binOp.IsCompareText,
+                                                                      binOp.OperatorMethod,
+                                                                      unaryOperatorMethod: null,
+                                                                      semanticModel: null,
+                                                                      binOp.Syntax,
+                                                                      binOp.Type,
+                                                                      binOp.ConstantValue, IsImplicit(binOp))));
+
+            AppendNewBlock(done);
+
+            return GetCaptureReference(resultId, binOp);
+        }
+
         private IOperation VisitUserDefinedBinaryConditionalOperator(IBinaryOperation binOp, int? captureIdForResult)
         {
             SpillEvalStack();
@@ -1724,6 +1869,7 @@ namespace Microsoft.CodeAnalysis.Operations
             IOperation left = binOp.LeftOperand;
             IOperation right = binOp.RightOperand;
             IMethodSymbol unaryOperatorMethod = ((BaseBinaryOperatorExpression)binOp).UnaryOperatorMethod;
+            bool isAndAlso = CalculateAndOrSense(binOp, true);
             IOperation condition;
 
             var done = new BasicBlock(BasicBlockKind.Block);
@@ -1752,7 +1898,7 @@ namespace Microsoft.CodeAnalysis.Operations
 
             if (unaryOperatorMethod != null && ITypeSymbolHelpers.IsBooleanType(unaryOperatorMethod.ReturnType))
             {
-                condition = new UnaryOperatorExpression(binOp.OperatorKind == BinaryOperatorKind.ConditionalAnd ? UnaryOperatorKind.False : UnaryOperatorKind.True,
+                condition = new UnaryOperatorExpression(isAndAlso ? UnaryOperatorKind.False : UnaryOperatorKind.True,
                                                         condition, isLifted: false, isChecked: false, operatorMethod: unaryOperatorMethod,
                                                         semanticModel: null, condition.Syntax, unaryOperatorMethod.ReturnType, constantValue: default, isImplicit: true);
             }
@@ -1772,7 +1918,7 @@ namespace Microsoft.CodeAnalysis.Operations
             AppendNewBlock(doBitWise);
 
             AddStatement(new FlowCapture(resultId, binOp.Syntax,
-                                         new BinaryOperatorExpression(binOp.OperatorKind == BinaryOperatorKind.ConditionalAnd ? BinaryOperatorKind.And : BinaryOperatorKind.Or,
+                                         new BinaryOperatorExpression(isAndAlso ? BinaryOperatorKind.And : BinaryOperatorKind.Or,
                                                                       GetCaptureReference(leftId, left), 
                                                                       Visit(right), 
                                                                       isLifted, 
