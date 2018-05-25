@@ -179,53 +179,49 @@ namespace Microsoft.CodeAnalysis
             Debug.Assert(nested.Directory.StartsWith(parent.Directory, StringComparison.Ordinal));
 
             // PROTOTYPE(editorconfig): Global properties are not described in the editorconfig
-            // spec and are not specified as being inherited or overriden. The only mentioned
+            // spec and are not specified as being inherited or overridden. The only mentioned
             // global property, 'root', should definitely not be inherited. For now, let's assume
             // that the global properties are fixed.
-            var newGlobals = nested.GlobalSection;
+            Section newGlobals = nested.GlobalSection;
 
             var newSections = ImmutableArray.CreateBuilder<Section>(
                 Math.Max(nested.NamedSections.Length, parent.NamedSections.Length));
 
             // Parent config sections come first
-            foreach (var parentSection in parent.NamedSections)
+            newSections.AddRange(parent.NamedSections);
+
+            // Now nested config sections
+            foreach (Section nestedSection in nested.NamedSections)
             {
-                string name = parentSection.Name;
-                var nestedSection = findSection(nested.NamedSections, name);
-                if (nestedSection != null)
+                int parentIndex = findSection(newSections, nestedSection.Name);
+                if (parentIndex >= 0)
                 {
                     // Nested section properties override parent section properties
-                    var properties = parentSection.Properties.SetItems(nestedSection.Properties);
-                    newSections.Add(new Section(name, properties));
+                    Section parentSection = newSections[parentIndex];
+                    ImmutableDictionary<string, string> properties = 
+                        parentSection.Properties.SetItems(nestedSection.Properties);
+                    newSections[parentIndex] = new Section(nestedSection.Name, properties);
                 }
                 else
                 {
-                    newSections.Add(parentSection);
-                }
-            }
-
-            // Now nested config sections
-            foreach (var section in nested.NamedSections)
-            {
-                if (findSection(parent.NamedSections, section.Name) is null)
-                {
-                    newSections.Add(section);
+                    newSections.Add(nestedSection);
                 }
             }
 
             return new EditorConfig(newGlobals, newSections.ToImmutable(), nested.Directory);
 
-            Section findSection(ImmutableArray<Section> sections, string name)
+            int findSection(ImmutableArray<Section>.Builder sections, string name)
             {
-                foreach (var s in sections)
+                for (int i = 0; i < sections.Count; i++)
                 {
+                    Section s = sections[i];
                     if (s.Name.Equals(name, Section.NameComparer))
                     {
-                        return s;
+                        return i;
                     }
                 }
 
-                return null;
+                return -1;
             }
         }
 
