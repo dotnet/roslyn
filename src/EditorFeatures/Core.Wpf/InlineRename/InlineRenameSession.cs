@@ -123,8 +123,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             _textBufferAssociatedViewService = textBufferAssociatedViewService;
             _textBufferAssociatedViewService.SubjectBuffersConnected += OnSubjectBuffersConnected;
 
+            // Disable completion when an inline rename session starts
             _featureService = featureServiceFactory.GlobalFeatureService;
-
             _completionDisabledToken = _featureService.Disable(PredefinedEditorFeatureNames.InteractivePopup, this);
 
             _renameService = renameService;
@@ -324,6 +324,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             _dismissed = true;
             _workspace.WorkspaceChanged -= OnWorkspaceChanged;
             _textBufferAssociatedViewService.SubjectBuffersConnected -= OnSubjectBuffersConnected;
+
+            // Reenable completion now that the inline rename session is done
             _completionDisabledToken.Dispose();
 
             foreach (var textBuffer in _openTextBuffers.Keys)
