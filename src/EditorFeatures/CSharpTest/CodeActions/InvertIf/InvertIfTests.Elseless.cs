@@ -99,7 +99,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.Invert
             {
                 continue;
             }
-
             f();
         }
     }
@@ -200,7 +199,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.Invert
                 {
                     continue;
                 }
-
                 f();
             }
         }
@@ -230,7 +228,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.Invert
         {
             return;
         }
-
         f();
     }
 }");
@@ -252,7 +249,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.Invert
                     f();
                     f();
                 }
-
                 break;
         }
     }
@@ -268,10 +264,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.Invert
                 {
                     break;
                 }
-
                 f();
                 f();
-
                 break;
         }
     }
@@ -312,12 +306,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.Invert
                 {
                     return 2;
                 }
-
                 if (c)
                 {
                     return 1;
                 }
-
                 return 2;
         }
     }

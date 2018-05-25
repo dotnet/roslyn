@@ -6,6 +6,7 @@ using System.Diagnostics;
 using System.Linq;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.CodeRefactorings.InvertIf;
+using Microsoft.CodeAnalysis.CSharp.CodeGeneration;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Formatting;
@@ -15,10 +16,11 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InvertIf
 {
     [ExportCodeRefactoringProvider(LanguageNames.CSharp, Name = PredefinedCodeRefactoringProviderNames.InvertIf), Shared]
-    internal sealed class CSharpInvertIfCodeRefactoringProvider : AbstractInvertIfCodeRefactoringProvider<IfStatementSyntax>
+    internal sealed class CSharpInvertIfCodeRefactoringProvider : AbstractInvertIfCodeRefactoringProvider<IfStatementSyntax, StatementSyntax>
     {
         protected override string GetTitle() => CSharpFeaturesResources.Invert_if;
 
+#if false
         protected override SyntaxNode GetRootWithInvertIfStatement(
             SyntaxNode root,
             IfStatementSyntax ifNode,
@@ -82,7 +84,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InvertIf
                     {
                         var updatedIf = ifNode
                             .WithCondition(negatedCondition);
-
+                        
                         return root.ReplaceNode(ifNode, updatedIf);
                     }
 
@@ -201,52 +203,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InvertIf
                     throw ExceptionUtilities.UnexpectedValue(invertIfStyle);
             }
         }
-
-        private static SyntaxList<StatementSyntax> UnwrapBlock(StatementSyntax ifBody)
-        {
-            return ifBody is BlockSyntax block
-                ? block.Statements
-                : SyntaxFactory.SingletonList(ifBody);
-        }
-
-        private static StatementSyntax ReplaceEmbeddedStatement(StatementSyntax statement, StatementSyntax[] statements)
-        {
-            if (statements.Length > 0)
-            {
-                // FIXME preserve comments
-                statements[0] = statements[0].WithoutLeadingTrivia();
-            }
-
-            return statement is BlockSyntax block
-                ? block.WithStatements(SyntaxFactory.List(statements))
-                : statements.Length == 1 ? statements[0] : SyntaxFactory.Block(statements);
-        }
-
-        private static SyntaxList<StatementSyntax> GetStatements(SyntaxNode node)
-        {
-            switch (node)
-            {
-                case BlockSyntax n:
-                    return n.Statements;
-                case SwitchSectionSyntax n:
-                    return n.Statements;
-                default:
-                    throw ExceptionUtilities.UnexpectedValue(node);
-            }
-        }
-
-        private static SyntaxNode WithStatements(SyntaxNode node, IEnumerable<SyntaxNode> statements)
-        {
-            switch (node)
-            {
-                case BlockSyntax n:
-                    return n.WithStatements(SyntaxFactory.List(statements));
-                case SwitchSectionSyntax n:
-                    return n.WithStatements(SyntaxFactory.List(statements));
-                default:
-                    throw ExceptionUtilities.UnexpectedValue(node);
-            }
-        }
+#endif
 
         protected override TextSpan GetHeaderSpan(IfStatementSyntax ifNode)
         {
@@ -267,97 +224,186 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InvertIf
         protected override StatementRange GetIfBodyStatementRange(IfStatementSyntax ifNode)
             => new StatementRange(ifNode.Statement, ifNode.Statement);
 
-        protected override int GetNearmostParentJumpStatementRawKind(IfStatementSyntax ifNode)
-            => (int)GetNearmostParentJumpStatementKind(ifNode);
+        protected override bool IsStatementContainer(SyntaxNode node)
+            => node.IsKind(SyntaxKind.Block, SyntaxKind.SwitchSection);
 
-        private static SyntaxKind GetNearmostParentJumpStatementKind(IfStatementSyntax ifNode)
+        protected override bool IsNoOpSyntaxNode(SyntaxNode node)
+            => node.IsKind(SyntaxKind.Block, SyntaxKind.EmptyStatement);
+
+        protected override bool IsStatement(SyntaxNode node)
+            => node is StatementSyntax;
+
+        protected override SyntaxNode GetNextExecutableStatement(SyntaxNode node)
+            => CSharpSyntaxFactsService.Instance.GetNextExecutableStatement(node);
+
+        protected override bool CanControlFlowOut(SyntaxNode node)
         {
-            foreach (var node in ifNode.Ancestors())
+            switch (node.Kind())
             {
-                switch (node.Kind())
-                {
-                    case SyntaxKind.SwitchSection:
-                        return SyntaxKind.BreakStatement;
-
-                    case SyntaxKind.LocalFunctionStatement:
-                    case SyntaxKind.SetAccessorDeclaration:
-                    case SyntaxKind.GetAccessorDeclaration:
-                    case SyntaxKind.AddAccessorDeclaration:
-                    case SyntaxKind.RemoveAccessorDeclaration:
-                    case SyntaxKind.MethodDeclaration:
-                    case SyntaxKind.ConstructorDeclaration:
-                    case SyntaxKind.DestructorDeclaration:
-                    case SyntaxKind.OperatorDeclaration:
-                    case SyntaxKind.ConversionOperatorDeclaration:
-                    case SyntaxKind.AnonymousMethodExpression:
-                    case SyntaxKind.SimpleLambdaExpression:
-                    case SyntaxKind.ParenthesizedLambdaExpression:
-                        return SyntaxKind.ReturnStatement;
-
-                    case SyntaxKind.DoStatement:
-                    case SyntaxKind.WhileStatement:
-                    case SyntaxKind.ForStatement:
-                    case SyntaxKind.ForEachStatement:
-                    case SyntaxKind.ForEachVariableStatement:
-                        return SyntaxKind.ContinueStatement;
-                }
+                case SyntaxKind.SwitchSection:
+                case SyntaxKind.LocalFunctionStatement:
+                case SyntaxKind.SetAccessorDeclaration:
+                case SyntaxKind.GetAccessorDeclaration:
+                case SyntaxKind.AddAccessorDeclaration:
+                case SyntaxKind.RemoveAccessorDeclaration:
+                case SyntaxKind.MethodDeclaration:
+                case SyntaxKind.ConstructorDeclaration:
+                case SyntaxKind.DestructorDeclaration:
+                case SyntaxKind.OperatorDeclaration:
+                case SyntaxKind.ConversionOperatorDeclaration:
+                case SyntaxKind.AnonymousMethodExpression:
+                case SyntaxKind.SimpleLambdaExpression:
+                case SyntaxKind.ParenthesizedLambdaExpression:
+                case SyntaxKind.DoStatement:
+                case SyntaxKind.WhileStatement:
+                case SyntaxKind.ForStatement:
+                case SyntaxKind.ForEachStatement:
+                case SyntaxKind.ForEachVariableStatement:
+                    return false;
             }
 
-            throw ExceptionUtilities.Unreachable;
+            return true;
         }
 
-        protected override IEnumerable<StatementRange> GetSubsequentStatementRanges(IfStatementSyntax ifNode)
+        protected override SyntaxList<SyntaxNode> GetStatements(SyntaxNode node)
         {
-            StatementSyntax innerStatement = ifNode;
-            foreach (var node in ifNode.Ancestors())
+            switch (node)
             {
-                var nextStatement = innerStatement.GetNextStatement();
-                if (nextStatement != null && node.IsKind(SyntaxKind.Block, SyntaxKind.SwitchSection))
-                {
-                    yield return new StatementRange(nextStatement, GetStatements(node).Last());
-                }
-
-                switch (node.Kind())
-                {
-                    case SyntaxKind.Block:
-                        // Continue walking up to visit possible outer blocks
-                        break;
-
-                    case SyntaxKind.SwitchSection:
-                    case SyntaxKind.LocalFunctionStatement:
-                    case SyntaxKind.SetAccessorDeclaration:
-                    case SyntaxKind.GetAccessorDeclaration:
-                    case SyntaxKind.AddAccessorDeclaration:
-                    case SyntaxKind.RemoveAccessorDeclaration:
-                    case SyntaxKind.MethodDeclaration:
-                    case SyntaxKind.ConstructorDeclaration:
-                    case SyntaxKind.DestructorDeclaration:
-                    case SyntaxKind.OperatorDeclaration:
-                    case SyntaxKind.ConversionOperatorDeclaration:
-                    case SyntaxKind.AnonymousMethodExpression:
-                    case SyntaxKind.SimpleLambdaExpression:
-                    case SyntaxKind.ParenthesizedLambdaExpression:
-                    case SyntaxKind.DoStatement:
-                    case SyntaxKind.WhileStatement:
-                    case SyntaxKind.ForStatement:
-                    case SyntaxKind.ForEachStatement:
-                    case SyntaxKind.ForEachVariableStatement:
-                        // We no longer need to continue since other statements
-                        // are out of reach, as far as this analysis concerned.
-                        yield break;
-                }
-
-                if (node is StatementSyntax statement)
-                {
-                    innerStatement = statement;
-                }
+                case BlockSyntax n:
+                    return n.Statements;
+                case SwitchSectionSyntax n:
+                    return n.Statements;
+                default:
+                    throw ExceptionUtilities.UnexpectedValue(node);
             }
         }
 
-        protected override bool IsEmptyStatementRange(StatementRange statementRange)
+        protected override int GetJumpStatementRawKind(SyntaxNode node)
         {
-            // FIXME check for empty blocks
-            return statementRange.IsSingleStatement && statementRange.FirstStatement.IsKind(SyntaxKind.EmptyStatement);
+            switch (node.Kind())
+            {
+                case SyntaxKind.SwitchSection:
+                    return (int)SyntaxKind.BreakStatement;
+
+                case SyntaxKind.LocalFunctionStatement:
+                case SyntaxKind.SetAccessorDeclaration:
+                case SyntaxKind.GetAccessorDeclaration:
+                case SyntaxKind.AddAccessorDeclaration:
+                case SyntaxKind.RemoveAccessorDeclaration:
+                case SyntaxKind.MethodDeclaration:
+                case SyntaxKind.ConstructorDeclaration:
+                case SyntaxKind.DestructorDeclaration:
+                case SyntaxKind.OperatorDeclaration:
+                case SyntaxKind.ConversionOperatorDeclaration:
+                case SyntaxKind.AnonymousMethodExpression:
+                case SyntaxKind.SimpleLambdaExpression:
+                case SyntaxKind.ParenthesizedLambdaExpression:
+                    return (int)SyntaxKind.ReturnStatement;
+
+                case SyntaxKind.DoStatement:
+                case SyntaxKind.WhileStatement:
+                case SyntaxKind.ForStatement:
+                case SyntaxKind.ForEachStatement:
+                case SyntaxKind.ForEachVariableStatement:
+                    return (int)SyntaxKind.ContinueStatement;
+            }
+
+            return -1;
+        }
+
+        protected override SyntaxNode GetJumpStatement(int rawKind)
+        {
+            switch ((SyntaxKind)rawKind)
+            {
+                case SyntaxKind.ContinueStatement:
+                    return SyntaxFactory.ContinueStatement();
+                case SyntaxKind.BreakStatement:
+                    return SyntaxFactory.BreakStatement();
+                case SyntaxKind.ReturnStatement:
+                    return SyntaxFactory.ReturnStatement();
+                default:
+                    throw ExceptionUtilities.UnexpectedValue(rawKind);
+            }
+        }
+
+        protected override StatementSyntax GetIfBody(IfStatementSyntax ifNode)
+        {
+            return ifNode.Statement;
+        }
+
+        protected override StatementSyntax AsEmbeddedStatement(
+            StatementSyntax originalStatement,
+            IEnumerable<SyntaxNode> newStatements)
+        {
+            var statementsArray = newStatements.ToArray();
+
+            if (statementsArray.Length > 0)
+            {
+                // FIXME preserve comments
+                statementsArray[0] = statementsArray[0].WithoutLeadingTrivia();
+            }
+
+            // FIXME remove leading trivia except for comments
+            return originalStatement is BlockSyntax block
+                ? block.WithStatements(SyntaxFactory.List(statementsArray))
+                : statementsArray.Length == 1
+                    ? (StatementSyntax)statementsArray.Single()
+                    : SyntaxFactory.Block(statementsArray.Cast<StatementSyntax>());
+        }
+
+        protected override StatementSyntax GetEmptyEmbeddedStatement()
+        {
+            return SyntaxFactory.Block();
+        }
+
+        protected override SyntaxNode UpdateIf(
+            IfStatementSyntax ifNode,
+            SyntaxNode condition,
+            StatementSyntax trueStatement = null,
+            StatementSyntax falseStatement = null)
+        {
+            var updatedIf = ifNode.WithCondition((ExpressionSyntax)condition);
+
+            if (trueStatement != null)
+            {
+                updatedIf = updatedIf.WithStatement(
+                    trueStatement is IfStatementSyntax
+                        ? SyntaxFactory.Block(trueStatement)
+                        : trueStatement);
+            }
+
+            if (falseStatement != null)
+            {
+                updatedIf = updatedIf.WithElse(SyntaxFactory.ElseClause(falseStatement));
+            }
+
+            return updatedIf;
+        }
+
+        protected override SyntaxNode WithStatements(SyntaxNode node, IEnumerable<SyntaxNode> statements)
+        {
+            switch (node)
+            {
+                case BlockSyntax n:
+                    return n.WithStatements(SyntaxFactory.List(statements));
+                case SwitchSectionSyntax n:
+                    return n.WithStatements(SyntaxFactory.List(statements));
+                default:
+                    throw ExceptionUtilities.UnexpectedValue(node);
+            }
+        }
+
+        protected override StatementSyntax GetElseBody(IfStatementSyntax ifNode)
+        {
+            Debug.Assert(ifNode.Else != null);
+            return ifNode.Else.Statement;
+        }
+
+        protected override IEnumerable<SyntaxNode> UnwrapBlock(StatementSyntax ifBody)
+        {
+            return ifBody is BlockSyntax block
+                ? block.Statements
+                : SyntaxFactory.SingletonList(ifBody);
         }
     }
 }
