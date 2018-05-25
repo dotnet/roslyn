@@ -292,9 +292,26 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
 
             csc = new Csc();
             csc.Sources = MSBuildUtil.CreateTaskItems("test.cs");
-            csc.DebugType = "portable";
+            csc.DebugType = "full";
             csc.EmbeddedFiles = MSBuildUtil.CreateTaskItems();
-            Assert.Equal(@"/debug:portable /out:test.exe test.cs", csc.GenerateResponseFileContents());
+            Assert.Equal(@"/debug:full /out:test.exe test.cs", csc.GenerateResponseFileContents());
+        }
+
+        [Fact]
+        public void EmbedAllSources()
+        {
+            var csc = new Csc();
+            csc.Sources = MSBuildUtil.CreateTaskItems("test.cs");
+            csc.EmbeddedFiles = MSBuildUtil.CreateTaskItems(@"test.cs", @"test.txt");
+            csc.EmbedAllSources = true;
+
+            Assert.Equal(@"/out:test.exe /embed /embed:test.cs /embed:test.txt test.cs", csc.GenerateResponseFileContents());
+
+            csc = new Csc();
+            csc.Sources = MSBuildUtil.CreateTaskItems("test.cs");
+            csc.EmbedAllSources = true;
+
+            Assert.Equal(@"/out:test.exe /embed test.cs", csc.GenerateResponseFileContents());
         }
 
         [Fact]

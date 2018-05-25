@@ -478,7 +478,7 @@ BC30308: 'Public Overrides Sub Format(i As Integer, j As Integer)' cannot overri
         <Fact()>
         Public Sub OverloadingBasedOnOptionalParameters()
             ' NOTE: this matches Dev11 implementation, not Dev10
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
     <compilation>
         <file name="a.vb">
 Class C ' allowed
@@ -556,7 +556,7 @@ BC30345: 'Public Shared Sub f([x As Integer = 0])' and 'Public Shared Sub f(ByRe
 
         <Fact()>
         Public Sub HidingBySignatureWithOptionalParameters()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
     <compilation>
         <file name="a.vb">
 Imports System
@@ -597,7 +597,7 @@ BC40005: sub 'f' shadows an overridable method in the base class 'B'. To overrid
 
         <Fact()>
         Public Sub BC31404ForOverloadingBasedOnOptionalParameters()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
     <compilation>
         <file name="a.vb">
 MustInherit Class A
@@ -639,7 +639,7 @@ BC31404: 'Public MustOverride Overloads Sub f(x As String)' cannot shadow a meth
 
         <Fact()>
         Public Sub OverloadingWithNotAccessibleMethods()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
     <compilation>
         <file name="a.vb">
 Imports System

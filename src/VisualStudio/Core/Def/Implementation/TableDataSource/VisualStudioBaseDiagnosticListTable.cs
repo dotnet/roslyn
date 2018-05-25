@@ -1,12 +1,10 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Utilities;
-using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Shell.TableControl;
 using Microsoft.VisualStudio.Shell.TableManager;
@@ -32,8 +30,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
             SuppressionStateColumnDefinition.ColumnName
         };
 
-        protected VisualStudioBaseDiagnosticListTable(
-            SVsServiceProvider serviceProvider, Microsoft.CodeAnalysis.Workspace workspace, IDiagnosticService diagnosticService, ITableManagerProvider provider) :
+        protected VisualStudioBaseDiagnosticListTable(Workspace workspace, IDiagnosticService diagnosticService, ITableManagerProvider provider) :
             base(workspace, provider, StandardTables.ErrorsTable)
         {
         }

@@ -588,5 +588,35 @@ End Class
 ",
 CodeStyleOptions.QualifyFieldAccess)
         End Function
+
+        <WorkItem(22776, "https://github.com/dotnet/roslyn/issues/22776")>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsQualifyMemberAccess)>
+        Public Async Function DoNotReportToQualify_InObjectInitializer1() As Task
+            Await TestMissingAsyncWithOption("
+class C
+    Public Foo As Integer
+
+    Sub Bar()
+        Dim c = New C() With { [|.Foo = 1|] }
+    End Sub
+End Class
+",
+CodeStyleOptions.QualifyFieldAccess)
+        End Function
+
+        <WorkItem(22776, "https://github.com/dotnet/roslyn/issues/22776")>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsQualifyMemberAccess)>
+        Public Async Function DoNotReportToQualify_InObjectInitializer2() As Task
+            Await TestMissingAsyncWithOption("
+class C
+    Public Property Foo As Integer
+
+    Sub Bar()
+        Dim c = New C() With { [|.Foo|] = 1 }
+    End Sub
+End Class
+",
+CodeStyleOptions.QualifyFieldAccess)
+        End Function
     End Class
 End Namespace

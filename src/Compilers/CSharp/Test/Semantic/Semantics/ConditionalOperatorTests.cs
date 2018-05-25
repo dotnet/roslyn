@@ -96,8 +96,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         {
             TestConditional("true ? GetInt() : null", null,
                 Diagnostic(ErrorCode.ERR_InvalidQM, "true ? GetInt() : null").WithArguments("int", "<null>"));
-            TestConditional("false ? GetString : (System.Func<int>)null", null,
+            TestConditional("false ? GetString : (System.Func<int>)null", null, TestOptions.WithoutImprovedOverloadCandidates,
                 Diagnostic(ErrorCode.ERR_BadRetType, "GetString").WithArguments("C.GetString()", "string"));
+            TestConditional("false ? GetString : (System.Func<int>)null", null,
+                // (6,34): error CS0173: Type of conditional expression cannot be determined because there is no implicit conversion between 'method group' and 'Func<int>'
+                //         System.Console.WriteLine(false ? GetString : (System.Func<int>)null);
+                Diagnostic(ErrorCode.ERR_InvalidQM, "false ? GetString : (System.Func<int>)null").WithArguments("method group", "System.Func<int>").WithLocation(6, 34));
             TestConditional("true ? (System.Func<int, short>)null : x => x", null,
                 Diagnostic(ErrorCode.ERR_InvalidQM, "true ? (System.Func<int, short>)null : x => x").WithArguments("System.Func<int, short>", "lambda expression"));
         }
@@ -669,7 +673,7 @@ class Program
 }
 ";
 
-            var verifier = CompileAndVerify(new string[] { source }, additionalRefs: new[] { SystemCoreRef }, expectedOutput: "1");
+            var verifier = CompileAndVerify(new string[] { source }, references: new[] { SystemCoreRef }, expectedOutput: "1");
             verifier.VerifyIL("Program.Main", expectedIL);
         }
 
@@ -731,7 +735,7 @@ class Program
 }
 ";
 
-            var verifier = CompileAndVerify(new string[] { source }, additionalRefs: new[] { SystemCoreRef }, expectedOutput: "1");
+            var verifier = CompileAndVerify(new string[] { source }, references: new[] { SystemCoreRef }, expectedOutput: "1");
             verifier.VerifyIL("Program.Main", expectedIL);
         }
 
@@ -796,7 +800,7 @@ class Program
 }
 ";
 
-            var verifier = CompileAndVerify(new string[] { source }, additionalRefs: new[] { SystemCoreRef }, expectedOutput: "1");
+            var verifier = CompileAndVerify(new string[] { source }, references: new[] { SystemCoreRef }, expectedOutput: "1");
             verifier.VerifyIL("Program.Main", expectedIL);
         }
 
@@ -873,7 +877,7 @@ class Program
 }
 ";
 
-            var verifier = CompileAndVerify(new string[] { source }, additionalRefs: new[] { SystemCoreRef }, expectedOutput: "1");
+            var verifier = CompileAndVerify(new string[] { source }, references: new[] { SystemCoreRef }, expectedOutput: "1");
             verifier.VerifyIL("Program.Main", expectedIL);
         }
 
@@ -951,7 +955,7 @@ class Program
 }
 ";
 
-            var verifier = CompileAndVerify(new string[] { source }, additionalRefs: new[] { SystemCoreRef }, expectedOutput: "1");
+            var verifier = CompileAndVerify(new string[] { source }, references: new[] { SystemCoreRef }, expectedOutput: "1");
             verifier.VerifyIL("Program.Main", expectedIL);
         }
 
@@ -1123,7 +1127,7 @@ namespace TernaryAndVarianceConversion
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlibAndSystemCore(source, options: TestOptions.ReleaseExe);
+            var compilation = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.ReleaseExe);
             CompileAndVerify(compilation, expectedOutput: @"Testing with ternary test flag == True
 1
 TernaryAndVarianceConversion.Mammal
@@ -1181,12 +1185,17 @@ System.Collections.Generic.List`1[System.Int32]
         return b ? c : d;
     }
 }";
-            CreateStandardCompilation(source).VerifyDiagnostics(
+            CreateCompilation(source).VerifyDiagnostics(
                 // (3,34): error CS0246: The type or namespace name 'D' could not be found (are you missing a using directive or an assembly reference?)
                 Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "D").WithArguments("D"));
         }
 
         private static void TestConditional(string conditionalExpression, string expectedType, params DiagnosticDescription[] expectedDiagnostics)
+        {
+            TestConditional(conditionalExpression, expectedType, null, expectedDiagnostics);
+        }
+
+        private static void TestConditional(string conditionalExpression, string expectedType, CSharpParseOptions parseOptions, params DiagnosticDescription[] expectedDiagnostics)
         {
             string sourceTemplate = @"
 class C
@@ -1215,9 +1224,9 @@ public enum color {{ Red, Blue, Green }};
 interface I<in T, out U> {{ }}";
 
             var source = string.Format(sourceTemplate, conditionalExpression);
-            var tree = Parse(source);
+            var tree = Parse(source, options: parseOptions);
 
-            var comp = CreateStandardCompilation(tree);
+            var comp = CreateCompilation(tree);
             comp.VerifyDiagnostics(expectedDiagnostics);
 
             var compUnit = tree.GetCompilationUnitRoot();
@@ -1269,7 +1278,7 @@ class TestClass
 }
 ";
 
-            var compilation = CreateStandardCompilation(source, options: TestOptions.DebugExe);
+            var compilation = CreateCompilation(source, options: TestOptions.DebugExe);
 
             CompileAndVerify(compilation, expectedOutput:
 @"----
@@ -1324,7 +1333,7 @@ class TestClass
 }
 ";
 
-            var compilation = CreateStandardCompilation(source, options: TestOptions.DebugExe);
+            var compilation = CreateCompilation(source, options: TestOptions.DebugExe);
 
             CompileAndVerify(compilation, expectedOutput:
 @"----
@@ -1371,7 +1380,7 @@ class TestClass
 }
 ";
 
-            var compilation = CreateStandardCompilation(source, options: TestOptions.DebugDll);
+            var compilation = CreateCompilation(source, options: TestOptions.DebugDll);
 
             compilation.VerifyDiagnostics(
     // (10,9): error CS0131: The left-hand side of an assignment must be a variable, property or indexer
@@ -1433,7 +1442,7 @@ class TestClass
 }
 ";
 
-            var compilation = CreateStandardCompilation(source, options: TestOptions.DebugExe,
+            var compilation = CreateCompilation(source, options: TestOptions.DebugExe,
                                                             parseOptions: CSharpParseOptions.Default.WithPreprocessorSymbols("DEBUG"));
 
             CompileAndVerify(compilation, expectedOutput:
@@ -1453,7 +1462,7 @@ Self
 Test
 ");
 
-            compilation = CreateStandardCompilation(source, options: TestOptions.ReleaseExe);
+            compilation = CreateCompilation(source, options: TestOptions.ReleaseExe);
 
             CompileAndVerify(compilation, expectedOutput: "---");
         }

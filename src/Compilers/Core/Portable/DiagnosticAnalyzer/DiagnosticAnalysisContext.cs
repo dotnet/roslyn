@@ -857,17 +857,20 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         private readonly CancellationToken _cancellationToken;
 
         /// <summary>
-        /// Method body and/or expressions subject to analysis.
+        /// One or more operation blocks that are the subject of the analysis.
+        /// This includes all blocks associated with the <see cref="OwningSymbol"/>,
+        /// such as method body, field/property/constructor/parameter initializer(s), attributes, etc.
         /// </summary>
+        /// <remarks>Note that the operation blocks are not in any specific order.</remarks>
         public ImmutableArray<IOperation> OperationBlocks => _operationBlocks;
 
         /// <summary>
-        /// <see cref="ISymbol"/> for which the code block provides a definition or value.
+        /// <see cref="ISymbol"/> for which the <see cref="OperationBlocks"/> provides a definition or value.
         /// </summary>
         public ISymbol OwningSymbol => _owningSymbol;
 
         /// <summary>
-        /// <see cref="CodeAnalysis.Compilation"/> containing the operation block.
+        /// <see cref="CodeAnalysis.Compilation"/> containing the <see cref="OperationBlocks"/>.
         /// </summary>
         public Compilation Compilation => _compilation;
 
@@ -934,17 +937,20 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         private readonly CancellationToken _cancellationToken;
 
         /// <summary>
-        /// Code block that is the subject of the analysis.
+        /// One or more operation blocks that are the subject of the analysis.
+        /// This includes all blocks associated with the <see cref="OwningSymbol"/>,
+        /// such as method body, field/property/constructor/parameter initializer(s), attributes, etc.
         /// </summary>
+        /// <remarks>Note that the operation blocks are not in any specific order.</remarks>
         public ImmutableArray<IOperation> OperationBlocks => _operationBlocks;
 
         /// <summary>
-        /// <see cref="ISymbol"/> for which the code block provides a definition or value.
+        /// <see cref="ISymbol"/> for which the <see cref="OperationBlocks"/> provides a definition or value.
         /// </summary>
         public ISymbol OwningSymbol => _owningSymbol;
 
         /// <summary>
-        /// <see cref="CodeAnalysis.Compilation"/> containing the operation block.
+        /// <see cref="CodeAnalysis.Compilation"/> containing the <see cref="OperationBlocks"/>.
         /// </summary>
         public Compilation Compilation => _compilation;
 

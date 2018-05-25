@@ -1,7 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
-using System.Collections.Generic;
+using System.Collections.Concurrent;
 using System.IO;
 using System.Runtime.CompilerServices;
 
@@ -9,8 +9,9 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 {
     public sealed class TempRoot : IDisposable
     {
-        private readonly List<IDisposable> _temps = new List<IDisposable>();
+        private readonly ConcurrentBag<IDisposable> _temps = new ConcurrentBag<IDisposable>();
         public static readonly string Root;
+        private bool _disposed;
 
         static TempRoot()
         {
@@ -20,16 +21,8 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
         public void Dispose()
         {
-            if (_temps != null)
-            {
-                DisposeAll(_temps);
-                _temps.Clear();
-            }
-        }
-
-        private static void DisposeAll(IEnumerable<IDisposable> temps)
-        {
-            foreach (var temp in temps)
+            _disposed = true;
+            while (_temps.TryTake(out var temp))
             {
                 try
                 {
@@ -45,8 +38,17 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             }
         }
 
+        private void CheckDisposed()
+        {
+            if (this._disposed)
+            {
+                throw new ObjectDisposedException(nameof(TempRoot));
+            }
+        }
+
         public TempDirectory CreateDirectory()
         {
+            CheckDisposed();
             var dir = new DisposableDirectory(this);
             _temps.Add(dir);
             return dir;
@@ -54,11 +56,13 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
         public TempFile CreateFile(string prefix = null, string extension = null, string directory = null, [CallerFilePath]string callerSourcePath = null, [CallerLineNumber]int callerLineNumber = 0)
         {
+            CheckDisposed();
             return AddFile(new DisposableFile(prefix, extension, directory, callerSourcePath, callerLineNumber));
         }
 
         public DisposableFile AddFile(DisposableFile file)
         {
+            CheckDisposed();
             _temps.Add(file);
             return file;
         }

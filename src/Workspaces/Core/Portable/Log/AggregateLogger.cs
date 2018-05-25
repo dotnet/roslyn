@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Linq;
 using System.Threading;
 using Roslyn.Utilities;
 
@@ -61,7 +62,6 @@ namespace Microsoft.CodeAnalysis.Internal.Log
             }
 
             var set = new HashSet<ILogger>();
-
             foreach (var logger in aggregateLogger._loggers)
             {
                 // replace this logger with new logger
@@ -77,6 +77,30 @@ namespace Microsoft.CodeAnalysis.Internal.Log
 
             // add new logger. if we already added one, this will be ignored.
             set.Add(newLogger);
+            return new AggregateLogger(set.ToImmutableArray());
+        }
+
+        public static ILogger Remove(ILogger logger, Func<ILogger, bool> predicate)
+        {
+            var aggregateLogger = logger as AggregateLogger;
+            if (aggregateLogger == null)
+            {
+                // remove the logger
+                if (predicate(logger))
+                {
+                    return null;
+                }
+
+                return logger;
+            }
+
+            // filter out loggers
+            var set = aggregateLogger._loggers.Where(l => !predicate(l)).ToSet();
+            if (set.Count == 1)
+            {
+                return set.Single();
+            }
+
             return new AggregateLogger(set.ToImmutableArray());
         }
 

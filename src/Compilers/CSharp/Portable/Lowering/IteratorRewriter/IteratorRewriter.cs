@@ -359,10 +359,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private void GenerateConstructor(BoundExpression managedThreadId)
         {
-            F.CurrentMethod = stateMachineType.Constructor;
+            F.CurrentFunction = stateMachineType.Constructor;
             var bodyBuilder = ArrayBuilder<BoundStatement>.GetInstance();
             bodyBuilder.Add(F.BaseInitialization());
-            bodyBuilder.Add(F.Assignment(F.Field(F.This(), stateField), F.Parameter(F.CurrentMethod.Parameters[0]))); // this.state = state;
+            bodyBuilder.Add(F.Assignment(F.Field(F.This(), stateField), F.Parameter(F.CurrentFunction.Parameters[0]))); // this.state = state;
 
             if (managedThreadId != null)
             {

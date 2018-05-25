@@ -1,6 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-#if NET461 || NET46
+#if NET46
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -86,7 +86,7 @@ namespace Roslyn.Test.Utilities.Desktop
 
         public string DumpAssemblyData(out string dumpDirectory)
         {
-            return RuntimeUtilities.DumpAssemblyData(ModuleDatas, out dumpDirectory);
+            return RuntimeEnvironmentUtilities.DumpAssemblyData(ModuleDatas, out dumpDirectory);
         }
 
         public void Dispose()
@@ -433,7 +433,7 @@ namespace Roslyn.Test.Utilities.Desktop
 
             if (throwOnError && errors.Length > 0)
             {
-                RuntimeUtilities.DumpAssemblyData(ModuleDatas, out var dumpDir);
+                RuntimeEnvironmentUtilities.DumpAssemblyData(ModuleDatas, out var dumpDir);
                 throw new RuntimePeVerifyException(errors.ToString(), dumpDir);
             }
             return allOutput.ToArray();

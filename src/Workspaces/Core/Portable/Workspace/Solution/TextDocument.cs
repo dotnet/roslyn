@@ -76,11 +76,31 @@ namespace Microsoft.CodeAnalysis
         }
 
         /// <summary>
+        /// Fetches the current text for the document synchronously.
+        /// </summary>
+        /// <remarks>This is internal for the same reason <see cref="Document.GetSyntaxTreeSynchronously(CancellationToken)"/> is internal:
+        /// we have specialized cases where we need it, but we worry that making it public will do more harm than good.</remarks>
+        internal SourceText GetTextSynchronously(CancellationToken cancellationToken)
+        {
+            return State.GetTextSynchronously(cancellationToken);
+        }
+
+        /// <summary>
         /// Gets the version of the document's text.
         /// </summary>
         public Task<VersionStamp> GetTextVersionAsync(CancellationToken cancellationToken = default)
         {
             return State.GetTextVersionAsync(cancellationToken);
+        }
+
+        /// <summary>
+        /// Fetches the current version for the document synchronously.
+        /// </summary>
+        /// <remarks>This is internal for the same reason <see cref="Document.GetSyntaxTreeSynchronously(CancellationToken)"/> is internal:
+        /// we have specialized cases where we need it, but we worry that making it public will do more harm than good.</remarks>
+        internal VersionStamp GetTextVersionSynchronously(CancellationToken cancellationToken)
+        {
+            return State.GetTextVersionSynchronously(cancellationToken);
         }
 
         /// <summary>

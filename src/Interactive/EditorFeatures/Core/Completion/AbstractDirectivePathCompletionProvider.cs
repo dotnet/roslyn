@@ -9,6 +9,7 @@ using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Scripting;
 using Roslyn.Utilities;
+using Microsoft.CodeAnalysis.ErrorReporting;
 
 namespace Microsoft.CodeAnalysis.Editor.Completion.FileSystem
 {
@@ -21,30 +22,37 @@ namespace Microsoft.CodeAnalysis.Editor.Completion.FileSystem
 
         public sealed override async Task ProvideCompletionsAsync(CompletionContext context)
         {
-            var document = context.Document;
-            var position = context.Position;
-            var cancellationToken = context.CancellationToken;
-
-            var tree = await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
-
-            if (!TryGetStringLiteralToken(tree, position, out var stringLiteral, cancellationToken))
+            try
             {
-                return;
+                var document = context.Document;
+                var position = context.Position;
+                var cancellationToken = context.CancellationToken;
+
+                var tree = await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
+
+                if (!TryGetStringLiteralToken(tree, position, out var stringLiteral, cancellationToken))
+                {
+                    return;
+                }
+
+                var literalValue = stringLiteral.ToString();
+
+                context.CompletionListSpan = GetTextChangeSpan(
+                    quotedPath: literalValue,
+                    quotedPathStart: stringLiteral.SpanStart,
+                    position: position);
+
+                var pathThroughLastSlash = GetPathThroughLastSlash(
+                    quotedPath: literalValue,
+                    quotedPathStart: stringLiteral.SpanStart,
+                    position: position);
+
+                await ProvideCompletionsAsync(context, pathThroughLastSlash).ConfigureAwait(false);
             }
-
-            var literalValue = stringLiteral.ToString();
-
-            context.CompletionListSpan = GetTextChangeSpan(
-                quotedPath: literalValue,
-                quotedPathStart: stringLiteral.SpanStart,
-                position: position);
-
-            var pathThroughLastSlash = GetPathThroughLastSlash(
-                quotedPath: literalValue,
-                quotedPathStart: stringLiteral.SpanStart,
-                position: position);
-
-            await ProvideCompletionsAsync(context, pathThroughLastSlash).ConfigureAwait(false);
+            catch (Exception e) when (FatalError.ReportWithoutCrashUnlessCanceled(e))
+            {
+                // nop
+            }
         }
 
         public override bool ShouldTriggerCompletion(SourceText text, int caretPosition, CompletionTrigger trigger, OptionSet options)

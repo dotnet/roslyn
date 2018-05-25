@@ -577,7 +577,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     ReportNoConversionError(argument.Syntax, sourceType, targetType, diagnostics, copybackConversionParamName)
                 End If
 
-                Return New BoundConversion(tree, argument, convKind.Key, CheckOverflow, isExplicit, targetType, hasErrors:=True)
+                Return New BoundConversion(tree, argument, convKind.Key And (Not ConversionKind.UserDefined), CheckOverflow, isExplicit, targetType, hasErrors:=True)
             End If
 
 DoneWithDiagnostics:
@@ -1179,16 +1179,6 @@ DoneWithDiagnostics:
                         ' Reclassify enclosed expression.
                         If ReclassifyExpression(enclosed, conversionSemantics, enclosed.Syntax, convKind, isExplicit, targetType, diagnostics) Then
                             argument = parenthesized.Update(enclosed, enclosed.Type)
-
-                            If conversionSemantics = SyntaxKind.CTypeKeyword Then
-                                argument = ApplyConversion(tree, targetType, argument, isExplicit, diagnostics)
-                            ElseIf conversionSemantics = SyntaxKind.DirectCastKeyword Then
-                                argument = ApplyDirectCastConversion(tree, argument, targetType, diagnostics)
-                            ElseIf conversionSemantics = SyntaxKind.TryCastKeyword Then
-                                argument = ApplyTryCastConversion(tree, argument, targetType, diagnostics)
-                            Else
-                                Throw ExceptionUtilities.UnexpectedValue(conversionSemantics)
-                            End If
 
                             Return True
                         End If

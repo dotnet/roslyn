@@ -7,6 +7,7 @@ using Microsoft.CodeAnalysis.CSharp.QualifyMemberAccess;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -1237,6 +1238,44 @@ CodeStyleOptions.QualifyPropertyAccess);
 {
     public string Foo { get; set; }
     public string Bar { get { return Foo; } => this.Foo; }
+}",
+CodeStyleOptions.QualifyPropertyAccess);
+        }
+
+        [WorkItem(22776, "https://github.com/dotnet/roslyn/issues/22776")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsQualifyMemberAccess)]
+        public async Task DoNotReportToQualify_InObjectInitializer1()
+        {
+            await TestMissingAsyncWithOption(
+@"public class C
+{
+    public string Foo { get; set; }
+    public void Bar()
+    {
+        var c = new C
+        {
+            [|Foo|] = string.Empty
+        };
+    }
+}",
+CodeStyleOptions.QualifyPropertyAccess);
+        }
+
+        [WorkItem(22776, "https://github.com/dotnet/roslyn/issues/22776")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsQualifyMemberAccess)]
+        public async Task DoNotReportToQualify_InObjectInitializer2()
+        {
+            await TestMissingAsyncWithOption(
+@"public class C
+{
+    public string Foo;
+    public void Bar()
+    {
+        var c = new C
+        {
+            [|Foo|] = string.Empty
+        };
+    }
 }",
 CodeStyleOptions.QualifyPropertyAccess);
         }

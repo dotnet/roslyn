@@ -333,7 +333,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
 
         // adds token to end of current token array
-        private void AddToken(BlendedNode tokenResult)
+        private void AddToken(in BlendedNode tokenResult)
         {
             Debug.Assert(tokenResult.Token != null);
             if (_tokenCount >= _blendedTokens.Length)
@@ -829,6 +829,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             return SyntaxFirstTokenReplacer.Replace(node, oldToken, newToken, skippedSyntax.FullWidth);
         }
 
+        protected void AddTrailingSkippedSyntax(SyntaxListBuilder list, GreenNode skippedSyntax)
+        {
+            list[list.Count - 1] = AddTrailingSkippedSyntax((CSharpSyntaxNode)list[list.Count - 1], skippedSyntax);
+        }
+
+        protected void AddTrailingSkippedSyntax<TNode>(SyntaxListBuilder<TNode> list, GreenNode skippedSyntax) where TNode : CSharpSyntaxNode
+        {
+            list[list.Count - 1] = AddTrailingSkippedSyntax(list[list.Count - 1], skippedSyntax);
+        }
+
         protected TNode AddTrailingSkippedSyntax<TNode>(TNode node, GreenNode skippedSyntax) where TNode : CSharpSyntaxNode
         {
             var token = node as SyntaxToken;
@@ -1076,7 +1086,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
 
         /// <summary>
-        /// Whenever parsing in a `while (true)` loop and a bug could prevent the loop from making progress,
+        /// Whenever parsing in a <c>while (true)</c> loop and a bug could prevent the loop from making progress,
         /// this method can prevent the parsing from hanging.
         /// Use as:
         ///     int tokenProgress = -1;

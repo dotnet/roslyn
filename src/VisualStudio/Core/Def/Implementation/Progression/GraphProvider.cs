@@ -19,6 +19,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
     {
         private readonly IGlyphService _glyphService;
         private readonly IServiceProvider _serviceProvider;
+        private readonly Workspace _workspace;
         private readonly GraphQueryManager _graphQueryManager;
 
         private bool _initialized = false;
@@ -26,12 +27,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
         protected AbstractGraphProvider(
             IGlyphService glyphService,
             SVsServiceProvider serviceProvider,
-            CodeAnalysis.Workspace workspace,
-            IEnumerable<Lazy<IAsynchronousOperationListener, FeatureMetadata>> asyncListeners)
+            Workspace workspace,
+            IAsynchronousOperationListenerProvider listenerProvider)
         {
             _glyphService = glyphService;
             _serviceProvider = serviceProvider;
-            var asyncListener = new AggregateAsynchronousOperationListener(asyncListeners, FeatureAttribute.GraphProvider);
+            var asyncListener = listenerProvider.GetListener(FeatureAttribute.GraphProvider);
+            _workspace = workspace;
             _graphQueryManager = new GraphQueryManager(workspace, asyncListener);
         }
 
@@ -356,7 +358,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
 
                 if (typeof(T) == typeof(IGraphNavigateToItem))
                 {
-                    return new GraphNavigatorExtension(PrimaryWorkspace.Workspace) as T;
+                    return new GraphNavigatorExtension(_workspace) as T;
                 }
 
                 if (typeof(T) == typeof(IGraphFormattedLabel))

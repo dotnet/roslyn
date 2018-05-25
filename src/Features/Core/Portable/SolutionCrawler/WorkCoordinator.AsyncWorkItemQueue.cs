@@ -57,17 +57,6 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                     }
                 }
 
-                public void RemoveCancellationSource(object key)
-                {
-                    lock (_gate)
-                    {
-                        // just remove cancellation token from the map.
-                        // the cancellation token might be passed out to other service
-                        // so don't call cancel on the source only because we are done using it.
-                        _cancellationMap.Remove(key);
-                    }
-                }
-
                 public virtual Task WaitAsync(CancellationToken cancellationToken)
                 {
                     return _semaphore.WaitAsync(cancellationToken);
@@ -75,22 +64,47 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
 
                 public bool AddOrReplace(WorkItem item)
                 {
-                    if (!HasAnyWork)
-                    {
-                        // first work is added.
-                        _progressReporter.Start();
-                    }
-
                     lock (_gate)
                     {
                         if (AddOrReplace_NoLock(item))
                         {
+                            // the item is new item that got added to the queue.
+                            // let solution crawler progress report to know about new item enqueued.
+                            // progress reporter will take care of nested/overlapped works by itself
+                            // 
+                            // order of events is as follow
+                            // 1. first item added by AddOrReplace which is the point where progress start.
+                            // 2. bunch of other items added or replaced (workitem in the queue > 0)
+                            // 3. items start dequeued to be processed by TryTake or TryTakeAnyWork
+                            // 4. once item is done processed, it is marked as done by MarkWorkItemDoneFor
+                            // 5. all items in the queue are dequeued (workitem in the queue == 0) 
+                            //    but there can be still work in progress
+                            // 6. all works are considered done when last item is marked done by MarkWorkItemDoneFor
+                            //    and at the point, we will set progress to stop.
+                            _progressReporter.Start();
+
                             // increase count 
                             _semaphore.Release();
                             return true;
                         }
 
                         return false;
+                    }
+                }
+
+                public void MarkWorkItemDoneFor(object key)
+                {
+                    lock (_gate)
+                    {
+                        // just remove cancellation token from the map.
+                        // the cancellation token might be passed out to other service
+                        // so don't call cancel on the source only because we are done using it.
+                        _cancellationMap.Remove(key);
+
+                        // every works enqueued by "AddOrReplace" will be processed
+                        // at some point, and when it is processed, this method will be called to mark
+                        // work has been done.
+                        _progressReporter.Stop();
                     }
                 }
 
@@ -168,12 +182,6 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                     {
                         if (TryTake_NoLock(key, out workInfo))
                         {
-                            if (!HasAnyWork_NoLock)
-                            {
-                                // last work is done.
-                                _progressReporter.Stop();
-                            }
-
                             source = GetNewCancellationSource_NoLock(key);
                             workInfo.AsyncToken.Dispose();
                             return true;
@@ -197,12 +205,6 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                         // there must be at least one item in the map when this is called unless host is shutting down.
                         if (TryTakeAnyWork_NoLock(preferableProjectId, dependencyGraph, analyzerService, out workItem))
                         {
-                            if (!HasAnyWork_NoLock)
-                            {
-                                // last work is done.
-                                _progressReporter.Stop();
-                            }
-
                             source = GetNewCancellationSource_NoLock(workItem.Key);
                             workItem.AsyncToken.Dispose();
                             return true;

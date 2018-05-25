@@ -28,20 +28,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <returns>True if a diagnostic was reported</returns>
-        internal bool ReportUnsafeIfNotAllowed(Location location, ref HashSet<DiagnosticInfo> useSiteDiagnostics, TypeSymbol sizeOfTypeOpt = null)
-        {
-            var diagnosticInfo = GetUnsafeDiagnosticInfo(sizeOfTypeOpt: sizeOfTypeOpt);
-
-            if (diagnosticInfo is null)
-            {
-                return false;
-            }
-
-            HashSetExtensions.InitializeAndAdd(ref useSiteDiagnostics, diagnosticInfo);
-            return true;
-        }
-
-        /// <returns>True if a diagnostic was reported</returns>
         internal bool ReportUnsafeIfNotAllowed(Location location, DiagnosticBag diagnostics, TypeSymbol sizeOfTypeOpt = null)
         {
             var diagnosticInfo = GetUnsafeDiagnosticInfo(sizeOfTypeOpt);

@@ -10,19 +10,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
     internal sealed class CSharpUnboundIdentifiersDiagnosticAnalyzer : UnboundIdentifiersDiagnosticAnalyzerBase<SyntaxKind, SimpleNameSyntax, QualifiedNameSyntax, IncompleteMemberSyntax, LambdaExpressionSyntax>
     {
-        private const string NameNotInContext = "CS0103";
-        private readonly LocalizableString _nameNotInContextMessageFormat = new LocalizableResourceString(nameof(CSharpFeaturesResources.The_name_0_does_not_exist_in_the_current_context), CSharpFeaturesResources.ResourceManager, typeof(CSharpFeaturesResources));
+        private readonly LocalizableString _nameNotInContextMessageFormat =
+            new LocalizableResourceString(nameof(CSharpFeaturesResources.The_name_0_does_not_exist_in_the_current_context), CSharpFeaturesResources.ResourceManager, typeof(CSharpFeaturesResources));
 
-        private const string ConstructorOverloadResolutionFailure = "CS1729";
-        private readonly LocalizableString _constructorOverloadResolutionFailureMessageFormat = new LocalizableResourceString(nameof(CSharpFeaturesResources._0_does_not_contain_a_constructor_that_takes_that_many_arguments), CSharpFeaturesResources.ResourceManager, typeof(CSharpFeaturesResources));
+        private readonly LocalizableString _constructorOverloadResolutionFailureMessageFormat =
+            new LocalizableResourceString(nameof(CSharpFeaturesResources._0_does_not_contain_a_constructor_that_takes_that_many_arguments), CSharpFeaturesResources.ResourceManager, typeof(CSharpFeaturesResources));
 
         private static readonly ImmutableArray<SyntaxKind> s_kindsOfInterest = ImmutableArray.Create(SyntaxKind.IncompleteMember, SyntaxKind.ParenthesizedLambdaExpression, SyntaxKind.SimpleLambdaExpression);
 
         protected override ImmutableArray<SyntaxKind> SyntaxKindsOfInterest => s_kindsOfInterest;
 
-        protected override DiagnosticDescriptor DiagnosticDescriptor => GetDiagnosticDescriptor(NameNotInContext, _nameNotInContextMessageFormat);
+        protected override DiagnosticDescriptor DiagnosticDescriptor => GetDiagnosticDescriptor(IDEDiagnosticIds.UnboundIdentifierId, _nameNotInContextMessageFormat);
 
-        protected override DiagnosticDescriptor DiagnosticDescriptor2 => GetDiagnosticDescriptor(ConstructorOverloadResolutionFailure, _constructorOverloadResolutionFailureMessageFormat);
+        protected override DiagnosticDescriptor DiagnosticDescriptor2 => GetDiagnosticDescriptor(IDEDiagnosticIds.UnboundConstructorId, _constructorOverloadResolutionFailureMessageFormat);
 
         protected override bool ConstructorDoesNotExist(SyntaxNode node, SymbolInfo info, SemanticModel model)
         {
