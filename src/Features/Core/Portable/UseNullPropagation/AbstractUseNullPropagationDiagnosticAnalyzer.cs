@@ -40,7 +40,8 @@ namespace Microsoft.CodeAnalysis.UseNullPropagation
         }
 
         public override bool OpenFileOnly(Workspace workspace) => false;
-        public override DiagnosticAnalyzerCategory GetAnalyzerCategory() => DiagnosticAnalyzerCategory.SemanticDocumentAnalysis;
+        public override DiagnosticAnalyzerCategory GetAnalyzerCategory() 
+            => DiagnosticAnalyzerCategory.SemanticSpanAnalysis;
 
         protected abstract TSyntaxKind GetSyntaxKindToAnalyze();
         protected abstract bool IsEquals(TBinaryExpressionSyntax condition);

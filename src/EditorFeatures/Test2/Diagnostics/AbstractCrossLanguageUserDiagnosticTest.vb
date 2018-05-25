@@ -143,7 +143,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
 
             Dim document = workspace.CurrentSolution.GetDocument(hostDocument.Id)
 
-            Dim syntaxFacts = document.Project.LanguageServices.GetService(Of ISyntaxFactsService)()
+            Dim syntaxFacts = document.GetLanguageService(Of ISyntaxFactsService)()
             Dim root = Await document.GetSyntaxRootAsync()
             Dim start = syntaxFacts.GetContainingMemberDeclaration(root, invocationPoint)
 

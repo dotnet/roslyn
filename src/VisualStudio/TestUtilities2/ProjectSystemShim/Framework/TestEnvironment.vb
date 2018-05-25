@@ -88,6 +88,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim.Fr
 
             For Each filePath In _projectFilePaths
                 File.Delete(filePath)
+                Directory.Delete(Path.GetDirectoryName(filePath))
             Next
         End Sub
 
