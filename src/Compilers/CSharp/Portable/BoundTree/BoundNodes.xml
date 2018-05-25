@@ -33,12 +33,8 @@
 
   <AbstractNode Name="BoundInitializer" Base="BoundNode"/>
 
-  <Node Name="BoundFieldInitializer" Base="BoundInitializer">
-    <Field Name="Field" Type="FieldSymbol"/>
-    <Field Name="InitialValue" Type="BoundExpression"/>
-  </Node>
-
-  <AbstractNode Name="BoundEqualsValue" Base="BoundNode">
+  <AbstractNode Name="BoundEqualsValue" Base="BoundInitializer">
+    <Field Name="Locals" Type="ImmutableArray&lt;LocalSymbol&gt;"/>
     <!-- Expression representing the value. -->
     <Field Name="Value" Type="BoundExpression"/>
   </AbstractNode>
@@ -90,12 +86,26 @@
     <Field Name="ValEscape" Type="uint" Null="NotApplicable"/>
   </Node>
 
+  <!--
+  In a tuple binary operator, this node is used to represent tuple elements in a tuple binary
+  operator, and to represent an element-wise comparison result to convert back to bool.
+  It does not survive the initial binding.
+  -->
+  <Node Name="BoundTupleOperandPlaceholder" Base="BoundValuePlaceholderBase">
+    <Field Name="Type" Type="TypeSymbol" Override="true" Null="disallow"/>
+  </Node>
+
   <!-- only used by codegen -->
   <Node Name="BoundDup" Base="BoundExpression">
     <!-- when duplicating a local or parameter, must remember original ref kind -->
     <Field Name="RefKind" Type="RefKind" Null="NotApplicable"/>
   </Node>
 
+  <!-- Wrapper node used to prevent passing the underlying expression by direct reference -->
+  <Node Name="BoundPassByCopy" Base="BoundExpression">
+    <Field Name="Expression" Type="BoundExpression"/>
+  </Node>
+  
   <!-- 
   An expression is classified as one of the following:
   A value. Every value has an associated type.
@@ -258,6 +268,16 @@
     <!-- Non-null type is required for this node kind -->
     <Field Name="Type" Type="TypeSymbol" Override="true" Null="disallow"/>
     <Field Name="Operand" Type="BoundExpression"/>
+    
+    <!-- True only in some lowered/synthesized nodes. 
+         It suppresses conversion of operand reference to unmanaged pointer
+         (which has effect of losing GC-tracking)
+    
+         NB: The language does not have a concept of managed pointers. 
+         However, managed (GC-tracked) pointers have some limited support
+         at IL level and could be used in lowering of certain kinds
+         of unsafe code - such as fixed field indexing. -->
+    <Field Name="IsManaged" Type="bool"/>  
   </Node>
   <Node Name="BoundPointerIndirectionOperator" Base="BoundExpression">
     <!-- Non-null type is required for this node kind -->
@@ -270,7 +290,7 @@
 
     <Field Name="Expression" Type="BoundExpression"/>
     <Field Name="Index" Type="BoundExpression"/>
-    <Field Name="Checked" Type="Boolean"/>
+    <Field Name="Checked" Type="bool"/>
   </Node>
   
   <Node Name="BoundRefTypeOperator" Base="BoundExpression">
@@ -300,6 +320,21 @@
     <Field Name="ConstantValueOpt" Type="ConstantValue" Null="allow"/>
     <Field Name="MethodOpt" Type="MethodSymbol" Null="allow"/>
     <Field Name="ResultKind" PropertyOverrides="true" Type="LookupResultKind"/>
+  </Node>
+
+  <Node Name="BoundTupleBinaryOperator" Base="BoundExpression">
+    <!-- Non-null type is required for this node kind -->
+    <Field Name="Type" Type="TypeSymbol" Override="true" Null="disallow"/>
+
+    <Field Name="Left" Type="BoundExpression"/>
+    <Field Name="Right" Type="BoundExpression"/>
+
+    <!-- Converted nodes are meant for semantic model and IOperation use only -->
+    <Field Name="ConvertedLeft" Type="BoundExpression" SkipInVisitor="true"/>
+    <Field Name="ConvertedRight" Type="BoundExpression" SkipInVisitor="true"/>
+
+    <Field Name="OperatorKind" Type="BinaryOperatorKind"/>
+    <Field Name="Operators" Type="TupleBinaryOperatorInfo.Multiple"/>
   </Node>
 
   <Node Name="BoundUserDefinedConditionalLogicalOperator" Base="BoundExpression">
@@ -356,7 +391,7 @@
   <Node Name="BoundAssignmentOperator" Base="BoundExpression">
     <Field Name="Left" Type="BoundExpression"/>
     <Field Name="Right" Type="BoundExpression" Null="NotApplicable"/>
-    <!--  This is almost always RefKind.None.
+    <!--  This is almost always false.
     In C# most assignments to a variable are simply writes to the
     logical variable. For example, when you say 
     
@@ -379,7 +414,7 @@
     through addr. We therefore need to disambiguate what kind of assignment
     we are doing based on something other than the refness of the left hand side. 
     -->
-    <Field Name="RefKind" Type="RefKind" Null="NotApplicable"/>
+    <Field Name="IsRef" Type="bool" Null="NotApplicable"/>
   </Node>
 
   <Node Name="BoundDeconstructionAssignmentOperator" Base="BoundExpression">
@@ -388,7 +423,7 @@
 
     <Field Name="Left" Type="BoundTupleExpression" Null="disallow"/>
     <Field Name="Right" Type="BoundConversion" Null="disallow"/>
-    <Field Name="IsUsed" Type="Boolean" Null="NotApplicable"/>
+    <Field Name="IsUsed" Type="bool" Null="NotApplicable"/>
   </Node>
 
   <Node Name="BoundNullCoalescingOperator" Base="BoundExpression">
@@ -400,7 +435,7 @@
   <Node Name="BoundConditionalOperator" Base="BoundExpression">
     <!-- Non-null type is required for this node kind -->
     <Field Name="Type" Type="TypeSymbol" Override="true" Null="disallow"/>
-    <Field Name="IsByRef" Type="bool"/>
+    <Field Name="IsRef" Type="bool"/>
     <Field Name="Condition" Type="BoundExpression"/>
     <Field Name="Consequence" Type="BoundExpression"/>
     <Field Name="Alternative" Type="BoundExpression"/>
@@ -550,9 +585,9 @@
     <Field Name="Operand" Type="BoundExpression"/>
     <Field Name="Conversion" Type="Conversion"/>
 
-    <Field Name="IsBaseConversion" Type="Boolean"/>
-    <Field Name="Checked" Type="Boolean"/>
-    <Field Name="ExplicitCastInCode" Type="Boolean"/>
+    <Field Name="IsBaseConversion" Type="bool"/>
+    <Field Name="Checked" Type="bool"/>
+    <Field Name="ExplicitCastInCode" Type="bool"/>
     
     <Field Name="ConstantValueOpt" Type="ConstantValue" Null="allow"/>
   </Node>
@@ -598,6 +633,9 @@
     
     <!-- Wrapped expression. -->
     <Field Name="Expression" Type="BoundExpression" Null="disallow"/>
+
+    <!-- optional method that returns a pinnable reference for the instance -->
+    <Field Name="GetPinnableOpt" Type="MethodSymbol" Null="allow"/>
   </Node>
 
   <AbstractNode Name="BoundStatement" Base="BoundNode"/>
@@ -704,7 +742,8 @@
   -->
   <Node Name="BoundLocalFunctionStatement" Base="BoundStatement">
     <Field Name="Symbol" Type="LocalFunctionSymbol"/>
-    <Field Name="Body" Type="BoundBlock" Null="allow"/>
+    <Field Name="BlockBody" Type="BoundBlock" Null="allow"/>
+    <Field Name="ExpressionBody" Type="BoundBlock" Null="allow"/>
   </Node>
  
   <!-- 
@@ -867,6 +906,9 @@
     <!-- If there is a deconstruction, there will be no iteration variable (but we'll still have a type for it). -->
     <Field Name="IterationVariableType" Type="BoundTypeExpression"/>
     <Field Name="IterationVariables" Type="ImmutableArray&lt;LocalSymbol&gt;"/>
+    <!-- In error scenarios where the iteration variable is some arbitrary expression, we
+         stick the error recovery in this node. This will always be null in valid code. -->
+    <Field Name="IterationErrorExpressionOpt" Type="BoundExpression" Null="allow"/>
     <!-- If this node does not have errors, then this is the foreach expression wrapped
          in a conversion to the collection type used by the foreach loop.  The conversion
          is here so that the binding API can return the correct ConvertedType in semantic 
@@ -876,7 +918,7 @@
     <Field Name="DeconstructionOpt" Type="BoundForEachDeconstructStep" Null="allow"/>
     <Field Name="Body" Type="BoundStatement"/>
   
-    <Field Name="Checked" Type="Boolean"/>
+    <Field Name="Checked" Type="bool"/>
   </Node>
 
   <!-- All the information need to apply a deconstruction at each iteration of a foreach loop involving a deconstruction-declaration. -->
@@ -937,7 +979,7 @@
     
     -->
     
-    <Field Name="PreferFaultHandler" Type="Boolean"/>
+    <Field Name="PreferFaultHandler" Type="bool"/>
   </Node>
 
   <Node Name="BoundCatchBlock" Base="BoundNode">
@@ -1444,7 +1486,8 @@
 
   <Node Name="BoundStackAllocArrayCreation" Base="BoundExpression">
     <Field Name="ElementType" Type="TypeSymbol" Null="disallow"/>
-    <Field Name="Count" Type="BoundExpression"/>
+    <Field Name="Count" Type="BoundExpression" Null="disallow" />
+    <Field Name="InitializerOpt" Type="BoundArrayInitialization" Null="allow"/>
   </Node>
 
   <Node Name="BoundConvertedStackAllocExpression" Base="BoundStackAllocArrayCreation">
@@ -1642,5 +1685,21 @@
   <Node Name="OutDeconstructVarPendingInference" Base="BoundExpression">
     <!-- Type is not significant for this node type; always null -->
     <Field Name="Type" Type="TypeSymbol" Override="true" Null="always"/>
+  </Node>
+  
+  <AbstractNode Name="BoundMethodBodyBase" Base="BoundNode">
+    <!-- Type is not significant for this node type; always null -->
+    <Field Name="Type" Type="TypeSymbol" Override="true" Null="always"/>
+  
+    <Field Name="BlockBody" Type="BoundBlock" Null="allow"/>
+    <Field Name="ExpressionBody" Type="BoundBlock" Null="allow"/>
+  </AbstractNode>
+
+  <Node Name="BoundNonConstructorMethodBody" Base="BoundMethodBodyBase">
+  </Node>
+
+  <Node Name="BoundConstructorMethodBody" Base="BoundMethodBodyBase">
+    <Field Name="Locals" Type="ImmutableArray&lt;LocalSymbol&gt;"/>
+    <Field Name="Initializer" Type="BoundExpressionStatement" Null="allow"/>
   </Node>
 </Tree>

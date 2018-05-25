@@ -24,6 +24,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics.AddImport
 
         public override void Initialize(AnalysisContext context)
         {
+            context.EnableConcurrentExecution();
+
             context.RegisterSyntaxNodeAction(AnalyzeNode, this.SyntaxKindsOfInterest.ToArray());
         }
 

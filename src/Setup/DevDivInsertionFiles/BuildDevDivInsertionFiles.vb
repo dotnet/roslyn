@@ -25,6 +25,7 @@ Public Class BuildDevDivInsertionFiles
     Private ReadOnly _nugetPackageRoot As String
     Private ReadOnly _nuspecDirectory As String
     Private ReadOnly _pathMap As Dictionary(Of String, String)
+    Private ReadOnly _verbose As Boolean
 
     Private Sub New(args As String())
         _binDirectory = Path.GetFullPath(args(0))
@@ -33,14 +34,15 @@ Public Class BuildDevDivInsertionFiles
         _setupDirectory = Path.Combine(repoDirectory, "src\Setup")
         _nuspecDirectory = Path.Combine(repoDirectory, "src\Nuget")
         _nugetPackageRoot = Path.GetFullPath(args(2))
+        _verbose = args.Last() = "/verbose"
         _outputDirectory = Path.Combine(_binDirectory, DevDivInsertionFilesDirName)
         _outputPackageDirectory = Path.Combine(_binDirectory, DevDivPackagesDirName)
         _pathMap = CreatePathMap()
     End Sub
 
     Public Shared Function Main(args As String()) As Integer
-        If args.Length <> 3 Then
-            Console.WriteLine("Expected arguments: <bin dir> <setup dir> <nuget root dir>")
+        If args.Length < 3 Then
+            Console.WriteLine("Expected arguments: <bin dir> <setup dir> <nuget root dir> [/verbose]")
             Console.WriteLine($"Actual argument count is {args.Length}")
             Return 1
         End If
@@ -74,14 +76,14 @@ Public Class BuildDevDivInsertionFiles
         "Newtonsoft.Json.dll",
         "StreamJsonRpc.dll",
         "StreamJsonRpc.resources.dll",
-        "codeAnalysisService.servicehub.service.json",
-        "remoteHostService.servicehub.service.json",
-        "snapshotService.servicehub.service.json",
-        "remoteSymbolSearchUpdateEngine.servicehub.service.json",
-        "codeAnalysisService64.servicehub.service.json",
-        "remoteHostService64.servicehub.service.json",
-        "snapshotService64.servicehub.service.json",
-        "remoteSymbolSearchUpdateEngine64.servicehub.service.json",
+        "roslynCodeAnalysis.servicehub.service.json",
+        "roslynRemoteHost.servicehub.service.json",
+        "roslynSnapshot.servicehub.service.json",
+        "roslynRemoteSymbolSearchUpdateEngine.servicehub.service.json",
+        "roslynCodeAnalysis64.servicehub.service.json",
+        "roslynRemoteHost64.servicehub.service.json",
+        "roslynSnapshot64.servicehub.service.json",
+        "roslynRemoteSymbolSearchUpdateEngine64.servicehub.service.json",
         "Microsoft.Build.Conversion.Core.dll",
         "Microsoft.Build.dll",
         "Microsoft.Build.Engine.dll",
@@ -108,8 +110,7 @@ Public Class BuildDevDivInsertionFiles
     Private ReadOnly VsixesToInstall As String() = {
         "Vsix\VisualStudioSetup\Roslyn.VisualStudio.Setup.vsix",
         "Vsix\ExpressionEvaluatorPackage\ExpressionEvaluatorPackage.vsix",
-        "Vsix\VisualStudioInteractiveComponents\Roslyn.VisualStudio.InteractiveComponents.vsix",
-        "Vsix\VisualStudioSetup.Next\Roslyn.VisualStudio.Setup.Next.vsix"
+        "Vsix\VisualStudioInteractiveComponents\Roslyn.VisualStudio.InteractiveComponents.vsix"
     }
 
     ' Files copied to Maddog machines running integration tests that are produced from our builds.
@@ -144,7 +145,6 @@ Public Class BuildDevDivInsertionFiles
         "Microsoft.VisualStudio.LanguageServices.dll",
         "Microsoft.VisualStudio.LanguageServices.Implementation.dll",
         "Microsoft.VisualStudio.LanguageServices.VisualBasic.dll",
-        "Microsoft.VisualStudio.Platform.VSEditor.Interop.dll",
         "Roslyn.Compilers.Test.Resources.dll",
         "Roslyn.Hosting.Diagnostics.dll",
         "Roslyn.Test.PdbUtilities.dll"
@@ -289,7 +289,6 @@ Public Class BuildDevDivInsertionFiles
         "Microsoft.VisualStudio.LanguageServices.Implementation.dll",
         "Microsoft.VisualStudio.LanguageServices.SolutionExplorer.dll",
         "Microsoft.VisualStudio.LanguageServices.VisualBasic.dll",
-        "Microsoft.VisualStudio.Platform.VSEditor.Interop.dll",
         "Moq.dll",
         "csc.exe",
         "csc.exe.config",
@@ -303,7 +302,6 @@ Public Class BuildDevDivInsertionFiles
         "Roslyn.Hosting.Diagnostics.dll",
         "Roslyn.Services.Test.Utilities.dll",
         "Roslyn.Test.PdbUtilities.dll",
-        "Roslyn.Test.Utilities.Desktop.dll",
         "Roslyn.Test.Utilities.dll",
         "vbc.exe",
         "vbc.exe.config",
@@ -499,8 +497,8 @@ Public Class BuildDevDivInsertionFiles
         Dim result = New Dictionary(Of String, DependencyInfo)
         Dim objDir = Path.Combine(Path.GetDirectoryName(_binDirectory.TrimEnd(Path.DirectorySeparatorChar)), "Obj")
         Dim files = New List(Of String)
-        files.Add(Path.Combine(objDir, "DevDivPackagesRoslyn\project.assets.json"))
-        files.Add(Path.Combine(objDir, "DevDivPackagesDebugger\project.assets.json"))
+        files.Add(Path.Combine(objDir, "CompilerExtension\project.assets.json"))
+        files.Add(Path.Combine(objDir, "VisualStudioSetup.Dependencies\project.assets.json"))
 
         For Each projectLockJson In files
             Dim items = JsonConvert.DeserializeObject(File.ReadAllText(projectLockJson))
@@ -517,6 +515,10 @@ Public Class BuildDevDivInsertionFiles
                 Dim packageVersion = packageNameAndVersion(1)
                 Dim packageObj = DirectCast(targetProperty.Value, JObject)
 
+                If packageObj.Property("type").Value.Value(Of String) = "project" Then
+                    Continue For
+                End If
+
                 Dim contracts = DirectCast(packageObj.Property("compile")?.Value, JObject)
                 Dim runtime = DirectCast(packageObj.Property("runtime")?.Value, JObject)
                 Dim native = DirectCast(packageObj.Property("native")?.Value, JObject)
@@ -524,6 +526,17 @@ Public Class BuildDevDivInsertionFiles
 
                 Dim implementations = If(runtime, native)
                 If implementations Is Nothing Then
+                    Continue For
+                End If
+
+                ' No need to insert Visual Studio packages back into the repository itself
+                If packageName.StartsWith("Microsoft.VisualStudio.") OrElse
+                   packageName = "EnvDTE" OrElse
+                   packageName = "stdole" OrElse
+                   packageName.StartsWith("Microsoft.Build") OrElse
+                   packageName = "Microsoft.Composition" OrElse
+                   packageName = "System.Net.Http" OrElse
+                   packageName = "System.Diagnostics.DiagnosticSource" Then
                     Continue For
                 End If
 
@@ -543,7 +556,7 @@ Public Class BuildDevDivInsertionFiles
 
                         Dim runtimeTarget = Path.GetDirectoryName(assemblyProperty.Name)
 
-                        Dim compileDll = contracts?.Properties().Select(Function(p) p.Name).Where(Function(n) Path.GetFileName(n) = fileName).Single()
+                        Dim compileDll = contracts?.Properties().Select(Function(p) p.Name).Where(Function(n) Path.GetFileName(n) = fileName).SingleOrDefault()
                         Dim compileTarget = If(compileDll IsNot Nothing, Path.GetDirectoryName(compileDll), Nothing)
 
                         result.Add(fileName, New DependencyInfo(compileTarget,
@@ -551,7 +564,7 @@ Public Class BuildDevDivInsertionFiles
                                                                 packageName,
                                                                 packageVersion,
                                                                 isNative:=native IsNot Nothing,
-                                                                isFacade:=frameworkAssemblies IsNot Nothing))
+                                                                isFacade:=frameworkAssemblies IsNot Nothing AndAlso packageName <> "Microsoft.Build" OrElse packageName = "System.IO.Pipes.AccessControl"))
                     End If
                 Next
             Next
@@ -755,6 +768,10 @@ Public Class BuildDevDivInsertionFiles
                           Throw New Exception($"Mapped VSIX path does not exist: {filePath}")
                       End If
                       Dim name = Path.GetFileName(filePath)
+                      If map.ContainsKey(name) Then
+                          Throw New Exception($"{name} already exist!")
+                      End If
+
                       map.Add(name, filePath)
                   End Sub
 
@@ -766,13 +783,14 @@ Public Class BuildDevDivInsertionFiles
             Dim values = CType(element.Property("values").Value, JArray)
             For Each item As String In values
                 Dim parent = Path.GetDirectoryName(item)
+                Dim name = Path.GetFileName(item)
 
-                ' Don't add in the csc.exe or vbc.exe from the CoreCLR projects.
-                If parent.EndsWith("Core", comparison) Then
+                If parent.EndsWith("NetFX20", comparison) Then
                     Continue For
                 End If
 
-                If parent.EndsWith("NetFX20", comparison) Then
+                ' Don't add in the netcoreapp2.0 version of DLL
+                If Path.GetFileName(parent) = "netcoreapp2.0" AndAlso name = "Microsoft.Build.Tasks.CodeAnalysis.dll" Then
                     Continue For
                 End If
 
@@ -803,64 +821,64 @@ Public Class BuildDevDivInsertionFiles
         add("Exes\csi\net46\csi.rsp")
         add("Exes\csi\net46\csi.exe.config")
         add("Vsix\VisualStudioInteractiveComponents\CSharpInteractive.rsp")
+        add("Vsix\VisualStudioSetup\Microsoft.CodeAnalysis.Elfie.dll")
         add("Vsix\VisualStudioSetup\Microsoft.VisualStudio.CallHierarchy.Package.Definitions.dll")
         add("Vsix\VisualStudioSetup\System.Composition.Convention.dll")
         add("Vsix\VisualStudioSetup\System.Composition.Hosting.dll")
         add("Vsix\VisualStudioSetup\System.Composition.TypedParts.dll")
+        add("Vsix\VisualStudioSetup\System.Threading.Tasks.Extensions.dll")
+        add("Vsix\VisualStudioSetup\Mono.Cecil.dll")
+        add("Vsix\VisualStudioSetup\Mono.Cecil.Mdb.dll")
+        add("Vsix\VisualStudioSetup\Mono.Cecil.Pdb.dll")
+        add("Vsix\VisualStudioSetup\Mono.Cecil.Rocks.dll")
+        add("Vsix\VisualStudioSetup\ICSharpCode.Decompiler.dll")
         add("Dlls\BasicExpressionCompiler\Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator.ExpressionCompiler.vsdconfig")
         add("Dlls\BasicResultProvider.Portable\Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator.ResultProvider.vsdconfig")
         add("Dlls\CSharpExpressionCompiler\Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.ExpressionCompiler.vsdconfig")
         add("Dlls\CSharpResultProvider.Portable\Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.ResultProvider.vsdconfig")
         add("Dlls\FunctionResolver\Microsoft.CodeAnalysis.ExpressionEvaluator.FunctionResolver.vsdconfig")
-        add("Dlls\MSBuildTask\Microsoft.CSharp.Core.targets")
-        add("Dlls\MSBuildTask\Microsoft.VisualBasic.Core.targets")
+        add("Dlls\ServicesVisualStudio\Microsoft.VisualStudio.LanguageServices.vsdconfig")
+        add("Dlls\MSBuildTask\net46\Microsoft.Managed.Core.targets")
+        add("Dlls\MSBuildTask\net46\Microsoft.CSharp.Core.targets")
+        add("Dlls\MSBuildTask\net46\Microsoft.VisualBasic.Core.targets")
         add("Dlls\CSharpCompilerTestUtilities\Roslyn.Compilers.CSharp.Test.Utilities.dll")
         add("Dlls\BasicCompilerTestUtilities\Roslyn.Compilers.VisualBasic.Test.Utilities.dll")
         add("Dlls\CompilerTestResources\\Roslyn.Compilers.Test.Resources.dll")
         add("Dlls\ExpressionCompilerTestUtilities\Roslyn.ExpressionEvaluator.ExpressionCompiler.Test.Utilities.dll")
         add("Dlls\ResultProviderTestUtilities\Roslyn.ExpressionEvaluator.ResultProvider.Test.Utilities.dll")
         add("Dlls\PdbUtilities\Roslyn.Test.PdbUtilities.dll")
-        add("Dlls\TestUtilities.Desktop\Roslyn.Test.Utilities.Desktop.dll")
         add("UnitTests\EditorServicesTest\BasicUndo.dll")
         add("UnitTests\EditorServicesTest\Moq.dll")
         add("UnitTests\EditorServicesTest\Microsoft.CodeAnalysis.Test.Resources.Proprietary.dll")
-        add("UnitTests\CSharpCompilerEmitTest\Microsoft.DiaSymReader.PortablePdb.dll")
-        add("UnitTests\CSharpCompilerEmitTest\Microsoft.DiaSymReader.Converter.dll")
-        add("UnitTests\CSharpCompilerEmitTest\Microsoft.DiaSymReader.Converter.Xml.dll")
-        add("UnitTests\CSharpCompilerEmitTest\Microsoft.DiaSymReader.dll")
-        add("UnitTests\CSharpCompilerEmitTest\Microsoft.DiaSymReader.Native.amd64.dll")
-        add("UnitTests\CSharpCompilerEmitTest\Microsoft.DiaSymReader.Native.x86.dll")
-        add("UnitTests\EditorServicesTest\Microsoft.VisualStudio.Platform.VSEditor.Interop.dll")
+        add("UnitTests\CSharpCompilerEmitTest\net46\Microsoft.DiaSymReader.PortablePdb.dll")
+        add("UnitTests\CSharpCompilerEmitTest\net46\Microsoft.DiaSymReader.Converter.dll")
+        add("UnitTests\CSharpCompilerEmitTest\net46\Microsoft.DiaSymReader.Converter.Xml.dll")
+        add("UnitTests\CSharpCompilerEmitTest\net46\Microsoft.DiaSymReader.dll")
+        add("UnitTests\CSharpCompilerEmitTest\net46\Microsoft.DiaSymReader.Native.amd64.dll")
+        add("UnitTests\CSharpCompilerEmitTest\net46\Microsoft.DiaSymReader.Native.x86.dll")
         add("Vsix\ExpressionEvaluatorPackage\Microsoft.VisualStudio.Debugger.Engine.dll")
         add("Vsix\VisualStudioIntegrationTestSetup\Microsoft.Diagnostics.Runtime.dll")
-        add("Vsix\VisualStudioIntegrationTestSetup\Microsoft.VisualStudio.IntegrationTest.Setup.vsix")
         add("Exes\Toolset\System.AppContext.dll")
         add("Exes\Toolset\System.Console.dll")
         add("Exes\Toolset\System.Collections.Immutable.dll")
+        add("Exes\Toolset\System.Diagnostics.DiagnosticSource.dll")
         add("Exes\Toolset\System.Diagnostics.FileVersionInfo.dll")
-        add("Exes\Toolset\System.Diagnostics.Process.dll")
         add("Exes\Toolset\System.Diagnostics.StackTrace.dll")
         add("Exes\Toolset\System.IO.Compression.dll")
         add("Exes\Toolset\System.IO.FileSystem.dll")
-        add("Exes\Toolset\System.IO.FileSystem.DriveInfo.dll")
         add("Exes\Toolset\System.IO.FileSystem.Primitives.dll")
-        add("Exes\Toolset\System.IO.Pipes.dll")
+        add("Exes\Toolset\System.Net.Http.dll")
         add("Exes\Toolset\System.Reflection.Metadata.dll")
-        add("Exes\Toolset\System.Security.AccessControl.dll")
-        add("Exes\Toolset\System.Security.Claims.dll")
         add("Exes\Toolset\System.Security.Cryptography.Algorithms.dll")
         add("Exes\Toolset\System.Security.Cryptography.Encoding.dll")
         add("Exes\Toolset\System.Security.Cryptography.Primitives.dll")
         add("Exes\Toolset\System.Security.Cryptography.X509Certificates.dll")
-        add("Exes\Toolset\System.Security.Principal.Windows.dll")
         add("Exes\Toolset\System.Text.Encoding.CodePages.dll")
-        add("Exes\Toolset\System.Threading.Thread.dll")
         add("Exes\Toolset\System.ValueTuple.dll")
         add("Exes\Toolset\System.Xml.ReaderWriter.dll")
         add("Exes\Toolset\System.Xml.XmlDocument.dll")
         add("Exes\Toolset\System.Xml.XPath.dll")
         add("Exes\Toolset\System.Xml.XPath.XDocument.dll")
-        add("Exes\Toolset\Microsoft.Win32.Primitives.dll")
         add("Vsix\VisualStudioSetup\Humanizer.dll")
         Return map
     End Function
@@ -890,6 +908,8 @@ Public Class BuildDevDivInsertionFiles
         ' We build our language service authoring by cracking our .vsixes and pulling out the bits that matter
         For Each vsixFileName In VsixesToInstall
             Dim vsixName As String = Path.GetFileNameWithoutExtension(vsixFileName)
+            WriteLineIfVerbose($"Processing {vsixName}")
+
             Using vsix = Package.Open(Path.Combine(_binDirectory, vsixFileName), FileMode.Open, FileAccess.Read, FileShare.Read)
                 For Each vsixPart In vsix.GetParts()
 
@@ -901,12 +921,16 @@ Public Class BuildDevDivInsertionFiles
                     Dim partRelativePath = GetPartRelativePath(vsixPart)
                     Dim partFileName = Path.GetFileName(partRelativePath)
 
+                    WriteLineIfVerbose($"     Processing {partFileName}")
+
                     ' If this is something that we don't need to ship, skip it
                     If VsixContentsToSkip.Contains(partFileName) Then
+                        WriteLineIfVerbose($"        Skipping because {partFileName} is in {NameOf(VsixContentsToSkip)}")
                         Continue For
                     End If
 
                     If IsLanguageServiceRegistrationFile(partFileName) Then
+                        WriteLineIfVerbose($"        Skipping because {partFileName} is a language service registration file that doesn't need to be processed")
                         Continue For
                     End If
 
@@ -916,6 +940,7 @@ Public Class BuildDevDivInsertionFiles
                     End If
 
                     If dependencies.ContainsKey(partFileName) Then
+                        WriteLineIfVerbose($"        Skipping because {partFileName} is a dependency that is coming from NuGet package {dependencies(partFileName).PackageName}")
                         Continue For
                     End If
 
@@ -1014,11 +1039,16 @@ Public Class BuildDevDivInsertionFiles
         Directory.CreateDirectory(outputDir)
 
         ' First copy over all the files from the compilers toolset. 
-        For Each fileRelativePath In GetCompilerToolsetNuspecFiles()
-            Dim filePath = Path.Combine(_binDirectory, fileRelativePath)
-            Dim fileName = Path.GetFileName(fileRelativePath)
+        For Each fileFullPath In GetCompilerToolsetNuspecFiles()
+            Dim fileName = Path.GetFileName(fileFullPath)
+
+            ' Skip satellite assemblies; we don't need these for the compiler insertion
+            If fileName.EndsWith(".resources.dll", StringComparison.OrdinalIgnoreCase) Then
+                Continue For
+            End If
+
             Dim destFilepath = Path.Combine(outputDir, fileName)
-            File.Copy(filePath, destFilepath)
+            File.Copy(fileFullPath, destFilepath)
             nuspecFiles.Add(fileName)
 
             ' A bug in VS forces all of our exes to use the prefer 32 bit mode. Mark the copies added 
@@ -1120,7 +1150,19 @@ set DEVPATH=%RoslynToolsRoot%;%DEVPATH%"
         Dim document = XDocument.Load(nuspecFilePath)
         For Each fileElement In document.<package>.<files>.<file>
             If fileElement.Attribute("target").Value = "tools" Then
-                files.Add(fileElement.Attribute("src").Value)
+                Dim fileRelativePath = fileElement.Attribute("src").Value
+                Dim fileFullPath = Path.Combine(_binDirectory, fileRelativePath)
+                If fileRelativePath.Contains("**") Then
+                    Continue For
+                ElseIf fileRelativePath.Contains("*") Then
+                    Dim dir = Path.GetDirectoryName(fileRelativePath)
+                    dir = Path.Combine(_binDirectory, dir)
+                    For Each f In Directory.EnumerateFiles(dir, Path.GetFileName(fileRelativePath))
+                        files.Add(f)
+                    Next
+                Else
+                    files.Add(fileFullPath)
+                End If
             End If
         Next
 
@@ -1134,6 +1176,10 @@ set DEVPATH=%RoslynToolsRoot%;%DEVPATH%"
         Return GetCompilerToolsetNuspecFiles().
             Select(AddressOf Path.GetFileName).
             Where(Function(f)
+                      ' Skip satellite assemblies; we don't need these for the compiler insertion
+                      Return Not f.EndsWith(".resources.dll", StringComparison.OrdinalIgnoreCase)
+                  End Function).
+            Where(Function(f)
                       Select Case f
                           ' These files are inserted by MSBuild setup 
                           Case "Microsoft.DiaSymReader.Native.amd64.dll", "Microsoft.DiaSymReader.Native.x86.dll"
@@ -1146,4 +1192,10 @@ set DEVPATH=%RoslynToolsRoot%;%DEVPATH%"
                       End Select
                   End Function)
     End Function
+
+    Private Sub WriteLineIfVerbose(s As String)
+        If _verbose Then
+            Console.WriteLine(s)
+        End If
+    End Sub
 End Class

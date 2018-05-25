@@ -306,11 +306,11 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The changes must be ordered and not overlapping..
+        ///   Looks up a localized string similar to The changes must not overlap..
         /// </summary>
-        internal static string ChangesMustBeOrderedAndNotOverlapping {
+        internal static string ChangesMustNotOverlap {
             get {
-                return ResourceManager.GetString("ChangesMustBeOrderedAndNotOverlapping", resourceCulture);
+                return ResourceManager.GetString("ChangesMustNotOverlap", resourceCulture);
             }
         }
         
@@ -402,6 +402,15 @@ namespace Microsoft.CodeAnalysis {
         internal static string CompilerAnalyzerThrowsDescription {
             get {
                 return ResourceManager.GetString("CompilerAnalyzerThrowsDescription", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Reported diagnostic has an ID &apos;{0}&apos;, which only a compiler should be reporting..
+        /// </summary>
+        internal static string CompilerDiagnosticIdReported {
+            get {
+                return ResourceManager.GetString("CompilerDiagnosticIdReported", resourceCulture);
             }
         }
         
@@ -538,6 +547,15 @@ namespace Microsoft.CodeAnalysis {
         internal static string ExceptionContext {
             get {
                 return ResourceManager.GetString("ExceptionContext", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Warning: Could not enable multicore JIT due to exception: {0}..
+        /// </summary>
+        internal static string ExceptionEnablingMulticoreJit {
+            get {
+                return ResourceManager.GetString("ExceptionEnablingMulticoreJit", resourceCulture);
             }
         }
         

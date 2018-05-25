@@ -181,8 +181,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
 
 #pragma warning restore 67
 
-        IVisualStudioHostProject IVisualStudioHostDocument.Project { get { return this.Project; } }
-
         public ITextBuffer GetOpenTextBuffer()
         {
             return _containedLanguage.SubjectBuffer;
@@ -793,7 +791,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
                 return;
             }
 
-            var originalText = document.GetTextAsync(CancellationToken.None).WaitAndGetResult(CancellationToken.None);
+            var originalText = document.GetTextSynchronously(CancellationToken.None);
             Contract.Requires(object.ReferenceEquals(originalText, snapshot.AsText()));
 
             var root = document.GetSyntaxRootSynchronously(CancellationToken.None);
@@ -847,7 +845,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
                     workspace, options, formattingRules, CancellationToken.None);
 
                 visibleSpans.Add(visibleSpan);
-                var newChanges = FilterTextChanges(document.GetTextAsync(CancellationToken.None).WaitAndGetResult(CancellationToken.None), visibleSpans, changes.ToReadOnlyCollection()).Where(t => visibleSpan.Contains(t.Span));
+                var newChanges = FilterTextChanges(document.GetTextSynchronously(CancellationToken.None), visibleSpans, changes.ToReadOnlyCollection()).Where(t => visibleSpan.Contains(t.Span));
 
                 foreach (var change in newChanges)
                 {
@@ -1150,10 +1148,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
             return CheckCode(snapshot, position - tag2.Length, tag1);
         }
 
-        public ITextUndoHistory GetTextUndoHistory()
+        public ITextBuffer GetTextUndoHistoryBuffer()
         {
             // In Venus scenarios, the undo history is associated with the data buffer
-            return _componentModel.GetService<ITextUndoHistoryRegistry>().GetHistory(_containedLanguage.DataBuffer);
+            return _containedLanguage.DataBuffer;
         }
 
         public uint GetItemId()

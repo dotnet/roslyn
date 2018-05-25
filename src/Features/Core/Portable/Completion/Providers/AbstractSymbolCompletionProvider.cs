@@ -153,31 +153,38 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 
         public override async Task ProvideCompletionsAsync(CompletionContext context)
         {
-            var document = context.Document;
-            var position = context.Position;
-            var options = context.Options;
-            var cancellationToken = context.CancellationToken;
-
-            // If we were triggered by typing a character, then do a semantic check to make sure
-            // we're still applicable.  If not, then return immediately.
-            if (context.Trigger.Kind == CompletionTriggerKind.Insertion)
+            try
             {
-                var isSemanticTriggerCharacter = await IsSemanticTriggerCharacterAsync(document, position - 1, cancellationToken).ConfigureAwait(false);
-                if (!isSemanticTriggerCharacter)
+                var document = context.Document;
+                var position = context.Position;
+                var options = context.Options;
+                var cancellationToken = context.CancellationToken;
+
+                // If we were triggered by typing a character, then do a semantic check to make sure
+                // we're still applicable.  If not, then return immediately.
+                if (context.Trigger.Kind == CompletionTriggerKind.Insertion)
                 {
-                    return;
+                    var isSemanticTriggerCharacter = await IsSemanticTriggerCharacterAsync(document, position - 1, cancellationToken).ConfigureAwait(false);
+                    if (!isSemanticTriggerCharacter)
+                    {
+                        return;
+                    }
+                }
+
+                context.IsExclusive = IsExclusive();
+
+                using (Logger.LogBlock(FunctionId.Completion_SymbolCompletionProvider_GetItemsWorker, cancellationToken))
+                {
+                    var regularItems = await GetItemsWorkerAsync(document, position, options, preselect: false, cancellationToken: cancellationToken).ConfigureAwait(false);
+                    context.AddItems(regularItems);
+
+                    var preselectedItems = await GetItemsWorkerAsync(document, position, options, preselect: true, cancellationToken: cancellationToken).ConfigureAwait(false);
+                    context.AddItems(preselectedItems);
                 }
             }
-
-            context.IsExclusive = IsExclusive();
-
-            using (Logger.LogBlock(FunctionId.Completion_SymbolCompletionProvider_GetItemsWorker, cancellationToken))
+            catch (Exception e) when (FatalError.ReportWithoutCrashUnlessCanceled(e))
             {
-                var regularItems = await GetItemsWorkerAsync(document, position, options, preselect: false, cancellationToken: cancellationToken).ConfigureAwait(false);
-                context.AddItems(regularItems);
-
-                var preselectedItems = await GetItemsWorkerAsync(document, position, options, preselect: true, cancellationToken: cancellationToken).ConfigureAwait(false);
-                context.AddItems(preselectedItems);
+                // nop
             }
         }
 

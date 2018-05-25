@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Fact]
         public void DocCommentWriteException()
         {
-            var comp = CreateStandardCompilation(@"
+            var comp = CreateCompilation(@"
 /// <summary>
 /// Doc comment for <see href=""C"" />
 /// </summary>

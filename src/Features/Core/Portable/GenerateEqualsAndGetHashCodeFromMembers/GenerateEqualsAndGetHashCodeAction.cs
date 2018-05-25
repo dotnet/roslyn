@@ -18,7 +18,7 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.GenerateEqualsAndGetHashCodeFromMembers
 {
-    internal partial class GenerateEqualsAndGetHashCodeFromMembersCodeRefactoringProvider
+    internal partial class AbstractGenerateEqualsAndGetHashCodeFromMembersCodeRefactoringProvider
     {
         private partial class GenerateEqualsAndGetHashCodeAction : CodeAction
         {
@@ -28,14 +28,14 @@ namespace Microsoft.CodeAnalysis.GenerateEqualsAndGetHashCodeFromMembers
             private readonly bool _generateGetHashCode;
             private readonly bool _implementIEquatable;
             private readonly bool _generateOperators;
-            private readonly GenerateEqualsAndGetHashCodeFromMembersCodeRefactoringProvider _service;
+            private readonly AbstractGenerateEqualsAndGetHashCodeFromMembersCodeRefactoringProvider _service;
             private readonly Document _document;
             private readonly INamedTypeSymbol _containingType;
             private readonly ImmutableArray<ISymbol> _selectedMembers;
             private readonly TextSpan _textSpan;
 
             public GenerateEqualsAndGetHashCodeAction(
-                GenerateEqualsAndGetHashCodeFromMembersCodeRefactoringProvider service,
+                AbstractGenerateEqualsAndGetHashCodeFromMembersCodeRefactoringProvider service,
                 Document document,
                 TextSpan textSpan,
                 INamedTypeSymbol containingType,
@@ -213,8 +213,117 @@ namespace Microsoft.CodeAnalysis.GenerateEqualsAndGetHashCodeFromMembers
             private async Task<IMethodSymbol> CreateGetHashCodeMethodAsync(CancellationToken cancellationToken)
             {
                 var compilation = await _document.Project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
-                return _document.GetLanguageService<SyntaxGenerator>().CreateGetHashCodeMethod(
-                    compilation, _containingType, _selectedMembers, cancellationToken);
+                var factory = _document.GetLanguageService<SyntaxGenerator>();
+                return CreateGetHashCodeMethod(factory, compilation, cancellationToken);
+            }
+
+            private IMethodSymbol CreateGetHashCodeMethod(
+                SyntaxGenerator factory,
+                Compilation compilation,
+                CancellationToken cancellationToken)
+            {
+                var statements = CreateGetHashCodeStatements(factory, compilation, cancellationToken);
+
+                return CodeGenerationSymbolFactory.CreateMethodSymbol(
+                    attributes: default,
+                    accessibility: Accessibility.Public,
+                    modifiers: new DeclarationModifiers(isOverride: true),
+                    returnType: compilation.GetSpecialType(SpecialType.System_Int32),
+                    refKind: RefKind.None,
+                    explicitInterfaceImplementations: default,
+                    name: GetHashCodeName,
+                    typeParameters: default,
+                    parameters: default,
+                    statements: statements);
+            }
+
+            private ImmutableArray<SyntaxNode> CreateGetHashCodeStatements(
+                SyntaxGenerator factory, Compilation compilation, CancellationToken cancellationToken)
+            {
+                // If we have access to System.HashCode, then just use that.
+                var hashCodeType = compilation.GetTypeByMetadataName("System.HashCode");
+
+                var components = factory.GetGetHashCodeComponents(
+                    compilation, _containingType, _selectedMembers,
+                    justMemberReference: true, cancellationToken);
+
+                if (components.Length > 0 && hashCodeType != null)
+                {
+                    return CreateGetHashCodeStatementsUsingSystemHashCode(
+                        factory, compilation, hashCodeType, components, cancellationToken);
+                }
+
+                // Otherwise, try to just spit out a reasonable hash code for these members.
+                var statements = factory.CreateGetHashCodeMethodStatements(
+                    compilation, _containingType, _selectedMembers, useInt64: false, cancellationToken);
+
+                // Unfortunately, our 'reasonable' hash code may overflow in checked contexts.
+                // C# can handle this by adding 'checked{}' around the code, VB has to jump
+                // through more hoops.
+                if (!compilation.Options.CheckOverflow)
+                {
+                    return statements;
+                }
+
+                if (compilation.Language == LanguageNames.CSharp)
+                {
+                    return _service.WrapWithUnchecked(statements);
+                }
+
+                // If tuples are available, use (a, b, c).GetHashCode to simply generate the tuple.
+                var valueTupleType = compilation.GetTypeByMetadataName(typeof(ValueTuple).FullName);
+                if (components.Length >= 2 && valueTupleType != null)
+                {
+                    return ImmutableArray.Create(factory.ReturnStatement(
+                        factory.InvocationExpression(
+                            factory.MemberAccessExpression(
+                                factory.TupleExpression(components),
+                                GetHashCodeName))));
+                }
+
+                // Otherwise, use 64bit math to compute the hash.  Importantly, if we always clamp
+                // the hash to be 32 bits or less, then the following cannot ever overflow in 64
+                // bits: hashCode = hashCode * -1521134295 + j.GetHashCode()
+                //
+                // So we'll generate lines like: hashCode = (hashCode * -1521134295 + j.GetHashCode()) & 0x7FFFFFFF
+                //
+                // This does mean all hashcodes will be positive.  But it will avoid the overflow problem.
+                return factory.CreateGetHashCodeMethodStatements(
+                    compilation, _containingType, _selectedMembers, useInt64: true, cancellationToken);
+            }
+
+            private ImmutableArray<SyntaxNode> CreateGetHashCodeStatementsUsingSystemHashCode(
+                SyntaxGenerator factory, Compilation compilation, INamedTypeSymbol hashCodeType,
+                ImmutableArray<SyntaxNode> memberReferences, CancellationToken cancellationToken)
+            {
+                if (memberReferences.Length <= 8)
+                {
+                    var statement = factory.ReturnStatement(
+                        factory.InvocationExpression(
+                            factory.MemberAccessExpression(factory.TypeExpression(hashCodeType), "Combine"),
+                            memberReferences));
+                    return ImmutableArray.Create(statement);
+                }
+
+                const string hashName = "hash";
+                var statements = ArrayBuilder<SyntaxNode>.GetInstance();
+                statements.Add(factory.LocalDeclarationStatement(hashName,
+                    factory.ObjectCreationExpression(hashCodeType)));
+
+                var localReference = factory.IdentifierName(hashName);
+                foreach (var member in memberReferences)
+                {
+                    statements.Add(factory.ExpressionStatement(
+                        factory.InvocationExpression(
+                            factory.MemberAccessExpression(localReference, "Add"),
+                            member)));
+                }
+
+                statements.Add(factory.ReturnStatement(
+                    factory.InvocationExpression(
+                        factory.MemberAccessExpression(localReference, "ToHashCode"))));
+
+                return statements.ToImmutableAndFree();
             }
 
             private async Task<IMethodSymbol> CreateEqualsMethodAsync(CancellationToken cancellationToken)

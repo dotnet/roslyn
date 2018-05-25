@@ -45,29 +45,16 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                 }
             }
 
-            public event EventHandler Started
+            public event EventHandler<bool> ProgressChanged
             {
                 add
                 {
-                    _eventMap.AddEventHandler(nameof(Started), value);
+                    _eventMap.AddEventHandler(nameof(ProgressChanged), value);
                 }
 
                 remove
                 {
-                    _eventMap.RemoveEventHandler(nameof(Started), value);
-                }
-            }
-
-            public event EventHandler Stopped
-            {
-                add
-                {
-                    _eventMap.AddEventHandler(nameof(Stopped), value);
-                }
-
-                remove
-                {
-                    _eventMap.RemoveEventHandler(nameof(Stopped), value);
+                    _eventMap.RemoveEventHandler(nameof(ProgressChanged), value);
                 }
             }
 
@@ -95,23 +82,23 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
 
             private Task RaiseStarted()
             {
-                return RaiseEvent(nameof(Started));
+                return RaiseEvent(nameof(ProgressChanged), running: true);
             }
 
             private Task RaiseStopped()
             {
-                return RaiseEvent(nameof(Stopped));
+                return RaiseEvent(nameof(ProgressChanged), running: false);
             }
 
-            private Task RaiseEvent(string eventName)
+            private Task RaiseEvent(string eventName, bool running)
             {
                 // this method name doesn't have Async since it should work as async void.
-                var ev = _eventMap.GetEventHandlers<EventHandler>(eventName);
+                var ev = _eventMap.GetEventHandlers<EventHandler<bool>>(eventName);
                 if (ev.HasHandlers)
                 {
                     return _eventQueue.ScheduleTask(() =>
                     {
-                        ev.RaiseEvent(handler => handler(this, EventArgs.Empty));
+                        ev.RaiseEvent(handler => handler(this, running));
                     });
                 }
 
@@ -128,13 +115,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
 
             public bool InProgress => false;
 
-            public event EventHandler Started
-            {
-                add { }
-                remove { }
-            }
-
-            public event EventHandler Stopped
+            public event EventHandler<bool> ProgressChanged
             {
                 add { }
                 remove { }

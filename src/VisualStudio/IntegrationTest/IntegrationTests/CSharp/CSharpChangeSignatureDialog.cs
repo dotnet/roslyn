@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess;
 using Roslyn.Test.Utilities;
@@ -21,21 +22,20 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
         {
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/17393"),
-         Trait(Traits.Feature, Traits.Features.ChangeSignature)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
         public void VerifyCodeRefactoringOffered()
         {
             SetUpEditor(@"
 class C
 {
-    public void Method(int a, string b) { }
+    public void Method$$(int a, string b) { }
 }");
 
             VisualStudio.Editor.InvokeCodeActionList();
             VisualStudio.Editor.Verify.CodeAction("Change signature...", applyFix: false);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
         public void VerifyRefactoringCancelled()
         {
             SetUpEditor(@"
@@ -56,8 +56,7 @@ class C
 }", actualText);
         }
 
-        [Fact (Skip = "https://github.com/dotnet/roslyn/issues/17640"),
-         Trait(Traits.Feature, Traits.Features.ChangeSignature)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
         public void VerifyReorderParameters()
         {
             SetUpEditor(@"
@@ -80,8 +79,7 @@ class C
 }", actuaText);
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/17680"),
-         Trait(Traits.Feature, Traits.Features.ChangeSignature)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
         public void VerifyRemoveParameter()
         {
             SetUpEditor(@"
@@ -115,7 +113,7 @@ class C
     /// A method.
     /// </summary>
     /// <param name=""a""></param>
-    ///
+    /// 
     public void Method(int a) { }
 
     void Test()
@@ -125,8 +123,7 @@ class C
 }", actuaText);
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/17680"),
-         Trait(Traits.Feature, Traits.Features.ChangeSignature)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
         public void VerifyCrossLanguageGlobalUndo()
         {
             SetUpEditor(@"using VBProject;

@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 {
     internal static partial class DocumentExtensions
     {
-        public static TLanguageService GetLanguageService<TLanguageService>(this Document document) where TLanguageService : class, ILanguageService
+        public static TLanguageService GetLanguageService<TLanguageService>(this TextDocument document) where TLanguageService : class, ILanguageService
             => document?.Project?.LanguageServices?.GetService<TLanguageService>();
 
         public static bool IsOpen(this Document document)
@@ -44,7 +44,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         {
             try
             {
-                var syntaxFactService = document.Project.LanguageServices.GetService<ISyntaxFactsService>();
+                var syntaxFactService = document.GetLanguageService<ISyntaxFactsService>();
                 var semanticModelService = document.Project.Solution.Workspace.Services.GetService<ISemanticModelService>();
                 if (semanticModelService == null || syntaxFactService == null)
                 {
@@ -80,7 +80,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         /// </summary>
         public static Task<SemanticModel> GetSemanticModelForNodeAsync(this Document document, SyntaxNode node, CancellationToken cancellationToken)
         {
-            var syntaxFactService = document.Project.LanguageServices.GetService<ISyntaxFactsService>();
+            var syntaxFactService = document.GetLanguageService<ISyntaxFactsService>();
             var semanticModelService = document.Project.Solution.Workspace.Services.GetService<ISemanticModelService>();
             if (semanticModelService == null || syntaxFactService == null || node == null)
             {
@@ -181,7 +181,11 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             if (document.Project.TryGetCompilation(out var compilation))
             {
                 // We already have a compilation, so at this point it's fastest to just get a SemanticModel
-                return await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+                var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+
+                // Make sure the compilation is kept alive so that GetSemanticModelAsync() doesn't become expensive
+                GC.KeepAlive(compilation);
+                return semanticModel;
             }
             else
             {

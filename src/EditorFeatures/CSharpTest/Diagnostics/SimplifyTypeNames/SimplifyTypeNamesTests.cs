@@ -7,9 +7,11 @@ using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.CodeFixes.SimplifyTypeNames;
+using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Diagnostics.SimplifyTypeNames;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -908,7 +910,6 @@ namespace N1
         [Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)]
         public async Task SimplifyGenericTypeName3()
         {
-            var fixAllActionId = SimplifyTypeNamesCodeFixProvider.GetCodeActionId(IDEDiagnosticIds.SimplifyMemberAccessDiagnosticId, "System.Action");
             await TestInRegularAndScriptAsync(
 @"using System;
 
@@ -927,7 +928,7 @@ namespace N1
     {
         Action<Action<Action<EventArgs>, Action<Action<EventArgs, Action<EventArgs>, Action<Action<Action<Action<EventArgs>, Action<EventArgs>>>>>>>> a;
     }
-}", fixAllActionEquivalenceKey: fixAllActionId);
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
@@ -3995,6 +3996,56 @@ class C
                 options: PreferIntrinsicTypeInMemberAccess);
         }
 
+        [Fact, WorkItem(26923, "https://github.com/dotnet/roslyn/issues/26923")]
+        public async Task NoSuggestionOnForeachCollectionExpression()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"using System;
+using System.Collections.Generic;
+
+class C
+{
+    static void Main(string[] args)
+    {
+        foreach (string arg in [|args|])
+        {
+
+        }
+    }
+}", new TestParameters(options: PreferImplicitTypeWithNone));
+        }
+
+        [Theory]
+        [InlineData(0)]
+        [InlineData(1)]
+        [InlineData(2)]
+        [InlineData(3)]
+        [InlineData(4)]
+        [Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        [WorkItem(20377, "https://github.com/dotnet/roslyn/issues/20377")]
+        public async Task TestWarningLevel(int warningLevel)
+        {
+            await TestInRegularAndScriptAsync(
+@"using System;
+
+namespace Root
+{
+    class A
+    {
+        [|System.Exception|] c;
+    }
+}",
+@"using System;
+
+namespace Root
+{
+    class A
+    {
+        Exception c;
+    }
+}", compilationOptions: new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary, warningLevel: warningLevel));
+        }
+
         private async Task TestWithPredefinedTypeOptionsAsync(string code, string expected, int index = 0)
         {
             await TestInRegularAndScriptAsync(code, expected, index: index, options: PreferIntrinsicTypeEverywhere);
@@ -4004,6 +4055,10 @@ class C
             SingleOption(CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInDeclaration, true, NotificationOption.Error),
             SingleOption(CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInMemberAccess, this.onWithError, GetLanguage()));
 
+        private IDictionary<OptionKey, object> PreferIntrinsicTypeEverywhereAsWarning => OptionsSet(
+            SingleOption(CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInDeclaration, true, NotificationOption.Warning),
+            SingleOption(CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInMemberAccess, this.onWithWarning, GetLanguage()));
+
         private IDictionary<OptionKey, object> PreferIntrinsicTypeInDeclaration => OptionsSet(
             SingleOption(CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInDeclaration, true, NotificationOption.Error),
             SingleOption(CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInMemberAccess, this.offWithNone, GetLanguage()));
@@ -4011,6 +4066,11 @@ class C
         private IDictionary<OptionKey, object> PreferIntrinsicTypeInMemberAccess => OptionsSet(
             SingleOption(CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInMemberAccess, true, NotificationOption.Error),
             SingleOption(CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInDeclaration, this.offWithNone, GetLanguage()));
+
+        private IDictionary<OptionKey, object> PreferImplicitTypeWithNone => OptionsSet(
+            SingleOption(CSharpCodeStyleOptions.UseImplicitTypeWherePossible, onWithNone),
+            SingleOption(CSharpCodeStyleOptions.UseImplicitTypeWhereApparent, onWithNone),
+            SingleOption(CSharpCodeStyleOptions.UseImplicitTypeForIntrinsicTypes, onWithNone));
 
         private readonly CodeStyleOption<bool> onWithNone = new CodeStyleOption<bool>(true, NotificationOption.None);
         private readonly CodeStyleOption<bool> offWithNone = new CodeStyleOption<bool>(false, NotificationOption.None);

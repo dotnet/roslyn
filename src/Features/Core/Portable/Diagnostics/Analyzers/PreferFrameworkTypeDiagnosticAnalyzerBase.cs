@@ -72,6 +72,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.PreferFrameworkType
         {
             context.RegisterSyntaxNodeAction(AnalyzeNode, SyntaxKindsOfInterest);
             context.ConfigureGeneratedCodeAnalysis(GeneratedCodeAnalysisFlags.None);
+            context.EnableConcurrentExecution();
         }
 
         protected void AnalyzeNode(SyntaxNodeAnalysisContext context)

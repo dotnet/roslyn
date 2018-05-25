@@ -3,6 +3,7 @@
 using System;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Extensions.ContextQuery;
@@ -114,6 +115,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             }
 
             return symbol.Name.EscapeIdentifier(isQueryContext: context.IsInQuery);
+        }
+
+        public static int GetTargetCaretPositionForMethod(MethodDeclarationSyntax methodDeclaration)
+        {
+            if (methodDeclaration.Body == null)
+            {
+                return methodDeclaration.GetLocation().SourceSpan.End;
+            }
+            else
+            {
+                // move to the end of the last statement in the method
+                var lastStatement = methodDeclaration.Body.Statements.Last();
+                return lastStatement.GetLocation().SourceSpan.End;
+            }
         }
     }
 }

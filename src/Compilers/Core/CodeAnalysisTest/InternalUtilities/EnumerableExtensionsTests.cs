@@ -1,17 +1,19 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
+using System.Collections.Generic;
 using Xunit;
 
 namespace Roslyn.Utilities.UnitTests.InternalUtilities
 {
+    using System.Linq;
+
     public class EnumerableExtensionsTests
     {
         [Fact]
         public void SequenceEqual()
         {
-            Func<int, int, bool> comparer = (x, y) => x == y;
-            Assert.True(EnumerableExtensions.SequenceEqual(null, null, comparer));
+            bool comparer(int x, int y) => x == y;
+            Assert.True(EnumerableExtensions.SequenceEqual((IEnumerable<int>)null, null, comparer));
             Assert.False(EnumerableExtensions.SequenceEqual(new[] { 1 }, null, comparer));
             Assert.False(EnumerableExtensions.SequenceEqual(null, new[] { 1 }, comparer));
 

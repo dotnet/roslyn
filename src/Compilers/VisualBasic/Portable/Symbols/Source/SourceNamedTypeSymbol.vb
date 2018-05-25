@@ -2279,7 +2279,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Friend Overrides ReadOnly Property IsExplicitDefinitionOfNoPiaLocalType As Boolean
             Get
                 If _lazyIsExplicitDefinitionOfNoPiaLocalType = ThreeState.Unknown Then
-                    GetAttributes()
+                    CheckPresenceOfTypeIdentifierAttribute()
+
                     If _lazyIsExplicitDefinitionOfNoPiaLocalType = ThreeState.Unknown Then
                         _lazyIsExplicitDefinitionOfNoPiaLocalType = ThreeState.False
                     End If
@@ -2289,6 +2290,35 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 Return _lazyIsExplicitDefinitionOfNoPiaLocalType = ThreeState.True
             End Get
         End Property
+
+        Private Sub CheckPresenceOfTypeIdentifierAttribute()
+
+            ' Have we already decoded well-known attributes?
+            If Me.m_lazyCustomAttributesBag?.IsDecodedWellKnownAttributeDataComputed Then
+                Return
+            End If
+
+            ' We want this function to be as cheap as possible, it is called for every top level type
+            ' and we don't want to bind attributes attached to the declaration unless there is a chance
+            ' that one of them is TypeIdentifier attribute.
+            Dim attributeLists As ImmutableArray(Of SyntaxList(Of AttributeListSyntax)) = GetAttributeDeclarations()
+
+            For Each list As SyntaxList(Of AttributeListSyntax) In attributeLists
+                Dim sourceFile = ContainingSourceModule.TryGetSourceFile(list.Node.SyntaxTree)
+
+                For Each attrList As AttributeListSyntax In list
+                    For Each attr As AttributeSyntax In attrList.Attributes
+                        If (sourceFile.QuickAttributeChecker.CheckAttribute(attr) And QuickAttributes.TypeIdentifier) <> 0 Then
+                            ' This attribute syntax might be an application of TypeIdentifierAttribute.
+                            ' Let's bind it.
+                            ' For simplicity we bind all attributes.
+                            GetAttributes()
+                            Return
+                        End If
+                    Next
+                Next
+            Next
+        End Sub
 
         Private Function FindDefaultEvent(eventName As String) As Boolean
             Dim current As NamedTypeSymbol = Me
@@ -2358,7 +2388,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
-        Friend NotOverridable Overrides ReadOnly Property IsSerializable As Boolean
+        Public NotOverridable Overrides ReadOnly Property IsSerializable As Boolean
             Get
                 Dim data = GetDecodedWellKnownAttributeData()
                 Return data IsNot Nothing AndAlso data.HasSerializableAttribute

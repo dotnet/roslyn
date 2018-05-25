@@ -71,7 +71,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             return null;
         }
 
-        private static ISymbol GetOverriddenMember(ISymbol symbol)
+        internal static ISymbol GetOverriddenMember(this ISymbol symbol)
         {
             switch (symbol)
             {
@@ -531,5 +531,8 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 }
             }
         }
+
+        public static INamedTypeSymbol TryConstruct(this INamedTypeSymbol type, ITypeSymbol[] typeArguments)
+            => typeArguments.Length > 0 ? type.Construct(typeArguments) : type;
     }
 }

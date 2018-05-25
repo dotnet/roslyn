@@ -51,8 +51,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Execution
         Public Overrides Sub WriteTo(options As OptionSet, writer As ObjectWriter, cancellationToken As CancellationToken)
             WriteOptionSetTo(options, LanguageNames.VisualBasic, writer, cancellationToken)
             WriteOptionTo(options, VisualBasicCodeStyleOptions.PreferredModifierOrder, writer, cancellationToken)
-            WriteOptionTo(options, VisualBasicCodeStyleOptions.PreferInferredTupleNames, writer, cancellationToken)
-            WriteOptionTo(options, VisualBasicCodeStyleOptions.PreferInferredAnonymousTypeMemberNames, writer, cancellationToken)
         End Sub
 
         Public Overrides Function ReadCompilationOptionsFrom(reader As ObjectReader, cancellationToken As CancellationToken) As CompilationOptions
@@ -131,8 +129,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Execution
 
             options = ReadOptionSetFrom(options, LanguageNames.VisualBasic, reader, cancellationToken)
             options = ReadOptionFrom(options, VisualBasicCodeStyleOptions.PreferredModifierOrder, reader, cancellationToken)
-            options = ReadOptionFrom(options, VisualBasicCodeStyleOptions.PreferInferredTupleNames, reader, cancellationToken)
-            options = ReadOptionFrom(options, VisualBasicCodeStyleOptions.PreferInferredAnonymousTypeMemberNames, reader, cancellationToken)
 
             Return options
         End Function

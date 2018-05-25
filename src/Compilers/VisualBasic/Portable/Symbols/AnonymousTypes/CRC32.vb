@@ -15,7 +15,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Dim crc32 As UInt32 = &HFFFFFFFF
 
             For Each name In names
-                crc32 = Crc32Update(crc32, s_encoding.GetBytes(name.ToLowerInvariant()))
+                crc32 = Crc32Update(crc32, s_encoding.GetBytes(CaseInsensitiveComparison.ToLower(name)))
             Next
 
             Return crc32

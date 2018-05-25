@@ -1907,7 +1907,7 @@ IConditionalOperation (OperationKind.Conditional, Type: null) (Syntax: 'If x OrE
   Condition: 
     IUnaryOperation (UnaryOperatorKind.True) (OperatorMethod: Function CustomType.op_True(x As CustomType) As System.Boolean) (OperationKind.UnaryOperator, Type: System.Boolean, IsImplicit) (Syntax: 'x OrElse y')
       Operand: 
-        IBinaryOperation (BinaryOperatorKind.ConditionalAnd) (OperatorMethod: Function CustomType.op_BitwiseOr(x As CustomType, y As CustomType) As CustomType) (OperationKind.BinaryOperator, Type: CustomType) (Syntax: 'x OrElse y')
+        IBinaryOperation (BinaryOperatorKind.ConditionalOr) (OperatorMethod: Function CustomType.op_BitwiseOr(x As CustomType, y As CustomType) As CustomType) (OperationKind.BinaryOperator, Type: CustomType) (Syntax: 'x OrElse y')
           Left: 
             ILocalReferenceOperation: x (OperationKind.LocalReference, Type: CustomType) (Syntax: 'x')
           Right: 
