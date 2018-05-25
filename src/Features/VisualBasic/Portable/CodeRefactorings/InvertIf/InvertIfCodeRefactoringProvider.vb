@@ -1,108 +1,117 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports Microsoft.CodeAnalysis.CodeRefactorings.InvertIf
+Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings.InvertIf
     Friend MustInherit Class VisualBasicInvertIfCodeRefactoringProvider(Of TIfStatementSyntax As ExecutableStatementSyntax)
-        Inherits AbstractInvertIfCodeRefactoringProvider(Of TIfStatementSyntax)
+        Inherits AbstractInvertIfCodeRefactoringProvider(Of TIfStatementSyntax, SyntaxList(Of StatementSyntax))
 
         Protected NotOverridable Overrides Function GetTitle() As String
             Return VBFeaturesResources.Invert_If
         End Function
 
-        Protected NotOverridable Overrides Function IsEmptyStatementRange(statementRange As StatementRange) As Boolean
-            ' TODO check for empty blocks
-            Return statementRange.FirstStatement Is Nothing OrElse statementRange.LastStatement Is Nothing
-        End Function
-
         Protected NotOverridable Overrides Function GetIfBodyStatementRange(ifNode As TIfStatementSyntax) As StatementRange
             Dim statements = ifNode.GetStatements()
-            Return If(statements.Count = 0,
-                StatementRange.Empty,
-                New StatementRange(statements.First(), statements.Last()))
+            Return If(statements.Count = 0, StatementRange.Empty, New StatementRange(statements.First(), statements.Last()))
         End Function
 
-        Protected NotOverridable Overrides Iterator Function GetSubsequentStatementRanges(ifNode As TIfStatementSyntax) As IEnumerable(Of StatementRange)
-            Dim syntaxFacts = VisualBasicSyntaxFactsService.Instance
-
-            Dim innerStatement As StatementSyntax = ifNode
-            For Each node In ifNode.Ancestors
-                Dim nextStatement = syntaxFacts.GetNextExecutableStatement(innerStatement)
-                If nextStatement IsNot Nothing AndAlso node.IsStatementContainerNode() Then
-                    Yield New StatementRange(nextStatement, node.GetStatements().Last())
-                End If
-
-                If TypeOf node Is MethodBlockBaseSyntax OrElse
-                   TypeOf node Is CaseBlockSyntax OrElse
-                   TypeOf node Is DoLoopBlockSyntax OrElse
-                   TypeOf node Is ForOrForEachBlockSyntax OrElse
-                   TypeOf node Is WhileBlockSyntax Then
-                    Exit Function
-                End If
-
-                If TypeOf node Is StatementSyntax Then
-                    innerStatement = DirectCast(node, StatementSyntax)
-                End If
-            Next
+        Protected Overrides Function CanControlFlowOut(node As SyntaxNode) As Boolean
+            Return TypeOf node IsNot MethodBlockBaseSyntax AndAlso
+                   TypeOf node IsNot CaseBlockSyntax AndAlso
+                   TypeOf node IsNot DoLoopBlockSyntax AndAlso
+                   TypeOf node IsNot ForOrForEachBlockSyntax AndAlso
+                   TypeOf node IsNot LambdaExpressionSyntax AndAlso
+                   TypeOf node IsNot WhileBlockSyntax
         End Function
 
-        Protected NotOverridable Overrides Function GetNearmostParentJumpStatementRawKind(ifNode As TIfStatementSyntax) As Integer
-            For Each node In ifNode.Ancestors
-                If TypeOf node Is MethodBlockBaseSyntax Then
-                    Return SyntaxKind.ReturnStatement
-                End If
+        Protected NotOverridable Overrides Function GetJumpStatementRawKind(node As SyntaxNode) As Integer
+            If TypeOf node Is MethodBlockBaseSyntax OrElse
+               TypeOf node Is LambdaExpressionSyntax Then
+                Return SyntaxKind.ReturnStatement
+            End If
 
-                If TypeOf node Is CaseBlockSyntax Then
-                    Return SyntaxKind.ExitSelectStatement
-                End If
+            If TypeOf node Is CaseBlockSyntax Then
+                Return SyntaxKind.ExitSelectStatement
+            End If
 
-                If TypeOf node Is DoLoopBlockSyntax Then
-                    Return SyntaxKind.ContinueDoStatement
-                End If
+            If TypeOf node Is DoLoopBlockSyntax Then
+                Return SyntaxKind.ContinueDoStatement
+            End If
 
-                If TypeOf node Is ForOrForEachBlockSyntax Then
-                    Return SyntaxKind.ContinueForStatement
-                End If
+            If TypeOf node Is ForOrForEachBlockSyntax Then
+                Return SyntaxKind.ContinueForStatement
+            End If
 
-                If TypeOf node Is WhileBlockSyntax Then
-                    Return SyntaxKind.ContinueWhileStatement
-                End If
-            Next
+            If TypeOf node Is WhileBlockSyntax Then
+                Return SyntaxKind.ContinueWhileStatement
+            End If
 
-            Throw ExceptionUtilities.Unreachable
+            Return -1
         End Function
 
-        Protected MustOverride Function GetInvertedIfNode(
-            ifNode As TIfStatementSyntax,
-            negatedExpression As ExpressionSyntax) As TIfStatementSyntax
+        Protected NotOverridable Overrides Function IsStatementContainer(node As SyntaxNode) As Boolean
+            Return node.IsStatementContainerNode()
+        End Function
 
-        Protected NotOverridable Overrides Function GetRootWithInvertIfStatement(
-            root As SyntaxNode,
-            ifNode As TIfStatementSyntax,
-            invertIfStyle As InvertIfStyle,
-            subsequentSingleExitPointOpt As SyntaxNode,
-            negatedExpression As SyntaxNode) As SyntaxNode
-            Select Case invertIfStyle
-                Case InvertIfStyle.IfWithElse_SwapIfBodyWithElseBody
-                    Return root.ReplaceNode(ifNode, GetInvertedIfNode(ifNode, DirectCast(negatedExpression, ExpressionSyntax)))
-                Case InvertIfStyle.IfWithoutElse_SwapIfBodyWithSubsequentStatements
-                    Throw New NotImplementedException
-                Case InvertIfStyle.IfWithoutElse_MoveSubsequentStatementsToIfBody
-                    Throw New NotImplementedException
-                Case InvertIfStyle.IfWithoutElse_WithElseClause
-                    Throw New NotImplementedException
-                Case InvertIfStyle.IfWithoutElse_MoveIfBodyToElseClause
-                    Throw New NotImplementedException
-                Case InvertIfStyle.IfWithoutElse_WithSubsequentExitPointStatement
-                    Throw New NotImplementedException
-                Case InvertIfStyle.IfWithoutElse_WithNearmostJumpStatement
-                    Throw New NotImplementedException
-                Case InvertIfStyle.IfWithoutElse_WithNegatedCondition
-                    Throw New NotImplementedException
+        Protected NotOverridable Overrides Function GetStatements(node As SyntaxNode) As SyntaxList(Of SyntaxNode)
+            Return node.GetStatements()
+        End Function
+
+        Protected NotOverridable Overrides Function GetNextExecutableStatement(node As SyntaxNode) As SyntaxNode
+            Dim parent = node.Parent
+            Dim statements = parent.GetStatements
+            Dim index = statements.IndexOf(DirectCast(node, StatementSyntax))
+            If index + 1 < statements.Count - 1 Then
+                Return statements(index + 1)
+            End If
+
+            Return Nothing
+
+            ' Return DirectCast(node, StatementSyntax).GetNextStatement()
+            ' Return VisualBasicSyntaxFactsService.Instance.GetNextExecutableStatement(node)
+        End Function
+
+        Protected NotOverridable Overrides Function GetJumpStatement(rawKind As Integer) As SyntaxNode
+            Select Case rawKind
+                Case SyntaxKind.ReturnStatement
+                    Return SyntaxFactory.ReturnStatement
+                Case SyntaxKind.ExitSelectStatement
+                    Return SyntaxFactory.ExitSelectStatement
+                Case SyntaxKind.ContinueDoStatement
+                    Return SyntaxFactory.ContinueDoStatement
+                Case SyntaxKind.ContinueForStatement
+                    Return SyntaxFactory.ContinueForStatement
+                Case SyntaxKind.ContinueWhileStatement
+                    Return SyntaxFactory.ContinueWhileStatement
                 Case Else
-                    Throw ExceptionUtilities.UnexpectedValue(invertIfStyle)
+                    Throw ExceptionUtilities.UnexpectedValue(rawKind)
             End Select
+        End Function
+
+        Protected NotOverridable Overrides Function IsNoOpSyntaxNode(node As SyntaxNode) As Boolean
+            Return node.IsKind(SyntaxKind.EmptyStatement)
+        End Function
+
+        Protected NotOverridable Overrides Function IsStatement(node As SyntaxNode) As Boolean
+            Return TypeOf node Is ExecutableStatementSyntax
+        End Function
+
+        Protected NotOverridable Overrides Function UnwrapBlock(ifBody As SyntaxList(Of StatementSyntax)) As IEnumerable(Of SyntaxNode)
+            Return ifBody
+        End Function
+
+        Protected NotOverridable Overrides Function GetEmptyEmbeddedStatement() As SyntaxList(Of StatementSyntax)
+            Return SyntaxFactory.List(Of StatementSyntax)
+        End Function
+
+        Protected NotOverridable Overrides Function AsEmbeddedStatement(originalStatement As SyntaxList(Of StatementSyntax), newStatements As IEnumerable(Of SyntaxNode)) As SyntaxList(Of StatementSyntax)
+            Return SyntaxFactory.List(newStatements)
+        End Function
+
+        Protected NotOverridable Overrides Function WithStatements(node As SyntaxNode, statements As IEnumerable(Of SyntaxNode)) As SyntaxNode
+            Return node.ReplaceStatements(SyntaxFactory.List(statements))
         End Function
     End Class
 End Namespace

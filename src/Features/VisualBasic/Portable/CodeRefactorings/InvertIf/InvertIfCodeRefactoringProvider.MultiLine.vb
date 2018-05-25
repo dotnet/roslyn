@@ -10,30 +10,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings.InvertIf
     Friend NotInheritable Class VisualBasicInvertMultiLineIfCodeRefactoringProvider
         Inherits VisualBasicInvertIfCodeRefactoringProvider(Of MultiLineIfBlockSyntax)
 
-        Protected Overrides Function GetInvertedIfNode(
-            ifNode As MultiLineIfBlockSyntax,
-            negatedExpression As ExpressionSyntax) As MultiLineIfBlockSyntax
-
-            Dim ifPart = ifNode
-            Dim elseBlock = ifNode.ElseBlock
-
-            Dim ifStatement = ifNode.IfStatement
-
-            Dim ifLeadingTrivia = ifNode.GetLeadingTrivia()
-            Dim endifTrailingTrivia = ifNode.EndIfStatement.GetTrailingTrivia()
-            Dim elseBlockLeadingTrivia = elseBlock.GetLeadingTrivia()
-            Dim endifLeadingTrivia = ifNode.EndIfStatement.GetLeadingTrivia()
-
-            ifNode = ifNode.Update(
-                    ifStatement:=ifStatement.WithCondition(negatedExpression),
-                    statements:=elseBlock.Statements,
-                    elseIfBlocks:=Nothing,
-                    elseBlock:=elseBlock.WithStatements(ifPart.Statements).WithLeadingTrivia(endifLeadingTrivia),
-                    endIfStatement:=ifNode.EndIfStatement.WithTrailingTrivia(endifTrailingTrivia).WithLeadingTrivia(elseBlockLeadingTrivia))
-
-            Return ifNode.WithLeadingTrivia(ifLeadingTrivia)
-        End Function
-
         Protected Overrides Function GetHeaderSpan(ifNode As MultiLineIfBlockSyntax) As TextSpan
             Return TextSpan.FromBounds(
                     ifNode.IfStatement.IfKeyword.SpanStart,
@@ -51,5 +27,28 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings.InvertIf
         Protected Overrides Function GetCondition(ifNode As MultiLineIfBlockSyntax) As SyntaxNode
             Return ifNode.IfStatement.Condition
         End Function
+
+        Protected Overrides Function GetIfBody(ifNode As MultiLineIfBlockSyntax) As SyntaxList(Of StatementSyntax)
+            Return ifNode.Statements
+        End Function
+
+        Protected Overrides Function GetElseBody(ifNode As MultiLineIfBlockSyntax) As SyntaxList(Of StatementSyntax)
+            Return ifNode.ElseBlock.Statements
+        End Function
+
+        Protected Overrides Function UpdateIf(ifNode As MultiLineIfBlockSyntax, condition As SyntaxNode, Optional trueStatement As SyntaxList(Of StatementSyntax) = Nothing, Optional falseStatement As SyntaxList(Of StatementSyntax) = Nothing) As SyntaxNode
+            Dim updatedIf = ifNode.WithIfStatement(ifNode.IfStatement.WithCondition(DirectCast(condition, ExpressionSyntax)))
+
+            If Not trueStatement.IsEmpty Then
+                updatedIf = updatedIf.WithStatements(trueStatement)
+            End If
+
+            If Not falseStatement.IsEmpty Then
+                updatedIf = updatedIf.WithElseBlock(SyntaxFactory.ElseBlock(falseStatement))
+            End If
+
+            Return updatedIf
+        End Function
     End Class
 End Namespace
+

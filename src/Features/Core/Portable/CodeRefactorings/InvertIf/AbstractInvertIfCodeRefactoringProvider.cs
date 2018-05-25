@@ -20,7 +20,6 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.InvertIf
 {
     internal abstract partial class AbstractInvertIfCodeRefactoringProvider<TIfStatementSyntax, TEmbeddedStatement> : CodeRefactoringProvider
         where TIfStatementSyntax : SyntaxNode
-        where TEmbeddedStatement : class
     {
         private enum InvertIfStyle
         {
@@ -435,8 +434,8 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.InvertIf
         protected abstract SyntaxNode UpdateIf(
             TIfStatementSyntax ifNode,
             SyntaxNode condition,
-            TEmbeddedStatement trueStatement = null,
-            TEmbeddedStatement falseStatement = null);
+            TEmbeddedStatement trueStatement = default,
+            TEmbeddedStatement falseStatement = default);
 
         protected abstract SyntaxNode WithStatements(
             SyntaxNode node,
