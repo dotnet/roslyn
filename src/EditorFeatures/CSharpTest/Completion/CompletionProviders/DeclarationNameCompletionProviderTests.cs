@@ -259,7 +259,7 @@ public class C
 
         [WorkItem(25214, "https://github.com/dotnet/roslyn/issues/25214")]
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public async void TypeImplementsLazyOfType1()
+        public async Task TypeImplementsLazyOfType1()
         {
             var markup = @"
 using System;
@@ -279,7 +279,7 @@ public class Item { }
 
         [WorkItem(25214, "https://github.com/dotnet/roslyn/issues/25214")]
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public async void TypeImplementsLazyOfType2()
+        public async Task TypeImplementsLazyOfType2()
         {
             var markup = @"
 using System;
@@ -665,7 +665,7 @@ class Test
 
         [WorkItem(22342, "https://github.com/dotnet/roslyn/issues/22342")]
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public async void TupleExpressionDeclaration1()
+        public async Task TupleExpressionDeclaration1()
         {
             var markup = @"
 class Test
@@ -681,7 +681,7 @@ class Test
 
         [WorkItem(22342, "https://github.com/dotnet/roslyn/issues/22342")]
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public async void TupleExpressionDeclaration2()
+        public async Task TupleExpressionDeclaration2()
         {
             var markup = @"
 class Test
@@ -697,7 +697,7 @@ class Test
 
         [WorkItem(22342, "https://github.com/dotnet/roslyn/issues/22342")]
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public async void TupleExpressionDeclaration_NestedTuples()
+        public async Task TupleExpressionDeclaration_NestedTuples()
         {
             var markup = @"
 class Test
@@ -713,7 +713,7 @@ class Test
 
         [WorkItem(22342, "https://github.com/dotnet/roslyn/issues/22342")]
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public async void TupleExpressionDeclaration_NestedTuples_CompletionInTheMiddle()
+        public async Task TupleExpressionDeclaration_NestedTuples_CompletionInTheMiddle()
         {
             var markup = @"
 class Test
@@ -729,7 +729,7 @@ class Test
 
         [WorkItem(22342, "https://github.com/dotnet/roslyn/issues/22342")]
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public async void TupleElementDefinition1()
+        public async Task TupleElementDefinition1()
         {
             var markup = @"
 class Test
@@ -745,7 +745,7 @@ class Test
 
         [WorkItem(22342, "https://github.com/dotnet/roslyn/issues/22342")]
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public async void TupleElementDefinition2()
+        public async Task TupleElementDefinition2()
         {
             var markup = @"
 class Test
@@ -758,7 +758,7 @@ class Test
 
         [WorkItem(22342, "https://github.com/dotnet/roslyn/issues/22342")]
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public async void TupleElementDefinition3()
+        public async Task TupleElementDefinition3()
         {
             var markup = @"
 class Test
@@ -771,7 +771,7 @@ class Test
 
         [WorkItem(22342, "https://github.com/dotnet/roslyn/issues/22342")]
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public async void TupleElementDefinition4()
+        public async Task TupleElementDefinition4()
         {
             var markup = @"
 class Test
@@ -784,7 +784,7 @@ class Test
 
         [WorkItem(22342, "https://github.com/dotnet/roslyn/issues/22342")]
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public async void TupleElementDefinition5()
+        public async Task TupleElementDefinition5()
         {
             var markup = @"
 class Test
@@ -797,7 +797,7 @@ class Test
 
         [WorkItem(22342, "https://github.com/dotnet/roslyn/issues/22342")]
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public async void TupleElementDefinition_NestedTuples()
+        public async Task TupleElementDefinition_NestedTuples()
         {
             var markup = @"
 class Test
@@ -810,7 +810,7 @@ class Test
 
         [WorkItem(22342, "https://github.com/dotnet/roslyn/issues/22342")]
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public async void TupleElementDefinition_InMiddleOfTuple()
+        public async Task TupleElementDefinition_InMiddleOfTuple()
         {
             var markup = @"
 class Test
@@ -823,7 +823,7 @@ class Test
 
         [WorkItem(22342, "https://github.com/dotnet/roslyn/issues/22342")]
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public async void TupleElementTypeInference()
+        public async Task TupleElementTypeInference()
         {
             var markup = @"
 class Test
@@ -843,7 +843,7 @@ class Test
 
         [WorkItem(22342, "https://github.com/dotnet/roslyn/issues/22342")]
         [Fact(Skip = "Not yet supported"), Trait(Traits.Feature, Traits.Features.Completion)]
-        public async void TupleElementInGenericTypeArgument()
+        public async Task TupleElementInGenericTypeArgument()
         {
             var markup = @"
 class Test
@@ -859,7 +859,7 @@ class Test
 
         [WorkItem(22342, "https://github.com/dotnet/roslyn/issues/22342")]
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public async void TupleElementInvocationInsideTuple()
+        public async Task TupleElementInvocationInsideTuple()
         {
             var markup = @"
 class Test
