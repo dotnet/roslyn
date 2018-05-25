@@ -343,6 +343,8 @@ index: 1);
         [InlineData("public", "protected internal", "public")]
         [InlineData("protected", "protected", "public")]
         [InlineData("protected internal", "protected", "public")]
+        [InlineData("protected", "protected private", "internal")]
+        [InlineData("protected private", "protected", "internal")]
         public async Task TestGenerateInternalClassFromASingleConstraintClauseNestedClass(string middleAccessibility, string accessibility, string generatedAccessibility)
         {
             await TestInRegularAndScriptAsync(
