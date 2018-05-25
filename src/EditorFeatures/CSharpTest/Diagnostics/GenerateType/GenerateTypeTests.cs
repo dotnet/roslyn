@@ -336,194 +336,40 @@ index: 1);
         }
 
         [WorkItem(18240, "https://github.com/dotnet/roslyn/issues/18240")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
-        public async Task TestGenerateInternalClassFromASingleConstraintClauseInternalNestedClass()
+        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [InlineData("public", "internal", "internal")]
+        [InlineData("public", "private", "internal")]
+        [InlineData("internal", "protected", "internal")]
+        [InlineData("public", "protected internal", "public")]
+        [InlineData("protected", "protected", "public")]
+        [InlineData("protected internal", "protected", "public")]
+        public async Task TestGenerateInternalClassFromASingleConstraintClauseNestedClass(string middleAccessibility, string accessibility, string generatedAccessibility)
         {
             await TestInRegularAndScriptAsync(
-@"public class A
-{
-    public class B
-    {
-        internal class C<T> where T : [|D|]
-        {
+$@"public class A
+{{
+    {middleAccessibility} class B
+    {{
+        {accessibility} class C<T> where T : [|D|]
+        {{
 
-        }
-    }
-}",
-@"public class A
-{
-    public class B
-    {
-        internal class C<T> where T : D
-        {
+        }}
+    }}
+}}",
+$@"public class A
+{{
+    {middleAccessibility} class B
+    {{
+        {accessibility} class C<T> where T : D
+        {{
 
-        }
-    }
-}
+        }}
+    }}
+}}
 
-internal class D
-{
-}",
-index: 1);
-        }
-
-        [WorkItem(18240, "https://github.com/dotnet/roslyn/issues/18240")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
-        public async Task TestGenerateInternalClassFromASingleConstraintClausePrivateNestedClass()
-        {
-            await TestInRegularAndScriptAsync(
-@"public class A
-{
-    public class B
-    {
-        private class C<T> where T : [|D|]
-        {
-
-        }
-    }
-}",
-@"public class A
-{
-    public class B
-    {
-        private class C<T> where T : D
-        {
-
-        }
-    }
-}
-
-internal class D
-{
-}",
-index: 1);
-        }
-
-        [WorkItem(18240, "https://github.com/dotnet/roslyn/issues/18240")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
-        public async Task TestGenerateInternalClassFromASingleConstraintClauseClassProtectedNestedClass()
-        {
-            await TestInRegularAndScriptAsync(
-@"public class A
-{
-    internal class B
-    {
-        protected class C<T> where T : [|D|]
-        {
-
-        }
-    }
-}",
-@"public class A
-{
-    internal class B
-    {
-        protected class C<T> where T : D
-        {
-
-        }
-    }
-}
-
-internal class D
-{
-}",
-index: 1);
-        }
-
-        [WorkItem(18240, "https://github.com/dotnet/roslyn/issues/18240")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
-        public async Task TestGeneratePublicClassFromASingleConstraintClauseClassProtectedInternalNestedClass()
-        {
-            await TestInRegularAndScriptAsync(
-@"public class A
-{
-    public class B
-    {
-        protected internal class C<T> where T : [|D|]
-        {
-
-        }
-    }
-}",
-@"public class A
-{
-    public class B
-    {
-        protected internal class C<T> where T : D
-        {
-
-        }
-    }
-}
-
-public class D
-{
-}",
-index: 1);
-        }
-
-        [WorkItem(18240, "https://github.com/dotnet/roslyn/issues/18240")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
-        public async Task TestGeneratePublicClassFromASingleConstraintClauseClassProtectedNestedClass1()
-        {
-            await TestInRegularAndScriptAsync(
-@"public class A
-{
-    protected class B
-    {
-        protected class C<T> where T : [|D|]
-        {
-
-        }
-    }
-}",
-@"public class A
-{
-    protected class B
-    {
-        protected class C<T> where T : D
-        {
-
-        }
-    }
-}
-
-public class D
-{
-}",
-index: 1);
-        }
-
-        [WorkItem(18240, "https://github.com/dotnet/roslyn/issues/18240")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
-        public async Task TestGeneratePublicClassFromASingleConstraintClauseClassProtectedNestedClass2()
-        {
-            await TestInRegularAndScriptAsync(
-@"public class A
-{
-    protected internal class B
-    {
-        protected class C<T> where T : [|D|]
-        {
-
-        }
-    }
-}",
-@"public class A
-{
-    protected internal class B
-    {
-        protected class C<T> where T : D
-        {
-
-        }
-    }
-}
-
-public class D
-{
-}",
+{generatedAccessibility} class D
+{{
+}}",
 index: 1);
         }
 
