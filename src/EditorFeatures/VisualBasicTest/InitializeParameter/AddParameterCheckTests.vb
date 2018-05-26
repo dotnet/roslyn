@@ -245,6 +245,7 @@ class C
 end class")
         End Function
 
+        <WorkItem(20983, "https://github.com/dotnet/roslyn/issues/20983")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)>
         Public Async Function TestMissingWithExistingNullCheckInLambda() As Task
             Await TestMissingInRegularAndScriptAsync(
@@ -284,6 +285,7 @@ class C
 end class")
         End Function
 
+        <WorkItem(20983, "https://github.com/dotnet/roslyn/issues/20983")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)>
         Public Async Function TestOnMultiLineSubLambdaParameter() As Task
             Await TestInRegularAndScript1Async(
@@ -310,6 +312,7 @@ class C
 end class")
         End Function
 
+        <WorkItem(20983, "https://github.com/dotnet/roslyn/issues/20983")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)>
         Public Async Function TestOnMultiLineFunctionLambdaParameter() As Task
             Await TestInRegularAndScript1Async(
@@ -339,6 +342,7 @@ class C
 end class")
         End Function
 
+        <WorkItem(20983, "https://github.com/dotnet/roslyn/issues/20983")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)>
         Public Async Function TestOnSingleLineSubLambdaParameter() As Task
             Await TestInRegularAndScript1Async(
@@ -366,6 +370,7 @@ class C
 end class")
         End Function
 
+        <WorkItem(20983, "https://github.com/dotnet/roslyn/issues/20983")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)>
         Public Async Function TestOnSingleLineFunctionLambdaParameter() As Task
             Await TestInRegularAndScript1Async(

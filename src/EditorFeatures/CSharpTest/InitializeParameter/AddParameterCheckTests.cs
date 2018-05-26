@@ -462,6 +462,7 @@ class C
     Option(CSharpCodeStyleOptions.PreferExpressionBodiedConstructors, CSharpCodeStyleOptions.WhenPossibleWithSuggestionEnforcement)));
         }
 
+        [WorkItem(20983, "https://github.com/dotnet/roslyn/issues/20983")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
         public async Task TestUpdateLocalFunctionExpressionBody_NonVoid()
         {
@@ -496,6 +497,7 @@ class C
 }");
         }
 
+        [WorkItem(20983, "https://github.com/dotnet/roslyn/issues/20983")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
         public async Task TestUpdateLocalFunctionExpressionBody_Void()
         {
@@ -530,6 +532,7 @@ class C
 }");
         }
 
+        [WorkItem(20983, "https://github.com/dotnet/roslyn/issues/20983")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
         public async Task TestUpdateLambdaExpressionBody_NonVoid()
         {
@@ -568,6 +571,7 @@ class C
 }");
         }
 
+        [WorkItem(20983, "https://github.com/dotnet/roslyn/issues/20983")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
         public async Task TestUpdateLambdaExpressionBody_Void()
         {
@@ -785,6 +789,7 @@ class C
 }");
         }
 
+        [WorkItem(20983, "https://github.com/dotnet/roslyn/issues/20983")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
         public async Task TestMissingWithExistingNullCheckInLocalFunction()
         {
@@ -807,6 +812,7 @@ class C
 }");
         }
 
+        [WorkItem(20983, "https://github.com/dotnet/roslyn/issues/20983")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
         public async Task TestMissingWithExistingNullCheckInLambda()
         {
@@ -894,6 +900,7 @@ class C
 }");
         }
 
+        [WorkItem(20983, "https://github.com/dotnet/roslyn/issues/20983")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
         public async Task TestOnSimpleLambdaParameter()
         {
@@ -928,6 +935,7 @@ class C
 }");
         }
 
+        [WorkItem(20983, "https://github.com/dotnet/roslyn/issues/20983")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
         public async Task TestOnSimpleLambdaParameter_EmptyBlock()
         {
@@ -960,6 +968,7 @@ class C
 }");
         }
 
+        [WorkItem(20983, "https://github.com/dotnet/roslyn/issues/20983")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
         public async Task TestOnParenthesizedLambdaParameter()
         {
@@ -994,6 +1003,7 @@ class C
 }");
         }
 
+        [WorkItem(20983, "https://github.com/dotnet/roslyn/issues/20983")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
         public async Task TestOnAnonymousMethodParameter()
         {
@@ -1028,6 +1038,7 @@ class C
 }");
         }
 
+        [WorkItem(20983, "https://github.com/dotnet/roslyn/issues/20983")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
         public async Task TestOnLocalFunctionParameter()
         {
