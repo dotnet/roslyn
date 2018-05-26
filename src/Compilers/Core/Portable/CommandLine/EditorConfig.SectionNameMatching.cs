@@ -60,6 +60,10 @@ namespace Microsoft.CodeAnalysis
                         // Matches any string of characters
                         sb.Append(".*");
                         break;
+                    case TokenKind.Backslash:
+                        // Literal backslash
+                        sb.Append("\\\\");
+                        break;
                     default:
                         throw ExceptionUtilities.UnexpectedValue(tokenKind);
                 }

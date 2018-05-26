@@ -332,5 +332,16 @@ RoOt = TruE");
             Assert.Matches(regex, "ab/def");
             Assert.Matches(regex, "ab\\def");
         }
+
+        [Fact]
+        public void LiteralBackslash()
+        {
+            string regex = EditorConfig.CompileSectionNameToRegEx("ab\\\\c");
+            Assert.Equal("^ab\\\\c$", regex);
+
+            Assert.Matches(regex, "ab\\c");
+            Assert.DoesNotMatch(regex, "ab/c");
+            Assert.DoesNotMatch(regex, "ab\\\\c");
+        }
     }
 }
