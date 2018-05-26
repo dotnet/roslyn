@@ -126,7 +126,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return new BoundDeconstructionAssignmentOperator(
                             node,
                             DeconstructionVariablesAsTuple(left, checkedVariables, diagnostics, ignoreDiagnosticsFromTuple: true),
-                            new BoundConversion(boundRHS.Syntax, boundRHS, Conversion.Deconstruction, @checked: false, explicitCastInCode: false, isExplicitlyNullable: false,
+                            new BoundConversion(boundRHS.Syntax, boundRHS, Conversion.Deconstruction, @checked: false, explicitCastInCode: false, conversionGroupOpt: null,
                                 constantValueOpt: null, type: type, hasErrors: true),
                             resultIsUsed,
                             voidType,
@@ -156,7 +156,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 conversion,
                 @checked: false,
                 explicitCastInCode: false,
-                isExplicitlyNullable: false,
+                conversionGroupOpt: null,
                 constantValueOpt: null,
                 type: returnType,
                 hasErrors: hasErrors)

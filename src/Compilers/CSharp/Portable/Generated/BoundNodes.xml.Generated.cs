@@ -2054,7 +2054,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal sealed partial class BoundConversion : BoundExpression
     {
-        public BoundConversion(SyntaxNode syntax, BoundExpression operand, Conversion conversion, bool isBaseConversion, bool @checked, bool explicitCastInCode, ConstantValue constantValueOpt, bool isExplicitlyNullable, TypeSymbol type, bool hasErrors = false)
+        public BoundConversion(SyntaxNode syntax, BoundExpression operand, Conversion conversion, bool isBaseConversion, bool @checked, bool explicitCastInCode, ConstantValue constantValueOpt, ConversionGroup conversionGroupOpt, TypeSymbol type, bool hasErrors = false)
             : base(BoundKind.Conversion, syntax, type, hasErrors || operand.HasErrors())
         {
 
@@ -2067,7 +2067,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             this.Checked = @checked;
             this.ExplicitCastInCode = explicitCastInCode;
             this.ConstantValueOpt = constantValueOpt;
-            this.IsExplicitlyNullable = isExplicitlyNullable;
+            this.ConversionGroupOpt = conversionGroupOpt;
         }
 
 
@@ -2083,18 +2083,18 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public ConstantValue ConstantValueOpt { get; }
 
-        public bool IsExplicitlyNullable { get; }
+        public ConversionGroup ConversionGroupOpt { get; }
 
         public override BoundNode Accept(BoundTreeVisitor visitor)
         {
             return visitor.VisitConversion(this);
         }
 
-        public BoundConversion Update(BoundExpression operand, Conversion conversion, bool isBaseConversion, bool @checked, bool explicitCastInCode, ConstantValue constantValueOpt, bool isExplicitlyNullable, TypeSymbol type)
+        public BoundConversion Update(BoundExpression operand, Conversion conversion, bool isBaseConversion, bool @checked, bool explicitCastInCode, ConstantValue constantValueOpt, ConversionGroup conversionGroupOpt, TypeSymbol type)
         {
-            if (operand != this.Operand || conversion != this.Conversion || isBaseConversion != this.IsBaseConversion || @checked != this.Checked || explicitCastInCode != this.ExplicitCastInCode || constantValueOpt != this.ConstantValueOpt || isExplicitlyNullable != this.IsExplicitlyNullable || type != this.Type)
+            if (operand != this.Operand || conversion != this.Conversion || isBaseConversion != this.IsBaseConversion || @checked != this.Checked || explicitCastInCode != this.ExplicitCastInCode || constantValueOpt != this.ConstantValueOpt || conversionGroupOpt != this.ConversionGroupOpt || type != this.Type)
             {
-                var result = new BoundConversion(this.Syntax, operand, conversion, isBaseConversion, @checked, explicitCastInCode, constantValueOpt, isExplicitlyNullable, type, this.HasErrors);
+                var result = new BoundConversion(this.Syntax, operand, conversion, isBaseConversion, @checked, explicitCastInCode, constantValueOpt, conversionGroupOpt, type, this.HasErrors);
                 result.WasCompilerGenerated = this.WasCompilerGenerated;
                 return result;
             }
@@ -9088,7 +9088,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             BoundExpression operand = (BoundExpression)this.Visit(node.Operand);
             TypeSymbol type = this.VisitType(node.Type);
-            return node.Update(operand, node.Conversion, node.IsBaseConversion, node.Checked, node.ExplicitCastInCode, node.ConstantValueOpt, node.IsExplicitlyNullable, type);
+            return node.Update(operand, node.Conversion, node.IsBaseConversion, node.Checked, node.ExplicitCastInCode, node.ConstantValueOpt, node.ConversionGroupOpt, type);
         }
         public override BoundNode VisitArgList(BoundArgList node)
         {
@@ -10230,7 +10230,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 new TreeDumperNode("@checked", node.Checked, null),
                 new TreeDumperNode("explicitCastInCode", node.ExplicitCastInCode, null),
                 new TreeDumperNode("constantValueOpt", node.ConstantValueOpt, null),
-                new TreeDumperNode("isExplicitlyNullable", node.IsExplicitlyNullable, null),
+                new TreeDumperNode("conversionGroupOpt", node.ConversionGroupOpt, null),
                 new TreeDumperNode("type", node.Type, null)
             }
             );

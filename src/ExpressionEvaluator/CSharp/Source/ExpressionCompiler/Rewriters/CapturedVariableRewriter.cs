@@ -103,7 +103,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                 isBaseConversion: true,
                 @checked: false,
                 explicitCastInCode: false,
-                isExplicitlyNullable: false,
+                conversionGroupOpt: null,
                 constantValueOpt: null,
                 type: baseType,
                 hasErrors: !conversion.IsValid)

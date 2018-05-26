@@ -123,7 +123,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 Conversion.ExplicitReference,
                                 false,
                                 explicitCastInCode: true,
-                                isExplicitlyNullable: true,
+                                conversionGroupOpt: null,
                                 ConstantValue.NotAvailable,
                                 hostObjectField.Type.TypeSymbol 
                             ),
@@ -152,7 +152,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 Conversion.ExplicitReference,
                                 false,
                                 explicitCastInCode: true,
-                                isExplicitlyNullable: true,
+                                conversionGroupOpt: null,
                                 ConstantValue.NotAvailable,
                                 targetScriptType
                             ),

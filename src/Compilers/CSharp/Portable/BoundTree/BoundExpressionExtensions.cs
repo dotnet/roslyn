@@ -223,6 +223,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             return TypeSymbolWithAnnotations.Create(type, isNullable);
         }
 
+        /// <summary>
+        /// Returns the top-level nullability of the expression if the nullability can be determined statically,
+        /// and returns null otherwise. (May return null even in cases where the nullability is explicit,
+        /// say a reference to an unannotated field.) This method does not visit child nodes unless
+        /// the nullability of this expression can be determined trivially from the nullability of a child node.
+        /// This method is not a replacement for the actual calculation of nullability through flow analysis
+        /// which is handled in NullableWalker.
+        /// </summary>
         internal static bool? IsNullable(this BoundExpression expr)
         {
             switch (expr.Kind)
@@ -243,15 +251,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case BoundKind.Call:
                     return ((BoundCall)expr).Method.ReturnType.IsNullable;
                 case BoundKind.Conversion:
-                    {
-                        var conversion = (BoundConversion)expr;
-                        if (conversion.ExplicitCastInCode)
-                        {
-                            return conversion.IsExplicitlyNullable;
-                        }
-                        Debug.Assert(!conversion.IsExplicitlyNullable);
-                        return null;
-                    }
+                    return ((BoundConversion)expr).ConversionGroupOpt?.ExplicitType?.IsNullable == true ? (bool?)true : null;
                 case BoundKind.BinaryOperator:
                     return ((BoundBinaryOperator)expr).MethodOpt?.ReturnType.IsNullable;
                 case BoundKind.NullCoalescingOperator:

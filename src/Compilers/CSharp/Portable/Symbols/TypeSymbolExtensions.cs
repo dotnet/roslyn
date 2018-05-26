@@ -89,11 +89,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public static TypeSymbol GetNullableUnderlyingType(this TypeSymbol type)
         {
+            return type.GetNullableUnderlyingTypeWithAnnotations().TypeSymbol;
+        }
+
+        public static TypeSymbolWithAnnotations GetNullableUnderlyingTypeWithAnnotations(this TypeSymbol type)
+        {
             Debug.Assert((object)type != null);
             Debug.Assert(IsNullableType(type));
             Debug.Assert(type is NamedTypeSymbol);  //not testing Kind because it may be an ErrorType
 
-            return ((NamedTypeSymbol)type).TypeArgumentsNoUseSiteDiagnostics[0].TypeSymbol;
+            return ((NamedTypeSymbol)type).TypeArgumentsNoUseSiteDiagnostics[0];
         }
 
         public static TypeSymbol StrippedType(this TypeSymbol type)
