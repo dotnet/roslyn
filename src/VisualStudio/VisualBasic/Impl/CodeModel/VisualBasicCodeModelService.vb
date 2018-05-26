@@ -987,48 +987,54 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.CodeModel
                 Case SyntaxKind.SimpleArgument
                     Return DirectCast(node, SimpleArgumentSyntax).WithNameColonEquals(SyntaxFactory.NameColonEquals(SyntaxFactory.IdentifierName(name)))
                 Case Else
-                    Debug.Fail("Invalid node kind: " & CType(node.Kind, SyntaxKind))
+                    Debug.Fail("Invalid node kind: " & node.Kind)
                     Throw Exceptions.ThrowEFail()
             End Select
 
         End Function
 
         Public Overrides Function GetNodeWithName(node As SyntaxNode) As SyntaxNode
-            If node Is Nothing Then
-                Throw New ArgumentNullException(NameOf(node))
-            End If
 
-            If node.Kind = SyntaxKind.OperatorBlock Then
-                Throw Exceptions.ThrowEFail
-            End If
+            If node Is Nothing Then Throw New ArgumentNullException(NameOf(node))
+            If node.Kind = SyntaxKind.OperatorBlock Then Throw Exceptions.ThrowEFail
+
 
             Debug.Assert(IsNameableNode(node))
 
             Select Case node.Kind
                 Case SyntaxKind.Attribute
                     Return node
+
                 Case SyntaxKind.ClassBlock,
                      SyntaxKind.InterfaceBlock,
                      SyntaxKind.ModuleBlock,
                      SyntaxKind.StructureBlock
                     Return DirectCast(node, TypeBlockSyntax).BlockStatement
+
                 Case SyntaxKind.EnumBlock
                     Return DirectCast(node, EnumBlockSyntax).EnumStatement
+
                 Case SyntaxKind.DelegateFunctionStatement,
                      SyntaxKind.DelegateSubStatement
                     Return node
+
                 Case SyntaxKind.NamespaceBlock
                     Return DirectCast(node, NamespaceBlockSyntax).NamespaceStatement
+
                 Case SyntaxKind.SubBlock,
                      SyntaxKind.FunctionBlock,
                      SyntaxKind.ConstructorBlock
                     Return DirectCast(node, MethodBlockBaseSyntax).BlockStatement
+
                 Case SyntaxKind.PropertyBlock
                     Return DirectCast(node, PropertyBlockSyntax).PropertyStatement
+
                 Case SyntaxKind.EventBlock
                     Return DirectCast(node, EventBlockSyntax).EventStatement
+
                 Case SyntaxKind.ModifiedIdentifier
                     Return node
+
                 Case SyntaxKind.SimpleArgument
                     Dim simpleArgument = DirectCast(node, SimpleArgumentSyntax)
 
@@ -1038,8 +1044,10 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.CodeModel
                      SyntaxKind.DeclareFunctionStatement,
                      SyntaxKind.DeclareSubStatement
                     Return node
+
                 Case SyntaxKind.EventStatement
                     Return node
+
                 Case Else
                     Debug.Fail("Invalid node kind: " & CType(node.Kind, SyntaxKind))
                     Throw New ArgumentException()
@@ -1181,68 +1189,46 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.CodeModel
             Return False
         End Function
 
-        Public Overrides Function TryGetOptionNode(parentNode As SyntaxNode, name As String, ordinal As Integer, ByRef optionNode As SyntaxNode) As Boolean
+        Private Function TryGet__Node(Of T As SyntaxNode)(
+                                                           parentNode As SyntaxNode,
+                                                           name As String,
+                                                           ordinal As Integer,
+                                                           f As Func(Of SyntaxNode, IEnumerable(Of SyntaxNode)),
+                                                     ByRef result As SyntaxNode
+                                                         ) As Boolean
             Dim count = -1
-            For Each [option] As OptionStatementSyntax In GetOptionNodes(parentNode)
-                If [option].ToString() = name Then
+            For Each node As T In f.Invoke(parentNode)
+                If node.ToString() = name Then
                     count += 1
                     If count = ordinal Then
-                        optionNode = [option]
+                        result = node
                         Return True
                     End If
                 End If
             Next
 
-            optionNode = Nothing
+            result = Nothing
             Return False
+        End Function
+
+        Public Overrides Function TryGetOptionNode(parentNode As SyntaxNode, name As String, ordinal As Integer, ByRef optionNode As SyntaxNode) As Boolean
+            Static sourceTap As Func(Of SyntaxNode, IEnumerable(Of SyntaxNode)) = AddressOf GetOptionNodes
+            Return TryGet__Node(Of OptionStatementSyntax)(parentNode, name, ordinal, sourceTap, optionNode)
         End Function
 
         Public Overrides Function TryGetInheritsNode(parentNode As SyntaxNode, name As String, ordinal As Integer, ByRef inheritsNode As SyntaxNode) As Boolean
-            Dim count = -1
-            For Each [inherits] As InheritsStatementSyntax In GetInheritsNodes(parentNode)
-                If [inherits].Types.ToString() = name Then
-                    count += 1
-                    If count = ordinal Then
-                        inheritsNode = [inherits]
-                        Return True
-                    End If
-                End If
-            Next
-
-            inheritsNode = Nothing
-            Return False
+            Static sourceTap As Func(Of SyntaxNode, IEnumerable(Of SyntaxNode)) = AddressOf GetInheritsNodes
+            Return TryGet__Node(Of InheritsStatementSyntax)(parentNode, name, ordinal, sourceTap, inheritsNode)
         End Function
 
         Public Overrides Function TryGetImplementsNode(parentNode As SyntaxNode, name As String, ordinal As Integer, ByRef implementsNode As SyntaxNode) As Boolean
-            Dim count = -1
-            For Each [implements] As ImplementsStatementSyntax In GetImplementsNodes(parentNode)
-                If [implements].Types.ToString() = name Then
-                    count += 1
-                    If count = ordinal Then
-                        implementsNode = [implements]
-                        Return True
-                    End If
-                End If
-            Next
-
-            implementsNode = Nothing
-            Return False
+            Static sourceTap As Func(Of SyntaxNode, IEnumerable(Of SyntaxNode)) = AddressOf GetImplementsNodes
+            Return TryGet__Node(Of ImplementsStatementSyntax)(parentNode, name, ordinal, sourceTap, implementsNode)
         End Function
 
         Public Overrides Function TryGetAttributeNode(parentNode As SyntaxNode, name As String, ordinal As Integer, ByRef attributeNode As SyntaxNode) As Boolean
-            Dim count = -1
-            For Each attribute As AttributeSyntax In GetAttributeNodes(parentNode)
-                If attribute.Name.ToString() = name Then
-                    count += 1
-                    If count = ordinal Then
-                        attributeNode = attribute
-                        Return True
-                    End If
-                End If
-            Next
-
-            attributeNode = Nothing
-            Return False
+            Static sourceTap As Func(Of SyntaxNode, IEnumerable(Of SyntaxNode)) = AddressOf GetAttributeNodes
+            Return TryGet__Node(Of AttributeSyntax)(parentNode, name, ordinal, sourceTap, attributeNode)
         End Function
 
         Public Overrides Function TryGetAttributeArgumentNode(attributeNode As SyntaxNode, index As Integer, ByRef attributeArgumentNode As SyntaxNode) As Boolean

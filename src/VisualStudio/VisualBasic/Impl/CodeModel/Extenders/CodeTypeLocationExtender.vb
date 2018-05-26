@@ -15,16 +15,10 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.CodeModel.Extender
             Return CType(ComAggregate.CreateAggregatedObject(result), IVBCodeTypeLocation)
         End Function
 
-        Private ReadOnly _externalLocation As String
-
         Private Sub New(externalLocation As String)
-            _externalLocation = externalLocation
+            Me.ExternalLocation = externalLocation
         End Sub
 
         Public ReadOnly Property ExternalLocation As String Implements IVBCodeTypeLocation.ExternalLocation
-            Get
-                Return _externalLocation
-            End Get
-        End Property
     End Class
 End Namespace

@@ -27,7 +27,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.CodeModel.Extender
         End Sub
 
         Private Function GetTypesCount(baseType As Boolean) As Integer
-            Dim typeSymbol = CType(_codeType.Value.LookupTypeSymbol(), INamedTypeSymbol)
+            Dim typeSymbol = _codeType.Value.LookupTypeSymbol()
 
             If baseType Then
                 Select Case typeSymbol.TypeKind
@@ -55,7 +55,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.CodeModel.Extender
         End Function
 
         Private Function GetGenericName(baseType As Boolean, index As Integer) As String
-            Dim typeSymbol = CType(_codeType.Value.LookupTypeSymbol(), INamedTypeSymbol)
+            Dim typeSymbol = _codeType.Value.LookupTypeSymbol()
 
             If baseType Then
                 Select Case typeSymbol.TypeKind

@@ -127,8 +127,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.CodeModel
                         If variableDeclarator IsNot Nothing AndAlso
                            variableDeclarator.Initializer IsNot Nothing AndAlso
                            variableDeclarator.Initializer.Value IsNot Nothing AndAlso
-                           Not variableDeclarator.Initializer.Value.IsMissing Then
-
+                     Not variableDeclarator.Initializer.Value.IsMissing Then
                             .Builder.Append(" = ")
                             .Builder.Append(variableDeclarator.Initializer.Value.ToString())
                         End If
