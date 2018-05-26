@@ -26,10 +26,17 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Progression
                 If cancellationToken.IsCancellationRequested Then Continue While
 
                 Select Case node.Kind
-                    Case SyntaxKind.ClassBlock, SyntaxKind.DelegateFunctionStatement, SyntaxKind.DelegateSubStatement,
-                         SyntaxKind.EnumBlock, SyntaxKind.ModuleBlock, SyntaxKind.InterfaceBlock,
-                         SyntaxKind.StructureBlock, SyntaxKind.FieldDeclaration, SyntaxKind.SubBlock,
-                         SyntaxKind.FunctionBlock, SyntaxKind.PropertyBlock
+                    Case SyntaxKind.ClassBlock,
+                         SyntaxKind.DelegateFunctionStatement,
+                         SyntaxKind.DelegateSubStatement,
+                         SyntaxKind.EnumBlock,
+                         SyntaxKind.ModuleBlock,
+                         SyntaxKind.InterfaceBlock,
+                         SyntaxKind.StructureBlock,
+                         SyntaxKind.FieldDeclaration,
+                         SyntaxKind.SubBlock,
+                         SyntaxKind.FunctionBlock,
+                         SyntaxKind.PropertyBlock
                         Yield node
                     Case Else
                         For Each child In node.ChildNodes()
@@ -37,8 +44,6 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Progression
                         Next
                 End Select
             End While
-            nodes.Clear()
-            nodes = Nothing
         End Function
 
         Private Shared ReadOnly s_descriptionFormat As SymbolDisplayFormat = New SymbolDisplayFormat(
