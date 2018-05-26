@@ -1,29 +1,35 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
 using System.Composition;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
-using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
-using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.Legacy;
-using Microsoft.VisualStudio.Shell;
+using Microsoft.VisualStudio.Shell.Interop;
 
 namespace Microsoft.VisualStudio.LanguageServices.Telemetry
 {
     [ExportWorkspaceService(typeof(IProjectTypeLookupService), ServiceLayer.Host), Shared]
     internal class ProjectTypeLookupService : IProjectTypeLookupService
     {
-        public string GetProjectType(Microsoft.CodeAnalysis.Workspace workspace, ProjectId projectId)
+        public string GetProjectType(Workspace workspace, ProjectId projectId)
         {
-            if (workspace == null || projectId == null)
+            if (!(workspace is VisualStudioWorkspace vsWorkspace) || projectId == null)
             {
                 return string.Empty;
             }
 
-            var vsWorkspace = workspace as VisualStudioWorkspaceImpl;
-            var project = vsWorkspace?.GetHostProject(projectId) as AbstractLegacyProject;
-            return project?.ProjectType ?? string.Empty;
+            var aggregatableProject = vsWorkspace.GetHierarchy(projectId) as IVsAggregatableProject;
+            if (aggregatableProject == null)
+            {
+                return string.Empty;
+            }
+
+            if (ErrorHandler.Succeeded(aggregatableProject.GetAggregateProjectTypeGuids(out var projectType)))
+            {
+                return projectType;
+            }
+
+            return projectType ?? string.Empty;
         }
     }
 }

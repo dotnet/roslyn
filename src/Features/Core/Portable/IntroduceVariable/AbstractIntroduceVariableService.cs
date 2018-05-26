@@ -18,12 +18,13 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.IntroduceVariable
 {
-    internal abstract partial class AbstractIntroduceVariableService<TService, TExpressionSyntax, TTypeSyntax, TTypeDeclarationSyntax, TQueryExpressionSyntax> : IIntroduceVariableService
-        where TService : AbstractIntroduceVariableService<TService, TExpressionSyntax, TTypeSyntax, TTypeDeclarationSyntax, TQueryExpressionSyntax>
+    internal abstract partial class AbstractIntroduceVariableService<TService, TExpressionSyntax, TTypeSyntax, TTypeDeclarationSyntax, TQueryExpressionSyntax, TNameSyntax> : IIntroduceVariableService
+        where TService : AbstractIntroduceVariableService<TService, TExpressionSyntax, TTypeSyntax, TTypeDeclarationSyntax, TQueryExpressionSyntax, TNameSyntax>
         where TExpressionSyntax : SyntaxNode
         where TTypeSyntax : TExpressionSyntax
         where TTypeDeclarationSyntax : SyntaxNode
         where TQueryExpressionSyntax : TExpressionSyntax
+        where TNameSyntax : TTypeSyntax
     {
         protected abstract bool IsInNonFirstQueryClause(TExpressionSyntax expression);
         protected abstract bool IsInFieldInitializer(TExpressionSyntax expression);
@@ -194,15 +195,15 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
         }
 
         protected static SyntaxToken GenerateUniqueFieldName(
-            SemanticDocument document,
+            SemanticDocument semanticDocument,
             TExpressionSyntax expression,
             bool isConstant,
             CancellationToken cancellationToken)
         {
-            var syntaxFacts = document.Document.GetLanguageService<ISyntaxFactsService>();
-            var semanticFacts = document.Document.GetLanguageService<ISemanticFactsService>();
+            var syntaxFacts = semanticDocument.Document.GetLanguageService<ISyntaxFactsService>();
+            var semanticFacts = semanticDocument.Document.GetLanguageService<ISemanticFactsService>();
 
-            var semanticModel = document.SemanticModel;
+            var semanticModel = semanticDocument.SemanticModel;
             var baseName = semanticFacts.GenerateNameForExpression(
                 semanticModel, expression, isConstant, cancellationToken);
 
@@ -215,15 +216,15 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
         }
 
         protected static SyntaxToken GenerateUniqueLocalName(
-            SemanticDocument document,
+            SemanticDocument semanticDocument,
             TExpressionSyntax expression,
             bool isConstant,
             SyntaxNode containerOpt,
             CancellationToken cancellationToken)
         {
-            var semanticModel = document.SemanticModel;
+            var semanticModel = semanticDocument.SemanticModel;
 
-            var semanticFacts = document.Document.GetLanguageService<ISemanticFactsService>();
+            var semanticFacts = semanticDocument.Document.GetLanguageService<ISemanticFactsService>();
             var baseName = semanticFacts.GenerateNameForExpression(
                 semanticModel, expression, capitalize: isConstant, cancellationToken: cancellationToken);
 

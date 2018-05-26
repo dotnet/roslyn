@@ -2501,7 +2501,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Cannot convert {0} to delegate type &apos;{1}&apos; because the parameter types do not match the delegate parameter types.
+        ///   Looks up a localized string similar to Cannot convert {0} to type &apos;{1}&apos; because the parameter types do not match the delegate parameter types.
         /// </summary>
         internal static string ERR_CantConvAnonMethParams {
             get {
@@ -2713,6 +2713,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string ERR_CantSetWin32Manifest {
             get {
                 return ResourceManager.GetString("ERR_CantSetWin32Manifest", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to __arglist cannot have an argument passed by &apos;in&apos; or &apos;out&apos;.
+        /// </summary>
+        internal static string ERR_CantUseInOrOutInArglist {
+            get {
+                return ResourceManager.GetString("ERR_CantUseInOrOutInArglist", resourceCulture);
             }
         }
         
@@ -7253,7 +7262,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to &apos;{0}&apos; does not contain a definition for &apos;{1}&apos; and no extension method &apos;{1}&apos; accepting a first argument of type &apos;{0}&apos; could be found (are you missing a using directive or an assembly reference?).
+        ///   Looks up a localized string similar to &apos;{0}&apos; does not contain a definition for &apos;{1}&apos; and no accessible extension method &apos;{1}&apos; accepting a first argument of type &apos;{0}&apos; could be found (are you missing a using directive or an assembly reference?).
         /// </summary>
         internal static string ERR_NoSuchMemberOrExtension {
             get {
@@ -7537,6 +7546,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string ERR_OutputWriteFailed {
             get {
                 return ResourceManager.GetString("ERR_OutputWriteFailed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to An out variable cannot be declared as a ref local.
+        /// </summary>
+        internal static string ERR_OutVariableCannotBeByRef {
+            get {
+                return ResourceManager.GetString("ERR_OutVariableCannotBeByRef", resourceCulture);
             }
         }
         
@@ -9818,20 +9836,11 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The type &apos;{2}&apos; cannot be a reference type, or contain reference type fields at any level of nesting, in order to use it as parameter &apos;{1}&apos; in the generic type or method &apos;{0}&apos;.
+        ///   Looks up a localized string similar to The type &apos;{2}&apos; must be a non-nullable value type, along with all fields at any level of nesting, in order to use it as parameter &apos;{1}&apos; in the generic type or method &apos;{0}&apos;.
         /// </summary>
         internal static string ERR_UnmanagedConstraintNotSatisfied {
             get {
                 return ResourceManager.GetString("ERR_UnmanagedConstraintNotSatisfied", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Using &apos;unmanaged&apos; constraint on local functions type parameters is not supported..
-        /// </summary>
-        internal static string ERR_UnmanagedConstraintWithLocalFunctions {
-            get {
-                return ResourceManager.GetString("ERR_UnmanagedConstraintWithLocalFunctions", resourceCulture);
             }
         }
         
@@ -10189,9 +10198,9 @@ namespace Microsoft.CodeAnalysis.CSharp {
         /// <summary>
         ///   Looks up a localized string similar to File name &apos;{0}&apos; is empty, contains invalid characters, has a drive specification without an absolute path, or is too long.
         /// </summary>
-        internal static string FTL_InputFileNameTooLong {
+        internal static string FTL_InvalidInputFileName {
             get {
-                return ResourceManager.GetString("FTL_InputFileNameTooLong", resourceCulture);
+                return ResourceManager.GetString("FTL_InvalidInputFileName", resourceCulture);
             }
         }
         
@@ -10350,16 +10359,16 @@ namespace Microsoft.CodeAnalysis.CSharp {
         
         /// <summary>
         ///   Looks up a localized string similar to 
-        ///                              Visual C# Compiler Options
+        ///                             Visual C# Compiler Options
         ///
-        ///                        - OUTPUT FILES -
-        /// /out:&lt;file&gt;                   Specify output file name (default: base name of
-        ///                               file with main class or first file)
-        /// /target:exe                   Build a console executable (default) (Short
-        ///                               form: /t:exe)
-        /// /target:winexe                Build a Windows executable (Short form:
-        ///                               /t:winexe)
-        /// /target:library        [rest of string was truncated]&quot;;.
+        ///                       - OUTPUT FILES -
+        ///-out:&lt;file&gt;                   Specify output file name (default: base name of
+        ///                              file with main class or first file)
+        ///-target:exe                   Build a console executable (default) (Short
+        ///                              form: -t:exe)
+        ///-target:winexe                Build a Windows executable (Short form:
+        ///                              -t:winexe)
+        ///-target:library               B [rest of string was truncated]&quot;;.
         /// </summary>
         internal static string IDS_CSCHelp {
             get {
@@ -11547,7 +11556,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to SyntaxTree &apos;{0}&apos; resulted from a #load directive and cannot be removed or replaced directly..
+        ///   Looks up a localized string similar to SyntaxTree resulted from a #load directive and cannot be removed or replaced directly..
         /// </summary>
         internal static string SyntaxTreeFromLoadNoRemoveReplace {
             get {
@@ -11565,11 +11574,20 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to SyntaxTree &apos;{0}&apos; not found to remove.
+        ///   Looks up a localized string similar to SyntaxTree is not part of the compilation.
         /// </summary>
-        internal static string SyntaxTreeNotFoundTo {
+        internal static string SyntaxTreeNotFound {
             get {
-                return ResourceManager.GetString("SyntaxTreeNotFoundTo", resourceCulture);
+                return ResourceManager.GetString("SyntaxTreeNotFound", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to SyntaxTree is not part of the compilation, so it cannot be removed.
+        /// </summary>
+        internal static string SyntaxTreeNotFoundToRemove {
+            get {
+                return ResourceManager.GetString("SyntaxTreeNotFoundToRemove", resourceCulture);
             }
         }
         
@@ -14494,6 +14512,24 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string WRN_TupleLiteralNameMismatch_Title {
             get {
                 return ResourceManager.GetString("WRN_TupleLiteralNameMismatch_Title", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Type parameter &apos;{0}&apos; has the same name as the type parameter from outer method &apos;{1}&apos;.
+        /// </summary>
+        internal static string WRN_TypeParameterSameAsOuterMethodTypeParameter {
+            get {
+                return ResourceManager.GetString("WRN_TypeParameterSameAsOuterMethodTypeParameter", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Type parameter has the same type as the type parameter from outer method..
+        /// </summary>
+        internal static string WRN_TypeParameterSameAsOuterMethodTypeParameter_Title {
+            get {
+                return ResourceManager.GetString("WRN_TypeParameterSameAsOuterMethodTypeParameter_Title", resourceCulture);
             }
         }
         

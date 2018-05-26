@@ -198,6 +198,15 @@ namespace Microsoft.VisualStudio.LanguageServices {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Always for clarity.
+        /// </summary>
+        internal static string Always_for_clarity {
+            get {
+                return ResourceManager.GetString("Always_for_clarity", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Analysis.
         /// </summary>
         internal static string Analysis {
@@ -1099,6 +1108,15 @@ namespace Microsoft.VisualStudio.LanguageServices {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Ignore.
+        /// </summary>
+        internal static string Ignore {
+            get {
+                return ResourceManager.GetString("Ignore", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Illegal characters in path..
         /// </summary>
         internal static string Illegal_characters_in_path {
@@ -1131,6 +1149,15 @@ namespace Microsoft.VisualStudio.LanguageServices {
         internal static string Implements_ {
             get {
                 return ResourceManager.GetString("Implements_", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to In other operators.
+        /// </summary>
+        internal static string In_other_operators {
+            get {
+                return ResourceManager.GetString("In_other_operators", resourceCulture);
             }
         }
         
@@ -1227,6 +1254,15 @@ namespace Microsoft.VisualStudio.LanguageServices {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Keep all parentheses in:.
+        /// </summary>
+        internal static string Keep_all_parentheses_in_colon {
+            get {
+                return ResourceManager.GetString("Keep_all_parentheses_in_colon", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to _Kind:.
         /// </summary>
         internal static string Kind_colon {
@@ -1263,20 +1299,20 @@ namespace Microsoft.VisualStudio.LanguageServices {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Manage naming styles.
+        /// </summary>
+        internal static string Manage_naming_styles {
+            get {
+                return ResourceManager.GetString("Manage_naming_styles", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Manage specifications.
         /// </summary>
         internal static string Manage_specifications {
             get {
                 return ResourceManager.GetString("Manage_specifications", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Manage styles.
-        /// </summary>
-        internal static string Manage_styles {
-            get {
-                return ResourceManager.GetString("Manage_styles", resourceCulture);
             }
         }
         
@@ -1458,6 +1494,15 @@ namespace Microsoft.VisualStudio.LanguageServices {
         internal static string Navigation_must_be_performed_on_the_foreground_thread {
             get {
                 return ResourceManager.GetString("Navigation_must_be_performed_on_the_foreground_thread", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Never if unnecessary.
+        /// </summary>
+        internal static string Never_if_unnecessary {
+            get {
+                return ResourceManager.GetString("Never_if_unnecessary", resourceCulture);
             }
         }
         
@@ -1651,6 +1696,15 @@ namespace Microsoft.VisualStudio.LanguageServices {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Parentheses preferences:.
+        /// </summary>
+        internal static string Parentheses_preferences_colon {
+            get {
+                return ResourceManager.GetString("Parentheses_preferences_colon", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Pascal Case Name.
         /// </summary>
         internal static string Pascal_Case_Name {
@@ -1719,6 +1773,24 @@ namespace Microsoft.VisualStudio.LanguageServices {
         internal static string Prefer_colon {
             get {
                 return ResourceManager.GetString("Prefer_colon", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Prefer conditional expression over &apos;if&apos; with assignments.
+        /// </summary>
+        internal static string Prefer_conditional_expression_over_if_with_assignments {
+            get {
+                return ResourceManager.GetString("Prefer_conditional_expression_over_if_with_assignments", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Prefer conditional expression over &apos;if&apos; with returns.
+        /// </summary>
+        internal static string Prefer_conditional_expression_over_if_with_returns {
+            get {
+                return ResourceManager.GetString("Prefer_conditional_expression_over_if_with_returns", resourceCulture);
             }
         }
         

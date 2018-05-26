@@ -269,13 +269,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        public bool IsAssignableTo(ITypeSymbol fromSymbol, ITypeSymbol toSymbol, Compilation compilation)
-        {
-            return fromSymbol != null &&
-                toSymbol != null &&
-                ((CSharpCompilation)compilation).ClassifyConversion(fromSymbol, toSymbol).IsImplicit;
-        }
-
         public bool IsNameOfContext(SemanticModel semanticModel, int position, CancellationToken cancellationToken)
         {
             return semanticModel.SyntaxTree.IsNameOfContext(position, semanticModel, cancellationToken);
@@ -300,7 +293,21 @@ namespace Microsoft.CodeAnalysis.CSharp
                 semanticModel.GetDeclaredSymbol(memberDeclaration, cancellationToken));
         }
 
-        public SymbolInfo GetSymbolInfo(SemanticModel semanticModel, SyntaxNode node, SyntaxToken token, CancellationToken cancellationToken)
+        public ImmutableArray<ISymbol> GetBestOrAllSymbols(SemanticModel semanticModel, SyntaxNode node, SyntaxToken token, CancellationToken cancellationToken)
+        {
+            switch (node)
+            {
+                case AssignmentExpressionSyntax assignment when token.Kind() == SyntaxKind.EqualsToken:
+                    return GetDeconstructionAssignmentMethods(semanticModel, node).As<ISymbol>();
+
+                case ForEachVariableStatementSyntax deconstructionForeach when token.Kind() == SyntaxKind.InKeyword:
+                    return GetDeconstructionForEachMethods(semanticModel, node).As<ISymbol>();
+            }
+
+            return GetSymbolInfo(semanticModel, node, token, cancellationToken).GetBestOrAllSymbols();
+        }
+
+        private SymbolInfo GetSymbolInfo(SemanticModel semanticModel, SyntaxNode node, SyntaxToken token, CancellationToken cancellationToken)
         {
             switch (node)
             {

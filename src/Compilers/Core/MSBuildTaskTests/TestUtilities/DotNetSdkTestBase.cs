@@ -84,21 +84,23 @@ public class TestClass
         private static void EmitTestHelperProps(
             string objDirectory,
             string projectFileName,
-            string projectXml)
+            string content)
         {
             // Common.props automatically import {project-name}.*.props files from MSBuildProjectExtensionsPath directory, 
             // which is by default set to the IntermediateOutputPath:
-            File.WriteAllText(Path.Combine(objDirectory, projectFileName + ".TestHelpers.g.props"), projectXml);
+            File.WriteAllText(Path.Combine(objDirectory, projectFileName + ".TestHelpers.g.props"), 
+$@"<Project>
+{content}
+</Project>");
         }
 
-        private static string EmitTestHelperTargets(
+        private static void EmitTestHelperTargets(
             string objDirectory, 
-            string outDirectory, 
+            string outputFile,
             string projectFileName, 
-            IEnumerable<string> expressions)
+            IEnumerable<string> expressions,
+            string additionalContent)
         {
-            var outputFile = Path.Combine(outDirectory, "EvaluationResult.txt");
-
             // Common.targets automatically import {project-name}.*.targets files from MSBuildProjectExtensionsPath directory, 
             // which is by defautl set to the IntermediateOutputPath:
             File.WriteAllText(Path.Combine(objDirectory, projectFileName + ".TestHelpers.g.targets"),
@@ -110,7 +112,7 @@ $@"<Project>
     <ItemGroup>
       <LinesToWrite Include=""{string.Join(";", expressions.SelectWithIndex((e, i) => $"$(_Value{i})"))}""/>
     </ItemGroup>
-    <MakeDir Directories=""{outDirectory}"" />
+    <MakeDir Directories=""{Path.GetDirectoryName(outputFile)}"" />
     <WriteLinesToFile File=""{outputFile}""
                       Lines=""@(LinesToWrite)""
                       Overwrite=""true""
@@ -123,9 +125,9 @@ $@"<Project>
   </Target>
 
   <Target Name=""InitializeSourceControlInformation""/>
-</Project>");
 
-            return outputFile;
+{additionalContent}
+</Project>");
         }
 
         public DotNetSdkTestBase()
@@ -153,12 +155,16 @@ $@"<Project>
             ProjectDir.CreateFile("Directory.Build.targets").WriteAllText("<Project/>");
             ProjectDir.CreateFile(".editorconfig").WriteAllText("root = true");
 
-            Assert.True(File.Exists(Path.Combine(testBinDirectory, "Microsoft.CSharp.Core.targets")));
-            Assert.True(File.Exists(Path.Combine(testBinDirectory, "Microsoft.VisualBasic.Core.targets")));
+            var csharpCoreTargets = Path.Combine(testBinDirectory, "Microsoft.CSharp.Core.targets");
+            var visualBasicCoreTargets = Path.Combine(testBinDirectory, "Microsoft.VisualBasic.Core.targets");
+
+            Assert.True(File.Exists(csharpCoreTargets));
+            Assert.True(File.Exists(visualBasicCoreTargets));
 
             EnvironmentVariables = new Dictionary<string, string>()
             {
-                { "RoslynTargetsPath", testBinDirectory },
+                { "CSharpCoreTargetsPath", csharpCoreTargets },
+                { "VisualBasicCoreTargetsPath", visualBasicCoreTargets },
                 { "MSBuildSDKsPath", sdksDir },
                 { "DOTNET_MSBUILD_SDK_RESOLVER_SDKS_DIR", sdksDir }
             };
@@ -172,20 +178,21 @@ $@"<Project>
             Assert.True(File.Exists(Path.Combine(ObjDir.Path, ProjectFileName + ".nuget.g.targets")));
         }
 
-        protected void VerifyValues(string props, string[] targets, string[] expressions, string[] expectedResults)
+        protected void VerifyValues(string customProps, string customTargets, string[] targets, string[] expressions, string[] expectedResults)
         {
-            if (!string.IsNullOrEmpty(props))
-            {
-                EmitTestHelperProps(ObjDir.Path, ProjectFileName, props);
-            }
+            var evaluationResultsFile = Path.Combine(OutDir.Path, "EvaluationResult.txt");
 
-            var evaluationResultsFile = EmitTestHelperTargets(ObjDir.Path, OutDir.Path, ProjectFileName, expressions);
+            EmitTestHelperProps(ObjDir.Path, ProjectFileName, customProps);
+            EmitTestHelperTargets(ObjDir.Path, evaluationResultsFile, ProjectFileName, expressions, customTargets);
 
             var targetsArg = string.Join(";", targets.Concat(new[] { "Test_EvaluateExpressions" }));
             var testBinDirectory = Path.GetDirectoryName(typeof(DotNetSdkTests).Assembly.Location);
             var binLog = Path.Combine(ProjectDir.Path, $"build{_logIndex++}.binlog");
 
-            var buildResult = ProcessUtilities.Run(DotNetPath, $@"msbuild ""{Project.Path}"" /t:{targetsArg} /p:Configuration={Configuration} /p:RoslynTargetsPath=""{testBinDirectory}"" /bl:""{binLog}""",
+            // RoslynTargetsPath is a path to the built-in Roslyn compilers in the .NET SDK.
+            // For testing we are using compilers from custom location (this emulates usage of Microsoft.Net.Compilers package.
+            // The core targets should be imported from CSharpCoreTargetsPath and VisualBasicCoreTargetsPath and the compiler tasks from the same location.
+            var buildResult = ProcessUtilities.Run(DotNetPath, $@"msbuild ""{Project.Path}"" /t:{targetsArg} /p:RoslynTargetsPath=""<nonexistent directory>"" /p:Configuration={Configuration} /bl:""{binLog}""",
                 additionalEnvironmentVars: EnvironmentVariables);
             Assert.True(buildResult.ExitCode == 0, $"Failed with exit code {buildResult.ExitCode}: {buildResult.Output}");
 

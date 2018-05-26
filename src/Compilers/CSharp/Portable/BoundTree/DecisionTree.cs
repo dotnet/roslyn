@@ -158,7 +158,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// A guarded decision tree, which simply binds a set of variables (this is used to assign to the
         /// pattern variables of the switch case), optionally evaluates a Guard expression (which corresponds
-        /// to the `when` expression of a switch case), and the branches to a given label if the guard
+        /// to the <c>when</c> expression of a switch case), and the branches to a given label if the guard
         /// is true (or there is no guard).
         /// </summary>
         public class Guarded : DecisionTree

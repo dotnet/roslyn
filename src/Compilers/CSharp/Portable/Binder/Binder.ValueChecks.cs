@@ -1018,10 +1018,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// NOTE: the escape scope for ref and val escapes is the same for invocations except for trivial cases (ordinary type returned by val) 
         ///       where escape is known otherwise. Therefore we do not vave two ref/val variants of this.
         ///       
-        /// NOTE: we need scopeOfTheContainingExpression as some expressions such as optional `in` parameters or `ref dynamic` behave as 
+        /// NOTE: we need scopeOfTheContainingExpression as some expressions such as optional <c>in</c> parameters or <c>ref dynamic</c> behave as 
         ///       local variables declared at the scope of the invocation.
         /// </summary>
-        private static uint GetInvocationEscapeScope(
+        internal static uint GetInvocationEscapeScope(
             Symbol symbol,
             BoundExpression receiverOpt,
             ImmutableArray<ParameterSymbol> parameters,
@@ -1123,11 +1123,11 @@ moreArguments:
         }
 
         /// <summary>
-        /// Validates whether given invocation can allow its results to escape from `escapeFrom` level to `escapeTo` level.
+        /// Validates whether given invocation can allow its results to escape from <paramref name="escapeFrom"/> level to <paramref name="escapeTo"/> level.
         /// The result indicates whether the escape is possible. 
         /// Additionally, the method emits diagnostics (possibly more than one, recursively) that would help identify the cause for the failure.
         /// 
-        /// NOTE: we need scopeOfTheContainingExpression as some expressions such as optional `in` parameters or `ref dynamic` behave as 
+        /// NOTE: we need scopeOfTheContainingExpression as some expressions such as optional <c>in</c> parameters or <c>ref dynamic</c> behave as 
         ///       local variables declared at the scope of the invocation.
         /// </summary>
         private static bool CheckInvocationEscape(
@@ -1240,7 +1240,7 @@ moreArguments:
 
         /// <summary>
         /// Validates whether the invocation is valid per no-mixing rules.
-        /// Returns `false` when it is not valid and produces diagnostics (possibly more than one recursively) that helps to figure the reason.
+        /// Returns <see langword="false"/> when it is not valid and produces diagnostics (possibly more than one recursively) that helps to figure the reason.
         /// </summary>
         private static bool CheckInvocationArgMixing(
             SyntaxNode syntax,
@@ -1663,7 +1663,7 @@ moreArguments:
         }
 
         /// <summary>
-        /// Checks whether given expression can escape from the current scope to the `escapeTo`
+        /// Checks whether given expression can escape from the current scope to the <paramref name="escapeTo"/>
         /// In a case if it cannot a bad expression is returned and diagnostics is produced.
         /// </summary>
         internal BoundExpression ValidateEscape(BoundExpression expr, uint escapeTo, bool isByRef, DiagnosticBag diagnostics)

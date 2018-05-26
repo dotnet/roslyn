@@ -2532,7 +2532,7 @@ b
 c""|]
     End Sub
 End Class"
-            Await TestSmartTagTextAsync(code, String.Format(FeaturesResources.Introduce_local_constant_for_0, """a b c"""), index:=2)
+            Await TestSmartTagTextAsync(code, String.Format(FeaturesResources.Introduce_local_constant_for_0, """a b c"""), New TestParameters(index:=2))
         End Function
 
         <WorkItem(1065661, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1065661")>
@@ -2949,6 +2949,72 @@ structure TextSpan
     public sub new(start as integer, length as integer)
     end sub
 end structure")
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)>
+        <WorkItem(10123, "https://github.com/dotnet/roslyn/issues/10123")>
+        Public Async Function TestSimpleParameterName() As Task
+            Dim source = "Module Program
+    Sub Main(x As Integer)
+        Goo([|x|])
+    End Sub
+End Module"
+            Dim expected = "Module Program
+    Sub Main(x As Integer)
+        Dim {|Rename:x1|} As Integer = x
+        Goo(x1)
+    End Sub
+End Module"
+            Await TestInRegularAndScriptAsync(source, expected)
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)>
+        <WorkItem(10123, "https://github.com/dotnet/roslyn/issues/10123")>
+        Public Async Function TestSimpleParameterName_EmptySelection() As Task
+            Dim source = "Module Program
+    Sub Main(x As Integer)
+        Goo([||]x)
+    End Sub
+End Module"
+            Await TestMissingAsync(source)
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)>
+        <WorkItem(10123, "https://github.com/dotnet/roslyn/issues/10123")>
+        Public Async Function TestFieldName_QualifiedWithMe() As Task
+            Dim source = "Module Program
+    Dim x As Integer
+    Sub Main()
+        Goo([|x|])
+    End Sub
+End Module"
+            Dim expected = "Module Program
+    Dim x As Integer
+    Sub Main()
+        Dim {|Rename:x1|} As Integer = x
+        Goo(x1)
+    End Sub
+End Module"
+            Await TestInRegularAndScriptAsync(source, expected)
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)>
+        <WorkItem(10123, "https://github.com/dotnet/roslyn/issues/10123")>
+        Public Async Function TestFieldName_QualifiedWithType() As Task
+            Dim source = "Module Program
+    Shared Dim x As Integer
+    Sub Main()
+        Goo([|Program.x|])
+    End Sub
+End Module"
+            Dim expected = "Module Program
+    Shared Dim x As Integer
+    Sub Main()
+        Dim {|Rename:x1|} As Integer = Program.x
+        Goo(x1)
+    End Sub
+End Module"
+            Await TestInRegularAndScriptAsync(source, expected)
         End Function
 
         <WorkItem(21373, "https://github.com/dotnet/roslyn/issues/21373")>

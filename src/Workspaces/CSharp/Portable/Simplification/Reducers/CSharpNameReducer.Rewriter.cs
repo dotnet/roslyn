@@ -152,7 +152,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
                     this.alwaysSimplify = node.HasAnnotation(Simplifier.Annotation);
                 }
 
-                var result = base.VisitArrayType(node);
+                var result = SimplifyExpression(
+                    node,
+                    newNode: base.VisitArrayType(node),
+                    simplifier: s_simplifyName);
 
                 this.alwaysSimplify = oldAlwaysSimplify;
 
@@ -167,7 +170,28 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
                     this.alwaysSimplify = node.HasAnnotation(Simplifier.Annotation);
                 }
 
-                var result = base.VisitNullableType(node);
+                var result = SimplifyExpression(
+                    node,
+                    newNode: base.VisitNullableType(node),
+                    simplifier: s_simplifyName);
+
+                this.alwaysSimplify = oldAlwaysSimplify;
+
+                return result;
+            }
+
+            public override SyntaxNode VisitTupleType(TupleTypeSyntax node)
+            {
+                bool oldAlwaysSimplify = this.alwaysSimplify;
+                if (!this.alwaysSimplify)
+                {
+                    this.alwaysSimplify = node.HasAnnotation(Simplifier.Annotation);
+                }
+
+                var result = SimplifyExpression(
+                    node,
+                    newNode: base.VisitTupleType(node),
+                    simplifier: s_simplifyName);
 
                 this.alwaysSimplify = oldAlwaysSimplify;
 
