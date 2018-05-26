@@ -48,3 +48,4 @@ Microsoft.CodeAnalysis.VisualBasic.Syntax.TypeStatementSyntax.WithAttributeLists
 Microsoft.CodeAnalysis.VisualBasic.Syntax.TypeStatementSyntax.WithIdentifier(identifier As Microsoft.CodeAnalysis.SyntaxToken) -> Microsoft.CodeAnalysis.VisualBasic.Syntax.TypeStatementSyntax
 Microsoft.CodeAnalysis.VisualBasic.Syntax.TypeStatementSyntax.WithModifiers(modifiers As Microsoft.CodeAnalysis.SyntaxTokenList) -> Microsoft.CodeAnalysis.VisualBasic.Syntax.TypeStatementSyntax
 Microsoft.CodeAnalysis.VisualBasic.Syntax.TypeStatementSyntax.WithTypeParameterList(typeParameterList As Microsoft.CodeAnalysis.VisualBasic.Syntax.TypeParameterListSyntax) -> Microsoft.CodeAnalysis.VisualBasic.Syntax.TypeStatementSyntax
+Overrides Microsoft.CodeAnalysis.VisualBasic.VisualBasicCompilation.ClassifyCommonConversion(source As Microsoft.CodeAnalysis.ITypeSymbol, destination As Microsoft.CodeAnalysis.ITypeSymbol) -> Microsoft.CodeAnalysis.Operations.CommonConversion
