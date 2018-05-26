@@ -21,9 +21,9 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Progression
 
             While nodes.Count > 0
 
-                If cancellationToken.IsCancellationRequested Then Exit While
-
                 Dim node = nodes.Pop()
+
+                If cancellationToken.IsCancellationRequested Then Continue While
 
                 Select Case node.Kind
                     Case SyntaxKind.ClassBlock, SyntaxKind.DelegateFunctionStatement, SyntaxKind.DelegateSubStatement,
@@ -37,6 +37,8 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Progression
                         Next
                 End Select
             End While
+            nodes.Clear()
+            nodes = Nothing
         End Function
 
         Private Shared ReadOnly s_descriptionFormat As SymbolDisplayFormat = New SymbolDisplayFormat(
