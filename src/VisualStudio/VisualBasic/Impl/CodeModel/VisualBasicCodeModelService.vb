@@ -30,6 +30,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.CodeModel
         Inherits AbstractCodeModelService
 
         Private ReadOnly _commitBufferManagerFactory As CommitBufferManagerFactory
+        Private Shared ReadOnly _MyPool As PooledObjects.ObjectPool(Of PooledObjects.PooledStringBuilder) = PooledObjects.PooledStringBuilder.CreatePool()
 
         Friend Sub New(provider As HostLanguageServices, editorOptionsFactoryService As IEditorOptionsFactoryService, refactorNotifyServices As IEnumerable(Of IRefactorNotifyService), commitBufferManagerFactory As CommitBufferManagerFactory)
             MyBase.New(
@@ -838,11 +839,11 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.CodeModel
         End Function
 
         Private Function GetNormalizedName(node As SyntaxNode) As String
-            Dim nameBuilder = New StringBuilder()
+            Dim nameBuilder = _MyPool.Allocate()
 
             Dim token = node.GetFirstToken(includeSkipped:=True)
             While True
-                nameBuilder.Append(token.ToString())
+                nameBuilder.Builder.Append(token.ToString())
 
                 Dim nextToken = token.GetNextToken(includeSkipped:=True)
                 If Not nextToken.IsDescendantOf(node) Then
@@ -852,13 +853,13 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.CodeModel
                 If (token.IsKeyword() OrElse token.Kind = SyntaxKind.IdentifierToken) AndAlso
                    (nextToken.IsKeyword() OrElse nextToken.Kind = SyntaxKind.IdentifierToken) Then
 
-                    nameBuilder.Append(" "c)
+                    nameBuilder.Builder.Append(" "c)
                 End If
 
                 token = nextToken
             End While
 
-            Return nameBuilder.ToString().Trim()
+            Return nameBuilder.ToStringAndFree().Trim()
         End Function
 
         Public Overrides Function GetName(node As SyntaxNode) As String
@@ -2228,15 +2229,15 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.CodeModel
                 Return String.Empty
             End If
 
-            Dim textBuilder = New StringBuilder()
+            Dim textBuilder = _MyPool.Allocate()
             For Each trivia In commentList
                 Debug.Assert(trivia.ToString().StartsWith("'", StringComparison.Ordinal))
                 Dim commentText = trivia.ToString().Substring(1)
 
-                textBuilder.AppendLine(commentText)
+                textBuilder.Builder.AppendLine(commentText)
             Next
 
-            Return textBuilder.ToString().TrimEnd()
+            Return textBuilder.ToStringAndFree().TrimEnd()
         End Function
 
         Public Overrides Function SetComment(node As SyntaxNode, value As String) As SyntaxNode
@@ -2249,15 +2250,17 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.CodeModel
             Dim commentText = String.Empty
 
             If value IsNot Nothing Then
-                Dim builder = New StringBuilder()
+                Dim builder = _MyPool.Allocate()
+                With builder
 
-                For Each line In value.Split({vbCr, vbLf}, StringSplitOptions.RemoveEmptyEntries)
-                    builder.Append("' ")
-                    builder.Append(line)
-                    builder.Append(newLine)
-                Next
+                    For Each line In value.Split({vbCr, vbLf}, StringSplitOptions.RemoveEmptyEntries)
+                        .Builder.Append("' ")
+                        .Builder.Append(line)
+                        .Builder.Append(newLine)
+                    Next
 
-                commentText = builder.ToString()
+                    commentText = builder.ToStringAndFree
+                End With
             End If
 
             Dim newTriviaList = SyntaxFactory.ParseLeadingTrivia(commentText)
@@ -2500,15 +2503,17 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.CodeModel
             If value IsNot Nothing Then
                 Dim text = member.SyntaxTree.GetText(CancellationToken.None)
                 Dim newLine = GetNewLineCharacter(text)
-                Dim builder = New StringBuilder()
+                Dim builder = _MyPool.Allocate()
+                With builder
 
-                For Each line In value.Split({vbCr, vbLf}, StringSplitOptions.RemoveEmptyEntries)
-                    builder.Append("''' ")
-                    builder.Append(line)
-                    builder.Append(newLine)
-                Next
+                    For Each line In value.Split({vbCr, vbLf}, StringSplitOptions.RemoveEmptyEntries)
+                        .Builder.Append("''' ")
+                        .Builder.Append(line)
+                        .Builder.Append(newLine)
+                    Next
 
-                triviaList = SyntaxFactory.ParseLeadingTrivia(builder.ToString())
+                    triviaList = SyntaxFactory.ParseLeadingTrivia(builder.ToStringAndFree())
+                End With
             End If
 
             Dim leadingTriviaList = member.GetLeadingTrivia().ToList()

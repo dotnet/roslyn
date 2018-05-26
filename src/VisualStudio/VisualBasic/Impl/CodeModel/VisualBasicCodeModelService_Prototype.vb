@@ -66,13 +66,13 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.CodeModel
                 Return symbol.GetDocumentationCommentId()
             End If
 
-            Dim builder = New StringBuilder()
+            Dim builder = _MyPool.Allocate
 
             AppendName(builder, symbol, flags)
             AppendParameters(builder, parameters, flags)
             AppendType(builder, symbol.Type, flags)
 
-            Return builder.ToString()
+            Return builder.ToStringAndFree
         End Function
 
         Private Function GetFunctionPrototype(symbol As ISymbol, parameters As ImmutableArray(Of IParameterSymbol), flags As PrototypeFlags) As String
@@ -84,7 +84,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.CodeModel
                 Return symbol.GetDocumentationCommentId()
             End If
 
-            Dim builder = New StringBuilder()
+            Dim builder = _MyPool.Allocate
 
             AppendName(builder, symbol, flags)
             AppendParameters(builder, parameters, flags)
@@ -99,7 +99,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.CodeModel
                 End If
             End If
 
-            Return builder.ToString()
+            Return builder.ToStringAndFree
         End Function
 
         Private Function GetVariablePrototype(symbol As IFieldSymbol, flags As PrototypeFlags) As String
@@ -111,30 +111,31 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.CodeModel
                 Return symbol.GetDocumentationCommentId()
             End If
 
-            Dim builder = New StringBuilder()
+            Dim builder = _MyPool.Allocate
+            With builder
 
-            AppendAccessibility(builder, symbol.DeclaredAccessibility)
-            builder.Append(" "c)
+                AppendAccessibility(builder, symbol.DeclaredAccessibility)
+                .Builder.Append(" "c)
 
-            AppendName(builder, symbol, flags)
-            AppendType(builder, symbol.Type, flags)
+                AppendName(builder, symbol, flags)
+                AppendType(builder, symbol.Type, flags)
 
-            If (flags And PrototypeFlags.Initializer) <> 0 Then
-                Dim modifiedIdentifier = TryCast(symbol.DeclaringSyntaxReferences.FirstOrDefault().GetSyntax(), ModifiedIdentifierSyntax)
-                If modifiedIdentifier IsNot Nothing Then
-                    Dim variableDeclarator = TryCast(modifiedIdentifier.Parent, VariableDeclaratorSyntax)
-                    If variableDeclarator IsNot Nothing AndAlso
-                       variableDeclarator.Initializer IsNot Nothing AndAlso
-                       variableDeclarator.Initializer.Value IsNot Nothing AndAlso
-                       Not variableDeclarator.Initializer.Value.IsMissing Then
+                If (flags And PrototypeFlags.Initializer) <> 0 Then
+                    Dim modifiedIdentifier = TryCast(symbol.DeclaringSyntaxReferences.FirstOrDefault().GetSyntax(), ModifiedIdentifierSyntax)
+                    If modifiedIdentifier IsNot Nothing Then
+                        Dim variableDeclarator = TryCast(modifiedIdentifier.Parent, VariableDeclaratorSyntax)
+                        If variableDeclarator IsNot Nothing AndAlso
+                           variableDeclarator.Initializer IsNot Nothing AndAlso
+                           variableDeclarator.Initializer.Value IsNot Nothing AndAlso
+                           Not variableDeclarator.Initializer.Value.IsMissing Then
 
-                        builder.Append(" = ")
-                        builder.Append(variableDeclarator.Initializer.Value.ToString())
+                            .Builder.Append(" = ")
+                            .Builder.Append(variableDeclarator.Initializer.Value.ToString())
+                        End If
                     End If
                 End If
-            End If
-
-            Return builder.ToString()
+            End With
+            Return builder.ToStringAndFree
         End Function
 
         Private Shared Sub AppendAccessibility(builder As StringBuilder, accessibility As Accessibility)
