@@ -2,13 +2,14 @@
 
 using RunTests.Cache;
 using System;
+using System.Collections.Immutable;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 
 namespace RunTests
 {
-    internal struct TestExecutionOptions
+    internal readonly struct TestExecutionOptions
     {
         internal string XunitPath { get; }
         internal ProcDumpInfo? ProcDumpInfo { get; }
@@ -40,7 +41,7 @@ namespace RunTests
     /// is specifically for the actual test execution results while the latter can contain extra metadata
     /// about the results.  For example whether it was cached, or had diagonstic, output, etc ...
     /// </remarks>
-    internal struct TestResultInfo
+    internal readonly struct TestResultInfo
     {
         internal int ExitCode { get; }
         internal TimeSpan Elapsed { get; }
@@ -64,13 +65,18 @@ namespace RunTests
         }
     }
 
-    internal struct TestResult
+    internal readonly struct TestResult
     {
         internal TestResultInfo TestResultInfo { get; }
         internal AssemblyInfo AssemblyInfo { get; }
         internal string CommandLine { get; }
         internal bool IsFromCache { get; }
         internal string Diagnostics { get; }
+
+        /// <summary>
+        /// Collection of processes the runner explicitly ran to get the result.
+        /// </summary>
+        internal ImmutableArray<ProcessResult> ProcessResults { get; }
 
         internal string AssemblyPath => AssemblyInfo.AssemblyPath;
         internal string AssemblyName => Path.GetFileName(AssemblyPath);
@@ -83,12 +89,13 @@ namespace RunTests
         internal string ResultsFilePath => TestResultInfo.ResultsFilePath;
         internal string ResultsDirectory => TestResultInfo.ResultsDirectory;
 
-        internal TestResult(AssemblyInfo assemblyInfo, TestResultInfo testResultInfo, string commandLine, bool isFromCache, string diagnostics = null)
+        internal TestResult(AssemblyInfo assemblyInfo, TestResultInfo testResultInfo, string commandLine, bool isFromCache, ImmutableArray<ProcessResult> processResults = default, string diagnostics = null)
         {
             AssemblyInfo = assemblyInfo;
             TestResultInfo = testResultInfo;
             CommandLine = commandLine;
             IsFromCache = isFromCache;
+            ProcessResults = processResults.IsDefault ? ImmutableArray<ProcessResult>.Empty : processResults;
             Diagnostics = diagnostics;
         }
     }

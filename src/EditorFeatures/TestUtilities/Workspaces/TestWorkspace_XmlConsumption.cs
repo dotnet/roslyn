@@ -467,6 +467,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             var delaySign = default(bool?);
             var checkOverflow = false;
             var allowUnsafe = false;
+            var outputKind = OutputKind.DynamicallyLinkedLibrary;
 
             if (compilationOptionsElement != null)
             {
@@ -476,6 +477,12 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
                 if (rootNamespaceAttribute != null)
                 {
                     rootNamespace = rootNamespaceAttribute.Value;
+                }
+
+                var outputKindAttribute = compilationOptionsElement.Attribute(OutputKindName);
+                if (outputKindAttribute != null)
+                {
+                    outputKind = (OutputKind)Enum.Parse(typeof(OutputKind), (string)outputKindAttribute.Value);
                 }
 
                 var checkOverflowAttribute = compilationOptionsElement.Attribute(CheckOverflowAttributeName);
@@ -553,7 +560,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             var languageServices = workspace.Services.GetLanguageServices(language);
             var metadataService = workspace.Services.GetService<IMetadataService>();
             var compilationOptions = languageServices.GetService<ICompilationFactoryService>().GetDefaultCompilationOptions();
-            compilationOptions = compilationOptions.WithOutputKind(OutputKind.DynamicallyLinkedLibrary)
+            compilationOptions = compilationOptions.WithOutputKind(outputKind)
                                                    .WithGeneralDiagnosticOption(reportDiagnostic)
                                                    .WithSourceReferenceResolver(SourceFileResolver.Default)
                                                    .WithXmlReferenceResolver(XmlFileResolver.Default)

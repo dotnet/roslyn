@@ -851,7 +851,8 @@ End Class";
             }
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/26244")]
+        [Fact]
+        [WorkItem(26244, "https://github.com/dotnet/roslyn/issues/26244")]
         public async Task FileFromSameProjectTogetherTest()
         {
             var projectId1 = ProjectId.CreateNewId();
@@ -900,6 +901,11 @@ End Class";
                 var globalOperation = workspace.Services.GetService<IGlobalOperationNotificationService>();
                 using (var operation = globalOperation.Start("Block SolutionCrawler"))
                 {
+                    // make sure global operaiton is actually started
+                    // otherwise, solution crawler might processed event we are later waiting for
+                    var operationWaiter = GetListenerProvider(workspace.ExportProvider).GetWaiter(FeatureAttribute.GlobalOperation);
+                    await operationWaiter.CreateWaitTask();
+
                     // mutate solution
                     workspace.OnSolutionAdded(solution);
 

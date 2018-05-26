@@ -971,6 +971,24 @@ Additional information: {1}</value>
   <data name="Prefer_local_function_over_anonymous_function" xml:space="preserve">
     <value>Prefer local function over anonymous function</value>
   </data>
+  <data name="Keep_all_parentheses_in_colon" xml:space="preserve">
+    <value>Keep all parentheses in:</value>
+  </data>
+  <data name="Ignore" xml:space="preserve">
+    <value>Ignore</value>
+  </data>
+  <data name="In_other_operators" xml:space="preserve">
+    <value>In other operators</value>
+  </data>
+  <data name="Never_if_unnecessary" xml:space="preserve">
+    <value>Never if unnecessary</value>
+  </data>
+  <data name="Always_for_clarity" xml:space="preserve">
+    <value>Always for clarity</value>
+  </data>
+  <data name="Parentheses_preferences_colon" xml:space="preserve">
+    <value>Parentheses preferences:</value>
+  </data>
   <data name="ModuleHasBeenUnloaded" xml:space="preserve">
     <value>Module has been unloaded.</value>
   </data>
@@ -1036,5 +1054,11 @@ I agree to all of the foregoing:</value>
   </data>
   <data name="Live_code_analysis" xml:space="preserve">
     <value>Live code analysis</value>
+  </data>
+  <data name="Prefer_conditional_expression_over_if_with_assignments" xml:space="preserve">
+    <value>Prefer conditional expression over 'if' with assignments</value>
+  </data>
+  <data name="Prefer_conditional_expression_over_if_with_returns" xml:space="preserve">
+    <value>Prefer conditional expression over 'if' with returns</value>
   </data>
 </root>

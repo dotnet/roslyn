@@ -97,6 +97,12 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
                 element.SetAttributeValue(CheckOverflowAttributeName, true);
             }
 
+            if (options.OutputKind != OutputKind.DynamicallyLinkedLibrary)
+            {
+                element = element ?? new XElement(CompilationOptionsElementName);
+                element.SetAttributeValue(OutputKindName, options.OutputKind);
+            }
+
             return element;
         }
 

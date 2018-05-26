@@ -542,7 +542,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
         }
 
         /// <summary>
-        /// Checks whether currentToken is the opening paren of a deconstruction-declaration in var form, such as `var (x, y) = ...`
+        /// Checks whether currentToken is the opening paren of a deconstruction-declaration in var form, such as <c>var (x, y) = ...</c>
         /// </summary>
         public static bool IsOpenParenInVarDeconstructionDeclaration(this SyntaxToken currentToken)
         {
