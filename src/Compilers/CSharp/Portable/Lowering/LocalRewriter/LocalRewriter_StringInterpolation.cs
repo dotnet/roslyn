@@ -74,6 +74,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             _factory.Syntax = node.Syntax;
             int n = node.Parts.Length - 1;
             var formatString = PooledStringBuilder.GetInstance();
+            var stringBuilder = formatString.Builder;
             expressions = ArrayBuilder<BoundExpression>.GetInstance(n + 1);
             int nextFormatPosition = 0;
             for (int i = 0; i <= n; i++)
@@ -82,22 +83,23 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var fillin = part as BoundStringInsert;
                 if (fillin == null)
                 {
+                    Debug.Assert(part is BoundLiteral && part.ConstantValue != null);
                     // this is one of the literal parts
-                    formatString.Builder.Append(part.ConstantValue.StringValue);
+                    stringBuilder.Append(part.ConstantValue.StringValue);
                 }
                 else
                 {
                     // this is one of the expression holes
-                    formatString.Builder.Append('{').Append(nextFormatPosition++);
+                    stringBuilder.Append('{').Append(nextFormatPosition++);
                     if (fillin.Alignment != null && !fillin.Alignment.HasErrors)
                     {
-                        formatString.Builder.Append(',').Append(fillin.Alignment.ConstantValue.Int64Value);
+                        stringBuilder.Append(',').Append(fillin.Alignment.ConstantValue.Int64Value);
                     }
                     if (fillin.Format != null && !fillin.Format.HasErrors)
                     {
-                        formatString.Builder.Append(':').Append(fillin.Format.ConstantValue.StringValue);
+                        stringBuilder.Append(':').Append(fillin.Format.ConstantValue.StringValue);
                     }
-                    formatString.Builder.Append('}');
+                    stringBuilder.Append('}');
                     var value = fillin.Value;
                     if (value.Type?.TypeKind == TypeKind.Dynamic)
                     {
@@ -152,7 +154,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                         _factory.Binary(BinaryOperatorKind.StringConcatenation, node.Type, result, part);
                 }
 
-                result = _factory.Coalesce(result, _factory.StringLiteral(""));
+                if (length == 1)
+                {
+                    result = _factory.Coalesce(result, _factory.StringLiteral(""));
+                }
             }
             else
             {
