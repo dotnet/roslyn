@@ -15,6 +15,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
     {
         protected abstract Tuple<ITypeSymbol, Location> GetInitializedType(Document document, SemanticModel semanticModel, int position, CancellationToken cancellationToken);
         protected abstract HashSet<string> GetInitializedMembers(SyntaxTree tree, int position, CancellationToken cancellationToken);
+        protected abstract string EscapeIdentifier(ISymbol symbol);
 
         public override async Task ProvideCompletionsAsync(CompletionContext context)
         {
@@ -63,7 +64,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             foreach (var uninitializedMember in uninitializedMembers)
             {
                 context.AddItem(SymbolCompletionItem.CreateWithSymbolId(
-                    displayText: uninitializedMember.Name,
+                    displayText: EscapeIdentifier(uninitializedMember),
                     insertionText: null,
                     symbols: ImmutableArray.Create(uninitializedMember),
                     contextPosition: initializerLocation.SourceSpan.Start,
