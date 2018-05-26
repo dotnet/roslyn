@@ -69,7 +69,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Venus
                 Return
             End If
 
-            Dim textBuffer = targetDocument.GetTextAsync(cancellationToken).WaitAndGetResult(cancellationToken).Container.TryGetTextBuffer()
+            Dim textBuffer = targetDocument.GetTextSynchronously(cancellationToken).Container.TryGetTextBuffer()
             If textBuffer Is Nothing Then
                 Using visualStudioWorkspace.OpenInvisibleEditor(targetDocument.Id)
                     targetDocument = visualStudioWorkspace.CurrentSolution.GetDocument(targetDocument.Id)
@@ -98,7 +98,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Venus
                 Return
             End If
 
-            Dim textBuffer = targetDocument.GetTextAsync(cancellationToken).WaitAndGetResult(cancellationToken).Container.TryGetTextBuffer()
+            Dim textBuffer = targetDocument.GetTextSynchronously(cancellationToken).Container.TryGetTextBuffer()
             If textBuffer Is Nothing Then
                 Using visualStudioWorkspace.OpenInvisibleEditor(targetDocument.Id)
                     targetDocument = visualStudioWorkspace.CurrentSolution.GetDocument(targetDocument.Id)

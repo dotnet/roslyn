@@ -198,10 +198,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return TypeOf node Is LambdaExpressionSyntax
         End Function
 
-        Public Function IsLocalFunction(node As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsLocalFunction
-            Return False
-        End Function
-
         Public Function IsGenericName(node As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsGenericName
             Return TypeOf node Is GenericNameSyntax
         End Function
@@ -962,6 +958,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim list = New List(Of SyntaxNode)()
             AppendMethodLevelMembers(root, list)
             Return list
+        End Function
+
+        Public Function GetMembersOfTypeDeclaration(typeDeclaration As SyntaxNode) As SyntaxList(Of SyntaxNode) Implements ISyntaxFactsService.GetMembersOfTypeDeclaration
+            Return DirectCast(typeDeclaration, TypeBlockSyntax).Members
         End Function
 
         Public Function IsTopLevelNodeWithMembers(node As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsTopLevelNodeWithMembers

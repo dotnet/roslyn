@@ -275,7 +275,7 @@ namespace RunTests
         }
 
         /// <summary>
-        /// Determine if this type should be one of the `class` values passed to xunit.  This
+        /// Determine if this type should be one of the <c>class</c> values passed to xunit.  This
         /// code doesn't actually resolve base types or trace through inherrited Fact attributes
         /// hence we have to error on the side of including types with no tests vs. excluding them.
         /// </summary>
