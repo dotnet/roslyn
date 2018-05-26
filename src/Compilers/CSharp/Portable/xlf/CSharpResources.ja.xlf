@@ -1323,8 +1323,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_IllegalStatement">
-        <source>Only assignment, call, increment, decrement, and new object expressions can be used as a statement</source>
-        <target state="translated">割り当て、呼び出し、インクリメント、デクリメント、新しいオブジェクトの式のみがステートメントとして使用できます。</target>
+        <source>Only assignment, call, increment, decrement, await, and new object expressions can be used as a statement</source>
+        <target state="needs-review-translation">割り当て、呼び出し、インクリメント、デクリメント、新しいオブジェクトの式のみがステートメントとして使用できます。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadGetEnumerator">

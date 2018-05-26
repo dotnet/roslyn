@@ -2875,7 +2875,7 @@ class C
                 // (7,40): error CS1002: ; expected
                 //         var x = new Action<int>(i => i.
                 Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(7, 40),
-                // (7,38): error CS0201: Only assignment, call, increment, decrement, and new object expressions can be used as a statement
+                // (7,38): error CS0201: Only assignment, call, increment, decrement, await, and new object expressions can be used as a statement
                 //         var x = new Action<int>(i => i.
                 Diagnostic(ErrorCode.ERR_IllegalStatement, @"i.
 ").WithLocation(7, 38)
@@ -2917,7 +2917,7 @@ class C
                 // (7,32): error CS1002: ; expected
                 //         Action<int> x = i => i.
                 Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(7, 32),
-                // (7,30): error CS0201: Only assignment, call, increment, decrement, and new object expressions can be used as a statement
+                // (7,30): error CS0201: Only assignment, call, increment, decrement, await, and new object expressions can be used as a statement
                 //         Action<int> x = i => i.
                 Diagnostic(ErrorCode.ERR_IllegalStatement, @"i.
 ").WithLocation(7, 30)

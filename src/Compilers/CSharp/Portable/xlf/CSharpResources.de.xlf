@@ -1323,8 +1323,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_IllegalStatement">
-        <source>Only assignment, call, increment, decrement, and new object expressions can be used as a statement</source>
-        <target state="translated">Nur assignment-, call-, increment-, decrement- und new object-Ausdrücke können als Anweisung verwendet werden.</target>
+        <source>Only assignment, call, increment, decrement, await, and new object expressions can be used as a statement</source>
+        <target state="needs-review-translation">Nur assignment-, call-, increment-, decrement- und new object-Ausdrücke können als Anweisung verwendet werden.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadGetEnumerator">

@@ -898,7 +898,7 @@
     <value>Property or indexer '{0}' cannot be assigned to -- it is read only</value>
   </data>
   <data name="ERR_IllegalStatement" xml:space="preserve">
-    <value>Only assignment, call, increment, decrement, and new object expressions can be used as a statement</value>
+    <value>Only assignment, call, increment, decrement, await, and new object expressions can be used as a statement</value>
   </data>
   <data name="ERR_BadGetEnumerator" xml:space="preserve">
     <value>foreach requires that the return type '{0}' of '{1}' must have a suitable public MoveNext method and public Current property</value>
