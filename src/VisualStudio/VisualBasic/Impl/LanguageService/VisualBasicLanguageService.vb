@@ -53,37 +53,40 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic
         End Property
 
         Protected Overrides Function CreateContext(
-            view As IWpfTextView,
-            vsTextView As IVsTextView,
-            debuggerBuffer As IVsTextLines,
-            subjectBuffer As ITextBuffer,
-            currentStatementSpan() As Microsoft.VisualStudio.TextManager.Interop.TextSpan
-        ) As AbstractDebuggerIntelliSenseContext
+                                                    view As IWpfTextView,
+                                                    vsTextView As IVsTextView,
+                                                    debuggerBuffer As IVsTextLines,
+                                                    subjectBuffer As ITextBuffer,
+                                                    currentStatementSpan() As TextSpan
+                                                  ) As AbstractDebuggerIntelliSenseContext
 
             Return New VisualBasicDebuggerIntelliSenseContext(
-                view,
-                vsTextView,
-                debuggerBuffer,
-                subjectBuffer,
-                currentStatementSpan,
-                Me.Package.ComponentModel,
-                Me.SystemServiceProvider)
+                                                               view,
+                                                               vsTextView,
+                                                               debuggerBuffer,
+                                                               subjectBuffer,
+                                                               currentStatementSpan,
+                                                               Package.ComponentModel,
+                                                               SystemServiceProvider
+                                                             )
         End Function
 
         Protected Overrides Function CreateContainedLanguage(
-            bufferCoordinator As IVsTextBufferCoordinator,
-            project As AbstractProject,
-            hierarchy As IVsHierarchy,
-            itemid As UInteger
-        ) As IVsContainedLanguage
+                                                              bufferCoordinator As IVsTextBufferCoordinator,
+                                                              project As AbstractProject,
+                                                              hierarchy As IVsHierarchy,
+                                                              itemid As UInteger
+                                                            ) As IVsContainedLanguage
 
             Return New VisualBasicContainedLanguage(
-                bufferCoordinator,
-                Me.Package.ComponentModel,
-                project,
-                hierarchy,
-                itemid,
-                Me, SourceCodeKind.Regular)
+                                                     bufferCoordinator,
+                                                     Package.ComponentModel,
+                                                     project,
+                                                     hierarchy,
+                                                     itemid,
+                                                     Me,
+                                                     SourceCodeKind.Regular
+                                                   )
         End Function
     End Class
 End Namespace

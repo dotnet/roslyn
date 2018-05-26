@@ -21,84 +21,91 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic
 
         Private _innerMostContainingNodeIsExpression As Boolean = False
 
-        Public Sub New(wpfTextView As IWpfTextView,
-                vsTextView As IVsTextView,
-                debuggerBuffer As IVsTextLines,
-                contextBuffer As ITextBuffer,
-                currentStatementSpan As TextSpan(),
-                componentModel As IComponentModel,
-                serviceProvider As IServiceProvider)
+        Public Sub New(
+                        wpfTextView As IWpfTextView,
+                        vsTextView As IVsTextView,
+                        debuggerBuffer As IVsTextLines,
+                        contextBuffer As ITextBuffer,
+                        currentStatementSpan As TextSpan(),
+                        componentModel As IComponentModel,
+                        serviceProvider As IServiceProvider
+                      )
 
             MyBase.New(
-                wpfTextView,
-                vsTextView,
-                debuggerBuffer,
-                contextBuffer,
-                currentStatementSpan,
-                componentModel,
-                serviceProvider,
-                componentModel.GetService(Of IContentTypeRegistryService).GetContentType(ContentTypeNames.VisualBasicContentType))
+                        wpfTextView,
+                        vsTextView,
+                        debuggerBuffer,
+                        contextBuffer,
+                        currentStatementSpan,
+                        componentModel,
+                        serviceProvider,
+                        componentModel.GetService(Of IContentTypeRegistryService).GetContentType(ContentTypeNames.VisualBasicContentType)
+                      )
         End Sub
 
         ' Test constructor
-        Public Sub New(wpfTextView As IWpfTextView,
-                textBuffer As ITextBuffer,
-                span As TextSpan(),
-                componentModel As IComponentModel,
-                isImmediateWindow As Boolean)
+        Public Sub New(
+                        wpfTextView As IWpfTextView,
+                        textBuffer As ITextBuffer,
+                        span As TextSpan(),
+                        componentModel As IComponentModel,
+                        isImmediateWindow As Boolean
+                      )
 
             MyBase.New(
-                wpfTextView,
-                textBuffer,
-                span,
-                componentModel,
-                componentModel.GetService(Of IContentTypeRegistryService).GetContentType(ContentTypeNames.VisualBasicContentType),
-                isImmediateWindow)
+                        wpfTextView,
+                        textBuffer,
+                        span,
+                        componentModel,
+                        componentModel.GetService(Of IContentTypeRegistryService).GetContentType(ContentTypeNames.VisualBasicContentType),
+                        isImmediateWindow
+                      )
         End Sub
 
         Protected Overrides Function GetAdjustedContextPoint(contextPoint As Integer, document As Document) As Integer
+
             Dim tree = document.GetSyntaxTreeSynchronously(CancellationToken.None)
             Dim token = tree.FindTokenOnLeftOfPosition(contextPoint, CancellationToken.None)
 
             Dim containingNode = token.Parent.AncestorsAndSelf().Where(Function(s) TypeOf s Is ExpressionSyntax OrElse
-                                                                            TypeOf s Is MethodBaseSyntax OrElse
-                                                                             s.IsExecutableBlock()).FirstOrDefault()
-            If containingNode IsNot Nothing Then
-                If TypeOf containingNode Is ExpressionSyntax AndAlso Not IsRightSideOfLocalDeclaration(containingNode) Then
-                    _innerMostContainingNodeIsExpression = True
-                    Return containingNode.Span.End
+                                                                                   TypeOf s Is MethodBaseSyntax OrElse
+                                                                                          s.IsExecutableBlock()).FirstOrDefault()
+            If containingNode Is Nothing Then Return token.FullSpan.End
+
+            If TypeOf containingNode Is ExpressionSyntax AndAlso Not IsRightSideOfLocalDeclaration(containingNode) Then
+                _innerMostContainingNodeIsExpression = True
+                Return containingNode.Span.End
+            Else
+                Dim statement = containingNode.GetExecutableBlockStatements().FirstOrDefault()
+                If statement IsNot Nothing Then
+                    Return statement.FullSpan.End
+                ElseIf TypeOf containingNode Is MethodBlockBaseSyntax Then
+                    ' Something like
+                    ' Sub Goo(o as integer)
+                    ' [| End Sub |]
+                    Return DirectCast(containingNode, MethodBlockBaseSyntax).EndBlockStatement.SpanStart
                 Else
-                    Dim statement = containingNode.GetExecutableBlockStatements().FirstOrDefault()
-                    If statement IsNot Nothing Then
-                        Return statement.FullSpan.End
-                    ElseIf TypeOf containingNode Is MethodBlockBaseSyntax
-                        ' Something like
-                        ' Sub Goo(o as integer)
-                        ' [| End Sub |]
-                        Return DirectCast(containingNode, MethodBlockBaseSyntax).EndBlockStatement.SpanStart
-                    Else
-                        Return containingNode.Span.End
-                    End If
+                    Return containingNode.Span.End
                 End If
             End If
 
-            Return token.FullSpan.End
         End Function
 
         Private Function IsRightSideOfLocalDeclaration(containingNode As SyntaxNode) As Boolean
             ' Right side of a variable declaration but not inside a lambda or query clause
             Dim variableDeclarator = containingNode.GetAncestor(Of VariableDeclaratorSyntax)
-            If variableDeclarator IsNot Nothing Then
-                Dim methodBase = containingNode.GetAncestor(Of LambdaExpressionSyntax)()
-                Dim queryClause = containingNode.GetAncestor(Of QueryClauseSyntax)()
 
-                If (methodBase Is Nothing OrElse methodBase.DescendantNodes().Contains(variableDeclarator)) AndAlso
-                    (queryClause Is Nothing OrElse queryClause.DescendantNodes().Contains(variableDeclarator)) Then
+            If variableDeclarator Is Nothing Then Return False
+            Dim methodBase = containingNode.GetAncestor(Of LambdaExpressionSyntax)()
+            Dim queryClause = containingNode.GetAncestor(Of QueryClauseSyntax)()
 
-                    Dim equalsValueClause = containingNode.GetAncestor(Of EqualsValueSyntax)
-                    Return equalsValueClause.IsChildNode(Of VariableDeclaratorSyntax)(Function(v) v.Initializer)
-                End If
+            If (methodBase Is Nothing OrElse methodBase.DescendantNodes().Contains(variableDeclarator)) AndAlso
+               (queryClause Is Nothing OrElse queryClause.DescendantNodes().Contains(variableDeclarator)) Then
+
+                Dim equalsValueClause = containingNode.GetAncestor(Of EqualsValueSyntax)
+                Return equalsValueClause.IsChildNode(Of VariableDeclaratorSyntax)(Function(v) v.Initializer)
             End If
+
 
             Return False
         End Function
@@ -118,10 +125,11 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic
             Dim previousTrackingSpan = ContextBuffer.CurrentSnapshot.CreateTrackingSpan(Span.FromBounds(0, contextPoint), SpanTrackingMode.EdgeNegative)
 
             Dim buffer = ProjectionBufferFactoryService.CreateProjectionBuffer(
-                projectionEditResolver:=Nothing,
-                sourceSpans:={previousTrackingSpan, forceExpressionContext},
-                options:=ProjectionBufferOptions.None,
-                contentType:=Me.ContentType)
+                                                        projectionEditResolver:=Nothing,
+                                                                   sourceSpans:={previousTrackingSpan, forceExpressionContext},
+                                                                       options:=ProjectionBufferOptions.None,
+                                                                   contentType:=ContentType
+                                                                              )
 
             Return buffer.CurrentSnapshot.CreateTrackingSpan(0, buffer.CurrentSnapshot.Length, SpanTrackingMode.EdgeNegative)
         End Function

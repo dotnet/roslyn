@@ -33,9 +33,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Help
             Dim tree = Await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(False)
             Dim token = tree.GetRoot(cancellationToken).FindToken(span.Start, findInsideTrivia:=True)
 
-            If TokenIsHelpKeyword(token) Then
-                Return "vb." + token.Text
-            End If
+            If TokenIsHelpKeyword(token) Then Return "vb." + token.Text
 
             If token.Span.IntersectsWith(span) OrElse token.GetAncestor(Of XmlElementSyntax)() IsNot Nothing Then
                 Dim visitor = New Visitor(token.Span, Await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(False), document.Project.Solution.Workspace.Kind <> WorkspaceKind.MetadataAsSource, Me, cancellationToken)
@@ -46,15 +44,11 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Help
             Dim trivia = tree.GetRoot().FindTrivia(span.Start, findInsideTrivia:=True)
 
             Dim text = If(trivia.ToFullString(), String.Empty).Replace(" ", "").TrimStart("'"c)
-            If text.StartsWith("TODO:", StringComparison.CurrentCultureIgnoreCase) Then
-                Return HelpKeywords.TaskListUserComments
-            End If
 
-            If trivia.IsKind(SyntaxKind.CommentTrivia) Then
-                Return "vb.Rem"
-            End If
+            If text.StartsWith("TODO:", StringComparison.CurrentCultureIgnoreCase) Then Return HelpKeywords.TaskListUserComments
 
-            Return String.Empty
+            Return If(trivia.IsKind(SyntaxKind.CommentTrivia), "vb.Rem", String.Empty)
+
         End Function
 
         Private Function TokenIsHelpKeyword(token As SyntaxToken) As Boolean
@@ -64,14 +58,10 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Help
         End Function
 
         Private Function FormatNamespaceOrTypeSymbol(symbol As INamespaceOrTypeSymbol) As String
-            If symbol.IsAnonymousType() Then
-                Return HelpKeywords.AnonymousType
-            End If
+            If symbol.IsAnonymousType() Then Return HelpKeywords.AnonymousType
 
             Dim displayString = symbol.ToDisplayString(TypeFormat)
-            If symbol.GetTypeArguments().Any() Then
-                Return $"{displayString}`{symbol.GetTypeArguments().Length}"
-            End If
+            If symbol.GetTypeArguments().Any() Then Return $"{displayString}`{symbol.GetTypeArguments().Length}"
 
             Return displayString
         End Function
@@ -109,16 +99,10 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Help
             Dim containingType = FormatSymbol(symbol.ContainingType, isContainingType:=True)
             Dim name = symbol.ToDisplayString(NameFormat)
 
-            If symbol.IsConstructor() Then
-                Return $"{containingType}.New"
-            End If
+            If symbol.IsConstructor() Then Return $"{containingType}.New"
 
             Dim arity = symbol.GetArity()
-            If arity > 0 Then
-                Return $"{containingType}.{name}``{arity}"
-            End If
-
-            Return $"{containingType}.{name}"
+            Return If(arity > 0, $"{containingType}.{name}``{arity}", $"{containingType}.{name}")
         End Function
     End Class
 End Namespace
