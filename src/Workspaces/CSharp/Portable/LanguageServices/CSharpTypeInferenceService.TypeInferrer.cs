@@ -1857,23 +1857,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return;
                 }
 
-                var ancestor = returnStatement.AncestorsAndSelf().FirstOrDefault(e => e is ParenthesizedLambdaExpressionSyntax || e is SimpleLambdaExpressionSyntax ||
-                    e is AnonymousMethodExpressionSyntax || e is LocalFunctionStatementSyntax);
+                var ancestor = returnStatement.AncestorsAndSelf().FirstOrDefault(e => e is AnonymousFunctionExpressionSyntax || e is LocalFunctionStatementSyntax);
 
-                // If we're in a lambda, then use the return type of the lambda to figure out what to
-                // infer.  i.e.   Func<int,string> f = i => { return Goo(); }
-                if (ancestor is ParenthesizedLambdaExpressionSyntax lambda)
+                if (ancestor is LambdaExpressionSyntax lambdaExpression)
                 {
-                    types = InferTypeInLambdaExpression(lambda);
-                    isAsync = lambda.AsyncKeyword.Kind() != SyntaxKind.None;
-
-                    return;
-
-                }
-                else if (ancestor is SimpleLambdaExpressionSyntax simpleLambda)
-                {
-                    types = InferTypeInLambdaExpression(simpleLambda);
-
+                    // If we're in a lambda, then use the return type of the lambda to figure out what to
+                    // infer.  i.e.   Func<int,string> f = i => { return Goo(); }
+                    types = InferTypeInLambdaExpression(lambdaExpression);
+                    isAsync = lambdaExpression.AsyncKeyword.Kind() != SyntaxKind.None;
                     return;
                 }
                 else if (ancestor is AnonymousMethodExpressionSyntax delegateExpression)
@@ -1902,23 +1893,18 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 var memberSymbol = GetDeclaredMemberSymbolFromOriginalSemanticModel(SemanticModel, returnStatement.GetAncestorOrThis<MemberDeclarationSyntax>());
 
-                if (memberSymbol.IsKind(SymbolKind.Method))
+                switch (memberSymbol)
                 {
-                    var method = memberSymbol as IMethodSymbol;
-
-                    isAsync = method.IsAsync;
-                    types = SpecializedCollections.SingletonEnumerable(new TypeInferenceInfo(method.ReturnType));
-                    return;
-                }
-                else if (memberSymbol.IsKind(SymbolKind.Property))
-                {
-                    types = SpecializedCollections.SingletonEnumerable(new TypeInferenceInfo((memberSymbol as IPropertySymbol).Type));
-                    return;
-                }
-                else if (memberSymbol.IsKind(SymbolKind.Field))
-                {
-                    types = SpecializedCollections.SingletonEnumerable(new TypeInferenceInfo((memberSymbol as IFieldSymbol).Type));
-                    return;
+                    case IMethodSymbol method:
+                        isAsync = method.IsAsync;
+                        types = SpecializedCollections.SingletonEnumerable(new TypeInferenceInfo(method.ReturnType));
+                        return;
+                    case IPropertySymbol property:
+                        types = SpecializedCollections.SingletonEnumerable(new TypeInferenceInfo(property.Type));
+                        return;
+                    case IFieldSymbol field:
+                        types = SpecializedCollections.SingletonEnumerable(new TypeInferenceInfo(field.Type));
+                        return;
                 }
             }
 
