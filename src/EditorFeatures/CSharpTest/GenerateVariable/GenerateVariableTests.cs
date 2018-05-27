@@ -7712,18 +7712,18 @@ index: 2);
             await TestInRegularAndScriptAsync(
 @"class Program
 {
-    public int Y
+    public int Property
     {
-        set => [|y|] = value;
+        set => [|_field|] = value;
     }
 }",
 @"class Program
 {
-    private int y;
+    private int _field;
 
-    public int Y
+    public int Property
     {
-        set => y = value;
+        set => _field = value;
     }
 }");
         }
@@ -7735,22 +7735,18 @@ index: 2);
             await TestInRegularAndScriptAsync(
 @"class Program
 {
-    public int Y()
+    public void Method()
     {
-        return Foo();
-
-        int Foo() => [|y|];
+        int Local() => [|_field|];
     }
 }",
 @"class Program
 {
-    private int y;
+    private int _field;
 
-    public int Y()
+    public void Method()
     {
-        return Foo();
-
-        int Foo() => y;
+        int Local() => _field;
     }
 }");
         }
@@ -7762,22 +7758,18 @@ index: 2);
             await TestInRegularAndScriptAsync(
 @"class Program
 {
-    public int Y()
+    public void Method()
     {
-        return Foo();
-
-        int Foo() => [|y|];
+        int Local() => [|_readonlyField|];
     }
 }",
 @"class Program
 {
-    private readonly int y;
+    private readonly int _readonlyField;
 
-    public int Y()
+    public void Method()
     {
-        return Foo();
-
-        int Foo() => y;
+        int Local() => _readonlyField;
     }
 }",
 index: 1);
@@ -7790,22 +7782,18 @@ index: 1);
             await TestInRegularAndScriptAsync(
 @"class Program
 {
-    public int Y()
+    public void Method()
     {
-        return Foo();
-
-        int Foo() => [|y|];
+        int Local() => [|prop|];
     }
 }",
 @"class Program
 {
-    public int y { get; private set; }
+    public int prop { get; private set; }
 
-    public int Y()
+    public void Method()
     {
-        return Foo();
-
-        int Foo() => y;
+        int Local() => prop;
     }
 }",
 index: 2);
@@ -7818,22 +7806,18 @@ index: 2);
             await TestInRegularAndScriptAsync(
 @"class Program
 {
-    public int Y()
+    public void Method()
     {
-        return Foo();
-
-        int Foo() => [|y|] = 12;
+        int Local() => [|_field|] = 12;
     }
 }",
 @"class Program
 {
-    private int y;
+    private int _field;
 
-    public int Y()
+    public void Method()
     {
-        return Foo();
-
-        int Foo() => y = 12;
+        int Local() => _field = 12;
     }
 }");
         }
@@ -7845,27 +7829,23 @@ index: 2);
             await TestInRegularAndScriptAsync(
 @"class Program
 {
-    public int Y()
+    public void Method()
     {
-        return Foo();
-
-        int Foo()
+        int Local()
         {
-            return [|y|];
+            return [|_field|];
         }
     }
 }",
 @"class Program
 {
-    private int y;
+    private int _field;
 
-    public int Y()
+    public void Method()
     {
-        return Foo();
-
-        int Foo()
+        int Local()
         {
-            return y;
+            return _field;
         }
     }
 }");
@@ -7878,27 +7858,23 @@ index: 2);
             await TestInRegularAndScriptAsync(
 @"class Program
 {
-    public int Y()
+    public void Method()
     {
-        return Foo();
-
-        int Foo()
+        int Local()
         {
-            return [|y|];
+            return [|_readonlyField|];
         }
     }
 }",
 @"class Program
 {
-    private readonly int y;
+    private readonly int _readonlyField;
 
-    public int Y()
+    public void Method()
     {
-        return Foo();
-
-        int Foo()
+        int Local()
         {
-            return y;
+            return _readonlyField;
         }
     }
 }",
@@ -7912,27 +7888,23 @@ index: 1);
             await TestInRegularAndScriptAsync(
 @"class Program
 {
-    public int Y()
+    public void Method()
     {
-        return Foo();
-
-        int Foo()
+        int Local()
         {
-            return [|y|];
+            return [|prop|];
         }
     }
 }",
 @"class Program
 {
-    public int y { get; private set; }
+    public int prop { get; private set; }
 
-    public int Y()
+    public void Method()
     {
-        return Foo();
-
-        int Foo()
+        int Local()
         {
-            return y;
+            return prop;
         }
     }
 }",
@@ -7946,27 +7918,23 @@ index: 2);
             await TestInRegularAndScriptAsync(
 @"class Program
 {
-    public int Y()
+    public void Method()
     {
-        return Foo();
-
-        int Foo() 
+        int Local() 
         {
-            return [|y|] = 12;
+            return [|_field|] = 12;
         }
     }
 }",
 @"class Program
 {
-    private int y;
+    private int _field;
 
-    public int Y()
+    public void Method()
     {
-        return Foo();
-
-        int Foo() 
+        int Local() 
         {
-            return y = 12;
+            return _field = 12;
         }
     }
 }");

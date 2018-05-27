@@ -7740,21 +7740,21 @@ class Program
             await TestInRegularAndScriptAsync(
 @"class Class
 {
-    int Y
+    int Property
     {
-        get => [|Foo|]();
+        get => [|GenerateMethod|]();
     }
 }",
 @"using System;
 
 class Class
 {
-    int Y
+    int Property
     {
-        get => Foo();
+        get => GenerateMethod();
     }
 
-    private int Foo()
+    private int GenerateMethod()
     {
         throw new NotImplementedException();
     }
@@ -7768,21 +7768,21 @@ class Class
             await TestInRegularAndScriptAsync(
 @"class Class
 {
-    int Y
+    int Property
     {
-        set => [|Foo|](value);
+        set => [|GenerateMethod|](value);
     }
 }",
 @"using System;
 
 class Class
 {
-    int Y
+    int Property
     {
-        set => Foo(value);
+        set => GenerateMethod(value);
     }
 
-    private void Foo(int value)
+    private void GenerateMethod(int value)
     {
         throw new NotImplementedException();
     }
@@ -7796,25 +7796,21 @@ class Class
             await TestInRegularAndScriptAsync(
 @"class Class
 {
-    int Y()
+    void Method()
     {
-        return Foo();
-
-        int Foo() => [|Goo()|];
+        int Local() => [|GenerateMethod()|];
     }
 }",
 @"using System;
 
 class Class
 {
-    int Y()
+    void Method()
     {
-        return Foo();
-
-        int Foo() => Goo();
+        int Local() => GenerateMethod();
     }
 
-    private int Goo()
+    private int GenerateMethod()
     {
         throw new NotImplementedException();
     }
@@ -7828,13 +7824,11 @@ class Class
             await TestInRegularAndScriptAsync(
 @"class Class
 {
-    int Y()
+    void Method()
     {
-        return Foo();
-
-        int Foo()
+        int Local()
         {
-            return [|Goo()|];
+            return [|GenerateMethod()|];
         }
     }
 }",
@@ -7842,17 +7836,15 @@ class Class
 
 class Class
 {
-    int Y()
+    void Method()
     {
-        return Foo();
-
-        int Foo()
+        int Local()
         {
-            return Goo();
+            return GenerateMethod();
         }
     }
 
-    private int Goo()
+    private int GenerateMethod()
     {
         throw new NotImplementedException();
     }

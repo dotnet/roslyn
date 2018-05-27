@@ -1896,6 +1896,16 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                 }
 
+                // If we are inside a local function then use the return type of the local function
+                var localFunctionStatement = returnStatement.GetAncestor<LocalFunctionStatementSyntax>();
+                if (localFunctionStatement != null)
+                {
+                    var methodSymbol = (IMethodSymbol)SemanticModel.GetDeclaredSymbol(localFunctionStatement);
+                    types = SpecializedCollections.SingletonEnumerable(new TypeInferenceInfo(methodSymbol.ReturnType));
+                    isAsync = methodSymbol.IsAsync;
+                    return;
+                }
+
                 var memberSymbol = GetDeclaredMemberSymbolFromOriginalSemanticModel(SemanticModel, returnStatement.GetAncestorOrThis<MemberDeclarationSyntax>());
 
                 if (memberSymbol.IsKind(SymbolKind.Method))
