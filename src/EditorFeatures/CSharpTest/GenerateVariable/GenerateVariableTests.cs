@@ -7621,18 +7621,18 @@ class C
             await TestInRegularAndScriptAsync(
 @"class Program
 {
-    public int Y
+    public int Property
     {
-        get => [|y|];
+        get => [|_field|];
     }
 }",
 @"class Program
 {
-    private int y;
+    private int _field;
 
-    public int Y
+    public int Property
     {
-        get => y;
+        get => _field;
     }
 }");
         }
@@ -7644,19 +7644,19 @@ class C
             await TestInRegularAndScriptAsync(
 @"class Program
 {
-    public int Y
+    public int Property
     {
-        protected get => [|y|];
+        protected get => [|_field|];
         set => throw new System.NotImplementedException();
     }
 }",
 @"class Program
 {
-    private int y;
+    private int _field;
 
-    public int Y
+    public int Property
     {
-        protected get => y;
+        protected get => _field;
         set => throw new System.NotImplementedException();
     }
 }");
@@ -7669,18 +7669,18 @@ class C
             await TestInRegularAndScriptAsync(
 @"class Program
 {
-    public int Y
+    public int Property
     {
-        get => [|y|];
+        get => [|_readonlyField|];
     }
 }",
 @"class Program
 {
-    private readonly int y;
+    private readonly int _readonlyField;
 
-    public int Y
+    public int Property
     {
-        get => y;
+        get => _readonlyField;
     }
 }",
 index: ReadonlyFieldIndex);
@@ -7693,18 +7693,18 @@ index: ReadonlyFieldIndex);
             await TestInRegularAndScriptAsync(
 @"class Program
 {
-    public int Y
+    public int Property
     {
-        get => [|y|];
+        get => [|prop|];
     }
 }",
 @"class Program
 {
-    public int Y
+    public int Property
     {
-        get => y;
+        get => prop;
     }
-    public int y { get; private set; }
+    public int prop { get; private set; }
 }",
 index: PropertyIndex);
         }
