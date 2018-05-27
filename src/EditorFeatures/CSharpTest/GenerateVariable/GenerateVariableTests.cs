@@ -7943,5 +7943,81 @@ index: PropertyIndex);
     }
 }");
         }
+
+        [WorkItem(26993, "https://github.com/dotnet/roslyn/issues/26993")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
+        public async Task TestGenerateFieldInBlockBodiedLocalFunctionInsideLambdaExpression()
+        {
+            await TestInRegularAndScriptAsync(
+@"
+using System;
+
+class Program
+{
+    public void Method()
+    {
+        Action action = () => 
+        {
+            int Local()
+            {
+                return [|_field|];
+            }
+        };
+    }
+}",
+@"
+using System;
+
+class Program
+{
+    private int _field;
+
+    public void Method()
+    {
+        Action action = () => 
+        {
+            int Local()
+            {
+                return _field;
+            }
+        };
+    }
+}");
+        }
+
+        [WorkItem(26993, "https://github.com/dotnet/roslyn/issues/26993")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
+        public async Task TestGenerateFieldInExpressionBodiedLocalFunctionInsideLambdaExpression()
+        {
+            await TestInRegularAndScriptAsync(
+@"
+using System;
+
+class Program
+{
+    public void Method()
+    {
+        Action action = () => 
+        {
+            int Local() => [|_field|];
+        };
+    }
+}",
+@"
+using System;
+
+class Program
+{
+    private int _field;
+
+    public void Method()
+    {
+        Action action = () => 
+        {
+            int Local() => _field;
+        };
+    }
+}");
+        }
     }
 }

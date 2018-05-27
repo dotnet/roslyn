@@ -7851,5 +7851,86 @@ class Class
 }");
         }
 
+        [WorkItem(26993, "https://github.com/dotnet/roslyn/issues/26993")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
+        public async Task TestGenerateMethodInBlockBodiedLocalFunctionInsideLambdaExpression()
+        {
+            await TestInRegularAndScriptAsync(
+@"
+using System;
+
+class Class
+{
+    void Method()
+    {
+        Action action = () =>  
+        {
+            int Local()
+            {
+                return [|GenerateMethod()|];
+            }
+        }
+    }
+}",
+@"
+using System;
+
+class Class
+{
+    void Method()
+    {
+        Action action = () =>  
+        {
+            int Local()
+            {
+                return GenerateMethod();
+            }
+        }
+    }
+
+    private int GenerateMethod()
+    {
+        throw new NotImplementedException();
+    }
+}");
+        }
+
+        [WorkItem(26993, "https://github.com/dotnet/roslyn/issues/26993")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
+        public async Task TestGenerateMethodInExpressionBodiedLocalFunctionInsideLambdaExpression()
+        {
+            await TestInRegularAndScriptAsync(
+@"
+using System;
+
+class Class
+{
+    void Method()
+    {
+        Action action = () =>  
+        {
+            int Local() => [|GenerateMethod()|];
+        }
+    }
+}",
+@"
+using System;
+
+class Class
+{
+    void Method()
+    {
+        Action action = () =>  
+        {
+            int Local() => GenerateMethod();
+        }
+    }
+
+    private int GenerateMethod()
+    {
+        throw new NotImplementedException();
+    }
+}");
+        }
     }
 }

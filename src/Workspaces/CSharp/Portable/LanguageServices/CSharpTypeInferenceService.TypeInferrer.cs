@@ -1857,22 +1857,28 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return;
                 }
 
-                var ancestorExpressions = returnStatement.GetAncestorsOrThis<ExpressionSyntax>();
+                var ancestor = returnStatement.AncestorsAndSelf().FirstOrDefault(e => e is ParenthesizedLambdaExpressionSyntax || e is SimpleLambdaExpressionSyntax ||
+                    e is AnonymousMethodExpressionSyntax || e is LocalFunctionStatementSyntax);
 
                 // If we're in a lambda, then use the return type of the lambda to figure out what to
                 // infer.  i.e.   Func<int,string> f = i => { return Goo(); }
-                var lambda = ancestorExpressions.FirstOrDefault(e => e.IsKind(SyntaxKind.ParenthesizedLambdaExpression, SyntaxKind.SimpleLambdaExpression));
-                if (lambda != null)
+                if (ancestor is ParenthesizedLambdaExpressionSyntax lambda)
                 {
                     types = InferTypeInLambdaExpression(lambda);
-                    isAsync = lambda is ParenthesizedLambdaExpressionSyntax && ((ParenthesizedLambdaExpressionSyntax)lambda).AsyncKeyword.Kind() != SyntaxKind.None;
+                    isAsync = lambda.AsyncKeyword.Kind() != SyntaxKind.None;
+
+                    return;
+
+                }
+                else if (ancestor is SimpleLambdaExpressionSyntax simpleLambda)
+                {
+                    types = InferTypeInLambdaExpression(simpleLambda);
+
                     return;
                 }
-
-                // If we are inside a delegate then use the return type of the Invoke Method of the delegate type
-                var delegateExpression = (AnonymousMethodExpressionSyntax)ancestorExpressions.FirstOrDefault(e => e.IsKind(SyntaxKind.AnonymousMethodExpression));
-                if (delegateExpression != null)
+                else if (ancestor is AnonymousMethodExpressionSyntax delegateExpression)
                 {
+                    // If we are inside a delegate then use the return type of the Invoke Method of the delegate type
                     var delegateType = InferTypes(delegateExpression).FirstOrDefault().InferredType;
                     if (delegateType != null && delegateType.IsDelegateType())
                     {
@@ -1885,11 +1891,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                         }
                     }
                 }
-
-                // If we are inside a local function then use the return type of the local function
-                var localFunctionStatement = returnStatement.GetAncestor<LocalFunctionStatementSyntax>();
-                if (localFunctionStatement != null)
+                else if (ancestor is LocalFunctionStatementSyntax localFunctionStatement)
                 {
+                    // If we are inside a local function then use the return type of the local function
                     var methodSymbol = (IMethodSymbol)SemanticModel.GetDeclaredSymbol(localFunctionStatement);
                     types = SpecializedCollections.SingletonEnumerable(new TypeInferenceInfo(methodSymbol.ReturnType));
                     isAsync = methodSymbol.IsAsync;
