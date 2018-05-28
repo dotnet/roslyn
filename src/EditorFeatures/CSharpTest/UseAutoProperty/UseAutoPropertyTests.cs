@@ -3,13 +3,14 @@
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.CSharp.UseAutoProperty;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.Editor.CSharp.UseAutoProperty;
+using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 
-namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.UseAutoProperty
+namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseAutoProperty
 {
     public class UseAutoPropertyTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest
     {
@@ -34,7 +35,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.UseAutoProp
 }",
 @"class Class
 {
-
     int P { get; }
 }");
         }
@@ -57,7 +57,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.UseAutoProp
 }",
 @"class Class
 {
-
     public int P { get; private set; }
 }",
             CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp5));
@@ -99,7 +98,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.UseAutoProp
 }",
 @"class Class
 {
-
     int P { get; } = 1;
 }");
         }
@@ -140,7 +138,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.UseAutoProp
 }",
 @"class Class
 {
-
     int P { get; }
 }");
         }
@@ -186,7 +183,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.UseAutoProp
 }",
 @"class Class
 {
-
     int P { get; set; }
 }");
         }
@@ -209,7 +205,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.UseAutoProp
 }",
 @"class Class
 {
-
     int P { get; }
 }");
         }
@@ -255,7 +250,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.UseAutoProp
 }",
 @"class Class
 {
-
     int P { get; set; }
 }");
         }
@@ -742,7 +736,6 @@ partial class Class
 }",
 @"class Class
 {
-
     int P { get; }
 
     public Class()
@@ -775,7 +768,6 @@ partial class Class
 }",
 @"class Class
 {
-
     int P { get; }
 
     public Class(int P)
@@ -808,7 +800,6 @@ partial class Class
 }",
 @"class Class
 {
-
     int P { get; }
 
     public Class()
@@ -841,7 +832,6 @@ partial class Class
 }",
 @"class Class
 {
-
     int P { get; set; }
 
     public void Goo()
@@ -874,7 +864,6 @@ partial class Class
 }",
 @"class Class
 {
-
     public int P { get; private set; }
 
     public void Goo()
@@ -974,7 +963,6 @@ partial class Class
 }",
 @"class Class
 {
-
     (int, string) P { get; }
 }");
         }
@@ -997,7 +985,6 @@ partial class Class
 }",
 @"class Class
 {
-
     (int a, string b) P { get; }
 }");
         }
@@ -1038,7 +1025,6 @@ partial class Class
 }",
 @"class Class
 {
-
     (int a, string) P { get; }
 }");
         }
@@ -1061,7 +1047,6 @@ partial class Class
 }",
 @"class Class
 {
-
     (int, string) P { get; } = (1, ""hello"");
 }");
         }
@@ -1089,7 +1074,6 @@ partial class Class
 }",
 @"class Class
 {
-
     (int, string) P { get; set; }
 }");
         }
@@ -1124,11 +1108,10 @@ partial class Class
 }",
 @"class Class
 {
-
     int P { get; }
 
     int Q { get; }
-}", fixAllActionEquivalenceKey: FeaturesResources.Use_auto_property);
+}");
         }
 
         [WorkItem(23735, "https://github.com/dotnet/roslyn/issues/23735")]
@@ -1242,7 +1225,6 @@ namespace RoslynSandbox
 @"class Class
 {
     int P { get; set; } = 1;
-
     void M() { P = 2; }
 }");
         }
@@ -1294,7 +1276,6 @@ namespace RoslynSandbox
 @"class Class
 {
     int P { get; set; }
-
     void M() { P = 1; }
 }");
         }
@@ -1374,7 +1355,6 @@ namespace RoslynSandbox
 }",
 @"class Class
 {
-
     public int P { protected get; set; }
 }");
         }
@@ -1403,8 +1383,293 @@ namespace RoslynSandbox
 }",
 @"class Class
 {
-
     public int P { get; protected set; }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseAutoProperty)]
+        [WorkItem(26858, "https://github.com/dotnet/roslyn/issues/26858")]
+        public async Task TestPreserveTrailingTrivia1()
+        {
+            await TestInRegularAndScriptAsync(
+@"class Goo
+{
+    private readonly object [|bar|] = new object();
+
+    public object Bar => bar;
+    public int Baz => 0;
+}",
+@"class Goo
+{
+    public object Bar { get; } = new object();
+    public int Baz => 0;
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseAutoProperty)]
+        [WorkItem(26858, "https://github.com/dotnet/roslyn/issues/26858")]
+        public async Task TestPreserveTrailingTrivia2()
+        {
+            await TestInRegularAndScriptAsync(
+@"class Goo
+{
+    private readonly object [|bar|] = new object();
+
+    public object Bar => bar; // prop comment
+    public int Baz => 0;
+}",
+@"class Goo
+{
+    public object Bar { get; } = new object(); // prop comment
+    public int Baz => 0;
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseAutoProperty)]
+        [WorkItem(26858, "https://github.com/dotnet/roslyn/issues/26858")]
+        public async Task TestPreserveTrailingTrivia3()
+        {
+            await TestInRegularAndScriptAsync(
+@"class Goo
+{
+    private readonly object [|bar|] = new object();
+
+    // doc
+    public object Bar => bar; // prop comment
+    public int Baz => 0;
+}",
+@"class Goo
+{
+    // doc
+    public object Bar { get; } = new object(); // prop comment
+    public int Baz => 0;
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseAutoProperty)]
+        [WorkItem(26858, "https://github.com/dotnet/roslyn/issues/26858")]
+        public async Task TestKeepLeadingBlank()
+        {
+            await TestInRegularAndScriptAsync(
+@"class Goo
+{
+
+    private readonly object [|bar|] = new object();
+
+    // doc
+    public object Bar => bar; // prop comment
+    public int Baz => 0;
+}",
+@"class Goo
+{
+
+    // doc
+    public object Bar { get; } = new object(); // prop comment
+    public int Baz => 0;
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseAutoProperty)]
+        public async Task TestMultipleFieldsAbove1()
+        {
+            await TestInRegularAndScriptAsync(
+@"class Class
+{
+    [|int i|];
+    int j;
+
+    int P
+    {
+        get
+        {
+            return i;
+        }
+    }
+}",
+@"class Class
+{
+    int j;
+
+    int P { get; }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseAutoProperty)]
+        public async Task TestMultipleFieldsAbove2()
+        {
+            await TestInRegularAndScriptAsync(
+@"class Class
+{
+    int j;
+    [|int i|];
+
+    int P
+    {
+        get
+        {
+            return i;
+        }
+    }
+}",
+@"class Class
+{
+    int j;
+
+    int P { get; }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseAutoProperty)]
+        public async Task TestMultipleFieldsAbove3()
+        {
+            await TestInRegularAndScriptAsync(
+@"class Class
+{
+    [|int i|];
+
+    int j;
+
+    int P
+    {
+        get
+        {
+            return i;
+        }
+    }
+}",
+@"class Class
+{
+    int j;
+
+    int P { get; }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseAutoProperty)]
+        public async Task TestMultipleFieldsAbove4()
+        {
+            await TestInRegularAndScriptAsync(
+@"class Class
+{
+    int j;
+
+    [|int i|];
+
+    int P
+    {
+        get
+        {
+            return i;
+        }
+    }
+}",
+@"class Class
+{
+    int j;
+
+    int P { get; }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseAutoProperty)]
+        public async Task TestMultipleFieldsBelow1()
+        {
+            await TestInRegularAndScriptAsync(
+@"class Class
+{
+    int P
+    {
+        get
+        {
+            return i;
+        }
+    }
+
+    [|int i|];
+    int j;
+}",
+@"class Class
+{
+    int P { get; }
+
+    int j;
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseAutoProperty)]
+        public async Task TestMultipleFieldsBelow2()
+        {
+            await TestInRegularAndScriptAsync(
+@"class Class
+{
+    int P
+    {
+        get
+        {
+            return i;
+        }
+    }
+
+    int j;
+    [|int i|];
+}",
+@"class Class
+{
+    int P { get; }
+
+    int j;
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseAutoProperty)]
+        public async Task TestMultipleFieldsBelow3()
+        {
+            await TestInRegularAndScriptAsync(
+@"class Class
+{
+    int P
+    {
+        get
+        {
+            return i;
+        }
+    }
+
+    [|int i|];
+
+    int j;
+}",
+@"class Class
+{
+    int P { get; }
+
+    int j;
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseAutoProperty)]
+        public async Task TestMultipleFieldsBelow4()
+        {
+            await TestInRegularAndScriptAsync(
+@"class Class
+{
+    int P
+    {
+        get
+        {
+            return i;
+        }
+    }
+
+    int j;
+
+    [|int i|];
+}",
+@"class Class
+{
+    int P { get; }
+
+    int j;
 }");
         }
     }

@@ -97,7 +97,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.AutomaticCompletion
         public static Solution UpdateDocument(this Solution solution, DocumentId id, IEnumerable<TextChange> textChanges, CancellationToken cancellationToken = default)
         {
             var oldDocument = solution.GetDocument(id);
-            var newText = oldDocument.GetTextAsync(cancellationToken).WaitAndGetResult(cancellationToken).WithChanges(textChanges);
+            var newText = oldDocument.GetTextSynchronously(cancellationToken).WithChanges(textChanges);
             return solution.WithDocumentText(id, newText);
         }
 

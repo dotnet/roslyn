@@ -704,6 +704,218 @@ class Test
             await VerifyItemExistsAsync(markup, "test");
         }
 
+
+        [WorkItem(22342, "https://github.com/dotnet/roslyn/issues/22342")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task TupleExpressionDeclaration1()
+        {
+            var markup = @"
+class Test
+{
+    void Do()
+    {
+        (System.Array array, System.Action $$ 
+    }
+}
+";
+            await VerifyItemExistsAsync(markup, "action");
+        }
+
+        [WorkItem(22342, "https://github.com/dotnet/roslyn/issues/22342")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task TupleExpressionDeclaration2()
+        {
+            var markup = @"
+class Test
+{
+    void Do()
+    {
+        (array, action $$
+    }
+}
+";
+            await VerifyItemIsAbsentAsync(markup, "action");
+        }
+
+        [WorkItem(22342, "https://github.com/dotnet/roslyn/issues/22342")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task TupleExpressionDeclaration_NestedTuples()
+        {
+            var markup = @"
+class Test
+{
+    void Do()
+    {
+        ((int i1, int i2), (System.Array array, System.Action $$
+    }
+}
+";
+            await VerifyItemExistsAsync(markup, "action");
+        }
+
+        [WorkItem(22342, "https://github.com/dotnet/roslyn/issues/22342")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task TupleExpressionDeclaration_NestedTuples_CompletionInTheMiddle()
+        {
+            var markup = @"
+class Test
+{
+    void Do()
+    {
+        ((System.Array array, System.Action $$), (int i1, int i2))
+    }
+}
+";
+            await VerifyItemExistsAsync(markup, "action");
+        }
+
+        [WorkItem(22342, "https://github.com/dotnet/roslyn/issues/22342")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task TupleElementDefinition1()
+        {
+            var markup = @"
+class Test
+{
+    void Do()
+    {
+        (System.Array $$
+    }
+}
+";
+            await VerifyItemExistsAsync(markup, "array");
+        }
+
+        [WorkItem(22342, "https://github.com/dotnet/roslyn/issues/22342")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task TupleElementDefinition2()
+        {
+            var markup = @"
+class Test
+{
+    (System.Array $$) Test() => default;
+}
+";
+            await VerifyItemExistsAsync(markup, "array");
+        }
+
+        [WorkItem(22342, "https://github.com/dotnet/roslyn/issues/22342")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task TupleElementDefinition3()
+        {
+            var markup = @"
+class Test
+{
+    (System.Array array, System.Action $$) Test() => default;
+}
+";
+            await VerifyItemExistsAsync(markup, "action");
+        }
+
+        [WorkItem(22342, "https://github.com/dotnet/roslyn/issues/22342")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task TupleElementDefinition4()
+        {
+            var markup = @"
+class Test
+{
+    (System.Array $$
+}
+";
+            await VerifyItemExistsAsync(markup, "array");
+        }
+
+        [WorkItem(22342, "https://github.com/dotnet/roslyn/issues/22342")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task TupleElementDefinition5()
+        {
+            var markup = @"
+class Test
+{
+    void M((System.Array $$
+}
+";
+            await VerifyItemExistsAsync(markup, "array");
+        }
+
+        [WorkItem(22342, "https://github.com/dotnet/roslyn/issues/22342")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task TupleElementDefinition_NestedTuples()
+        {
+            var markup = @"
+class Test
+{
+    void M(((int, int), (int, System.Array $$
+}
+";
+            await VerifyItemExistsAsync(markup, "array");
+        }
+
+        [WorkItem(22342, "https://github.com/dotnet/roslyn/issues/22342")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task TupleElementDefinition_InMiddleOfTuple()
+        {
+            var markup = @"
+class Test
+{
+    void M((int, System.Array $$),int)
+}
+";
+            await VerifyItemExistsAsync(markup, "array");
+        }
+
+        [WorkItem(22342, "https://github.com/dotnet/roslyn/issues/22342")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task TupleElementTypeInference()
+        {
+            var markup = @"
+class Test
+{
+    void Do()
+    {
+        (var accessViolationException, var $$) = (new AccessViolationException(), new Action(() => { }));
+    }
+}
+";
+            // Currently not supported:
+            await VerifyItemIsAbsentAsync(markup, "action");
+            // see https://github.com/dotnet/roslyn/issues/27138
+            // after the issue ist fixed we expect this to work:
+            // await VerifyItemExistsAsync(markup, "action");
+        }
+
+        [WorkItem(22342, "https://github.com/dotnet/roslyn/issues/22342")]
+        [Fact(Skip = "Not yet supported"), Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task TupleElementInGenericTypeArgument()
+        {
+            var markup = @"
+class Test
+{
+    void Do()
+    {
+        System.Func<(System.Action $$
+    }
+}
+";
+            await VerifyItemExistsAsync(markup, "action");
+        }
+
+        [WorkItem(22342, "https://github.com/dotnet/roslyn/issues/22342")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task TupleElementInvocationInsideTuple()
+        {
+            var markup = @"
+class Test
+{
+    void Do()
+    {
+            int M(int i1, int i2) => i1;
+            var t=(e1: 1, e2: M(1, $$));
+    }
+}
+";
+            await VerifyNoItemsExistAsync(markup);
+        }
+
         [WorkItem(17987, "https://github.com/dotnet/roslyn/issues/17987")]
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task Pluralize1()

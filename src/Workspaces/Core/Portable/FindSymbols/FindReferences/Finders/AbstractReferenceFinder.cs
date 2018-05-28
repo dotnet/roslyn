@@ -216,7 +216,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             Func<SyntaxToken, SemanticModel, (bool matched, CandidateReason reason)> symbolsMatch,
             CancellationToken cancellationToken)
         {
-            var semanticFacts = document.Project.LanguageServices.GetService<ISemanticFactsService>();
+            var semanticFacts = document.GetLanguageService<ISemanticFactsService>();
 
             var syntaxTree = await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
 
@@ -257,7 +257,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
                 var token = root.FindToken(location.Location.SourceSpan.Start);
                 var node = token.Parent;
 
-                var syntaxFacts = document.Project.LanguageServices.GetService<ISyntaxFactsService>();
+                var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
                 if (syntaxFacts.IsRightSideOfQualifiedName(node))
                 {
                     node = node.Parent;
@@ -422,7 +422,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             var syntaxTreeInfo = await SyntaxTreeIndex.GetIndexAsync(document, cancellationToken).ConfigureAwait(false);
             if (syntaxTreeInfo.ContainsForEachStatement)
             {
-                var semanticFacts = document.Project.LanguageServices.GetService<ISemanticFactsService>();
+                var semanticFacts = document.GetLanguageService<ISemanticFactsService>();
                 var syntaxRoot = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
                 var locations = ArrayBuilder<ReferenceLocation>.GetInstance();
@@ -465,8 +465,8 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
                 return ImmutableArray<ReferenceLocation>.Empty;
             }
 
-            var syntaxFacts = document.Project.LanguageServices.GetService<ISyntaxFactsService>();
-            var semanticFacts = document.Project.LanguageServices.GetService<ISemanticFactsService>();
+            var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
+            var semanticFacts = document.GetLanguageService<ISemanticFactsService>();
             var syntaxRoot = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
             var locations = ArrayBuilder<ReferenceLocation>.GetInstance();

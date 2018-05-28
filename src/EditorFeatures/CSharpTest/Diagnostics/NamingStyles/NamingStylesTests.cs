@@ -1027,12 +1027,12 @@ namespace Microsoft.CodeAnalysis.Host
 
             using (var workspace = CreateWorkspaceFromOptions(markup, testParameters))
             {
-                var actions = await GetCodeActionsAsync(workspace, testParameters);
+                var (_, action) = await GetCodeActionsAsync(workspace, testParameters);
 
-                var previewOperations = await actions[0].GetPreviewOperationsAsync(CancellationToken.None);
+                var previewOperations = await action.GetPreviewOperationsAsync(CancellationToken.None);
                 Assert.Empty(previewOperations.OfType<TestSymbolRenamedCodeActionOperationFactoryWorkspaceService.Operation>());
 
-                var commitOperations = await actions[0].GetOperationsAsync(CancellationToken.None);
+                var commitOperations = await action.GetOperationsAsync(CancellationToken.None);
                 Assert.Equal(2, commitOperations.Length);
 
                 var symbolRenamedOperation = (TestSymbolRenamedCodeActionOperationFactoryWorkspaceService.Operation)commitOperations[1];

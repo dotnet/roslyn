@@ -315,7 +315,7 @@ namespace Microsoft.CodeAnalysis.DocumentHighlighting
                     var tree = location.SourceTree;
 
                     var document = solution.GetDocument(tree);
-                    var syntaxFacts = document.Project.LanguageServices.GetService<ISyntaxFactsService>();
+                    var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
 
                     if (syntaxFacts != null)
                     {

@@ -91,8 +91,7 @@ class D
             await TestInRegularAndScriptAsync(
                 initialMarkup: input,
                 expectedMarkup: expected,
-                options: Option(CodeStyleOptions.QualifyPropertyAccess, true, NotificationOption.Suggestion),
-                fixAllActionEquivalenceKey: CSharpFeaturesResources.Add_this);
+                options: Option(CodeStyleOptions.QualifyPropertyAccess, true, NotificationOption.Suggestion));
         }
     }
 }
