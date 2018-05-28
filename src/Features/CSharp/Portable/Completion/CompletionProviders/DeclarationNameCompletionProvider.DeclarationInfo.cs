@@ -78,7 +78,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                     semanticModel,
                     tupleElement => tupleElement.Type,
                     _ => default(SyntaxTokenList),
-                    _ => ImmutableArray.Create(SymbolKind.Local), cancellationToken);
+                    _ => ImmutableArray.Create(new SymbolKindOrTypeKind(SymbolKind.Local)), cancellationToken);
 
                 return result.Type != null;
             }
@@ -100,7 +100,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                         semanticModel,
                         GetNodeDenotingTheTypeOfTupleArgument,
                         _ => default(SyntaxTokenList),
-                        _ => ImmutableArray.Create(SymbolKind.Local), cancellationToken);
+                        _ => ImmutableArray.Create(new SymbolKindOrTypeKind(SymbolKind.Local)), cancellationToken);
                     return result.Type != null;
                 }
 
