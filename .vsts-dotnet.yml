@@ -7,5 +7,5 @@ phases:
       release: 
         configuration: release
   steps:
-    - script: build/scripts/cibuild.cmd -$(configuartion) -test32
+    - script: build/scripts/cibuild.cmd -debug -test32
            
