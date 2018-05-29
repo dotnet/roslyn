@@ -29,6 +29,7 @@ namespace Microsoft.CodeAnalysis.CodeStyle
             set => Severity = value.ToReportDiagnostic();
         }
 
+        public static readonly NotificationOption None = new NotificationOption(WorkspacesResources.None, ReportDiagnostic.Suppress);
         public static readonly NotificationOption Silent = new NotificationOption(WorkspacesResources.None, ReportDiagnostic.Hidden);
         public static readonly NotificationOption Suggestion = new NotificationOption(WorkspacesResources.Suggestion, ReportDiagnostic.Info);
         public static readonly NotificationOption Warning = new NotificationOption(WorkspacesResources.Warning, ReportDiagnostic.Warn);

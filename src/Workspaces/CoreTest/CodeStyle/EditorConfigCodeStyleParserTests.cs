@@ -13,13 +13,13 @@ namespace Microsoft.CodeAnalysis.UnitTests.CodeStyle
     public class EditorConfigCodeStyleParserTests
     {
         [Theory]
-        [InlineData("true:none", true, ReportDiagnostic.Hidden)]
+        [InlineData("true:none", true, ReportDiagnostic.Suppress)]
         [InlineData("true:silent", true, ReportDiagnostic.Hidden)]
         [InlineData("true:suggestion", true, ReportDiagnostic.Info)]
         [InlineData("true:warning", true, ReportDiagnostic.Warn)]
         [InlineData("true:error", true, ReportDiagnostic.Error)]
         [InlineData("true", false, ReportDiagnostic.Hidden)]
-        [InlineData("false:none", false, ReportDiagnostic.Hidden)]
+        [InlineData("false:none", false, ReportDiagnostic.Suppress)]
         [InlineData("false:silent", false, ReportDiagnostic.Hidden)]
         [InlineData("false:suggestion", false, ReportDiagnostic.Info)]
         [InlineData("false:warning", false, ReportDiagnostic.Warn)]

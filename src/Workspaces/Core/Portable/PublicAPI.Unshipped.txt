@@ -1,4 +1,3 @@
-*REMOVED*static readonly Microsoft.CodeAnalysis.CodeStyle.NotificationOption.None -> Microsoft.CodeAnalysis.CodeStyle.NotificationOption
 Microsoft.CodeAnalysis.CodeStyle.NotificationOption.Severity.get -> Microsoft.CodeAnalysis.ReportDiagnostic
 Microsoft.CodeAnalysis.CodeStyle.NotificationOption.Severity.set -> void
 abstract Microsoft.CodeAnalysis.Editing.SyntaxGenerator.AliasImportDeclaration(string aliasIdentifierName, Microsoft.CodeAnalysis.SyntaxNode name) -> Microsoft.CodeAnalysis.SyntaxNode

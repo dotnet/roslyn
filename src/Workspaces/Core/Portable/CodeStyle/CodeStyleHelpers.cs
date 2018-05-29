@@ -95,6 +95,9 @@ namespace Microsoft.CodeAnalysis.CodeStyle
             switch (value.Trim())
             {
                 case EditorConfigSeverityStrings.None:
+                    notification = NotificationOption.None;
+                    return true;
+
                 case EditorConfigSeverityStrings.Silent:
                     notification = NotificationOption.Silent;
                     return true;

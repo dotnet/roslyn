@@ -50,6 +50,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
             switch (ruleSeverity)
             {
                 case EditorConfigSeverityStrings.None:
+                    return ReportDiagnostic.Suppress;
+
                 case EditorConfigSeverityStrings.Silent:
                     return ReportDiagnostic.Hidden;
 
