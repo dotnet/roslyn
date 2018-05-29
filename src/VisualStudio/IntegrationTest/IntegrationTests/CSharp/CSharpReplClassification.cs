@@ -35,7 +35,7 @@ public static void Main(string[] args)
             VisualStudio.InteractiveWindow.PlaceCaret("{");
             VisualStudio.InteractiveWindow.Verify.CurrentTokenType(tokenType: "punctuation");
             VisualStudio.InteractiveWindow.PlaceCaret("Main");
-            VisualStudio.InteractiveWindow.Verify.CurrentTokenType(tokenType: "identifier");
+            VisualStudio.InteractiveWindow.Verify.CurrentTokenType(tokenType: "method name");
             VisualStudio.InteractiveWindow.PlaceCaret("Hello");
             VisualStudio.InteractiveWindow.Verify.CurrentTokenType(tokenType: "string");
             VisualStudio.InteractiveWindow.PlaceCaret("<summary", charsOffset: -1);
