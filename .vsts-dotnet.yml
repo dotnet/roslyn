@@ -1,5 +1,5 @@
 phases:
-- phase: Windows Unit Tests
+- phase: Windows_Unit_Tests
   queue:
     matrix:
       debug:
