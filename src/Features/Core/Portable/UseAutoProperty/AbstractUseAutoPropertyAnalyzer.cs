@@ -317,32 +317,20 @@ namespace Microsoft.CodeAnalysis.UseAutoProperty
 
             // Place the appropriate marker on the field depending on the user option.
             var diagnostic1 = Diagnostic.Create(
-                GetFieldDescriptor(option), nodeToFade.GetLocation(),
-                additionalLocations: additionalLocations);
+                UnnecessaryWithSuggestionDescriptor,
+                nodeToFade.GetLocation(),
+                option.Notification.Value,
+                additionalLocations: additionalLocations,
+                properties: null);
 
             // Also, place a hidden marker on the property.  If they bring up a lightbulb
             // there, they'll be able to see that they can convert it to an auto-prop.
             var diagnostic2 = Diagnostic.Create(
-                HiddenDescriptor, propertyDeclaration.GetLocation(),
+                Descriptor, propertyDeclaration.GetLocation(),
                 additionalLocations: additionalLocations);
 
             context.ReportDiagnostic(diagnostic1);
             context.ReportDiagnostic(diagnostic2);
-        }
-
-        private DiagnosticDescriptor GetFieldDescriptor(CodeStyleOption<bool> styleOption)
-        {
-            if (styleOption.Value)
-            {
-                switch (styleOption.Notification.Value)
-                {
-                    case DiagnosticSeverity.Error: return ErrorDescriptor;
-                    case DiagnosticSeverity.Warning: return WarningDescriptor;
-                    case DiagnosticSeverity.Info: return InfoDescriptor;
-                }
-            }
-
-            return UnnecessaryWithSuggestionDescriptor;
         }
 
         protected virtual bool IsEligibleHeuristic(

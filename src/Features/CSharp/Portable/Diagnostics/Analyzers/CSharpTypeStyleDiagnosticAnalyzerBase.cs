@@ -70,11 +70,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.TypeStyle
             }
 
             // The severity preference is not Hidden, as indicated by IsStylePreferred.
-            var descriptor = GetDescriptorWithSeverity(typeStyle.Severity);
-            context.ReportDiagnostic(CreateDiagnostic(descriptor, declarationStatement, declaredType.Span));
+            var descriptor = Descriptor;
+            context.ReportDiagnostic(CreateDiagnostic(descriptor, declarationStatement, declaredType.Span, typeStyle.Severity));
         }
 
-        private Diagnostic CreateDiagnostic(DiagnosticDescriptor descriptor, SyntaxNode declaration, TextSpan diagnosticSpan) 
-            => Diagnostic.Create(descriptor, declaration.SyntaxTree.GetLocation(diagnosticSpan));
+        private Diagnostic CreateDiagnostic(DiagnosticDescriptor descriptor, SyntaxNode declaration, TextSpan diagnosticSpan, DiagnosticSeverity severity) 
+            => Diagnostic.Create(descriptor, declaration.SyntaxTree.GetLocation(diagnosticSpan), severity, additionalLocations: null, properties: null);
     }
 }

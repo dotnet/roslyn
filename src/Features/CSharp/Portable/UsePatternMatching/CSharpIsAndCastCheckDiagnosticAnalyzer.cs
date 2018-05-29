@@ -145,9 +145,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
 
             // Put a diagnostic with the appropriate severity on the declaration-statement itself.
             syntaxContext.ReportDiagnostic(Diagnostic.Create(
-                GetDescriptorWithSeverity(severity),
+                Descriptor,
                 localDeclarationStatement.GetLocation(),
-                additionalLocations));
+                severity,
+                additionalLocations,
+                properties: null));
         }
 
         public bool TryGetPatternPieces(

@@ -145,7 +145,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
                  s_localizableTitleNamingStyle,
                  string.Format(FeaturesResources.Naming_rule_violation_0, failureReason),
                  DiagnosticCategory.Style,
-                 applicableRule.EnforcementLevel,
+                 DiagnosticSeverity.Hidden,
                  isEnabledByDefault: true);
 
             var builder = ImmutableDictionary.CreateBuilder<string, string>();
@@ -153,7 +153,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
             builder["OptionName"] = nameof(SimplificationOptions.NamingPreferences);
             builder["OptionLanguage"] = compilation.Language;
 
-            return Diagnostic.Create(descriptor, symbol.Locations.First(), builder.ToImmutable());
+            return Diagnostic.Create(descriptor, symbol.Locations.First(), applicableRule.EnforcementLevel, additionalLocations: null, builder.ToImmutable());
         }
 
         [PerformanceSensitive("https://github.com/dotnet/roslyn/issues/23582", OftenCompletesSynchronously = true)]

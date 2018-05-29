@@ -116,8 +116,11 @@ namespace Microsoft.CodeAnalysis.QualifyMemberAccess
                 if (severity != DiagnosticSeverity.Hidden)
                 {
                     context.ReportDiagnostic(Diagnostic.Create(
-                        GetDescriptorWithSeverity(severity), 
-                        simpleName.GetLocation()));
+                        Descriptor, 
+                        simpleName.GetLocation(),
+                        severity,
+                        additionalLocations: null,
+                        properties: null));
                 }
             }
         }

@@ -180,8 +180,9 @@ namespace Microsoft.CodeAnalysis.CSharp.InvokeDelegateWithConditionalAccess
 
             // Put a diagnostic with the appropriate severity on the expression-statement itself.
             syntaxContext.ReportDiagnostic(Diagnostic.Create(
-                GetDescriptorWithSeverity(severity),
+                Descriptor,
                 expressionStatement.GetLocation(),
+                severity,
                 additionalLocations, properties));
 
             // If the if-statement extends past the expression statement, then fade out the rest.

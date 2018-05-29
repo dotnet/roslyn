@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
         {
             _syntaxKinds = _helpers.SelectMany(h => h.SyntaxKinds).ToImmutableArray();
             SupportedDiagnostics = _helpers.SelectAsArray(
-                h => CreateDescriptorWithId(h.DiagnosticId, h.UseExpressionBodyTitle, h.UseExpressionBodyTitle, DiagnosticSeverity.Hidden));
+                h => CreateDescriptorWithId(h.DiagnosticId, h.UseExpressionBodyTitle, h.UseExpressionBodyTitle));
         }
 
         public override DiagnosticAnalyzerCategory GetAnalyzerCategory() 
@@ -97,8 +97,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
                 var additionalLocations = ImmutableArray.Create(declaration.GetLocation());
                 var properties = ImmutableDictionary<string, string>.Empty.Add(nameof(UseExpressionBody), "");
                 return Diagnostic.Create(
-                    CreateDescriptorWithId(helper.DiagnosticId, helper.UseExpressionBodyTitle, helper.UseExpressionBodyTitle, severity, GetCustomTags(severity)),
-                    location, additionalLocations: additionalLocations, properties: properties);
+                    CreateDescriptorWithId(helper.DiagnosticId, helper.UseExpressionBodyTitle, helper.UseExpressionBodyTitle),
+                    location, severity, additionalLocations: additionalLocations, properties: properties);
             }
 
             var (canOffer, fixesError) = helper.CanOfferUseBlockBody(optionSet, declaration, forAnalyzer: true);
@@ -118,16 +118,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
 
                 var additionalLocations = ImmutableArray.Create(declaration.GetLocation());
                 return Diagnostic.Create(
-                    CreateDescriptorWithId(helper.DiagnosticId, helper.UseBlockBodyTitle, helper.UseBlockBodyTitle, severity, GetCustomTags(severity)),
-                    location, additionalLocations: additionalLocations, properties: properties);
+                    CreateDescriptorWithId(helper.DiagnosticId, helper.UseBlockBodyTitle, helper.UseBlockBodyTitle),
+                    location, severity, additionalLocations: additionalLocations, properties: properties);
             }
 
             return null;
         }
-
-        private static string[] GetCustomTags(DiagnosticSeverity severity)
-            => severity == DiagnosticSeverity.Hidden
-                ? new[] { WellKnownDiagnosticTags.NotConfigurable }
-                : Array.Empty<string>();
     }
 }

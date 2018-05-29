@@ -83,9 +83,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.AddAccessibilityModifiers
             ' Have an issue to flag, either add or remove. Report issue to user.
             Dim additionalLocations = ImmutableArray.Create(member.GetLocation())
             context.ReportDiagnostic(Diagnostic.Create(
-                CreateDescriptorWithSeverity([option].Notification.Value),
+                Descriptor,
                 name.GetLocation(),
-                additionalLocations:=additionalLocations))
+                [option].Notification.Value,
+                additionalLocations:=additionalLocations,
+                properties:=Nothing))
         End Sub
 
         Private Function MatchesDefaultAccessibility(accessibility As Accessibility, member As StatementSyntax) As Boolean

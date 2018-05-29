@@ -139,8 +139,9 @@ namespace Microsoft.CodeAnalysis.AddRequiredParentheses
                 var properties = GetProperties(includeInFixAll, equivalenceKey);
 
                 context.ReportDiagnostic(Diagnostic.Create(
-                    GetDescriptorWithSeverity(severity),
+                    Descriptor,
                     operatorToken.GetLocation(),
+                    severity,
                     additionalLocations,
                     properties));
 

@@ -50,9 +50,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UseDefaultLiteral
 
             // Create a normal diagnostic that covers the entire default expression.
             context.ReportDiagnostic(
-                Diagnostic.Create(GetDescriptorWithSeverity(
-                    optionSet.GetOption(CSharpCodeStyleOptions.PreferSimpleDefaultExpression).Notification.Value),
-                    defaultExpression.GetLocation()));
+                Diagnostic.Create(
+                    Descriptor,
+                    defaultExpression.GetLocation(),
+                    optionSet.GetOption(CSharpCodeStyleOptions.PreferSimpleDefaultExpression).Notification.Value,
+                    additionalLocations: null,
+                    properties: null));
 
             // Also fade out the part of the default expression from the open paren through 
             // the close paren.

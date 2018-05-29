@@ -75,8 +75,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UseDeconstruction
             }
 
             context.ReportDiagnostic(Diagnostic.Create(
-                this.GetDescriptorWithSeverity(severity),
-                variableDeclaration.Variables[0].Identifier.GetLocation()));
+                Descriptor,
+                variableDeclaration.Variables[0].Identifier.GetLocation(),
+                severity,
+                additionalLocations: null,
+                properties: null));
         }
 
         private void AnalyzeForEachStatement(
@@ -90,8 +93,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UseDeconstruction
             }
 
             context.ReportDiagnostic(Diagnostic.Create(
-                this.GetDescriptorWithSeverity(severity),
-                forEachStatement.Identifier.GetLocation()));
+                Descriptor,
+                forEachStatement.Identifier.GetLocation(),
+                severity,
+                additionalLocations: null,
+                properties: null));
         }
 
         public static bool TryAnalyzeVariableDeclaration(

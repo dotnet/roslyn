@@ -241,9 +241,11 @@ namespace Microsoft.CodeAnalysis.CSharp.InlineDeclaration
                 : localDeclarator;
 
             context.ReportDiagnostic(Diagnostic.Create(
-                GetDescriptorWithSeverity(option.Notification.Value),
+                Descriptor,
                 reportNode.GetLocation(),
-                additionalLocations: allLocations));
+                option.Notification.Value,
+                additionalLocations: allLocations,
+                properties: null));
         }
 
         private bool WouldCauseDefiniteAssignmentErrors(

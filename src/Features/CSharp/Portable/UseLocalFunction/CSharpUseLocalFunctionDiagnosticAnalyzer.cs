@@ -135,25 +135,31 @@ namespace Microsoft.CodeAnalysis.CSharp.UseLocalFunction
                 // If the diagnostic is not hidden, then just place the user visible part
                 // on the local being initialized with the lambda.
                 syntaxContext.ReportDiagnostic(Diagnostic.Create(
-                    GetDescriptorWithSeverity(severity),
+                    Descriptor,
                     localDeclaration.Declaration.Variables[0].Identifier.GetLocation(),
-                    additionalLocations));
+                    severity,
+                    additionalLocations,
+                    properties: null));
             }
             else
             {
                 // If the diagnostic is hidden, place it on the entire construct.
                 syntaxContext.ReportDiagnostic(Diagnostic.Create(
-                    GetDescriptorWithSeverity(severity),
+                    Descriptor,
                     localDeclaration.GetLocation(),
-                    additionalLocations));
+                    severity,
+                    additionalLocations,
+                    properties: null));
 
                 var anonymousFunctionStatement = anonymousFunction.GetAncestor<StatementSyntax>();
                 if (localDeclaration != anonymousFunctionStatement)
                 {
                     syntaxContext.ReportDiagnostic(Diagnostic.Create(
-                        GetDescriptorWithSeverity(severity),
+                        Descriptor,
                         anonymousFunctionStatement.GetLocation(),
-                        additionalLocations));
+                        severity,
+                        additionalLocations,
+                        properties: null));
                 }
             }
         }

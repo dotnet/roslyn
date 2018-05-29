@@ -110,8 +110,11 @@ namespace Microsoft.CodeAnalysis.RemoveUnnecessaryParentheses
             var additionalLocations = ImmutableArray.Create(parenthesizedExpression.GetLocation());
 
             context.ReportDiagnostic(Diagnostic.Create(
-                CreateUnnecessaryDescriptor(severity),
-                parenthesizedExpression.GetFirstToken().GetLocation(), additionalLocations));
+                UnnecessaryWithSuggestionDescriptor,
+                parenthesizedExpression.GetFirstToken().GetLocation(),
+                severity,
+                additionalLocations,
+                properties: null));
 
             context.ReportDiagnostic(Diagnostic.Create(
                 UnnecessaryWithoutSuggestionDescriptor,

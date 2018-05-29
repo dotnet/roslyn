@@ -12,13 +12,7 @@ namespace Microsoft.CodeAnalysis.CodeStyle
     {
         protected readonly string DescriptorId;
 
-        /// <summary>
-        /// Diagnostic descriptors corresponding to each of the DiagnosticSeverities.
-        /// </summary>
-        protected readonly DiagnosticDescriptor HiddenDescriptor;
-        protected readonly DiagnosticDescriptor InfoDescriptor;
-        protected readonly DiagnosticDescriptor WarningDescriptor;
-        protected readonly DiagnosticDescriptor ErrorDescriptor;
+        protected readonly DiagnosticDescriptor Descriptor;
 
         /// <summary>
         /// Diagnostic descriptor for code you want to fade out *and* want to have a smart-tag
@@ -55,51 +49,33 @@ namespace Microsoft.CodeAnalysis.CodeStyle
             _localizableMessage = message ?? title;
             _configurable = configurable;
 
-            HiddenDescriptor = CreateDescriptorWithSeverity(DiagnosticSeverity.Hidden);
-            InfoDescriptor = CreateDescriptorWithSeverity(DiagnosticSeverity.Info);
-            WarningDescriptor = CreateDescriptorWithSeverity(DiagnosticSeverity.Warning);
-            ErrorDescriptor = CreateDescriptorWithSeverity(DiagnosticSeverity.Error);
-
-            UnnecessaryWithSuggestionDescriptor = CreateUnnecessaryDescriptor(DiagnosticSeverity.Hidden);
-
-            UnnecessaryWithoutSuggestionDescriptor = CreateUnnecessaryDescriptor(
-                descriptorId + "WithoutSuggestion", DiagnosticSeverity.Hidden);
+            Descriptor = CreateDescriptor();
+            UnnecessaryWithSuggestionDescriptor = CreateUnnecessaryDescriptor();
+            UnnecessaryWithoutSuggestionDescriptor = CreateUnnecessaryDescriptor(descriptorId + "WithoutSuggestion");
 
             SupportedDiagnostics = ImmutableArray.Create(
-                HiddenDescriptor, UnnecessaryWithoutSuggestionDescriptor, UnnecessaryWithSuggestionDescriptor);
+                Descriptor, UnnecessaryWithoutSuggestionDescriptor, UnnecessaryWithSuggestionDescriptor);
         }
 
-        protected DiagnosticDescriptor CreateUnnecessaryDescriptor(DiagnosticSeverity severity)
-            => CreateUnnecessaryDescriptor(DescriptorId, severity);
+        protected DiagnosticDescriptor CreateUnnecessaryDescriptor()
+            => CreateUnnecessaryDescriptor(DescriptorId);
 
-        protected DiagnosticDescriptor CreateUnnecessaryDescriptor(string descriptorId, DiagnosticSeverity severity)
+        protected DiagnosticDescriptor CreateUnnecessaryDescriptor(string descriptorId)
             => CreateDescriptorWithId(
                 descriptorId, _localizableTitle, _localizableMessage,
-                severity, DiagnosticCustomTags.Unnecessary);
+                DiagnosticCustomTags.Unnecessary);
 
         public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics { get; }
 
-        protected DiagnosticDescriptor GetDescriptorWithSeverity(DiagnosticSeverity severity)
-        {
-            switch (severity)
-            {
-                case DiagnosticSeverity.Hidden: return HiddenDescriptor;
-                case DiagnosticSeverity.Info: return InfoDescriptor;
-                case DiagnosticSeverity.Warning: return WarningDescriptor;
-                case DiagnosticSeverity.Error: return ErrorDescriptor;
-                default: throw new InvalidOperationException();
-            }
-        }
+        protected DiagnosticDescriptor CreateDescriptor(params string[] customTags)
+            => CreateDescriptorWithId(DescriptorId, _localizableTitle, _localizableMessage, customTags);
 
-        protected DiagnosticDescriptor CreateDescriptorWithSeverity(DiagnosticSeverity severity, params string[] customTags)
-            => CreateDescriptorWithId(DescriptorId, _localizableTitle, _localizableMessage, severity, customTags);
-
-        protected DiagnosticDescriptor CreateDescriptorWithTitle(LocalizableString title, DiagnosticSeverity severity, params string[] customTags)
-            => CreateDescriptorWithId(DescriptorId, title, title, severity, customTags);
+        protected DiagnosticDescriptor CreateDescriptorWithTitle(LocalizableString title, params string[] customTags)
+            => CreateDescriptorWithId(DescriptorId, title, title, customTags);
 
         protected DiagnosticDescriptor CreateDescriptorWithId(
             string id, LocalizableString title, LocalizableString message,
-            DiagnosticSeverity severity, params string[] customTags)
+            params string[] customTags)
         {
             if (!_configurable)
             {
@@ -109,7 +85,7 @@ namespace Microsoft.CodeAnalysis.CodeStyle
             return new DiagnosticDescriptor(
                 id, title, message,
                 DiagnosticCategory.Style,
-                severity,
+                DiagnosticSeverity.Hidden,
                 isEnabledByDefault: true,
                 customTags: customTags);
         }

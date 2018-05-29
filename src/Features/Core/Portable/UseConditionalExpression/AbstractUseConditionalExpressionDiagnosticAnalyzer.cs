@@ -69,9 +69,11 @@ namespace Microsoft.CodeAnalysis.UseConditionalExpression
 
             var additionalLocations = ImmutableArray.Create(ifStatement.GetLocation());
             context.ReportDiagnostic(Diagnostic.Create(
-                this.CreateDescriptorWithSeverity(option.Notification.Value),
+                Descriptor,
                 ifStatement.GetFirstToken().GetLocation(),
-                additionalLocations));
+                option.Notification.Value,
+                additionalLocations,
+                properties: null));
         }
     }
 }

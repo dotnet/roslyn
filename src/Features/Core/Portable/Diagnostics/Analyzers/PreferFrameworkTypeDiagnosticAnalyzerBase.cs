@@ -111,16 +111,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics.PreferFrameworkType
             }
             // earlier we did a context insensitive check to see if this style was preferred in *any* context at all.
             // now, we have to make a context sensitive check to see if options settings for our context requires us to report a diagnostic.
-            if (ShouldReportDiagnostic(predefinedTypeNode, optionSet, language, out var diagnosticId, out var diagnosticSeverity))
+            if (ShouldReportDiagnostic(predefinedTypeNode, optionSet, language, out var descriptor, out var severity))
             {
-                var descriptor = new DiagnosticDescriptor(diagnosticId,
-                        s_preferFrameworkTypeTitle,
-                        s_preferFrameworkTypeMessage,
-                        DiagnosticCategory.Style,
-                        diagnosticSeverity,
-                        isEnabledByDefault: true);
-
-                context.ReportDiagnostic(Diagnostic.Create(descriptor, predefinedTypeNode.GetLocation()));
+                context.ReportDiagnostic(Diagnostic.Create(descriptor, predefinedTypeNode.GetLocation(), severity, additionalLocations: null, properties: null));
             }
         }
 
@@ -128,7 +121,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.PreferFrameworkType
         /// Detects the context of this occurrence of predefined type and determines if we should report it.
         /// </summary>
         private bool ShouldReportDiagnostic(TPredefinedTypeSyntax predefinedTypeNode, OptionSet optionSet, string language,
-            out string diagnosticId, out DiagnosticSeverity severity)
+            out DiagnosticDescriptor descriptor, out DiagnosticSeverity severity)
         {
             CodeStyleOption<bool> optionValue;
 
@@ -136,12 +129,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics.PreferFrameworkType
             // check the appropriate option and determine if we should report a diagnostic.
             if (IsInMemberAccessOrCrefReferenceContext(predefinedTypeNode))
             {
-                diagnosticId = IDEDiagnosticIds.PreferFrameworkTypeInMemberAccessDiagnosticId;
+                descriptor = s_descriptorPreferFrameworkTypeInMemberAccess;
                 optionValue = optionSet.GetOption(GetOptionForMemberAccessContext, language);
             }
             else
             {
-                diagnosticId = IDEDiagnosticIds.PreferFrameworkTypeInDeclarationsDiagnosticId;
+                descriptor = s_descriptorPreferFrameworkTypeInDeclarations;
                 optionValue = optionSet.GetOption(GetOptionForDeclarationContext, language);
             }
 

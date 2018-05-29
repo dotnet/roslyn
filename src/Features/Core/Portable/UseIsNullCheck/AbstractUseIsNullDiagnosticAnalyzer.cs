@@ -144,7 +144,8 @@ namespace Microsoft.CodeAnalysis.UseIsNullCheck
             var severity = option.Notification.Value;
             context.ReportDiagnostic(
                 Diagnostic.Create(
-                    GetDescriptorWithSeverity(severity), nameNode.GetLocation(),
+                    Descriptor, nameNode.GetLocation(),
+                    severity,
                     additionalLocations, properties));
         }
 
