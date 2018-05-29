@@ -1872,7 +1872,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundNode highestBoundNode,
             BoundNode boundNodeForSyntacticParent)
         {
-            if (lowestBoundNode is BoundPattern pattern)
+            BoundPattern pattern = lowestBoundNode as BoundPattern ?? highestBoundNode as BoundPattern ?? (highestBoundNode is BoundSubpattern sp ? sp.Pattern : null);
+            if (pattern != null)
             {
                 HashSet<DiagnosticInfo> useSiteDiagnostics = null;
                 return new CSharpTypeInfo(
