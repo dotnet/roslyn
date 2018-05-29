@@ -1625,7 +1625,7 @@ lVbRuntimePlus:
                 Return Nothing
             End If
 
-            If fullPath Is Nothing OrElse Not PathUtilities.IsValidFilePath(fileName) Then
+            If Not PathUtilities.IsValidFilePath(fullPath) Then
                 AddDiagnostic(diagnostics, ERRID.FTL_InvalidInputFileName, filePath)
                 Return Nothing
             End If
