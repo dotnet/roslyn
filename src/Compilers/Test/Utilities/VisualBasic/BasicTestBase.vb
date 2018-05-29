@@ -393,7 +393,6 @@ Public MustInherit Class BasicTestBase
         Return CompileAndVerifyFieldMarshal(xmlSource, expectedBlobs, getExpectedBlob, expectedSignatures, isField)
     End Function
 
-
     Friend Overloads Function CompileAndVerifyFieldMarshal(source As XElement,
                                                            expectedBlobs As Dictionary(Of String, Byte()),
                                                            Optional getExpectedBlob As Func(Of String, PEAssembly, Byte()) = Nothing,
