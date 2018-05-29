@@ -1471,9 +1471,9 @@ class C1
         Public Async Function TestCSharpSimplifyToVarLocalDeclaration() As Task
             Dim simplificationOption = New Dictionary(Of OptionKey, Object) From {
                 {SimplificationOptions.PreferImplicitTypeInLocalDeclaration, True},
-                {CSharpCodeStyleOptions.UseImplicitTypeForIntrinsicTypes, CodeStyleOptions.TrueWithNoneEnforcement},
-                {CSharpCodeStyleOptions.UseImplicitTypeWhereApparent, CodeStyleOptions.TrueWithNoneEnforcement},
-                {CSharpCodeStyleOptions.UseImplicitTypeWherePossible, CodeStyleOptions.TrueWithNoneEnforcement}
+                {CSharpCodeStyleOptions.UseImplicitTypeForIntrinsicTypes, CodeStyleOptions.TrueWithSilentEnforcement},
+                {CSharpCodeStyleOptions.UseImplicitTypeWhereApparent, CodeStyleOptions.TrueWithSilentEnforcement},
+                {CSharpCodeStyleOptions.UseImplicitTypeWherePossible, CodeStyleOptions.TrueWithSilentEnforcement}
             }
 
             Dim input =
@@ -1510,9 +1510,9 @@ class Program
         Public Async Function TestCSharpSimplifyToVarForeachDecl() As Task
             Dim simplificationOption = New Dictionary(Of OptionKey, Object) From {
                 {SimplificationOptions.PreferImplicitTypeInLocalDeclaration, True},
-                {CSharpCodeStyleOptions.UseImplicitTypeForIntrinsicTypes, CodeStyleOptions.TrueWithNoneEnforcement},
-                {CSharpCodeStyleOptions.UseImplicitTypeWhereApparent, CodeStyleOptions.TrueWithNoneEnforcement},
-                {CSharpCodeStyleOptions.UseImplicitTypeWherePossible, CodeStyleOptions.TrueWithNoneEnforcement}
+                {CSharpCodeStyleOptions.UseImplicitTypeForIntrinsicTypes, CodeStyleOptions.TrueWithSilentEnforcement},
+                {CSharpCodeStyleOptions.UseImplicitTypeWhereApparent, CodeStyleOptions.TrueWithSilentEnforcement},
+                {CSharpCodeStyleOptions.UseImplicitTypeWherePossible, CodeStyleOptions.TrueWithSilentEnforcement}
             }
 
             Dim input =
@@ -1551,9 +1551,9 @@ class Program
         Public Async Function TestCSharpSimplifyToVarCorrect() As Task
             Dim simplificationOption = New Dictionary(Of OptionKey, Object) From {
                 {SimplificationOptions.PreferImplicitTypeInLocalDeclaration, True},
-                {CSharpCodeStyleOptions.UseImplicitTypeForIntrinsicTypes, CodeStyleOptions.TrueWithNoneEnforcement},
-                {CSharpCodeStyleOptions.UseImplicitTypeWhereApparent, CodeStyleOptions.TrueWithNoneEnforcement},
-                {CSharpCodeStyleOptions.UseImplicitTypeWherePossible, CodeStyleOptions.TrueWithNoneEnforcement}
+                {CSharpCodeStyleOptions.UseImplicitTypeForIntrinsicTypes, CodeStyleOptions.TrueWithSilentEnforcement},
+                {CSharpCodeStyleOptions.UseImplicitTypeWhereApparent, CodeStyleOptions.TrueWithSilentEnforcement},
+                {CSharpCodeStyleOptions.UseImplicitTypeWherePossible, CodeStyleOptions.TrueWithSilentEnforcement}
             }
 
             Dim input =
@@ -1622,9 +1622,9 @@ class Program
         Public Async Function TestCSharpSimplifyToVarCorrect_QualifiedTypeNames() As Task
             Dim simplificationOption = New Dictionary(Of OptionKey, Object) From {
                 {SimplificationOptions.PreferImplicitTypeInLocalDeclaration, True},
-                {CSharpCodeStyleOptions.UseImplicitTypeForIntrinsicTypes, CodeStyleOptions.TrueWithNoneEnforcement},
-                {CSharpCodeStyleOptions.UseImplicitTypeWhereApparent, CodeStyleOptions.TrueWithNoneEnforcement},
-                {CSharpCodeStyleOptions.UseImplicitTypeWherePossible, CodeStyleOptions.TrueWithNoneEnforcement}
+                {CSharpCodeStyleOptions.UseImplicitTypeForIntrinsicTypes, CodeStyleOptions.TrueWithSilentEnforcement},
+                {CSharpCodeStyleOptions.UseImplicitTypeWhereApparent, CodeStyleOptions.TrueWithSilentEnforcement},
+                {CSharpCodeStyleOptions.UseImplicitTypeWherePossible, CodeStyleOptions.TrueWithSilentEnforcement}
             }
 
             Dim input =
@@ -3138,7 +3138,7 @@ class C
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
-        Public Async Function QualifyMemberAccessNotPresentOnNotificationOptionNone_CSharp() As Task
+        Public Async Function QualifyMemberAccessNotPresentOnNotificationOptionSilent_CSharp() As Task
             Dim input =
                 <Workspace>
                     <Project Language="C#" CommonReferences="true">
@@ -5719,7 +5719,7 @@ End Class
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
-        Public Async Function QualifyMemberAccessNotPresentOnNotificationOptionNone_VisualBasic() As Task
+        Public Async Function QualifyMemberAccessNotPresentOnNotificationOptionSilent_VisualBasic() As Task
             Dim input =
                 <Workspace>
                     <Project Language="Visual Basic" CommonReferences="true">

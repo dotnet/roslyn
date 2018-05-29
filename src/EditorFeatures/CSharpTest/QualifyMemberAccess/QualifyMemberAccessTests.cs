@@ -888,7 +888,7 @@ CodeStyleOptions.QualifyEventAccess);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsQualifyMemberAccess)]
-        public async Task QualifyMemberAccessNotPresentOnNotificationOptionNone()
+        public async Task QualifyMemberAccessNotPresentOnNotificationOptionSilent()
         {
             await TestMissingAsyncWithOptionAndNotificationOption(
 @"class Class
