@@ -150,5 +150,10 @@ namespace Microsoft.CodeAnalysis
         {
             return GetEnumUnderlyingType(type) ?? type;
         }
+
+        internal static bool IsDynamicType(ITypeSymbol type)
+        {
+            return type?.Kind == SymbolKind.DynamicType;
+        }
     }
 }

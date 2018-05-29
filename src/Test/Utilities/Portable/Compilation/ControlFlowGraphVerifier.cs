@@ -591,7 +591,9 @@ endRegion:
                     return (binary.OperatorKind != Operations.BinaryOperatorKind.ConditionalAnd && binary.OperatorKind != Operations.BinaryOperatorKind.ConditionalOr) ||
                             (binary.OperatorMethod == null && 
                              !ITypeSymbolHelpers.IsBooleanType(binary.Type) &&
-                             !ITypeSymbolHelpers.IsNullableOfBoolean(binary.Type));
+                             !ITypeSymbolHelpers.IsNullableOfBoolean(binary.Type) &&
+                             !ITypeSymbolHelpers.IsObjectType(binary.Type) &&
+                             !ITypeSymbolHelpers.IsDynamicType(binary.Type));
 
                 case OperationKind.InstanceReference:
                     // Implicit instance receivers are expected to have been removed when dealing with creations.
