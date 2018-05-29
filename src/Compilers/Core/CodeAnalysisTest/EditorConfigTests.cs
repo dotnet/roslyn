@@ -342,6 +342,7 @@ RoOt = TruE");
             Assert.Matches(regex, "ab\\c");
             Assert.DoesNotMatch(regex, "ab/c");
             Assert.DoesNotMatch(regex, "ab\\\\c");
+        }
 
         [Fact]
         public void CombineNonOverlapping()
