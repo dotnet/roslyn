@@ -3053,8 +3053,8 @@ namespace Microsoft.CodeAnalysis
                 (byte)WellKnownType.ExtSentinel, (byte)(WellKnownType.System_Collections_Generic_IAsyncEnumerator_T - WellKnownType.ExtSentinel),               // DeclaringTypeId
                 0,                                                                                                                                              // Arity
                     0,                                                                                                                                          // Method Signature
-                    (byte)SignatureTypeCode.GenericTypeInstance, // Return Type: Task<bool>
-                    (byte)SignatureTypeCode.TypeHandle, (byte)WellKnownType.System_Threading_Tasks_Task_T,
+                    (byte)SignatureTypeCode.GenericTypeInstance, // Return Type: ValueTask<bool>
+                    (byte)SignatureTypeCode.TypeHandle, (byte)WellKnownType.ExtSentinel, (byte)(WellKnownType.System_Threading_Tasks_ValueTask_T - WellKnownType.ExtSentinel),
                     1,
                     (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Boolean,
 

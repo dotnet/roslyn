@@ -1,9 +1,12 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
@@ -15,6 +18,18 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
         {
         }
 
+        public static CSharpCompilation CreateCompilationWithTasksExtensions(
+            CSharpTestSource source,
+            IEnumerable<MetadataReference> references = null,
+            CSharpCompilationOptions options = null,
+            CSharpParseOptions parseOptions = null,
+            TargetFramework targetFramework = TargetFramework.NetStandard20,
+            string assemblyName = "",
+            string sourceFileName = "")
+            => CreateCompilation(source,
+                (references ?? ImmutableArray<MetadataReference>.Empty).Concat( new[] { TestReferences.NetStandard20.TasksExtensionsRef, TestReferences.NetStandard20.UnsafeRef }),
+                options, parseOptions, targetFramework, assemblyName, sourceFileName);
+
         private static readonly string s_interfaces = @"
 namespace System.Collections.Generic
 {
@@ -25,7 +40,7 @@ namespace System.Collections.Generic
 
     public interface IAsyncEnumerator<out T> : System.IAsyncDisposable
     {
-        System.Threading.Tasks.Task<bool> WaitForNextAsync();
+        System.Threading.Tasks.ValueTask<bool> WaitForNextAsync();
         T TryGetNext(out bool success);
     }
 }
@@ -588,7 +603,7 @@ class C
             => throw null;
     }
 }";
-            var comp = CreateCompilationWithMscorlib46(source + s_interfaces);
+            var comp = CreateCompilationWithTasksExtensions(source + s_interfaces);
             comp.VerifyDiagnostics(
                 // (6,9): error CS0030: Cannot convert type 'int' to 'string'
                 //         foreach await (string i in new C())
@@ -696,10 +711,12 @@ class Element
     private Element(int value) { i = value; }
     public override string ToString() => i.ToString();
 }";
-            var comp = CreateCompilationWithMscorlib46(source + s_interfaces, options: TestOptions.DebugExe);
+            var comp = CreateCompilationWithTasksExtensions(source + s_interfaces, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics( );
             // PROTOTYPE(async-streams) Convert(0) is here because we're converting the result even if TryGetNext returned false
-            CompileAndVerify(comp, expectedOutput: "NextAsync(0) Next(11) Convert(11) Got(11) Next(12) Convert(12) Got(12) Next(13) Convert(0) NextAsync(13) Next(24) Convert(24) Got(24) Next(25) Convert(25) Got(25) Next(26) Convert(0) NextAsync(26) Dispose(37)");
+            CompileAndVerify(comp, expectedOutput: "NextAsync(0) Next(11) Convert(11) Got(11) Next(12) Convert(12) Got(12) "+
+                "Next(13) Convert(0) NextAsync(13) Next(24) Convert(24) Got(24) Next(25) Convert(25) Got(25) "+
+                "Next(26) Convert(0) NextAsync(26) Dispose(37)", verify: Verification.Skipped);
         }
 
         [Fact]
@@ -935,7 +952,7 @@ public static class Extensions
         throw null;
     }
 }";
-            var comp = CreateCompilationWithMscorlib46(source + s_interfaces);
+            var comp = CreateCompilationWithTasksExtensions(source + s_interfaces);
             comp.VerifyDiagnostics(
                 // (6,33): error CS0117: 'C.Enumerator' does not contain a definition for 'TryGetNext'
                 //         foreach await (var i in new C())
@@ -1056,7 +1073,7 @@ class C
         }
     }
 }";
-            var comp = CreateCompilationWithMscorlib46(source + s_interfaces);
+            var comp = CreateCompilationWithTasksExtensions(source + s_interfaces);
             comp.VerifyDiagnostics(
                 // (7,27): error CS1579: foreach statement cannot operate on variables of type 'IAsyncEnumerable<int>' because 'IAsyncEnumerable<int>' does not contain a public definition for 'GetEnumerator'
                 //         foreach (var i in collection)
@@ -1078,7 +1095,7 @@ class C
         }
     }
 }";
-            var comp = CreateCompilationWithMscorlib46(source + s_interfaces);
+            var comp = CreateCompilationWithTasksExtensions(source + s_interfaces);
             comp.VerifyDiagnostics(
                 // (7,33): error CS9001: Async foreach statement cannot operate on variables of type 'IEnumerable<int>' because 'IEnumerable<int>' does not contain a public definition for 'GetAsyncEnumerator'
                 //         foreach await (var i in collection)
@@ -1117,7 +1134,7 @@ class C
         }
     }
 }";
-            var comp = CreateCompilationWithMscorlib46(source + s_interfaces);
+            var comp = CreateCompilationWithTasksExtensions(source + s_interfaces);
             comp.VerifyDiagnostics();
 
             var tree = comp.SyntaxTrees.Single();
@@ -1186,11 +1203,12 @@ class C
         }
     }
 }";
-            var comp = CreateCompilationWithMscorlib46(source + s_interfaces, options: TestOptions.DebugExe);
+            var comp = CreateCompilationWithTasksExtensions(source + s_interfaces, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics();
 
             // Note: NextAsync(3) is followed by Next(3) as NextAsync incremented a copy of the enumerator struct
-            CompileAndVerify(comp, expectedOutput: "NextAsync(0) Next(0) Got(1) Next(1) Got(2) Next(2) NextAsync(3) Next(3) Got(4) Next(4) Got(5) Next(5) NextAsync(6) Next(6) Got(7) Next(7) Got(8) Next(8) NextAsync(9) Done");
+            CompileAndVerify(comp, expectedOutput: "NextAsync(0) Next(0) Got(1) Next(1) Got(2) Next(2) NextAsync(3) Next(3) "+
+                "Got(4) Next(4) Got(5) Next(5) NextAsync(6) Next(6) Got(7) Next(7) Got(8) Next(8) NextAsync(9) Done", verify: Verification.Skipped);
         }
 
         [Fact]
@@ -1236,7 +1254,7 @@ public class C
         }
     }
 }";
-            var comp = CreateCompilationWithMscorlib46(source + s_interfaces, options: TestOptions.DebugExe);
+            var comp = CreateCompilationWithTasksExtensions(source + s_interfaces, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics();
 
             var tree = comp.SyntaxTrees.Single();
@@ -1248,7 +1266,8 @@ public class C
             ForEachEnumeratorInfo internalInfo = boundNode.EnumeratorInfoOpt;
             Assert.True(internalInfo.NeedsDisposeMethod);
 
-            CompileAndVerify(comp, expectedOutput: "NextAsync(0) Next(11) Got(11) Next(12) Got(12) Next(13) NextAsync(13) Next(24) Got(24) Next(25) Got(25) Next(26) NextAsync(26)");
+            CompileAndVerify(comp, expectedOutput: "NextAsync(0) Next(11) Got(11) Next(12) Got(12) Next(13) NextAsync(13) Next(24) Got(24) "+
+                "Next(25) Got(25) Next(26) NextAsync(26)", verify: Verification.Skipped);
         }
 
         [Fact]
@@ -1297,7 +1316,7 @@ public class C
         }
     }
 }";
-            var comp = CreateCompilationWithMscorlib46(source + s_interfaces, options: TestOptions.DebugExe);
+            var comp = CreateCompilationWithTasksExtensions(source + s_interfaces, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics();
 
             var tree = comp.SyntaxTrees.Single();
@@ -1309,7 +1328,8 @@ public class C
             ForEachEnumeratorInfo internalInfo = boundNode.EnumeratorInfoOpt;
             Assert.True(internalInfo.NeedsDisposeMethod);
 
-            var verifier = CompileAndVerify(comp, expectedOutput: "NextAsync(0) Next(11) Got(11) Next(12) Got(12) Next(13) NextAsync(13) Next(24) Got(24) Next(25) Got(25) Next(26) NextAsync(26) Dispose(37)");
+            var verifier = CompileAndVerify(comp, expectedOutput: "NextAsync(0) Next(11) Got(11) Next(12) Got(12) Next(13) NextAsync(13) "+
+                "Next(24) Got(24) Next(25) Got(25) Next(26) NextAsync(26) Dispose(37)", verify: Verification.Skipped);
 
             verifier.VerifyIL("C.<Main>d__0.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext()", @"
 {
@@ -1592,7 +1612,7 @@ class C
         }
     }
 }";
-            var comp = CreateCompilationWithMscorlib46(source + s_interfaces, options: TestOptions.DebugExe);
+            var comp = CreateCompilationWithTasksExtensions(source + s_interfaces, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics();
 
             var tree = comp.SyntaxTrees.Single();
@@ -1604,7 +1624,7 @@ class C
             ForEachEnumeratorInfo internalInfo = boundNode.EnumeratorInfoOpt;
             Assert.True(internalInfo.NeedsDisposeMethod);
 
-            CompileAndVerify(comp, expectedOutput: "NextAsync(0) Next(11) Got(11) Next(12) Got(12) Next(13) NextAsync(13) Next(24) Got(24) Next(25) Got(25) Next(26) NextAsync(26) Dispose(37)");
+            CompileAndVerify(comp, expectedOutput: "NextAsync(0) Next(11) Got(11) Next(12) Got(12) Next(13) NextAsync(13) Next(24) Got(24) Next(25) Got(25) Next(26) NextAsync(26) Dispose(37)", verify: Verification.Skipped);
         }
 
         [Fact]
@@ -1645,10 +1665,10 @@ class Client
         }
     }
 }";
-            var lib = CreateCompilationWithMscorlib46(enumerator + s_interfaces);
+            var lib = CreateCompilationWithTasksExtensions(enumerator + s_interfaces);
             lib.VerifyDiagnostics();
 
-            var comp = CreateCompilationWithMscorlib46(source, references: new[] { lib.EmitToImageReference() });
+            var comp = CreateCompilationWithTasksExtensions(source, references: new[] { lib.EmitToImageReference() });
             comp.MakeTypeMissing(WellKnownType.System_IAsyncDisposable);
             comp.VerifyDiagnostics();
 
@@ -1694,7 +1714,7 @@ class C : IAsyncEnumerable<int>, IAsyncEnumerable<string>
         throw null;
     }
 }";
-            var comp = CreateCompilationWithMscorlib46(source + s_interfaces);
+            var comp = CreateCompilationWithTasksExtensions(source + s_interfaces);
             comp.VerifyDiagnostics(
                 // (7,33): error CS9003: Async foreach statement cannot operate on variables of type 'C' because it implements multiple instantiations of 'IAsyncEnumerable<T>'; try casting to a specific interface instantiation
                 //         foreach await (var i in new C())
@@ -1724,7 +1744,7 @@ class C : Base, IAsyncEnumerable<int>
     IAsyncEnumerator<int> IAsyncEnumerable<int>.GetAsyncEnumerator()
         => throw null;
 }";
-            var comp = CreateCompilationWithMscorlib46(source + s_interfaces);
+            var comp = CreateCompilationWithTasksExtensions(source + s_interfaces);
             comp.VerifyDiagnostics(
                 // (13,33): error CS9003: Async foreach statement cannot operate on variables of type 'C' because it implements multiple instantiations of 'IAsyncEnumerable<T>'; try casting to a specific interface instantiation
                 //         foreach await (var i in new C())
@@ -1761,7 +1781,7 @@ class C : IAsyncEnumerable<int>
             found = i % 10 % 3 != 0;
             return found ? i++ : 0;
         }
-        public async Task<bool> WaitForNextAsync()
+        public async ValueTask<bool> WaitForNextAsync()
         {
             Write($""NextAsync({i}) "");
             i = i + 11;
@@ -1776,10 +1796,10 @@ class C : IAsyncEnumerable<int>
         }
     }
 }";
-            var comp = CreateCompilationWithMscorlib46(source + s_interfaces, options: TestOptions.DebugExe);
+            var comp = CreateCompilationWithTasksExtensions(source + s_interfaces, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics();
 
-            CompileAndVerify(comp, expectedOutput: "NextAsync(0) Next(11) Got(11) Next(12) Got(12) Next(13) NextAsync(13) Next(24) Got(24) Next(25) Got(25) Next(26) NextAsync(26) Dispose(37)");
+            CompileAndVerify(comp, expectedOutput: "NextAsync(0) Next(11) Got(11) Next(12) Got(12) Next(13) NextAsync(13) Next(24) Got(24) Next(25) Got(25) Next(26) NextAsync(26) Dispose(37)", verify: Verification.Skipped);
 
             var tree = comp.SyntaxTrees.Single();
             var model = (SyntaxTreeSemanticModel)comp.GetSemanticModel(tree, ignoreAccessibility: false);
@@ -1788,7 +1808,7 @@ class C : IAsyncEnumerable<int>
 
             Assert.Equal("System.Collections.Generic.IAsyncEnumerator<System.Int32> System.Collections.Generic.IAsyncEnumerable<System.Int32>.GetAsyncEnumerator()",
                 info.GetEnumeratorMethod.ToTestDisplayString());
-            Assert.Equal("System.Threading.Tasks.Task<System.Boolean> System.Collections.Generic.IAsyncEnumerator<System.Int32>.WaitForNextAsync()",
+            Assert.Equal("System.Threading.Tasks.ValueTask<System.Boolean> System.Collections.Generic.IAsyncEnumerator<System.Int32>.WaitForNextAsync()",
                 info.WaitForNextAsyncMethod.ToTestDisplayString());
             Assert.Equal("System.Int32 System.Collections.Generic.IAsyncEnumerator<System.Int32>.TryGetNext(out System.Boolean success)",
                 info.TryGetNextMethod.ToTestDisplayString());
@@ -1800,7 +1820,7 @@ class C : IAsyncEnumerable<int>
             Assert.Equal(ConversionKind.Identity, info.CurrentConversion.Kind);
 
             var memberModel = model.GetMemberModel(foreachSyntax);
-            BoundForEachStatement boundNode = (BoundForEachStatement)memberModel.GetUpperBoundNode(foreachSyntax);
+            var boundNode = (BoundForEachStatement)memberModel.GetUpperBoundNode(foreachSyntax);
             ForEachEnumeratorInfo internalInfo = boundNode.EnumeratorInfoOpt;
             Assert.True(internalInfo.NeedsDisposeMethod);
         }
@@ -1836,11 +1856,11 @@ class C : IAsyncEnumerable<int>
             found = i % 10 % 3 != 0;
             return found ? i++ : 0;
         }
-        public Task<bool> WaitForNextAsync()
+        public ValueTask<bool> WaitForNextAsync()
         {
             Write($""NextAsync({i}) "");
             i = i + 11;
-            return Task.FromResult(i < 30); // return a completed task
+            return new ValueTask<bool>(i < 30); // return a completed task
         }
         public Task DisposeAsync()
         {
@@ -1849,10 +1869,10 @@ class C : IAsyncEnumerable<int>
         }
     }
 }";
-            var comp = CreateCompilationWithMscorlib46(source + s_interfaces, options: TestOptions.DebugExe);
+            var comp = CreateCompilationWithTasksExtensions(source + s_interfaces, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics();
 
-            CompileAndVerify(comp, expectedOutput: "NextAsync(3) Next(14) Got(14) Next(15) Got(15) Next(16) NextAsync(16) Next(27) Got(27) Next(28) Got(28) Next(29) NextAsync(29) Dispose(40) Done");
+            CompileAndVerify(comp, expectedOutput: "NextAsync(3) Next(14) Got(14) Next(15) Got(15) Next(16) NextAsync(16) Next(27) Got(27) Next(28) Got(28) Next(29) NextAsync(29) Dispose(40) Done", verify: Verification.Skipped);
         }
 
         [Fact]
@@ -1887,7 +1907,7 @@ class C : IAsyncEnumerable<int>
             found = i % 10 % 3 != 0;
             return found ? i++ : 0;
         }
-        public async Task<bool> WaitForNextAsync()
+        public async ValueTask<bool> WaitForNextAsync()
         {
             Write($""NextAsync({i}) "");
             i = i + 11;
@@ -1902,10 +1922,10 @@ class C : IAsyncEnumerable<int>
         }
     }
 }";
-            var comp = CreateCompilationWithMscorlib46(source + s_interfaces, options: TestOptions.DebugExe);
+            var comp = CreateCompilationWithTasksExtensions(source + s_interfaces, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics();
 
-            CompileAndVerify(comp, expectedOutput: "NextAsync(0) Next(11) Continue(11) Next(12) Continue(12) Next(13) NextAsync(13) Next(24) Got(24) Next(25) Break Dispose(26) Done");
+            CompileAndVerify(comp, expectedOutput: "NextAsync(0) Next(11) Continue(11) Next(12) Continue(12) Next(13) NextAsync(13) Next(24) Got(24) Next(25) Break Dispose(26) Done", verify: Verification.Skipped);
         }
 
         [Fact]
@@ -1941,7 +1961,7 @@ class C : IAsyncEnumerable<int>
             found = i % 10 % 3 != 0;
             return found ? i++ : 0;
         }
-        public async Task<bool> WaitForNextAsync()
+        public async ValueTask<bool> WaitForNextAsync()
         {
             Write($""NextAsync({i}) "");
             i = i + 11;
@@ -1956,10 +1976,10 @@ class C : IAsyncEnumerable<int>
         }
     }
 }";
-            var comp = CreateCompilationWithMscorlib46(source + s_interfaces, options: TestOptions.DebugExe);
+            var comp = CreateCompilationWithTasksExtensions(source + s_interfaces, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics();
 
-            CompileAndVerify(comp, expectedOutput: "NextAsync(0) Next(11) Continue(11) Next(12) Continue(12) Next(13) NextAsync(13) Next(24) Got(24) Next(25) Break Dispose(26) Done");
+            CompileAndVerify(comp, expectedOutput: "NextAsync(0) Next(11) Continue(11) Next(12) Continue(12) Next(13) NextAsync(13) Next(24) Got(24) Next(25) Break Dispose(26) Done", verify: Verification.Skipped);
         }
 
         [Fact]
@@ -1994,7 +2014,7 @@ class C : IAsyncEnumerable<int>
             success = (i % 10 % 3 != 0);
             return i;
         }
-        public async Task<bool> WaitForNextAsync()
+        public async ValueTask<bool> WaitForNextAsync()
         {
             Write($""NextAsync({i}) "");
             i = i + 11;
@@ -2008,12 +2028,12 @@ class C : IAsyncEnumerable<int>
         }
     }
 }";
-            var comp = CreateCompilationWithMscorlib46(source + s_interfaces, options: TestOptions.DebugExe);
+            var comp = CreateCompilationWithTasksExtensions(source + s_interfaces, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics();
 
             // Note: NextAsync(3) is followed by Next(3) as NextAsync incremented a copy of the enumerator struct
             // PROTOTYPE(async-streams) This seems strange, as I would expect we'd be handling as an IAsyncEnumerator<int> rather than as a struct
-            CompileAndVerify(comp, expectedOutput: "NextAsync(0) Next(0) Got(1) Next(1) Got(2) Next(2) NextAsync(3) Next(3) Got(4) Next(4) Got(5) Next(5) NextAsync(6) Next(6) Got(7) Next(7) Got(8) Next(8) NextAsync(9) Dispose(9) Done");
+            CompileAndVerify(comp, expectedOutput: "NextAsync(0) Next(0) Got(1) Next(1) Got(2) Next(2) NextAsync(3) Next(3) Got(4) Next(4) Got(5) Next(5) NextAsync(6) Next(6) Got(7) Next(7) Got(8) Next(8) NextAsync(9) Dispose(9) Done", verify: Verification.Skipped);
         }
 
         [Fact]
@@ -2059,7 +2079,7 @@ class C : IAsyncEnumerable<int>
             success = (i % 10 % 3 != 0);
             return i;
         }
-        public async Task<bool> WaitForNextAsync()
+        public async ValueTask<bool> WaitForNextAsync()
         {
             Write($""NextAsync({i}) "");
             i = i + 11;
@@ -2074,12 +2094,12 @@ class C : IAsyncEnumerable<int>
         }
     }
 }";
-            var comp = CreateCompilationWithMscorlib46(source + s_interfaces, options: TestOptions.DebugExe);
+            var comp = CreateCompilationWithTasksExtensions(source + s_interfaces, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics();
 
             // Note: NextAsync(3) is followed by Next(3) as NextAsync incremented a copy of the enumerator struct
             // PROTOTYPE(async-streams) This seems strange, as I would expect we'd be handling as an IAsyncEnumerator<int> rather than as a struct
-            CompileAndVerify(comp, expectedOutput: "NextAsync(0) Next(0) Got(1) Next(1) Got(2) Next(2) NextAsync(3) Next(3) Got(4) Next(4) Got(5) Next(5) NextAsync(6) Next(6) Got(7) Next(7) Got(8) Next(8) NextAsync(9) Dispose(9) Done");
+            CompileAndVerify(comp, expectedOutput: "NextAsync(0) Next(0) Got(1) Next(1) Got(2) Next(2) NextAsync(3) Next(3) Got(4) Next(4) Got(5) Next(5) NextAsync(6) Next(6) Got(7) Next(7) Got(8) Next(8) NextAsync(9) Dispose(9) Done", verify: Verification.Skipped);
         }
 
         [Fact]
@@ -2121,7 +2141,7 @@ class C : IAsyncEnumerable<int>
             success = false;
             return -2;
         }
-        public async Task<bool> WaitForNextAsync()
+        public async ValueTask<bool> WaitForNextAsync()
         {
             Write($""NextAsync({i}) "");
             i = i + 10;
@@ -2136,10 +2156,10 @@ class C : IAsyncEnumerable<int>
         }
     }
 }";
-            var comp = CreateCompilationWithMscorlib46(source + s_interfaces, options: TestOptions.DebugExe);
+            var comp = CreateCompilationWithTasksExtensions(source + s_interfaces, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics();
 
-            CompileAndVerify(comp, expectedOutput: "NextAsync(0) Next(0) Got(0) Next(0) NextAsync(1) Next(1) Got(1) Next(1) NextAsync(2) Next(2) Got(2) Next(2) NextAsync(3) Dispose(3) Done");
+            CompileAndVerify(comp, expectedOutput: "NextAsync(0) Next(0) Got(0) Next(0) NextAsync(1) Next(1) Got(1) Next(1) NextAsync(2) Next(2) Got(2) Next(2) NextAsync(3) Dispose(3) Done", verify: Verification.Skipped);
         }
 
         [Fact]
@@ -2161,7 +2181,7 @@ class C : IAsyncEnumerable<int>
         throw null;
     }
 }";
-            var comp = CreateCompilationWithMscorlib46(source + s_interfaces);
+            var comp = CreateCompilationWithTasksExtensions(source + s_interfaces);
             comp.VerifyDiagnostics(
                 // (8,33): error CS0186: Use of null is not valid in this context
                 //         foreach await (var i in null)
@@ -2203,7 +2223,7 @@ class C : IAsyncEnumerable<int>
         {
             throw new System.Exception();
         }
-        public Task<bool> WaitForNextAsync()
+        public ValueTask<bool> WaitForNextAsync()
         {
             throw new System.Exception();
         }
@@ -2213,9 +2233,9 @@ class C : IAsyncEnumerable<int>
         }
     }
 }";
-            var comp = CreateCompilationWithMscorlib46(source + s_interfaces, options: TestOptions.DebugExe);
+            var comp = CreateCompilationWithTasksExtensions(source + s_interfaces, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics();
-            CompileAndVerify(comp, expectedOutput: "Success");
+            CompileAndVerify(comp, expectedOutput: "Success", verify: Verification.Skipped);
         }
 
         [Fact]
@@ -2258,7 +2278,7 @@ class C : IAsyncEnumerable<int>
             success = (i % 10 % 3 != 0);
             return i;
         }
-        public async Task<bool> WaitForNextAsync()
+        public async ValueTask<bool> WaitForNextAsync()
         {
             Write($""NextAsync({i}) "");
             i = i + 11;
@@ -2273,9 +2293,9 @@ class C : IAsyncEnumerable<int>
         }
     }
 }";
-            var comp = CreateCompilationWithMscorlib46(source + s_interfaces, options: TestOptions.DebugExe);
+            var comp = CreateCompilationWithTasksExtensions(source + s_interfaces, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics();
-            CompileAndVerify(comp, expectedOutput: "Try NextAsync(0) Next(0) Got(1) Next(1) Got(2) Next(2) NextAsync(3) Next(3) Got(4) Next(4) Got(5) Next(5) NextAsync(6) Next(6) Got(7) Next(7) Got(8) Next(8) NextAsync(9) Dispose(9) Done");
+            CompileAndVerify(comp, expectedOutput: "Try NextAsync(0) Next(0) Got(1) Next(1) Got(2) Next(2) NextAsync(3) Next(3) Got(4) Next(4) Got(5) Next(5) NextAsync(6) Next(6) Got(7) Next(7) Got(8) Next(8) NextAsync(9) Dispose(9) Done", verify: Verification.Skipped);
         }
 
         [Fact]
@@ -2303,7 +2323,7 @@ class C : IAsyncEnumerable<int>
         throw null;
     }
 }";
-            var comp = CreateCompilationWithMscorlib46(source + s_interfaces);
+            var comp = CreateCompilationWithTasksExtensions(source + s_interfaces);
             comp.VerifyDiagnostics(
                 // (13,13): error CS0157: Control cannot leave the body of a finally clause
                 //             foreach await (var i in new C())
@@ -2343,7 +2363,7 @@ class C : IAsyncEnumerable<int>
             success = (i % 10 % 3 != 0);
             return i;
         }
-        public async Task<bool> WaitForNextAsync()
+        public async ValueTask<bool> WaitForNextAsync()
         {
             Write($""NextAsync({i}) "");
             i = i + 11;
@@ -2365,9 +2385,9 @@ class Element
     private Element(int value) { i = value; }
     public override string ToString() => i.ToString();
 }";
-            var comp = CreateCompilationWithMscorlib46(source + s_interfaces, options: TestOptions.DebugExe);
+            var comp = CreateCompilationWithTasksExtensions(source + s_interfaces, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics();
-            CompileAndVerify(comp, expectedOutput: "NextAsync(0) Next(11) Convert(12) Got(12) Next(12) Convert(13) NextAsync(13) Dispose(24) Done");
+            CompileAndVerify(comp, expectedOutput: "NextAsync(0) Next(11) Convert(12) Got(12) Next(12) Convert(13) NextAsync(13) Dispose(24) Done", verify: Verification.Skipped);
 
             var tree = comp.SyntaxTrees.Single();
             var model = (SyntaxTreeSemanticModel)comp.GetSemanticModel(tree, ignoreAccessibility: false);
@@ -2376,7 +2396,7 @@ class Element
 
             Assert.Equal("System.Collections.Generic.IAsyncEnumerator<System.Int32> System.Collections.Generic.IAsyncEnumerable<System.Int32>.GetAsyncEnumerator()",
                 info.GetEnumeratorMethod.ToTestDisplayString());
-            Assert.Equal("System.Threading.Tasks.Task<System.Boolean> System.Collections.Generic.IAsyncEnumerator<System.Int32>.WaitForNextAsync()",
+            Assert.Equal("System.Threading.Tasks.ValueTask<System.Boolean> System.Collections.Generic.IAsyncEnumerator<System.Int32>.WaitForNextAsync()",
                 info.WaitForNextAsyncMethod.ToTestDisplayString());
             Assert.Equal("System.Int32 System.Collections.Generic.IAsyncEnumerator<System.Int32>.TryGetNext(out System.Boolean success)",
                 info.TryGetNextMethod.ToTestDisplayString());
@@ -2389,7 +2409,7 @@ class Element
             Assert.Equal(ConversionKind.Identity, info.CurrentConversion.Kind);
 
             var memberModel = model.GetMemberModel(foreachSyntax);
-            BoundForEachStatement boundNode = (BoundForEachStatement)memberModel.GetUpperBoundNode(foreachSyntax);
+            var boundNode = (BoundForEachStatement)memberModel.GetUpperBoundNode(foreachSyntax);
             ForEachEnumeratorInfo internalInfo = boundNode.EnumeratorInfoOpt;
             Assert.True(internalInfo.NeedsDisposeMethod);
         }
@@ -2424,7 +2444,7 @@ struct C : IAsyncEnumerable<int>
             found = i % 10 % 3 != 0;
             return found ? i++ : 0;
         }
-        public async Task<bool> WaitForNextAsync()
+        public async ValueTask<bool> WaitForNextAsync()
         {
             Write($""NextAsync({i}) "");
             i = i + 11;
@@ -2439,10 +2459,10 @@ struct C : IAsyncEnumerable<int>
         }
     }
 }";
-            var comp = CreateCompilationWithMscorlib46(source + s_interfaces, options: TestOptions.DebugExe);
+            var comp = CreateCompilationWithTasksExtensions(source + s_interfaces, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics();
 
-            CompileAndVerify(comp, expectedOutput: "NextAsync(0) Next(11) Got(11) Next(12) Got(12) Next(13) NextAsync(13) Next(24) Got(24) Next(25) Got(25) Next(26) NextAsync(26) Dispose(37)");
+            CompileAndVerify(comp, expectedOutput: "NextAsync(0) Next(11) Got(11) Next(12) Got(12) Next(13) NextAsync(13) Next(24) Got(24) Next(25) Got(25) Next(26) NextAsync(26) Dispose(37)", verify: Verification.Skipped);
 
             var tree = comp.SyntaxTrees.Single();
             var model = (SyntaxTreeSemanticModel)comp.GetSemanticModel(tree, ignoreAccessibility: false);
@@ -2451,7 +2471,7 @@ struct C : IAsyncEnumerable<int>
 
             Assert.Equal("System.Collections.Generic.IAsyncEnumerator<System.Int32> System.Collections.Generic.IAsyncEnumerable<System.Int32>.GetAsyncEnumerator()",
                 info.GetEnumeratorMethod.ToTestDisplayString());
-            Assert.Equal("System.Threading.Tasks.Task<System.Boolean> System.Collections.Generic.IAsyncEnumerator<System.Int32>.WaitForNextAsync()",
+            Assert.Equal("System.Threading.Tasks.ValueTask<System.Boolean> System.Collections.Generic.IAsyncEnumerator<System.Int32>.WaitForNextAsync()",
                 info.WaitForNextAsyncMethod.ToTestDisplayString());
             Assert.Equal("System.Int32 System.Collections.Generic.IAsyncEnumerator<System.Int32>.TryGetNext(out System.Boolean success)",
                 info.TryGetNextMethod.ToTestDisplayString());
@@ -2463,7 +2483,7 @@ struct C : IAsyncEnumerable<int>
             Assert.Equal(ConversionKind.Identity, info.CurrentConversion.Kind);
 
             var memberModel = model.GetMemberModel(foreachSyntax);
-            BoundForEachStatement boundNode = (BoundForEachStatement)memberModel.GetUpperBoundNode(foreachSyntax);
+            var boundNode = (BoundForEachStatement)memberModel.GetUpperBoundNode(foreachSyntax);
             ForEachEnumeratorInfo internalInfo = boundNode.EnumeratorInfoOpt;
             Assert.True(internalInfo.NeedsDisposeMethod);
         }
@@ -2497,9 +2517,9 @@ struct C : IAsyncEnumerable<int>
         throw new System.Exception();
     }
 }";
-            var comp = CreateCompilationWithMscorlib46(source + s_interfaces, options: TestOptions.DebugExe);
+            var comp = CreateCompilationWithTasksExtensions(source + s_interfaces, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics();
-            CompileAndVerify(comp, expectedOutput: "Success");
+            CompileAndVerify(comp, expectedOutput: "Success", verify: Verification.Skipped);
         }
 
         [Fact]
@@ -2532,7 +2552,7 @@ class C : IAsyncEnumerable<int>
             found = i % 10 % 3 != 0;
             return found ? i++ : 0;
         }
-        public async Task<bool> WaitForNextAsync()
+        public async ValueTask<bool> WaitForNextAsync()
         {
             Write($""NextAsync({i}) "");
             i = i + 11;
@@ -2550,11 +2570,11 @@ public static class Extensions
 {
     public static void Deconstruct(this int i, out string x1, out int x2) { Write($""Deconstruct({i}) ""); x1 = i.ToString(); x2 = -i; }
 }";
-            var comp = CreateCompilationWithMscorlib46(source + s_interfaces, options: TestOptions.DebugExe);
+            var comp = CreateCompilationWithTasksExtensions(source + s_interfaces, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics();
 
             // PROTOTYPE(async-streams) The deconstruction should be after the check for success (ie. it should not occur if TryGetNext got no item)
-            CompileAndVerify(comp, expectedOutput: "NextAsync(0) Next(11) Deconstruct(11) Got(11,-11) Next(12) Deconstruct(12) Got(12,-12) Next(13) Deconstruct(0) NextAsync(13) Dispose(24) Done");
+            CompileAndVerify(comp, expectedOutput: "NextAsync(0) Next(11) Deconstruct(11) Got(11,-11) Next(12) Deconstruct(12) Got(12,-12) Next(13) Deconstruct(0) NextAsync(13) Dispose(24) Done", verify: Verification.Skipped);
 
             var tree = comp.SyntaxTrees.Single();
             var model = (SyntaxTreeSemanticModel)comp.GetSemanticModel(tree, ignoreAccessibility: false);
@@ -2563,7 +2583,7 @@ public static class Extensions
 
             Assert.Equal("System.Collections.Generic.IAsyncEnumerator<System.Int32> System.Collections.Generic.IAsyncEnumerable<System.Int32>.GetAsyncEnumerator()",
                 info.GetEnumeratorMethod.ToTestDisplayString());
-            Assert.Equal("System.Threading.Tasks.Task<System.Boolean> System.Collections.Generic.IAsyncEnumerator<System.Int32>.WaitForNextAsync()",
+            Assert.Equal("System.Threading.Tasks.ValueTask<System.Boolean> System.Collections.Generic.IAsyncEnumerator<System.Int32>.WaitForNextAsync()",
                 info.WaitForNextAsyncMethod.ToTestDisplayString());
             Assert.Equal("System.Int32 System.Collections.Generic.IAsyncEnumerator<System.Int32>.TryGetNext(out System.Boolean success)",
                 info.TryGetNextMethod.ToTestDisplayString());
@@ -2575,7 +2595,7 @@ public static class Extensions
             Assert.Equal(ConversionKind.Identity, info.CurrentConversion.Kind);
 
             var memberModel = model.GetMemberModel(foreachSyntax);
-            BoundForEachStatement boundNode = (BoundForEachStatement)memberModel.GetUpperBoundNode(foreachSyntax);
+            var boundNode = (BoundForEachStatement)memberModel.GetUpperBoundNode(foreachSyntax);
             ForEachEnumeratorInfo internalInfo = boundNode.EnumeratorInfoOpt;
             Assert.True(internalInfo.NeedsDisposeMethod);
         }
@@ -2600,7 +2620,7 @@ public static class Extensions
 {
     public static void Deconstruct(this int i, out int x1, out int x2) { x1 = i; x2 = -i; }
 }";
-            var comp = CreateCompilationWithMscorlib46(source + s_interfaces);
+            var comp = CreateCompilationWithTasksExtensions(source + s_interfaces);
             comp.VerifyDiagnostics(
                 // (7,17): error CS4033: The 'await' operator can only be used within an async method. Consider marking this method with the 'async' modifier and changing its return type to 'Task'.
                 //         foreach await (var (i, j) in new C())
@@ -2639,7 +2659,7 @@ class C : IAsyncEnumerable<(string, int)>
             int value = found ? i++ : 0;
             return (value.ToString(), -value);
         }
-        public async Task<bool> WaitForNextAsync()
+        public async ValueTask<bool> WaitForNextAsync()
         {
             Write($""NextAsync({i}) "");
             i = i + 11;
@@ -2653,9 +2673,9 @@ class C : IAsyncEnumerable<(string, int)>
         }
     }
 }";
-            var comp = CreateCompilationWithMscorlib46(source + s_interfaces, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef }, options: TestOptions.DebugExe);
+            var comp = CreateCompilationWithTasksExtensions(source + s_interfaces, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics();
-            CompileAndVerify(comp, expectedOutput: "NextAsync(0) Next(11) Got(11,-11) Next(12) Got(12,-12) Next(13) NextAsync(13) Dispose(24) Done");
+            CompileAndVerify(comp, expectedOutput: "NextAsync(0) Next(11) Got(11,-11) Next(12) Got(12,-12) Next(13) NextAsync(13) Dispose(24) Done", verify: Verification.Skipped);
 
             var tree = comp.SyntaxTrees.Single();
             var model = comp.GetSemanticModel(tree, ignoreAccessibility: false);
@@ -2664,7 +2684,7 @@ class C : IAsyncEnumerable<(string, int)>
 
             Assert.Equal("System.Collections.Generic.IAsyncEnumerator<(System.String, System.Int32)> System.Collections.Generic.IAsyncEnumerable<(System.String, System.Int32)>.GetAsyncEnumerator()",
                 info.GetEnumeratorMethod.ToTestDisplayString());
-            Assert.Equal("System.Threading.Tasks.Task<System.Boolean> System.Collections.Generic.IAsyncEnumerator<(System.String, System.Int32)>.WaitForNextAsync()",
+            Assert.Equal("System.Threading.Tasks.ValueTask<System.Boolean> System.Collections.Generic.IAsyncEnumerator<(System.String, System.Int32)>.WaitForNextAsync()",
                 info.WaitForNextAsyncMethod.ToTestDisplayString());
             Assert.Equal("(System.String, System.Int32) System.Collections.Generic.IAsyncEnumerator<(System.String, System.Int32)>.TryGetNext(out System.Boolean success)",
                 info.TryGetNextMethod.ToTestDisplayString());
@@ -2719,7 +2739,7 @@ class C : IAsyncEnumerable<int>
             success = (i % 10 % 3 != 0);
             return i;
         }
-        public async Task<bool> WaitForNextAsync()
+        public async ValueTask<bool> WaitForNextAsync()
         {
             Write($""NextAsync({i}) "");
             i = i + 11;
@@ -2738,10 +2758,10 @@ public static class Extensions
 {
     public static void Deconstruct(this int i, out int x1, out int x2) { x1 = i; x2 = -i; }
 }";
-            var comp = CreateCompilationWithMscorlib46(source + s_interfaces, options: TestOptions.DebugExe);
+            var comp = CreateCompilationWithTasksExtensions(source + s_interfaces, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics();
 
-            CompileAndVerify(comp, expectedOutput: "NextAsync(0) Next(11) Got(12,-12) Next(12) NextAsync(13) Dispose(24) Done");
+            CompileAndVerify(comp, expectedOutput: "NextAsync(0) Next(11) Got(12,-12) Next(12) NextAsync(13) Dispose(24) Done", verify: Verification.Skipped);
         }
 
         [Fact]
@@ -2782,7 +2802,9 @@ class C
         }
     }
 }";
-            var comp = CreateCompilationWithMscorlib46(source + s_interfaces, options: TestOptions.DebugExe);
+            // PROTOTYPE(async-streams): Update pattern-based case to recognize task-like WaitForNextAsync
+
+            var comp = CreateCompilationWithTasksExtensions(source + s_interfaces, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics(
                 // (7,9): warning CS0612: 'C.GetAsyncEnumerator()' is obsolete
                 //         foreach await (var i in new C())
@@ -2816,7 +2838,7 @@ class C
         throw null;
     }
 }";
-            var comp = CreateCompilationWithMscorlib46(source + s_interfaces);
+            var comp = CreateCompilationWithTasksExtensions(source + s_interfaces);
             comp.VerifyDiagnostics(
                 // (8,33): error CS0165: Use of unassigned local variable 'c'
                 //         foreach await (var i in c)
@@ -2842,7 +2864,7 @@ class C
         throw null;
     }
 }";
-            var comp = CreateCompilationWithMscorlib46(source + s_interfaces);
+            var comp = CreateCompilationWithTasksExtensions(source + s_interfaces);
             comp.VerifyDiagnostics(
                 // (7,27): error CS1579: foreach statement cannot operate on variables of type 'C' because 'C' does not contain a public definition for 'GetEnumerator'
                 //         foreach (var i in new C())
@@ -2874,7 +2896,7 @@ class Collection<T> : IAsyncEnumerable<T>
             found = i % 10 % 3 != 0;
             return default;
         }
-        public async Task<bool> WaitForNextAsync()
+        public async ValueTask<bool> WaitForNextAsync()
         {
             Write($""NextAsync({i}) "");
             i = i + 11;
@@ -2898,10 +2920,10 @@ class C
         }
     }
 }";
-            var comp = CreateCompilationWithMscorlib46(source + s_interfaces, options: TestOptions.DebugExe);
+            var comp = CreateCompilationWithTasksExtensions(source + s_interfaces, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics();
 
-            CompileAndVerify(comp, expectedOutput: "NextAsync(0) Next(11) Got Next(12) NextAsync(13) Next(24) Got Next(25) NextAsync(26) Dispose(37)");
+            CompileAndVerify(comp, expectedOutput: "NextAsync(0) Next(11) Got Next(12) NextAsync(13) Next(24) Got Next(25) NextAsync(26) Dispose(37)", verify: Verification.Skipped);
 
             var tree = comp.SyntaxTrees.Single();
             var model = (SyntaxTreeSemanticModel)comp.GetSemanticModel(tree, ignoreAccessibility: false);
@@ -2910,7 +2932,7 @@ class C
 
             Assert.Equal("System.Collections.Generic.IAsyncEnumerator<System.Int32> System.Collections.Generic.IAsyncEnumerable<System.Int32>.GetAsyncEnumerator()",
                 info.GetEnumeratorMethod.ToTestDisplayString());
-            Assert.Equal("System.Threading.Tasks.Task<System.Boolean> System.Collections.Generic.IAsyncEnumerator<System.Int32>.WaitForNextAsync()",
+            Assert.Equal("System.Threading.Tasks.ValueTask<System.Boolean> System.Collections.Generic.IAsyncEnumerator<System.Int32>.WaitForNextAsync()",
                 info.WaitForNextAsyncMethod.ToTestDisplayString());
             Assert.Equal("System.Int32 System.Collections.Generic.IAsyncEnumerator<System.Int32>.TryGetNext(out System.Boolean success)",
                 info.TryGetNextMethod.ToTestDisplayString());
@@ -2922,7 +2944,7 @@ class C
             Assert.Equal(ConversionKind.Identity, info.CurrentConversion.Kind);
 
             var memberModel = model.GetMemberModel(foreachSyntax);
-            BoundForEachStatement boundNode = (BoundForEachStatement)memberModel.GetUpperBoundNode(foreachSyntax);
+            var boundNode = (BoundForEachStatement)memberModel.GetUpperBoundNode(foreachSyntax);
             ForEachEnumeratorInfo internalInfo = boundNode.EnumeratorInfoOpt;
             Assert.True(internalInfo.NeedsDisposeMethod);
         }
@@ -2981,10 +3003,10 @@ class C
         }
     }
 }";
-            var comp = CreateCompilationWithMscorlib46(source + s_interfaces, options: TestOptions.DebugExe);
+            var comp = CreateCompilationWithTasksExtensions(source + s_interfaces, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics();
 
-            var verifier = CompileAndVerify(comp, expectedOutput: "NextAsync(0) Next(11) Got Next(12) NextAsync(13) Next(24) Got Next(25) NextAsync(26)");
+            var verifier = CompileAndVerify(comp, expectedOutput: "NextAsync(0) Next(11) Got Next(12) NextAsync(13) Next(24) Got Next(25) NextAsync(26)", verify: Verification.Skipped);
 
             var tree = comp.SyntaxTrees.Single();
             var model = (SyntaxTreeSemanticModel)comp.GetSemanticModel(tree, ignoreAccessibility: false);
