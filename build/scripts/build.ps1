@@ -16,30 +16,32 @@
 
 [CmdletBinding(PositionalBinding=$false)]
 param (
-    # Configuration
+    # Commands
     [switch]$restore = $false,
-    [switch]$release = $false,
-    [switch]$official = $false,
-    [switch]$cibuild = $false,
     [switch]$build = $false,
-    [switch]$buildCoreClr = $false,
-    [switch]$bootstrap = $false,
     [switch]$sign = $false,
     [switch]$pack = $false,
-    [switch]$packAll = $false,
-    [switch]$binaryLog = $false,
-    [switch]$deployExtensions = $false,
+    [switch]$test = $false,
     [switch]$launch = $false,
+
+    # Configuration
+    [switch]$cibuild = $false,
+    [switch]$binaryLog = $false,
+    [switch]$bootstrap = $false,
+    [switch]$buildCoreClr = $false,
+    [switch]$deployExtensions = $false,
+    [switch]$official = $false,
+    [switch]$packAll = $false,
     [switch]$procdump = $false,
+    [switch]$release = $false,
     [string]$signType = "",
     [switch]$skipBuildExtras = $false,
     [switch]$skipAnalyzers = $false,
 
-    # Test options
+    # Test configuration
     [switch]$test32 = $false,
     [switch]$test64 = $false,
     [switch]$testVsi = $false,
-    [switch]$testVsiNetCore = $false,
     [switch]$testDesktop = $false,
     [switch]$testCoreClr = $false,
     [switch]$testIOperation = $false,
@@ -54,27 +56,34 @@ $ErrorActionPreference = "Stop"
 
 function Print-Usage() {
     Write-Host "Usage: build.ps1"
-    Write-Host "  -release                  Perform release build (default is debug)"
+    Write-Host "Commands"
     Write-Host "  -restore                  Restore packages"
-    Write-Host "  -build                    Build Roslyn.sln"
-    Write-Host "  -official                 Perform an official build"
-    Write-Host "  -bootstrap                Build using a bootstrap Roslyn"
+    Write-Host "  -build                    Build and publish all necessary projects"
     Write-Host "  -sign                     Sign our binaries"
-    Write-Host "  -signType                 Type of sign: real, test, verify"
     Write-Host "  -pack                     Create our NuGet packages"
-    Write-Host "  -deployExtensions         Deploy built vsixes"
+    Write-Host "  -test                     Run tests (default is testDesktop)"
+    Write-Host "  -launch                   Launch VS in the Roslyn Hive"
+    Write-Host ""
+    Write-Host "Configuration"
+    Write-Host "  -cibuild                  Build is running in a CI environment"
     Write-Host "  -binaryLog                Create binary log for every MSBuild invocation"
+    Write-Host "  -bootstrap                Build using a bootstrap Roslyn"
+    Write-Host "  -buildCoreClr             Build using dotnet toolset (implies -build)"
+    Write-Host "  -deployExtensions         Deploy built vsixes"
+    Write-Host "  -official                 Perform an official build"
+    Write-Host "  -packAll                  Pack all configurations of our NuPkg files"
     Write-Host "  -procdump                 Monitor test runs with procdump"
+    Write-Host "  -release                  Perform release build (default is debug)"
+    Write-Host "  -signType                 Type of sign: real, test, verify"
     Write-Host "  -skipAnalyzers            Do not run analyzers during build operations"
     Write-Host "  -skipBuildExtras          Do not build insertion items"
     Write-Host ""
-    Write-Host "Test options"
+    Write-Host "Test Configuration"
     Write-Host "  -test32                   Run unit tests in the 32-bit runner"
     Write-Host "  -test64                   Run units tests in the 64-bit runner"
     Write-Host "  -testDesktop              Run desktop unit tests"
     Write-Host "  -testCoreClr              Run CoreClr unit tests"
     Write-Host "  -testVsi                  Run all integration tests"
-    Write-Host "  -testVsiNetCore           Run just dotnet core integration tests"
     Write-Host "  -testIOperation           Run extra checks to validate IOperations"
     Write-Host ""
     Write-Host "Special Test options"
@@ -100,7 +109,6 @@ function Process-Arguments() {
         exit 1
     }
 
-    $anyVsi = $testVsi -or $testVsiNetCore
     $anyUnit = $testDesktop -or $testCoreClr
     if ($anyUnit -and $anyVsi) {
         Write-Host "Cannot combine unit and VSI testing"
@@ -122,11 +130,25 @@ function Process-Arguments() {
         exit 1
     }
 
+    if ($deployExtensions -and (-not $build)) {
+        Write-Host "The -deployExtensions option must be combined with -build"
+        exit 1
+    }
+
     $script:pack = $pack -or $packAll
     $script:packAll = $packAll -or ($pack -and $official)
 
     if ($buildCoreClr) {
         $script:build = $true
+    }
+
+    $anyTestKind = $testDesktop -or $testCoreClr -or $testVsi -or $testIOperation -or $test32 -or $test64
+    if ($test -and (-not $anyTestKind)) {
+        $script:testDesktop = $true
+    }
+
+    if ($anyTestKind) {
+        $script:test = $true
     }
 
     $script:test32 = -not $test64
@@ -547,7 +569,7 @@ function Test-XUnit() {
         return
     }
 
-    if ($testVsi -or $testVsiNetCore) {
+    if ($testVsi) {
         Deploy-VsixViaTool
     }
 
@@ -801,14 +823,14 @@ try {
         Build-Artifacts
     }
 
-    if ($testDesktop -or $testCoreClr -or $testVsi -or $testVsiNetCore -or $testIOperation) {
+    if ($testDesktop -or $testCoreClr -or $testVsi -or $testIOperation) {
         Test-XUnit
     }
 
     if ($launch) {
         $devenvExe = Get-VisualStudioDir
         $devenvExe = Join-Path $devenvExe 'Common7\IDE\devenv.exe'
-        &$devenvExe /rootSuffix RoslynDev
+        Exec-Command $devenvExe "/rootSuffix RoslynDev"
     }
 
     exit 0
