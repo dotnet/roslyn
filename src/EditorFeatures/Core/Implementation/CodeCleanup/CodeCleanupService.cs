@@ -16,7 +16,6 @@ using Microsoft.CodeAnalysis.RemoveUnnecessaryImports;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.CodeCleanup
 {
@@ -106,68 +105,69 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CodeCleanup
             return dictionary.ToImmutableDictionary();
         }
 
-        public Task<IEnumerable<TextChange>> GetChangesForCleanupDocument(Document document, CancellationToken cancellationToken)
+        public async Task<Document> CleanupDocument(Document document, CancellationToken cancellationToken)
         {
-            var oldDocument = document;
-            document = ApplyCodeFixes(document, cancellationToken);
-            // do the remove usings after code fix, as code fix might remove some code which can results in unused usings.
-            document = RemoveSortUsings(document, cancellationToken);
+            var docOptions = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
 
-            return document.GetTextChangesAsync(oldDocument, cancellationToken);
+            document = await ApplyCodeFixes(document, docOptions, cancellationToken).ConfigureAwait(false);
+            // do the remove usings after code fix, as code fix might remove some code which can results in unused usings.
+            document = await RemoveSortUsings(document, docOptions, cancellationToken).ConfigureAwait(false);
+
+            return document;
         }
 
-        private Document RemoveSortUsings(Document document, CancellationToken cancellationToken)
+        private async Task<Document> RemoveSortUsings(Document document, DocumentOptionSet docOptions, CancellationToken cancellationToken)
         {
             // remove usings
-            if (document.Project.Solution.Workspace.Options.GetOption(FeatureOnOffOptions.RemoveUnusedUsings, LanguageNames.CSharp))
+            if (docOptions.GetOption(FeatureOnOffOptions.RemoveUnusedUsings))
             {
                 var removeUsingsService = document.GetLanguageService<IRemoveUnnecessaryImportsService>();
                 if (removeUsingsService != null)
                 {
-                    document = removeUsingsService.RemoveUnnecessaryImportsAsync(document, cancellationToken).WaitAndGetResult(cancellationToken);
+                    document = await removeUsingsService.RemoveUnnecessaryImportsAsync(document, cancellationToken).ConfigureAwait(false);
                 }
             }
 
             // sort usings
-            if (document.Project.Solution.Workspace.Options.GetOption(FeatureOnOffOptions.SortUsings, LanguageNames.CSharp))
+            if (docOptions.GetOption(FeatureOnOffOptions.SortUsings))
             {
-                document = OrganizeImportsService.OrganizeImportsAsync(document, cancellationToken).WaitAndGetResult(cancellationToken);
+                document = await OrganizeImportsService.OrganizeImportsAsync(document, cancellationToken).ConfigureAwait(false);
             }
 
             return document;
         }
 
-        private Document ApplyCodeFixes(Document document, CancellationToken cancellationToken)
+        private async Task<Document> ApplyCodeFixes(Document document, DocumentOptionSet docOptions, CancellationToken cancellationToken)
         {
             var fixAllService = document.Project.Solution.Workspace.Services.GetService<IFixAllGetFixesService>();
 
             var dummy = new ProgressTracker();
-            foreach (var diagnosticId in GetEnabledDiagnosticIds(document.Project.Solution.Workspace))
+            foreach (var diagnosticId in GetEnabledDiagnosticIds(docOptions))
             {
-                var length = document.GetSyntaxTreeAsync(cancellationToken).WaitAndGetResult(cancellationToken).Length;
-                var textSpan = new TextSpan(0, length);
+                var syntaxTree = await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
+                var textSpan = new TextSpan(0, syntaxTree.Length);
 
-                var fixCollection = _codeFixService.GetFixesAsync(document, textSpan, diagnosticId, cancellationToken).WaitAndGetResult(cancellationToken);
+                var fixCollection = await _codeFixService.GetFixesAsync(document, textSpan, diagnosticId, cancellationToken).ConfigureAwait(false);
                 if (fixCollection == null)
                 {
                     continue;
                 }
 
                 var fixAll = fixCollection.FixAllState;
-                var solution = fixAllService.GetFixAllChangedSolutionAsync(fixAll.CreateFixAllContext(dummy, cancellationToken)).WaitAndGetResult(cancellationToken);
+                var solution = await fixAllService.GetFixAllChangedSolutionAsync(fixAll.CreateFixAllContext(dummy, cancellationToken)).ConfigureAwait(false);
                 document = solution.GetDocument(document.Id);
             }
 
             return document;
         }
 
-        private List<string> GetEnabledDiagnosticIds(Workspace workspace)
+        private List<string> GetEnabledDiagnosticIds(DocumentOptionSet docOptions)
         {
             var diagnosticIds = new List<string>();
 
             foreach (var featureOption in _optionDiagnosticsMappings.Keys)
             {
-                if (workspace.Options.GetOption(featureOption, LanguageNames.CSharp))
+                if (docOptions.GetOption(featureOption))
                 {
                     diagnosticIds.AddRange(_optionDiagnosticsMappings[featureOption]);
                 }

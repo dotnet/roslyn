@@ -27,50 +27,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Formatting
     [UseExportProvider]
     public class FormattingEngineTestBase
     {
-        protected async Task AssertFormatAsync(string expected, string code, bool debugMode = false, Dictionary<OptionKey, object> changedOptionSet = null, bool useTab = false, bool testWithTransformation = true)
-        {
-            using (var workspace = TestWorkspace.CreateCSharp(code))
-            {
-                var hostdoc = workspace.Documents.First();
-
-                // get original buffer
-                var buffer = hostdoc.GetTextBuffer();
-
-                // create new buffer with cloned content
-                var clonedBuffer = EditorFactory.CreateBuffer(
-                    buffer.ContentType.TypeName,
-                    workspace.ExportProvider,
-                    buffer.CurrentSnapshot.GetText());
-
-                var document = workspace.CurrentSolution.GetDocument(hostdoc.Id);
-                var syntaxTree = await document.GetSyntaxTreeAsync();
-
-                var formattingRuleProvider = workspace.Services.GetService<IHostDependentFormattingRuleFactoryService>();
-
-                var options = workspace.Options;
-                if (changedOptionSet != null)
-                {
-                    foreach (var entry in changedOptionSet)
-                    {
-                        options = options.WithChangedOption(entry.Key, entry.Value);
-                    }
-                }
-
-                options = options.WithChangedOption(FormattingOptions.UseTabs, LanguageNames.CSharp, useTab);
-
-                var root = await syntaxTree.GetRootAsync();
-                var rules = formattingRuleProvider.CreateRule(workspace.CurrentSolution.GetDocument(syntaxTree), 0).Concat(Formatter.GetDefaultFormattingRules(workspace, root.Language));
-
-                AssertFormat(workspace, expected, options, rules, clonedBuffer, root);
-
-                if (testWithTransformation)
-                {
-                    // format with node and transform
-                    AssertFormatWithTransformation(workspace, expected, options, rules, root);
-                }
-            }
-        }
-
         internal static void AssertFormatWithTransformation(Workspace workspace, string expected, OptionSet optionSet, IEnumerable<IFormattingRule> rules, SyntaxNode root)
         {
             var newRootNode = Formatter.Format(root, SpecializedCollections.SingletonEnumerable(root.FullSpan), workspace, optionSet, rules, CancellationToken.None);
@@ -170,7 +126,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Formatting
             Assert.Equal(expected, actual);
         }
 
-        protected static void AssertFormatWithView(string expectedWithMarker, string codeWithMarker, bool debugMode = false, params (PerLanguageOption<bool> option, bool enabled)[] options)
+        protected static void AssertFormatWithView(string expectedWithMarker, string codeWithMarker, params (PerLanguageOption<bool> option, bool enabled)[] options)
         {
             using (var workspace = TestWorkspace.CreateCSharp(codeWithMarker))
             {

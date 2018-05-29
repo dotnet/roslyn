@@ -83,13 +83,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Formatting
 
                         Format(args.TextView, document, null, cancellationToken);
 
-                        var oldDocument = document;
-                        var codeFixChanges = _codeCleanupService.GetChangesForCleanupDocument(document, cancellationToken).Result.ToList();
+                        var oldDoc = document;
+                        var newDoc = _codeCleanupService.CleanupDocument(document, cancellationToken).Result;
 
-                        // we should do apply changes only once. but for now, we just do it twice, for all others and formatting
+                        var codeFixChanges = newDoc.GetTextChangesAsync(oldDoc, cancellationToken).Result.ToList();
                         if (codeFixChanges.Count > 0)
                         {
-                            ApplyChanges(oldDocument, codeFixChanges, selectionOpt: null, cancellationToken);
+                            ApplyChanges(oldDoc, codeFixChanges, selectionOpt: null, cancellationToken);
                         }
 
                         transaction.Complete();
