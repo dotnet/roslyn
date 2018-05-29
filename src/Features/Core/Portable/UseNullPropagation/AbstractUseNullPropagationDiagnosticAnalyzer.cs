@@ -181,7 +181,7 @@ namespace Microsoft.CodeAnalysis.UseNullPropagation
             context.ReportDiagnostic(Diagnostic.Create(
                 Descriptor,
                 conditionalExpression.GetLocation(),
-                option.Notification.Value,
+                option.Notification.Severity,
                 locations,
                 properties));
         }

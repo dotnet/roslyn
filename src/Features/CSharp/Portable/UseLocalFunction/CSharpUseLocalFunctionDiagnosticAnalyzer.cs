@@ -85,7 +85,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseLocalFunction
                 return;
             }
 
-            var severity = styleOption.Notification.Value;
+            var severity = styleOption.Notification.Severity;
             var anonymousFunction = (AnonymousFunctionExpressionSyntax)syntaxContext.Node;
 
             var semanticModel = syntaxContext.SemanticModel;
@@ -130,7 +130,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseLocalFunction
 
             additionalLocations = additionalLocations.AddRange(explicitInvokeCallLocations);
 
-            if (severity != DiagnosticSeverity.Hidden)
+            if (severity.WithDefaultSeverity(DiagnosticSeverity.Hidden) < ReportDiagnostic.Hidden)
             {
                 // If the diagnostic is not hidden, then just place the user visible part
                 // on the local being initialized with the lambda.

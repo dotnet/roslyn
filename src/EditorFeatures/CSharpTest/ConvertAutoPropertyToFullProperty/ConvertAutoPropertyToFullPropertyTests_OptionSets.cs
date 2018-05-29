@@ -72,7 +72,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertAutoPropertyToFu
             {
                 SymbolSpecificationID = symbolSpecification.ID,
                 NamingStyleID = namingStyle.ID,
-                EnforcementLevel = DiagnosticSeverity.Error
+                EnforcementLevel = ReportDiagnostic.Error
             };
 
             var info = new NamingStylePreferences(
@@ -104,7 +104,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertAutoPropertyToFu
             {
                 SymbolSpecificationID = symbolSpecification.ID,
                 NamingStyleID = namingStyle.ID,
-                EnforcementLevel = DiagnosticSeverity.Error
+                EnforcementLevel = ReportDiagnostic.Error
             };
 
             var info = new NamingStylePreferences(

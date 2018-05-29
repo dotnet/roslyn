@@ -94,7 +94,7 @@ namespace Microsoft.CodeAnalysis.MakeFieldReadonly
                     var diagnostic = Diagnostic.Create(
                         Descriptor,
                         symbol.Locations[0],
-                        option.Notification.Value,
+                        option.Notification.Severity,
                         additionalLocations: null,
                         properties: null);
                     context.ReportDiagnostic(diagnostic);

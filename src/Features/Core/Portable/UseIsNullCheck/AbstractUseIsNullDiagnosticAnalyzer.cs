@@ -141,7 +141,7 @@ namespace Microsoft.CodeAnalysis.UseIsNullCheck
                 properties = properties.Add(AbstractUseIsNullCheckCodeFixProvider.Negated, "");
             }
 
-            var severity = option.Notification.Value;
+            var severity = option.Notification.Severity;
             context.ReportDiagnostic(
                 Diagnostic.Create(
                     Descriptor, nameNode.GetLocation(),

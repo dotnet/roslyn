@@ -81,7 +81,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.AddBraces
             context.ReportDiagnostic(Diagnostic.Create(
                 Descriptor,
                 firstToken.GetLocation(),
-                option.Notification.Value,
+                option.Notification.Severity,
                 additionalLocations: null,
                 properties: null,
                 SyntaxFacts.GetText(firstToken.Kind())));

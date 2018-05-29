@@ -63,7 +63,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.TypeStyle
             var typeStyle = Helper.AnalyzeTypeName(
                 declaredType, semanticModel, optionSet, cancellationToken);
             if (!typeStyle.IsStylePreferred ||
-                typeStyle.Severity == DiagnosticSeverity.Hidden ||
+                typeStyle.Severity.WithDefaultSeverity(DiagnosticSeverity.Hidden) >= ReportDiagnostic.Hidden ||
                 !typeStyle.CanConvert())
             {
                 return;
@@ -74,7 +74,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.TypeStyle
             context.ReportDiagnostic(CreateDiagnostic(descriptor, declarationStatement, declaredType.Span, typeStyle.Severity));
         }
 
-        private Diagnostic CreateDiagnostic(DiagnosticDescriptor descriptor, SyntaxNode declaration, TextSpan diagnosticSpan, DiagnosticSeverity severity) 
+        private Diagnostic CreateDiagnostic(DiagnosticDescriptor descriptor, SyntaxNode declaration, TextSpan diagnosticSpan, ReportDiagnostic severity) 
             => Diagnostic.Create(descriptor, declaration.SyntaxTree.GetLocation(diagnosticSpan), severity, additionalLocations: null, properties: null);
     }
 }

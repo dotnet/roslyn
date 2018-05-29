@@ -85,7 +85,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.AddAccessibilityModifiers
             context.ReportDiagnostic(Diagnostic.Create(
                 Descriptor,
                 name.GetLocation(),
-                [option].Notification.Value,
+                [option].Notification.Severity,
                 additionalLocations:=additionalLocations,
                 properties:=Nothing))
         End Sub

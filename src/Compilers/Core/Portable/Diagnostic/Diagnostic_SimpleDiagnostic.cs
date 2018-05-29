@@ -193,7 +193,7 @@ namespace Microsoft.CodeAnalysis
             {
                 if (this.Severity != severity)
                 {
-                    var warningLevel = GetDefaultWarningLevel(severity);
+                    var warningLevel = GetDefaultWarningLevel(severity.ToReportDiagnostic(), DefaultSeverity);
                     return new SimpleDiagnostic(_descriptor, severity, warningLevel, _location, _additionalLocations, _messageArgs, _properties, _isSuppressed);
                 }
 

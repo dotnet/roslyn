@@ -51,7 +51,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UseInferredMemberName
                 Diagnostic.Create(
                     Descriptor,
                     nameColonEquals.GetLocation(),
-                    optionSet.GetOption(CodeStyleOptions.PreferInferredTupleNames, context.Compilation.Language).Notification.Value,
+                    optionSet.GetOption(CodeStyleOptions.PreferInferredTupleNames, context.Compilation.Language).Notification.Severity,
                     additionalLocations:=Nothing,
                     properties:=Nothing))
 
@@ -82,7 +82,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UseInferredMemberName
                 Diagnostic.Create(
                     Descriptor,
                     syntaxTree.GetLocation(fadeSpan),
-                    optionSet.GetOption(CodeStyleOptions.PreferInferredAnonymousTypeMemberNames, context.Compilation.Language).Notification.Value,
+                    optionSet.GetOption(CodeStyleOptions.PreferInferredAnonymousTypeMemberNames, context.Compilation.Language).Notification.Severity,
                     additionalLocations:=Nothing,
                     properties:=Nothing))
 

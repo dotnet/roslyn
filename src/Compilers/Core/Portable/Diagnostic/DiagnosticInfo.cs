@@ -235,7 +235,7 @@ namespace Microsoft.CodeAnalysis
             {
                 if (_effectiveSeverity != _defaultSeverity)
                 {
-                    return Diagnostic.GetDefaultWarningLevel(_effectiveSeverity);
+                    return Diagnostic.GetDefaultWarningLevel(_effectiveSeverity.ToReportDiagnostic(), _defaultSeverity);
                 }
 
                 return _messageProvider.GetWarningLevel(_errorCode);

@@ -112,8 +112,8 @@ namespace Microsoft.CodeAnalysis.QualifyMemberAccess
             var isQualificationPresent = IsAlreadyQualifiedMemberAccess(instanceSyntaxOpt);
             if (shouldOptionBePresent && !isQualificationPresent)
             {
-                var severity = optionValue.Notification.Value;
-                if (severity != DiagnosticSeverity.Hidden)
+                var severity = optionValue.Notification.Severity;
+                if (severity.WithDefaultSeverity(DiagnosticSeverity.Hidden) < ReportDiagnostic.Hidden)
                 {
                     context.ReportDiagnostic(Diagnostic.Create(
                         Descriptor, 

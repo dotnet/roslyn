@@ -121,7 +121,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.PreferFrameworkType
         /// Detects the context of this occurrence of predefined type and determines if we should report it.
         /// </summary>
         private bool ShouldReportDiagnostic(TPredefinedTypeSyntax predefinedTypeNode, OptionSet optionSet, string language,
-            out DiagnosticDescriptor descriptor, out DiagnosticSeverity severity)
+            out DiagnosticDescriptor descriptor, out ReportDiagnostic severity)
         {
             CodeStyleOption<bool> optionValue;
 
@@ -138,7 +138,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.PreferFrameworkType
                 optionValue = optionSet.GetOption(GetOptionForDeclarationContext, language);
             }
 
-            severity = optionValue.Notification.Value;
+            severity = optionValue.Notification.Severity;
             return OptionSettingPrefersFrameworkType(optionValue, severity);
         }
 
@@ -149,14 +149,14 @@ namespace Microsoft.CodeAnalysis.Diagnostics.PreferFrameworkType
         private bool IsFrameworkTypePreferred(OptionSet optionSet, PerLanguageOption<CodeStyleOption<bool>> option, string language)
         {
             var optionValue = optionSet.GetOption(option, language);
-            return OptionSettingPrefersFrameworkType(optionValue, optionValue.Notification.Value);
+            return OptionSettingPrefersFrameworkType(optionValue, optionValue.Notification.Severity);
         }
 
         /// <summary>
         /// checks if style is preferred and the enforcement is not None.
         /// </summary>
         /// <remarks>if predefined type is not preferred, it implies the preference is framework type.</remarks>
-        private static bool OptionSettingPrefersFrameworkType(CodeStyleOption<bool> optionValue, DiagnosticSeverity severity) =>
-            !optionValue.Value && severity != DiagnosticSeverity.Hidden;
+        private static bool OptionSettingPrefersFrameworkType(CodeStyleOption<bool> optionValue, ReportDiagnostic severity) =>
+            !optionValue.Value && severity.WithDefaultSeverity(DiagnosticSeverity.Hidden) < ReportDiagnostic.Hidden;
     }
 }

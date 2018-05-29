@@ -110,7 +110,7 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer
 
             var locations = ImmutableArray.Create(objectCreationExpression.GetLocation());
 
-            var severity = option.Notification.Value;
+            var severity = option.Notification.Severity;
             context.ReportDiagnostic(Diagnostic.Create(
                 Descriptor,
                 objectCreationExpression.GetLocation(),

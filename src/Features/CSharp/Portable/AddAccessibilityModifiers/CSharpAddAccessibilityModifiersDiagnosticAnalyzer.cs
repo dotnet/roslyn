@@ -134,7 +134,7 @@ namespace Microsoft.CodeAnalysis.CSharp.AddAccessibilityModifiers
             context.ReportDiagnostic(Diagnostic.Create(
                 Descriptor,
                 name.GetLocation(),
-                option.Notification.Value,
+                option.Notification.Severity,
                 additionalLocations: additionalLocations,
                 properties: null));
         }

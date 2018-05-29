@@ -71,7 +71,7 @@ namespace Microsoft.CodeAnalysis.UseConditionalExpression
             context.ReportDiagnostic(Diagnostic.Create(
                 Descriptor,
                 ifStatement.GetFirstToken().GetLocation(),
-                option.Notification.Value,
+                option.Notification.Severity,
                 additionalLocations,
                 properties: null));
         }

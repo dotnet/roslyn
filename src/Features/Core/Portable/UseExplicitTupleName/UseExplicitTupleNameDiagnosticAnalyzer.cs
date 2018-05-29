@@ -40,8 +40,8 @@ namespace Microsoft.CodeAnalysis.UseExplicitTupleName
             }
 
             var option = optionSet.GetOption(CodeStyleOptions.PreferExplicitTupleNames, context.Compilation.Language);
-            var severity = option.Notification.Value;
-            if (severity == DiagnosticSeverity.Hidden)
+            var severity = option.Notification.Severity;
+            if (severity.WithDefaultSeverity(DiagnosticSeverity.Hidden) >= ReportDiagnostic.Hidden)
             {
                 return;
             }

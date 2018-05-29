@@ -49,7 +49,7 @@ namespace Microsoft.CodeAnalysis.CodeStyle
                 new XAttribute(nameof(SerializationVersion), SerializationVersion),
                 new XAttribute("Type", GetTypeNameForSerialization()),
                 new XAttribute(nameof(Value), GetValueForSerialization()),
-                new XAttribute(nameof(DiagnosticSeverity), Notification.Value));
+                new XAttribute(nameof(DiagnosticSeverity), Notification.Severity.ToDiagnosticSeverity(DiagnosticSeverity.Hidden)));
 
         private object GetValueForSerialization()
         {

@@ -19,7 +19,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.OrderModifiers
         Protected Overrides Sub Recurse(
             context As SyntaxTreeAnalysisContext,
             preferredOrder As Dictionary(Of Integer, Integer),
-            severity As DiagnosticSeverity,
+            severity As ReportDiagnostic,
             root As SyntaxNode)
 
             For Each child In root.ChildNodesAndTokens()

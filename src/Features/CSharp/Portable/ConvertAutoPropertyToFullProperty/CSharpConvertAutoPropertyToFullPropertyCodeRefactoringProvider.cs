@@ -93,7 +93,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertAutoPropertyToFullProperty
                         Guid.NewGuid(),
                         prefix: prefix,
                         capitalizationScheme: Capitalization.CamelCase),
-                    DiagnosticSeverity.Hidden));
+                    ReportDiagnostic.Hidden));
         }
 
         private string GenerateFieldName(IPropertySymbol property, ImmutableArray<NamingRule> rules)

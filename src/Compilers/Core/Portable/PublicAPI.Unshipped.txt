@@ -1,5 +1,11 @@
 Microsoft.CodeAnalysis.Compilation.HasImplicitConversion(Microsoft.CodeAnalysis.ITypeSymbol fromType, Microsoft.CodeAnalysis.ITypeSymbol toType) -> bool
+Microsoft.CodeAnalysis.DiagnosticSeverityExtensions
 Microsoft.CodeAnalysis.Diagnostics.Telemetry.AnalyzerTelemetryInfo.Concurrent.get -> bool
 Microsoft.CodeAnalysis.Diagnostics.Telemetry.AnalyzerTelemetryInfo.Concurrent.set -> void
 Microsoft.CodeAnalysis.Operations.CommonConversion.IsImplicit.get -> bool
+Microsoft.CodeAnalysis.ReportDiagnosticExtensions
 abstract Microsoft.CodeAnalysis.Compilation.ClassifyCommonConversion(Microsoft.CodeAnalysis.ITypeSymbol source, Microsoft.CodeAnalysis.ITypeSymbol destination) -> Microsoft.CodeAnalysis.Operations.CommonConversion
+static Microsoft.CodeAnalysis.Diagnostic.Create(Microsoft.CodeAnalysis.DiagnosticDescriptor descriptor, Microsoft.CodeAnalysis.Location location, Microsoft.CodeAnalysis.ReportDiagnostic effectiveSeverity, System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.Location> additionalLocations, System.Collections.Immutable.ImmutableDictionary<string, string> properties, params object[] messageArgs) -> Microsoft.CodeAnalysis.Diagnostic
+static Microsoft.CodeAnalysis.DiagnosticSeverityExtensions.ToReportDiagnostic(this Microsoft.CodeAnalysis.DiagnosticSeverity diagnosticSeverity) -> Microsoft.CodeAnalysis.ReportDiagnostic
+static Microsoft.CodeAnalysis.ReportDiagnosticExtensions.ToDiagnosticSeverity(this Microsoft.CodeAnalysis.ReportDiagnostic reportDiagnostic, Microsoft.CodeAnalysis.DiagnosticSeverity defaultSeverity) -> Microsoft.CodeAnalysis.DiagnosticSeverity
+static Microsoft.CodeAnalysis.ReportDiagnosticExtensions.WithDefaultSeverity(this Microsoft.CodeAnalysis.ReportDiagnostic reportDiagnostic, Microsoft.CodeAnalysis.DiagnosticSeverity defaultSeverity) -> Microsoft.CodeAnalysis.ReportDiagnostic

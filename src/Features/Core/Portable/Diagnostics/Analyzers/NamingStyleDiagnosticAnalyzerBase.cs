@@ -119,7 +119,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
             var namingStyleRules = namingPreferences.Rules;
 
             if (!namingStyleRules.TryGetApplicableRule(symbol, out var applicableRule) ||
-                applicableRule.EnforcementLevel == DiagnosticSeverity.Hidden)
+                applicableRule.EnforcementLevel.WithDefaultSeverity(DiagnosticSeverity.Hidden) >= ReportDiagnostic.Hidden)
             {
                 return null;
             }

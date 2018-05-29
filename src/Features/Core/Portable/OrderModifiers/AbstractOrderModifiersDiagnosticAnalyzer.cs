@@ -54,25 +54,25 @@ namespace Microsoft.CodeAnalysis.OrderModifiers
                 return;
             }
 
-            Recurse(context, preferredOrder, option.Notification.Value, root);
+            Recurse(context, preferredOrder, option.Notification.Severity, root);
         }
 
         protected abstract void Recurse(
             SyntaxTreeAnalysisContext context,
             Dictionary<int, int> preferredOrder,
-            DiagnosticSeverity severity,
+            ReportDiagnostic severity,
             SyntaxNode root);
 
         protected void CheckModifiers(
             SyntaxTreeAnalysisContext context,
             Dictionary<int, int> preferredOrder,
-            DiagnosticSeverity severity,
+            ReportDiagnostic severity,
             SyntaxNode memberDeclaration)
         {
             var modifiers = _syntaxFacts.GetModifiers(memberDeclaration);
             if (!IsOrdered(preferredOrder, modifiers))
             {
-                if (severity == DiagnosticSeverity.Hidden)
+                if (severity.WithDefaultSeverity(DiagnosticSeverity.Hidden) == ReportDiagnostic.Hidden)
                 {
                     // If the severity is hidden, put the marker on all the modifiers so that the
                     // user can bring up the fix anywhere in the modifier list.

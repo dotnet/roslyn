@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.NamingStyle
             var symbolSpec = result.SymbolSpecifications.Single();
             Assert.Equal(namingStyle.ID, namingRule.NamingStyleID);
             Assert.Equal(symbolSpec.ID, namingRule.SymbolSpecificationID);
-            Assert.Equal(DiagnosticSeverity.Warning, namingRule.EnforcementLevel);
+            Assert.Equal(ReportDiagnostic.Warn, namingRule.EnforcementLevel);
             Assert.Equal("method_and_property_symbols", symbolSpec.Name);
             var expectedApplicableSymbolKindList = new[]
             {
@@ -80,7 +80,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.NamingStyle
             var symbolSpec = result.SymbolSpecifications.Single();
             Assert.Equal(namingStyle.ID, namingRule.NamingStyleID);
             Assert.Equal(symbolSpec.ID, namingRule.SymbolSpecificationID);
-            Assert.Equal(DiagnosticSeverity.Error, namingRule.EnforcementLevel);
+            Assert.Equal(ReportDiagnostic.Error, namingRule.EnforcementLevel);
             Assert.Equal("method_symbols", symbolSpec.Name);
             Assert.Single(symbolSpec.ApplicableSymbolKindList);
             Assert.Contains(new SymbolKindOrTypeKind(SymbolKind.Method), symbolSpec.ApplicableSymbolKindList);
@@ -132,7 +132,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.NamingStyle
             var symbolSpec = result.SymbolSpecifications.Single();
             Assert.Equal(namingStyle.ID, namingRule.NamingStyleID);
             Assert.Equal(symbolSpec.ID, namingRule.SymbolSpecificationID);
-            Assert.Equal(DiagnosticSeverity.Info, namingRule.EnforcementLevel);
+            Assert.Equal(ReportDiagnostic.Info, namingRule.EnforcementLevel);
             Assert.Equal("public_symbols", symbolSpec.Name);
             var expectedApplicableSymbolKindList = new[]
             {
@@ -180,7 +180,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.NamingStyle
             var symbolSpec = result.SymbolSpecifications.Single();
             Assert.Equal(namingStyle.ID, namingRule.NamingStyleID);
             Assert.Equal(symbolSpec.ID, namingRule.SymbolSpecificationID);
-            Assert.Equal(DiagnosticSeverity.Hidden, namingRule.EnforcementLevel);
+            Assert.Equal(ReportDiagnostic.Hidden, namingRule.EnforcementLevel);
             Assert.Equal("non_public_symbols", symbolSpec.Name);
             var expectedApplicableSymbolKindList = new[]
             {
@@ -223,7 +223,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.NamingStyle
             var symbolSpec = result.SymbolSpecifications.Single();
             Assert.Equal(namingStyle.ID, namingRule.NamingStyleID);
             Assert.Equal(symbolSpec.ID, namingRule.SymbolSpecificationID);
-            Assert.Equal(DiagnosticSeverity.Info, namingRule.EnforcementLevel);
+            Assert.Equal(ReportDiagnostic.Info, namingRule.EnforcementLevel);
 
             Assert.Equal("parameters_and_locals", symbolSpec.Name);
             var expectedApplicableSymbolKindList = new[]

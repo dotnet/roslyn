@@ -132,7 +132,7 @@ namespace Microsoft.CodeAnalysis.UseCoalesceExpression
             context.ReportDiagnostic(Diagnostic.Create(
                 Descriptor,
                 conditionalExpression.GetLocation(),
-                option.Notification.Value,
+                option.Notification.Severity,
                 locations,
                 properties: null));
         }

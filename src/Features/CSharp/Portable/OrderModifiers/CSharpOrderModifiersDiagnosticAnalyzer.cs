@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.CSharp.OrderModifiers
         protected override void Recurse(
             SyntaxTreeAnalysisContext context,
             Dictionary<int, int> preferredOrder,
-            DiagnosticSeverity severity,
+            ReportDiagnostic severity,
             SyntaxNode root)
         {
             foreach (var child in root.ChildNodesAndTokens())

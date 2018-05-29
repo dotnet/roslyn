@@ -154,7 +154,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options.Style
 
                 var rule = new SerializableNamingRule()
                 {
-                    EnforcementLevel = item.SelectedNotificationPreference.Notification.Value,
+                    EnforcementLevel = item.SelectedNotificationPreference.Notification.Severity,
                     NamingStyleID = item.SelectedStyle.ID,
                     SymbolSpecificationID = item.SelectedSpecification.ID
                 };

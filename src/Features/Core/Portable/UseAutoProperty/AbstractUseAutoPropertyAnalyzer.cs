@@ -314,12 +314,18 @@ namespace Microsoft.CodeAnalysis.UseAutoProperty
                 propertyDeclaration.GetLocation(), variableDeclarator.GetLocation());
 
             var option = optionSet.GetOption(CodeStyleOptions.PreferAutoProperties, propertyDeclaration.Language);
+            if (option.Notification.Severity == ReportDiagnostic.Suppress)
+            {
+                // Avoid reporting diagnostics when the feature is disabled. This primarily avoids reporting the hidden
+                // helper diagnostic which is not otherwise influenced by the severity settings.
+                return;
+            }
 
             // Place the appropriate marker on the field depending on the user option.
             var diagnostic1 = Diagnostic.Create(
                 UnnecessaryWithSuggestionDescriptor,
                 nodeToFade.GetLocation(),
-                option.Notification.Value,
+                option.Notification.Severity,
                 additionalLocations: additionalLocations,
                 properties: null);
 

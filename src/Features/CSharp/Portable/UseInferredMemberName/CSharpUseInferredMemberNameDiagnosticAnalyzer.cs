@@ -51,7 +51,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseInferredMemberName
                 Diagnostic.Create(
                     Descriptor,
                     nameColon.GetLocation(),
-                    optionSet.GetOption(CodeStyleOptions.PreferInferredTupleNames, context.Compilation.Language).Notification.Value,
+                    optionSet.GetOption(CodeStyleOptions.PreferInferredTupleNames, context.Compilation.Language).Notification.Severity,
                     additionalLocations: null,
                     properties: null));
 
@@ -82,7 +82,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseInferredMemberName
                 Diagnostic.Create(
                     Descriptor,
                     nameEquals.GetLocation(),
-                    optionSet.GetOption(CodeStyleOptions.PreferInferredAnonymousTypeMemberNames, context.Compilation.Language).Notification.Value,
+                    optionSet.GetOption(CodeStyleOptions.PreferInferredAnonymousTypeMemberNames, context.Compilation.Language).Notification.Severity,
                     additionalLocations: null,
                     properties: null));
 

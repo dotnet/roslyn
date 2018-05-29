@@ -86,11 +86,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
             OptionSet optionSet, SyntaxNode declaration, UseExpressionBodyHelper helper)
         {
             var preferExpressionBodiedOption = optionSet.GetOption(helper.Option);
-            var severity = preferExpressionBodiedOption.Notification.Value;
+            var severity = preferExpressionBodiedOption.Notification.Severity;
 
             if (helper.CanOfferUseExpressionBody(optionSet, declaration, forAnalyzer: true))
             {
-                var location = severity == DiagnosticSeverity.Hidden
+                var location = severity.WithDefaultSeverity(DiagnosticSeverity.Hidden) == ReportDiagnostic.Hidden
                     ? declaration.GetLocation()
                     : helper.GetDiagnosticLocation(declaration);
 
@@ -106,7 +106,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
             {
                 // They have an expression body.  Create a diagnostic to convert it to a block
                 // if they don't want expression bodies for this member.  
-                var location = severity == DiagnosticSeverity.Hidden
+                var location = severity.WithDefaultSeverity(DiagnosticSeverity.Hidden) == ReportDiagnostic.Hidden
                     ? declaration.GetLocation()
                     : helper.GetExpressionBody(declaration).GetLocation();
 

@@ -197,7 +197,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
             syntaxContext.ReportDiagnostic(Diagnostic.Create(
                 Descriptor,
                 declarationStatement.GetLocation(),
-                styleOption.Notification.Value,
+                styleOption.Notification.Severity,
                 additionalLocations,
                 properties: null));
         }

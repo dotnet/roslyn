@@ -122,17 +122,17 @@ namespace Microsoft.CodeAnalysis.Diagnostics.SimplifyTypeNames
 
             PerLanguageOption<CodeStyleOption<bool>> option;
             DiagnosticDescriptor descriptor;
-            DiagnosticSeverity severity;
+            ReportDiagnostic severity;
             switch (diagnosticId)
             {
                 case IDEDiagnosticIds.SimplifyNamesDiagnosticId:
                     descriptor = s_descriptorSimplifyNames;
-                    severity = descriptor.DefaultSeverity;
+                    severity = descriptor.DefaultSeverity.ToReportDiagnostic();
                     break;
 
                 case IDEDiagnosticIds.SimplifyMemberAccessDiagnosticId:
                     descriptor = s_descriptorSimplifyMemberAccess;
-                    severity = descriptor.DefaultSeverity;
+                    severity = descriptor.DefaultSeverity.ToReportDiagnostic();
                     break;
 
                 case IDEDiagnosticIds.RemoveQualificationDiagnosticId:
@@ -168,12 +168,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics.SimplifyTypeNames
             return true;
         }
 
-        private (DiagnosticDescriptor descriptor, DiagnosticSeverity severity) GetApplicablePredefinedTypeDiagnosticDescriptor<T>(string id, PerLanguageOption<T> option, OptionSet optionSet) where T : CodeStyleOption<bool>
+        private (DiagnosticDescriptor descriptor, ReportDiagnostic severity) GetApplicablePredefinedTypeDiagnosticDescriptor<T>(string id, PerLanguageOption<T> option, OptionSet optionSet) where T : CodeStyleOption<bool>
         {
             var optionValue = optionSet.GetOption(option, GetLanguageName());
 
             DiagnosticDescriptor descriptor = null;
-            if (optionValue.Notification.Value != DiagnosticSeverity.Hidden)
+            if (optionValue.Notification.Severity.WithDefaultSeverity(DiagnosticSeverity.Hidden) < ReportDiagnostic.Hidden)
             {
                 switch (id)
                 {
@@ -190,10 +190,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics.SimplifyTypeNames
                 }
             }
 
-            return (descriptor, optionValue.Notification.Value);
+            return (descriptor, optionValue.Notification.Severity);
         }
 
-        private (DiagnosticDescriptor descriptor, DiagnosticSeverity severity) GetRemoveQualificationDiagnosticDescriptor(SemanticModel model, SyntaxNode node, OptionSet optionSet, CancellationToken cancellationToken)
+        private (DiagnosticDescriptor descriptor, ReportDiagnostic severity) GetRemoveQualificationDiagnosticDescriptor(SemanticModel model, SyntaxNode node, OptionSet optionSet, CancellationToken cancellationToken)
         {
             var symbolInfo = model.GetSymbolInfo(node, cancellationToken);
             if (symbolInfo.Symbol == null)
@@ -203,7 +203,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.SimplifyTypeNames
 
             var applicableOption = QualifyMembersHelpers.GetApplicableOptionFromSymbolKind(symbolInfo.Symbol.Kind);
             var optionValue = optionSet.GetOption(applicableOption, GetLanguageName());
-            var severity = optionValue.Notification.Value;
+            var severity = optionValue.Notification.Severity;
 
             return (s_descriptorRemoveThisOrMe, severity);
         }

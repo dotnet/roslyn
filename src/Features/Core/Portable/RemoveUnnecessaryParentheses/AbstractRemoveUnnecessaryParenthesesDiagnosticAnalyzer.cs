@@ -105,7 +105,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnnecessaryParentheses
             Debug.Assert(preference.Value == ParenthesesPreference.NeverIfUnnecessary ||
                          !clarifiesPrecedence);
 
-            var severity = preference.Notification.Value;
+            var severity = preference.Notification.Severity;
 
             var additionalLocations = ImmutableArray.Create(parenthesizedExpression.GetLocation());
 

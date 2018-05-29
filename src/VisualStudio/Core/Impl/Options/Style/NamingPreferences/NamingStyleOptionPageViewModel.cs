@@ -44,7 +44,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options.Style
 
                 viewModel.SelectedSpecification = viewModel.Specifications.Single(s => s.ID == namingRule.SymbolSpecificationID);
                 viewModel.SelectedStyle= viewModel.NamingStyles.Single(s => s.ID == namingRule.NamingStyleID);
-                viewModel.SelectedNotificationPreference = viewModel.NotificationPreferences.Single(n => n.Notification.Value == namingRule.EnforcementLevel);
+                viewModel.SelectedNotificationPreference = viewModel.NotificationPreferences.Single(n => n.Notification.Severity == namingRule.EnforcementLevel);
                 
                 viewModels.Add(viewModel);
             }

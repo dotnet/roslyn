@@ -147,7 +147,7 @@ namespace Microsoft.CodeAnalysis.UseThrowExpression
                 assignmentExpression.Value.Syntax.GetLocation());
 
             context.ReportDiagnostic(
-                Diagnostic.Create(Descriptor, throwStatementSyntax.GetLocation(), option.Notification.Value, additionalLocations: allLocations, properties: null));
+                Diagnostic.Create(Descriptor, throwStatementSyntax.GetLocation(), option.Notification.Severity, additionalLocations: allLocations, properties: null));
 
             // Fade out the rest of the if that surrounds the 'throw' exception.
 

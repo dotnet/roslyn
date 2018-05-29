@@ -53,7 +53,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseDefaultLiteral
                 Diagnostic.Create(
                     Descriptor,
                     defaultExpression.GetLocation(),
-                    optionSet.GetOption(CSharpCodeStyleOptions.PreferSimpleDefaultExpression).Notification.Value,
+                    optionSet.GetOption(CSharpCodeStyleOptions.PreferSimpleDefaultExpression).Notification.Severity,
                     additionalLocations: null,
                     properties: null));
 
