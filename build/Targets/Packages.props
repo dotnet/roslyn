@@ -229,7 +229,7 @@
     <SystemXmlXmlDocumentVersion>4.3.0</SystemXmlXmlDocumentVersion>
     <SystemXmlXmlSerializerVersion>4.3.0</SystemXmlXmlSerializerVersion>
     <SystemXmlXPathXDocumentVersion>4.3.0</SystemXmlXPathXDocumentVersion>
-    <SQLitePCLRawbundle_greenVersion>1.1.2</SQLitePCLRawbundle_greenVersion>
+    <SQLitePCLRawbundle_greenVersion>1.1.11</SQLitePCLRawbundle_greenVersion>
     <UIAComWrapperVersion>1.1.0.14</UIAComWrapperVersion>
     <MicrosoftVSSDKBuildToolsVersion>15.8.68-develop-g109a00ff</MicrosoftVSSDKBuildToolsVersion>
     <VSExternalAPIsCodingConventionsVersion>1.0.60704.2</VSExternalAPIsCodingConventionsVersion>
