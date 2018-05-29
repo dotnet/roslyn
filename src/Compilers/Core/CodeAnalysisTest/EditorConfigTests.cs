@@ -259,7 +259,7 @@ RoOt = TruE");
         [Fact]
         public void SimpleNameMatch()
         {
-            string regex = EditorConfig.CompileSectionNameToRegEx("abc");
+            string regex = EditorConfig.TryCompileSectionNameToRegEx("abc");
             Assert.Equal("^abc$", regex);
 
             Assert.Matches(regex, "abc");
@@ -271,7 +271,7 @@ RoOt = TruE");
         [Fact]
         public void StarOnlyMatch()
         {
-            string regex = EditorConfig.CompileSectionNameToRegEx("*");
+            string regex = EditorConfig.TryCompileSectionNameToRegEx("*");
             Assert.Equal("^[^/]*$", regex);
 
             Assert.Matches(regex, "abc");
@@ -282,7 +282,7 @@ RoOt = TruE");
         [Fact]
         public void StarNameMatch()
         {
-            string regex = EditorConfig.CompileSectionNameToRegEx("*.cs");
+            string regex = EditorConfig.TryCompileSectionNameToRegEx("*.cs");
             Assert.Equal("^[^/]*.cs$", regex);
 
             Assert.Matches(regex, "abc.cs");
@@ -299,7 +299,7 @@ RoOt = TruE");
         [Fact]
         public void StarStarNameMatch()
         {
-            string regex = EditorConfig.CompileSectionNameToRegEx("**.cs");
+            string regex = EditorConfig.TryCompileSectionNameToRegEx("**.cs");
             Assert.Equal("^.*.cs$", regex);
 
             Assert.Matches(regex, "abc.cs");
@@ -309,21 +309,21 @@ RoOt = TruE");
         [Fact]
         public void BadEscapeMatch()
         {
-            string regex = EditorConfig.CompileSectionNameToRegEx("abc\\d.cs");
+            string regex = EditorConfig.TryCompileSectionNameToRegEx("abc\\d.cs");
             Assert.Null(regex);
         }
 
         [Fact]
         public void EndBackslashMatch()
         {
-            string regex = EditorConfig.CompileSectionNameToRegEx("abc\\");
+            string regex = EditorConfig.TryCompileSectionNameToRegEx("abc\\");
             Assert.Null(regex);
         }
 
         [Fact]
         public void QuestionMatch()
         {
-            string regex = EditorConfig.CompileSectionNameToRegEx("ab?def");
+            string regex = EditorConfig.TryCompileSectionNameToRegEx("ab?def");
             Assert.Equal("^ab.def$", regex);
 
             Assert.Matches(regex, "abcdef");
@@ -336,12 +336,38 @@ RoOt = TruE");
         [Fact]
         public void LiteralBackslash()
         {
-            string regex = EditorConfig.CompileSectionNameToRegEx("ab\\\\c");
+            string regex = EditorConfig.TryCompileSectionNameToRegEx("ab\\\\c");
             Assert.Equal("^ab\\\\c$", regex);
 
             Assert.Matches(regex, "ab\\c");
             Assert.DoesNotMatch(regex, "ab/c");
             Assert.DoesNotMatch(regex, "ab\\\\c");
+        }
+
+        [Fact]
+        public void LiteralStars()
+        {
+            string regex = EditorConfig.TryCompileSectionNameToRegEx("\\***\\*\\**");
+            Assert.Equal("^\\*.*\\*\\*[^/]*$", regex);
+
+            Assert.Matches(regex, "*ab/cd**efg*");
+            Assert.DoesNotMatch(regex, "ab/cd**efg*");
+            Assert.DoesNotMatch(regex, "*ab/cd*efg*");
+            Assert.DoesNotMatch(regex, "*ab/cd**ef/gh");
+        }
+
+        [Fact]
+        public void LiteralQuestions()
+        {
+            string regex = EditorConfig.TryCompileSectionNameToRegEx("\\??\\?*\\??");
+            Assert.Equal("^\\?.\\?[^/]*\\?.$", regex);
+
+            Assert.Matches(regex, "?a?cde?f");
+            Assert.Matches(regex, "???????f");
+            Assert.DoesNotMatch(regex, "aaaaaaaa");
+            Assert.DoesNotMatch(regex, "aa?cde?f");
+            Assert.DoesNotMatch(regex, "?a?cdexf");
+            Assert.DoesNotMatch(regex, "?axcde?f");
         }
 
         [Fact]

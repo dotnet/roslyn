@@ -11,9 +11,10 @@ namespace Microsoft.CodeAnalysis
     {
         /// <summary>
         /// Takes a <see cref="Section.Name"/> and compiles the file glob
-        /// inside to a regex which recognizes the given language.
+        /// inside to a regex which recognizes the given language. Returns
+        /// null if the section name is invalid.
         /// </summary>
-        public static string CompileSectionNameToRegEx(string sectionName)
+        public static string TryCompileSectionNameToRegEx(string sectionName)
         {
             // An editorconfig section name is a language for recognizing file paths
             // defined by the following grammar:
@@ -34,6 +35,7 @@ namespace Microsoft.CodeAnalysis
 
             var sb = new StringBuilder();
             sb.Append('^');
+
             var lexer = new SectionNameLexer(sectionName);
             while (!lexer.IsDone)
             {
@@ -59,6 +61,13 @@ namespace Microsoft.CodeAnalysis
                     case TokenKind.StarStar:
                         // Matches any string of characters
                         sb.Append(".*");
+                        break;
+                    case TokenKind.LiteralStar:
+                        // Match a literal '*'
+                        sb.Append("\\*");
+                        break;
+                    case TokenKind.LiteralQuestion:
+                        sb.Append("\\?");
                         break;
                     case TokenKind.Backslash:
                         // Literal backslash
@@ -115,19 +124,26 @@ namespace Microsoft.CodeAnalysis
                     case '\\':
                     {
                         // Backslash escapes the next character
-                        int nextPos = _position + 1;
-                        if (nextPos >= _sectionName.Length)
+                        _position++;
+                        if (_position >= _sectionName.Length)
                         {
                             return TokenKind.BadToken;
                         }
 
                         // Check for all of the possible escapes
-                        switch (_sectionName[nextPos])
+                        switch (_sectionName[_position++])
                         {
                             case '\\':
                                 // "\\" -> "\"
-                                _position += 2;
                                 return TokenKind.Backslash;
+
+                            case '*':
+                                // "*" -> "\*"
+                                return TokenKind.LiteralStar;
+
+                            case '?':
+                                // "?" -> "\?"
+                                return TokenKind.LiteralQuestion;
 
                             default:
                                 return TokenKind.BadToken;
@@ -153,7 +169,9 @@ namespace Microsoft.CodeAnalysis
             Star,
             StarStar,
             Question,
-            Backslash
+            Backslash,
+            LiteralStar,
+            LiteralQuestion
         }
     }
 }
