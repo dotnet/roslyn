@@ -1134,5 +1134,127 @@ Block[B2] - Exit
 
             VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedGraph, expectedDiagnostics);
         }
+
+        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+        [Fact]
+        public void LocalFunctionFlow_08()
+        {
+            string source = @"
+#pragma warning disable CS8321
+struct C
+{
+    void M()
+/*<bind>*/{
+        int i = 0;
+
+        void local1(int input1)
+        {
+            input1 = 1;
+            i++;
+
+            void local2(bool input2)
+            {
+                input2 = true;
+                i++;
+            }
+        }
+    }/*</bind>*/
+}
+";
+            string expectedGraph = @"
+Block[B0] - Entry
+    Statements (0)
+    Next (Regular) Block[B1]
+        Entering: {R1}
+
+.locals {R1}
+{
+    Locals: [System.Int32 i]
+    Methods: [void local1(System.Int32 input1)]
+    Block[B1] - Block
+        Predecessors: [B0]
+        Statements (1)
+            ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32, IsImplicit) (Syntax: 'i = 0')
+              Left: 
+                ILocalReferenceOperation: i (IsDeclaration: True) (OperationKind.LocalReference, Type: System.Int32, IsImplicit) (Syntax: 'i = 0')
+              Right: 
+                ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0) (Syntax: '0')
+
+        Next (Regular) Block[B2]
+            Leaving: {R1}
+    
+    {   void local1(System.Int32 input1)
+    
+        Block[B0#0R1] - Entry
+            Statements (0)
+            Next (Regular) Block[B1#0R1]
+                Entering: {R1#0R1}
+
+        .locals {R1#0R1}
+        {
+            Methods: [void local2(System.Boolean input2)]
+            Block[B1#0R1] - Block
+                Predecessors: [B0#0R1]
+                Statements (2)
+                    IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'input1 = 1;')
+                      Expression: 
+                        ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32) (Syntax: 'input1 = 1')
+                          Left: 
+                            IParameterReferenceOperation: input1 (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'input1')
+                          Right: 
+                            ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
+
+                    IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'i++;')
+                      Expression: 
+                        IIncrementOrDecrementOperation (Postfix) (OperationKind.Increment, Type: System.Int32) (Syntax: 'i++')
+                          Target: 
+                            ILocalReferenceOperation: i (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'i')
+
+                Next (Regular) Block[B2#0R1]
+                    Leaving: {R1#0R1}
+            
+            {   void local2(System.Boolean input2)
+            
+                Block[B0#0R1#0R1] - Entry
+                    Statements (0)
+                    Next (Regular) Block[B1#0R1#0R1]
+                Block[B1#0R1#0R1] - Block
+                    Predecessors: [B0#0R1#0R1]
+                    Statements (2)
+                        IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'input2 = true;')
+                          Expression: 
+                            ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Boolean) (Syntax: 'input2 = true')
+                              Left: 
+                                IParameterReferenceOperation: input2 (OperationKind.ParameterReference, Type: System.Boolean) (Syntax: 'input2')
+                              Right: 
+                                ILiteralOperation (OperationKind.Literal, Type: System.Boolean, Constant: True) (Syntax: 'true')
+
+                        IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'i++;')
+                          Expression: 
+                            IIncrementOrDecrementOperation (Postfix) (OperationKind.Increment, Type: System.Int32) (Syntax: 'i++')
+                              Target: 
+                                ILocalReferenceOperation: i (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'i')
+
+                    Next (Regular) Block[B2#0R1#0R1]
+                Block[B2#0R1#0R1] - Exit
+                    Predecessors: [B1#0R1#0R1]
+                    Statements (0)
+            }
+        }
+
+        Block[B2#0R1] - Exit
+            Predecessors: [B1#0R1]
+            Statements (0)
+    }
+}
+
+Block[B2] - Exit
+    Predecessors: [B1]
+    Statements (0)
+";
+            var expectedDiagnostics = DiagnosticDescription.None;
+
+            VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedGraph, expectedDiagnostics);
+        }
     }
 }

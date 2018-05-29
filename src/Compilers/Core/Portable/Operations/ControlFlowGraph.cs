@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.Operations
     {
         // PROTOTYPE(dataflow): This dictionary will hold on to the original IOperation tree and that will keep SemanticModel alive too.
         //                      Is this a problem? Should we simply build all sub-graphs eagerly?
-        private ImmutableDictionary<IMethodSymbol, (Region, IOperation, int)> _methodsMap;
+        private readonly ImmutableDictionary<IMethodSymbol, (Region region, IOperation operation, int ordinal)> _methodsMap;
         private ControlFlowGraph[] _lazySubGraphs;
 
         internal ControlFlowGraph(ImmutableArray<BasicBlock> blocks, Region root,
@@ -30,6 +30,17 @@ namespace Microsoft.CodeAnalysis.Operations
             Debug.Assert(root.Kind == RegionKind.Root);
             Debug.Assert(root.FirstBlockOrdinal == 0);
             Debug.Assert(root.LastBlockOrdinal == blocks.Length - 1);
+            Debug.Assert(!methods.IsDefault);
+            Debug.Assert(methodsMap != null);
+            Debug.Assert(methodsMap.Count == methods.Length);
+            Debug.Assert(methods.Distinct().Count() == methods.Length);
+#if DEBUG
+            foreach (IMethodSymbol method in methods)
+            {
+                Debug.Assert(method.MethodKind == MethodKind.AnonymousFunction || method.MethodKind == MethodKind.LocalFunction);
+                Debug.Assert(methodsMap.ContainsKey(method));
+            }
+#endif 
 
             Blocks = blocks;
             Root = root;
@@ -59,6 +70,11 @@ namespace Microsoft.CodeAnalysis.Operations
         {
             get
             {
+                // PROTOTYPE(dataflow): It looks like the indexing below will throw right exceptions on all invalid inputs.
+                //                      However, we should consider if we want to perform our own validation for the input.
+                //                      In any case, we need to add unit tests to cover behavior of this API with respect to
+                //                      an invalid input (including null).
+
                 (Region enclosing, IOperation operation, int ordinal) = _methodsMap[method];
                 Debug.Assert(method == Methods[ordinal]);
 
