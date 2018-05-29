@@ -683,7 +683,7 @@ public class C {}",
             string s = @"[assembly: System.Runtime.CompilerServices.InternalsVisibleTo(""WantsIVTAccess"")]
             public class C { internal void Goo() {} }";
 
-            var other = CreateCompilation(s, options: TestOptions.ReleaseDll.WithStrongNameProvider(s_defaultDesktopProvider));
+            var other = CreateCompilation(s, options: TestOptions.ReleaseDll.WithStrongNameProvider(s_defaultDesktopProvider), assemblyName: "Paul");
 
             var c = CreateCompilation(
     @"public class A
@@ -701,7 +701,13 @@ public class C {}",
                 options: TestOptions.ReleaseDll.WithStrongNameProvider(s_defaultDesktopProvider));
 
             //compilation should not succeed, and internals should not be imported.
-            c.VerifyDiagnostics(Diagnostic(ErrorCode.ERR_BadAccess, "Goo").WithArguments("C.Goo()"));
+            c.VerifyDiagnostics(
+                // (7,15): error CS0281: Friend access was granted by 'Paul, Version=0.0.0.0,
+                // Culture=neutral, PublicKeyToken=null', but the public key of the output assembly ('') does not match that
+                // specified by the InternalsVisibleTo attribute in the granting assembly.
+                //             o.Goo();
+                Diagnostic(ErrorCode.ERR_FriendRefNotEqualToThis, "Goo").WithArguments("Paul, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null", "").WithLocation(7, 15)
+                );
 
             var c2 = CreateCompilation(
     @"public class A
@@ -1790,9 +1796,10 @@ class Derived : Base
             comp.VerifyDiagnostics(
                 // NOTE: dev10 reports WRN_InvalidAssemblyName, but Roslyn won't (DevDiv #15099).
 
-                // (2,17): error CS0122: 'Base' is inaccessible due to its protection level
+                // (2,17): error CS0281: Friend access was granted by 'asm1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null', but the public key of the output assembly ('') does not match that specified by the InternalsVisibleTo attribute in the granting assembly.
                 // class Derived : Base
-                Diagnostic(ErrorCode.ERR_BadAccess, "Base").WithArguments("Base"));
+                Diagnostic(ErrorCode.ERR_FriendRefNotEqualToThis, "Base").WithArguments("asm1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null", "").WithLocation(2, 17)
+                );
         }
 
         [WorkItem(546331, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546331")]
