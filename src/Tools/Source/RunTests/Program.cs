@@ -60,32 +60,40 @@ namespace RunTests
             var cts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
             var runTask = RunCore(options, cts.Token);
 
-            if (cancellationToken.IsCancellationRequested)
+            try
             {
-                return ExitFailure;
-            }
 
-            var finishedTask = await Task.WhenAny(timeoutTask, runTask);
-            if (finishedTask == timeoutTask)
-            {
-                await HandleTimeout(options, cancellationToken);
-                cts.Cancel();
-
-                try
+                if (cancellationToken.IsCancellationRequested)
                 {
-                    // Need to await here to ensure that all of the child processes are properly 
-                    // killed before we exit.
-                    await runTask;
-                }
-                catch
-                {
-                    // Cancellation exceptions expected here. 
+                    return ExitFailure;
                 }
 
-                return ExitFailure;
-            }
+                var finishedTask = await Task.WhenAny(timeoutTask, runTask);
+                if (finishedTask == timeoutTask)
+                {
+                    await HandleTimeout(options, cancellationToken);
+                    cts.Cancel();
 
-            return await runTask;
+                    try
+                    {
+                        // Need to await here to ensure that all of the child processes are properly 
+                        // killed before we exit.
+                        await runTask;
+                    }
+                    catch
+                    {
+                        // Cancellation exceptions expected here. 
+                    }
+
+                    return ExitFailure;
+                }
+
+                return await runTask;
+            }
+            finally
+            {
+                WriteLogFile(options);
+            }
         }
 
         private static async Task<int> RunCore(Options options, CancellationToken cancellationToken)
@@ -110,7 +118,6 @@ namespace RunTests
             ConsoleUtil.WriteLine($"Test execution time: {elapsed}");
 
             LogProcessResultDetails(result.ProcessResults);
-            WriteLogFile(options);
             DisplayResults(options.Display, result.TestResults);
 
             if (CanUseWebStorage() && options.UseCachedResults)
