@@ -119,7 +119,7 @@ dotnet_diagnostic.cs0169.severity = suppress");
                 "/analyzerconfig:" + analyzerConfig.Path,
                 src.Path });
 
-            Assert.Equal(analyzerConfig.Path, Assert.Single(cmd.Arguments.AnalyzerConfigFiles).Path);
+            Assert.Equal(analyzerConfig.Path, Assert.Single(cmd.Arguments.AnalyzerConfigPaths));
 
             var outWriter = new StringWriter(CultureInfo.InvariantCulture);
             var exitCode = cmd.Run(outWriter);
@@ -145,7 +145,7 @@ dotnet_diagnostic.cs0169.severity = garbage");
                 "/analyzerconfig:" + analyzerConfig.Path,
                 src.Path });
 
-            Assert.Equal(analyzerConfig.Path, Assert.Single(cmd.Arguments.AnalyzerConfigFiles).Path);
+            Assert.Equal(analyzerConfig.Path, Assert.Single(cmd.Arguments.AnalyzerConfigPaths));
 
             var outWriter = new StringWriter(CultureInfo.InvariantCulture);
             var exitCode = cmd.Run(outWriter);

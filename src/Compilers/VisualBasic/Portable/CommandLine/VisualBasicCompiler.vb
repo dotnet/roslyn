@@ -97,10 +97,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim bag = DiagnosticBag.GetInstance()
 
             Dim allTreeDiagnosticOptions As ImmutableArray(Of ImmutableDictionary(Of String, ReportDiagnostic)) = Nothing
-            If Arguments.AnalyzerConfigFiles.Length > 0 Then
-                Dim analyzerConfigPaths = Arguments.AnalyzerConfigFiles.SelectAsArray(Function(f) f.Path)
+            If Arguments.AnalyzerConfigPaths.Length > 0 Then
                 allTreeDiagnosticOptions = ProcessAnalyzerConfigFiles(
-                    analyzerConfigPaths,
+                    Arguments.AnalyzerConfigPaths,
                     sourceFiles,
                     hadErrors,
                     bag)

@@ -73,7 +73,7 @@ dotnet_diagnostic.bc42024.severity = suppress")
                 "/analyzerconfig:" + analyzerConfig.Path,
                 src.Path})
 
-            Assert.Equal(analyzerConfig.Path, Assert.Single(cmd.Arguments.AnalyzerConfigFiles).Path)
+            Assert.Equal(analyzerConfig.Path, Assert.Single(cmd.Arguments.AnalyzerConfigPaths))
 
             Dim outWriter = new StringWriter(CultureInfo.InvariantCulture)
             Dim exitCode = cmd.Run(outWriter)
@@ -99,7 +99,7 @@ dotnet_diagnostic.BC42024.severity = garbage")
                 "/analyzerconfig:" + analyzerConfig.Path,
                 src.Path })
 
-            Assert.Equal(analyzerConfig.Path, Assert.Single(cmd.Arguments.AnalyzerConfigFiles).Path)
+            Assert.Equal(analyzerConfig.Path, Assert.Single(cmd.Arguments.AnalyzerConfigPaths))
 
             Dim outWriter = new StringWriter(CultureInfo.InvariantCulture)
             Dim exitCode = cmd.Run(outWriter)
