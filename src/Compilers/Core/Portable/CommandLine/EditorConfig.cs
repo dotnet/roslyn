@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis
         /// not be removed.
         /// </remarks>
         public static ImmutableHashSet<string> ReservedKeys { get; }
-            = ImmutableHashSet.CreateRange(CaseInsensitiveComparison.Comparer, new[] {
+            = ImmutableHashSet.CreateRange(Section.PropertiesKeyComparer, new[] {
                 "root",
                 "indent_style",
                 "indent_size",
@@ -84,7 +84,7 @@ namespace Microsoft.CodeAnalysis
             // To accommodate this, we use a lower case Unicode mapping when adding to the
             // dictionary, but we also use a case-insensitive key comparer when doing lookups
             var activeSectionProperties = ImmutableDictionary.CreateBuilder<string, string>(
-                CaseInsensitiveComparison.Comparer);
+                Section.PropertiesKeyComparer);
             string activeSectionName = "";
 
             using (var reader = new StringReader(text))
@@ -122,7 +122,7 @@ namespace Microsoft.CodeAnalysis
 
                         activeSectionName = sectionName;
                         activeSectionProperties = ImmutableDictionary.CreateBuilder<string, string>(
-                            CaseInsensitiveComparison.Comparer);
+                            Section.PropertiesKeyComparer);
                         continue;
                     }
 
@@ -163,6 +163,68 @@ namespace Microsoft.CodeAnalysis
             return new EditorConfig(globalSection, namedSectionBuilder.ToImmutable(), parentDirectory);
         }
 
+        /// <summary>
+        /// Combine an editorconfig with an editorconfig nested in a subdirectory to form a new "effective"
+        /// editorconfig. "Nested" is defined as the parent directory being an ordinal prefix of the nested
+        /// directory.
+        /// </summary>
+        /// <remarks>
+        /// Editorconfig files are combined by applying all properties from the parent editorconfig, then
+        /// applying all properties from the nested editorconfig, with any conflicts resolving in favor
+        /// of the nested editorconfig. Any new sections in the nested editorconfig will appear at the
+        /// end of <see cref="EditorConfig.NamedSections" />.
+        /// </remarks>
+        public static EditorConfig Combine(EditorConfig nested, EditorConfig parent)
+        {
+            Debug.Assert(nested.Directory.StartsWith(parent.Directory, StringComparison.Ordinal));
+
+            // PROTOTYPE(editorconfig): Global properties are not described in the editorconfig
+            // spec and are not specified as being inherited or overridden. The only mentioned
+            // global property, 'root', should definitely not be inherited. For now, let's assume
+            // that the global properties are fixed.
+            Section newGlobals = nested.GlobalSection;
+
+            var newSections = ImmutableArray.CreateBuilder<Section>(
+                Math.Max(nested.NamedSections.Length, parent.NamedSections.Length));
+
+            // Parent config sections come first
+            newSections.AddRange(parent.NamedSections);
+
+            // Now nested config sections
+            foreach (Section nestedSection in nested.NamedSections)
+            {
+                int parentIndex = findSection(newSections, nestedSection.Name);
+                if (parentIndex >= 0)
+                {
+                    // Nested section properties override parent section properties
+                    Section parentSection = newSections[parentIndex];
+                    ImmutableDictionary<string, string> properties = 
+                        parentSection.Properties.SetItems(nestedSection.Properties);
+                    newSections[parentIndex] = new Section(nestedSection.Name, properties);
+                }
+                else
+                {
+                    newSections.Add(nestedSection);
+                }
+            }
+
+            return new EditorConfig(newGlobals, newSections.ToImmutable(), nested.Directory);
+
+            int findSection(ImmutableArray<Section>.Builder sections, string name)
+            {
+                for (int i = 0; i < sections.Count; i++)
+                {
+                    Section s = sections[i];
+                    if (s.Name.Equals(name, Section.NameComparer))
+                    {
+                        return i;
+                    }
+                }
+
+                return -1;
+            }
+        }
+
         private static bool IsComment(string line)
         {
             for (int i = 0; i < line.Length; i++)
@@ -183,6 +245,18 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         internal sealed class Section
         {
+            /// <summary>
+            /// Used to compare <see cref="Name"/>s of sections. Specified by editorconfig to
+            /// be a case-sensitive comparison.
+            /// </summary>
+            public static StringComparison NameComparer { get; } = StringComparison.Ordinal;
+
+            /// <summary>
+            /// Used to compare keys in <see cref="Properties"/>. The editorconfig spec defines property
+            /// keys as being compared case-insensitively according to Unicode lower-case rules.
+            /// </summary>
+            public static IEqualityComparer<string> PropertiesKeyComparer { get; } = CaseInsensitiveComparison.Comparer;
+
             public Section(string name, ImmutableDictionary<string, string> properties)
             {
                 Name = name;
