@@ -1478,6 +1478,7 @@ class Configuration
                     expectedDescriptionOrNull: CSharpFeaturesResources.Suggested_name);
                 await VerifyItemExistsAsync(markup, "ConfigurationMethod", glyph: (int)Glyph.MethodPublic,
                     expectedDescriptionOrNull: CSharpFeaturesResources.Suggested_name);
+                await VerifyItemIsAbsentAsync(markup, "ConfigurationLocal");
                 await VerifyItemIsAbsentAsync(markup, "ConfigurationLocalFunction");
             }
             finally
@@ -1507,7 +1508,8 @@ class Configuration
     }
 }
 ";
-                // We don't support naming preferences for locals... yet.
+                await VerifyItemExistsAsync(markup, "ConfigurationLocal", glyph: (int)Glyph.Local,
+                    expectedDescriptionOrNull: CSharpFeaturesResources.Suggested_name);
                 await VerifyItemExistsAsync(markup, "ConfigurationLocalFunction", glyph: (int)Glyph.MethodPublic,
                     expectedDescriptionOrNull: CSharpFeaturesResources.Suggested_name);
                 await VerifyItemIsAbsentAsync(markup, "ConfigurationField");
@@ -1527,6 +1529,7 @@ class Configuration
                 SpecificationStyle(new SymbolKindOrTypeKind(SymbolKind.Field), "Field"),
                 SpecificationStyle(new SymbolKindOrTypeKind(SymbolKind.Property), "Property"),
                 SpecificationStyle(new SymbolKindOrTypeKind(MethodKind.Ordinary), "Method"),
+                SpecificationStyle(new SymbolKindOrTypeKind(SymbolKind.Local), "Local"),
                 SpecificationStyle(new SymbolKindOrTypeKind(MethodKind.LocalFunction), "LocalFunction"),
             };
 
