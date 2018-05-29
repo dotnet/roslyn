@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.ComponentModel.Composition;
 using System.Linq;
 using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.Implementation.CodeCleanup;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
@@ -56,14 +57,14 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Formatting
             _codeCleanupService = codeCleanupService;
         }
 
-        private void Format(ITextView textView, Document document, TextSpan? selectionOpt, CancellationToken cancellationToken)
+        private async Task Format(ITextView textView, Document document, TextSpan? selectionOpt, CancellationToken cancellationToken)
         {
             var formattingService = document.GetLanguageService<IEditorFormattingService>();
 
             using (Logger.LogBlock(FunctionId.CommandHandler_FormatCommand, KeyValueLogMessage.Create(LogType.UserAction, m => m["Span"] = selectionOpt?.Length ?? -1), cancellationToken))
             using (var transaction = new CaretPreservingEditTransaction(EditorFeaturesResources.Formatting, textView, _undoHistoryRegistry, _editorOperationsFactoryService))
             {
-                var changes = formattingService.GetFormattingChangesAsync(document, selectionOpt, cancellationToken).WaitAndGetResult(cancellationToken);
+                var changes = await formattingService.GetFormattingChangesAsync(document, selectionOpt, cancellationToken).ConfigureAwait(false);
                 if (changes.Count > 0)
                 {
                     ApplyChanges(document, changes, selectionOpt, cancellationToken);

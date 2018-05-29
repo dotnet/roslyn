@@ -1,12 +1,14 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Linq;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.Shared.Options;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Extensions;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Commanding;
+using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Editor.Commanding.Commands;
 using VSCommanding = Microsoft.VisualStudio.Commanding;
 
@@ -60,10 +62,16 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Formatting
                 return false;
             }
 
-            if (!document.Project.Solution.Workspace.Options.GetOption(FeatureOnOffOptions.IsCodeCleanupRulesConfigured, LanguageNames.CSharp))
+            return ExecuteCommandAsync(document, args.TextView, context).Result;
+        }
+        private async Task<bool> ExecuteCommandAsync(Document document, ITextView textView, CommandExecutionContext context)
+        {
+            var docOptions = await document.GetOptionsAsync(context.WaitContext.UserCancellationToken).ConfigureAwait(false);
+
+            if (!docOptions.GetOption(FeatureOnOffOptions.IsCodeCleanupRulesConfigured))
             {
                 ShowGoldBarForCodeCleanupConfiguration(document.Project.Solution.Workspace);
-                Format(args.TextView, document, null, context.WaitContext.UserCancellationToken);
+                await Format(textView, document, null, context.WaitContext.UserCancellationToken).ConfigureAwait(false);
             }
             else
             {
@@ -73,7 +81,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Formatting
                     var cancellationToken = context.WaitContext.UserCancellationToken;
 
                     using (var transaction = new CaretPreservingEditTransaction(
-                        EditorFeaturesResources.Formatting, args.TextView, _undoHistoryRegistry, _editorOperationsFactoryService))
+                        EditorFeaturesResources.Formatting, textView, _undoHistoryRegistry, _editorOperationsFactoryService))
                     {
                         var formattingService = document.GetLanguageService<IEditorFormattingService>();
                         if (formattingService == null || !formattingService.SupportsFormatDocument)
@@ -81,7 +89,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Formatting
                             return false;
                         }
 
-                        Format(args.TextView, document, null, cancellationToken);
+                        await Format(textView, document, null, cancellationToken).ConfigureAwait(false);
 
                         var oldDoc = document;
                         var newDoc = _codeCleanupService.CleanupDocument(document, cancellationToken).Result;
