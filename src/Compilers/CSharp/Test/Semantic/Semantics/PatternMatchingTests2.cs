@@ -2260,7 +2260,7 @@ public class C
     void M(object o)
     {
         if (o is Point(3, 4.0) { Missing: Xyzzy }) {}
-        if (o is Quincunx t) {}
+        if (o is Q7 t) {}
     }
 }
 ";
@@ -2272,9 +2272,9 @@ public class C
                 // (6,43): error CS0103: The name 'Xyzzy' does not exist in the current context
                 //         if (o is Point(3, 4.0) { Missing: Xyzzy }) {}
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "Xyzzy").WithArguments("Xyzzy").WithLocation(6, 43),
-                // (7,18): error CS0246: The type or namespace name 'Quincunx' could not be found (are you missing a using directive or an assembly reference?)
-                //         if (o is Quincunx t) {}
-                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "Quincunx").WithArguments("Quincunx").WithLocation(7, 18)
+                // (7,18): error CS0246: The type or namespace name 'Q7' could not be found (are you missing a using directive or an assembly reference?)
+                //         if (o is Q7 t) {}
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "Q7").WithArguments("Q7").WithLocation(7, 18)
                 );
             var tree = compilation.SyntaxTrees[0];
             var model = compilation.GetSemanticModel(tree);
@@ -2305,10 +2305,10 @@ public class C
             Assert.Equal("?", ti.ConvertedType.ToTestDisplayString());
             Assert.Equal(TypeKind.Error, ti.ConvertedType.TypeKind);
 
-            Assert.Equal("Quincunx t", patterns[4].ToString());
+            Assert.Equal("Q7 t", patterns[4].ToString());
             ti = model.GetTypeInfo(patterns[4]);
             Assert.Equal("System.Object", ti.Type.ToTestDisplayString());
-            Assert.Equal("Quincunx", ti.ConvertedType.ToTestDisplayString());
+            Assert.Equal("Q7", ti.ConvertedType.ToTestDisplayString());
             Assert.Equal(TypeKind.Error, ti.ConvertedType.TypeKind);
         }
     }
