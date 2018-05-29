@@ -58,15 +58,24 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
         public static string GetFlowGraph(Compilation compilation, ControlFlowGraph graph)
         {
+            var pooledBuilder = PooledObjects.PooledStringBuilder.GetInstance();
+            var stringBuilder = pooledBuilder.Builder;
+
+            GetFlowGraph(pooledBuilder.Builder, compilation, graph, enclosing: null, idSuffix: "", indent: 0);
+
+            return pooledBuilder.ToStringAndFree();
+        }
+
+        private static void GetFlowGraph(System.Text.StringBuilder stringBuilder, Compilation compilation, ControlFlowGraph graph,
+                                         ControlFlowGraph.Region enclosing, string idSuffix, int indent)
+        {
             ImmutableArray<BasicBlock> blocks = graph.Blocks;
 
             var visitor = TestOperationVisitor.Singleton;
-            var pooledBuilder = PooledObjects.PooledStringBuilder.GetInstance();
-            var stringBuilder = pooledBuilder.Builder;
-            int indent = 0;
             ControlFlowGraph.Region currentRegion = graph.Root;
             bool lastPrintedBlockIsInCurrentRegion = true;
             PooledObjects.PooledDictionary<ControlFlowGraph.Region, int> regionMap = buildRegionMap();
+            var methodsMap = PooledObjects.PooledDictionary<IMethodSymbol, ControlFlowGraph>.GetInstance();
 
             for (int i = 0; i < blocks.Length; i++)
             {
@@ -90,9 +99,10 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                         Assert.Same(graph.Root, currentRegion);
                         Assert.Same(currentRegion, block.Region);
                         Assert.Equal(0, currentRegion.FirstBlockOrdinal);
-                        Assert.Null(currentRegion.Enclosing);
+                        Assert.Same(enclosing, currentRegion.Enclosing);
                         Assert.Null(currentRegion.ExceptionType);
                         Assert.Empty(currentRegion.Locals);
+                        Assert.Empty(currentRegion.Methods);
                         Assert.Equal(ControlFlowGraph.RegionKind.Root, currentRegion.Kind);
                         Assert.True(block.IsReachable);
                         break;
@@ -123,7 +133,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                     stringBuilder.AppendLine();
                 }
 
-                appendLine($"Block[B{i}] - {block.Kind}{(block.IsReachable ? "" : " [UnReachable]")}");
+                appendLine($"Block[{getBlockId(block)}] - {block.Kind}{(block.IsReachable ? "" : " [UnReachable]")}");
 
                 var predecessors = block.Predecessors;
 
@@ -141,7 +151,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                             Assert.Null(predecessor.Next.Value);
                         }
 
-                        stringBuilder.Append($" [B{predecessor.Ordinal}]");
+                        stringBuilder.Append($" [{getBlockId(predecessor)}]");
                     }
 
                     stringBuilder.AppendLine();
@@ -226,7 +236,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
                 validateBranch(block, nextBranch);
 
-                validateLocalsLifetime(block);
+                validateLocalsAndMethodsLifetime(block);
 
                 if (currentRegion.LastBlockOrdinal == block.Ordinal && i != blocks.Length - 1)
                 {
@@ -238,12 +248,21 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                 }
             }
 
+            foreach (IMethodSymbol m in graph.Methods)
+            {
+                ControlFlowGraph g = methodsMap[m];
+                Assert.Same(g, graph[m]);
+            }
+
+            Assert.Equal(graph.Methods.Length, methodsMap.Count);
+
             regionMap.Free();
-            return pooledBuilder.ToStringAndFree();
+            methodsMap.Free();
+            return;
 
             string getDestinationString(ref BasicBlock.Branch branch)
             {
-                return branch.Destination != null ? ("B" + branch.Destination.Ordinal) : "null";
+                return branch.Destination != null ? getBlockId(branch.Destination) : "null";
             }
 
             PooledObjects.PooledDictionary<ControlFlowGraph.Region, int> buildRegionMap()
@@ -288,6 +307,17 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                     }
                     stringBuilder.AppendLine();
                 }
+
+                if (!region.Methods.IsEmpty)
+                {
+                    appendIndent();
+                    stringBuilder.Append("Methods:");
+                    foreach (IMethodSymbol method in region.Methods)
+                    {
+                        stringBuilder.Append($" [{method.ToTestDisplayString()}]");
+                    }
+                    stringBuilder.AppendLine();
+                }
             }
 
             void enterRegions(ControlFlowGraph.Region region, int firstBlockOrdinal)
@@ -312,22 +342,23 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                 {
                     case ControlFlowGraph.RegionKind.Filter:
                         Assert.Empty(region.Locals);
+                        Assert.Empty(region.Methods);
                         Assert.Equal(firstBlockOrdinal, region.Enclosing.FirstBlockOrdinal);
                         Assert.Same(region.ExceptionType, region.Enclosing.ExceptionType);
-                        enterRegion(".filter {R" + regionMap[region] + "}");
+                        enterRegion($".filter {{{getRegionId(region)}}}");
                         break;
                     case ControlFlowGraph.RegionKind.Try:
                         Assert.Null(region.ExceptionType);
                         Assert.Equal(firstBlockOrdinal, region.Enclosing.FirstBlockOrdinal);
-                        enterRegion(".try {R" + regionMap[region.Enclosing] + ", R" + regionMap[region] + "}");
+                        enterRegion($".try {{{getRegionId(region.Enclosing)}, {getRegionId(region)}}}");
                         break;
                     case ControlFlowGraph.RegionKind.FilterAndHandler:
-                        enterRegion(".catch {R" + regionMap[region] + "}" + $" ({region.ExceptionType?.ToTestDisplayString() ?? "null"})");
+                        enterRegion($".catch {{{getRegionId(region)}}} ({region.ExceptionType?.ToTestDisplayString() ?? "null"})");
                         break;
 
                     case ControlFlowGraph.RegionKind.Finally:
                         Assert.Null(region.ExceptionType);
-                        enterRegion(".finally {R" + regionMap[region] + "}");
+                        enterRegion($".finally {{{getRegionId(region)}}}");
                         break;
 
                     case ControlFlowGraph.RegionKind.Catch:
@@ -335,10 +366,10 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                         {
                             case ControlFlowGraph.RegionKind.FilterAndHandler:
                                 Assert.Same(region.ExceptionType, region.Enclosing.ExceptionType);
-                                enterRegion(".handler {R" + regionMap[region] + "}");
+                                enterRegion($".handler {{{getRegionId(region)}}}");
                                 break;
                             case ControlFlowGraph.RegionKind.TryAndCatch:
-                                enterRegion(".catch {R" + regionMap[region] + "}" + $" ({region.ExceptionType?.ToTestDisplayString() ?? "null"})");
+                                enterRegion($".catch {{{getRegionId(region)}}} ({region.ExceptionType?.ToTestDisplayString() ?? "null"})");
                                 break;
                             default:
                                 Assert.False(true, $"Unexpected region kind {region.Enclosing.Kind}");
@@ -347,25 +378,26 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                         break;
                     case ControlFlowGraph.RegionKind.Locals:
                         Assert.Null(region.ExceptionType);
-                        Assert.NotEmpty(region.Locals);
-                        enterRegion(".locals {R" + regionMap[region] + "}");
+                        Assert.False(region.Locals.IsEmpty && region.Methods.IsEmpty);
+                        enterRegion($".locals {{{getRegionId(region)}}}");
                         break;
 
                     case ControlFlowGraph.RegionKind.TryAndCatch:
                     case ControlFlowGraph.RegionKind.TryAndFinally:
                         Assert.Empty(region.Locals);
+                        Assert.Empty(region.Methods);
                         Assert.Null(region.ExceptionType);
                         break;
 
                     case ControlFlowGraph.RegionKind.StaticLocalInitializer:
                         Assert.Null(region.ExceptionType);
                         Assert.Empty(region.Locals);
-                        enterRegion($".static initializer {{R{regionMap[region]}}}");
+                        enterRegion($".static initializer {{{getRegionId(region)}}}");
                         break;
 
                     case ControlFlowGraph.RegionKind.ErroneousBody:
                         Assert.Null(region.ExceptionType);
-                        enterRegion($".erroneous body {{R{regionMap[region]}}}");
+                        enterRegion($".erroneous body {{{getRegionId(region)}}}");
                         break;
 
                     default:
@@ -392,6 +424,19 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                 }
 
                 leaveRegions(region.Enclosing, lastBlockOrdinal);
+
+                string regionId = getRegionId(region);
+                for (var i = 0; i < region.Methods.Length; i++)
+                {
+                    var method = region.Methods[i];
+                    appendLine("");
+                    appendLine("{   " + method.ToTestDisplayString());
+                    appendLine("");
+                    var g = graph[method];
+                    methodsMap.Add(method, g);
+                    GetFlowGraph(stringBuilder, compilation, g, region, $"#{i}{regionId}", indent + 4);
+                    appendLine("}");
+                }
 
                 switch (region.Kind)
                 {
@@ -440,7 +485,7 @@ endRegion:
                     Assert.Empty(branch.EnteringRegions);
                     Assert.True(BasicBlock.BranchKind.None == branch.Kind || BasicBlock.BranchKind.Throw == branch.Kind ||
                                 BasicBlock.BranchKind.ReThrow == branch.Kind || BasicBlock.BranchKind.StructuredExceptionHandling == branch.Kind ||
-                                BasicBlock.BranchKind.ProgramTermination == branch.Kind);
+                                BasicBlock.BranchKind.ProgramTermination == branch.Kind || BasicBlock.BranchKind.Error == branch.Kind);
                     return;
                 }
 
@@ -483,7 +528,7 @@ endRegion:
 
                     foreach (ControlFlowGraph.Region r in list)
                     {
-                        builder.Builder.Append(" {R" + regionMap[r] + "}");
+                        builder.Builder.Append($" {{{getRegionId(r)}}}");
                     }
 
                     return builder.ToStringAndFree();
@@ -506,39 +551,73 @@ endRegion:
                 }
             }
 
-            void validateLocalsLifetime(BasicBlock block)
+            void validateLocalsAndMethodsLifetime(BasicBlock block)
             {
 
-                ILocalSymbol[] localsInBlock = Enumerable.Concat(block.Statements, new[] { block.Conditional.Condition, block.Next.Value }).
-                                                    Where(o => o != null).
-                                                    SelectMany(o => o.DescendantsAndSelf().OfType<ILocalReferenceOperation>().Select(l => l.Local)).
-                                                    Distinct().ToArray();
+                ISymbol[] localsOrMethodsInBlock = Enumerable.Concat(block.Statements, new[] { block.Conditional.Condition, block.Next.Value }).
+                                                   Where(o => o != null).
+                                                   SelectMany(o => o.DescendantsAndSelf().
+                                                                   Select(node =>
+                                                                          {
+                                                                              IMethodSymbol method;
 
-                if (localsInBlock.Length == 0)
+                                                                              switch (node.Kind)
+                                                                              {
+                                                                                  case OperationKind.LocalReference:
+                                                                                      return ((ILocalReferenceOperation)node).Local;
+                                                                                  case OperationKind.MethodReference:
+                                                                                      method = ((IMethodReferenceOperation)node).Method;
+                                                                                      return method.MethodKind == MethodKind.LocalFunction ? method.OriginalDefinition : null;
+                                                                                  case OperationKind.Invocation:
+                                                                                      method = ((IInvocationOperation)node).TargetMethod;
+                                                                                      return method.MethodKind == MethodKind.LocalFunction ? method.OriginalDefinition : null;
+                                                                                  default:
+                                                                                      return (ISymbol)null;
+                                                                              }
+                                                                          }).
+                                                                    Where(s => s != null)).
+                                                   Distinct().ToArray();
+
+                if (localsOrMethodsInBlock.Length == 0)
                 {
                     return;
                 }
 
-                var localsInRegions = PooledHashSet<ILocalSymbol>.GetInstance();
+                var localsAndMethodsInRegions = PooledHashSet<ISymbol>.GetInstance();
                 ControlFlowGraph.Region region = block.Region;
 
                 do
                 {
                     foreach(ILocalSymbol l in region.Locals)
                     {
-                        Assert.True(localsInRegions.Add(l));
+                        Assert.True(localsAndMethodsInRegions.Add(l));
+                    }
+
+                    foreach (IMethodSymbol m in region.Methods)
+                    {
+                        Assert.True(localsAndMethodsInRegions.Add(m));
                     }
 
                     region = region.Enclosing;
                 }
                 while (region != null);
 
-                foreach (ILocalSymbol l in localsInBlock)
+                foreach (ISymbol l in localsOrMethodsInBlock)
                 {
-                    Assert.False(localsInRegions.Add(l), $"Local without owning region {l.ToTestDisplayString()} in [B{block.Ordinal}]");
+                    Assert.False(localsAndMethodsInRegions.Add(l), $"Local/method without owning region {l.ToTestDisplayString()} in [{getBlockId(block)}]");
                 }
 
-                localsInRegions.Free();
+                localsAndMethodsInRegions.Free();
+            }
+
+            string getBlockId(BasicBlock block)
+            {
+                return $"B{block.Ordinal}{idSuffix}";
+            }
+
+            string getRegionId(ControlFlowGraph.Region region)
+            {
+                return $"R{regionMap[region]}{idSuffix}";
             }
         }
 
@@ -548,8 +627,7 @@ endRegion:
             {
                 case OperationKind.Block:
                     if (((IBlockOperation)n).Operations.IsEmpty &&
-                        (n.Parent?.Kind == OperationKind.AnonymousFunction ||
-                         n.Parent?.Kind == OperationKind.LocalFunction))
+                        (n.Parent?.Kind == OperationKind.AnonymousFunction))
                     {
                         // PROTOTYPE(dataflow): Temporary allow
                         return true;

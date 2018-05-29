@@ -18,6 +18,7 @@ namespace Microsoft.CodeAnalysis.Operations
             public BasicBlock LastBlock = null;
             public ArrayBuilder<RegionBuilder> Regions = null;
             public ImmutableArray<ILocalSymbol> Locals;
+            public ArrayBuilder<(IMethodSymbol, IOperation)> Methods = null;
 #if DEBUG
             private bool _aboutToFree = false;
 #endif 
@@ -31,10 +32,40 @@ namespace Microsoft.CodeAnalysis.Operations
 
             public bool IsEmpty => FirstBlock == null;
             public bool HasRegions => Regions?.Count > 0;
+            public bool HasMethods => Methods?.Count > 0;
 
 #if DEBUG
             public void AboutToFree() => _aboutToFree = true;
 #endif 
+
+            public void Add(IMethodSymbol symbol, IOperation operation)
+            {
+                Debug.Assert(Kind != ControlFlowGraph.RegionKind.Root);
+
+                if (Methods == null)
+                {
+                    Methods = ArrayBuilder<(IMethodSymbol, IOperation)>.GetInstance();
+                }
+
+                Methods.Add((symbol, operation));
+            }
+
+            public void AddRange(ArrayBuilder<(IMethodSymbol, IOperation)> others)
+            {
+                Debug.Assert(Kind != ControlFlowGraph.RegionKind.Root);
+
+                if (others == null)
+                {
+                    return;
+                }
+
+                if (Methods == null)
+                {
+                    Methods = ArrayBuilder<(IMethodSymbol, IOperation)>.GetInstance();
+                }
+
+                Methods.AddRange(others);
+            }
 
             public void Add(RegionBuilder region)
             {
@@ -193,14 +224,29 @@ namespace Microsoft.CodeAnalysis.Operations
                 LastBlock = null;
                 Regions?.Free();
                 Regions = null;
+                Methods?.Free();
+                Methods = null;
             }
 
-            public ControlFlowGraph.Region ToImmutableRegionAndFree(ArrayBuilder<BasicBlock> blocks)
+            public ControlFlowGraph.Region ToImmutableRegionAndFree(ArrayBuilder<BasicBlock> blocks,
+                                                                    ArrayBuilder<IMethodSymbol> methods,
+                                                                    ImmutableDictionary<IMethodSymbol, (ControlFlowGraph.Region region, IOperation operation, int ordinal)>.Builder methodsMap,
+                                                                    ControlFlowGraph.Region enclosing)
             {
 #if DEBUG
                 Debug.Assert(!_aboutToFree);
 #endif 
                 Debug.Assert(!IsEmpty);
+
+                int methodsBefore = methods.Count;
+
+                if (HasMethods)
+                {
+                    foreach ((IMethodSymbol method, IOperation _) in Methods)
+                    {
+                        methods.Add(method);
+                    }
+                }
 
                 ImmutableArray<ControlFlowGraph.Region> subRegions;
 
@@ -210,7 +256,7 @@ namespace Microsoft.CodeAnalysis.Operations
 
                     foreach (RegionBuilder region in Regions)
                     {
-                        builder.Add(region.ToImmutableRegionAndFree(blocks));
+                        builder.Add(region.ToImmutableRegionAndFree(blocks, methods, methodsMap, enclosing: null));
                     }
 
                     subRegions = builder.ToImmutableAndFree();
@@ -220,7 +266,18 @@ namespace Microsoft.CodeAnalysis.Operations
                     subRegions = ImmutableArray<ControlFlowGraph.Region>.Empty;
                 }
 
-                var result = new ControlFlowGraph.Region(Kind, FirstBlock.Ordinal, LastBlock.Ordinal, subRegions, Locals, ExceptionType);
+                var result = new ControlFlowGraph.Region(Kind, FirstBlock.Ordinal, LastBlock.Ordinal, subRegions,
+                                                         Locals, Methods?.SelectAsArray(((IMethodSymbol, IOperation) tuple) => tuple.Item1) ?? default,
+                                                         ExceptionType,
+                                                         enclosing);
+
+                if (HasMethods)
+                {
+                    foreach ((IMethodSymbol method, IOperation operation) in Methods)
+                    {
+                        methodsMap.Add(method, (result, operation, methodsBefore++));
+                    }
+                }
 
                 int firstBlockWithoutRegion = FirstBlock.Ordinal;
 
