@@ -373,10 +373,6 @@ namespace Microsoft.CodeAnalysis
                     }
                 }
             }
-
-            void sortAnalyzerConfigFiles(ArrayBuilder<EditorConfig> resultEditorConfigs)
-            {
-            }
         }
 
         public ImmutableArray<ImmutableDictionary<string, ReportDiagnostic>> ProcessAnalyzerConfigFiles(
