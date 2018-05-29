@@ -49,11 +49,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             var diagnosticBag = DiagnosticBag.GetInstance();
 
             ImmutableArray<ImmutableDictionary<string, ReportDiagnostic>> allTreeDiagnosticOptions = default;
-            if (Arguments.AnalyzerConfigFiles.Length > 0)
+            if (Arguments.AnalyzerConfigPaths.Length > 0)
             {
-                var analyzerConfigPaths = Arguments.AnalyzerConfigFiles.SelectAsArray(f => f.Path);
                 allTreeDiagnosticOptions = ProcessAnalyzerConfigFiles(
-                    analyzerConfigPaths,
+                    Arguments.AnalyzerConfigPaths,
                     sourceFiles,
                     ref hadErrors,
                     diagnosticBag);

@@ -149,9 +149,9 @@ namespace Microsoft.CodeAnalysis
         public ImmutableArray<CommandLineAnalyzerReference> AnalyzerReferences { get; internal set; }
 
         /// <summary>
-        /// A set of EditorConfig-compatible analyzer config files.
+        /// A set of paths to EditorConfig-compatible analyzer config files.
         /// </summary>
-        public ImmutableArray<CommandLineSourceFile> AnalyzerConfigFiles { get; internal set; }
+        public ImmutableArray<string> AnalyzerConfigPaths { get; internal set; }
 
         /// <summary>
         /// A set of additional non-code text files that can be used by analyzers.

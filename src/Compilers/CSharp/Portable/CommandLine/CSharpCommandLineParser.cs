@@ -1330,6 +1330,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             diagnostics.AddRange(options.Errors);
             diagnostics.AddRange(parseOptions.Errors);
 
+            var analyzerConfigPaths = analyzerConfigFiles.SelectAsArray(f => f.Path);
+            analyzerConfigFiles.Free();
+
             return new CSharpCommandLineArguments
             {
                 IsScriptRunner = IsScriptCommandLineParser,
@@ -1354,7 +1357,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 ChecksumAlgorithm = checksumAlgorithm,
                 MetadataReferences = metadataReferences.AsImmutable(),
                 AnalyzerReferences = analyzers.AsImmutable(),
-                AnalyzerConfigFiles = analyzerConfigFiles.AsImmutable(),
+                AnalyzerConfigPaths = analyzerConfigPaths,
                 AdditionalFiles = additionalFiles.AsImmutable(),
                 ReferencePaths = referencePaths,
                 SourcePaths = sourcePaths.AsImmutable(),
