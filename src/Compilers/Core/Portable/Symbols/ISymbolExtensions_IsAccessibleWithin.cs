@@ -9,12 +9,11 @@ namespace Microsoft.CodeAnalysis
     public static partial class ISymbolExtensions
     {
         /// <summary>
-        /// Checks if 'symbol' would be accessible from within 'within' when loaded
-        /// into the same program. An optional qualifier of type 'throughType' is used to resolve
-        /// protected access for instance members.
+        /// Checks if <paramref name="symbol"/> would be accessible from within <paramref name="within"/>
+        /// when loaded into the same program. An optional qualifier of type <paramref name="throughType"/>
+        /// is used to resolve protected access for instance members.
         /// </summary>
         /// <remarks>
-        /// <para>The following areas of imprecision may exist in the results of this API:</para>
         /// <para>For assembly identity, we depend on equality of the assembly's <see cref="IAssemblySymbol.Identity"/>.
         /// This corresponds to the compiler and CLR notions of the identity of assemblies. It is possible
         /// to produce distinct assemblies that share the same assembly identity, though it is not possible
@@ -28,10 +27,10 @@ namespace Microsoft.CodeAnalysis
         /// In that case this API may treat them as the same type.</para>
         /// <para>It is advised to avoid the use of this API within the compilers, as the compilers have additional
         /// requirements for access checking that are not satisfied by this implementation, including the
-        /// avoidance of infinite recursion that would result from the use of the ISymbol APIs here,
-        /// the requirement that all symbols that it checks are part of the same compilation,
-        /// and additional returned details (from the compiler's internal APIs) that are helpful for more precisely
-        /// diagnosing reasons for accessibility failure.</para>
+        /// avoidance of infinite recursion that could result from the use of the ISymbol APIs here,
+        /// the requirement that all symbols that it checks are part of the same compilation, and additional
+        /// returned details (from the compiler's internal APIs) that are helpful for more precisely diagnosing
+        /// reasons for accessibility failure.</para>
         /// </remarks>
         public static bool IsAccessibleWithin(
             this ISymbol symbol,
@@ -244,7 +243,7 @@ namespace Microsoft.CodeAnalysis
                     return false;
                 }
 
-                if (isNestedWithinOriginalCDeclaringType(withinType, originalDeclaringType))
+                if (isNestedWithinOriginalDeclaringType(withinType, originalDeclaringType))
                 {
                     return true;
                 }
@@ -270,10 +269,10 @@ namespace Microsoft.CodeAnalysis
 
                 // A private symbol is accessible if we're (optionally nested) inside the type that it
                 // was defined in.
-                return withinType != null && isNestedWithinOriginalCDeclaringType(withinType, declaringType.OriginalDefinition);
+                return withinType != null && isNestedWithinOriginalDeclaringType(withinType, declaringType.OriginalDefinition);
             }
 
-            bool isNestedWithinOriginalCDeclaringType(INamedTypeSymbol type, INamedTypeSymbol originalDeclatingType)
+            bool isNestedWithinOriginalDeclaringType(INamedTypeSymbol type, INamedTypeSymbol originalDeclatingType)
             {
                 Debug.Assert(originalDeclatingType.IsDefinition);
                 Debug.Assert(type != null);
