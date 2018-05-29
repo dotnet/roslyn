@@ -512,7 +512,8 @@ End Namespace
                          WellKnownType.System_Threading_Tasks_Sources_ValueTaskSourceStatus,
                          WellKnownType.System_Threading_Tasks_Sources_ValueTaskSourceOnCompletedFlags,
                          WellKnownType.System_Threading_Tasks_Sources_IValueTaskSource_T,
-                         WellKnownType.System_Threading_Tasks_ValueTask_T
+                         WellKnownType.System_Threading_Tasks_ValueTask_T,
+                         WellKnownType.System_Threading_Tasks_ValueTask
                         ' Not available on all platforms.
                         Continue For
                     Case WellKnownType.ExtSentinel
@@ -562,7 +563,8 @@ End Namespace
                          WellKnownType.System_Threading_Tasks_Sources_ValueTaskSourceStatus,
                          WellKnownType.System_Threading_Tasks_Sources_ValueTaskSourceOnCompletedFlags,
                          WellKnownType.System_Threading_Tasks_Sources_IValueTaskSource_T,
-                         WellKnownType.System_Threading_Tasks_ValueTask_T
+                         WellKnownType.System_Threading_Tasks_ValueTask_T,
+                         WellKnownType.System_Threading_Tasks_ValueTask
                         ' Not available on all platforms.
                         Continue For
                     Case WellKnownType.ExtSentinel

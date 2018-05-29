@@ -1155,9 +1155,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             var returnType = waitForNextAsyncMethodCandidate.OriginalDefinition.ReturnType;
-            if (!returnType.OriginalDefinition.Equals(Compilation.GetWellKnownType(WellKnownType.System_Threading_Tasks_Task_T)))
+            if (!returnType.IsGenericTaskType(Compilation))
             {
-                // PROTOTYPE(async-streams) What about a task-like type?
+                // PROTOTYPE(async-streams): Add tests for other task-like return types for WaitForNextAsync
                 return false;
             }
 
