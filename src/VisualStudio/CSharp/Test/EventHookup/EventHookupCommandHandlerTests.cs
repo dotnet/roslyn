@@ -979,7 +979,7 @@ class C
         MyEvent +$$
     }
 }";
-            using (var testState = EventHookupTestState.CreateTestState(markup, QualifyMethodAccessWithNotification(NotificationOption.None)))
+            using (var testState = EventHookupTestState.CreateTestState(markup, QualifyMethodAccessWithNotification(NotificationOption.Silent)))
             {
                 testState.SendTypeChar('=');
                 testState.SendTab();

@@ -12,7 +12,7 @@ namespace Microsoft.CodeAnalysis.CodeStyle
             if (TryGetCodeStyleValueAndOptionalNotification(
                     arg, out string value, out NotificationOption notificationOpt))
             {
-                option = new CodeStyleOption<string>(value, notificationOpt ?? NotificationOption.None);
+                option = new CodeStyleOption<string>(value, notificationOpt ?? NotificationOption.Silent);
                 return true;
             }
 
@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.CodeStyle
                     // 'true' must always be provided with a notification option.
                     if (isEnabled == false)
                     {
-                        notificationOpt = notificationOpt ?? NotificationOption.None;
+                        notificationOpt = notificationOpt ?? NotificationOption.Silent;
                         option = new CodeStyleOption<bool>(false, notificationOpt);
                         return true;
                     }
@@ -96,7 +96,7 @@ namespace Microsoft.CodeAnalysis.CodeStyle
             {
                 case EditorConfigSeverityStrings.None:
                 case EditorConfigSeverityStrings.Silent:
-                    notification = NotificationOption.None;
+                    notification = NotificationOption.Silent;
                     return true;
 
                 case EditorConfigSeverityStrings.Suggestion: notification = NotificationOption.Suggestion; return true;
@@ -104,7 +104,7 @@ namespace Microsoft.CodeAnalysis.CodeStyle
                 case EditorConfigSeverityStrings.Error: notification = NotificationOption.Error; return true;
             }
 
-            notification = NotificationOption.None;
+            notification = NotificationOption.Silent;
             return false;
         }
     }

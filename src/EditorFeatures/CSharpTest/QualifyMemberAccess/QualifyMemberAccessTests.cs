@@ -900,7 +900,7 @@ CodeStyleOptions.QualifyEventAccess);
         [|Property|] = 1;
     }
 }",
-CodeStyleOptions.QualifyPropertyAccess, NotificationOption.None);
+CodeStyleOptions.QualifyPropertyAccess, NotificationOption.Silent);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsQualifyMemberAccess)]

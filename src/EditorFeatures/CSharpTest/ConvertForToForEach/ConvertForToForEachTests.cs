@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertForToForEach
         protected override CodeRefactoringProvider CreateCodeRefactoringProvider(Workspace workspace, TestParameters parameters)
             => new CSharpConvertForToForEachCodeRefactoringProvider();
 
-        private readonly CodeStyleOption<bool> onWithNone = new CodeStyleOption<bool>(true, NotificationOption.None);
+        private readonly CodeStyleOption<bool> onWithNone = new CodeStyleOption<bool>(true, NotificationOption.Silent);
 
         private IDictionary<OptionKey, object> ImplicitTypeEverywhere() => OptionsSet(
             SingleOption(CSharpCodeStyleOptions.UseImplicitTypeWherePossible, onWithNone),

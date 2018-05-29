@@ -29,11 +29,11 @@ namespace Microsoft.CodeAnalysis.UnitTests.CodeStyle
         [InlineData("false:false", false, DiagnosticSeverity.Hidden)]
         static void TestParseEditorConfigCodeStyleOption(string args, bool isEnabled, DiagnosticSeverity severity)
         {
-            var notificationOption = NotificationOption.None;
+            var notificationOption = NotificationOption.Silent;
             switch (severity)
             {
                 case DiagnosticSeverity.Hidden:
-                    notificationOption = NotificationOption.None;
+                    notificationOption = NotificationOption.Silent;
                     break;
                 case DiagnosticSeverity.Info:
                     notificationOption = NotificationOption.Suggestion;

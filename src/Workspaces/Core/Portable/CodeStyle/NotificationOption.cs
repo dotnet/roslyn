@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.CodeStyle
 
         public DiagnosticSeverity Value { get; set; }
 
-        public static readonly NotificationOption None = new NotificationOption(WorkspacesResources.None, DiagnosticSeverity.Hidden);
+        public static readonly NotificationOption Silent = new NotificationOption(WorkspacesResources.None, DiagnosticSeverity.Hidden);
         public static readonly NotificationOption Suggestion = new NotificationOption(WorkspacesResources.Suggestion, DiagnosticSeverity.Info);
         public static readonly NotificationOption Warning = new NotificationOption(WorkspacesResources.Warning, DiagnosticSeverity.Warning);
         public static readonly NotificationOption Error = new NotificationOption(WorkspacesResources.Error, DiagnosticSeverity.Error);

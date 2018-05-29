@@ -3170,7 +3170,7 @@ class C
 }
 ]]>
                 </text>
-            Await TestAsync(input, expected, QualifyPropertyAccessOptionWithNotification(LanguageNames.CSharp, NotificationOption.None))
+            Await TestAsync(input, expected, QualifyPropertyAccessOptionWithNotification(LanguageNames.CSharp, NotificationOption.Silent))
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
@@ -5747,7 +5747,7 @@ Class C
 End Class
 ]]>
                 </text>
-            Await TestAsync(input, expected, QualifyPropertyAccessOptionWithNotification(LanguageNames.VisualBasic, NotificationOption.None))
+            Await TestAsync(input, expected, QualifyPropertyAccessOptionWithNotification(LanguageNames.VisualBasic, NotificationOption.Silent))
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>

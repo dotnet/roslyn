@@ -166,8 +166,8 @@ class goo
 ";
             await TestInRegularAndScriptAsync(text, expected, 
                 options: OptionsSet(
-                    SingleOption(CSharpCodeStyleOptions.PreferExpressionBodiedProperties, ExpressionBodyPreference.WhenPossible, NotificationOption.None),
-                    SingleOption(CSharpCodeStyleOptions.PreferExpressionBodiedAccessors, ExpressionBodyPreference.Never, NotificationOption.None)));
+                    SingleOption(CSharpCodeStyleOptions.PreferExpressionBodiedProperties, ExpressionBodyPreference.WhenPossible, NotificationOption.Silent),
+                    SingleOption(CSharpCodeStyleOptions.PreferExpressionBodiedAccessors, ExpressionBodyPreference.Never, NotificationOption.Silent)));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.EncapsulateField)]

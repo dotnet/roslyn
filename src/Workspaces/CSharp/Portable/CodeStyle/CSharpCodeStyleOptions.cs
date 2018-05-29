@@ -47,19 +47,19 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeStyle
                 new RoamingProfileStorageLocation($"TextEditor.CSharp.Specific.{nameof(PreferPatternMatchingOverIsWithCastCheck)}")});
 
         public static readonly CodeStyleOption<ExpressionBodyPreference> NeverWithNoneEnforcement =
-            new CodeStyleOption<ExpressionBodyPreference>(ExpressionBodyPreference.Never, NotificationOption.None);
+            new CodeStyleOption<ExpressionBodyPreference>(ExpressionBodyPreference.Never, NotificationOption.Silent);
 
         public static readonly CodeStyleOption<ExpressionBodyPreference> NeverWithSuggestionEnforcement =
             new CodeStyleOption<ExpressionBodyPreference>(ExpressionBodyPreference.Never, NotificationOption.Suggestion);
 
         public static readonly CodeStyleOption<ExpressionBodyPreference> WhenPossibleWithNoneEnforcement =
-            new CodeStyleOption<ExpressionBodyPreference>(ExpressionBodyPreference.WhenPossible, NotificationOption.None);
+            new CodeStyleOption<ExpressionBodyPreference>(ExpressionBodyPreference.WhenPossible, NotificationOption.Silent);
 
         public static readonly CodeStyleOption<ExpressionBodyPreference> WhenPossibleWithSuggestionEnforcement =
             new CodeStyleOption<ExpressionBodyPreference>(ExpressionBodyPreference.WhenPossible, NotificationOption.Suggestion);
 
         public static readonly CodeStyleOption<ExpressionBodyPreference> WhenOnSingleLineWithNoneEnforcement =
-            new CodeStyleOption<ExpressionBodyPreference>(ExpressionBodyPreference.WhenOnSingleLine, NotificationOption.None);
+            new CodeStyleOption<ExpressionBodyPreference>(ExpressionBodyPreference.WhenOnSingleLine, NotificationOption.Silent);
 
         public static readonly Option<CodeStyleOption<ExpressionBodyPreference>> PreferExpressionBodiedConstructors = new Option<CodeStyleOption<ExpressionBodyPreference>>(
             nameof(CodeStyleOptions), nameof(PreferExpressionBodiedConstructors),
@@ -157,7 +157,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeStyle
 
         public static readonly Option<CodeStyleOption<string>> PreferredModifierOrder = new Option<CodeStyleOption<string>>(
             nameof(CodeStyleOptions), nameof(PreferredModifierOrder),
-            defaultValue: new CodeStyleOption<string>(string.Join(",", s_preferredModifierOrderDefault.Select(SyntaxFacts.GetText)), NotificationOption.None),
+            defaultValue: new CodeStyleOption<string>(string.Join(",", s_preferredModifierOrderDefault.Select(SyntaxFacts.GetText)), NotificationOption.Silent),
             storageLocations: new OptionStorageLocation[] {
                 EditorConfigStorageLocation.ForStringCodeStyleOption("csharp_preferred_modifier_order"),
                 new RoamingProfileStorageLocation($"TextEditor.CSharp.Specific.{nameof(PreferredModifierOrder)}")});

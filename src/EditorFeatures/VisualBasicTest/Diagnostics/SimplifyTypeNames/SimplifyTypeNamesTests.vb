@@ -44,7 +44,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics.Simpli
         End Function
 
         Private ReadOnly onWithError As New CodeStyleOption(Of Boolean)(True, NotificationOption.Error)
-        Private ReadOnly offWithNone As New CodeStyleOption(Of Boolean)(False, NotificationOption.None)
+        Private ReadOnly offWithNone As New CodeStyleOption(Of Boolean)(False, NotificationOption.Silent)
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)>
         Public Async Function TestGenericNames() As Task

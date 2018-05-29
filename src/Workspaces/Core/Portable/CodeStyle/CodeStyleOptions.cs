@@ -13,8 +13,8 @@ namespace Microsoft.CodeAnalysis.CodeStyle
         /// One such default(s), is that the feature is turned on, so that codegen consumes it,
         /// but with none enforcement, so that the user is not prompted about their usage.
         /// </remarks>
-        internal static readonly CodeStyleOption<bool> TrueWithNoneEnforcement = new CodeStyleOption<bool>(value: true, notification: NotificationOption.None);
-        internal static readonly CodeStyleOption<bool> FalseWithNoneEnforcement = new CodeStyleOption<bool>(value: false, notification: NotificationOption.None);
+        internal static readonly CodeStyleOption<bool> TrueWithNoneEnforcement = new CodeStyleOption<bool>(value: true, notification: NotificationOption.Silent);
+        internal static readonly CodeStyleOption<bool> FalseWithNoneEnforcement = new CodeStyleOption<bool>(value: false, notification: NotificationOption.Silent);
         internal static readonly CodeStyleOption<bool> TrueWithSuggestionEnforcement = new CodeStyleOption<bool>(value: true, notification: NotificationOption.Suggestion);
         internal static readonly CodeStyleOption<bool> FalseWithSuggestionEnforcement = new CodeStyleOption<bool>(value: false, notification: NotificationOption.Suggestion);
 
@@ -191,7 +191,7 @@ namespace Microsoft.CodeAnalysis.CodeStyle
                 new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.PreferConditionalExpressionOverReturn")});
 
         private static readonly CodeStyleOption<AccessibilityModifiersRequired> s_requireAccessibilityModifiersDefault =
-            new CodeStyleOption<AccessibilityModifiersRequired>(AccessibilityModifiersRequired.ForNonInterfaceMembers, NotificationOption.None);
+            new CodeStyleOption<AccessibilityModifiersRequired>(AccessibilityModifiersRequired.ForNonInterfaceMembers, NotificationOption.Silent);
 
         internal static readonly PerLanguageOption<CodeStyleOption<AccessibilityModifiersRequired>> RequireAccessibilityModifiers =
             new PerLanguageOption<CodeStyleOption<AccessibilityModifiersRequired>>(
@@ -216,7 +216,7 @@ namespace Microsoft.CodeAnalysis.CodeStyle
                 if (value == "never")
                 {
                     // If they provide 'never', they don't need a notification level.
-                    notificationOpt = notificationOpt ?? NotificationOption.None;
+                    notificationOpt = notificationOpt ?? NotificationOption.Silent;
                 }
 
                 if (notificationOpt != null)
@@ -239,13 +239,13 @@ namespace Microsoft.CodeAnalysis.CodeStyle
         }
 
         private static readonly CodeStyleOption<ParenthesesPreference> s_alwaysForClarityPreference =
-            new CodeStyleOption<ParenthesesPreference>(ParenthesesPreference.AlwaysForClarity, NotificationOption.None);
+            new CodeStyleOption<ParenthesesPreference>(ParenthesesPreference.AlwaysForClarity, NotificationOption.Silent);
 
         private static readonly CodeStyleOption<ParenthesesPreference> s_ignorePreference =
-            new CodeStyleOption<ParenthesesPreference>(ParenthesesPreference.Ignore, NotificationOption.None);
+            new CodeStyleOption<ParenthesesPreference>(ParenthesesPreference.Ignore, NotificationOption.Silent);
 
         private static readonly CodeStyleOption<ParenthesesPreference> s_neverIfUnnecessaryPreference =
-            new CodeStyleOption<ParenthesesPreference>(ParenthesesPreference.NeverIfUnnecessary, NotificationOption.None);
+            new CodeStyleOption<ParenthesesPreference>(ParenthesesPreference.NeverIfUnnecessary, NotificationOption.Silent);
 
         private static PerLanguageOption<CodeStyleOption<ParenthesesPreference>> CreateParenthesesOption(
             string fieldName, CodeStyleOption<ParenthesesPreference> defaultValue, 
@@ -297,13 +297,13 @@ namespace Microsoft.CodeAnalysis.CodeStyle
                     out var value, out var notificationOpt))
             {
                 value.Trim();
-                notificationOpt = notificationOpt ?? NotificationOption.None;
+                notificationOpt = notificationOpt ?? NotificationOption.Silent;
 
                 switch (value)
                 {
                 // 'ignore' is only allowed for the "dotnet_style_parenthese_in_other_operators"
                 case "ignore" when allowIgnore:
-                    return new CodeStyleOption<ParenthesesPreference>(ParenthesesPreference.Ignore, NotificationOption.None);
+                    return new CodeStyleOption<ParenthesesPreference>(ParenthesesPreference.Ignore, NotificationOption.Silent);
                 // 'always_for_clarity' is not allowed for "dotnet_style_parenthese_in_other_operators";
                 case "always_for_clarity" when allowAlwaysForClarity:
                     return new CodeStyleOption<ParenthesesPreference>(ParenthesesPreference.AlwaysForClarity, notificationOpt);

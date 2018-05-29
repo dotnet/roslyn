@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.CodeStyle
     /// </summary>
     public class CodeStyleOption<T> : ICodeStyleOption, IEquatable<CodeStyleOption<T>>
     {
-        public static CodeStyleOption<T> Default => new CodeStyleOption<T>(default, NotificationOption.None);
+        public static CodeStyleOption<T> Default => new CodeStyleOption<T>(default, NotificationOption.Silent);
 
         private const int SerializationVersion = 1;
 
@@ -119,7 +119,7 @@ namespace Microsoft.CodeAnalysis.CodeStyle
             switch (severity)
             {
                 case DiagnosticSeverity.Hidden:
-                    notificationOption = NotificationOption.None;
+                    notificationOption = NotificationOption.Silent;
                     break;
                 case DiagnosticSeverity.Info:
                     notificationOption = NotificationOption.Suggestion;
