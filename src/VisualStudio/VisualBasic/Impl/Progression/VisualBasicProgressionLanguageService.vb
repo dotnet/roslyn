@@ -39,9 +39,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Progression
                          SyntaxKind.PropertyBlock
                         Yield node
                     Case Else
-                        For Each child In node.ChildNodes()
-                            nodes.Push(child)
-                        Next
+                        nodes.Push(node.ChildNodes)
                 End Select
             End While
         End Function
