@@ -33,8 +33,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
         protected override int GetTargetCaretPosition(SyntaxNode caretTarget)
         {
             var methodDeclaration = (MethodDeclarationSyntax)caretTarget;
-            var lastStatement = methodDeclaration.Body.Statements.Last();
-            return lastStatement.GetLocation().SourceSpan.End;
+            return CompletionUtilities.GetTargetCaretPositionForMethod(methodDeclaration);
         }
 
         protected override SyntaxToken GetToken(CompletionItem completionItem, SyntaxTree tree, CancellationToken cancellationToken)

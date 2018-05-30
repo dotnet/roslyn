@@ -76,7 +76,7 @@ class C
 
         D1 q10 = (x10,y10,z10)=>{}; 
 
-        // COMPATIBILITY: THe C# 4 compiler produces two errors:
+        // COMPATIBILITY: The C# 4 compiler produces two errors:
         //
         // error CS0127: Since 'System.Action' returns void, a return keyword must 
         // not be followed by an object expression
@@ -108,7 +108,7 @@ class C
 
         object q19 = new Action( (int x)=>{} );
  
-        Expression<int> ex1 = ()=>1;  
+        Expression<int> ex1 = ()=>1;
 
     }
 }");
@@ -245,6 +245,36 @@ class C
                 // (12,9): error CS0121: The call is ambiguous between the following methods or properties: 'C.Goo(Func<IComparable<I>>)' and 'C.Goo(Func<I>)'
                 //         Goo(() => null);
                 Diagnostic(ErrorCode.ERR_AmbigCall, "Goo").WithArguments("C.Goo(System.Func<System.IComparable<I>>)", "C.Goo(System.Func<I>)").WithLocation(12, 9));
+        }
+
+        [WorkItem(18645, "https://github.com/dotnet/roslyn/issues/18645")]
+        [Fact]
+        public void LambdaExpressionTreesErrors()
+        {
+            string source = @"
+using System;
+using System.Linq.Expressions;
+
+class C
+{
+    void M()
+    {
+        Expression<Func<int,int>> ex1 = () => 1;
+        Expression<Func<int,int>> ex2 = (double d) => 1;
+    }
+}
+";
+
+            CreateCompilation(source).VerifyDiagnostics(
+                // (9,41): error CS1593: Delegate 'Func<int, int>' does not take 0 arguments
+                //         Expression<Func<int,int>> ex1 = () => 1;
+                Diagnostic(ErrorCode.ERR_BadDelArgCount, "() => 1").WithArguments("System.Func<int, int>", "0").WithLocation(9, 41),
+                // (10,41): error CS1661: Cannot convert lambda expression to type 'Expression<Func<int, int>>' because the parameter types do not match the delegate parameter types
+                //         Expression<Func<int,int>> ex2 = (double d) => 1;
+                Diagnostic(ErrorCode.ERR_CantConvAnonMethParams, "(double d) => 1").WithArguments("lambda expression", "System.Linq.Expressions.Expression<System.Func<int, int>>").WithLocation(10, 41),
+                // (10,49): error CS1678: Parameter 1 is declared as type 'double' but should be 'int'
+                //         Expression<Func<int,int>> ex2 = (double d) => 1;
+                Diagnostic(ErrorCode.ERR_BadParamType, "d").WithArguments("1", "", "double", "", "int").WithLocation(10, 49));
         }
 
         [WorkItem(539976, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539976")]
