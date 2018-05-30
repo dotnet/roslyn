@@ -13819,6 +13819,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
+        '''  Looks up a localized string similar to Invalid severity in analyzer config file..
+        '''</summary>
+        Friend ReadOnly Property WRN_InvalidSeverityInAnalyzerConfig_Title() As String
+            Get
+                Return ResourceManager.GetString("WRN_InvalidSeverityInAnalyzerConfig_Title", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
         '''  Looks up a localized string similar to The specified version string does not conform to the recommended format - major.minor.build.revision.
         '''</summary>
         Friend ReadOnly Property WRN_InvalidVersionFormat() As String
