@@ -11,6 +11,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
     [CompilerTrait(CompilerFeature.AsyncStreams)]
     public class CodeGenAsyncIteratorTests : EmitMetadataTestBase
     {
+        // PROTOTYPE(async-streams): Consider moving this common test code to TestSources.cs
         private static readonly string s_common = @"
 namespace System.Collections.Generic
 {
