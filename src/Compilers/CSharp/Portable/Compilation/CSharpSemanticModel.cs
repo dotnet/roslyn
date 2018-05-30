@@ -1872,12 +1872,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundNode highestBoundNode,
             BoundNode boundNodeForSyntacticParent)
         {
-            if (lowestBoundNode is BoundPattern pattern)
+            BoundPattern pattern = lowestBoundNode as BoundPattern ?? highestBoundNode as BoundPattern ?? (highestBoundNode is BoundSubpattern sp ? sp.Pattern : null);
+            if (pattern != null)
             {
                 HashSet<DiagnosticInfo> useSiteDiagnostics = null;
+                var position = CheckAndAdjustPosition(pattern.Syntax.Position);
                 return new CSharpTypeInfo(
                     pattern.InputType, pattern.ConvertedType,
-                    this.GetEnclosingBinder(pattern.Syntax.Position).Conversions.ClassifyBuiltInConversion(pattern.InputType, pattern.ConvertedType, ref useSiteDiagnostics));
+                    Compilation.Conversions.ClassifyBuiltInConversion(pattern.InputType, pattern.ConvertedType, ref useSiteDiagnostics));
             }
 
             var boundExpr = lowestBoundNode as BoundExpression;

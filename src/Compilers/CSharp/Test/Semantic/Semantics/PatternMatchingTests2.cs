@@ -2151,5 +2151,165 @@ public class C {
                 Diagnostic(ErrorCode.ERR_MissingDeconstruct, "(a: 1)").WithArguments("C", "1").WithLocation(4, 22)
                 );
         }
+
+        [Fact]
+        public void PatternTypeInfo_01()
+        {
+            var source = @"
+public class C
+{
+    void M(T1 t1)
+    {
+        if (t1 is T2 (var t3, t4: T4 t4) { V5 : T6 t5 }) {}
+    }
+}
+class T1
+{
+}
+class T2 : T1
+{
+    public T5 V5 = null;
+    public void Deconstruct(out T3 t3, out T4 t4) => throw null;
+}
+class T3
+{
+}
+class T4
+{
+}
+class T5
+{
+}
+class T6 : T5
+{
+}
+";
+            var compilation = CreateCompilation(source);
+            compilation.VerifyDiagnostics();
+            var tree = compilation.SyntaxTrees[0];
+            var model = compilation.GetSemanticModel(tree);
+            var patterns = tree.GetRoot().DescendantNodesAndSelf().OfType<PatternSyntax>().ToArray();
+            Assert.Equal(4, patterns.Length);
+
+            Assert.Equal("T2 (var t3, t4: T4 t4) { V5 : T6 t5 }", patterns[0].ToString());
+            var ti = model.GetTypeInfo(patterns[0]);
+            Assert.Equal("T1", ti.Type.ToTestDisplayString());
+            Assert.Equal("T2", ti.ConvertedType.ToTestDisplayString());
+
+            Assert.Equal("var t3", patterns[1].ToString());
+            ti = model.GetTypeInfo(patterns[1]);
+            Assert.Equal("T3", ti.Type.ToTestDisplayString());
+            Assert.Equal("T3", ti.ConvertedType.ToTestDisplayString());
+
+            Assert.Equal("T4 t4", patterns[2].ToString());
+            ti = model.GetTypeInfo(patterns[2]);
+            Assert.Equal("T4", ti.Type.ToTestDisplayString());
+            Assert.Equal("T4", ti.ConvertedType.ToTestDisplayString());
+
+            Assert.Equal("T6 t5", patterns[3].ToString());
+            ti = model.GetTypeInfo(patterns[3]);
+            Assert.Equal("T5", ti.Type.ToTestDisplayString());
+            Assert.Equal("T6", ti.ConvertedType.ToTestDisplayString());
+        }
+
+        [Fact]
+        public void PatternTypeInfo_02()
+        {
+            var source = @"
+public class C
+{
+    void M(object o)
+    {
+        if (o is Point(3, 4.0)) {}
+    }
+}
+class Point
+{
+    public void Deconstruct(out object o1, out System.IComparable o2) => throw null;
+}
+";
+            var compilation = CreateCompilation(source);
+            compilation.VerifyDiagnostics();
+            var tree = compilation.SyntaxTrees[0];
+            var model = compilation.GetSemanticModel(tree);
+            var patterns = tree.GetRoot().DescendantNodesAndSelf().OfType<PatternSyntax>().ToArray();
+            Assert.Equal(3, patterns.Length);
+
+            Assert.Equal("Point(3, 4.0)", patterns[0].ToString());
+            var ti = model.GetTypeInfo(patterns[0]);
+            Assert.Equal("System.Object", ti.Type.ToTestDisplayString());
+            Assert.Equal("Point", ti.ConvertedType.ToTestDisplayString());
+
+            Assert.Equal("3", patterns[1].ToString());
+            ti = model.GetTypeInfo(patterns[1]);
+            Assert.Equal("System.Object", ti.Type.ToTestDisplayString());
+            Assert.Equal("System.Int32", ti.ConvertedType.ToTestDisplayString());
+
+            Assert.Equal("4.0", patterns[2].ToString());
+            ti = model.GetTypeInfo(patterns[2]);
+            Assert.Equal("System.IComparable", ti.Type.ToTestDisplayString());
+            Assert.Equal("System.Double", ti.ConvertedType.ToTestDisplayString());
+        }
+
+        [Fact]
+        public void PatternTypeInfo_03()
+        {
+            var source = @"
+public class C
+{
+    void M(object o)
+    {
+        if (o is Point(3, 4.0) { Missing: Xyzzy }) {}
+        if (o is Q7 t) {}
+    }
+}
+";
+            var compilation = CreateCompilation(source);
+            compilation.VerifyDiagnostics(
+                // (6,18): error CS0246: The type or namespace name 'Point' could not be found (are you missing a using directive or an assembly reference?)
+                //         if (o is Point(3, 4.0) { Missing: Xyzzy }) {}
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "Point").WithArguments("Point").WithLocation(6, 18),
+                // (6,43): error CS0103: The name 'Xyzzy' does not exist in the current context
+                //         if (o is Point(3, 4.0) { Missing: Xyzzy }) {}
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "Xyzzy").WithArguments("Xyzzy").WithLocation(6, 43),
+                // (7,18): error CS0246: The type or namespace name 'Q7' could not be found (are you missing a using directive or an assembly reference?)
+                //         if (o is Q7 t) {}
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "Q7").WithArguments("Q7").WithLocation(7, 18)
+                );
+            var tree = compilation.SyntaxTrees[0];
+            var model = compilation.GetSemanticModel(tree);
+            var patterns = tree.GetRoot().DescendantNodesAndSelf().OfType<PatternSyntax>().ToArray();
+            Assert.Equal(5, patterns.Length);
+
+            Assert.Equal("Point(3, 4.0) { Missing: Xyzzy }", patterns[0].ToString());
+            var ti = model.GetTypeInfo(patterns[0]);
+            Assert.Equal("System.Object", ti.Type.ToTestDisplayString());
+            Assert.Equal("Point", ti.ConvertedType.ToTestDisplayString());
+
+            Assert.Equal("3", patterns[1].ToString());
+            ti = model.GetTypeInfo(patterns[1]);
+            Assert.Equal("?", ti.Type.ToTestDisplayString());
+            Assert.Equal(TypeKind.Error, ti.Type.TypeKind);
+            Assert.Equal("System.Int32", ti.ConvertedType.ToTestDisplayString());
+
+            Assert.Equal("4.0", patterns[2].ToString());
+            ti = model.GetTypeInfo(patterns[2]);
+            Assert.Equal("?", ti.Type.ToTestDisplayString());
+            Assert.Equal(TypeKind.Error, ti.Type.TypeKind);
+            Assert.Equal("System.Double", ti.ConvertedType.ToTestDisplayString());
+
+            Assert.Equal("Xyzzy", patterns[3].ToString());
+            ti = model.GetTypeInfo(patterns[3]);
+            Assert.Equal("?", ti.Type.ToTestDisplayString());
+            Assert.Equal(TypeKind.Error, ti.Type.TypeKind);
+            Assert.Equal("?", ti.ConvertedType.ToTestDisplayString());
+            Assert.Equal(TypeKind.Error, ti.ConvertedType.TypeKind);
+
+            Assert.Equal("Q7 t", patterns[4].ToString());
+            ti = model.GetTypeInfo(patterns[4]);
+            Assert.Equal("System.Object", ti.Type.ToTestDisplayString());
+            Assert.Equal("Q7", ti.ConvertedType.ToTestDisplayString());
+            Assert.Equal(TypeKind.Error, ti.ConvertedType.TypeKind);
+        }
     }
 }
