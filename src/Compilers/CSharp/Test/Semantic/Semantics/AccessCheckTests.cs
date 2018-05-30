@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
@@ -710,7 +711,7 @@ public class A: C
         }
 
         [Fact]
-        public void AccessCheckApi1()
+        public void AccessCheckApi_01()
         {
             CSharpCompilation c = CreateCompilation(@"
 using System.Collections.Generic;
@@ -754,31 +755,142 @@ class ADerived2: A
             TypeSymbol kenumType = (classA.GetMembers("kenum").Single() as FieldSymbol).Type;
             TypeSymbol aenumType = (classA.GetMembers("aenum").Single() as FieldSymbol).Type;
             TypeSymbol unknownType = (classA.GetMembers("unknowntype").Single() as FieldSymbol).Type;
-            var semanticModel = c.GetSemanticModel(c.SyntaxTrees[0]);
+
+            ISymbol nullSymbol = null;
+            Assert.Throws<ArgumentNullException>(() => { (classA as ISymbol).IsAccessibleWithin(nullSymbol); });
+            Assert.Throws<ArgumentNullException>(() => { nullSymbol.IsAccessibleWithin(classA); });
+            Assert.Throws<ArgumentException>(() => { (classA as ISymbol).IsAccessibleWithin(pubField); });
 
             Assert.True(Symbol.IsSymbolAccessible(classA, classB));
+            Assert.True((classA as ISymbol).IsAccessibleWithin(classB));
             Assert.True(Symbol.IsSymbolAccessible(pubField, classB));
+            Assert.True((pubField as ISymbol).IsAccessibleWithin(classB));
             Assert.False(Symbol.IsSymbolAccessible(privField, classB));
+            Assert.False((privField as ISymbol).IsAccessibleWithin(classB));
             Assert.False(Symbol.IsSymbolAccessible(karrayType, classB));
+            Assert.False((karrayType as ISymbol).IsAccessibleWithin(classB));
             Assert.True(Symbol.IsSymbolAccessible(aarrayType, classB));
+            Assert.True((aarrayType as ISymbol).IsAccessibleWithin(classB));
             Assert.False(Symbol.IsSymbolAccessible(kenumType, classB));
+            Assert.False((kenumType as ISymbol).IsAccessibleWithin(classB));
             Assert.True(Symbol.IsSymbolAccessible(aenumType, classB));
+            Assert.True((aenumType as ISymbol).IsAccessibleWithin(classB));
             Assert.True(Symbol.IsSymbolAccessible(unknownType, classB));
+            Assert.True((unknownType as ISymbol).IsAccessibleWithin(classB));
             Assert.True(Symbol.IsSymbolAccessible(globalNS, classB));
+            Assert.True((globalNS as ISymbol).IsAccessibleWithin(classB));
             Assert.True(Symbol.IsSymbolAccessible(protField, classA));
+            Assert.True((protField as ISymbol).IsAccessibleWithin(classA));
             Assert.True(Symbol.IsSymbolAccessible(protField, classA, classADerived));
+            Assert.True((protField as ISymbol).IsAccessibleWithin(classA, classADerived));
             Assert.False(Symbol.IsSymbolAccessible(protField, classB));
+            Assert.False((protField as ISymbol).IsAccessibleWithin(classB));
             Assert.False(Symbol.IsSymbolAccessible(protField, classB, classADerived));
+            Assert.False((protField as ISymbol).IsAccessibleWithin(classB, classADerived));
             Assert.True(Symbol.IsSymbolAccessible(protField, classA));
+            Assert.True((protField as ISymbol).IsAccessibleWithin(classA));
             Assert.True(Symbol.IsSymbolAccessible(protField, classADerived, classADerived));
+            Assert.True((protField as ISymbol).IsAccessibleWithin(classADerived, classADerived));
             Assert.False(Symbol.IsSymbolAccessible(protField, classADerived, classADerived2));
+            Assert.False((protField as ISymbol).IsAccessibleWithin(classADerived, classADerived2));
 
             Assert.True(Symbol.IsSymbolAccessible(classA, sourceAssem));
+            Assert.True((classA as ISymbol).IsAccessibleWithin(sourceAssem));
             Assert.True(Symbol.IsSymbolAccessible(aarrayType, sourceAssem));
+            Assert.True((aarrayType as ISymbol).IsAccessibleWithin(sourceAssem));
             Assert.False(Symbol.IsSymbolAccessible(karrayType, sourceAssem));
+            Assert.False((karrayType as ISymbol).IsAccessibleWithin(sourceAssem));
             Assert.False(Symbol.IsSymbolAccessible(classA, mscorlibAssem));
+            Assert.False((classA as ISymbol).IsAccessibleWithin(mscorlibAssem));
             Assert.True(Symbol.IsSymbolAccessible(unknownType, sourceAssem));
+            Assert.True((unknownType as ISymbol).IsAccessibleWithin(sourceAssem));
             Assert.True(Symbol.IsSymbolAccessible(mscorlibAssem, sourceAssem));
+            Assert.True((mscorlibAssem as ISymbol).IsAccessibleWithin(sourceAssem));
+        }
+
+        [Fact]
+        public void AccessCheckApi_02()
+        {
+            CSharpCompilation c1 = CreateCompilation(@"
+using SomeAlias = System.Int32;
+[assembly: System.Runtime.CompilerServices.InternalsVisibleTo(""C3"")]
+internal class Outer
+{
+    private class Inner
+    {
+        public int Field;
+    }
+
+    private Inner* Pointer;
+    private int Integer = 1 + 2;
+
+    protected int Protected;
+    protected internal int ProtectedInternal;
+    private protected int PrivateProtected;
+}
+internal class Other
+{
+}
+private class Private
+{
+}
+internal class Derived : Outer
+{
+}
+");
+            var tree = c1.SyntaxTrees[0];
+            var model = c1.GetSemanticModel(tree);
+            IAliasSymbol SomeAlias = model.GetDeclaredSymbol(tree.GetRoot().DescendantNodes().OfType<UsingDirectiveSyntax>().Where(u => u.Alias != null).Single());
+            INamespaceSymbol globalNS = c1.GlobalNamespace;
+            IAssemblySymbol sourceAssem = c1.SourceModule.ContainingAssembly;
+            IAssemblySymbol mscorlibAssem = c1.GetReferencedAssemblySymbol(c1.ExternalReferences[0]);
+            INamedTypeSymbol Outer = globalNS.GetMembers("Outer").Single() as INamedTypeSymbol;
+            INamedTypeSymbol Outer_Inner = Outer.GetMembers("Inner").Single() as INamedTypeSymbol;
+            IFieldSymbol Outer_Inner_Field = Outer_Inner.GetMembers("Field").Single() as IFieldSymbol;
+            IFieldSymbol Outer_Pointer = Outer.GetMembers("Pointer").Single() as IFieldSymbol;
+            IFieldSymbol Outer_Protected = Outer.GetMembers("Protected").Single() as IFieldSymbol;
+            IFieldSymbol Outer_ProtectedInternal = Outer.GetMembers("ProtectedInternal").Single() as IFieldSymbol;
+            IFieldSymbol Outer_PrivateProtected = Outer.GetMembers("PrivateProtected").Single() as IFieldSymbol;
+            INamedTypeSymbol Other = globalNS.GetMembers("Other").Single() as INamedTypeSymbol;
+            INamedTypeSymbol Private = globalNS.GetMembers("Private").Single() as INamedTypeSymbol;
+            Assert.Equal(Accessibility.Private, Private.DeclaredAccessibility);
+            IMethodSymbol IntegerPlus = model.GetSymbolInfo(tree.GetRoot().DescendantNodes().OfType<BinaryExpressionSyntax>().Single()).Symbol as IMethodSymbol;
+            INamedTypeSymbol Derived = globalNS.GetMembers("Derived").Single() as INamedTypeSymbol;
+
+            CSharpCompilation c2 = CreateCompilation(@"
+internal class InOtherCompilation
+{
+}
+");
+            INamedTypeSymbol InOtherCompilation = c2.GlobalNamespace.GetMember("InOtherCompilation") as INamedTypeSymbol;
+
+            CSharpCompilation c3 = CreateCompilation(@"
+internal class InFriendCompilation
+{
+}
+", assemblyName: "C3");
+            INamedTypeSymbol InFriendCompilation = c3.GlobalNamespace.GetMember("InFriendCompilation") as INamedTypeSymbol;
+
+            Assert.True(SomeAlias.IsAccessibleWithin(Outer));
+            Assert.True(Outer_Pointer.Type.IsAccessibleWithin(Outer));
+            Assert.False(Outer_Pointer.Type.IsAccessibleWithin(Other));
+            Assert.True(IntegerPlus.IsAccessibleWithin(Other));
+            Assert.True(IntegerPlus.IsAccessibleWithin(Other));
+            Assert.True(IntegerPlus.IsAccessibleWithin(sourceAssem));
+            Assert.False(Private.IsAccessibleWithin(Other));
+            Assert.False(Private.IsAccessibleWithin(Other));
+            Assert.False(Private.IsAccessibleWithin(sourceAssem));
+            Assert.False(Outer.IsAccessibleWithin(InOtherCompilation));
+            Assert.True(Outer.IsAccessibleWithin(InFriendCompilation));
+            Assert.False(Outer_Inner_Field.IsAccessibleWithin(Other));
+            Assert.False(Outer_Protected.IsAccessibleWithin(Derived, Outer));
+            Assert.True(Outer_ProtectedInternal.IsAccessibleWithin(Derived, Outer));
+            Assert.False(Outer_PrivateProtected.IsAccessibleWithin(Derived, Outer));
+            Assert.True(Outer_Protected.IsAccessibleWithin(Derived));
+            Assert.True(Outer_ProtectedInternal.IsAccessibleWithin(Derived));
+            Assert.True(Outer_PrivateProtected.IsAccessibleWithin(Derived));
+            Assert.False(Outer_Protected.IsAccessibleWithin(sourceAssem));
+            Assert.True(Outer_Protected.IsAccessibleWithin(Outer_Inner));
         }
 
         [Fact]

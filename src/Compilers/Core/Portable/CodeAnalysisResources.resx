@@ -615,4 +615,7 @@
   <data name="ExceptionEnablingMulticoreJit" xml:space="preserve">
     <value>Warning: Could not enable multicore JIT due to exception: {0}.</value>
   </data>
+  <data name="IsAccessibleBadWithin" xml:space="preserve">
+    <value>Parameter 'within' must be an 'INamedTypeSymbol' or an 'IAssemblySymbol'.</value>
+  </data>
 </root>

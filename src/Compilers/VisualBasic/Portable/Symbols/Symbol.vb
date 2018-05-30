@@ -1195,5 +1195,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Private Overloads Function IFormattable_ToString(format As String, formatProvider As IFormatProvider) As String Implements IFormattable.ToString
             Return ToString()
         End Function
+
+        ''' <summary>
+        ''' Method to prevent the use of <see cref="Microsoft.CodeAnalysis.ISymbolExtensions.IsAccessibleWithin"/> within the compiler.
+        ''' <see cref="Microsoft.CodeAnalysis.VisualBasic.AccessCheck"/> for the right helpers
+        ''' to use inside the compiler.
+        ''' </summary>
+        <Obsolete("Use Microsoft.CodeAnalysis.CSharp.AccessCheck helper methods instead", True)>
+        Friend Function IsAccessibleWithin(
+            within As ISymbol,
+            Optional throughTypeOpt As ITypeSymbol = Nothing) As Boolean
+            Throw ExceptionUtilities.Unreachable
+        End Function
     End Class
 End Namespace

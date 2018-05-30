@@ -467,6 +467,31 @@ Environment.ProcessorCount
         }
 
         [Fact]
+        public void CompilationChain_Accessibility()
+        {
+            // Submissions have internal and protected access to one another.
+            var state1 = CSharpScript.RunAsync("internal class C1 { }   protected int X;   1");
+            Assert.Equal(1, state1.Result.ReturnValue);
+            var submission0 = state1.Result.Script.GetCompilation().GlobalNamespace.GetMembers("Submission#0").Single() as INamedTypeSymbol;
+            var C1 = submission0.GetMembers("C1").Single() as INamedTypeSymbol;
+            var X = submission0.GetMembers("X").Single() as IFieldSymbol;
+
+            var state2 = state1.ContinueWith("internal class C2 { }   2");
+            Assert.Equal(2, state2.Result.ReturnValue);
+            var C2 = (state2.Result.Script.GetCompilation().GlobalNamespace.GetMembers("Submission#1").Single() as INamedTypeSymbol).GetMembers("C2").Single() as INamedTypeSymbol;
+
+            var state3 = state1.ContinueWith("private class C3 { }   3");
+            Assert.Equal(3, state3.Result.ReturnValue);
+            var C3 = (state3.Result.Script.GetCompilation().GlobalNamespace.GetMembers("Submission#2").Single() as INamedTypeSymbol).GetMembers("C3").Single() as INamedTypeSymbol;
+
+            Assert.NotEqual(C1.ContainingAssembly, C2.ContainingAssembly);
+            Assert.True(C1.IsAccessibleWithin(C2));
+            Assert.True(C2.IsAccessibleWithin(C1));
+            Assert.True(C3.IsAccessibleWithin(C1));
+            Assert.True(X.IsAccessibleWithin(C2));
+        }
+
+        [Fact]
         public void CompilationChain_SubmissionSlotResize()
         {
             var state = CSharpScript.RunAsync("");
