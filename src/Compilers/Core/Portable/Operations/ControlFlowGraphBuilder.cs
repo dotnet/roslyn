@@ -1123,10 +1123,10 @@ namespace Microsoft.CodeAnalysis.Operations
         {
 #if DEBUG
             Debug.Assert(spillingTheStack || _evalStack.All(
-                o => o.Kind == OperationKind.FlowCaptureReference 
-                || o.Kind == OperationKind.DeclarationExpression
-		|| o.Kind == OperationKind.Discard
-                || o.Kind == OperationKind.OmittedArgument));
+                o => o.Kind == OperationKind.FlowCaptureReference
+                    || o.Kind == OperationKind.DeclarationExpression
+                    || o.Kind == OperationKind.Discard
+                    || o.Kind == OperationKind.OmittedArgument));
 #endif
             if (statement == null)
             {
@@ -5298,7 +5298,7 @@ oneMoreTime:
             {
                 LeaveRegion();
             }
-    	}
+        }
 
         public override IOperation VisitEventAssignment(IEventAssignmentOperation operation, int? captureIdForResult)
         {
@@ -5385,12 +5385,12 @@ oneMoreTime:
             bool isDecrement = operation.Kind == OperationKind.Decrement;
             return new IncrementExpression(isDecrement, operation.IsPostfix, operation.IsLifted, operation.IsChecked, Visit(operation.Target), operation.OperatorMethod, 
                 semanticModel: null, operation.Syntax, operation.Type, operation.ConstantValue, IsImplicit(operation));
-	}
+        }
 
         public override IOperation VisitDiscardOperation(IDiscardOperation operation, int? captureIdForResult)
         {
             return new DiscardOperation(operation.DiscardSymbol, semanticModel: null, operation.Syntax, operation.Type, operation.ConstantValue, IsImplicit(operation));
-	}
+        }
 
         public override IOperation VisitOmittedArgument(IOmittedArgumentOperation operation, int? captureIdForResult)
         {
