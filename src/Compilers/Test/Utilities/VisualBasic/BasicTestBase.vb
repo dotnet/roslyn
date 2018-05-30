@@ -799,8 +799,13 @@ Public MustInherit Class BasicTestBase
 
         Dim fileName = "a.vb"
         Dim syntaxTree = Parse(source, fileName, parseOptions)
-        Dim defaultRefs = If(useLatestFrameworkReferences, LatestVbReferences, DefaultVbReferences)
-        Dim compilation = CreateCompilationWithMscorlib45AndVBRuntime({syntaxTree}, references:=defaultRefs.Append({ValueTupleRef, SystemRuntimeFacadeRef}), options:=If(compilationOptions, TestOptions.ReleaseDll))
+        Dim allReferences As IEnumerable(Of MetadataReference)
+        If useLatestFrameworkReferences Then
+            allReferences = TargetFrameworkUtil.Mscorlib45ExtendedReferences.Add(TestBase.MsvbRef_v4_0_30319_17929)
+        Else
+            allReferences = TargetFrameworkUtil.Mscorlib45ExtendedReferences.Add(TestBase.MsvbRef)
+        End If
+        Dim compilation = CreateEmptyCompilation({syntaxTree}, references:=allReferences, options:=If(compilationOptions, TestOptions.ReleaseDll))
         Dim operationTree = GetOperationTreeForTest(Of TSyntaxNode)(compilation, fileName, which)
         Return (operationTree.tree, operationTree.syntax, operationTree.operation, compilation)
     End Function
@@ -858,10 +863,15 @@ Public MustInherit Class BasicTestBase
 
         Dim fileName = "a.vb"
         Dim syntaxTree = Parse(source, fileName, parseOptions)
-        Dim defaultRefs = If(useLatestFramework, LatestVbReferences, DefaultVbReferences)
-        Dim allReferences = defaultRefs.Concat({ValueTupleRef, SystemRuntimeFacadeRef})
+        Dim allReferences As IEnumerable(Of MetadataReference) = Nothing
+        If useLatestFramework Then
+            allReferences = TargetFrameworkUtil.Mscorlib45ExtendedReferences.Add(TestBase.MsvbRef_v4_0_30319_17929)
+        Else
+            allReferences = TargetFrameworkUtil.Mscorlib45ExtendedReferences.Add(TestBase.MsvbRef)
+        End If
+
         allReferences = If(references IsNot Nothing, allReferences.Concat(references), allReferences)
-        Dim compilation = CreateCompilationWithMscorlib45AndVBRuntime({syntaxTree}, references:=allReferences, options:=If(compilationOptions, TestOptions.ReleaseDll))
+        Dim compilation = CreateEmptyCompilation({syntaxTree}, references:=allReferences, options:=If(compilationOptions, TestOptions.ReleaseDll))
         VerifyOperationTreeAndDiagnosticsForTest(Of TSyntaxNode)(compilation, fileName, expectedOperationTree, expectedDiagnostics, which, additionalOperationTreeVerifier)
     End Sub
 

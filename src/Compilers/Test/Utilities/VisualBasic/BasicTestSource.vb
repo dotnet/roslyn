@@ -33,7 +33,7 @@ Public Structure BasicTestSource
 
         Dim sources = TryCast(Value, String())
         If sources IsNot Nothing Then
-            Return source.Select(Function(s) VisualBasicSyntaxTree.ParseText(s, parseOptions)).ToArray()
+            Return sources.Select(Function(s) VisualBasicSyntaxTree.ParseText(s, parseOptions)).ToArray()
         End If
 
         Dim tree = TryCast(Value, SyntaxTree)

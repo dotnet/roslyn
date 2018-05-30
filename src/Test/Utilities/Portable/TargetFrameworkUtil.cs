@@ -67,8 +67,8 @@ namespace Roslyn.Test.Utilities
         public static ImmutableArray<MetadataReference> Mscorlib40andSystemCoreReferences => ImmutableArray.Create(TestBase.MscorlibRef, TestBase.SystemCoreRef);
         public static ImmutableArray<MetadataReference> Mscorlib40andVBRuntimeReferences => ImmutableArray.Create(TestBase.MscorlibRef, TestBase.SystemRef, TestBase.MsvbRef);
         public static ImmutableArray<MetadataReference> Mscorlib45References => ImmutableArray.Create(TestBase.MscorlibRef_v4_0_30316_17626);
-        public static ImmutableArray<MetadataReference> Mscorlib45ExtendedReferences => ImmutableArray.Create(TestBase.MscorlibRef_v4_0_30316_17626, TestBase.SystemRef, TestBase.SystemCoreRef, TestBase.ValueTupleRef, TestBase.SystemRuntimeFacadeRef);
-        public static ImmutableArray<MetadataReference> Mscorlib45AndCSharpReferences => ImmutableArray.Create(TestBase.MscorlibRef_v4_0_30316_17626, TestBase.SystemCoreRef, TestBase.CSharpRef);
+        public static ImmutableArray<MetadataReference> Mscorlib45ExtendedReferences => ImmutableArray.Create(TestBase.MscorlibRef_v4_0_30316_17626, TestBase.SystemRef, TestBase.SystemCoreRef_v4_0_30319_17929, TestBase.ValueTupleRef, TestBase.SystemRuntimeFacadeRef);
+        public static ImmutableArray<MetadataReference> Mscorlib45AndCSharpReferences => ImmutableArray.Create(TestBase.MscorlibRef_v4_0_30316_17626, TestBase.SystemCoreRef_v4_0_30319_17929, TestBase.CSharpRef);
         public static ImmutableArray<MetadataReference> Mscorlib45AndVBRuntimeReferences => ImmutableArray.Create(TestBase.MscorlibRef_v4_0_30316_17626, TestBase.SystemRef, TestBase.MsvbRef_v4_0_30319_17929);
         public static ImmutableArray<MetadataReference> Mscorlib46References => ImmutableArray.Create(TestBase.MscorlibRef_v46);
         public static ImmutableArray<MetadataReference> Mscorlib46ExtendedReferences => ImmutableArray.Create(TestBase.MscorlibRef_v46, TestBase.SystemRef_v46, TestBase.SystemCoreRef_v46, TestBase.ValueTupleRef, TestBase.SystemRuntimeFacadeRef);
