@@ -15,7 +15,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Progression
         Implements IProgressionLanguageService
 
         Public Iterator Function GetTopLevelNodesFromDocument(root As SyntaxNode, cancellationToken As CancellationToken) As IEnumerable(Of SyntaxNode) Implements IProgressionLanguageService.GetTopLevelNodesFromDocument
-            If cancellationToken.IsCancellationRequested Then Exit Function
+            If cancellationToken.IsCancellationRequested Then Return
             Dim nodes = New Stack(Of SyntaxNode)()
             nodes.Push(root)
 
