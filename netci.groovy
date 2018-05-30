@@ -229,7 +229,7 @@ commitPullList.each { isPr ->
 
       def triggerPhraseOnly = false
       def triggerPhraseExtra = ""
-      Utilities.setMachineAffinity(myJob, 'Windows.10.Amd64.ClientRS3.DevEx.Open')
+      Utilities.setMachineAffinity(myJob, 'Windows.10.Amd64.ClientRS4.DevEx.Open')
       Utilities.addXUnitDotNETResults(myJob, '**/xUnitResults/*.xml')
       addRoslynJob(myJob, jobName, branchName, isPr, triggerPhraseExtra, triggerPhraseOnly)
     }

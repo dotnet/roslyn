@@ -672,7 +672,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// even though l is a local, we must access it via a temp since "goo(ref l)" may change it
         /// on between accesses.
         ///
-        /// Note: In `this.x++`, `this` cannot change between reads. But in `(this, ...) == (..., this.Mutate())` it can.
+        /// Note: In <c>this.x++</c>, <c>this</c> cannot change between reads. But in <c>(this, ...) == (..., this.Mutate())</c> it can.
         /// </summary>
         internal static bool CanChangeValueBetweenReads(
             BoundExpression expression,

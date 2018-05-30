@@ -150,7 +150,7 @@ namespace Microsoft.CodeAnalysis.MakeFieldReadonly
                     var isInAnonymousOrLocalFunction = false;
                     for (var current = descendant.Parent; current != ctorNode; current = current.Parent)
                     {
-                        if (syntaxFactsService.IsAnonymousFunction(current) || syntaxFactsService.IsLocalFunction(current))
+                        if (syntaxFactsService.IsAnonymousOrLocalFunctionStatement(current))
                         {
                             isInAnonymousOrLocalFunction = true;
                             break;

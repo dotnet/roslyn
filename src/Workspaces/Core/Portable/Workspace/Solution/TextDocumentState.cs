@@ -298,7 +298,7 @@ namespace Microsoft.CodeAnalysis
             return textAndVersion.Text;
         }
 
-        public VersionStamp GetVersionSynchronously(CancellationToken cancellationToken)
+        public VersionStamp GetTextVersionSynchronously(CancellationToken cancellationToken)
         {
             var textAndVersion = this.textAndVersionSource.GetValue(cancellationToken);
             return textAndVersion.Version;
