@@ -2347,5 +2347,24 @@ class C
     }
 }", new TestParameters(options: ImplicitTypeEverywhere()));
         }
+
+        [Fact, WorkItem(26923, "https://github.com/dotnet/roslyn/issues/26923")]
+        public async Task NoSuggestionOnForeachCollectionExpression()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"using System;
+using System.Collections.Generic;
+
+class C
+{
+    static void Main(string[] args)
+    {
+        foreach (string arg in [|args|])
+        {
+
+        }
+    }
+}", new TestParameters(options: ImplicitTypeEverywhere()));
+        }
     }
 }
