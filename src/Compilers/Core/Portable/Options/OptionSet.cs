@@ -47,7 +47,5 @@ namespace Microsoft.CodeAnalysis.Options
         {
             return WithChangedOption(new OptionKey(option, language), value);
         }
-
-        internal abstract IEnumerable<OptionKey> GetChangedOptions(OptionSet optionSet);
     }
 }
