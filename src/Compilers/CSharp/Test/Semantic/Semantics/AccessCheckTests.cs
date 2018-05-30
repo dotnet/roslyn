@@ -649,24 +649,19 @@ public class A
 }", new List<MetadataReference>() { new CSharpCompilationReference(other) });
 
             c.VerifyDiagnostics(
-                // (6,19): error CS0281: Friend access was granted by 'Paul, Version=0.0.0.0,
-                // Culture=neutral, PublicKeyToken=null', but the public key of the output assembly ('') does not match that 
-                // specified by the InternalsVisibleTo attribute in the granting assembly.
+                // (6,19): error CS0281: Friend access was granted by 'Paul, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null', but the public key of the output assembly ('') does not match that specified by the InternalsVisibleTo attribute in the granting assembly.
                 //         int b = C.c_int;
-                Diagnostic(ErrorCode.ERR_FriendRefNotEqualToThis, "c_int")
-                .WithArguments("Paul, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null", "")
-                .WithLocation(6, 19),
+                Diagnostic(ErrorCode.ERR_FriendRefNotEqualToThis, "c_int").WithArguments("Paul, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null", "").WithLocation(6, 19),
                 // (7,19): error CS0122: 'C.c_pro' is inaccessible due to its protection level
                 //         int c = C.c_pro;
                 Diagnostic(ErrorCode.ERR_BadAccess, "c_pro").WithArguments("C.c_pro").WithLocation(7, 19),
-                // (8,19): error CS0122: 'C.c_intpro' is inaccessible due to its protection level
+                // (8,19): error CS0281: Friend access was granted by 'Paul, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null', but the public key of the output assembly ('') does not match that specified by the InternalsVisibleTo attribute in the granting assembly.
                 //         int d = C.c_intpro;
-                Diagnostic(ErrorCode.ERR_BadAccess, "c_intpro").WithArguments("C.c_intpro").WithLocation(8, 19),
+                Diagnostic(ErrorCode.ERR_FriendRefNotEqualToThis, "c_intpro").WithArguments("Paul, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null", "").WithLocation(8, 19),
                 // (9,19): error CS0122: 'C.c_priv' is inaccessible due to its protection level
                 //         int e = C.c_priv;
                 Diagnostic(ErrorCode.ERR_BadAccess, "c_priv").WithArguments("C.c_priv").WithLocation(9, 19),
-                // (10,17): error CS0281: Friend access was granted by 'Paul, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null',
-                //but the public key of the output assembly ('') does not match that specified by the InternalsVisibleTo attribute in the granting assembly.
+                // (10,17): error CS0281: Friend access was granted by 'Paul, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null', but the public key of the output assembly ('') does not match that specified by the InternalsVisibleTo attribute in the granting assembly.
                 //         int f = D.d_pub;
                 Diagnostic(ErrorCode.ERR_FriendRefNotEqualToThis, "D").WithArguments("Paul, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null", "").WithLocation(10, 17)
                 );
@@ -882,9 +877,10 @@ public class A
                 referencedCompilations: new[] { assembly1Compilation });
 
             assembly2Compilation.VerifyDiagnostics(
-                // (7,35): error CS0122: 'InstancePropertyContainer.PropIntProProSet' is inaccessible due to its protection level
-                //         PropIntProProSet
-                Diagnostic(ErrorCode.ERR_BadAccess, "PropIntProProSet").WithArguments("InstancePropertyContainer.PropIntProProSet"));
+                // (7,35): error CS0281: Friend access was granted by 'Assembly1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null', but the public key of the output assembly ('') does not match that specified by the InternalsVisibleTo attribute in the granting assembly.
+                //         InstancePropertyContainer.PropIntProProSet = 12;
+                Diagnostic(ErrorCode.ERR_FriendRefNotEqualToThis, "PropIntProProSet").WithArguments("Assembly1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null", "").WithLocation(7, 35)
+                );
         }
 
         [WorkItem(546209, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546209")]

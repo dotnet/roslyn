@@ -1628,9 +1628,10 @@ class C : PublicClass.ProtectedInternalClass
 
             var compilation2 = CreateCompilation(source2, new[] { new CSharpCompilationReference(compilation1) }, assemblyName: "Two");
             compilation2.VerifyDiagnostics(
-                // (2,23): error CS0122: 'PublicClass.ProtectedInternalClass' is inaccessible due to its protection level
+                // (2,23): error CS0281: Friend access was granted by 'One, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null', but the public key of the output assembly ('') does not match that specified by the InternalsVisibleTo attribute in the granting assembly.
                 // class C : PublicClass.ProtectedInternalClass
-                Diagnostic(ErrorCode.ERR_BadAccess, "ProtectedInternalClass").WithArguments("PublicClass.ProtectedInternalClass"));
+                Diagnostic(ErrorCode.ERR_FriendRefNotEqualToThis, "ProtectedInternalClass").WithArguments("One, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null", "").WithLocation(2, 23)
+                );
         }
 
         [WorkItem(545365, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545365")]
@@ -1642,7 +1643,7 @@ class C : PublicClass.ProtectedInternalClass
             var il = @"
 .assembly extern mscorlib { .ver 4:0:0:0 .publickeytoken = (B7 7A 5C 56 19 34 E0 89) } 
 
-.assembly '<<GeneratedFileName>>'
+.assembly 'Paul'
 {
   .custom instance void [mscorlib]System.Runtime.CompilerServices.InternalsVisibleToAttribute::.ctor(string)
            = {string('Test')}
@@ -1681,9 +1682,10 @@ class C : PublicClass.ProtectedAndInternalClass
 }
 ";
             CreateCompilationWithILAndMscorlib40(csharp, il, appendDefaultHeader: false).VerifyDiagnostics(
-                // (2,23): error CS0122: 'PublicClass.ProtectedAndInternalClass' is inaccessible due to its protection level
+                // (2,23): error CS0281: Friend access was granted by 'Paul, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null', but the public key of the output assembly ('') does not match that specified by the InternalsVisibleTo attribute in the granting assembly.
                 // class C : PublicClass.ProtectedAndInternalClass
-                Diagnostic(ErrorCode.ERR_BadAccess, "ProtectedAndInternalClass").WithArguments("PublicClass.ProtectedAndInternalClass"));
+                Diagnostic(ErrorCode.ERR_FriendRefNotEqualToThis, "ProtectedAndInternalClass").WithArguments("Paul, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null", "").WithLocation(2, 23)
+                );
         }
 
         [WorkItem(530144, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530144")]
