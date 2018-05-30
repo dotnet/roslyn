@@ -358,7 +358,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
                 node.Kind() == SyntaxKind.FinallyClause ||
                 node.Kind() == SyntaxKind.LabeledStatement ||
                 node.Kind() == SyntaxKind.LockStatement ||
-                node.Kind() == SyntaxKind.FixedStatement;
+                node.Kind() == SyntaxKind.FixedStatement ||
+                node.Kind() == SyntaxKind.GetAccessorDeclaration ||
+                node.Kind() == SyntaxKind.SetAccessorDeclaration ||
+                node.Kind() == SyntaxKind.AddAccessorDeclaration ||
+                node.Kind() == SyntaxKind.RemoveAccessorDeclaration;
         }
 
         private static SyntaxNode GetTopContainingNode(SyntaxNode node)
