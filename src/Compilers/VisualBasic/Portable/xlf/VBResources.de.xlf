@@ -8534,7 +8534,7 @@
                                   Gibt eine Zuordnung für die Ausgabe der Quellpfadnamen durch
                                   den Compiler an.
 /platform:&lt;Zeichenfolge&gt;                Schränkt die Plattformen ein, auf denen dieser Code ausgeführt werden kann; 
-                                  gültige Werte sind x86, x64, Itanium, arm,
+                                  gültige Werte sind x86, x64, Itanium, arm, arm64,
                                   AnyCPU32BitPreferred oder anycpu (Standard).
 /preferreduilang                  Gibt den Namen der bevorzugten Ausgabesprache an.
 /sdkpath:&lt;Pfad&gt;                   Der Speicherort des .NET Framework SDK-Verzeichnisses
