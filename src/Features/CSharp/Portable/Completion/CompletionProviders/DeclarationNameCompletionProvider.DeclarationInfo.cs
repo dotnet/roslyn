@@ -45,7 +45,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 var semanticModel = await document.GetSemanticModelForSpanAsync(new Text.TextSpan(token.SpanStart, 0), cancellationToken).ConfigureAwait(false);
                 var typeInferenceService = document.GetLanguageService<ITypeInferenceService>();
 
-                if (IsParameterDeclaration(token, semanticModel, position, cancellationToken, out var result)
+                if (IsTupleTypeElement(token, semanticModel, position, cancellationToken, out var result)
+                    || IsParameterDeclaration(token, semanticModel, position, cancellationToken, out result)
                     || IsTypeParameterDeclaration(token, semanticModel, position, cancellationToken, out result)
                     || IsVariableDeclaration(token, semanticModel, position, cancellationToken, out result)
                     || IsForEachVariableDeclaration(token, semanticModel, position, cancellationToken, out result)
@@ -54,6 +55,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                     || IsMethodDeclaration(token, semanticModel, position, cancellationToken, out result)
                     || IsPropertyDeclaration(token, semanticModel, position, cancellationToken, out result)
                     || IsPossibleOutVariableDeclaration(token, semanticModel, position, typeInferenceService, cancellationToken, out result)
+                    || IsTupleLiteralElement(token, semanticModel, position, cancellationToken, out result)
                     || IsPossibleVariableOrLocalMethodDeclaration(token, semanticModel, position, cancellationToken, out result)
                     || IsPatternMatching(token, semanticModel, position, cancellationToken, out result))
                 {
@@ -61,6 +63,45 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 }
 
                 return default;
+            }
+
+            private static bool IsTupleTypeElement(
+                SyntaxToken token, SemanticModel semanticModel, int position,
+                CancellationToken cancellationToken, out NameDeclarationInfo result)
+            {
+                result = IsFollowingTypeOrComma<TupleElementSyntax>(
+                    token,
+                    semanticModel,
+                    tupleElement => tupleElement.Type,
+                    _ => default(SyntaxTokenList),
+                    _ => ImmutableArray.Create(SymbolKind.Local), cancellationToken);
+
+                return result.Type != null;
+            }
+
+            private static bool IsTupleLiteralElement(
+                SyntaxToken token, SemanticModel semanticModel, int position,
+                CancellationToken cancellationToken, out NameDeclarationInfo result)
+            {
+                // Incomplete code like
+                // void Do()
+                // {
+                //    (System.Array array, System.Action $$ 
+                // gets parsed as a tuple expression. We can figure out the type in such cases.
+                // For a legit tuple expression we can't provide any completion.
+                if (token.GetAncestor(node => node.IsKind(SyntaxKind.TupleExpression)) != null)
+                {
+                    result = IsFollowingTypeOrComma<ArgumentSyntax>(
+                        token,
+                        semanticModel,
+                        GetNodeDenotingTheTypeOfTupleArgument,
+                        _ => default(SyntaxTokenList),
+                        _ => ImmutableArray.Create(SymbolKind.Local), cancellationToken);
+                    return result.Type != null;
+                }
+
+                result = default;
+                return false;
             }
 
             private static bool IsPossibleOutVariableDeclaration(SyntaxToken token, SemanticModel semanticModel, int position,
@@ -441,6 +482,22 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 }
 
                 return Accessibility.NotApplicable;
+            }
+
+            private static SyntaxNode GetNodeDenotingTheTypeOfTupleArgument(ArgumentSyntax argumentSyntax)
+            {
+                switch (argumentSyntax.Expression?.Kind())
+                {
+                    case SyntaxKind.DeclarationExpression:
+                        // The parser found a declaration as in (System.Action action, System.Array a$$)
+                        // we need the type part of the declaration expression.
+                        return ((DeclarationExpressionSyntax)argumentSyntax.Expression).Type;
+                    default:
+                        // We assume the parser found something that represents something named,
+                        // e.g. a MemberAccessExpression as in (System.Action action, System.Array $$)
+                        // We also assume that this name could be resolved to a type.
+                        return argumentSyntax.Expression;
+                }
             }
         }
     }

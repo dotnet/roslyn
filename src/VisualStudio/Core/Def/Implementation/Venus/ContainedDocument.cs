@@ -791,7 +791,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
                 return;
             }
 
-            var originalText = document.GetTextAsync(CancellationToken.None).WaitAndGetResult(CancellationToken.None);
+            var originalText = document.GetTextSynchronously(CancellationToken.None);
             Contract.Requires(object.ReferenceEquals(originalText, snapshot.AsText()));
 
             var root = document.GetSyntaxRootSynchronously(CancellationToken.None);
@@ -845,7 +845,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
                     workspace, options, formattingRules, CancellationToken.None);
 
                 visibleSpans.Add(visibleSpan);
-                var newChanges = FilterTextChanges(document.GetTextAsync(CancellationToken.None).WaitAndGetResult(CancellationToken.None), visibleSpans, changes.ToReadOnlyCollection()).Where(t => visibleSpan.Contains(t.Span));
+                var newChanges = FilterTextChanges(document.GetTextSynchronously(CancellationToken.None), visibleSpans, changes.ToReadOnlyCollection()).Where(t => visibleSpan.Contains(t.Span));
 
                 foreach (var change in newChanges)
                 {

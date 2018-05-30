@@ -1802,5 +1802,25 @@ class Program
     }
 }", new TestParameters(options: ExplicitTypeForBuiltInTypesOnly()));
         }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExplicitType)]
+        [WorkItem(26923, "https://github.com/dotnet/roslyn/issues/26923")]
+        public async Task NoSuggestionOnForeachCollectionExpression()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"using System;
+using System.Collections.Generic;
+
+class Program
+{
+    void Method(List<int> var)
+    {
+        foreach (int value in [|var|])
+        {
+            Console.WriteLine(value.Value);
+        }
+    }
+}", new TestParameters(options: ExplicitTypeEverywhere()));
+        }
     }
 }
