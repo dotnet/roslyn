@@ -198,11 +198,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 node is AnonymousMethodExpressionSyntax;
         }
 
-        public bool IsLocalFunction(SyntaxNode node)
-        {
-            return node is LocalFunctionStatementSyntax;
-        }
-
         public bool IsGenericName(SyntaxNode node)
             => node is GenericNameSyntax;
 
@@ -1048,6 +1043,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             AppendMethodLevelMembers(root, list);
             return list;
         }
+
+        public SyntaxList<SyntaxNode> GetMembersOfTypeDeclaration(SyntaxNode typeDeclaration)
+            => ((TypeDeclarationSyntax)typeDeclaration).Members;
 
         private void AppendMethodLevelMembers(SyntaxNode node, List<SyntaxNode> list)
         {

@@ -2,9 +2,10 @@
 
 Imports Microsoft.CodeAnalysis.CodeFixes
 Imports Microsoft.CodeAnalysis.Diagnostics
-Imports Microsoft.CodeAnalysis.Editor.VisualBasic.UseAutoProperty
+Imports Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics
+Imports Microsoft.CodeAnalysis.VisualBasic.UseAutoProperty
 
-Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics.UseAutoProperty
+Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.UseAutoProperty
     Public Class UseAutoPropertyTests
         Inherits AbstractVisualBasicDiagnosticProviderBasedUserDiagnosticTest
 
@@ -506,6 +507,7 @@ end class")
         get
             return i
         end get
+    end property
  public sub new(dim P as integer)
         i = 1
     end sub
@@ -678,6 +680,23 @@ end class")
             i = value
         end set
     end property
+end class")
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseAutoProperty)>
+        Public Async Function TestLeadingBlankLinesRemoved() As Task
+            Await TestInRegularAndScriptAsync(
+"class Class1
+    [|dim i as integer|]
+
+    readonly property P as integer
+        get
+            return i
+        end get
+    end property
+end class",
+"class Class1
+    readonly property P as integer
 end class")
         End Function
     End Class
