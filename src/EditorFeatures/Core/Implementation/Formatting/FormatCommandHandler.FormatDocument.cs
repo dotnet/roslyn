@@ -47,8 +47,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Formatting
                                }),
                 new InfoBarUI(EditorFeaturesResources.Donot_show_this_message_again,
                               kind: InfoBarUI.UIKind.Button,
-                              ()=> { }));
+                              () => {}));
         }
+
         public bool ExecuteCommand(FormatDocumentCommandArgs args, CommandExecutionContext context)
         {
             if (!args.SubjectBuffer.CanApplyChangeDocumentToWorkspace())
@@ -64,6 +65,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Formatting
 
             return ExecuteCommandAsync(document, args.TextView, context).Result;
         }
+
         private async Task<bool> ExecuteCommandAsync(Document document, ITextView textView, CommandExecutionContext context)
         {
             var docOptions = await document.GetOptionsAsync(context.WaitContext.UserCancellationToken).ConfigureAwait(false);
@@ -71,7 +73,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Formatting
             if (!docOptions.GetOption(FeatureOnOffOptions.IsCodeCleanupRulesConfigured))
             {
                 ShowGoldBarForCodeCleanupConfiguration(document.Project.Solution.Workspace);
-                await Format(textView, document, null, context.WaitContext.UserCancellationToken).ConfigureAwait(false);
+                await Format(textView, document, selectionOpt: null, context.WaitContext.UserCancellationToken).ConfigureAwait(false);
             }
             else
             {
@@ -89,15 +91,15 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Formatting
                             return false;
                         }
 
-                        await Format(textView, document, null, cancellationToken).ConfigureAwait(false);
+                        await Format(textView, document, selectionOpt: null, cancellationToken).ConfigureAwait(false);
 
                         var oldDoc = document;
-                        var newDoc = _codeCleanupService.CleanupDocument(document, cancellationToken).Result;
+                        var newDoc = await _codeCleanupService.CleanupDocument(document, cancellationToken).ConfigureAwait(false);
 
-                        var codeFixChanges = newDoc.GetTextChangesAsync(oldDoc, cancellationToken).Result.ToList();
-                        if (codeFixChanges.Count > 0)
+                        var codeFixChanges = await newDoc.GetTextChangesAsync(oldDoc, cancellationToken).ConfigureAwait(false);
+                        if (codeFixChanges.Count() > 0)
                         {
-                            ApplyChanges(oldDoc, codeFixChanges, selectionOpt: null, cancellationToken);
+                            ApplyChanges(oldDoc, codeFixChanges.ToList(), selectionOpt: null, cancellationToken);
                         }
 
                         transaction.Complete();

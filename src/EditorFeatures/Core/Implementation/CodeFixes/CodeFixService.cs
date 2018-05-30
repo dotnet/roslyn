@@ -224,7 +224,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
 
             // TODO: Just get the first fix for now until we have a way to config user's preferred fix
             // https://github.com/dotnet/roslyn/issues/27066
-            return fixesCollectionArray.IsEmpty? null : fixesCollectionArray.First();
+            return fixesCollectionArray.FirstOrDefault();
         }
 
         private async Task AppendFixesAsync(

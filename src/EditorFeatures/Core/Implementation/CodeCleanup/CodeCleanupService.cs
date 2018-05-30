@@ -154,7 +154,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CodeCleanup
                 }
 
                 var fixAll = fixCollection.FixAllState;
-                var solution = await fixAllService.GetFixAllChangedSolutionAsync(fixAll.CreateFixAllContext(dummy, cancellationToken)).ConfigureAwait(false);
+                var solution = await fixAllService.GetFixAllChangedSolutionAsync(
+                    fixAll.CreateFixAllContext(dummy, cancellationToken)).ConfigureAwait(false);
+
                 document = solution.GetDocument(document.Id);
             }
 
