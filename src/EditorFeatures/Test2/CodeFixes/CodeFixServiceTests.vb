@@ -4,7 +4,6 @@ Imports System.Collections.Immutable
 Imports System.Composition
 Imports System.Reflection
 Imports System.Threading
-Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis.CodeActions
 Imports Microsoft.CodeAnalysis.CodeFixes
 Imports Microsoft.CodeAnalysis.CodeFixes.Suppression
@@ -44,7 +43,7 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.CodeFixes.UnitTests
                 Dim diagnosticService = New TestDiagnosticAnalyzerService(LanguageNames.CSharp, workspaceDiagnosticAnalyzer)
                 Dim analyzer = diagnosticService.CreateIncrementalAnalyzer(workspace)
                 Dim logger = SpecializedCollections.SingletonEnumerable(New Lazy(Of IErrorLoggerService)(Function() workspace.Services.GetService(Of IErrorLoggerService)))
-                Dim codefixService = New CodeFixService(
+                Dim codefixService = New CodeAnalysis.CodeFixes.CodeFixService(
                                         diagnosticService,
                                         logger,
                                         {New Lazy(Of CodeFixProvider, Mef.CodeChangeProviderMetadata)(
@@ -107,7 +106,7 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.CodeFixes.UnitTests
                 Dim diagnosticService = New TestDiagnosticAnalyzerService(LanguageNames.VisualBasic, workspaceDiagnosticAnalyzer)
                 Dim analyzer = diagnosticService.CreateIncrementalAnalyzer(workspace)
                 Dim logger = SpecializedCollections.SingletonEnumerable(New Lazy(Of IErrorLoggerService)(Function() workspace.Services.GetService(Of IErrorLoggerService)))
-                Dim codefixService = New CodeFixService(
+                Dim codefixService = New CodeAnalysis.CodeFixes.CodeFixService(
                                         diagnosticService,
                                         logger,
                                         {New Lazy(Of CodeFixProvider, Mef.CodeChangeProviderMetadata)(
