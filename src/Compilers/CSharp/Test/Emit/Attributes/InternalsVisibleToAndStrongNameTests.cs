@@ -1030,12 +1030,19 @@ public class A
 public class A
 {
 }",
-              new MetadataReference[] { new CSharpCompilationReference(other) },
-              assemblyName: "John",
-              options: TestOptions.ReleaseDll.WithStrongNameProvider(s_defaultDesktopProvider));
+            new MetadataReference[] { new CSharpCompilationReference(other) },
+            assemblyName: "John",
+             options: TestOptions.ReleaseDll.WithStrongNameProvider(s_defaultDesktopProvider));
 
             Assert.True(ByteSequenceComparer.Equals(s_publicKey, requestor.Assembly.Identity.PublicKey));
-            requestor.VerifyDiagnostics(Diagnostic(ErrorCode.ERR_FriendRefNotEqualToThis, arguments: new object[] { "Paul, Version=0.0.0.0, Culture=neutral, PublicKeyToken=ce65828c82a341f2" }));
+            requestor.VerifyDiagnostics(
+                // error CS0281: Friend access was granted by 'Paul, Version=0.0.0.0, Culture=neutral, PublicKeyToken=ce65828c82a341f2',
+                // but the public key of the output assembly ('John, Version=0.0.0.0, Culture=neutral, PublicKeyToken=ce65828c82a341f2')
+                // does not match that specified by the InternalsVisibleTo attribute in the granting assembly.
+                Diagnostic(ErrorCode.ERR_FriendRefNotEqualToThis)
+                .WithArguments("Paul, Version=0.0.0.0, Culture=neutral, PublicKeyToken=ce65828c82a341f2", "John, Version=0.0.0.0, Culture=neutral, PublicKeyToken=ce65828c82a341f2")
+                .WithLocation(1, 1)
+                );
         }
 
         [Fact]
@@ -1091,7 +1098,14 @@ public class A
                 assemblyName: "John");
 
             Assert.False(((IAssemblySymbol)other.Assembly).GivesAccessTo(requestor.Assembly));
-            requestor.VerifyDiagnostics(Diagnostic(ErrorCode.ERR_FriendRefNotEqualToThis, arguments: new object[] { "Paul, Version=0.0.0.0, Culture=neutral, PublicKeyToken=ce65828c82a341f2" }));
+            requestor.VerifyDiagnostics(
+                // error CS0281: Friend access was granted by 'Paul, Version=0.0.0.0, Culture=neutral, PublicKeyToken=ce65828c82a341f2',
+                // but the public key of the output assembly ('John, Version=0.0.0.0, Culture=neutral, PublicKeyToken=ce65828c82a341f2')
+                // does not match that specified by the InternalsVisibleTo attribute in the granting assembly.
+                Diagnostic(ErrorCode.ERR_FriendRefNotEqualToThis)
+                .WithArguments("Paul, Version=0.0.0.0, Culture=neutral, PublicKeyToken=ce65828c82a341f2", "John, Version=0.0.0.0, Culture=neutral, PublicKeyToken=ce65828c82a341f2")
+                .WithLocation(1, 1)
+                );
         }
 
         [WorkItem(820450, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/820450")]
