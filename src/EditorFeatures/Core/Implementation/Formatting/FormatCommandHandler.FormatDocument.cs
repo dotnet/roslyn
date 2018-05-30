@@ -48,7 +48,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Formatting
                                }),
                 new InfoBarUI(EditorFeaturesResources.Donot_show_this_message_again,
                               kind: InfoBarUI.UIKind.Button,
-                              () => {}));
+                              () => { }));
         }
 
         public bool ExecuteCommand(FormatDocumentCommandArgs args, CommandExecutionContext context)
@@ -69,31 +69,24 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Formatting
 
         private async Task<bool> ExecuteCommandAsync(Document document, ITextView textView, CommandExecutionContext context)
         {
-            var docOptions = await document.GetOptionsAsync(context.WaitContext.UserCancellationToken).ConfigureAwait(false);
-
-            if (!docOptions.GetOption(FeatureOnOffOptions.IsCodeCleanupRulesConfigured))
+            using (context.WaitContext.AddScope(allowCancellation: true, EditorFeaturesResources.Formatting_document))
             {
-                ShowGoldBarForCodeCleanupConfiguration(document.Project.Solution.Workspace);
-                await Format(textView, document, selectionOpt: null, context.WaitContext.UserCancellationToken).ConfigureAwait(false);
-            }
-            else
-            {
+                var cancellationToken = context.WaitContext.UserCancellationToken;
 
-                using (context.WaitContext.AddScope(allowCancellation: true, EditorFeaturesResources.Formatting_document))
+                var docOptions = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
+
+                using (var transaction = new CaretPreservingEditTransaction(
+                    EditorFeaturesResources.Formatting, textView, _undoHistoryRegistry, _editorOperationsFactoryService))
                 {
-                    var cancellationToken = context.WaitContext.UserCancellationToken;
+                    await Format(textView, document, selectionOpt: null, cancellationToken).ConfigureAwait(false);
 
-                    using (var transaction = new CaretPreservingEditTransaction(
-                        EditorFeaturesResources.Formatting, textView, _undoHistoryRegistry, _editorOperationsFactoryService))
+                    // Code cleanup
+                    if (!docOptions.GetOption(FeatureOnOffOptions.IsCodeCleanupRulesConfigured))
                     {
-                        var formattingService = document.GetLanguageService<IEditorFormattingService>();
-                        if (formattingService == null || !formattingService.SupportsFormatDocument)
-                        {
-                            return false;
-                        }
-
-                        await Format(textView, document, selectionOpt: null, cancellationToken).ConfigureAwait(false);
-
+                        ShowGoldBarForCodeCleanupConfiguration(document.Project.Solution.Workspace);
+                    }
+                    else
+                    {
                         var codeCleanupService = document.GetLanguageService<ICodeCleanupService>();
                         if (codeCleanupService == null)
                         {
@@ -108,9 +101,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Formatting
                         {
                             ApplyChanges(oldDoc, codeFixChanges.ToList(), selectionOpt: null, cancellationToken);
                         }
-
-                        transaction.Complete();
                     }
+
+                    transaction.Complete();
                 }
             }
 
