@@ -866,21 +866,22 @@ public class Test
 }";
             var other = CreateCompilation(cs0281, references: new[] { friendClass.EmitToImageReference() }, assemblyName: "cs0281", options: TestOptions.ReleaseDll.WithStrongNameProvider(s_defaultDesktopProvider));
             other.VerifyDiagnostics(
-                      // (7,15): error CS0281: Friend access was granted by 'Paul, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null', but the public key of the output assembly ('') does not match that specified by the InternalsVisibleTo attribute in the granting assembly.
-                      // 		PublicClass.InternalMethod();
-                       Diagnostic(ErrorCode.ERR_FriendRefNotEqualToThis, "InternalMethod").WithArguments("Paul, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null", "").WithLocation(7, 15),
-                      // (8,21): error CS0122: 'PublicClass.ProtectedMethod()' is inaccessible due to its protection level
-                      //         PublicClass.ProtectedMethod();
-                      Diagnostic(ErrorCode.ERR_BadAccess, "ProtectedMethod").WithArguments("PublicClass.ProtectedMethod()").WithLocation(8, 21),
-                      // (9,21): error CS0117: 'PublicClass' does not contain a definition for 'PrivateMethod'
-                      //         PublicClass.PrivateMethod();
-                      Diagnostic(ErrorCode.ERR_NoSuchMember, "PrivateMethod").WithArguments("PublicClass", "PrivateMethod").WithLocation(9, 21),
-                      // (10,21): error CS0122: 'PublicClass.InternalProtectedMethod()' is inaccessible due to its protection level
-                      //         PublicClass.InternalProtectedMethod();
-                      Diagnostic(ErrorCode.ERR_BadAccess, "InternalProtectedMethod").WithArguments("PublicClass.InternalProtectedMethod()").WithLocation(10, 21),
-                      // (11,21): error CS0122: 'PublicClass.PrivateProtectedMethod()' is inaccessible due to its protection level
-                      //         PublicClass.PrivateProtectedMethod();
-                      Diagnostic(ErrorCode.ERR_BadAccess, "PrivateProtectedMethod").WithArguments("PublicClass.PrivateProtectedMethod()").WithLocation(11, 21)                     );
+                    // (7,15): error CS0281: Friend access was granted by 'Paul, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null', but the public key of the output assembly ('') does not match that specified by the InternalsVisibleTo attribute in the granting assembly.
+                    // 		PublicClass.InternalMethod();
+                    Diagnostic(ErrorCode.ERR_FriendRefNotEqualToThis, "InternalMethod").WithArguments("Paul, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null", "").WithLocation(7, 15),
+                    // (8,21): error CS0122: 'PublicClass.ProtectedMethod()' is inaccessible due to its protection level
+                    //         PublicClass.ProtectedMethod();
+                    Diagnostic(ErrorCode.ERR_BadAccess, "ProtectedMethod").WithArguments("PublicClass.ProtectedMethod()").WithLocation(8, 21),
+                    // (9,21): error CS0117: 'PublicClass' does not contain a definition for 'PrivateMethod'
+                    //         PublicClass.PrivateMethod();
+                    Diagnostic(ErrorCode.ERR_NoSuchMember, "PrivateMethod").WithArguments("PublicClass", "PrivateMethod").WithLocation(9, 21),
+                    // (10,21): error CS0281: Friend access was granted by 'Paul, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null', but the public key of the output assembly ('') does not match that specified by the InternalsVisibleTo attribute in the granting assembly.
+                    //         PublicClass.InternalProtectedMethod();
+                    Diagnostic(ErrorCode.ERR_FriendRefNotEqualToThis, "InternalProtectedMethod").WithArguments("Paul, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null", "").WithLocation(10, 21),
+                    // (11,21): error CS0281: Friend access was granted by 'Paul, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null', but the public key of the output assembly ('') does not match that specified by the InternalsVisibleTo attribute in the granting assembly.
+                    //         PublicClass.PrivateProtectedMethod();
+                    Diagnostic(ErrorCode.ERR_FriendRefNotEqualToThis, "PrivateProtectedMethod").WithArguments("Paul, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null", "").WithLocation(11, 21)
+                    );
         }
 
         [Fact]
