@@ -327,43 +327,43 @@ namespace Microsoft.CodeAnalysis
                     if (key.StartsWith(DiagnosticOptionPrefix, StringComparison.Ordinal) &&
                         key.EndsWith(DiagnosticOptionSuffix, StringComparison.Ordinal))
                     {
-                        string diagId = key.Substring(DiagnosticOptionPrefix.Length);
-                        diagId = diagId.Substring(0, diagId.Length - DiagnosticOptionSuffix.Length);
+                        var diagId = key.Substring(
+                            DiagnosticOptionPrefix.Length,
+                            key.Length - (DiagnosticOptionPrefix.Length + DiagnosticOptionSuffix.Length));
 
-                        ReportDiagnostic? severity = null;
-                        switch (CaseInsensitiveComparison.ToLower(value))
+                        ReportDiagnostic? severity;
+                        if (CaseInsensitiveComparison.Equals(value, "default"))
                         {
-                            case "default":
-                                severity = ReportDiagnostic.Default;
-                                break;
-
-                            case "error":
-                                severity = ReportDiagnostic.Error;
-                                break;
-
-                            case "warn":
-                                severity = ReportDiagnostic.Warn;
-                                break;
-
-                            case "info":
-                                severity = ReportDiagnostic.Info;
-                                break;
-
-                            case "hidden":
-                                severity = ReportDiagnostic.Hidden;
-                                break;
-
-                            case "suppress":
-                                severity = ReportDiagnostic.Suppress;
-                                break;
-
-                            default:
-                                diagnostics.Add(Diagnostic.Create(
-                                    messageProvider,
-                                    messageProvider.WRN_InvalidSeverityInAnalyzerConfig,
-                                    diagId,
-                                    value));
-                                break;
+                            severity = ReportDiagnostic.Default;
+                        }
+                        else if (CaseInsensitiveComparison.Equals(value, "error"))
+                        {
+                            severity = ReportDiagnostic.Error;
+                        }
+                        else if (CaseInsensitiveComparison.Equals(value, "warn"))
+                        {
+                            severity = ReportDiagnostic.Warn;
+                        }
+                        else if (CaseInsensitiveComparison.Equals(value, "info"))
+                        {
+                            severity = ReportDiagnostic.Info;
+                        }
+                        else if (CaseInsensitiveComparison.Equals(value, "hidden"))
+                        {
+                            severity = ReportDiagnostic.Hidden;
+                        }
+                        else if (CaseInsensitiveComparison.Equals(value, "suppress"))
+                        {
+                            severity = ReportDiagnostic.Suppress;
+                        }
+                        else
+                        {
+                            severity = null;
+                            diagnostics.Add(Diagnostic.Create(
+                                messageProvider,
+                                messageProvider.WRN_InvalidSeverityInAnalyzerConfig,
+                                diagId,
+                                value));
                         }
 
                         if (severity.HasValue)
@@ -383,7 +383,7 @@ namespace Microsoft.CodeAnalysis
         {
             var analyzerConfigs = ArrayBuilder<EditorConfig>.GetInstance();
 
-            readEditorConfigFiles(analyzerConfigPaths, analyzerConfigs);
+            readEditorConfigFiles(analyzerConfigPaths, analyzerConfigs, diagnostics);
 
             if (diagnostics.HasAnyErrors())
             {
@@ -401,7 +401,8 @@ namespace Microsoft.CodeAnalysis
 
             void readEditorConfigFiles(
                 ImmutableArray<string> configPaths,
-                ArrayBuilder<EditorConfig> configs)
+                ArrayBuilder<EditorConfig> configs,
+                DiagnosticBag bag)
             {
                 var processedDirs = PooledHashSet<string>.GetInstance();
 
@@ -410,7 +411,7 @@ namespace Microsoft.CodeAnalysis
                     // The editorconfig spec requires all paths use '/' as the directory separator.
                     // Since no known system allows directory separators as part of the file name,
                     // we can replace every instance of the directory separator with a '/'
-                    string fileContent = TryReadFileContent(configPath, diagnostics, out string normalizedPath);
+                    string fileContent = TryReadFileContent(configPath, bag, out string normalizedPath);
                     if (fileContent is null)
                     {
                         // Error reading a file. Bail out and report error.
@@ -421,7 +422,7 @@ namespace Microsoft.CodeAnalysis
 
                     if (processedDirs.Contains(directory))
                     {
-                        diagnostics.Add(Diagnostic.Create(
+                        bag.Add(Diagnostic.Create(
                             MessageProvider,
                             MessageProvider.ERR_MultipleAnalyzerConfigsInSameDir,
                             directory));
