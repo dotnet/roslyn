@@ -4695,8 +4695,9 @@ oneMoreTime:
 
                     case OperationKind.Invocation:
                     case OperationKind.DynamicInvocation:
-                        // PROTOTYPE(dataflow): support collection initializers
-                        //                      Just drop it for now to enable other test scenarios.
+                        // PROTOTYPE(dataflow): Dynamic invocation needs adjustment in the OperationFactory to ensure that
+                        // dynamic member references are generated appropriately.
+                        AddStatement(Visit(innerInitializer));
                         return;
 
                     case OperationKind.Increment:
