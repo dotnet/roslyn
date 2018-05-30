@@ -579,7 +579,7 @@ IVariableDeclaratorOperation (Symbol: System.Int64 i1) (OperationKind.VariableDe
         }
 
         /// <summary>
-        /// This test documents the fact that `default(T)` is already T, and does not introduce a conversion
+        /// This test documents the fact that <c>default(T)</c> is already T, and does not introduce a conversion
         /// </summary>
         [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]

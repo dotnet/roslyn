@@ -295,6 +295,33 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to In arithmetic operators:  *   /   %   +   -   &lt;&lt;   &gt;&gt;   &amp;   ^   |.
+        /// </summary>
+        internal static string In_arithmetic_binary_operators {
+            get {
+                return ResourceManager.GetString("In_arithmetic_binary_operators", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to In other binary operators:  &amp;&amp;   ||   ??.
+        /// </summary>
+        internal static string In_other_binary_operators {
+            get {
+                return ResourceManager.GetString("In_other_binary_operators", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to In relational operators:  &lt;   &gt;   &lt;=   &gt;=   is   as   ==   !=.
+        /// </summary>
+        internal static string In_relational_binary_operators {
+            get {
+                return ResourceManager.GetString("In_relational_binary_operators", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Include snippets when ?-Tab is typed after an identifier.
         /// </summary>
         internal static string Include_snippets_when_Tab_is_typed_after_an_identifier {

@@ -27,6 +27,7 @@ namespace Microsoft.CodeAnalysis.SQLite
             }
 
             protected override string DataTableName => SolutionDataTableName;
+            protected override byte[] DataTableNamePtr => SolutionDataTableNamePtr;
 
             protected override string GetWriteQueueKey(string key)
                 => key;
