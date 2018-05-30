@@ -116,6 +116,7 @@ dotnet_diagnostic.cs0169.severity = suppress");
             var cmd = new MockCSharpCompiler(null, dir.Path, new[] {
                 "/nologo",
                 "/t:library",
+                "/preferreduilang:en",
                 "/analyzerconfig:" + analyzerConfig.Path,
                 src.Path });
 
@@ -142,6 +143,7 @@ dotnet_diagnostic.cs0169.severity = garbage");
             var cmd = new MockCSharpCompiler(null, dir.Path, new[] {
                 "/nologo",
                 "/t:library",
+                "/preferreduilang:en",
                 "/analyzerconfig:" + analyzerConfig.Path,
                 src.Path });
 
@@ -175,6 +177,7 @@ dotnet_diagnostic.cs0169.severity = suppress";
             var cmd = new MockCSharpCompiler(null, dir.Path, new[] {
                 "/nologo",
                 "/t:library",
+                "/preferreduilang:en",
                 "/analyzerconfig:" + analyzerConfig1.Path,
                 "/analyzerconfig:" + analyzerConfig2.Path,
                 src.Path

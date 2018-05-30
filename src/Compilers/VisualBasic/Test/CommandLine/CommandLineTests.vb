@@ -70,6 +70,7 @@ dotnet_diagnostic.bc42024.severity = suppress")
             Dim cmd = New MockVisualBasicCompiler(Nothing, dir.Path, {
                 "/nologo",
                 "/t:library",
+                "/preferreduilang:en",
                 "/analyzerconfig:" + analyzerConfig.Path,
                 src.Path})
 
@@ -93,11 +94,12 @@ End Class")
             Dim analyzerConfig = dir.CreateFile(".editorconfig").WriteAllText("
 [*.vb]
 dotnet_diagnostic.BC42024.severity = garbage")
-            Dim cmd = new MockVisualBasicCompiler(Nothing, dir.Path, {
+            Dim cmd = New MockVisualBasicCompiler(Nothing, dir.Path, {
                 "/nologo",
                 "/t:library",
+                "/preferreduilang:en",
                 "/analyzerconfig:" + analyzerConfig.Path,
-                src.Path })
+                src.Path})
 
             Assert.Equal(analyzerConfig.Path, Assert.Single(cmd.Arguments.AnalyzerConfigPaths))
 
@@ -129,9 +131,10 @@ dotnet_diagnostic.cs0169.severity = suppress"
             Dim analyzerConfig1 = dir.CreateFile("analyzerconfig1").WriteAllText(configText)
             Dim analyzerConfig2 = dir.CreateFile("analyzerconfig2").WriteAllText(configText)
 
-            Dim cmd = new MockVisualBasicCompiler(Nothing, dir.Path, {
+            Dim cmd = New MockVisualBasicCompiler(Nothing, dir.Path, {
                 "/nologo",
                 "/t:library",
+                "/preferreduilang:en",
                 "/analyzerconfig:" + analyzerConfig1.Path,
                 "/analyzerconfig:" + analyzerConfig2.Path,
                 src.Path
