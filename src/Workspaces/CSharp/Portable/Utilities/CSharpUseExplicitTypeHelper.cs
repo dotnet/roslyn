@@ -96,9 +96,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
                     return false;
                 }
             }
-            else if (typeName.Parent.IsKind(SyntaxKind.ForEachStatement))
+            else if (typeName.Parent is ForEachStatementSyntax foreachStatement &&
+                     foreachStatement.Type == typeName)
             {
-                var foreachStatement = (ForEachStatementSyntax)typeName.Parent;
                 if (!AssignmentSupportsStylePreference(
                         foreachStatement.Identifier, typeName, foreachStatement.Expression, 
                         semanticModel, optionSet, cancellationToken))

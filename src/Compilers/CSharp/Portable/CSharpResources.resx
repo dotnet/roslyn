@@ -2891,7 +2891,7 @@ A catch() block after a catch (System.Exception e) block can catch non-CLS excep
     <value>Cannot convert {0} to type '{1}' because it is not a delegate type</value>
   </data>
   <data name="ERR_CantConvAnonMethParams" xml:space="preserve">
-    <value>Cannot convert {0} to delegate type '{1}' because the parameter types do not match the delegate parameter types</value>
+    <value>Cannot convert {0} to type '{1}' because the parameter types do not match the delegate parameter types</value>
   </data>
   <data name="ERR_CantConvAnonMethReturns" xml:space="preserve">
     <value>Cannot convert {0} to intended delegate type because some of the return types in the block are not implicitly convertible to the delegate return type</value>

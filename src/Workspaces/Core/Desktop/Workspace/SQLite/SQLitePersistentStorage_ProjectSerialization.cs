@@ -29,6 +29,7 @@ namespace Microsoft.CodeAnalysis.SQLite
             }
 
             protected override string DataTableName => ProjectDataTableName;
+            protected override byte[] DataTableNamePtr => ProjectDataTableNamePtr;
 
             protected override (ProjectId projectId, string name) GetWriteQueueKey((Project project, string name) key)
                 => (key.project.Id, key.name);

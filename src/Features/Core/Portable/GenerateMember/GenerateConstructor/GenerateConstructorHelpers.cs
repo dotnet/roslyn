@@ -71,7 +71,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateConstructor
                 {
                     var type2 = method.Parameters[i].Type;
 
-                    if (!semanticFactsService.IsAssignableTo(type1, type2, compilation))
+                    if (!compilation.HasImplicitConversion(fromType: type1, toType: type2))
                     {
                         return false;
                     }
