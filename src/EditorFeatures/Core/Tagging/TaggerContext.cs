@@ -3,7 +3,6 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.Editor.Shared.Tagging;
 using Microsoft.CodeAnalysis.Text;
@@ -87,15 +86,11 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
             this._spansTagged = spansTagged ?? throw new ArgumentNullException(nameof(spansTagged));
         }
 
-        public IEnumerable<ITagSpan<TTag>> GetExistingContainingTags(SnapshotPoint point)
+        public IEnumerable<ITagSpan<TTag>> GetExistingTags(SnapshotSpan span)
         {
-            if (_existingTags != null && _existingTags.TryGetValue(point.Snapshot.TextBuffer, out var tree))
-            {
-                return tree.GetIntersectingSpans(new SnapshotSpan(point.Snapshot, new Span(point, 0)))
-                           .Where(s => s.Span.Contains(point));
-            }
-
-            return SpecializedCollections.EmptyEnumerable<ITagSpan<TTag>>();
+            return _existingTags != null && _existingTags.TryGetValue(span.Snapshot.TextBuffer, out var tree)
+                ? tree.GetIntersectingSpans(span)
+                : SpecializedCollections.EmptyEnumerable<ITagSpan<TTag>>();
         }
     }
 }

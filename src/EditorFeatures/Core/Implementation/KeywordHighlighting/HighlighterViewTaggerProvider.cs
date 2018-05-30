@@ -76,13 +76,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Highlighting
             var position = caretPosition.Value;
             var snapshot = snapshotSpan.Snapshot;
 
-            // See if the user is just moving their caret around in an existing tag.  If so, we don't
-            // want to actually go recompute things.  Note: this only works for containment.  If the
-            // user moves their caret to the end of a highlighted reference, we do want to recompute
-            // as they may now be at the start of some other reference that should be highlighted instead.
-            var existingTags = context.GetExistingContainingTags(new SnapshotPoint(snapshot, position));
+            var existingTags = context.GetExistingTags(new SnapshotSpan(snapshot, position, 0));
             if (!existingTags.IsEmpty())
             {
+                // We already have a tag at this position.  So the user is moving from one highlight
+                // tag to another.  In this case we don't want to recompute anything.  Let our caller
+                // know that we should preserve all tags.
                 context.SetSpansTagged(SpecializedCollections.EmptyEnumerable<DocumentSnapshotSpan>());
                 return;
             }
