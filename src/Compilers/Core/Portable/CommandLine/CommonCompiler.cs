@@ -418,11 +418,6 @@ namespace Microsoft.CodeAnalysis
                     }
 
                     var directory = Path.GetDirectoryName(normalizedPath) ?? normalizedPath;
-                    // Path mapping expects a trailing '/' to be included
-                    if (directory[directory.Length - 1] != '/')
-                    {
-                        directory = directory + "/";
-                    }
 
                     if (processedDirs.Contains(directory))
                     {
@@ -432,8 +427,14 @@ namespace Microsoft.CodeAnalysis
                             directory));
                         break;
                     }
-
                     processedDirs.Add(directory);
+
+                    // Path mapping expects a trailing '/' to be included
+                    if (directory[directory.Length - 1] != '/')
+                    {
+                        directory = directory + "/";
+                    }
+
                     var forwardPath = PathWithForwardSlashSeparators(directory);
                     var editorConfig = EditorConfig.Parse(fileContent, forwardPath);
                     configs.Add(editorConfig);
