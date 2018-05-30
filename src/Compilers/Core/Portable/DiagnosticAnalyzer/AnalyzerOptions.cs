@@ -19,13 +19,28 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         public ImmutableArray<AdditionalText> AdditionalFiles { get; }
 
         /// <summary>
+        /// A set of options keyed to <see cref="SyntaxTree"/>s.
+        /// </summary>
+        public PerTreeOptionsProvider PerTreeOptions { get; }
+
+        /// <summary>
+        /// Creates analyzer options to be passed to <see cref="DiagnosticAnalyzer"/>.
+        /// </summary>
+        /// <param name="additionalFiles">A set of additional non-code text files that can be used by analyzers.</param>
+        /// <param name="optionsProvider">A set of per-tree options that can be used by analyzers.</param>
+        public AnalyzerOptions(ImmutableArray<AdditionalText> additionalFiles, PerTreeOptionsProvider optionsProvider)
+        {
+            AdditionalFiles = additionalFiles.NullToEmpty();
+            PerTreeOptions = optionsProvider;
+        }
+
+        /// <summary>
         /// Creates analyzer options to be passed to <see cref="DiagnosticAnalyzer"/>.
         /// </summary>
         /// <param name="additionalFiles">A set of additional non-code text files that can be used by analyzers.</param>
         public AnalyzerOptions(ImmutableArray<AdditionalText> additionalFiles)
-        {
-            this.AdditionalFiles = additionalFiles.NullToEmpty();
-        }
+            : this(additionalFiles, CompilerPerTreeOptionsProvider.Empty)
+        { }
 
         /// <summary>
         /// Returns analyzer options with the given <paramref name="additionalFiles"/>.

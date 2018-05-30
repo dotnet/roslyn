@@ -15,6 +15,7 @@ Imports System.Threading
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.CommonDiagnosticAnalyzers
 Imports Microsoft.CodeAnalysis.Diagnostics
+Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.Emit
 Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.CodeAnalysis.Text
@@ -80,6 +81,43 @@ dotnet_diagnostic.bc42024.severity = suppress")
             Dim exitCode = cmd.Run(outWriter)
             Assert.Equal(0, exitCode)
             Assert.Equal("", outWriter.ToString())
+        End Sub
+
+        <Fact>
+        Public Sub AnalyzerConfigWithOptions()
+            Dim dir = Temp.CreateDirectory()
+            Dim src = dir.CreateFile("test.vb").WriteAllText("
+Class C
+     Sub M()
+        Dim x As Integer
+    End Sub
+End Class")
+            Dim analyzerConfig = dir.CreateFile(".editorconfig").WriteAllText("
+[*.vb]
+dotnet_diagnostic.bc42024.severity = suppress
+my_option = my_val")
+            Dim cmd = New MockVisualBasicCompiler(Nothing, dir.Path, {
+                "/nologo",
+                "/t:library",
+                "/analyzerconfig:" + analyzerConfig.Path,
+                src.Path})
+
+            Assert.Equal(analyzerConfig.Path, Assert.Single(cmd.Arguments.AnalyzerConfigPaths))
+
+            Dim outWriter = New StringWriter(CultureInfo.InvariantCulture)
+            Dim exitCode = cmd.Run(outWriter)
+            Assert.Equal(0, exitCode)
+            Assert.Equal("", outWriter.ToString())
+
+            Dim comp = cmd.Compilation
+
+            Dim compilerTreeOptions = Assert.IsType(Of CompilerPerTreeOptionsProvider)(
+                cmd.TreeOptionsProvider)
+            Dim options = compilerTreeOptions.TryGetOptions(comp.SyntaxTrees.Single())
+            Assert.NotNull(options)
+            Dim val = options.GetOption(
+                New [Option](Of String)(CompilerPerTreeOptionsProvider.OptionFeatureName, "my_option"))
+            Assert.Equal("my_val", val)
         End Sub
 
         <Fact>

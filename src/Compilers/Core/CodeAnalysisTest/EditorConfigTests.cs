@@ -1,14 +1,20 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
+using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
+using static Microsoft.CodeAnalysis.Diagnostics.CompilerPerTreeOptionsProvider;
 using static Roslyn.Test.Utilities.TestHelpers;
+using KeyValuePair = Roslyn.Utilities.KeyValuePair;
 
 namespace Microsoft.CodeAnalysis.UnitTests
 {
@@ -42,8 +48,9 @@ my_prop = my_val
             var namedSections = config.NamedSections;
             Assert.Equal("*.cs", namedSections[0].Name);
             AssertEx.SetEqual(
-                new[] { KeyValuePair.Create("my_prop", "my_val")},
+                new[] { KeyValuePair.Create("my_prop", "my_val") },
                 namedSections[0].Properties);
+
             Assert.True(config.IsRoot);
 
             Assert.Equal("/bogus", config.NormalizedDirectory);
@@ -67,7 +74,7 @@ my_prop = my_val
 my_prop = my_val");
             var properties = config.GlobalSection.Properties;
             AssertEx.SetEqual(
-                new[] { KeyValuePair.Create("my_prop", "my_val")},
+                new[] { KeyValuePair.Create("my_prop", "my_val") },
                 properties);
 
             Assert.Equal(0, config.NamedSections.Length);
@@ -81,7 +88,7 @@ my_prop = my_val");
 my_prop = my_val");
 
             var properties = config.GlobalSection.Properties;
-            Assert.Equal(new[] { KeyValuePair.Create("my_prop", "my_val")}, properties);
+            Assert.Equal(new[] { KeyValuePair.Create("my_prop", "my_val") }, properties);
             Assert.Equal(0, config.NamedSections.Length);
         }
 
@@ -215,7 +222,7 @@ my_key2 = my@val");
 
             var properties = config.GlobalSection.Properties;
             AssertEx.SetEqual(
-                new[] { KeyValuePair.Create("my_key2", "my@val")},
+                new[] { KeyValuePair.Create("my_key2", "my@val") },
                 properties);
         }
 
@@ -233,7 +240,7 @@ long: this value continues
 
             var properties = config.GlobalSection.Properties;
             AssertEx.SetEqual(
-                new[] { KeyValuePair.Create("long", "this value continues")},
+                new[] { KeyValuePair.Create("long", "this value continues") },
                 properties);
         }
 
@@ -416,7 +423,7 @@ dotnet_diagnostic.cs000.severity = error", "/.editorconfig"));
                 CreateImmutableDictionary(("cs000", ReportDiagnostic.Suppress)),
                 CreateImmutableDictionary(("cs000", ReportDiagnostic.Error)),
                 null
-            }, options);
+            }, options.Select(x => x.treeOptions));
         }
 
         [Fact]
@@ -441,7 +448,7 @@ dotnet_diagnostic.cs000.severity = error", "/.editorconfig"));
                 CreateImmutableDictionary(("cs000", ReportDiagnostic.Error)),
                 CreateImmutableDictionary(("cs000", ReportDiagnostic.Error)),
                 null
-            }, options);
+            }, options.Select(x => x.treeOptions));
         }
 
         [Fact]
@@ -465,7 +472,7 @@ dotnet_diagnostic.cs001.severity = info", "/.editorconfig"));
                 CreateImmutableDictionary(
                     ("cs000", ReportDiagnostic.Suppress),
                     ("cs001", ReportDiagnostic.Info)),
-            }, options);
+            }, options.Select(x => x.treeOptions));
         }
 
         [Fact]
@@ -491,7 +498,7 @@ dotnet_diagnostic.cs001.severity = info", "/.editorconfig"));
                 CreateImmutableDictionary(
                     ("cs000", ReportDiagnostic.Suppress),
                     ("cs001", ReportDiagnostic.Info))
-            }, options);
+            }, options.Select(x => x.treeOptions));
         }
 
         [Fact]
@@ -526,7 +533,7 @@ dotnet_diagnostic.cs001.severity = error", "/subdir/.editorconfig"));
                 CreateImmutableDictionary(
                     ("cs000", ReportDiagnostic.Warn),
                     ("cs001", ReportDiagnostic.Info))
-            }, options);
+            }, options.Select(x => x.treeOptions));
         }
 
         [Fact]
@@ -559,7 +566,7 @@ dotnet_diagnostic.cs001.severity = error", "/subdir/.editorconfig"));
                     ("cs001", ReportDiagnostic.Error)),
                 CreateImmutableDictionary(
                     ("cs000", ReportDiagnostic.Suppress))
-            }, options);
+            }, options.Select(x => x.treeOptions));
         }
 
         [ConditionalFact(typeof(WindowsOnly))]
@@ -581,7 +588,136 @@ dotnet_diagnostic.cs000.severity = suppress", "Z:\\.editorconfig"));
             {
                 CreateImmutableDictionary(
                     ("cs000", ReportDiagnostic.Suppress))
-            }, options);
+            }, options.Select(x => x.treeOptions));
+        }
+
+        private class AnalyzerOptionDictComparer : IEqualityComparer<KeyValuePair<Option<string>, string>>
+        {
+            public static readonly AnalyzerOptionDictComparer Instance = new AnalyzerOptionDictComparer();
+            private AnalyzerOptionDictComparer() { }
+
+            public bool Equals(KeyValuePair<Option<string>, string> x, KeyValuePair<Option<string>, string> y)
+                => CompilerOptionSet.CompilerOptionSetKeyComparer.Instance.Equals(x.Key, y.Key) &&
+                   StringOrdinalComparer.Equals(x.Value, y.Value);
+
+            public int GetHashCode(KeyValuePair<Option<string>, string> obj)
+                => CompilerOptionSet.CompilerOptionSetKeyComparer.Instance.GetHashCode(obj.Key);
+        }
+
+        private void VerifyAnalyzerOptions(
+            (string key, string val)[][] expected,
+            ImmutableArray<(ImmutableDictionary<string, ReportDiagnostic>, OptionSet analyzerOptions)> options)
+        {
+            Assert.Equal(expected.Length, options.Length);
+
+            for (int i = 0; i < expected.Length; i++)
+            {
+                if (expected[i] is null)
+                {
+                    Assert.Null(options[i].analyzerOptions);
+                }
+                else
+                {
+                    var compilerSet = Assert.IsType<CompilerOptionSet>(options[i].analyzerOptions);
+                    AssertEx.SetEqual(
+                        compilerSet._options,
+                        expected[i].Select(x =>
+                            KeyValuePair.Create(
+                                new Option<string>(OptionFeatureName, x.key),
+                                x.val)),
+                        AnalyzerOptionDictComparer.Instance);
+                }
+            }
+        }
+
+        [Fact]
+        public void SimpleAnalyzerOptions()
+        {
+            var configs = ArrayBuilder<EditorConfig>.GetInstance();
+            configs.Add(EditorConfig.Parse(@"
+[*.cs]
+dotnet_diagnostic.cs000.some_key = some_val", "/.editorconfig"));
+
+            var options = CommonCompiler.GetAnalyzerConfigOptions(
+                new[] { "/test.cs", "/test.vb" },
+                configs,
+                messageProvider: null,
+                diagnostics: null);
+            configs.Free();
+
+            VerifyAnalyzerOptions(
+                new[] {
+                    new[] { ("dotnet_diagnostic.cs000.some_key", "some_val") },
+                    null
+                },
+                options);
+        }
+
+        [Fact]
+        public void FromMultipleSectionsAnalyzerOptions()
+        {
+            var configs = ArrayBuilder<EditorConfig>.GetInstance();
+            configs.Add(EditorConfig.Parse(@"
+[*.cs]
+dotnet_diagnostic.cs000.some_key = some_val
+
+[test.*]
+dotnet_diagnostic.cs001.some_key2 = some_val2
+", "/.editorconfig"));
+
+            var options = CommonCompiler.GetAnalyzerConfigOptions(
+                new[] { "/test.cs", "/test.vb" },
+                configs,
+                messageProvider: null,
+                diagnostics: null);
+            configs.Free();
+
+            VerifyAnalyzerOptions(
+                new[] {
+                    new[]
+                    {
+                        ("dotnet_diagnostic.cs000.some_key", "some_val"),
+                        ("dotnet_diagnostic.cs001.some_key2", "some_val2")
+                    },
+                    new[]
+                    {
+                        ("dotnet_diagnostic.cs001.some_key2", "some_val2")
+                    }
+                },
+                options);
+        }
+
+        [Fact]
+        public void AnalyzerOptionsOverride()
+        {
+            var configs = ArrayBuilder<EditorConfig>.GetInstance();
+            configs.Add(EditorConfig.Parse(@"
+[**.cs]
+dotnet_diagnostic.cs000.some_key = some_val", "/.editorconfig"));
+            configs.Add(EditorConfig.Parse(@"
+[*.cs]
+dotnet_diagnostic.cs000.some_key = some_other_val", "/subdir/.editorconfig"));
+
+            var options = CommonCompiler.GetAnalyzerConfigOptions(
+                new[] { "/test.cs", "/subdir/test.cs" },
+                configs,
+                messageProvider: null,
+                diagnostics: null);
+            configs.Free();
+
+            VerifyAnalyzerOptions(
+                new[]
+                {
+                    new[]
+                    {
+                        ("dotnet_diagnostic.cs000.some_key", "some_val")
+                    },
+                    new[]
+                    {
+                        ("dotnet_diagnostic.cs000.some_key", "some_other_val")
+                    }
+                },
+                options);
         }
 
         [Fact]

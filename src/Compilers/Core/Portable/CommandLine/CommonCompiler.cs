@@ -18,9 +18,13 @@ using Roslyn.Utilities;
 using System.Security.Cryptography;
 using Microsoft.CodeAnalysis.PooledObjects;
 using System.Text.RegularExpressions;
+using Microsoft.CodeAnalysis.Options;
 
 namespace Microsoft.CodeAnalysis
 {
+    using TreeDiagnosticOptions = ImmutableDictionary<string, ReportDiagnostic>;
+    using AnalyzerDiagnosticOptions = OptionSet;
+
     internal struct BuildPaths
     {
         /// <summary>
@@ -95,6 +99,9 @@ namespace Microsoft.CodeAnalysis
         protected abstract ImmutableArray<DiagnosticAnalyzer> ResolveAnalyzersFromArguments(
             List<DiagnosticInfo> diagnostics,
             CommonMessageProvider messageProvider);
+
+        // internal for testing
+        internal CompilerPerTreeOptionsProvider TreeOptionsProvider;  
 
         public CommonCompiler(CommandLineParser parser, string responseFile, string[] args, BuildPaths buildPaths, string additionalReferenceDirectories, IAnalyzerAssemblyLoader assemblyLoader)
         {
@@ -266,17 +273,19 @@ namespace Microsoft.CodeAnalysis
         /// <param name="messageProvider">Used to produce diagnostics.</param>
         /// <param name="diagnostics">Any produced diagnostics are added to this bag.</param>
         /// <returns>
-        /// A list of diagnostic options, where the dictionary index corresponds
+        /// A list of diagnostic and analyzer options, where the dictionary index corresponds
         /// to the options for the source path at the same index. If there are
-        /// no diagnostic options for the given path, the entry is null. Otherwise,
-        /// the options are a map from diagnostic ID to diagnostic severity, and
+        /// no options for the given path, the entry is null. Otherwise, the diagnostic
+        /// options are a map from diagnostic ID to diagnostic severity, and
         /// correspond to options provided for <see cref="SyntaxTree.DiagnosticOptions"/>.
+        /// The analyzerOptions are an OptionSet consisting of all properties that were not
+        /// diagnostic options.
         /// </returns>
-        internal static ImmutableArray<ImmutableDictionary<string, ReportDiagnostic>> GetAnalyzerConfigOptions(
-            IReadOnlyList<string> sourcePaths,
-            ArrayBuilder<EditorConfig> analyzerConfigs,
-            CommonMessageProvider messageProvider,
-            DiagnosticBag diagnostics)
+        internal static ImmutableArray<(TreeDiagnosticOptions treeOptions, AnalyzerDiagnosticOptions analyzerOptions)>
+            GetAnalyzerConfigOptions(IReadOnlyList<string> sourcePaths,
+                                     ArrayBuilder<EditorConfig> analyzerConfigs,
+                                     CommonMessageProvider messageProvider,
+                                     DiagnosticBag diagnostics)
         {
             // Sort editorconfig paths from shortest to longest.
             // Since paths are compared as ordinal string comparisons, the least nested
@@ -285,7 +294,7 @@ namespace Microsoft.CodeAnalysis
                 (e1, e2) => e1.NormalizedDirectory.Length.CompareTo(e2.NormalizedDirectory.Length)));
 
             var allDiagnosticOptions =
-                ArrayBuilder<ImmutableDictionary<string, ReportDiagnostic>>.GetInstance(sourcePaths.Count);
+                ArrayBuilder<(TreeDiagnosticOptions, AnalyzerDiagnosticOptions)>.GetInstance(sourcePaths.Count);
 
             var allRegexes = PooledDictionary<EditorConfig, ImmutableArray<Regex>>.GetInstance();
             foreach (var config in analyzerConfigs)
@@ -306,10 +315,12 @@ namespace Microsoft.CodeAnalysis
 
             Debug.Assert(allRegexes.Count == analyzerConfigs.Count);
 
-            var optionsBuilder = ImmutableDictionary.CreateBuilder<string, ReportDiagnostic>(
+            var treeOptionsBuilder = ImmutableDictionary.CreateBuilder<string, ReportDiagnostic>(
                 CaseInsensitiveComparison.Comparer);
             foreach (var sourceFile in sourcePaths)
             {
+                AnalyzerDiagnosticOptions analyzerOptions = null;
+
                 var normalizedPath = PathWithForwardSlashSeparators(sourceFile);
                 // The editorconfig paths are sorted from shortest to longest, so matches
                 // are resolved from most nested to least nested, where last setting wins
@@ -333,15 +344,17 @@ namespace Microsoft.CodeAnalysis
                             if (regexes[sectionIndex].IsMatch(relativePath))
                             {
                                 var section = config.NamedSections[sectionIndex];
-                                addDiagnosticOptions(section, optionsBuilder, config.PathToFile);
+                                addOptions(section, treeOptionsBuilder, ref analyzerOptions, config.PathToFile);
                             }
                         }
                     }
                 }
 
-                // Avoid extra allocations by using null.
-                allDiagnosticOptions.Add(optionsBuilder.Count > 0 ? optionsBuilder.ToImmutable() : null);
-                optionsBuilder.Clear();
+                allDiagnosticOptions.Add(
+                    // Avoid extra allocations by using null.
+                    (treeOptionsBuilder.Count > 0 ? treeOptionsBuilder.ToImmutable() : null,
+                     analyzerOptions));
+                treeOptionsBuilder.Clear();
             }
 
             allRegexes.Free();
@@ -349,10 +362,11 @@ namespace Microsoft.CodeAnalysis
 
             return allDiagnosticOptions.ToImmutableAndFree();
 
-            void addDiagnosticOptions(
+            void addOptions(
                 EditorConfig.Section section,
-                ImmutableDictionary<string, ReportDiagnostic>.Builder builder,
-                string analyzerConfigDir)
+                TreeDiagnosticOptions.Builder treeBuilder,
+                ref AnalyzerDiagnosticOptions analyzerOptionSet,
+                string analyzerConfigPath)
             {
                 const string DiagnosticOptionPrefix = "dotnet_diagnostic.";
                 const string DiagnosticOptionSuffix = ".severity";
@@ -401,23 +415,32 @@ namespace Microsoft.CodeAnalysis
                                 messageProvider.WRN_InvalidSeverityInAnalyzerConfig,
                                 diagId,
                                 value,
-                                analyzerConfigDir));
+                                analyzerConfigPath));
                         }
 
                         if (severity.HasValue)
                         {
-                            builder[diagId] = severity.GetValueOrDefault();
+                            treeBuilder[diagId] = severity.GetValueOrDefault();
                         }
+                    }
+                    else
+                    {
+                        analyzerOptionSet = 
+                            (analyzerOptionSet ?? CompilerPerTreeOptionsProvider.EmptyCompilerOptionSet)
+                            .WithChangedOption(new Option<string>(CompilerPerTreeOptionsProvider.OptionFeatureName, key),
+                            value);
                     }
                 }
             }
         }
 
-        public ImmutableArray<ImmutableDictionary<string, ReportDiagnostic>> ProcessAnalyzerConfigFiles(
-            ImmutableArray<string> analyzerConfigPaths,
-            ImmutableArray<CommandLineSourceFile> sourceFiles,
-            ref bool hadErrors,
-            DiagnosticBag diagnostics)
+        public ImmutableArray<
+            (TreeDiagnosticOptions treeOptions,
+             AnalyzerDiagnosticOptions analyzerOptions)>
+            ProcessAnalyzerConfigFiles(ImmutableArray<string> analyzerConfigPaths,
+                                       ImmutableArray<CommandLineSourceFile> sourceFiles,
+                                       ref bool hadErrors,
+                                       DiagnosticBag diagnostics)
         {
             var analyzerConfigs = ArrayBuilder<EditorConfig>.GetInstance();
 
@@ -431,7 +454,7 @@ namespace Microsoft.CodeAnalysis
             }
 
             var sourcePaths = sourceFiles.SelectAsArray(file => file.Path);
-            ImmutableArray<ImmutableDictionary<string, ReportDiagnostic>> diagnosticOptions =
+            ImmutableArray<(TreeDiagnosticOptions, AnalyzerDiagnosticOptions)> diagnosticOptions =
                 GetAnalyzerConfigOptions(sourcePaths, analyzerConfigs, MessageProvider, diagnostics);
 
             analyzerConfigs.Free();
@@ -919,7 +942,13 @@ namespace Microsoft.CodeAnalysis
             {
                 analyzerCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
                 analyzerExceptionDiagnostics = new DiagnosticBag();
-                var analyzerOptions = new AnalyzerOptions(ImmutableArray<AdditionalText>.CastUp(additionalTextFiles));
+
+                // This should have been set by the language-specific base-classes
+                Debug.Assert(!(TreeOptionsProvider is null));
+
+                var analyzerOptions = new AnalyzerOptions(
+                    ImmutableArray<AdditionalText>.CastUp(additionalTextFiles),
+                    TreeOptionsProvider);
 
                 analyzerDriver = AnalyzerDriver.CreateAndAttachToCompilation(
                     compilation,

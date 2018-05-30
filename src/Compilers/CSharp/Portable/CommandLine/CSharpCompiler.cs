@@ -13,6 +13,7 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Options;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -48,7 +49,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             var normalizedFilePaths = new string[sourceFiles.Length];
             var diagnosticBag = DiagnosticBag.GetInstance();
 
-            ImmutableArray<ImmutableDictionary<string, ReportDiagnostic>> allTreeDiagnosticOptions = default;
+            ImmutableArray<
+                (ImmutableDictionary<string, ReportDiagnostic> treeOptions,
+                 OptionSet analyzerOptions)> allTreeDiagnosticOptions = default;
             if (Arguments.AnalyzerConfigPaths.Length > 0)
             {
                 allTreeDiagnosticOptions = ProcessAnalyzerConfigFiles(
@@ -66,7 +69,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                     trees[i] = ParseFile(
                         parseOptions,
                         scriptParseOptions,
-                        allTreeDiagnosticOptions.IsDefault ? null : allTreeDiagnosticOptions[i],
+                        allTreeDiagnosticOptions.IsDefault
+                            ? null
+                            : allTreeDiagnosticOptions[i].treeOptions,
                         ref hadErrors,
                         sourceFiles[i],
                         diagnosticBag,
@@ -81,7 +86,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                     trees[i] = ParseFile(
                         parseOptions,
                         scriptParseOptions,
-                        allTreeDiagnosticOptions.IsDefault ? null : allTreeDiagnosticOptions[i],
+                        allTreeDiagnosticOptions.IsDefault
+                            ? null
+                            : allTreeDiagnosticOptions[i].treeOptions,
                         ref hadErrors,
                         sourceFiles[i],
                         diagnosticBag,
@@ -106,6 +113,26 @@ namespace Microsoft.CodeAnalysis.CSharp
                     diagnostics.Add(new DiagnosticInfo(MessageProvider, diag.Code, diag.Arguments.ToArray()));
                 }
                 diagnosticBag.Free();
+            }
+
+            if (allTreeDiagnosticOptions.IsDefault)
+            {
+                TreeOptionsProvider = CompilerPerTreeOptionsProvider.Empty;
+            }
+            else
+            {
+                var combined = ImmutableDictionary.CreateBuilder<SyntaxTree, OptionSet>();
+                for (int i = 0; i < allTreeDiagnosticOptions.Length; i++)
+                {
+                    OptionSet analyzerOptions = allTreeDiagnosticOptions[i].analyzerOptions;
+
+                    if (!(analyzerOptions is null))
+                    {
+                        combined[trees[i]] = analyzerOptions;
+                    }
+                }
+
+                TreeOptionsProvider = new CompilerPerTreeOptionsProvider(combined.ToImmutable());
             }
 
             var uniqueFilePaths = new HashSet<string>(StringComparer.OrdinalIgnoreCase);

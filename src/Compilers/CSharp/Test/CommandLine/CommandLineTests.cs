@@ -21,6 +21,7 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Emit;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.DiaSymReader;
@@ -126,6 +127,45 @@ dotnet_diagnostic.cs0169.severity = suppress");
             var exitCode = cmd.Run(outWriter);
             Assert.Equal(0, exitCode);
             Assert.Equal("", outWriter.ToString());
+
+            var compilerTreeOptions = Assert.IsType<CompilerPerTreeOptionsProvider>(cmd.TreeOptionsProvider);
+            Assert.Empty(compilerTreeOptions._treeDict);
+        }
+
+        [Fact]
+        public void AnalyzerConfigWithOptions()
+        {
+            var dir = Temp.CreateDirectory();
+            var src = dir.CreateFile("test.cs").WriteAllText(@"
+class C
+{
+    int _f;
+}");
+            var analyzerConfig = dir.CreateFile(".editorconfig").WriteAllText(@"
+[*.cs]
+dotnet_diagnostic.cs0169.severity = suppress
+my_option = my_val");
+            var cmd = new MockCSharpCompiler(null, dir.Path, new[] {
+                "/nologo",
+                "/t:library",
+                "/analyzerconfig:" + analyzerConfig.Path,
+                src.Path });
+
+            Assert.Equal(analyzerConfig.Path, Assert.Single(cmd.Arguments.AnalyzerConfigPaths));
+
+            var outWriter = new StringWriter(CultureInfo.InvariantCulture);
+            var exitCode = cmd.Run(outWriter);
+            Assert.Equal(0, exitCode);
+            Assert.Equal("", outWriter.ToString());
+
+            var comp = cmd.Compilation;
+
+            var compilerTreeOptions = Assert.IsType<CompilerPerTreeOptionsProvider>(cmd.TreeOptionsProvider);
+            var options = compilerTreeOptions.TryGetOptions(comp.SyntaxTrees.Single());
+            Assert.NotNull(options);
+            var val = options.GetOption(new Option<string>(
+                CompilerPerTreeOptionsProvider.OptionFeatureName, "my_option"));
+            Assert.Equal("my_val", val);
         }
 
         [Fact]
@@ -156,6 +196,9 @@ dotnet_diagnostic.cs0169.severity = garbage");
 $@"warning CS8500: The diagnostic 'cs0169' was given an invalid severity 'garbage' in the analyzer config file at '{analyzerConfig.Path}'.
 test.cs(4,9): warning CS0169: The field 'C._f' is never used
 ", outWriter.ToString());
+
+            var compilerTreeOptions = Assert.IsType<CompilerPerTreeOptionsProvider>(cmd.TreeOptionsProvider);
+            Assert.Empty(compilerTreeOptions._treeDict);
         }
 
         [Fact]

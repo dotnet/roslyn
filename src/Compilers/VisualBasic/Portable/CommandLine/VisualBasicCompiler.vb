@@ -7,6 +7,10 @@ Imports Microsoft.CodeAnalysis.Collections
 Imports Microsoft.CodeAnalysis.Diagnostics
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
+Imports TreeDiagnosticOptions = System.Collections.Immutable.ImmutableDictionary(Of String, Microsoft.CodeAnalysis.ReportDiagnostic)
+Imports AnalyzerDiagnosticOptions = Microsoft.CodeAnalysis.Options.OptionSet
+Imports Microsoft.CodeAnalysis.Options
+
 Namespace Microsoft.CodeAnalysis.VisualBasic
 
     Friend MustInherit Class VisualBasicCompiler
@@ -96,7 +100,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim trees(sourceFiles.Length - 1) As SyntaxTree
             Dim bag = DiagnosticBag.GetInstance()
 
-            Dim allTreeDiagnosticOptions As ImmutableArray(Of ImmutableDictionary(Of String, ReportDiagnostic)) = Nothing
+            Dim allTreeDiagnosticOptions As ImmutableArray(Of
+                (treeOptions As TreeDiagnosticOptions, analyzerOptions As AnalyzerDiagnosticOptions)) = Nothing
             If Arguments.AnalyzerConfigPaths.Length > 0 Then
                 allTreeDiagnosticOptions = ProcessAnalyzerConfigFiles(
                     Arguments.AnalyzerConfigPaths,
@@ -121,7 +126,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                 consoleOutput,
                                 parseOptions,
                                 scriptParseOptions,
-                                If(allTreeDiagnosticOptions.IsDefault, Nothing, allTreeDiagnosticOptions(i)),
+                                If(allTreeDiagnosticOptions.IsDefault,
+                                    Nothing,
+                                    allTreeDiagnosticOptions(i).treeOptions),
                                 hadErrors,
                                 sourceFiles(i),
                                 errorLogger)
@@ -133,7 +140,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         consoleOutput,
                         parseOptions,
                         scriptParseOptions,
-                        If(allTreeDiagnosticOptions.IsDefault, Nothing, allTreeDiagnosticOptions(i)),
+                        If(allTreeDiagnosticOptions.IsDefault,
+                            Nothing,
+                            allTreeDiagnosticOptions(i).treeOptions),
                         hadErrors,
                         sourceFiles(i),
                         errorLogger)
@@ -143,6 +152,21 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             ' If there were any errors while trying to read files, then exit.
             If hadErrors Then
                 Return Nothing
+            End If
+
+            If allTreeDiagnosticOptions.IsDefault Then
+                TreeOptionsProvider = CompilerPerTreeOptionsProvider.Empty
+            Else
+                Dim combined = ImmutableDictionary.CreateBuilder(Of SyntaxTree, OptionSet)()
+                For i = 0 To allTreeDiagnosticOptions.Length - 1
+                    Dim analyzerOptions As OptionSet = allTreeDiagnosticOptions(i).analyzerOptions
+
+                    If analyzerOptions IsNot Nothing Then
+                        combined(trees(i)) = analyzerOptions
+                    End If
+                Next
+
+                TreeOptionsProvider = New CompilerPerTreeOptionsProvider(combined.ToImmutable())
             End If
 
             If Arguments.TouchedFilesPath IsNot Nothing Then
