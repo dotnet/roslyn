@@ -45,6 +45,7 @@ namespace Microsoft.CodeAnalysis.SQLite
             }
 
             protected abstract string DataTableName { get; }
+            protected abstract byte[] DataTableNamePtr { get; }
 
             protected abstract bool TryGetDatabaseId(SqlConnection connection, TKey key, out TDatabaseId dataId);
             protected abstract void BindFirstParameter(SqlStatement statement, TDatabaseId dataId);
@@ -146,7 +147,7 @@ namespace Microsoft.CodeAnalysis.SQLite
                     // data for a row in our system can change, the ID will always stay the
                     // same, and the data will always be valid for our ID.  So there is no
                     // safety issue here.
-                    return connection.ReadBlob(DataTableName, DataColumnName, rowId);
+                    return connection.ReadBlob(DataTableNamePtr, DataColumnNamePtr, rowId);
                 }
 
                 return null;

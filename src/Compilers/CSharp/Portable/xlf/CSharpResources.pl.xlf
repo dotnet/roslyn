@@ -4611,8 +4611,8 @@ Blok catch() po bloku catch (System.Exception e) może przechwytywać wyjątki n
         <note />
       </trans-unit>
       <trans-unit id="ERR_CantConvAnonMethParams">
-        <source>Cannot convert {0} to delegate type '{1}' because the parameter types do not match the delegate parameter types</source>
-        <target state="translated">Nie można przekonwertować {0} na typ delegowany „{1}”, ponieważ typy parametrów nie pasują do typów parametru delegowanego</target>
+        <source>Cannot convert {0} to type '{1}' because the parameter types do not match the delegate parameter types</source>
+        <target state="needs-review-translation">Nie można przekonwertować {0} na typ delegowany „{1}”, ponieważ typy parametrów nie pasują do typów parametru delegowanego</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CantConvAnonMethReturns">
