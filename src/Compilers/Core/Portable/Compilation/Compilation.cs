@@ -19,6 +19,7 @@ using Microsoft.CodeAnalysis.CodeGen;
 using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Emit;
+using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Symbols;
 using Microsoft.DiaSymReader;
@@ -1026,7 +1027,7 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// Returns a new anonymous type symbol with the given member types member names.
         /// Anonymous type members will be readonly by default.  Writable properties are
-        /// supported in VB and can be created by passing in <code>false</code> in the
+        /// supported in VB and can be created by passing in <see langword="false"/> in the
         /// appropriate locations in <paramref name="memberIsReadOnly"/>.
         ///
         /// Source locations can also be provided through <paramref name="memberLocations"/>
@@ -1091,6 +1092,25 @@ namespace Microsoft.CodeAnalysis
             ImmutableArray<string> memberNames,
             ImmutableArray<Location> memberLocations,
             ImmutableArray<bool> memberIsReadOnly);
+
+        /// <summary>
+        /// Classifies a conversion from <paramref name="source"/> to <paramref name="destination"/> according
+        /// to this compilation's programming language.
+        /// </summary>
+        /// <param name="source">Source type of value to be converted</param>
+        /// <param name="destination">Destination type of value to be converted</param>
+        /// <returns>A <see cref="CommonConversion"/> that classifies the conversion from the
+        /// <paramref name="source"/> type to the <paramref name="destination"/> type.</returns>
+        public abstract CommonConversion ClassifyCommonConversion(ITypeSymbol source, ITypeSymbol destination);
+
+        /// <summary>
+        /// Returns true if there is an implicit (C#) or widening (VB) conversion from
+        /// <paramref name="fromType"/> to <paramref name="toType"/>. Returns false if
+        /// either <paramref name="fromType"/> or <paramref name="toType"/> is null, or
+        /// if no such conversion exists.
+        /// </summary>
+        public bool HasImplicitConversion(ITypeSymbol fromType, ITypeSymbol toType)
+            => fromType != null && toType != null && this.ClassifyCommonConversion(fromType, toType).IsImplicit;
 
         #endregion
 
@@ -2577,9 +2597,9 @@ namespace Microsoft.CodeAnalysis
 
         /// <summary>
         /// Returns a tuple of streams where
-        /// * `peStream` is a stream which will carry the output PE bits
-        /// * `signingStream` is the stream which will be signed by the legacy strong name signer, or null if we aren't using the legacy signer
-        /// * `selectedStream` is an alias of either peStream or signingStream, and is the stream that will be written to by the emitter.
+        /// * <c>peStream</c> is a stream which will carry the output PE bits
+        /// * <c>signingStream</c> is the stream which will be signed by the legacy strong name signer, or null if we aren't using the legacy signer
+        /// * <c>selectedStream</c> is an alias of either peStream or signingStream, and is the stream that will be written to by the emitter.
         /// </summary>
         private (Stream peStream, Stream signingStream, Stream selectedStream) GetPeStream(DiagnosticBag metadataDiagnostics, EmitStreamProvider peStreamProvider, bool metadataOnly)
         {

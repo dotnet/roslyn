@@ -47,8 +47,8 @@ namespace Microsoft.CodeAnalysis.CaseCorrection
         /// <summary>
         /// Case corrects all names found in the provided spans.
         /// </summary>
-        public static async Task<Document> CaseCorrectAsync(Document document, ImmutableArray<TextSpan> spans, CancellationToken cancellationToken = default)
-            => await document.GetLanguageService<ICaseCorrectionService>().CaseCorrectAsync(document, spans, cancellationToken).ConfigureAwait(false);
+        public static Task<Document> CaseCorrectAsync(Document document, ImmutableArray<TextSpan> spans, CancellationToken cancellationToken = default)
+            => document.GetLanguageService<ICaseCorrectionService>().CaseCorrectAsync(document, spans, cancellationToken);
 
         /// <summary>
         /// Case correct only things that don't require semantic information

@@ -94,8 +94,6 @@ namespace Microsoft.CodeAnalysis.LanguageServices
 
         ImmutableArray<IMethodSymbol> GetDeconstructionForEachMethods(SemanticModel semanticModel, SyntaxNode node);
 
-        bool IsAssignableTo(ITypeSymbol fromSymbol, ITypeSymbol toSymbol, Compilation compilation);
-
         bool IsPartial(ITypeSymbol typeSymbol, CancellationToken cancellationToken);
 
         IEnumerable<ISymbol> GetDeclaredSymbols(SemanticModel semanticModel, SyntaxNode memberDeclaration, CancellationToken cancellationToken);
