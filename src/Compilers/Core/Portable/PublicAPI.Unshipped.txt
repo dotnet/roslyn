@@ -4,13 +4,13 @@ Microsoft.CodeAnalysis.Diagnostics.Telemetry.AnalyzerTelemetryInfo.Concurrent.se
 Microsoft.CodeAnalysis.FlowAnalysis.BasicBlock
 Microsoft.CodeAnalysis.FlowAnalysis.BasicBlock.Condition.get -> Microsoft.CodeAnalysis.IOperation
 Microsoft.CodeAnalysis.FlowAnalysis.BasicBlock.ConditionalSuccessor.get -> Microsoft.CodeAnalysis.FlowAnalysis.ControlFlowBranch
+Microsoft.CodeAnalysis.FlowAnalysis.BasicBlock.EnclosingRegion.get -> Microsoft.CodeAnalysis.FlowAnalysis.ControlFlowRegion
 Microsoft.CodeAnalysis.FlowAnalysis.BasicBlock.FallThroughSuccessor.get -> Microsoft.CodeAnalysis.FlowAnalysis.ControlFlowBranch
 Microsoft.CodeAnalysis.FlowAnalysis.BasicBlock.IsReachable.get -> bool
 Microsoft.CodeAnalysis.FlowAnalysis.BasicBlock.Kind.get -> Microsoft.CodeAnalysis.FlowAnalysis.BasicBlockKind
 Microsoft.CodeAnalysis.FlowAnalysis.BasicBlock.Operations.get -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.IOperation>
 Microsoft.CodeAnalysis.FlowAnalysis.BasicBlock.Ordinal.get -> int
 Microsoft.CodeAnalysis.FlowAnalysis.BasicBlock.Predecessors.get -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.FlowAnalysis.ControlFlowBranch>
-Microsoft.CodeAnalysis.FlowAnalysis.BasicBlock.Region.get -> Microsoft.CodeAnalysis.FlowAnalysis.ControlFlowRegion
 Microsoft.CodeAnalysis.FlowAnalysis.BasicBlockKind
 Microsoft.CodeAnalysis.FlowAnalysis.BasicBlockKind.Block = 2 -> Microsoft.CodeAnalysis.FlowAnalysis.BasicBlockKind
 Microsoft.CodeAnalysis.FlowAnalysis.BasicBlockKind.Entry = 0 -> Microsoft.CodeAnalysis.FlowAnalysis.BasicBlockKind
@@ -66,13 +66,15 @@ Microsoft.CodeAnalysis.OperationKind.FlowCapture = 91 -> Microsoft.CodeAnalysis.
 Microsoft.CodeAnalysis.OperationKind.FlowCaptureReference = 92 -> Microsoft.CodeAnalysis.OperationKind
 Microsoft.CodeAnalysis.OperationKind.IsNull = 93 -> Microsoft.CodeAnalysis.OperationKind
 Microsoft.CodeAnalysis.OperationKind.StaticLocalInitializationSemaphore = 95 -> Microsoft.CodeAnalysis.OperationKind
+Microsoft.CodeAnalysis.Operations.CaptureId
+Microsoft.CodeAnalysis.Operations.CaptureId.Equals(Microsoft.CodeAnalysis.Operations.CaptureId other) -> bool
 Microsoft.CodeAnalysis.Operations.CommonConversion.IsLanguageAgnostic.get -> bool
 Microsoft.CodeAnalysis.Operations.ICaseClauseOperation.Label.get -> Microsoft.CodeAnalysis.ILabelSymbol
 Microsoft.CodeAnalysis.Operations.ICaughtExceptionOperation
 Microsoft.CodeAnalysis.Operations.ICoalesceOperation.ValueConversion.get -> Microsoft.CodeAnalysis.Operations.CommonConversion
 Microsoft.CodeAnalysis.Operations.IEventAssignmentOperation.EventReference.get -> Microsoft.CodeAnalysis.IOperation
 Microsoft.CodeAnalysis.Operations.IFlowCaptureOperation
-Microsoft.CodeAnalysis.Operations.IFlowCaptureOperation.Id.get -> int
+Microsoft.CodeAnalysis.Operations.IFlowCaptureOperation.Id.get -> Microsoft.CodeAnalysis.Operations.CaptureId
 Microsoft.CodeAnalysis.Operations.IFlowCaptureOperation.Value.get -> Microsoft.CodeAnalysis.IOperation
 Microsoft.CodeAnalysis.Operations.IFlowCaptureReferenceOperation
 Microsoft.CodeAnalysis.Operations.IFlowCaptureReferenceOperation.Id.get -> int
@@ -93,6 +95,9 @@ Microsoft.CodeAnalysis.Operations.IUsingOperation.Locals.get -> System.Collectio
 Microsoft.CodeAnalysis.Operations.InstanceReferenceKind
 Microsoft.CodeAnalysis.Operations.InstanceReferenceKind.ContainingTypeInstance = 0 -> Microsoft.CodeAnalysis.Operations.InstanceReferenceKind
 Microsoft.CodeAnalysis.Operations.InstanceReferenceKind.ImplicitReceiver = 1 -> Microsoft.CodeAnalysis.Operations.InstanceReferenceKind
+override Microsoft.CodeAnalysis.Operations.CaptureId.Equals(object obj) -> bool
+override Microsoft.CodeAnalysis.Operations.CaptureId.GetHashCode() -> int
+override Microsoft.CodeAnalysis.Operations.CaptureId.ToString() -> string
 static Microsoft.CodeAnalysis.SemanticModel.GetControlFlowGraph(Microsoft.CodeAnalysis.Operations.IBlockOperation body) -> Microsoft.CodeAnalysis.FlowAnalysis.ControlFlowGraph
 static Microsoft.CodeAnalysis.SemanticModel.GetControlFlowGraph(Microsoft.CodeAnalysis.Operations.IConstructorBodyOperation constructorBody) -> Microsoft.CodeAnalysis.FlowAnalysis.ControlFlowGraph
 static Microsoft.CodeAnalysis.SemanticModel.GetControlFlowGraph(Microsoft.CodeAnalysis.Operations.IFieldInitializerOperation initializer) -> Microsoft.CodeAnalysis.FlowAnalysis.ControlFlowGraph
@@ -103,7 +108,7 @@ virtual Microsoft.CodeAnalysis.Operations.OperationVisitor.VisitCaughtException(
 virtual Microsoft.CodeAnalysis.Operations.OperationVisitor.VisitFlowCapture(Microsoft.CodeAnalysis.Operations.IFlowCaptureOperation operation) -> void
 virtual Microsoft.CodeAnalysis.Operations.OperationVisitor.VisitFlowCaptureReference(Microsoft.CodeAnalysis.Operations.IFlowCaptureReferenceOperation operation) -> void
 virtual Microsoft.CodeAnalysis.Operations.OperationVisitor.VisitIsNull(Microsoft.CodeAnalysis.Operations.IIsNullOperation operation) -> void
-virtual Microsoft.CodeAnalysis.Operations.OperationVisitor.VisitStaticLocalInitialzationSemaphore(Microsoft.CodeAnalysis.Operations.IStaticLocalInitializationSemaphoreOperation operation) -> void
+virtual Microsoft.CodeAnalysis.Operations.OperationVisitor.VisitStaticLocalInitializationSemaphore(Microsoft.CodeAnalysis.Operations.IStaticLocalInitializationSemaphoreOperation operation) -> void
 virtual Microsoft.CodeAnalysis.Operations.OperationVisitor<TArgument, TResult>.VisitCaughtException(Microsoft.CodeAnalysis.Operations.ICaughtExceptionOperation operation, TArgument argument) -> TResult
 virtual Microsoft.CodeAnalysis.Operations.OperationVisitor<TArgument, TResult>.VisitFlowCapture(Microsoft.CodeAnalysis.Operations.IFlowCaptureOperation operation, TArgument argument) -> TResult
 virtual Microsoft.CodeAnalysis.Operations.OperationVisitor<TArgument, TResult>.VisitFlowCaptureReference(Microsoft.CodeAnalysis.Operations.IFlowCaptureReferenceOperation operation, TArgument argument) -> TResult

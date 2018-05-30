@@ -539,7 +539,7 @@ namespace Microsoft.CodeAnalysis.Operations
             DefaultVisit(operation);
         }
 
-        public virtual void VisitStaticLocalInitialzationSemaphore(IStaticLocalInitializationSemaphoreOperation operation)
+        public virtual void VisitStaticLocalInitializationSemaphore(IStaticLocalInitializationSemaphoreOperation operation)
         {
             DefaultVisit(operation);
         }

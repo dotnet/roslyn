@@ -1,10 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
-using System.Linq;
-using Microsoft.CodeAnalysis.PooledObjects;
 
 namespace Microsoft.CodeAnalysis.FlowAnalysis
 {
@@ -35,7 +32,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
             Condition = condition;
             Ordinal = ordinal;
             IsReachable = isReachable;
-            Region = region;
+            EnclosingRegion = region;
         }
 
         public BasicBlockKind Kind { get; }
@@ -86,7 +83,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
         /// <summary>
         /// Enclosing region
         /// </summary>
-        public ControlFlowRegion Region { get; }
+        public ControlFlowRegion EnclosingRegion { get; }
 
         internal void SetSuccessorsAndPredecessors(ControlFlowBranch successor, ControlFlowBranch conditionalSuccessor, ImmutableArray<ControlFlowBranch> predecessors)
         {

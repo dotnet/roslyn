@@ -1257,7 +1257,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             Assert.Empty(operation.Children);
         }
 
-        public override void VisitStaticLocalInitialzationSemaphore(IStaticLocalInitializationSemaphoreOperation operation)
+        public override void VisitStaticLocalInitializationSemaphore(IStaticLocalInitializationSemaphoreOperation operation)
         {
             Assert.Equal(OperationKind.StaticLocalInitializationSemaphore, operation.Kind);
             Assert.True(operation.IsImplicit);

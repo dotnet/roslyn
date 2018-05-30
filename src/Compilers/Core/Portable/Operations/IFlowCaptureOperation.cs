@@ -12,7 +12,7 @@ namespace Microsoft.CodeAnalysis.Operations
         /// <summary>
         /// An id used to match references to the same intermediate result.
         /// </summary>
-        int Id { get; }
+        CaptureId Id { get; }
 
         /// <summary>
         /// Value to be captured.

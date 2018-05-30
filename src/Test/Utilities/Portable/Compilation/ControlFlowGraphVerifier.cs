@@ -101,7 +101,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                         Assert.NotNull(block.FallThroughSuccessor.Destination);
                         Assert.Null(block.FallThroughSuccessor.Value);
                         Assert.Same(graph.Root, currentRegion);
-                        Assert.Same(currentRegion, block.Region);
+                        Assert.Same(currentRegion, block.EnclosingRegion);
                         Assert.Equal(0, currentRegion.FirstBlockOrdinal);
                         Assert.Same(enclosing, currentRegion.Enclosing);
                         Assert.Null(currentRegion.ExceptionType);
@@ -118,7 +118,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                         Assert.Null(block.ConditionalSuccessor);
                         Assert.Null(block.Condition);
                         Assert.Same(graph.Root, currentRegion);
-                        Assert.Same(currentRegion, block.Region);
+                        Assert.Same(currentRegion, block.EnclosingRegion);
                         Assert.Equal(i, currentRegion.LastBlockOrdinal);
                         break;
 
@@ -127,9 +127,9 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                         break;
                 }
 
-                if (block.Region != currentRegion)
+                if (block.EnclosingRegion != currentRegion)
                 {
-                    enterRegions(block.Region, block.Ordinal);
+                    enterRegions(block.EnclosingRegion, block.Ordinal);
                 }
 
                 if (!lastPrintedBlockIsInCurrentRegion)
@@ -236,8 +236,8 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                     if (nextBranch.Kind == ControlFlowBranchKind.StructuredExceptionHandling)
                     {
                         Assert.Null(nextBranch.Destination);
-                        Assert.Equal(block.Region.LastBlockOrdinal, block.Ordinal);
-                        Assert.True(block.Region.Kind == ControlFlowRegionKind.Filter || block.Region.Kind == ControlFlowRegionKind.Finally);
+                        Assert.Equal(block.EnclosingRegion.LastBlockOrdinal, block.Ordinal);
+                        Assert.True(block.EnclosingRegion.Kind == ControlFlowRegionKind.Filter || block.EnclosingRegion.Kind == ControlFlowRegionKind.Finally);
                     }
 
                     if (conditionalBranch != null)
@@ -272,7 +272,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
                 if (currentRegion.LastBlockOrdinal == block.Ordinal && i != blocks.Length - 1)
                 {
-                    leaveRegions(block.Region, block.Ordinal);
+                    leaveRegions(block.EnclosingRegion, block.Ordinal);
                 }
                 else
                 {
@@ -527,7 +527,7 @@ endRegion:
                     appendLine($"        Finalizing:" + buildList(branch.FinallyRegions));
                 }
 
-                ControlFlowRegion remainedIn1 = fromBlock.Region;
+                ControlFlowRegion remainedIn1 = fromBlock.EnclosingRegion;
                 if (!branch.LeavingRegions.IsEmpty)
                 {
                     appendLine($"        Leaving:" + buildList(branch.LeavingRegions));
@@ -538,7 +538,7 @@ endRegion:
                     }
                 }
 
-                ControlFlowRegion remainedIn2 = branch.Destination.Region;
+                ControlFlowRegion remainedIn2 = branch.Destination.EnclosingRegion;
                 if (!branch.EnteringRegions.IsEmpty)
                 {
                     appendLine($"        Entering:" + buildList(branch.EnteringRegions));
@@ -613,7 +613,7 @@ endRegion:
                 }
 
                 var localsAndMethodsInRegions = PooledHashSet<ISymbol>.GetInstance();
-                ControlFlowRegion region = block.Region;
+                ControlFlowRegion region = block.EnclosingRegion;
 
                 do
                 {
