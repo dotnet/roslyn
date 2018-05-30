@@ -2,6 +2,7 @@
 
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Editor.Implementation.CodeCleanup;
 using Microsoft.CodeAnalysis.Editor.Shared.Options;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Extensions;
@@ -93,8 +94,14 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Formatting
 
                         await Format(textView, document, selectionOpt: null, cancellationToken).ConfigureAwait(false);
 
+                        var codeCleanupService = document.GetLanguageService<ICodeCleanupService>();
+                        if (codeCleanupService == null)
+                        {
+                            return false;
+                        }
+
                         var oldDoc = document;
-                        var newDoc = await _codeCleanupService.CleanupDocument(document, cancellationToken).ConfigureAwait(false);
+                        var newDoc = await codeCleanupService.CleanupDocument(document, cancellationToken).ConfigureAwait(false);
 
                         var codeFixChanges = await newDoc.GetTextChangesAsync(oldDoc, cancellationToken).ConfigureAwait(false);
                         if (codeFixChanges.Count() > 0)

@@ -3,7 +3,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.ComponentModel.Composition;
+using System.Composition;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeFixes;
@@ -19,7 +19,7 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.CodeCleanup
 {
-    [Export(typeof(ICodeCleanupService))]
+    [ExportLanguageService(typeof(ICodeCleanupService), LanguageNames.CSharp), Shared]
     internal class CodeCleanupService : ICodeCleanupService
     {
         /// <summary>

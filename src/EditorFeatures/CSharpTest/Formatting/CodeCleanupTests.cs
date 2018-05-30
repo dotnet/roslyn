@@ -7,6 +7,7 @@ using Microsoft.CodeAnalysis.Editor.Implementation.CodeCleanup;
 using Microsoft.CodeAnalysis.Editor.Shared.Options;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Xunit;
 
@@ -118,7 +119,7 @@ class Program
                 var hostdoc = workspace.Documents.Single();
                 var document = workspace.CurrentSolution.GetDocument(hostdoc.Id);
 
-                var codeCleanupService = workspace.GetService<ICodeCleanupService>();
+                var codeCleanupService = document.GetLanguageService<ICodeCleanupService>();
                 var newDoc = await codeCleanupService.CleanupDocument(document, new CancellationToken());
 
                 var actual = await newDoc.GetTextAsync();

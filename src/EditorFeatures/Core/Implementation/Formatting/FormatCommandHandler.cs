@@ -41,7 +41,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Formatting
     {
         private readonly ITextUndoHistoryRegistry _undoHistoryRegistry;
         private readonly IEditorOperationsFactoryService _editorOperationsFactoryService;
-        private readonly ICodeCleanupService _codeCleanupService;
 
         public string DisplayName => EditorFeaturesResources.Format_Command_Handler;
 
@@ -49,12 +48,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Formatting
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public FormatCommandHandler(
             ITextUndoHistoryRegistry undoHistoryRegistry,
-            IEditorOperationsFactoryService editorOperationsFactoryService,
-            ICodeCleanupService codeCleanupService)
+            IEditorOperationsFactoryService editorOperationsFactoryService)
         {
             _undoHistoryRegistry = undoHistoryRegistry;
             _editorOperationsFactoryService = editorOperationsFactoryService;
-            _codeCleanupService = codeCleanupService;
         }
 
         private async Task Format(ITextView textView, Document document, TextSpan? selectionOpt, CancellationToken cancellationToken)

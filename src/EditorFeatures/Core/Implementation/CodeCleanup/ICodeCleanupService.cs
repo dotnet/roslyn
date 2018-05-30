@@ -6,7 +6,7 @@ using Microsoft.CodeAnalysis.Host;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.CodeCleanup
 {
-    internal interface ICodeCleanupService
+    internal interface ICodeCleanupService : ILanguageService
     {
         Task<Document> CleanupDocument(Document document, CancellationToken cancellationToken);
     }
