@@ -3,9 +3,11 @@
 using System;
 using System.Collections.Immutable;
 using System.Threading;
+using Microsoft.CodeAnalysis.Classification;
+using Microsoft.CodeAnalysis.Classification.Classifiers;
 using Microsoft.CodeAnalysis.PooledObjects;
 
-namespace Microsoft.CodeAnalysis.Classification.Classifiers
+namespace Microsoft.CodeAnalysis.CSharp.Classification.Classifiers
 {
     internal abstract class AbstractSyntaxClassifier : ISyntaxClassifier
     {
@@ -16,11 +18,11 @@ namespace Microsoft.CodeAnalysis.Classification.Classifiers
         protected string GetClassificationForType(ITypeSymbol type)
             => type.GetClassification();
 
-        public virtual void AddClassifications(Workspace workspace, SyntaxNode syntax, SemanticModel semanticModel, ArrayBuilder<ClassifiedSpan> result, CancellationToken cancellationToken)
+        public virtual void AddClassifications(SyntaxNode syntax, SemanticModel semanticModel, ArrayBuilder<ClassifiedSpan> result, CancellationToken cancellationToken)
         {
         }
 
-        public virtual void AddClassifications(Workspace workspace, SyntaxToken syntax, SemanticModel semanticModel, ArrayBuilder<ClassifiedSpan> result, CancellationToken cancellationToken)
+        public virtual void AddClassifications(SyntaxToken syntax, SemanticModel semanticModel, ArrayBuilder<ClassifiedSpan> result, CancellationToken cancellationToken)
         {
         }
 

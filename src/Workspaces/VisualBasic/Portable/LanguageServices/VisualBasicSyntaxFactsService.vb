@@ -202,10 +202,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return TypeOf node Is GenericNameSyntax
         End Function
 
-        Public Function IsQualifiedName(node As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsQualifiedName
-            Return node.IsKind(SyntaxKind.QualifiedName)
-        End Function
-
         Public Function IsNamedParameter(node As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsNamedParameter
             Return node.CheckParent(Of SimpleArgumentSyntax)(Function(p) p.IsNamed AndAlso p.NameColonEquals.Name Is node)
         End Function
