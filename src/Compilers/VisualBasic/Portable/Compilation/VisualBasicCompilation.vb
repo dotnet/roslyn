@@ -12,6 +12,7 @@ Imports Microsoft.CodeAnalysis.CodeGen
 Imports Microsoft.CodeAnalysis.Diagnostics
 Imports Microsoft.CodeAnalysis.Emit
 Imports Microsoft.CodeAnalysis.InternalUtilities
+Imports Microsoft.CodeAnalysis.Operations
 Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.Symbols
 Imports Microsoft.CodeAnalysis.Text
@@ -1757,6 +1758,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End If
 
             Return New Conversion(Conversions.ClassifyConversion(vbsource, vbdest, Nothing))
+        End Function
+
+        Public Overrides Function ClassifyCommonConversion(source As ITypeSymbol, destination As ITypeSymbol) As CommonConversion
+            Return ClassifyConversion(source, destination).ToCommonConversion()
         End Function
 
         ''' <summary>

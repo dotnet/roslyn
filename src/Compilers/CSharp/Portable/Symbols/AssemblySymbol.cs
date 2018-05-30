@@ -909,7 +909,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// <summary>
         /// If this symbol represents a metadata assembly returns the underlying <see cref="AssemblyMetadata"/>.
         /// 
-        /// Otherwise, this returns <code>null</code>.
+        /// Otherwise, this returns <see langword="null"/>.
         /// </summary>
         public abstract AssemblyMetadata GetMetadata();
 
