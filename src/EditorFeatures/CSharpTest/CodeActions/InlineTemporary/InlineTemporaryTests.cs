@@ -3719,9 +3719,9 @@ class C
 
         [WorkItem(4583, "https://github.com/dotnet/roslyn/issues/4583")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
-        public async Task DontParenthesizeInterpolatedStringWithNoInterpolation()
+        public async Task DontParenthesizeInterpolatedStringWithNoInterpolationWithCSharp7()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"class C
 {
     public void M()
@@ -3736,6 +3736,28 @@ class C
     {
         var s2 = string.Replace($""hello"", ""world"");
     }
+}", parameters: new TestParameters(parseOptions: new CSharpParseOptions(LanguageVersion.CSharp7)));
+        }
+
+        [WorkItem(4583, "https://github.com/dotnet/roslyn/issues/4583")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
+        public async Task DontParenthesizeInterpolatedStringWithNoInterpolation()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    public void M()
+    {
+        var [|s1|] = $""hello"";
+        var s2 = ""string"".Replace(s1, ""world"");
+    }
+}",
+@"class C
+{
+    public void M()
+    {
+        var s2 = ""string"".Replace($""hello"", ""world"");
+    }
 }");
         }
 
@@ -3749,14 +3771,14 @@ class C
     public void M(int x)
     {
         var [|s1|] = $""hello {x}"";
-        var s2 = string.Replace(s1, ""world"");
+        var s2 = ""string"".Replace(s1, ""world"");
     }
 }", 
 @"class C
 {
     public void M(int x)
     {
-        var s2 = string.Replace($""hello {x}"", ""world"");
+        var s2 = ""string"".Replace($""hello {x}"", ""world"");
     }
 }");
         }
