@@ -44,8 +44,17 @@
 *REMOVED*static Microsoft.CodeAnalysis.Options.Option<T>.implicit operator Microsoft.CodeAnalysis.Options.OptionKey(Microsoft.CodeAnalysis.Options.Option<T> option) -> Microsoft.CodeAnalysis.Options.OptionKey
 *REMOVED*static Microsoft.CodeAnalysis.Options.OptionKey.operator !=(Microsoft.CodeAnalysis.Options.OptionKey left, Microsoft.CodeAnalysis.Options.OptionKey right) -> bool
 *REMOVED*static Microsoft.CodeAnalysis.Options.OptionKey.operator ==(Microsoft.CodeAnalysis.Options.OptionKey left, Microsoft.CodeAnalysis.Options.OptionKey right) -> bool
+*REMOVED*static Microsoft.CodeAnalysis.ProjectInfo.Create(Microsoft.CodeAnalysis.ProjectId id, Microsoft.CodeAnalysis.VersionStamp version, string name, string assemblyName, string language, string filePath = null, string outputFilePath = null, Microsoft.CodeAnalysis.CompilationOptions compilationOptions = null, Microsoft.CodeAnalysis.ParseOptions parseOptions = null, System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.DocumentInfo> documents = null, System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.ProjectReference> projectReferences = null, System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.MetadataReference> metadataReferences = null, System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.Diagnostics.AnalyzerReference> analyzerReferences = null, System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.DocumentInfo> additionalDocuments = null, bool isSubmission = false, System.Type hostObjectType = null) -> Microsoft.CodeAnalysis.ProjectInfo
+abstract Microsoft.CodeAnalysis.Editing.SyntaxGenerator.AliasImportDeclaration(string aliasIdentifierName, Microsoft.CodeAnalysis.SyntaxNode name) -> Microsoft.CodeAnalysis.SyntaxNode
+abstract Microsoft.CodeAnalysis.Editing.SyntaxGenerator.NameExpression(Microsoft.CodeAnalysis.INamespaceOrTypeSymbol namespaceOrTypeSymbol) -> Microsoft.CodeAnalysis.SyntaxNode
 abstract Microsoft.CodeAnalysis.Options.OptionSet.GetOption(Microsoft.CodeAnalysis.Options.OptionKey optionKey) -> object (forwarded, contained in Microsoft.CodeAnalysis)
 abstract Microsoft.CodeAnalysis.Options.OptionSet.WithChangedOption(Microsoft.CodeAnalysis.Options.OptionKey optionAndLanguage, object value) -> Microsoft.CodeAnalysis.Options.OptionSet (forwarded, contained in Microsoft.CodeAnalysis)
+const Microsoft.CodeAnalysis.WorkspaceKind.MSBuild = "MSBuildWorkspace" -> string
+Microsoft.CodeAnalysis.Editing.SyntaxGenerator.AliasImportDeclaration(string aliasIdentifierName, Microsoft.CodeAnalysis.INamespaceOrTypeSymbol symbol) -> Microsoft.CodeAnalysis.SyntaxNode
+Microsoft.CodeAnalysis.FileTextLoader
+Microsoft.CodeAnalysis.FileTextLoader.DefaultEncoding.get -> System.Text.Encoding
+Microsoft.CodeAnalysis.FileTextLoader.FileTextLoader(string path, System.Text.Encoding defaultEncoding) -> void
+Microsoft.CodeAnalysis.FileTextLoader.Path.get -> string
 Microsoft.CodeAnalysis.Options.IOption (forwarded, contained in Microsoft.CodeAnalysis)
 Microsoft.CodeAnalysis.Options.IOption.DefaultValue.get -> object (forwarded, contained in Microsoft.CodeAnalysis)
 Microsoft.CodeAnalysis.Options.IOption.Feature.get -> string (forwarded, contained in Microsoft.CodeAnalysis)
@@ -68,20 +77,11 @@ Microsoft.CodeAnalysis.Options.OptionSet.WithChangedOption<T>(Microsoft.CodeAnal
 Microsoft.CodeAnalysis.Options.OptionStorageLocation (forwarded, contained in Microsoft.CodeAnalysis)
 Microsoft.CodeAnalysis.Options.OptionStorageLocation.OptionStorageLocation() -> void (forwarded, contained in Microsoft.CodeAnalysis)
 Microsoft.CodeAnalysis.Options.PerLanguageOption<> (forwarded, contained in Microsoft.CodeAnalysis)
+Microsoft.CodeAnalysis.ProjectChanges.GetChangedDocuments(bool onlyGetDocumentsWithTextChanges) -> System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.DocumentId>
+Microsoft.CodeAnalysis.Workspace.OnOutputRefFilePathChanged(Microsoft.CodeAnalysis.ProjectId projectId, string outputFilePath) -> void
+override Microsoft.CodeAnalysis.FileTextLoader.LoadTextAndVersionAsync(Microsoft.CodeAnalysis.Workspace workspace, Microsoft.CodeAnalysis.DocumentId documentId, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task<Microsoft.CodeAnalysis.TextAndVersion>
 override Microsoft.CodeAnalysis.Options.OptionKey.Equals(object obj) -> bool (forwarded, contained in Microsoft.CodeAnalysis)
 override Microsoft.CodeAnalysis.Options.OptionKey.GetHashCode() -> int (forwarded, contained in Microsoft.CodeAnalysis)
 static Microsoft.CodeAnalysis.Options.OptionKey.operator !=(Microsoft.CodeAnalysis.Options.OptionKey left, Microsoft.CodeAnalysis.Options.OptionKey right) -> bool (forwarded, contained in Microsoft.CodeAnalysis)
 static Microsoft.CodeAnalysis.Options.OptionKey.operator ==(Microsoft.CodeAnalysis.Options.OptionKey left, Microsoft.CodeAnalysis.Options.OptionKey right) -> bool (forwarded, contained in Microsoft.CodeAnalysis)
-*REMOVED*static Microsoft.CodeAnalysis.ProjectInfo.Create(Microsoft.CodeAnalysis.ProjectId id, Microsoft.CodeAnalysis.VersionStamp version, string name, string assemblyName, string language, string filePath = null, string outputFilePath = null, Microsoft.CodeAnalysis.CompilationOptions compilationOptions = null, Microsoft.CodeAnalysis.ParseOptions parseOptions = null, System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.DocumentInfo> documents = null, System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.ProjectReference> projectReferences = null, System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.MetadataReference> metadataReferences = null, System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.Diagnostics.AnalyzerReference> analyzerReferences = null, System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.DocumentInfo> additionalDocuments = null, bool isSubmission = false, System.Type hostObjectType = null) -> Microsoft.CodeAnalysis.ProjectInfo
-abstract Microsoft.CodeAnalysis.Editing.SyntaxGenerator.AliasImportDeclaration(string aliasIdentifierName, Microsoft.CodeAnalysis.SyntaxNode name) -> Microsoft.CodeAnalysis.SyntaxNode
-abstract Microsoft.CodeAnalysis.Editing.SyntaxGenerator.NameExpression(Microsoft.CodeAnalysis.INamespaceOrTypeSymbol namespaceOrTypeSymbol) -> Microsoft.CodeAnalysis.SyntaxNode
-const Microsoft.CodeAnalysis.WorkspaceKind.MSBuild = "MSBuildWorkspace" -> string
-Microsoft.CodeAnalysis.Editing.SyntaxGenerator.AliasImportDeclaration(string aliasIdentifierName, Microsoft.CodeAnalysis.INamespaceOrTypeSymbol symbol) -> Microsoft.CodeAnalysis.SyntaxNode
-Microsoft.CodeAnalysis.FileTextLoader
-Microsoft.CodeAnalysis.FileTextLoader.DefaultEncoding.get -> System.Text.Encoding
-Microsoft.CodeAnalysis.FileTextLoader.FileTextLoader(string path, System.Text.Encoding defaultEncoding) -> void
-Microsoft.CodeAnalysis.FileTextLoader.Path.get -> string
-Microsoft.CodeAnalysis.ProjectChanges.GetChangedDocuments(bool onlyGetDocumentsWithTextChanges) -> System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.DocumentId>
-Microsoft.CodeAnalysis.Workspace.OnOutputRefFilePathChanged(Microsoft.CodeAnalysis.ProjectId projectId, string outputFilePath) -> void
-override Microsoft.CodeAnalysis.FileTextLoader.LoadTextAndVersionAsync(Microsoft.CodeAnalysis.Workspace workspace, Microsoft.CodeAnalysis.DocumentId documentId, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task<Microsoft.CodeAnalysis.TextAndVersion>
 virtual Microsoft.CodeAnalysis.FileTextLoader.CreateText(System.IO.Stream stream, Microsoft.CodeAnalysis.Workspace workspace) -> Microsoft.CodeAnalysis.Text.SourceText
