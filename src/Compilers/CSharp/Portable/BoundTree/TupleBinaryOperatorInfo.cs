@@ -18,9 +18,9 @@ namespace Microsoft.CodeAnalysis.CSharp
     /// <summary>
     /// A tree of binary operators for tuple comparisons.
     ///
-    /// For `(a, (b, c)) == (d, (e, f))` we'll hold a Multiple with two elements.
-    /// The first element is a Single (describing the binary operator and conversions that are involved in `a == d`).
-    /// The second element is a Multiple containing two Singles (one for the `b == e` comparison and the other for `c == f`).
+    /// For <c>(a, (b, c)) == (d, (e, f))</c> we'll hold a Multiple with two elements.
+    /// The first element is a Single (describing the binary operator and conversions that are involved in <c>a == d</c>).
+    /// The second element is a Multiple containing two Singles (one for the <c>b == e</c> comparison and the other for <c>c == f</c>).
     /// </summary>
     internal abstract class TupleBinaryOperatorInfo
     {
@@ -39,7 +39,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>
-        /// Holds the information for an element-wise comparison (like `a == b` as part of `(a, ...) == (b, ...)`)
+        /// Holds the information for an element-wise comparison (like <c>a == b</c> as part of <c>(a, ...) == (b, ...)</c>)
         /// </summary>
         internal class Single : TupleBinaryOperatorInfo
         {
@@ -88,7 +88,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>
-        /// Holds the information for a tuple comparison, either at the top-level (like `(a, b) == ...`) or nested (like `(..., (a, b)) == (..., ...)`).
+        /// Holds the information for a tuple comparison, either at the top-level (like <c>(a, b) == ...</c>) or nested (like <c>(..., (a, b)) == (..., ...)</c>).
         /// </summary>
         internal class Multiple : TupleBinaryOperatorInfo
         {
@@ -125,7 +125,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         /// <summary>
         /// Represents an element-wise null/null comparison.
-        /// For instance, `(null, ...) == (null, ...)`.
+        /// For instance, <c>(null, ...) == (null, ...)</c>.
         /// </summary>
         internal class NullNull : TupleBinaryOperatorInfo
         {

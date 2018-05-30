@@ -1016,6 +1016,52 @@ Block[B2] - Exit
 
         <CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)>
         <Fact>
+        Public Sub EventAssignment_ParenthesizedInvalidEventReference_NoControlFlow()
+            Dim source = <![CDATA[
+Imports System        
+Module M1
+    Sub Main(v As AppDomain, handler As EventHandler)'BIND:"Sub Main(v As AppDomain, handler As EventHandler)"
+        AddHandler (v.DomainUnload()), handler
+    End Sub
+End Module
+]]>.Value
+
+            Dim expectedDiagnostics = <![CDATA[
+BC30677: 'AddHandler' or 'RemoveHandler' statement event operand must be a dot-qualified expression or a simple name.
+        AddHandler (v.DomainUnload()), handler
+                    ~~~~~~~~~~~~~~~~
+]]>.Value
+
+            Dim expectedFlowGraph = <![CDATA[
+Block[B0] - Entry
+    Statements (0)
+    Next (Regular) Block[B1]
+Block[B1] - Block
+    Predecessors: [B0]
+    Statements (1)
+        IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null, IsInvalid) (Syntax: 'AddHandler  ... )), handler')
+          Expression: 
+            IEventAssignmentOperation (EventAdd) (OperationKind.EventAssignment, Type: null, IsInvalid, IsImplicit) (Syntax: 'AddHandler  ... )), handler')
+              Event Reference: 
+                IParenthesizedOperation (OperationKind.Parenthesized, Type: ?, IsInvalid) (Syntax: '(v.DomainUnload())')
+                  Operand: 
+                    IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid) (Syntax: 'v.DomainUnload()')
+                      Children(1):
+                          IOperation:  (OperationKind.None, Type: null, IsInvalid) (Syntax: 'v.DomainUnload')
+              Handler: 
+                IParameterReferenceOperation: handler (OperationKind.ParameterReference, Type: System.EventHandler) (Syntax: 'handler')
+
+    Next (Regular) Block[B2]
+Block[B2] - Exit
+    Predecessors: [B1]
+    Statements (0)
+]]>.Value
+
+            VerifyFlowGraphAndDiagnosticsForTest(Of MethodBlockSyntax)(source, expectedFlowGraph, expectedDiagnostics)
+        End Sub
+
+        <CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)>
+        <Fact>
         Public Sub EventAssignment_ParenthesizedEventReference_ControlFlowInHandler()
             Dim source = <![CDATA[
 Imports System

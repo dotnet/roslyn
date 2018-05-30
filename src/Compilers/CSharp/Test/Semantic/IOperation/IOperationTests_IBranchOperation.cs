@@ -1329,5 +1329,140 @@ Block[B3] - Exit
 ";
             VerifyFlowGraphForTest<BlockSyntax>(compilation, expectedGraph);
         }
+
+        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+        [Fact]
+        public void BranchFlow_54()
+        {
+            string source = @"
+#pragma warning disable CS8321
+struct C
+{
+    void M()
+/*<bind>*/{
+        void local()
+        {
+            goto label;
+        } 
+
+label:  ;
+    }/*</bind>*/
+}
+";
+            string expectedGraph = @"
+Block[B0] - Entry
+    Statements (0)
+    Next (Regular) Block[B1]
+        Entering: {R1}
+
+.locals {R1}
+{
+    Methods: [void local()]
+    Block[B1] - Block
+        Predecessors: [B0]
+        Statements (0)
+        Next (Regular) Block[B2]
+            Leaving: {R1}
+    
+    {   void local()
+    
+        Block[B0#0R1] - Entry
+            Statements (0)
+            Next (Regular) Block[B1#0R1]
+        Block[B1#0R1] - Block
+            Predecessors: [B0#0R1]
+            Statements (0)
+            Next (Error) Block[null]
+        Block[B2#0R1] - Exit [UnReachable]
+            Predecessors (0)
+            Statements (0)
+    }
+}
+
+Block[B2] - Exit
+    Predecessors: [B1]
+    Statements (0)
+";
+            var expectedDiagnostics = new[] {
+                // file.cs(9,13): error CS0159: No such label 'label' within the scope of the goto statement
+                //             goto label;
+                Diagnostic(ErrorCode.ERR_LabelNotFound, "goto").WithArguments("label").WithLocation(9, 13),
+                // file.cs(12,1): warning CS0164: This label has not been referenced
+                // label:  ;
+                Diagnostic(ErrorCode.WRN_UnreferencedLabel, "label").WithLocation(12, 1)
+            };
+
+            VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedGraph, expectedDiagnostics);
+        }
+
+        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+        [Fact]
+        public void BranchFlow_55()
+        {
+            string source = @"
+#pragma warning disable CS8321
+struct C
+{
+    void M()
+/*<bind>*/{
+        void local(bool input)
+        {
+            if (input) return;
+
+            goto label;
+        } 
+
+label:  ;
+    }/*</bind>*/
+}
+";
+            string expectedGraph = @"
+Block[B0] - Entry
+    Statements (0)
+    Next (Regular) Block[B1]
+        Entering: {R1}
+
+.locals {R1}
+{
+    Methods: [void local(System.Boolean input)]
+    Block[B1] - Block
+        Predecessors: [B0]
+        Statements (0)
+        Next (Regular) Block[B2]
+            Leaving: {R1}
+    
+    {   void local(System.Boolean input)
+    
+        Block[B0#0R1] - Entry
+            Statements (0)
+            Next (Regular) Block[B1#0R1]
+        Block[B1#0R1] - Block
+            Predecessors: [B0#0R1]
+            Statements (0)
+            Jump if False (Error) to Block[null]
+                IParameterReferenceOperation: input (OperationKind.ParameterReference, Type: System.Boolean) (Syntax: 'input')
+
+            Next (Regular) Block[B2#0R1]
+        Block[B2#0R1] - Exit
+            Predecessors: [B1#0R1]
+            Statements (0)
+    }
+}
+
+Block[B2] - Exit
+    Predecessors: [B1]
+    Statements (0)
+";
+            var expectedDiagnostics = new[] {
+                // file.cs(11,13): error CS0159: No such label 'label' within the scope of the goto statement
+                //             goto label;
+                Diagnostic(ErrorCode.ERR_LabelNotFound, "goto").WithArguments("label").WithLocation(11, 13),
+                // file.cs(14,1): warning CS0164: This label has not been referenced
+                // label:  ;
+                Diagnostic(ErrorCode.WRN_UnreferencedLabel, "label").WithLocation(14, 1)
+            };
+
+            VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedGraph, expectedDiagnostics);
+        }
     }
 }

@@ -565,5 +565,696 @@ IBlockOperation (1 statements) (OperationKind.Block, Type: null) (Syntax: '=> x+
 
             VerifyOperationTreeAndDiagnosticsForTest<ArrowExpressionClauseSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
+
+        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+        [Fact]
+        public void LocalFunctionFlow_01()
+        {
+            string source = @"
+struct C
+{
+    void M()
+/*<bind>*/{
+        void local(bool result, bool input)
+        {
+            result = input;
+        }
+
+        local(false, true);
+    }/*</bind>*/
+}
+";
+            string expectedGraph = @"
+Block[B0] - Entry
+    Statements (0)
+    Next (Regular) Block[B1]
+        Entering: {R1}
+
+.locals {R1}
+{
+    Methods: [void local(System.Boolean result, System.Boolean input)]
+    Block[B1] - Block
+        Predecessors: [B0]
+        Statements (1)
+            IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'local(false, true);')
+              Expression: 
+                IInvocationOperation (void local(System.Boolean result, System.Boolean input)) (OperationKind.Invocation, Type: System.Void) (Syntax: 'local(false, true)')
+                  Instance Receiver: 
+                    null
+                  Arguments(2):
+                      IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: result) (OperationKind.Argument, Type: null) (Syntax: 'false')
+                        ILiteralOperation (OperationKind.Literal, Type: System.Boolean, Constant: False) (Syntax: 'false')
+                        InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                        OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                      IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: input) (OperationKind.Argument, Type: null) (Syntax: 'true')
+                        ILiteralOperation (OperationKind.Literal, Type: System.Boolean, Constant: True) (Syntax: 'true')
+                        InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                        OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+
+        Next (Regular) Block[B2]
+            Leaving: {R1}
+    
+    {   void local(System.Boolean result, System.Boolean input)
+    
+        Block[B0#0R1] - Entry
+            Statements (0)
+            Next (Regular) Block[B1#0R1]
+        Block[B1#0R1] - Block
+            Predecessors: [B0#0R1]
+            Statements (1)
+                IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'result = input;')
+                  Expression: 
+                    ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Boolean) (Syntax: 'result = input')
+                      Left: 
+                        IParameterReferenceOperation: result (OperationKind.ParameterReference, Type: System.Boolean) (Syntax: 'result')
+                      Right: 
+                        IParameterReferenceOperation: input (OperationKind.ParameterReference, Type: System.Boolean) (Syntax: 'input')
+
+            Next (Regular) Block[B2#0R1]
+        Block[B2#0R1] - Exit
+            Predecessors: [B1#0R1]
+            Statements (0)
+    }
+}
+
+Block[B2] - Exit
+    Predecessors: [B1]
+    Statements (0)
+";
+            var expectedDiagnostics = DiagnosticDescription.None;
+
+            VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedGraph, expectedDiagnostics);
+        }
+
+        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+        [Fact]
+        public void LocalFunctionFlow_02()
+        {
+            string source = @"
+#pragma warning disable CS8321
+struct C
+{
+    void M()
+/*<bind>*/{
+        void local(bool result, bool input)
+        {
+            result = input;
+        }
+    }/*</bind>*/
+}
+";
+            string expectedGraph = @"
+Block[B0] - Entry
+    Statements (0)
+    Next (Regular) Block[B1]
+        Entering: {R1}
+
+.locals {R1}
+{
+    Methods: [void local(System.Boolean result, System.Boolean input)]
+    Block[B1] - Block
+        Predecessors: [B0]
+        Statements (0)
+        Next (Regular) Block[B2]
+            Leaving: {R1}
+    
+    {   void local(System.Boolean result, System.Boolean input)
+    
+        Block[B0#0R1] - Entry
+            Statements (0)
+            Next (Regular) Block[B1#0R1]
+        Block[B1#0R1] - Block
+            Predecessors: [B0#0R1]
+            Statements (1)
+                IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'result = input;')
+                  Expression: 
+                    ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Boolean) (Syntax: 'result = input')
+                      Left: 
+                        IParameterReferenceOperation: result (OperationKind.ParameterReference, Type: System.Boolean) (Syntax: 'result')
+                      Right: 
+                        IParameterReferenceOperation: input (OperationKind.ParameterReference, Type: System.Boolean) (Syntax: 'input')
+
+            Next (Regular) Block[B2#0R1]
+        Block[B2#0R1] - Exit
+            Predecessors: [B1#0R1]
+            Statements (0)
+    }
+}
+
+Block[B2] - Exit
+    Predecessors: [B1]
+    Statements (0)
+";
+            var expectedDiagnostics = DiagnosticDescription.None;
+
+            VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedGraph, expectedDiagnostics);
+        }
+
+        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+        [Fact]
+        public void LocalFunctionFlow_03()
+        {
+            string source = @"
+#pragma warning disable CS8321
+struct C
+{
+    void M()
+/*<bind>*/{
+        void local(bool result, bool input)
+    }/*</bind>*/
+}
+";
+            string expectedGraph = @"
+Block[B0] - Entry
+    Statements (0)
+    Next (Regular) Block[B1]
+        Entering: {R1}
+
+.locals {R1}
+{
+    Methods: [void local(System.Boolean result, System.Boolean input)]
+    Block[B1] - Block
+        Predecessors: [B0]
+        Statements (0)
+        Next (Regular) Block[B2]
+            Leaving: {R1}
+    
+    {   void local(System.Boolean result, System.Boolean input)
+    
+        Block[B0#0R1] - Entry
+            Statements (0)
+            Next (Regular) Block[B1#0R1]
+        Block[B1#0R1] - Exit
+            Predecessors: [B0#0R1]
+            Statements (0)
+    }
+}
+
+Block[B2] - Exit
+    Predecessors: [B1]
+    Statements (0)
+";
+            var expectedDiagnostics = new[] {
+                // file.cs(7,44): error CS1002: ; expected
+                //         void local(bool result, bool input)
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(7, 44),
+                // file.cs(7,14): error CS8112: 'local(bool, bool)' is a local function and must therefore always have a body.
+                //         void local(bool result, bool input)
+                Diagnostic(ErrorCode.ERR_LocalFunctionMissingBody, "local").WithArguments("local(bool, bool)").WithLocation(7, 14)
+            };
+
+            VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedGraph, expectedDiagnostics);
+        }
+
+        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+        [Fact]
+        public void LocalFunctionFlow_04()
+        {
+            string source = @"
+#pragma warning disable CS8321
+struct C
+{
+    void M()
+/*<bind>*/{
+        void local(bool result, bool input1, bool input2)
+        {
+            result = input1;
+        } 
+        => result = input2;
+    }/*</bind>*/
+}
+";
+            string expectedGraph = @"
+Block[B0] - Entry
+    Statements (0)
+    Next (Regular) Block[B1]
+        Entering: {R1}
+
+.locals {R1}
+{
+    Methods: [void local(System.Boolean result, System.Boolean input1, System.Boolean input2)]
+    Block[B1] - Block
+        Predecessors: [B0]
+        Statements (0)
+        Next (Regular) Block[B2]
+            Leaving: {R1}
+    
+    {   void local(System.Boolean result, System.Boolean input1, System.Boolean input2)
+    
+        Block[B0#0R1] - Entry
+            Statements (0)
+            Next (Regular) Block[B1#0R1]
+        Block[B1#0R1] - Block
+            Predecessors: [B0#0R1]
+            Statements (1)
+                IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null, IsInvalid) (Syntax: 'result = input1;')
+                  Expression: 
+                    ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Boolean, IsInvalid) (Syntax: 'result = input1')
+                      Left: 
+                        IParameterReferenceOperation: result (OperationKind.ParameterReference, Type: System.Boolean, IsInvalid) (Syntax: 'result')
+                      Right: 
+                        IParameterReferenceOperation: input1 (OperationKind.ParameterReference, Type: System.Boolean, IsInvalid) (Syntax: 'input1')
+
+            Next (Regular) Block[B3#0R1]
+
+        .erroneous body {R1#0R1}
+        {
+            Block[B2#0R1] - Block [UnReachable]
+                Predecessors (0)
+                Statements (1)
+                    IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null, IsInvalid, IsImplicit) (Syntax: 'result = input2')
+                      Expression: 
+                        ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Boolean, IsInvalid) (Syntax: 'result = input2')
+                          Left: 
+                            IParameterReferenceOperation: result (OperationKind.ParameterReference, Type: System.Boolean, IsInvalid) (Syntax: 'result')
+                          Right: 
+                            IParameterReferenceOperation: input2 (OperationKind.ParameterReference, Type: System.Boolean, IsInvalid) (Syntax: 'input2')
+
+                Next (Regular) Block[B3#0R1]
+                    Leaving: {R1#0R1}
+        }
+
+        Block[B3#0R1] - Exit
+            Predecessors: [B1#0R1] [B2#0R1]
+            Statements (0)
+    }
+}
+
+Block[B2] - Exit
+    Predecessors: [B1]
+    Statements (0)
+";
+            var expectedDiagnostics = new[] {
+                // file.cs(7,9): error CS8057: Block bodies and expression bodies cannot both be provided.
+                //         void local(bool result, bool input1, bool input2)
+                Diagnostic(ErrorCode.ERR_BlockBodyAndExpressionBody, @"void local(bool result, bool input1, bool input2)
+        {
+            result = input1;
+        } 
+        => result = input2;").WithLocation(7, 9)
+            };
+
+            VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedGraph, expectedDiagnostics);
+        }
+
+        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+        [Fact]
+        public void LocalFunctionFlow_05()
+        {
+            string source = @"
+#pragma warning disable CS8321
+struct C
+{
+    void M()
+/*<bind>*/{
+        void local1(bool result1, bool input1)
+        {
+            result1 = input1;
+        }
+        void local2(bool result2, bool input2) => result2 = input2;
+    }/*</bind>*/
+}
+";
+            string expectedGraph = @"
+Block[B0] - Entry
+    Statements (0)
+    Next (Regular) Block[B1]
+        Entering: {R1}
+
+.locals {R1}
+{
+    Methods: [void local1(System.Boolean result1, System.Boolean input1)] [void local2(System.Boolean result2, System.Boolean input2)]
+    Block[B1] - Block
+        Predecessors: [B0]
+        Statements (0)
+        Next (Regular) Block[B2]
+            Leaving: {R1}
+    
+    {   void local1(System.Boolean result1, System.Boolean input1)
+    
+        Block[B0#0R1] - Entry
+            Statements (0)
+            Next (Regular) Block[B1#0R1]
+        Block[B1#0R1] - Block
+            Predecessors: [B0#0R1]
+            Statements (1)
+                IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'result1 = input1;')
+                  Expression: 
+                    ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Boolean) (Syntax: 'result1 = input1')
+                      Left: 
+                        IParameterReferenceOperation: result1 (OperationKind.ParameterReference, Type: System.Boolean) (Syntax: 'result1')
+                      Right: 
+                        IParameterReferenceOperation: input1 (OperationKind.ParameterReference, Type: System.Boolean) (Syntax: 'input1')
+
+            Next (Regular) Block[B2#0R1]
+        Block[B2#0R1] - Exit
+            Predecessors: [B1#0R1]
+            Statements (0)
+    }
+    
+    {   void local2(System.Boolean result2, System.Boolean input2)
+    
+        Block[B0#1R1] - Entry
+            Statements (0)
+            Next (Regular) Block[B1#1R1]
+        Block[B1#1R1] - Block
+            Predecessors: [B0#1R1]
+            Statements (1)
+                IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null, IsImplicit) (Syntax: 'result2 = input2')
+                  Expression: 
+                    ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Boolean) (Syntax: 'result2 = input2')
+                      Left: 
+                        IParameterReferenceOperation: result2 (OperationKind.ParameterReference, Type: System.Boolean) (Syntax: 'result2')
+                      Right: 
+                        IParameterReferenceOperation: input2 (OperationKind.ParameterReference, Type: System.Boolean) (Syntax: 'input2')
+
+            Next (Regular) Block[B2#1R1]
+        Block[B2#1R1] - Exit
+            Predecessors: [B1#1R1]
+            Statements (0)
+    }
+}
+
+Block[B2] - Exit
+    Predecessors: [B1]
+    Statements (0)
+";
+            var expectedDiagnostics = DiagnosticDescription.None;
+
+            VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedGraph, expectedDiagnostics);
+        }
+
+        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+        [Fact]
+        public void LocalFunctionFlow_06()
+        {
+            string source = @"
+struct C
+{
+    void M(int input)
+/*<bind>*/{
+        int result;
+        local1(input);
+
+        int local1(int input1)
+        {
+            int i = local1(input1);
+            result = local1(i);
+            return result;
+        }
+
+        local1(result);
+    }/*</bind>*/
+}
+";
+            string expectedGraph = @"
+Block[B0] - Entry
+    Statements (0)
+    Next (Regular) Block[B1]
+        Entering: {R1}
+
+.locals {R1}
+{
+    Locals: [System.Int32 result]
+    Methods: [System.Int32 local1(System.Int32 input1)]
+    Block[B1] - Block
+        Predecessors: [B0]
+        Statements (2)
+            IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'local1(input);')
+              Expression: 
+                IInvocationOperation (System.Int32 local1(System.Int32 input1)) (OperationKind.Invocation, Type: System.Int32) (Syntax: 'local1(input)')
+                  Instance Receiver: 
+                    null
+                  Arguments(1):
+                      IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: input1) (OperationKind.Argument, Type: null) (Syntax: 'input')
+                        IParameterReferenceOperation: input (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'input')
+                        InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                        OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+
+            IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'local1(result);')
+              Expression: 
+                IInvocationOperation (System.Int32 local1(System.Int32 input1)) (OperationKind.Invocation, Type: System.Int32) (Syntax: 'local1(result)')
+                  Instance Receiver: 
+                    null
+                  Arguments(1):
+                      IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: input1) (OperationKind.Argument, Type: null) (Syntax: 'result')
+                        ILocalReferenceOperation: result (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'result')
+                        InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                        OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+
+        Next (Regular) Block[B2]
+            Leaving: {R1}
+    
+    {   System.Int32 local1(System.Int32 input1)
+    
+        Block[B0#0R1] - Entry
+            Statements (0)
+            Next (Regular) Block[B1#0R1]
+                Entering: {R1#0R1}
+
+        .locals {R1#0R1}
+        {
+            Locals: [System.Int32 i]
+            Block[B1#0R1] - Block
+                Predecessors: [B0#0R1]
+                Statements (2)
+                    ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32, IsImplicit) (Syntax: 'i = local1(input1)')
+                      Left: 
+                        ILocalReferenceOperation: i (IsDeclaration: True) (OperationKind.LocalReference, Type: System.Int32, IsImplicit) (Syntax: 'i = local1(input1)')
+                      Right: 
+                        IInvocationOperation (System.Int32 local1(System.Int32 input1)) (OperationKind.Invocation, Type: System.Int32) (Syntax: 'local1(input1)')
+                          Instance Receiver: 
+                            null
+                          Arguments(1):
+                              IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: input1) (OperationKind.Argument, Type: null) (Syntax: 'input1')
+                                IParameterReferenceOperation: input1 (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'input1')
+                                InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                                OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+
+                    IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'result = local1(i);')
+                      Expression: 
+                        ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32) (Syntax: 'result = local1(i)')
+                          Left: 
+                            ILocalReferenceOperation: result (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'result')
+                          Right: 
+                            IInvocationOperation (System.Int32 local1(System.Int32 input1)) (OperationKind.Invocation, Type: System.Int32) (Syntax: 'local1(i)')
+                              Instance Receiver: 
+                                null
+                              Arguments(1):
+                                  IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: input1) (OperationKind.Argument, Type: null) (Syntax: 'i')
+                                    ILocalReferenceOperation: i (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'i')
+                                    InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                                    OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+
+                Next (Return) Block[B2#0R1]
+                    ILocalReferenceOperation: result (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'result')
+                    Leaving: {R1#0R1}
+        }
+
+        Block[B2#0R1] - Exit
+            Predecessors: [B1#0R1]
+            Statements (0)
+    }
+}
+
+Block[B2] - Exit
+    Predecessors: [B1]
+    Statements (0)
+";
+            var expectedDiagnostics = DiagnosticDescription.None;
+
+            VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedGraph, expectedDiagnostics);
+        }
+
+        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+        [Fact]
+        public void LocalFunctionFlow_07()
+        {
+            string source = @"
+#pragma warning disable CS8321
+struct C
+{
+    void M()
+/*<bind>*/{
+        try
+        {
+            void local(bool result, bool input)
+            {
+                result = input;
+            }
+        }
+        finally
+        {}
+    }/*</bind>*/
+}
+";
+            string expectedGraph = @"
+Block[B0] - Entry
+    Statements (0)
+    Next (Regular) Block[B1]
+        Entering: {R1}
+
+.locals {R1}
+{
+    Methods: [void local(System.Boolean result, System.Boolean input)]
+    Block[B1] - Block
+        Predecessors: [B0]
+        Statements (0)
+        Next (Regular) Block[B2]
+            Leaving: {R1}
+    
+    {   void local(System.Boolean result, System.Boolean input)
+    
+        Block[B0#0R1] - Entry
+            Statements (0)
+            Next (Regular) Block[B1#0R1]
+        Block[B1#0R1] - Block
+            Predecessors: [B0#0R1]
+            Statements (1)
+                IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'result = input;')
+                  Expression: 
+                    ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Boolean) (Syntax: 'result = input')
+                      Left: 
+                        IParameterReferenceOperation: result (OperationKind.ParameterReference, Type: System.Boolean) (Syntax: 'result')
+                      Right: 
+                        IParameterReferenceOperation: input (OperationKind.ParameterReference, Type: System.Boolean) (Syntax: 'input')
+
+            Next (Regular) Block[B2#0R1]
+        Block[B2#0R1] - Exit
+            Predecessors: [B1#0R1]
+            Statements (0)
+    }
+}
+
+Block[B2] - Exit
+    Predecessors: [B1]
+    Statements (0)
+";
+            var expectedDiagnostics = DiagnosticDescription.None;
+
+            VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedGraph, expectedDiagnostics);
+        }
+
+        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+        [Fact]
+        public void LocalFunctionFlow_08()
+        {
+            string source = @"
+#pragma warning disable CS8321
+struct C
+{
+    void M()
+/*<bind>*/{
+        int i = 0;
+
+        void local1(int input1)
+        {
+            input1 = 1;
+            i++;
+
+            void local2(bool input2)
+            {
+                input2 = true;
+                i++;
+            }
+        }
+    }/*</bind>*/
+}
+";
+            string expectedGraph = @"
+Block[B0] - Entry
+    Statements (0)
+    Next (Regular) Block[B1]
+        Entering: {R1}
+
+.locals {R1}
+{
+    Locals: [System.Int32 i]
+    Methods: [void local1(System.Int32 input1)]
+    Block[B1] - Block
+        Predecessors: [B0]
+        Statements (1)
+            ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32, IsImplicit) (Syntax: 'i = 0')
+              Left: 
+                ILocalReferenceOperation: i (IsDeclaration: True) (OperationKind.LocalReference, Type: System.Int32, IsImplicit) (Syntax: 'i = 0')
+              Right: 
+                ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0) (Syntax: '0')
+
+        Next (Regular) Block[B2]
+            Leaving: {R1}
+    
+    {   void local1(System.Int32 input1)
+    
+        Block[B0#0R1] - Entry
+            Statements (0)
+            Next (Regular) Block[B1#0R1]
+                Entering: {R1#0R1}
+
+        .locals {R1#0R1}
+        {
+            Methods: [void local2(System.Boolean input2)]
+            Block[B1#0R1] - Block
+                Predecessors: [B0#0R1]
+                Statements (2)
+                    IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'input1 = 1;')
+                      Expression: 
+                        ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32) (Syntax: 'input1 = 1')
+                          Left: 
+                            IParameterReferenceOperation: input1 (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'input1')
+                          Right: 
+                            ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
+
+                    IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'i++;')
+                      Expression: 
+                        IIncrementOrDecrementOperation (Postfix) (OperationKind.Increment, Type: System.Int32) (Syntax: 'i++')
+                          Target: 
+                            ILocalReferenceOperation: i (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'i')
+
+                Next (Regular) Block[B2#0R1]
+                    Leaving: {R1#0R1}
+            
+            {   void local2(System.Boolean input2)
+            
+                Block[B0#0R1#0R1] - Entry
+                    Statements (0)
+                    Next (Regular) Block[B1#0R1#0R1]
+                Block[B1#0R1#0R1] - Block
+                    Predecessors: [B0#0R1#0R1]
+                    Statements (2)
+                        IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'input2 = true;')
+                          Expression: 
+                            ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Boolean) (Syntax: 'input2 = true')
+                              Left: 
+                                IParameterReferenceOperation: input2 (OperationKind.ParameterReference, Type: System.Boolean) (Syntax: 'input2')
+                              Right: 
+                                ILiteralOperation (OperationKind.Literal, Type: System.Boolean, Constant: True) (Syntax: 'true')
+
+                        IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'i++;')
+                          Expression: 
+                            IIncrementOrDecrementOperation (Postfix) (OperationKind.Increment, Type: System.Int32) (Syntax: 'i++')
+                              Target: 
+                                ILocalReferenceOperation: i (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'i')
+
+                    Next (Regular) Block[B2#0R1#0R1]
+                Block[B2#0R1#0R1] - Exit
+                    Predecessors: [B1#0R1#0R1]
+                    Statements (0)
+            }
+        }
+
+        Block[B2#0R1] - Exit
+            Predecessors: [B1#0R1]
+            Statements (0)
+    }
+}
+
+Block[B2] - Exit
+    Predecessors: [B1]
+    Statements (0)
+";
+            var expectedDiagnostics = DiagnosticDescription.None;
+
+            VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedGraph, expectedDiagnostics);
+        }
     }
 }

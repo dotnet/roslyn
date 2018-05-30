@@ -20,8 +20,10 @@ namespace Microsoft.CodeAnalysis.Operations
             Root,
 
             /// <summary>
-            /// Region with the only purpose to represent the life-time of locals.
+            /// Region with the only purpose to represent the life-time of locals and methods (local functions, lambdas).
             /// PROTOTYPE(dataflow): We should clearly explain what "life-time" refers to here, or use a different term.
+            /// PROTOTYPE(dataflow): Should consider renaming to "Lifetime" or something else so that the name
+            ///                      wouldn't imply that it is only about locals
             /// </summary>
             Locals,
 
@@ -120,9 +122,17 @@ namespace Microsoft.CodeAnalysis.Operations
             /// </summary>
             public ImmutableArray<ILocalSymbol> Locals { get; }
 
+            /// <summary>
+            /// Methods (local functions or lambdas) declared within the region.
+            /// </summary>
+            public ImmutableArray<IMethodSymbol> Methods { get; }
+
             internal Region(RegionKind kind, int firstBlockOrdinal, int lastBlockOrdinal, 
-                            ImmutableArray<Region> regions = default, ImmutableArray<ILocalSymbol> locals = default, 
-                            ITypeSymbol exceptionType = null)
+                            ImmutableArray<Region> regions, 
+                            ImmutableArray<ILocalSymbol> locals,
+                            ImmutableArray<IMethodSymbol> methods,
+                            ITypeSymbol exceptionType,
+                            Region enclosing)
             {
                 Debug.Assert(firstBlockOrdinal >= 0);
                 Debug.Assert(lastBlockOrdinal >= firstBlockOrdinal);
@@ -132,9 +142,11 @@ namespace Microsoft.CodeAnalysis.Operations
                 LastBlockOrdinal = lastBlockOrdinal;
                 ExceptionType = exceptionType;
                 Locals = locals.NullToEmpty();
+                Methods = methods.NullToEmpty();
                 Regions = regions.NullToEmpty();
+                Enclosing = enclosing;
 
-                foreach(Region r in Regions)
+                foreach (Region r in Regions)
                 {
                     Debug.Assert(r.Enclosing == null && r.Kind != RegionKind.Root);
                     r.Enclosing = this;

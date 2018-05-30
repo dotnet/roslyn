@@ -1151,6 +1151,22 @@ namespace Microsoft.CodeAnalysis.Operations
             Lazy<IOperation> leftOperand = new Lazy<IOperation>(() => Create(boundBinaryOperator.Left));
             Lazy<IOperation> rightOperand = new Lazy<IOperation>(() => Create(boundBinaryOperator.Right));
             IMethodSymbol operatorMethod = boundBinaryOperator.MethodOpt;
+            IMethodSymbol unaryOperatorMethod = null;
+
+            // For dynamic logical operator MethodOpt actually the unary true/false operator
+            if (boundBinaryOperator.Type.IsDynamic() &&
+                (operatorKind == BinaryOperatorKind.ConditionalAnd || operatorKind == BinaryOperatorKind.ConditionalOr) &&
+                operatorMethod?.Parameters.Length == 1)
+            {
+                // PROTOTYPE(dataflow): There is no IOperation test coverage for this code besides some Control Flow Graph tests.
+                // PROTOTYPE(dataflow): Note that sometimes a user-defined conversion can be used to convert left operand to Boolean instead.
+                //                      BoundBinaryOperator doesn't have that information, but it feels like it should be exposed by
+                //                      IBinaryOperation node. We could add another property for that, but internally share storage 
+                //                      with true/false operator.
+                unaryOperatorMethod = operatorMethod;
+                operatorMethod = null;
+            }
+
             SyntaxNode syntax = boundBinaryOperator.Syntax;
             ITypeSymbol type = boundBinaryOperator.Type;
             Optional<object> constantValue = ConvertToOptional(boundBinaryOperator.ConstantValue);
@@ -1158,7 +1174,7 @@ namespace Microsoft.CodeAnalysis.Operations
             bool isChecked = boundBinaryOperator.OperatorKind.IsChecked();
             bool isCompareText = false;
             bool isImplicit = boundBinaryOperator.WasCompilerGenerated;
-            return new LazyBinaryOperatorExpression(operatorKind, leftOperand, rightOperand, isLifted, isChecked, isCompareText, operatorMethod, unaryOperatorMethod: null,
+            return new LazyBinaryOperatorExpression(operatorKind, leftOperand, rightOperand, isLifted, isChecked, isCompareText, operatorMethod, unaryOperatorMethod,
                                                     _semanticModel, syntax, type, constantValue, isImplicit);
         }
 

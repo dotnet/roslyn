@@ -95,6 +95,7 @@ namespace Microsoft.CodeAnalysis.Operations
             ProgramTermination,
             Throw,
             ReThrow,
+            Error,
         }
 
         public struct Branch
