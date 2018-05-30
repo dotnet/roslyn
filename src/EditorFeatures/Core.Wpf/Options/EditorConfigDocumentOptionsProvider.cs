@@ -28,9 +28,9 @@ namespace Microsoft.CodeAnalysis.Editor.Options
         private readonly ICodingConventionsManager _codingConventionsManager;
         private readonly IErrorLoggerService _errorLogger;
 
-        internal EditorConfigDocumentOptionsProvider(Workspace workspace)
+        internal EditorConfigDocumentOptionsProvider(Workspace workspace, ICodingConventionsManager codingConventionsManager)
         {
-            _codingConventionsManager = CodingConventionsManagerFactory.CreateCodingConventionsManager();
+            _codingConventionsManager = codingConventionsManager;
             _errorLogger = workspace.Services.GetService<IErrorLoggerService>();
 
             workspace.DocumentOpened += Workspace_DocumentOpened;
