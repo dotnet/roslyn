@@ -17,6 +17,7 @@ using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Emit;
+using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Symbols;
 using Microsoft.CodeAnalysis.Text;
@@ -1743,6 +1744,19 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             HashSet<DiagnosticInfo> useSiteDiagnostics = null;
             return Conversions.ClassifyConversionFromType(cssource, csdest, ref useSiteDiagnostics);
+        }
+
+        /// <summary>
+        /// Classifies a conversion from <paramref name="source"/> to <paramref name="destination"/> according
+        /// to this compilation's programming language.
+        /// </summary>
+        /// <param name="source">Source type of value to be converted</param>
+        /// <param name="destination">Destination type of value to be converted</param>
+        /// <returns>A <see cref="CommonConversion"/> that classifies the conversion from the
+        /// <paramref name="source"/> type to the <paramref name="destination"/> type.</returns>
+        public override CommonConversion ClassifyCommonConversion(ITypeSymbol source, ITypeSymbol destination)
+        {
+            return ClassifyConversion(source, destination).ToCommonConversion();
         }
 
         /// <summary>
