@@ -2007,5 +2007,96 @@ End Class
             Next
         End Sub
 
+        <Fact()>
+        <WorkItem(27034, "https://github.com/dotnet/roslyn/issues/27034")>
+        Public Sub LateBoundCollectionInitializer()
+            Dim source =
+    <compilation>
+        <file name="a.vb">
+Imports System
+Imports System.Collections
+Imports System.Collections.Generic
+
+Module Mod1
+    Sub Main(args() As String)
+        Dim c As New C()
+        c.M(1)
+    End Sub
+
+    Class C
+        Implements IEnumerable(Of Integer)
+
+        Public Sub M(a As Object)
+            Dim c = New C From {a}
+        End Sub
+
+        Public Function GetEnumerator() As IEnumerator(Of Integer) Implements IEnumerable(Of Integer).GetEnumerator
+            Throw New NotImplementedException()
+        End Function
+
+        Private Function IEnumerable_GetEnumerator() As IEnumerator Implements IEnumerable.GetEnumerator
+            Throw New NotImplementedException()
+        End Function
+
+        Public Sub Add(i As Integer)
+            Console.WriteLine("Called Integer Add")
+        End Sub
+
+        Public Sub Add(l As Long)
+            Console.WriteLine("Called Long Add")
+        End Sub
+    End Class
+End Module
+        </file>
+    </compilation>
+
+            Dim verifier = CompileAndVerify(source, expectedOutput:="Called Integer Add")
+            verifier.VerifyIL("Mod1.C.M", <![CDATA[
+{
+  // Code size       62 (0x3e)
+  .maxstack  10
+  .locals init (Mod1.C V_0,
+                Object() V_1,
+                Boolean() V_2)
+  IL_0000:  newobj     "Sub Mod1.C..ctor()"
+  IL_0005:  stloc.0
+  IL_0006:  ldloc.0
+  IL_0007:  ldnull
+  IL_0008:  ldstr      "Add"
+  IL_000d:  ldc.i4.1
+  IL_000e:  newarr     "Object"
+  IL_0013:  dup
+  IL_0014:  ldc.i4.0
+  IL_0015:  ldarg.1
+  IL_0016:  stelem.ref
+  IL_0017:  dup
+  IL_0018:  stloc.1
+  IL_0019:  ldnull
+  IL_001a:  ldnull
+  IL_001b:  ldc.i4.1
+  IL_001c:  newarr     "Boolean"
+  IL_0021:  dup
+  IL_0022:  ldc.i4.0
+  IL_0023:  ldc.i4.1
+  IL_0024:  stelem.i1
+  IL_0025:  dup
+  IL_0026:  stloc.2
+  IL_0027:  ldc.i4.1
+  IL_0028:  call       "Function Microsoft.VisualBasic.CompilerServices.NewLateBinding.LateCall(Object, System.Type, String, Object(), String(), System.Type(), Boolean(), Boolean) As Object"
+  IL_002d:  pop
+  IL_002e:  ldloc.2
+  IL_002f:  ldc.i4.0
+  IL_0030:  ldelem.u1
+  IL_0031:  brfalse.s  IL_003d
+  IL_0033:  ldloc.1
+  IL_0034:  ldc.i4.0
+  IL_0035:  ldelem.ref
+  IL_0036:  call       "Function System.Runtime.CompilerServices.RuntimeHelpers.GetObjectValue(Object) As Object"
+  IL_003b:  starg.s    V_1
+  IL_003d:  ret
+}
+]]>)
+        End Sub
+
     End Class
 End Namespace

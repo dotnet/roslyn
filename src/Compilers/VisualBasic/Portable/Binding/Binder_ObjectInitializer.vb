@@ -905,6 +905,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                           callerInfoOpt:=topLevelInitializer)
                 invocation.SetWasCompilerGenerated()
 
+                If invocation.Kind = BoundKind.LateInvocation Then
+                    invocation = DirectCast(invocation, BoundLateInvocation).SetLateBoundAccessKind(LateBoundAccessKind.Call)
+                End If
+
                 Return invocation
             Else
                 Return New BoundBadExpression(topLevelInitializer,
