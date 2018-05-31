@@ -7764,5 +7764,1518 @@ Block[B2] - Exit
 ";
             VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedFlowGraph, expectedDiagnostics);
         }
+
+        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+        [Fact]
+        public void ObjectCreationFlow_53()
+        {
+            string source = @"
+using System.Collections;
+using System.Collections.Generic;
+
+class C : IEnumerable<int>
+{
+    /*<bind>*/public static void M(C c)
+    {
+        c = new C { 1, 2, 3 };
+    }/*</bind>*/
+
+    public IEnumerator<int> GetEnumerator() => throw null;
+    IEnumerator IEnumerable.GetEnumerator() => throw null;
+    public void Add(int i) {}
+}
+";
+            var expectedDiagnostics = DiagnosticDescription.None;
+
+            string expectedFlowGraph = @"
+Block[B0] - Entry
+    Statements (0)
+    Next (Regular) Block[B1]
+Block[B1] - Block
+    Predecessors: [B0]
+    Statements (6)
+        IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'c')
+          Value: 
+            IParameterReferenceOperation: c (OperationKind.ParameterReference, Type: C) (Syntax: 'c')
+
+        IFlowCaptureOperation: 1 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'new C { 1, 2, 3 }')
+          Value: 
+            IObjectCreationOperation (Constructor: C..ctor()) (OperationKind.ObjectCreation, Type: C) (Syntax: 'new C { 1, 2, 3 }')
+              Arguments(0)
+              Initializer: 
+                null
+
+        IInvocationOperation ( void C.Add(System.Int32 i)) (OperationKind.Invocation, Type: System.Void, IsImplicit) (Syntax: '1')
+          Instance Receiver: 
+            IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: C, IsImplicit) (Syntax: 'new C { 1, 2, 3 }')
+          Arguments(1):
+              IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: i) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: '1')
+                ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
+                InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+
+        IInvocationOperation ( void C.Add(System.Int32 i)) (OperationKind.Invocation, Type: System.Void, IsImplicit) (Syntax: '2')
+          Instance Receiver: 
+            IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: C, IsImplicit) (Syntax: 'new C { 1, 2, 3 }')
+          Arguments(1):
+              IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: i) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: '2')
+                ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2) (Syntax: '2')
+                InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+
+        IInvocationOperation ( void C.Add(System.Int32 i)) (OperationKind.Invocation, Type: System.Void, IsImplicit) (Syntax: '3')
+          Instance Receiver: 
+            IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: C, IsImplicit) (Syntax: 'new C { 1, 2, 3 }')
+          Arguments(1):
+              IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: i) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: '3')
+                ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 3) (Syntax: '3')
+                InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+
+        IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'c = new C { 1, 2, 3 };')
+          Expression: 
+            ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: C) (Syntax: 'c = new C { 1, 2, 3 }')
+              Left: 
+                IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: C, IsImplicit) (Syntax: 'c')
+              Right: 
+                IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: C, IsImplicit) (Syntax: 'new C { 1, 2, 3 }')
+
+    Next (Regular) Block[B2]
+Block[B2] - Exit
+    Predecessors: [B1]
+    Statements (0)
+";
+            VerifyFlowGraphAndDiagnosticsForTest<MethodDeclarationSyntax>(source, expectedFlowGraph, expectedDiagnostics);
+        }
+
+        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+        [Fact]
+        public void ObjectCreationFlow_54()
+        {
+            string source = @"
+using System.Collections;
+using System.Collections.Generic;
+
+class C1
+{
+    /*<bind>*/public static void M(C1 c)
+    {
+        c = new C1 { [GetInt(0)] = { GetInt(1), GetInt(2), GetInt(3) } };
+    }/*</bind>*/
+
+    C2 this[int i] { get => null; set { } }
+    static int GetInt(int i) => i;
+}
+
+class C2 : IEnumerable<int>
+{
+    public IEnumerator<int> GetEnumerator() => throw null;
+    IEnumerator IEnumerable.GetEnumerator() => throw null;
+    public void Add(int i) { }
+}
+";
+            var expectedDiagnostics = DiagnosticDescription.None;
+
+            string expectedFlowGraph = @"
+Block[B0] - Entry
+    Statements (0)
+    Next (Regular) Block[B1]
+Block[B1] - Block
+    Predecessors: [B0]
+    Statements (7)
+        IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'c')
+          Value: 
+            IParameterReferenceOperation: c (OperationKind.ParameterReference, Type: C1) (Syntax: 'c')
+
+        IFlowCaptureOperation: 1 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'new C1 { [G ... tInt(3) } }')
+          Value: 
+            IObjectCreationOperation (Constructor: C1..ctor()) (OperationKind.ObjectCreation, Type: C1) (Syntax: 'new C1 { [G ... tInt(3) } }')
+              Arguments(0)
+              Initializer: 
+                null
+
+        IFlowCaptureOperation: 2 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'GetInt(0)')
+          Value: 
+            IInvocationOperation (System.Int32 C1.GetInt(System.Int32 i)) (OperationKind.Invocation, Type: System.Int32) (Syntax: 'GetInt(0)')
+              Instance Receiver: 
+                null
+              Arguments(1):
+                  IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: i) (OperationKind.Argument, Type: null) (Syntax: '0')
+                    ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0) (Syntax: '0')
+                    InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                    OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+
+        IInvocationOperation ( void C2.Add(System.Int32 i)) (OperationKind.Invocation, Type: System.Void, IsImplicit) (Syntax: 'GetInt(1)')
+          Instance Receiver: 
+            IPropertyReferenceOperation: C2 C1.this[System.Int32 i] { get; set; } (OperationKind.PropertyReference, Type: C2) (Syntax: '[GetInt(0)]')
+              Instance Receiver: 
+                IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: C1, IsImplicit) (Syntax: 'new C1 { [G ... tInt(3) } }')
+              Arguments(1):
+                  IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: i) (OperationKind.Argument, Type: null) (Syntax: 'GetInt(0)')
+                    IFlowCaptureReferenceOperation: 2 (OperationKind.FlowCaptureReference, Type: System.Int32, IsImplicit) (Syntax: 'GetInt(0)')
+                    InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                    OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+          Arguments(1):
+              IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: i) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'GetInt(1)')
+                IInvocationOperation (System.Int32 C1.GetInt(System.Int32 i)) (OperationKind.Invocation, Type: System.Int32) (Syntax: 'GetInt(1)')
+                  Instance Receiver: 
+                    null
+                  Arguments(1):
+                      IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: i) (OperationKind.Argument, Type: null) (Syntax: '1')
+                        ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
+                        InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                        OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+
+        IInvocationOperation ( void C2.Add(System.Int32 i)) (OperationKind.Invocation, Type: System.Void, IsImplicit) (Syntax: 'GetInt(2)')
+          Instance Receiver: 
+            IPropertyReferenceOperation: C2 C1.this[System.Int32 i] { get; set; } (OperationKind.PropertyReference, Type: C2) (Syntax: '[GetInt(0)]')
+              Instance Receiver: 
+                IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: C1, IsImplicit) (Syntax: 'new C1 { [G ... tInt(3) } }')
+              Arguments(1):
+                  IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: i) (OperationKind.Argument, Type: null) (Syntax: 'GetInt(0)')
+                    IFlowCaptureReferenceOperation: 2 (OperationKind.FlowCaptureReference, Type: System.Int32, IsImplicit) (Syntax: 'GetInt(0)')
+                    InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                    OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+          Arguments(1):
+              IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: i) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'GetInt(2)')
+                IInvocationOperation (System.Int32 C1.GetInt(System.Int32 i)) (OperationKind.Invocation, Type: System.Int32) (Syntax: 'GetInt(2)')
+                  Instance Receiver: 
+                    null
+                  Arguments(1):
+                      IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: i) (OperationKind.Argument, Type: null) (Syntax: '2')
+                        ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2) (Syntax: '2')
+                        InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                        OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+
+        IInvocationOperation ( void C2.Add(System.Int32 i)) (OperationKind.Invocation, Type: System.Void, IsImplicit) (Syntax: 'GetInt(3)')
+          Instance Receiver: 
+            IPropertyReferenceOperation: C2 C1.this[System.Int32 i] { get; set; } (OperationKind.PropertyReference, Type: C2) (Syntax: '[GetInt(0)]')
+              Instance Receiver: 
+                IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: C1, IsImplicit) (Syntax: 'new C1 { [G ... tInt(3) } }')
+              Arguments(1):
+                  IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: i) (OperationKind.Argument, Type: null) (Syntax: 'GetInt(0)')
+                    IFlowCaptureReferenceOperation: 2 (OperationKind.FlowCaptureReference, Type: System.Int32, IsImplicit) (Syntax: 'GetInt(0)')
+                    InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                    OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+          Arguments(1):
+              IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: i) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'GetInt(3)')
+                IInvocationOperation (System.Int32 C1.GetInt(System.Int32 i)) (OperationKind.Invocation, Type: System.Int32) (Syntax: 'GetInt(3)')
+                  Instance Receiver: 
+                    null
+                  Arguments(1):
+                      IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: i) (OperationKind.Argument, Type: null) (Syntax: '3')
+                        ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 3) (Syntax: '3')
+                        InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                        OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+
+        IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'c = new C1  ... Int(3) } };')
+          Expression: 
+            ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: C1) (Syntax: 'c = new C1  ... tInt(3) } }')
+              Left: 
+                IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: C1, IsImplicit) (Syntax: 'c')
+              Right: 
+                IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: C1, IsImplicit) (Syntax: 'new C1 { [G ... tInt(3) } }')
+
+    Next (Regular) Block[B2]
+Block[B2] - Exit
+    Predecessors: [B1]
+    Statements (0)
+";
+            VerifyFlowGraphAndDiagnosticsForTest<MethodDeclarationSyntax>(source, expectedFlowGraph, expectedDiagnostics);
+        }
+
+        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+        [Fact]
+        public void ObjectCreationFlow_55()
+        {
+            string source = @"
+using System.Collections;
+using System.Collections.Generic;
+
+class C1
+{
+    /*<bind>*/public static void M(C1 c, int? i1, int? i2, int? i3)
+    {
+        c = new C1 { [GetInt(i1 ?? 0)] = { GetInt(i2 ?? 1), 2 } };
+    }/*</bind>*/
+
+    C2 this[int i] { get => null; set { } }
+    static int GetInt(int i) => i;
+}
+
+class C2 : IEnumerable<int>
+{
+    public IEnumerator<int> GetEnumerator() => throw null;
+    IEnumerator IEnumerable.GetEnumerator() => throw null;
+    public void Add(int i) { }
+}
+";
+            var expectedDiagnostics = DiagnosticDescription.None;
+
+            string expectedFlowGraph = @"
+Block[B0] - Entry
+    Statements (0)
+    Next (Regular) Block[B1]
+Block[B1] - Block
+    Predecessors: [B0]
+    Statements (3)
+        IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'c')
+          Value: 
+            IParameterReferenceOperation: c (OperationKind.ParameterReference, Type: C1) (Syntax: 'c')
+
+        IFlowCaptureOperation: 1 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'new C1 { [G ... ? 1), 2 } }')
+          Value: 
+            IObjectCreationOperation (Constructor: C1..ctor()) (OperationKind.ObjectCreation, Type: C1) (Syntax: 'new C1 { [G ... ? 1), 2 } }')
+              Arguments(0)
+              Initializer: 
+                null
+
+        IFlowCaptureOperation: 2 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'i1')
+          Value: 
+            IParameterReferenceOperation: i1 (OperationKind.ParameterReference, Type: System.Int32?) (Syntax: 'i1')
+
+    Jump if True (Regular) to Block[B3]
+        IIsNullOperation (OperationKind.IsNull, Type: System.Boolean, IsImplicit) (Syntax: 'i1')
+          Operand: 
+            IFlowCaptureReferenceOperation: 2 (OperationKind.FlowCaptureReference, Type: System.Int32?, IsImplicit) (Syntax: 'i1')
+
+    Next (Regular) Block[B2]
+Block[B2] - Block
+    Predecessors: [B1]
+    Statements (1)
+        IFlowCaptureOperation: 3 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'i1')
+          Value: 
+            IInvocationOperation ( System.Int32 System.Int32?.GetValueOrDefault()) (OperationKind.Invocation, Type: System.Int32, IsImplicit) (Syntax: 'i1')
+              Instance Receiver: 
+                IFlowCaptureReferenceOperation: 2 (OperationKind.FlowCaptureReference, Type: System.Int32?, IsImplicit) (Syntax: 'i1')
+              Arguments(0)
+
+    Next (Regular) Block[B4]
+Block[B3] - Block
+    Predecessors: [B1]
+    Statements (1)
+        IFlowCaptureOperation: 3 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: '0')
+          Value: 
+            ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0) (Syntax: '0')
+
+    Next (Regular) Block[B4]
+Block[B4] - Block
+    Predecessors: [B2] [B3]
+    Statements (3)
+        IFlowCaptureOperation: 4 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'GetInt(i1 ?? 0)')
+          Value: 
+            IInvocationOperation (System.Int32 C1.GetInt(System.Int32 i)) (OperationKind.Invocation, Type: System.Int32) (Syntax: 'GetInt(i1 ?? 0)')
+              Instance Receiver: 
+                null
+              Arguments(1):
+                  IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: i) (OperationKind.Argument, Type: null) (Syntax: 'i1 ?? 0')
+                    IFlowCaptureReferenceOperation: 3 (OperationKind.FlowCaptureReference, Type: System.Int32, IsImplicit) (Syntax: 'i1 ?? 0')
+                    InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                    OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+
+        IFlowCaptureOperation: 5 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: '[GetInt(i1 ?? 0)]')
+          Value: 
+            IPropertyReferenceOperation: C2 C1.this[System.Int32 i] { get; set; } (OperationKind.PropertyReference, Type: C2) (Syntax: '[GetInt(i1 ?? 0)]')
+              Instance Receiver: 
+                IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: C1, IsImplicit) (Syntax: 'new C1 { [G ... ? 1), 2 } }')
+              Arguments(1):
+                  IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: i) (OperationKind.Argument, Type: null) (Syntax: 'GetInt(i1 ?? 0)')
+                    IFlowCaptureReferenceOperation: 4 (OperationKind.FlowCaptureReference, Type: System.Int32, IsImplicit) (Syntax: 'GetInt(i1 ?? 0)')
+                    InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                    OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+
+        IFlowCaptureOperation: 6 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'i2')
+          Value: 
+            IParameterReferenceOperation: i2 (OperationKind.ParameterReference, Type: System.Int32?) (Syntax: 'i2')
+
+    Jump if True (Regular) to Block[B6]
+        IIsNullOperation (OperationKind.IsNull, Type: System.Boolean, IsImplicit) (Syntax: 'i2')
+          Operand: 
+            IFlowCaptureReferenceOperation: 6 (OperationKind.FlowCaptureReference, Type: System.Int32?, IsImplicit) (Syntax: 'i2')
+
+    Next (Regular) Block[B5]
+Block[B5] - Block
+    Predecessors: [B4]
+    Statements (1)
+        IFlowCaptureOperation: 7 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'i2')
+          Value: 
+            IInvocationOperation ( System.Int32 System.Int32?.GetValueOrDefault()) (OperationKind.Invocation, Type: System.Int32, IsImplicit) (Syntax: 'i2')
+              Instance Receiver: 
+                IFlowCaptureReferenceOperation: 6 (OperationKind.FlowCaptureReference, Type: System.Int32?, IsImplicit) (Syntax: 'i2')
+              Arguments(0)
+
+    Next (Regular) Block[B7]
+Block[B6] - Block
+    Predecessors: [B4]
+    Statements (1)
+        IFlowCaptureOperation: 7 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: '1')
+          Value: 
+            ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
+
+    Next (Regular) Block[B7]
+Block[B7] - Block
+    Predecessors: [B5] [B6]
+    Statements (3)
+        IInvocationOperation ( void C2.Add(System.Int32 i)) (OperationKind.Invocation, Type: System.Void, IsImplicit) (Syntax: 'GetInt(i2 ?? 1)')
+          Instance Receiver: 
+            IFlowCaptureReferenceOperation: 5 (OperationKind.FlowCaptureReference, Type: C2, IsImplicit) (Syntax: '[GetInt(i1 ?? 0)]')
+          Arguments(1):
+              IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: i) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'GetInt(i2 ?? 1)')
+                IInvocationOperation (System.Int32 C1.GetInt(System.Int32 i)) (OperationKind.Invocation, Type: System.Int32) (Syntax: 'GetInt(i2 ?? 1)')
+                  Instance Receiver: 
+                    null
+                  Arguments(1):
+                      IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: i) (OperationKind.Argument, Type: null) (Syntax: 'i2 ?? 1')
+                        IFlowCaptureReferenceOperation: 7 (OperationKind.FlowCaptureReference, Type: System.Int32, IsImplicit) (Syntax: 'i2 ?? 1')
+                        InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                        OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+
+        IInvocationOperation ( void C2.Add(System.Int32 i)) (OperationKind.Invocation, Type: System.Void, IsImplicit) (Syntax: '2')
+          Instance Receiver: 
+            IPropertyReferenceOperation: C2 C1.this[System.Int32 i] { get; set; } (OperationKind.PropertyReference, Type: C2) (Syntax: '[GetInt(i1 ?? 0)]')
+              Instance Receiver: 
+                IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: C1, IsImplicit) (Syntax: 'new C1 { [G ... ? 1), 2 } }')
+              Arguments(1):
+                  IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: i) (OperationKind.Argument, Type: null) (Syntax: 'GetInt(i1 ?? 0)')
+                    IFlowCaptureReferenceOperation: 4 (OperationKind.FlowCaptureReference, Type: System.Int32, IsImplicit) (Syntax: 'GetInt(i1 ?? 0)')
+                    InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                    OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+          Arguments(1):
+              IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: i) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: '2')
+                ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2) (Syntax: '2')
+                InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+
+        IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'c = new C1  ...  1), 2 } };')
+          Expression: 
+            ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: C1) (Syntax: 'c = new C1  ... ? 1), 2 } }')
+              Left: 
+                IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: C1, IsImplicit) (Syntax: 'c')
+              Right: 
+                IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: C1, IsImplicit) (Syntax: 'new C1 { [G ... ? 1), 2 } }')
+
+    Next (Regular) Block[B8]
+Block[B8] - Exit
+    Predecessors: [B7]
+    Statements (0)
+";
+            VerifyFlowGraphAndDiagnosticsForTest<MethodDeclarationSyntax>(source, expectedFlowGraph, expectedDiagnostics);
+        }
+
+        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+        [Fact]
+        public void ObjectCreationFlow_56()
+        {
+            string source = @"
+using System.Collections;
+using System.Collections.Generic;
+
+class C1
+{
+    /*<bind>*/public static void M(C1 c, int? i1, int? i2, int? i3)
+    {
+        c = new C1 { [i1 ?? 0] = { { GetInt(i2 ?? 1), 2 }, { 3, GetInt(i3 ?? 4) } } };
+    }/*</bind>*/
+    C2 this[int i] { get => null; set { } }
+    static int GetInt(int i) => i;
+}
+
+class C2 : IEnumerable<int>
+{
+    public IEnumerator<int> GetEnumerator() => throw null;
+    IEnumerator IEnumerable.GetEnumerator() => throw null;
+    public void Add(int i, int j) { }
+}
+";
+            var expectedDiagnostics = DiagnosticDescription.None;
+
+            string expectedFlowGraph = @"
+Block[B0] - Entry
+    Statements (0)
+    Next (Regular) Block[B1]
+Block[B1] - Block
+    Predecessors: [B0]
+    Statements (3)
+        IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'c')
+          Value: 
+            IParameterReferenceOperation: c (OperationKind.ParameterReference, Type: C1) (Syntax: 'c')
+
+        IFlowCaptureOperation: 1 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'new C1 { [i ... ?? 4) } } }')
+          Value: 
+            IObjectCreationOperation (Constructor: C1..ctor()) (OperationKind.ObjectCreation, Type: C1) (Syntax: 'new C1 { [i ... ?? 4) } } }')
+              Arguments(0)
+              Initializer: 
+                null
+
+        IFlowCaptureOperation: 2 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'i1')
+          Value: 
+            IParameterReferenceOperation: i1 (OperationKind.ParameterReference, Type: System.Int32?) (Syntax: 'i1')
+
+    Jump if True (Regular) to Block[B3]
+        IIsNullOperation (OperationKind.IsNull, Type: System.Boolean, IsImplicit) (Syntax: 'i1')
+          Operand: 
+            IFlowCaptureReferenceOperation: 2 (OperationKind.FlowCaptureReference, Type: System.Int32?, IsImplicit) (Syntax: 'i1')
+
+    Next (Regular) Block[B2]
+Block[B2] - Block
+    Predecessors: [B1]
+    Statements (1)
+        IFlowCaptureOperation: 3 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'i1')
+          Value: 
+            IInvocationOperation ( System.Int32 System.Int32?.GetValueOrDefault()) (OperationKind.Invocation, Type: System.Int32, IsImplicit) (Syntax: 'i1')
+              Instance Receiver: 
+                IFlowCaptureReferenceOperation: 2 (OperationKind.FlowCaptureReference, Type: System.Int32?, IsImplicit) (Syntax: 'i1')
+              Arguments(0)
+
+    Next (Regular) Block[B4]
+Block[B3] - Block
+    Predecessors: [B1]
+    Statements (1)
+        IFlowCaptureOperation: 3 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: '0')
+          Value: 
+            ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0) (Syntax: '0')
+
+    Next (Regular) Block[B4]
+Block[B4] - Block
+    Predecessors: [B2] [B3]
+    Statements (2)
+        IFlowCaptureOperation: 4 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: '[i1 ?? 0]')
+          Value: 
+            IPropertyReferenceOperation: C2 C1.this[System.Int32 i] { get; set; } (OperationKind.PropertyReference, Type: C2) (Syntax: '[i1 ?? 0]')
+              Instance Receiver: 
+                IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: C1, IsImplicit) (Syntax: 'new C1 { [i ... ?? 4) } } }')
+              Arguments(1):
+                  IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: i) (OperationKind.Argument, Type: null) (Syntax: 'i1 ?? 0')
+                    IFlowCaptureReferenceOperation: 3 (OperationKind.FlowCaptureReference, Type: System.Int32, IsImplicit) (Syntax: 'i1 ?? 0')
+                    InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                    OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+
+        IFlowCaptureOperation: 5 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'i2')
+          Value: 
+            IParameterReferenceOperation: i2 (OperationKind.ParameterReference, Type: System.Int32?) (Syntax: 'i2')
+
+    Jump if True (Regular) to Block[B6]
+        IIsNullOperation (OperationKind.IsNull, Type: System.Boolean, IsImplicit) (Syntax: 'i2')
+          Operand: 
+            IFlowCaptureReferenceOperation: 5 (OperationKind.FlowCaptureReference, Type: System.Int32?, IsImplicit) (Syntax: 'i2')
+
+    Next (Regular) Block[B5]
+Block[B5] - Block
+    Predecessors: [B4]
+    Statements (1)
+        IFlowCaptureOperation: 6 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'i2')
+          Value: 
+            IInvocationOperation ( System.Int32 System.Int32?.GetValueOrDefault()) (OperationKind.Invocation, Type: System.Int32, IsImplicit) (Syntax: 'i2')
+              Instance Receiver: 
+                IFlowCaptureReferenceOperation: 5 (OperationKind.FlowCaptureReference, Type: System.Int32?, IsImplicit) (Syntax: 'i2')
+              Arguments(0)
+
+    Next (Regular) Block[B7]
+Block[B6] - Block
+    Predecessors: [B4]
+    Statements (1)
+        IFlowCaptureOperation: 6 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: '1')
+          Value: 
+            ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
+
+    Next (Regular) Block[B7]
+Block[B7] - Block
+    Predecessors: [B5] [B6]
+    Statements (4)
+        IInvocationOperation ( void C2.Add(System.Int32 i, System.Int32 j)) (OperationKind.Invocation, Type: System.Void, IsImplicit) (Syntax: '{ GetInt(i2 ?? 1), 2 }')
+          Instance Receiver: 
+            IFlowCaptureReferenceOperation: 4 (OperationKind.FlowCaptureReference, Type: C2, IsImplicit) (Syntax: '[i1 ?? 0]')
+          Arguments(2):
+              IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: i) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'GetInt(i2 ?? 1)')
+                IInvocationOperation (System.Int32 C1.GetInt(System.Int32 i)) (OperationKind.Invocation, Type: System.Int32) (Syntax: 'GetInt(i2 ?? 1)')
+                  Instance Receiver: 
+                    null
+                  Arguments(1):
+                      IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: i) (OperationKind.Argument, Type: null) (Syntax: 'i2 ?? 1')
+                        IFlowCaptureReferenceOperation: 6 (OperationKind.FlowCaptureReference, Type: System.Int32, IsImplicit) (Syntax: 'i2 ?? 1')
+                        InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                        OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+              IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: j) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: '2')
+                ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2) (Syntax: '2')
+                InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+
+        IFlowCaptureOperation: 7 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: '[i1 ?? 0]')
+          Value: 
+            IPropertyReferenceOperation: C2 C1.this[System.Int32 i] { get; set; } (OperationKind.PropertyReference, Type: C2) (Syntax: '[i1 ?? 0]')
+              Instance Receiver: 
+                IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: C1, IsImplicit) (Syntax: 'new C1 { [i ... ?? 4) } } }')
+              Arguments(1):
+                  IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: i) (OperationKind.Argument, Type: null) (Syntax: 'i1 ?? 0')
+                    IFlowCaptureReferenceOperation: 3 (OperationKind.FlowCaptureReference, Type: System.Int32, IsImplicit) (Syntax: 'i1 ?? 0')
+                    InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                    OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+
+        IFlowCaptureOperation: 8 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: '3')
+          Value: 
+            ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 3) (Syntax: '3')
+
+        IFlowCaptureOperation: 9 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'i3')
+          Value: 
+            IParameterReferenceOperation: i3 (OperationKind.ParameterReference, Type: System.Int32?) (Syntax: 'i3')
+
+    Jump if True (Regular) to Block[B9]
+        IIsNullOperation (OperationKind.IsNull, Type: System.Boolean, IsImplicit) (Syntax: 'i3')
+          Operand: 
+            IFlowCaptureReferenceOperation: 9 (OperationKind.FlowCaptureReference, Type: System.Int32?, IsImplicit) (Syntax: 'i3')
+
+    Next (Regular) Block[B8]
+Block[B8] - Block
+    Predecessors: [B7]
+    Statements (1)
+        IFlowCaptureOperation: 10 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'i3')
+          Value: 
+            IInvocationOperation ( System.Int32 System.Int32?.GetValueOrDefault()) (OperationKind.Invocation, Type: System.Int32, IsImplicit) (Syntax: 'i3')
+              Instance Receiver: 
+                IFlowCaptureReferenceOperation: 9 (OperationKind.FlowCaptureReference, Type: System.Int32?, IsImplicit) (Syntax: 'i3')
+              Arguments(0)
+
+    Next (Regular) Block[B10]
+Block[B9] - Block
+    Predecessors: [B7]
+    Statements (1)
+        IFlowCaptureOperation: 10 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: '4')
+          Value: 
+            ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 4) (Syntax: '4')
+
+    Next (Regular) Block[B10]
+Block[B10] - Block
+    Predecessors: [B8] [B9]
+    Statements (2)
+        IInvocationOperation ( void C2.Add(System.Int32 i, System.Int32 j)) (OperationKind.Invocation, Type: System.Void, IsImplicit) (Syntax: '{ 3, GetInt(i3 ?? 4) }')
+          Instance Receiver: 
+            IFlowCaptureReferenceOperation: 7 (OperationKind.FlowCaptureReference, Type: C2, IsImplicit) (Syntax: '[i1 ?? 0]')
+          Arguments(2):
+              IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: i) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: '3')
+                IFlowCaptureReferenceOperation: 8 (OperationKind.FlowCaptureReference, Type: System.Int32, Constant: 3, IsImplicit) (Syntax: '3')
+                InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+              IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: j) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'GetInt(i3 ?? 4)')
+                IInvocationOperation (System.Int32 C1.GetInt(System.Int32 i)) (OperationKind.Invocation, Type: System.Int32) (Syntax: 'GetInt(i3 ?? 4)')
+                  Instance Receiver: 
+                    null
+                  Arguments(1):
+                      IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: i) (OperationKind.Argument, Type: null) (Syntax: 'i3 ?? 4')
+                        IFlowCaptureReferenceOperation: 10 (OperationKind.FlowCaptureReference, Type: System.Int32, IsImplicit) (Syntax: 'i3 ?? 4')
+                        InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                        OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+
+        IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'c = new C1  ... ? 4) } } };')
+          Expression: 
+            ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: C1) (Syntax: 'c = new C1  ... ?? 4) } } }')
+              Left: 
+                IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: C1, IsImplicit) (Syntax: 'c')
+              Right: 
+                IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: C1, IsImplicit) (Syntax: 'new C1 { [i ... ?? 4) } } }')
+
+    Next (Regular) Block[B11]
+Block[B11] - Exit
+    Predecessors: [B10]
+    Statements (0)
+";
+            VerifyFlowGraphAndDiagnosticsForTest<MethodDeclarationSyntax>(source, expectedFlowGraph, expectedDiagnostics);
+        }
+
+        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+        [Fact]
+        public void ObjectCreationFlow_57()
+        {
+            string source = @"
+using System.Collections;
+using System.Collections.Generic;
+
+class C1
+{
+    /*<bind>*/public static void M(C1 c, int? i1, int? i2, int? i3)
+    {
+        c = new C1 { [i1 ?? 0] = { GetInt(i2 ?? 1), { 3, GetInt(i3 ?? 4) } } };
+    }/*</bind>*/
+    C2 this[int i] { get => null; set { } }
+    static int GetInt(int i) => i;
+}
+
+class C2 : IEnumerable<int>
+{
+    public IEnumerator<int> GetEnumerator() => throw null;
+    IEnumerator IEnumerable.GetEnumerator() => throw null;
+}
+
+static class C2Extensions
+{
+    public static void Add(this C2 c2, int i) { }
+    public static void Add(this C2 c2, int i, int j) { }
+}
+";
+            var expectedDiagnostics = DiagnosticDescription.None;
+
+            string expectedFlowGraph = @"
+Block[B0] - Entry
+    Statements (0)
+    Next (Regular) Block[B1]
+Block[B1] - Block
+    Predecessors: [B0]
+    Statements (3)
+        IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'c')
+          Value: 
+            IParameterReferenceOperation: c (OperationKind.ParameterReference, Type: C1) (Syntax: 'c')
+
+        IFlowCaptureOperation: 1 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'new C1 { [i ... ?? 4) } } }')
+          Value: 
+            IObjectCreationOperation (Constructor: C1..ctor()) (OperationKind.ObjectCreation, Type: C1) (Syntax: 'new C1 { [i ... ?? 4) } } }')
+              Arguments(0)
+              Initializer: 
+                null
+
+        IFlowCaptureOperation: 2 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'i1')
+          Value: 
+            IParameterReferenceOperation: i1 (OperationKind.ParameterReference, Type: System.Int32?) (Syntax: 'i1')
+
+    Jump if True (Regular) to Block[B3]
+        IIsNullOperation (OperationKind.IsNull, Type: System.Boolean, IsImplicit) (Syntax: 'i1')
+          Operand: 
+            IFlowCaptureReferenceOperation: 2 (OperationKind.FlowCaptureReference, Type: System.Int32?, IsImplicit) (Syntax: 'i1')
+
+    Next (Regular) Block[B2]
+Block[B2] - Block
+    Predecessors: [B1]
+    Statements (1)
+        IFlowCaptureOperation: 3 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'i1')
+          Value: 
+            IInvocationOperation ( System.Int32 System.Int32?.GetValueOrDefault()) (OperationKind.Invocation, Type: System.Int32, IsImplicit) (Syntax: 'i1')
+              Instance Receiver: 
+                IFlowCaptureReferenceOperation: 2 (OperationKind.FlowCaptureReference, Type: System.Int32?, IsImplicit) (Syntax: 'i1')
+              Arguments(0)
+
+    Next (Regular) Block[B4]
+Block[B3] - Block
+    Predecessors: [B1]
+    Statements (1)
+        IFlowCaptureOperation: 3 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: '0')
+          Value: 
+            ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0) (Syntax: '0')
+
+    Next (Regular) Block[B4]
+Block[B4] - Block
+    Predecessors: [B2] [B3]
+    Statements (2)
+        IFlowCaptureOperation: 4 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: '[i1 ?? 0]')
+          Value: 
+            IPropertyReferenceOperation: C2 C1.this[System.Int32 i] { get; set; } (OperationKind.PropertyReference, Type: C2) (Syntax: '[i1 ?? 0]')
+              Instance Receiver: 
+                IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: C1, IsImplicit) (Syntax: 'new C1 { [i ... ?? 4) } } }')
+              Arguments(1):
+                  IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: i) (OperationKind.Argument, Type: null) (Syntax: 'i1 ?? 0')
+                    IFlowCaptureReferenceOperation: 3 (OperationKind.FlowCaptureReference, Type: System.Int32, IsImplicit) (Syntax: 'i1 ?? 0')
+                    InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                    OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+
+        IFlowCaptureOperation: 5 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'i2')
+          Value: 
+            IParameterReferenceOperation: i2 (OperationKind.ParameterReference, Type: System.Int32?) (Syntax: 'i2')
+
+    Jump if True (Regular) to Block[B6]
+        IIsNullOperation (OperationKind.IsNull, Type: System.Boolean, IsImplicit) (Syntax: 'i2')
+          Operand: 
+            IFlowCaptureReferenceOperation: 5 (OperationKind.FlowCaptureReference, Type: System.Int32?, IsImplicit) (Syntax: 'i2')
+
+    Next (Regular) Block[B5]
+Block[B5] - Block
+    Predecessors: [B4]
+    Statements (1)
+        IFlowCaptureOperation: 6 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'i2')
+          Value: 
+            IInvocationOperation ( System.Int32 System.Int32?.GetValueOrDefault()) (OperationKind.Invocation, Type: System.Int32, IsImplicit) (Syntax: 'i2')
+              Instance Receiver: 
+                IFlowCaptureReferenceOperation: 5 (OperationKind.FlowCaptureReference, Type: System.Int32?, IsImplicit) (Syntax: 'i2')
+              Arguments(0)
+
+    Next (Regular) Block[B7]
+Block[B6] - Block
+    Predecessors: [B4]
+    Statements (1)
+        IFlowCaptureOperation: 6 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: '1')
+          Value: 
+            ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
+
+    Next (Regular) Block[B7]
+Block[B7] - Block
+    Predecessors: [B5] [B6]
+    Statements (4)
+        IInvocationOperation (void C2Extensions.Add(this C2 c2, System.Int32 i)) (OperationKind.Invocation, Type: System.Void, IsImplicit) (Syntax: 'GetInt(i2 ?? 1)')
+          Instance Receiver: 
+            null
+          Arguments(2):
+              IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: c2) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: '[i1 ?? 0]')
+                IFlowCaptureReferenceOperation: 4 (OperationKind.FlowCaptureReference, Type: C2, IsImplicit) (Syntax: '[i1 ?? 0]')
+                InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+              IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: i) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'GetInt(i2 ?? 1)')
+                IInvocationOperation (System.Int32 C1.GetInt(System.Int32 i)) (OperationKind.Invocation, Type: System.Int32) (Syntax: 'GetInt(i2 ?? 1)')
+                  Instance Receiver: 
+                    null
+                  Arguments(1):
+                      IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: i) (OperationKind.Argument, Type: null) (Syntax: 'i2 ?? 1')
+                        IFlowCaptureReferenceOperation: 6 (OperationKind.FlowCaptureReference, Type: System.Int32, IsImplicit) (Syntax: 'i2 ?? 1')
+                        InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                        OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+
+        IFlowCaptureOperation: 7 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: '[i1 ?? 0]')
+          Value: 
+            IPropertyReferenceOperation: C2 C1.this[System.Int32 i] { get; set; } (OperationKind.PropertyReference, Type: C2) (Syntax: '[i1 ?? 0]')
+              Instance Receiver: 
+                IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: C1, IsImplicit) (Syntax: 'new C1 { [i ... ?? 4) } } }')
+              Arguments(1):
+                  IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: i) (OperationKind.Argument, Type: null) (Syntax: 'i1 ?? 0')
+                    IFlowCaptureReferenceOperation: 3 (OperationKind.FlowCaptureReference, Type: System.Int32, IsImplicit) (Syntax: 'i1 ?? 0')
+                    InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                    OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+
+        IFlowCaptureOperation: 8 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: '3')
+          Value: 
+            ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 3) (Syntax: '3')
+
+        IFlowCaptureOperation: 9 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'i3')
+          Value: 
+            IParameterReferenceOperation: i3 (OperationKind.ParameterReference, Type: System.Int32?) (Syntax: 'i3')
+
+    Jump if True (Regular) to Block[B9]
+        IIsNullOperation (OperationKind.IsNull, Type: System.Boolean, IsImplicit) (Syntax: 'i3')
+          Operand: 
+            IFlowCaptureReferenceOperation: 9 (OperationKind.FlowCaptureReference, Type: System.Int32?, IsImplicit) (Syntax: 'i3')
+
+    Next (Regular) Block[B8]
+Block[B8] - Block
+    Predecessors: [B7]
+    Statements (1)
+        IFlowCaptureOperation: 10 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'i3')
+          Value: 
+            IInvocationOperation ( System.Int32 System.Int32?.GetValueOrDefault()) (OperationKind.Invocation, Type: System.Int32, IsImplicit) (Syntax: 'i3')
+              Instance Receiver: 
+                IFlowCaptureReferenceOperation: 9 (OperationKind.FlowCaptureReference, Type: System.Int32?, IsImplicit) (Syntax: 'i3')
+              Arguments(0)
+
+    Next (Regular) Block[B10]
+Block[B9] - Block
+    Predecessors: [B7]
+    Statements (1)
+        IFlowCaptureOperation: 10 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: '4')
+          Value: 
+            ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 4) (Syntax: '4')
+
+    Next (Regular) Block[B10]
+Block[B10] - Block
+    Predecessors: [B8] [B9]
+    Statements (2)
+        IInvocationOperation (void C2Extensions.Add(this C2 c2, System.Int32 i, System.Int32 j)) (OperationKind.Invocation, Type: System.Void, IsImplicit) (Syntax: '{ 3, GetInt(i3 ?? 4) }')
+          Instance Receiver: 
+            null
+          Arguments(3):
+              IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: c2) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: '[i1 ?? 0]')
+                IFlowCaptureReferenceOperation: 7 (OperationKind.FlowCaptureReference, Type: C2, IsImplicit) (Syntax: '[i1 ?? 0]')
+                InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+              IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: i) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: '3')
+                IFlowCaptureReferenceOperation: 8 (OperationKind.FlowCaptureReference, Type: System.Int32, Constant: 3, IsImplicit) (Syntax: '3')
+                InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+              IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: j) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'GetInt(i3 ?? 4)')
+                IInvocationOperation (System.Int32 C1.GetInt(System.Int32 i)) (OperationKind.Invocation, Type: System.Int32) (Syntax: 'GetInt(i3 ?? 4)')
+                  Instance Receiver: 
+                    null
+                  Arguments(1):
+                      IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: i) (OperationKind.Argument, Type: null) (Syntax: 'i3 ?? 4')
+                        IFlowCaptureReferenceOperation: 10 (OperationKind.FlowCaptureReference, Type: System.Int32, IsImplicit) (Syntax: 'i3 ?? 4')
+                        InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                        OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+
+        IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'c = new C1  ... ? 4) } } };')
+          Expression: 
+            ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: C1) (Syntax: 'c = new C1  ... ?? 4) } } }')
+              Left: 
+                IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: C1, IsImplicit) (Syntax: 'c')
+              Right: 
+                IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: C1, IsImplicit) (Syntax: 'new C1 { [i ... ?? 4) } } }')
+
+    Next (Regular) Block[B11]
+Block[B11] - Exit
+    Predecessors: [B10]
+    Statements (0)
+";
+            VerifyFlowGraphAndDiagnosticsForTest<MethodDeclarationSyntax>(source, expectedFlowGraph, expectedDiagnostics);
+        }
+
+        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+        [Fact]
+        public void ObjectCreationFlow_58()
+        {
+            string source = @"
+using System.Collections;
+using System.Collections.Generic;
+
+class C1
+{
+    /*<bind>*/public static void M(C1 c, int? i1, int? i2, int? i3)
+    {
+        c = new C1 { [i1 ?? 0] = { GetInt(i2 ?? 1), { 3, GetInt(i3 ?? 4) } } };
+    }/*</bind>*/
+    C2 this[int i] { get => null; set { } }
+    static int GetInt(int i) => i;
+}
+
+class C2 : IEnumerable<int>
+{
+    public IEnumerator<int> GetEnumerator() => throw null;
+    IEnumerator IEnumerable.GetEnumerator() => throw null;
+    public void Add(int i, int j = -1) { }
+}
+";
+            var expectedDiagnostics = DiagnosticDescription.None;
+
+            string expectedFlowGraph = @"
+Block[B0] - Entry
+    Statements (0)
+    Next (Regular) Block[B1]
+Block[B1] - Block
+    Predecessors: [B0]
+    Statements (3)
+        IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'c')
+          Value: 
+            IParameterReferenceOperation: c (OperationKind.ParameterReference, Type: C1) (Syntax: 'c')
+
+        IFlowCaptureOperation: 1 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'new C1 { [i ... ?? 4) } } }')
+          Value: 
+            IObjectCreationOperation (Constructor: C1..ctor()) (OperationKind.ObjectCreation, Type: C1) (Syntax: 'new C1 { [i ... ?? 4) } } }')
+              Arguments(0)
+              Initializer: 
+                null
+
+        IFlowCaptureOperation: 2 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'i1')
+          Value: 
+            IParameterReferenceOperation: i1 (OperationKind.ParameterReference, Type: System.Int32?) (Syntax: 'i1')
+
+    Jump if True (Regular) to Block[B3]
+        IIsNullOperation (OperationKind.IsNull, Type: System.Boolean, IsImplicit) (Syntax: 'i1')
+          Operand: 
+            IFlowCaptureReferenceOperation: 2 (OperationKind.FlowCaptureReference, Type: System.Int32?, IsImplicit) (Syntax: 'i1')
+
+    Next (Regular) Block[B2]
+Block[B2] - Block
+    Predecessors: [B1]
+    Statements (1)
+        IFlowCaptureOperation: 3 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'i1')
+          Value: 
+            IInvocationOperation ( System.Int32 System.Int32?.GetValueOrDefault()) (OperationKind.Invocation, Type: System.Int32, IsImplicit) (Syntax: 'i1')
+              Instance Receiver: 
+                IFlowCaptureReferenceOperation: 2 (OperationKind.FlowCaptureReference, Type: System.Int32?, IsImplicit) (Syntax: 'i1')
+              Arguments(0)
+
+    Next (Regular) Block[B4]
+Block[B3] - Block
+    Predecessors: [B1]
+    Statements (1)
+        IFlowCaptureOperation: 3 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: '0')
+          Value: 
+            ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0) (Syntax: '0')
+
+    Next (Regular) Block[B4]
+Block[B4] - Block
+    Predecessors: [B2] [B3]
+    Statements (2)
+        IFlowCaptureOperation: 4 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: '[i1 ?? 0]')
+          Value: 
+            IPropertyReferenceOperation: C2 C1.this[System.Int32 i] { get; set; } (OperationKind.PropertyReference, Type: C2) (Syntax: '[i1 ?? 0]')
+              Instance Receiver: 
+                IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: C1, IsImplicit) (Syntax: 'new C1 { [i ... ?? 4) } } }')
+              Arguments(1):
+                  IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: i) (OperationKind.Argument, Type: null) (Syntax: 'i1 ?? 0')
+                    IFlowCaptureReferenceOperation: 3 (OperationKind.FlowCaptureReference, Type: System.Int32, IsImplicit) (Syntax: 'i1 ?? 0')
+                    InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                    OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+
+        IFlowCaptureOperation: 5 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'i2')
+          Value: 
+            IParameterReferenceOperation: i2 (OperationKind.ParameterReference, Type: System.Int32?) (Syntax: 'i2')
+
+    Jump if True (Regular) to Block[B6]
+        IIsNullOperation (OperationKind.IsNull, Type: System.Boolean, IsImplicit) (Syntax: 'i2')
+          Operand: 
+            IFlowCaptureReferenceOperation: 5 (OperationKind.FlowCaptureReference, Type: System.Int32?, IsImplicit) (Syntax: 'i2')
+
+    Next (Regular) Block[B5]
+Block[B5] - Block
+    Predecessors: [B4]
+    Statements (1)
+        IFlowCaptureOperation: 6 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'i2')
+          Value: 
+            IInvocationOperation ( System.Int32 System.Int32?.GetValueOrDefault()) (OperationKind.Invocation, Type: System.Int32, IsImplicit) (Syntax: 'i2')
+              Instance Receiver: 
+                IFlowCaptureReferenceOperation: 5 (OperationKind.FlowCaptureReference, Type: System.Int32?, IsImplicit) (Syntax: 'i2')
+              Arguments(0)
+
+    Next (Regular) Block[B7]
+Block[B6] - Block
+    Predecessors: [B4]
+    Statements (1)
+        IFlowCaptureOperation: 6 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: '1')
+          Value: 
+            ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
+
+    Next (Regular) Block[B7]
+Block[B7] - Block
+    Predecessors: [B5] [B6]
+    Statements (4)
+        IInvocationOperation ( void C2.Add(System.Int32 i, [System.Int32 j = -1])) (OperationKind.Invocation, Type: System.Void, IsImplicit) (Syntax: 'GetInt(i2 ?? 1)')
+          Instance Receiver: 
+            IFlowCaptureReferenceOperation: 4 (OperationKind.FlowCaptureReference, Type: C2, IsImplicit) (Syntax: '[i1 ?? 0]')
+          Arguments(2):
+              IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: i) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'GetInt(i2 ?? 1)')
+                IInvocationOperation (System.Int32 C1.GetInt(System.Int32 i)) (OperationKind.Invocation, Type: System.Int32) (Syntax: 'GetInt(i2 ?? 1)')
+                  Instance Receiver: 
+                    null
+                  Arguments(1):
+                      IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: i) (OperationKind.Argument, Type: null) (Syntax: 'i2 ?? 1')
+                        IFlowCaptureReferenceOperation: 6 (OperationKind.FlowCaptureReference, Type: System.Int32, IsImplicit) (Syntax: 'i2 ?? 1')
+                        InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                        OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+              IArgumentOperation (ArgumentKind.DefaultValue, Matching Parameter: j) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'GetInt(i2 ?? 1)')
+                ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: -1, IsImplicit) (Syntax: 'GetInt(i2 ?? 1)')
+                InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+
+        IFlowCaptureOperation: 7 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: '[i1 ?? 0]')
+          Value: 
+            IPropertyReferenceOperation: C2 C1.this[System.Int32 i] { get; set; } (OperationKind.PropertyReference, Type: C2) (Syntax: '[i1 ?? 0]')
+              Instance Receiver: 
+                IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: C1, IsImplicit) (Syntax: 'new C1 { [i ... ?? 4) } } }')
+              Arguments(1):
+                  IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: i) (OperationKind.Argument, Type: null) (Syntax: 'i1 ?? 0')
+                    IFlowCaptureReferenceOperation: 3 (OperationKind.FlowCaptureReference, Type: System.Int32, IsImplicit) (Syntax: 'i1 ?? 0')
+                    InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                    OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+
+        IFlowCaptureOperation: 8 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: '3')
+          Value: 
+            ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 3) (Syntax: '3')
+
+        IFlowCaptureOperation: 9 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'i3')
+          Value: 
+            IParameterReferenceOperation: i3 (OperationKind.ParameterReference, Type: System.Int32?) (Syntax: 'i3')
+
+    Jump if True (Regular) to Block[B9]
+        IIsNullOperation (OperationKind.IsNull, Type: System.Boolean, IsImplicit) (Syntax: 'i3')
+          Operand: 
+            IFlowCaptureReferenceOperation: 9 (OperationKind.FlowCaptureReference, Type: System.Int32?, IsImplicit) (Syntax: 'i3')
+
+    Next (Regular) Block[B8]
+Block[B8] - Block
+    Predecessors: [B7]
+    Statements (1)
+        IFlowCaptureOperation: 10 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'i3')
+          Value: 
+            IInvocationOperation ( System.Int32 System.Int32?.GetValueOrDefault()) (OperationKind.Invocation, Type: System.Int32, IsImplicit) (Syntax: 'i3')
+              Instance Receiver: 
+                IFlowCaptureReferenceOperation: 9 (OperationKind.FlowCaptureReference, Type: System.Int32?, IsImplicit) (Syntax: 'i3')
+              Arguments(0)
+
+    Next (Regular) Block[B10]
+Block[B9] - Block
+    Predecessors: [B7]
+    Statements (1)
+        IFlowCaptureOperation: 10 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: '4')
+          Value: 
+            ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 4) (Syntax: '4')
+
+    Next (Regular) Block[B10]
+Block[B10] - Block
+    Predecessors: [B8] [B9]
+    Statements (2)
+        IInvocationOperation ( void C2.Add(System.Int32 i, [System.Int32 j = -1])) (OperationKind.Invocation, Type: System.Void, IsImplicit) (Syntax: '{ 3, GetInt(i3 ?? 4) }')
+          Instance Receiver: 
+            IFlowCaptureReferenceOperation: 7 (OperationKind.FlowCaptureReference, Type: C2, IsImplicit) (Syntax: '[i1 ?? 0]')
+          Arguments(2):
+              IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: i) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: '3')
+                IFlowCaptureReferenceOperation: 8 (OperationKind.FlowCaptureReference, Type: System.Int32, Constant: 3, IsImplicit) (Syntax: '3')
+                InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+              IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: j) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'GetInt(i3 ?? 4)')
+                IInvocationOperation (System.Int32 C1.GetInt(System.Int32 i)) (OperationKind.Invocation, Type: System.Int32) (Syntax: 'GetInt(i3 ?? 4)')
+                  Instance Receiver: 
+                    null
+                  Arguments(1):
+                      IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: i) (OperationKind.Argument, Type: null) (Syntax: 'i3 ?? 4')
+                        IFlowCaptureReferenceOperation: 10 (OperationKind.FlowCaptureReference, Type: System.Int32, IsImplicit) (Syntax: 'i3 ?? 4')
+                        InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                        OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+
+        IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'c = new C1  ... ? 4) } } };')
+          Expression: 
+            ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: C1) (Syntax: 'c = new C1  ... ?? 4) } } }')
+              Left: 
+                IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: C1, IsImplicit) (Syntax: 'c')
+              Right: 
+                IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: C1, IsImplicit) (Syntax: 'new C1 { [i ... ?? 4) } } }')
+
+    Next (Regular) Block[B11]
+Block[B11] - Exit
+    Predecessors: [B10]
+    Statements (0)
+";
+            VerifyFlowGraphAndDiagnosticsForTest<MethodDeclarationSyntax>(source, expectedFlowGraph, expectedDiagnostics);
+        }
+
+        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+        [Fact]
+        public void ObjectCreationFlow_59()
+        {
+            string source = @"
+using System.Collections;
+using System.Collections.Generic;
+
+class C1
+{
+    /*<bind>*/public static void M(C1 c, int? i1, int? i2, int? i3)
+    {
+        c = new C1 { [i1 ?? 0] = { GetInt(i2 ?? 1), { 3, GetInt(i3 ?? 4) } } };
+    }/*</bind>*/
+    C2 this[int i] { get => null; set { } }
+    static int GetInt(int i) => i;
+}
+
+class C2 : IEnumerable<int>
+{
+    public IEnumerator<int> GetEnumerator() => throw null;
+    IEnumerator IEnumerable.GetEnumerator() => throw null;
+    public void Add(params int[] @is) { }
+}
+";
+            var expectedDiagnostics = DiagnosticDescription.None;
+
+            string expectedFlowGraph = @"
+Block[B0] - Entry
+    Statements (0)
+    Next (Regular) Block[B1]
+Block[B1] - Block
+    Predecessors: [B0]
+    Statements (3)
+        IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'c')
+          Value: 
+            IParameterReferenceOperation: c (OperationKind.ParameterReference, Type: C1) (Syntax: 'c')
+
+        IFlowCaptureOperation: 1 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'new C1 { [i ... ?? 4) } } }')
+          Value: 
+            IObjectCreationOperation (Constructor: C1..ctor()) (OperationKind.ObjectCreation, Type: C1) (Syntax: 'new C1 { [i ... ?? 4) } } }')
+              Arguments(0)
+              Initializer: 
+                null
+
+        IFlowCaptureOperation: 2 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'i1')
+          Value: 
+            IParameterReferenceOperation: i1 (OperationKind.ParameterReference, Type: System.Int32?) (Syntax: 'i1')
+
+    Jump if True (Regular) to Block[B3]
+        IIsNullOperation (OperationKind.IsNull, Type: System.Boolean, IsImplicit) (Syntax: 'i1')
+          Operand: 
+            IFlowCaptureReferenceOperation: 2 (OperationKind.FlowCaptureReference, Type: System.Int32?, IsImplicit) (Syntax: 'i1')
+
+    Next (Regular) Block[B2]
+Block[B2] - Block
+    Predecessors: [B1]
+    Statements (1)
+        IFlowCaptureOperation: 3 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'i1')
+          Value: 
+            IInvocationOperation ( System.Int32 System.Int32?.GetValueOrDefault()) (OperationKind.Invocation, Type: System.Int32, IsImplicit) (Syntax: 'i1')
+              Instance Receiver: 
+                IFlowCaptureReferenceOperation: 2 (OperationKind.FlowCaptureReference, Type: System.Int32?, IsImplicit) (Syntax: 'i1')
+              Arguments(0)
+
+    Next (Regular) Block[B4]
+Block[B3] - Block
+    Predecessors: [B1]
+    Statements (1)
+        IFlowCaptureOperation: 3 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: '0')
+          Value: 
+            ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0) (Syntax: '0')
+
+    Next (Regular) Block[B4]
+Block[B4] - Block
+    Predecessors: [B2] [B3]
+    Statements (3)
+        IFlowCaptureOperation: 4 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: '[i1 ?? 0]')
+          Value: 
+            IPropertyReferenceOperation: C2 C1.this[System.Int32 i] { get; set; } (OperationKind.PropertyReference, Type: C2) (Syntax: '[i1 ?? 0]')
+              Instance Receiver: 
+                IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: C1, IsImplicit) (Syntax: 'new C1 { [i ... ?? 4) } } }')
+              Arguments(1):
+                  IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: i) (OperationKind.Argument, Type: null) (Syntax: 'i1 ?? 0')
+                    IFlowCaptureReferenceOperation: 3 (OperationKind.FlowCaptureReference, Type: System.Int32, IsImplicit) (Syntax: 'i1 ?? 0')
+                    InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                    OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+
+        IFlowCaptureOperation: 5 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'GetInt(i2 ?? 1)')
+          Value: 
+            ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1, IsImplicit) (Syntax: 'GetInt(i2 ?? 1)')
+
+        IFlowCaptureOperation: 6 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'i2')
+          Value: 
+            IParameterReferenceOperation: i2 (OperationKind.ParameterReference, Type: System.Int32?) (Syntax: 'i2')
+
+    Jump if True (Regular) to Block[B6]
+        IIsNullOperation (OperationKind.IsNull, Type: System.Boolean, IsImplicit) (Syntax: 'i2')
+          Operand: 
+            IFlowCaptureReferenceOperation: 6 (OperationKind.FlowCaptureReference, Type: System.Int32?, IsImplicit) (Syntax: 'i2')
+
+    Next (Regular) Block[B5]
+Block[B5] - Block
+    Predecessors: [B4]
+    Statements (1)
+        IFlowCaptureOperation: 7 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'i2')
+          Value: 
+            IInvocationOperation ( System.Int32 System.Int32?.GetValueOrDefault()) (OperationKind.Invocation, Type: System.Int32, IsImplicit) (Syntax: 'i2')
+              Instance Receiver: 
+                IFlowCaptureReferenceOperation: 6 (OperationKind.FlowCaptureReference, Type: System.Int32?, IsImplicit) (Syntax: 'i2')
+              Arguments(0)
+
+    Next (Regular) Block[B7]
+Block[B6] - Block
+    Predecessors: [B4]
+    Statements (1)
+        IFlowCaptureOperation: 7 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: '1')
+          Value: 
+            ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
+
+    Next (Regular) Block[B7]
+Block[B7] - Block
+    Predecessors: [B5] [B6]
+    Statements (5)
+        IInvocationOperation ( void C2.Add(params System.Int32[] @is)) (OperationKind.Invocation, Type: System.Void, IsImplicit) (Syntax: 'GetInt(i2 ?? 1)')
+          Instance Receiver: 
+            IFlowCaptureReferenceOperation: 4 (OperationKind.FlowCaptureReference, Type: C2, IsImplicit) (Syntax: '[i1 ?? 0]')
+          Arguments(1):
+              IArgumentOperation (ArgumentKind.ParamArray, Matching Parameter: is) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'GetInt(i2 ?? 1)')
+                IArrayCreationOperation (OperationKind.ArrayCreation, Type: System.Int32[], IsImplicit) (Syntax: 'GetInt(i2 ?? 1)')
+                  Dimension Sizes(1):
+                      IFlowCaptureReferenceOperation: 5 (OperationKind.FlowCaptureReference, Type: System.Int32, Constant: 1, IsImplicit) (Syntax: 'GetInt(i2 ?? 1)')
+                  Initializer: 
+                    IArrayInitializerOperation (1 elements) (OperationKind.ArrayInitializer, Type: null, IsImplicit) (Syntax: 'GetInt(i2 ?? 1)')
+                      Element Values(1):
+                          IInvocationOperation (System.Int32 C1.GetInt(System.Int32 i)) (OperationKind.Invocation, Type: System.Int32) (Syntax: 'GetInt(i2 ?? 1)')
+                            Instance Receiver: 
+                              null
+                            Arguments(1):
+                                IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: i) (OperationKind.Argument, Type: null) (Syntax: 'i2 ?? 1')
+                                  IFlowCaptureReferenceOperation: 7 (OperationKind.FlowCaptureReference, Type: System.Int32, IsImplicit) (Syntax: 'i2 ?? 1')
+                                  InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                                  OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+
+        IFlowCaptureOperation: 8 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: '[i1 ?? 0]')
+          Value: 
+            IPropertyReferenceOperation: C2 C1.this[System.Int32 i] { get; set; } (OperationKind.PropertyReference, Type: C2) (Syntax: '[i1 ?? 0]')
+              Instance Receiver: 
+                IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: C1, IsImplicit) (Syntax: 'new C1 { [i ... ?? 4) } } }')
+              Arguments(1):
+                  IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: i) (OperationKind.Argument, Type: null) (Syntax: 'i1 ?? 0')
+                    IFlowCaptureReferenceOperation: 3 (OperationKind.FlowCaptureReference, Type: System.Int32, IsImplicit) (Syntax: 'i1 ?? 0')
+                    InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                    OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+
+        IFlowCaptureOperation: 9 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: '{ 3, GetInt(i3 ?? 4) }')
+          Value: 
+            ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2, IsImplicit) (Syntax: '{ 3, GetInt(i3 ?? 4) }')
+
+        IFlowCaptureOperation: 10 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: '3')
+          Value: 
+            ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 3) (Syntax: '3')
+
+        IFlowCaptureOperation: 11 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'i3')
+          Value: 
+            IParameterReferenceOperation: i3 (OperationKind.ParameterReference, Type: System.Int32?) (Syntax: 'i3')
+
+    Jump if True (Regular) to Block[B9]
+        IIsNullOperation (OperationKind.IsNull, Type: System.Boolean, IsImplicit) (Syntax: 'i3')
+          Operand: 
+            IFlowCaptureReferenceOperation: 11 (OperationKind.FlowCaptureReference, Type: System.Int32?, IsImplicit) (Syntax: 'i3')
+
+    Next (Regular) Block[B8]
+Block[B8] - Block
+    Predecessors: [B7]
+    Statements (1)
+        IFlowCaptureOperation: 12 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'i3')
+          Value: 
+            IInvocationOperation ( System.Int32 System.Int32?.GetValueOrDefault()) (OperationKind.Invocation, Type: System.Int32, IsImplicit) (Syntax: 'i3')
+              Instance Receiver: 
+                IFlowCaptureReferenceOperation: 11 (OperationKind.FlowCaptureReference, Type: System.Int32?, IsImplicit) (Syntax: 'i3')
+              Arguments(0)
+
+    Next (Regular) Block[B10]
+Block[B9] - Block
+    Predecessors: [B7]
+    Statements (1)
+        IFlowCaptureOperation: 12 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: '4')
+          Value: 
+            ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 4) (Syntax: '4')
+
+    Next (Regular) Block[B10]
+Block[B10] - Block
+    Predecessors: [B8] [B9]
+    Statements (2)
+        IInvocationOperation ( void C2.Add(params System.Int32[] @is)) (OperationKind.Invocation, Type: System.Void, IsImplicit) (Syntax: '{ 3, GetInt(i3 ?? 4) }')
+          Instance Receiver: 
+            IFlowCaptureReferenceOperation: 8 (OperationKind.FlowCaptureReference, Type: C2, IsImplicit) (Syntax: '[i1 ?? 0]')
+          Arguments(1):
+              IArgumentOperation (ArgumentKind.ParamArray, Matching Parameter: is) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: '{ 3, GetInt(i3 ?? 4) }')
+                IArrayCreationOperation (OperationKind.ArrayCreation, Type: System.Int32[], IsImplicit) (Syntax: '{ 3, GetInt(i3 ?? 4) }')
+                  Dimension Sizes(1):
+                      IFlowCaptureReferenceOperation: 9 (OperationKind.FlowCaptureReference, Type: System.Int32, Constant: 2, IsImplicit) (Syntax: '{ 3, GetInt(i3 ?? 4) }')
+                  Initializer: 
+                    IArrayInitializerOperation (2 elements) (OperationKind.ArrayInitializer, Type: null, IsImplicit) (Syntax: '{ 3, GetInt(i3 ?? 4) }')
+                      Element Values(2):
+                          IFlowCaptureReferenceOperation: 10 (OperationKind.FlowCaptureReference, Type: System.Int32, Constant: 3, IsImplicit) (Syntax: '3')
+                          IInvocationOperation (System.Int32 C1.GetInt(System.Int32 i)) (OperationKind.Invocation, Type: System.Int32) (Syntax: 'GetInt(i3 ?? 4)')
+                            Instance Receiver: 
+                              null
+                            Arguments(1):
+                                IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: i) (OperationKind.Argument, Type: null) (Syntax: 'i3 ?? 4')
+                                  IFlowCaptureReferenceOperation: 12 (OperationKind.FlowCaptureReference, Type: System.Int32, IsImplicit) (Syntax: 'i3 ?? 4')
+                                  InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                                  OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+
+        IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'c = new C1  ... ? 4) } } };')
+          Expression: 
+            ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: C1) (Syntax: 'c = new C1  ... ?? 4) } } }')
+              Left: 
+                IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: C1, IsImplicit) (Syntax: 'c')
+              Right: 
+                IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: C1, IsImplicit) (Syntax: 'new C1 { [i ... ?? 4) } } }')
+
+    Next (Regular) Block[B11]
+Block[B11] - Exit
+    Predecessors: [B10]
+    Statements (0)
+";
+            VerifyFlowGraphAndDiagnosticsForTest<MethodDeclarationSyntax>(source, expectedFlowGraph, expectedDiagnostics);
+        }
+
+        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+        [Fact]
+        public void ObjectCreationFlow_60()
+        {
+            string source = @"
+using System.Collections;
+using System.Collections.Generic;
+
+class C1 : IEnumerable<C2>
+{
+    /*<bind>*/public static void M(C1 c, int? i1, int? i2)
+    {
+        c = new C1 { new C2() { i1 ?? 1, 2 }, new C2() { 3, i2 ?? 4 } };
+    }/*</bind>*/
+    public IEnumerator<C2> GetEnumerator() => throw null;
+    IEnumerator IEnumerable.GetEnumerator() => throw null;
+    public void Add(C2 c2) { }
+}
+
+class C2 : IEnumerable<int>
+{
+    public IEnumerator<int> GetEnumerator() => throw null;
+    IEnumerator IEnumerable.GetEnumerator() => throw null;
+    public void Add(int i) { }
+}
+";
+            var expectedDiagnostics = DiagnosticDescription.None;
+
+            string expectedFlowGraph = @"
+Block[B0] - Entry
+    Statements (0)
+    Next (Regular) Block[B1]
+Block[B1] - Block
+    Predecessors: [B0]
+    Statements (4)
+        IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'c')
+          Value: 
+            IParameterReferenceOperation: c (OperationKind.ParameterReference, Type: C1) (Syntax: 'c')
+
+        IFlowCaptureOperation: 1 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'new C1 { ne ... i2 ?? 4 } }')
+          Value: 
+            IObjectCreationOperation (Constructor: C1..ctor()) (OperationKind.ObjectCreation, Type: C1) (Syntax: 'new C1 { ne ... i2 ?? 4 } }')
+              Arguments(0)
+              Initializer: 
+                null
+
+        IFlowCaptureOperation: 2 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'new C2() { i1 ?? 1, 2 }')
+          Value: 
+            IObjectCreationOperation (Constructor: C2..ctor()) (OperationKind.ObjectCreation, Type: C2) (Syntax: 'new C2() { i1 ?? 1, 2 }')
+              Arguments(0)
+              Initializer: 
+                null
+
+        IFlowCaptureOperation: 3 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'i1')
+          Value: 
+            IParameterReferenceOperation: i1 (OperationKind.ParameterReference, Type: System.Int32?) (Syntax: 'i1')
+
+    Jump if True (Regular) to Block[B3]
+        IIsNullOperation (OperationKind.IsNull, Type: System.Boolean, IsImplicit) (Syntax: 'i1')
+          Operand: 
+            IFlowCaptureReferenceOperation: 3 (OperationKind.FlowCaptureReference, Type: System.Int32?, IsImplicit) (Syntax: 'i1')
+
+    Next (Regular) Block[B2]
+Block[B2] - Block
+    Predecessors: [B1]
+    Statements (1)
+        IFlowCaptureOperation: 4 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'i1')
+          Value: 
+            IInvocationOperation ( System.Int32 System.Int32?.GetValueOrDefault()) (OperationKind.Invocation, Type: System.Int32, IsImplicit) (Syntax: 'i1')
+              Instance Receiver: 
+                IFlowCaptureReferenceOperation: 3 (OperationKind.FlowCaptureReference, Type: System.Int32?, IsImplicit) (Syntax: 'i1')
+              Arguments(0)
+
+    Next (Regular) Block[B4]
+Block[B3] - Block
+    Predecessors: [B1]
+    Statements (1)
+        IFlowCaptureOperation: 4 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: '1')
+          Value: 
+            ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
+
+    Next (Regular) Block[B4]
+Block[B4] - Block
+    Predecessors: [B2] [B3]
+    Statements (6)
+        IInvocationOperation ( void C2.Add(System.Int32 i)) (OperationKind.Invocation, Type: System.Void, IsImplicit) (Syntax: 'i1 ?? 1')
+          Instance Receiver: 
+            IFlowCaptureReferenceOperation: 2 (OperationKind.FlowCaptureReference, Type: C2, IsImplicit) (Syntax: 'new C2() { i1 ?? 1, 2 }')
+          Arguments(1):
+              IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: i) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'i1 ?? 1')
+                IFlowCaptureReferenceOperation: 4 (OperationKind.FlowCaptureReference, Type: System.Int32, IsImplicit) (Syntax: 'i1 ?? 1')
+                InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+
+        IInvocationOperation ( void C2.Add(System.Int32 i)) (OperationKind.Invocation, Type: System.Void, IsImplicit) (Syntax: '2')
+          Instance Receiver: 
+            IFlowCaptureReferenceOperation: 2 (OperationKind.FlowCaptureReference, Type: C2, IsImplicit) (Syntax: 'new C2() { i1 ?? 1, 2 }')
+          Arguments(1):
+              IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: i) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: '2')
+                ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2) (Syntax: '2')
+                InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+
+        IInvocationOperation ( void C1.Add(C2 c2)) (OperationKind.Invocation, Type: System.Void, IsImplicit) (Syntax: 'new C2() { i1 ?? 1, 2 }')
+          Instance Receiver: 
+            IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: C1, IsImplicit) (Syntax: 'new C1 { ne ... i2 ?? 4 } }')
+          Arguments(1):
+              IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: c2) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'new C2() { i1 ?? 1, 2 }')
+                IFlowCaptureReferenceOperation: 2 (OperationKind.FlowCaptureReference, Type: C2, IsImplicit) (Syntax: 'new C2() { i1 ?? 1, 2 }')
+                InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+
+        IFlowCaptureOperation: 5 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'new C2() { 3, i2 ?? 4 }')
+          Value: 
+            IObjectCreationOperation (Constructor: C2..ctor()) (OperationKind.ObjectCreation, Type: C2) (Syntax: 'new C2() { 3, i2 ?? 4 }')
+              Arguments(0)
+              Initializer: 
+                null
+
+        IInvocationOperation ( void C2.Add(System.Int32 i)) (OperationKind.Invocation, Type: System.Void, IsImplicit) (Syntax: '3')
+          Instance Receiver: 
+            IFlowCaptureReferenceOperation: 5 (OperationKind.FlowCaptureReference, Type: C2, IsImplicit) (Syntax: 'new C2() { 3, i2 ?? 4 }')
+          Arguments(1):
+              IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: i) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: '3')
+                ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 3) (Syntax: '3')
+                InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+
+        IFlowCaptureOperation: 6 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'i2')
+          Value: 
+            IParameterReferenceOperation: i2 (OperationKind.ParameterReference, Type: System.Int32?) (Syntax: 'i2')
+
+    Jump if True (Regular) to Block[B6]
+        IIsNullOperation (OperationKind.IsNull, Type: System.Boolean, IsImplicit) (Syntax: 'i2')
+          Operand: 
+            IFlowCaptureReferenceOperation: 6 (OperationKind.FlowCaptureReference, Type: System.Int32?, IsImplicit) (Syntax: 'i2')
+
+    Next (Regular) Block[B5]
+Block[B5] - Block
+    Predecessors: [B4]
+    Statements (1)
+        IFlowCaptureOperation: 7 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'i2')
+          Value: 
+            IInvocationOperation ( System.Int32 System.Int32?.GetValueOrDefault()) (OperationKind.Invocation, Type: System.Int32, IsImplicit) (Syntax: 'i2')
+              Instance Receiver: 
+                IFlowCaptureReferenceOperation: 6 (OperationKind.FlowCaptureReference, Type: System.Int32?, IsImplicit) (Syntax: 'i2')
+              Arguments(0)
+
+    Next (Regular) Block[B7]
+Block[B6] - Block
+    Predecessors: [B4]
+    Statements (1)
+        IFlowCaptureOperation: 7 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: '4')
+          Value: 
+            ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 4) (Syntax: '4')
+
+    Next (Regular) Block[B7]
+Block[B7] - Block
+    Predecessors: [B5] [B6]
+    Statements (3)
+        IInvocationOperation ( void C2.Add(System.Int32 i)) (OperationKind.Invocation, Type: System.Void, IsImplicit) (Syntax: 'i2 ?? 4')
+          Instance Receiver: 
+            IFlowCaptureReferenceOperation: 5 (OperationKind.FlowCaptureReference, Type: C2, IsImplicit) (Syntax: 'new C2() { 3, i2 ?? 4 }')
+          Arguments(1):
+              IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: i) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'i2 ?? 4')
+                IFlowCaptureReferenceOperation: 7 (OperationKind.FlowCaptureReference, Type: System.Int32, IsImplicit) (Syntax: 'i2 ?? 4')
+                InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+
+        IInvocationOperation ( void C1.Add(C2 c2)) (OperationKind.Invocation, Type: System.Void, IsImplicit) (Syntax: 'new C2() { 3, i2 ?? 4 }')
+          Instance Receiver: 
+            IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: C1, IsImplicit) (Syntax: 'new C1 { ne ... i2 ?? 4 } }')
+          Arguments(1):
+              IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: c2) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'new C2() { 3, i2 ?? 4 }')
+                IFlowCaptureReferenceOperation: 5 (OperationKind.FlowCaptureReference, Type: C2, IsImplicit) (Syntax: 'new C2() { 3, i2 ?? 4 }')
+                InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+
+        IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'c = new C1  ... 2 ?? 4 } };')
+          Expression: 
+            ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: C1) (Syntax: 'c = new C1  ... i2 ?? 4 } }')
+              Left: 
+                IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: C1, IsImplicit) (Syntax: 'c')
+              Right: 
+                IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: C1, IsImplicit) (Syntax: 'new C1 { ne ... i2 ?? 4 } }')
+
+    Next (Regular) Block[B8]
+Block[B8] - Exit
+    Predecessors: [B7]
+    Statements (0)
+";
+            VerifyFlowGraphAndDiagnosticsForTest<MethodDeclarationSyntax>(source, expectedFlowGraph, expectedDiagnostics);
+        }
     }
 }

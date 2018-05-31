@@ -418,5 +418,342 @@ class Program
             Assert.Same(variableTreeLambdaOperation, variableTreeLambdaOperationSecondRequest);
             Assert.Same(lambdaOperation, lambdaOperationSecondRequest);
         }
+
+        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+        [Fact]
+        public void LambdaFlow_01()
+        {
+            string source = @"
+struct C
+{
+    void M(System.Action<bool, bool> d)
+/*<bind>*/{
+        d = (bool result, bool input) =>
+        {
+            result = input;
+        };
+
+        d(false, true);
+    }/*</bind>*/
+}
+";
+            string expectedGraph = @"
+Block[B0] - Entry
+    Statements (0)
+    Next (Regular) Block[B1]
+        Entering: {R1}
+
+.locals {R1}
+{
+    Methods: [lambda expression]
+    Block[B1] - Block
+        Predecessors: [B0]
+        Statements (2)
+            IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'd = (bool r ... };')
+              Expression: 
+                ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Action<System.Boolean, System.Boolean>) (Syntax: 'd = (bool r ... }')
+                  Left: 
+                    IParameterReferenceOperation: d (OperationKind.ParameterReference, Type: System.Action<System.Boolean, System.Boolean>) (Syntax: 'd')
+                  Right: 
+                    IDelegateCreationOperation (OperationKind.DelegateCreation, Type: System.Action<System.Boolean, System.Boolean>, IsImplicit) (Syntax: '(bool resul ... }')
+                      Target: 
+                        IFlowAnonymousFunctionOperation (Symbol: lambda expression) (OperationKind.FlowAnonymousFunction, Type: null) (Syntax: '(bool resul ... }')
+
+            IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'd(false, true);')
+              Expression: 
+                IInvocationOperation (virtual void System.Action<System.Boolean, System.Boolean>.Invoke(System.Boolean arg1, System.Boolean arg2)) (OperationKind.Invocation, Type: System.Void) (Syntax: 'd(false, true)')
+                  Instance Receiver: 
+                    IParameterReferenceOperation: d (OperationKind.ParameterReference, Type: System.Action<System.Boolean, System.Boolean>) (Syntax: 'd')
+                  Arguments(2):
+                      IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: arg1) (OperationKind.Argument, Type: null) (Syntax: 'false')
+                        ILiteralOperation (OperationKind.Literal, Type: System.Boolean, Constant: False) (Syntax: 'false')
+                        InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                        OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                      IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: arg2) (OperationKind.Argument, Type: null) (Syntax: 'true')
+                        ILiteralOperation (OperationKind.Literal, Type: System.Boolean, Constant: True) (Syntax: 'true')
+                        InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                        OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+
+        Next (Regular) Block[B2]
+            Leaving: {R1}
+    
+    {   lambda expression
+    
+        Block[B0#0R1] - Entry
+            Statements (0)
+            Next (Regular) Block[B1#0R1]
+        Block[B1#0R1] - Block
+            Predecessors: [B0#0R1]
+            Statements (1)
+                IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'result = input;')
+                  Expression: 
+                    ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Boolean) (Syntax: 'result = input')
+                      Left: 
+                        IParameterReferenceOperation: result (OperationKind.ParameterReference, Type: System.Boolean) (Syntax: 'result')
+                      Right: 
+                        IParameterReferenceOperation: input (OperationKind.ParameterReference, Type: System.Boolean) (Syntax: 'input')
+
+            Next (Regular) Block[B2#0R1]
+        Block[B2#0R1] - Exit
+            Predecessors: [B1#0R1]
+            Statements (0)
+    }
+}
+
+Block[B2] - Exit
+    Predecessors: [B1]
+    Statements (0)
+";
+            var expectedDiagnostics = DiagnosticDescription.None;
+
+            VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedGraph, expectedDiagnostics);
+        }
+
+        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+        [Fact]
+        public void LambdaFlow_02()
+        {
+            string source = @"
+struct C
+{
+    void M(System.Action<bool, bool> d1, System.Action<bool, bool> d2)
+/*<bind>*/{
+        d1 = (bool result1, bool input1) =>
+        {
+            result1 = input1;
+        };
+        d2 = (bool result2, bool input2) => result2 = input2;
+    }/*</bind>*/
+}
+";
+            string expectedGraph = @"
+Block[B0] - Entry
+    Statements (0)
+    Next (Regular) Block[B1]
+        Entering: {R1}
+
+.locals {R1}
+{
+    Methods: [lambda expression] [lambda expression]
+    Block[B1] - Block
+        Predecessors: [B0]
+        Statements (2)
+            IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'd1 = (bool  ... };')
+              Expression: 
+                ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Action<System.Boolean, System.Boolean>) (Syntax: 'd1 = (bool  ... }')
+                  Left: 
+                    IParameterReferenceOperation: d1 (OperationKind.ParameterReference, Type: System.Action<System.Boolean, System.Boolean>) (Syntax: 'd1')
+                  Right: 
+                    IDelegateCreationOperation (OperationKind.DelegateCreation, Type: System.Action<System.Boolean, System.Boolean>, IsImplicit) (Syntax: '(bool resul ... }')
+                      Target: 
+                        IFlowAnonymousFunctionOperation (Symbol: lambda expression) (OperationKind.FlowAnonymousFunction, Type: null) (Syntax: '(bool resul ... }')
+
+            IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'd2 = (bool  ... 2 = input2;')
+              Expression: 
+                ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Action<System.Boolean, System.Boolean>) (Syntax: 'd2 = (bool  ... t2 = input2')
+                  Left: 
+                    IParameterReferenceOperation: d2 (OperationKind.ParameterReference, Type: System.Action<System.Boolean, System.Boolean>) (Syntax: 'd2')
+                  Right: 
+                    IDelegateCreationOperation (OperationKind.DelegateCreation, Type: System.Action<System.Boolean, System.Boolean>, IsImplicit) (Syntax: '(bool resul ... t2 = input2')
+                      Target: 
+                        IFlowAnonymousFunctionOperation (Symbol: lambda expression) (OperationKind.FlowAnonymousFunction, Type: null) (Syntax: '(bool resul ... t2 = input2')
+
+        Next (Regular) Block[B2]
+            Leaving: {R1}
+    
+    {   lambda expression
+    
+        Block[B0#0R1] - Entry
+            Statements (0)
+            Next (Regular) Block[B1#0R1]
+        Block[B1#0R1] - Block
+            Predecessors: [B0#0R1]
+            Statements (1)
+                IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'result1 = input1;')
+                  Expression: 
+                    ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Boolean) (Syntax: 'result1 = input1')
+                      Left: 
+                        IParameterReferenceOperation: result1 (OperationKind.ParameterReference, Type: System.Boolean) (Syntax: 'result1')
+                      Right: 
+                        IParameterReferenceOperation: input1 (OperationKind.ParameterReference, Type: System.Boolean) (Syntax: 'input1')
+
+            Next (Regular) Block[B2#0R1]
+        Block[B2#0R1] - Exit
+            Predecessors: [B1#0R1]
+            Statements (0)
+    }
+    
+    {   lambda expression
+    
+        Block[B0#1R1] - Entry
+            Statements (0)
+            Next (Regular) Block[B1#1R1]
+        Block[B1#1R1] - Block
+            Predecessors: [B0#1R1]
+            Statements (1)
+                IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null, IsImplicit) (Syntax: 'result2 = input2')
+                  Expression: 
+                    ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Boolean) (Syntax: 'result2 = input2')
+                      Left: 
+                        IParameterReferenceOperation: result2 (OperationKind.ParameterReference, Type: System.Boolean) (Syntax: 'result2')
+                      Right: 
+                        IParameterReferenceOperation: input2 (OperationKind.ParameterReference, Type: System.Boolean) (Syntax: 'input2')
+
+            Next (Regular) Block[B2#1R1]
+        Block[B2#1R1] - Exit
+            Predecessors: [B1#1R1]
+            Statements (0)
+    }
+}
+
+Block[B2] - Exit
+    Predecessors: [B1]
+    Statements (0)
+";
+            var expectedDiagnostics = DiagnosticDescription.None;
+
+            VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedGraph, expectedDiagnostics);
+        }
+
+        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+        [Fact]
+        public void LambdaFlow_03()
+        {
+            string source = @"
+struct C
+{
+    void M(System.Action<int> d1, System.Action<bool> d2)
+/*<bind>*/{
+        int i = 0;
+
+        d1 = (int input1) =>
+        {
+            input1 = 1;
+            i++;
+
+            d2 = (bool input2) =>
+            {
+                input2 = true;
+                i++;
+            };
+        };
+    }/*</bind>*/
+}
+";
+            string expectedGraph = @"
+Block[B0] - Entry
+    Statements (0)
+    Next (Regular) Block[B1]
+        Entering: {R1}
+
+.locals {R1}
+{
+    Locals: [System.Int32 i]
+    Methods: [lambda expression]
+    Block[B1] - Block
+        Predecessors: [B0]
+        Statements (2)
+            ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32, IsImplicit) (Syntax: 'i = 0')
+              Left: 
+                ILocalReferenceOperation: i (IsDeclaration: True) (OperationKind.LocalReference, Type: System.Int32, IsImplicit) (Syntax: 'i = 0')
+              Right: 
+                ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0) (Syntax: '0')
+
+            IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'd1 = (int i ... };')
+              Expression: 
+                ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Action<System.Int32>) (Syntax: 'd1 = (int i ... }')
+                  Left: 
+                    IParameterReferenceOperation: d1 (OperationKind.ParameterReference, Type: System.Action<System.Int32>) (Syntax: 'd1')
+                  Right: 
+                    IDelegateCreationOperation (OperationKind.DelegateCreation, Type: System.Action<System.Int32>, IsImplicit) (Syntax: '(int input1 ... }')
+                      Target: 
+                        IFlowAnonymousFunctionOperation (Symbol: lambda expression) (OperationKind.FlowAnonymousFunction, Type: null) (Syntax: '(int input1 ... }')
+
+        Next (Regular) Block[B2]
+            Leaving: {R1}
+    
+    {   lambda expression
+    
+        Block[B0#0R1] - Entry
+            Statements (0)
+            Next (Regular) Block[B1#0R1]
+                Entering: {R1#0R1}
+
+        .locals {R1#0R1}
+        {
+            Methods: [lambda expression]
+            Block[B1#0R1] - Block
+                Predecessors: [B0#0R1]
+                Statements (3)
+                    IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'input1 = 1;')
+                      Expression: 
+                        ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32) (Syntax: 'input1 = 1')
+                          Left: 
+                            IParameterReferenceOperation: input1 (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'input1')
+                          Right: 
+                            ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
+
+                    IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'i++;')
+                      Expression: 
+                        IIncrementOrDecrementOperation (Postfix) (OperationKind.Increment, Type: System.Int32) (Syntax: 'i++')
+                          Target: 
+                            ILocalReferenceOperation: i (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'i')
+
+                    IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'd2 = (bool  ... };')
+                      Expression: 
+                        ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Action<System.Boolean>) (Syntax: 'd2 = (bool  ... }')
+                          Left: 
+                            IParameterReferenceOperation: d2 (OperationKind.ParameterReference, Type: System.Action<System.Boolean>) (Syntax: 'd2')
+                          Right: 
+                            IDelegateCreationOperation (OperationKind.DelegateCreation, Type: System.Action<System.Boolean>, IsImplicit) (Syntax: '(bool input ... }')
+                              Target: 
+                                IFlowAnonymousFunctionOperation (Symbol: lambda expression) (OperationKind.FlowAnonymousFunction, Type: null) (Syntax: '(bool input ... }')
+
+                Next (Regular) Block[B2#0R1]
+                    Leaving: {R1#0R1}
+            
+            {   lambda expression
+            
+                Block[B0#0R1#0R1] - Entry
+                    Statements (0)
+                    Next (Regular) Block[B1#0R1#0R1]
+                Block[B1#0R1#0R1] - Block
+                    Predecessors: [B0#0R1#0R1]
+                    Statements (2)
+                        IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'input2 = true;')
+                          Expression: 
+                            ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Boolean) (Syntax: 'input2 = true')
+                              Left: 
+                                IParameterReferenceOperation: input2 (OperationKind.ParameterReference, Type: System.Boolean) (Syntax: 'input2')
+                              Right: 
+                                ILiteralOperation (OperationKind.Literal, Type: System.Boolean, Constant: True) (Syntax: 'true')
+
+                        IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'i++;')
+                          Expression: 
+                            IIncrementOrDecrementOperation (Postfix) (OperationKind.Increment, Type: System.Int32) (Syntax: 'i++')
+                              Target: 
+                                ILocalReferenceOperation: i (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'i')
+
+                    Next (Regular) Block[B2#0R1#0R1]
+                Block[B2#0R1#0R1] - Exit
+                    Predecessors: [B1#0R1#0R1]
+                    Statements (0)
+            }
+        }
+
+        Block[B2#0R1] - Exit
+            Predecessors: [B1#0R1]
+            Statements (0)
+    }
+}
+
+Block[B2] - Exit
+    Predecessors: [B1]
+    Statements (0)
+";
+            var expectedDiagnostics = DiagnosticDescription.None;
+
+            VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedGraph, expectedDiagnostics);
+        }
     }
 }

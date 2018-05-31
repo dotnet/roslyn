@@ -4,6 +4,7 @@ using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.FlowAnalysis
 {
@@ -19,15 +20,17 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
             public ArrayBuilder<RegionBuilder> Regions = null;
             public ImmutableArray<ILocalSymbol> Locals;
             public ArrayBuilder<(IMethodSymbol, IOperation)> Methods = null;
+            public readonly bool AllowMethods;
 #if DEBUG
             private bool _aboutToFree = false;
 #endif 
 
-            public RegionBuilder(ControlFlowRegionKind kind, ITypeSymbol exceptionType = null, ImmutableArray<ILocalSymbol> locals = default)
+            public RegionBuilder(ControlFlowRegionKind kind, ITypeSymbol exceptionType = null, ImmutableArray<ILocalSymbol> locals = default, bool allowMethods = true)
             {
                 Kind = kind;
                 ExceptionType = exceptionType;
                 Locals = locals.NullToEmpty();
+                AllowMethods = allowMethods;
             }
 
             public bool IsEmpty => FirstBlock == null;
@@ -44,7 +47,27 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
 
                 if (Methods == null)
                 {
+                    if (!AllowMethods)
+                    {
+                        throw ExceptionUtilities.Unreachable;
+                    }
+
                     Methods = ArrayBuilder<(IMethodSymbol, IOperation)>.GetInstance();
+                }
+
+                // Some expressions (like "As New" initializers, for example) can be visited multiple times.
+                // That can lead to multiple attempts to add the same lambda into the list.
+                // Let's detect that.
+                if (Methods.Count > 0 && symbol.MethodKind == MethodKind.AnonymousFunction)
+                {
+                    foreach ((IMethodSymbol m, IOperation o) in Methods)
+                    {
+                        if (m.Equals(symbol))
+                        {
+                            Debug.Assert(o == operation);
+                            return;
+                        }
+                    }
                 }
 
                 Methods.Add((symbol, operation));
@@ -61,6 +84,11 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
 
                 if (Methods == null)
                 {
+                    if (!AllowMethods)
+                    {
+                        throw ExceptionUtilities.Unreachable;
+                    }
+
                     Methods = ArrayBuilder<(IMethodSymbol, IOperation)>.GetInstance();
                 }
 

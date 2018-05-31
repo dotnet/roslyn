@@ -73,7 +73,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
             }
             else
             {
-                Debug.Assert(body.Kind == OperationKind.LocalFunction);
+                Debug.Assert(body.Kind == OperationKind.LocalFunction || body.Kind == OperationKind.AnonymousFunction);
             }
 #endif 
 
@@ -94,6 +94,10 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
             {
                 case OperationKind.LocalFunction:
                     builder.VisitLocalFunctionAsRoot((ILocalFunctionOperation)body);
+                    break;
+                case OperationKind.AnonymousFunction:
+                    var anonymousFunction = (IAnonymousFunctionOperation)body;
+                    builder.VisitStatement(anonymousFunction.Body);
                     break;
                 default:
                     builder.VisitStatement(body);
@@ -1299,7 +1303,11 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
             )
         {
 #if DEBUG
-            Debug.Assert(spillingTheStack || _evalStack.All(o => o.Kind == OperationKind.FlowCaptureReference || o.Kind == OperationKind.DeclarationExpression || o.Kind == OperationKind.Discard));
+            Debug.Assert(spillingTheStack || _evalStack.All(
+                o => o.Kind == OperationKind.FlowCaptureReference
+                    || o.Kind == OperationKind.DeclarationExpression
+                    || o.Kind == OperationKind.Discard
+                    || o.Kind == OperationKind.OmittedArgument));
 #endif
             if (statement == null)
             {
@@ -1575,9 +1583,10 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
             {
                 IOperation operation = _evalStack[i];
                 // Declarations cannot have control flow, so we don't need to spill them.
-                if (operation.Kind != OperationKind.FlowCaptureReference 
+                if (operation.Kind != OperationKind.FlowCaptureReference
                     && operation.Kind != OperationKind.DeclarationExpression
-                    && operation.Kind != OperationKind.Discard)
+                    && operation.Kind != OperationKind.Discard
+                    && operation.Kind != OperationKind.OmittedArgument)
                 {
                     int captureId = _availableCaptureId++;
 
@@ -1901,7 +1910,6 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
             IOperation condition;
 
             bool isAndAlso = CalculateAndOrSense(binOp, true);
-
 
             var done = new BasicBlock(BasicBlockKind.Block);
             var checkRight = new BasicBlock(BasicBlockKind.Block);
@@ -4643,7 +4651,8 @@ oneMoreTime:
                 LinkBlocks(CurrentBasicBlock, (initializationSemaphore, JumpIfTrue: false, RegularBranch(afterInitialization)));
 
                 _currentBasicBlock = null;
-                EnterRegion(new RegionBuilder(ControlFlowRegionKind.StaticLocalInitializer));
+                EnterRegion(new RegionBuilder(ControlFlowRegionKind.StaticLocalInitializer,
+                                              allowMethods: false)); // Lambdas shouldn't be associated with this region
             }
 
             IOperation initializer = null;
@@ -4804,8 +4813,9 @@ oneMoreTime:
 
                     case OperationKind.Invocation:
                     case OperationKind.DynamicInvocation:
-                        // PROTOTYPE(dataflow): support collection initializers
-                        //                      Just drop it for now to enable other test scenarios.
+                        // PROTOTYPE(dataflow): Dynamic invocation needs adjustment in the OperationFactory to ensure that
+                        // dynamic member references are generated appropriately.
+                        AddStatement(Visit(innerInitializer));
                         return;
 
                     case OperationKind.Increment:
@@ -5018,7 +5028,7 @@ oneMoreTime:
 
             // PROTOTYPE(dataflow): Should we do anything special with attributes and parameter initializers?
             //                      Should we also expose graphs for those only as "nested" graphs?
-
+            Debug.Assert(_currentRegion.AllowMethods);
             _currentRegion.Add(operation.Symbol, operation);
             return null;
         }
@@ -5028,6 +5038,24 @@ oneMoreTime:
             Debug.Assert(_currentStatement == null);
             VisitMethodBodies(operation.Body, operation.IgnoredBody);
             return null;
+        }
+
+        public override IOperation VisitAnonymousFunction(IAnonymousFunctionOperation operation, int? captureIdForResult)
+        {
+            RegionBuilder owner = _currentRegion;
+
+            while(!owner.AllowMethods)
+            {
+                owner = owner.Enclosing;
+            }
+
+            owner.Add(operation.Symbol, operation);
+            return new FlowAnonymousFunctionExpression(operation.Symbol, operation.Syntax, operation.Type, operation.ConstantValue, IsImplicit(operation));
+        }
+
+        public override IOperation VisitFlowAnonymousFunction(IFlowAnonymousFunctionOperation operation, int? captureIdForResult)
+        {
+            throw ExceptionUtilities.Unreachable;
         }
 
         public override IOperation VisitArrayCreation(IArrayCreationOperation operation, int? captureIdForResult)
@@ -5630,11 +5658,16 @@ oneMoreTime:
             bool isDecrement = operation.Kind == OperationKind.Decrement;
             return new IncrementExpression(isDecrement, operation.IsPostfix, operation.IsLifted, operation.IsChecked, Visit(operation.Target), operation.OperatorMethod, 
                 semanticModel: null, operation.Syntax, operation.Type, operation.ConstantValue, IsImplicit(operation));
-	}
+        }
 
         public override IOperation VisitDiscardOperation(IDiscardOperation operation, int? captureIdForResult)
         {
             return new DiscardOperation(operation.DiscardSymbol, semanticModel: null, operation.Syntax, operation.Type, operation.ConstantValue, IsImplicit(operation));
+        }
+
+        public override IOperation VisitOmittedArgument(IOmittedArgumentOperation operation, int? captureIdForResult)
+        {
+            return new OmittedArgumentExpression(semanticModel: null, operation.Syntax, operation.Type, operation.ConstantValue, IsImplicit(operation));
         }
 
         public override IOperation VisitIsPattern(IIsPatternOperation operation, int? captureIdForResult)
@@ -5717,11 +5750,6 @@ oneMoreTime:
             return null;
         }
 
-        public override IOperation VisitOmittedArgument(IOmittedArgumentOperation operation, int? captureIdForResult)
-        {
-            return new OmittedArgumentExpression(semanticModel: null, operation.Syntax, operation.Type, operation.ConstantValue, IsImplicit(operation));
-        }
-
         internal override IOperation VisitPointerIndirectionReference(IPointerIndirectionReferenceOperation operation, int? captureIdForResult)
         {
             return new PointerIndirectionReferenceExpression(Visit(operation.Pointer), semanticModel: null, operation.Syntax, operation.Type, operation.ConstantValue, IsImplicit(operation));
@@ -5752,22 +5780,6 @@ oneMoreTime:
             }
 
             return new PlaceholderExpression(operation.PlaceholderKind, semanticModel: null, operation.Syntax, operation.Type, operation.ConstantValue, IsImplicit(operation));
-        }
-
-        public override IOperation VisitAnonymousFunction(IAnonymousFunctionOperation operation, int? captureIdForResult)
-        {
-            // PROTOTYPE(dataflow): When implementing, consider when a lambda inside a VB initializer references the instance being initialized.
-            //                      https://github.com/dotnet/roslyn/pull/26389#issuecomment-386459324
-            return new AnonymousFunctionExpression(operation.Symbol, 
-                                                   // PROTOTYPE(dataflow): Drop lambda's body for now to enable some test scenarios
-                                                   new BlockStatement(ImmutableArray<IOperation>.Empty,
-                                                                      ImmutableArray<ILocalSymbol>.Empty,
-                                                                      semanticModel: null,
-                                                                      operation.Body.Syntax, 
-                                                                      operation.Body.Type, 
-                                                                      operation.Body.ConstantValue,
-                                                                      IsImplicit(operation.Body)),
-                                                   semanticModel: null, operation.Syntax, operation.Type, operation.ConstantValue, IsImplicit(operation));
         }
 
         public override IOperation VisitAnonymousObjectCreation(IAnonymousObjectCreationOperation operation, int? captureIdForResult)

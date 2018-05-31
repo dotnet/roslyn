@@ -100,6 +100,12 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
                         Debug.Assert(nestedMethod == localFunction.Symbol);
                         graph = ControlFlowGraphBuilder.Create(operation, enclosing);
                         break;
+                    
+                    case OperationKind.AnonymousFunction:
+                        var anonymousFunction = (IAnonymousFunctionOperation)operation;
+                        Debug.Assert(nestedMethod == anonymousFunction.Symbol);
+                        graph = ControlFlowGraphBuilder.Create(operation, enclosing);
+                        break;
 
                     default:
                         throw ExceptionUtilities.UnexpectedValue(operation.Kind);

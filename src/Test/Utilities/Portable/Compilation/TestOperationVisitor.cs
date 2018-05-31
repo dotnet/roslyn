@@ -745,6 +745,13 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             Assert.Same(operation.Body, operation.Children.Single());
         }
 
+        public override void VisitFlowAnonymousFunction(IFlowAnonymousFunctionOperation operation)
+        {
+            Assert.Equal(OperationKind.FlowAnonymousFunction, operation.Kind);
+            Assert.NotNull(operation.Symbol);
+            Assert.Empty(operation.Children);
+        }
+
         public override void VisitLocalFunction(ILocalFunctionOperation operation)
         {
             Assert.Equal(OperationKind.LocalFunction, operation.Kind);
@@ -1226,6 +1233,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                 case OperationKind.AnonymousFunction:
                 case OperationKind.FlowCaptureReference:
                 case OperationKind.DefaultValue:
+                case OperationKind.FlowAnonymousFunction: // must be an error case like in Microsoft.CodeAnalysis.CSharp.UnitTests.ConditionalOperatorTests.TestBothUntyped unit-test
                     break;
                 default:
                     // Only values can be spilled/captured

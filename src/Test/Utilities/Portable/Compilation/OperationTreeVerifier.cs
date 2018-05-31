@@ -1192,11 +1192,26 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         {
             LogString(nameof(IAnonymousFunctionOperation));
 
+            // PROTOTYPE(dataflow): For C# this prints "lambda expression", which is not very helpful if we want to tell lambdas apart.
+            //                      That is how symbol display is implemented for C#.
             LogSymbol(operation.Symbol, header: " (Symbol");
             LogString(")");
             LogCommonPropertiesAndNewLine(operation);
 
             base.VisitAnonymousFunction(operation);
+        }
+
+        public override void VisitFlowAnonymousFunction(IFlowAnonymousFunctionOperation operation)
+        {
+            LogString(nameof(IFlowAnonymousFunctionOperation));
+
+            // PROTOTYPE(dataflow): For C# this prints "lambda expression", which is not very helpful if we want to tell lambdas apart.
+            //                      That is how symbol display is implemented for C#.
+            LogSymbol(operation.Symbol, header: " (Symbol");
+            LogString(")");
+            LogCommonPropertiesAndNewLine(operation);
+
+            base.VisitFlowAnonymousFunction(operation);
         }
 
         public override void VisitDelegateCreation(IDelegateCreationOperation operation)

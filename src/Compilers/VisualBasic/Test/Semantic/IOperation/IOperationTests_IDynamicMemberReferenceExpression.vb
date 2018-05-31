@@ -2,6 +2,7 @@
 
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Microsoft.CodeAnalysis.Test.Utilities
+Imports Roslyn.Test.Utilities
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Semantics
 
@@ -638,6 +639,66 @@ Block[B5] - Exit
             Dim expectedDiagnostics = String.Empty
 
             VerifyFlowGraphAndDiagnosticsForTest(Of MethodBlockSyntax)(source, expectedFlowGraph, expectedDiagnostics)
+        End Sub
+
+        <CompilerTrait(CompilerFeature.IOperation)>
+        <WorkItem(27034, "https://github.com/dotnet/roslyn/issues/27034")>
+        <Fact()>
+        Public Sub DynamicMemberReference_OffObjectCollectionInitializer()
+            Dim source = <![CDATA[
+Imports System
+Imports System.Collections
+Imports System.Collections.Generic
+Imports System.Runtime.CompilerServices
+
+Module Mod1
+    Class C
+        Implements IEnumerable(Of Integer)
+
+        Sub M(a As Object, b As Object)
+            Dim i = New C From {a}.Add(b)'BIND:"New C From {a}.Add"
+        End Sub
+
+        Public Function GetEnumerator() As IEnumerator(Of Integer) Implements IEnumerable(Of Integer).GetEnumerator
+            Throw New NotImplementedException()
+        End Function
+
+        Private Function IEnumerable_GetEnumerator() As IEnumerator Implements IEnumerable.GetEnumerator
+            Throw New NotImplementedException()
+        End Function
+
+        Public Sub Add(i As Integer)
+        End Sub
+
+        Public Sub Add(l As Long)
+        End Sub
+    End Class
+End Module]]>.Value
+
+            Dim expectedDiagnostics = String.Empty
+
+            Dim expectedOperationTree = <![CDATA[
+IDynamicMemberReferenceOperation (Member Name: "Add", Containing Type: null) (OperationKind.DynamicMemberReference, Type: System.Object) (Syntax: 'New C From {a}.Add')
+  Type Arguments(0)
+  Instance Receiver: 
+    IObjectCreationOperation (Constructor: Sub Mod1.C..ctor()) (OperationKind.ObjectCreation, Type: Mod1.C) (Syntax: 'New C From {a}')
+      Arguments(0)
+      Initializer: 
+        IObjectOrCollectionInitializerOperation (OperationKind.ObjectOrCollectionInitializer, Type: Mod1.C) (Syntax: 'From {a}')
+          Initializers(1):
+              IDynamicInvocationOperation (OperationKind.DynamicInvocation, Type: System.Object, IsImplicit) (Syntax: 'a')
+                Expression: 
+                  IDynamicMemberReferenceOperation (Member Name: "Add", Containing Type: null) (OperationKind.DynamicMemberReference, Type: System.Object, IsImplicit) (Syntax: 'a')
+                    Type Arguments(0)
+                    Instance Receiver: 
+                      IInstanceReferenceOperation (ReferenceKind: ImplicitReceiver) (OperationKind.InstanceReference, Type: Mod1.C, IsImplicit) (Syntax: 'New C From {a}')
+                Arguments(1):
+                    IParameterReferenceOperation: a (OperationKind.ParameterReference, Type: System.Object) (Syntax: 'a')
+                ArgumentNames(0)
+                ArgumentRefKinds: null
+]]>.Value
+
+            VerifyOperationTreeAndDiagnosticsForTest(Of MemberAccessExpressionSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
     End Class
 End Namespace
