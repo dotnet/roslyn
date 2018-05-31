@@ -10542,6 +10542,65 @@ class C
                 Diagnostic(ErrorCode.WRN_NullReferenceReturn, "s2").WithLocation(14, 24));
         }
 
+        /// <summary>
+        /// Inferred nullability of captured variables outside lambda
+        /// should be independent of inferred nullability inside lambda.
+        /// </summary>
+        [Fact]
+        public void Lambda_19()
+        {
+            var source =
+@"using System;
+class C
+{
+    static void F1(object? x1, object y1)
+    {
+        object z1 = y1;
+        Action f = () =>
+        {
+            z1 = x1; // warning
+        };
+        f();
+        z1.ToString();
+    }
+    static void F2(object? x2, object y2)
+    {
+        object z2 = x2; // warning
+        Action f = () =>
+        {
+            z2 = y2;
+        };
+        f();
+        z2.ToString(); // warning
+    }
+    static void F3(object? x3, object y3)
+    {
+        object z3 = y3;
+        if (x3 == null) return;
+        Action f = () =>
+        {
+            z3 = x3; // warning
+        };
+        f();
+        z3.ToString();
+    }
+}";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
+            comp.VerifyDiagnostics(
+                // (9,18): warning CS8600: Converting null literal or possible null value to non-nullable type.
+                //             z1 = x1; // warning
+                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "x1").WithLocation(9, 18),
+                // (16,21): warning CS8600: Converting null literal or possible null value to non-nullable type.
+                //         object z2 = x2; // warning
+                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "x2").WithLocation(16, 21),
+                // (22,9): warning CS8602: Possible dereference of a null reference.
+                //         z2.ToString(); // warning
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "z2").WithLocation(22, 9),
+                // (30,18): warning CS8600: Converting null literal or possible null value to non-nullable type.
+                //             z3 = x3; // warning
+                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "x3").WithLocation(30, 18));
+        }
+
         [Fact]
         public void UnboundLambda_01()
         {
@@ -10583,6 +10642,59 @@ class C
                 // (5,27): warning CS8602: Possible dereference of a null reference.
                 //         var z = y => y ?? x.ToString();
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "x").WithLocation(5, 27));
+        }
+
+        /// <summary>
+        /// Inferred nullability of captured variables should be tracked across
+        /// local function invocations, as if the local function was inlined.
+        /// </summary>
+        [Fact]
+        public void LocalFunction_01()
+        {
+            var source =
+@"class C
+{
+    static void F1(object? x1, object y1)
+    {
+        object z1 = y1;
+        f();
+        z1.ToString(); // warning
+        void f()
+        {
+            z1 = x1; // warning
+        }
+    }
+    static void F2(object? x2, object y2)
+    {
+        object z2 = x2; // warning
+        f();
+        z2.ToString();
+        void f()
+        {
+            z2 = y2;
+        }
+    }
+    static void F3(object? x3, object y3)
+    {
+        object z3 = y3;
+        void f()
+        {
+            z3 = x3;
+        }
+        if (x3 == null) return;
+        f();
+        z3.ToString();
+    }
+}";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
+            // PROTOTYPE(NullableReferenceTypes): Should report warnings as indicated in source above.
+            comp.VerifyDiagnostics(
+                // (15,21): warning CS8600: Converting null literal or possible null value to non-nullable type.
+                //         object z2 = x2; // warning
+                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "x2").WithLocation(15, 21),
+                // (17,9): warning CS8602: Possible dereference of a null reference.
+                //         z2.ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "z2").WithLocation(17, 9));
         }
 
         // PROTOTYPE(NullableReferenceTypes): Report errors

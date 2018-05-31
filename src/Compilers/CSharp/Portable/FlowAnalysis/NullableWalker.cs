@@ -22,26 +22,23 @@ namespace Microsoft.CodeAnalysis.CSharp
     /// </summary>
     internal sealed partial class NullableWalker : DataFlowPassBase<NullableWalker.LocalState>
     {
-        internal sealed class InitialState
+        // PROTOTYPE(NullableReferenceTypes): Reference the collections directly from the NullableWalker
+        // for the containing method rather than copying the collections. (Items are added to the collections
+        // but never replaced so the collections are lazily populated but otherwise immutable.)
+        internal sealed class VariableState
         {
             internal readonly ImmutableDictionary<VariableIdentifier, int> VariableSlot;
             internal readonly ImmutableArray<VariableIdentifier> VariableBySlot;
             internal readonly ImmutableDictionary<Symbol, TypeSymbolWithAnnotations> VariableTypes;
-            // PROTOTYPE(NullableReferenceTypes): It seems incorrect to copy the state of outer variables
-            // at the point the lambda body is visited since the lambda can be invoked before or after the
-            // lambda declaration. Should the state of outer variables be set to the default instead?
-            internal readonly NullableWalker.LocalState State;
 
-            internal InitialState(
+            internal VariableState(
                 ImmutableDictionary<VariableIdentifier, int> variableSlot,
                 ImmutableArray<VariableIdentifier> variableBySlot,
-                ImmutableDictionary<Symbol, TypeSymbolWithAnnotations> variableTypes,
-                NullableWalker.LocalState state)
+                ImmutableDictionary<Symbol, TypeSymbolWithAnnotations> variableTypes)
             {
                 VariableSlot = variableSlot;
                 VariableBySlot = variableBySlot;
                 VariableTypes = variableTypes;
-                State = state;
             }
         }
 
@@ -86,7 +83,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         private readonly ArrayBuilder<(RefKind, TypeSymbolWithAnnotations)> _returnTypes;
 
         private readonly Action<BoundExpression, TypeSymbolWithAnnotations> _callbackOpt;
-        private readonly LocalState _initialState;
 
         /// <summary>
         /// Invalid type, used only to catch Visit methods that do not set
@@ -121,11 +117,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             MethodSymbol methodSignatureOpt,
             BoundNode node,
             ArrayBuilder<(RefKind, TypeSymbolWithAnnotations)> returnTypes,
-            // PROTOTYPE(NullableReferenceTypes): Why is `initialState` a clone of state from
-            // the containing method? The state is essentially immutable (the actual collections
-            // may grow but each item in the collections is set once only), so why not share the
-            // collections with the outer scope?
-            InitialState initialState,
+            VariableState initialState,
             Action<BoundExpression, TypeSymbolWithAnnotations> callbackOpt)
             : base(compilation, method, node, new EmptyStructTypeCache(compilation, dev12CompilerCompatibility: false), trackUnassignments: false, variableSlot: initialState?.VariableSlot, variableBySlot: (initialState is null) ? default : initialState.VariableBySlot)
         {
@@ -145,11 +137,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     _variableTypes.Add(pair.Key, pair.Value);
                 }
-                _initialState = initialState.State;
-            }
-            else
-            {
-                _initialState = new LocalState(BitVector.Create(nextVariableSlot), BitVector.Create(nextVariableSlot));
             }
         }
 
@@ -198,7 +185,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             DiagnosticBag diagnostics,
             MethodSymbol delegateInvokeMethod,
             ArrayBuilder<(RefKind, TypeSymbolWithAnnotations)> returnTypes,
-            InitialState initialState)
+            VariableState initialState)
         {
             var methodSignatureUse = MethodSignatureUse.ReturnType |
                 (lambda.UnboundLambda.HasExplicitlyTypedParameterList ? MethodSignatureUse.None : MethodSignatureUse.ParameterTypes);
@@ -213,7 +200,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             MethodSignatureUse methodSignatureUse,
             MethodSymbol methodSignatureOpt,
             ArrayBuilder<(RefKind, TypeSymbolWithAnnotations)> returnTypes,
-            InitialState initialState,
+            VariableState initialState,
             Action<BoundExpression, TypeSymbolWithAnnotations> callbackOpt)
         {
             Debug.Assert(diagnostics != null);
@@ -692,9 +679,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         protected override LocalState ReachableState()
         {
-            var state = _initialState.Clone();
-            state.EnsureCapacity(nextVariableSlot);
-            Populate(ref state, start: _initialState.Capacity);
+            var state = new LocalState(BitVector.Create(nextVariableSlot), BitVector.Create(nextVariableSlot));
+            Populate(ref state, start: 0);
             return state;
         }
 
@@ -2147,16 +2133,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             return (arguments, conversions);
         }
 
-        private InitialState GetInitialState()
+        private VariableState GetInitialState()
         {
-            return new InitialState(
+            return new VariableState(
                 _variableSlot.ToImmutableDictionary(),
                 ImmutableArray.Create(variableBySlot, start: 0, length: nextVariableSlot),
-                _variableTypes.ToImmutableDictionary(),
-                this.State.Clone());
+                _variableTypes.ToImmutableDictionary());
         }
 
-        private UnboundLambda GetUnboundLambda(BoundLambda expr, InitialState rewriterState)
+        private UnboundLambda GetUnboundLambda(BoundLambda expr, VariableState rewriterState)
         {
             return expr.UnboundLambda.WithRewriter(_binder, rewriterState);
         }
@@ -2686,8 +2671,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                         var delegateType = targetType.GetDelegateType();
                         var methodSignatureOpt = lambda.UnboundLambda.HasExplicitlyTypedParameterList ? null : delegateType?.DelegateInvokeMethod;
                         var rewriterState = GetInitialState();
-                        // PROTOTYPE(NullableReferenceTypes): Test that walking the lambda
-                        // body does not affect this.State outside of the body.
                         Analyze(compilation, lambda, Diagnostics, delegateInvokeMethod: delegateType?.DelegateInvokeMethod, returnTypes: null, initialState: rewriterState);
                         var unboundLambda = GetUnboundLambda(lambda, rewriterState);
                         var boundLambda = unboundLambda.Bind(delegateType);

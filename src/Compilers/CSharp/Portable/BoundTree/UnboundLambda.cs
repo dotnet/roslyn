@@ -70,7 +70,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             );
         }
 
-        public TypeSymbolWithAnnotations GetInferredReturnType(ref HashSet<DiagnosticInfo> useSiteDiagnostics, NullableWalker.InitialState rewriterState = null)
+        public TypeSymbolWithAnnotations GetInferredReturnType(ref HashSet<DiagnosticInfo> useSiteDiagnostics, NullableWalker.VariableState rewriterState = null)
         {
             if (!InferredReturnType.UseSiteDiagnostics.IsEmpty)
             {
@@ -253,7 +253,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal partial class UnboundLambda
     {
-        private readonly NullableWalker.InitialState _rewriterState;
+        private readonly NullableWalker.VariableState _rewriterState;
 
         public UnboundLambda(
             CSharpSyntaxNode syntax,
@@ -270,14 +270,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             this.Data = new PlainUnboundLambdaState(this, binder, names, types, refKinds, isAsync);
         }
 
-        private UnboundLambda(UnboundLambda other, Binder binder, NullableWalker.InitialState rewriterState) :
+        private UnboundLambda(UnboundLambda other, Binder binder, NullableWalker.VariableState rewriterState) :
             base(BoundKind.UnboundLambda, other.Syntax, null, other.HasErrors)
         {
             this._rewriterState = rewriterState;
             this.Data = other.Data;
         }
 
-        internal UnboundLambda WithRewriter(Binder binder, NullableWalker.InitialState rewriterState)
+        internal UnboundLambda WithRewriter(Binder binder, NullableWalker.VariableState rewriterState)
         {
             return new UnboundLambda(this, binder, rewriterState);
         }
