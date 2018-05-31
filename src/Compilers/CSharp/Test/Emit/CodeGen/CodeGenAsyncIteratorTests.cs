@@ -78,7 +78,7 @@ namespace System.Threading.Tasks
 ";
 
         [Fact]
-        void TestWellKnownMembers()
+        public void TestWellKnownMembers()
         {
             var comp = CreateCompilation(s_common, references: new[] { TestReferences.NetStandard20.TasksExtensionsRef }, targetFramework: Roslyn.Test.Utilities.TargetFramework.NetStandard20);
             comp.VerifyDiagnostics();
