@@ -10,10 +10,12 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic
     Partial Friend Class VisualBasicPackage
         Implements IVBEntryPointProvider
 
-        Public Function GetFormEntryPointsList(<[In]> pHierarchy As Object,
-                                               cItems As Integer,
-                                               <Out> bstrList() As String,
-                                               <Out> ByVal pcActualItems As IntPtr) As Integer Implements IVBEntryPointProvider.GetFormEntryPointsList
+        Public Function GetFormEntryPointsList(
+                                         <[In]> pHierarchy As Object,
+                                                cItems As Integer,
+                                          <Out> bstrList() As String,
+                                          <Out> pcActualItems As IntPtr
+                                              ) As Integer Implements IVBEntryPointProvider.GetFormEntryPointsList
 
             Dim visualStudioWorkspace = ComponentModel.GetService(Of VisualStudioWorkspaceImpl)()
             Dim hierarchy = CType(pHierarchy, IVsHierarchy)
@@ -21,13 +23,10 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic
             Dim projects = visualStudioWorkspace.CurrentSolution.ProjectIds
             For Each project In projects
                 Dim hostProject = visualStudioWorkspace.GetHostProject(project)
-                If hostProject IsNot Nothing AndAlso hostProject.Hierarchy Is hierarchy Then
-                    Dim vbProject = TryCast(hostProject, VisualBasicProject)
+                If hostProject?.Hierarchy IsNot hierarchy Then Continue For
+                Dim vbProject = TryCast(hostProject, VisualBasicProject)
 
-                    If vbProject IsNot Nothing Then
-                        vbProject.GetEntryPointsWorker(cItems, bstrList, pcActualItems, findFormsOnly:=True)
-                    End If
-                End If
+                If vbProject IsNot Nothing Then vbProject.GetEntryPointsWorker(cItems, bstrList, pcActualItems, findFormsOnly:=True)
             Next
 
             Return VSConstants.S_OK

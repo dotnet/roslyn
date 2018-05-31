@@ -28,15 +28,9 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Debugging
                 End If
 
                 Dim expression = TryCast(token.Parent, ExpressionSyntax)
-                If expression Is Nothing Then
-                    Return If(token.IsKind(SyntaxKind.IdentifierToken),
-                        New DebugDataTipInfo(token.Span, text:=Nothing),
-                        Nothing)
-                End If
+                If expression Is Nothing Then Return If(token.IsKind(SyntaxKind.IdentifierToken), New DebugDataTipInfo(token.Span, text:=Nothing), Nothing)
 
-                If expression.IsAnyLiteralExpression() Then
-                    Return Nothing
-                End If
+                If expression.IsAnyLiteralExpression() Then Return Nothing
 
                 Dim conditionalAccess As ExpressionSyntax = Nothing
                 If expression.IsRightSideOfDotOrBang() Then
@@ -45,17 +39,12 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Debugging
                     Dim curr = expression
                     While True
                         curr = curr.GetCorrespondingConditionalAccessExpression()
-                        If curr Is Nothing Then
-                            Exit While
-                        End If
-
+                        If curr Is Nothing Then Exit While
                         conditionalAccess = curr
                     End While
                 End If
 
-                If expression.Parent.IsKind(SyntaxKind.InvocationExpression) Then
-                    expression = DirectCast(expression.Parent, ExpressionSyntax)
-                End If
+                If expression.Parent.IsKind(SyntaxKind.InvocationExpression) Then expression = DirectCast(expression.Parent, ExpressionSyntax)
 
                 Dim span = expression.Span
                 If conditionalAccess IsNot Nothing Then

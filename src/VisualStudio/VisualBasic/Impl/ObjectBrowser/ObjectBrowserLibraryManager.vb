@@ -13,10 +13,10 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.ObjectBrowser
         End Sub
 
         Friend Overrides Function CreateDescriptionBuilder(
-            description As IVsObjectBrowserDescription3,
-            listItem As ObjectListItem,
-            project As Project
-        ) As AbstractDescriptionBuilder
+                                                            description As IVsObjectBrowserDescription3,
+                                                            listItem As ObjectListItem,
+                                                            project As Project
+                                                          ) As AbstractDescriptionBuilder
 
             Return New DescriptionBuilder(description, Me, listItem, project)
         End Function

@@ -19,16 +19,25 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.CodeModel
         Private ReadOnly _commitBufferManagerFactory As CommitBufferManagerFactory
 
         <ImportingConstructor>
-        Private Sub New(editorOptionsFactoryService As IEditorOptionsFactoryService,
-                        <ImportMany> refactorNotifyServices As IEnumerable(Of IRefactorNotifyService),
-                        commitBufferManagerFactory As CommitBufferManagerFactory)
-            Me._editorOptionsFactoryService = editorOptionsFactoryService
-            Me._refactorNotifyServices = refactorNotifyServices
-            Me._commitBufferManagerFactory = commitBufferManagerFactory
+        Private Sub New(
+                         editorOptionsFactoryService As IEditorOptionsFactoryService,
+            <ImportMany> refactorNotifyServices As IEnumerable(Of IRefactorNotifyService),
+                         commitBufferManagerFactory As CommitBufferManagerFactory
+                       )
+            _editorOptionsFactoryService = editorOptionsFactoryService
+            _refactorNotifyServices = refactorNotifyServices
+            _commitBufferManagerFactory = commitBufferManagerFactory
         End Sub
 
-        Public Function CreateLanguageService(provider As HostLanguageServices) As ILanguageService Implements ILanguageServiceFactory.CreateLanguageService
-            Return New VisualBasicCodeModelService(provider, Me._editorOptionsFactoryService, _refactorNotifyServices, _commitBufferManagerFactory)
+        Public Function CreateLanguageService(
+                                               provider As HostLanguageServices
+                                             ) As ILanguageService Implements ILanguageServiceFactory.CreateLanguageService
+            Return New VisualBasicCodeModelService(
+                                                    provider,
+                                                    _editorOptionsFactoryService,
+                                                    _refactorNotifyServices,
+                                                    _commitBufferManagerFactory
+                                                  )
         End Function
     End Class
 End Namespace

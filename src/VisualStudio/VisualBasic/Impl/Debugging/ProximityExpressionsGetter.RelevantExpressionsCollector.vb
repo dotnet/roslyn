@@ -43,10 +43,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Debugging
             End Sub
 
             Public Overrides Sub VisitModifiedIdentifier(node As ModifiedIdentifierSyntax)
-                If _includeDeclarations Then
-                    _expressions.Add(SyntaxFactory.IdentifierName(node.Identifier))
-                End If
-
+                If _includeDeclarations Then _expressions.Add(SyntaxFactory.IdentifierName(node.Identifier))
                 MyBase.VisitModifiedIdentifier(node)
             End Sub
 

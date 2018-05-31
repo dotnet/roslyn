@@ -4522,7 +4522,7 @@ checkNullable:
         ' Lines: 9598 - 9598
         ' ParameterList* .Parser::ParseParameters( [ _Inout_ bool& ErrorInConstruct ] [ _Out_ Token*& openParen ] [ _Out_ Token*& closeParen ] )
 
-        Private Function ParseParameters(ByRef openParen As PunctuationSyntax, ByRef closeParen As PunctuationSyntax) As CoreInternalSyntax.SeparatedSyntaxList(Of ParameterSyntax)
+        Friend Function ParseParameters(ByRef openParen As PunctuationSyntax, ByRef closeParen As PunctuationSyntax) As CoreInternalSyntax.SeparatedSyntaxList(Of ParameterSyntax)
             Debug.Assert(CurrentToken.Kind = SyntaxKind.OpenParenToken, "Parameter list parsing confused.")
             TryGetTokenAndEatNewLine(SyntaxKind.OpenParenToken, openParen)
 

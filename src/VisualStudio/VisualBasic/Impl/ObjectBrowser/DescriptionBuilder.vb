@@ -31,11 +31,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.ObjectBrowser
             AddText("Delegate ")
 
             Dim delegateInvokeMethod = typeSymbol.DelegateInvokeMethod
-            If delegateInvokeMethod.ReturnsVoid Then
-                AddText("Sub ")
-            Else
-                AddText("Function ")
-            End If
+            Add_SubOrFunction(delegateInvokeMethod)
 
             Dim typeNameFormat = New SymbolDisplayFormat(
                 typeQualificationStyle:=SymbolDisplayTypeQualificationStyle.NameOnly,
@@ -43,20 +39,19 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.ObjectBrowser
 
             AddName(typeSymbol.ToDisplayString(typeNameFormat))
 
-            If typeSymbol.TypeParameters.Length > 0 Then
-                AddText("(Of ")
-                BuildTypeParameterList(typeSymbol.TypeParameters)
-                AddText(")")
-            End If
+            AndAnyGenericTypeParameters(typeSymbol.TypeParameters)
 
+            AddParameterList(delegateInvokeMethod.Parameters)
+
+            If Not delegateInvokeMethod.ReturnsVoid Then Add_AsType(delegateInvokeMethod.ReturnType)
+
+        End Sub
+
+        Private Sub AddParameterList(Parameters As ImmutableArray(Of IParameterSymbol), Optional IsProperty As Boolean = False)
+            If IsProperty AndAlso Parameters.Length = 0 Then Exit Sub
             AddText("(")
-            BuildParameterList(delegateInvokeMethod.Parameters)
+            BuildParameterList(Parameters)
             AddText(")")
-
-            If Not delegateInvokeMethod.ReturnsVoid Then
-                AddText(" As ")
-                AddTypeLink(delegateInvokeMethod.ReturnType, LinkFlags.None)
-            End If
         End Sub
 
         Protected Overrides Sub BuildTypeDeclaration(typeSymbol As INamedTypeSymbol, options As _VSOBJDESCOPTIONS)
@@ -83,11 +78,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.ObjectBrowser
 
             AddName(typeSymbol.ToDisplayString(typeNameFormat))
 
-            If typeSymbol.TypeParameters.Length > 0 Then
-                AddText("(Of ")
-                BuildTypeParameterList(typeSymbol.TypeParameters)
-                AddText(")")
-            End If
+            AndAnyGenericTypeParameters(typeSymbol.TypeParameters)
 
             If typeSymbol.TypeKind = TypeKind.Class Then
                 Dim baseType = typeSymbol.BaseType
@@ -103,11 +94,12 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.ObjectBrowser
             If typeSymbol.TypeKind = TypeKind.Enum Then
                 Dim underlyingType = typeSymbol.EnumUnderlyingType
                 If underlyingType IsNot Nothing AndAlso underlyingType.SpecialType <> SpecialType.System_Int32 Then
-                    AddText(" As ")
-                    AddTypeLink(underlyingType, LinkFlags.None)
+                    Add_AsType(underlyingType)
                 End If
             End If
         End Sub
+
+
 
         Protected Overrides Sub BuildMethodDeclaration(methodSymbol As IMethodSymbol, options As _VSOBJDESCOPTIONS)
             Select Case methodSymbol.MethodKind
@@ -135,14 +127,10 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.ObjectBrowser
             Dim methodNameFormat = New SymbolDisplayFormat()
             AddName(methodSymbol.ToDisplayString(methodNameFormat))
 
-            AddText("(")
-            BuildParameterList(methodSymbol.Parameters)
-            AddText(")")
+            AddParameterList(methodSymbol.Parameters)
 
-            If Not methodSymbol.ReturnsVoid Then
-                AddText(" As ")
-                AddTypeLink(methodSymbol.ReturnType, LinkFlags.None)
-            End If
+            If Not methodSymbol.ReturnsVoid Then Add_AsType(methodSymbol.ReturnType)
+
         End Sub
 
         Private Sub BuildDeclareMethodDeclaration(methodSymbol As IMethodSymbol, options As _VSOBJDESCOPTIONS)
@@ -161,72 +149,66 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.ObjectBrowser
                     AddText("Unicode ")
             End Select
 
-            If methodSymbol.ReturnsVoid Then
-                AddText("Sub ")
-            Else
-                AddText("Function ")
-            End If
+            Add_SubOrFunction(methodSymbol)
+
 
             Dim methodNameFormat = New SymbolDisplayFormat()
             AddName(methodSymbol.ToDisplayString(methodNameFormat))
 
-            If dllImportData.ModuleName IsNot Nothing Then
-                AddText(" Lib """)
-                AddText(dllImportData.ModuleName)
-                AddText("""")
-            End If
+            If dllImportData.ModuleName IsNot Nothing Then Add_Quoted("Lib", dllImportData.ModuleName)
 
-            If dllImportData.EntryPointName IsNot Nothing Then
-                AddText(" Alias """)
-                AddText(dllImportData.EntryPointName)
-                AddText("""")
-            End If
+            If dllImportData.EntryPointName IsNot Nothing Then Add_Quoted("Alias", dllImportData.EntryPointName)
 
-            AddText("(")
-            BuildParameterList(methodSymbol.Parameters)
-            AddText(")")
+            AddParameterList(methodSymbol.Parameters)
 
-            If Not methodSymbol.ReturnsVoid Then
-                AddText(" As ")
-                AddTypeLink(methodSymbol.ReturnType, LinkFlags.None)
-            End If
+            If Not methodSymbol.ReturnsVoid Then Add_AsType(methodSymbol.ReturnType)
+
+        End Sub
+
+        Private Sub Add_Quoted(preText As String, QuotedText As String)
+            AddText($" {preText} ""{QuotedText}""")
         End Sub
 
         Private Sub BuildRegularMethodDeclaration(methodSymbol As IMethodSymbol, options As _VSOBJDESCOPTIONS)
             BuildMemberModifiers(methodSymbol)
 
+            Add_SubOrFunction(methodSymbol)
+
+            Dim methodNameFormat = New SymbolDisplayFormat()
+            AddName(methodSymbol.ToDisplayString(methodNameFormat))
+
+            AndAnyGenericTypeParameters(methodSymbol.TypeParameters)
+
+            AddParameterList(methodSymbol.Parameters)
+
+            If Not methodSymbol.ReturnsVoid Then Add_AsType(methodSymbol.ReturnType)
+
+        End Sub
+
+        Private Sub Add_SubOrFunction(methodSymbol As IMethodSymbol)
             If methodSymbol.ReturnsVoid Then
                 AddText("Sub ")
             Else
                 AddText("Function ")
             End If
+        End Sub
 
-            Dim methodNameFormat = New SymbolDisplayFormat()
-            AddName(methodSymbol.ToDisplayString(methodNameFormat))
-
-            If methodSymbol.TypeParameters.Length > 0 Then
+        Private Sub AndAnyGenericTypeParameters(TypeParameters As ImmutableArray(Of ITypeParameterSymbol))
+            If TypeParameters.Length > 0 Then
                 AddText("(Of ")
-                BuildTypeParameterList(methodSymbol.TypeParameters)
+                BuildTypeParameterList(TypeParameters)
                 AddText(")")
             End If
-
-            AddText("(")
-            BuildParameterList(methodSymbol.Parameters)
-            AddText(")")
-
-            If Not methodSymbol.ReturnsVoid Then
-                AddText(" As ")
-                AddTypeLink(methodSymbol.ReturnType, LinkFlags.None)
-            End If
         End Sub
+
+
 
         Protected Overrides Sub BuildFieldDeclaration(fieldSymbol As IFieldSymbol, options As _VSOBJDESCOPTIONS)
             BuildMemberModifiers(fieldSymbol)
 
             AddText(fieldSymbol.Name)
 
-            AddText(" As ")
-            AddTypeLink(fieldSymbol.Type, LinkFlags.None)
+            Add_AsType(fieldSymbol.Type)
 
             If fieldSymbol.HasConstantValue Then
                 AddText(" = ")
@@ -239,13 +221,16 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.ObjectBrowser
             End If
         End Sub
 
+        Private Sub Add_AsType([type] As ITypeSymbol)
+            AddText(" As ")
+            AddTypeLink([type], LinkFlags.None)
+        End Sub
+
         Protected Overrides Sub BuildPropertyDeclaration(propertySymbol As IPropertySymbol, options As _VSOBJDESCOPTIONS)
             BuildMemberModifiers(propertySymbol)
 
             If propertySymbol.GetMethod IsNot Nothing Then
-                If propertySymbol.SetMethod Is Nothing Then
-                    AddText("ReadOnly ")
-                End If
+                If propertySymbol.SetMethod Is Nothing Then AddText("ReadOnly ")
             ElseIf propertySymbol.SetMethod IsNot Nothing Then
                 AddText("WriteOnly ")
             End If
@@ -254,14 +239,10 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.ObjectBrowser
 
             AddName(propertySymbol.Name)
 
-            If propertySymbol.Parameters.Length > 0 Then
-                AddText("(")
-                BuildParameterList(propertySymbol.Parameters)
-                AddText(")")
-            End If
+            AddParameterList(propertySymbol.Parameters, IsProperty:=True)
 
-            AddText(" As ")
-            AddTypeLink(propertySymbol.Type, LinkFlags.None)
+            Add_AsType(propertySymbol.Type)
+
         End Sub
 
         Protected Overrides Sub BuildEventDeclaration(eventSymbol As IEventSymbol, options As _VSOBJDESCOPTIONS)
@@ -274,11 +255,9 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.ObjectBrowser
             AddText("(")
 
             Dim eventType = eventSymbol.Type
-            If eventType IsNot Nothing AndAlso eventType.TypeKind = TypeKind.Delegate Then
+            If eventType?.TypeKind = TypeKind.Delegate Then
                 Dim delegateInvokeMethod = CType(eventType, INamedTypeSymbol).DelegateInvokeMethod
-                If delegateInvokeMethod IsNot Nothing Then
-                    BuildParameterList(delegateInvokeMethod.Parameters)
-                End If
+                If delegateInvokeMethod IsNot Nothing Then BuildParameterList(delegateInvokeMethod.Parameters)
             End If
 
             AddText(")")
@@ -324,7 +303,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.ObjectBrowser
         End Sub
 
         Private Sub BuildMemberModifiers(memberSymbol As ISymbol)
-            If memberSymbol.ContainingType IsNot Nothing And memberSymbol.ContainingType.TypeKind = TypeKind.Interface Then
+            If memberSymbol.ContainingType?.TypeKind = TypeKind.Interface Then
                 Return
             End If
 
@@ -342,47 +321,30 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.ObjectBrowser
                 AddText("Shared ")
             End If
 
-            If fieldSymbol IsNot Nothing AndAlso fieldSymbol.IsReadOnly Then
-                AddText("ReadOnly ")
-            End If
+            If fieldSymbol?.IsReadOnly Then AddText("ReadOnly ")
 
-            If fieldSymbol IsNot Nothing AndAlso fieldSymbol.IsConst Then
-                AddText("Const ")
-            End If
+            If fieldSymbol?.IsConst Then AddText("Const ")
 
-            If memberSymbol.IsAbstract Then
-                AddText("MustOverride ")
-            End If
+            If memberSymbol.IsAbstract Then AddText("MustOverride ")
 
-            If memberSymbol.IsOverride Then
-                AddText("Overrides ")
-            End If
+            If memberSymbol.IsOverride Then AddText("Overrides ")
 
-            If memberSymbol.IsVirtual Then
-                AddText("Overridable ")
-            End If
+            If memberSymbol.IsVirtual Then AddText("Overridable ")
 
-            If memberSymbol.IsSealed Then
-                AddText("NotOverridable ")
-            End If
+            If memberSymbol.IsSealed Then AddText("NotOverridable ")
+
         End Sub
 
         Private Sub BuildParameterList(parameters As ImmutableArray(Of IParameterSymbol))
             Dim count = parameters.Length
-            If count = 0 Then
-                Return
-            End If
+            If count = 0 Then Return
 
             For i = 0 To count - 1
-                If i > 0 Then
-                    AddComma()
-                End If
+                If i > 0 Then AddComma()
 
                 Dim current = parameters(i)
 
-                If current.IsOptional Then
-                    AddText("Optional ")
-                End If
+                If current.IsOptional Then AddText("Optional ")
 
                 If current.RefKind = RefKind.Ref Then
                     ' TODO: Declare methods may implicitly make string parameters ByRef. To fix this,
@@ -391,13 +353,11 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.ObjectBrowser
                     AddText("ByRef ")
                 End If
 
-                If current.IsParams Then
-                    AddText("ParamArray ")
-                End If
+                If current.IsParams Then AddText("ParamArray ")
 
                 AddParam(current.Name)
-                AddText(" As ")
-                AddTypeLink(current.Type, LinkFlags.None)
+
+                Add_AsType(current.Type)
 
                 If current.HasExplicitDefaultValue Then
                     AddText(" = ")
@@ -412,14 +372,10 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.ObjectBrowser
 
         Private Sub BuildTypeParameterList(typeParameters As ImmutableArray(Of ITypeParameterSymbol))
             Dim count = typeParameters.Length
-            If count = 0 Then
-                Return
-            End If
+            If count = 0 Then Return
 
             For i = 0 To count - 1
-                If i > 0 Then
-                    AddName(", ")
-                End If
+                If i > 0 Then AddName(", ")
 
                 Dim current = typeParameters(i)
 
@@ -430,9 +386,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.ObjectBrowser
 
         Private Sub AddConstraints(typeParameter As ITypeParameterSymbol)
             Dim count = CountConstraints(typeParameter)
-            If count = 0 Then
-                Return
-            End If
+            If count = 0 Then Return
 
             If count = 1 Then
                 AddSingleConstraint(typeParameter)
@@ -467,28 +421,20 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.ObjectBrowser
             End If
 
             If typeParameter.HasValueTypeConstraint Then
-                If constraintAdded Then
-                    AddName(", ")
-                End If
-
+                If constraintAdded Then AddName(", ")
                 AddName("Structure")
                 constraintAdded = True
             End If
 
             If typeParameter.HasConstructorConstraint Then
-                If constraintAdded Then
-                    AddName(", ")
-                End If
-
+                If constraintAdded Then AddName(", ")
                 AddName("New")
                 constraintAdded = True
             End If
 
             If typeParameter.ConstraintTypes.Length > 0 Then
                 For Each constraintType In typeParameter.ConstraintTypes
-                    If constraintAdded Then
-                        AddName(", ")
-                    End If
+                    If constraintAdded Then AddName(", ")
 
                     AddTypeLink(constraintType, LinkFlags.None)
                     constraintAdded = True
@@ -501,17 +447,11 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.ObjectBrowser
         Private Function CountConstraints(typeParameter As ITypeParameterSymbol) As Integer
             Dim result = typeParameter.ConstraintTypes.Length
 
-            If typeParameter.HasReferenceTypeConstraint Then
-                result += 1
-            End If
+            If typeParameter.HasReferenceTypeConstraint Then result += 1
 
-            If typeParameter.HasValueTypeConstraint Then
-                result += 1
-            End If
+            If typeParameter.HasValueTypeConstraint Then result += 1
 
-            If typeParameter.HasConstructorConstraint Then
-                result += 1
-            End If
+            If typeParameter.HasConstructorConstraint Then result += 1
 
             Return result
         End Function

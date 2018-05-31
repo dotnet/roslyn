@@ -15,26 +15,37 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic
     Partial Friend Class VisualBasicPackage
         Implements IVbCompiler
 
-        Public Function Compile(ByVal pcWarnings As IntPtr, ByVal pcErrors As IntPtr, ByVal ppErrors As IntPtr) As Integer Implements IVbCompiler.Compile
+        Public Function Compile(
+                                 pcWarnings As IntPtr,
+                                 pcErrors As IntPtr,
+                                 ppErrors As IntPtr
+                               ) As Integer Implements IVbCompiler.Compile
             ' This operation should never be called through the normal project system
             Throw New NotSupportedException()
         End Function
 
-        Public Function CreateProject(wszName As String, punkProject As Object, pProjHier As IVsHierarchy, pVbCompilerHost As IVbCompilerHost) As IVbCompilerProject Implements IVbCompiler.CreateProject
+        Public Function CreateProject(
+                                       wszName As String,
+                                       punkProject As Object,
+                                       pProjHier As IVsHierarchy,
+                                       pVbCompilerHost As IVbCompilerHost
+                                     ) As IVbCompilerProject Implements IVbCompiler.CreateProject
+
             Dim hostDiagnosticUpdateSource = ComponentModel.GetService(Of HostDiagnosticUpdateSource)()
 
             Dim projectTracker = Workspace.GetProjectTrackerAndInitializeIfNecessary(Me)
 
             Return New VisualBasicProject(
-                projectTracker,
-                wszName,
-                pVbCompilerHost,
-                pProjHier,
-                Me,
-                Function(id) New ProjectExternalErrorReporter(id, "BC", serviceProvider:=Me),
-                Workspace,
-                hostDiagnosticUpdateSource,
-                commandLineParserServiceOpt:=Workspace.Services.GetLanguageServices(LanguageNames.VisualBasic).GetService(Of ICommandLineParserService))
+                                           projectTracker,
+                                           wszName,
+                                           pVbCompilerHost,
+                                           pProjHier,
+                                           Me,
+                                           Function(id) New ProjectExternalErrorReporter(id, "BC", serviceProvider:=Me),
+                                           Workspace,
+                                           hostDiagnosticUpdateSource,
+              commandLineParserServiceOpt:=Workspace.Services.GetLanguageServices(LanguageNames.VisualBasic).GetService(Of ICommandLineParserService)
+                                         )
         End Function
 
         Public Function IsValidIdentifier(wszIdentifier As String) As Boolean Implements IVbCompiler.IsValidIdentifier

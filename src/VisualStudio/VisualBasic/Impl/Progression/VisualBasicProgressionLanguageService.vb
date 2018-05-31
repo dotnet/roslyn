@@ -14,39 +14,36 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Progression
     Partial Friend Class VisualBasicProgressionLanguageService
         Implements IProgressionLanguageService
 
-        Public Function GetTopLevelNodesFromDocument(root As SyntaxNode, cancellationToken As CancellationToken) As IEnumerable(Of SyntaxNode) Implements IProgressionLanguageService.GetTopLevelNodesFromDocument
-            ' TODO: Implement this lazily like in C#?
+        Public Iterator Function GetTopLevelNodesFromDocument(root As SyntaxNode, cancellationToken As CancellationToken) As IEnumerable(Of SyntaxNode) Implements IProgressionLanguageService.GetTopLevelNodesFromDocument
+            If cancellationToken.IsCancellationRequested Then Exit Function
             Dim nodes = New Stack(Of SyntaxNode)()
-
-            Dim result = New List(Of SyntaxNode)
-
             nodes.Push(root)
 
             While nodes.Count > 0
-                cancellationToken.ThrowIfCancellationRequested()
-
                 Dim node = nodes.Pop()
 
-                If node.Kind = SyntaxKind.ClassBlock OrElse
-                    node.Kind = SyntaxKind.DelegateFunctionStatement OrElse
-                    node.Kind = SyntaxKind.DelegateSubStatement OrElse
-                    node.Kind = SyntaxKind.EnumBlock OrElse
-                    node.Kind = SyntaxKind.ModuleBlock OrElse
-                    node.Kind = SyntaxKind.InterfaceBlock OrElse
-                    node.Kind = SyntaxKind.StructureBlock OrElse
-                    node.Kind = SyntaxKind.FieldDeclaration OrElse
-                    node.Kind = SyntaxKind.SubBlock OrElse
-                    node.Kind = SyntaxKind.FunctionBlock OrElse
-                    node.Kind = SyntaxKind.PropertyBlock Then
-                    result.Add(node)
-                Else
-                    For Each child In node.ChildNodes()
-                        nodes.Push(child)
-                    Next
-                End If
-            End While
+                If cancellationToken.IsCancellationRequested Then Continue While
 
-            Return result
+
+                Select Case node.Kind
+                    Case SyntaxKind.ClassBlock,
+                         SyntaxKind.DelegateFunctionStatement,
+                         SyntaxKind.DelegateSubStatement,
+                         SyntaxKind.EnumBlock,
+                         SyntaxKind.ModuleBlock,
+                         SyntaxKind.InterfaceBlock,
+                         SyntaxKind.StructureBlock,
+                         SyntaxKind.FieldDeclaration,
+                         SyntaxKind.SubBlock,
+                         SyntaxKind.FunctionBlock,
+                         SyntaxKind.PropertyBlock
+                        Yield node
+                    Case Else
+                        For Each child In node.ChildNodes()
+                            nodes.Push(child)
+                        Next
+                End Select
+            End While
         End Function
 
         Private Shared ReadOnly s_descriptionFormat As SymbolDisplayFormat = New SymbolDisplayFormat(

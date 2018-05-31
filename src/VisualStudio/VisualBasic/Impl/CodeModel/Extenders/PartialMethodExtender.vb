@@ -15,24 +15,13 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.CodeModel.Extender
             Return CType(ComAggregate.CreateAggregatedObject(result), IVBPartialMethodExtender)
         End Function
 
-        Private ReadOnly _isDeclaration As Boolean
-        Private ReadOnly _isPartial As Boolean
-
         Private Sub New(isDeclaration As Boolean, isPartial As Boolean)
-            _isDeclaration = isDeclaration
-            _isPartial = isPartial
+            Me.IsDeclaration = isDeclaration
+            Me.IsPartial = isPartial
         End Sub
 
         Public ReadOnly Property IsDeclaration As Boolean Implements IVBPartialMethodExtender.IsDeclaration
-            Get
-                Return _isDeclaration
-            End Get
-        End Property
 
         Public ReadOnly Property IsPartial As Boolean Implements IVBPartialMethodExtender.IsPartial
-            Get
-                Return _isPartial
-            End Get
-        End Property
     End Class
 End Namespace

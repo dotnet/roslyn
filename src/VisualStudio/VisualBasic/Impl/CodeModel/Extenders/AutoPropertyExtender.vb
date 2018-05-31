@@ -15,16 +15,10 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.CodeModel.Extender
             Return CType(ComAggregate.CreateAggregatedObject(result), IVBAutoPropertyExtender)
         End Function
 
-        Private ReadOnly _isAutoImplemented As Boolean
-
         Private Sub New(isAutoImplemented As Boolean)
-            _isAutoImplemented = isAutoImplemented
+            Me.IsAutoImplemented = isAutoImplemented
         End Sub
 
         Public ReadOnly Property IsAutoImplemented As Boolean Implements IVBAutoPropertyExtender.IsAutoImplemented
-            Get
-                Return _isAutoImplemented
-            End Get
-        End Property
     End Class
 End Namespace

@@ -81,7 +81,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic
         End Sub
 
         Protected Overrides Function CreateWorkspace() As VisualStudioWorkspaceImpl
-            Return Me.ComponentModel.GetService(Of VisualStudioWorkspaceImpl)
+            Return ComponentModel.GetService(Of VisualStudioWorkspaceImpl)
         End Function
 
         Protected Overrides Sub Initialize()
@@ -90,7 +90,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic
 
                 RegisterLanguageService(GetType(IVbCompilerService), Function() _comAggregate)
 
-                Dim workspace = Me.ComponentModel.GetService(Of VisualStudioWorkspaceImpl)()
+                Dim workspace = ComponentModel.GetService(Of VisualStudioWorkspaceImpl)()
                 RegisterService(Of IVbTempPECompilerFactory)(Function() New TempPECompilerFactory(workspace))
 
                 RegisterObjectBrowserLibraryManager()
@@ -105,27 +105,25 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic
         End Sub
 
         Private Sub RegisterObjectBrowserLibraryManager()
-            Dim objectManager = TryCast(Me.GetService(GetType(SVsObjectManager)), IVsObjectManager2)
-            If objectManager IsNot Nothing Then
-                Me._libraryManager = New ObjectBrowserLibraryManager(Me)
+            Dim objectManager = TryCast(GetService(GetType(SVsObjectManager)), IVsObjectManager2)
+            If objectManager Is Nothing Then Exit Sub
+            _libraryManager = New ObjectBrowserLibraryManager(Me)
 
-                If ErrorHandler.Failed(objectManager.RegisterSimpleLibrary(Me._libraryManager, Me._libraryManagerCookie)) Then
-                    Me._libraryManagerCookie = 0
-                End If
+            If ErrorHandler.Failed(objectManager.RegisterSimpleLibrary(_libraryManager, _libraryManagerCookie)) Then
+                _libraryManagerCookie = 0
             End If
         End Sub
 
         Private Sub UnregisterObjectBrowserLibraryManager()
-            If _libraryManagerCookie <> 0 Then
-                Dim objectManager = TryCast(Me.GetService(GetType(SVsObjectManager)), IVsObjectManager2)
-                If objectManager IsNot Nothing Then
-                    objectManager.UnregisterLibrary(Me._libraryManagerCookie)
-                    Me._libraryManagerCookie = 0
-                End If
-
-                Me._libraryManager.Dispose()
-                Me._libraryManager = Nothing
+            If _libraryManagerCookie = 0 Then Exit Sub
+            Dim objectManager = TryCast(GetService(GetType(SVsObjectManager)), IVsObjectManager2)
+            If objectManager IsNot Nothing Then
+                objectManager.UnregisterLibrary(_libraryManagerCookie)
+                _libraryManagerCookie = 0
             End If
+
+            _libraryManager.Dispose()
+            _libraryManager = Nothing
         End Sub
 
         Public Function NeedExport(pageID As String, <Out> ByRef needExportParam As Integer) As Integer Implements IVsUserSettingsQuery.NeedExport
@@ -135,12 +133,9 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic
         End Function
 
         Protected Overrides Function GetAutomationObject(name As String) As Object
-            If name = "Basic-Specific" Then
-                Dim workspace = Me.ComponentModel.GetService(Of VisualStudioWorkspace)()
-                Return New AutomationObject(workspace)
-            End If
-
-            Return MyBase.GetAutomationObject(name)
+            If name <> "Basic-Specific" Then Return MyBase.GetAutomationObject(name)
+            Dim workspace = ComponentModel.GetService(Of VisualStudioWorkspace)()
+            Return New AutomationObject(workspace)
         End Function
 
         Protected Overrides Function CreateEditorFactories() As IEnumerable(Of IVsEditorFactory)

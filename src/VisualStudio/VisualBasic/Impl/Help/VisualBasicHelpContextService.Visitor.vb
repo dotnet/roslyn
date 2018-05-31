@@ -20,12 +20,18 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Help
             Private ReadOnly _isNotMetadata As Boolean
             Private ReadOnly _cancellationToken As CancellationToken
 
-            Public Sub New(span As TextSpan, semanticModel As SemanticModel, isNotMetadata As Boolean, service As VisualBasicHelpContextService, cancellationToken As CancellationToken)
-                Me._span = span
-                Me._semanticModel = semanticModel
-                Me._isNotMetadata = isNotMetadata
-                Me._service = service
-                Me._cancellationToken = cancellationToken
+            Public Sub New(
+                            span As TextSpan,
+                            semanticModel As SemanticModel,
+                            isNotMetadata As Boolean,
+                            service As VisualBasicHelpContextService,
+                            cancellationToken As CancellationToken
+                          )
+                _span = span
+                _semanticModel = semanticModel
+                _isNotMetadata = isNotMetadata
+                _service = service
+                _cancellationToken = cancellationToken
             End Sub
 
             Private Function Keyword(text As String) As String
@@ -37,26 +43,19 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Help
             End Function
 
             Public Overrides Sub Visit(node As SyntaxNode)
-                If node IsNot Nothing Then
-                    DirectCast(node, VisualBasicSyntaxNode).Accept(Me)
+                If node Is Nothing Then Exit Sub
+                DirectCast(node, VisualBasicSyntaxNode).Accept(Me)
 
-                    If result Is Nothing AndAlso node IsNot Nothing Then
-                        Visit(node.Parent)
-                    End If
+                If result Is Nothing AndAlso node IsNot Nothing Then Visit(node.Parent)
 
-                End If
             End Sub
 
             Public Overrides Sub DefaultVisit(node As SyntaxNode)
-                If node IsNot Nothing Then
-                    Visit(node.Parent)
-                End If
+                If node IsNot Nothing Then Visit(node.Parent)
             End Sub
 
             Public Overrides Sub VisitEventStatement(node As EventStatementSyntax)
-                If Not TryGetDeclaredSymbol(node.Identifier) Then
-                    result = Keyword("Event")
-                End If
+                If Not TryGetDeclaredSymbol(node.Identifier) Then result = Keyword("Event")
             End Sub
 
             Public Overrides Sub VisitAttributeTarget(node As AttributeTargetSyntax)
@@ -105,10 +104,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Help
             End Sub
 
             Public Overrides Sub VisitAggregateClause(node As AggregateClauseSyntax)
-                If Not node.IntoKeyword.IsMissing Then
-                    result = HelpKeywords.QueryAggregateInto
-                End If
-                result = HelpKeywords.QueryAggregate
+                result = If(node.IntoKeyword.IsMissing, HelpKeywords.QueryAggregate, HelpKeywords.QueryAggregateInto)
             End Sub
 
             Public Overrides Sub VisitAssignmentStatement(node As AssignmentStatementSyntax)
@@ -163,27 +159,15 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Help
             End Sub
 
             Public Overrides Sub VisitIfStatement(node As IfStatementSyntax)
-                If node.ThenKeyword.Span.IntersectsWith(_span) Then
-                    result = Keyword(node.ThenKeyword.Text)
-                Else
-                    result = Keyword("If")
-                End If
+                result = If(node.ThenKeyword.Span.IntersectsWith(_span), Keyword(node.ThenKeyword.Text), Keyword("If"))
             End Sub
 
             Public Overrides Sub VisitElseIfStatement(node As ElseIfStatementSyntax)
-                If node.ThenKeyword.Span.IntersectsWith(_span) Then
-                    result = Keyword(node.ThenKeyword.Text)
-                Else
-                    result = Keyword("ElseIf")
-                End If
+                result = If(node.ThenKeyword.Span.IntersectsWith(_span), Keyword(node.ThenKeyword.Text), Keyword("ElseIf"))
             End Sub
 
             Public Overrides Sub VisitSingleLineIfStatement(node As SingleLineIfStatementSyntax)
-                If node.ThenKeyword.Span.IntersectsWith(_span) Then
-                    result = Keyword(node.ThenKeyword.Text)
-                Else
-                    result = Keyword("If")
-                End If
+                result = If(node.ThenKeyword.Span.IntersectsWith(_span), Keyword(node.ThenKeyword.Text), Keyword("If"))
             End Sub
 
             Public Overrides Sub VisitSingleLineElseClause(node As SingleLineElseClauseSyntax)
@@ -275,13 +259,8 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Help
             End Sub
 
             Public Overrides Sub VisitTypeParameter(node As TypeParameterSyntax)
-                If node.VarianceKeyword.Span.IntersectsWith(_span) Then
-                    If node.VarianceKeyword.Kind() = SyntaxKind.OutKeyword Then
-                        result = HelpKeywords.VarianceOut
-                    Else
-                        result = HelpKeywords.VarianceIn
-                    End If
-                End If
+                If Not node.VarianceKeyword.Span.IntersectsWith(_span) Then Exit Sub
+                result = If(node.VarianceKeyword.Kind() = SyntaxKind.OutKeyword, HelpKeywords.VarianceOut, HelpKeywords.VarianceIn)
             End Sub
 
             Public Overrides Sub VisitGetTypeExpression(node As GetTypeExpressionSyntax)
@@ -301,11 +280,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Help
             End Sub
 
             Public Overrides Sub VisitGroupByClause(node As GroupByClauseSyntax)
-                If node.IntoKeyword.Span.IntersectsWith(_span) Then
-                    result = HelpKeywords.QueryGroupByInto
-                Else
-                    result = HelpKeywords.QueryGroupBy
-                End If
+                result = If(node.IntoKeyword.Span.IntersectsWith(_span), HelpKeywords.QueryGroupByInto, HelpKeywords.QueryGroupBy)
             End Sub
 
             Public Overrides Sub VisitGroupJoinClause(node As GroupJoinClauseSyntax)
@@ -339,9 +314,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Help
             End Sub
 
             Public Overrides Sub VisitInferredFieldInitializer(node As InferredFieldInitializerSyntax)
-                If node.KeyKeyword <> Nothing Then
-                    result = HelpKeywords.AnonymousKey
-                End If
+                If node.KeyKeyword <> Nothing Then result = HelpKeywords.AnonymousKey
             End Sub
 
             Public Overrides Sub VisitTypeOfExpression(node As TypeOfExpressionSyntax)
@@ -349,15 +322,11 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Help
             End Sub
 
             Public Overrides Sub VisitLambdaHeader(node As LambdaHeaderSyntax)
-                If Not SelectModifier(node.Modifiers) Then
-                    result = HelpKeywords.LambdaFunction
-                End If
+                If Not SelectModifier(node.Modifiers) Then result = HelpKeywords.LambdaFunction
             End Sub
 
             Public Overrides Sub VisitSubNewStatement(node As SubNewStatementSyntax)
-                If Not TryGetDeclaredSymbol(node.NewKeyword) Then
-                    result = HelpKeywords.Constructor
-                End If
+                If Not TryGetDeclaredSymbol(node.NewKeyword) Then result = HelpKeywords.Constructor
             End Sub
 
             Public Overrides Sub VisitConstructorBlock(node As ConstructorBlockSyntax)
@@ -370,9 +339,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Help
 
             Public Overrides Sub VisitMethodStatement(node As MethodStatementSyntax)
                 If SelectModifier(node.Modifiers) Then
-                    If result = "vb.Partial" Then
-                        result = HelpKeywords.PartialMethod
-                    End If
+                    If result = "vb.Partial" Then result = HelpKeywords.PartialMethod
 
                 ElseIf node.Identifier.Span.IntersectsWith(_span) AndAlso
                         node.Parent.Parent.Kind() = SyntaxKind.ModuleBlock AndAlso
@@ -413,9 +380,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Help
             End Sub
 
             Public Overrides Sub VisitNamedFieldInitializer(node As NamedFieldInitializerSyntax)
-                If node.KeyKeyword.Span.IntersectsWith(_span) Then
-                    result = HelpKeywords.AnonymousKey
-                End If
+                If node.KeyKeyword.Span.IntersectsWith(_span) Then result = HelpKeywords.AnonymousKey
             End Sub
 
             Public Overrides Sub VisitIdentifierName(node As IdentifierNameSyntax)
@@ -498,11 +463,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Help
             End Sub
 
             Public Overrides Sub VisitOrdering(node As OrderingSyntax)
-                If node.AscendingOrDescendingKeyword.IsKind(SyntaxKind.AscendingKeyword) Then
-                    result = HelpKeywords.QueryAscending
-                Else
-                    result = HelpKeywords.QueryDescending
-                End If
+                result = If(node.AscendingOrDescendingKeyword.IsKind(SyntaxKind.AscendingKeyword), HelpKeywords.QueryAscending, HelpKeywords.QueryDescending)
             End Sub
 
             Public Overrides Sub VisitOrderByClause(node As OrderByClauseSyntax)
@@ -514,11 +475,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Help
             End Sub
 
             Public Overrides Sub VisitRegionDirectiveTrivia(node As RegionDirectiveTriviaSyntax)
-                If node.Name.Span.IntersectsWith(_span) Then
-                    result = Keyword(SyntaxKind.StringKeyword)
-                Else
-                    result = HelpKeywords.Region
-                End If
+                result = If(node.Name.Span.IntersectsWith(_span), Keyword(SyntaxKind.StringKeyword), HelpKeywords.Region)
             End Sub
 
             Public Overrides Sub VisitConstDirectiveTrivia(node As ConstDirectiveTriviaSyntax)
@@ -526,45 +483,29 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Help
             End Sub
 
             Public Overrides Sub VisitStopOrEndStatement(node As StopOrEndStatementSyntax)
-                If node.StopOrEndKeyword.Kind() = SyntaxKind.EndKeyword Then
-                    result = Keyword(SyntaxKind.EndKeyword)
-                Else
-                    result = Keyword(SyntaxKind.StopKeyword)
-                End If
+                result = If(node.StopOrEndKeyword.Kind() = SyntaxKind.EndKeyword, Keyword(SyntaxKind.EndKeyword), Keyword(SyntaxKind.StopKeyword))
             End Sub
 
             Public Overrides Sub VisitStructureStatement(node As StructureStatementSyntax)
-                If Not SelectModifier(node.Modifiers) AndAlso Not TryGetDeclaredSymbol(node.Identifier) Then
-                    result = Keyword(SyntaxKind.StructureKeyword)
-                End If
+                If Not SelectModifier(node.Modifiers) AndAlso Not TryGetDeclaredSymbol(node.Identifier) Then result = Keyword(SyntaxKind.StructureKeyword)
             End Sub
 
             Public Overrides Sub VisitModuleStatement(node As ModuleStatementSyntax)
-                If Not SelectModifier(node.Modifiers) AndAlso Not TryGetDeclaredSymbol(node.Identifier) Then
-                    result = Keyword("Module")
-                End If
+                If Not SelectModifier(node.Modifiers) AndAlso Not TryGetDeclaredSymbol(node.Identifier) Then result = Keyword("Module")
             End Sub
 
             Public Overrides Sub VisitPropertyStatement(node As PropertyStatementSyntax)
                 If Not SelectModifier(node.Modifiers) AndAlso Not TryGetDeclaredSymbol(node.Identifier) Then
-                    If node.Parent.Kind() <> SyntaxKind.PropertyBlock Then
-                        result = HelpKeywords.AutoProperty
-                    Else
-                        result = Keyword("Property")
-                    End If
+                    result = If(node.Parent.Kind() <> SyntaxKind.PropertyBlock, HelpKeywords.AutoProperty, Keyword("Property"))
                 End If
             End Sub
 
             Public Overrides Sub VisitClassStatement(node As ClassStatementSyntax)
-                If Not SelectModifier(node.Modifiers) AndAlso Not TryGetDeclaredSymbol(node.Identifier) Then
-                    result = Keyword("Class")
-                End If
+                If Not SelectModifier(node.Modifiers) AndAlso Not TryGetDeclaredSymbol(node.Identifier) Then result = Keyword("Class")
             End Sub
 
             Public Overrides Sub VisitAccessorStatement(node As AccessorStatementSyntax)
-                If Not SelectModifier(node.Modifiers) AndAlso Not TryGetDeclaredSymbol(node.DeclarationKeyword) Then
-                    result = Keyword(node.DeclarationKeyword.Kind())
-                End If
+                If Not SelectModifier(node.Modifiers) AndAlso Not TryGetDeclaredSymbol(node.DeclarationKeyword) Then result = Keyword(node.DeclarationKeyword.Kind())
             End Sub
 
             Public Overrides Sub VisitImportsStatement(node As ImportsStatementSyntax)
@@ -572,15 +513,11 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Help
             End Sub
 
             Public Overrides Sub VisitInterfaceStatement(node As InterfaceStatementSyntax)
-                If Not SelectModifier(node.Modifiers) AndAlso Not TryGetDeclaredSymbol(node.Identifier) Then
-                    result = Keyword(SyntaxKind.InterfaceKeyword)
-                End If
+                If Not SelectModifier(node.Modifiers) AndAlso Not TryGetDeclaredSymbol(node.Identifier) Then result = Keyword(SyntaxKind.InterfaceKeyword)
             End Sub
 
             Public Overrides Sub VisitNamespaceStatement(node As NamespaceStatementSyntax)
-                If Not TryGetDeclaredSymbol(node.GetNameToken()) Then
-                    result = Keyword(SyntaxKind.NamespaceKeyword)
-                End If
+                If Not TryGetDeclaredSymbol(node.GetNameToken()) Then result = Keyword(SyntaxKind.NamespaceKeyword)
             End Sub
 
             Public Overrides Sub VisitLabelStatement(node As LabelStatementSyntax)
@@ -592,10 +529,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Help
                     result = HelpKeywords.Nullable
                 Else
                     Dim symbol = _semanticModel.GetDeclaredSymbol(node, _cancellationToken)
-
-                    If symbol IsNot Nothing Then
-                        result = _service.FormatSymbol(symbol)
-                    End If
+                    If symbol IsNot Nothing Then result = _service.FormatSymbol(symbol)
                 End If
             End Sub
 
@@ -611,9 +545,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Help
             End Sub
 
             Public Overrides Sub VisitObjectMemberInitializer(node As ObjectMemberInitializerSyntax)
-                If Not node.Parent.IsKind(SyntaxKind.AnonymousObjectCreationExpression) Then
-                    result = HelpKeywords.ObjectInitializer
-                End If
+                If Not node.Parent.IsKind(SyntaxKind.AnonymousObjectCreationExpression) Then result = HelpKeywords.ObjectInitializer
             End Sub
 
             Public Overrides Sub VisitYieldStatement(node As YieldStatementSyntax)
@@ -637,13 +569,8 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Help
             End Sub
 
             Public Overrides Sub VisitUnaryExpression(node As UnaryExpressionSyntax)
-                If node.OperatorToken.IsKind(SyntaxKind.MinusToken) Then
-                    result = HelpKeywords.Negate
-                End If
-
-                If node.OperatorToken.IsKind(SyntaxKind.AddressOfKeyword) Then
-                    result = Keyword(SyntaxKind.AddressOfKeyword)
-                End If
+                If node.OperatorToken.IsKind(SyntaxKind.MinusToken) Then result = HelpKeywords.Negate
+                If node.OperatorToken.IsKind(SyntaxKind.AddressOfKeyword) Then result = Keyword(SyntaxKind.AddressOfKeyword)
             End Sub
 
             Public Overrides Sub VisitUsingStatement(node As UsingStatementSyntax)
