@@ -314,6 +314,8 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                     stringBuilder.Append("Methods:");
                     foreach (IMethodSymbol method in region.Methods)
                     {
+                        // PROTOTYPE(dataflow): For C# lambdas this prints [lambda expression], which is not very helpful if we want to tell lambdas apart.
+                        //                      That is how symbol display is implemented for C#.
                         stringBuilder.Append($" [{method.ToTestDisplayString()}]");
                     }
                     stringBuilder.AppendLine();
@@ -342,7 +344,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                 {
                     case ControlFlowGraph.RegionKind.Filter:
                         Assert.Empty(region.Locals);
-                        Assert.Empty(region.Methods);
+                        Assert.True(region.Methods.All(m => m.MethodKind == MethodKind.AnonymousFunction));
                         Assert.Equal(firstBlockOrdinal, region.Enclosing.FirstBlockOrdinal);
                         Assert.Same(region.ExceptionType, region.Enclosing.ExceptionType);
                         enterRegion($".filter {{{getRegionId(region)}}}");
@@ -423,13 +425,13 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                     return;
                 }
 
-                leaveRegions(region.Enclosing, lastBlockOrdinal);
-
                 string regionId = getRegionId(region);
                 for (var i = 0; i < region.Methods.Length; i++)
                 {
                     var method = region.Methods[i];
                     appendLine("");
+                    // PROTOTYPE(dataflow): For C# lambdas this prints "lambda expression", which is not very helpful if we want to tell lambdas apart.
+                    //                      That is how symbol display is implemented for C#.
                     appendLine("{   " + method.ToTestDisplayString());
                     appendLine("");
                     var g = graph[method];
@@ -474,6 +476,8 @@ endRegion:
                         Assert.False(true, $"Unexpected region kind {region.Kind}");
                         break;
                 }
+
+                leaveRegions(region.Enclosing, lastBlockOrdinal);
             }
 
             void validateBranch(BasicBlock fromBlock, BasicBlock.Branch branch)
@@ -571,6 +575,8 @@ endRegion:
                                                                                   case OperationKind.Invocation:
                                                                                       method = ((IInvocationOperation)node).TargetMethod;
                                                                                       return method.MethodKind == MethodKind.LocalFunction ? method.OriginalDefinition : null;
+                                                                                  case OperationKind.FlowAnonymousFunction:
+                                                                                      return ((IFlowAnonymousFunctionOperation)node).Symbol;
                                                                                   default:
                                                                                       return (ISymbol)null;
                                                                               }
@@ -626,14 +632,6 @@ endRegion:
             switch (n.Kind)
             {
                 case OperationKind.Block:
-                    if (((IBlockOperation)n).Operations.IsEmpty &&
-                        (n.Parent?.Kind == OperationKind.AnonymousFunction))
-                    {
-                        // PROTOTYPE(dataflow): Temporary allow
-                        return true;
-                    }
-                    return false;
-
                 case OperationKind.Switch:
                 case OperationKind.Loop:
                 case OperationKind.Branch:
@@ -662,6 +660,7 @@ endRegion:
                 case OperationKind.End:
                 case OperationKind.Empty:
                 case OperationKind.NameOf:
+                case OperationKind.AnonymousFunction:
                     return false;
 
                 case OperationKind.BinaryOperator:
@@ -694,7 +693,7 @@ endRegion:
                 case OperationKind.MethodReference:
                 case OperationKind.PropertyReference:
                 case OperationKind.EventReference:
-                case OperationKind.AnonymousFunction:
+                case OperationKind.FlowAnonymousFunction:
                 case OperationKind.ObjectCreation:
                 case OperationKind.TypeParameterObjectCreation:
                 case OperationKind.ArrayCreation:

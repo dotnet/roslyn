@@ -202,6 +202,8 @@ namespace Microsoft.CodeAnalysis
         CaughtException = 0x5E,
         /// <summary>Indicates an <see cref="IStaticLocalInitializationSemaphoreOperation"/>.</summary>
         StaticLocalInitializationSemaphore = 0x5F,
+        /// <summary>Indicates an <see cref="IFlowAnonymousFunctionOperation"/>.</summary>
+        FlowAnonymousFunction = 0x60,
 
         // /// <summary>Indicates an <see cref="IFixedOperation"/>.</summary>
         // https://github.com/dotnet/roslyn/issues/21281

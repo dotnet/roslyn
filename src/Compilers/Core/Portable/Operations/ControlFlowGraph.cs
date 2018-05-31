@@ -95,6 +95,12 @@ namespace Microsoft.CodeAnalysis.Operations
                             graph = ControlFlowGraphBuilder.Create(operation, enclosing);
                             break;
 
+                        case OperationKind.AnonymousFunction:
+                            var anonymousFunction = (IAnonymousFunctionOperation)operation;
+                            Debug.Assert(method == anonymousFunction.Symbol);
+                            graph = ControlFlowGraphBuilder.Create(operation, enclosing);
+                            break;
+
                         default:
                             throw ExceptionUtilities.UnexpectedValue(operation.Kind);
                     }
