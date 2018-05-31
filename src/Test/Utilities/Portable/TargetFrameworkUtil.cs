@@ -117,6 +117,9 @@ namespace Roslyn.Test.Utilities
             checkForDuplicateReferences();
             return references.AddRange(additionalReferences);
 
+            // Check to see if there are any duplicate references. This guards against tests inadvertently passing multiple copies of 
+            // say System.Core to the tests and implicitly depending on the higher one to win. The few tests which actually mean to 
+            // pass multiple verisons of a DLL should manually construct the reference list and not use this helper.
             void checkForDuplicateReferences()
             {
                 var nameSet = new HashSet<string>(getNames(references), StringComparer.OrdinalIgnoreCase);
