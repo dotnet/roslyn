@@ -116,7 +116,7 @@ End Class"
     Shared Sub M(a As LibraryA.A, b As LibraryB.B, t As Windows.Data.Text.TextSegment, f As Windows.Storage.StorageFolder)
     End Sub
 End Class"
-            Dim c0 = CreateCompilationWithMscorlib40({source}, compileReferences, TestOptions.DebugDll)
+            Dim c0 = CreateEmptyCompilation({source}, compileReferences, TestOptions.DebugDll)
             WithRuntimeInstance(c0, runtimeReferences,
                 Sub(runtime)
                     Dim context = CreateMethodContext(runtime, "C.M")

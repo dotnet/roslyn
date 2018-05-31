@@ -5433,7 +5433,7 @@ Public Class Test2
     End Sub
 End Class
     ]]></file>
-</compilation>, TestOptions.ReleaseDll)
+</compilation>, options:=TestOptions.ReleaseDll)
 
             CompileAndVerify(library)
 

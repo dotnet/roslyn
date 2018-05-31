@@ -1977,7 +1977,7 @@ Namespace NS2
     End Namespace
 End Namespace
     </file>
-</compilation>, TestOptions.ReleaseModule)
+</compilation>, options:=TestOptions.ReleaseModule)
 
 
             Dim compilation = CompilationUtils.CreateEmptyCompilationWithReferences(

@@ -26,18 +26,27 @@ namespace Roslyn.Test.Utilities
         Standard,
         StandardAndCSharp,
 
+        StandardAndVBRuntime,
+
         /// <summary>
         /// This is represents the set of tests which must be mscorlib40 on desktop but full net standard on coreclr.
         /// </summary>
         StandardCompat,
+       
+        /// <summary>
+        /// Compat framework for the default set of references many vb compilations get.
+        /// </summary>
+        DefaultVb,
 
         // The flavors of mscorlib we support + extending them with LINQ and dynamic.
         Mscorlib40,
         Mscorlib40Extended, 
         Mscorlib40AndSystemCore,
+        Mscorlib40AndVBRuntime,
         Mscorlib45,
         Mscorlib45Extended,
         Mscorlib45AndCSharp,
+        Mscorlib45AndVBRuntime,
         Mscorlib46,
         Mscorlib46Extended,
     }
@@ -56,17 +65,21 @@ namespace Roslyn.Test.Utilities
         public static ImmutableArray<MetadataReference> Mscorlib40References => ImmutableArray.Create(TestBase.MscorlibRef);
         public static ImmutableArray<MetadataReference> Mscorlib40ExtendedReferences => ImmutableArray.Create(TestBase.MscorlibRef, TestBase.SystemRef, TestBase.SystemCoreRef, TestBase.ValueTupleRef, TestBase.SystemRuntimeFacadeRef);
         public static ImmutableArray<MetadataReference> Mscorlib40andSystemCoreReferences => ImmutableArray.Create(TestBase.MscorlibRef, TestBase.SystemCoreRef);
+        public static ImmutableArray<MetadataReference> Mscorlib40andVBRuntimeReferences => ImmutableArray.Create(TestBase.MscorlibRef, TestBase.SystemRef, TestBase.MsvbRef);
         public static ImmutableArray<MetadataReference> Mscorlib45References => ImmutableArray.Create(TestBase.MscorlibRef_v4_0_30316_17626);
-        public static ImmutableArray<MetadataReference> Mscorlib45ExtendedReferences => ImmutableArray.Create(TestBase.MscorlibRef_v4_0_30316_17626, TestBase.SystemRef, TestBase.SystemCoreRef, TestBase.ValueTupleRef, TestBase.SystemRuntimeFacadeRef);
-        public static ImmutableArray<MetadataReference> Mscorlib45AndCSharpReferences => ImmutableArray.Create(TestBase.MscorlibRef_v4_0_30316_17626, TestBase.SystemCoreRef, TestBase.CSharpRef);
+        public static ImmutableArray<MetadataReference> Mscorlib45ExtendedReferences => ImmutableArray.Create(TestBase.MscorlibRef_v4_0_30316_17626, TestBase.SystemRef, TestBase.SystemCoreRef_v4_0_30319_17929, TestBase.ValueTupleRef, TestBase.SystemRuntimeFacadeRef);
+        public static ImmutableArray<MetadataReference> Mscorlib45AndCSharpReferences => ImmutableArray.Create(TestBase.MscorlibRef_v4_0_30316_17626, TestBase.SystemCoreRef_v4_0_30319_17929, TestBase.CSharpRef);
+        public static ImmutableArray<MetadataReference> Mscorlib45AndVBRuntimeReferences => ImmutableArray.Create(TestBase.MscorlibRef_v4_0_30316_17626, TestBase.SystemRef, TestBase.MsvbRef_v4_0_30319_17929);
         public static ImmutableArray<MetadataReference> Mscorlib46References => ImmutableArray.Create(TestBase.MscorlibRef_v46);
         public static ImmutableArray<MetadataReference> Mscorlib46ExtendedReferences => ImmutableArray.Create(TestBase.MscorlibRef_v46, TestBase.SystemRef_v46, TestBase.SystemCoreRef_v46, TestBase.ValueTupleRef, TestBase.SystemRuntimeFacadeRef);
         public static ImmutableArray<MetadataReference> NetStandard20References => ImmutableArray.Create<MetadataReference>(NetStandard20.NetStandard, NetStandard20.MscorlibRef, NetStandard20.SystemRuntimeRef, NetStandard20.SystemCoreRef, NetStandard20.SystemDynamicRuntimeRef);
         public static ImmutableArray<MetadataReference> WinRTReferences => ImmutableArray.Create(TestBase.WinRtRefs);
         public static ImmutableArray<MetadataReference> StandardReferences => CoreClrShim.IsRunningOnCoreClr ? NetStandard20References : Mscorlib46ExtendedReferences;
         public static ImmutableArray<MetadataReference> StandardAndCSharpReferences => StandardReferences.Add(StandardCSharpReference);
+        public static ImmutableArray<MetadataReference> StandardAndVBRuntimeReferences => CoreClrShim.IsRunningOnCoreClr ? NetStandard20References.Add(NetStandard20.MicrosoftVisualBasicRef) : Mscorlib46ExtendedReferences.Add(TestBase.MsvbRef_v4_0_30319_17929);
         public static ImmutableArray<MetadataReference> StandardCompatReferences => CoreClrShim.IsRunningOnCoreClr ? NetStandard20References : Mscorlib40References;
-
+        public static ImmutableArray<MetadataReference> DefaultVbReferencs => ImmutableArray.Create(TestBase.MscorlibRef, TestBase.SystemRef, TestBase.SystemCoreRef, TestBase.MsvbRef);
+ 
         public static ImmutableArray<MetadataReference> GetReferences(TargetFramework tf)
         {
             switch (tf)
@@ -75,16 +88,20 @@ namespace Roslyn.Test.Utilities
                 case TargetFramework.Mscorlib40: return Mscorlib40References;
                 case TargetFramework.Mscorlib40Extended: return Mscorlib40ExtendedReferences;
                 case TargetFramework.Mscorlib40AndSystemCore: return Mscorlib40andSystemCoreReferences;
+                case TargetFramework.Mscorlib40AndVBRuntime: return Mscorlib40andVBRuntimeReferences;
                 case TargetFramework.Mscorlib45: return Mscorlib45References;
                 case TargetFramework.Mscorlib45Extended: return Mscorlib45ExtendedReferences;
                 case TargetFramework.Mscorlib45AndCSharp: return Mscorlib45AndCSharpReferences;
+                case TargetFramework.Mscorlib45AndVBRuntime: return Mscorlib45AndVBRuntimeReferences;
                 case TargetFramework.Mscorlib46: return Mscorlib46References;
                 case TargetFramework.Mscorlib46Extended: return Mscorlib46ExtendedReferences;
                 case TargetFramework.NetStandard20: return NetStandard20References;
                 case TargetFramework.WinRT: return WinRTReferences;
                 case TargetFramework.Standard: return StandardReferences;
                 case TargetFramework.StandardAndCSharp: return StandardAndCSharpReferences;
+                case TargetFramework.StandardAndVBRuntime: return StandardAndVBRuntimeReferences;
                 case TargetFramework.StandardCompat: return StandardCompatReferences;
+                case TargetFramework.DefaultVb: return DefaultVbReferencs;
                 default: throw new InvalidOperationException($"Unexpected target framework {tf}");
             }
         }
