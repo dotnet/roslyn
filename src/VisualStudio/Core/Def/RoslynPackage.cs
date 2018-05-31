@@ -9,6 +9,7 @@ using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Experiments;
+using Microsoft.CodeAnalysis.Notification;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Versions;
 using Microsoft.VisualStudio.ComponentModelHost;
@@ -72,6 +73,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Setup
             LoadComponentsInUIContextOnceSolutionFullyLoaded();
 
             _solutionEventMonitor = new SolutionEventMonitor(_workspace);
+
+            TrackBulkFileOperations();
         }
 
         private void InitializeColors()
@@ -206,6 +209,72 @@ namespace Microsoft.VisualStudio.LanguageServices.Setup
             {
                 _ruleSetEventHandler.Unregister();
                 _ruleSetEventHandler = null;
+            }
+        }
+
+        private void TrackBulkFileOperations()
+        {
+            // we will pause whatever ambient work loads we have that are tied to IGlobalOperationNotificationService
+            // such as solution crawler, pre-emptive remote host synchronization and etc. any background work users didn't
+            // explicitly asked for.
+            //
+            // this should give all resources to BulkFileOperation. we do same for things like build, 
+            // debugging, wait dialog and etc. BulkFileOperation is used for things like git branch switching and etc.
+            var globalNotificationService = _workspace.Services.GetService<IGlobalOperationNotificationService>();
+
+            // BulkFileOperation can't have nested events. there will be ever only 1 events (Begin/End)
+            // so we only need simple tracking.
+            object gate = new object();
+            GlobalOperationRegistration localRegistration = null;
+
+            BulkFileOperation.Begin += (s, a) =>
+            {
+                StartBulkFileOperationNotification();
+            };
+
+            BulkFileOperation.End += (s, a) =>
+            {
+                StopBulkFileOperationNotification();
+            };
+
+            if (BulkFileOperation.IsInProgress)
+            {
+                StartBulkFileOperationNotification();
+            }
+
+            void StartBulkFileOperationNotification()
+            {
+                lock (gate)
+                {
+                    // one is already running. this can happen if there was a race between
+                    // IsInProgress and Begin event if it is called in right moment
+                    // (we subscribed to Begin and operation started before we reach IsInProgress)
+                    // since we use both IsInProgress and Begin to start notification
+                    if (localRegistration != null)
+                    {
+                        return;
+                    }
+
+                    localRegistration = globalNotificationService.Start("BulkFileOperation");
+                }
+            }
+
+            void StopBulkFileOperationNotification()
+            {
+                lock (gate)
+                {
+                    // this can happen if we subscribed to events which are already started
+                    // before we do IsInProgress check
+                    //
+                    // IsInProgress will be fliped before End events so no race there.
+                    if (localRegistration == null)
+                    {
+                        return;
+                    }
+
+                    localRegistration.Dispose();
+                    localRegistration = null;
+                }
             }
         }
     }
