@@ -1095,7 +1095,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     diagnostics);
             }
 
-            if (Compilation.LanguageVersion < LanguageVersion.CSharp7_3 && options.IsAttributeTypeLookup())
+            if (Compilation.LanguageVersion < LanguageVersion.CSharp8 && options.IsAttributeTypeLookup())
             {
                 // Generic type cannot be an attribute type.
                 // Parser error has already been reported, just wrap the result type with error type symbol.

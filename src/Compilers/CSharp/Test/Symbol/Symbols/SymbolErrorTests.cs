@@ -12413,7 +12413,7 @@ class A<T, S>
 {
 }
 ";
-            CreateCompilation(text).VerifyDiagnostics(
+            CreateCompilation(text, parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp7)).VerifyDiagnostics(
                 // (1,14): error CS0698: A generic type cannot derive from 'System.Attribute' because it is an attribute class
                 Diagnostic(ErrorCode.ERR_GenericDerivingFromAttribute, "System.Attribute").WithArguments("System.Attribute").WithLocation(1, 14));
         }
@@ -12428,7 +12428,7 @@ class C<T>
 {
     class B : A { }
 }";
-            CreateCompilation(text).VerifyDiagnostics(
+            CreateCompilation(text, parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp7)).VerifyDiagnostics(
                 // (2,14): error CS0698: A generic type cannot derive from 'A' because it is an attribute class
                 Diagnostic(ErrorCode.ERR_GenericDerivingFromAttribute, "A").WithArguments("A").WithLocation(2, 14),
                 // (5,15): error CS0698: A generic type cannot derive from 'A' because it is an attribute class
