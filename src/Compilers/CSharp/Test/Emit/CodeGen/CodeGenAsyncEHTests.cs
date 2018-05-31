@@ -936,7 +936,7 @@ class Test
             var expected = @"
 2
 ";
-            var v = CompileAndVerifyWithMscorlib40(source, s_asyncRefs, options: TestOptions.DebugExe.WithMetadataImportOptions(MetadataImportOptions.All), expectedOutput: expected, symbolValidator: module =>
+            var v = CompileAndVerify(source, s_asyncRefs, targetFramework: TargetFramework.Empty, options: TestOptions.DebugExe.WithMetadataImportOptions(MetadataImportOptions.All), expectedOutput: expected, symbolValidator: module =>
             {
                 Assert.Equal(new[]
                 {
