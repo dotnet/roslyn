@@ -2979,7 +2979,7 @@ class F
   ProtectionLevel Prop { get { return 0; } }
 }
 ";
-            CreateCompilation(text, references: new[] { SystemRef }).VerifyDiagnostics(
+            CreateCompilation(text).VerifyDiagnostics(
                 // (9,17): error CS0120: An object reference is required for the non-static field, method, or property 'F.Prop'
                 //   [DefaultValue(Prop.Privacy)] // CS0120
                 Diagnostic(ErrorCode.ERR_ObjectRequired, "Prop").WithArguments("F.Prop"),
@@ -9746,7 +9746,7 @@ namespace N
         }
     }
 }";
-            CreateCompilation(text, references: new[] { SystemCoreRef }).VerifyDiagnostics(
+            CreateCompilation(text).VerifyDiagnostics(
                 // (4,7): error CS0310: 'B' must be a non-abstract type with a public parameterless constructor in order to use it as parameter 'T' in the generic type or method 'C<T>'
                 // using CB = N.C<N.B>;
                 Diagnostic(ErrorCode.ERR_NewConstraintNotSatisfied, "CB").WithArguments("N.C<T>", "T", "N.B").WithLocation(4, 7),
@@ -9811,7 +9811,7 @@ class D<T> where T : new()
         D<C>.M();
     }
 }";
-            CreateCompilation(text, references: new[] { SystemCoreRef }).VerifyDiagnostics(
+            CreateCompilation(text).VerifyDiagnostics(
                 // (18,11): error CS0310: 'B' must be a non-abstract type with a public parameterless constructor in order to use it as parameter 'T' in the generic type or method 'D<T>'
                 Diagnostic(ErrorCode.ERR_NewConstraintNotSatisfied, "B").WithArguments("D<T>", "T", "B").WithLocation(18, 11),
                 // (19,11): error CS0310: 'C' must be a non-abstract type with a public parameterless constructor in order to use it as parameter 'T' in the generic type or method 'D<T>'
@@ -15744,7 +15744,7 @@ class Errors
    }
 }
 ";
-            var compilation = CreateCompilation(text, references: new[] { SystemCoreRef });
+            var compilation = CreateCompilation(text);
             compilation.VerifyDiagnostics(
                 // (7,13): error CS1661: Cannot convert anonymous method to delegate type 'E' because the parameter types do not match the delegate parameter types
                 //       E e = delegate(out int i) { };   // CS1676
@@ -15772,7 +15772,7 @@ class Errors
     }
 }
 ";
-            var compilation = CreateCompilation(text, references: new[] { SystemCoreRef });
+            var compilation = CreateCompilation(text);
             compilation.VerifyDiagnostics(
                 // (7,15): error CS1661: Cannot convert anonymous method to delegate type 'D' because the parameter types do not match the delegate parameter types
                 //         D d = delegate(out int i) { };   // CS1677
@@ -16758,7 +16758,7 @@ class Test
     }
 }
 ";
-            CreateCompilation(text, new[] { LinqAssemblyRef }).VerifyDiagnostics(
+            CreateCompilation(text).VerifyDiagnostics(
                 // (13,35): error CS1939: Cannot pass the range variable 'x' as an out or ref parameter
                 //                 select Test.F(ref x); // CS1939
                 Diagnostic(ErrorCode.ERR_QueryOutRefRangeVariable, "x").WithArguments("x"));
@@ -16986,7 +16986,7 @@ class Test
     }
 }
 ";
-            CreateCompilation(program, new[] { LinqAssemblyRef }).VerifyDiagnostics(
+            CreateCompilation(program).VerifyDiagnostics(
                 Diagnostic(ErrorCode.ERR_QueryRangeVariableReadOnly, "i").WithArguments("i"));
         }
 

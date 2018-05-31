@@ -314,9 +314,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
         public static CSharpCompilation CreateCompilationWithIL(
             CSharpTestSource source,
             string ilSource,
+            TargetFramework targetFramework = TargetFramework.Standard,
             IEnumerable<MetadataReference> references = null,
             CSharpCompilationOptions options = null,
-            bool appendDefaultHeader = true) => CreateCompilationWithILAndMscorlib40(source, ilSource, TargetFramework.Standard, references, options, appendDefaultHeader);
+            bool appendDefaultHeader = true) => CreateCompilationWithILAndMscorlib40(source, ilSource, targetFramework, references, options, appendDefaultHeader);
 
         public static CSharpCompilation CreateCompilationWithILAndMscorlib40(
             CSharpTestSource source,

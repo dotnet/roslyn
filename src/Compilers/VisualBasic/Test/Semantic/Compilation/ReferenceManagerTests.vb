@@ -1969,8 +1969,9 @@ End Class
             Dim dRef = CreateCompilationWithMscorlib40({"<Assembly: System.Reflection.AssemblyVersion(""1.0.0.0"")> : Public Interface D : Inherits B : End Interface"}, {b2Ref}, options:=s_signedDll, assemblyName:="D").EmitToImageReference()
             Dim eRef = CreateCompilationWithMscorlib40({"<Assembly: System.Reflection.AssemblyVersion(""1.0.0.0"")> : Public Interface E : Inherits B : End Interface"}, {b1Ref}, options:=s_signedDll, assemblyName:="E").EmitToImageReference()
 
-            Dim aRef = CreateCompilationWithMscorlib40({"<Assembly: System.Reflection.AssemblyVersion(""1.0.0.0"")> : Public Interface A : Inherits D, E : End Interface"},
-                                                     {dRef, eRef, b1Ref, b2Ref},
+            Dim references = TargetFrameworkUtil.Mscorlib40References.AddRange({dRef, eRef, b1Ref, b2Ref})
+            Dim aRef = CreateEmptyCompilation({"<Assembly: System.Reflection.AssemblyVersion(""1.0.0.0"")> : Public Interface A : Inherits D, E : End Interface"},
+                                                     references,
                                                      s_signedDll,
                                                      assemblyName:="A").EmitToImageReference()
 
@@ -2016,7 +2017,11 @@ End Class
             Dim dRef = CreateCompilationWithMscorlib40({"<Assembly: System.Reflection.AssemblyVersion(""1.0.0.0"")>: Public Interface D : Inherits B : End Interface"}, {b2Ref}, options:=s_signedDll, assemblyName:="D").EmitToImageReference()
             Dim eRef = CreateCompilationWithMscorlib40({"<Assembly: System.Reflection.AssemblyVersion(""1.0.0.0"")>: Public Interface E : Inherits B : End Interface"}, {b1Ref}, options:=s_signedDll, assemblyName:="E").EmitToImageReference()
 
-            Dim aRef = CreateCompilationWithMscorlib40({"<Assembly: System.Reflection.AssemblyVersion(""1.0.0.0"")>: Public Interface A : Inherits D, E : End Interface"}, {dRef, eRef, b1Ref, b2Ref}, s_signedDll, assemblyName:="A").EmitToImageReference()
+            Dim aRef = CreateEmptyCompilation(
+                {"<Assembly: System.Reflection.AssemblyVersion(""1.0.0.0"")>: Public Interface A : Inherits D, E : End Interface"},
+                TargetFrameworkUtil.Mscorlib40References.AddRange({dRef, eRef, b1Ref, b2Ref}),
+                s_signedDll,
+                assemblyName:="A").EmitToImageReference()
 
             Dim resolverC = New TestMissingMetadataReferenceResolver(New Dictionary(Of String, MetadataReference) From
             {

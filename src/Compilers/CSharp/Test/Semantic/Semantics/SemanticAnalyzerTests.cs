@@ -904,7 +904,7 @@ class Program
         d = (int)d;
     }
 }";
-            CreateCompilation(source, new[] { SystemCoreRef }).VerifyDiagnostics();
+            CreateCompilation(source).VerifyDiagnostics();
         }
 
         [Fact]

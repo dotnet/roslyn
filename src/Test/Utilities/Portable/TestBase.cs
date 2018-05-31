@@ -125,11 +125,6 @@ namespace Roslyn.Test.Utilities
         public static MetadataReference[] PortableRefsMinimal => s_portableRefsMinimal.Value;
 
         /// <summary>
-        /// Reference to an assembly that defines Expression Trees.
-        /// </summary>
-        public static MetadataReference ExpressionAssemblyRef => SystemCoreRef_v46;
-
-        /// <summary>
         /// Reference to an assembly that defines LINQ operators.
         /// </summary>
         public static MetadataReference LinqAssemblyRef => SystemCoreRef;

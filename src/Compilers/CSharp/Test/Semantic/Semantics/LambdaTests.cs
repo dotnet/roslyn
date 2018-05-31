@@ -1567,7 +1567,7 @@ public static class Program
 
 public interface IColumn { }
 ";
-            var compilation = CreateCompilation(source, new[] { SystemCoreRef, CSharpRef }, options: TestOptions.ReleaseExe);
+            var compilation = CreateCompilation(source, new[] { CSharpRef }, options: TestOptions.ReleaseExe);
             CompileAndVerify(compilation, expectedOutput: "Select<T, S>");
         }
 
@@ -1605,7 +1605,7 @@ public static class Program
 
 public interface IColumn { }
 ";
-            var compilation = CreateCompilation(source, new[] { SystemCoreRef, CSharpRef }, options: TestOptions.ReleaseExe);
+            var compilation = CreateCompilation(source, new[] { CSharpRef }, options: TestOptions.ReleaseExe);
             CompileAndVerify(compilation, expectedOutput: "Select<T, S>");
         }
 
