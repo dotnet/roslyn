@@ -288,7 +288,6 @@ End Class")
         <WorkItem(540569, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540569")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)>
         Public Async Function TestFixAllOccurrences() As Task
-            Dim actionId = SimplifyTypeNamesCodeFixProvider.GetCodeActionId(IDEDiagnosticIds.SimplifyNamesDiagnosticId, "NS1.SomeClass")
             Await TestInRegularAndScriptAsync(
 "Imports NS1
 Namespace NS1
@@ -307,8 +306,7 @@ End Namespace
 Class Goo
     Dim x As SomeClass
     Dim y As SomeClass
-End Class",
-fixAllActionEquivalenceKey:=actionId)
+End Class")
         End Function
 
         <WorkItem(578686, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/578686")>
@@ -1863,8 +1861,8 @@ End Module
             Await TestInRegularAndScriptAsync(source.Value, expected.Value)
 
             Using workspace = TestWorkspace.CreateVisualBasic(source.Value)
-                Dim diagnosticAndFix = Await GetDiagnosticAndFixAsync(workspace, New TestParameters())
-                Dim span = diagnosticAndFix.Item1.Location.SourceSpan
+                Dim diagnosticAndFixes = Await GetDiagnosticAndFixesAsync(workspace, New TestParameters())
+                Dim span = diagnosticAndFixes.Item1.First().Location.SourceSpan
                 Assert.NotEqual(span.Start, 0)
                 Assert.NotEqual(span.End, 0)
             End Using
@@ -1912,8 +1910,8 @@ End Namespace
             Await TestInRegularAndScriptAsync(source.Value, expected.Value)
 
             Using workspace = TestWorkspace.CreateVisualBasic(source.Value)
-                Dim diagnosticAndFix = Await GetDiagnosticAndFixAsync(workspace, New TestParameters())
-                Dim span = diagnosticAndFix.Item1.Location.SourceSpan
+                Dim diagnosticAndFixes = Await GetDiagnosticAndFixesAsync(workspace, New TestParameters())
+                Dim span = diagnosticAndFixes.Item1.First().Location.SourceSpan
                 Assert.Equal(span.Start, expected.Value.ToString.Replace(vbLf, vbCrLf).IndexOf("new C", StringComparison.Ordinal) + 4)
                 Assert.Equal(span.Length, "A.B".Length)
             End Using
@@ -1947,8 +1945,8 @@ End Module
             Await TestInRegularAndScriptAsync(source.Value, expected.Value)
 
             Using workspace = TestWorkspace.CreateVisualBasic(source.Value)
-                Dim diagnosticAndFix = Await GetDiagnosticAndFixAsync(workspace, New TestParameters())
-                Dim span = diagnosticAndFix.Item1.Location.SourceSpan
+                Dim diagnosticAndFixes = Await GetDiagnosticAndFixesAsync(workspace, New TestParameters())
+                Dim span = diagnosticAndFixes.Item1.First().Location.SourceSpan
                 Assert.Equal(span.Start, expected.Value.ToString.Replace(vbLf, vbCrLf).IndexOf("Console.WriteLine(""goo"")", StringComparison.Ordinal))
                 Assert.Equal(span.Length, "System".Length)
             End Using

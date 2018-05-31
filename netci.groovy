@@ -67,7 +67,7 @@ commitPullList.each { isPr ->
         def myJob = job(jobName) {
             description("Windows ${configuration} tests on ${buildTarget}")
                   steps {
-                    batchFile(""".\\build\\scripts\\cibuild.cmd ${(configuration == 'debug') ? '-debug' : '-release'} ${(buildTarget == 'unit32') ? '-test32' : '-test64'} -testDesktop""")
+                    batchFile(""".\\build\\scripts\\cibuild.cmd ${(configuration == 'debug') ? '-debug' : '-release'} ${(buildTarget == 'unit32') ? '-test32' : '-test64'} -procdump -testDesktop""")
                   }
         }
 
@@ -92,7 +92,7 @@ commitPullList.each { isPr ->
 
   def triggerPhraseOnly = false
   def triggerPhraseExtra = ""
-  Utilities.setMachineAffinity(myJob, 'Windows.10.Amd64.ClientRS3.ES.Open')
+  Utilities.setMachineAffinity(myJob, 'Windows.10.Amd64.ClientRS4.ES.Open')
   Utilities.addXUnitDotNETResults(myJob, '**/xUnitResults/*.xml')
   addRoslynJob(myJob, jobName, branchName, isPr, triggerPhraseExtra, triggerPhraseOnly)
 }
@@ -189,7 +189,7 @@ commitPullList.each { isPr ->
   def myJob = job(jobName) {
     description('Build correctness tests')
     steps {
-      batchFile(""".\\build\\scripts\\cibuild.cmd -testBuildCorrectness""")
+      batchFile(""".\\build\\scripts\\test-build-correctness.cmd -cibuild -release""")
     }
   }
 
@@ -223,13 +223,13 @@ commitPullList.each { isPr ->
       def myJob = job(jobName) {
         description("Windows ${configuration} tests on ${buildTarget}")
         steps {
-          batchFile(""".\\build\\scripts\\cibuild.cmd -${configuration} -testVsi""")
+          batchFile(""".\\build\\scripts\\cibuild.cmd -${configuration} -procdump -testVsi""")
         }
       }
 
       def triggerPhraseOnly = false
       def triggerPhraseExtra = ""
-      Utilities.setMachineAffinity(myJob, 'Windows.10.Amd64.ClientRS3.DevEx.Open')
+      Utilities.setMachineAffinity(myJob, 'Windows.10.Amd64.ClientRS4.DevEx.Open')
       Utilities.addXUnitDotNETResults(myJob, '**/xUnitResults/*.xml')
       addRoslynJob(myJob, jobName, branchName, isPr, triggerPhraseExtra, triggerPhraseOnly)
     }
