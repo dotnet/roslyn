@@ -3284,6 +3284,31 @@ namespace Microsoft.CodeAnalysis.Operations
         public override IBlockOperation Body => SetParentOperation(_lazyBody.Value, this);
     }
 
+    internal sealed class FlowAnonymousFunctionExpression : Operation, IFlowAnonymousFunctionOperation
+    {
+        public FlowAnonymousFunctionExpression(IMethodSymbol symbol, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
+            base(OperationKind.FlowAnonymousFunction, semanticModel: null, syntax, type, constantValue, isImplicit)
+        {
+            Symbol = symbol;
+        }
+        public IMethodSymbol Symbol { get; }
+        public override IEnumerable<IOperation> Children
+        {
+            get
+            {
+                return Array.Empty<IOperation>();
+            }
+        }
+        public override void Accept(OperationVisitor visitor)
+        {
+            visitor.VisitFlowAnonymousFunction(this);
+        }
+        public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
+        {
+            return visitor.VisitFlowAnonymousFunction(this, argument);
+        }
+    }
+
     internal abstract partial class BaseDelegateCreationExpression : Operation, IDelegateCreationOperation
     {
         public BaseDelegateCreationExpression(SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :

@@ -72,7 +72,7 @@ namespace Microsoft.CodeAnalysis.Operations
             }
             else
             {
-                Debug.Assert(body.Kind == OperationKind.LocalFunction);
+                Debug.Assert(body.Kind == OperationKind.LocalFunction || body.Kind == OperationKind.AnonymousFunction);
             }
 #endif 
 
@@ -93,6 +93,10 @@ namespace Microsoft.CodeAnalysis.Operations
             {
                 case OperationKind.LocalFunction:
                     builder.VisitLocalFunctionAsRoot((ILocalFunctionOperation)body);
+                    break;
+                case OperationKind.AnonymousFunction:
+                    var anonymousFunction = (IAnonymousFunctionOperation)body;
+                    builder.VisitStatement(anonymousFunction.Body);
                     break;
                 default:
                     builder.VisitStatement(body);
@@ -1797,7 +1801,6 @@ namespace Microsoft.CodeAnalysis.Operations
             IOperation condition;
 
             bool isAndAlso = CalculateAndOrSense(binOp, true);
-
 
             var done = new BasicBlock(BasicBlockKind.Block);
             var checkRight = new BasicBlock(BasicBlockKind.Block);
@@ -4539,7 +4542,8 @@ oneMoreTime:
                 LinkBlocks(CurrentBasicBlock, (initializationSemaphore, JumpIfTrue: false, RegularBranch(afterInitialization)));
 
                 _currentBasicBlock = null;
-                EnterRegion(new RegionBuilder(ControlFlowGraph.RegionKind.StaticLocalInitializer));
+                EnterRegion(new RegionBuilder(ControlFlowGraph.RegionKind.StaticLocalInitializer, 
+                                              allowMethods: false)); // Lambdas shouldn't be associated with this region
             }
 
             IOperation initializer = null;
@@ -4915,7 +4919,7 @@ oneMoreTime:
 
             // PROTOTYPE(dataflow): Should we do anything special with attributes and parameter initializers?
             //                      Should we also expose graphs for those only as "nested" graphs?
-
+            Debug.Assert(_currentRegion.AllowMethods);
             _currentRegion.Add(operation.Symbol, operation);
             return null;
         }
@@ -4925,6 +4929,24 @@ oneMoreTime:
             Debug.Assert(_currentStatement == null);
             VisitMethodBodies(operation.Body, operation.IgnoredBody);
             return null;
+        }
+
+        public override IOperation VisitAnonymousFunction(IAnonymousFunctionOperation operation, int? captureIdForResult)
+        {
+            RegionBuilder owner = _currentRegion;
+
+            while(!owner.AllowMethods)
+            {
+                owner = owner.Enclosing;
+            }
+
+            owner.Add(operation.Symbol, operation);
+            return new FlowAnonymousFunctionExpression(operation.Symbol, operation.Syntax, operation.Type, operation.ConstantValue, IsImplicit(operation));
+        }
+
+        public override IOperation VisitFlowAnonymousFunction(IFlowAnonymousFunctionOperation operation, int? captureIdForResult)
+        {
+            throw ExceptionUtilities.Unreachable;
         }
 
         public override IOperation VisitArrayCreation(IArrayCreationOperation operation, int? captureIdForResult)
@@ -5649,22 +5671,6 @@ oneMoreTime:
             }
 
             return new PlaceholderExpression(operation.PlaceholderKind, semanticModel: null, operation.Syntax, operation.Type, operation.ConstantValue, IsImplicit(operation));
-        }
-
-        public override IOperation VisitAnonymousFunction(IAnonymousFunctionOperation operation, int? captureIdForResult)
-        {
-            // PROTOTYPE(dataflow): When implementing, consider when a lambda inside a VB initializer references the instance being initialized.
-            //                      https://github.com/dotnet/roslyn/pull/26389#issuecomment-386459324
-            return new AnonymousFunctionExpression(operation.Symbol, 
-                                                   // PROTOTYPE(dataflow): Drop lambda's body for now to enable some test scenarios
-                                                   new BlockStatement(ImmutableArray<IOperation>.Empty,
-                                                                      ImmutableArray<ILocalSymbol>.Empty,
-                                                                      semanticModel: null,
-                                                                      operation.Body.Syntax, 
-                                                                      operation.Body.Type, 
-                                                                      operation.Body.ConstantValue,
-                                                                      IsImplicit(operation.Body)),
-                                                   semanticModel: null, operation.Syntax, operation.Type, operation.ConstantValue, IsImplicit(operation));
         }
 
         public override IOperation VisitAnonymousObjectCreation(IAnonymousObjectCreationOperation operation, int? captureIdForResult)

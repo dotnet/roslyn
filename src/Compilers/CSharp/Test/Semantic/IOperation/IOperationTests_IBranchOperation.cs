@@ -1464,5 +1464,84 @@ Block[B2] - Exit
 
             VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedGraph, expectedDiagnostics);
         }
+
+        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+        [Fact]
+        public void BranchFlow_56()
+        {
+            string source = @"
+struct C
+{
+    void M(System.Action<bool> d)
+/*<bind>*/{
+        d = (bool input) =>
+        {
+            if (input) return;
+
+            goto label;
+        };
+
+label:  ;
+    }/*</bind>*/
+}
+";
+            string expectedGraph = @"
+Block[B0] - Entry
+    Statements (0)
+    Next (Regular) Block[B1]
+        Entering: {R1}
+
+.locals {R1}
+{
+    Methods: [lambda expression]
+    Block[B1] - Block
+        Predecessors: [B0]
+        Statements (1)
+            IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null, IsInvalid) (Syntax: 'd = (bool i ... };')
+              Expression: 
+                ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Action<System.Boolean>, IsInvalid) (Syntax: 'd = (bool i ... }')
+                  Left: 
+                    IParameterReferenceOperation: d (OperationKind.ParameterReference, Type: System.Action<System.Boolean>) (Syntax: 'd')
+                  Right: 
+                    IDelegateCreationOperation (OperationKind.DelegateCreation, Type: System.Action<System.Boolean>, IsInvalid, IsImplicit) (Syntax: '(bool input ... }')
+                      Target: 
+                        IFlowAnonymousFunctionOperation (Symbol: lambda expression) (OperationKind.FlowAnonymousFunction, Type: null, IsInvalid) (Syntax: '(bool input ... }')
+
+        Next (Regular) Block[B2]
+            Leaving: {R1}
+    
+    {   lambda expression
+    
+        Block[B0#0R1] - Entry
+            Statements (0)
+            Next (Regular) Block[B1#0R1]
+        Block[B1#0R1] - Block
+            Predecessors: [B0#0R1]
+            Statements (0)
+            Jump if False (Error) to Block[null]
+                IParameterReferenceOperation: input (OperationKind.ParameterReference, Type: System.Boolean) (Syntax: 'input')
+
+            Next (Regular) Block[B2#0R1]
+        Block[B2#0R1] - Exit
+            Predecessors: [B1#0R1]
+            Statements (0)
+    }
+}
+
+Block[B2] - Exit
+    Predecessors: [B1]
+    Statements (0)
+";
+            var expectedDiagnostics = new[] {
+                // file.cs(10,13): error CS0159: No such label 'label' within the scope of the goto statement
+                //             goto label;
+                Diagnostic(ErrorCode.ERR_LabelNotFound, "goto").WithArguments("label").WithLocation(10, 13),
+                // file.cs(13,1): warning CS0164: This label has not been referenced
+                // label:  ;
+                Diagnostic(ErrorCode.WRN_UnreferencedLabel, "label").WithLocation(13, 1)
+            };
+
+            VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedGraph, expectedDiagnostics);
+        }
     }
 }

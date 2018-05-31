@@ -1153,7 +1153,7 @@ namespace Microsoft.CodeAnalysis.Operations
             IMethodSymbol operatorMethod = boundBinaryOperator.MethodOpt;
             IMethodSymbol unaryOperatorMethod = null;
 
-            // For dynamic logical operator MethodOpt actually the unary true/false operator
+            // For dynamic logical operator MethodOpt is actually the unary true/false operator
             if (boundBinaryOperator.Type.IsDynamic() &&
                 (operatorKind == BinaryOperatorKind.ConditionalAnd || operatorKind == BinaryOperatorKind.ConditionalOr) &&
                 operatorMethod?.Parameters.Length == 1)

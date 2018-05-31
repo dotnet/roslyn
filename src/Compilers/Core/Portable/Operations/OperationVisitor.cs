@@ -298,6 +298,11 @@ namespace Microsoft.CodeAnalysis.Operations
             DefaultVisit(operation);
         }
 
+        public virtual void VisitFlowAnonymousFunction(IFlowAnonymousFunctionOperation operation)
+        {
+            DefaultVisit(operation);
+        }
+
         public virtual void VisitDelegateCreation(IDelegateCreationOperation operation)
         {
             DefaultVisit(operation);
@@ -842,6 +847,11 @@ namespace Microsoft.CodeAnalysis.Operations
         }
 
         public virtual TResult VisitAnonymousFunction(IAnonymousFunctionOperation operation, TArgument argument)
+        {
+            return DefaultVisit(operation, argument);
+        }
+
+        public virtual TResult VisitFlowAnonymousFunction(IFlowAnonymousFunctionOperation operation, TArgument argument)
         {
             return DefaultVisit(operation, argument);
         }
