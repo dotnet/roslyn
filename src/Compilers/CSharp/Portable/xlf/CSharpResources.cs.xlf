@@ -7346,7 +7346,7 @@ Pokud chcete odstranit toto varování, můžete místo toho použít /reference
                               a part of
 -modulename:&lt;string&gt;          Specify the name of the source module
 </source>
-        <target state="translated">
+        <target state="needs-review-translation">
                               Parametry kompilátoru Visual C#
 
                         – VÝSTUPNÍ SOUBORY –

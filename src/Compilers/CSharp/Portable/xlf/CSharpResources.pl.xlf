@@ -7346,7 +7346,7 @@ Aby usunąć ostrzeżenie, możesz zamiast tego użyć opcji /reference (ustaw w
                               a part of
 -modulename:&lt;string&gt;          Specify the name of the source module
 </source>
-        <target state="translated">
+        <target state="needs-review-translation">
                               Opcje kompilatora Visual C#
 
                         - PLIKI WYJŚCIOWE -

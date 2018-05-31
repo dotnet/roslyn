@@ -7346,7 +7346,7 @@ Per rimuovere l'avviso, è invece possibile usare /reference (impostare la propr
                               a part of
 -modulename:&lt;string&gt;          Specify the name of the source module
 </source>
-        <target state="translated">
+        <target state="needs-review-translation">
                               Opzioni del compilatore Visual C#
 
                         - FILE DI OUTPUT -
