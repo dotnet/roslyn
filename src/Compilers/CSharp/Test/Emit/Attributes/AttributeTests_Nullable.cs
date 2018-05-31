@@ -388,6 +388,72 @@ public class B : I<(object X, object? Y)>
         }
 
         [Fact]
+        public void EmitAttribute_Constraint_01()
+        {
+            var source =
+@"public class A
+{
+}
+public class B<T> where T : A?
+{
+}";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
+            CompileAndVerify(comp, validator: assembly =>
+            {
+                var reader = assembly.GetMetadataReader();
+                var typeDef = GetTypeDefinitionByName(reader, "B`1");
+                var typeParameter = reader.GetGenericParameter(typeDef.GetGenericParameters()[0]);
+                var constraint = reader.GetGenericParameterConstraint(typeParameter.GetConstraints()[0]);
+                // PROTOTYPE(NullableReferenceTypes): TypeSymbolExtensions.GetTypeRefWithAttributes is not including top-level nullability.
+                AssertAttributes(reader, constraint.GetCustomAttributes());
+            });
+        }
+
+        [Fact]
+        public void EmitAttribute_Constraint_02()
+        {
+            var source =
+@"public class A<T>
+{
+}
+public class B<T> where T : A<object?>
+{
+}";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
+            CompileAndVerify(comp, validator: assembly =>
+            {
+                var reader = assembly.GetMetadataReader();
+                var typeDef = GetTypeDefinitionByName(reader, "B`1");
+                var typeParameter = reader.GetGenericParameter(typeDef.GetGenericParameters()[0]);
+                var constraint = reader.GetGenericParameterConstraint(typeParameter.GetConstraints()[0]);
+                AssertAttributes(reader, constraint.GetCustomAttributes(), "MethodDefinition:Void System.Runtime.CompilerServices.NullableAttribute..ctor(Boolean[])");
+            });
+        }
+
+        // PROTOTYPE(NullableReferenceTypes): Test `class C<T> where T : class? { }`.
+
+        [Fact]
+        public void EmitAttribute_Constraint_03()
+        {
+            var source =
+@"public class C<T, U>
+    where T : class
+    where U : T?
+{
+}";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
+            CompileAndVerify(comp, validator: assembly =>
+            {
+                var reader = assembly.GetMetadataReader();
+                var typeDef = GetTypeDefinitionByName(reader, "C`2");
+                var typeParameter = reader.GetGenericParameter(typeDef.GetGenericParameters()[1]);
+                var constraint = reader.GetGenericParameterConstraint(typeParameter.GetConstraints()[0]);
+                // PROTOTYPE(NullableReferenceTypes): TypeSymbolExtensions.GetTypeRefWithAttributes is not including top-level nullability.
+                AssertAttributes(reader, constraint.GetCustomAttributes());
+            });
+        }
+
+        [Fact]
         public void EmitAttribute_MethodReturnType()
         {
             var source =
@@ -1032,6 +1098,17 @@ class C
                 var attributes = metadataReader.GetCustomAttributeRows().Select(metadataReader.GetCustomAttributeName).ToArray();
                 Assert.True(attributes.Contains(attributeName));
             }
+        }
+
+        private static TypeDefinition GetTypeDefinitionByName(MetadataReader reader, string name)
+        {
+            return reader.GetTypeDefinition(reader.TypeDefinitions.Single(h => reader.StringComparer.Equals(reader.GetTypeDefinition(h).Name, name)));
+        }
+
+        private static void AssertAttributes(MetadataReader reader, CustomAttributeHandleCollection handles, params string[] expectedNames)
+        {
+            var actualNames = handles.Select(h => reader.Dump(reader.GetCustomAttribute(h).Constructor)).ToArray();
+            AssertEx.SetEqual(actualNames, expectedNames);
         }
     }
 }

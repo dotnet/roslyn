@@ -96,10 +96,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return _underlyingTypeParameter.GetAttributes();
         }
 
-        internal override ImmutableArray<TypeSymbolWithAnnotations> GetConstraintTypes(ConsList<TypeParameterSymbol> inProgress)
+        internal override ImmutableArray<TypeSymbolWithAnnotations> GetConstraintTypes(ConsList<TypeParameterSymbol> inProgress, bool early)
         {
             var constraintTypes = ArrayBuilder<TypeSymbolWithAnnotations>.GetInstance();
-            _map.SubstituteTypesDistinctWithoutModifiers(_underlyingTypeParameter.GetConstraintTypes(inProgress), constraintTypes, null);
+            _map.SubstituteTypesDistinctWithoutModifiers(_underlyingTypeParameter.GetConstraintTypes(inProgress, early), constraintTypes, null);
             return constraintTypes.ToImmutableAndFree().WhereAsArray(s_isNotObjectFunc);
         }
 

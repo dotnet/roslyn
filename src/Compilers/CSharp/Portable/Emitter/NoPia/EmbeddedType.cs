@@ -105,6 +105,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit.NoPia
                     context.Diagnostics);
 
                 yield return @interface.GetTypeRefWithAttributes(
+                    moduleBeingBuilt,
                     UnderlyingNamedType.DeclaringCompilation,
                     typeRef);
             }

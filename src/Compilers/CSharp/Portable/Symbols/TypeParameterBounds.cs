@@ -15,6 +15,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     {
         public static readonly TypeParameterBounds Unset = new TypeParameterBounds();
 
+        public TypeParameterBounds(ImmutableArray<TypeSymbolWithAnnotations> constraintTypes)
+        {
+            Debug.Assert(!constraintTypes.IsDefault);
+            this.ConstraintTypes = constraintTypes;
+        }
+
         public TypeParameterBounds(
             ImmutableArray<TypeSymbolWithAnnotations> constraintTypes,
             ImmutableArray<NamedTypeSymbol> interfaces,
@@ -35,6 +41,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private TypeParameterBounds()
         {
         }
+
+        /// <summary>
+        /// If true, only ConstraintTypes has been set, as a result of binding syntax.
+        /// Bounds have not been calculated, and ConstraintTypes may still
+        /// contain invalid types or duplicates.
+        /// </summary>
+        public bool IsEarly => EffectiveBaseClass is null;
 
         /// <summary>
         /// The type parameters, classes, and interfaces explicitly declared as
@@ -71,5 +84,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// Deduced base type is used to check that consistency rules are satisfied.
         /// </summary>
         public readonly TypeSymbol DeducedBaseType;
+    }
+
+    internal static class TypeParameterBoundsExtensions
+    {
+        internal static bool IsSet(this TypeParameterBounds boundsOpt, bool early)
+        {
+            if (boundsOpt == TypeParameterBounds.Unset)
+            {
+                return false;
+            }
+            if (boundsOpt == null)
+            {
+                return true;
+            }
+            return early || !boundsOpt.IsEarly;
+        }
     }
 }

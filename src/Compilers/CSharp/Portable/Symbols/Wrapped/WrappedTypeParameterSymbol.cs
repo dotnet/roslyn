@@ -126,9 +126,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return _underlyingTypeParameter.GetDocumentationCommentXml(preferredCulture, expandIncludes, cancellationToken);
         }
 
-        internal override void EnsureAllConstraintsAreResolved()
+        internal override void EnsureAllConstraintsAreResolved(bool early)
         {
-            _underlyingTypeParameter.EnsureAllConstraintsAreResolved();
+            _underlyingTypeParameter.EnsureAllConstraintsAreResolved(early);
         }
     }
 }

@@ -138,7 +138,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        public override ImmutableArray<TypeParameterConstraintClause> TypeParameterConstraintClauses
+        public override ImmutableArray<TypeParameterConstraintClause> GetTypeParameterConstraintClauses(bool early)
             => ImmutableArray<TypeParameterConstraintClause>.Empty;
 
         public sealed override TypeSymbolWithAnnotations ReturnType

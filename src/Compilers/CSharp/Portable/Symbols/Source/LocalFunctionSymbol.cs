@@ -423,33 +423,49 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return result.ToImmutableAndFree();
         }
 
-        public override ImmutableArray<TypeParameterConstraintClause> TypeParameterConstraintClauses
+        public override ImmutableArray<TypeParameterConstraintClause> GetTypeParameterConstraintClauses(bool early)
         {
-            get
+            var currentClauses = _lazyTypeParameterConstraints;
+            if (currentClauses.IsDefault)
             {
-                if (_lazyTypeParameterConstraints.IsDefault)
+                // Early step.
+                var diagnostics = DiagnosticBag.GetInstance();
+                var constraints = this.MakeTypeParameterConstraintsEarly(
+                    _binder,
+                    TypeParameters,
+                    _syntax.ConstraintClauses,
+                    _syntax.Identifier.GetLocation(),
+                    diagnostics);
+                lock (_declarationDiagnostics)
                 {
-                    var diagnostics = DiagnosticBag.GetInstance();
-                    var constraints = this.MakeTypeParameterConstraints(
-                        _binder,
-                        TypeParameters,
-                        _syntax.ConstraintClauses,
-                        _syntax.Identifier.GetLocation(),
-                        diagnostics);
-
-                    lock (_declarationDiagnostics)
+                    if (_lazyTypeParameterConstraints.IsDefault)
                     {
-                        if (_lazyTypeParameterConstraints.IsDefault)
-                        {
-                            _declarationDiagnostics.AddRange(diagnostics);
-                            _lazyTypeParameterConstraints = constraints;
-                        }
+                        _declarationDiagnostics.AddRange(diagnostics);
+                        _lazyTypeParameterConstraints = constraints;
                     }
-                    diagnostics.Free();
                 }
-
-                return _lazyTypeParameterConstraints;
+                diagnostics.Free();
+                currentClauses = _lazyTypeParameterConstraints;
             }
+
+            if (!early && currentClauses.IsEarly())
+            {
+                // Late step.
+                var diagnostics = DiagnosticBag.GetInstance();
+                var constraints = this.MakeTypeParameterConstraintsLate(TypeParameters, currentClauses, diagnostics);
+                Debug.Assert(!constraints.IsEarly());
+                lock (_declarationDiagnostics)
+                {
+                    if (_lazyTypeParameterConstraints.IsEarly())
+                    {
+                        _declarationDiagnostics.AddRange(diagnostics);
+                        _lazyTypeParameterConstraints = constraints;
+                    }
+                }
+                diagnostics.Free();
+            }
+
+            return _lazyTypeParameterConstraints;
         }
 
         public override int GetHashCode()

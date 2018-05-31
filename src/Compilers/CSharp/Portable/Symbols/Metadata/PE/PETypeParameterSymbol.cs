@@ -298,18 +298,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             }
         }
 
-        internal override void EnsureAllConstraintsAreResolved()
+        internal override void EnsureAllConstraintsAreResolved(bool early)
         {
-            if (ReferenceEquals(_lazyBounds, TypeParameterBounds.Unset))
+            if (!_lazyBounds.IsSet(early))
             {
                 var typeParameters = (_containingSymbol.Kind == SymbolKind.Method) ?
                     ((PEMethodSymbol)_containingSymbol).TypeParameters :
                     ((PENamedTypeSymbol)_containingSymbol).TypeParameters;
-                EnsureAllConstraintsAreResolved(typeParameters);
+                EnsureAllConstraintsAreResolved(typeParameters, early);
             }
         }
 
-        internal override ImmutableArray<TypeSymbolWithAnnotations> GetConstraintTypes(ConsList<TypeParameterSymbol> inProgress)
+        internal override ImmutableArray<TypeSymbolWithAnnotations> GetConstraintTypes(ConsList<TypeParameterSymbol> inProgress, bool early)
         {
             var bounds = this.GetBounds(inProgress);
             return (bounds != null) ? bounds.ConstraintTypes : ImmutableArray<TypeSymbolWithAnnotations>.Empty;
@@ -353,10 +353,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
         private TypeParameterBounds GetBounds(ConsList<TypeParameterSymbol> inProgress)
         {
-            Debug.Assert(!inProgress.ContainsReference(this));
-            Debug.Assert(!inProgress.Any() || ReferenceEquals(inProgress.Head.ContainingSymbol, this.ContainingSymbol));
+            // PROTOTYPE(NullableReferenceTypes): Re-enable asserts.
+            //Debug.Assert(!inProgress.ContainsReference(this));
+            //Debug.Assert(!inProgress.Any() || ReferenceEquals(inProgress.Head.ContainingSymbol, this.ContainingSymbol));
 
-            if (ReferenceEquals(_lazyBounds, TypeParameterBounds.Unset))
+            var currentBounds = _lazyBounds;
+            if (!currentBounds.IsSet(early: false))
             {
                 var constraintTypes = GetDeclaredConstraintTypes();
                 Debug.Assert(!constraintTypes.IsDefault);
@@ -391,7 +393,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 diagnostics.Free();
 
                 Interlocked.CompareExchange(ref _lazyConstraintsUseSiteErrorInfo, errorInfo, CSDiagnosticInfo.EmptyErrorInfo);
-                Interlocked.CompareExchange(ref _lazyBounds, bounds, TypeParameterBounds.Unset);
+                Interlocked.CompareExchange(ref _lazyBounds, bounds, currentBounds);
             }
 
             Debug.Assert(!ReferenceEquals(_lazyConstraintsUseSiteErrorInfo, CSDiagnosticInfo.EmptyErrorInfo));
@@ -400,7 +402,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
         internal override DiagnosticInfo GetConstraintsUseSiteErrorInfo()
         {
-            EnsureAllConstraintsAreResolved();
+            EnsureAllConstraintsAreResolved(early: false);
             Debug.Assert(!ReferenceEquals(_lazyConstraintsUseSiteErrorInfo, CSDiagnosticInfo.EmptyErrorInfo));
             return _lazyConstraintsUseSiteErrorInfo;
         }

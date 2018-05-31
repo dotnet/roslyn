@@ -485,34 +485,46 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return _typeParameters; }
         }
 
-        public override ImmutableArray<TypeParameterConstraintClause> TypeParameterConstraintClauses
+        public override ImmutableArray<TypeParameterConstraintClause> GetTypeParameterConstraintClauses(bool early)
         {
-            get
+            var currentClauses = _lazyTypeParameterConstraints;
+            if (currentClauses.IsDefault)
             {
-                if (_lazyTypeParameterConstraints.IsDefault)
+                // Early step.
+                var diagnostics = DiagnosticBag.GetInstance();
+                var syntax = GetSyntax();
+                var withTypeParametersBinder =
+                    this.DeclaringCompilation
+                    .GetBinderFactory(syntax.SyntaxTree)
+                    .GetBinder(syntax.ReturnType, syntax, this);
+                var constraints = this.MakeTypeParameterConstraintsEarly(
+                    withTypeParametersBinder,
+                    TypeParameters,
+                    syntax.ConstraintClauses,
+                    syntax.Identifier.GetLocation(),
+                    diagnostics);
+                if (ImmutableInterlocked.InterlockedInitialize(ref _lazyTypeParameterConstraints, constraints))
                 {
-                    var diagnostics = DiagnosticBag.GetInstance();
-                    var syntax = GetSyntax();
-                    var withTypeParametersBinder =
-                        this.DeclaringCompilation
-                        .GetBinderFactory(syntax.SyntaxTree)
-                        .GetBinder(syntax.ReturnType, syntax, this);
-                    var constraints = this.MakeTypeParameterConstraints(
-                        withTypeParametersBinder,
-                        TypeParameters,
-                        syntax.ConstraintClauses,
-                        syntax.Identifier.GetLocation(),
-                        diagnostics);
-
-                    if (ImmutableInterlocked.InterlockedInitialize(ref _lazyTypeParameterConstraints, constraints))
-                    {
-                        this.AddDeclarationDiagnostics(diagnostics);
-                    }
-                    diagnostics.Free();
+                    this.AddDeclarationDiagnostics(diagnostics);
                 }
-
-                return _lazyTypeParameterConstraints;
+                diagnostics.Free();
+                currentClauses = _lazyTypeParameterConstraints;
             }
+
+            if (!early && currentClauses.IsEarly())
+            {
+                // Late step.
+                var diagnostics = DiagnosticBag.GetInstance();
+                var constraints = this.MakeTypeParameterConstraintsLate(TypeParameters, currentClauses, diagnostics);
+                Debug.Assert(!constraints.IsEarly());
+                if (ImmutableInterlocked.InterlockedCompareExchange(ref _lazyTypeParameterConstraints, constraints, currentClauses) == currentClauses)
+                {
+                    this.AddDeclarationDiagnostics(diagnostics);
+                }
+                diagnostics.Free();
+            }
+
+            return _lazyTypeParameterConstraints;
         }
 
         public override bool IsVararg

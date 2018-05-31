@@ -301,7 +301,10 @@ namespace Roslyn.Test.Utilities
                 case HandleKind.AssemblyReference:
                     return reader.GetString(reader.GetAssemblyReference((AssemblyReferenceHandle)handle).Name);
                 case HandleKind.TypeDefinition:
-                    return reader.GetString(reader.GetTypeDefinition((TypeDefinitionHandle)handle).Name);
+                    {
+                        var type = reader.GetTypeDefinition((TypeDefinitionHandle)handle);
+                        return $"{reader.GetString(type.Namespace)}.{reader.GetString(type.Name)}";
+                    }
                 case HandleKind.MethodDefinition:
                     {
                         var method = reader.GetMethodDefinition((MethodDefinitionHandle)handle);

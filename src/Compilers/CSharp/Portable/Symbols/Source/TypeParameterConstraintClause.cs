@@ -3,9 +3,9 @@
 using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
@@ -25,14 +25,26 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     /// </summary>
     internal sealed class TypeParameterConstraintClause
     {
-        public TypeParameterConstraintClause(TypeParameterConstraintKind constraints, ImmutableArray<TypeSymbolWithAnnotations> constraintTypes)
+        public TypeParameterConstraintClause(TypeParameterConstraintKind constraints, ImmutableArray<TypeSymbolWithAnnotations> constraintTypes, ImmutableArray<TypeConstraintSyntax> syntax)
         {
             Debug.Assert(!constraintTypes.IsDefault);
             this.Constraints = constraints;
             this.ConstraintTypes = constraintTypes;
+            this.Syntax = syntax;
         }
 
         public readonly TypeParameterConstraintKind Constraints;
         public readonly ImmutableArray<TypeSymbolWithAnnotations> ConstraintTypes;
+        public readonly ImmutableArray<TypeConstraintSyntax> Syntax; // From early constraint checking step only.
+
+        internal bool IsEarly => !Syntax.IsDefault;
+    }
+
+    internal static class TypeParameterConstraintClauseExtensions
+    {
+        internal static bool IsEarly(this ImmutableArray<TypeParameterConstraintClause> constraintClauses)
+        {
+            return constraintClauses.Any(clause => clause?.IsEarly == true);
+        }
     }
 }

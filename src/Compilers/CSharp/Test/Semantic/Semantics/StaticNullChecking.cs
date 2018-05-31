@@ -966,66 +966,8 @@ class B : A
             Assert.True(m1.OverriddenMethod.Parameters[0].Type.IsNullableType());
         }
 
-        [Fact]
-        public void Overriding_01()
-        {
-            var source = @"
-class A
-{
-    public virtual T? M1<T>() where T : class 
-    { 
-        return null; 
-    }
-}
-
-class B : A
-{
-    public override T? M1<T>()
-    {
-        return null;
-    }
-} 
-";
-            var compilation = CreateCompilation(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular8);
-            compilation.VerifyDiagnostics();
-
-            var b = compilation.GetTypeByMetadataName("B");
-            var m1 = b.GetMember<MethodSymbol>("M1");
-            Assert.False(m1.ReturnType.IsNullableType());
-            Assert.True(m1.ReturnType.IsNullable);
-            Assert.True(m1.ReturnType.IsReferenceType);
-            Assert.False(m1.OverriddenMethod.ReturnType.IsNullableType());
-        }
-
-        [Fact]
-        public void Overriding_02()
-        {
-            var source = @"
-class A
-{
-    public virtual void M1<T>(T? x) where T : class 
-    { 
-    }
-}
-
-class B : A
-{
-    public override void M1<T>(T? x)
-    {
-    }
-} 
-";
-            var compilation = CreateCompilation(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular8);
-
-            compilation.VerifyDiagnostics();
-
-            var b = compilation.GetTypeByMetadataName("B");
-            var m1 = b.GetMember<MethodSymbol>("M1");
-            Assert.False(m1.Parameters[0].Type.IsNullableType());
-            Assert.True(m1.Parameters[0].Type.IsNullable);
-            Assert.True(m1.Parameters[0].Type.IsReferenceType);
-            Assert.False(m1.OverriddenMethod.Parameters[0].Type.IsNullableType());
-        }
+        // PROTOTYPE(NullableReferenceTypes): Overriding_01 and Overriding_02 were removed
+        // because they were subsets of Overriding_03. Renumber Overriding_* to start from _01.
 
         [Fact]
         public void Overriding_03()
@@ -22467,9 +22409,312 @@ class C3<T3> where T3 : new()
                 Diagnostic(ErrorCode.WRN_NullReferenceArgument, "(object)t1").WithArguments("o", "void C.F(object o)").WithLocation(8, 11));
         }
 
+        [WorkItem(27289, "https://github.com/dotnet/roslyn/issues/27289")]
+        [Fact]
+        public void NullableTInConstraint_01()
+        {
+            var source =
+@"class A { }
+class B<T> where T : T? { }
+class C<T> where T : class, T? { }
+class D<T> where T : struct, T? { }
+class E<T> where T : A, T? { }";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
+            comp.VerifyDiagnostics(
+                // (4,30): error CS0701: 'T?' is not a valid constraint. A type used as a constraint must be an interface, a non-sealed class or a type parameter.
+                // class D<T> where T : struct, T? { }
+                Diagnostic(ErrorCode.ERR_BadBoundType, "T?").WithArguments("T?").WithLocation(4, 30),
+                // (2,9): error CS0454: Circular constraint dependency involving 'T' and 'T'
+                // class B<T> where T : T? { }
+                Diagnostic(ErrorCode.ERR_CircularConstraint, "T").WithArguments("T", "T").WithLocation(2, 9),
+                // (3,9): error CS0454: Circular constraint dependency involving 'T' and 'T'
+                // class C<T> where T : class, T? { }
+                Diagnostic(ErrorCode.ERR_CircularConstraint, "T").WithArguments("T", "T").WithLocation(3, 9),
+                // (5,9): error CS0454: Circular constraint dependency involving 'T' and 'T'
+                // class E<T> where T : A, T? { }
+                Diagnostic(ErrorCode.ERR_CircularConstraint, "T").WithArguments("T", "T").WithLocation(5, 9));
+        }
+
+        [WorkItem(27289, "https://github.com/dotnet/roslyn/issues/27289")]
+        [Fact]
+        public void NullableTInConstraint_02()
+        {
+            var source =
+@"class A<T, U>
+    where U : T?
+{
+}
+class B<T, U>
+    where T : class
+    where U : T?
+{
+}
+class C<T, U>
+    where T : U?
+    where U : T?
+{
+}
+class D<T, U>
+    where T : class, U?
+    where U : class, T?
+{
+}
+class E<T, U>
+    where T : class, U
+    where U : T?
+{
+}";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
+            comp.VerifyDiagnostics(
+                // (10,9): error CS0454: Circular constraint dependency involving 'T' and 'U'
+                // class C<T, U>
+                Diagnostic(ErrorCode.ERR_CircularConstraint, "T").WithArguments("T", "U").WithLocation(10, 9),
+                // (15,9): error CS0454: Circular constraint dependency involving 'T' and 'U'
+                // class D<T, U>
+                Diagnostic(ErrorCode.ERR_CircularConstraint, "T").WithArguments("T", "U").WithLocation(15, 9),
+                // (20,9): error CS0454: Circular constraint dependency involving 'T' and 'U'
+                // class E<T, U>
+                Diagnostic(ErrorCode.ERR_CircularConstraint, "T").WithArguments("T", "U").WithLocation(20, 9));
+        }
+
+        [WorkItem(27289, "https://github.com/dotnet/roslyn/issues/27289")]
+        [Fact]
+        public void NullableTInConstraint_03()
+        {
+            var source =
+@"class A<T> where T : T, T? { }
+class B<U> where U : U?, U { }
+class C<V> where V : V?, V? { }";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
+            comp.VerifyDiagnostics(
+                // (3,26): error CS0405: Duplicate constraint 'V' for type parameter 'V'
+                // class C<V> where V : V?, V? { }
+                Diagnostic(ErrorCode.ERR_DuplicateBound, "V?").WithArguments("V", "V").WithLocation(3, 26),
+                // (3,9): error CS0454: Circular constraint dependency involving 'V' and 'V'
+                // class C<V> where V : V?, V? { }
+                Diagnostic(ErrorCode.ERR_CircularConstraint, "V").WithArguments("V", "V").WithLocation(3, 9),
+                // (1,9): error CS0454: Circular constraint dependency involving 'T' and 'T'
+                // class A<T> where T : T, T? { }
+                Diagnostic(ErrorCode.ERR_CircularConstraint, "T").WithArguments("T", "T").WithLocation(1, 9),
+                // (1,9): error CS0454: Circular constraint dependency involving 'T' and 'T'
+                // class A<T> where T : T, T? { }
+                Diagnostic(ErrorCode.ERR_CircularConstraint, "T").WithArguments("T", "T").WithLocation(1, 9),
+                // (2,9): error CS0454: Circular constraint dependency involving 'U' and 'U'
+                // class B<U> where U : U?, U { }
+                Diagnostic(ErrorCode.ERR_CircularConstraint, "U").WithArguments("U", "U").WithLocation(2, 9),
+                // (2,9): error CS0454: Circular constraint dependency involving 'U' and 'U'
+                // class B<U> where U : U?, U { }
+                Diagnostic(ErrorCode.ERR_CircularConstraint, "U").WithArguments("U", "U").WithLocation(2, 9));
+        }
+
+        [Fact]
+        public void NullableTInConstraint_04()
+        {
+            var source =
+@"class A { }
+class B
+{
+    static void F1<T>() where T : T? { }
+    static void F2<T>() where T : class, T? { }
+    static void F3<T>() where T : struct, T? { }
+    static void F4<T>() where T : A, T? { }
+    static void F5<T, U>() where U : T? { }
+    static void F6<T, U>() where T : class where U : T? { }
+    static void F7<T, U>() where T : struct where U : T? { }
+}";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
+            comp.VerifyDiagnostics(
+                // (5,20): error CS0454: Circular constraint dependency involving 'T' and 'T'
+                //     static void F2<T>() where T : class, T? { }
+                Diagnostic(ErrorCode.ERR_CircularConstraint, "T").WithArguments("T", "T").WithLocation(5, 20),
+                // (6,43): error CS0701: 'T?' is not a valid constraint. A type used as a constraint must be an interface, a non-sealed class or a type parameter.
+                //     static void F3<T>() where T : struct, T? { }
+                Diagnostic(ErrorCode.ERR_BadBoundType, "T?").WithArguments("T?").WithLocation(6, 43),
+                // (7,20): error CS0454: Circular constraint dependency involving 'T' and 'T'
+                //     static void F4<T>() where T : A, T? { }
+                Diagnostic(ErrorCode.ERR_CircularConstraint, "T").WithArguments("T", "T").WithLocation(7, 20),
+                // (10,55): error CS0701: 'T?' is not a valid constraint. A type used as a constraint must be an interface, a non-sealed class or a type parameter.
+                //     static void F7<T, U>() where T : struct where U : T? { }
+                Diagnostic(ErrorCode.ERR_BadBoundType, "T?").WithArguments("T?").WithLocation(10, 55),
+                // (4,20): error CS0454: Circular constraint dependency involving 'T' and 'T'
+                //     static void F1<T>() where T : T? { }
+                Diagnostic(ErrorCode.ERR_CircularConstraint, "T").WithArguments("T", "T").WithLocation(4, 20));
+        }
+
+        [Fact]
+        public void NullableTInConstraint_05()
+        {
+            var source =
+@"#pragma warning disable 8321
+class C
+{
+    static void M()
+    {
+        void F1<T>() where T : T? { }
+        void F2<T>() where T : class, T? { }
+        void F3<T>() where T : struct, T? { }
+        void F4<T>() where T : A, T? { }
+        void F5<T, U>() where U : T? { }
+        void F6<T, U>() where T : class where U : T? { }
+        void F7<T, U>() where T : struct where U : T? { }
+    }
+}";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
+            comp.VerifyDiagnostics(
+                // (6,17): error CS0454: Circular constraint dependency involving 'T' and 'T'
+                //         void F1<T>() where T : T? { }
+                Diagnostic(ErrorCode.ERR_CircularConstraint, "T").WithArguments("T", "T").WithLocation(6, 17),
+                // (7,17): error CS0454: Circular constraint dependency involving 'T' and 'T'
+                //         void F2<T>() where T : class, T? { }
+                Diagnostic(ErrorCode.ERR_CircularConstraint, "T").WithArguments("T", "T").WithLocation(7, 17),
+                // (8,40): error CS0701: 'T?' is not a valid constraint. A type used as a constraint must be an interface, a non-sealed class or a type parameter.
+                //         void F3<T>() where T : struct, T? { }
+                Diagnostic(ErrorCode.ERR_BadBoundType, "T?").WithArguments("T?").WithLocation(8, 40),
+                // (9,32): error CS0246: The type or namespace name 'A' could not be found (are you missing a using directive or an assembly reference?)
+                //         void F4<T>() where T : A, T? { }
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "A").WithArguments("A").WithLocation(9, 32),
+                // (9,17): error CS0454: Circular constraint dependency involving 'T' and 'T'
+                //         void F4<T>() where T : A, T? { }
+                Diagnostic(ErrorCode.ERR_CircularConstraint, "T").WithArguments("T", "T").WithLocation(9, 17),
+                // (12,52): error CS0701: 'T?' is not a valid constraint. A type used as a constraint must be an interface, a non-sealed class or a type parameter.
+                //         void F7<T, U>() where T : struct where U : T? { }
+                Diagnostic(ErrorCode.ERR_BadBoundType, "T?").WithArguments("T?").WithLocation(12, 52));
+        }
+
+        [Fact]
+        public void NullableTInConstraint_06()
+        {
+            var source =
+@"#pragma warning disable 8321
+class A<T> where T : class
+{
+    static void F1<U>() where U : T?
+    {
+    }
+    static void F2()
+    {
+        void F3<U>() where U : T? { }
+    }
+}
+class B
+{
+    static void F4<T>() where T : class
+    {
+        void F5<U>() where U : T? { }
+    }
+}";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void NullableTInConstraint_07()
+        {
+            var source =
+@"interface I<T, U>
+    where T : class
+    where U : T
+{
+}
+class A<T, U>
+    where T : class
+    where U : T?
+{
+}
+class B1<T> : A<T, T>, I<T, T>
+    where T : class
+{
+}
+class B2<T> : A<T, T?>, I<T, T?>
+    where T : class
+{
+} 
+class B3<T> : A<T?, T>, I<T?, T>
+    where T : class
+{
+}
+class B4<T> : A<T?, T?>, I<T?, T?>
+    where T : class
+{
+}";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
+            // PROTOTYPE(NullableReferenceTypes): Should report warnings that `T?`
+            // does not satisfy `where T : class` constraint or `where U : T` constraint.
+            comp.VerifyDiagnostics();
+        }
+
+        // `class C<T> where T : class, T?` from metadata.
+        [Fact]
+        public void NullableTInConstraint_08()
+        {
+            // PROTOTYPE(NullableReferenceTypes): `where T : class, T?` is not valid in C#,
+            // so the class needs to be defined in IL. How and where should the custom
+            // attribute be declared for the constraint type in the following?
+            var source0 =
+@".class public System.Runtime.CompilerServices.NullableAttribute extends [mscorlib]System.Attribute
+{
+  .method public hidebysig specialname rtspecialname instance void .ctor() cil managed { ret }
+}
+.custom instance void System.Runtime.CompilerServices.NullableAttribute::.ctor() = ( 01 00 00 00 ) 
+.class public C<class (!T) T>
+{
+  .method public hidebysig specialname rtspecialname instance void .ctor() cil managed { ret }
+}";
+            var ref0 = CompileIL(source0);
+            var source1 =
+@"class Program
+{
+    static void Main()
+    {
+        object o;
+        o = new C<object?>(); // 1
+        o = new C<object>(); // 2
+    }
+}";
+            var comp = CreateCompilation(source1, new[] { ref0 }, parseOptions: TestOptions.Regular8);
+            comp.VerifyDiagnostics(
+                // (6,19): error CS0454: Circular constraint dependency involving 'T' and 'T'
+                //         o = new C<object?>(); // 1
+                Diagnostic(ErrorCode.ERR_CircularConstraint, "object?").WithArguments("T", "T").WithLocation(6, 19),
+                // (7,19): error CS0454: Circular constraint dependency involving 'T' and 'T'
+                //         o = new C<object>(); // 2
+                Diagnostic(ErrorCode.ERR_CircularConstraint, "object").WithArguments("T", "T").WithLocation(7, 19));
+        }
+
+        // `class C<T, U> where U : T?` from metadata.
+        [Fact]
+        public void NullableTInConstraint_09()
+        {
+            var source0 =
+@"public class C<T, U>
+    where T : class
+    where U : T?
+{
+}";
+            var comp = CreateCompilation(source0, parseOptions: TestOptions.Regular8);
+            var ref0 = comp.EmitToImageReference();
+            var source1 =
+@"class Program
+{
+    static void Main()
+    {
+        object o;
+        o = new C<object?, object?>(); // 1
+        o = new C<object?, object>(); // 2
+        o = new C<object, object?>(); // 3
+        o = new C<object, object>(); // 4
+    }
+}";
+            comp = CreateCompilation(source1, new[] { ref0 }, parseOptions: TestOptions.Regular8);
+            // PROTOTYPE(NullableReferenceTypes): TypeSymbolExtensions.GetTypeRefWithAttributes
+            // drops the top-level nullability when emitting the `T?` constraint. See also
+            // AttributeTests_Nullable.EmitAttribute_Constraint_03.
+            comp.VerifyDiagnostics();
+        }
+
         [WorkItem(26294, "https://github.com/dotnet/roslyn/issues/26294")]
         [Fact]
-        public void NullableTInConstraint()
+        public void NullableTInConstraint_10()
         {
             var source =
 @"interface I<T> { }
