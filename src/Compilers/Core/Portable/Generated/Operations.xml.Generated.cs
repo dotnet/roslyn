@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
+using Microsoft.CodeAnalysis.FlowAnalysis;
 
 namespace Microsoft.CodeAnalysis.Operations
 {
@@ -6560,10 +6561,10 @@ namespace Microsoft.CodeAnalysis.Operations
         public FlowCaptureReference(int id, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
             base(OperationKind.FlowCaptureReference, semanticModel: null, syntax: syntax, type: type, constantValue: constantValue, isImplicit: true)
         {
-            Id = id;
+            Id = new CaptureId(id);
         }
 
-        public int Id { get; }
+        public CaptureId Id { get; }
         public override IEnumerable<IOperation> Children
         {
             get

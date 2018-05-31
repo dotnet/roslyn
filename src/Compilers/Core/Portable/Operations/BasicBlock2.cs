@@ -7,10 +7,11 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
 {
     /// <summary>
     /// PROTOTYPE(dataflow): Add documentation
-    /// PROTOTYPE(dataflow): Rename this source file to "BasicBlock.cs"
     /// </summary>
     public sealed class BasicBlock
     {
+        // PROTOTYPE(dataflow): Rename this source file to "BasicBlock.cs"
+
 #if DEBUG
         private bool _sealed;
 #endif
@@ -23,6 +24,8 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
             BasicBlockKind kind,
             ImmutableArray<IOperation> operations,
             IOperation condition,
+            IOperation value,
+            ControlFlowConditionKind conditionKind,
             int ordinal,
             bool isReachable,
             ControlFlowRegion region)
@@ -30,6 +33,8 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
             Kind = kind;
             Operations = operations;
             Condition = condition;
+            Value = value;
+            ConditionKind = conditionKind;
             Ordinal = ordinal;
             IsReachable = isReachable;
             EnclosingRegion = region;
@@ -41,6 +46,10 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
 
         public IOperation Condition { get; }
 
+        // PROTOTYPE(dataflow): Merge Value and Condition into a single property "BranchValue"
+        public IOperation Value { get; }
+
+        public ControlFlowConditionKind ConditionKind { get; }
         public ControlFlowBranch FallThroughSuccessor
         {
             get

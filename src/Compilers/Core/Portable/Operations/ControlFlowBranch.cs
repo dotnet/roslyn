@@ -7,25 +7,21 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
     /// <summary>
     /// PROTOTYPE(dataflow): Add documentation
     /// </summary>
-    public class ControlFlowBranch
+    public sealed class ControlFlowBranch
     {
         internal ControlFlowBranch(
             BasicBlock source,
             BasicBlock destination,
-            ControlFlowBranchKind kind,
-            bool isConditional,
-            bool branchWhenTrue,
-            IOperation value,
+            ControlFlowBranchSemantics semantics,
+            bool isConditionalSuccessor,
             ImmutableArray<ControlFlowRegion> leavingRegions,
             ImmutableArray<ControlFlowRegion> enteringRegions,
             ImmutableArray<ControlFlowRegion> finallyRegions)
         {
             Source = source;
             Destination = destination;
-            Kind = kind;
-            IsConditional = isConditional;
-            BranchWhenTrue = branchWhenTrue;
-            Value = value;
+            Semantics = semantics;
+            IsConditionalSuccessor = isConditionalSuccessor;
             LeavingRegions = leavingRegions;
             EnteringRegions = enteringRegions;
             FinallyRegions = finallyRegions;
@@ -35,13 +31,9 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
 
         public BasicBlock Destination { get; }
 
-        public ControlFlowBranchKind Kind { get; }
+        public ControlFlowBranchSemantics Semantics { get; }
 
-        public bool IsConditional { get; }
-
-        public bool BranchWhenTrue { get; }
-
-        public IOperation Value { get; }
+        public bool IsConditionalSuccessor { get; }
 
         /// <summary>
         /// What regions are exited (from inner most to outer most) if this branch is taken.

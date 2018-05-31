@@ -2,7 +2,7 @@
 
 using System;
 
-namespace Microsoft.CodeAnalysis.Operations
+namespace Microsoft.CodeAnalysis.FlowAnalysis
 {
     /// <summary>
     /// PROTOTYPE(dataflow): Add doc comments.
@@ -14,6 +14,7 @@ namespace Microsoft.CodeAnalysis.Operations
             Id = id;
         }
 
+        // PROTOTYPE(dataflow): Make this a private readonly field once we remove all uses in ControlFlowGraphBuilder.
         internal int Id { get; }
 
         public bool Equals(CaptureId other) => Id == other.Id;

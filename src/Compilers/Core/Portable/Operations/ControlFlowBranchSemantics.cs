@@ -5,7 +5,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
     /// <summary>
     /// PROTOTYPE(dataflow): Add documentation
     /// </summary>
-    public enum ControlFlowBranchKind
+    public enum ControlFlowBranchSemantics
     {
         None,
         Regular,
@@ -13,7 +13,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
         StructuredExceptionHandling,
         ProgramTermination,
         Throw,
-        ReThrow,
+        Rethrow,
         Error,
     }
 }

@@ -68,7 +68,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
             {
                 private ImmutableArray<ControlFlowRegion> _lazyFinallyRegions;
 
-                public ControlFlowBranchKind Kind { get; set; }
+                public ControlFlowBranchSemantics Kind { get; set; }
                 public BasicBlock Destination { get; set; }
 
                 /// <summary>
@@ -102,7 +102,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
                                         builder = ArrayBuilder<ControlFlowRegion>.GetInstance();
                                     }
 
-                                    builder.Add(leavingRegions[i + 1].Regions.Last());
+                                    builder.Add(leavingRegions[i + 1].NestedRegions.Last());
                                     Debug.Assert(builder.Last().Kind == ControlFlowRegionKind.Finally);
                                 }
                             }

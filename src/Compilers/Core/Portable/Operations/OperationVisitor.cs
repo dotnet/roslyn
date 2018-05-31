@@ -2,6 +2,7 @@
 
 using System;
 using System.Diagnostics;
+using Microsoft.CodeAnalysis.FlowAnalysis;
 
 namespace Microsoft.CodeAnalysis.Operations
 {
