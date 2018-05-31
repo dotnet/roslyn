@@ -67,35 +67,31 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Formatting
                 return false;
             }
 
-            return ExecuteCommandAsync(document, args.TextView, context).WaitAndGetResult<bool>(context.WaitContext.UserCancellationToken);
-        }
-
-        private async Task<bool> ExecuteCommandAsync(Document document, ITextView textView, CommandExecutionContext context)
-        {
             using (context.WaitContext.AddScope(allowCancellation: true, EditorFeaturesResources.Formatting_document))
             {
                 var cancellationToken = context.WaitContext.UserCancellationToken;
 
-                var docOptions = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(true);
+                var docOptions = document.GetOptionsAsync(cancellationToken).WaitAndGetResult(cancellationToken);
 
                 using (var transaction = new CaretPreservingEditTransaction(
-                    EditorFeaturesResources.Formatting, textView, _undoHistoryRegistry, _editorOperationsFactoryService))
+                    EditorFeaturesResources.Formatting, args.TextView, _undoHistoryRegistry, _editorOperationsFactoryService))
                 {
-                    var formatChanges = await GetFormatChanges(textView, document, selectionOpt: null, cancellationToken).ConfigureAwait(true);
-                    if (formatChanges != null && formatChanges.Count > 0)
-                    {
-                        ApplyChanges(document, formatChanges, selectionOpt: null, cancellationToken);
-                    }
-
-                    // Code cleanup
                     if (!docOptions.GetOption(FeatureOnOffOptions.IsCodeCleanupRulesConfigured))
                     {
                         ShowGoldBarForCodeCleanupConfiguration(document.Project.Solution.Workspace);
+
+                        // format
+                        var formatChanges = GetFormatChanges(args.TextView, document, selectionOpt: null, cancellationToken).WaitAndGetResult(cancellationToken);
+                        if (formatChanges != null && formatChanges.Count > 0)
+                        {
+                            ApplyChanges(document, formatChanges, selectionOpt: null, cancellationToken);
+                        }
                     }
                     else
                     {
+                        // Code cleanup
                         var oldDoc = document;
-                        var codeCleanupChanges = await GetCodeCleanupChanges(document, cancellationToken).ConfigureAwait(true);
+                        var codeCleanupChanges = GetCodeCleanupAndFormatChanges(document, cancellationToken).WaitAndGetResult(cancellationToken);
 
                         if (codeCleanupChanges != null && codeCleanupChanges.Count() > 0)
                         {
@@ -110,7 +106,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Formatting
             return true;
         }
 
-        private async Task<IEnumerable<TextChange>> GetCodeCleanupChanges(Document document, CancellationToken cancellationToken)
+        private async Task<IEnumerable<TextChange>> GetCodeCleanupAndFormatChanges(Document document, CancellationToken cancellationToken)
         {
             var codeCleanupService = document.GetLanguageService<ICodeCleanupService>();
             if (codeCleanupService == null)
@@ -118,7 +114,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Formatting
                 return null;
             }
 
-            var newDoc = await codeCleanupService.CleanupDocument(document, cancellationToken).ConfigureAwait(false);
+            var newDoc = await codeCleanupService.CleanupAndFormatDocument(document, cancellationToken).ConfigureAwait(false);
 
             return await newDoc.GetTextChangesAsync(document, cancellationToken).ConfigureAwait(false);
         }

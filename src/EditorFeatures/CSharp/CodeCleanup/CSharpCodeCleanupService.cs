@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.Shared.Options;
+using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.OrganizeImports;
@@ -20,7 +21,7 @@ using Microsoft.CodeAnalysis.Text;
 namespace Microsoft.CodeAnalysis.Editor.Implementation.CodeCleanup
 {
     [ExportLanguageService(typeof(ICodeCleanupService), LanguageNames.CSharp), Shared]
-    internal class CodeCleanupService : ICodeCleanupService
+    internal class CSharpCodeCleanupService : ICodeCleanupService
     {
         /// <summary>
         /// Maps format document code cleanup options to DiagnosticId[]
@@ -31,7 +32,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CodeCleanup
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public CodeCleanupService(
+        public CSharpCodeCleanupService(
             ICodeFixService codeFixService)
         {
             _codeFixService = codeFixService;
@@ -105,7 +106,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CodeCleanup
             return dictionary.ToImmutableDictionary();
         }
 
-        public async Task<Document> CleanupDocument(Document document, CancellationToken cancellationToken)
+        public async Task<Document> CleanupAndFormatDocument(Document document, CancellationToken cancellationToken)
         {
             var docOptions = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
 
@@ -113,7 +114,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CodeCleanup
             // do the remove usings after code fix, as code fix might remove some code which can results in unused usings.
             document = await RemoveSortUsings(document, docOptions, cancellationToken).ConfigureAwait(false);
 
-            return document;
+            return await Formatter.FormatAsync(document).ConfigureAwait(false);
         }
 
         private async Task<Document> RemoveSortUsings(Document document, DocumentOptionSet docOptions, CancellationToken cancellationToken)

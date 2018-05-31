@@ -120,7 +120,7 @@ class Program
                 var document = workspace.CurrentSolution.GetDocument(hostdoc.Id);
 
                 var codeCleanupService = document.GetLanguageService<ICodeCleanupService>();
-                var newDoc = await codeCleanupService.CleanupDocument(document, new CancellationToken());
+                var newDoc = await codeCleanupService.CleanupAndFormatDocument(document, new CancellationToken());
 
                 var actual = await newDoc.GetTextAsync();
 
