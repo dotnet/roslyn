@@ -2133,7 +2133,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return (arguments, conversions);
         }
 
-        private VariableState GetInitialState()
+        private VariableState GetVariableState()
         {
             return new VariableState(
                 _variableSlot.ToImmutableDictionary(),
@@ -2141,9 +2141,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 _variableTypes.ToImmutableDictionary());
         }
 
-        private UnboundLambda GetUnboundLambda(BoundLambda expr, VariableState rewriterState)
+        private UnboundLambda GetUnboundLambda(BoundLambda expr, VariableState variableState)
         {
-            return expr.UnboundLambda.WithRewriter(_binder, rewriterState);
+            return expr.UnboundLambda.WithNullableState(_binder, variableState);
         }
 
         private static (ParameterSymbol Parameter, TypeSymbolWithAnnotations Type) GetCorrespondingParameter(
@@ -2221,7 +2221,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // MethodTypeInferrer must infer nullability for lambdas based on the nullability
                     // from flow analysis rather than the declared nullability. To allow that, we need
                     // to re-bind lambdas in MethodTypeInferrer.
-                    return GetUnboundLambda((BoundLambda)argument, GetInitialState());
+                    return GetUnboundLambda((BoundLambda)argument, GetVariableState());
                 }
                 var type = argumentResult.Type;
                 if (type is null)
@@ -2670,9 +2670,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                         var lambda = (BoundLambda)operandOpt;
                         var delegateType = targetType.GetDelegateType();
                         var methodSignatureOpt = lambda.UnboundLambda.HasExplicitlyTypedParameterList ? null : delegateType?.DelegateInvokeMethod;
-                        var rewriterState = GetInitialState();
-                        Analyze(compilation, lambda, Diagnostics, delegateInvokeMethod: delegateType?.DelegateInvokeMethod, returnTypes: null, initialState: rewriterState);
-                        var unboundLambda = GetUnboundLambda(lambda, rewriterState);
+                        var variableState = GetVariableState();
+                        Analyze(compilation, lambda, Diagnostics, delegateInvokeMethod: delegateType?.DelegateInvokeMethod, returnTypes: null, initialState: variableState);
+                        var unboundLambda = GetUnboundLambda(lambda, variableState);
                         var boundLambda = unboundLambda.Bind(delegateType);
                         if (!fromExplicitCast)
                         {
@@ -2868,7 +2868,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // The presence of this node suggests an error was detected in an earlier phase.
             // Analyze the body to report any additional warnings.
             var lambda = node.BindForErrorRecovery();
-            Analyze(compilation, lambda, Diagnostics, delegateInvokeMethod: null, returnTypes: null, initialState: GetInitialState());
+            Analyze(compilation, lambda, Diagnostics, delegateInvokeMethod: null, returnTypes: null, initialState: GetVariableState());
             SetResult(node);
             return null;
         }

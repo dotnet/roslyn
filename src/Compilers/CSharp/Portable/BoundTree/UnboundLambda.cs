@@ -70,7 +70,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             );
         }
 
-        public TypeSymbolWithAnnotations GetInferredReturnType(ref HashSet<DiagnosticInfo> useSiteDiagnostics, NullableWalker.VariableState rewriterState = null)
+        public TypeSymbolWithAnnotations GetInferredReturnType(ref HashSet<DiagnosticInfo> useSiteDiagnostics, NullableWalker.VariableState nullableState = null)
         {
             if (!InferredReturnType.UseSiteDiagnostics.IsEmpty)
             {
@@ -83,7 +83,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     useSiteDiagnostics.Add(info);
                 }
             }
-            if (rewriterState == null)
+            if (nullableState == null)
             {
                 return InferredReturnType.Type;
             }
@@ -97,7 +97,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var delegateType = Type.GetDelegateType();
                 var compilation = Binder.Compilation;
                 var conversions = Binder.Conversions.WithNullability(includeNullability: true);
-                NullableWalker.Analyze(compilation, this, diagnostics, delegateInvokeMethod: delegateType?.DelegateInvokeMethod, returnTypes: builder, initialState: rewriterState);
+                NullableWalker.Analyze(compilation, this, diagnostics, delegateInvokeMethod: delegateType?.DelegateInvokeMethod, returnTypes: builder, initialState: nullableState);
                 diagnostics.Free();
                 var inferredReturnType = InferReturnType(builder, compilation, conversions, delegateType, Symbol.IsAsync);
                 builder.Free();
@@ -253,7 +253,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal partial class UnboundLambda
     {
-        private readonly NullableWalker.VariableState _rewriterState;
+        private readonly NullableWalker.VariableState _nullableState;
 
         public UnboundLambda(
             CSharpSyntaxNode syntax,
@@ -270,16 +270,16 @@ namespace Microsoft.CodeAnalysis.CSharp
             this.Data = new PlainUnboundLambdaState(this, binder, names, types, refKinds, isAsync);
         }
 
-        private UnboundLambda(UnboundLambda other, Binder binder, NullableWalker.VariableState rewriterState) :
+        private UnboundLambda(UnboundLambda other, Binder binder, NullableWalker.VariableState nullableState) :
             base(BoundKind.UnboundLambda, other.Syntax, null, other.HasErrors)
         {
-            this._rewriterState = rewriterState;
+            this._nullableState = nullableState;
             this.Data = other.Data;
         }
 
-        internal UnboundLambda WithRewriter(Binder binder, NullableWalker.VariableState rewriterState)
+        internal UnboundLambda WithNullableState(Binder binder, NullableWalker.VariableState nullableState)
         {
-            return new UnboundLambda(this, binder, rewriterState);
+            return new UnboundLambda(this, binder, nullableState);
         }
 
         public MessageID MessageID { get { return Data.MessageID; } }
@@ -289,7 +289,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public bool HasSignature { get { return Data.HasSignature; } }
         public bool HasExplicitlyTypedParameterList { get { return Data.HasExplicitlyTypedParameterList; } }
         public int ParameterCount { get { return Data.ParameterCount; } }
-        public TypeSymbolWithAnnotations InferReturnType(NamedTypeSymbol delegateType, ref HashSet<DiagnosticInfo> useSiteDiagnostics) { return BindForReturnTypeInference(delegateType).GetInferredReturnType(ref useSiteDiagnostics, _rewriterState);  }
+        public TypeSymbolWithAnnotations InferReturnType(NamedTypeSymbol delegateType, ref HashSet<DiagnosticInfo> useSiteDiagnostics) { return BindForReturnTypeInference(delegateType).GetInferredReturnType(ref useSiteDiagnostics, _nullableState);  }
         public RefKind RefKind(int index) { return Data.RefKind(index); }
         public void GenerateAnonymousFunctionConversionError(DiagnosticBag diagnostics, TypeSymbol targetType) { Data.GenerateAnonymousFunctionConversionError(diagnostics, targetType); }
         public bool GenerateSummaryErrors(DiagnosticBag diagnostics) { return Data.GenerateSummaryErrors(diagnostics); }
