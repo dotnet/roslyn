@@ -10,7 +10,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ConvertLinq
     public class ConvertForEachToLinqQueryTests : AbstractCSharpCodeActionTest
     {
         protected override CodeRefactoringProvider CreateCodeRefactoringProvider(Workspace workspace, TestParameters parameters)
-            => new CodeAnalysis.CSharp.ConvertLinq.CSharpConvertForEachToLinqQueryProvider();
+            => new CodeAnalysis.CSharp.ConvertLinq.ConvertForEachToLinqQuery.CSharpConvertForEachToLinqQueryProvider();
 
         #region Query Expressions
 
@@ -2541,10 +2541,10 @@ class C
 
         #endregion
 
-        #region Comments and Preprocessor directives
+        #region Comments
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertForEachToQuery)]
-        public async Task NoConversionInlineComments()
+        public async Task CommentsYieldReturn()
         {
             string source = @"
 using System.Collections.Generic;
@@ -2553,37 +2553,54 @@ class C
 {
     IEnumerable<int> M(IEnumerable<int> nums)
     {
-        [|foreach(var x in nums)
+        [|// 1
+        foreach /* 2 */( /* 3 */ var /* 4 */ x /* 5 */ in /* 6 */ nums /* 7 */)// 8
         {
-            yield return /* comment */ x + 1;
-        }|]
+            // 9
+            /* 10 */
+            foreach /* 11 */ (/* 12 */ int /* 13 */ y /* 14 */ in /* 15 */ nums /* 16 */)/* 17 */ // 18
+            {// 19
+             /*20 */
+                if /* 21 */(/* 22 */ x > 2 /* 23 */) // 24
+                { // 25
+                  /* 26 */
+                    yield /* 27 */ return /* 28 */ x * y /* 29 */; // 30
+                    /* 31 */
+                }// 32
+                 /* 33 */
+            } // 34
+              /* 35 */
+        }|] /* 36 /*/
+          /* 37 */
+        yield  /* 38 */ break/* 39*/; // 40
     }
 }";
 
-            // Cannot convert expressions with comments
-            await TestMissingAsync(source);
-        }
-
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertForEachToQuery)]
-        public async Task NoConversionComments()
-        {
-            string source = @"
+            string output = @"
 using System.Collections.Generic;
 using System.Linq;
 class C
 {
     IEnumerable<int> M(IEnumerable<int> nums)
     {
-        [|foreach(var x in nums)
-        {
-            // comment
-            yield return x + 1;
-        }|]
+        return from x in nums
+               from int y in nums
+               where x > 2
+               select x * y;
     }
 }";
-            // Cannot convert expressions with comments
-            await TestMissingAsync(source);
+
+            await TestInRegularAndScriptAsync(source, output);
         }
+
+        // TODO comments test for ToList
+        // TODO comments test for count
+        // TODO comments test for default
+        // TODO comments test for multiple variable declaration
+
+        #endregion
+
+        #region Preprocessor directives
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertForEachToQuery)]
         public async Task NoConversionPreprocessorDirectives()

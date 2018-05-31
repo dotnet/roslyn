@@ -17,6 +17,11 @@
         <target state="translated">작업은 비워 둘 수 없습니다.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Convert_to_query">
+        <source>Convert to query</source>
+        <target state="new">Convert to query</target>
+        <note />
+      </trans-unit>
       <trans-unit id="generic_overload">
         <source>generic overload</source>
         <target state="translated">제네릭 오버로드</target>

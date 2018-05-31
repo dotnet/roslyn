@@ -1,0 +1,50 @@
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading;
+using Microsoft.CodeAnalysis.ConvertLinq.ConvertForEachToLinqQuery;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
+
+namespace Microsoft.CodeAnalysis.CSharp.ConvertLinq.ConvertForEachToLinqQuery
+{
+    internal sealed class ToToListConverter : AbstractToMethodConverter
+    {
+        public ToToListConverter(
+            ForEachInfo<ForEachStatementSyntax, StatementSyntax> forEachInfo,
+            ExpressionSyntax selectExpression,
+            ExpressionSyntax modifyingExpression)
+            : base(forEachInfo, selectExpression, modifyingExpression) { }
+
+        protected override string MethodName => nameof(Enumerable.ToList);
+
+        /// Checks that the expression is "new List();"
+        /// Exclude "new List(a);" and new List() { 1, 2, 3}
+        protected override bool CanReplaceInitialization(ExpressionSyntax expression, SemanticModel semanticModel, CancellationToken cancellationToken)
+            => expression is ObjectCreationExpressionSyntax objectCreationExpression &&
+            semanticModel.GetSymbolInfo(objectCreationExpression.Type, cancellationToken).Symbol is ITypeSymbol typeSymbol &&
+            CSharpConvertForEachToLinqQueryProvider.IsList(typeSymbol, semanticModel) &&
+            !objectCreationExpression.ArgumentList.Arguments.Any() &&
+            objectCreationExpression.Initializer == null;
+
+        /// Input:
+        /// foreach(...)
+        /// {
+        ///     ...
+        ///     ...
+        ///     list.Add(item);
+        ///  }
+        ///  
+        ///  Output:
+        ///  list.AddRange(queryGenerated);
+        // TODO comments?
+        protected override StatementSyntax CreateDefaultStatement(QueryExpressionSyntax queryExpression, ExpressionSyntax expression)
+            => SyntaxFactory.ExpressionStatement(
+                SyntaxFactory.InvocationExpression(
+                    SyntaxFactory.MemberAccessExpression(
+                        SyntaxKind.SimpleMemberAccessExpression,
+                        expression,
+                        SyntaxFactory.IdentifierName(nameof(List<object>.AddRange))),
+                    SyntaxFactory.ArgumentList(SyntaxFactory.SingletonSeparatedList(SyntaxFactory.Argument(queryExpression)))));
+    }
+}

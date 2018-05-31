@@ -297,15 +297,6 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Convert to query.
-        /// </summary>
-        internal static string Convert_to_query {
-            get {
-                return ResourceManager.GetString("Convert_to_query", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Convert to &apos;switch&apos;.
         /// </summary>
         internal static string Convert_to_switch {

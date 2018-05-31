@@ -907,6 +907,15 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Convert to query.
+        /// </summary>
+        internal static string Convert_to_query {
+            get {
+                return ResourceManager.GetString("Convert_to_query", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Could not extract interface: The selection is not inside a class/interface/struct..
         /// </summary>
         internal static string Could_not_extract_interface_colon_The_selection_is_not_inside_a_class_interface_struct {
