@@ -54,7 +54,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Formatting
             _editorOperationsFactoryService = editorOperationsFactoryService;
         }
 
-        private Task<IList<TextChange>> GetFormatChanges(ITextView textView, Document document, TextSpan? selectionOpt, CancellationToken cancellationToken)
+        private Task<IList<TextChange>> GetFormatChangesAsync(ITextView textView, Document document, TextSpan? selectionOpt, CancellationToken cancellationToken)
         {
             var formattingService = document.GetLanguageService<IEditorFormattingService>();
             if (formattingService == null)

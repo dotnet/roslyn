@@ -106,18 +106,18 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CodeCleanup
             return dictionary.ToImmutableDictionary();
         }
 
-        public async Task<Document> CleanupAndFormatDocument(Document document, CancellationToken cancellationToken)
+        public async Task<Document> CleanupAndFormatDocumentAsync(Document document, CancellationToken cancellationToken)
         {
             var docOptions = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
 
-            document = await ApplyCodeFixes(document, docOptions, cancellationToken).ConfigureAwait(false);
+            document = await ApplyCodeFixesAsync(document, docOptions, cancellationToken).ConfigureAwait(false);
             // do the remove usings after code fix, as code fix might remove some code which can results in unused usings.
-            document = await RemoveSortUsings(document, docOptions, cancellationToken).ConfigureAwait(false);
+            document = await RemoveSortUsingsAsync(document, docOptions, cancellationToken).ConfigureAwait(false);
 
             return await Formatter.FormatAsync(document).ConfigureAwait(false);
         }
 
-        private async Task<Document> RemoveSortUsings(Document document, DocumentOptionSet docOptions, CancellationToken cancellationToken)
+        private async Task<Document> RemoveSortUsingsAsync(Document document, DocumentOptionSet docOptions, CancellationToken cancellationToken)
         {
             // remove usings
             if (docOptions.GetOption(FeatureOnOffOptions.RemoveUnusedUsings))
@@ -138,13 +138,15 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CodeCleanup
             return document;
         }
 
-        private async Task<Document> ApplyCodeFixes(Document document, DocumentOptionSet docOptions, CancellationToken cancellationToken)
+        private async Task<Document> ApplyCodeFixesAsync(Document document, DocumentOptionSet docOptions, CancellationToken cancellationToken)
         {
             var fixAllService = document.Project.Solution.Workspace.Services.GetService<IFixAllGetFixesService>();
 
             var dummy = new ProgressTracker();
             foreach (var diagnosticId in GetEnabledDiagnosticIds(docOptions))
             {
+                cancellationToken.ThrowIfCancellationRequested();
+
                 var syntaxTree = await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
                 var textSpan = new TextSpan(0, syntaxTree.Length);
 

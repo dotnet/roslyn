@@ -81,7 +81,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Formatting
                         ShowGoldBarForCodeCleanupConfiguration(document.Project.Solution.Workspace);
 
                         // format
-                        var formatChanges = GetFormatChanges(args.TextView, document, selectionOpt: null, cancellationToken).WaitAndGetResult(cancellationToken);
+                        var formatChanges = GetFormatChangesAsync(args.TextView, document, selectionOpt: null, cancellationToken).WaitAndGetResult(cancellationToken);
                         if (formatChanges != null && formatChanges.Count > 0)
                         {
                             ApplyChanges(document, formatChanges, selectionOpt: null, cancellationToken);
@@ -91,7 +91,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Formatting
                     {
                         // Code cleanup
                         var oldDoc = document;
-                        var codeCleanupChanges = GetCodeCleanupAndFormatChanges(document, cancellationToken).WaitAndGetResult(cancellationToken);
+                        var codeCleanupChanges = GetCodeCleanupAndFormatChangesAsync(document, cancellationToken).WaitAndGetResult(cancellationToken);
 
                         if (codeCleanupChanges != null && codeCleanupChanges.Count() > 0)
                         {
@@ -106,7 +106,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Formatting
             return true;
         }
 
-        private async Task<IEnumerable<TextChange>> GetCodeCleanupAndFormatChanges(Document document, CancellationToken cancellationToken)
+        private async Task<IEnumerable<TextChange>> GetCodeCleanupAndFormatChangesAsync(Document document, CancellationToken cancellationToken)
         {
             var codeCleanupService = document.GetLanguageService<ICodeCleanupService>();
             if (codeCleanupService == null)
@@ -114,7 +114,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Formatting
                 return null;
             }
 
-            var newDoc = await codeCleanupService.CleanupAndFormatDocument(document, cancellationToken).ConfigureAwait(false);
+            var newDoc = await codeCleanupService.CleanupAndFormatDocumentAsync(document, cancellationToken).ConfigureAwait(false);
 
             return await newDoc.GetTextChangesAsync(document, cancellationToken).ConfigureAwait(false);
         }

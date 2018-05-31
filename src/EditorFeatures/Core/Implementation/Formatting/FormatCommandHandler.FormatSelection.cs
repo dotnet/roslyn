@@ -57,7 +57,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Formatting
 
                 var formattingSpan = selection[0].Span.ToTextSpan();
 
-                var formatChanges = await GetFormatChanges(args.TextView, document, formattingSpan, context.WaitContext.UserCancellationToken).ConfigureAwait(true);
+                var formatChanges = await GetFormatChangesAsync(args.TextView, document, formattingSpan, context.WaitContext.UserCancellationToken).ConfigureAwait(true);
                 if (formatChanges != null && formatChanges.Count > 0)
                 {
                     ApplyChanges(document, formatChanges, selectionOpt: null, context.WaitContext.UserCancellationToken);
