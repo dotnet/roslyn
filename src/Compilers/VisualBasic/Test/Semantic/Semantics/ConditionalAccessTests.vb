@@ -9615,7 +9615,7 @@ End Class
     ]]></file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(compilationDef, TestOptions.DebugExe,
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(compilationDef, options:=TestOptions.DebugExe,
                                                                              parseOptions:=VisualBasicParseOptions.Default.WithPreprocessorSymbols({New KeyValuePair(Of String, Object)("DEBUG", True)}))
 
             Dim verifier = CompileAndVerify(compilation, expectedOutput:=
@@ -9636,7 +9636,7 @@ Self
 Test
 ]]>)
 
-            compilation = CompilationUtils.CreateCompilationWithMscorlib40(compilationDef, TestOptions.ReleaseExe)
+            compilation = CompilationUtils.CreateCompilationWithMscorlib40(compilationDef, options:=TestOptions.ReleaseExe)
 
             verifier = CompileAndVerify(compilation, expectedOutput:=
             <![CDATA[
