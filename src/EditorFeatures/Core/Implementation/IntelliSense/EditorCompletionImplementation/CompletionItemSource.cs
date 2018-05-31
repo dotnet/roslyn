@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.Completion.Providers;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
@@ -84,24 +85,21 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.E
 
         private static RoslynTrigger GetRoslynTrigger(EditorCompletion.InitialTrigger trigger)
         {
-            RoslynTrigger roslynTrigger = default;
             switch (trigger.Reason)
             {
                 case EditorCompletion.InitialTriggerReason.Invoke:
                 case EditorCompletion.InitialTriggerReason.InvokeAndCommitIfUnique:
-                    roslynTrigger = RoslynTrigger.Invoke;
-                    break;
+                    return RoslynTrigger.Invoke;
                 case EditorCompletion.InitialTriggerReason.Insertion:
-                    roslynTrigger = RoslynTrigger.CreateInsertionTrigger(trigger.Character);
-                    break;
+                    return RoslynTrigger.CreateInsertionTrigger(trigger.Character);
                 case EditorCompletion.InitialTriggerReason.Deletion:
-                    roslynTrigger = RoslynTrigger.CreateDeletionTrigger(trigger.Character);
-                    break;
+                    return RoslynTrigger.CreateDeletionTrigger(trigger.Character);
                 case EditorCompletion.InitialTriggerReason.Snippets:
-                    break;
+                    // TODO: Exclusive snippet mode isn't currently supported
+                    return default;
+                default:
+                    return default;
             }
-
-            return roslynTrigger;
         }
 
         private EditorCompletion.CompletionItem Convert(
@@ -125,7 +123,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.E
                 var warningImage = Glyph.CompletionWarning.GetImageId();
                 attributeImages = ImmutableArray.Create(
                     new ImageElement(
-                        new ImageId(warningImage.Guid, warningImage.Id),
+                        warningImage,
                         "Temporary Automation Name")); // TODO: Get automation names, here and below
             }
 
@@ -148,14 +146,14 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.E
 
         private ImmutableArray<EditorCompletion.CompletionFilter> GetFilters(RoslynCompletionItem item, Dictionary<string, EditorCompletion.CompletionFilter> filterCache)
         {
-            var result = new List<EditorCompletion.CompletionFilter>();
+            var listBuilder = new ArrayBuilder<EditorCompletion.CompletionFilter>();
             foreach (var filter in CompletionItemFilter.AllFilters)
             {
                 if (filter.Matches(item))
                 {
-                    if (filterCache.ContainsKey(filter.DisplayText))
+                    if (filterCache.TryGetValue(filter.DisplayText, out var applicableFilter))
                     {
-                        result.Add(filterCache[filter.DisplayText]);
+                        listBuilder.Add(applicableFilter);
                     }
                     else
                     {
@@ -165,12 +163,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.E
                             filter.AccessKey.ToString(), 
                             new ImageElement(new ImageId(imageId.Guid, imageId.Id), "Temporary Automation Name"));
                         filterCache[filter.DisplayText] = itemFilter;
-                        result.Add(itemFilter);
+                        listBuilder.Add(itemFilter);
                     }
                 }
             }
 
-            return result.ToImmutableArray();
+            return listBuilder.ToImmutableAndFree();
         }
 
         public async Task<object> GetDescriptionAsync(EditorCompletion.CompletionItem item, CancellationToken cancellationToken)
@@ -187,8 +185,18 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.E
             }
 
             var documentId = workspace.GetDocumentIdInCurrentContext(triggerBuffer.AsTextContainer());
+            if (documentId == null)
+            {
+                return string.Empty;
+            }
+
             var document = workspace.CurrentSolution.GetDocument(documentId);
-            var service = document.GetLanguageService<CompletionService>() as CompletionServiceWithProviders;
+            if (document == null)
+            {
+                return string.Empty;
+            }
+
+            var service = (CompletionServiceWithProviders)document.GetLanguageService<CompletionService>();
             var description = await service.GetProvider(roslynItem).GetDescriptionAsync(document, roslynItem, cancellationToken).ConfigureAwait(false);
 
             return new ClassifiedTextElement(description.TaggedParts.Select(p => new ClassifiedTextRun(p.Tag.ToClassificationTypeName(), p.Text)));
@@ -203,7 +211,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.E
             }
 
             var workspace = document.Project.Solution.Workspace;
-            return (CompletionServiceWithProviders)workspace.Services.GetLanguageServices(LanguageNames.CSharp).GetService<CompletionService>();
+            return (CompletionServiceWithProviders)document.GetLanguageService<CompletionService>();
         }
 
         public Task HandleViewClosedAsync(ITextView view) => Task.CompletedTask;
