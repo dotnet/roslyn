@@ -38,7 +38,7 @@ Block[B0] - Entry
 Block[B1] - Block
     Predecessors: [B0]
     Statements (0)
-    Next (ReThrow) Block[null]
+    Next (Rethrow) Block[null]
 Block[B2] - Exit [UnReachable]
     Predecessors (0)
     Statements (0)
@@ -87,7 +87,7 @@ Block[B1] - Block
               Right: 
                 ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
 
-    Next (ReThrow) Block[null]
+    Next (Rethrow) Block[null]
 Block[B2] - Block [UnReachable]
     Predecessors (0)
     Statements (1)
@@ -701,7 +701,7 @@ Block[B0] - Entry
     Block[B2] - Block
         Predecessors (0)
         Statements (0)
-        Next (ReThrow) Block[null]
+        Next (Rethrow) Block[null]
 }
 
 Block[B3] - Exit
@@ -778,7 +778,7 @@ Block[B0] - Entry
                   Right: 
                     ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2) (Syntax: '2')
 
-        Next (ReThrow) Block[null]
+        Next (Rethrow) Block[null]
     Block[B3] - Block [UnReachable]
         Predecessors (0)
         Statements (1)
@@ -1027,7 +1027,7 @@ Block[B0] - Entry
                   Right: 
                     ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2) (Syntax: '2')
 
-        Next (ReThrow) Block[null]
+        Next (Rethrow) Block[null]
 }
 
 Block[B3] - Exit
@@ -1132,10 +1132,10 @@ Block[B0] - Entry
     Block[B2] - Block
         Predecessors (0)
         Statements (0)
-        Jump if False (ReThrow) to Block[null]
+        Jump if False (Rethrow) to Block[null]
             IParameterReferenceOperation: a (OperationKind.ParameterReference, Type: System.Boolean) (Syntax: 'a')
 
-        Next (ReThrow) Block[null]
+        Next (Rethrow) Block[null]
 }
 
 Block[B3] - Exit
@@ -1275,7 +1275,7 @@ Block[B0] - Entry
     Block[B3] - Block
         Predecessors: [B2]
         Statements (0)
-        Next (ReThrow) Block[null]
+        Next (Rethrow) Block[null]
 }
 
 Block[B4] - Exit
@@ -1424,7 +1424,7 @@ Block[B0] - Entry
     Block[B2] - Block
         Predecessors: [B3]
         Statements (0)
-        Next (ReThrow) Block[null]
+        Next (Rethrow) Block[null]
     Block[B3] - Block [UnReachable]
         Predecessors (0)
         Statements (1)
@@ -1613,10 +1613,10 @@ Block[B0] - Entry
                   Right: 
                     ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2) (Syntax: '2')
 
-        Jump if False (ReThrow) to Block[null]
+        Jump if False (Rethrow) to Block[null]
             IParameterReferenceOperation: a (OperationKind.ParameterReference, Type: System.Boolean) (Syntax: 'a')
 
-        Next (ReThrow) Block[null]
+        Next (Rethrow) Block[null]
 }
 
 Block[B3] - Exit
@@ -1695,7 +1695,7 @@ Block[B0] - Entry
             IParameterReferenceOperation: a (OperationKind.ParameterReference, Type: System.Boolean) (Syntax: 'a')
             Leaving: {R3} {R1}
 
-        Next (ReThrow) Block[null]
+        Next (Rethrow) Block[null]
 }
 
 Block[B3] - Exit
@@ -1770,7 +1770,7 @@ Block[B0] - Entry
                   Right: 
                     ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2) (Syntax: '2')
 
-        Jump if False (ReThrow) to Block[null]
+        Jump if False (Rethrow) to Block[null]
             IParameterReferenceOperation: a (OperationKind.ParameterReference, Type: System.Boolean) (Syntax: 'a')
 
         Next (Regular) Block[B3]
@@ -1840,7 +1840,7 @@ Block[B0] - Entry
     Block[B2] - Block
         Predecessors (0)
         Statements (0)
-        Next (ReThrow) Block[null]
+        Next (Rethrow) Block[null]
 }
 
 Block[B3] - Exit [UnReachable]

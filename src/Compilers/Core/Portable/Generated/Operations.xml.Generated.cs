@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
+using Microsoft.CodeAnalysis.FlowAnalysis;
 
 namespace Microsoft.CodeAnalysis.Operations
 {
@@ -6585,10 +6586,10 @@ namespace Microsoft.CodeAnalysis.Operations
         public FlowCaptureReference(int id, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
             base(OperationKind.FlowCaptureReference, semanticModel: null, syntax: syntax, type: type, constantValue: constantValue, isImplicit: true)
         {
-            Id = id;
+            Id = new CaptureId(id);
         }
 
-        public int Id { get; }
+        public CaptureId Id { get; }
         public override IEnumerable<IOperation> Children
         {
             get
@@ -6614,11 +6615,11 @@ namespace Microsoft.CodeAnalysis.Operations
             base(OperationKind.FlowCapture, semanticModel: null, syntax: syntax, type: null, constantValue: default, isImplicit: true)
         {
             Debug.Assert(value != null);
-            Id = id;
+            Id = new CaptureId(id);
             Value = SetParentOperation(value, this);
         }
 
-        public int Id { get; }
+        public CaptureId Id { get; }
         public IOperation Value { get; }
         public override IEnumerable<IOperation> Children
         {
@@ -6711,7 +6712,7 @@ namespace Microsoft.CodeAnalysis.Operations
 
         public override void Accept(OperationVisitor visitor)
         {
-            visitor.VisitStaticLocalInitialzationSemaphore(this);
+            visitor.VisitStaticLocalInitializationSemaphore(this);
         }
 
         public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)

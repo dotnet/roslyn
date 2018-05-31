@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Immutable;
+using Microsoft.CodeAnalysis.FlowAnalysis;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Operations
@@ -556,7 +557,7 @@ namespace Microsoft.CodeAnalysis.Operations
 
         public override IOperation VisitFlowCaptureReference(IFlowCaptureReferenceOperation operation, object argument)
         {
-            return new FlowCaptureReference(operation.Id, operation.Syntax, operation.Type, constantValue: operation.ConstantValue);
+            return new FlowCaptureReference(operation.Id.Id, operation.Syntax, operation.Type, constantValue: operation.ConstantValue);
         }
 
         public override IOperation VisitIsNull(IIsNullOperation operation, object argument)

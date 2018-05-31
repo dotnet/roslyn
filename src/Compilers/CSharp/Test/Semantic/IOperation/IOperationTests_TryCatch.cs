@@ -3905,7 +3905,7 @@ Block[B0] - Entry
                 ILiteralOperation (OperationKind.Literal, Type: System.Boolean, Constant: True) (Syntax: 'true')
                 Leaving: {R5} {R4} {R3} {R1}
 
-            Next (ReThrow) Block[null]
+            Next (Rethrow) Block[null]
     }
     .catch {R6} (System.Object)
     {
@@ -3995,7 +3995,7 @@ Block[B0] - Entry
                 ILiteralOperation (OperationKind.Literal, Type: System.Boolean, Constant: False) (Syntax: 'false')
                 Leaving: {R5} {R4} {R3} {R1}
 
-            Next (ReThrow) Block[null]
+            Next (Rethrow) Block[null]
     }
     .catch {R6} (System.Object)
     {
@@ -6892,7 +6892,7 @@ Block[B0] - Entry
         Block[B3] - Block
             Predecessors (0)
             Statements (0)
-            Jump if False (ReThrow) to Block[null]
+            Jump if False (Rethrow) to Block[null]
                 ILiteralOperation (OperationKind.Literal, Type: System.Boolean, Constant: False) (Syntax: 'false')
 
             Next (StructuredExceptionHandling) Block[null]

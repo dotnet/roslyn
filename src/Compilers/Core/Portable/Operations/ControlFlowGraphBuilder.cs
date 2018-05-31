@@ -5,10 +5,11 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
+using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.Operations
+namespace Microsoft.CodeAnalysis.FlowAnalysis
 {
     internal sealed partial class ControlFlowGraphBuilder : OperationVisitor<int?, IOperation>
     {
@@ -50,7 +51,7 @@ namespace Microsoft.CodeAnalysis.Operations
             return _forceImplicit || operation.IsImplicit;
         }
 
-        public static ControlFlowGraph Create(IOperation body, ControlFlowGraph.Region enclosing = null)
+        public static ControlFlowGraph Create(IOperation body, ControlFlowRegion enclosing = null)
         {
             // PROTOTYPE(dataflow): Consider getting the SemanticModel and Compilation from the root node, 
             //                      storing them in readonly fields in ControlFlowGraphBuilder, and reusing
@@ -82,12 +83,12 @@ namespace Microsoft.CodeAnalysis.Operations
             builder._evalStack = ArrayBuilder<IOperation>.GetInstance();
             builder._regionMap = PooledDictionary<BasicBlock, RegionBuilder>.GetInstance();
 
-            var root = new RegionBuilder(ControlFlowGraph.RegionKind.Root);
+            var root = new RegionBuilder(ControlFlowRegionKind.Root);
             builder.EnterRegion(root);
             builder.AppendNewBlock(builder._entry, linkToPrevious: false);
             builder._currentBasicBlock = null;
 
-            builder.EnterRegion(new RegionBuilder(ControlFlowGraph.RegionKind.Locals));
+            builder.EnterRegion(new RegionBuilder(ControlFlowRegionKind.LocalLifetime));
 
             switch(body.Kind)
             {
@@ -112,8 +113,8 @@ namespace Microsoft.CodeAnalysis.Operations
             CheckUnresolvedBranches(blocks, builder._labeledBlocks);
             Pack(blocks, root, builder._regionMap);
             var methods = ArrayBuilder<IMethodSymbol>.GetInstance();
-            var methodsMap = ImmutableDictionary.CreateBuilder<IMethodSymbol, (ControlFlowGraph.Region, IOperation, int)>();
-            ControlFlowGraph.Region region = root.ToImmutableRegionAndFree(blocks, methods, methodsMap, enclosing);
+            var methodsMap = ImmutableDictionary.CreateBuilder<IMethodSymbol, (ControlFlowRegion, IOperation, int)>();
+            ControlFlowRegion region = root.ToImmutableRegionAndFree(blocks, methods, methodsMap, enclosing);
             root = null;
             CalculateBranchLeaveEnterLists(blocks);
             MarkReachableBlocks(blocks);
@@ -123,13 +124,121 @@ namespace Microsoft.CodeAnalysis.Operations
             builder._regionMap.Free();
             builder._labeledBlocks?.Free();
 
-            return new ControlFlowGraph(blocks.ToImmutableAndFree(), region, methods.ToImmutableAndFree(), methodsMap.ToImmutable());
+            return new ControlFlowGraph(body, ToImmutableBlocks(blocks), region, methods.ToImmutableAndFree(), methodsMap.ToImmutable());
+        }
+
+        private static ImmutableArray<FlowAnalysis.BasicBlock> ToImmutableBlocks(ArrayBuilder<BasicBlock> blocksBuilder)
+        {
+            var builder = ArrayBuilder<FlowAnalysis.BasicBlock>.GetInstance(blocksBuilder.Count);
+            var branchMap = PooledDictionary<(BasicBlock source, BasicBlock destination, bool isFallThrough), ControlFlowBranch>.GetInstance();
+            var ordinalToBlockMap = PooledDictionary<int, FlowAnalysis.BasicBlock>.GetInstance();
+
+            // Pass 1: Iterate through blocksBuilder to create basic blocks.
+            foreach (BasicBlock blockBuilder in blocksBuilder)
+            {
+                var block = new FlowAnalysis.BasicBlock(blockBuilder.Kind,
+                    blockBuilder.GetImmutableStatements(),
+                    blockBuilder.InternalConditional.Condition,
+                    blockBuilder.InternalNext.Value,
+                    getConditionKind(blockBuilder),
+                    blockBuilder.Ordinal,
+                    blockBuilder.IsReachable, blockBuilder.Region);
+                builder.Add(block);
+                ordinalToBlockMap.Add(block.Ordinal, block);
+            }
+
+            // Pass 2: Create control flow branches with source and destination info and
+            //         update the branch information for the created basic blocks.
+            for (int i = 0; i < blocksBuilder.Count; i++)
+            {
+                BasicBlock blockBuilder = blocksBuilder[i];
+                FlowAnalysis.BasicBlock block = builder[i];
+
+                ControlFlowBranch successor = getFallThroughSuccessor(blockBuilder);
+                ControlFlowBranch conditionalSuccessor = getConditionalSuccessor(blockBuilder);
+                ImmutableArray<ControlFlowBranch> predecessors = getPredecessors(blockBuilder);
+                block.SetSuccessorsAndPredecessors(successor, conditionalSuccessor, predecessors);
+            }
+
+            branchMap.Free();
+            ordinalToBlockMap.Free();
+            return builder.ToImmutableAndFree();
+
+            ControlFlowConditionKind getConditionKind(BasicBlock blockBuilder)
+            {
+                if (blockBuilder.InternalConditional.Condition == null)
+                {
+                    return ControlFlowConditionKind.None;
+                }
+
+                return blockBuilder.InternalConditional.JumpIfTrue ? ControlFlowConditionKind.WhenTrue : ControlFlowConditionKind.WhenFalse;
+            }
+
+            ControlFlowBranch getFallThroughSuccessor(BasicBlock blockBuilder) =>
+                blockBuilder.Kind != BasicBlockKind.Exit ?
+                    getBranch(blockBuilder.InternalNext.Branch,
+                        blockBuilder,
+                        isFallThrough: true) :
+                    null;
+
+            ControlFlowBranch getConditionalSuccessor(BasicBlock blockBuilder) =>
+                blockBuilder.InternalConditional.Condition != null ?
+                    getBranch(blockBuilder.InternalConditional.Branch,
+                        blockBuilder,
+                        isFallThrough: false) :
+                    null;
+
+            ImmutableArray<ControlFlowBranch> getPredecessors(BasicBlock blockBuilder)
+            {
+                if (blockBuilder.Predecessors.Count == 0)
+                {
+                    return ImmutableArray<ControlFlowBranch>.Empty;
+                }
+
+                var predecessorsBuilder = ArrayBuilder<ControlFlowBranch>.GetInstance(blockBuilder.Predecessors.Count);
+
+                // Order predecessors by ordinal to ensure deterministic predecessor ordering.
+                foreach (BasicBlock predecessorBlockBuilder in blockBuilder.Predecessors.OrderBy(p => p.Ordinal))
+                {
+                    if (predecessorBlockBuilder.InternalNext.Branch.Destination == blockBuilder)
+                    {
+                        predecessorsBuilder.Add(getFallThroughSuccessor(predecessorBlockBuilder));
+                    }
+
+                    if (predecessorBlockBuilder.InternalConditional.Branch.Destination == blockBuilder)
+                    {
+                        predecessorsBuilder.Add(getConditionalSuccessor(predecessorBlockBuilder));
+                    }
+                }
+
+                return predecessorsBuilder.ToImmutableAndFree();
+            }
+
+            ControlFlowBranch getBranch(BasicBlock.Branch branch, BasicBlock source, bool isFallThrough)
+            {
+                (BasicBlock source, BasicBlock destination, bool isFallThrough) key = (source, branch.Destination, isFallThrough);
+                if (!branchMap.TryGetValue(key, out ControlFlowBranch controlFlowBranch))
+                {
+                    controlFlowBranch = new ControlFlowBranch(
+                        source: ordinalToBlockMap[source.Ordinal],
+                        destination: branch.Destination != null ? ordinalToBlockMap[branch.Destination.Ordinal] : null,
+                        branch.Kind,
+                        isConditionalSuccessor: !isFallThrough,
+                        branch.LeavingRegions,
+                        branch.EnteringRegions,
+                        branch.FinallyRegions);
+
+                    branchMap.Add(key, controlFlowBranch);
+                }
+
+                return controlFlowBranch;
+            }
         }
 
         private static void MarkReachableBlocks(ArrayBuilder<BasicBlock> blocks)
         {
-            var continueDispatchAfterFinally = PooledDictionary<ControlFlowGraph.Region, bool>.GetInstance();
-            var dispatchedExceptionsFromRegions = PooledHashSet<ControlFlowGraph.Region>.GetInstance();
+            var continueDispatchAfterFinally = PooledDictionary<ControlFlowRegion, bool>.GetInstance();
+            var dispatchedExceptionsFromRegions = PooledHashSet<ControlFlowRegion>.GetInstance();
             MarkReachableBlocks(blocks, firstBlockOrdinal: 0, lastBlockOrdinal: blocks.Count - 1,
                                 outOfRangeBlocksToVisit: null,
                                 continueDispatchAfterFinally,
@@ -144,8 +253,8 @@ namespace Microsoft.CodeAnalysis.Operations
             int firstBlockOrdinal,
             int lastBlockOrdinal,
             ArrayBuilder<BasicBlock> outOfRangeBlocksToVisit,
-            PooledDictionary<ControlFlowGraph.Region, bool> continueDispatchAfterFinally,
-            PooledHashSet<ControlFlowGraph.Region> dispatchedExceptionsFromRegions,
+            PooledDictionary<ControlFlowRegion, bool> continueDispatchAfterFinally,
+            PooledHashSet<ControlFlowRegion> dispatchedExceptionsFromRegions,
             out bool fellThrough)
         {
             var visited = BitVector.Empty;
@@ -173,7 +282,7 @@ namespace Microsoft.CodeAnalysis.Operations
                 current.IsReachable = true;
                 bool fallThrough = true;
 
-                (IOperation Condition, bool JumpIfTrue, BasicBlock.Branch Branch) conditional = current.Conditional;
+                (IOperation Condition, bool JumpIfTrue, BasicBlock.Branch Branch) conditional = current.InternalConditional;
                 if (conditional.Condition != null)
                 {
                     if (conditional.Condition.ConstantValue.HasValue && conditional.Condition.ConstantValue.Value is bool constant)
@@ -192,10 +301,10 @@ namespace Microsoft.CodeAnalysis.Operations
 
                 if (fallThrough)
                 {
-                    BasicBlock.Branch branch = current.Next.Branch;
+                    BasicBlock.Branch branch = current.InternalNext.Branch;
                     followBranch(current, branch);
 
-                    if (current.Ordinal == lastBlockOrdinal && branch.Kind != BasicBlock.BranchKind.Throw && branch.Kind != BasicBlock.BranchKind.ReThrow)
+                    if (current.Ordinal == lastBlockOrdinal && branch.Kind != ControlFlowBranchSemantics.Throw && branch.Kind != ControlFlowBranchSemantics.Rethrow)
                     {
                         fellThrough = true;
                     }
@@ -216,17 +325,17 @@ namespace Microsoft.CodeAnalysis.Operations
             {
                 switch (branch.Kind)
                 {
-                    case BasicBlock.BranchKind.None:
-                    case BasicBlock.BranchKind.ProgramTermination:
-                    case BasicBlock.BranchKind.StructuredExceptionHandling:
-                    case BasicBlock.BranchKind.Throw:
-                    case BasicBlock.BranchKind.ReThrow:
-                    case BasicBlock.BranchKind.Error:
+                    case ControlFlowBranchSemantics.None:
+                    case ControlFlowBranchSemantics.ProgramTermination:
+                    case ControlFlowBranchSemantics.StructuredExceptionHandling:
+                    case ControlFlowBranchSemantics.Throw:
+                    case ControlFlowBranchSemantics.Rethrow:
+                    case ControlFlowBranchSemantics.Error:
                         Debug.Assert(branch.Destination == null);
                         return;
 
-                    case BasicBlock.BranchKind.Regular:
-                    case BasicBlock.BranchKind.Return:
+                    case ControlFlowBranchSemantics.Regular:
+                    case ControlFlowBranchSemantics.Return:
                         Debug.Assert(branch.Destination != null);
 
                         if (stepThroughFinally(current.Region, branch.Destination))
@@ -242,18 +351,18 @@ namespace Microsoft.CodeAnalysis.Operations
             }
 
             // Returns whether we should proceed to the destination after finallies were taken care of.
-            bool stepThroughFinally(ControlFlowGraph.Region region, BasicBlock destination)
+            bool stepThroughFinally(ControlFlowRegion region, BasicBlock destination)
             {
                 int destinationOrdinal = destination.Ordinal;
                 while (!region.ContainsBlock(destinationOrdinal))
                 {
-                    Debug.Assert(region.Kind != ControlFlowGraph.RegionKind.Root);
-                    ControlFlowGraph.Region enclosing = region.Enclosing;
-                    if (region.Kind == ControlFlowGraph.RegionKind.Try && enclosing.Kind == ControlFlowGraph.RegionKind.TryAndFinally)
+                    Debug.Assert(region.Kind != ControlFlowRegionKind.Root);
+                    ControlFlowRegion enclosing = region.EnclosingRegion;
+                    if (region.Kind == ControlFlowRegionKind.Try && enclosing.Kind == ControlFlowRegionKind.TryAndFinally)
                     {
-                        Debug.Assert(enclosing.Regions[0] == region);
-                        Debug.Assert(enclosing.Regions[1].Kind == ControlFlowGraph.RegionKind.Finally);
-                        if (!stepThroughSingleFinally(enclosing.Regions[1]))
+                        Debug.Assert(enclosing.NestedRegions[0] == region);
+                        Debug.Assert(enclosing.NestedRegions[1].Kind == ControlFlowRegionKind.Finally);
+                        if (!stepThroughSingleFinally(enclosing.NestedRegions[1]))
                         {
                             // The point that continues dispatch is not reachable. Cancel the dispatch.
                             return false;
@@ -267,9 +376,9 @@ namespace Microsoft.CodeAnalysis.Operations
             }
 
             // Returns whether we should proceed with dispatch after finally was taken care of.
-            bool stepThroughSingleFinally(ControlFlowGraph.Region @finally)
+            bool stepThroughSingleFinally(ControlFlowRegion @finally)
             {
-                Debug.Assert(@finally.Kind == ControlFlowGraph.RegionKind.Finally);
+                Debug.Assert(@finally.Kind == ControlFlowRegionKind.Finally);
 
                 if (!continueDispatchAfterFinally.TryGetValue(@finally, out bool continueDispatch))
                 {
@@ -287,7 +396,7 @@ namespace Microsoft.CodeAnalysis.Operations
                     visited.UnionWith(isolated);
 
                     continueDispatch = isolatedFellThrough &&
-                                       blocks[@finally.LastBlockOrdinal].Next.Branch.Kind == BasicBlock.BranchKind.StructuredExceptionHandling;
+                                       blocks[@finally.LastBlockOrdinal].InternalNext.Branch.Kind == ControlFlowBranchSemantics.StructuredExceptionHandling;
 
                     continueDispatchAfterFinally.Add(@finally, continueDispatch);
                 }
@@ -295,7 +404,7 @@ namespace Microsoft.CodeAnalysis.Operations
                 return continueDispatch;
             }
 
-            void dispatchException(ControlFlowGraph.Region fromRegion)
+            void dispatchException(ControlFlowRegion fromRegion)
             {
                 do
                 {
@@ -304,23 +413,23 @@ namespace Microsoft.CodeAnalysis.Operations
                         return;
                     }
 
-                    ControlFlowGraph.Region enclosing = fromRegion.Kind == ControlFlowGraph.RegionKind.Root ? null : fromRegion.Enclosing;
-                    if (fromRegion.Kind == ControlFlowGraph.RegionKind.Try)
+                    ControlFlowRegion enclosing = fromRegion.Kind == ControlFlowRegionKind.Root ? null : fromRegion.EnclosingRegion;
+                    if (fromRegion.Kind == ControlFlowRegionKind.Try)
                     {
                         switch (enclosing.Kind)
                         {
-                            case ControlFlowGraph.RegionKind.TryAndFinally:
-                                Debug.Assert(enclosing.Regions[0] == fromRegion);
-                                Debug.Assert(enclosing.Regions[1].Kind == ControlFlowGraph.RegionKind.Finally);
-                                if (!stepThroughSingleFinally(enclosing.Regions[1]))
+                            case ControlFlowRegionKind.TryAndFinally:
+                                Debug.Assert(enclosing.NestedRegions[0] == fromRegion);
+                                Debug.Assert(enclosing.NestedRegions[1].Kind == ControlFlowRegionKind.Finally);
+                                if (!stepThroughSingleFinally(enclosing.NestedRegions[1]))
                                 {
                                     // The point that continues dispatch is not reachable. Cancel the dispatch.
                                     return;
                                 }
                                 break;
 
-                            case ControlFlowGraph.RegionKind.TryAndCatch:
-                                Debug.Assert(enclosing.Regions[0] == fromRegion);
+                            case ControlFlowRegionKind.TryAndCatch:
+                                Debug.Assert(enclosing.NestedRegions[0] == fromRegion);
                                 dispatchExceptionThroughCatches(enclosing, startAt: 1);
                                 break;
 
@@ -328,14 +437,14 @@ namespace Microsoft.CodeAnalysis.Operations
                                 throw ExceptionUtilities.UnexpectedValue(enclosing.Kind);
                         }
                     }
-                    else if (fromRegion.Kind == ControlFlowGraph.RegionKind.Filter)
+                    else if (fromRegion.Kind == ControlFlowRegionKind.Filter)
                     {
                         // If filter throws, dispatch is resumed at the next catch with an original exception
-                        Debug.Assert(enclosing.Kind == ControlFlowGraph.RegionKind.FilterAndHandler);
-                        ControlFlowGraph.Region tryAndCatch = enclosing.Enclosing;
-                        Debug.Assert(tryAndCatch.Kind == ControlFlowGraph.RegionKind.TryAndCatch);
+                        Debug.Assert(enclosing.Kind == ControlFlowRegionKind.FilterAndHandler);
+                        ControlFlowRegion tryAndCatch = enclosing.EnclosingRegion;
+                        Debug.Assert(tryAndCatch.Kind == ControlFlowRegionKind.TryAndCatch);
 
-                        int index = tryAndCatch.Regions.IndexOf(enclosing, startIndex: 1);
+                        int index = tryAndCatch.NestedRegions.IndexOf(enclosing, startIndex: 1);
 
                         if (index > 0)
                         {
@@ -352,29 +461,29 @@ namespace Microsoft.CodeAnalysis.Operations
                 while (fromRegion != null);
             }
 
-            void dispatchExceptionThroughCatches(ControlFlowGraph.Region tryAndCatch, int startAt)
+            void dispatchExceptionThroughCatches(ControlFlowRegion tryAndCatch, int startAt)
             {
                 // For simplicity, we do not try to figure out whether a catch clause definitely
                 // handles all exceptions.
 
-                Debug.Assert(tryAndCatch.Kind == ControlFlowGraph.RegionKind.TryAndCatch);
+                Debug.Assert(tryAndCatch.Kind == ControlFlowRegionKind.TryAndCatch);
                 Debug.Assert(startAt > 0);
-                Debug.Assert(startAt <= tryAndCatch.Regions.Length);
+                Debug.Assert(startAt <= tryAndCatch.NestedRegions.Length);
 
-                for (int i = startAt; i < tryAndCatch.Regions.Length; i++)
+                for (int i = startAt; i < tryAndCatch.NestedRegions.Length; i++)
                 {
-                    ControlFlowGraph.Region @catch = tryAndCatch.Regions[i];
+                    ControlFlowRegion @catch = tryAndCatch.NestedRegions[i];
 
                     switch (@catch.Kind)
                     {
-                        case ControlFlowGraph.RegionKind.Catch:
+                        case ControlFlowRegionKind.Catch:
                             toVisit.Add(blocks[@catch.FirstBlockOrdinal]);
                             break;
 
-                        case ControlFlowGraph.RegionKind.FilterAndHandler:
+                        case ControlFlowRegionKind.FilterAndHandler:
                             BasicBlock entryBlock = blocks[@catch.FirstBlockOrdinal];
-                            Debug.Assert(@catch.Regions[0].Kind == ControlFlowGraph.RegionKind.Filter);
-                            Debug.Assert(entryBlock.Ordinal == @catch.Regions[0].FirstBlockOrdinal);
+                            Debug.Assert(@catch.NestedRegions[0].Kind == ControlFlowRegionKind.Filter);
+                            Debug.Assert(entryBlock.Ordinal == @catch.NestedRegions[0].FirstBlockOrdinal);
 
                             toVisit.Add(entryBlock);
                             break;
@@ -388,7 +497,7 @@ namespace Microsoft.CodeAnalysis.Operations
 
         private static void CalculateBranchLeaveEnterLists(ArrayBuilder<BasicBlock> blocks)
         {
-            var builder = ArrayBuilder<ControlFlowGraph.Region>.GetInstance();
+            var builder = ArrayBuilder<ControlFlowRegion>.GetInstance();
 
             foreach (BasicBlock b in blocks)
             {
@@ -403,8 +512,8 @@ namespace Microsoft.CodeAnalysis.Operations
             {
                 if (branch.Destination == null)
                 {
-                    branch.LeavingRegions = ImmutableArray<ControlFlowGraph.Region>.Empty;
-                    branch.EnteringRegions = ImmutableArray<ControlFlowGraph.Region>.Empty;
+                    branch.LeavingRegions = ImmutableArray<ControlFlowRegion>.Empty;
+                    branch.EnteringRegions = ImmutableArray<ControlFlowRegion>.Empty;
                 }
                 else
                 {
@@ -413,28 +522,28 @@ namespace Microsoft.CodeAnalysis.Operations
                 }
             }
 
-            ImmutableArray<ControlFlowGraph.Region> calculateLeaveList(BasicBlock source, BasicBlock destination)
+            ImmutableArray<ControlFlowRegion> calculateLeaveList(BasicBlock source, BasicBlock destination)
             {
                 collectRegions(destination.Ordinal, source.Region);
                 return builder.ToImmutable();
             }
 
-            ImmutableArray<ControlFlowGraph.Region> calculateEnterList(BasicBlock source, BasicBlock destination)
+            ImmutableArray<ControlFlowRegion> calculateEnterList(BasicBlock source, BasicBlock destination)
             {
                 collectRegions(source.Ordinal, destination.Region);
                 builder.ReverseContents();
                 return builder.ToImmutable();
             }
 
-            void collectRegions(int destinationOrdinal, ControlFlowGraph.Region source)
+            void collectRegions(int destinationOrdinal, ControlFlowRegion source)
             {
                 builder.Clear();
 
                 while (!source.ContainsBlock(destinationOrdinal))
                 {
-                    Debug.Assert(source.Kind != ControlFlowGraph.RegionKind.Root);
+                    Debug.Assert(source.Kind != ControlFlowRegionKind.Root);
                     builder.Add(source);
-                    source = source.Enclosing;
+                    source = source.EnclosingRegion;
                 }
             }
         }
@@ -479,7 +588,7 @@ namespace Microsoft.CodeAnalysis.Operations
                             result = true;
                         }
 
-                        if (r.Kind == ControlFlowGraph.RegionKind.Locals &&
+                        if (r.Kind == ControlFlowRegionKind.LocalLifetime &&
                             r.Locals.IsEmpty && !r.HasMethods)
                         {
                             MergeSubRegionAndFree(r, blocks, regionMap);
@@ -490,21 +599,21 @@ namespace Microsoft.CodeAnalysis.Operations
 
                 switch (region.Kind)
                 {
-                    case ControlFlowGraph.RegionKind.Root:
-                    case ControlFlowGraph.RegionKind.Filter:
-                    case ControlFlowGraph.RegionKind.Try:
-                    case ControlFlowGraph.RegionKind.Catch:
-                    case ControlFlowGraph.RegionKind.Finally:
-                    case ControlFlowGraph.RegionKind.Locals:
-                    case ControlFlowGraph.RegionKind.StaticLocalInitializer:
-                    case ControlFlowGraph.RegionKind.ErroneousBody:
+                    case ControlFlowRegionKind.Root:
+                    case ControlFlowRegionKind.Filter:
+                    case ControlFlowRegionKind.Try:
+                    case ControlFlowRegionKind.Catch:
+                    case ControlFlowRegionKind.Finally:
+                    case ControlFlowRegionKind.LocalLifetime:
+                    case ControlFlowRegionKind.StaticLocalInitializer:
+                    case ControlFlowRegionKind.ErroneousBody:
 
                         if (region.Regions?.Count == 1)
                         {
                             RegionBuilder subRegion = region.Regions[0];
-                            if (subRegion.Kind == ControlFlowGraph.RegionKind.Locals && subRegion.FirstBlock == region.FirstBlock && subRegion.LastBlock == region.LastBlock)
+                            if (subRegion.Kind == ControlFlowRegionKind.LocalLifetime && subRegion.FirstBlock == region.FirstBlock && subRegion.LastBlock == region.LastBlock)
                             {
-                                Debug.Assert(region.Kind != ControlFlowGraph.RegionKind.Root);
+                                Debug.Assert(region.Kind != ControlFlowRegionKind.Root);
 
                                 // Transfer all content of the sub-region into the current region
                                 region.Locals = region.Locals.Concat(subRegion.Locals);
@@ -521,12 +630,12 @@ namespace Microsoft.CodeAnalysis.Operations
                             {
                                 RegionBuilder subRegion = region.Regions[i];
 
-                                if (subRegion.Kind == ControlFlowGraph.RegionKind.Locals && !subRegion.HasMethods &&
+                                if (subRegion.Kind == ControlFlowRegionKind.LocalLifetime && !subRegion.HasMethods &&
                                     !subRegion.HasRegions && subRegion.FirstBlock == subRegion.LastBlock)
                                 {
                                     BasicBlock block = subRegion.FirstBlock;
 
-                                    if (block.Statements.IsEmpty && block.InternalConditional.Condition == null && block.InternalNext.Value == null)
+                                    if (block.Statements.Count == 0 && block.InternalConditional.Condition == null && block.InternalNext.Value == null)
                                     {
                                         // This sub-region has no executable code, merge block into the parent and drop the sub-region
                                         Debug.Assert(regionMap[block] == subRegion);
@@ -544,9 +653,9 @@ namespace Microsoft.CodeAnalysis.Operations
 
                         break;
 
-                    case ControlFlowGraph.RegionKind.TryAndCatch:
-                    case ControlFlowGraph.RegionKind.TryAndFinally:
-                    case ControlFlowGraph.RegionKind.FilterAndHandler:
+                    case ControlFlowRegionKind.TryAndCatch:
+                    case ControlFlowRegionKind.TryAndFinally:
+                    case ControlFlowRegionKind.FilterAndHandler:
                         break;
                     default:
                         throw ExceptionUtilities.UnexpectedValue(region.Kind);
@@ -561,7 +670,7 @@ namespace Microsoft.CodeAnalysis.Operations
         /// </summary>
         private static void MergeSubRegionAndFree(RegionBuilder subRegion, ArrayBuilder<BasicBlock> blocks, PooledDictionary<BasicBlock, RegionBuilder> regionMap)
         {
-            Debug.Assert(subRegion.Kind != ControlFlowGraph.RegionKind.Root);
+            Debug.Assert(subRegion.Kind != ControlFlowRegionKind.Root);
             RegionBuilder enclosing = subRegion.Enclosing;
 
 #if DEBUG
@@ -639,10 +748,10 @@ namespace Microsoft.CodeAnalysis.Operations
                     //    retry = true;
                     //}
 
-                    if (!block.Statements.IsEmpty)
+                    if (block.Statements.Count > 0)
                     {
                         // See if we can move all statements to the previous block
-                        ImmutableHashSet<BasicBlock> predecessors = block.Predecessors;
+                        ISet<BasicBlock> predecessors = block.Predecessors;
                         BasicBlock predecessor;
                         if (predecessors.Count == 1 &&
                             (predecessor = predecessors.Single()).InternalConditional.Condition == null &&
@@ -652,7 +761,7 @@ namespace Microsoft.CodeAnalysis.Operations
                             regionMap[predecessor] == regionMap[block])
                         {
                             Debug.Assert(predecessor.InternalNext.Value == null);
-                            Debug.Assert(predecessor.InternalNext.Branch.Kind == BasicBlock.BranchKind.Regular);
+                            Debug.Assert(predecessor.InternalNext.Branch.Kind == ControlFlowBranchSemantics.Regular);
 
                             predecessor.AddStatements(block.Statements);
                             block.RemoveStatements();
@@ -666,20 +775,20 @@ namespace Microsoft.CodeAnalysis.Operations
 
                     ref BasicBlock.Branch next = ref block.InternalNext.Branch;
 
-                    Debug.Assert((block.InternalNext.Value != null) == (next.Kind == BasicBlock.BranchKind.Return || next.Kind == BasicBlock.BranchKind.Throw));
+                    Debug.Assert((block.InternalNext.Value != null) == (next.Kind == ControlFlowBranchSemantics.Return || next.Kind == ControlFlowBranchSemantics.Throw));
                     Debug.Assert((next.Destination == null) ==
-                                 (next.Kind == BasicBlock.BranchKind.ProgramTermination ||
-                                  next.Kind == BasicBlock.BranchKind.Throw ||
-                                  next.Kind == BasicBlock.BranchKind.ReThrow ||
-                                  next.Kind == BasicBlock.BranchKind.Error ||
-                                  next.Kind == BasicBlock.BranchKind.StructuredExceptionHandling));
+                                 (next.Kind == ControlFlowBranchSemantics.ProgramTermination ||
+                                  next.Kind == ControlFlowBranchSemantics.Throw ||
+                                  next.Kind == ControlFlowBranchSemantics.Rethrow ||
+                                  next.Kind == ControlFlowBranchSemantics.Error ||
+                                  next.Kind == ControlFlowBranchSemantics.StructuredExceptionHandling));
 
 #if DEBUG
-                    if (next.Kind == BasicBlock.BranchKind.StructuredExceptionHandling)
+                    if (next.Kind == ControlFlowBranchSemantics.StructuredExceptionHandling)
                     {
                         RegionBuilder currentRegion = regionMap[block];
-                        Debug.Assert(currentRegion.Kind == ControlFlowGraph.RegionKind.Filter ||
-                                     currentRegion.Kind == ControlFlowGraph.RegionKind.Finally);
+                        Debug.Assert(currentRegion.Kind == ControlFlowRegionKind.Filter ||
+                                     currentRegion.Kind == ControlFlowRegionKind.Finally);
                         Debug.Assert(block == currentRegion.LastBlock);
                     }
 #endif
@@ -700,17 +809,17 @@ namespace Microsoft.CodeAnalysis.Operations
                             Debug.Assert(!currentRegion.HasRegions);
 
                             // Remove Try/Finally if Finally is empty
-                            if (currentRegion.Kind == ControlFlowGraph.RegionKind.Finally &&
-                                next.Destination == null && next.Kind == BasicBlock.BranchKind.StructuredExceptionHandling &&
-                                block.Predecessors.IsEmpty)
+                            if (currentRegion.Kind == ControlFlowRegionKind.Finally &&
+                                next.Destination == null && next.Kind == ControlFlowBranchSemantics.StructuredExceptionHandling &&
+                                block.Predecessors.Count == 0)
                             {
                                 // Nothing useful is happening in this finally, let's remove it
                                 RegionBuilder tryAndFinally = currentRegion.Enclosing;
-                                Debug.Assert(tryAndFinally.Kind == ControlFlowGraph.RegionKind.TryAndFinally);
+                                Debug.Assert(tryAndFinally.Kind == ControlFlowRegionKind.TryAndFinally);
                                 Debug.Assert(tryAndFinally.Regions.Count == 2);
 
                                 RegionBuilder @try = tryAndFinally.Regions.First();
-                                Debug.Assert(@try.Kind == ControlFlowGraph.RegionKind.Try);
+                                Debug.Assert(@try.Kind == ControlFlowRegionKind.Try);
                                 Debug.Assert(tryAndFinally.Regions.Last() == currentRegion);
 
                                 // If .try region has locals or methods, let's convert it to .locals, otherwise drop it
@@ -721,7 +830,7 @@ namespace Microsoft.CodeAnalysis.Operations
                                 }
                                 else
                                 {
-                                    @try.Kind = ControlFlowGraph.RegionKind.Locals;
+                                    @try.Kind = ControlFlowRegionKind.LocalLifetime;
                                     i--; // restart at the block that was following the tryAndFinally
                                 }
 
@@ -740,12 +849,12 @@ namespace Microsoft.CodeAnalysis.Operations
                             continue;
                         }
 
-                        if (next.Kind == BasicBlock.BranchKind.StructuredExceptionHandling)
+                        if (next.Kind == ControlFlowBranchSemantics.StructuredExceptionHandling)
                         {
                             Debug.Assert(block.InternalNext.Value == null);
                             Debug.Assert(next.Destination == null);
 
-                            ImmutableHashSet<BasicBlock> predecessors = block.Predecessors;
+                            ISet<BasicBlock> predecessors = block.Predecessors;
 
                             // It is safe to drop an unreachable empty basic block
                             if (predecessors.Count > 0)
@@ -775,14 +884,14 @@ namespace Microsoft.CodeAnalysis.Operations
                         }
                         else
                         {
-                            Debug.Assert(next.Kind == BasicBlock.BranchKind.Regular ||
-                                         next.Kind == BasicBlock.BranchKind.Return ||
-                                         next.Kind == BasicBlock.BranchKind.Throw ||
-                                         next.Kind == BasicBlock.BranchKind.ReThrow ||
-                                         next.Kind == BasicBlock.BranchKind.Error ||
-                                         next.Kind == BasicBlock.BranchKind.ProgramTermination);
+                            Debug.Assert(next.Kind == ControlFlowBranchSemantics.Regular ||
+                                         next.Kind == ControlFlowBranchSemantics.Return ||
+                                         next.Kind == ControlFlowBranchSemantics.Throw ||
+                                         next.Kind == ControlFlowBranchSemantics.Rethrow ||
+                                         next.Kind == ControlFlowBranchSemantics.Error ||
+                                         next.Kind == ControlFlowBranchSemantics.ProgramTermination);
 
-                            ImmutableHashSet<BasicBlock> predecessors = block.Predecessors;
+                            ISet<BasicBlock> predecessors = block.Predecessors;
                             IOperation value = block.InternalNext.Value;
 
                             RegionBuilder implicitEntryRegion = tryGetImplicitEntryRegion(block, currentRegion);
@@ -805,7 +914,7 @@ namespace Microsoft.CodeAnalysis.Operations
                                 BasicBlock predecessor;
                                 int predecessorsCount = predecessors.Count;
 
-                                if (predecessorsCount == 0 && next.Kind == BasicBlock.BranchKind.Return)
+                                if (predecessorsCount == 0 && next.Kind == ControlFlowBranchSemantics.Return)
                                 {
                                     // Let's drop an unreachable compiler generated return that VB optimistically adds at the end of a method body
                                     if (next.Destination.Kind != BasicBlockKind.Exit ||
@@ -875,19 +984,19 @@ namespace Microsoft.CodeAnalysis.Operations
                     }
                     else
                     {
-                        if (next.Kind == BasicBlock.BranchKind.StructuredExceptionHandling)
+                        if (next.Kind == ControlFlowBranchSemantics.StructuredExceptionHandling)
                         {
                             continue;
                         }
 
-                        Debug.Assert(next.Kind == BasicBlock.BranchKind.Regular ||
-                                     next.Kind == BasicBlock.BranchKind.Return ||
-                                     next.Kind == BasicBlock.BranchKind.Throw ||
-                                     next.Kind == BasicBlock.BranchKind.ReThrow ||
-                                     next.Kind == BasicBlock.BranchKind.Error ||
-                                     next.Kind == BasicBlock.BranchKind.ProgramTermination);
+                        Debug.Assert(next.Kind == ControlFlowBranchSemantics.Regular ||
+                                     next.Kind == ControlFlowBranchSemantics.Return ||
+                                     next.Kind == ControlFlowBranchSemantics.Throw ||
+                                     next.Kind == ControlFlowBranchSemantics.Rethrow ||
+                                     next.Kind == ControlFlowBranchSemantics.Error ||
+                                     next.Kind == ControlFlowBranchSemantics.ProgramTermination);
 
-                        ImmutableHashSet<BasicBlock> predecessors = block.Predecessors;
+                        ISet<BasicBlock> predecessors = block.Predecessors;
 
                         if (predecessors.Count != 1)
                         {
@@ -956,9 +1065,9 @@ namespace Microsoft.CodeAnalysis.Operations
 
                     switch (currentRegion.Kind)
                     {
-                        case ControlFlowGraph.RegionKind.Filter:
-                        case ControlFlowGraph.RegionKind.Catch:
-                        case ControlFlowGraph.RegionKind.Finally:
+                        case ControlFlowRegionKind.Filter:
+                        case ControlFlowRegionKind.Catch:
+                        case ControlFlowRegionKind.Finally:
                             return currentRegion;
                     }
 
@@ -1023,7 +1132,7 @@ namespace Microsoft.CodeAnalysis.Operations
             {
                 predecessorBranch.Destination = successorBranch.Destination;
                 successorBranch.Destination?.AddPredecessor(predecessor);
-                Debug.Assert(predecessorBranch.Kind == BasicBlock.BranchKind.Regular);
+                Debug.Assert(predecessorBranch.Kind == ControlFlowBranchSemantics.Regular);
                 predecessorBranch.Kind = successorBranch.Kind;
             }
 
@@ -1152,9 +1261,9 @@ namespace Microsoft.CodeAnalysis.Operations
             {
                 if (branch.Destination != null && unresolved.Contains(branch.Destination))
                 {
-                    Debug.Assert(branch.Kind == BasicBlock.BranchKind.Regular);
+                    Debug.Assert(branch.Kind == ControlFlowBranchSemantics.Regular);
                     branch.Destination = null;
-                    branch.Kind = BasicBlock.BranchKind.Error;
+                    branch.Kind = ControlFlowBranchSemantics.Error;
                 }
             }
         }
@@ -1256,7 +1365,7 @@ namespace Microsoft.CodeAnalysis.Operations
             _currentBasicBlock = null;
         }
 
-        private static void LinkBlocks(BasicBlock prevBlock, BasicBlock nextBlock, BasicBlock.BranchKind branchKind = BasicBlock.BranchKind.Regular)
+        private static void LinkBlocks(BasicBlock prevBlock, BasicBlock nextBlock, ControlFlowBranchSemantics branchKind = ControlFlowBranchSemantics.Regular)
         {
             Debug.Assert(prevBlock.InternalNext.Value == null);
             Debug.Assert(prevBlock.InternalNext.Branch.Destination == null);
@@ -1269,7 +1378,7 @@ namespace Microsoft.CodeAnalysis.Operations
         {
             Debug.Assert(_currentStatement == operation);
 
-            EnterRegion(new RegionBuilder(ControlFlowGraph.RegionKind.Locals, locals: operation.Locals));
+            EnterRegion(new RegionBuilder(ControlFlowRegionKind.LocalLifetime, locals: operation.Locals));
             VisitStatements(operation.Operations);
             LeaveRegion();
 
@@ -1296,7 +1405,7 @@ namespace Microsoft.CodeAnalysis.Operations
         {
             Debug.Assert(_currentStatement == operation);
 
-            EnterRegion(new RegionBuilder(ControlFlowGraph.RegionKind.Locals, locals: operation.Locals));
+            EnterRegion(new RegionBuilder(ControlFlowRegionKind.LocalLifetime, locals: operation.Locals));
 
             if (operation.Initializer != null)
             {
@@ -1337,7 +1446,7 @@ namespace Microsoft.CodeAnalysis.Operations
                     _currentBasicBlock = null;
 
                     // Generate a special region for unreachable erroneous expression body.
-                    EnterRegion(new RegionBuilder(ControlFlowGraph.RegionKind.ErroneousBody));
+                    EnterRegion(new RegionBuilder(ControlFlowRegionKind.ErroneousBody));
                     VisitStatement(expressionBody);
                     LeaveRegion();
                 }
@@ -1450,7 +1559,7 @@ namespace Microsoft.CodeAnalysis.Operations
 
             int captureId;
             if (rewritten.Kind != OperationKind.FlowCaptureReference ||
-                saveAvailableCaptureId > (captureId = ((IFlowCaptureReferenceOperation)rewritten).Id))
+                saveAvailableCaptureId > (captureId = ((IFlowCaptureReferenceOperation)rewritten).Id.Id))
             {
                 captureId = _availableCaptureId++;
                 AddStatement(new FlowCapture(captureId, operation.Syntax, rewritten));
@@ -1462,7 +1571,7 @@ namespace Microsoft.CodeAnalysis.Operations
         private void CaptureResultIfNotAlready(SyntaxNode syntax, int captureId, IOperation result)
         {
             if (result.Kind != OperationKind.FlowCaptureReference ||
-                captureId != ((IFlowCaptureReferenceOperation)result).Id)
+                captureId != ((IFlowCaptureReferenceOperation)result).Id.Id)
             {
                 AddStatement(new FlowCapture(captureId, syntax, result));
             }
@@ -2332,7 +2441,7 @@ oneMoreTime:
 
         private static BasicBlock.Branch RegularBranch(BasicBlock destination)
         {
-            return new BasicBlock.Branch() { Destination = destination, Kind = BasicBlock.BranchKind.Regular };
+            return new BasicBlock.Branch() { Destination = destination, Kind = ControlFlowBranchSemantics.Regular };
         }
 
         private static IOperation MakeInvalidOperation(ITypeSymbol type, IOperation child)
@@ -2554,7 +2663,7 @@ oneMoreTime:
         public override IOperation VisitWhileLoop(IWhileLoopOperation operation, int? captureIdForResult)
         {
             Debug.Assert(_currentStatement == operation);
-            var locals = new RegionBuilder(ControlFlowGraph.RegionKind.Locals, locals: operation.Locals);
+            var locals = new RegionBuilder(ControlFlowRegionKind.LocalLifetime, locals: operation.Locals);
 
             var @continue = GetLabeledOrNewBlock(operation.ContinueLabel);
             var @break = GetLabeledOrNewBlock(operation.ExitLabel);
@@ -2644,16 +2753,16 @@ oneMoreTime:
             bool haveFinally = operation.Finally != null;
             if (haveFinally)
             {
-                tryAndFinallyRegion = new RegionBuilder(ControlFlowGraph.RegionKind.TryAndFinally);
+                tryAndFinallyRegion = new RegionBuilder(ControlFlowRegionKind.TryAndFinally);
                 EnterRegion(tryAndFinallyRegion);
-                EnterRegion(new RegionBuilder(ControlFlowGraph.RegionKind.Try));
+                EnterRegion(new RegionBuilder(ControlFlowRegionKind.Try));
             }
 
             bool haveCatches = !operation.Catches.IsEmpty;
             if (haveCatches)
             {
-                EnterRegion(new RegionBuilder(ControlFlowGraph.RegionKind.TryAndCatch));
-                EnterRegion(new RegionBuilder(ControlFlowGraph.RegionKind.Try));
+                EnterRegion(new RegionBuilder(ControlFlowRegionKind.TryAndCatch));
+                EnterRegion(new RegionBuilder(ControlFlowRegionKind.Try));
             }
 
             VisitStatement(operation.Body);
@@ -2661,7 +2770,7 @@ oneMoreTime:
 
             if (haveCatches)
             {
-                Debug.Assert(_currentRegion.Kind == ControlFlowGraph.RegionKind.Try);
+                Debug.Assert(_currentRegion.Kind == ControlFlowRegionKind.Try);
                 LeaveRegion();
 
                 foreach (ICatchClauseOperation catchClause in operation.Catches)
@@ -2675,10 +2784,10 @@ oneMoreTime:
 
                     if (haveFilter)
                     {
-                        filterAndHandlerRegion = new RegionBuilder(ControlFlowGraph.RegionKind.FilterAndHandler, catchClause.ExceptionType, catchClause.Locals);
+                        filterAndHandlerRegion = new RegionBuilder(ControlFlowRegionKind.FilterAndHandler, catchClause.ExceptionType, catchClause.Locals);
                         EnterRegion(filterAndHandlerRegion);
 
-                        var filterRegion = new RegionBuilder(ControlFlowGraph.RegionKind.Filter, catchClause.ExceptionType);
+                        var filterRegion = new RegionBuilder(ControlFlowRegionKind.Filter, catchClause.ExceptionType);
                         EnterRegion(filterRegion);
 
                         AddExceptionStore(catchClause.ExceptionType, exceptionDeclarationOrExpression);
@@ -2686,14 +2795,14 @@ oneMoreTime:
                         VisitConditionalBranch(filter, ref catchBlock, sense: true);
                         var continueDispatchBlock = new BasicBlock(BasicBlockKind.Block);
                         AppendNewBlock(continueDispatchBlock);
-                        continueDispatchBlock.InternalNext.Branch.Kind = BasicBlock.BranchKind.StructuredExceptionHandling;
+                        continueDispatchBlock.InternalNext.Branch.Kind = ControlFlowBranchSemantics.StructuredExceptionHandling;
                         LeaveRegion();
 
                         Debug.Assert(filterRegion.LastBlock.InternalNext.Branch.Destination == null);
-                        Debug.Assert(filterRegion.FirstBlock.Predecessors.IsEmpty);
+                        Debug.Assert(filterRegion.FirstBlock.Predecessors.Count == 0);
                     }
 
-                    var handlerRegion = new RegionBuilder(ControlFlowGraph.RegionKind.Catch, catchClause.ExceptionType,
+                    var handlerRegion = new RegionBuilder(ControlFlowRegionKind.Catch, catchClause.ExceptionType,
                                                           haveFilter ? default : catchClause.Locals);
                     EnterRegion(handlerRegion);
 
@@ -2719,31 +2828,31 @@ oneMoreTime:
                     }
                     else
                     {
-                        Debug.Assert(handlerRegion.FirstBlock.Predecessors.IsEmpty);
+                        Debug.Assert(handlerRegion.FirstBlock.Predecessors.Count == 0);
                     }
                 }
 
-                Debug.Assert(_currentRegion.Kind == ControlFlowGraph.RegionKind.TryAndCatch);
+                Debug.Assert(_currentRegion.Kind == ControlFlowRegionKind.TryAndCatch);
                 LeaveRegion();
             }
 
             if (haveFinally)
             {
-                Debug.Assert(_currentRegion.Kind == ControlFlowGraph.RegionKind.Try);
+                Debug.Assert(_currentRegion.Kind == ControlFlowRegionKind.Try);
                 LeaveRegion();
 
-                var finallyRegion = new RegionBuilder(ControlFlowGraph.RegionKind.Finally);
+                var finallyRegion = new RegionBuilder(ControlFlowRegionKind.Finally);
                 EnterRegion(finallyRegion);
                 AppendNewBlock(new BasicBlock(BasicBlockKind.Block));
                 VisitStatement(operation.Finally);
                 var continueDispatchBlock = new BasicBlock(BasicBlockKind.Block);
                 AppendNewBlock(continueDispatchBlock);
-                continueDispatchBlock.InternalNext.Branch.Kind = BasicBlock.BranchKind.StructuredExceptionHandling;
+                continueDispatchBlock.InternalNext.Branch.Kind = ControlFlowBranchSemantics.StructuredExceptionHandling;
                 LeaveRegion();
                 Debug.Assert(_currentRegion == tryAndFinallyRegion);
                 LeaveRegion();
                 Debug.Assert(finallyRegion.LastBlock.InternalNext.Branch.Destination == null);
-                Debug.Assert(finallyRegion.FirstBlock.Predecessors.IsEmpty);
+                Debug.Assert(finallyRegion.FirstBlock.Predecessors.Count == 0);
             }
 
             AppendNewBlock(afterTryCatchFinally, linkToPrevious: false);
@@ -2808,7 +2917,7 @@ oneMoreTime:
                 case OperationKind.YieldBreak:
                 case OperationKind.Return:
                     BasicBlock current = CurrentBasicBlock;
-                    LinkBlocks(CurrentBasicBlock, _exit, returnedValue is null ? BasicBlock.BranchKind.Regular : BasicBlock.BranchKind.Return);
+                    LinkBlocks(CurrentBasicBlock, _exit, returnedValue is null ? ControlFlowBranchSemantics.Regular : ControlFlowBranchSemantics.Return);
                     current.InternalNext.Value = Operation.SetParentOperation(returnedValue, null);
                     _currentBasicBlock = null;
                     break;
@@ -2889,9 +2998,9 @@ oneMoreTime:
             AppendNewBlock(new BasicBlock(BasicBlockKind.Block), linkToPrevious: false);
             Debug.Assert(current.InternalNext.Value == null);
             Debug.Assert(current.InternalNext.Branch.Destination == null);
-            Debug.Assert(current.InternalNext.Branch.Kind == BasicBlock.BranchKind.None);
+            Debug.Assert(current.InternalNext.Branch.Kind == ControlFlowBranchSemantics.None);
             current.InternalNext.Value = exception;
-            current.InternalNext.Branch.Kind = operation.Exception == null ? BasicBlock.BranchKind.ReThrow : BasicBlock.BranchKind.Throw;
+            current.InternalNext.Branch.Kind = operation.Exception == null ? ControlFlowBranchSemantics.Rethrow : ControlFlowBranchSemantics.Throw;
 
             if (isStatement)
             {
@@ -2910,7 +3019,7 @@ oneMoreTime:
             Compilation compilation = ((Operation)operation).SemanticModel.Compilation;
             ITypeSymbol iDisposable = compilation.GetSpecialType(SpecialType.System_IDisposable);
 
-            EnterRegion(new RegionBuilder(ControlFlowGraph.RegionKind.Locals, locals: operation.Locals));
+            EnterRegion(new RegionBuilder(ControlFlowRegionKind.LocalLifetime, locals: operation.Locals));
 
             if (operation.Resources.Kind == OperationKind.VariableDeclarationGroup)
             {
@@ -3008,19 +3117,19 @@ oneMoreTime:
 
                 var afterTryFinally = new BasicBlock(BasicBlockKind.Block);
 
-                EnterRegion(new RegionBuilder(ControlFlowGraph.RegionKind.TryAndFinally));
-                EnterRegion(new RegionBuilder(ControlFlowGraph.RegionKind.Try));
+                EnterRegion(new RegionBuilder(ControlFlowRegionKind.TryAndFinally));
+                EnterRegion(new RegionBuilder(ControlFlowRegionKind.Try));
 
                 processQueue(resourceQueueOpt);
 
                 LinkBlocks(CurrentBasicBlock, afterTryFinally);
 
-                Debug.Assert(_currentRegion.Kind == ControlFlowGraph.RegionKind.Try);
+                Debug.Assert(_currentRegion.Kind == ControlFlowRegionKind.Try);
                 LeaveRegion();
 
                 AddDisposingFinally(resource, knownToImplementIDisposable: true, iDisposable, compilation);
 
-                Debug.Assert(_currentRegion.Kind == ControlFlowGraph.RegionKind.TryAndFinally);
+                Debug.Assert(_currentRegion.Kind == ControlFlowRegionKind.TryAndFinally);
                 LeaveRegion();
 
                 AppendNewBlock(afterTryFinally, linkToPrevious: false);
@@ -3029,12 +3138,12 @@ oneMoreTime:
 
         private void AddDisposingFinally(IOperation resource, bool knownToImplementIDisposable, ITypeSymbol iDisposable, Compilation compilation)
         {
-            Debug.Assert(_currentRegion.Kind == ControlFlowGraph.RegionKind.TryAndFinally);
+            Debug.Assert(_currentRegion.Kind == ControlFlowRegionKind.TryAndFinally);
 
             var endOfFinally = new BasicBlock(BasicBlockKind.Block);
-            endOfFinally.InternalNext.Branch.Kind = BasicBlock.BranchKind.StructuredExceptionHandling;
+            endOfFinally.InternalNext.Branch.Kind = ControlFlowBranchSemantics.StructuredExceptionHandling;
 
-            EnterRegion(new RegionBuilder(ControlFlowGraph.RegionKind.Finally));
+            EnterRegion(new RegionBuilder(ControlFlowRegionKind.Finally));
             AppendNewBlock(new BasicBlock(BasicBlockKind.Block));
 
             if (!knownToImplementIDisposable)
@@ -3177,8 +3286,8 @@ oneMoreTime:
 
             var afterTryFinally = new BasicBlock(BasicBlockKind.Block);
 
-            EnterRegion(new RegionBuilder(ControlFlowGraph.RegionKind.TryAndFinally));
-            EnterRegion(new RegionBuilder(ControlFlowGraph.RegionKind.Try));
+            EnterRegion(new RegionBuilder(ControlFlowRegionKind.TryAndFinally));
+            EnterRegion(new RegionBuilder(ControlFlowRegionKind.Try));
 
             IOperation lockTaken = null;
             if (!legacyMode)
@@ -3211,13 +3320,13 @@ oneMoreTime:
 
             LinkBlocks(CurrentBasicBlock, afterTryFinally);
 
-            Debug.Assert(_currentRegion.Kind == ControlFlowGraph.RegionKind.Try);
+            Debug.Assert(_currentRegion.Kind == ControlFlowRegionKind.Try);
             LeaveRegion();
 
             var endOfFinally = new BasicBlock(BasicBlockKind.Block);
-            endOfFinally.InternalNext.Branch.Kind = BasicBlock.BranchKind.StructuredExceptionHandling;
+            endOfFinally.InternalNext.Branch.Kind = ControlFlowBranchSemantics.StructuredExceptionHandling;
 
-            EnterRegion(new RegionBuilder(ControlFlowGraph.RegionKind.Finally));
+            EnterRegion(new RegionBuilder(ControlFlowRegionKind.Finally));
             AppendNewBlock(new BasicBlock(BasicBlockKind.Block));
 
             if (!legacyMode)
@@ -3256,7 +3365,7 @@ oneMoreTime:
             AppendNewBlock(endOfFinally);
 
             LeaveRegion();
-            Debug.Assert(_currentRegion.Kind == ControlFlowGraph.RegionKind.TryAndFinally);
+            Debug.Assert(_currentRegion.Kind == ControlFlowRegionKind.TryAndFinally);
             LeaveRegion();
 
             AppendNewBlock(afterTryFinally, linkToPrevious: false);
@@ -3290,7 +3399,7 @@ oneMoreTime:
                 {
                     if (op is ILocalReferenceOperation l && l.Local.Equals(local))
                     {
-                        EnterRegion(new RegionBuilder(ControlFlowGraph.RegionKind.Locals, locals: ImmutableArray.Create(local)));
+                        EnterRegion(new RegionBuilder(ControlFlowRegionKind.LocalLifetime, locals: ImmutableArray.Create(local)));
                         createdRegionForCollection = true;
                         break;
                     }
@@ -3306,8 +3415,8 @@ oneMoreTime:
 
             if (info.NeedsDispose)
             {
-                EnterRegion(new RegionBuilder(ControlFlowGraph.RegionKind.TryAndFinally));
-                EnterRegion(new RegionBuilder(ControlFlowGraph.RegionKind.Try));
+                EnterRegion(new RegionBuilder(ControlFlowRegionKind.TryAndFinally));
+                EnterRegion(new RegionBuilder(ControlFlowRegionKind.Try));
             }
 
             var @continue = GetLabeledOrNewBlock(operation.ContinueLabel);
@@ -3319,7 +3428,7 @@ oneMoreTime:
             LinkBlocks(CurrentBasicBlock, (condition, JumpIfTrue: false, RegularBranch(@break)));
             _currentBasicBlock = null;
 
-            EnterRegion(new RegionBuilder(ControlFlowGraph.RegionKind.Locals, locals: operation.Locals));
+            EnterRegion(new RegionBuilder(ControlFlowRegionKind.LocalLifetime, locals: operation.Locals));
 
             AddStatement(getLoopControlVariableAssignment(applyConversion(info.CurrentConversion, getCurrent(OperationCloner.CloneOperation(enumerator)), info.ElementType)));
             VisitStatement(operation.Body);
@@ -3334,7 +3443,7 @@ oneMoreTime:
                 var afterTryFinally = new BasicBlock(BasicBlockKind.Block);
                 LinkBlocks(CurrentBasicBlock, afterTryFinally);
 
-                Debug.Assert(_currentRegion.Kind == ControlFlowGraph.RegionKind.Try);
+                Debug.Assert(_currentRegion.Kind == ControlFlowRegionKind.Try);
                 LeaveRegion();
 
                 Compilation compilation = ((Operation)operation).SemanticModel.Compilation;
@@ -3343,7 +3452,7 @@ oneMoreTime:
                                     compilation.GetSpecialType(SpecialType.System_IDisposable),
                                     compilation);
 
-                Debug.Assert(_currentRegion.Kind == ControlFlowGraph.RegionKind.TryAndFinally);
+                Debug.Assert(_currentRegion.Kind == ControlFlowRegionKind.TryAndFinally);
                 LeaveRegion();
 
                 AppendNewBlock(afterTryFinally, linkToPrevious: false);
@@ -3491,7 +3600,7 @@ oneMoreTime:
             BasicBlock checkConditionBlock = new BasicBlock(BasicBlockKind.Block);
             BasicBlock bodyBlock = new BasicBlock(BasicBlockKind.Block);
 
-            EnterRegion(new RegionBuilder(ControlFlowGraph.RegionKind.Locals, locals: locals));
+            EnterRegion(new RegionBuilder(ControlFlowRegionKind.LocalLifetime, locals: locals));
 
             // Handle loop initialization
             int limitValueId = -1;
@@ -4189,7 +4298,7 @@ oneMoreTime:
             int expressionCaptureId = VisitAndCapture(operation.Value);
 
             ImmutableArray<ILocalSymbol> locals = getLocals();
-            EnterRegion(new RegionBuilder(ControlFlowGraph.RegionKind.Locals, locals: locals));
+            EnterRegion(new RegionBuilder(ControlFlowRegionKind.LocalLifetime, locals: locals));
 
             BasicBlock defaultBody = null; // Adjusted in handleSection
             BasicBlock @break = GetLabeledOrNewBlock(operation.ExitLabel);
@@ -4416,8 +4525,8 @@ oneMoreTime:
             AppendNewBlock(new BasicBlock(BasicBlockKind.Block), linkToPrevious: false);
             Debug.Assert(current.InternalNext.Value == null);
             Debug.Assert(current.InternalNext.Branch.Destination == null);
-            Debug.Assert(current.InternalNext.Branch.Kind == BasicBlock.BranchKind.None);
-            current.InternalNext.Branch.Kind = BasicBlock.BranchKind.ProgramTermination;
+            Debug.Assert(current.InternalNext.Branch.Kind == ControlFlowBranchSemantics.None);
+            current.InternalNext.Branch.Kind = ControlFlowBranchSemantics.ProgramTermination;
             return null;
         }
 
@@ -4443,7 +4552,7 @@ oneMoreTime:
             // }
             // break:
 
-            EnterRegion(new RegionBuilder(ControlFlowGraph.RegionKind.Locals, locals: operation.Locals));
+            EnterRegion(new RegionBuilder(ControlFlowRegionKind.LocalLifetime, locals: operation.Locals));
 
             ImmutableArray<IOperation> initialization = operation.Before;
 
@@ -4459,7 +4568,7 @@ oneMoreTime:
             var start = new BasicBlock(BasicBlockKind.Block);
             AppendNewBlock(start);
 
-            EnterRegion(new RegionBuilder(ControlFlowGraph.RegionKind.Locals, locals: operation.ConditionLocals));
+            EnterRegion(new RegionBuilder(ControlFlowRegionKind.LocalLifetime, locals: operation.ConditionLocals));
 
             var @break = GetLabeledOrNewBlock(operation.ExitLabel);
             if (operation.Condition != null)
@@ -4487,7 +4596,7 @@ oneMoreTime:
         internal override IOperation VisitFixed(IFixedOperation operation, int? captureIdForResult)
         {
             Debug.Assert(_currentStatement == operation);
-            EnterRegion(new RegionBuilder(ControlFlowGraph.RegionKind.Locals, locals: operation.Locals));
+            EnterRegion(new RegionBuilder(ControlFlowRegionKind.LocalLifetime, locals: operation.Locals));
 
             HandleVariableDeclarations(operation.Variables);
 
@@ -4542,7 +4651,7 @@ oneMoreTime:
                 LinkBlocks(CurrentBasicBlock, (initializationSemaphore, JumpIfTrue: false, RegularBranch(afterInitialization)));
 
                 _currentBasicBlock = null;
-                EnterRegion(new RegionBuilder(ControlFlowGraph.RegionKind.StaticLocalInitializer, 
+                EnterRegion(new RegionBuilder(ControlFlowRegionKind.StaticLocalInitializer,
                                               allowMethods: false)); // Lambdas shouldn't be associated with this region
             }
 
@@ -5456,7 +5565,7 @@ oneMoreTime:
 
         private void VisitInitializer(IOperation rewrittenTarget, ISymbolInitializerOperation initializer)
         {
-            EnterRegion(new RegionBuilder(ControlFlowGraph.RegionKind.Locals, locals: initializer.Locals));
+            EnterRegion(new RegionBuilder(ControlFlowRegionKind.LocalLifetime, locals: initializer.Locals));
 
             var assignment = new SimpleAssignmentExpression(rewrittenTarget, isRef: false, Visit(initializer.Value), semanticModel: null,
                     initializer.Syntax, rewrittenTarget.Type, constantValue: default, isImplicit: true);

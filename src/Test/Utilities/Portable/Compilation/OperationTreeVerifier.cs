@@ -8,6 +8,7 @@ using System.Globalization;
 using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
+using Microsoft.CodeAnalysis.FlowAnalysis;
 using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.Test.Extensions;
 using Roslyn.Test.Utilities;
@@ -1772,7 +1773,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             LogCommonPropertiesAndNewLine(operation);
         }
 
-        public override void VisitStaticLocalInitialzationSemaphore(IStaticLocalInitializationSemaphoreOperation operation)
+        public override void VisitStaticLocalInitializationSemaphore(IStaticLocalInitializationSemaphoreOperation operation)
         {
             LogString(nameof(IStaticLocalInitializationSemaphoreOperation));
             LogSymbol(operation.Local, " (Local Symbol");

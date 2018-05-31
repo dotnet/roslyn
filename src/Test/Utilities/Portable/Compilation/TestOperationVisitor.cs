@@ -6,6 +6,7 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.FlowAnalysis;
 using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.VisualBasic;
@@ -1265,7 +1266,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             Assert.Empty(operation.Children);
         }
 
-        public override void VisitStaticLocalInitialzationSemaphore(IStaticLocalInitializationSemaphoreOperation operation)
+        public override void VisitStaticLocalInitializationSemaphore(IStaticLocalInitializationSemaphoreOperation operation)
         {
             Assert.Equal(OperationKind.StaticLocalInitializationSemaphore, operation.Kind);
             Assert.True(operation.IsImplicit);

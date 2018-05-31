@@ -1,6 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-namespace Microsoft.CodeAnalysis.Operations
+namespace Microsoft.CodeAnalysis.FlowAnalysis
 {
     /// <summary>
     /// Represents that an intermediate result is being captured.
@@ -12,7 +12,7 @@ namespace Microsoft.CodeAnalysis.Operations
         /// <summary>
         /// An id used to match references to the same intermediate result.
         /// </summary>
-        int Id { get; }
+        CaptureId Id { get; }
 
         /// <summary>
         /// Value to be captured.

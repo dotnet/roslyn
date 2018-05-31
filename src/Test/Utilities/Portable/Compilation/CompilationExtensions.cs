@@ -12,6 +12,7 @@ using System.Text.RegularExpressions;
 using System.Threading;
 using Microsoft.CodeAnalysis.CodeGen;
 using Microsoft.CodeAnalysis.Emit;
+using Microsoft.CodeAnalysis.FlowAnalysis;
 using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Test.Extensions;
@@ -347,7 +348,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                         //                      Going to disable verification for scripts for now so that other scenarios could be verified.
                         if (blockOperation.Syntax.SyntaxTree.Options.Kind != SourceCodeKind.Script)
                         {
-                            ControlFlowGraphVerifier.GetFlowGraph(compilation, Operations.ControlFlowGraphBuilder.Create(blockOperation));
+                            ControlFlowGraphVerifier.GetFlowGraph(compilation, ControlFlowGraphBuilder.Create(blockOperation));
                         }
 
                         break;
@@ -356,7 +357,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                     case IConstructorBodyOperation constructorBody:
                     case IFieldInitializerOperation fieldInitializerOperation:
                     case IPropertyInitializerOperation propertyInitializerOperation:
-                        ControlFlowGraphVerifier.GetFlowGraph(compilation, Operations.ControlFlowGraphBuilder.Create(root));
+                        ControlFlowGraphVerifier.GetFlowGraph(compilation, ControlFlowGraphBuilder.Create(root));
                         break;
 
                     case IParameterInitializerOperation parameterInitializerOperation:
@@ -366,7 +367,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                         //                      for example.
                         if ((parameterInitializerOperation.Parameter.ContainingSymbol as IMethodSymbol)?.MethodKind != MethodKind.LocalFunction)
                         {
-                            ControlFlowGraphVerifier.GetFlowGraph(compilation, Operations.ControlFlowGraphBuilder.Create(root));
+                            ControlFlowGraphVerifier.GetFlowGraph(compilation, ControlFlowGraphBuilder.Create(root));
                         }
                         break;
                 }

@@ -2,6 +2,7 @@
 
 using System;
 using System.Diagnostics;
+using Microsoft.CodeAnalysis.FlowAnalysis;
 
 namespace Microsoft.CodeAnalysis.Operations
 {
@@ -544,7 +545,7 @@ namespace Microsoft.CodeAnalysis.Operations
             DefaultVisit(operation);
         }
 
-        public virtual void VisitStaticLocalInitialzationSemaphore(IStaticLocalInitializationSemaphoreOperation operation)
+        public virtual void VisitStaticLocalInitializationSemaphore(IStaticLocalInitializationSemaphoreOperation operation)
         {
             DefaultVisit(operation);
         }
