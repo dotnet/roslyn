@@ -42,6 +42,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.E
             var completionService = document.GetLanguageService<CompletionService>();
             if (!item.Properties.TryGetProperty<RoslynCompletionItem>(CompletionItemSource.RoslynItem, out var roslynItem))
             {
+                // This isn't an item we provided. Let the editor handle it normally.
                 return new EditorCompletion.CommitResult(isHandled: false, EditorCompletion.CommitBehavior.None);
             }
 
