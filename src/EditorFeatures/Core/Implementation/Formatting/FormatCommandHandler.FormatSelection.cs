@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
@@ -21,10 +22,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Formatting
 
         public bool ExecuteCommand(FormatSelectionCommandArgs args, CommandExecutionContext context)
         {
-            return TryExecuteCommand(args, context);
+            return TryExecuteCommand(args, context).Result;
         }
 
-        private bool TryExecuteCommand(FormatSelectionCommandArgs args, CommandExecutionContext context)
+        private async Task<bool> TryExecuteCommand(FormatSelectionCommandArgs args, CommandExecutionContext context)
         {
             if (!args.SubjectBuffer.CanApplyChangeDocumentToWorkspace())
             {
@@ -56,7 +57,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Formatting
 
                 var formattingSpan = selection[0].Span.ToTextSpan();
 
-                Format(args.TextView, document, formattingSpan, context.WaitContext.UserCancellationToken).Wait();
+                var formatChanges = await GetFormatChanges(args.TextView, document, formattingSpan, context.WaitContext.UserCancellationToken).ConfigureAwait(true);
+                if (formatChanges != null && formatChanges.Count > 0)
+                {
+                    ApplyChanges(document, formatChanges, selectionOpt: null, context.WaitContext.UserCancellationToken);
+                }
 
                 // make behavior same as dev12.
                 // make sure we set selection back and set caret position at the end of selection

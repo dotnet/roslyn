@@ -54,19 +54,17 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Formatting
             _editorOperationsFactoryService = editorOperationsFactoryService;
         }
 
-        private async Task Format(ITextView textView, Document document, TextSpan? selectionOpt, CancellationToken cancellationToken)
+        private Task<IList<TextChange>> GetFormatChanges(ITextView textView, Document document, TextSpan? selectionOpt, CancellationToken cancellationToken)
         {
             var formattingService = document.GetLanguageService<IEditorFormattingService>();
+            if (formattingService == null)
+            {
+                return null;
+            }
 
             using (Logger.LogBlock(FunctionId.CommandHandler_FormatCommand, KeyValueLogMessage.Create(LogType.UserAction, m => m["Span"] = selectionOpt?.Length ?? -1), cancellationToken))
-            using (var transaction = new CaretPreservingEditTransaction(EditorFeaturesResources.Formatting, textView, _undoHistoryRegistry, _editorOperationsFactoryService))
             {
-                var changes = await formattingService.GetFormattingChangesAsync(document, selectionOpt, cancellationToken).ConfigureAwait(false);
-                if (changes.Count > 0)
-                {
-                    ApplyChanges(document, changes, selectionOpt, cancellationToken);
-                    transaction.Complete();
-                }
+                return formattingService.GetFormattingChangesAsync(document, selectionOpt, cancellationToken);
             }
         }
 
