@@ -39,8 +39,9 @@ namespace Microsoft.CodeAnalysis.Operations
 
         /// <summary>
         /// Holds the current object being initialized if we're visiting an object initializer.
+        /// Or the target of a VB With statement.
         /// </summary>
-        private IOperation _currentInitializedInstance;
+        private IOperation _currentImplicitInstance;
 
         private ControlFlowGraphBuilder()
         { }
@@ -1286,6 +1287,20 @@ namespace Microsoft.CodeAnalysis.Operations
             {
                 VisitStatement(statement);
             }
+        }
+
+        internal override IOperation VisitWith(IWithOperation operation, int? captureIdForResult)
+        {
+            Debug.Assert(_currentStatement == operation);
+            int captureId = VisitAndCapture(operation.Value);
+
+            IOperation previousInitializedInstance = _currentImplicitInstance;
+            _currentImplicitInstance = new FlowCaptureReference(captureId, operation.Value.Syntax, operation.Value.Type, operation.Value.ConstantValue);
+
+            VisitStatement(operation.Body);
+
+            _currentImplicitInstance = previousInitializedInstance;
+            return null;
         }
 
         public override IOperation VisitConstructorBodyOperation(IConstructorBodyOperation operation, int? captureIdForResult)
@@ -4675,15 +4690,15 @@ oneMoreTime:
         private void HandleObjectOrCollectionInitializer(IObjectOrCollectionInitializerOperation initializer, IOperation initializedInstance)
         {
             // PROTOTYPE(dataflow): Handle collection initializers
-            IOperation previousInitializedInstance = _currentInitializedInstance;
-            _currentInitializedInstance = initializedInstance;
+            IOperation previousInitializedInstance = _currentImplicitInstance;
+            _currentImplicitInstance = initializedInstance;
 
             foreach (IOperation innerInitializer in initializer.Initializers)
             {
                 handleInitializer(innerInitializer);
             }
 
-            _currentInitializedInstance = previousInitializedInstance;
+            _currentImplicitInstance = previousInitializedInstance;
             return;
 
             void handleInitializer(IOperation innerInitializer)
@@ -4892,10 +4907,10 @@ oneMoreTime:
             //                      For now will just visit children and recreate the node, should add tests to confirm that this is an appropriate
             //                      rewrite (probably not appropriate, see comment in VisitMemberInitializer).  
 
-            IOperation save = _currentInitializedInstance;
-            _currentInitializedInstance = null;
+            IOperation save = _currentImplicitInstance;
+            _currentImplicitInstance = null;
             PushArray(operation.Initializers);
-            _currentInitializedInstance = save;
+            _currentImplicitInstance = save;
             return new ObjectOrCollectionInitializerExpression(PopArray(operation.Initializers), semanticModel: null, operation.Syntax, operation.Type, operation.ConstantValue, operation.IsImplicit);
         }
 
@@ -5003,9 +5018,9 @@ oneMoreTime:
                 // When we're in an object or collection initializer, we need to replace the instance reference with a reference to the object being initialized
                 Debug.Assert(operation.IsImplicit);
 
-                if (_currentInitializedInstance != null)
+                if (_currentImplicitInstance != null)
                 {
-                    return OperationCloner.CloneOperation(_currentInitializedInstance);
+                    return OperationCloner.CloneOperation(_currentImplicitInstance);
                 }
                 else
                 {
@@ -5601,21 +5616,6 @@ oneMoreTime:
         public override IOperation VisitConversion(IConversionOperation operation, int? captureIdForResult)
         {
             return new ConversionOperation(Visit(operation.Operand), ((BaseConversionExpression)operation).ConvertibleConversion, operation.IsTryCast, operation.IsChecked, semanticModel: null, operation.Syntax, operation.Type, operation.ConstantValue, IsImplicit(operation));
-        }
-
-        internal override IOperation VisitWith(IWithOperation operation, int? captureIdForResult)
-        {
-            Debug.Assert(_currentStatement == operation);
-            int captureId = VisitAndCapture(operation.Value);
-
-            // PROTOTYPE(dataflow): Either rename _currentInitializedInstance, or use different field
-            IOperation previousInitializedInstance = _currentInitializedInstance;
-            _currentInitializedInstance = new FlowCaptureReference(captureId, operation.Value.Syntax, operation.Value.Type, operation.Value.ConstantValue);
-
-            VisitStatement(operation.Body);
-
-            _currentInitializedInstance = previousInitializedInstance;
-            return null;
         }
 
         internal override IOperation VisitPointerIndirectionReference(IPointerIndirectionReferenceOperation operation, int? captureIdForResult)
