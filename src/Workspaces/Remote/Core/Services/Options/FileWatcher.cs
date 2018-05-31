@@ -43,6 +43,12 @@ namespace Microsoft.CodeAnalysis.Editor.Options
                 ref _watchers,
                 watchers =>
                 {
+                    if (watchers is null)
+                    {
+                        watcher?.Dispose();
+                        throw new ObjectDisposedException(nameof(FileWatcher));
+                    }
+
                     if (!watchers.TryGetValue((fileName, directoryPath), out var existingWatcher))
                     {
                         if (watcher == null)
@@ -100,6 +106,13 @@ namespace Microsoft.CodeAnalysis.Editor.Options
                 ref _watchers,
                 watchers =>
                 {
+                    if (watchers is null)
+                    {
+                        // Treat calls after Dispose as a NOP
+                        watcher = null;
+                        return watchers;
+                    }
+
                     if (watchers.TryGetValue((fileName, directoryPath), out watcher))
                     {
                         return watchers.Remove((fileName, directoryPath));
