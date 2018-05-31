@@ -194,13 +194,13 @@ namespace Microsoft.CodeAnalysis.Editor
 
         /// <summary>
         /// Called before the rename is applied to the specified documents in the workspace.  Return 
-        /// <code>true</code> if rename should proceed, or <code>false</code> if it should be canceled.
+        /// <see langword="true"/> if rename should proceed, or <see langword="false"/> if it should be canceled.
         /// </summary>
         bool TryOnBeforeGlobalSymbolRenamed(Workspace workspace, IEnumerable<DocumentId> changedDocumentIDs, string replacementText);
 
         /// <summary>
         /// Called after the rename is applied to the specified documents in the workspace.  Return 
-        /// <code>true</code> if this operation succeeded, or <code>false</code> if it failed.
+        /// <see langword="true"/> if this operation succeeded, or <see langword="false"/> if it failed.
         /// </summary>
         bool TryOnAfterGlobalSymbolRenamed(Workspace workspace, IEnumerable<DocumentId> changedDocumentIDs, string replacementText);
     }
