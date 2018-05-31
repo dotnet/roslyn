@@ -9,6 +9,7 @@
     <AssemblyName>Microsoft.CodeAnalysis.EditorFeatures.Wpf</AssemblyName>
     <TargetFramework>net46</TargetFramework>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <DefineConstants>$(DefineConstants);EDITORFEATURESWPF</DefineConstants>
   </PropertyGroup>
   <ItemGroup Label="Project References">
     <ProjectReference Include="..\..\Compilers\Core\Portable\CodeAnalysis.csproj" />

@@ -3,13 +3,18 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles;
 using Microsoft.CodeAnalysis.ErrorLogger;
+using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.VisualStudio.CodingConventions;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Options
 {
@@ -25,11 +30,13 @@ namespace Microsoft.CodeAnalysis.Editor.Options
         /// </summary>
         private readonly Dictionary<DocumentId, Task<ICodingConventionContext>> _openDocumentContexts = new Dictionary<DocumentId, Task<ICodingConventionContext>>();
 
+        private readonly Workspace _workspace;
         private readonly ICodingConventionsManager _codingConventionsManager;
         private readonly IErrorLoggerService _errorLogger;
 
         internal EditorConfigDocumentOptionsProvider(Workspace workspace, ICodingConventionsManager codingConventionsManager)
         {
+            _workspace = workspace;
             _codingConventionsManager = codingConventionsManager;
             _errorLogger = workspace.Services.GetService<IErrorLoggerService>();
 
@@ -59,7 +66,63 @@ namespace Microsoft.CodeAnalysis.Editor.Options
         {
             lock (_gate)
             {
-                _openDocumentContexts.Add(e.Document.Id, Task.Run(() => GetConventionContextAsync(e.Document.FilePath, CancellationToken.None)));
+                var documentId = e.Document.Id;
+                var filePath = e.Document.FilePath;
+                _openDocumentContexts.Add(documentId, Task.Run(async () =>
+                {
+                    var context = await GetConventionContextAsync(filePath, CancellationToken.None).ConfigureAwait(false);
+                    context.CodingConventionsChangedAsync += (innerSender, innerE) => HandleCodingConventionsChangedAsync(documentId, innerSender, innerE);
+                    return context;
+                }));
+            }
+        }
+
+        private static readonly ConditionalWeakTable<CodingConventionsChangedEventArgs, HashSet<ProjectId>> s_projectNotifications =
+            new ConditionalWeakTable<CodingConventionsChangedEventArgs, HashSet<ProjectId>>();
+
+        private Task HandleCodingConventionsChangedAsync(DocumentId documentId, object sender, CodingConventionsChangedEventArgs e)
+        {
+            var projectId = documentId.ProjectId;
+            var projectsAlreadyNotified = s_projectNotifications.GetOrCreateValue(e);
+            lock (projectsAlreadyNotified)
+            {
+                if (!projectsAlreadyNotified.Add(projectId))
+                {
+                    return Task.CompletedTask;
+                }
+            }
+
+#if EDITORFEATURESWPF
+            var foregroundNotificationService = ((IMefHostExportProvider)_workspace.Services.HostServices).GetExports<IForegroundNotificationService>().Single().Value;
+            foregroundNotificationService.RegisterNotification(UpdateProject, EmptyAsyncToken.Instance, CancellationToken.None);
+#else
+#endif
+
+            return Task.CompletedTask;
+
+            void UpdateProject()
+            {
+                var compilationOptions = _workspace.CurrentSolution.GetProject(projectId)?.CompilationOptions;
+                if (compilationOptions == null)
+                {
+                    return;
+                }
+
+                var parseOptions = _workspace.CurrentSolution.GetProject(projectId)?.ParseOptions;
+                if (parseOptions.Features.TryGetValue("EditorConfigWorkaround", out _))
+                {
+                    parseOptions = parseOptions.WithFeatures(parseOptions.Features.Where(feature => feature.Key != "EditorConfigWorkaround"));
+                }
+                else
+                {
+                    parseOptions = parseOptions.WithFeatures(parseOptions.Features.Concat(new[] { KeyValuePair.Create("EditorConfigWorkaround", "true") }));
+                }
+
+                _workspace.OnCompilationOptionsChanged(projectId, compilationOptions);
+                _workspace.OnParseOptionsChanged(projectId, parseOptions);
+                ////var updatedCompilationOptions = compilationOptions.WithConcurrentBuild(!compilationOptions.ConcurrentBuild);
+                ////_workspace.TryApplyChanges(_workspace.CurrentSolution.WithProjectCompilationOptions(projectId, updatedCompilationOptions));
+                ////_workspace.TryApplyChanges(_workspace.CurrentSolution.WithProjectCompilationOptions(projectId, compilationOptions));
             }
         }
 
