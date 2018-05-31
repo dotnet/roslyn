@@ -1,25 +1,17 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
-using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles;
 using Microsoft.CodeAnalysis.ErrorLogger;
-using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.VisualStudio.CodingConventions;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Options
 {
-    // NOTE: this type depends Microsoft.VisualStudio.CodingConventions, so for now it's living in EditorFeatures.Wpf as that assembly
-    // isn't yet available outside of Visual Studio.
     internal sealed partial class EditorConfigDocumentOptionsProvider : IDocumentOptionsProvider
     {
         private readonly object _gate = new object();
@@ -31,18 +23,22 @@ namespace Microsoft.CodeAnalysis.Editor.Options
         private readonly Dictionary<DocumentId, Task<ICodingConventionContext>> _openDocumentContexts = new Dictionary<DocumentId, Task<ICodingConventionContext>>();
 
         private readonly Workspace _workspace;
+        private readonly IAsynchronousOperationListener _listener;
         private readonly ICodingConventionsManager _codingConventionsManager;
         private readonly IErrorLoggerService _errorLogger;
 
-        internal EditorConfigDocumentOptionsProvider(Workspace workspace, ICodingConventionsManager codingConventionsManager)
+        internal EditorConfigDocumentOptionsProvider(Workspace workspace, ICodingConventionsManager codingConventionsManager, IAsynchronousOperationListenerProvider listenerProvider)
         {
             _workspace = workspace;
+            _listener = listenerProvider.GetListener(FeatureAttribute.SolutionCrawler);
             _codingConventionsManager = codingConventionsManager;
             _errorLogger = workspace.Services.GetService<IErrorLoggerService>();
 
             workspace.DocumentOpened += Workspace_DocumentOpened;
             workspace.DocumentClosed += Workspace_DocumentClosed;
         }
+
+        partial void OnCodingConventionContextCreated(DocumentId documentId, ICodingConventionContext context);
 
         private void Workspace_DocumentClosed(object sender, DocumentEventArgs e)
         {
@@ -71,58 +67,9 @@ namespace Microsoft.CodeAnalysis.Editor.Options
                 _openDocumentContexts.Add(documentId, Task.Run(async () =>
                 {
                     var context = await GetConventionContextAsync(filePath, CancellationToken.None).ConfigureAwait(false);
-                    context.CodingConventionsChangedAsync += (innerSender, innerE) => HandleCodingConventionsChangedAsync(documentId, innerSender, innerE);
+                    OnCodingConventionContextCreated(documentId, context);
                     return context;
                 }));
-            }
-        }
-
-        private static readonly ConditionalWeakTable<CodingConventionsChangedEventArgs, HashSet<ProjectId>> s_projectNotifications =
-            new ConditionalWeakTable<CodingConventionsChangedEventArgs, HashSet<ProjectId>>();
-
-        private Task HandleCodingConventionsChangedAsync(DocumentId documentId, object sender, CodingConventionsChangedEventArgs e)
-        {
-            var projectId = documentId.ProjectId;
-            var projectsAlreadyNotified = s_projectNotifications.GetOrCreateValue(e);
-            lock (projectsAlreadyNotified)
-            {
-                if (!projectsAlreadyNotified.Add(projectId))
-                {
-                    return Task.CompletedTask;
-                }
-            }
-
-#if EDITORFEATURESWPF
-            var foregroundNotificationService = ((IMefHostExportProvider)_workspace.Services.HostServices).GetExports<IForegroundNotificationService>().Single().Value;
-            foregroundNotificationService.RegisterNotification(UpdateProject, EmptyAsyncToken.Instance, CancellationToken.None);
-#else
-#endif
-
-            return Task.CompletedTask;
-
-            void UpdateProject()
-            {
-                var compilationOptions = _workspace.CurrentSolution.GetProject(projectId)?.CompilationOptions;
-                if (compilationOptions == null)
-                {
-                    return;
-                }
-
-                var parseOptions = _workspace.CurrentSolution.GetProject(projectId)?.ParseOptions;
-                if (parseOptions.Features.TryGetValue("EditorConfigWorkaround", out _))
-                {
-                    parseOptions = parseOptions.WithFeatures(parseOptions.Features.Where(feature => feature.Key != "EditorConfigWorkaround"));
-                }
-                else
-                {
-                    parseOptions = parseOptions.WithFeatures(parseOptions.Features.Concat(new[] { KeyValuePair.Create("EditorConfigWorkaround", "true") }));
-                }
-
-                _workspace.OnCompilationOptionsChanged(projectId, compilationOptions);
-                _workspace.OnParseOptionsChanged(projectId, parseOptions);
-                ////var updatedCompilationOptions = compilationOptions.WithConcurrentBuild(!compilationOptions.ConcurrentBuild);
-                ////_workspace.TryApplyChanges(_workspace.CurrentSolution.WithProjectCompilationOptions(projectId, updatedCompilationOptions));
-                ////_workspace.TryApplyChanges(_workspace.CurrentSolution.WithProjectCompilationOptions(projectId, compilationOptions));
             }
         }
 

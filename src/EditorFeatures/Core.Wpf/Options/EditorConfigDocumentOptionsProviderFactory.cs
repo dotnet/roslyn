@@ -4,6 +4,7 @@ using System;
 using System.Composition;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.CodingConventions;
 
 namespace Microsoft.CodeAnalysis.Editor.Options
@@ -12,17 +13,21 @@ namespace Microsoft.CodeAnalysis.Editor.Options
     class EditorConfigDocumentOptionsProviderFactory : IDocumentOptionsProviderFactory
     {
         private readonly ICodingConventionsManager _codingConventionsManager;
+        private readonly IAsynchronousOperationListenerProvider _asynchronousOperationListenerProvider;
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public EditorConfigDocumentOptionsProviderFactory(ICodingConventionsManager codingConventionsManager)
+        public EditorConfigDocumentOptionsProviderFactory(
+            ICodingConventionsManager codingConventionsManager,
+            IAsynchronousOperationListenerProvider asynchronousOperationListenerProvider)
         {
             _codingConventionsManager = codingConventionsManager;
+            _asynchronousOperationListenerProvider = asynchronousOperationListenerProvider;
         }
 
         public IDocumentOptionsProvider Create(Workspace workspace)
         {
-            return new EditorConfigDocumentOptionsProvider(workspace, _codingConventionsManager);
+            return new EditorConfigDocumentOptionsProvider(workspace, _codingConventionsManager, _asynchronousOperationListenerProvider);
         }
     }
 }
