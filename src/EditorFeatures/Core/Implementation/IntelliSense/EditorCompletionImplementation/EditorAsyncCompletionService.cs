@@ -22,7 +22,7 @@ using RoslynTrigger = Microsoft.CodeAnalysis.Completion.CompletionTrigger;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.EditorImplementation
 {
-    internal class EditorAsyncCompletionService : IAsyncCompletionItemManager
+    internal class EditorAsyncCompletionItemManager : IAsyncCompletionItemManager
     {
         private readonly IAsyncCompletionBroker _broker;
         private readonly CompletionHelper _completionHelper;
@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.E
         private const int MaxMRUSize = 10;
         private ImmutableArray<string> _recentItems = ImmutableArray<string>.Empty;
 
-        public EditorAsyncCompletionService(IAsyncCompletionBroker broker)
+        public EditorAsyncCompletionItemManager(IAsyncCompletionBroker broker)
         {
             _broker = broker;
             _completionHelper = new CompletionHelper(isCaseSensitive: true);
