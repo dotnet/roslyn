@@ -706,6 +706,8 @@ namespace Roslyn.Utilities
                     return false;
                 }
 
+                Debug.Assert(IsAbsolute(fullPath));
+
                 var fileInfo = new FileInfo(fullPath);
                 return !string.IsNullOrEmpty(fileInfo.Name);
             }
