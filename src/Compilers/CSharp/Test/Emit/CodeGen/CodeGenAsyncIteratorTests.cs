@@ -83,70 +83,74 @@ namespace System.Threading.Tasks
             var comp = CreateCompilation(s_common, references: new[] { TestReferences.NetStandard20.TasksExtensionsRef }, targetFramework: Roslyn.Test.Utilities.TargetFramework.NetStandard20);
             comp.VerifyDiagnostics();
 
-            var istrongBox = comp.GetWellKnownType(WellKnownType.System_Runtime_CompilerServices_IStrongBox_T);
-            Assert.Equal("System.Runtime.CompilerServices.IStrongBox<T>", istrongBox.ToTestDisplayString());
+            verifyType(WellKnownType.System_Runtime_CompilerServices_IStrongBox_T,
+                "System.Runtime.CompilerServices.IStrongBox<T>");
 
-            var istrongBox_Value = comp.GetWellKnownTypeMember(WellKnownMember.System_Runtime_CompilerServices_IStrongBox_T__Value);
-            Assert.Equal("ref T System.Runtime.CompilerServices.IStrongBox<T>.Value { get; }", istrongBox_Value.ToTestDisplayString());
+            verifyMember(WellKnownMember.System_Runtime_CompilerServices_IStrongBox_T__Value,
+                "ref T System.Runtime.CompilerServices.IStrongBox<T>.Value { get; }");
 
-            var istrongBox_ValueGetter = comp.GetWellKnownTypeMember(WellKnownMember.System_Runtime_CompilerServices_IStrongBox_T__get_Value);
-            Assert.Equal("ref T System.Runtime.CompilerServices.IStrongBox<T>.Value.get", istrongBox_ValueGetter.ToTestDisplayString());
+            verifyMember(WellKnownMember.System_Runtime_CompilerServices_IStrongBox_T__get_Value,
+                "ref T System.Runtime.CompilerServices.IStrongBox<T>.Value.get");
 
-            var mrvtsl = comp.GetWellKnownType(WellKnownType.System_Threading_Tasks_ManualResetValueTaskSourceLogic_T);
-            Assert.Equal("System.Threading.Tasks.ManualResetValueTaskSourceLogic<TResult>", mrvtsl.ToTestDisplayString());
+            verifyType(WellKnownType.System_Threading_Tasks_ManualResetValueTaskSourceLogic_T,
+                "System.Threading.Tasks.ManualResetValueTaskSourceLogic<TResult>");
 
-            var mrvtsl_Ctor = comp.GetWellKnownTypeMember(WellKnownMember.System_Threading_Tasks_ManualResetValueTaskSourceLogic_T__ctor);
-            Assert.Equal("System.Threading.Tasks.ManualResetValueTaskSourceLogic<TResult>..ctor(System.Runtime.CompilerServices.IStrongBox<System.Threading.Tasks.ManualResetValueTaskSourceLogic<TResult>> parent)",
-                mrvtsl_Ctor.ToTestDisplayString());
+            verifyMember(WellKnownMember.System_Threading_Tasks_ManualResetValueTaskSourceLogic_T__ctor,
+                "System.Threading.Tasks.ManualResetValueTaskSourceLogic<TResult>..ctor(System.Runtime.CompilerServices.IStrongBox<System.Threading.Tasks.ManualResetValueTaskSourceLogic<TResult>> parent)");
 
-            var mrvtsl_GetResult = comp.GetWellKnownTypeMember(WellKnownMember.System_Threading_Tasks_ManualResetValueTaskSourceLogic_T__GetResult);
-            Assert.Equal("TResult System.Threading.Tasks.ManualResetValueTaskSourceLogic<TResult>.GetResult(System.Int16 token)",
-                mrvtsl_GetResult.ToTestDisplayString());
+            verifyMember(WellKnownMember.System_Threading_Tasks_ManualResetValueTaskSourceLogic_T__GetResult,
+                "TResult System.Threading.Tasks.ManualResetValueTaskSourceLogic<TResult>.GetResult(System.Int16 token)");
 
-            var mrvtsl_GetStatus = comp.GetWellKnownTypeMember(WellKnownMember.System_Threading_Tasks_ManualResetValueTaskSourceLogic_T__GetStatus);
-            Assert.Equal("System.Threading.Tasks.Sources.ValueTaskSourceStatus System.Threading.Tasks.ManualResetValueTaskSourceLogic<TResult>.GetStatus(System.Int16 token)",
-                mrvtsl_GetStatus.ToTestDisplayString());
+            verifyMember(WellKnownMember.System_Threading_Tasks_ManualResetValueTaskSourceLogic_T__GetStatus,
+                "System.Threading.Tasks.Sources.ValueTaskSourceStatus System.Threading.Tasks.ManualResetValueTaskSourceLogic<TResult>.GetStatus(System.Int16 token)");
 
-            var mrvtsl_OnCompleted = comp.GetWellKnownTypeMember(WellKnownMember.System_Threading_Tasks_ManualResetValueTaskSourceLogic_T__OnCompleted);
-            Assert.Equal("void System.Threading.Tasks.ManualResetValueTaskSourceLogic<TResult>.OnCompleted(System.Action<System.Object> continuation, System.Object state, System.Int16 token, System.Threading.Tasks.Sources.ValueTaskSourceOnCompletedFlags flags)",
-                mrvtsl_OnCompleted.ToTestDisplayString());
+            verifyMember(WellKnownMember.System_Threading_Tasks_ManualResetValueTaskSourceLogic_T__OnCompleted,
+                "void System.Threading.Tasks.ManualResetValueTaskSourceLogic<TResult>.OnCompleted(System.Action<System.Object> continuation, System.Object state, System.Int16 token, System.Threading.Tasks.Sources.ValueTaskSourceOnCompletedFlags flags)");
 
-            var mrvtsl_Reset = comp.GetWellKnownTypeMember(WellKnownMember.System_Threading_Tasks_ManualResetValueTaskSourceLogic_T__Reset);
-            Assert.Equal("void System.Threading.Tasks.ManualResetValueTaskSourceLogic<TResult>.Reset()", mrvtsl_Reset.ToTestDisplayString());
+            verifyMember(WellKnownMember.System_Threading_Tasks_ManualResetValueTaskSourceLogic_T__Reset,
+                "void System.Threading.Tasks.ManualResetValueTaskSourceLogic<TResult>.Reset()");
 
-            var mrvtsl_SetResult = comp.GetWellKnownTypeMember(WellKnownMember.System_Threading_Tasks_ManualResetValueTaskSourceLogic_T__SetResult);
-            Assert.Equal("void System.Threading.Tasks.ManualResetValueTaskSourceLogic<TResult>.SetResult(TResult result)",
-                mrvtsl_SetResult.ToTestDisplayString());
+            verifyMember(WellKnownMember.System_Threading_Tasks_ManualResetValueTaskSourceLogic_T__SetResult,
+                "void System.Threading.Tasks.ManualResetValueTaskSourceLogic<TResult>.SetResult(TResult result)");
 
-            var mrvtsl_get_Version = comp.GetWellKnownTypeMember(WellKnownMember.System_Threading_Tasks_ManualResetValueTaskSourceLogic_T__get_Version);
-            Assert.Equal("System.Int16 System.Threading.Tasks.ManualResetValueTaskSourceLogic<TResult>.Version.get", mrvtsl_get_Version.ToTestDisplayString());
+            verifyMember(WellKnownMember.System_Threading_Tasks_ManualResetValueTaskSourceLogic_T__get_Version,
+                "System.Int16 System.Threading.Tasks.ManualResetValueTaskSourceLogic<TResult>.Version.get");
 
-            var valueTaskSourceStatus = comp.GetWellKnownType(WellKnownType.System_Threading_Tasks_Sources_ValueTaskSourceStatus);
-            Assert.Equal("System.Threading.Tasks.Sources.ValueTaskSourceStatus", valueTaskSourceStatus.ToTestDisplayString());
+            verifyType(WellKnownType.System_Threading_Tasks_Sources_ValueTaskSourceStatus,
+                "System.Threading.Tasks.Sources.ValueTaskSourceStatus");
 
-            var valueTaskSourceOnCompletedFlags = comp.GetWellKnownType(WellKnownType.System_Threading_Tasks_Sources_ValueTaskSourceOnCompletedFlags);
-            Assert.Equal("System.Threading.Tasks.Sources.ValueTaskSourceOnCompletedFlags", valueTaskSourceOnCompletedFlags.ToTestDisplayString());
+            verifyType(WellKnownType.System_Threading_Tasks_Sources_ValueTaskSourceOnCompletedFlags,
+                "System.Threading.Tasks.Sources.ValueTaskSourceOnCompletedFlags");
 
-            var ivalueTaskSource = comp.GetWellKnownType(WellKnownType.System_Threading_Tasks_Sources_IValueTaskSource_T);
-            Assert.Equal("System.Threading.Tasks.Sources.IValueTaskSource<out TResult>", ivalueTaskSource.ToTestDisplayString());
+            verifyType(WellKnownType.System_Threading_Tasks_Sources_IValueTaskSource_T,
+                "System.Threading.Tasks.Sources.IValueTaskSource<out TResult>");
 
-            var ivalueTaskSource_GetResult = comp.GetWellKnownTypeMember(WellKnownMember.System_Threading_Tasks_Sources_IValueTaskSource_T__GetResult);
-            Assert.Equal("TResult System.Threading.Tasks.Sources.IValueTaskSource<out TResult>.GetResult(System.Int16 token)", ivalueTaskSource_GetResult.ToTestDisplayString());
+            verifyMember(WellKnownMember.System_Threading_Tasks_Sources_IValueTaskSource_T__GetResult,
+                "TResult System.Threading.Tasks.Sources.IValueTaskSource<out TResult>.GetResult(System.Int16 token)");
 
-            var ivalueTaskSource_GetStatus = comp.GetWellKnownTypeMember(WellKnownMember.System_Threading_Tasks_Sources_IValueTaskSource_T__GetStatus);
-            Assert.Equal("System.Threading.Tasks.Sources.ValueTaskSourceStatus System.Threading.Tasks.Sources.IValueTaskSource<out TResult>.GetStatus(System.Int16 token)",
-                ivalueTaskSource_GetStatus.ToTestDisplayString());
+            verifyMember(WellKnownMember.System_Threading_Tasks_Sources_IValueTaskSource_T__GetStatus,
+                "System.Threading.Tasks.Sources.ValueTaskSourceStatus System.Threading.Tasks.Sources.IValueTaskSource<out TResult>.GetStatus(System.Int16 token)");
 
-            var ivalueTaskSource_OnCompleted = comp.GetWellKnownTypeMember(WellKnownMember.System_Threading_Tasks_Sources_IValueTaskSource_T__OnCompleted);
-            Assert.Equal("void System.Threading.Tasks.Sources.IValueTaskSource<out TResult>.OnCompleted(System.Action<System.Object> continuation, System.Object state, System.Int16 token, System.Threading.Tasks.Sources.ValueTaskSourceOnCompletedFlags flags)",
-                ivalueTaskSource_OnCompleted.ToTestDisplayString());
+            verifyMember(WellKnownMember.System_Threading_Tasks_Sources_IValueTaskSource_T__OnCompleted,
+                "void System.Threading.Tasks.Sources.IValueTaskSource<out TResult>.OnCompleted(System.Action<System.Object> continuation, System.Object state, System.Int16 token, System.Threading.Tasks.Sources.ValueTaskSourceOnCompletedFlags flags)");
 
-            var valueTask = comp.GetWellKnownType(WellKnownType.System_Threading_Tasks_ValueTask_T);
-            Assert.Equal("System.Threading.Tasks.ValueTask<TResult>", valueTask.ToTestDisplayString());
+            verifyType(WellKnownType.System_Threading_Tasks_ValueTask_T,
+                "System.Threading.Tasks.ValueTask<TResult>");
 
-            var valueTask_Ctor = comp.GetWellKnownTypeMember(WellKnownMember.System_Threading_Tasks_ValueTask_T__ctor);
-            Assert.Equal("System.Threading.Tasks.ValueTask<TResult>..ctor(System.Threading.Tasks.Sources.IValueTaskSource<TResult> source, System.Int16 token)",
-                valueTask_Ctor.ToTestDisplayString());
+            verifyMember(WellKnownMember.System_Threading_Tasks_ValueTask_T__ctor,
+                "System.Threading.Tasks.ValueTask<TResult>..ctor(System.Threading.Tasks.Sources.IValueTaskSource<TResult> source, System.Int16 token)");
+
+            void verifyType(WellKnownType type, string expected)
+            {
+                var symbol = comp.GetWellKnownType(type);
+                Assert.Equal(expected, symbol.ToTestDisplayString());
+            }
+
+            void verifyMember(WellKnownMember member, string expected)
+            {
+                var symbol = comp.GetWellKnownTypeMember(member);
+                Assert.Equal(expected, symbol.ToTestDisplayString());
+            }
         }
     }
 }
