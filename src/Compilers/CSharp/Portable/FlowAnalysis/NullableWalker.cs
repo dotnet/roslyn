@@ -2680,6 +2680,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     break;
 
                 case ConversionKind.AnonymousFunction:
+                    if (operandOpt.Kind == BoundKind.Lambda)
                     {
                         var lambda = (BoundLambda)operandOpt;
                         var delegateType = targetType.GetDelegateType();
@@ -2696,6 +2697,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         }
                         return TypeSymbolWithAnnotations.Create(targetType, isNullableIfReferenceType: false);
                     }
+                    break;
 
                 case ConversionKind.InterpolatedString:
                     isNullableIfReferenceType = false;
