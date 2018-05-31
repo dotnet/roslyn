@@ -853,6 +853,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim leftType As TypeSymbol = left.Type
             Dim rightType As TypeSymbol = right.Type
 
+            Dim isLeftTypeOf = TypeOf left Is BoundTypeOf
+            Dim isRightType = TypeOf right Is BoundTypeAsValueExpression
+            If isLeftTypeOf AndAlso isRightType Then
+                Return opCode ' Or BinaryOperatorKind.ExtendedTypeOf
+            End If
+
             ' First, dig through Nullable
             Dim leftNullableUnderlying = leftType.GetNullableUnderlyingTypeOrSelf()
             Dim leftIsNullable = (leftType IsNot leftNullableUnderlying)

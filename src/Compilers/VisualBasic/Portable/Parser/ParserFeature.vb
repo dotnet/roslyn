@@ -36,6 +36,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         LeadingDigitSeparator
         NonTrailingNamedArguments
         PrivateProtected
+        ExtendedTypeOfExpressions
     End Enum
 
     Friend Module FeatureExtensions
@@ -86,7 +87,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                     Feature.NonTrailingNamedArguments,
                     Feature.PrivateProtected
                     Return LanguageVersion.VisualBasic15_5
-
+                Case Feature.ExtendedTypeOfExpressions
+                    Return LanguageVersion.Latest.MapSpecifiedToEffectiveVersion  'TODO: Needs an offical language version.
                 Case Else
                     Throw ExceptionUtilities.UnexpectedValue(feature)
             End Select
@@ -154,6 +156,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                     Return ERRID.FEATURE_PrivateProtected
                 Case Feature.InterpolatedStrings
                     Return ERRID.FEATURE_InterpolatedStrings
+                Case Feature.ExtendedTypeOfExpressions
+                    Return ERRID.FEATURE_ExtendedTypeOfExpressions
                 Case Else
                     Throw ExceptionUtilities.UnexpectedValue(feature)
             End Select

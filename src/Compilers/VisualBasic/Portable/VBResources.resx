@@ -5533,4 +5533,7 @@
   <data name="FEATURE_InterpolatedStrings" xml:space="preserve">
     <value>interpolated strings</value>
   </data>
+  <data name="FEATURE_ExtendedTypeOfExpressions" xml:space="preserve">
+    <value>extended typeof expressions</value>
+  </data>
 </root>

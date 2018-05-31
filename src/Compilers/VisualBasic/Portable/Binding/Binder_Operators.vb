@@ -268,6 +268,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 diagnostics = New DiagnosticBag()
             End If
 
+            If IsTypeOfExtended(node, diagnostics) Then
+                Return New BoundBinaryOperator(node, operatorKind, left, right, CheckOverflow, left.Type)
+            End If
+
             If operatorKind = BinaryOperatorKind.UserDefined Then
                 Dim bestCandidate As OverloadResolution.Candidate = If(userDefinedOperator.BestResult.HasValue,
                                                                        userDefinedOperator.BestResult.Value.Candidate,

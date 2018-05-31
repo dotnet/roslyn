@@ -12055,6 +12055,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
+        '''  Looks up a localized string similar to extended typeof expressions.
+        '''</summary>
+        Friend ReadOnly Property FEATURE_ExtendedTypeOfExpressions() As String
+            Get
+                Return ResourceManager.GetString("FEATURE_ExtendedTypeOfExpressions", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
         '''  Looks up a localized string similar to declaring a Global namespace.
         '''</summary>
         Friend ReadOnly Property FEATURE_GlobalNamespace() As String
@@ -12251,7 +12260,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Return ResourceManager.GetString("FieldInitializerSyntaxNotWithinSyntaxTree", resourceCulture)
             End Get
         End Property
-
+        
         '''<summary>
         '''  Looks up a localized string similar to File name &apos;{0}&apos; is empty, contains invalid characters, has a drive specification without an absolute path, or is too long.
         '''</summary>

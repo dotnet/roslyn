@@ -1,4 +1,4 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Collections.Immutable
 Imports Microsoft.CodeAnalysis.Test.Utilities
@@ -1367,5 +1367,79 @@ BC31430: Expression of type 'T' can never be of type 'String'.
 </expected>)
         End Sub
 
+        <Fact(DisplayName:="ExtendedTypeOf")>
+        Public Sub ExtendedTypeOf_01()
+
+            Dim src =
+<compilation name="ExtendedTypeOf_01">
+    <file name="a.vb">     
+Option Strict On
+Imports System
+
+Module Module1
+
+    Sub Main()
+    Dim x As B=New Z()
+    Dim res0 As Boolean = TypeOf x Is Y Or Z
+    Console.WriteLine(Res0)
+    Dim res1 As Boolean = TypeOf x Is Y OrElse Z
+    Console.WriteLine(Res1)
+    Dim res2 As Boolean = TypeOf x Is Y And Z
+    Console.WriteLine(Res2)
+    Dim res3 As Boolean = TypeOf x Is Y AndAlso Z
+    Console.WriteLine(Res3)
+    ' IsNot
+    x = New X()
+    Dim res4 As Boolean = TypeOf x IsNot Y Or Z
+    Console.WriteLine(Res4)
+    Dim res5 As Boolean = TypeOf x IsNot Y OrElse Z
+    Console.WriteLine(Res5)
+    Dim res6 As Boolean = TypeOf x IsNot Y And Z
+    Console.WriteLine(Res6)
+    Dim res7 As Boolean = TypeOf x IsNot Y AndAlso Z
+    Console.WriteLine(Res7)
+ End Sub
+End Module
+
+MustInherit Class B 
+  Sub New()
+  End Sub
+End Class
+Class Z : Inherits B 
+  Sub New()
+    MyBase.New()
+  End Sub
+End Class
+Class Y : Inherits B 
+  Sub New()
+    MyBase.New()
+  End Sub
+End Class
+Class X : Inherits B 
+  Sub New()
+    MyBase.New()
+  End Sub
+End Class
+
+Class R 
+  Sub New()
+  End Sub
+End Class
+    </file>
+</compilation>
+            Dim po As New VisualBasicParseOptions(LanguageVersion.Latest)
+            Dim vbc = CreateVisualBasicCompilation(src.Value, po)
+            Dim res = CompileAndVerify(src, <![CDATA[
+True
+True
+False
+False
+True
+True
+True
+True
+]]>, options:=TestOptions.ReleaseDebugExe, parseOptions:=po, verify:=Verification.Passes)
+
+        End Sub
     End Class
 End Namespace
