@@ -446,7 +446,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.E
         private static bool IsAfterDot(ITextSnapshot snapshot, ITrackingSpan applicableToSpan)
         {
             var position = applicableToSpan.GetStartPoint(snapshot).Position;
-            return position > 0 && snapshot.GetText(position - 1, 1) == ".";
+            return position > 0 && snapshot[position - 1] == '.';
         }
 
         private void MakeMostRecentItem(string item)
@@ -482,17 +482,17 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.E
             for (int i = 0, n = chosenItems.Length; i < n; i++)
             {
                 var chosenItem = chosenItems[i];
-                var mruIndex1 = GetRecentItemIndex(recentItems, bestItem.DisplayText);
-                var mruIndex2 = GetRecentItemIndex(recentItems, chosenItem.DisplayText);
+                var mruIndex1 = recentItems.IndexOf(bestItem.DisplayText);
+                var mruIndex2 = recentItems.IndexOf(chosenItem.DisplayText);
 
-                if (mruIndex2 < mruIndex1)
+                if (mruIndex2 > mruIndex1)
                 {
                     bestItem = chosenItem;
                 }
             }
 
             // If our best item appeared in the MRU list, use it
-            if (GetRecentItemIndex(recentItems, bestItem.DisplayText) <= 0)
+            if (recentItems.IndexOf(bestItem.DisplayText) >= 0)
             {
                 return bestItem;
             }
@@ -512,12 +512,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.E
             }
 
             return bestItem;
-        }
-
-        private static int GetRecentItemIndex(ImmutableArray<string> recentItems, string itemDisplayText)
-        {
-            var index = recentItems.IndexOf(itemDisplayText);
-            return -index;
         }
 
         private EditorCompletion.FilteredCompletionModel HandleAllItemsFilteredOut
@@ -616,7 +610,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.E
                     return true;
                 }
 
-                if (!_recentItems.IsDefault && GetRecentItemIndex(_recentItems, itemDisplayText) <= 0)
+                if (!_recentItems.IsDefault && _recentItems.IndexOf(itemDisplayText) >= 0)
                 {
                     return true;
                 }
