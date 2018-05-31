@@ -339,6 +339,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public bool IsNullableTypeOrTypeParameter() => TypeSymbol.IsNullableTypeOrTypeParameter();
         public virtual bool IsVoid => TypeSymbol.SpecialType == SpecialType.System_Void;
         public virtual bool IsSZArray() => TypeSymbol.IsSZArray();
+        public TypeSymbolWithAnnotations GetNullableUnderlyingType() => TypeSymbol.GetNullableUnderlyingTypeWithAnnotations();
 
         public abstract override string ToDisplayString(SymbolDisplayFormat format = null);
         internal string GetDebuggerDisplay() => ToDisplayString(DebuggerDisplayFormat);

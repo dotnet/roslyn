@@ -585,10 +585,6 @@
     <Field Name="ConstantValueOpt" Type="ConstantValue" Null="allow"/>
   </Node>
 
-  <!--
-    PROTOTYPE(NullableReferenceTypes): Add HasValidate="true" and check
-    ExplicitCastInCode || !IsExplicitlyNullable in the Validate() method.
-    -->
   <Node Name="BoundConversion" Base="BoundExpression">
     <!-- Non-null type is required for this node kind -->
     <Field Name="Type" Type="TypeSymbol" Override="true" Null="disallow"/>
@@ -600,8 +596,21 @@
     <Field Name="Checked" Type="bool"/>
     <Field Name="ExplicitCastInCode" Type="bool"/>
     <Field Name="ConstantValueOpt" Type="ConstantValue" Null="allow"/>
-    <!-- True for explicit casts with top-level `?`. Used by NullableWalker. -->
-    <Field Name="IsExplicitlyNullable" Type="bool" Null="allow"/>
+     <!--
+         A group instance common to all BoundConversions that represent a single Conversion. The
+         field is used in NullableWalker to identify the chained conversions in user-defined
+         conversions in particular. For instance, with the following declarations, an explicit conversion
+         from B to D: expr -> ImplicitReference conversion -> ExplicitUserDefined conversion ->
+         ExplicitReference conversion.
+            class A { public static explicit operator C(A a) => new D(); }
+            class B : A { }
+            class C { }
+            class D : C { }
+         ConversionGroupOpt also contains the target type specified in source in the case of
+         explicit conversions. ConversionGroupOpt may be null for implicit conversions if the
+         Conversion is represented by a single BoundConversion.
+         -->
+    <Field Name="ConversionGroupOpt" Type="ConversionGroup" Null="allow"/>
 </Node>
 
   <!--
