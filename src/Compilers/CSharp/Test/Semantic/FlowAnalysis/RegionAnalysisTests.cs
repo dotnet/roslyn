@@ -1150,6 +1150,62 @@ y
             Assert.Equal("y, x", GetSymbolNamesJoined(dataFlowAnalysisResults.WrittenOutside));
         }
 
+        [Fact]
+        public void TestImplicitStackAllocArrayInitializer()
+        {
+            var dataFlowAnalysisResults = CompileAndAnalyzeDataFlowExpression(@"
+class C {
+    static void Main()
+    {
+        int z = 1;
+        int y = 1;
+        var x = stackalloc[] { 
+/*<bind>*/
+y
+/*</bind>*/
+, z++
+        };
+    }
+}
+");
+            Assert.Equal(null, GetSymbolNamesJoined(dataFlowAnalysisResults.VariablesDeclared));
+            Assert.Equal(null, GetSymbolNamesJoined(dataFlowAnalysisResults.AlwaysAssigned));
+            Assert.Equal("y", GetSymbolNamesJoined(dataFlowAnalysisResults.DataFlowsIn));
+            Assert.Equal(null, GetSymbolNamesJoined(dataFlowAnalysisResults.DataFlowsOut));
+            Assert.Equal("y", GetSymbolNamesJoined(dataFlowAnalysisResults.ReadInside));
+            Assert.Equal("z", GetSymbolNamesJoined(dataFlowAnalysisResults.ReadOutside));
+            Assert.Equal(null, GetSymbolNamesJoined(dataFlowAnalysisResults.WrittenInside));
+            Assert.Equal("z, y, x", GetSymbolNamesJoined(dataFlowAnalysisResults.WrittenOutside));
+        }
+
+        [Fact]
+        public void TestStackAllocArrayInitializer()
+        {
+            var dataFlowAnalysisResults = CompileAndAnalyzeDataFlowExpression(@"
+class C {
+    static void Main()
+    {
+        int z = 1;
+        int y = 1;
+        var x = stackalloc int[] { 
+/*<bind>*/
+y
+/*</bind>*/
+, z++
+        };
+    }
+}
+");
+            Assert.Equal(null, GetSymbolNamesJoined(dataFlowAnalysisResults.VariablesDeclared));
+            Assert.Equal(null, GetSymbolNamesJoined(dataFlowAnalysisResults.AlwaysAssigned));
+            Assert.Equal("y", GetSymbolNamesJoined(dataFlowAnalysisResults.DataFlowsIn));
+            Assert.Equal(null, GetSymbolNamesJoined(dataFlowAnalysisResults.DataFlowsOut));
+            Assert.Equal("y", GetSymbolNamesJoined(dataFlowAnalysisResults.ReadInside));
+            Assert.Equal("z", GetSymbolNamesJoined(dataFlowAnalysisResults.ReadOutside));
+            Assert.Equal(null, GetSymbolNamesJoined(dataFlowAnalysisResults.WrittenInside));
+            Assert.Equal("z, y, x", GetSymbolNamesJoined(dataFlowAnalysisResults.WrittenOutside));
+        }
+
         [WorkItem(539286, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539286")]
         [Fact]
         public void TestAnalysisInFieldInitializers()
@@ -1624,7 +1680,7 @@ unsafe public class Test
             Assert.Equal("p", GetSymbolNamesJoined(analysis.CapturedInside));
             Assert.Equal(null, GetSymbolNamesJoined(analysis.CapturedOutside));
             Assert.Equal("i", GetSymbolNamesJoined(analysis.UnsafeAddressTaken));
-            Assert.Equal("<p0>", GetSymbolNamesJoined(analysis.VariablesDeclared));
+            Assert.Null(GetSymbolNamesJoined(analysis.VariablesDeclared));
 
             Assert.Equal("p", GetSymbolNamesJoined(analysis.DataFlowsIn));
             Assert.Null(GetSymbolNamesJoined(analysis.DataFlowsOut));
@@ -1632,7 +1688,7 @@ unsafe public class Test
             Assert.Equal("p", GetSymbolNamesJoined(analysis.ReadInside));
             Assert.Equal("i", GetSymbolNamesJoined(analysis.ReadOutside));
 
-            Assert.Equal("<p0>", GetSymbolNamesJoined(analysis.WrittenInside));
+            Assert.Null(GetSymbolNamesJoined(analysis.WrittenInside));
             Assert.Equal("i, p, d", GetSymbolNamesJoined(analysis.WrittenOutside));
         }
 
@@ -2428,7 +2484,7 @@ class C {
         [Fact]
         public void NullArgsToAnalyzeControlFlowStatements()
         {
-            var compilation = CreateStandardCompilation(@"
+            var compilation = CreateCompilation(@"
 class C
 {
     static void Main()
@@ -3754,7 +3810,7 @@ public class A
         public void BlockSyntaxInAttributeDecl()
         {
             {
-                var compilation = CreateStandardCompilation(@"
+                var compilation = CreateCompilation(@"
 [Attribute(delegate.Class)] 
 public class C {
   public static int Main () {
@@ -4945,7 +5001,7 @@ public class MyClass : BaseClass
     {
     }
 }";
-            var comp = CreateStandardCompilation(source);
+            var comp = CreateCompilation(source);
             var tree = comp.SyntaxTrees.Single();
             var model = comp.GetSemanticModel(tree);
 
@@ -5041,7 +5097,7 @@ class C
         S<object> o;
     }
 }";
-            var compilation = CreateCompilation(source);
+            var compilation = CreateEmptyCompilation(source);
             var tree = compilation.SyntaxTrees[0];
             var model = compilation.GetSemanticModel(tree);
             var root = tree.GetCompilationUnitRoot();
@@ -5078,7 +5134,7 @@ class Program
         Expression<Func<int>> f3 = () => switch (args[0]) {};
     }
 }";
-            var compilation = CreateCompilation(source);
+            var compilation = CreateEmptyCompilation(source);
             var tree = compilation.SyntaxTrees[0];
             var model = compilation.GetSemanticModel(tree);
             var root = tree.GetCompilationUnitRoot();
@@ -5105,7 +5161,7 @@ class Program
         }
     }
 }";
-            var compilation = CreateCompilation(source);
+            var compilation = CreateEmptyCompilation(source);
             var tree = compilation.SyntaxTrees[0];
             var model = compilation.GetSemanticModel(tree);
             var root = tree.GetCompilationUnitRoot();
@@ -5143,7 +5199,7 @@ public class ExportedSymbol
 }
 ";
 
-            var compilation = CreateCompilation(source);
+            var compilation = CreateEmptyCompilation(source);
             var tree = compilation.SyntaxTrees[0];
             var model = compilation.GetSemanticModel(tree);
             var statement = tree.GetCompilationUnitRoot().DescendantNodes().OfType<BlockSyntax>().FirstOrDefault();
@@ -5171,7 +5227,7 @@ public class ExportedSymbol
     }
     static object P { get; set; }
 }";
-            var compilation = CreateStandardCompilation(source);
+            var compilation = CreateCompilation(source);
             var tree = compilation.SyntaxTrees[0];
             var model = compilation.GetSemanticModel(tree);
             var root = tree.GetCompilationUnitRoot();
@@ -5193,7 +5249,7 @@ public class ExportedSymbol
         this.value = null;
     }
 }";
-            var compilation = CreateStandardCompilation(source);
+            var compilation = CreateCompilation(source);
             compilation.VerifyDiagnostics(
                 // (6,18): error CS0170: Use of possibly unassigned field 'value'
                 //         S.Equals(value , value);
@@ -5742,6 +5798,358 @@ class C
             Assert.Equal(null, GetSymbolNamesJoined(analysis.WrittenInside));
             Assert.Equal("this, x", GetSymbolNamesJoined(analysis.ReadOutside));
             Assert.Equal("this, x, a, y", GetSymbolNamesJoined(analysis.WrittenOutside));
+        }
+
+        [Fact, WorkItem(25043, "https://github.com/dotnet/roslyn/issues/25043")]
+        public void FallThroughInSwitch_01()
+        {
+            var analysis = CompileAndAnalyzeControlFlowStatements(@"
+class C
+{
+    void M()
+    {
+/*<bind>*/
+        switch (true)
+        {
+            case true:
+                void f()
+                {
+                }
+        }
+/*</bind>*/
+    }
+}");
+            Assert.Equal(0, analysis.EntryPoints.Count());
+        }
+
+        [Fact, WorkItem(25043, "https://github.com/dotnet/roslyn/issues/25043")]
+        public void FallThroughInSwitch_02()
+        {
+            var analysis = CompileAndAnalyzeControlFlowStatements(@"
+class C
+{
+    void M()
+    {
+/*<bind>*/
+        switch (true)
+        {
+            case true when true:
+                void f()
+                {
+                }
+        }
+/*</bind>*/
+    }
+}");
+            Assert.Equal(0, analysis.EntryPoints.Count());
+        }
+
+        [Fact]
+        public void AnalysisOfTupleEquality()
+        {
+            var analysisResults = CompileAndAnalyzeDataFlowExpression(@"
+class A
+{
+    void M()
+    {
+        int x = 0;
+        int y = 0;
+        _ = /*<bind>*/(x, y) == (x = 0, 1)/*</bind>*/;
+    }
+}
+");
+            var dataFlowAnalysisResults = analysisResults;
+            Assert.Equal(null, GetSymbolNamesJoined(dataFlowAnalysisResults.VariablesDeclared));
+            Assert.Equal("x", GetSymbolNamesJoined(dataFlowAnalysisResults.AlwaysAssigned));
+            Assert.Equal(null, GetSymbolNamesJoined(dataFlowAnalysisResults.Captured));
+            Assert.Equal(null, GetSymbolNamesJoined(dataFlowAnalysisResults.CapturedInside));
+            Assert.Equal(null, GetSymbolNamesJoined(dataFlowAnalysisResults.CapturedOutside));
+            Assert.Equal("x, y", GetSymbolNamesJoined(dataFlowAnalysisResults.DataFlowsIn));
+            Assert.Equal(null, GetSymbolNamesJoined(dataFlowAnalysisResults.DataFlowsOut));
+            Assert.Equal("x, y", GetSymbolNamesJoined(dataFlowAnalysisResults.ReadInside));
+            Assert.Equal(null, GetSymbolNamesJoined(dataFlowAnalysisResults.ReadOutside));
+            Assert.Equal("x", GetSymbolNamesJoined(dataFlowAnalysisResults.WrittenInside));
+            Assert.Equal("this, x, y", GetSymbolNamesJoined(dataFlowAnalysisResults.WrittenOutside));
+        }
+
+        [Fact]
+        public void AnalysisOfNestedTupleInTupleEquality()
+        {
+            var analysisResults = CompileAndAnalyzeDataFlowExpression(@"
+class A
+{
+    void M()
+    {
+        int x = 0;
+        int y = 0;
+        _ = (1, (2, 3)) == (0, /*<bind>*/(x = 0, y)/*</bind>*/);
+    }
+}
+");
+            var dataFlowAnalysisResults = analysisResults;
+            Assert.Equal(null, GetSymbolNamesJoined(dataFlowAnalysisResults.VariablesDeclared));
+            Assert.Equal("x", GetSymbolNamesJoined(dataFlowAnalysisResults.AlwaysAssigned));
+            Assert.Equal(null, GetSymbolNamesJoined(dataFlowAnalysisResults.Captured));
+            Assert.Equal(null, GetSymbolNamesJoined(dataFlowAnalysisResults.CapturedInside));
+            Assert.Equal(null, GetSymbolNamesJoined(dataFlowAnalysisResults.CapturedOutside));
+            Assert.Equal("y", GetSymbolNamesJoined(dataFlowAnalysisResults.DataFlowsIn));
+            Assert.Equal(null, GetSymbolNamesJoined(dataFlowAnalysisResults.DataFlowsOut));
+            Assert.Equal("y", GetSymbolNamesJoined(dataFlowAnalysisResults.ReadInside));
+            Assert.Equal(null, GetSymbolNamesJoined(dataFlowAnalysisResults.ReadOutside));
+            Assert.Equal("x", GetSymbolNamesJoined(dataFlowAnalysisResults.WrittenInside));
+            Assert.Equal("this, x, y", GetSymbolNamesJoined(dataFlowAnalysisResults.WrittenOutside));
+        }
+
+        [Fact]
+        public void AnalysisOfExpressionInTupleEquality()
+        {
+            var analysisResults = CompileAndAnalyzeDataFlowExpression(@"
+class A
+{
+    void M()
+    {
+        int x = 0;
+        int y = 0;
+        _ = (1, 2) == (0, /*<bind>*/(x = 0) + y/*</bind>*/);
+    }
+}
+");
+            var dataFlowAnalysisResults = analysisResults;
+            Assert.Equal(null, GetSymbolNamesJoined(dataFlowAnalysisResults.VariablesDeclared));
+            Assert.Equal("x", GetSymbolNamesJoined(dataFlowAnalysisResults.AlwaysAssigned));
+            Assert.Equal(null, GetSymbolNamesJoined(dataFlowAnalysisResults.Captured));
+            Assert.Equal(null, GetSymbolNamesJoined(dataFlowAnalysisResults.CapturedInside));
+            Assert.Equal(null, GetSymbolNamesJoined(dataFlowAnalysisResults.CapturedOutside));
+            Assert.Equal("y", GetSymbolNamesJoined(dataFlowAnalysisResults.DataFlowsIn));
+            Assert.Equal(null, GetSymbolNamesJoined(dataFlowAnalysisResults.DataFlowsOut));
+            Assert.Equal("y", GetSymbolNamesJoined(dataFlowAnalysisResults.ReadInside));
+            Assert.Equal(null, GetSymbolNamesJoined(dataFlowAnalysisResults.ReadOutside));
+            Assert.Equal("x", GetSymbolNamesJoined(dataFlowAnalysisResults.WrittenInside));
+            Assert.Equal("this, x, y", GetSymbolNamesJoined(dataFlowAnalysisResults.WrittenOutside));
+        }
+
+        [Fact]
+        public void AnalysisOfPropertyGetter_Inside_ReferenceType()
+        {
+            var analysisResults = CompileAndAnalyzeDataFlowExpression(@"
+class MyClass
+{
+    int _myProp;
+    int MyProp
+    {
+        get => /*<bind>*/this._myProp;/*</bind>*/
+        set => this._myProp = value;
+    }
+}
+");
+            var dataFlowAnalysisResults = analysisResults;
+            Assert.Equal(null, GetSymbolNamesJoined(dataFlowAnalysisResults.VariablesDeclared));
+            Assert.Equal(null, GetSymbolNamesJoined(dataFlowAnalysisResults.AlwaysAssigned));
+            Assert.Equal(null, GetSymbolNamesJoined(dataFlowAnalysisResults.Captured));
+            Assert.Equal(null, GetSymbolNamesJoined(dataFlowAnalysisResults.CapturedInside));
+            Assert.Equal(null, GetSymbolNamesJoined(dataFlowAnalysisResults.CapturedOutside));
+            Assert.Equal("this", GetSymbolNamesJoined(dataFlowAnalysisResults.DataFlowsIn));
+            Assert.Equal(null, GetSymbolNamesJoined(dataFlowAnalysisResults.DataFlowsOut));
+            Assert.Equal("this", GetSymbolNamesJoined(dataFlowAnalysisResults.ReadInside));
+            Assert.Equal(null, GetSymbolNamesJoined(dataFlowAnalysisResults.ReadOutside));
+            Assert.Equal(null, GetSymbolNamesJoined(dataFlowAnalysisResults.WrittenInside));
+            Assert.Equal("this", GetSymbolNamesJoined(dataFlowAnalysisResults.WrittenOutside));
+        }
+
+        [Fact]
+        public void AnalysisOfPropertySetter_Inside_ReferenceType()
+        {
+            var analysisResults = CompileAndAnalyzeDataFlowExpression(@"
+class MyClass
+{
+    int _myProp;
+    int MyProp
+    {
+        get => this._myProp;
+        set => /*<bind>*/this._myProp = value;/*</bind>*/
+    }
+}
+");
+            var dataFlowAnalysisResults = analysisResults;
+            Assert.Equal(null, GetSymbolNamesJoined(dataFlowAnalysisResults.VariablesDeclared));
+            Assert.Equal(null, GetSymbolNamesJoined(dataFlowAnalysisResults.AlwaysAssigned));
+            Assert.Equal(null, GetSymbolNamesJoined(dataFlowAnalysisResults.Captured));
+            Assert.Equal(null, GetSymbolNamesJoined(dataFlowAnalysisResults.CapturedInside));
+            Assert.Equal(null, GetSymbolNamesJoined(dataFlowAnalysisResults.CapturedOutside));
+            Assert.Equal("this, value", GetSymbolNamesJoined(dataFlowAnalysisResults.DataFlowsIn));
+            Assert.Equal(null, GetSymbolNamesJoined(dataFlowAnalysisResults.DataFlowsOut));
+            Assert.Equal("this, value", GetSymbolNamesJoined(dataFlowAnalysisResults.ReadInside));
+            Assert.Equal(null, GetSymbolNamesJoined(dataFlowAnalysisResults.ReadOutside));
+            Assert.Equal(null, GetSymbolNamesJoined(dataFlowAnalysisResults.WrittenInside));
+            Assert.Equal("this, value", GetSymbolNamesJoined(dataFlowAnalysisResults.WrittenOutside));
+        }
+
+        [Fact]
+        public void AnalysisOfPropertyGetter_Inside_ValueType()
+        {
+            var analysisResults = CompileAndAnalyzeDataFlowExpression(@"
+struct MyStruct
+{
+    int _myProp;
+    int MyProp
+    {
+        get => /*<bind>*/this._myProp;/*</bind>*/
+        set => this._myProp = value;
+    }
+}
+");
+            var dataFlowAnalysisResults = analysisResults;
+            Assert.Equal(null, GetSymbolNamesJoined(dataFlowAnalysisResults.VariablesDeclared));
+            Assert.Equal(null, GetSymbolNamesJoined(dataFlowAnalysisResults.AlwaysAssigned));
+            Assert.Equal(null, GetSymbolNamesJoined(dataFlowAnalysisResults.Captured));
+            Assert.Equal(null, GetSymbolNamesJoined(dataFlowAnalysisResults.CapturedInside));
+            Assert.Equal(null, GetSymbolNamesJoined(dataFlowAnalysisResults.CapturedOutside));
+            Assert.Equal("this", GetSymbolNamesJoined(dataFlowAnalysisResults.DataFlowsIn));
+            Assert.Equal(null, GetSymbolNamesJoined(dataFlowAnalysisResults.DataFlowsOut));
+            Assert.Equal("this", GetSymbolNamesJoined(dataFlowAnalysisResults.ReadInside));
+            Assert.Equal("this", GetSymbolNamesJoined(dataFlowAnalysisResults.ReadOutside));
+            Assert.Equal(null, GetSymbolNamesJoined(dataFlowAnalysisResults.WrittenInside));
+            Assert.Equal("this", GetSymbolNamesJoined(dataFlowAnalysisResults.WrittenOutside));
+        }
+
+        [Fact]
+        public void AnalysisOfPropertySetter_Inside_ValueType()
+        {
+            var analysisResults = CompileAndAnalyzeDataFlowExpression(@"
+struct MyStruct
+{
+    int _myProp;
+    int MyProp
+    {
+        get => this._myProp;
+        set => /*<bind>*/this._myProp = value;/*</bind>*/
+    }
+}
+");
+            var dataFlowAnalysisResults = analysisResults;
+            Assert.Equal(null, GetSymbolNamesJoined(dataFlowAnalysisResults.VariablesDeclared));
+            Assert.Equal("this", GetSymbolNamesJoined(dataFlowAnalysisResults.AlwaysAssigned));
+            Assert.Equal(null, GetSymbolNamesJoined(dataFlowAnalysisResults.Captured));
+            Assert.Equal(null, GetSymbolNamesJoined(dataFlowAnalysisResults.CapturedInside));
+            Assert.Equal(null, GetSymbolNamesJoined(dataFlowAnalysisResults.CapturedOutside));
+            Assert.Equal("value", GetSymbolNamesJoined(dataFlowAnalysisResults.DataFlowsIn));
+            Assert.Equal("this", GetSymbolNamesJoined(dataFlowAnalysisResults.DataFlowsOut));
+            Assert.Equal("value", GetSymbolNamesJoined(dataFlowAnalysisResults.ReadInside));
+            Assert.Equal("this", GetSymbolNamesJoined(dataFlowAnalysisResults.ReadOutside));
+            Assert.Equal("this", GetSymbolNamesJoined(dataFlowAnalysisResults.WrittenInside));
+            Assert.Equal("this, value", GetSymbolNamesJoined(dataFlowAnalysisResults.WrittenOutside));
+        }
+
+        [Fact]
+        public void AnalysisOfEventAdder_Inside_ReferenceType()
+        {
+            var analysisResults = CompileAndAnalyzeDataFlowExpression(@"
+class MyClass
+{
+    EventHandler _myEvent;
+    event EventHandler MyEvent
+    {
+        add => /*<bind>*/ this._myEvent += value; /*</bind>*/
+        remove => this._myEvent -= value;
+    }
+}
+");
+            var dataFlowAnalysisResults = analysisResults;
+            Assert.Equal(null, GetSymbolNamesJoined(dataFlowAnalysisResults.VariablesDeclared));
+            Assert.Equal(null, GetSymbolNamesJoined(dataFlowAnalysisResults.AlwaysAssigned));
+            Assert.Equal(null, GetSymbolNamesJoined(dataFlowAnalysisResults.Captured));
+            Assert.Equal(null, GetSymbolNamesJoined(dataFlowAnalysisResults.CapturedInside));
+            Assert.Equal(null, GetSymbolNamesJoined(dataFlowAnalysisResults.CapturedOutside));
+            Assert.Equal("this, value", GetSymbolNamesJoined(dataFlowAnalysisResults.DataFlowsIn));
+            Assert.Equal(null, GetSymbolNamesJoined(dataFlowAnalysisResults.DataFlowsOut));
+            Assert.Equal("this, value", GetSymbolNamesJoined(dataFlowAnalysisResults.ReadInside));
+            Assert.Equal(null, GetSymbolNamesJoined(dataFlowAnalysisResults.ReadOutside));
+            Assert.Equal(null, GetSymbolNamesJoined(dataFlowAnalysisResults.WrittenInside));
+            Assert.Equal("this, value", GetSymbolNamesJoined(dataFlowAnalysisResults.WrittenOutside));
+        }
+
+        [Fact]
+        public void AnalysisOfEventRemover_Inside_ReferenceType()
+        {
+            var analysisResults = CompileAndAnalyzeDataFlowExpression(@"
+class MyClass
+{
+    EventHandler _myEvent;
+    event EventHandler MyEvent
+    {
+        add => this._myEvent += value;
+        remove => /*<bind>*/ this._myEvent -= value; /*</bind>*/
+    }
+}
+");
+            var dataFlowAnalysisResults = analysisResults;
+            Assert.Equal(null, GetSymbolNamesJoined(dataFlowAnalysisResults.VariablesDeclared));
+            Assert.Equal(null, GetSymbolNamesJoined(dataFlowAnalysisResults.AlwaysAssigned));
+            Assert.Equal(null, GetSymbolNamesJoined(dataFlowAnalysisResults.Captured));
+            Assert.Equal(null, GetSymbolNamesJoined(dataFlowAnalysisResults.CapturedInside));
+            Assert.Equal(null, GetSymbolNamesJoined(dataFlowAnalysisResults.CapturedOutside));
+            Assert.Equal("this, value", GetSymbolNamesJoined(dataFlowAnalysisResults.DataFlowsIn));
+            Assert.Equal(null, GetSymbolNamesJoined(dataFlowAnalysisResults.DataFlowsOut));
+            Assert.Equal("this, value", GetSymbolNamesJoined(dataFlowAnalysisResults.ReadInside));
+            Assert.Equal(null, GetSymbolNamesJoined(dataFlowAnalysisResults.ReadOutside));
+            Assert.Equal(null, GetSymbolNamesJoined(dataFlowAnalysisResults.WrittenInside));
+            Assert.Equal("this, value", GetSymbolNamesJoined(dataFlowAnalysisResults.WrittenOutside));
+        }
+
+        [Fact]
+        public void AnalysisOfEventAdder_Inside_ValueType()
+        {
+            var analysisResults = CompileAndAnalyzeDataFlowExpression(@"
+struct MyStruct
+{
+    EventHandler _myEvent;
+    event EventHandler MyEvent
+    {
+        add => /*<bind>*/ this._myEvent += value; /*</bind>*/
+        remove => this._myEvent -= value;
+    }
+}
+");
+            var dataFlowAnalysisResults = analysisResults;
+            Assert.Equal(null, GetSymbolNamesJoined(dataFlowAnalysisResults.VariablesDeclared));
+            Assert.Equal("this", GetSymbolNamesJoined(dataFlowAnalysisResults.AlwaysAssigned));
+            Assert.Equal(null, GetSymbolNamesJoined(dataFlowAnalysisResults.Captured));
+            Assert.Equal(null, GetSymbolNamesJoined(dataFlowAnalysisResults.CapturedInside));
+            Assert.Equal(null, GetSymbolNamesJoined(dataFlowAnalysisResults.CapturedOutside));
+            Assert.Equal("this, value", GetSymbolNamesJoined(dataFlowAnalysisResults.DataFlowsIn));
+            Assert.Equal("this", GetSymbolNamesJoined(dataFlowAnalysisResults.DataFlowsOut));
+            Assert.Equal("this, value", GetSymbolNamesJoined(dataFlowAnalysisResults.ReadInside));
+            Assert.Equal("this", GetSymbolNamesJoined(dataFlowAnalysisResults.ReadOutside));
+            Assert.Equal("this", GetSymbolNamesJoined(dataFlowAnalysisResults.WrittenInside));
+            Assert.Equal("this, value", GetSymbolNamesJoined(dataFlowAnalysisResults.WrittenOutside));
+        }
+
+        [Fact]
+        public void AnalysisOfEventRemover_Inside_ValueType()
+        {
+            var analysisResults = CompileAndAnalyzeDataFlowExpression(@"
+struct MyStruct
+{
+    EventHandler _myEvent;
+    event EventHandler MyEvent
+    {
+        add => this._myEvent += value;
+        remove => /*<bind>*/ this._myEvent -= value; /*</bind>*/
+    }
+}
+");
+            var dataFlowAnalysisResults = analysisResults;
+            Assert.Equal(null, GetSymbolNamesJoined(dataFlowAnalysisResults.VariablesDeclared));
+            Assert.Equal("this", GetSymbolNamesJoined(dataFlowAnalysisResults.AlwaysAssigned));
+            Assert.Equal(null, GetSymbolNamesJoined(dataFlowAnalysisResults.Captured));
+            Assert.Equal(null, GetSymbolNamesJoined(dataFlowAnalysisResults.CapturedInside));
+            Assert.Equal(null, GetSymbolNamesJoined(dataFlowAnalysisResults.CapturedOutside));
+            Assert.Equal("this, value", GetSymbolNamesJoined(dataFlowAnalysisResults.DataFlowsIn));
+            Assert.Equal("this", GetSymbolNamesJoined(dataFlowAnalysisResults.DataFlowsOut));
+            Assert.Equal("this, value", GetSymbolNamesJoined(dataFlowAnalysisResults.ReadInside));
+            Assert.Equal("this", GetSymbolNamesJoined(dataFlowAnalysisResults.ReadOutside));
+            Assert.Equal("this", GetSymbolNamesJoined(dataFlowAnalysisResults.WrittenInside));
+            Assert.Equal("this, value", GetSymbolNamesJoined(dataFlowAnalysisResults.WrittenOutside));
         }
 
         #endregion

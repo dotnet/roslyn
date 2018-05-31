@@ -40,14 +40,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             public event EventHandler<ProjectAnalyzerReferenceChangedEventArgs> ProjectAnalyzerReferenceChanged;
 
             /// <summary>
-            /// Return existing or new <see cref="DiagnosticAnalyzer"/>s for the given <see cref="Project"/>.
-            /// </summary>
-            public IEnumerable<DiagnosticAnalyzer> GetOrCreateAnalyzers(Project project)
-            {
-                return _hostStates.GetAnalyzers(project.Language).Concat(_projectStates.GetOrCreateAnalyzers(project));
-            }
-
-            /// <summary>
             /// Return all <see cref="StateSet"/>.
             /// This will never create new <see cref="StateSet"/> but will return ones already created.
             /// </summary>

@@ -23,7 +23,7 @@ class C
     event System.Action E;
 }
 ";
-            var comp = CreateStandardCompilation(source, options: TestOptions.ReleaseWinMD);
+            var comp = CreateCompilationWithMscorlib40(source, options: TestOptions.ReleaseWinMD);
             comp.VerifyDiagnostics(
                 // For the backing field and accessors:
 
@@ -58,7 +58,7 @@ class C
 }
 ";
 
-            var comp = CreateStandardCompilation(source, options: TestOptions.ReleaseWinMD);
+            var comp = CreateCompilationWithMscorlib40(source, options: TestOptions.ReleaseWinMD);
             comp.VerifyEmitDiagnostics(
                 // For the backing field and accessors:
 
@@ -100,7 +100,7 @@ class C
 }
 ";
 
-            var comp = CreateStandardCompilation(source, options: TestOptions.ReleaseWinMD);
+            var comp = CreateCompilationWithMscorlib40(source, options: TestOptions.ReleaseWinMD);
             comp.VerifyEmitDiagnostics(
                 // For the backing field and accessors:
 
@@ -142,7 +142,7 @@ class C
 }
 ";
 
-            var comp = CreateStandardCompilation(source, options: TestOptions.ReleaseWinMD);
+            var comp = CreateCompilationWithMscorlib40(source, options: TestOptions.ReleaseWinMD);
             comp.VerifyEmitDiagnostics(
                 // For the backing field and accessors:
 
@@ -173,7 +173,7 @@ class C
     event System.Action E;
 }
 ";
-            var verifier = CompileAndVerifyWinRt(source, options: TestOptions.ReleaseWinMD);
+            var verifier = CompileAndVerifyWithWinRt(source, options: TestOptions.ReleaseWinMD);
 
             verifier.VerifyIL("C.E.add", @"
 {
@@ -209,7 +209,7 @@ class C
     static event System.Action<int> E;
 }
 ";
-            var verifier = CompileAndVerifyWinRt(source, options: TestOptions.ReleaseWinMD);
+            var verifier = CompileAndVerifyWithWinRt(source, options: TestOptions.ReleaseWinMD);
 
             verifier.VerifyIL("C.E.add", @"
 {
@@ -273,7 +273,7 @@ class D
     }
 }
 ";
-            var verifier = CompileAndVerifyWinRt(source, options: TestOptions.ReleaseWinMD);
+            var verifier = CompileAndVerifyWithWinRt(source, options: TestOptions.ReleaseWinMD);
 
             verifier.VerifyIL("D.InstanceAdd", @"
 {
@@ -366,7 +366,7 @@ class C
     }
 }
 ";
-            var verifier = CompileAndVerifyWinRt(source, options: TestOptions.ReleaseWinMD);
+            var verifier = CompileAndVerifyWithWinRt(source, options: TestOptions.ReleaseWinMD);
 
             verifier.VerifyIL("C.InstanceAssign", @"
 {
@@ -455,7 +455,7 @@ class C
     }
 }
 ";
-            var verifier = CompileAndVerifyWinRt(source, options: TestOptions.ReleaseWinMD);
+            var verifier = CompileAndVerifyWithWinRt(source, options: TestOptions.ReleaseWinMD);
 
             verifier.VerifyIL("C.InstanceInvoke", @"
 {
@@ -615,11 +615,11 @@ namespace EventDeserialization
 }
 ";
 
-            var comp1 = CreateCompilation(source1, WinRtRefs, TestOptions.ReleaseWinMD, TestOptions.Regular, "Lib");
+            var comp1 = CreateEmptyCompilation(source1, WinRtRefs, TestOptions.ReleaseWinMD, TestOptions.Regular, "Lib");
 
             var serializationRef = TestReferences.NetFx.v4_0_30319.System_Runtime_Serialization;
 
-            var comp2 = CreateCompilation(source2, WinRtRefs.Concat(new MetadataReference[] { new CSharpCompilationReference(comp1), serializationRef, SystemXmlRef }), TestOptions.ReleaseExe);
+            var comp2 = CreateEmptyCompilation(source2, WinRtRefs.Concat(new MetadataReference[] { new CSharpCompilationReference(comp1), serializationRef, SystemXmlRef }), TestOptions.ReleaseExe);
             CompileAndVerify(comp2, expectedOutput: @"A
 False
 null
@@ -640,7 +640,7 @@ B");
         var f = E = null;
     }
 }";
-            var comp = CreateCompilation(source, WinRtRefs, TestOptions.ReleaseWinMD);
+            var comp = CreateEmptyCompilation(source, WinRtRefs, TestOptions.ReleaseWinMD);
             comp.VerifyDiagnostics(
                 // (7,13): error CS0815: Cannot assign void to an implicitly-typed variable
                 //         var f = E = null;
@@ -660,7 +660,7 @@ B");
         E = null;
     }
 }";
-            var comp = CreateCompilation(source, WinRtRefs, TestOptions.ReleaseWinMD);
+            var comp = CreateEmptyCompilation(source, WinRtRefs, TestOptions.ReleaseWinMD);
             var tree = comp.SyntaxTrees[0];
             var model = comp.GetSemanticModel(tree);
             var syntax = tree.GetRoot().DescendantNodes().OfType<AssignmentExpressionSyntax>().Single();

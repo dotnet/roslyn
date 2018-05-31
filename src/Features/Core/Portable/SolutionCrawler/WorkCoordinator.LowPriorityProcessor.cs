@@ -173,7 +173,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                             SolutionCrawlerLogger.LogProcessProject(this.Processor._logAggregator, projectId.Id, processedEverything);
 
                             // remove one that is finished running
-                            _workItemQueue.RemoveCancellationSource(projectId);
+                            _workItemQueue.MarkWorkItemDoneFor(projectId);
                         }
                     }
 

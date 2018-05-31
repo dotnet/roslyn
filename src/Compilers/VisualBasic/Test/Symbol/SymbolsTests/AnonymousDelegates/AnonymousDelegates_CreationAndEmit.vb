@@ -149,7 +149,7 @@ End Module
     </file>
 </compilation>
 
-            CompileAndVerify(compilationDef, options:=TestOptions.ReleaseExe, additionalRefs:={SystemCoreRef},
+            CompileAndVerify(compilationDef, options:=TestOptions.ReleaseExe, references:={SystemCoreRef},
                              expectedOutput:=
             <![CDATA[
 1
@@ -290,7 +290,7 @@ End Module
     </file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(compilationDef, {SystemCoreRef}, TestOptions.ReleaseExe)
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(compilationDef, {SystemCoreRef}, TestOptions.ReleaseExe)
 
             Dim tree As SyntaxTree = (From t In compilation.SyntaxTrees Where t.FilePath = "a.vb").Single()
 
@@ -471,7 +471,7 @@ VB$AnonymousDelegate_6`2[System.Int64,System.Int64]
         <Fact>
         <WorkItem(2928, "https://github.com/dotnet/roslyn/issues/2928")>
         Public Sub ContainingSymbol()
-            Dim comp = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
+            Dim comp = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
     <file name="a.vb">
 Module Test

@@ -2293,6 +2293,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Private Sub CheckPresenceOfTypeIdentifierAttribute()
 
+            ' Have we already decoded well-known attributes?
+            If Me.m_lazyCustomAttributesBag?.IsDecodedWellKnownAttributeDataComputed Then
+                Return
+            End If
+
             ' We want this function to be as cheap as possible, it is called for every top level type
             ' and we don't want to bind attributes attached to the declaration unless there is a chance
             ' that one of them is TypeIdentifier attribute.

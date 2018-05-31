@@ -18,6 +18,7 @@
     <CopyOutputSymbolsToOutputDirectory>true</CopyOutputSymbolsToOutputDirectory>
     <VSSDKTargetPlatformRegRootSuffix>RoslynDev</VSSDKTargetPlatformRegRootSuffix>
     <RoslynProjectType>Vsix</RoslynProjectType>
+    <IncludeCopyLocalReferencesInVSIXContainer>false</IncludeCopyLocalReferencesInVSIXContainer> 
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|AnyCPU'" />
@@ -46,15 +47,13 @@
     <NuGetPackageToIncludeInVsix Include="System.Collections.Concurrent" />
     <NuGetPackageToIncludeInVsix Include="System.Collections.Immutable" />
     <NuGetPackageToIncludeInVsix Include="System.Console" />
-    <NugetPackageToIncludeInVsix Include="System.Diagnostics.Contracts" />
+    <NuGetPackageToIncludeInVsix Include="System.Diagnostics.Contracts" />
     <NuGetPackageToIncludeInVsix Include="System.Diagnostics.FileVersionInfo" />
-    <NuGetPackageToIncludeInVsix Include="System.Diagnostics.Process" />
     <NuGetPackageToIncludeInVsix Include="System.Diagnostics.StackTrace" />
     <NuGetPackageToIncludeInVsix Include="System.Diagnostics.Tools" />
     <NuGetPackageToIncludeInVsix Include="System.IO" />
     <NuGetPackageToIncludeInVsix Include="System.IO.Compression" />
     <NuGetPackageToIncludeInVsix Include="System.IO.FileSystem" />
-    <NuGetPackageToIncludeInVsix Include="System.IO.FileSystem.DriveInfo" />
     <NuGetPackageToIncludeInVsix Include="System.IO.FileSystem.Primitives" />
     <NuGetPackageToIncludeInVsix Include="System.IO.Pipes" />
     <NuGetPackageToIncludeInVsix Include="System.IO.Pipes.AccessControl" />
@@ -75,7 +74,6 @@
     <NuGetPackageToIncludeInVsix Include="System.Text.Encoding.Extensions" />
     <NuGetPackageToIncludeInVsix Include="System.Text.RegularExpressions" />
     <NuGetPackageToIncludeInVsix Include="System.Threading.Tasks.Parallel" />
-    <NuGetPackageToIncludeInVsix Include="System.Threading.Thread" />
     <NuGetPackageToIncludeInVsix Include="System.ValueTuple" />
     <NuGetPackageToIncludeInVsix Include="System.Xml.ReaderWriter" />
     <NuGetPackageToIncludeInVsix Include="System.Xml.XDocument" />
@@ -100,6 +98,7 @@
       <IncludeOutputGroupsInVSIX>BuiltProjectOutputGroup%3bGetCopyToOutputDirectoryItems</IncludeOutputGroupsInVSIX>
       <IncludeOutputGroupsInVSIXLocalOnly>DebugSymbolsProjectOutputGroup%3b</IncludeOutputGroupsInVSIXLocalOnly>
       <ForceIncludeInVSIX>true</ForceIncludeInVSIX>
+      <AdditionalProperties>TargetFramework=net46</AdditionalProperties>
     </ProjectReference>
     <ProjectReference Include="..\Core\Portable\CodeAnalysis.csproj">
       <IncludeOutputGroupsInVSIX>BuiltProjectOutputGroup</IncludeOutputGroupsInVSIX>
@@ -136,6 +135,7 @@
       <AdditionalProperties>TargetFramework=net46</AdditionalProperties>
     </ProjectReference>
     <PackageReference Include="EnvDTE" Version="$(EnvDTEVersion)" />
+    <PackageReference Include="Microsoft.VisualStudio.ProjectSystem.Managed" Version="$(MicrosoftVisualStudioProjectSystemManagedVersion)" />
     <PackageReference Include="Microsoft.VisualStudio.Shell.15.0" Version="$(MicrosoftVisualStudioShell150Version)" />
     <PackageReference Include="Microsoft.VisualStudio.Shell.Interop.8.0" Version="$(MicrosoftVisualStudioShellInterop80Version)" />
     <PackageReference Include="Microsoft.VisualStudio.Shell.Interop.9.0" Version="$(MicrosoftVisualStudioShellInterop90Version)" />
@@ -143,5 +143,11 @@
     <PackageReference Include="Microsoft.VisualStudio.Shell.Interop.15.3.DesignTime" Version="$(MicrosoftVisualStudioShellInterop153DesignTimeVersion)" />
     <PackageReference Include="Microsoft.VisualStudio.Shell.Framework" Version="$(MicrosoftVisualStudioShellFrameworkVersion)" />
     <PackageReference Include="Microsoft.VisualStudio.Utilities" Version="$(MicrosoftVisualStudioUtilitiesVersion)" />
+    <PackageReference Include="Microsoft.Build" Version="$(MicrosoftBuildVersion)" />
+    <PackageReference Include="Microsoft.Build.Framework" Version="$(MicrosoftBuildFrameworkVersion)" />
+    <PackageReference Include="Microsoft.Build.Tasks.Core" Version="$(MicrosoftBuildTasksCoreVersion)" />
+    <PackageReference Include="Microsoft.VisualStudio.Threading" Version="$(MicrosoftVisualStudioThreadingVersion)" />
+    <PackageReference Include="Microsoft.VisualStudio.Validation" Version="$(MicrosoftVisualStudioValidationVersion)" />
+    <PackageReference Include="System.Threading.Thread" Version="$(SystemThreadingThreadVersion)" />
   </ItemGroup>
 </Project>

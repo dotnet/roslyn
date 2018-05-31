@@ -42,6 +42,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.IfStatement:
                 case SyntaxKind.SwitchStatement:
                 case SyntaxKind.VariableDeclarator:
+                case SyntaxKind.ConstructorDeclaration:
                     break;
                 case SyntaxKind.ArgumentList:
                     Debug.Assert(node.Parent is ConstructorInitializerSyntax);
@@ -302,6 +303,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             Visit(node.Right);
+        }
+
+        public override void VisitConstructorDeclaration(ConstructorDeclarationSyntax node)
+        {
+            if (node.Initializer != null)
+            {
+                VisitNodeToBind(node.Initializer);
+            }
         }
 
         private void CollectVariablesFromDeconstruction(

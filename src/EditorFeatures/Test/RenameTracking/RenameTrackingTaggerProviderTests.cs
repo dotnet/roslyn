@@ -4,14 +4,15 @@ using System;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Editor.Host;
 using Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.VisualStudio.Text;
 using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.RenameTracking
 {
+    [UseExportProvider]
     public class RenameTrackingTaggerProviderTests
     {
         [WpfFact]
@@ -1503,5 +1504,48 @@ class C
             }
         }
 
+        [WpfFact]
+        [Trait(Traits.Feature, Traits.Features.RenameTracking)]
+        public async Task RenameTracking_UnmanagedConstraint_Keyword()
+        {
+            var code = @"
+class C&lt;T&gt; where T : $$unmanaged
+{
+}";
+            using (var state = RenameTrackingTestState.Create(code, LanguageNames.CSharp))
+            {
+                await state.AssertNoTag();
+            }
+        }
+
+        [WpfFact]
+        [Trait(Traits.Feature, Traits.Features.RenameTracking)]
+        public async Task RenameTracking_UnmanagedConstraint_Type()
+        {
+            var code = @"
+interface unmanaged
+{
+}
+class C&lt;T&gt; where T : $$unmanaged
+{
+}";
+            using (var state = RenameTrackingTestState.Create(code, LanguageNames.CSharp))
+            {
+                state.EditorOperations.InsertText("my");
+
+                await state.AssertTag("unmanaged", "myunmanaged", invokeAction: true);
+
+                // Make sure the rename completed            
+                var expectedCode = @"
+interface myunmanaged
+{
+}
+class C<T> where T : myunmanaged
+{
+}";
+                Assert.Equal(expectedCode, state.HostDocument.TextBuffer.CurrentSnapshot.GetText());
+                await state.AssertNoTag();
+            }
+        }
     }
 }

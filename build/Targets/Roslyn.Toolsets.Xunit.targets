@@ -3,6 +3,10 @@
 <Project ToolsVersion="14.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
 
   <PropertyGroup>
+    <MSBuildAllProjects>$(MSBuildAllProjects);$(MSBuildThisFileFullPath)</MSBuildAllProjects>
+  </PropertyGroup>
+
+  <PropertyGroup>
     <!-- xUnit.net Console Runner -->
     <XUnitPath>$(NuGetPackageRoot)\xunit.runner.console\$(xunitrunnerconsoleVersion)\tools\net452\xunit.console.x86.exe</XUnitPath>
     <XUnitTestResultsDirectory>$(OutDir)\xUnitResults</XUnitTestResultsDirectory>
@@ -16,7 +20,7 @@
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
     <ForceGenerationOfBindingRedirects>true</ForceGenerationOfBindingRedirects>
 
-    <RuntimeIdentifier Condition="'$(TargetFramework)' == 'net461' AND '$(RuntimeIdentifier)' == '' AND '$(OS)' == 'Windows_NT'">$(RoslynDesktopRuntimeIdentifier)</RuntimeIdentifier>
+    <RuntimeIdentifier Condition="'$(TargetFramework)' == 'net46' AND '$(RuntimeIdentifier)' == '' AND '$(OS)' == 'Windows_NT'">$(RoslynDesktopRuntimeIdentifier)</RuntimeIdentifier>
   </PropertyGroup>
 
   <Target Name="Test" DependsOnTargets="Build">

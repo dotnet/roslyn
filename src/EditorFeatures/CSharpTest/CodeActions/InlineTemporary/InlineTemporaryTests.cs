@@ -5,6 +5,7 @@ using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InlineTemporary;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -2713,7 +2714,7 @@ class C
 
     static void M()
     {
-        IComparable<long> c = Goo<long>(1, 1);
+        IComparable<long> c = Goo(1, (long)1);
     }
 }
 ");
@@ -3718,9 +3719,9 @@ class C
 
         [WorkItem(4583, "https://github.com/dotnet/roslyn/issues/4583")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
-        public async Task DontParenthesizeInterpolatedStringWithNoInterpolation()
+        public async Task DontParenthesizeInterpolatedStringWithNoInterpolationWithCSharp7()
         {
-            await TestInRegularAndScriptAsync(
+            await TestInRegularAndScript1Async(
 @"class C
 {
     public void M()
@@ -3735,6 +3736,28 @@ class C
     {
         var s2 = string.Replace($""hello"", ""world"");
     }
+}", parameters: new TestParameters(parseOptions: new CSharpParseOptions(LanguageVersion.CSharp7)));
+        }
+
+        [WorkItem(4583, "https://github.com/dotnet/roslyn/issues/4583")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
+        public async Task DontParenthesizeInterpolatedStringWithNoInterpolation()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    public void M()
+    {
+        var [|s1|] = $""hello"";
+        var s2 = ""string"".Replace(s1, ""world"");
+    }
+}",
+@"class C
+{
+    public void M()
+    {
+        var s2 = ""string"".Replace($""hello"", ""world"");
+    }
 }");
         }
 
@@ -3748,14 +3771,14 @@ class C
     public void M(int x)
     {
         var [|s1|] = $""hello {x}"";
-        var s2 = string.Replace(s1, ""world"");
+        var s2 = ""string"".Replace(s1, ""world"");
     }
 }", 
 @"class C
 {
     public void M(int x)
     {
-        var s2 = string.Replace($""hello {x}"", ""world"");
+        var s2 = ""string"".Replace($""hello {x}"", ""world"");
     }
 }");
         }
@@ -3938,7 +3961,7 @@ class C
 {
     public void M()
     {
-        ((1, ""hello"")).ToString();
+        (1, ""hello"").ToString();
     }
 }";
 
@@ -3965,7 +3988,7 @@ class C
 {
     public void M()
     {
-        ((a: 1, b: ""hello"")).ToString();
+        (a: 1, b: ""hello"").ToString();
     }
 }";
 
@@ -3991,7 +4014,7 @@ class C
 {
     public void M()
     {
-        (((int a, string b))((c: 1, d: ""hello""))).a.ToString();
+        (((int a, string b))(c: 1, d: ""hello"")).a.ToString();
     }
 }";
 
@@ -4537,6 +4560,30 @@ class C
     bool M<T>(out T x) 
     {
         return M(out x) || M(out x);
+    }
+}");
+        }
+
+        [Fact]
+        [WorkItem(24791, "https://github.com/dotnet/roslyn/issues/24791")]
+        public async Task InlineVariableDoesNotAddUnnecessaryCast()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    bool M()
+    {
+        var [||]o = M();
+        if (!o) throw null;
+        throw null;
+    }
+}",
+@"class C
+{
+    bool M()
+    {
+        if (!M()) throw null;
+        throw null;
     }
 }");
         }

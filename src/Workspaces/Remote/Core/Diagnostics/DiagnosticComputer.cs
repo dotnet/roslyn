@@ -10,6 +10,7 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Diagnostics.Telemetry;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Workspaces.Diagnostics;
 using Roslyn.Utilities;
 
@@ -19,11 +20,15 @@ namespace Microsoft.CodeAnalysis.Remote.Diagnostics
     {
         private readonly Project _project;
         private readonly Dictionary<DiagnosticAnalyzer, HashSet<DiagnosticData>> _exceptions;
+        private readonly IPerformanceTrackerService _performanceTracker;
 
         public DiagnosticComputer(Project project)
         {
             _project = project;
             _exceptions = new Dictionary<DiagnosticAnalyzer, HashSet<DiagnosticData>>();
+
+            // we only track performance from primary branch. all forked branch we don't care such as preview.
+            _performanceTracker = project.IsFromPrimaryBranch() ? project.Solution.Workspace.Services.GetService<IPerformanceTrackerService>() : null;
         }
 
         public async Task<DiagnosticAnalysisResultMap<string, DiagnosticAnalysisResultBuilder>> GetDiagnosticsAsync(
@@ -70,29 +75,37 @@ namespace Microsoft.CodeAnalysis.Remote.Diagnostics
 
             // We need this to fork soluton, otherwise, option is cached at document.
             // all this can go away once we do this - https://github.com/dotnet/roslyn/issues/19284
-            var temporaryWorksapce = new TemporaryWorkspace(_project.Solution);
+            using (var temporaryWorksapce = new TemporaryWorkspace(_project.Solution))
+            {
+                // TODO: can we support analyzerExceptionFilter in remote host? 
+                //       right now, host doesn't support watson, we might try to use new NonFatal watson API?
+                var analyzerOptions = new CompilationWithAnalyzersOptions(
+                        options: new WorkspaceAnalyzerOptions(_project.AnalyzerOptions, MergeOptions(_project.Solution.Options, options), temporaryWorksapce.CurrentSolution),
+                        onAnalyzerException: OnAnalyzerException,
+                        analyzerExceptionFilter: null,
+                        concurrentAnalysis: useConcurrent,
+                        logAnalyzerExecutionTime: logAnalyzerExecutionTime,
+                        reportSuppressedDiagnostics: reportSuppressedDiagnostics);
 
-            // TODO: can we support analyzerExceptionFilter in remote host? 
-            //       right now, host doesn't support watson, we might try to use new NonFatal watson API?
-            var analyzerOptions = new CompilationWithAnalyzersOptions(
-                    options: new WorkspaceAnalyzerOptions(_project.AnalyzerOptions, MergeOptions(_project.Solution.Options, options), temporaryWorksapce.CurrentSolution),
-                    onAnalyzerException: OnAnalyzerException,
-                    analyzerExceptionFilter: null,
-                    concurrentAnalysis: useConcurrent,
-                    logAnalyzerExecutionTime: logAnalyzerExecutionTime,
-                    reportSuppressedDiagnostics: reportSuppressedDiagnostics);
+                var analyzerDriver = compilation.WithAnalyzers(analyzers, analyzerOptions);
 
-            var analyzerDriver = compilation.WithAnalyzers(analyzers, analyzerOptions);
+                // PERF: Run all analyzers at once using the new GetAnalysisResultAsync API.
+                var analysisResult = await analyzerDriver.GetAnalysisResultAsync(cancellationToken).ConfigureAwait(false);
 
-            // PERF: Run all analyzers at once using the new GetAnalysisResultAsync API.
-            var analysisResult = await analyzerDriver.GetAnalysisResultAsync(cancellationToken).ConfigureAwait(false);
+                // record performance if tracker is available
+                if (_performanceTracker != null)
+                {
+                    // +1 to include project itself
+                    _performanceTracker.AddSnapshot(analysisResult.AnalyzerTelemetryInfo.ToAnalyzerPerformanceInfo(), _project.DocumentIds.Count + 1);
+                }
 
-            var builderMap = analysisResult.ToResultBuilderMap(_project, VersionStamp.Default, compilation, analysisResult.Analyzers, cancellationToken);
+                var builderMap = analysisResult.ToResultBuilderMap(_project, VersionStamp.Default, compilation, analysisResult.Analyzers, cancellationToken);
 
-            return DiagnosticAnalysisResultMap.Create(
-                builderMap.ToImmutableDictionary(kv => GetAnalyzerId(analyzerMap, kv.Key), kv => kv.Value),
-                analysisResult.AnalyzerTelemetryInfo.ToImmutableDictionary(kv => GetAnalyzerId(analyzerMap, kv.Key), kv => kv.Value),
-                _exceptions.ToImmutableDictionary(kv => GetAnalyzerId(analyzerMap, kv.Key), kv => kv.Value.ToImmutableArray()));
+                return DiagnosticAnalysisResultMap.Create(
+                    builderMap.ToImmutableDictionary(kv => GetAnalyzerId(analyzerMap, kv.Key), kv => kv.Value),
+                    analysisResult.AnalyzerTelemetryInfo.ToImmutableDictionary(kv => GetAnalyzerId(analyzerMap, kv.Key), kv => kv.Value),
+                    _exceptions.ToImmutableDictionary(kv => GetAnalyzerId(analyzerMap, kv.Key), kv => kv.Value.ToImmutableArray()));
+            }
         }
 
         private void OnAnalyzerException(Exception exception, DiagnosticAnalyzer analyzer, Diagnostic diagnostic)

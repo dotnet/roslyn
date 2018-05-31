@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.SQLite.Interop
     /// to open the DB if it exists, or create it if it does not.
     /// 
     /// Connections are considered relatively heavyweight and are pooled until the <see cref="SQLitePersistentStorage"/>
-    /// is <see cref="SQLitePersistentStorage.Close"/>d.  Connections can be used by different threads,
+    /// is <see cref="SQLitePersistentStorage.Dispose"/>d.  Connections can be used by different threads,
     /// but only as long as they are used by one thread at a time.  They are not safe for concurrent
     /// use by several threads.
     /// 
@@ -184,7 +184,7 @@ namespace Microsoft.CodeAnalysis.SQLite.Interop
         public int LastInsertRowId()
             => (int)raw.sqlite3_last_insert_rowid(_handle);
 
-        public Stream ReadBlob(string dataTableName, string dataColumnName, long rowId)
+        public Stream ReadBlob(byte[] dataTableName, byte[] dataColumnName, long rowId)
         {
             // NOTE: we do need to do the blob reading in a transaction because of the
             // following: https://www.sqlite.org/c3ref/blob_open.html
@@ -204,10 +204,12 @@ namespace Microsoft.CodeAnalysis.SQLite.Interop
             return stream;
         }
 
-        private Stream ReadBlob_InTransaction(string tableName, string columnName, long rowId)
+
+        private static readonly byte[] mainPtr = Util.ToUtf8WithNullTerminator("main");
+        private Stream ReadBlob_InTransaction(byte[] tableName, byte[] columnName, long rowId)
         {
             const int ReadOnlyFlags = 0;
-            var result = raw.sqlite3_blob_open(_handle, "main", tableName, columnName, rowId, ReadOnlyFlags, out var blob);
+            var result = raw.sqlite3_blob_open(_handle, mainPtr, tableName, columnName, rowId, ReadOnlyFlags, out var blob);
             if (result == raw.SQLITE_ERROR)
             {
                 // can happen when rowId points to a row that hasn't been written to yet.

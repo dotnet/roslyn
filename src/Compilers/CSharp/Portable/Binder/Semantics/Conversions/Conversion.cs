@@ -236,7 +236,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal static Conversion ExplicitDynamic => new Conversion(ConversionKind.ExplicitDynamic);
         internal static Conversion InterpolatedString => new Conversion(ConversionKind.InterpolatedString);
         internal static Conversion Deconstruction => new Conversion(ConversionKind.Deconstruction);
-        internal static Conversion IdentityValue => new Conversion(ConversionKind.IdentityValue);
         internal static Conversion PinnedObjectToPointer => new Conversion(ConversionKind.PinnedObjectToPointer);
 
         // trivial conversions that could be underlying in nullable conversion
@@ -882,7 +881,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             // The MethodSymbol of CommonConversion only refers to UserDefined conversions, not method groups
             var methodSymbol = IsUserDefined ? MethodSymbol : null;
-            return new CommonConversion(Exists, IsIdentity, IsNumeric, IsReference, methodSymbol);
+            return new CommonConversion(Exists, IsIdentity, IsNumeric, IsReference, IsImplicit, methodSymbol);
         }
 
         /// <summary>

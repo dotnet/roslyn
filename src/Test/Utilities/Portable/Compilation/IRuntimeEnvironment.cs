@@ -268,7 +268,7 @@ namespace Roslyn.Test.Utilities
 
                     if (dumpDirectory == null)
                     {
-                        dumpDirectory = Path.GetTempPath();
+                        dumpDirectory = TempRoot.Root;
                         try
                         {
                             Directory.CreateDirectory(dumpDirectory);
@@ -335,8 +335,8 @@ namespace Roslyn.Test.Utilities
         ImmutableArray<Diagnostic> GetDiagnostics();
         SortedSet<string> GetMemberSignaturesFromMetadata(string fullyQualifiedTypeName, string memberName);
         IList<ModuleData> GetAllModuleData();
-        void PeVerify();
-        string[] PeVerifyModules(string[] modulesToVerify, bool throwOnError = true);
+        void Verify(Verification verification);
+        string[] VerifyModules(string[] modulesToVerify);
         void CaptureOutput(Action action, int expectedLength, out string output, out string errorOutput);
     }
 

@@ -3,29 +3,30 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.CodeAnalysis.Editor.Commands;
 using Microsoft.CodeAnalysis.Editor.Implementation.Formatting;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Utilities;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Formatting.Rules;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
+using Microsoft.VisualStudio.Text.Editor.Commanding.Commands;
 using Microsoft.VisualStudio.Text.Operations;
-using Moq;
 using Roslyn.Test.EditorUtilities;
 using Roslyn.Test.Utilities;
-using Xunit;
 using Roslyn.Utilities;
-using System.Threading.Tasks;
+using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Formatting
 {
+    [UseExportProvider]
     public class FormattingEngineTestBase
     {
         protected async Task AssertFormatAsync(string expected, string code, bool debugMode = false, Dictionary<OptionKey, object> changedOptionSet = null, bool useTab = false, bool testWithTransformation = true)
@@ -173,14 +174,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Formatting
 
         protected static void AssertFormatWithView(string expectedWithMarker, string codeWithMarker, bool debugMode = false)
         {
-            var editorOperations = new Mock<IEditorOperations>(MockBehavior.Strict);
-            var editorOperationsFactoryService = new Mock<IEditorOperationsFactoryService>(MockBehavior.Strict);
-
-            editorOperations.Setup(o => o.AddAfterTextBufferChangePrimitive());
-            editorOperations.Setup(o => o.AddBeforeTextBufferChangePrimitive());
-
-            editorOperationsFactoryService.Setup(s => s.GetEditorOperations(It.IsAny<ITextView>())).Returns(editorOperations.Object);
-
             using (var workspace = TestWorkspace.CreateCSharp(codeWithMarker))
             {
                 // set up caret position
@@ -191,10 +184,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Formatting
                 // get original buffer
                 var buffer = workspace.Documents.First().GetTextBuffer();
 
-                var commandHandler = new FormatCommandHandler(TestWaitIndicator.Default, workspace.GetService<ITextUndoHistoryRegistry>(), editorOperationsFactoryService.Object);
+                var commandHandler = workspace.GetService<FormatCommandHandler>();
 
                 var commandArgs = new FormatDocumentCommandArgs(view, view.TextBuffer);
-                commandHandler.ExecuteCommand(commandArgs, () => { });
+                commandHandler.ExecuteCommand(commandArgs, TestCommandExecutionContext.Create());
                 MarkupTestFile.GetPosition(expectedWithMarker, out var expected, out int expectedPosition);
 
                 Assert.Equal(expected, view.TextSnapshot.GetText());
@@ -221,20 +214,16 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Formatting
 
                 if (isPaste)
                 {
-                    var commandHandler = new FormatCommandHandler(TestWaitIndicator.Default, null, null);
+                    var commandHandler = workspace.GetService<FormatCommandHandler>();
                     var commandArgs = new PasteCommandArgs(view, view.TextBuffer);
-                    commandHandler.ExecuteCommand(commandArgs, () => { });
+                    commandHandler.ExecuteCommand(commandArgs, () => { }, TestCommandExecutionContext.Create());
                 }
                 else
                 {
                     // Return Key Command
-                    var textUndoHistory = new Mock<ITextUndoHistoryRegistry>();
-                    var editorOperationsFactory = new Mock<IEditorOperationsFactoryService>();
-                    var editorOperations = new Mock<IEditorOperations>();
-                    editorOperationsFactory.Setup(x => x.GetEditorOperations(testDocument.GetTextView())).Returns(editorOperations.Object);
-                    var commandHandler = new FormatCommandHandler(TestWaitIndicator.Default, textUndoHistory.Object, editorOperationsFactory.Object);
+                    var commandHandler = workspace.GetService<FormatCommandHandler>();
                     var commandArgs = new ReturnKeyCommandArgs(view, view.TextBuffer);
-                    commandHandler.ExecuteCommand(commandArgs, () => { });
+                    commandHandler.ExecuteCommand(commandArgs, () => { }, TestCommandExecutionContext.Create());
                 }
 
                 MarkupTestFile.GetPosition(expectedWithMarker, out var expected, out int expectedPosition);

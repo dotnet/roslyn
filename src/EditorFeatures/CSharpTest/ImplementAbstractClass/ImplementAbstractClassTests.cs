@@ -10,6 +10,7 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics;
 using Microsoft.CodeAnalysis.ImplementType;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -457,7 +458,7 @@ abstract class d
 
 class c : d
 {
-    public override void goo(b x = default(b))
+    public override void goo(b x = default)
     {
         throw new System.NotImplementedException();
     }
@@ -1528,7 +1529,7 @@ abstract class B
 }
 sealed class D : B
 {
-    public override void M1(int i = 0, string s = null, int? j = null, V v = default(V))
+    public override void M1(int i = 0, string s = null, int? j = null, V v = default)
     {
         throw new System.NotImplementedException();
     }
@@ -1681,6 +1682,30 @@ public class [|Test|] : TestParent
 public class Test : TestParent
 {
     public override ref readonly int this[int p] => throw new System.NotImplementedException();
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        public async Task TestUnmanagedConstraint()
+        {
+            await TestInRegularAndScriptAsync(
+@"public abstract class ParentTest
+{
+    public abstract void M<T>() where T : unmanaged;
+}
+public class [|Test|] : ParentTest
+{
+}",
+@"public abstract class ParentTest
+{
+    public abstract void M<T>() where T : unmanaged;
+}
+public class Test : ParentTest
+{
+    public override void M<T>()
+    {
+        throw new System.NotImplementedException();
+    }
 }");
         }
     }

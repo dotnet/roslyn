@@ -31,7 +31,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             {
                 ServiceProvider = serviceProvider;
                 ShellOpenDocumentService = (IVsUIShellOpenDocument)serviceProvider.GetService(typeof(SVsUIShellOpenDocument));
-                ProjectTracker = new VisualStudioProjectTracker(serviceProvider, workspace.Services);
+                ProjectTracker = new VisualStudioProjectTracker(serviceProvider, workspace);
 
                 // Ensure the document tracking service is initialized on the UI thread
                 var documentTrackingService = (VisualStudioDocumentTrackingService)workspace.Services.GetService<IDocumentTrackingService>();
@@ -39,10 +39,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 var metadataReferenceProvider = workspace.Services.GetService<VisualStudioMetadataReferenceManager>();
                 var ruleSetFileProvider = workspace.Services.GetService<VisualStudioRuleSetManager>();
                 ProjectTracker.InitializeProviders(documentProvider, metadataReferenceProvider, ruleSetFileProvider);
-
-                var workspaceHost = new VisualStudioWorkspaceHost(workspace);
-                ProjectTracker.RegisterWorkspaceHost(workspaceHost);
-                ProjectTracker.StartSendingEventsToWorkspaceHost(workspaceHost);
 
                 var componentModel = (IComponentModel)serviceProvider.GetService(typeof(SComponentModel));
                 var saveEventsService = componentModel.GetService<SaveEventsService>();

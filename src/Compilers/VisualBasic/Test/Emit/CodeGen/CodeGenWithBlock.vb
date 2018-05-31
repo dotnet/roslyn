@@ -2608,7 +2608,7 @@ End Structure
 
         <Fact()>
         Public Sub TestWith_NestedWithWithInferredVarType2()
-            CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
+            CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
     <file name="a.vb">
 Structure Struct
@@ -2649,7 +2649,7 @@ End Structure
 
         <Fact()>
         Public Sub TestWith_NestedWithWithInferredVarType3()
-            CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
+            CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
     <file name="a.vb">
 Imports System
@@ -2690,7 +2690,7 @@ End Structure
         <WorkItem(545120, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545120")>
         <Fact()>
         Public Sub TestWith_NestedWithWithLambdasAndObjectInitializers()
-            CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
+            CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
     <file name="a.vb">
 Structure SS1

@@ -14,7 +14,7 @@
     <!-- Don't use the compiler server by default in the NuGet package. -->
     <UseSharedCompilation Condition="'$(UseSharedCompilation)' == ''">false</UseSharedCompilation>
     <CSharpCoreTargetsPath>$(MSBuildThisFileDirectory)..\tools\Microsoft.CSharp.Core.targets</CSharpCoreTargetsPath>
-    <BasicCoreTargetsPath>$(MSBuildThisFileDirectory)..\tools\Microsoft.VisualBasic.Core.targets</BasicCoreTargetsPath>
+    <VisualBasicCoreTargetsPath>$(MSBuildThisFileDirectory)..\tools\Microsoft.VisualBasic.Core.targets</VisualBasicCoreTargetsPath>
   </PropertyGroup>
 
   <!-- Older versions of the CLI didn't set the DOTNET_HOST_PATH variable, which
@@ -33,7 +33,7 @@
   <Target Name="MakeCompilerScriptsExecutable"
           Condition="'$(BuildingProject)' == 'true' AND
                      '$(OS)' != 'Windows_NT' AND
-                     ('$(CscToolPath)' != '' OR '$(VbcToolPath) != '')"
+                     ('$(CscToolPath)' != '' OR '$(VbcToolPath)' != '')"
           BeforeTargets="CoreCompile">
     <Exec Command="chmod +x &quot;$(CscToolPath)/$(CscToolExe)&quot; &quot;$(VbcToolPath)/$(VbcToolExe)&quot;" />
   </Target>

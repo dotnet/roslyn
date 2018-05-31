@@ -1,6 +1,5 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-extern alias CscExe;
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -13,6 +12,7 @@ using System.Reflection;
 using System.Reflection.Metadata;
 using System.Reflection.PortableExecutable;
 using System.Runtime.InteropServices;
+using System.Security.Cryptography;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading;
@@ -30,19 +30,19 @@ using Roslyn.Utilities;
 using Xunit;
 using static Microsoft.CodeAnalysis.CommonDiagnosticAnalyzers;
 using static Roslyn.Test.Utilities.SharedResourceHelpers;
-using CscExe.Microsoft.CodeAnalysis.CSharp.CommandLine;
 
 namespace Microsoft.CodeAnalysis.CSharp.CommandLine.UnitTests
 {
     public class CommandLineTests : CSharpTestBase
     {
-        private static readonly string s_CSharpCompilerExecutable = typeof(Csc).GetTypeInfo().Assembly.Location;
+        private static readonly string s_CSharpCompilerExecutable = Path.Combine(
+            Path.GetDirectoryName(typeof(CommandLineTests).GetTypeInfo().Assembly.Location),
+            Path.Combine("dependency", "csc.exe"));
         private static readonly string s_defaultSdkDirectory = RuntimeEnvironment.GetRuntimeDirectory();
-        private static readonly string s_compilerVersion = typeof(Csc).GetTypeInfo().Assembly.GetCustomAttribute<AssemblyFileVersionAttribute>().Version;
-        private static readonly string s_compilerShortCommitHash =
-            CommonCompiler.ExtractShortCommitHash(typeof(CSharpCompiler).GetTypeInfo().Assembly.GetCustomAttribute<CommitHashAttribute>()?.Hash);
-
         private readonly string _baseDirectory = TempRoot.Root;
+        private static readonly string s_compilerVersion = typeof(CommandLineTests).Assembly.GetCustomAttribute<AssemblyFileVersionAttribute>().Version;
+        private static readonly string s_compilerCommitHash = typeof(CommandLineTests).Assembly.GetCustomAttribute<CommitHashAttribute>()?.Hash;
+        private static readonly string s_compilerShortCommitHash = CommonCompiler.ExtractShortCommitHash(s_compilerCommitHash);
 
         private class TestCommandLineParser : CSharpCommandLineParser
         {
@@ -368,7 +368,7 @@ d.cs
         {
             var args = DefaultParse(new[] { @"e:c:\test\test.cs", "/t:library" }, _baseDirectory);
             Assert.Equal(3, args.Errors.Length);
-            Assert.Equal((int)ErrorCode.FTL_InputFileNameTooLong, args.Errors[0].Code);
+            Assert.Equal((int)ErrorCode.FTL_InvalidInputFileName, args.Errors[0].Code);
             Assert.Equal((int)ErrorCode.WRN_NoSources, args.Errors[1].Code);
             Assert.Equal((int)ErrorCode.ERR_OutputNeedsName, args.Errors[2].Code);
         }
@@ -388,7 +388,7 @@ d.cs
             };
 
             var parsedArgs = DefaultParse(args, _baseDirectory);
-            var compilation = CreateStandardCompilation(new SyntaxTree[0]);
+            var compilation = CreateCompilation(new SyntaxTree[0]);
             IEnumerable<DiagnosticInfo> errors;
             CSharpCompiler.GetWin32ResourcesInternal(MessageProvider.Instance, parsedArgs, compilation, out errors);
             Assert.Equal(1, errors.Count());
@@ -512,7 +512,7 @@ d.cs
             string tmpFileName = Temp.CreateFile().WriteAllBytes(new byte[] { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 }).Path;
 
             var parsedArgs = DefaultParse(new[] { "/win32icon:" + tmpFileName, "a.cs" }, _baseDirectory);
-            var compilation = CreateStandardCompilation(new SyntaxTree[0]);
+            var compilation = CreateCompilation(new SyntaxTree[0]);
             IEnumerable<DiagnosticInfo> errors;
 
             CSharpCompiler.GetWin32ResourcesInternal(MessageProvider.Instance, parsedArgs, compilation, out errors);
@@ -626,12 +626,12 @@ d.cs
             diags.Clear();
 
             desc = CSharpCommandLineParser.ParseResourceDescription("", @"D:rive\relative\path,someName,public", _baseDirectory, diags, embedded: false);
-            diags.Verify(Diagnostic(ErrorCode.FTL_InputFileNameTooLong).WithArguments(@"D:rive\relative\path"));
+            diags.Verify(Diagnostic(ErrorCode.FTL_InvalidInputFileName).WithArguments(@"D:rive\relative\path"));
             Assert.Null(desc);
             diags.Clear();
 
             desc = CSharpCommandLineParser.ParseResourceDescription("", @"inva\l*d?path,someName,public", _baseDirectory, diags, embedded: false);
-            diags.Verify(Diagnostic(ErrorCode.FTL_InputFileNameTooLong).WithArguments(@"inva\l*d?path"));
+            diags.Verify(Diagnostic(ErrorCode.FTL_InvalidInputFileName).WithArguments(@"inva\l*d?path"));
             Assert.Null(desc);
             diags.Clear();
 
@@ -648,14 +648,14 @@ d.cs
             desc = CSharpCommandLineParser.ParseResourceDescription("", " ", _baseDirectory, diags, embedded: false);
             diags.Verify(
                 // error CS2021: File name ' ' contains invalid characters, has a drive specification without an absolute path, or is too long
-                Diagnostic(ErrorCode.FTL_InputFileNameTooLong).WithArguments(" "));
+                Diagnostic(ErrorCode.FTL_InvalidInputFileName).WithArguments(" "));
             diags.Clear();
             Assert.Null(desc);
 
             desc = CSharpCommandLineParser.ParseResourceDescription("", " , ", _baseDirectory, diags, embedded: false);
             diags.Verify(
                 // error CS2021: File name ' ' contains invalid characters, has a drive specification without an absolute path, or is too long
-                Diagnostic(ErrorCode.FTL_InputFileNameTooLong).WithArguments(" "));
+                Diagnostic(ErrorCode.FTL_InvalidInputFileName).WithArguments(" "));
             diags.Clear();
             Assert.Null(desc);
 
@@ -669,7 +669,7 @@ d.cs
             desc = CSharpCommandLineParser.ParseResourceDescription("", " ,name", _baseDirectory, diags, embedded: false);
             diags.Verify(
                 // error CS2021: File name ' ' contains invalid characters, has a drive specification without an absolute path, or is too long
-                Diagnostic(ErrorCode.FTL_InputFileNameTooLong).WithArguments(" "));
+                Diagnostic(ErrorCode.FTL_InvalidInputFileName).WithArguments(" "));
             diags.Clear();
             Assert.Null(desc);
 
@@ -697,7 +697,7 @@ d.cs
             desc = CSharpCommandLineParser.ParseResourceDescription("", " , ,private", _baseDirectory, diags, embedded: false);
             diags.Verify(
                 // error CS2021: File name ' ' contains invalid characters, has a drive specification without an absolute path, or is too long
-                Diagnostic(ErrorCode.FTL_InputFileNameTooLong).WithArguments(" "));
+                Diagnostic(ErrorCode.FTL_InvalidInputFileName).WithArguments(" "));
             diags.Clear();
             Assert.Null(desc);
 
@@ -734,7 +734,7 @@ d.cs
             desc = CSharpCommandLineParser.ParseResourceDescription("", " ,name,private", _baseDirectory, diags, embedded: false);
             diags.Verify(
                 // error CS2021: File name ' ' contains invalid characters, has a drive specification without an absolute path, or is too long
-                Diagnostic(ErrorCode.FTL_InputFileNameTooLong).WithArguments(" "));
+                Diagnostic(ErrorCode.FTL_InvalidInputFileName).WithArguments(" "));
             diags.Clear();
             Assert.Null(desc);
 
@@ -750,11 +750,9 @@ d.cs
             var longI = new String('i', 260);
 
             desc = CSharpCommandLineParser.ParseResourceDescription("", String.Format("{0},e,private", longI), _baseDirectory, diags, embedded: false);
-            diags.Verify(); // Now checked during emit.
-            diags.Clear();
-            Assert.Equal(longI, desc.FileName);
-            Assert.Equal("e", desc.ResourceName);
-            Assert.False(desc.IsPublic);
+            diags.Verify(
+                // error CS2021: File name 'iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii' is empty, contains invalid characters, has a drive specification without an absolute path, or is too long
+                Diagnostic(ErrorCode.FTL_InvalidInputFileName).WithArguments("iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii").WithLocation(1, 1));
         }
 
         [Fact]
@@ -1291,7 +1289,7 @@ d.cs
         [Theory]
         [InlineData("iso-3")]
         [InlineData("iso1")]
-        [InlineData("8")]
+        [InlineData("9")]
         [InlineData("1000")]
         public void LangVersion_BadVersion(string value)
         {
@@ -1342,11 +1340,11 @@ d.cs
         {
             // When a new version is added, this test will break. This list must be checked:
             // - update the "UpgradeProject" codefixer
-            // - update the IDE drop-down for selecting Language Version
+            // - update the IDE drop-down for selecting Language Version (in project-systems repo)
             // - update all the tests that call this canary
-            AssertEx.SetEqual(new[] { "default", "1", "2", "3", "4", "5", "6", "7.0", "7.1", "7.2", "7.3", "latest" },
+            AssertEx.SetEqual(new[] { "default", "1", "2", "3", "4", "5", "6", "7.0", "7.1", "7.2", "7.3", "8.0", "latest" },
                 Enum.GetValues(typeof(LanguageVersion)).Cast<LanguageVersion>().Select(v => v.ToDisplayString()));
-            // For minor versions, the format should be "x.y", such as "7.1"
+            // For minor versions and new major versions, the format should be "x.y", such as "7.1"
         }
 
         [Fact]
@@ -1367,7 +1365,8 @@ d.cs
                 ErrorCode.ERR_FeatureNotAvailableInVersion7,
                 ErrorCode.ERR_FeatureNotAvailableInVersion7_1,
                 ErrorCode.ERR_FeatureNotAvailableInVersion7_2,
-                ErrorCode.ERR_FeatureNotAvailableInVersion7_3
+                ErrorCode.ERR_FeatureNotAvailableInVersion7_3,
+                ErrorCode.ERR_FeatureNotAvailableInVersion8,
             };
 
             AssertEx.SetEqual(versions, errorCodes);
@@ -1376,22 +1375,23 @@ d.cs
             LanguageVersionAdded_Canary();
         }
 
-        [Fact]
-        public void LanguageVersion_MapSpecifiedToEffectiveVersion()
+        [Theory,
+            InlineData(LanguageVersion.CSharp1, LanguageVersion.CSharp1),
+            InlineData(LanguageVersion.CSharp2, LanguageVersion.CSharp2),
+            InlineData(LanguageVersion.CSharp3, LanguageVersion.CSharp3),
+            InlineData(LanguageVersion.CSharp4, LanguageVersion.CSharp4),
+            InlineData(LanguageVersion.CSharp5, LanguageVersion.CSharp5),
+            InlineData(LanguageVersion.CSharp6, LanguageVersion.CSharp6),
+            InlineData(LanguageVersion.CSharp7, LanguageVersion.CSharp7),
+            InlineData(LanguageVersion.CSharp7_1, LanguageVersion.CSharp7_1),
+            InlineData(LanguageVersion.CSharp7_2, LanguageVersion.CSharp7_2),
+            InlineData(LanguageVersion.CSharp7_3, LanguageVersion.CSharp7_3),
+            InlineData(LanguageVersion.CSharp8, LanguageVersion.Default),
+            InlineData(LanguageVersion.CSharp8, LanguageVersion.Latest)]
+        public void LanguageVersion_MapSpecifiedToEffectiveVersion(LanguageVersion expectedMappedVersion, LanguageVersion input)
         {
-            Assert.Equal(LanguageVersion.CSharp1, LanguageVersion.CSharp1.MapSpecifiedToEffectiveVersion());
-            Assert.Equal(LanguageVersion.CSharp2, LanguageVersion.CSharp2.MapSpecifiedToEffectiveVersion());
-            Assert.Equal(LanguageVersion.CSharp3, LanguageVersion.CSharp3.MapSpecifiedToEffectiveVersion());
-            Assert.Equal(LanguageVersion.CSharp4, LanguageVersion.CSharp4.MapSpecifiedToEffectiveVersion());
-            Assert.Equal(LanguageVersion.CSharp5, LanguageVersion.CSharp5.MapSpecifiedToEffectiveVersion());
-            Assert.Equal(LanguageVersion.CSharp6, LanguageVersion.CSharp6.MapSpecifiedToEffectiveVersion());
-            Assert.Equal(LanguageVersion.CSharp7, LanguageVersion.CSharp7.MapSpecifiedToEffectiveVersion());
-            Assert.Equal(LanguageVersion.CSharp7_1, LanguageVersion.CSharp7_1.MapSpecifiedToEffectiveVersion());
-            Assert.Equal(LanguageVersion.CSharp7_2, LanguageVersion.CSharp7_2.MapSpecifiedToEffectiveVersion());
-            Assert.Equal(LanguageVersion.CSharp7_3, LanguageVersion.CSharp7_3.MapSpecifiedToEffectiveVersion());
-
-            Assert.Equal(LanguageVersion.CSharp7, LanguageVersion.Default.MapSpecifiedToEffectiveVersion());
-            Assert.Equal(LanguageVersion.CSharp7_3, LanguageVersion.Latest.MapSpecifiedToEffectiveVersion());
+            Assert.Equal(expectedMappedVersion, input.MapSpecifiedToEffectiveVersion());
+            Assert.True(expectedMappedVersion.IsValid());
 
             // The canary check is a reminder that this test needs to be updated when a language version is added
             LanguageVersionAdded_Canary();
@@ -1420,6 +1420,8 @@ d.cs
             InlineData("7.1", true, LanguageVersion.CSharp7_1),
             InlineData("7.2", true, LanguageVersion.CSharp7_2),
             InlineData("7.3", true, LanguageVersion.CSharp7_3),
+            InlineData("8", true, LanguageVersion.CSharp8),
+            InlineData("8.0", true, LanguageVersion.CSharp8),
             InlineData("07.1", false, LanguageVersion.Default),
             InlineData("default", true, LanguageVersion.Default),
             InlineData("latest", true, LanguageVersion.Latest),
@@ -1678,7 +1680,7 @@ d.cs
             //parsedArgs = DefaultParse(new[] { "/debug", "/pdb:.x", "a.cs" }, baseDirectory);
             //parsedArgs.Errors.Verify(
             //    // error CS2021: File name '.x' is empty, contains invalid characters, has a drive specification without an absolute path, or is too long
-            //    Diagnostic(ErrorCode.FTL_InputFileNameTooLong).WithArguments(".x"));
+            //    Diagnostic(ErrorCode.FTL_InvalidInputFileName).WithArguments(".x"));
 
             parsedArgs = DefaultParse(new[] { @"/pdb:""""", "/debug", "a.cs" }, _baseDirectory);
             parsedArgs.Errors.Verify(
@@ -1687,7 +1689,7 @@ d.cs
 
             parsedArgs = DefaultParse(new[] { "/pdb:C:\\", "/debug", "a.cs" }, _baseDirectory);
             parsedArgs.Errors.Verify(
-                Diagnostic(ErrorCode.FTL_InputFileNameTooLong).WithArguments("C:\\"));
+                Diagnostic(ErrorCode.FTL_InvalidInputFileName).WithArguments("C:\\"));
 
             // Should preserve fully qualified paths
             parsedArgs = DefaultParse(new[] { @"/pdb:C:\MyFolder\MyPdb.pdb", "/debug", "a.cs" }, _baseDirectory);
@@ -1722,13 +1724,13 @@ d.cs
             parsedArgs = DefaultParse(new[] { @"/pdb:\\b", "/debug", "a.cs" }, _baseDirectory);
             parsedArgs.Errors.Verify(
                 // error CS2021: File name '.x' is empty, contains invalid characters, has a drive specification without an absolute path, or is too long
-                Diagnostic(ErrorCode.FTL_InputFileNameTooLong).WithArguments(@"\\b"));
+                Diagnostic(ErrorCode.FTL_InvalidInputFileName).WithArguments(@"\\b"));
             Assert.Null(parsedArgs.PdbPath);
 
             parsedArgs = DefaultParse(new[] { @"/pdb:\\b\OkFileName.pdb", "/debug", "a.cs" }, _baseDirectory);
             parsedArgs.Errors.Verify(
                 // error CS2021: File name '.x' is empty, contains invalid characters, has a drive specification without an absolute path, or is too long
-                Diagnostic(ErrorCode.FTL_InputFileNameTooLong).WithArguments(@"\\b\OkFileName.pdb"));
+                Diagnostic(ErrorCode.FTL_InvalidInputFileName).WithArguments(@"\\b\OkFileName.pdb"));
             Assert.Null(parsedArgs.PdbPath);
 
             parsedArgs = DefaultParse(new[] { @"/pdb:\\server\share\MyPdb.pdb", "/debug", "a.cs" }, _baseDirectory);
@@ -1738,26 +1740,26 @@ d.cs
             // invalid name:
             parsedArgs = DefaultParse(new[] { "/pdb:a.b\0b", "/debug", "a.cs" }, _baseDirectory);
             parsedArgs.Errors.Verify(
-                Diagnostic(ErrorCode.FTL_InputFileNameTooLong).WithArguments("a.b\0b"));
+                Diagnostic(ErrorCode.FTL_InvalidInputFileName).WithArguments("a.b\0b"));
             Assert.Null(parsedArgs.PdbPath);
 
 
             parsedArgs = DefaultParse(new[] { "/pdb:a\uD800b.pdb", "/debug", "a.cs" }, _baseDirectory);
             //parsedArgs.Errors.Verify(
-            //    Diagnostic(ErrorCode.FTL_InputFileNameTooLong).WithArguments("a\uD800b.pdb"));
+            //    Diagnostic(ErrorCode.FTL_InvalidInputFileName).WithArguments("a\uD800b.pdb"));
             Assert.Null(parsedArgs.PdbPath);
 
             // Dev11 reports CS0016: Could not write to output file 'd:\Temp\q\a<>.z'
             parsedArgs = DefaultParse(new[] { @"/pdb:""a<>.pdb""", "a.vb" }, _baseDirectory);
             parsedArgs.Errors.Verify(
                 // error CS2021: File name 'a<>.pdb' is empty, contains invalid characters, has a drive specification without an absolute path, or is too long
-                Diagnostic(ErrorCode.FTL_InputFileNameTooLong).WithArguments("a<>.pdb"));
+                Diagnostic(ErrorCode.FTL_InvalidInputFileName).WithArguments("a<>.pdb"));
             Assert.Null(parsedArgs.PdbPath);
 
             parsedArgs = DefaultParse(new[] { "/pdb:.x", "/debug", "a.cs" }, _baseDirectory);
             //parsedArgs.Errors.Verify(
             //    // error CS2021: File name '.x' is empty, contains invalid characters, has a drive specification without an absolute path, or is too long
-            //    Diagnostic(ErrorCode.FTL_InputFileNameTooLong).WithArguments(".x"));
+            //    Diagnostic(ErrorCode.FTL_InvalidInputFileName).WithArguments(".x"));
             Assert.Null(parsedArgs.PdbPath);
         }
 
@@ -2987,7 +2989,7 @@ C:\*.cs(100,7): error CS0103: The name 'Goo' does not exist in the current conte
             var parsedArgs = DefaultParse(new[] { @"/out:""""", "a.cs" }, baseDirectory);
             parsedArgs.Errors.Verify(
                 // error CS2021: File name '' contains invalid characters, has a drive specification without an absolute path, or is too long
-                Diagnostic(ErrorCode.FTL_InputFileNameTooLong).WithArguments(""));
+                Diagnostic(ErrorCode.FTL_InvalidInputFileName).WithArguments(""));
 
             parsedArgs = DefaultParse(new[] { @"/out:", "a.cs" }, baseDirectory);
             parsedArgs.Errors.Verify(
@@ -3114,7 +3116,7 @@ C:\*.cs(100,7): error CS0103: The name 'Goo' does not exist in the current conte
             parsedArgs = DefaultParse(new[] { currentDrive + @":a.cs", "b.cs" }, baseDirectory);
             parsedArgs.Errors.Verify(
                 // error CS2021: File name 'D:a.cs' is contains invalid characters, has a drive specification without an absolute path, or is too long
-                Diagnostic(ErrorCode.FTL_InputFileNameTooLong).WithArguments(currentDrive + ":a.cs"));
+                Diagnostic(ErrorCode.FTL_InvalidInputFileName).WithArguments(currentDrive + ":a.cs"));
 
             Assert.Null(parsedArgs.CompilationName);
             Assert.Null(parsedArgs.OutputFileName);
@@ -3125,7 +3127,7 @@ C:\*.cs(100,7): error CS0103: The name 'Goo' does not exist in the current conte
             parsedArgs = DefaultParse(new[] { @"/out:\\b", "a.cs" }, baseDirectory);
             parsedArgs.Errors.Verify(
                 // error CS2021: File name '.x' is empty, contains invalid characters, has a drive specification without an absolute path, or is too long
-                Diagnostic(ErrorCode.FTL_InputFileNameTooLong).WithArguments(@"\\b"));
+                Diagnostic(ErrorCode.FTL_InvalidInputFileName).WithArguments(@"\\b"));
 
             Assert.Null(parsedArgs.OutputFileName);
             Assert.Null(parsedArgs.CompilationName);
@@ -3143,7 +3145,7 @@ C:\*.cs(100,7): error CS0103: The name 'Goo' does not exist in the current conte
             parsedArgs = DefaultParse(new[] { "/out:a.b\0b", "a.cs" }, baseDirectory);
             parsedArgs.Errors.Verify(
                 // error CS2021: File name '.x' is empty, contains invalid characters, has a drive specification without an absolute path, or is too long
-                Diagnostic(ErrorCode.FTL_InputFileNameTooLong).WithArguments("a.b\0b"));
+                Diagnostic(ErrorCode.FTL_InvalidInputFileName).WithArguments("a.b\0b"));
 
             Assert.Null(parsedArgs.OutputFileName);
             Assert.Null(parsedArgs.CompilationName);
@@ -3153,13 +3155,13 @@ C:\*.cs(100,7): error CS0103: The name 'Goo' does not exist in the current conte
             //parsedArgs = DefaultParse(new[] { "/out:a\uD800b.dll", "a.cs" }, baseDirectory);
             //parsedArgs.Errors.Verify(
             //    // error CS2021: File name '.x' is empty, contains invalid characters, has a drive specification without an absolute path, or is too long
-            //    Diagnostic(ErrorCode.FTL_InputFileNameTooLong).WithArguments("a\uD800b.dll"));
+            //    Diagnostic(ErrorCode.FTL_InvalidInputFileName).WithArguments("a\uD800b.dll"));
 
             // Dev11 reports CS0016: Could not write to output file 'd:\Temp\q\a<>.z'
             parsedArgs = DefaultParse(new[] { @"/out:""a<>.dll""", "a.vb" }, baseDirectory);
             parsedArgs.Errors.Verify(
                 // error CS2021: File name 'a<>.dll' is empty, contains invalid characters, has a drive specification without an absolute path, or is too long
-                Diagnostic(ErrorCode.FTL_InputFileNameTooLong).WithArguments("a<>.dll"));
+                Diagnostic(ErrorCode.FTL_InvalidInputFileName).WithArguments("a<>.dll"));
 
             Assert.Null(parsedArgs.OutputFileName);
             Assert.Null(parsedArgs.CompilationName);
@@ -3168,7 +3170,7 @@ C:\*.cs(100,7): error CS0103: The name 'Goo' does not exist in the current conte
             parsedArgs = DefaultParse(new[] { @"/out:.exe", "a.cs" }, baseDirectory);
             parsedArgs.Errors.Verify(
                 // error CS2021: File name '.exe' is empty, contains invalid characters, has a drive specification without an absolute path, or is too long
-                Diagnostic(ErrorCode.FTL_InputFileNameTooLong).WithArguments(".exe")
+                Diagnostic(ErrorCode.FTL_InvalidInputFileName).WithArguments(".exe")
                 );
 
             Assert.Null(parsedArgs.OutputFileName);
@@ -3178,7 +3180,7 @@ C:\*.cs(100,7): error CS0103: The name 'Goo' does not exist in the current conte
             parsedArgs = DefaultParse(new[] { @"/t:exe", @"/out:.exe", "a.cs" }, baseDirectory);
             parsedArgs.Errors.Verify(
                 // error CS2021: File name '.exe' is empty, contains invalid characters, has a drive specification without an absolute path, or is too long
-                Diagnostic(ErrorCode.FTL_InputFileNameTooLong).WithArguments(".exe")
+                Diagnostic(ErrorCode.FTL_InvalidInputFileName).WithArguments(".exe")
                 );
 
             Assert.Null(parsedArgs.OutputFileName);
@@ -3188,7 +3190,7 @@ C:\*.cs(100,7): error CS0103: The name 'Goo' does not exist in the current conte
             parsedArgs = DefaultParse(new[] { @"/t:library", @"/out:.dll", "a.cs" }, baseDirectory);
             parsedArgs.Errors.Verify(
                 // error CS2021: File name '.dll' is empty, contains invalid characters, has a drive specification without an absolute path, or is too long
-                Diagnostic(ErrorCode.FTL_InputFileNameTooLong).WithArguments(".dll")
+                Diagnostic(ErrorCode.FTL_InvalidInputFileName).WithArguments(".dll")
                 );
 
             Assert.Null(parsedArgs.OutputFileName);
@@ -3198,7 +3200,7 @@ C:\*.cs(100,7): error CS0103: The name 'Goo' does not exist in the current conte
             parsedArgs = DefaultParse(new[] { @"/t:module", @"/out:.netmodule", "a.cs" }, baseDirectory);
             parsedArgs.Errors.Verify(
                 // error CS2021: File name '.netmodule' is empty, contains invalid characters, has a drive specification without an absolute path, or is too long
-                Diagnostic(ErrorCode.FTL_InputFileNameTooLong).WithArguments(".netmodule")
+                Diagnostic(ErrorCode.FTL_InvalidInputFileName).WithArguments(".netmodule")
                 );
 
             Assert.Null(parsedArgs.OutputFileName);
@@ -3222,7 +3224,7 @@ C:\*.cs(100,7): error CS0103: The name 'Goo' does not exist in the current conte
             parsedArgs = DefaultParse(new[] { @"/t:library", ".cs" }, baseDirectory);
             parsedArgs.Errors.Verify(
                 // error CS2021: File name '.dll' is empty, contains invalid characters, has a drive specification without an absolute path, or is too long
-                Diagnostic(ErrorCode.FTL_InputFileNameTooLong).WithArguments(".dll")
+                Diagnostic(ErrorCode.FTL_InvalidInputFileName).WithArguments(".dll")
                 );
 
             Assert.Null(parsedArgs.OutputFileName);
@@ -3245,7 +3247,7 @@ C:\*.cs(100,7): error CS0103: The name 'Goo' does not exist in the current conte
             var parsedArgs = DefaultParse(new[] { "/out:.x", "a.cs" }, _baseDirectory);
             parsedArgs.Errors.Verify(
                 // error CS2021: File name '.x' is empty, contains invalid characters, has a drive specification without an absolute path, or is too long
-                Diagnostic(ErrorCode.FTL_InputFileNameTooLong).WithArguments(".x"));
+                Diagnostic(ErrorCode.FTL_InvalidInputFileName).WithArguments(".x"));
 
             Assert.Null(parsedArgs.OutputFileName);
             Assert.Null(parsedArgs.CompilationName);
@@ -3254,7 +3256,7 @@ C:\*.cs(100,7): error CS0103: The name 'Goo' does not exist in the current conte
             parsedArgs = DefaultParse(new[] { "/out:.x", "a.cs" }, _baseDirectory);
             parsedArgs.Errors.Verify(
                 // error CS2021: File name '.x' is empty, contains invalid characters, has a drive specification without an absolute path, or is too long
-                Diagnostic(ErrorCode.FTL_InputFileNameTooLong).WithArguments(".x"));
+                Diagnostic(ErrorCode.FTL_InvalidInputFileName).WithArguments(".x"));
 
             Assert.Null(parsedArgs.OutputFileName);
             Assert.Null(parsedArgs.CompilationName);
@@ -3385,7 +3387,7 @@ C:\*.cs(100,7): error CS0103: The name 'Goo' does not exist in the current conte
             parsedArgs = DefaultParse(new[] { "/doc:" + currentDrive + @":a.xml", "a.cs" }, baseDirectory);
             parsedArgs.Errors.Verify(
                 // error CS2021: File name 'D:a.xml' is contains invalid characters, has a drive specification without an absolute path, or is too long
-                Diagnostic(ErrorCode.FTL_InputFileNameTooLong).WithArguments(currentDrive + ":a.xml"));
+                Diagnostic(ErrorCode.FTL_InvalidInputFileName).WithArguments(currentDrive + ":a.xml"));
 
             Assert.Null(parsedArgs.DocumentationPath);
             Assert.Equal(DocumentationMode.Diagnose, parsedArgs.ParseOptions.DocumentationMode); //Even though the format was incorrect
@@ -3393,7 +3395,7 @@ C:\*.cs(100,7): error CS0103: The name 'Goo' does not exist in the current conte
             // UNC
             parsedArgs = DefaultParse(new[] { @"/doc:\\b", "a.cs" }, baseDirectory);
             parsedArgs.Errors.Verify(
-                Diagnostic(ErrorCode.FTL_InputFileNameTooLong).WithArguments(@"\\b"));
+                Diagnostic(ErrorCode.FTL_InvalidInputFileName).WithArguments(@"\\b"));
 
             Assert.Null(parsedArgs.DocumentationPath);
             Assert.Equal(DocumentationMode.Diagnose, parsedArgs.ParseOptions.DocumentationMode); //Even though the format was incorrect
@@ -3407,7 +3409,7 @@ C:\*.cs(100,7): error CS0103: The name 'Goo' does not exist in the current conte
             // invalid name:
             parsedArgs = DefaultParse(new[] { "/doc:a.b\0b", "a.cs" }, baseDirectory);
             parsedArgs.Errors.Verify(
-                Diagnostic(ErrorCode.FTL_InputFileNameTooLong).WithArguments("a.b\0b"));
+                Diagnostic(ErrorCode.FTL_InvalidInputFileName).WithArguments("a.b\0b"));
 
             Assert.Null(parsedArgs.DocumentationPath);
             Assert.Equal(DocumentationMode.Diagnose, parsedArgs.ParseOptions.DocumentationMode); //Even though the format was incorrect
@@ -3415,7 +3417,7 @@ C:\*.cs(100,7): error CS0103: The name 'Goo' does not exist in the current conte
             // Temp
             // parsedArgs = DefaultParse(new[] { "/doc:a\uD800b.xml", "a.cs" }, baseDirectory);
             // parsedArgs.Errors.Verify(
-            //    Diagnostic(ErrorCode.FTL_InputFileNameTooLong).WithArguments("a\uD800b.xml"));
+            //    Diagnostic(ErrorCode.FTL_InvalidInputFileName).WithArguments("a\uD800b.xml"));
 
             // Assert.Null(parsedArgs.DocumentationPath);
             // Assert.Equal(DocumentationMode.Diagnose, parsedArgs.ParseOptions.DocumentationMode); //Even though the format was incorrect
@@ -3423,7 +3425,7 @@ C:\*.cs(100,7): error CS0103: The name 'Goo' does not exist in the current conte
             parsedArgs = DefaultParse(new[] { @"/doc:""a<>.xml""", "a.vb" }, baseDirectory);
             parsedArgs.Errors.Verify(
                 // error CS2021: File name 'a<>.xml' is empty, contains invalid characters, has a drive specification without an absolute path, or is too long
-                Diagnostic(ErrorCode.FTL_InputFileNameTooLong).WithArguments("a<>.xml"));
+                Diagnostic(ErrorCode.FTL_InvalidInputFileName).WithArguments("a<>.xml"));
 
             Assert.Null(parsedArgs.DocumentationPath);
             Assert.Equal(DocumentationMode.Diagnose, parsedArgs.ParseOptions.DocumentationMode); //Even though the format was incorrect
@@ -3464,7 +3466,7 @@ C:\*.cs(100,7): error CS0103: The name 'Goo' does not exist in the current conte
             // Escaped quote in the middle is an error
             parsedArgs = DefaultParse(new[] { @"/errorlog:C:\""My Folder""\MyBinary.xml", "a.cs" }, baseDirectory);
             parsedArgs.Errors.Verify(
-                 Diagnostic(ErrorCode.FTL_InputFileNameTooLong).WithArguments(@"C:""My Folder\MyBinary.xml").WithLocation(1, 1));
+                 Diagnostic(ErrorCode.FTL_InvalidInputFileName).WithArguments(@"C:""My Folder\MyBinary.xml").WithLocation(1, 1));
 
             // Should handle quotes
             parsedArgs = DefaultParse(new[] { @"/errorlog:""C:\My Folder\MyBinary.xml""", "a.cs" }, baseDirectory);
@@ -3489,7 +3491,7 @@ C:\*.cs(100,7): error CS0103: The name 'Goo' does not exist in the current conte
             parsedArgs = DefaultParse(new[] { "/errorlog:" + currentDrive + @":a.xml", "a.cs" }, baseDirectory);
             parsedArgs.Errors.Verify(
                 // error CS2021: File name 'D:a.xml' is contains invalid characters, has a drive specification without an absolute path, or is too long
-                Diagnostic(ErrorCode.FTL_InputFileNameTooLong).WithArguments(currentDrive + ":a.xml"));
+                Diagnostic(ErrorCode.FTL_InvalidInputFileName).WithArguments(currentDrive + ":a.xml"));
 
             Assert.Null(parsedArgs.ErrorLogPath);
             Assert.False(parsedArgs.CompilationOptions.ReportSuppressedDiagnostics);
@@ -3497,7 +3499,7 @@ C:\*.cs(100,7): error CS0103: The name 'Goo' does not exist in the current conte
             // UNC
             parsedArgs = DefaultParse(new[] { @"/errorlog:\\b", "a.cs" }, baseDirectory);
             parsedArgs.Errors.Verify(
-                Diagnostic(ErrorCode.FTL_InputFileNameTooLong).WithArguments(@"\\b"));
+                Diagnostic(ErrorCode.FTL_InvalidInputFileName).WithArguments(@"\\b"));
 
             Assert.Null(parsedArgs.ErrorLogPath);
             Assert.False(parsedArgs.CompilationOptions.ReportSuppressedDiagnostics);
@@ -3510,7 +3512,7 @@ C:\*.cs(100,7): error CS0103: The name 'Goo' does not exist in the current conte
             // invalid name:
             parsedArgs = DefaultParse(new[] { "/errorlog:a.b\0b", "a.cs" }, baseDirectory);
             parsedArgs.Errors.Verify(
-                Diagnostic(ErrorCode.FTL_InputFileNameTooLong).WithArguments("a.b\0b"));
+                Diagnostic(ErrorCode.FTL_InvalidInputFileName).WithArguments("a.b\0b"));
 
             Assert.Null(parsedArgs.ErrorLogPath);
             Assert.False(parsedArgs.CompilationOptions.ReportSuppressedDiagnostics);
@@ -3518,7 +3520,7 @@ C:\*.cs(100,7): error CS0103: The name 'Goo' does not exist in the current conte
             parsedArgs = DefaultParse(new[] { @"/errorlog:""a<>.xml""", "a.vb" }, baseDirectory);
             parsedArgs.Errors.Verify(
                 // error CS2021: File name 'a<>.xml' is empty, contains invalid characters, has a drive specification without an absolute path, or is too long
-                Diagnostic(ErrorCode.FTL_InputFileNameTooLong).WithArguments("a<>.xml"));
+                Diagnostic(ErrorCode.FTL_InvalidInputFileName).WithArguments("a<>.xml"));
 
             Assert.Null(parsedArgs.ErrorLogPath);
             Assert.False(parsedArgs.CompilationOptions.ReportSuppressedDiagnostics);
@@ -4545,20 +4547,23 @@ C:\*.cs(100,7): error CS0103: The name 'Goo' does not exist in the current conte
             parsedArgs.Errors.Verify(Diagnostic(ErrorCode.ERR_BadSwitch).WithArguments("/codepage+"));
         }
 
-        [Fact]
+        [Fact, WorkItem(24735, "https://github.com/dotnet/roslyn/issues/24735")]
         public void ChecksumAlgorithm()
         {
             CSharpCommandLineArguments parsedArgs = DefaultParse(new[] { "/checksumAlgorithm:sHa1", "a.cs" }, _baseDirectory);
             parsedArgs.Errors.Verify();
             Assert.Equal(SourceHashAlgorithm.Sha1, parsedArgs.ChecksumAlgorithm);
+            Assert.Equal(HashAlgorithmName.SHA256, parsedArgs.EmitOptions.PdbChecksumAlgorithm);
 
             parsedArgs = DefaultParse(new[] { "/checksumAlgorithm:sha256", "a.cs" }, _baseDirectory);
             parsedArgs.Errors.Verify();
             Assert.Equal(SourceHashAlgorithm.Sha256, parsedArgs.ChecksumAlgorithm);
+            Assert.Equal(HashAlgorithmName.SHA256, parsedArgs.EmitOptions.PdbChecksumAlgorithm);
 
             parsedArgs = DefaultParse(new[] { "a.cs" }, _baseDirectory);
             parsedArgs.Errors.Verify();
             Assert.Equal(SourceHashAlgorithm.Sha1, parsedArgs.ChecksumAlgorithm);
+            Assert.Equal(HashAlgorithmName.SHA256, parsedArgs.EmitOptions.PdbChecksumAlgorithm);
 
             //  error
             parsedArgs = DefaultParse(new[] { "/checksumAlgorithm:256", "a.cs" }, _baseDirectory);
@@ -5865,7 +5870,7 @@ public class C
             Assert.Equal(1, peHeaders.PEHeader.MinorSubsystemVersion);
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/pull/23529")]
+        [Fact]
         public void CreateCompilationWithKeyFile()
         {
             string source = @"
@@ -5884,7 +5889,7 @@ public class C
             var cmd = new MockCSharpCompiler(null, dir.Path, new[] { "/nologo", "a.cs", "/keyfile:key.snk", });
             var comp = cmd.CreateCompilation(TextWriter.Null, new TouchedFileLogger(), NullErrorLogger.Instance);
 
-            Assert.Equal(comp.Options.StrongNameProvider.GetType(), typeof(PortableStrongNameProvider));
+            Assert.IsType<DesktopStrongNameProvider>(comp.Options.StrongNameProvider);
         }
 
         [Fact]
@@ -6946,6 +6951,7 @@ public class C
             Assert.Contains(source + "(6,16): warning CS0168: The variable 'x' is declared but never used", outWriter.ToString(), StringComparison.Ordinal);
 
             CleanupAllGeneratedFiles(source);
+            CleanupAllGeneratedFiles(Path.Combine(Path.GetDirectoryName(Path.GetDirectoryName(source)), Path.GetFileName(source)));
         }
 
         [Fact]
@@ -7249,7 +7255,7 @@ class Program3
 
             using (var peFile = File.OpenRead(exe.Path))
             {
-                PdbValidation.ValidateDebugDirectory(peFile, null, pdb.Path, isDeterministic: false);
+                PdbValidation.ValidateDebugDirectory(peFile, null, pdb.Path, hashAlgorithm: default, hasEmbeddedPdb: false, isDeterministic: false);
             }
 
             Assert.True(new FileInfo(exe.Path).Length < oldSize);
@@ -7260,7 +7266,7 @@ class Program3
 
             using (var peFile = File.OpenRead(exe.Path))
             {
-                PdbValidation.ValidateDebugDirectory(peFile, null, pdb.Path, isDeterministic: false);
+                PdbValidation.ValidateDebugDirectory(peFile, null, pdb.Path, hashAlgorithm: default, hasEmbeddedPdb: false, isDeterministic: false);
             }
         }
 
@@ -7406,7 +7412,7 @@ Copyright (C) Microsoft Corporation. All rights reserved.", output);
             var fsDll = new FileStream(libDll.Path, FileMode.Open, FileAccess.Read, FileShare.Read | FileShare.Delete);
 
             var outWriter = new StringWriter(CultureInfo.InvariantCulture);
-            int exitCode = new MockCSharpCompiler(null, dir.Path, new[] { "/target:library", libSrc.Path }).Run(outWriter);
+            int exitCode = new MockCSharpCompiler(null, dir.Path, new[] { "/target:library", "/preferreduilang:en", libSrc.Path }).Run(outWriter);
             Assert.Contains($"error CS2012: Cannot open '{libDll.Path}' for writing", outWriter.ToString());
 
             AssertEx.Equal(new[] { (byte)'D', (byte)'L', (byte)'L' }, ReadBytes(libDll.Path, 3));
@@ -7425,7 +7431,7 @@ Copyright (C) Microsoft Corporation. All rights reserved.", output);
             var libDll = dir.CreateDirectory("Lib.dll");
 
             var outWriter = new StringWriter(CultureInfo.InvariantCulture);
-            int exitCode = new MockCSharpCompiler(null, dir.Path, new[] { "/target:library", libSrc.Path }).Run(outWriter);
+            int exitCode = new MockCSharpCompiler(null, dir.Path, new[] { "/target:library", "/preferreduilang:en", libSrc.Path }).Run(outWriter);
             Assert.Contains($"error CS2012: Cannot open '{libDll.Path}' for writing", outWriter.ToString());
         }
 
@@ -7554,7 +7560,7 @@ Copyright (C) Microsoft Corporation. All rights reserved.", output);
                     throw new IOException();
                 }
 
-                return File.Open(file, (FileMode)mode, (FileAccess)access, (FileShare)share);
+                return File.Open(file, mode, access, share);
             };
 
             var outWriter = new StringWriter(CultureInfo.InvariantCulture);
@@ -7805,7 +7811,7 @@ public class C { }
             commandLineArgs = new[] { tempFile.Path, @"tmpDi\r*a?.cs" };
             var parseDiags = new[] {
                 // error CS2021: File name 'tmpDi\r*a?.cs' is empty, contains invalid characters, has a drive specification without an absolute path, or is too long
-                Diagnostic(ErrorCode.FTL_InputFileNameTooLong).WithArguments(@"tmpDi\r*a?.cs"),
+                Diagnostic(ErrorCode.FTL_InvalidInputFileName).WithArguments(@"tmpDi\r*a?.cs"),
                 // error CS2001: Source file 'tmpDi\r*a?.cs' could not be found.
                 Diagnostic(ErrorCode.ERR_FileNotFound).WithArguments(@"tmpDi\r*a?.cs")};
             TestCS2002(commandLineArgs, tempParentDir.Path, 1, (string[])null, parseDiags);
@@ -7814,7 +7820,7 @@ public class C { }
             commandLineArgs = new[] { tempFile.Path, currentDrive + @":a.cs" };
             parseDiags = new[] {
                 // error CS2021: File name 'e:a.cs' is empty, contains invalid characters, has a drive specification without an absolute path, or is too long
-                Diagnostic(ErrorCode.FTL_InputFileNameTooLong).WithArguments(currentDrive + @":a.cs")};
+                Diagnostic(ErrorCode.FTL_InvalidInputFileName).WithArguments(currentDrive + @":a.cs")};
             TestCS2002(commandLineArgs, tempParentDir.Path, 1, (string[])null, parseDiags);
 
             commandLineArgs = new[] { "/preferreduilang:en", tempFile.Path, @":a.cs" };
@@ -7905,6 +7911,51 @@ public class C { }
             Assert.Contains(CodeAnalysisResources.AnalyzerExecutionTimeColumnHeader, output, StringComparison.Ordinal);
             Assert.Contains(new WarningDiagnosticAnalyzer().ToString(), output, StringComparison.Ordinal);
             CleanupAllGeneratedFiles(srcFile.Path);
+        }
+
+        [Fact]
+        [WorkItem(24835, "https://github.com/dotnet/roslyn/issues/24835")]
+        public void TestCompilationSuccessIfOnlySuppressedDiagnostics()
+        {
+            var srcFile = Temp.CreateFile().WriteAllText(@"
+#pragma warning disable Warning01
+class C { }
+");
+
+            var errorLog = Temp.CreateFile();
+            var csc = new MockCSharpCompilerWithSpecificAnalyzer(
+                workingDirectory: Path.GetDirectoryName(srcFile.Path),
+                args: new[] { "/errorlog:" + errorLog.Path, "/warnaserror+", "/nologo", "/t:library", srcFile.Path },
+                analyzers: ImmutableArray.Create<DiagnosticAnalyzer>(new WarningDiagnosticAnalyzer()));
+
+            var outWriter = new StringWriter(CultureInfo.InvariantCulture);
+            var exitCode = csc.Run(outWriter);
+
+            // Previously, the compiler would return error code 1 without printing any diagnostics
+            Assert.Empty(outWriter.ToString());
+            Assert.Equal(0, exitCode);
+
+            CleanupAllGeneratedFiles(srcFile.Path);
+            CleanupAllGeneratedFiles(errorLog.Path);
+        }
+
+        /// <summary>
+        /// This mock compiler will not auto-detect analyzers, but only use the ones it is given explicitly.
+        /// </summary>
+        private class MockCSharpCompilerWithSpecificAnalyzer : MockCSharpCompiler
+        {
+            public MockCSharpCompilerWithSpecificAnalyzer(string workingDirectory, string[] args, ImmutableArray<DiagnosticAnalyzer> analyzers)
+                : base(responseFile: null, workingDirectory, args, analyzers, loader: null)
+            {
+            }
+
+            protected override ImmutableArray<DiagnosticAnalyzer> ResolveAnalyzersFromArguments(
+                List<DiagnosticInfo> diagnostics,
+                CommonMessageProvider messageProvider)
+            {
+                Assert.True(!_analyzers.IsDefaultOrEmpty);
+                return _analyzers;
+            }
         }
 
         [Fact]
@@ -8102,10 +8153,10 @@ using System.Diagnostics; // Unused.
             Assert.Equal(0, parsedArgs.Errors.Length);
             Assert.Equal("-_+@%#*^", parsedArgs.EmitOptions.RuntimeMetadataVersion);
 
-            var comp = CreateCompilation(string.Empty);
+            var comp = CreateEmptyCompilation(string.Empty);
             Assert.Equal(ModuleMetadata.CreateFromImage(comp.EmitToArray(new EmitOptions(runtimeMetadataVersion: "v4.0.30319"))).Module.MetadataVersion, "v4.0.30319");
 
-            comp = CreateCompilation(string.Empty);
+            comp = CreateEmptyCompilation(string.Empty);
             Assert.Equal(ModuleMetadata.CreateFromImage(comp.EmitToArray(new EmitOptions(runtimeMetadataVersion: "_+@%#*^"))).Module.MetadataVersion, "_+@%#*^");
         }
 
@@ -8147,20 +8198,20 @@ using System.Diagnostics; // Unused.
 
             parsedArgs = DefaultParse(new[] { "a.cs", "/t:library ", "/appconfig:.\\aux.config" }, _baseDirectory);
             Assert.Equal(1, parsedArgs.Errors.Length);
-            Assert.Equal((int)ErrorCode.FTL_InputFileNameTooLong, parsedArgs.Errors.First().Code);
+            Assert.Equal((int)ErrorCode.FTL_InvalidInputFileName, parsedArgs.Errors.First().Code);
 
 
             parsedArgs = DefaultParse(new[] { "a.cs", "/out:com1.dll " }, _baseDirectory);
             Assert.Equal(1, parsedArgs.Errors.Length);
-            Assert.Equal((int)ErrorCode.FTL_InputFileNameTooLong, parsedArgs.Errors.First().Code);
+            Assert.Equal((int)ErrorCode.FTL_InvalidInputFileName, parsedArgs.Errors.First().Code);
 
             parsedArgs = DefaultParse(new[] { "a.cs", "/doc:..\\lpt2.xml:  " }, _baseDirectory);
             Assert.Equal(1, parsedArgs.Errors.Length);
-            Assert.Equal((int)ErrorCode.FTL_InputFileNameTooLong, parsedArgs.Errors.First().Code);
+            Assert.Equal((int)ErrorCode.FTL_InvalidInputFileName, parsedArgs.Errors.First().Code);
 
             parsedArgs = DefaultParse(new[] { "a.cs", "/debug+", "/pdb:.\\prn.pdb" }, _baseDirectory);
             Assert.Equal(1, parsedArgs.Errors.Length);
-            Assert.Equal((int)ErrorCode.FTL_InputFileNameTooLong, parsedArgs.Errors.First().Code);
+            Assert.Equal((int)ErrorCode.FTL_InvalidInputFileName, parsedArgs.Errors.First().Code);
 
             parsedArgs = DefaultParse(new[] { "a.cs", "@con.rsp" }, _baseDirectory);
             Assert.Equal(1, parsedArgs.Errors.Length);
@@ -9017,7 +9068,7 @@ class C
             var arguments = DefaultParse(new[] { "/warnaserror-:3001", "/warnaserror" }, null);
             var options = arguments.CompilationOptions;
 
-            var comp = CreateStandardCompilation(@"[assembly: System.CLSCompliant(true)]
+            var comp = CreateCompilation(@"[assembly: System.CLSCompliant(true)]
 public class C
 {
     public void M(ushort i)
@@ -9042,7 +9093,7 @@ public class C
             var arguments = DefaultParse(new[] { "/warnaserror", "/warnaserror-:3001" }, null);
             var options = arguments.CompilationOptions;
 
-            var comp = CreateStandardCompilation(@"[assembly: System.CLSCompliant(true)]
+            var comp = CreateCompilation(@"[assembly: System.CLSCompliant(true)]
 public class C
 {
     public void M(ushort i)
@@ -9298,7 +9349,7 @@ class C {
                 Assert.True(File.Exists(pdbPath));
                 using (var peStream = File.OpenRead(exePath))
                 {
-                    PdbValidation.ValidateDebugDirectory(peStream, null, pePdbPath, isDeterministic);
+                    PdbValidation.ValidateDebugDirectory(peStream, null, pePdbPath, hashAlgorithm: default, hasEmbeddedPdb: false, isDeterministic);
                 }
             }
 
@@ -9402,7 +9453,7 @@ class Runner
     static int Main(string[] args)
     {{
         var assembly = Assembly.LoadFrom(@""{s_CSharpCompilerExecutable}"");
-        var program = assembly.GetType(""{typeof(Program).FullName}"");
+        var program = assembly.GetType(""Microsoft.CodeAnalysis.CSharp.CommandLine.Program"");
         var main = program.GetMethod(""Main"");
         return (int)main.Invoke(null, new object[] {{ args }});
     }}
@@ -9479,7 +9530,7 @@ public class C
 
             MetadataReaderUtils.VerifyPEMetadata(exe,
                 new[] { "TypeDefinition:<Module>", "TypeDefinition:C" },
-                new[] { "MethodDefinition:Void Main()", "MethodDefinition:Void PrivateMethod()", "MethodDefinition:Void .ctor()" },
+                new[] { "MethodDefinition:Void C.Main()", "MethodDefinition:Void C.PrivateMethod()", "MethodDefinition:Void C..ctor()" },
                 new[] { "CompilationRelaxationsAttribute", "RuntimeCompatibilityAttribute", "DebuggableAttribute" }
                 );
 
@@ -9514,7 +9565,7 @@ public class C
             // See issue https://github.com/dotnet/roslyn/issues/17612
             MetadataReaderUtils.VerifyPEMetadata(refDll,
                 new[] { "TypeDefinition:<Module>", "TypeDefinition:C" },
-                new[] { "MethodDefinition:Void Main()", "MethodDefinition:Void .ctor()" },
+                new[] { "MethodDefinition:Void C.Main()", "MethodDefinition:Void C..ctor()" },
                 new[] { "CompilationRelaxationsAttribute", "RuntimeCompatibilityAttribute", "DebuggableAttribute", "ReferenceAssemblyAttribute" }
                 );
 
@@ -9534,7 +9585,7 @@ public class C
 
             var outWriter = new StringWriter(CultureInfo.InvariantCulture);
             var csc = new MockCSharpCompiler(null, dir.Path,
-                new[] { "/nologo", "/out:a.dll", "/refout:ref/a.dll", "/deterministic", "a.cs" });
+                new[] { "/nologo", "/out:a.dll", "/refout:ref/a.dll", "/deterministic", "/preferreduilang:en", "a.cs" });
             int exitCode = csc.Run(outWriter);
             Assert.Equal(1, exitCode);
 
@@ -9597,7 +9648,7 @@ class C
             // See issue https://github.com/dotnet/roslyn/issues/17612
             MetadataReaderUtils.VerifyPEMetadata(refDll,
                 new[] { "TypeDefinition:<Module>", "TypeDefinition:C", "TypeDefinition:S" },
-                new[] { "MethodDefinition:Void Main()", "MethodDefinition:Void .ctor()" },
+                new[] { "MethodDefinition:Void C.Main()", "MethodDefinition:Void C..ctor()" },
                 new[] { "CompilationRelaxationsAttribute", "RuntimeCompatibilityAttribute", "DebuggableAttribute", "ReferenceAssemblyAttribute" }
                 );
 
@@ -9672,7 +9723,7 @@ class C
         public void MissingCompilerAssembly()
         {
             var dir = Temp.CreateDirectory();
-            var cscPath = dir.CopyFile(typeof(Csc).Assembly.Location).Path;
+            var cscPath = dir.CopyFile(s_CSharpCompilerExecutable).Path;
             dir.CopyFile(typeof(Compilation).Assembly.Location);
 
             // Missing Microsoft.CodeAnalysis.CSharp.dll.
@@ -9770,9 +9821,8 @@ class C
             var workingDir = Temp.CreateDirectory();
             workingDir.CreateFile("a.cs");
 
-            var csc = new Csc(null, new BuildPaths("", workingDir.Path, null, tempDir.Path),
-                new[] { "/features:UseLegacyStrongNameProvider", "/nostdlib", "a.cs" },
-                analyzerLoader: null);
+            var buildPaths = new BuildPaths(clientDir: "", workingDir: workingDir.Path, sdkDir: null, tempDir: tempDir.Path);
+            var csc = new MockCSharpCompiler(null, buildPaths, args: new[] { "/features:UseLegacyStrongNameProvider", "/nostdlib", "a.cs" });
             var comp = csc.CreateCompilation(new StringWriter(), new TouchedFileLogger(), errorLogger: null);
             var desktopProvider = Assert.IsType<DesktopStrongNameProvider>(comp.Options.StrongNameProvider);
             using (var inputStream = Assert.IsType<DesktopStrongNameProvider.TempFileStream>(desktopProvider.CreateInputStream()))
@@ -9884,6 +9934,46 @@ class C
             {
                 VerifyQuotedValid("langversion", "2", LanguageVersion.CSharp2, x => x.ParseOptions.LanguageVersion);
             }
+        }
+
+        [Fact]
+        [WorkItem(23525, "https://github.com/dotnet/roslyn/issues/23525")]
+        public void InvalidPathCharacterInPathMap()
+        {
+            string filePath = Temp.CreateFile().WriteAllText("").Path;
+            var compiler = new MockCSharpCompiler(null, _baseDirectory, new[]
+            {
+                filePath,
+                "/debug:embedded",
+                "/pathmap:test\\=\"",
+                "/target:library",
+                "/preferreduilang:en"
+            });
+
+            var outWriter = new StringWriter(CultureInfo.InvariantCulture);
+            var exitCode = compiler.Run(outWriter);
+            Assert.Equal(1, exitCode);
+            Assert.Contains("error CS8101: The pathmap option was incorrectly formatted.", outWriter.ToString(), StringComparison.Ordinal);
+        }
+
+        [Fact]
+        [WorkItem(23525, "https://github.com/dotnet/roslyn/issues/23525")]
+        public void InvalidPathCharacterInPdbPath()
+        {
+            string filePath = Temp.CreateFile().WriteAllText("").Path;
+            var compiler = new MockCSharpCompiler(null, _baseDirectory, new[]
+            {
+                filePath,
+                "/debug:embedded",
+                "/pdb:test\\?.pdb",
+                "/target:library",
+                "/preferreduilang:en"
+            });
+
+            var outWriter = new StringWriter(CultureInfo.InvariantCulture);
+            var exitCode = compiler.Run(outWriter);
+            Assert.Equal(1, exitCode);
+            Assert.Contains("error CS2021: File name 'test\\?.pdb' is empty, contains invalid characters, has a drive specification without an absolute path, or is too long", outWriter.ToString(), StringComparison.Ordinal);
         }
     }
 

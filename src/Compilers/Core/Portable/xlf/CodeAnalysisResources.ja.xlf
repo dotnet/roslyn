@@ -496,9 +496,9 @@
         <target state="translated">PE イメージには、管理されたメタデータが含まれていません。</target>
         <note />
       </trans-unit>
-      <trans-unit id="ChangesMustBeOrderedAndNotOverlapping">
-        <source>The changes must be ordered and not overlapping.</source>
-        <target state="translated">変更は順序付けする必要があり、重複は許可されません。</target>
+      <trans-unit id="ChangesMustNotOverlap">
+        <source>The changes must not overlap.</source>
+        <target state="needs-review-translation">変更は順序付けする必要があり、重複は許可されません。</target>
         <note />
       </trans-unit>
       <trans-unit id="DiagnosticIdCantBeNullOrWhitespace">
@@ -830,7 +830,7 @@
       </trans-unit>
       <trans-unit id="CompilerDiagnosticIdReported">
         <source>Reported diagnostic has an ID '{0}', which only a compiler should be reporting.</source>
-        <target state="new">Reported diagnostic has an ID '{0}', which only a compiler should be reporting.</target>
+        <target state="translated">報告された診断の ID は '{0}' です。これはコンパイラのみが報告するべきものです。</target>
         <note />
       </trans-unit>
     </body>

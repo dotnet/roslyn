@@ -18,6 +18,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Private Sub New()
         End Sub
 
+        Private ReadOnly Property IObjectWritable_ShouldReuseInSerialization As Boolean Implements IObjectWritable.ShouldReuseInSerialization
+            Get
+                Return True
+            End Get
+        End Property
+
         Private Sub WriteTo(writer As ObjectWriter) Implements IObjectWritable.WriteTo
             ' don't write anything since we always return the shared 'Instance' when read.
         End Sub
@@ -153,9 +159,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
-        Public Overrides ReadOnly Property FTL_InputFileNameTooLong As Integer
+        Public Overrides ReadOnly Property FTL_InvalidInputFileName As Integer
             Get
-                Return ERRID.FTL_InputFileNameTooLong
+                Return ERRID.FTL_InvalidInputFileName
             End Get
         End Property
 
@@ -283,6 +289,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Overrides ReadOnly Property ERR_InvalidSubsystemVersion As Integer
             Get
                 Return ERRID.ERR_InvalidSubsystemVersion
+            End Get
+        End Property
+
+        Public Overrides ReadOnly Property ERR_InvalidHashAlgorithmName As Integer
+            Get
+                Return ERRID.ERR_InvalidHashAlgorithmName
             End Get
         End Property
 

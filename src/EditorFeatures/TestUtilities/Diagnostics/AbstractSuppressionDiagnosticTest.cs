@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CodeFixes.Suppression;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -59,7 +60,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
             return FilterDiagnostics(diagnostics);
         }
 
-        internal override async Task<IEnumerable<Tuple<Diagnostic, CodeFixCollection>>> GetDiagnosticAndFixesAsync(
+        internal override async Task<(ImmutableArray<Diagnostic>, ImmutableArray<CodeAction>, CodeAction actionToInvoke)> GetDiagnosticAndFixesAsync(
             TestWorkspace workspace, TestParameters parameters)
         {
             var providerAndFixer = CreateDiagnosticProviderAndFixer(workspace);
@@ -80,7 +81,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
 
             var wrapperCodeFixer = new WrapperCodeFixProvider(fixer, filteredDiagnostics.Select(d => d.Id));
             return await GetDiagnosticAndFixesAsync(
-                filteredDiagnostics, provider, wrapperCodeFixer, testDriver, document, span, annotation, parameters.fixAllActionEquivalenceKey);
+                filteredDiagnostics, provider, wrapperCodeFixer, testDriver, 
+                document, span, annotation, parameters.index);
         }
     }
 }

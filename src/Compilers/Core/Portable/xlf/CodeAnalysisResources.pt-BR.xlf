@@ -496,9 +496,9 @@
         <target state="translated">Imagem PE não contém metadados gerenciados.</target>
         <note />
       </trans-unit>
-      <trans-unit id="ChangesMustBeOrderedAndNotOverlapping">
-        <source>The changes must be ordered and not overlapping.</source>
-        <target state="translated">As alterações devem ser ordenadas e não sobrepostas.</target>
+      <trans-unit id="ChangesMustNotOverlap">
+        <source>The changes must not overlap.</source>
+        <target state="needs-review-translation">As alterações devem ser ordenadas e não sobrepostas.</target>
         <note />
       </trans-unit>
       <trans-unit id="DiagnosticIdCantBeNullOrWhitespace">
@@ -830,7 +830,7 @@
       </trans-unit>
       <trans-unit id="CompilerDiagnosticIdReported">
         <source>Reported diagnostic has an ID '{0}', which only a compiler should be reporting.</source>
-        <target state="new">Reported diagnostic has an ID '{0}', which only a compiler should be reporting.</target>
+        <target state="translated">O diagnóstico relatado tem uma ID '{0}', na qual somente um compilador deve ser relatado.</target>
         <note />
       </trans-unit>
     </body>

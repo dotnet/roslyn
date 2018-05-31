@@ -3,11 +3,11 @@
 Imports System.Threading
 Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis
+Imports Microsoft.CodeAnalysis.CSharp.CodeStyle
 Imports Microsoft.CodeAnalysis.Options
+Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.CodeAnalysis.Text
 Imports Roslyn.Test.Utilities
-Imports Microsoft.CodeAnalysis.CodeStyle
-Imports Microsoft.CodeAnalysis.CSharp.CodeStyle
 
 Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel.CSharp
     Public Class CodeClassTests
@@ -2160,7 +2160,7 @@ class C
 {
     string Name
     {
-        get => default(string);
+        get => default;
         set
         {
         }
@@ -2188,7 +2188,7 @@ class C
     {
         get
         {
-            return default(string);
+            return default;
         }
 
         set
@@ -2220,7 +2220,7 @@ class C$$
 <Code>
 class C
 {
-    string Name => default(string);
+    string Name => default;
 }
 </Code>
 
@@ -2244,7 +2244,7 @@ class C
     {
         get
         {
-            return default(string);
+            return default;
         }
     }
 }

@@ -7,81 +7,83 @@ using System.ComponentModel.Composition;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.CommentSelection;
-using Microsoft.CodeAnalysis.Editor.Commands;
-using Microsoft.CodeAnalysis.Editor.Host;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
+using Microsoft.VisualStudio.Commanding;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
+using Microsoft.VisualStudio.Text.Editor.Commanding.Commands;
 using Microsoft.VisualStudio.Text.Operations;
+using Microsoft.VisualStudio.Utilities;
 using Roslyn.Utilities;
+using VSCommanding = Microsoft.VisualStudio.Commanding;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.CommentSelection
 {
-    [ExportCommandHandler(PredefinedCommandHandlerNames.CommentSelection, ContentTypeNames.RoslynContentType)]
+    [Export(typeof(VSCommanding.ICommandHandler))]
+    [ContentType(ContentTypeNames.RoslynContentType)]
+    [Name(PredefinedCommandHandlerNames.CommentSelection)]
     internal class CommentUncommentSelectionCommandHandler :
-        ICommandHandler<CommentSelectionCommandArgs>,
-        ICommandHandler<UncommentSelectionCommandArgs>
+        VSCommanding.ICommandHandler<CommentSelectionCommandArgs>,
+        VSCommanding.ICommandHandler<UncommentSelectionCommandArgs>
     {
-        private readonly IWaitIndicator _waitIndicator;
         private readonly ITextUndoHistoryRegistry _undoHistoryRegistry;
         private readonly IEditorOperationsFactoryService _editorOperationsFactoryService;
 
         [ImportingConstructor]
         internal CommentUncommentSelectionCommandHandler(
-            IWaitIndicator waitIndicator,
             ITextUndoHistoryRegistry undoHistoryRegistry,
             IEditorOperationsFactoryService editorOperationsFactoryService)
         {
-            Contract.ThrowIfNull(waitIndicator);
             Contract.ThrowIfNull(undoHistoryRegistry);
             Contract.ThrowIfNull(editorOperationsFactoryService);
 
-            _waitIndicator = waitIndicator;
             _undoHistoryRegistry = undoHistoryRegistry;
             _editorOperationsFactoryService = editorOperationsFactoryService;
         }
 
-        private static CommandState GetCommandState(ITextBuffer buffer, Func<CommandState> nextHandler)
+        public string DisplayName => EditorFeaturesResources.Comment_Uncomment_Selection_Command_Handler;
+
+        private static VSCommanding.CommandState GetCommandState(ITextBuffer buffer)
         {
             if (!buffer.CanApplyChangeDocumentToWorkspace())
             {
-                return nextHandler();
+                return VSCommanding.CommandState.Unspecified;
             }
 
-            return CommandState.Available;
+            return VSCommanding.CommandState.Available;
         }
 
-        public CommandState GetCommandState(CommentSelectionCommandArgs args, Func<CommandState> nextHandler)
+        public VSCommanding.CommandState GetCommandState(CommentSelectionCommandArgs args)
         {
-            return GetCommandState(args.SubjectBuffer, nextHandler);
+            return GetCommandState(args.SubjectBuffer);
         }
 
         /// <summary>
         /// Comment the selected spans, and reset the selection.
         /// </summary>
-        public void ExecuteCommand(CommentSelectionCommandArgs args, Action nextHandler)
+        public bool ExecuteCommand(CommentSelectionCommandArgs args, CommandExecutionContext context)
         {
-            this.ExecuteCommand(args.TextView, args.SubjectBuffer, Operation.Comment);
+            return this.ExecuteCommand(args.TextView, args.SubjectBuffer, Operation.Comment, context);
         }
 
-        public CommandState GetCommandState(UncommentSelectionCommandArgs args, Func<CommandState> nextHandler)
+        public VSCommanding.CommandState GetCommandState(UncommentSelectionCommandArgs args)
         {
-            return GetCommandState(args.SubjectBuffer, nextHandler);
+            return GetCommandState(args.SubjectBuffer);
         }
 
         /// <summary>
         /// Uncomment the selected spans, and reset the selection.
         /// </summary>
-        public void ExecuteCommand(UncommentSelectionCommandArgs args, Action nextHandler)
+        public bool ExecuteCommand(UncommentSelectionCommandArgs args, CommandExecutionContext context)
         {
-            this.ExecuteCommand(args.TextView, args.SubjectBuffer, Operation.Uncomment);
+            return this.ExecuteCommand(args.TextView, args.SubjectBuffer, Operation.Uncomment, context);
         }
 
-        internal void ExecuteCommand(ITextView textView, ITextBuffer subjectBuffer, Operation operation)
+        internal bool ExecuteCommand(ITextView textView, ITextBuffer subjectBuffer, Operation operation, CommandExecutionContext context)
         {
             var title = operation == Operation.Comment ? EditorFeaturesResources.Comment_Selection
                                                        : EditorFeaturesResources.Uncomment_Selection;
@@ -89,52 +91,50 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CommentSelection
             var message = operation == Operation.Comment ? EditorFeaturesResources.Commenting_currently_selected_text
                                                          : EditorFeaturesResources.Uncommenting_currently_selected_text;
 
-            _waitIndicator.Wait(
-                title,
-                message,
-                allowCancel: false,
-                action: waitContext =>
+            using (context.WaitContext.AddScope(allowCancellation: false, message))
+            {
+
+                var document = subjectBuffer.CurrentSnapshot.GetOpenDocumentInCurrentContextWithChanges();
+                if (document == null)
                 {
-                    var document = subjectBuffer.CurrentSnapshot.GetOpenDocumentInCurrentContextWithChanges();
-                    if (document == null)
-                    {
-                        return;
-                    }
+                    return true;
+                }
 
-                    var service = GetService(document);
-                    if (service == null)
-                    {
-                        return;
-                    }
+                var service = GetService(document);
+                if (service == null)
+                {
+                    return true;
+                }
 
-                    var trackingSpans = new List<ITrackingSpan>();
-                    var textChanges = new List<TextChange>();
+                var trackingSpans = new List<ITrackingSpan>();
+                var textChanges = new List<TextChange>();
+                CollectEdits(
+                    document, service, textView.Selection.GetSnapshotSpansOnBuffer(subjectBuffer),
+                    textChanges, trackingSpans, operation, CancellationToken.None);
 
-                    CollectEdits(
-                        document, service, textView.Selection.GetSnapshotSpansOnBuffer(subjectBuffer),
-                        textChanges, trackingSpans, operation, waitContext.CancellationToken);
+                using (var transaction = new CaretPreservingEditTransaction(title, textView, _undoHistoryRegistry, _editorOperationsFactoryService))
+                {
+                    document.Project.Solution.Workspace.ApplyTextChanges(document.Id, textChanges, CancellationToken.None);
+                    transaction.Complete();
+                }
 
+                if (operation == Operation.Uncomment)
+                {
                     using (var transaction = new CaretPreservingEditTransaction(title, textView, _undoHistoryRegistry, _editorOperationsFactoryService))
                     {
-                        document.Project.Solution.Workspace.ApplyTextChanges(document.Id, textChanges, waitContext.CancellationToken);
+                        Format(service, subjectBuffer.CurrentSnapshot, trackingSpans, CancellationToken.None);
                         transaction.Complete();
                     }
+                }
 
-                    if (operation == Operation.Uncomment)
-                    {
-                        using (var transaction = new CaretPreservingEditTransaction(title, textView, _undoHistoryRegistry, _editorOperationsFactoryService))
-                        {
-                            Format(service, subjectBuffer.CurrentSnapshot, trackingSpans, waitContext.CancellationToken);
-                            transaction.Complete();
-                        }
-                    }
+                if (trackingSpans.Any())
+                {
+                    // TODO, this doesn't currently handle block selection
+                    textView.SetSelection(trackingSpans.First().GetSpan(subjectBuffer.CurrentSnapshot));
+                }
+            }
 
-                    if (trackingSpans.Any())
-                    {
-                        // TODO, this doesn't currently handle block selection
-                        textView.SetSelection(trackingSpans.First().GetSpan(subjectBuffer.CurrentSnapshot));
-                    }
-                });
+            return true;
         }
 
         private ICommentSelectionService GetService(Document document)

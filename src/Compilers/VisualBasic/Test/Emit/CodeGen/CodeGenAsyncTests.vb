@@ -35,7 +35,7 @@ End Module
     </file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithReferences(source, references:=LatestVbReferences)
+            Dim compilation = CompilationUtils.CreateEmptyCompilationWithReferences(source, references:=LatestVbReferences)
             Dim options As VisualBasicCompilationOptions
 
             options = TestOptions.ReleaseExe
@@ -2408,7 +2408,7 @@ End Class
         <WorkItem(553894, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/553894")>
         <Fact()>
         Public Sub Simple_TaskOfT_EmitMetadataOnly()
-            Dim compilation = CompilationUtils.CreateCompilationWithReferences(
+            Dim compilation = CompilationUtils.CreateEmptyCompilationWithReferences(
 <compilation>
     <file name="a.vb">
 Imports System
@@ -2693,7 +2693,7 @@ End Module
 
             c.VerifyIL("Form1.VB$StateMachine_1_Test.MoveNext", <![CDATA[
 {
-  // Code size      393 (0x189)
+  // Code size      388 (0x184)
   .maxstack  5
   .locals init (Integer V_0,
                 Integer V_1,
@@ -2782,7 +2782,7 @@ End Module
     IL_00dd:  ldloca.s   V_2
     IL_00df:  ldarg.0
     IL_00e0:  call       "Sub System.Runtime.CompilerServices.AsyncTaskMethodBuilder(Of Integer).AwaitUnsafeOnCompleted(Of System.Runtime.CompilerServices.TaskAwaiter(Of Integer), Form1.VB$StateMachine_1_Test)(ByRef System.Runtime.CompilerServices.TaskAwaiter(Of Integer), ByRef Form1.VB$StateMachine_1_Test)"
-    IL_00e5:  leave      IL_0188
+    IL_00e5:  leave      IL_0183
     IL_00ea:  ldarg.0
     IL_00eb:  ldc.i4.m1
     IL_00ec:  dup
@@ -2811,37 +2811,36 @@ End Module
     IL_0137:  ldarg.0
     IL_0138:  ldfld      "Form1.VB$StateMachine_1_Test.$S1 As Double"
     IL_013d:  call       "Function System.Math.Round(Double) As Double"
-    IL_0142:  call       "Function System.Math.Round(Double) As Double"
-    IL_0147:  conv.ovf.i4
-    IL_0148:  stfld      "Form1.S.I As Integer"
-    IL_014d:  stloc.0
-    IL_014e:  leave.s    IL_0172
+    IL_0142:  conv.ovf.i4
+    IL_0143:  stfld      "Form1.S.I As Integer"
+    IL_0148:  stloc.0
+    IL_0149:  leave.s    IL_016d
   }
   catch System.Exception
   {
-    IL_0150:  dup
-    IL_0151:  call       "Sub Microsoft.VisualBasic.CompilerServices.ProjectData.SetProjectError(System.Exception)"
-    IL_0156:  stloc.3
-    IL_0157:  ldarg.0
-    IL_0158:  ldc.i4.s   -2
-    IL_015a:  stfld      "Form1.VB$StateMachine_1_Test.$State As Integer"
-    IL_015f:  ldarg.0
-    IL_0160:  ldflda     "Form1.VB$StateMachine_1_Test.$Builder As System.Runtime.CompilerServices.AsyncTaskMethodBuilder(Of Integer)"
-    IL_0165:  ldloc.3
-    IL_0166:  call       "Sub System.Runtime.CompilerServices.AsyncTaskMethodBuilder(Of Integer).SetException(System.Exception)"
-    IL_016b:  call       "Sub Microsoft.VisualBasic.CompilerServices.ProjectData.ClearProjectError()"
-    IL_0170:  leave.s    IL_0188
+    IL_014b:  dup
+    IL_014c:  call       "Sub Microsoft.VisualBasic.CompilerServices.ProjectData.SetProjectError(System.Exception)"
+    IL_0151:  stloc.3
+    IL_0152:  ldarg.0
+    IL_0153:  ldc.i4.s   -2
+    IL_0155:  stfld      "Form1.VB$StateMachine_1_Test.$State As Integer"
+    IL_015a:  ldarg.0
+    IL_015b:  ldflda     "Form1.VB$StateMachine_1_Test.$Builder As System.Runtime.CompilerServices.AsyncTaskMethodBuilder(Of Integer)"
+    IL_0160:  ldloc.3
+    IL_0161:  call       "Sub System.Runtime.CompilerServices.AsyncTaskMethodBuilder(Of Integer).SetException(System.Exception)"
+    IL_0166:  call       "Sub Microsoft.VisualBasic.CompilerServices.ProjectData.ClearProjectError()"
+    IL_016b:  leave.s    IL_0183
   }
-  IL_0172:  ldarg.0
-  IL_0173:  ldc.i4.s   -2
-  IL_0175:  dup
-  IL_0176:  stloc.1
-  IL_0177:  stfld      "Form1.VB$StateMachine_1_Test.$State As Integer"
-  IL_017c:  ldarg.0
-  IL_017d:  ldflda     "Form1.VB$StateMachine_1_Test.$Builder As System.Runtime.CompilerServices.AsyncTaskMethodBuilder(Of Integer)"
-  IL_0182:  ldloc.0
-  IL_0183:  call       "Sub System.Runtime.CompilerServices.AsyncTaskMethodBuilder(Of Integer).SetResult(Integer)"
-  IL_0188:  ret
+  IL_016d:  ldarg.0
+  IL_016e:  ldc.i4.s   -2
+  IL_0170:  dup
+  IL_0171:  stloc.1
+  IL_0172:  stfld      "Form1.VB$StateMachine_1_Test.$State As Integer"
+  IL_0177:  ldarg.0
+  IL_0178:  ldflda     "Form1.VB$StateMachine_1_Test.$Builder As System.Runtime.CompilerServices.AsyncTaskMethodBuilder(Of Integer)"
+  IL_017d:  ldloc.0
+  IL_017e:  call       "Sub System.Runtime.CompilerServices.AsyncTaskMethodBuilder(Of Integer).SetResult(Integer)"
+  IL_0183:  ret
 }
 ]]>)
         End Sub
@@ -8539,7 +8538,7 @@ Public Class TestCase
 End Class
     </file>
 </compilation>
-            Dim comp = CreateCompilationWithReferences(source, {MscorlibRef}, TestOptions.ReleaseDll) ' NOTE: 4.0, Not 4.5, so it's missing the async helpers.
+            Dim comp = CreateEmptyCompilationWithReferences(source, {MscorlibRef}, TestOptions.ReleaseDll) ' NOTE: 4.0, Not 4.5, so it's missing the async helpers.
             comp.AssertTheseEmitDiagnostics(
  <errors>
 BC31091: Import of type 'AsyncVoidMethodBuilder' from assembly or module 'AsyncVoid.dll' failed.
@@ -8575,7 +8574,7 @@ Public Class TestCase
 End Class
     </file>
 </compilation>
-            Dim comp = CreateCompilationWithReferences(source, {MscorlibRef}, TestOptions.ReleaseDll) ' NOTE: 4.0, Not 4.5, so it's missing the async helpers.
+            Dim comp = CreateEmptyCompilationWithReferences(source, {MscorlibRef}, TestOptions.ReleaseDll) ' NOTE: 4.0, Not 4.5, so it's missing the async helpers.
             comp.AssertTheseEmitDiagnostics(
  <errors>
 BC31091: Import of type 'AsyncTaskMethodBuilder' from assembly or module 'AsyncTask.dll' failed.
@@ -8612,7 +8611,7 @@ Public Class TestCase
 End Class
     </file>
 </compilation>
-            Dim comp = CreateCompilationWithReferences(source, {MscorlibRef}, TestOptions.ReleaseDll) ' NOTE: 4.0, Not 4.5, so it's missing the async helpers.
+            Dim comp = CreateEmptyCompilationWithReferences(source, {MscorlibRef}, TestOptions.ReleaseDll) ' NOTE: 4.0, Not 4.5, so it's missing the async helpers.
             comp.AssertTheseEmitDiagnostics(
  <errors>
 BC31091: Import of type 'AsyncTaskMethodBuilder(Of )' from assembly or module 'AsyncTask_T.dll' failed.
@@ -8751,7 +8750,7 @@ End Class
             Dim expectedOutput = <![CDATA[Before 12
 After 12]]>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithReferences(source, references:=LatestVbReferences, options:=TestOptions.DebugExe)
+            Dim compilation = CompilationUtils.CreateEmptyCompilationWithReferences(source, references:=LatestVbReferences, options:=TestOptions.DebugExe)
             CompileAndVerify(compilation, expectedOutput:=expectedOutput)
 
             CompileAndVerify(compilation.WithOptions(TestOptions.ReleaseExe), expectedOutput:=expectedOutput)
@@ -8803,7 +8802,7 @@ disposed
 Post
 result]]>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithReferences(source, references:=LatestVbReferences, options:=TestOptions.DebugExe)
+            Dim compilation = CompilationUtils.CreateEmptyCompilationWithReferences(source, references:=LatestVbReferences, options:=TestOptions.DebugExe)
             CompileAndVerify(compilation, expectedOutput:=expectedOutput)
             CompileAndVerify(compilation.WithOptions(TestOptions.ReleaseExe), expectedOutput:=expectedOutput)
         End Sub
@@ -8857,7 +8856,7 @@ disposed
 Post
 result]]>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithReferences(source, references:=LatestVbReferences, options:=TestOptions.DebugExe)
+            Dim compilation = CompilationUtils.CreateEmptyCompilationWithReferences(source, references:=LatestVbReferences, options:=TestOptions.DebugExe)
             CompileAndVerify(compilation, expectedOutput:=expectedOutput)
             CompileAndVerify(compilation.WithOptions(TestOptions.ReleaseExe), expectedOutput:=expectedOutput)
         End Sub
@@ -8913,7 +8912,7 @@ disposed
 Post
 result]]>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithReferences(source, references:=LatestVbReferences, options:=TestOptions.DebugExe)
+            Dim compilation = CompilationUtils.CreateEmptyCompilationWithReferences(source, references:=LatestVbReferences, options:=TestOptions.DebugExe)
             CompileAndVerify(compilation, expectedOutput:=expectedOutput)
             CompileAndVerify(compilation.WithOptions(TestOptions.ReleaseExe), expectedOutput:=expectedOutput)
         End Sub
@@ -8970,7 +8969,7 @@ disposed
 Post
 result]]>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithReferences(source, references:=LatestVbReferences, options:=TestOptions.DebugExe)
+            Dim compilation = CompilationUtils.CreateEmptyCompilationWithReferences(source, references:=LatestVbReferences, options:=TestOptions.DebugExe)
             CompileAndVerify(compilation, expectedOutput:=expectedOutput)
             CompileAndVerify(compilation.WithOptions(TestOptions.ReleaseExe), expectedOutput:=expectedOutput)
         End Sub
@@ -9042,7 +9041,7 @@ Class C
     End Sub
 End Class
 "
-            Dim compilation = CreateCompilation({Parse(source)})
+            Dim compilation = CreateEmptyCompilation({Parse(source)})
 
             compilation.AssertTheseEmitDiagnostics(<expected>
 BC30456: 'Create' is not a member of 'AsyncVoidMethodBuilder'.
@@ -9096,7 +9095,7 @@ End Class
 
             Dim expectedOutput = <![CDATA[System.Int32]]>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithReferences(source, references:=LatestVbReferences, options:=TestOptions.DebugExe)
+            Dim compilation = CompilationUtils.CreateEmptyCompilationWithReferences(source, references:=LatestVbReferences, options:=TestOptions.DebugExe)
             CompileAndVerify(compilation, expectedOutput:=expectedOutput)
             CompileAndVerify(compilation.WithOptions(TestOptions.ReleaseExe), expectedOutput:=expectedOutput)
         End Sub
@@ -9141,7 +9140,7 @@ False
 True
 False
 ]]>
-            Dim compilation = CompilationUtils.CreateCompilationWithReferences(source, references:=LatestVbReferences, options:=TestOptions.DebugExe)
+            Dim compilation = CompilationUtils.CreateEmptyCompilationWithReferences(source, references:=LatestVbReferences, options:=TestOptions.DebugExe)
             CompileAndVerify(compilation, expectedOutput:=expectedOutput)
             CompileAndVerify(compilation.WithOptions(TestOptions.ReleaseExe), expectedOutput:=expectedOutput)
         End Sub
@@ -9181,7 +9180,7 @@ End Module
 
             Dim expectedOutput = "success"
 
-            Dim compilation = CompilationUtils.CreateCompilationWithReferences(source, references:=LatestVbReferences, options:=TestOptions.DebugExe)
+            Dim compilation = CompilationUtils.CreateEmptyCompilationWithReferences(source, references:=LatestVbReferences, options:=TestOptions.DebugExe)
             CompileAndVerify(compilation, expectedOutput:=expectedOutput)
             CompileAndVerify(compilation.WithOptions(TestOptions.ReleaseExe), expectedOutput:=expectedOutput)
         End Sub
