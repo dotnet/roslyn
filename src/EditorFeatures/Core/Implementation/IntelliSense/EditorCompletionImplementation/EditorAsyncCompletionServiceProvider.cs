@@ -10,13 +10,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.E
     [Export(typeof(IAsyncCompletionItemManagerProvider))]
     [Name("Roslyn Completion Service Provider")]
     [ContentType(ContentTypeNames.RoslynContentType)]
-    internal class EditorAsyncCompletionServiceProvider : IAsyncCompletionItemManagerProvider
+    internal class EditorAsyncCompletionItemManagerProvider : IAsyncCompletionItemManagerProvider
     {
         private readonly IAsyncCompletionBroker _broker;
         private IAsyncCompletionItemManager _instance;
 
         [ImportingConstructor]
-        public EditorAsyncCompletionServiceProvider(IAsyncCompletionBroker broker)
+        public EditorAsyncCompletionItemManagerProvider(IAsyncCompletionBroker broker)
         {
             _broker = broker;
         }
@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.E
         {
             if (_instance == null)
             {
-                _instance = new EditorAsyncCompletionService(_broker);
+                _instance = new EditorAsyncCompletionItemManager(_broker);
             }
 
             return _instance;
