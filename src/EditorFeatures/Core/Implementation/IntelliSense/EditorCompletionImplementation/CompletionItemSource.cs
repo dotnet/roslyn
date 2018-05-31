@@ -57,6 +57,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.E
 
             var items = completionList.Items.SelectAsArray(roslynItem =>
             {
+                token.ThrowIfCancellationRequested();
                 var item = Convert(document, roslynItem, completionService, filterCache);
                 item.Properties.AddProperty(TriggerBuffer, triggerLocation.Snapshot.TextBuffer);
                 return item;
