@@ -466,28 +466,36 @@ Environment.ProcessorCount
             Assert.Equal(Environment.ProcessorCount, state.Result.ReturnValue);
         }
 
-        [Fact]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/27356")]
         public void CompilationChain_Accessibility()
         {
             // Submissions have internal and protected access to one another.
             var state1 = CSharpScript.RunAsync("internal class C1 { }   protected int X;   1");
+            state1.Result.Script.GetCompilation().VerifyDiagnostics(
+                // (1,39): warning CS0628: 'X': new protected member declared in sealed class
+                // internal class C1 { }   protected int X;   1
+                Diagnostic(ErrorCode.WRN_ProtectedInSealed, "X").WithArguments("X").WithLocation(1, 39)
+                );
             Assert.Equal(1, state1.Result.ReturnValue);
 
-            var state2 = state1.ContinueWith("internal class C2 { }   2");
+            var state2 = state1.ContinueWith("internal class C2 : C1 { }   2");
             var compilation2 = state2.Result.Script.GetCompilation();
+            compilation2.VerifyDiagnostics();
             Assert.Equal(2, state2.Result.ReturnValue);
-            Assert.True(compilation2.IsSymbolAccessibleWithin(lookupMember(compilation2, "Submission#0", "C1"),
-                                                              lookupMember(compilation2, "Submission#1", "C2")));
-            Assert.True(compilation2.IsSymbolAccessibleWithin(lookupMember(compilation2, "Submission#1", "C2"),
-                                                              lookupMember(compilation2, "Submission#0", "C1")));
-            Assert.True(compilation2.IsSymbolAccessibleWithin(lookupMember(compilation2, "Submission#1", "C2"),
-                                                              lookupMember(compilation2, "Submission#0", "X")));
+            var c2C2 = (INamedTypeSymbol)lookupMember(compilation2, "Submission#1", "C2");
+            var c2C1 = c2C2.BaseType;
+            var c2X = lookupMember(compilation2, "Submission#0", "X");
+            Assert.True(compilation2.IsSymbolAccessibleWithin(c2C1, c2C2));
+            Assert.True(compilation2.IsSymbolAccessibleWithin(c2C2, c2C1));
+            Assert.True(compilation2.IsSymbolAccessibleWithin(c2C2, c2X));
 
-            var state3 = state1.ContinueWith("private class C3 { }   3");
+            var state3 = state1.ContinueWith("private class C3 : C2 { }   3");
             var compilation3 = state3.Result.Script.GetCompilation();
+            compilation3.VerifyDiagnostics();
             Assert.Equal(3, state3.Result.ReturnValue);
-            Assert.True(compilation2.IsSymbolAccessibleWithin(lookupMember(compilation2, "Submission#2", "C3"),
-                                                              lookupMember(compilation2, "Submission#0", "C1")));
+            var c3C3 = (INamedTypeSymbol)lookupMember(compilation2, "Submission#2", "C3");
+            var c3C1 = c3C3.BaseType;
+            Assert.True(compilation2.IsSymbolAccessibleWithin(c3C3, c3C1));
 
             INamedTypeSymbol lookupType(Compilation c, string name)
             {
