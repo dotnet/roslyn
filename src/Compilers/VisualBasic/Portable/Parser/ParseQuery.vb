@@ -72,6 +72,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             Loop
 
             Dim result = _pool.ToListAndFree(RangeVariables)
+
             Return result
         End Function
 
