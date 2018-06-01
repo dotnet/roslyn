@@ -8,5 +8,5 @@ phases:
       release: 
         configuration: release
   steps:
-    - script: build/scripts/cibuild.cmd -$(configuration) -test32
+    - script: build/scripts/cibuild.cmd -$(configuration) -testDesktop -test32
            
