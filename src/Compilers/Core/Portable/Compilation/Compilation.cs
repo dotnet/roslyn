@@ -1112,6 +1112,109 @@ namespace Microsoft.CodeAnalysis
         public bool HasImplicitConversion(ITypeSymbol fromType, ITypeSymbol toType)
             => fromType != null && toType != null && this.ClassifyCommonConversion(fromType, toType).IsImplicit;
 
+        /// <summary>
+        /// Checks if <paramref name="symbol"/> is accessible from within <paramref name="within"/>. An optional qualifier of type
+        /// <paramref name="throughType"/> is used to resolve protected access for instance members. All symbols are
+        /// required to be from this compilation or some assembly referenced by this compilation. <paramref name="within"/> is required
+        /// to be an <see cref="ITypeSymbol"/> or <see cref="IAssemblySymbol"/>.
+        /// </summary>
+        public bool IsSymbolAccessibleWithin(
+            ISymbol symbol,
+            ISymbol within,
+            ITypeSymbol throughType = null)
+        {
+            if (symbol is null)
+            {
+                throw new ArgumentNullException(nameof(symbol));
+            }
+
+            if (within is null)
+            {
+                throw new ArgumentNullException(nameof(within));
+            }
+
+            if (!(within is INamedTypeSymbol || within is IAssemblySymbol))
+            {
+                throw new ArgumentException(CodeAnalysisResources.IsSymbolAccessibleBadWithin, nameof(within));
+            }
+
+            checkInCompilation(symbol, nameof(symbol));
+            checkInCompilation(within, nameof(within));
+            if (!(throughType is null))
+            {
+                checkInCompilation(throughType, nameof(throughType));
+            }
+
+            return IsSymbolAccessibleWithinCore(symbol, within, throughType);
+
+            void checkInCompilation(ISymbol s, string parameterName)
+            {
+                var containingAssembly = computeContainingAssembly(s);
+                if (!assemblyIsOk(containingAssembly))
+                {
+                    throw new ArgumentException(string.Format(CodeAnalysisResources.IsSymbolAccessibleWrongAssembly, parameterName), parameterName);
+                }
+            }
+
+            bool assemblyIsOk(IAssemblySymbol a)
+            {
+                if (a == this.Assembly)
+                {
+                    return true;
+                }
+
+                foreach (var reference in this.References)
+                {
+                    var moduleOrAssembly = this.CommonGetAssemblyOrModuleSymbol(reference);
+                    var assembly = moduleOrAssembly as IAssemblySymbol ?? moduleOrAssembly.ContainingAssembly;
+                    if (a == assembly)
+                    {
+                        return true;
+                    }
+                }
+
+                return false;
+            }
+
+            IAssemblySymbol computeContainingAssembly(ISymbol s)
+            {
+                while (true)
+                {
+                    switch (s.Kind)
+                    {
+                        case SymbolKind.Assembly:
+                            return (IAssemblySymbol)s;
+                        case SymbolKind.PointerType:
+                            s = ((IPointerTypeSymbol)s).PointedAtType;
+                            continue;
+                        case SymbolKind.ArrayType:
+                            s = ((IArrayTypeSymbol)s).ElementType;
+                            continue;
+                        case SymbolKind.Alias:
+                            s = ((IAliasSymbol)s).Target;
+                            continue;
+                        case SymbolKind.Discard:
+                            s = ((IDiscardSymbol)s).Type;
+                            continue;
+                        case SymbolKind.DynamicType:
+                        case SymbolKind.ErrorType:
+                        case SymbolKind.Preprocessing:
+                        case SymbolKind.Namespace:
+                            // these symbols are not restricted in where they can be accessed, so we treat
+                            // them as in the current assembly for access purposes
+                            return this.Assembly;
+                        default:
+                            return s.ContainingAssembly;
+                    }
+                }
+            }
+        }
+
+        private protected abstract bool IsSymbolAccessibleWithinCore(
+            ISymbol symbol,
+            ISymbol within,
+            ITypeSymbol throughType);
+
         #endregion
 
         #region Diagnostics

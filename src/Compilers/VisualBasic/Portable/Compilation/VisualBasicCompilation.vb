@@ -1851,6 +1851,27 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return diagnostic Is Nothing OrElse diagnostic.Severity <> DiagnosticSeverity.Error
         End Function
 
+        Private Protected Overrides Function IsSymbolAccessibleWithinCore(symbol As ISymbol, within As ISymbol, throughType As ITypeSymbol) As Boolean
+            Dim symbol0 = TryCast(symbol, Symbol)
+            If (symbol0 Is Nothing) Then
+                Throw New ArgumentException(String.Format(CodeAnalysisResources.IsSymbolAccessibleWrongAssembly, NameOf(symbol)), NameOf(symbol))
+            End If
+
+            Dim within0 = TryCast(within, Symbol)
+            If (within0 Is Nothing) Then
+                Throw New ArgumentException(String.Format(CodeAnalysisResources.IsSymbolAccessibleWrongAssembly, NameOf(within)), NameOf(within))
+            End If
+
+            Dim throughType0 = TryCast(throughType, TypeSymbol)
+            If throughType IsNot Nothing AndAlso throughType0 Is Nothing Then
+                Throw New ArgumentException(String.Format(CodeAnalysisResources.IsSymbolAccessibleWrongAssembly, NameOf(throughType)), NameOf(throughType))
+            End If
+
+            Return If(TypeOf within0 Is AssemblySymbol,
+                AccessCheck.IsSymbolAccessible(symbol0, CType(within0, AssemblySymbol), useSiteDiagnostics:=Nothing),
+                AccessCheck.IsSymbolAccessible(symbol0, CType(within0, NamedTypeSymbol), throughType0, useSiteDiagnostics:=Nothing))
+        End Function
+
 #End Region
 
 #Region "Binding"

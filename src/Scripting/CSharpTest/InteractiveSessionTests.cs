@@ -467,6 +467,39 @@ Environment.ProcessorCount
         }
 
         [Fact]
+        public void CompilationChain_Accessibility()
+        {
+            // Submissions have internal and protected access to one another.
+            var state1 = CSharpScript.RunAsync("internal class C1 { }   protected int X;   1");
+            Assert.Equal(1, state1.Result.ReturnValue);
+
+            var state2 = state1.ContinueWith("internal class C2 { }   2");
+            var compilation2 = state2.Result.Script.GetCompilation();
+            Assert.Equal(2, state2.Result.ReturnValue);
+            Assert.True(compilation2.IsSymbolAccessibleWithin(lookupMember(compilation2, "Submission#0", "C1"),
+                                                              lookupMember(compilation2, "Submission#1", "C2")));
+            Assert.True(compilation2.IsSymbolAccessibleWithin(lookupMember(compilation2, "Submission#1", "C2"),
+                                                              lookupMember(compilation2, "Submission#0", "C1")));
+            Assert.True(compilation2.IsSymbolAccessibleWithin(lookupMember(compilation2, "Submission#1", "C2"),
+                                                              lookupMember(compilation2, "Submission#0", "X")));
+
+            var state3 = state1.ContinueWith("private class C3 { }   3");
+            var compilation3 = state3.Result.Script.GetCompilation();
+            Assert.Equal(3, state3.Result.ReturnValue);
+            Assert.True(compilation2.IsSymbolAccessibleWithin(lookupMember(compilation2, "Submission#2", "C3"),
+                                                              lookupMember(compilation2, "Submission#0", "C1")));
+
+            INamedTypeSymbol lookupType(Compilation c, string name)
+            {
+                return c.GlobalNamespace.GetMembers(name).Single() as INamedTypeSymbol;
+            }
+            ISymbol lookupMember(Compilation c, string typeName, string memberName)
+            {
+                return lookupType(c, typeName).GetMembers(memberName).Single();
+            }
+        }
+
+        [Fact]
         public void CompilationChain_SubmissionSlotResize()
         {
             var state = CSharpScript.RunAsync("");

@@ -1786,6 +1786,36 @@ namespace Microsoft.CodeAnalysis.CSharp
             return new PointerTypeSymbol(elementType);
         }
 
+        private protected override bool IsSymbolAccessibleWithinCore(
+            ISymbol symbol,
+            ISymbol within,
+            ITypeSymbol throughType)
+        {
+            var symbol0 = symbol as Symbol;
+            if (symbol0 is null)
+            {
+                throw new ArgumentException(string.Format(CodeAnalysisResources.IsSymbolAccessibleWrongAssembly, nameof(symbol)), nameof(symbol));
+            }
+
+            var within0 = within as Symbol;
+            if (within0 is null)
+            {
+                throw new ArgumentException(string.Format(CodeAnalysisResources.IsSymbolAccessibleWrongAssembly, nameof(within)), nameof(within));
+            }
+
+            var throughType0 = throughType as TypeSymbol;
+            if (!(throughType is null) && throughType0 is null)
+            {
+                throw new ArgumentException(string.Format(CodeAnalysisResources.IsSymbolAccessibleWrongAssembly, nameof(throughType)), nameof(throughType));
+            }
+
+            HashSet<DiagnosticInfo> useSiteDiagnostics = null;
+            return
+                within0 is AssemblySymbol withinAssembly ?
+                AccessCheck.IsSymbolAccessible(symbol0, withinAssembly, ref useSiteDiagnostics) :
+                AccessCheck.IsSymbolAccessible(symbol0, (NamedTypeSymbol)within0, ref useSiteDiagnostics, throughType0);
+        }
+
         #endregion
 
         #region Binding
