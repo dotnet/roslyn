@@ -8877,7 +8877,7 @@ public class X
                 // (12,23): error CS0103: The name 'let' does not exist in the current context
                 //         return (o) => let x1 = o;
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "let").WithArguments("let").WithLocation(12, 23),
-                // (12,23): error CS0201: Only assignment, call, increment, decrement, and new object expressions can be used as a statement
+                // (12,23): error CS0201: Only assignment, call, increment, decrement, await, and new object expressions can be used as a statement
                 //         return (o) => let x1 = o;
                 Diagnostic(ErrorCode.ERR_IllegalStatement, "let").WithLocation(12, 23),
                 // (12,27): error CS0103: The name 'x1' does not exist in the current context
@@ -8892,7 +8892,7 @@ public class X
                 // (17,23): error CS0103: The name 'let' does not exist in the current context
                 //         return (o) => let var x2 = o;
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "let").WithArguments("let").WithLocation(17, 23),
-                // (17,23): error CS0201: Only assignment, call, increment, decrement, and new object expressions can be used as a statement
+                // (17,23): error CS0201: Only assignment, call, increment, decrement, await, and new object expressions can be used as a statement
                 //         return (o) => let var x2 = o;
                 Diagnostic(ErrorCode.ERR_IllegalStatement, "let").WithLocation(17, 23),
                 // (17,36): error CS0103: The name 'o' does not exist in the current context
