@@ -12,6 +12,7 @@ using Microsoft.VisualStudio.Text.PatternMatching;
 using Roslyn.Test.Utilities;
 using Xunit;
 
+#pragma warning disable CS0618 // MatchKind is obsolete
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.NavigateTo
 {
     public class InteractiveNavigateToTests : AbstractNavigateToTests
@@ -640,3 +641,4 @@ class C2
         }
     }
 }
+#pragma warning restore CS0618 // MatchKind is obsolete

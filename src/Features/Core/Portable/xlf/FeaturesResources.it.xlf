@@ -2007,32 +2007,32 @@ Questa versione è usata {2}</target>
       </trans-unit>
       <trans-unit id="Alias_ambiguous_type_0">
         <source>Alias ambiguous type '{0}'</source>
-        <target state="new">Alias ambiguous type '{0}'</target>
+        <target state="translated">Tipo di alias '{0}' ambiguo</target>
         <note />
       </trans-unit>
       <trans-unit id="Warning_colon_Collection_was_modified_during_iteration">
         <source>Warning: Collection was modified during iteration.</source>
-        <target state="new">Warning: Collection was modified during iteration.</target>
+        <target state="translated">Avviso: la raccolta è stata modificata durante l'iterazione.</target>
         <note />
       </trans-unit>
       <trans-unit id="Warning_colon_Iteration_variable_crossed_function_boundary">
         <source>Warning: Iteration variable crossed function boundary.</source>
-        <target state="new">Warning: Iteration variable crossed function boundary.</target>
+        <target state="translated">Avviso: la variabile di iterazione ha superato il limite della funzione.</target>
         <note />
       </trans-unit>
       <trans-unit id="Warning_colon_Collection_may_be_modified_during_iteration">
         <source>Warning: Collection may be modified during iteration.</source>
-        <target state="new">Warning: Collection may be modified during iteration.</target>
+        <target state="translated">Avviso: è possibile che la raccolta venga modificata durante l'iterazione.</target>
         <note />
       </trans-unit>
       <trans-unit id="Add_readonly_modifier">
         <source>Add readonly modifier</source>
-        <target state="new">Add readonly modifier</target>
+        <target state="translated">Aggiungi modificatore readonly</target>
         <note />
       </trans-unit>
       <trans-unit id="Make_field_readonly">
         <source>Make field readonly</source>
-        <target state="new">Make field readonly</target>
+        <target state="translated">Imposta il campo come di sola lettura</target>
         <note />
       </trans-unit>
       <trans-unit id="Convert_to_conditional_expression">
