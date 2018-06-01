@@ -799,12 +799,8 @@ Public MustInherit Class BasicTestBase
 
         Dim fileName = "a.vb"
         Dim syntaxTree = Parse(source, fileName, parseOptions)
-        Dim allReferences As IEnumerable(Of MetadataReference)
-        If useLatestFrameworkReferences Then
-            allReferences = TargetFrameworkUtil.Mscorlib45ExtendedReferences.Add(TestBase.MsvbRef_v4_0_30319_17929)
-        Else
-            allReferences = TargetFrameworkUtil.Mscorlib45ExtendedReferences.Add(TestBase.MsvbRef)
-        End If
+        Dim allReferences = TargetFrameworkUtil.Mscorlib45ExtendedReferences.Add(
+            If(useLatestFrameworkReferences, TestBase.MsvbRef_v4_0_30319_17929, TestBase.MsvbRef))
         Dim compilation = CreateEmptyCompilation({syntaxTree}, references:=allReferences, options:=If(compilationOptions, TestOptions.ReleaseDll))
         Dim operationTree = GetOperationTreeForTest(Of TSyntaxNode)(compilation, fileName, which)
         Return (operationTree.tree, operationTree.syntax, operationTree.operation, compilation)
@@ -863,12 +859,8 @@ Public MustInherit Class BasicTestBase
 
         Dim fileName = "a.vb"
         Dim syntaxTree = Parse(source, fileName, parseOptions)
-        Dim allReferences As IEnumerable(Of MetadataReference) = Nothing
-        If useLatestFramework Then
-            allReferences = TargetFrameworkUtil.Mscorlib45ExtendedReferences.Add(TestBase.MsvbRef_v4_0_30319_17929)
-        Else
-            allReferences = TargetFrameworkUtil.Mscorlib45ExtendedReferences.Add(TestBase.MsvbRef)
-        End If
+        Dim allReferences As IEnumerable(Of MetadataReference) = TargetFrameworkUtil.Mscorlib45ExtendedReferences.Add(
+            If(useLatestFramework, TestBase.MsvbRef_v4_0_30319_17929, TestBase.MsvbRef))
 
         allReferences = If(references IsNot Nothing, allReferences.Concat(references), allReferences)
         Dim compilation = CreateEmptyCompilation({syntaxTree}, references:=allReferences, options:=If(compilationOptions, TestOptions.ReleaseDll))
