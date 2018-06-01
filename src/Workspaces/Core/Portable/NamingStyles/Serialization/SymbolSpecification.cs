@@ -63,6 +63,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
                     new SymbolKindOrTypeKind(TypeKind.TypeParameter),
                     new SymbolKindOrTypeKind(SymbolKind.Local)),
                 accessibilityList: ImmutableArray.Create(
+                    Accessibility.NotApplicable,
                     Accessibility.Public,
                     Accessibility.Internal,
                     Accessibility.Private,
@@ -82,7 +83,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
         internal bool AppliesTo(SymbolKind symbolKind, Accessibility accessibility)
             => this.AppliesTo(new SymbolKindOrTypeKind(symbolKind), new DeclarationModifiers(), accessibility);
 
-        internal bool AppliesTo(SymbolKindOrTypeKind kind, DeclarationModifiers modifiers, Accessibility accessibility)
+        internal bool AppliesTo(SymbolKindOrTypeKind kind, DeclarationModifiers modifiers, Accessibility? accessibility)
         {
             if (!ApplicableSymbolKindList.Any(k => k.Equals(kind)))
             {
@@ -95,8 +96,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
                 return false;
             }
 
-            if (accessibility != Accessibility.NotApplicable &&
-                !ApplicableAccessibilityList.Any(k => k == accessibility))
+            if (accessibility.HasValue && !ApplicableAccessibilityList.Any(k => k == accessibility))
             {
                 return false;
             }
@@ -152,11 +152,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
 
         private bool AnyMatches(ImmutableArray<Accessibility> matchers, ISymbol symbol)
         {
-            if (symbol.DeclaredAccessibility == Accessibility.NotApplicable)
-            {
-                return true;
-            }
-
             foreach (var matcher in matchers)
             {
                 if (matcher.MatchesSymbol(symbol))

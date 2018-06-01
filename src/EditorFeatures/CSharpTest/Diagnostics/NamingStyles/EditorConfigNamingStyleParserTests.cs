@@ -13,6 +13,24 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.NamingStyle
 {
     public class EditorConfigNamingStyleParserTests
     {
+        internal static SymbolKindOrTypeKind ToSymbolKindOrTypeKind(object symbolOrTypeKind)
+        {
+            switch (symbolOrTypeKind)
+            {
+            case TypeKind typeKind:
+                return new SymbolKindOrTypeKind(typeKind);
+
+            case SymbolKind symbolKind:
+                return new SymbolKindOrTypeKind(symbolKind);
+
+            case MethodKind methodKind:
+                return new SymbolKindOrTypeKind(methodKind);
+
+            default:
+                throw ExceptionUtilities.UnexpectedValue(symbolOrTypeKind);
+            }
+        }
+
         [Fact]
         public static void TestPascalCaseRule()
         {
@@ -45,10 +63,12 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.NamingStyle
             Assert.Empty(symbolSpec.RequiredModifierList);
             var expectedApplicableAccessibilityList = new[]
             {
+                Accessibility.NotApplicable,
                 Accessibility.Public,
                 Accessibility.Internal,
                 Accessibility.Private,
                 Accessibility.Protected,
+                Accessibility.ProtectedAndInternal,
                 Accessibility.ProtectedOrInternal
             };
             AssertEx.SetEqual(expectedApplicableAccessibilityList, symbolSpec.ApplicableAccessibilityList);
@@ -92,7 +112,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.NamingStyle
             Assert.Single(symbolSpec.RequiredModifierList);
             Assert.Contains(new ModifierKind(ModifierKindEnum.IsAsync), symbolSpec.RequiredModifierList);
             Assert.Equal(
-                new[] { Accessibility.Public, Accessibility.Internal, Accessibility.Private, Accessibility.Protected, Accessibility.ProtectedOrInternal },
+                new[] { Accessibility.NotApplicable, Accessibility.Public, Accessibility.Internal, Accessibility.Private, Accessibility.Protected, Accessibility.ProtectedAndInternal, Accessibility.ProtectedOrInternal },
                 symbolSpec.ApplicableAccessibilityList);
             Assert.Equal("end_in_async_style", namingStyle.Name);
             Assert.Equal("", namingStyle.Prefix);
@@ -240,7 +260,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.NamingStyle
             };
             AssertEx.SetEqual(expectedApplicableSymbolKindList, symbolSpec.ApplicableSymbolKindList);
             Assert.Equal(
-                new[] { Accessibility.Public, Accessibility.Internal, Accessibility.Private, Accessibility.Protected, Accessibility.ProtectedOrInternal },
+                new[] { Accessibility.NotApplicable, Accessibility.Public, Accessibility.Internal, Accessibility.Private, Accessibility.Protected, Accessibility.ProtectedAndInternal, Accessibility.ProtectedOrInternal },
                 symbolSpec.ApplicableAccessibilityList);
             Assert.Empty(symbolSpec.RequiredModifierList);
 
@@ -279,7 +299,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.NamingStyle
             var expectedApplicableSymbolKindList = new[] { new SymbolKindOrTypeKind(MethodKind.LocalFunction) };
             AssertEx.SetEqual(expectedApplicableSymbolKindList, symbolSpec.ApplicableSymbolKindList);
             Assert.Equal(
-                new[] { Accessibility.Public, Accessibility.Internal, Accessibility.Private, Accessibility.Protected, Accessibility.ProtectedOrInternal },
+                new[] { Accessibility.NotApplicable, Accessibility.Public, Accessibility.Internal, Accessibility.Private, Accessibility.Protected, Accessibility.ProtectedAndInternal, Accessibility.ProtectedOrInternal },
                 symbolSpec.ApplicableAccessibilityList);
             Assert.Empty(symbolSpec.RequiredModifierList);
 
@@ -330,26 +350,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.NamingStyle
                 rule["dotnet_naming_symbols.kinds.applicable_kinds"] = specification;
             }
 
-            var kinds = typeOrSymbolKinds
-                .Select(typeOrSymbolKind =>
-                {
-                    switch (typeOrSymbolKind)
-                    {
-                    case TypeKind typeKind:
-                        return new SymbolKindOrTypeKind(typeKind);
-
-                    case SymbolKind symbolKind:
-                        return new SymbolKindOrTypeKind(symbolKind);
-
-                    case MethodKind methodKind:
-                        return new SymbolKindOrTypeKind(methodKind);
-
-                    default:
-                        throw ExceptionUtilities.UnexpectedValue(typeOrSymbolKind);
-                    }
-                })
-                .ToArray();
-
+            var kinds = typeOrSymbolKinds.Select(ToSymbolKindOrTypeKind).ToArray();
             var result = ParseDictionary(rule);
             Assert.Equal(kinds, result.SymbolSpecifications.SelectMany(x => x.ApplicableSymbolKindList));
         }
@@ -357,8 +358,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.NamingStyle
         [Theory]
         [InlineData("internal,protected_internal", new[] { Accessibility.Internal, Accessibility.ProtectedOrInternal })]
         [InlineData("friend,protected_friend", new[] { Accessibility.Friend, Accessibility.ProtectedOrFriend })]
-        [InlineData("*", new[] { Accessibility.Public, Accessibility.Internal, Accessibility.Private, Accessibility.Protected, Accessibility.ProtectedOrInternal })]
-        [InlineData(null, new[] { Accessibility.Public, Accessibility.Internal, Accessibility.Private, Accessibility.Protected, Accessibility.ProtectedOrInternal })]
+        [InlineData("private_protected", new[] { Accessibility.ProtectedAndInternal })]
+        [InlineData("local", new[] { Accessibility.NotApplicable })]
+        [InlineData("*", new[] { Accessibility.NotApplicable, Accessibility.Public, Accessibility.Internal, Accessibility.Private, Accessibility.Protected, Accessibility.ProtectedAndInternal, Accessibility.ProtectedOrInternal })]
+        [InlineData(null, new[] { Accessibility.NotApplicable, Accessibility.Public, Accessibility.Internal, Accessibility.Private, Accessibility.Protected, Accessibility.ProtectedAndInternal, Accessibility.ProtectedOrInternal })]
         [InlineData("internal,protected,invalid", new[] { Accessibility.Internal, Accessibility.Protected })]
         [InlineData("invalid", new Accessibility[] { })]
         [InlineData("", new Accessibility[] { })]

@@ -67,6 +67,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options.Style.N
                     new AccessibilityViewModel(Accessibility.Private, "private", specification),
                     new AccessibilityViewModel(Accessibility.Protected, "protected", specification),
                     new AccessibilityViewModel(Accessibility.ProtectedOrInternal, "protected internal", specification),
+                    new AccessibilityViewModel(Accessibility.ProtectedAndInternal, "private protected", specification),
+                    new AccessibilityViewModel(Accessibility.NotApplicable, "local", specification),
                 };
 
                 ModifierList = new List<ModifierViewModel>
@@ -105,6 +107,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options.Style.N
                     new AccessibilityViewModel(Accessibility.Private, "Private", specification),
                     new AccessibilityViewModel(Accessibility.Protected , "Protected", specification),
                     new AccessibilityViewModel(Accessibility.ProtectedOrInternal, "Protected Friend", specification),
+                    new AccessibilityViewModel(Accessibility.ProtectedAndInternal, "Private Protected", specification),
+                    new AccessibilityViewModel(Accessibility.NotApplicable, "Local", specification),
                 };
 
                 ModifierList = new List<ModifierViewModel>

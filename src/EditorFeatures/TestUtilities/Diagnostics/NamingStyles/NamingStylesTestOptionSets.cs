@@ -55,6 +55,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics.NamingStyles
         internal IDictionary<OptionKey, object> SymbolKindsArePascalCase(ImmutableArray<SymbolSpecification.SymbolKindOrTypeKind> symbolKinds) =>
             Options(new OptionKey(SimplificationOptions.NamingPreferences, languageName), SymbolKindsArePascalCaseOption(symbolKinds));
 
+        internal IDictionary<OptionKey, object> AccessibilitiesArePascalCase(ImmutableArray<Accessibility> accessibilities) =>
+            Options(new OptionKey(SimplificationOptions.NamingPreferences, languageName), AccessibilitiesArePascalCaseOption(accessibilities));
+
         private static IDictionary<OptionKey, object> Options(OptionKey option, object value)
         {
             return new Dictionary<OptionKey, object>
@@ -162,6 +165,37 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics.NamingStyles
                 "Name",
                 symbolKinds,
                 accessibilityList: default,
+                modifiers: default);
+
+            var namingStyle = new NamingStyle(
+                Guid.NewGuid(),
+                capitalizationScheme: Capitalization.PascalCase,
+                name: "Name",
+                prefix: "",
+                suffix: "",
+                wordSeparator: "");
+
+            var namingRule = new SerializableNamingRule()
+            {
+                SymbolSpecificationID = symbolSpecification.ID,
+                NamingStyleID = namingStyle.ID,
+                EnforcementLevel = DiagnosticSeverity.Error
+            };
+            var info = new NamingStylePreferences(
+                ImmutableArray.Create(symbolSpecification),
+                ImmutableArray.Create(namingStyle),
+                ImmutableArray.Create(namingRule));
+
+            return info;
+        }
+
+        private static NamingStylePreferences AccessibilitiesArePascalCaseOption(ImmutableArray<Accessibility> accessibilities)
+        {
+            var symbolSpecification = new SymbolSpecification(
+                null,
+                "Name",
+                symbolKindList: default,
+                accessibilityList: accessibilities,
                 modifiers: default);
 
             var namingStyle = new NamingStyle(

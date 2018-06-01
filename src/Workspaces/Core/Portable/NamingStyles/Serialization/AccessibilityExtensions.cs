@@ -9,7 +9,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
     {
         internal static bool MatchesSymbol(this Accessibility accessibility, ISymbol symbol)
         {
-            return symbol.DeclaredAccessibility == accessibility;
+            return GetAccessibility(symbol) == accessibility;
         }
 
         internal static XElement CreateXElement(this Accessibility accessibility)
@@ -20,6 +20,31 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
         internal static Accessibility FromXElement(XElement accessibilityElement)
         {
             return (Accessibility)Enum.Parse(typeof(Accessibility), accessibilityElement.Value);
+        }
+
+        private static Accessibility GetAccessibility(ISymbol symbol)
+        {
+            for (var currentSymbol = symbol; currentSymbol != null; currentSymbol = currentSymbol.ContainingSymbol)
+            {
+                switch (currentSymbol.Kind)
+                {
+                case SymbolKind.Namespace:
+                    return Accessibility.Public;
+
+                case SymbolKind.Parameter:
+                case SymbolKind.TypeParameter:
+                    continue;
+
+                case SymbolKind.Method when ((IMethodSymbol)currentSymbol).MethodKind == MethodKind.LocalFunction:
+                    // Always treat local functions as 'local'
+                    return Accessibility.NotApplicable;
+
+                default:
+                    return currentSymbol.DeclaredAccessibility;
+                }
+            }
+
+            return Accessibility.NotApplicable;
         }
     }
 }

@@ -127,6 +127,53 @@ $@"class C
 }}", options: options.SymbolKindsArePascalCase(symbolKinds: default));
         }
 
+        [Theory, Trait(Traits.Feature, Traits.Features.NamingStyle)]
+        [InlineData("} namespace [|c2|] {", "} namespace C2 {", SymbolKind.Namespace, Accessibility.Public)]
+        [InlineData("class [|c2|] { }", "class C2 { }", TypeKind.Class, Accessibility.Private)]
+        [InlineData("struct [|c2|] { }", "struct C2 { }", TypeKind.Struct, Accessibility.Private)]
+        [InlineData("interface [|c2|] { }", "interface C2 { }", TypeKind.Interface, Accessibility.Private)]
+        [InlineData("delegate void [|c2|]();", "delegate void C2();", TypeKind.Delegate, Accessibility.Private)]
+        [InlineData("enum [|c2|] { }", "enum C2 { }", TypeKind.Enum, Accessibility.Private)]
+        [InlineData("class M<[|t|]> {}", "class M<T> {}", SymbolKind.TypeParameter, Accessibility.Private)]
+        [InlineData("void M<[|t|]>() {}", "void M<T>() {}", SymbolKind.TypeParameter, Accessibility.Private)]
+        [InlineData("int [|m|] { get; }", "int M { get; }", SymbolKind.Property, Accessibility.Private)]
+        [InlineData("void [|m|]() {}", "void M() {}", MethodKind.Ordinary, Accessibility.Private)]
+        [InlineData("void Outer() { void [|m|]() {} }", "void Outer() { void M() {} }", MethodKind.LocalFunction, Accessibility.NotApplicable)]
+        [InlineData("int [|m|];", "int M;", SymbolKind.Field, Accessibility.Private)]
+        [InlineData("event System.EventHandler [|m|];", "event System.EventHandler M;", SymbolKind.Event, Accessibility.Private)]
+        [InlineData("void Outer(int [|m|]) {}", "void Outer(int M) {}", SymbolKind.Parameter, Accessibility.Private)]
+        [InlineData("void Outer() { int [|m|]; }", "void Outer() { int M; }", SymbolKind.Local, Accessibility.NotApplicable)]
+        [WorkItem(20907, "https://github.com/dotnet/roslyn/issues/20907")]
+        public async Task TestPascalCaseSymbol_ExpectedSymbolAndAccessibility(string camelCaseSymbol, string pascalCaseSymbol, object symbolKind, Accessibility accessibility)
+        {
+            var alternateSymbolKind = TypeKind.Class.Equals(symbolKind) ? TypeKind.Interface : TypeKind.Class;
+            var alternateAccessibility = accessibility == Accessibility.Public ? Accessibility.Protected : Accessibility.Public;
+
+            // Verify that no diagnostic is reported if the symbol kind is wrong
+            await TestMissingInRegularAndScriptAsync(
+$@"class C
+{{
+    {camelCaseSymbol}
+}}", new TestParameters(options: options.SymbolKindsArePascalCase(ImmutableArray.Create(EditorConfigNamingStyleParserTests.ToSymbolKindOrTypeKind(alternateSymbolKind)))));
+
+            // Verify that no diagnostic is reported if the accessibility is wrong
+            await TestMissingInRegularAndScriptAsync(
+$@"class C
+{{
+    {camelCaseSymbol}
+}}", new TestParameters(options: options.AccessibilitiesArePascalCase(ImmutableArray.Create(alternateAccessibility))));
+
+            await TestInRegularAndScriptAsync(
+$@"class C
+{{
+    {camelCaseSymbol}
+}}",
+$@"class C
+{{
+    {pascalCaseSymbol}
+}}", options: options.AccessibilitiesArePascalCase(ImmutableArray.Create(accessibility)));
+        }
+
         [Fact, Trait(Traits.Feature, Traits.Features.NamingStyle)]
         public async Task TestPascalCaseMethod_NameGetsCapitalized()
         {
