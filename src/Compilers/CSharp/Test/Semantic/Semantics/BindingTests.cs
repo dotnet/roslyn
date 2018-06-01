@@ -2864,7 +2864,7 @@ class C
     }
 }
 ";
-            var comp = CreateCompilation(source, new[] { SystemCoreRef });
+            var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
                 // (7,40): error CS1001: Identifier expected
                 //         var x = new Action<int>(i => i.
@@ -2909,7 +2909,7 @@ class C
     }
 }
 ";
-            var comp = CreateCompilation(source, new[] { SystemCoreRef });
+            var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
                 // (7,32): error CS1001: Identifier expected
                 //         Action<int> x = i => i.
@@ -3136,7 +3136,7 @@ class C
     }
 }
 ";
-            var comp = CreateCompilation(source, new[] { SystemCoreRef });
+            var comp = CreateCompilation(source);
 
             comp.VerifyDiagnostics(
     // (41,38): error CS7036: There is no argument given that corresponds to the required formal parameter 'authenticationScheme' of 'AuthenticationManager.AuthenticateAsync(string)'

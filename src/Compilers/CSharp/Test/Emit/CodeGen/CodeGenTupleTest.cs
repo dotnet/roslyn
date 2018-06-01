@@ -3086,7 +3086,7 @@ class C
                     model.GetDeclaredSymbol(x).ToTestDisplayString());
             };
 
-            var verifier = CompileAndVerify(source, expectedOutput: @"1 2 3 4 5 6 7 Alice 2 3 4 5", references: new[] { MscorlibRef }, sourceSymbolValidator: validator);
+            var verifier = CompileAndVerify(source, expectedOutput: @"1 2 3 4 5 6 7 Alice 2 3 4 5", sourceSymbolValidator: validator);
             verifier.VerifyDiagnostics();
         }
 
@@ -15261,7 +15261,7 @@ System.ValueTuple`2[System.Int32,System.ValueTuple`2[System.Int32,System.String]
 class Class { void Method() { tuple = (1, ""hello""); } }
 " + trivial2uple + tupleattributes_cs;
 
-            var comp = CreateCompilation(source, references: new[] { SystemRef });
+            var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
                 // (2,31): error CS0103: The name 'tuple' does not exist in the current context
                 // class Class { void Method() { tuple = (1, "hello"); } }
