@@ -523,7 +523,7 @@ class Program
     [Obsolete(""Please do not use this method: "" + nameof(Program.Old), true)]
     static void Old() { }
 }";
-            CompileAndVerify(source, new[] { LinqAssemblyRef }, expectedOutput: @"
+            CompileAndVerify(source, expectedOutput: @"
 EntryMethodName
 Correct
 Correct");
