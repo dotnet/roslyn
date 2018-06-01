@@ -285,6 +285,7 @@ namespace Microsoft.CodeAnalysis
         System_Threading_Tasks_Sources_ValueTaskSourceOnCompletedFlags,
         System_Threading_Tasks_Sources_IValueTaskSource_T,
         System_Threading_Tasks_ValueTask_T,
+        System_Threading_Tasks_ValueTask,
 
         NextAvailable,
     }
@@ -565,6 +566,7 @@ namespace Microsoft.CodeAnalysis
             "System.Threading.Tasks.Sources.ValueTaskSourceOnCompletedFlags",
             "System.Threading.Tasks.Sources.IValueTaskSource`1",
             "System.Threading.Tasks.ValueTask`1",
+            "System.Threading.Tasks.ValueTask",
         };
 
         private readonly static Dictionary<string, WellKnownType> s_nameToTypeIdMap = new Dictionary<string, WellKnownType>((int)Count);
