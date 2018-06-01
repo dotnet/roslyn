@@ -14911,7 +14911,7 @@ class C
 
             var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
-                // (6,9): error CS0201: Only assignment, call, increment, decrement, and new object expressions can be used as a statement
+                // (6,9): error CS0201: Only assignment, call, increment, decrement, await, and new object expressions can be used as a statement
                 //         (x, x);
                 Diagnostic(ErrorCode.ERR_IllegalStatement, "(x, x)").WithLocation(6, 9)
                 );
@@ -15082,7 +15082,7 @@ class C
 " + trivial2uple + tupleattributes_cs;
             var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
-                // (6,9): error CS0201: Only assignment, call, increment, decrement, and new object expressions can be used as a statement
+                // (6,9): error CS0201: Only assignment, call, increment, decrement, await, and new object expressions can be used as a statement
                 //         (1, 1);
                 Diagnostic(ErrorCode.ERR_IllegalStatement, "(1, 1)").WithLocation(6, 9)
                 );
