@@ -71,7 +71,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 End If
             Loop
 
-            Dim result = _pool.ToListAndFree(RangeVariables)
+            Dim result = RangeVariables.ToListAndFreeBackTo(_pool)
 
             Return result
         End Function
@@ -267,7 +267,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 End If
             Loop
 
-            Dim result = _pool.ToListAndFree(RangeVariables)
+            Dim result = RangeVariables.ToListAndFreeBackTo(_pool)
             Return result
         End Function
 
@@ -392,7 +392,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 End If
             Loop
 
-            Dim result = _pool.ToListAndFree(RangeVariables)
+            Dim result = RangeVariables.ToListAndFreeBackTo(_pool)
             Return result
         End Function
 
@@ -507,7 +507,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 End If
             Loop
 
-            Dim result = _pool.ToListAndFree(RangeVariables)
+            Dim result = RangeVariables.ToListAndFreeBackTo(_pool)
             Return result
         End Function
 
@@ -642,7 +642,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             Else
                 Dim rangeVariables = Me._pool.AllocateSeparated(Of ExpressionRangeVariableSyntax)()
                 rangeVariables.Add(InternalSyntaxFactory.ExpressionRangeVariable(Nothing, InternalSyntaxFactory.MissingExpression()))
-                keys = _pool.ToListAndFree(rangeVariables)
+                keys = rangeVariables.ToListAndFreeBackTo(_pool)
             End If
 
             Dim intoKw As KeywordSyntax = Nothing
@@ -661,7 +661,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         Private Function MissingAggregationRangeVariables() As CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList(Of AggregationRangeVariableSyntax)
             Dim rangeVariables = Me._pool.AllocateSeparated(Of AggregationRangeVariableSyntax)()
             rangeVariables.Add(InternalSyntaxFactory.AggregationRangeVariable(Nothing, SyntaxFactory.FunctionAggregation(InternalSyntaxFactory.MissingIdentifier(), Nothing, Nothing, Nothing)))
-            Dim result As CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList(Of AggregationRangeVariableSyntax) = _pool.ToListAndFree(rangeVariables)
+            Dim result As CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList(Of AggregationRangeVariableSyntax) = rangeVariables.ToListAndFreeBackTo(_pool)
             Return result
         End Function
 
@@ -704,10 +704,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
             Dim joinVarList = _pool.AllocateSeparated(Of CollectionRangeVariableSyntax)
             joinVarList.Add(joinVariable)
-            Dim moreJoins = _pool.ToListAndFree(moreJoinsBuilder)
+            Dim moreJoins = moreJoinsBuilder.ToListAndFreeBackTo(_pool)
 
             If groupKw Is Nothing Then
-                Return SyntaxFactory.SimpleJoinClause(joinKw, _pool.ToListAndFree(joinVarList), moreJoins, onKw, Predicate)
+                Return SyntaxFactory.SimpleJoinClause(joinKw, joinVarList.ToListAndFreeBackTo(_pool), moreJoins, onKw, Predicate)
             Else
                 Dim intoKw As KeywordSyntax = Nothing
                 Dim Aggregation As CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList(Of AggregationRangeVariableSyntax) = Nothing
@@ -720,7 +720,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                     Aggregation = Me.MissingAggregationRangeVariables()
                 End If
 
-                Return SyntaxFactory.GroupJoinClause(groupKw, joinKw, _pool.ToListAndFree(joinVarList), moreJoins, onKw, Predicate, intoKw, Aggregation)
+                Return SyntaxFactory.GroupJoinClause(groupKw, joinKw, joinVarList.ToListAndFreeBackTo(_pool), moreJoins, onKw, Predicate, intoKw, Aggregation)
             End If
         End Function
 
@@ -909,7 +909,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 Exit Do
             Loop
 
-            Dim result = _pool.ToListAndFree(Exprs)
+            Dim result = Exprs.ToListAndFreeBackTo(_pool)
 
             ' // try to recover
             If result.Node.ContainsDiagnostics Then
