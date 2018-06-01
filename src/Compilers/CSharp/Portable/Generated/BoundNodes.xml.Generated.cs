@@ -187,6 +187,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
 
 
+
     internal abstract partial class BoundInitializer : BoundNode
     {
         protected BoundInitializer(BoundKind kind, SyntaxNode syntax, bool hasErrors)
@@ -3761,7 +3762,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal sealed partial class BoundLocal : BoundExpression
     {
-        public BoundLocal(SyntaxNode syntax, LocalSymbol localSymbol, bool isDeclaration, ConstantValue constantValueOpt, bool isNullableUnknown, TypeSymbol type, bool hasErrors)
+        public BoundLocal(SyntaxNode syntax, LocalSymbol localSymbol, BoundLocalDeclarationKind declarationKind, ConstantValue constantValueOpt, bool isNullableUnknown, TypeSymbol type, bool hasErrors)
             : base(BoundKind.Local, syntax, type, hasErrors)
         {
 
@@ -3769,12 +3770,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(type != null, "Field 'type' cannot be null (use Null=\"allow\" in BoundNodes.xml to remove this check)");
 
             this.LocalSymbol = localSymbol;
-            this.IsDeclaration = isDeclaration;
+            this.DeclarationKind = declarationKind;
             this.ConstantValueOpt = constantValueOpt;
             this.IsNullableUnknown = isNullableUnknown;
         }
 
-        public BoundLocal(SyntaxNode syntax, LocalSymbol localSymbol, bool isDeclaration, ConstantValue constantValueOpt, bool isNullableUnknown, TypeSymbol type)
+        public BoundLocal(SyntaxNode syntax, LocalSymbol localSymbol, BoundLocalDeclarationKind declarationKind, ConstantValue constantValueOpt, bool isNullableUnknown, TypeSymbol type)
             : base(BoundKind.Local, syntax, type)
         {
 
@@ -3782,7 +3783,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(type != null, "Field 'type' cannot be null (use Null=\"allow\" in BoundNodes.xml to remove this check)");
 
             this.LocalSymbol = localSymbol;
-            this.IsDeclaration = isDeclaration;
+            this.DeclarationKind = declarationKind;
             this.ConstantValueOpt = constantValueOpt;
             this.IsNullableUnknown = isNullableUnknown;
         }
@@ -3790,7 +3791,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public LocalSymbol LocalSymbol { get; }
 
-        public bool IsDeclaration { get; }
+        public BoundLocalDeclarationKind DeclarationKind { get; }
 
         public ConstantValue ConstantValueOpt { get; }
 
@@ -3801,11 +3802,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             return visitor.VisitLocal(this);
         }
 
-        public BoundLocal Update(LocalSymbol localSymbol, bool isDeclaration, ConstantValue constantValueOpt, bool isNullableUnknown, TypeSymbol type)
+        public BoundLocal Update(LocalSymbol localSymbol, BoundLocalDeclarationKind declarationKind, ConstantValue constantValueOpt, bool isNullableUnknown, TypeSymbol type)
         {
-            if (localSymbol != this.LocalSymbol || isDeclaration != this.IsDeclaration || constantValueOpt != this.ConstantValueOpt || isNullableUnknown != this.IsNullableUnknown || type != this.Type)
+            if (localSymbol != this.LocalSymbol || declarationKind != this.DeclarationKind || constantValueOpt != this.ConstantValueOpt || isNullableUnknown != this.IsNullableUnknown || type != this.Type)
             {
-                var result = new BoundLocal(this.Syntax, localSymbol, isDeclaration, constantValueOpt, isNullableUnknown, type, this.HasErrors);
+                var result = new BoundLocal(this.Syntax, localSymbol, declarationKind, constantValueOpt, isNullableUnknown, type, this.HasErrors);
                 result.WasCompilerGenerated = this.WasCompilerGenerated;
                 return result;
             }
@@ -6380,18 +6381,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         public BoundValuePlaceholder(SyntaxNode syntax, bool? isNullable, TypeSymbol type, bool hasErrors)
             : base(BoundKind.ValuePlaceholder, syntax, type, hasErrors)
         {
-
-            Debug.Assert(type != null, "Field 'type' cannot be null (use Null=\"allow\" in BoundNodes.xml to remove this check)");
-
             this.IsNullable = isNullable;
         }
 
         public BoundValuePlaceholder(SyntaxNode syntax, bool? isNullable, TypeSymbol type)
             : base(BoundKind.ValuePlaceholder, syntax, type)
         {
-
-            Debug.Assert(type != null, "Field 'type' cannot be null (use Null=\"allow\" in BoundNodes.xml to remove this check)");
-
             this.IsNullable = isNullable;
         }
 
@@ -9341,7 +9336,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override BoundNode VisitLocal(BoundLocal node)
         {
             TypeSymbol type = this.VisitType(node.Type);
-            return node.Update(node.LocalSymbol, node.IsDeclaration, node.ConstantValueOpt, node.IsNullableUnknown, type);
+            return node.Update(node.LocalSymbol, node.DeclarationKind, node.ConstantValueOpt, node.IsNullableUnknown, type);
         }
         public override BoundNode VisitPseudoVariable(BoundPseudoVariable node)
         {
@@ -10669,7 +10664,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return new TreeDumperNode("local", null, new TreeDumperNode[]
             {
                 new TreeDumperNode("localSymbol", node.LocalSymbol, null),
-                new TreeDumperNode("isDeclaration", node.IsDeclaration, null),
+                new TreeDumperNode("declarationKind", node.DeclarationKind, null),
                 new TreeDumperNode("constantValueOpt", node.ConstantValueOpt, null),
                 new TreeDumperNode("isNullableUnknown", node.IsNullableUnknown, null),
                 new TreeDumperNode("type", node.Type, null)

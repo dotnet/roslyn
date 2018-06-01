@@ -131,18 +131,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                (bool memberHasAny, AttributeAnnotations annotations) = TryGetExtraAttributeAnnotations();
-                if (memberHasAny)
+                AttributeAnnotations? annotations = TryGetExtraAttributeAnnotations();
+                if (annotations.HasValue)
                 {
                     // PROTOTYPE(NullableReferenceTypes): Make sure this is covered by test
-                    return annotations;
+                    return annotations.Value;
                 }
 
                 CommonParameterWellKnownAttributeData attributeData = GetDecodedWellKnownAttributeData();
+                bool hasEnsuresNotNull = attributeData?.HasEnsuresNotNullAttribute == true;
 
                 return AttributeAnnotations.None
-                    .With(notNullWhenFalse: attributeData?.HasNotNullWhenFalseAttribute == true,
-                        ensuresNotNull: attributeData?.HasEnsuresNotNullAttribute == true);
+                    .With(notNullWhenTrue: hasEnsuresNotNull || attributeData?.HasNotNullWhenTrueAttribute == true,
+                        notNullWhenFalse: hasEnsuresNotNull || attributeData?.HasNotNullWhenFalseAttribute == true);
             }
         }
 
@@ -623,6 +624,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 // NullableAttribute should not be set explicitly.
                 arguments.Diagnostics.Add(ErrorCode.ERR_ExplicitNullableAttribute, arguments.AttributeSyntaxOpt.Location);
+            }
+            else if (attribute.IsTargetAttribute(this, AttributeDescription.NotNullWhenTrueAttribute))
+            {
+                arguments.GetOrCreateData<CommonParameterWellKnownAttributeData>().HasNotNullWhenTrueAttribute = true;
             }
             else if (attribute.IsTargetAttribute(this, AttributeDescription.NotNullWhenFalseAttribute))
             {
