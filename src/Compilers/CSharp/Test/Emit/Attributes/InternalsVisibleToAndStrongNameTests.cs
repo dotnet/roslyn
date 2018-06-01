@@ -702,11 +702,10 @@ public class C {}",
 
             //compilation should not succeed, and internals should not be imported.
             c.VerifyDiagnostics(
-                // (7,15): error CS0281: Friend access was granted by 'Paul, Version=0.0.0.0,
-                // Culture=neutral, PublicKeyToken=null', but the public key of the output assembly ('') does not match that
-                // specified by the InternalsVisibleTo attribute in the granting assembly.
+
+                // (7,15): error CS0122: 'C.Goo()' is inaccessible due to its protection level
                 //             o.Goo();
-                Diagnostic(ErrorCode.ERR_FriendRefNotEqualToThis, "Goo").WithArguments("Paul, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null", "").WithLocation(7, 15)
+                Diagnostic(ErrorCode.ERR_BadAccess, "Goo").WithArguments("C.Goo()").WithLocation(7, 15)
                 );
 
             var c2 = CreateCompilation(
@@ -1810,10 +1809,9 @@ class Derived : Base
             var comp = CreateCompilation(csharp, new[] { ilRef }, assemblyName: "asm2", options: TestOptions.ReleaseDll.WithStrongNameProvider(s_defaultDesktopProvider));
             comp.VerifyDiagnostics(
                 // NOTE: dev10 reports WRN_InvalidAssemblyName, but Roslyn won't (DevDiv #15099).
-
-                // (2,17): error CS0281: Friend access was granted by 'asm1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null', but the public key of the output assembly ('') does not match that specified by the InternalsVisibleTo attribute in the granting assembly.
+                // (2,17): error CS0122: 'Base' is inaccessible due to its protection level
                 // class Derived : Base
-                Diagnostic(ErrorCode.ERR_FriendRefNotEqualToThis, "Base").WithArguments("asm1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null", "").WithLocation(2, 17)
+                Diagnostic(ErrorCode.ERR_BadAccess, "Base").WithArguments("Base").WithLocation(2, 17)
                 );
         }
 

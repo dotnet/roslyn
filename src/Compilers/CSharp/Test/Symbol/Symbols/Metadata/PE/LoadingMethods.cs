@@ -1374,9 +1374,9 @@ public class D
                 // (7,40): error CS0122: 'C.F' is inaccessible due to its protection level
                 //       System.Console.WriteLine(new C().F);
                 Diagnostic(ErrorCode.ERR_BadAccess, "F").WithArguments("C.F").WithLocation(7, 40),
-                // (8,13): error CS0281: Friend access was granted by 'public-and-private, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null', but the public key of the output assembly ('') does not match that specified by the InternalsVisibleTo attribute in the granting assembly.
+                // (8,13): error CS0122: 'C.C2' is inaccessible due to its protection level
                 //       new C.C2().M2();
-                Diagnostic(ErrorCode.ERR_FriendRefNotEqualToThis, "C2").WithArguments("public-and-private, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null", "").WithLocation(8, 13)
+                Diagnostic(ErrorCode.ERR_BadAccess, "C2").WithArguments("C.C2").WithLocation(8, 13)
                 );
         }
     }

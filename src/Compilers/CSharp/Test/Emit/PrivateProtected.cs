@@ -136,39 +136,39 @@ public class Base
                 assemblyName: "WantsIVTAccessButCantHave",
                 options: TestOptions.ReleaseDll.WithStrongNameProvider(s_defaultPortableProvider))
             .VerifyDiagnostics(
-                // (5,9): error CS0281: Friend access was granted by 'Paul, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null', but the public key of the output assembly ('') does not match that specified by the InternalsVisibleTo attribute in the granting assembly.
+                // (5,9): error CS0122: 'Base.Field1' is inaccessible due to its protection level
                 //         Field1 = Constant;
-                Diagnostic(ErrorCode.ERR_FriendRefNotEqualToThis, "Field1").WithArguments("Paul, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null", "").WithLocation(5, 9),
-                // (5,18): error CS0281: Friend access was granted by 'Paul, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null', but the public key of the output assembly ('') does not match that specified by the InternalsVisibleTo attribute in the granting assembly.
+                Diagnostic(ErrorCode.ERR_BadAccess, "Field1").WithArguments("Base.Field1").WithLocation(5, 9),
+                // (5,18): error CS0122: 'Base.Constant' is inaccessible due to its protection level
                 //         Field1 = Constant;
-                Diagnostic(ErrorCode.ERR_FriendRefNotEqualToThis, "Constant").WithArguments("Paul, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null", "").WithLocation(5, 18),
-                // (6,9): error CS0281: Friend access was granted by 'Paul, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null', but the public key of the output assembly ('') does not match that specified by the InternalsVisibleTo attribute in the granting assembly.
+                Diagnostic(ErrorCode.ERR_BadAccess, "Constant").WithArguments("Base.Constant").WithLocation(5, 18),
+                // (6,9): error CS0122: 'Base.Field2' is inaccessible due to its protection level
                 //         Field2 = Constant;
-                Diagnostic(ErrorCode.ERR_FriendRefNotEqualToThis, "Field2").WithArguments("Paul, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null", "").WithLocation(6, 9),
-                // (6,18): error CS0281: Friend access was granted by 'Paul, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null', but the public key of the output assembly ('') does not match that specified by the InternalsVisibleTo attribute in the granting assembly.
+                Diagnostic(ErrorCode.ERR_BadAccess, "Field2").WithArguments("Base.Field2").WithLocation(6, 9),
+                // (6,18): error CS0122: 'Base.Constant' is inaccessible due to its protection level
                 //         Field2 = Constant;
-                Diagnostic(ErrorCode.ERR_FriendRefNotEqualToThis, "Constant").WithArguments("Paul, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null", "").WithLocation(6, 18),
-                // (7,9): error CS0281: Friend access was granted by 'Paul, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null', but the public key of the output assembly ('') does not match that specified by the InternalsVisibleTo attribute in the granting assembly.
+                Diagnostic(ErrorCode.ERR_BadAccess, "Constant").WithArguments("Base.Constant").WithLocation(6, 18),
+                // (7,9): error CS0122: 'Base.Method()' is inaccessible due to its protection level
                 //         Method();
-                Diagnostic(ErrorCode.ERR_FriendRefNotEqualToThis, "Method").WithArguments("Paul, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null", "").WithLocation(7, 9),
-                // (8,9): error CS0281: Friend access was granted by 'Paul, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null', but the public key of the output assembly ('') does not match that specified by the InternalsVisibleTo attribute in the granting assembly.
+                Diagnostic(ErrorCode.ERR_BadAccess, "Method").WithArguments("Base.Method()").WithLocation(7, 9),
+                // (8,9): error CS0122: 'Base.Event1' is inaccessible due to its protection level
                 //         Event1 += null;
-                Diagnostic(ErrorCode.ERR_FriendRefNotEqualToThis, "Event1").WithArguments("Paul, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null", "").WithLocation(8, 9),
+                Diagnostic(ErrorCode.ERR_BadAccess, "Event1").WithArguments("Base.Event1").WithLocation(8, 9),
                 // (8,9): error CS0122: 'Base.Event1.add' is inaccessible due to its protection level
                 //         Event1 += null;
                 Diagnostic(ErrorCode.ERR_BadAccess, "Event1 += null").WithArguments("Base.Event1.add").WithLocation(8, 9),
-                // (9,9): error CS0281: Friend access was granted by 'Paul, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null', but the public key of the output assembly ('') does not match that specified by the InternalsVisibleTo attribute in the granting assembly.
+                // (9,9): error CS0122: 'Base.Property1' is inaccessible due to its protection level
                 //         Property1 = Constant;
-                Diagnostic(ErrorCode.ERR_FriendRefNotEqualToThis, "Property1").WithArguments("Paul, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null", "").WithLocation(9, 9),
-                // (9,21): error CS0281: Friend access was granted by 'Paul, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null', but the public key of the output assembly ('') does not match that specified by the InternalsVisibleTo attribute in the granting assembly.
+                Diagnostic(ErrorCode.ERR_BadAccess, "Property1").WithArguments("Base.Property1").WithLocation(9, 9),
+                // (9,21): error CS0122: 'Base.Constant' is inaccessible due to its protection level
                 //         Property1 = Constant;
-                Diagnostic(ErrorCode.ERR_FriendRefNotEqualToThis, "Constant").WithArguments("Paul, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null", "").WithLocation(9, 21),
+                Diagnostic(ErrorCode.ERR_BadAccess, "Constant").WithArguments("Base.Constant").WithLocation(9, 21),
                 // (10,9): error CS0272: The property or indexer 'Base.Property2' cannot be used in this context because the set accessor is inaccessible
                 //         Property2 = Constant;
                 Diagnostic(ErrorCode.ERR_InaccessibleSetter, "Property2").WithArguments("Base.Property2").WithLocation(10, 9),
-                // (10,21): error CS0281: Friend access was granted by 'Paul, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null', but the public key of the output assembly ('') does not match that specified by the InternalsVisibleTo attribute in the granting assembly.
+                // (10,21): error CS0122: 'Base.Constant' is inaccessible due to its protection level
                 //         Property2 = Constant;
-                Diagnostic(ErrorCode.ERR_FriendRefNotEqualToThis, "Constant").WithArguments("Paul, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null", "").WithLocation(10, 21),
+                Diagnostic(ErrorCode.ERR_BadAccess, "Constant").WithArguments("Base.Constant").WithLocation(10, 21),
                 // (11,14): error CS1503: Argument 1: cannot convert from 'int' to 'string'
                 //         this[1] = 2;
                 Diagnostic(ErrorCode.ERR_BadArgType, "1").WithArguments("1", "int", "string").WithLocation(11, 14),
@@ -187,39 +187,39 @@ public class Base
                 assemblyName: "WantsIVTAccessButCantHave",
                 options: TestOptions.ReleaseDll.WithStrongNameProvider(s_defaultPortableProvider))
             .VerifyDiagnostics(
-                // (5,9): error CS0281: Friend access was granted by 'Paul, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null', but the public key of the output assembly ('') does not match that specified by the InternalsVisibleTo attribute in the granting assembly.
+                // (5,9): error CS0122: 'Base.Field1' is inaccessible due to its protection level
                 //         Field1 = Constant;
-                Diagnostic(ErrorCode.ERR_FriendRefNotEqualToThis, "Field1").WithArguments("Paul, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null", "").WithLocation(5, 9),
-                // (5,18): error CS0281: Friend access was granted by 'Paul, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null', but the public key of the output assembly ('') does not match that specified by the InternalsVisibleTo attribute in the granting assembly.
+                Diagnostic(ErrorCode.ERR_BadAccess, "Field1").WithArguments("Base.Field1").WithLocation(5, 9),
+                // (5,18): error CS0122: 'Base.Constant' is inaccessible due to its protection level
                 //         Field1 = Constant;
-                Diagnostic(ErrorCode.ERR_FriendRefNotEqualToThis, "Constant").WithArguments("Paul, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null", "").WithLocation(5, 18),
-                // (6,9): error CS0281: Friend access was granted by 'Paul, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null', but the public key of the output assembly ('') does not match that specified by the InternalsVisibleTo attribute in the granting assembly.
+                Diagnostic(ErrorCode.ERR_BadAccess, "Constant").WithArguments("Base.Constant").WithLocation(5, 18),
+                // (6,9): error CS0122: 'Base.Field2' is inaccessible due to its protection level
                 //         Field2 = Constant;
-                Diagnostic(ErrorCode.ERR_FriendRefNotEqualToThis, "Field2").WithArguments("Paul, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null", "").WithLocation(6, 9),
-                // (6,18): error CS0281: Friend access was granted by 'Paul, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null', but the public key of the output assembly ('') does not match that specified by the InternalsVisibleTo attribute in the granting assembly.
+                Diagnostic(ErrorCode.ERR_BadAccess, "Field2").WithArguments("Base.Field2").WithLocation(6, 9),
+                // (6,18): error CS0122: 'Base.Constant' is inaccessible due to its protection level
                 //         Field2 = Constant;
-                Diagnostic(ErrorCode.ERR_FriendRefNotEqualToThis, "Constant").WithArguments("Paul, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null", "").WithLocation(6, 18),
-                // (7,9): error CS0281: Friend access was granted by 'Paul, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null', but the public key of the output assembly ('') does not match that specified by the InternalsVisibleTo attribute in the granting assembly.
+                Diagnostic(ErrorCode.ERR_BadAccess, "Constant").WithArguments("Base.Constant").WithLocation(6, 18),
+                // (7,9): error CS0122: 'Base.Method()' is inaccessible due to its protection level
                 //         Method();
-                Diagnostic(ErrorCode.ERR_FriendRefNotEqualToThis, "Method").WithArguments("Paul, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null", "").WithLocation(7, 9),
-                // (8,9): error CS0281: Friend access was granted by 'Paul, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null', but the public key of the output assembly ('') does not match that specified by the InternalsVisibleTo attribute in the granting assembly.
+                Diagnostic(ErrorCode.ERR_BadAccess, "Method").WithArguments("Base.Method()").WithLocation(7, 9),
+                // (8,9): error CS0122: 'Base.Event1' is inaccessible due to its protection level
                 //         Event1 += null;
-                Diagnostic(ErrorCode.ERR_FriendRefNotEqualToThis, "Event1").WithArguments("Paul, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null", "").WithLocation(8, 9),
+                Diagnostic(ErrorCode.ERR_BadAccess, "Event1").WithArguments("Base.Event1").WithLocation(8, 9),
                 // (8,9): error CS0122: 'Base.Event1.add' is inaccessible due to its protection level
                 //         Event1 += null;
                 Diagnostic(ErrorCode.ERR_BadAccess, "Event1 += null").WithArguments("Base.Event1.add").WithLocation(8, 9),
-                // (9,9): error CS0281: Friend access was granted by 'Paul, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null', but the public key of the output assembly ('') does not match that specified by the InternalsVisibleTo attribute in the granting assembly.
+                // (9,9): error CS0122: 'Base.Property1' is inaccessible due to its protection level
                 //         Property1 = Constant;
-                Diagnostic(ErrorCode.ERR_FriendRefNotEqualToThis, "Property1").WithArguments("Paul, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null", "").WithLocation(9, 9),
-                // (9,21): error CS0281: Friend access was granted by 'Paul, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null', but the public key of the output assembly ('') does not match that specified by the InternalsVisibleTo attribute in the granting assembly.
+                Diagnostic(ErrorCode.ERR_BadAccess, "Property1").WithArguments("Base.Property1").WithLocation(9, 9),
+                // (9,21): error CS0122: 'Base.Constant' is inaccessible due to its protection level
                 //         Property1 = Constant;
-                Diagnostic(ErrorCode.ERR_FriendRefNotEqualToThis, "Constant").WithArguments("Paul, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null", "").WithLocation(9, 21),
+                Diagnostic(ErrorCode.ERR_BadAccess, "Constant").WithArguments("Base.Constant").WithLocation(9, 21),
                 // (10,9): error CS0272: The property or indexer 'Base.Property2' cannot be used in this context because the set accessor is inaccessible
                 //         Property2 = Constant;
                 Diagnostic(ErrorCode.ERR_InaccessibleSetter, "Property2").WithArguments("Base.Property2").WithLocation(10, 9),
-                // (10,21): error CS0281: Friend access was granted by 'Paul, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null', but the public key of the output assembly ('') does not match that specified by the InternalsVisibleTo attribute in the granting assembly.
+                // (10,21): error CS0122: 'Base.Constant' is inaccessible due to its protection level
                 //         Property2 = Constant;
-                Diagnostic(ErrorCode.ERR_FriendRefNotEqualToThis, "Constant").WithArguments("Paul, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null", "").WithLocation(10, 21),
+                Diagnostic(ErrorCode.ERR_BadAccess, "Constant").WithArguments("Base.Constant").WithLocation(10, 21),
                 // (11,14): error CS1503: Argument 1: cannot convert from 'int' to 'string'
                 //         this[1] = 2;
                 Diagnostic(ErrorCode.ERR_BadArgType, "1").WithArguments("1", "int", "string").WithLocation(11, 14),
@@ -270,13 +270,12 @@ public class Derived // : Base
 ";
             CreateCompilation(source, parseOptions: TestOptions.Regular7_2, assemblyName: "Paul")
                 .VerifyDiagnostics(
-
-                // (12,11): error CS0281: Friend access was granted by 'Paul, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null', but the public key of the output assembly ('') does not match that specified by the InternalsVisibleTo attribute in the granting assembly.
+                // (12,11): error CS0122: 'Base.Field1' is inaccessible due to its protection level
                 //         b.Field1 = 1;
-                Diagnostic(ErrorCode.ERR_FriendRefNotEqualToThis, "Field1").WithArguments("Paul, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null", "").WithLocation(12, 11),
-                // (13,11): error CS0281: Friend access was granted by 'Paul, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null', but the public key of the output assembly ('') does not match that specified by the InternalsVisibleTo attribute in the granting assembly.
+                Diagnostic(ErrorCode.ERR_BadAccess, "Field1").WithArguments("Base.Field1").WithLocation(12, 11),
+                // (13,11): error CS0122: 'Base.Field2' is inaccessible due to its protection level
                 //         b.Field2 = 2;
-                Diagnostic(ErrorCode.ERR_FriendRefNotEqualToThis, "Field2").WithArguments("Paul, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null", "").WithLocation(13, 11)
+                Diagnostic(ErrorCode.ERR_BadAccess, "Field2").WithArguments("Base.Field2").WithLocation(13, 11)
                 );
         }
 
@@ -363,9 +362,9 @@ struct Struct
                 // (11,21): warning CS0219: The variable 'x' is assigned but its value is never used
                 //         Outer.Inner x = null;
                 Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "x").WithArguments("x").WithLocation(11, 21),
-                // (18,15): error CS0281: Friend access was granted by 'Paul, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null', but the public key of the output assembly ('') does not match that specified by the InternalsVisibleTo attribute in the granting assembly.
+                // (18,15): error CS0122: 'Outer.Inner' is inaccessible due to its protection level
                 //         Outer.Inner x = null; // error: Outer.Inner not accessible
-                Diagnostic(ErrorCode.ERR_FriendRefNotEqualToThis, "Inner").WithArguments("Paul, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null", "").WithLocation(18, 15)
+                Diagnostic(ErrorCode.ERR_BadAccess, "Inner").WithArguments("Outer.Inner").WithLocation(18, 15)
                 );
         }
 

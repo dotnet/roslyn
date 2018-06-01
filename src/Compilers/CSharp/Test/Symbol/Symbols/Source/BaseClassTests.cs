@@ -1628,9 +1628,9 @@ class C : PublicClass.ProtectedInternalClass
 
             var compilation2 = CreateCompilation(source2, new[] { new CSharpCompilationReference(compilation1) }, assemblyName: "Two");
             compilation2.VerifyDiagnostics(
-                // (2,23): error CS0281: Friend access was granted by 'One, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null', but the public key of the output assembly ('') does not match that specified by the InternalsVisibleTo attribute in the granting assembly.
+                // (2,23): error CS0122: 'PublicClass.ProtectedInternalClass' is inaccessible due to its protection level
                 // class C : PublicClass.ProtectedInternalClass
-                Diagnostic(ErrorCode.ERR_FriendRefNotEqualToThis, "ProtectedInternalClass").WithArguments("One, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null", "").WithLocation(2, 23)
+                Diagnostic(ErrorCode.ERR_BadAccess, "ProtectedInternalClass").WithArguments("PublicClass.ProtectedInternalClass").WithLocation(2, 23)
                 );
         }
 
@@ -1682,9 +1682,9 @@ class C : PublicClass.ProtectedAndInternalClass
 }
 ";
             CreateCompilationWithILAndMscorlib40(csharp, il, appendDefaultHeader: false).VerifyDiagnostics(
-                // (2,23): error CS0281: Friend access was granted by 'Paul, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null', but the public key of the output assembly ('') does not match that specified by the InternalsVisibleTo attribute in the granting assembly.
+                // (2,23): error CS0122: 'PublicClass.ProtectedAndInternalClass' is inaccessible due to its protection level
                 // class C : PublicClass.ProtectedAndInternalClass
-                Diagnostic(ErrorCode.ERR_FriendRefNotEqualToThis, "ProtectedAndInternalClass").WithArguments("Paul, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null", "").WithLocation(2, 23)
+                Diagnostic(ErrorCode.ERR_BadAccess, "ProtectedAndInternalClass").WithArguments("PublicClass.ProtectedAndInternalClass").WithLocation(2, 23)
                 );
         }
 
