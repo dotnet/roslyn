@@ -3852,7 +3852,7 @@ class C
         y.P = ref x.P;
         Console.WriteLine(y.P);
     }
-}", references: new[] { SystemCoreRef, CSharpRef }, expectedOutput: @"
+}", references: new[] { CSharpRef }, expectedOutput: @"
 5
 5");
         }
