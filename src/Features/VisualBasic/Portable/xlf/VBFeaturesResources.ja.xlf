@@ -1803,17 +1803,17 @@ Sub(&lt;parameterList&gt;) &lt;statement&gt;</target>
       </trans-unit>
       <trans-unit id="Convert_to_Select_Case">
         <source>Convert to 'Select Case'</source>
-        <target state="new">Convert to 'Select Case'</target>
+        <target state="translated">'Select Case' に変換する</target>
         <note />
       </trans-unit>
       <trans-unit id="Convert_to_For_Each">
         <source>Convert to 'For Each'</source>
-        <target state="new">Convert to 'For Each'</target>
+        <target state="translated">'For Each' に変換する</target>
         <note />
       </trans-unit>
       <trans-unit id="Convert_to_For">
         <source>Convert  to 'For'</source>
-        <target state="new">Convert  to 'For'</target>
+        <target state="translated">'For' に変換する</target>
         <note />
       </trans-unit>
       <trans-unit id="Invert_If">
