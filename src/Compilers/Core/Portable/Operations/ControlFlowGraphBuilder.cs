@@ -13,17 +13,14 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
 {
     internal sealed partial class ControlFlowGraphBuilder : OperationVisitor<int?, IOperation>
     {
-        // PROTOTYPE(dataflow): does it have to be a field?
-        private readonly BasicBlock _entry = new BasicBlock(BasicBlockKind.Entry);
+        private readonly BasicBlockBuilder _entry = new BasicBlockBuilder(BasicBlockKind.Entry);
+        private readonly BasicBlockBuilder _exit = new BasicBlockBuilder(BasicBlockKind.Exit);
 
-        // PROTOTYPE(dataflow): does it have to be a field?
-        private readonly BasicBlock _exit = new BasicBlock(BasicBlockKind.Exit);
-
-        private ArrayBuilder<BasicBlock> _blocks;
-        private PooledDictionary<BasicBlock, RegionBuilder> _regionMap;
-        private BasicBlock _currentBasicBlock;
+        private ArrayBuilder<BasicBlockBuilder> _blocks;
+        private PooledDictionary<BasicBlockBuilder, RegionBuilder> _regionMap;
+        private BasicBlockBuilder _currentBasicBlock;
         private RegionBuilder _currentRegion;
-        private PooledDictionary<ILabelSymbol, BasicBlock> _labeledBlocks;
+        private PooledDictionary<ILabelSymbol, BasicBlockBuilder> _labeledBlocks;
 
         private IOperation _currentStatement;
         private ArrayBuilder<IOperation> _evalStack;
@@ -79,10 +76,10 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
 #endif 
 
             var builder = new ControlFlowGraphBuilder();
-            var blocks = ArrayBuilder<BasicBlock>.GetInstance();
+            var blocks = ArrayBuilder<BasicBlockBuilder>.GetInstance();
             builder._blocks = blocks;
             builder._evalStack = ArrayBuilder<IOperation>.GetInstance();
-            builder._regionMap = PooledDictionary<BasicBlock, RegionBuilder>.GetInstance();
+            builder._regionMap = PooledDictionary<BasicBlockBuilder, RegionBuilder>.GetInstance();
 
             var root = new RegionBuilder(ControlFlowRegionKind.Root);
             builder.EnterRegion(root);
@@ -128,16 +125,16 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
             return new ControlFlowGraph(body, ToImmutableBlocks(blocks), region, methods.ToImmutableAndFree(), methodsMap.ToImmutable());
         }
 
-        private static ImmutableArray<FlowAnalysis.BasicBlock> ToImmutableBlocks(ArrayBuilder<BasicBlock> blocksBuilder)
+        private static ImmutableArray<BasicBlock> ToImmutableBlocks(ArrayBuilder<BasicBlockBuilder> blocksBuilder)
         {
-            var builder = ArrayBuilder<FlowAnalysis.BasicBlock>.GetInstance(blocksBuilder.Count);
-            var branchMap = PooledDictionary<(BasicBlock source, BasicBlock destination, bool isFallThrough), ControlFlowBranch>.GetInstance();
-            var ordinalToBlockMap = PooledDictionary<int, FlowAnalysis.BasicBlock>.GetInstance();
+            var builder = ArrayBuilder<BasicBlock>.GetInstance(blocksBuilder.Count);
+            var branchMap = PooledDictionary<(BasicBlockBuilder source, BasicBlockBuilder destination, bool isFallThrough), ControlFlowBranch>.GetInstance();
+            var ordinalToBlockMap = PooledDictionary<int, BasicBlock>.GetInstance();
 
             // Pass 1: Iterate through blocksBuilder to create basic blocks.
-            foreach (BasicBlock blockBuilder in blocksBuilder)
+            foreach (BasicBlockBuilder blockBuilder in blocksBuilder)
             {
-                var block = new FlowAnalysis.BasicBlock(blockBuilder.Kind,
+                var block = new BasicBlock(blockBuilder.Kind,
                     blockBuilder.GetImmutableStatements(),
                     blockBuilder.InternalConditional.Condition,
                     blockBuilder.InternalNext.Value,
@@ -152,8 +149,8 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
             //         update the branch information for the created basic blocks.
             for (int i = 0; i < blocksBuilder.Count; i++)
             {
-                BasicBlock blockBuilder = blocksBuilder[i];
-                FlowAnalysis.BasicBlock block = builder[i];
+                BasicBlockBuilder blockBuilder = blocksBuilder[i];
+                BasicBlock block = builder[i];
 
                 ControlFlowBranch successor = getFallThroughSuccessor(blockBuilder);
                 ControlFlowBranch conditionalSuccessor = getConditionalSuccessor(blockBuilder);
@@ -165,7 +162,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
             ordinalToBlockMap.Free();
             return builder.ToImmutableAndFree();
 
-            ControlFlowConditionKind getConditionKind(BasicBlock blockBuilder)
+            ControlFlowConditionKind getConditionKind(BasicBlockBuilder blockBuilder)
             {
                 if (blockBuilder.InternalConditional.Condition == null)
                 {
@@ -175,21 +172,21 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
                 return blockBuilder.InternalConditional.JumpIfTrue ? ControlFlowConditionKind.WhenTrue : ControlFlowConditionKind.WhenFalse;
             }
 
-            ControlFlowBranch getFallThroughSuccessor(BasicBlock blockBuilder) =>
+            ControlFlowBranch getFallThroughSuccessor(BasicBlockBuilder blockBuilder) =>
                 blockBuilder.Kind != BasicBlockKind.Exit ?
                     getBranch(blockBuilder.InternalNext.Branch,
                         blockBuilder,
                         isFallThrough: true) :
                     null;
 
-            ControlFlowBranch getConditionalSuccessor(BasicBlock blockBuilder) =>
+            ControlFlowBranch getConditionalSuccessor(BasicBlockBuilder blockBuilder) =>
                 blockBuilder.InternalConditional.Condition != null ?
                     getBranch(blockBuilder.InternalConditional.Branch,
                         blockBuilder,
                         isFallThrough: false) :
                     null;
 
-            ImmutableArray<ControlFlowBranch> getPredecessors(BasicBlock blockBuilder)
+            ImmutableArray<ControlFlowBranch> getPredecessors(BasicBlockBuilder blockBuilder)
             {
                 if (blockBuilder.Predecessors.Count == 0)
                 {
@@ -199,7 +196,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
                 var predecessorsBuilder = ArrayBuilder<ControlFlowBranch>.GetInstance(blockBuilder.Predecessors.Count);
 
                 // Order predecessors by ordinal to ensure deterministic predecessor ordering.
-                foreach (BasicBlock predecessorBlockBuilder in blockBuilder.Predecessors.OrderBy(p => p.Ordinal))
+                foreach (BasicBlockBuilder predecessorBlockBuilder in blockBuilder.Predecessors.OrderBy(p => p.Ordinal))
                 {
                     if (predecessorBlockBuilder.InternalNext.Branch.Destination == blockBuilder)
                     {
@@ -215,9 +212,9 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
                 return predecessorsBuilder.ToImmutableAndFree();
             }
 
-            ControlFlowBranch getBranch(BasicBlock.Branch branch, BasicBlock source, bool isFallThrough)
+            ControlFlowBranch getBranch(BasicBlockBuilder.Branch branch, BasicBlockBuilder source, bool isFallThrough)
             {
-                (BasicBlock source, BasicBlock destination, bool isFallThrough) key = (source, branch.Destination, isFallThrough);
+                (BasicBlockBuilder source, BasicBlockBuilder destination, bool isFallThrough) key = (source, branch.Destination, isFallThrough);
                 if (!branchMap.TryGetValue(key, out ControlFlowBranch controlFlowBranch))
                 {
                     controlFlowBranch = new ControlFlowBranch(
@@ -236,7 +233,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
             }
         }
 
-        private static void MarkReachableBlocks(ArrayBuilder<BasicBlock> blocks)
+        private static void MarkReachableBlocks(ArrayBuilder<BasicBlockBuilder> blocks)
         {
             var continueDispatchAfterFinally = PooledDictionary<ControlFlowRegion, bool>.GetInstance();
             var dispatchedExceptionsFromRegions = PooledHashSet<ControlFlowRegion>.GetInstance();
@@ -250,23 +247,23 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
         }
 
         private static BitVector MarkReachableBlocks(
-            ArrayBuilder<BasicBlock> blocks,
+            ArrayBuilder<BasicBlockBuilder> blocks,
             int firstBlockOrdinal,
             int lastBlockOrdinal,
-            ArrayBuilder<BasicBlock> outOfRangeBlocksToVisit,
+            ArrayBuilder<BasicBlockBuilder> outOfRangeBlocksToVisit,
             PooledDictionary<ControlFlowRegion, bool> continueDispatchAfterFinally,
             PooledHashSet<ControlFlowRegion> dispatchedExceptionsFromRegions,
             out bool fellThrough)
         {
             var visited = BitVector.Empty;
-            var toVisit = ArrayBuilder<BasicBlock>.GetInstance();
+            var toVisit = ArrayBuilder<BasicBlockBuilder>.GetInstance();
 
             fellThrough = false;
             toVisit.Push(blocks[firstBlockOrdinal]);
 
             do
             {
-                BasicBlock current = toVisit.Pop();
+                BasicBlockBuilder current = toVisit.Pop();
 
                 if (current.Ordinal < firstBlockOrdinal || current.Ordinal > lastBlockOrdinal)
                 {
@@ -283,7 +280,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
                 current.IsReachable = true;
                 bool fallThrough = true;
 
-                (IOperation Condition, bool JumpIfTrue, BasicBlock.Branch Branch) conditional = current.InternalConditional;
+                (IOperation Condition, bool JumpIfTrue, BasicBlockBuilder.Branch Branch) conditional = current.InternalConditional;
                 if (conditional.Condition != null)
                 {
                     if (conditional.Condition.ConstantValue.HasValue && conditional.Condition.ConstantValue.Value is bool constant)
@@ -302,7 +299,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
 
                 if (fallThrough)
                 {
-                    BasicBlock.Branch branch = current.InternalNext.Branch;
+                    BasicBlockBuilder.Branch branch = current.InternalNext.Branch;
                     followBranch(current, branch);
 
                     if (current.Ordinal == lastBlockOrdinal && branch.Kind != ControlFlowBranchSemantics.Throw && branch.Kind != ControlFlowBranchSemantics.Rethrow)
@@ -322,7 +319,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
             toVisit.Free();
             return visited;
 
-            void followBranch(BasicBlock current, BasicBlock.Branch branch)
+            void followBranch(BasicBlockBuilder current, BasicBlockBuilder.Branch branch)
             {
                 switch (branch.Kind)
                 {
@@ -352,7 +349,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
             }
 
             // Returns whether we should proceed to the destination after finallies were taken care of.
-            bool stepThroughFinally(ControlFlowRegion region, BasicBlock destination)
+            bool stepThroughFinally(ControlFlowRegion region, BasicBlockBuilder destination)
             {
                 int destinationOrdinal = destination.Ordinal;
                 while (!region.ContainsBlock(destinationOrdinal))
@@ -482,7 +479,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
                             break;
 
                         case ControlFlowRegionKind.FilterAndHandler:
-                            BasicBlock entryBlock = blocks[@catch.FirstBlockOrdinal];
+                            BasicBlockBuilder entryBlock = blocks[@catch.FirstBlockOrdinal];
                             Debug.Assert(@catch.NestedRegions[0].Kind == ControlFlowRegionKind.Filter);
                             Debug.Assert(entryBlock.Ordinal == @catch.NestedRegions[0].FirstBlockOrdinal);
 
@@ -496,11 +493,11 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
             }
         }
 
-        private static void CalculateBranchLeaveEnterLists(ArrayBuilder<BasicBlock> blocks)
+        private static void CalculateBranchLeaveEnterLists(ArrayBuilder<BasicBlockBuilder> blocks)
         {
             var builder = ArrayBuilder<ControlFlowRegion>.GetInstance();
 
-            foreach (BasicBlock b in blocks)
+            foreach (BasicBlockBuilder b in blocks)
             {
                 calculateBranchLeaveEnterLists(ref b.InternalConditional.Branch, b);
                 calculateBranchLeaveEnterLists(ref b.InternalNext.Branch, b);
@@ -509,7 +506,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
             builder.Free();
             return;
 
-            void calculateBranchLeaveEnterLists(ref BasicBlock.Branch branch, BasicBlock source)
+            void calculateBranchLeaveEnterLists(ref BasicBlockBuilder.Branch branch, BasicBlockBuilder source)
             {
                 if (branch.Destination == null)
                 {
@@ -523,13 +520,13 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
                 }
             }
 
-            ImmutableArray<ControlFlowRegion> calculateLeaveList(BasicBlock source, BasicBlock destination)
+            ImmutableArray<ControlFlowRegion> calculateLeaveList(BasicBlockBuilder source, BasicBlockBuilder destination)
             {
                 collectRegions(destination.Ordinal, source.Region);
                 return builder.ToImmutable();
             }
 
-            ImmutableArray<ControlFlowRegion> calculateEnterList(BasicBlock source, BasicBlock destination)
+            ImmutableArray<ControlFlowRegion> calculateEnterList(BasicBlockBuilder source, BasicBlockBuilder destination)
             {
                 collectRegions(source.Ordinal, destination.Region);
                 builder.ReverseContents();
@@ -553,7 +550,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
         /// Do a pass to eliminate blocks without statements that can be merged with predecessor(s) and
         /// to eliminate regions that can be merged with parents.
         /// </summary>
-        private static void Pack(ArrayBuilder<BasicBlock> blocks, RegionBuilder root, PooledDictionary<BasicBlock, RegionBuilder> regionMap)
+        private static void Pack(ArrayBuilder<BasicBlockBuilder> blocks, RegionBuilder root, PooledDictionary<BasicBlockBuilder, RegionBuilder> regionMap)
         {
             bool regionsChanged = true;
 
@@ -570,7 +567,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
             }
         }
 
-        private static bool PackRegions(RegionBuilder root, ArrayBuilder<BasicBlock> blocks, PooledDictionary<BasicBlock, RegionBuilder> regionMap)
+        private static bool PackRegions(RegionBuilder root, ArrayBuilder<BasicBlockBuilder> blocks, PooledDictionary<BasicBlockBuilder, RegionBuilder> regionMap)
         {
             return PackRegion(root);
 
@@ -634,7 +631,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
                                 if (subRegion.Kind == ControlFlowRegionKind.LocalLifetime && !subRegion.HasMethods &&
                                     !subRegion.HasRegions && subRegion.FirstBlock == subRegion.LastBlock)
                                 {
-                                    BasicBlock block = subRegion.FirstBlock;
+                                    BasicBlockBuilder block = subRegion.FirstBlock;
 
                                     if (block.Statements.Count == 0 && block.InternalConditional.Condition == null && block.InternalNext.Value == null)
                                     {
@@ -669,7 +666,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
         /// <summary>
         /// Merge content of <paramref name="subRegion"/> into its enclosing region and free it.
         /// </summary>
-        private static void MergeSubRegionAndFree(RegionBuilder subRegion, ArrayBuilder<BasicBlock> blocks, PooledDictionary<BasicBlock, RegionBuilder> regionMap)
+        private static void MergeSubRegionAndFree(RegionBuilder subRegion, ArrayBuilder<BasicBlockBuilder> blocks, PooledDictionary<BasicBlockBuilder, RegionBuilder> regionMap)
         {
             Debug.Assert(subRegion.Kind != ControlFlowRegionKind.Root);
             RegionBuilder enclosing = subRegion.Enclosing;
@@ -713,7 +710,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
         /// Do a pass to eliminate blocks without statements that can be merged with predecessor(s).
         /// Returns true if any blocks were eliminated
         /// </summary>
-        private static bool PackBlocks(ArrayBuilder<BasicBlock> blocks, PooledDictionary<BasicBlock, RegionBuilder> regionMap)
+        private static bool PackBlocks(ArrayBuilder<BasicBlockBuilder> blocks, PooledDictionary<BasicBlockBuilder, RegionBuilder> regionMap)
         {
             ArrayBuilder<RegionBuilder> fromCurrent = null;
             ArrayBuilder<RegionBuilder> fromDestination = null;
@@ -732,7 +729,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
                 int count = blocks.Count - 1;
                 for (int i = 1; i < count; i++)
                 {
-                    BasicBlock block = blocks[i];
+                    BasicBlockBuilder block = blocks[i];
                     block.Ordinal = i;
 
                     // PROTOTYPE(dataflow): Consider if we want to do the following transformation.
@@ -752,8 +749,8 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
                     if (block.Statements.Count > 0)
                     {
                         // See if we can move all statements to the previous block
-                        ISet<BasicBlock> predecessors = block.Predecessors;
-                        BasicBlock predecessor;
+                        ISet<BasicBlockBuilder> predecessors = block.Predecessors;
+                        BasicBlockBuilder predecessor;
                         if (predecessors.Count == 1 &&
                             (predecessor = predecessors.Single()).InternalConditional.Condition == null &&
                             predecessor.Ordinal < block.Ordinal &&
@@ -774,7 +771,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
                         }
                     }
 
-                    ref BasicBlock.Branch next = ref block.InternalNext.Branch;
+                    ref BasicBlockBuilder.Branch next = ref block.InternalNext.Branch;
 
                     Debug.Assert((block.InternalNext.Value != null) == (next.Kind == ControlFlowBranchSemantics.Return || next.Kind == ControlFlowBranchSemantics.Throw));
                     Debug.Assert((next.Destination == null) ==
@@ -855,7 +852,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
                             Debug.Assert(block.InternalNext.Value == null);
                             Debug.Assert(next.Destination == null);
 
-                            ISet<BasicBlock> predecessors = block.Predecessors;
+                            ISet<BasicBlockBuilder> predecessors = block.Predecessors;
 
                             // It is safe to drop an unreachable empty basic block
                             if (predecessors.Count > 0)
@@ -865,7 +862,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
                                     continue;
                                 }
 
-                                BasicBlock predecessor = predecessors.Single();
+                                BasicBlockBuilder predecessor = predecessors.Single();
 
                                 if (predecessor.Ordinal != i - 1 ||
                                     predecessor.InternalNext.Branch.Destination != block ||
@@ -892,7 +889,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
                                          next.Kind == ControlFlowBranchSemantics.Error ||
                                          next.Kind == ControlFlowBranchSemantics.ProgramTermination);
 
-                            ISet<BasicBlock> predecessors = block.Predecessors;
+                            ISet<BasicBlockBuilder> predecessors = block.Predecessors;
                             IOperation value = block.InternalNext.Value;
 
                             RegionBuilder implicitEntryRegion = tryGetImplicitEntryRegion(block, currentRegion);
@@ -912,7 +909,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
 
                             if (value != null)
                             {
-                                BasicBlock predecessor;
+                                BasicBlockBuilder predecessor;
                                 int predecessorsCount = predecessors.Count;
 
                                 if (predecessorsCount == 0 && next.Kind == ControlFlowBranchSemantics.Return)
@@ -960,7 +957,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
                                 }
                             }
 
-                            foreach (BasicBlock predecessor in predecessors)
+                            foreach (BasicBlockBuilder predecessor in predecessors)
                             {
                                 if (tryMergeBranch(predecessor, ref predecessor.InternalNext.Branch, block))
                                 {
@@ -997,7 +994,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
                                      next.Kind == ControlFlowBranchSemantics.Error ||
                                      next.Kind == ControlFlowBranchSemantics.ProgramTermination);
 
-                        ISet<BasicBlock> predecessors = block.Predecessors;
+                        ISet<BasicBlockBuilder> predecessors = block.Predecessors;
 
                         if (predecessors.Count != 1)
                         {
@@ -1012,7 +1009,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
                             continue;
                         }
 
-                        BasicBlock predecessor = predecessors.Single();
+                        BasicBlockBuilder predecessor = predecessors.Single();
 
                         if (predecessor.Kind != BasicBlockKind.Entry &&
                             predecessor.InternalNext.Branch.Destination == block &&
@@ -1028,7 +1025,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
                             next.Destination?.RemovePredecessor(block);
 
                             predecessor.InternalConditional = block.InternalConditional;
-                            BasicBlock destination = block.InternalConditional.Branch.Destination;
+                            BasicBlockBuilder destination = block.InternalConditional.Branch.Destination;
                             if (destination != null)
                             {
                                 destination.AddPredecessor(predecessor);
@@ -1055,7 +1052,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
 
             return anyRemoved;
 
-            RegionBuilder tryGetImplicitEntryRegion(BasicBlock block, RegionBuilder currentRegion)
+            RegionBuilder tryGetImplicitEntryRegion(BasicBlockBuilder block, RegionBuilder currentRegion)
             {
                 do
                 {
@@ -1079,7 +1076,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
                 return null;
             }
 
-            void removeBlock(BasicBlock block, RegionBuilder region)
+            void removeBlock(BasicBlockBuilder block, RegionBuilder region)
             {
                 Debug.Assert(region.FirstBlock.Ordinal >= 0);
                 Debug.Assert(region.FirstBlock.Ordinal <= region.LastBlock.Ordinal);
@@ -1088,7 +1085,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
 
                 if (region.FirstBlock == block)
                 {
-                    BasicBlock newFirst = blocks[block.Ordinal + 1];
+                    BasicBlockBuilder newFirst = blocks[block.Ordinal + 1];
                     region.FirstBlock = newFirst;
                     RegionBuilder enclosing = region.Enclosing;
                     while (enclosing != null && enclosing.FirstBlock == block)
@@ -1099,7 +1096,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
                 }
                 else if (region.LastBlock == block)
                 {
-                    BasicBlock newLast = blocks[block.Ordinal - 1];
+                    BasicBlockBuilder newLast = blocks[block.Ordinal - 1];
                     region.LastBlock = newLast;
                     RegionBuilder enclosing = region.Enclosing;
                     while (enclosing != null && enclosing.LastBlock == block)
@@ -1118,7 +1115,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
                 block.Ordinal = -1;
             }
 
-            bool tryMergeBranch(BasicBlock predecessor, ref BasicBlock.Branch predecessorBranch, BasicBlock successor)
+            bool tryMergeBranch(BasicBlockBuilder predecessor, ref BasicBlockBuilder.Branch predecessorBranch, BasicBlockBuilder successor)
             {
                 if (predecessorBranch.Destination == successor)
                 {
@@ -1129,7 +1126,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
                 return false;
             }
 
-            void mergeBranch(BasicBlock predecessor, ref BasicBlock.Branch predecessorBranch, ref BasicBlock.Branch successorBranch)
+            void mergeBranch(BasicBlockBuilder predecessor, ref BasicBlockBuilder.Branch predecessorBranch, ref BasicBlockBuilder.Branch successorBranch)
             {
                 predecessorBranch.Destination = successorBranch.Destination;
                 successorBranch.Destination?.AddPredecessor(predecessor);
@@ -1137,9 +1134,9 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
                 predecessorBranch.Kind = successorBranch.Kind;
             }
 
-            bool checkBranchesFromPredecessors(BasicBlock block, RegionBuilder currentRegion, RegionBuilder destinationRegionOpt)
+            bool checkBranchesFromPredecessors(BasicBlockBuilder block, RegionBuilder currentRegion, RegionBuilder destinationRegionOpt)
             {
-                foreach (BasicBlock predecessor in block.Predecessors)
+                foreach (BasicBlockBuilder predecessor in block.Predecessors)
                 {
                     RegionBuilder predecessorRegion = regionMap[predecessor];
 
@@ -1222,21 +1219,21 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
         /// <summary>
         /// Deal with labeled blocks that were not added to the graph because labels were never found
         /// </summary>
-        private static void CheckUnresolvedBranches(ArrayBuilder<BasicBlock> blocks, PooledDictionary<ILabelSymbol, BasicBlock> labeledBlocks)
+        private static void CheckUnresolvedBranches(ArrayBuilder<BasicBlockBuilder> blocks, PooledDictionary<ILabelSymbol, BasicBlockBuilder> labeledBlocks)
         {
             if (labeledBlocks == null)
             {
                 return;
             }
 
-            PooledHashSet<BasicBlock> unresolved = null;
-            foreach (BasicBlock labeled in labeledBlocks.Values)
+            PooledHashSet<BasicBlockBuilder> unresolved = null;
+            foreach (BasicBlockBuilder labeled in labeledBlocks.Values)
             {
                 if (labeled.Ordinal == -1)
                 {
                     if (unresolved == null)
                     {
-                        unresolved = PooledHashSet<BasicBlock>.GetInstance();
+                        unresolved = PooledHashSet<BasicBlockBuilder>.GetInstance();
                     }
 
                     unresolved.Add(labeled);
@@ -1249,7 +1246,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
             }
 
             // Mark branches using unresolved labels as errors.
-            foreach (BasicBlock block in blocks)
+            foreach (BasicBlockBuilder block in blocks)
             {
                 fixupBranch(ref block.InternalConditional.Branch);
                 fixupBranch(ref block.InternalNext.Branch);
@@ -1258,7 +1255,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
             unresolved.Free();
             return;
 
-            void fixupBranch(ref BasicBlock.Branch branch)
+            void fixupBranch(ref BasicBlockBuilder.Branch branch)
             {
                 if (branch.Destination != null && unresolved.Contains(branch.Destination))
                 {
@@ -1275,21 +1272,18 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
             _currentStatement = operation;
             Debug.Assert(_evalStack.Count == 0);
 
-            // PROTOTYPE(dataflow): This assert doesn't hold with the current handling of With statement
-            //Debug.Assert(_currentInitializedInstance == null);
-
             AddStatement(Visit(operation, null));
             Debug.Assert(_evalStack.Count == 0);
             _currentStatement = saveCurrentStatement;
         }
 
-        private BasicBlock CurrentBasicBlock
+        private BasicBlockBuilder CurrentBasicBlock
         {
             get
             {
                 if (_currentBasicBlock == null)
                 {
-                    AppendNewBlock(new BasicBlock(BasicBlockKind.Block));
+                    AppendNewBlock(new BasicBlockBuilder(BasicBlockKind.Block));
                 }
 
                 return _currentBasicBlock;
@@ -1319,13 +1313,13 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
             CurrentBasicBlock.AddStatement(statement);
         }
 
-        private void AppendNewBlock(BasicBlock block, bool linkToPrevious = true)
+        private void AppendNewBlock(BasicBlockBuilder block, bool linkToPrevious = true)
         {
             Debug.Assert(block != null);
 
             if (linkToPrevious)
             {
-                BasicBlock prevBlock = _blocks.Last();
+                BasicBlockBuilder prevBlock = _blocks.Last();
 
                 if (prevBlock.InternalNext.Branch.Destination == null)
                 {
@@ -1357,7 +1351,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
             // Ensure there is at least one block in the region
             if (_currentRegion.IsEmpty)
             {
-                AppendNewBlock(new BasicBlock(BasicBlockKind.Block));
+                AppendNewBlock(new BasicBlockBuilder(BasicBlockKind.Block));
             }
 
             RegionBuilder enclosed = _currentRegion;
@@ -1366,7 +1360,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
             _currentBasicBlock = null;
         }
 
-        private static void LinkBlocks(BasicBlock prevBlock, BasicBlock nextBlock, ControlFlowBranchSemantics branchKind = ControlFlowBranchSemantics.Regular)
+        private static void LinkBlocks(BasicBlockBuilder prevBlock, BasicBlockBuilder nextBlock, ControlFlowBranchSemantics branchKind = ControlFlowBranchSemantics.Regular)
         {
             Debug.Assert(prevBlock.InternalNext.Value == null);
             Debug.Assert(prevBlock.InternalNext.Branch.Destination == null);
@@ -1487,7 +1481,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
                     // consequence;
                     // afterif:
 
-                    BasicBlock afterIf = null;
+                    BasicBlockBuilder afterIf = null;
                     VisitConditionalBranch(operation.Condition, ref afterIf, sense: false);
                     VisitStatement(operation.WhenTrue);
                     AppendNewBlock(afterIf);
@@ -1508,12 +1502,12 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
                     // alternative;
                     // afterif:
 
-                    BasicBlock whenFalse = null;
+                    BasicBlockBuilder whenFalse = null;
                     VisitConditionalBranch(operation.Condition, ref whenFalse, sense: false);
 
                     VisitStatement(operation.WhenTrue);
 
-                    var afterIf = new BasicBlock(BasicBlockKind.Block);
+                    var afterIf = new BasicBlockBuilder(BasicBlockKind.Block);
                     LinkBlocks(CurrentBasicBlock, afterIf);
                     _currentBasicBlock = null;
 
@@ -1542,12 +1536,12 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
                 SpillEvalStack();
                 int captureId = captureIdForResult ?? _availableCaptureId++;
 
-                BasicBlock whenFalse = null;
+                BasicBlockBuilder whenFalse = null;
                 VisitConditionalBranch(operation.Condition, ref whenFalse, sense: false);
 
                 VisitAndCapture(operation.WhenTrue, captureId);
 
-                var afterIf = new BasicBlock(BasicBlockKind.Block);
+                var afterIf = new BasicBlockBuilder(BasicBlockKind.Block);
                 LinkBlocks(CurrentBasicBlock, afterIf);
                 _currentBasicBlock = null;
 
@@ -1799,7 +1793,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
         }
 
         private IOperation VisitBinaryConditionalOperator(IBinaryOperation binOp, bool sense, int? captureIdForResult,
-                                                          BasicBlock fallToTrueOpt, BasicBlock fallToFalseOpt)
+                                                          BasicBlockBuilder fallToTrueOpt, BasicBlockBuilder fallToFalseOpt)
         {
             // ~(a && b) is equivalent to (~a || ~b)
             if (!CalculateAndOrSense(binOp, sense))
@@ -1860,9 +1854,9 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
             //done:
             //        Return result
 
-            var done = new BasicBlock(BasicBlockKind.Block);
-            var checkRight = new BasicBlock(BasicBlockKind.Block);
-            var resultIsLeft = new BasicBlock(BasicBlockKind.Block);
+            var done = new BasicBlockBuilder(BasicBlockKind.Block);
+            var checkRight = new BasicBlockBuilder(BasicBlockKind.Block);
+            var resultIsLeft = new BasicBlockBuilder(BasicBlockKind.Block);
 
             int leftId = VisitAndCapture(left);
             condition = GetCaptureReference(leftId, left);
@@ -1926,8 +1920,8 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
 
             bool isAndAlso = CalculateAndOrSense(binOp, true);
 
-            var done = new BasicBlock(BasicBlockKind.Block);
-            var checkRight = new BasicBlock(BasicBlockKind.Block);
+            var done = new BasicBlockBuilder(BasicBlockKind.Block);
+            var checkRight = new BasicBlockBuilder(BasicBlockKind.Block);
 
             condition = new ConversionOperation(Visit(left), ConvertibleConversion.Instance, isTryCast: false, isChecked: false,
                                                 semanticModel: null, left.Syntax, booleanType, constantValue: default, isImplicit: true);
@@ -1970,8 +1964,8 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
             //   left && right  ->  IsFalse(left) ? left : And(left, right)
             //   left || right  ->  IsTrue(left) ? left : Or(left, right)
 
-            var done = new BasicBlock(BasicBlockKind.Block);
-            var doBitWise = new BasicBlock(BasicBlockKind.Block);
+            var done = new BasicBlockBuilder(BasicBlockKind.Block);
+            var doBitWise = new BasicBlockBuilder(BasicBlockKind.Block);
 
             int leftId = VisitAndCapture(left);
 
@@ -2059,8 +2053,8 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
             bool isAndAlso = CalculateAndOrSense(binOp, true);
             IOperation condition;
 
-            var done = new BasicBlock(BasicBlockKind.Block);
-            var doBitWise = new BasicBlock(BasicBlockKind.Block);
+            var done = new BasicBlockBuilder(BasicBlockKind.Block);
+            var doBitWise = new BasicBlockBuilder(BasicBlockKind.Block);
 
             int leftId = VisitAndCapture(left);
 
@@ -2124,7 +2118,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
         }
 
         private IOperation VisitShortCircuitingOperator(IBinaryOperation condition, bool sense, bool stopSense, bool stopValue,
-                                                        int? captureIdForResult, BasicBlock fallToTrueOpt, BasicBlock fallToFalseOpt)
+                                                        int? captureIdForResult, BasicBlockBuilder fallToTrueOpt, BasicBlockBuilder fallToFalseOpt)
         {
             Debug.Assert(IsBooleanConditionalOperator(condition));
                     
@@ -2144,7 +2138,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
             SpillEvalStack();
             int captureId = captureIdForResult ?? _availableCaptureId++;
 
-            ref BasicBlock lazyFallThrough = ref stopSense ? ref fallToTrueOpt : ref fallToFalseOpt;
+            ref BasicBlockBuilder lazyFallThrough = ref stopSense ? ref fallToTrueOpt : ref fallToFalseOpt;
             bool newFallThroughBlock = (lazyFallThrough == null);
 
             VisitConditionalBranch(condition.LeftOperand, ref lazyFallThrough, stopSense);
@@ -2155,7 +2149,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
 
             if (newFallThroughBlock)
             {
-                var labEnd = new BasicBlock(BasicBlockKind.Block);
+                var labEnd = new BasicBlockBuilder(BasicBlockKind.Block);
                 LinkBlocks(CurrentBasicBlock, labEnd);
                 _currentBasicBlock = null;
 
@@ -2171,7 +2165,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
             return new FlowCaptureReference(captureId, condition.Syntax, condition.Type, condition.ConstantValue);
         }
 
-        private IOperation VisitConditionalExpression(IOperation condition, bool sense, int? captureIdForResult, BasicBlock fallToTrueOpt, BasicBlock fallToFalseOpt)
+        private IOperation VisitConditionalExpression(IOperation condition, bool sense, int? captureIdForResult, BasicBlockBuilder fallToTrueOpt, BasicBlockBuilder fallToFalseOpt)
         {
             Debug.Assert(ITypeSymbolHelpers.IsBooleanType(condition.Type));
 
@@ -2231,7 +2225,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
             return condition;
         }
 
-        private void VisitConditionalBranch(IOperation condition, ref BasicBlock dest, bool sense)
+        private void VisitConditionalBranch(IOperation condition, ref BasicBlockBuilder dest, bool sense)
         {
 oneMoreTime:
 
@@ -2253,7 +2247,7 @@ oneMoreTime:
                             // gotoif(RightOperand == sense) dest
                             // fallThrough:
 
-                            BasicBlock fallThrough = null;
+                            BasicBlockBuilder fallThrough = null;
 
                             VisitConditionalBranch(binOp.LeftOperand, ref fallThrough, !sense);
                             VisitConditionalBranch(binOp.RightOperand, ref dest, sense);
@@ -2294,11 +2288,11 @@ oneMoreTime:
                         if (ITypeSymbolHelpers.IsBooleanType(conditional.WhenTrue.Type) &&
                             ITypeSymbolHelpers.IsBooleanType(conditional.WhenFalse.Type))
                         {
-                            BasicBlock whenFalse = null;
+                            BasicBlockBuilder whenFalse = null;
                             VisitConditionalBranch(conditional.Condition, ref whenFalse, sense: false);
                             VisitConditionalBranch(conditional.WhenTrue, ref dest, sense);
 
-                            var afterIf = new BasicBlock(BasicBlockKind.Block);
+                            var afterIf = new BasicBlockBuilder(BasicBlockKind.Block);
                             LinkBlocks(CurrentBasicBlock, afterIf);
                             _currentBasicBlock = null;
 
@@ -2318,15 +2312,15 @@ oneMoreTime:
 
                         if (ITypeSymbolHelpers.IsBooleanType(coalesce.WhenNull.Type))
                         {
-                            var whenNull = new BasicBlock(BasicBlockKind.Block);
+                            var whenNull = new BasicBlockBuilder(BasicBlockKind.Block);
                             IOperation convertedTestExpression = NullCheckAndConvertCoalesceValue(coalesce, whenNull);
 
                             convertedTestExpression = Operation.SetParentOperation(convertedTestExpression, null);
-                            dest = dest ?? new BasicBlock(BasicBlockKind.Block);
+                            dest = dest ?? new BasicBlockBuilder(BasicBlockKind.Block);
                             LinkBlocks(CurrentBasicBlock, (convertedTestExpression, sense, RegularBranch(dest)));
                             _currentBasicBlock = null;
 
-                            var afterCoalesce = new BasicBlock(BasicBlockKind.Block);
+                            var afterCoalesce = new BasicBlockBuilder(BasicBlockKind.Block);
                             LinkBlocks(CurrentBasicBlock, afterCoalesce);
                             _currentBasicBlock = null;
 
@@ -2346,21 +2340,21 @@ oneMoreTime:
                     if (conversion.Operand.Kind == OperationKind.Throw)
                     {
                         Visit(conversion.Operand);
-                        dest = dest ?? new BasicBlock(BasicBlockKind.Block);
+                        dest = dest ?? new BasicBlockBuilder(BasicBlockKind.Block);
                         return;
                     }
                     goto default;
 
                 default:
                     condition = Operation.SetParentOperation(Visit(condition), null);
-                    dest = dest ?? new BasicBlock(BasicBlockKind.Block);
+                    dest = dest ?? new BasicBlockBuilder(BasicBlockKind.Block);
                     LinkBlocks(CurrentBasicBlock, (condition, sense, RegularBranch(dest)));
                     _currentBasicBlock = null;
                     return;
             }
         }
 
-        private static void LinkBlocks(BasicBlock previous, (IOperation Condition, bool JumpIfTrue, BasicBlock.Branch Branch) next)
+        private static void LinkBlocks(BasicBlockBuilder previous, (IOperation Condition, bool JumpIfTrue, BasicBlockBuilder.Branch Branch) next)
         {
             Debug.Assert(previous.InternalConditional.Condition == null);
             Debug.Assert(next.Condition != null);
@@ -2372,7 +2366,7 @@ oneMoreTime:
         /// <summary>
         /// Returns converted test expression
         /// </summary>
-        private IOperation NullCheckAndConvertCoalesceValue(ICoalesceOperation operation, BasicBlock whenNull)
+        private IOperation NullCheckAndConvertCoalesceValue(ICoalesceOperation operation, BasicBlockBuilder whenNull)
         {
             SyntaxNode valueSyntax = operation.Value.Syntax;
             ITypeSymbol valueTypeOpt = operation.Value.Type;
@@ -2434,14 +2428,14 @@ oneMoreTime:
 
         public override IOperation VisitCoalesce(ICoalesceOperation operation, int? captureIdForResult)
         {
-            var whenNull = new BasicBlock(BasicBlockKind.Block);
+            var whenNull = new BasicBlockBuilder(BasicBlockKind.Block);
             IOperation convertedTestExpression = NullCheckAndConvertCoalesceValue(operation, whenNull);
 
             int resultCaptureId = captureIdForResult ?? _availableCaptureId++;
 
             AddStatement(new FlowCapture(resultCaptureId, operation.Value.Syntax, convertedTestExpression));
 
-            var afterCoalesce = new BasicBlock(BasicBlockKind.Block);
+            var afterCoalesce = new BasicBlockBuilder(BasicBlockKind.Block);
             LinkBlocks(CurrentBasicBlock, afterCoalesce);
             _currentBasicBlock = null;
 
@@ -2454,9 +2448,9 @@ oneMoreTime:
             return new FlowCaptureReference(resultCaptureId, operation.Syntax, operation.Type, operation.ConstantValue);
         }
 
-        private static BasicBlock.Branch RegularBranch(BasicBlock destination)
+        private static BasicBlockBuilder.Branch RegularBranch(BasicBlockBuilder destination)
         {
-            return new BasicBlock.Branch() { Destination = destination, Kind = ControlFlowBranchSemantics.Regular };
+            return new BasicBlockBuilder.Branch() { Destination = destination, Kind = ControlFlowBranchSemantics.Regular };
         }
 
         private static IOperation MakeInvalidOperation(ITypeSymbol type, IOperation child)
@@ -2535,7 +2529,7 @@ oneMoreTime:
 
             SpillEvalStack();
 
-            var whenNull = new BasicBlock(BasicBlockKind.Block);
+            var whenNull = new BasicBlockBuilder(BasicBlockKind.Block);
 
             Compilation compilation = ((Operation)operation).SemanticModel.Compilation;
             IConditionalAccessOperation currentConditionalAccess = operation;
@@ -2627,7 +2621,7 @@ oneMoreTime:
                 //Debug.Assert(_currentConditionalAccessInstance == null);
                 _currentConditionalAccessInstance = null;
 
-                var afterAccess = new BasicBlock(BasicBlockKind.Block);
+                var afterAccess = new BasicBlockBuilder(BasicBlockKind.Block);
                 LinkBlocks(CurrentBasicBlock, afterAccess);
                 _currentBasicBlock = null;
 
@@ -2722,7 +2716,7 @@ oneMoreTime:
                 // }
                 // break:
 
-                var start = new BasicBlock(BasicBlockKind.Block);
+                var start = new BasicBlockBuilder(BasicBlockKind.Block);
                 AppendNewBlock(start);
                 EnterRegion(locals);
 
@@ -2795,7 +2789,7 @@ oneMoreTime:
                     IOperation exceptionDeclarationOrExpression = catchClause.ExceptionDeclarationOrExpression;
                     IOperation filter = catchClause.Filter;
                     bool haveFilter = filter != null;
-                    var catchBlock = new BasicBlock(BasicBlockKind.Block);
+                    var catchBlock = new BasicBlockBuilder(BasicBlockKind.Block);
 
                     if (haveFilter)
                     {
@@ -2808,7 +2802,7 @@ oneMoreTime:
                         AddExceptionStore(catchClause.ExceptionType, exceptionDeclarationOrExpression);
 
                         VisitConditionalBranch(filter, ref catchBlock, sense: true);
-                        var continueDispatchBlock = new BasicBlock(BasicBlockKind.Block);
+                        var continueDispatchBlock = new BasicBlockBuilder(BasicBlockKind.Block);
                         AppendNewBlock(continueDispatchBlock);
                         continueDispatchBlock.InternalNext.Branch.Kind = ControlFlowBranchSemantics.StructuredExceptionHandling;
                         LeaveRegion();
@@ -2858,9 +2852,9 @@ oneMoreTime:
 
                 var finallyRegion = new RegionBuilder(ControlFlowRegionKind.Finally);
                 EnterRegion(finallyRegion);
-                AppendNewBlock(new BasicBlock(BasicBlockKind.Block));
+                AppendNewBlock(new BasicBlockBuilder(BasicBlockKind.Block));
                 VisitStatement(operation.Finally);
-                var continueDispatchBlock = new BasicBlock(BasicBlockKind.Block);
+                var continueDispatchBlock = new BasicBlockBuilder(BasicBlockKind.Block);
                 AppendNewBlock(continueDispatchBlock);
                 continueDispatchBlock.InternalNext.Branch.Kind = ControlFlowBranchSemantics.StructuredExceptionHandling;
                 LeaveRegion();
@@ -2931,7 +2925,7 @@ oneMoreTime:
 
                 case OperationKind.YieldBreak:
                 case OperationKind.Return:
-                    BasicBlock current = CurrentBasicBlock;
+                    BasicBlockBuilder current = CurrentBasicBlock;
                     LinkBlocks(CurrentBasicBlock, _exit, returnedValue is null ? ControlFlowBranchSemantics.Regular : ControlFlowBranchSemantics.Return);
                     current.InternalNext.Value = Operation.SetParentOperation(returnedValue, null);
                     _currentBasicBlock = null;
@@ -2948,12 +2942,12 @@ oneMoreTime:
         {
             Debug.Assert(_currentStatement == operation);
 
-            BasicBlock labeled = GetLabeledOrNewBlock(operation.Label);
+            BasicBlockBuilder labeled = GetLabeledOrNewBlock(operation.Label);
 
             if (labeled.Ordinal != -1)
             {
                 // Must be a duplicate label. Recover by simply allocating a new block.
-                labeled = new BasicBlock(BasicBlockKind.Block);
+                labeled = new BasicBlockBuilder(BasicBlockKind.Block);
             }
 
             AppendNewBlock(labeled);
@@ -2961,25 +2955,25 @@ oneMoreTime:
             return null;
         }
 
-        private BasicBlock GetLabeledOrNewBlock(ILabelSymbol labelOpt)
+        private BasicBlockBuilder GetLabeledOrNewBlock(ILabelSymbol labelOpt)
         {
             if (labelOpt == null)
             {
-                return new BasicBlock(BasicBlockKind.Block);
+                return new BasicBlockBuilder(BasicBlockKind.Block);
             }
 
-            BasicBlock labeledBlock;
+            BasicBlockBuilder labeledBlock;
 
             if (_labeledBlocks == null)
             {
-                _labeledBlocks = PooledDictionary<ILabelSymbol, BasicBlock>.GetInstance();
+                _labeledBlocks = PooledDictionary<ILabelSymbol, BasicBlockBuilder>.GetInstance();
             }
             else if (_labeledBlocks.TryGetValue(labelOpt, out labeledBlock))
             {
                 return labeledBlock;
             }
 
-            labeledBlock = new BasicBlock(BasicBlockKind.Block);
+            labeledBlock = new BasicBlockBuilder(BasicBlockKind.Block);
             _labeledBlocks.Add(labelOpt, labeledBlock);
             return labeledBlock;
         }
@@ -3009,8 +3003,8 @@ oneMoreTime:
 
             IOperation exception = Operation.SetParentOperation(Visit(operation.Exception), null);
 
-            BasicBlock current = CurrentBasicBlock;
-            AppendNewBlock(new BasicBlock(BasicBlockKind.Block), linkToPrevious: false);
+            BasicBlockBuilder current = CurrentBasicBlock;
+            AppendNewBlock(new BasicBlockBuilder(BasicBlockKind.Block), linkToPrevious: false);
             Debug.Assert(current.InternalNext.Value == null);
             Debug.Assert(current.InternalNext.Branch.Destination == null);
             Debug.Assert(current.InternalNext.Branch.Kind == ControlFlowBranchSemantics.None);
@@ -3130,7 +3124,7 @@ oneMoreTime:
                     resource = new FlowCaptureReference(captureId, resource.Syntax, resource.Type, constantValue: default);
                 }
 
-                var afterTryFinally = new BasicBlock(BasicBlockKind.Block);
+                var afterTryFinally = new BasicBlockBuilder(BasicBlockKind.Block);
 
                 EnterRegion(new RegionBuilder(ControlFlowRegionKind.TryAndFinally));
                 EnterRegion(new RegionBuilder(ControlFlowRegionKind.Try));
@@ -3155,11 +3149,11 @@ oneMoreTime:
         {
             Debug.Assert(_currentRegion.Kind == ControlFlowRegionKind.TryAndFinally);
 
-            var endOfFinally = new BasicBlock(BasicBlockKind.Block);
+            var endOfFinally = new BasicBlockBuilder(BasicBlockKind.Block);
             endOfFinally.InternalNext.Branch.Kind = ControlFlowBranchSemantics.StructuredExceptionHandling;
 
             EnterRegion(new RegionBuilder(ControlFlowRegionKind.Finally));
-            AppendNewBlock(new BasicBlock(BasicBlockKind.Block));
+            AppendNewBlock(new BasicBlockBuilder(BasicBlockKind.Block));
 
             if (!knownToImplementIDisposable)
             {
@@ -3299,7 +3293,7 @@ oneMoreTime:
                 }
             }
 
-            var afterTryFinally = new BasicBlock(BasicBlockKind.Block);
+            var afterTryFinally = new BasicBlockBuilder(BasicBlockKind.Block);
 
             EnterRegion(new RegionBuilder(ControlFlowRegionKind.TryAndFinally));
             EnterRegion(new RegionBuilder(ControlFlowRegionKind.Try));
@@ -3338,11 +3332,11 @@ oneMoreTime:
             Debug.Assert(_currentRegion.Kind == ControlFlowRegionKind.Try);
             LeaveRegion();
 
-            var endOfFinally = new BasicBlock(BasicBlockKind.Block);
+            var endOfFinally = new BasicBlockBuilder(BasicBlockKind.Block);
             endOfFinally.InternalNext.Branch.Kind = ControlFlowBranchSemantics.StructuredExceptionHandling;
 
             EnterRegion(new RegionBuilder(ControlFlowRegionKind.Finally));
-            AppendNewBlock(new BasicBlock(BasicBlockKind.Block));
+            AppendNewBlock(new BasicBlockBuilder(BasicBlockKind.Block));
 
             if (!legacyMode)
             {
@@ -3455,7 +3449,7 @@ oneMoreTime:
 
             if (info.NeedsDispose)
             {
-                var afterTryFinally = new BasicBlock(BasicBlockKind.Block);
+                var afterTryFinally = new BasicBlockBuilder(BasicBlockKind.Block);
                 LinkBlocks(CurrentBasicBlock, afterTryFinally);
 
                 Debug.Assert(_currentRegion.Kind == ControlFlowRegionKind.Try);
@@ -3610,10 +3604,10 @@ oneMoreTime:
 
             Compilation compilation = ((Operation)operation).SemanticModel.Compilation;
             ITypeSymbol booleanType = compilation.GetSpecialType(SpecialType.System_Boolean);
-            BasicBlock @continue = GetLabeledOrNewBlock(operation.ContinueLabel);
-            BasicBlock @break = GetLabeledOrNewBlock(operation.ExitLabel);
-            BasicBlock checkConditionBlock = new BasicBlock(BasicBlockKind.Block);
-            BasicBlock bodyBlock = new BasicBlock(BasicBlockKind.Block);
+            BasicBlockBuilder @continue = GetLabeledOrNewBlock(operation.ContinueLabel);
+            BasicBlockBuilder @break = GetLabeledOrNewBlock(operation.ExitLabel);
+            BasicBlockBuilder checkConditionBlock = new BasicBlockBuilder(BasicBlockKind.Block);
+            BasicBlockBuilder bodyBlock = new BasicBlockBuilder(BasicBlockKind.Block);
 
             EnterRegion(new RegionBuilder(ControlFlowRegionKind.LocalLifetime, locals: locals));
 
@@ -3800,11 +3794,11 @@ oneMoreTime:
 
                             IOperation isUp;
                             int positiveFlagId = _availableCaptureId++;
-                            var afterPositiveCheck = new BasicBlock(BasicBlockKind.Block);
+                            var afterPositiveCheck = new BasicBlockBuilder(BasicBlockKind.Block);
 
                             if (stepValueIsNull != null)
                             {
-                                var whenNotNull = new BasicBlock(BasicBlockKind.Block);
+                                var whenNotNull = new BasicBlockBuilder(BasicBlockKind.Block);
 
                                 LinkBlocks(CurrentBasicBlock, (Operation.SetParentOperation(stepValueIsNull, null), JumpIfTrue: false, RegularBranch(whenNotNull)));
                                 _currentBasicBlock = null;
@@ -3911,7 +3905,7 @@ oneMoreTime:
                     CaptureResultIfNotAlready(controlVariableReferenceForCondition.Syntax, captureId, controlVariableReferenceForCondition);
                     controlVariableReferenceForCondition = GetCaptureReference(captureId, controlVariableReferenceForCondition);
 
-                    var notPositive = new BasicBlock(BasicBlockKind.Block);
+                    var notPositive = new BasicBlockBuilder(BasicBlockKind.Block);
                     LinkBlocks(CurrentBasicBlock, (Operation.SetParentOperation(positiveFlag, null), JumpIfTrue: false, RegularBranch(notPositive)));
                     _currentBasicBlock = null;
 
@@ -4029,7 +4023,7 @@ oneMoreTime:
                                                                                           isImplicit: true);
 
                         // if either limit or control variable is null, we exit the loop
-                        var whenBothNotNull = new BasicBlock(BasicBlockKind.Block);
+                        var whenBothNotNull = new BasicBlockBuilder(BasicBlockKind.Block);
 
                         LinkBlocks(CurrentBasicBlock, (Operation.SetParentOperation(eitherLimitOrControlVariableIsNull, null), JumpIfTrue: false, RegularBranch(whenBothNotNull)));
                         LinkBlocks(CurrentBasicBlock, @break);
@@ -4054,7 +4048,7 @@ oneMoreTime:
                                                                                         controlVariableReferenceforCondition.ConstantValue);
                     }
 
-                    var notPositive = new BasicBlock(BasicBlockKind.Block);
+                    var notPositive = new BasicBlockBuilder(BasicBlockKind.Block);
                     LinkBlocks(CurrentBasicBlock, (Operation.SetParentOperation(positiveFlag, null), JumpIfTrue: false, RegularBranch(notPositive)));
                     _currentBasicBlock = null;
 
@@ -4176,7 +4170,7 @@ oneMoreTime:
                 }
                 else
                 {
-                    BasicBlock afterIncrement = new BasicBlock(BasicBlockKind.Block);
+                    BasicBlockBuilder afterIncrement = new BasicBlockBuilder(BasicBlockKind.Block);
                     IOperation controlVariableReferenceForAssignment;
                     bool isNullable = ITypeSymbolHelpers.IsNullableType(operation.StepValue.Type);
 
@@ -4188,7 +4182,7 @@ oneMoreTime:
                         CaptureResultIfNotAlready(controlVariableReferenceForAssignment.Syntax, captureId, controlVariableReferenceForAssignment);
                         controlVariableReferenceForAssignment = GetCaptureReference(captureId, controlVariableReferenceForAssignment);
 
-                        BasicBlock whenNotNull = new BasicBlock(BasicBlockKind.Block);
+                        BasicBlockBuilder whenNotNull = new BasicBlockBuilder(BasicBlockKind.Block);
 
                         IOperation condition = new BinaryOperatorExpression(BinaryOperatorKind.Or,
                                                                             MakeIsNullOperation(GetCaptureReference(stepValueId, operation.StepValue), booleanType),
@@ -4315,8 +4309,8 @@ oneMoreTime:
             ImmutableArray<ILocalSymbol> locals = getLocals();
             EnterRegion(new RegionBuilder(ControlFlowRegionKind.LocalLifetime, locals: locals));
 
-            BasicBlock defaultBody = null; // Adjusted in handleSection
-            BasicBlock @break = GetLabeledOrNewBlock(operation.ExitLabel);
+            BasicBlockBuilder defaultBody = null; // Adjusted in handleSection
+            BasicBlockBuilder @break = GetLabeledOrNewBlock(operation.ExitLabel);
 
             foreach (ISwitchCaseOperation section in operation.Cases)
             {
@@ -4347,8 +4341,8 @@ oneMoreTime:
 
             void handleSection(ISwitchCaseOperation section)
             {
-                var body = new BasicBlock(BasicBlockKind.Block);
-                var nextSection = new BasicBlock(BasicBlockKind.Block);
+                var body = new BasicBlockBuilder(BasicBlockKind.Block);
+                var nextSection = new BasicBlockBuilder(BasicBlockKind.Block);
 
                 IOperation condition = ((BaseSwitchCase)section).Condition;
                 if (condition != null)
@@ -4363,7 +4357,7 @@ oneMoreTime:
                 {
                     foreach (ICaseClauseOperation caseClause in section.Clauses)
                     {
-                        var nextCase = new BasicBlock(BasicBlockKind.Block);
+                        var nextCase = new BasicBlockBuilder(BasicBlockKind.Block);
                         handleCase(caseClause, body, nextCase);
                         AppendNewBlock(nextCase);
                     }
@@ -4380,10 +4374,10 @@ oneMoreTime:
                 AppendNewBlock(nextSection);
             }
 
-            void handleCase(ICaseClauseOperation caseClause, BasicBlock body, BasicBlock nextCase)
+            void handleCase(ICaseClauseOperation caseClause, BasicBlockBuilder body, BasicBlockBuilder nextCase)
             {
                 IOperation condition;
-                BasicBlock labeled = GetLabeledOrNewBlock(caseClause.Label);
+                BasicBlockBuilder labeled = GetLabeledOrNewBlock(caseClause.Label);
                 LinkBlocks(labeled, body);
 
                 switch (caseClause.CaseKind)
@@ -4444,7 +4438,7 @@ oneMoreTime:
 
                         if (patternClause.Guard != null)
                         {
-                            AppendNewBlock(new BasicBlock(BasicBlockKind.Block));
+                            AppendNewBlock(new BasicBlockBuilder(BasicBlockKind.Block));
                             VisitConditionalBranch(patternClause.Guard, ref nextCase, sense: false);
                         }
 
@@ -4536,8 +4530,8 @@ oneMoreTime:
         public override IOperation VisitEnd(IEndOperation operation, int? captureIdForResult)
         {
             Debug.Assert(_currentStatement == operation);
-            BasicBlock current = CurrentBasicBlock;
-            AppendNewBlock(new BasicBlock(BasicBlockKind.Block), linkToPrevious: false);
+            BasicBlockBuilder current = CurrentBasicBlock;
+            AppendNewBlock(new BasicBlockBuilder(BasicBlockKind.Block), linkToPrevious: false);
             Debug.Assert(current.InternalNext.Value == null);
             Debug.Assert(current.InternalNext.Branch.Destination == null);
             Debug.Assert(current.InternalNext.Branch.Kind == ControlFlowBranchSemantics.None);
@@ -4580,7 +4574,7 @@ oneMoreTime:
                 VisitStatements(initialization);
             }
 
-            var start = new BasicBlock(BasicBlockKind.Block);
+            var start = new BasicBlockBuilder(BasicBlockKind.Block);
             AppendNewBlock(start);
 
             EnterRegion(new RegionBuilder(ControlFlowRegionKind.LocalLifetime, locals: operation.ConditionLocals));
@@ -4654,10 +4648,10 @@ oneMoreTime:
             ILocalSymbol localSymbol = declarator.Symbol;
 
             // If the local is a static (possible in VB), then we create a semaphore for conditional execution of the initializer.
-            BasicBlock afterInitialization = null;
+            BasicBlockBuilder afterInitialization = null;
             if (localSymbol.IsStatic && (declarator.Initializer != null || declaration.Initializer != null))
             {
-                afterInitialization = new BasicBlock(BasicBlockKind.Block);
+                afterInitialization = new BasicBlockBuilder(BasicBlockKind.Block);
 
                 ITypeSymbol booleanType = ((Operation)declaration).SemanticModel.Compilation.GetSpecialType(SpecialType.System_Boolean);
                 var initializationSemaphore = new StaticLocalInitializationSemaphoreOperation(localSymbol, declarator.Syntax, booleanType);

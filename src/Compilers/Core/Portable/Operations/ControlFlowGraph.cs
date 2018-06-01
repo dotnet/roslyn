@@ -15,8 +15,6 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
     /// </summary>
     public sealed partial class ControlFlowGraph
     {
-        // PROTOTYPE(dataflow): This dictionary will hold on to the original IOperation tree and that will keep SemanticModel alive too.
-        //                      Is this a problem? Should we simply build all sub-graphs eagerly?
         private readonly ImmutableDictionary<IMethodSymbol, (ControlFlowRegion region, IOperation operation, int ordinal)> _methodsMap;
         private ControlFlowGraph[] _lazySubGraphs;
 

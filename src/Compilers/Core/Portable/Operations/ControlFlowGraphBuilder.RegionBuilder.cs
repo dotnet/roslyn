@@ -15,8 +15,8 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
             public ControlFlowRegionKind Kind;
             public RegionBuilder Enclosing { get; private set; } = null;
             public readonly ITypeSymbol ExceptionType;
-            public BasicBlock FirstBlock = null;
-            public BasicBlock LastBlock = null;
+            public BasicBlockBuilder FirstBlock = null;
+            public BasicBlockBuilder LastBlock = null;
             public ArrayBuilder<RegionBuilder> Regions = null;
             public ImmutableArray<ILocalSymbol> Locals;
             public ArrayBuilder<(IMethodSymbol, IOperation)> Methods = null;
@@ -212,7 +212,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
                 toReplace.Enclosing = null;
             }
 
-            public void ExtendToInclude(BasicBlock block)
+            public void ExtendToInclude(BasicBlockBuilder block)
             {
                 Debug.Assert((Kind != ControlFlowRegionKind.FilterAndHandler &&
                               Kind != ControlFlowRegionKind.TryAndCatch &&
@@ -256,7 +256,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
                 Methods = null;
             }
 
-            public ControlFlowRegion ToImmutableRegionAndFree(ArrayBuilder<BasicBlock> blocks,
+            public ControlFlowRegion ToImmutableRegionAndFree(ArrayBuilder<BasicBlockBuilder> blocks,
                                                                     ArrayBuilder<IMethodSymbol> methods,
                                                                     ImmutableDictionary<IMethodSymbol, (ControlFlowRegion region, IOperation operation, int ordinal)>.Builder methodsMap,
                                                                     ControlFlowRegion enclosing)
