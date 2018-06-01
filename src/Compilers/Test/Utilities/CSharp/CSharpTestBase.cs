@@ -239,10 +239,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
                 verify);
         }
 
-        protected override CompilationOptions CompilationOptionsReleaseDll
-        {
-            get { return TestOptions.ReleaseDll; }
-        }
+        internal CompilationVerifier CompileAndVerifyFieldMarshal(CSharpTestSource source, Dictionary<string, byte[]> expectedBlobs, bool isField = true) =>
+            CompileAndVerifyFieldMarshal(
+                source,
+                (s, _) =>
+                {
+                    Assert.True(expectedBlobs.ContainsKey(s), "Expecting marshalling blob for " + (isField ? "field " : "parameter ") + s);
+                    return expectedBlobs[s];
+                },
+                isField);
+
+        internal CompilationVerifier CompileAndVerifyFieldMarshal(CSharpTestSource source, Func<string, PEAssembly, byte[]> getExpectedBlob, bool isField = true) =>
+            CompileAndVerifyFieldMarshalCommon(
+                CreateCompilationWithMscorlib40(source),
+                getExpectedBlob,
+                isField);
 
         #region SyntaxTree Factories
 
@@ -517,22 +528,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
             {
                 return MetadataReference.CreateFromImage(ReadFromFile(tempAssembly.Path));
             }
-        }
-
-        protected override Compilation GetCompilationForEmit(
-            IEnumerable<string> source,
-            IEnumerable<MetadataReference> references,
-            CompilationOptions options,
-            ParseOptions parseOptions)
-        {
-            var single = new[] { MscorlibRef };
-            references = references != null ? single.Concat(references) : single;
-            return CreateEmptyCompilation(
-                source.ToArray(),
-                references: (IEnumerable<MetadataReference>)references,
-                options: (CSharpCompilationOptions)options,
-                parseOptions: (CSharpParseOptions)parseOptions,
-                assemblyName: GetUniqueName());
         }
 
         /// <summary>
