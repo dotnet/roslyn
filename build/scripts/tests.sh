@@ -22,7 +22,7 @@ if [[ "${runtime}" == "dotnet" ]]; then
     target_framework=netcoreapp2.0
     xunit_console="${nuget_dir}"/xunit.runner.console/"${xunit_console_version}"/tools/${target_framework}/xunit.console.dll
 elif [[ "${runtime}" == "mono" ]]; then
-    target_framework=net461
+    target_framework=net46
     xunit_console="${nuget_dir}"/xunit.runner.console/"${xunit_console_version}"/tools/net452/xunit.console.exe
 else
     echo "Unknown runtime: ${runtime}"
