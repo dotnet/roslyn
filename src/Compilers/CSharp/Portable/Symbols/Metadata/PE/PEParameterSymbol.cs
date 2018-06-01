@@ -649,7 +649,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             }
         }
 
-        internal override AttributeAnnotations FlowAnalysisAnnotations
+        internal override FlowAnalysisAnnotations FlowAnalysisAnnotations
         {
             get
             {
@@ -664,15 +664,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                     !_packedFlags.TryGetWellKnownAttribute(ensuresTrue, out bool hasEnsuresTrue) ||
                     !_packedFlags.TryGetWellKnownAttribute(ensuresFalse, out bool hasEnsuresFalse))
                 {
-                    AttributeAnnotations? annotations = TryGetExtraAttributeAnnotations();
+                    FlowAnalysisAnnotations? annotations = TryGetExtraAttributeAnnotations();
 
                     if (annotations.HasValue)
                     {
                         // External annotations win, if any is present on the member
-                        hasNotNullWhenTrue = (annotations & AttributeAnnotations.NotNullWhenTrue) != 0;
-                        hasNotNullWhenFalse = (annotations & AttributeAnnotations.NotNullWhenFalse) != 0;
-                        hasEnsuresTrue = (annotations & AttributeAnnotations.EnsuresTrue) != 0;
-                        hasEnsuresFalse = (annotations & AttributeAnnotations.EnsuresFalse) != 0;
+                        hasNotNullWhenTrue = (annotations & FlowAnalysisAnnotations.NotNullWhenTrue) != 0;
+                        hasNotNullWhenFalse = (annotations & FlowAnalysisAnnotations.NotNullWhenFalse) != 0;
+                        hasEnsuresTrue = (annotations & FlowAnalysisAnnotations.EnsuresTrue) != 0;
+                        hasEnsuresFalse = (annotations & FlowAnalysisAnnotations.EnsuresFalse) != 0;
                     }
                     else
                     {
@@ -694,7 +694,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                     }
                 }
 
-                return AttributeAnnotations.None.With(notNullWhenTrue: hasNotNullWhenTrue, notNullWhenFalse: hasNotNullWhenFalse,
+                return FlowAnalysisAnnotationsFacts.Create(
+                    notNullWhenTrue: hasNotNullWhenTrue, notNullWhenFalse: hasNotNullWhenFalse,
                     ensuresTrue: hasEnsuresTrue, ensuresFalse: hasEnsuresFalse);
             }
         }

@@ -127,11 +127,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                                   && !HasCallerFilePathAttribute
                                                   && HasCallerMemberNameAttribute;
 
-        internal override AttributeAnnotations FlowAnalysisAnnotations
+        internal override FlowAnalysisAnnotations FlowAnalysisAnnotations
         {
             get
             {
-                AttributeAnnotations? annotations = TryGetExtraAttributeAnnotations();
+                FlowAnalysisAnnotations? annotations = TryGetExtraAttributeAnnotations();
                 if (annotations.HasValue)
                 {
                     // PROTOTYPE(NullableReferenceTypes): Make sure this is covered by test
@@ -141,11 +141,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 CommonParameterWellKnownAttributeData attributeData = GetDecodedWellKnownAttributeData();
                 bool hasEnsuresNotNull = attributeData?.HasEnsuresNotNullAttribute == true;
 
-                return AttributeAnnotations.None
-                    .With(notNullWhenTrue: hasEnsuresNotNull || attributeData?.HasNotNullWhenTrueAttribute == true,
-                        notNullWhenFalse: hasEnsuresNotNull || attributeData?.HasNotNullWhenFalseAttribute == true,
-                        ensuresTrue: attributeData?.HasEnsuresTrueAttribute == true,
-                        ensuresFalse: attributeData?.HasEnsuresFalseAttribute == true);
+                return FlowAnalysisAnnotationsFacts.Create(
+                    notNullWhenTrue: hasEnsuresNotNull || attributeData?.HasNotNullWhenTrueAttribute == true,
+                    notNullWhenFalse: hasEnsuresNotNull || attributeData?.HasNotNullWhenFalseAttribute == true,
+                    ensuresTrue: attributeData?.HasEnsuresTrueAttribute == true,
+                    ensuresFalse: attributeData?.HasEnsuresFalseAttribute == true);
             }
         }
 

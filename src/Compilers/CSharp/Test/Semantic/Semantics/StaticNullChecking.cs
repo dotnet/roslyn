@@ -10,7 +10,7 @@ using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
-using static Microsoft.CodeAnalysis.CSharp.Symbols.AttributeAnnotations;
+using static Microsoft.CodeAnalysis.CSharp.Symbols.FlowAnalysisAnnotations;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics
 {
@@ -7272,7 +7272,7 @@ class C
             VerifyAnnotations(c, "C.MyIsNullOrEmpty", None);
         }
 
-        private static void VerifyAnnotations(Compilation compilation, string memberName, params AttributeAnnotations[] expected)
+        private static void VerifyAnnotations(Compilation compilation, string memberName, params FlowAnalysisAnnotations[] expected)
         {
             var method = compilation.GetMember<MethodSymbol>(memberName);
             Assert.True((object)method != null, $"Could not find method '{memberName}'");
@@ -7280,7 +7280,7 @@ class C
             Assert.Equal(expected, actual);
         }
 
-        private void VerifyAnnotationsAndMetadata(Compilation compilation, string memberName, params AttributeAnnotations[] expected)
+        private void VerifyAnnotationsAndMetadata(Compilation compilation, string memberName, params FlowAnalysisAnnotations[] expected)
         {
             VerifyAnnotations(compilation, memberName, expected);
 
