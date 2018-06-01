@@ -34,6 +34,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
         public ManagedCompiler()
         {
             TaskResources = ErrorString.ResourceManager;
+            LogStandardErrorAsError = true;
         }
 
         #region Properties
