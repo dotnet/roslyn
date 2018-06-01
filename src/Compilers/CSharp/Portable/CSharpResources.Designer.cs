@@ -5210,7 +5210,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Only assignment, call, increment, decrement, and new object expressions can be used as a statement.
+        ///   Looks up a localized string similar to Only assignment, call, increment, decrement, await, and new object expressions can be used as a statement.
         /// </summary>
         internal static string ERR_IllegalStatement {
             get {

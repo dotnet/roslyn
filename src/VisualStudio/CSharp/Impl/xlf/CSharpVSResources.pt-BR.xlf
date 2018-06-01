@@ -697,9 +697,9 @@
         <target state="translated">Mostrar s_ugestões de nomes</target>
         <note />
       </trans-unit>
-      <trans-unit id="Event_Hookup_Command_Handler">
-        <source>Generate Event Subscription Command Handler</source>
-        <target state="new">Generate Event Subscription Command Handler</target>
+      <trans-unit id="Generate Event Subscription">
+        <source>Generate Event Subscription</source>
+        <target state="translated">Gerar Assinatura de Evento</target>
         <note />
       </trans-unit>
       <trans-unit id="In_arithmetic_binary_operators">

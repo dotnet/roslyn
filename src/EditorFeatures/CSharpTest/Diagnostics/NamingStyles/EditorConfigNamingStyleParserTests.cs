@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.NamingStyle
             Assert.Equal("method_and_property_symbols", symbolSpec.Name);
             var expectedApplicableSymbolKindList = new[]
             {
-                new SymbolKindOrTypeKind(SymbolKind.Method),
+                new SymbolKindOrTypeKind(MethodKind.Ordinary),
                 new SymbolKindOrTypeKind(SymbolKind.Property)
             };
             AssertEx.SetEqual(expectedApplicableSymbolKindList, symbolSpec.ApplicableSymbolKindList);
@@ -59,14 +59,14 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.NamingStyle
         }
 
         [Fact]
-        public static void TestAsyncMethodsRule()
+        public static void TestAsyncMethodsAndLocalFunctionsRule()
         {
             var dictionary = new Dictionary<string, object>()
             {
                 ["dotnet_naming_rule.async_methods_must_end_with_async.severity"] = "error",
                 ["dotnet_naming_rule.async_methods_must_end_with_async.symbols"] = "method_symbols",
                 ["dotnet_naming_rule.async_methods_must_end_with_async.style"] = "end_in_async_style",
-                ["dotnet_naming_symbols.method_symbols.applicable_kinds"] = "method",
+                ["dotnet_naming_symbols.method_symbols.applicable_kinds"] = "method,local_function",
                 ["dotnet_naming_symbols.method_symbols.required_modifiers"] = "async",
                 ["dotnet_naming_style.end_in_async_style.capitalization "] = "pascal_case",
                 ["dotnet_naming_style.end_in_async_style.required_suffix"] = "Async",
@@ -82,8 +82,12 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.NamingStyle
             Assert.Equal(symbolSpec.ID, namingRule.SymbolSpecificationID);
             Assert.Equal(DiagnosticSeverity.Error, namingRule.EnforcementLevel);
             Assert.Equal("method_symbols", symbolSpec.Name);
-            Assert.Single(symbolSpec.ApplicableSymbolKindList);
-            Assert.Contains(new SymbolKindOrTypeKind(SymbolKind.Method), symbolSpec.ApplicableSymbolKindList);
+            var expectedApplicableSymbolKindList = new[]
+            {
+                new SymbolKindOrTypeKind(MethodKind.Ordinary),
+                new SymbolKindOrTypeKind(MethodKind.LocalFunction)
+            };
+            AssertEx.SetEqual(expectedApplicableSymbolKindList, symbolSpec.ApplicableSymbolKindList);
             Assert.Single(symbolSpec.RequiredModifierList);
             Assert.Contains(new ModifierKind(ModifierKindEnum.IsAsync), symbolSpec.RequiredModifierList);
             Assert.Empty(symbolSpec.ApplicableAccessibilityList);
@@ -137,7 +141,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.NamingStyle
             var expectedApplicableSymbolKindList = new[]
             {
                 new SymbolKindOrTypeKind(SymbolKind.Property),
-                new SymbolKindOrTypeKind(SymbolKind.Method),
+                new SymbolKindOrTypeKind(MethodKind.Ordinary),
                 new SymbolKindOrTypeKind(SymbolKind.Field),
                 new SymbolKindOrTypeKind(SymbolKind.Event),
                 new SymbolKindOrTypeKind(TypeKind.Delegate)
@@ -185,7 +189,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.NamingStyle
             var expectedApplicableSymbolKindList = new[]
             {
                 new SymbolKindOrTypeKind(SymbolKind.Property),
-                new SymbolKindOrTypeKind(SymbolKind.Method),
+                new SymbolKindOrTypeKind(MethodKind.Ordinary),
                 new SymbolKindOrTypeKind(SymbolKind.Field),
                 new SymbolKindOrTypeKind(SymbolKind.Event),
                 new SymbolKindOrTypeKind(TypeKind.Delegate)
@@ -232,6 +236,45 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.NamingStyle
                 new SymbolKindOrTypeKind(SymbolKind.Local),
             };
             AssertEx.SetEqual(expectedApplicableSymbolKindList, symbolSpec.ApplicableSymbolKindList);
+            Assert.Empty(symbolSpec.ApplicableAccessibilityList);
+            Assert.Empty(symbolSpec.RequiredModifierList);
+
+            Assert.Equal("camel_case_style", namingStyle.Name);
+            Assert.Equal("", namingStyle.Prefix);
+            Assert.Equal("", namingStyle.Suffix);
+            Assert.Equal("", namingStyle.WordSeparator);
+            Assert.Equal(Capitalization.CamelCase, namingStyle.CapitalizationScheme);
+        }
+
+        [Fact]
+        public static void TestLocalFunctionsAreCamelCaseRule()
+        {
+            var dictionary = new Dictionary<string, object>()
+            {
+                ["dotnet_naming_rule.local_functions_are_camel_case.severity"] = "suggestion",
+                ["dotnet_naming_rule.local_functions_are_camel_case.symbols"] = "local_functions",
+                ["dotnet_naming_rule.local_functions_are_camel_case.style"] = "camel_case_style",
+                ["dotnet_naming_symbols.local_functions.applicable_kinds"] = "local_function",
+                ["dotnet_naming_style.camel_case_style.capitalization"] = "camel_case",
+            };
+
+            var result = ParseDictionary(dictionary);
+            Assert.Single(result.NamingRules);
+            var namingRule = result.NamingRules.Single();
+            Assert.Single(result.NamingStyles);
+            var namingStyle = result.NamingStyles.Single();
+            Assert.Single(result.SymbolSpecifications);
+
+            var symbolSpec = result.SymbolSpecifications.Single();
+            Assert.Equal(namingStyle.ID, namingRule.NamingStyleID);
+            Assert.Equal(symbolSpec.ID, namingRule.SymbolSpecificationID);
+            Assert.Equal(DiagnosticSeverity.Info, namingRule.EnforcementLevel);
+
+            Assert.Equal("local_functions", symbolSpec.Name);
+            var expectedApplicableSymbolKindList = new[] { new SymbolKindOrTypeKind(MethodKind.LocalFunction) };
+            AssertEx.SetEqual(expectedApplicableSymbolKindList, symbolSpec.ApplicableSymbolKindList);
+            Assert.Empty(symbolSpec.ApplicableAccessibilityList);
+            Assert.Empty(symbolSpec.RequiredModifierList);
 
             Assert.Equal("camel_case_style", namingStyle.Name);
             Assert.Equal("", namingStyle.Prefix);

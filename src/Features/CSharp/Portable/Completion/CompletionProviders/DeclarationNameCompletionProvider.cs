@@ -221,9 +221,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             var namingStyleOptions = options.GetOption(SimplificationOptions.NamingPreferences);
             var rules = namingStyleOptions.CreateRules().NamingRules.Concat(s_BuiltInRules);
             var result = new Dictionary<string, SymbolKind>();
-            foreach (var symbolKind in declarationInfo.PossibleSymbolKinds)
+            foreach (var kind in declarationInfo.PossibleSymbolKinds)
             {
-                var kind = new SymbolKindOrTypeKind(symbolKind);
+                // There's no special glyph for local functions.
+                // We don't need to differentiate them at this point.
+                var symbolKind =
+                    kind.SymbolKind.HasValue ? kind.SymbolKind.Value :
+                    kind.MethodKind.HasValue ? SymbolKind.Method :
+                    throw ExceptionUtilities.Unreachable;
+
                 var modifiers = declarationInfo.Modifiers;
                 foreach (var rule in rules)
                 {

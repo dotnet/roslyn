@@ -7068,7 +7068,7 @@ class C
                 // (6,18): error CS8185: A declaration is not allowed in this context.
                 //         (int x1, string x2);
                 Diagnostic(ErrorCode.ERR_DeclarationExpressionNotPermitted, "string x2").WithLocation(6, 18),
-                // (6,9): error CS0201: Only assignment, call, increment, decrement, and new object expressions can be used as a statement
+                // (6,9): error CS0201: Only assignment, call, increment, decrement, await, and new object expressions can be used as a statement
                 //         (int x1, string x2);
                 Diagnostic(ErrorCode.ERR_IllegalStatement, "(int x1, string x2)").WithLocation(6, 9),
                 // (6,10): error CS0165: Use of unassigned local variable 'x1'
@@ -7381,9 +7381,9 @@ class C : EventInterface
 }
 ";
 
-            var comp2 = CompileAndVerifyWithMscorlib40(source2, expectedOutput:
+            var comp2 = CompileAndVerify(source2, targetFramework: TargetFramework.Empty, expectedOutput:
 @"True
-Handler", references: WinRtRefs.Concat(new[] { SystemRuntimeFacadeRef, ValueTupleRef, comp1.ToMetadataReference() }));
+Handler", references: WinRtRefs.Concat(new[] { ValueTupleRef, comp1.ToMetadataReference() }));
             comp2.VerifyDiagnostics();
 
             Assert.True(comp2.Compilation.GetMember<EventSymbol>("C.E").IsWindowsRuntimeEvent);
@@ -7440,13 +7440,13 @@ struct S : EventInterface
 }
 ";
 
-            var comp2 = CompileAndVerifyWithMscorlib40(source2, expectedOutput:
+            var comp2 = CompileAndVerify(source2, targetFramework: TargetFramework.Empty, expectedOutput:
 @"GetC
 1
 True
 GetC
 2
-Handler", references: WinRtRefs.Concat(new[] { SystemRuntimeFacadeRef, ValueTupleRef, comp1.ToMetadataReference() }));
+Handler", references: WinRtRefs.Concat(new[] { ValueTupleRef, comp1.ToMetadataReference() }));
             comp2.VerifyDiagnostics();
 
             Assert.True(comp2.Compilation.GetMember<EventSymbol>("S.E").IsWindowsRuntimeEvent);
