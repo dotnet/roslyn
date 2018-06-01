@@ -222,11 +222,6 @@
         <target state="translated">Speicherort des Ordners wurde nicht auf dem Datenträger gefunden.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Error_while_reading_0_colon_1">
-        <source>Error while reading '{0}': {1}</source>
-        <target state="translated">Fehler beim Lesen von "{0}": {1}</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Assembly">
         <source>Assembly </source>
         <target state="translated">Assembly </target>
@@ -1170,7 +1165,7 @@ Zusätzliche Informationen: {1}</target>
       </trans-unit>
       <trans-unit id="Collapse_regions_when_collapsing_to_definitions">
         <source>Collapse #regions when collapsing to definitions</source>
-        <target state="translated">#regions beim Reduzieren auf Definitionen ausblenden</target>
+        <target state="translated">#regions beim Reduzieren auf Definitionen zuklappen</target>
         <note />
       </trans-unit>
       <trans-unit id="Prefer_null_propagation">
@@ -1458,8 +1453,8 @@ Für die aktuelle Projektmappe ist die Option "Lightweight-Ladevorgang für Proj
         <note />
       </trans-unit>
       <trans-unit id="ErrorReadingFile">
-        <source>Error while reading a file</source>
-        <target state="translated">Fehler beim Lesen einer Datei.</target>
+        <source>Error while reading file '{0}': {1}</source>
+        <target state="translated">Fehler beim Lesen der Datei "{0}": {1}</target>
         <note />
       </trans-unit>
       <trans-unit id="ModuleHasBeenUnloaded">
@@ -1523,29 +1518,29 @@ Ich stimme allen vorstehenden Bedingungen zu:</target>
         <target state="translated">Die hier konfigurierten Einstellungen gelten nur für Ihren Computer. Verwenden Sie die .editorconfig-Dateien, um diese Einstellungen in Ihrer Projektmappe zu konfigurieren.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Snippet_Command_Handler">
-        <source>Snippet Command Handler</source>
-        <target state="new">Snippet Command Handler</target>
+      <trans-unit id="Sync_Class_View">
+        <source>Sync Class View</source>
+        <target state="translated">Synchronisierungsklassenansicht</target>
         <note />
       </trans-unit>
-      <trans-unit id="Sync_Class_View_Command_Handler">
-        <source>Sync Class View Command Handler</source>
-        <target state="new">Sync Class View Command Handler</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Manage_naming_styles">
-        <source>Manage naming styles</source>
-        <target state="new">Manage naming styles</target>
+      <trans-unit id="CantApplyChangesUnexpectedError">
+        <source>Can't apply changes -- unexpected error: '{0}'</source>
+        <target state="translated">Änderungen können nicht angewendet werden -- unerwarteter Fehler: {0}</target>
         <note />
       </trans-unit>
       <trans-unit id="Field_preferences_colon">
         <source>Field preferences:</source>
-        <target state="new">Field preferences:</target>
+        <target state="translated">Feldeinstellungen:</target>
         <note />
       </trans-unit>
       <trans-unit id="Prefer_readonly">
         <source>Prefer readonly</source>
-        <target state="new">Prefer readonly</target>
+        <target state="translated">Schreibgeschützte vorziehen</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Manage_naming_styles">
+        <source>Manage naming styles</source>
+        <target state="translated">Benennungsstile verwalten</target>
         <note />
       </trans-unit>
       <trans-unit id="Analyzing_0">
