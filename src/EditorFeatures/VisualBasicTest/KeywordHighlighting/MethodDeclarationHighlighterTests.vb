@@ -331,7 +331,7 @@ Imports System.Threading.Tasks
 Class AsyncExample
     {|Cursor:[|Async Sub|]|} Goo()
         Dim t = Task.FromResult(Task.FromResult(1))
-        Dim value = [|Await Await|] t
+        Dim value = [|Await|] [|Await|] t
     [|End Sub|]
 End Class
 
@@ -347,7 +347,7 @@ Imports System.Threading.Tasks
 Class AsyncExample
     [|Async Sub|] Goo()
         Dim t = Task.FromResult(Task.FromResult(1))
-        Dim value = {|Cursor:[|Await Await|]|} t
+        Dim value = {|Cursor:[|Await|] [|Await|]|} t
     [|End Sub|]
 End Class
 
@@ -363,7 +363,7 @@ Imports System.Threading.Tasks
 Class AsyncExample
     [|Async Sub|] Goo()
         Dim t = Task.FromResult(Task.FromResult(1))
-        Dim value = [|Await Await|] t
+        Dim value = [|Await|] [|Await|] t
     {|Cursor:[|End Sub|]|}
 End Class
 

@@ -120,7 +120,7 @@ Class AsyncExample
 
     Async Sub UseAsync()
         Dim lambda = {|Cursor:[|Async Function|]|}()
-                         [|Return Await|] AsyncMethod()
+                         [|Return|] [|Await|] AsyncMethod()
                      [|End Function|]
 
         Dim result = Await AsyncMethod()
@@ -151,7 +151,7 @@ Class AsyncExample
 
     Async Sub UseAsync()
         Dim lambda = [|Async Function|]()
-                         {|Cursor:[|Return Await|]|} AsyncMethod()
+                         {|Cursor:[|Return|] [|Await|]|} AsyncMethod()
                      [|End Function|]
 
         Dim result = Await AsyncMethod()
@@ -182,7 +182,7 @@ Class AsyncExample
 
     Async Sub UseAsync()
         Dim lambda = [|Async Function|]()
-                         [|Return Await|] AsyncMethod()
+                         [|Return|] [|Await|] AsyncMethod()
                      {|Cursor:[|End Function|]|}
 
         Dim result = Await AsyncMethod()
