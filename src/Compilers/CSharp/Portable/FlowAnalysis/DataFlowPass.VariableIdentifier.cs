@@ -51,7 +51,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             internal string GetDebuggerDisplay()
             {
-                return $"ContainingSlot={ContainingSlot}, Symbol={Symbol}";
+                return $"ContainingSlot={ContainingSlot}, Symbol={Symbol.GetDebuggerDisplay()}";
             }
         }
     }

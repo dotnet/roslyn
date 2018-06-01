@@ -133,13 +133,13 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         public BoundLocal(SyntaxNode syntax, LocalSymbol localSymbol, ConstantValue constantValueOpt, TypeSymbol type, bool hasErrors = false)
-            : this(syntax, localSymbol, false, constantValueOpt, false, type, hasErrors)
+            : this(syntax, localSymbol, BoundLocalDeclarationKind.None, constantValueOpt, false, type, hasErrors)
         {
         }
 
         public BoundLocal Update(LocalSymbol localSymbol, ConstantValue constantValueOpt, TypeSymbol type)
         {
-            return this.Update(localSymbol, this.IsDeclaration, constantValueOpt, this.IsNullableUnknown, type);
+            return this.Update(localSymbol, this.DeclarationKind, constantValueOpt, this.IsNullableUnknown, type);
         }
     }
 
