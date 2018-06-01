@@ -633,7 +633,7 @@ public class C
 internal class D
 {
     static public int d_pub;
-}", assemblyName: "Paul");
+}");
 
             CSharpCompilation c = CreateCompilation(@"
 public class A

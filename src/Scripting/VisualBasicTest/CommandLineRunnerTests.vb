@@ -145,7 +145,7 @@ System.Globalization.CultureInfo.DefaultThreadCurrentUICulture = System.Globaliz
 > System.Globalization.CultureInfo.DefaultThreadCurrentUICulture = System.Globalization.CultureInfo.GetCultureInfo(""de-DE"")
 > ? System.Math.PI
 3,1415926535897931
-> ", runner.Console.Out.ToString())
+>", runner.Console.Out.ToString())
             Finally
                 CultureInfo.DefaultThreadCurrentCulture = currentCulture
                 CultureInfo.DefaultThreadCurrentUICulture = currentUICulture

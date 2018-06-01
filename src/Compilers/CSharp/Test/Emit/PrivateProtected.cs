@@ -268,7 +268,7 @@ public class Derived // : Base
     }
 }
 ";
-            CreateCompilation(source, parseOptions: TestOptions.Regular7_2, assemblyName: "Paul")
+            CreateCompilation(source, parseOptions: TestOptions.Regular7_2)
                 .VerifyDiagnostics(
                 // (12,11): error CS0122: 'Base.Field1' is inaccessible due to its protection level
                 //         b.Field1 = 1;
@@ -354,7 +354,7 @@ struct Struct
     }
 }
 ";
-            CreateCompilation(source, parseOptions: TestOptions.Regular7_2, assemblyName: "Paul")
+            CreateCompilation(source, parseOptions: TestOptions.Regular7_2)
                 .VerifyDiagnostics(
                 // (23,29): error CS0666: 'Struct.Inner': new protected member declared in struct
                 //     private protected class Inner // error: protected not allowed in struct
