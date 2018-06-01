@@ -1450,7 +1450,7 @@ class C
             var compilation0 = CreateCompilation(
                 source,
                 options: TestOptions.DebugDll,
-                references: new[] { SystemCoreRef, CSharpRef });
+                references: new[] { CSharpRef });
 
             WithRuntimeInstance(compilation0, runtime =>
             {
@@ -1504,7 +1504,7 @@ class C
             var compilation0 = CreateCompilation(
                 source,
                 options: TestOptions.DebugDll,
-                references: new[] { SystemCoreRef, CSharpRef });
+                references: new[] { CSharpRef });
 
             WithRuntimeInstance(compilation0, runtime =>
             {
@@ -1555,7 +1555,7 @@ class C
             var compilation0 = CreateCompilation(
                 source,
                 options: TestOptions.DebugDll,
-                references: new[] { SystemCoreRef, CSharpRef });
+                references: new[] { CSharpRef });
 
             WithRuntimeInstance(compilation0, runtime =>
             {
