@@ -4741,7 +4741,7 @@ public class Test
                 // (7,30): error CS1575: A stackalloc expression requires [] after type
                 //         int *pp = stackalloc int 30;
                 Diagnostic(ErrorCode.ERR_BadStackAllocExpr, "int").WithLocation(7, 30),
-                // (7,34): error CS0201: Only assignment, call, increment, decrement, and new object expressions can be used as a statement
+                // (7,34): error CS0201: Only assignment, call, increment, decrement, await, and new object expressions can be used as a statement
                 //         int *pp = stackalloc int 30;
                 Diagnostic(ErrorCode.ERR_IllegalStatement, "30").WithLocation(7, 34)
                 );

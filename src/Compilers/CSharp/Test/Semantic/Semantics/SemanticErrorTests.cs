@@ -7441,7 +7441,7 @@ public class MyList<T>
    }
 }";
             CreateCompilation(text).VerifyDiagnostics(
-                // (9,10): error CS0201: Only assignment, call, increment, decrement, and new object expressions can be used as a statement
+                // (9,10): error CS0201: Only assignment, call, increment, decrement, await, and new object expressions can be used as a statement
                 Diagnostic(ErrorCode.ERR_IllegalStatement, "checked(i++)"));
         }
 
@@ -7460,16 +7460,16 @@ class A
     }
 }";
             CreateCompilation(text, parseOptions: TestOptions.Regular.WithTuplesFeature()).VerifyDiagnostics(
-    // (6,9): error CS0201: Only assignment, call, increment, decrement, and new object expressions can be used as a statement
+    // (6,9): error CS0201: Only assignment, call, increment, decrement, await, and new object expressions can be used as a statement
     //         (a) => a;
     Diagnostic(ErrorCode.ERR_IllegalStatement, "(a) => a").WithLocation(6, 9),
-    // (7,9): error CS0201: Only assignment, call, increment, decrement, and new object expressions can be used as a statement
+    // (7,9): error CS0201: Only assignment, call, increment, decrement, await, and new object expressions can be used as a statement
     //         (a, b) => { };
     Diagnostic(ErrorCode.ERR_IllegalStatement, "(a, b) => { }").WithLocation(7, 9),
-    // (9,9): error CS0201: Only assignment, call, increment, decrement, and new object expressions can be used as a statement
+    // (9,9): error CS0201: Only assignment, call, increment, decrement, await, and new object expressions can be used as a statement
     //         x + y; x == 1;
     Diagnostic(ErrorCode.ERR_IllegalStatement, "x + y").WithLocation(9, 9),
-    // (9,16): error CS0201: Only assignment, call, increment, decrement, and new object expressions can be used as a statement
+    // (9,16): error CS0201: Only assignment, call, increment, decrement, await, and new object expressions can be used as a statement
     //         x + y; x == 1;
     Diagnostic(ErrorCode.ERR_IllegalStatement, "x == 1").WithLocation(9, 16),
     // (4,23): error CS0161: 'A.Main()': not all code paths return a value
@@ -7494,16 +7494,16 @@ class A
 }";
             var comp = CreateCompilation(new[] { Parse(test, options: TestOptions.Regular6) }, new MetadataReference[] { });
             comp.VerifyDiagnostics(
-    // (6,9): error CS0201: Only assignment, call, increment, decrement, and new object expressions can be used as a statement
+    // (6,9): error CS0201: Only assignment, call, increment, decrement, await, and new object expressions can be used as a statement
     //         (a) => a;
     Diagnostic(ErrorCode.ERR_IllegalStatement, "(a) => a").WithLocation(6, 9),
-    // (7,9): error CS0201: Only assignment, call, increment, decrement, and new object expressions can be used as a statement
+    // (7,9): error CS0201: Only assignment, call, increment, decrement, await, and new object expressions can be used as a statement
     //         (a, b) => { };
     Diagnostic(ErrorCode.ERR_IllegalStatement, "(a, b) => { }").WithLocation(7, 9),
-    // (9,9): error CS0201: Only assignment, call, increment, decrement, and new object expressions can be used as a statement
+    // (9,9): error CS0201: Only assignment, call, increment, decrement, await, and new object expressions can be used as a statement
     //         x + y; x == 1;
     Diagnostic(ErrorCode.ERR_IllegalStatement, "x + y").WithLocation(9, 9),
-    // (9,16): error CS0201: Only assignment, call, increment, decrement, and new object expressions can be used as a statement
+    // (9,16): error CS0201: Only assignment, call, increment, decrement, await, and new object expressions can be used as a statement
     //         x + y; x == 1;
     Diagnostic(ErrorCode.ERR_IllegalStatement, "x == 1").WithLocation(9, 16),
     // (4,23): error CS0161: 'A.Main()': not all code paths return a value
@@ -23822,13 +23822,13 @@ class Program
 }
 ";
             CreateCompilationWithMscorlib45(text, options: TestOptions.ReleaseDll).VerifyDiagnostics(
-    // (8,9): error CS0201: Only assignment, call, increment, decrement, and new object expressions can be used as a statement
+    // (8,9): error CS0201: Only assignment, call, increment, decrement, await, and new object expressions can be used as a statement
     //         x?.Length;
     Diagnostic(ErrorCode.ERR_IllegalStatement, "x?.Length").WithLocation(8, 9),
-    // (9,9): error CS0201: Only assignment, call, increment, decrement, and new object expressions can be used as a statement
+    // (9,9): error CS0201: Only assignment, call, increment, decrement, await, and new object expressions can be used as a statement
     //         x?[1];
     Diagnostic(ErrorCode.ERR_IllegalStatement, "x?[1]").WithLocation(9, 9),
-    // (10,9): error CS0201: Only assignment, call, increment, decrement, and new object expressions can be used as a statement
+    // (10,9): error CS0201: Only assignment, call, increment, decrement, await, and new object expressions can be used as a statement
     //         x?.ToString()[1];
     Diagnostic(ErrorCode.ERR_IllegalStatement, "x?.ToString()[1]").WithLocation(10, 9)
                );
