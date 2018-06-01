@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles;
 using Roslyn.Test.Utilities;
+using Roslyn.Utilities;
 using Xunit;
 using static Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles.EditorConfigNamingStyleParser;
 using static Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles.SymbolSpecification;
@@ -90,7 +91,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.NamingStyle
             AssertEx.SetEqual(expectedApplicableSymbolKindList, symbolSpec.ApplicableSymbolKindList);
             Assert.Single(symbolSpec.RequiredModifierList);
             Assert.Contains(new ModifierKind(ModifierKindEnum.IsAsync), symbolSpec.RequiredModifierList);
-            Assert.Empty(symbolSpec.ApplicableAccessibilityList);
+            Assert.Equal(
+                new[] { Accessibility.Public, Accessibility.Internal, Accessibility.Private, Accessibility.Protected, Accessibility.ProtectedOrInternal },
+                symbolSpec.ApplicableAccessibilityList);
             Assert.Equal("end_in_async_style", namingStyle.Name);
             Assert.Equal("", namingStyle.Prefix);
             Assert.Equal("Async", namingStyle.Suffix);
@@ -236,7 +239,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.NamingStyle
                 new SymbolKindOrTypeKind(SymbolKind.Local),
             };
             AssertEx.SetEqual(expectedApplicableSymbolKindList, symbolSpec.ApplicableSymbolKindList);
-            Assert.Empty(symbolSpec.ApplicableAccessibilityList);
+            Assert.Equal(
+                new[] { Accessibility.Public, Accessibility.Internal, Accessibility.Private, Accessibility.Protected, Accessibility.ProtectedOrInternal },
+                symbolSpec.ApplicableAccessibilityList);
             Assert.Empty(symbolSpec.RequiredModifierList);
 
             Assert.Equal("camel_case_style", namingStyle.Name);
@@ -273,7 +278,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.NamingStyle
             Assert.Equal("local_functions", symbolSpec.Name);
             var expectedApplicableSymbolKindList = new[] { new SymbolKindOrTypeKind(MethodKind.LocalFunction) };
             AssertEx.SetEqual(expectedApplicableSymbolKindList, symbolSpec.ApplicableSymbolKindList);
-            Assert.Empty(symbolSpec.ApplicableAccessibilityList);
+            Assert.Equal(
+                new[] { Accessibility.Public, Accessibility.Internal, Accessibility.Private, Accessibility.Protected, Accessibility.ProtectedOrInternal },
+                symbolSpec.ApplicableAccessibilityList);
             Assert.Empty(symbolSpec.RequiredModifierList);
 
             Assert.Equal("camel_case_style", namingStyle.Name);
@@ -298,31 +305,79 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.NamingStyle
             Assert.Empty(result.SymbolSpecifications);
         }
 
-        [Fact]
-        public static void TestApplicableAccessibilitiesParse()
+        [Theory]
+        [InlineData("property,method", new object[] { SymbolKind.Property, MethodKind.Ordinary })]
+        [InlineData("*", new object[] { TypeKind.Class, TypeKind.Struct, TypeKind.Interface, TypeKind.Enum, SymbolKind.Property, MethodKind.Ordinary, MethodKind.LocalFunction, SymbolKind.Field, SymbolKind.Event, TypeKind.Delegate, SymbolKind.Parameter, SymbolKind.Local })]
+        [InlineData(null, new object[] { TypeKind.Class, TypeKind.Struct, TypeKind.Interface, TypeKind.Enum, SymbolKind.Property, MethodKind.Ordinary, MethodKind.LocalFunction, SymbolKind.Field, SymbolKind.Event, TypeKind.Delegate, SymbolKind.Parameter, SymbolKind.Local })]
+        [InlineData("property,method,invalid", new object[] { SymbolKind.Property, MethodKind.Ordinary })]
+        [InlineData("invalid", new object[] { })]
+        [InlineData("", new object[] { })]
+        [WorkItem(20907, "https://github.com/dotnet/roslyn/issues/20907")]
+        public static void TestApplicableKindsParse(string specification, object[] typeOrSymbolKinds)
         {
-            var charpRule = new Dictionary<string, object>()
+            var rule = new Dictionary<string, object>()
+            {
+                ["dotnet_naming_rule.kinds_parse.severity"] = "error",
+                ["dotnet_naming_rule.kinds_parse.symbols"] = "kinds",
+                ["dotnet_naming_rule.kinds_parse.style"] = "pascal_case",
+                ["dotnet_naming_style.pascal_case.capitalization "] = "pascal_case",
+            };
+
+            if (specification != null)
+            {
+                rule["dotnet_naming_symbols.kinds.applicable_kinds"] = specification;
+            }
+
+            var kinds = typeOrSymbolKinds
+                .Select(typeOrSymbolKind =>
+                {
+                    switch (typeOrSymbolKind)
+                    {
+                    case TypeKind typeKind:
+                        return new SymbolKindOrTypeKind(typeKind);
+
+                    case SymbolKind symbolKind:
+                        return new SymbolKindOrTypeKind(symbolKind);
+
+                    case MethodKind methodKind:
+                        return new SymbolKindOrTypeKind(methodKind);
+
+                    default:
+                        throw ExceptionUtilities.UnexpectedValue(typeOrSymbolKind);
+                    }
+                })
+                .ToArray();
+
+            var result = ParseDictionary(rule);
+            Assert.Equal(kinds, result.SymbolSpecifications.SelectMany(x => x.ApplicableSymbolKindList));
+        }
+
+        [Theory]
+        [InlineData("internal,protected_internal", new[] { Accessibility.Internal, Accessibility.ProtectedOrInternal })]
+        [InlineData("friend,protected_friend", new[] { Accessibility.Friend, Accessibility.ProtectedOrFriend })]
+        [InlineData("*", new[] { Accessibility.Public, Accessibility.Internal, Accessibility.Private, Accessibility.Protected, Accessibility.ProtectedOrInternal })]
+        [InlineData(null, new[] { Accessibility.Public, Accessibility.Internal, Accessibility.Private, Accessibility.Protected, Accessibility.ProtectedOrInternal })]
+        [InlineData("internal,protected,invalid", new[] { Accessibility.Internal, Accessibility.Protected })]
+        [InlineData("invalid", new Accessibility[] { })]
+        [InlineData("", new Accessibility[] { })]
+        [WorkItem(20907, "https://github.com/dotnet/roslyn/issues/20907")]
+        public static void TestApplicableAccessibilitiesParse(string specification, Accessibility[] accessibilities)
+        {
+            var rule = new Dictionary<string, object>()
             {
                 ["dotnet_naming_rule.accessibilities_parse.severity"] = "error",
                 ["dotnet_naming_rule.accessibilities_parse.symbols"] = "accessibilities",
                 ["dotnet_naming_rule.accessibilities_parse.style"] = "pascal_case",
-                ["dotnet_naming_symbols.accessibilities.applicable_accessibilities"] = "internal,protected_internal",
                 ["dotnet_naming_style.pascal_case.capitalization "] = "pascal_case",
             };
-            var vbRule = new Dictionary<string, object>()
+
+            if (specification != null)
             {
-                ["dotnet_naming_rule.accessibilities_parse.severity"] = "error",
-                ["dotnet_naming_rule.accessibilities_parse.symbols"] = "accessibilities",
-                ["dotnet_naming_rule.accessibilities_parse.style"] = "pascal_case",
-                ["dotnet_naming_symbols.accessibilities.applicable_accessibilities"] = "friend,protected_friend",
-                ["dotnet_naming_style.pascal_case.capitalization "] = "pascal_case",
-            };
+                rule["dotnet_naming_symbols.accessibilities.applicable_accessibilities"] = specification;
+            }
 
-            var csharpResult = ParseDictionary(charpRule);
-            var vbResult = ParseDictionary(vbRule);
-
-            Assert.Equal(csharpResult.SymbolSpecifications.SelectMany(x => x.ApplicableAccessibilityList),
-                         vbResult.SymbolSpecifications.SelectMany(x => x.ApplicableAccessibilityList));
+            var result = ParseDictionary(rule);
+            Assert.Equal(accessibilities, result.SymbolSpecifications.SelectMany(x => x.ApplicableAccessibilityList));
         }
 
         [Fact]

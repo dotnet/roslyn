@@ -57,8 +57,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertAutoPropertyToFu
                 null,
                 "Name",
                 ImmutableArray.Create(new SymbolSpecification.SymbolKindOrTypeKind(SymbolKind.Field)),
-                ImmutableArray<Accessibility>.Empty,
-                ImmutableArray<SymbolSpecification.ModifierKind>.Empty);
+                accessibilityList: default,
+                modifiers: default);
 
             var namingStyle = new NamingStyle(
                 Guid.NewGuid(),
@@ -89,7 +89,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertAutoPropertyToFu
                 null,
                 "Name",
                 ImmutableArray.Create(new SymbolKindOrTypeKind(SymbolKind.Field)),
-                ImmutableArray<Accessibility>.Empty,
+                accessibilityList: default,
                 ImmutableArray.Create(new ModifierKind(DeclarationModifiers.Static)));
 
             var namingStyle = new NamingStyle(

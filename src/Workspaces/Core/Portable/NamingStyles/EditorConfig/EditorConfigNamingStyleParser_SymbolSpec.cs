@@ -59,7 +59,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
                 return ParseSymbolKindList(result as string ?? string.Empty);
             }
 
-            return ImmutableArray<SymbolKindOrTypeKind>.Empty;
+            return _all;
         }
 
         private static readonly SymbolKindOrTypeKind _class = new SymbolKindOrTypeKind(TypeKind.Class);
@@ -159,7 +159,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
                 return ParseAccessibilityKindList(result as string ?? string.Empty);
             }
 
-            return ImmutableArray<Accessibility>.Empty;
+            return _allAccessibility;
         }
 
         private static readonly ImmutableArray<Accessibility> _allAccessibility = ImmutableArray.Create(Accessibility.Public, Accessibility.Internal, Accessibility.Private, Accessibility.Protected, Accessibility.ProtectedOrInternal);

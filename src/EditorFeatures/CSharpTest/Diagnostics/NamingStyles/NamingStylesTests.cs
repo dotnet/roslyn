@@ -1,11 +1,13 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CodeFixes.NamingStyles;
 using Microsoft.CodeAnalysis.CSharp.Diagnostics.NamingStyles;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics.NamingStyles;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -53,6 +55,76 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.NamingStyle
     {
     }
 }", new TestParameters(options: options.MethodNamesArePascalCase));
+        }
+
+        [Theory, Trait(Traits.Feature, Traits.Features.NamingStyle)]
+        [InlineData("")]
+        [InlineData("public")]
+        [InlineData("protected")]
+        [InlineData("internal")]
+        [InlineData("protected internal")]
+        [InlineData("private")]
+        [InlineData("protected private")]
+        [WorkItem(20907, "https://github.com/dotnet/roslyn/issues/20907")]
+        public async Task TestPascalCaseMethod_NoneAndDefaultAccessibilities(string accessibility)
+        {
+            await TestMissingInRegularAndScriptAsync(
+$@"class C
+{{
+    {accessibility} void [|m|]()
+    {{
+    }}
+}}", new TestParameters(options: options.MethodNamesWithAccessibilityArePascalCase(ImmutableArray<Accessibility>.Empty)));
+
+            await TestInRegularAndScriptAsync(
+$@"class C
+{{
+    {accessibility} void [|m|]()
+    {{
+    }}
+}}",
+$@"class C
+{{
+    {accessibility} void M()
+    {{
+    }}
+}}", options: options.MethodNamesWithAccessibilityArePascalCase(accessibilities: default));
+        }
+
+        [Theory, Trait(Traits.Feature, Traits.Features.NamingStyle)]
+        [InlineData("} namespace [|c2|] {", "} namespace C2 {")]
+        [InlineData("class [|c2|] { }", "class C2 { }")]
+        [InlineData("struct [|c2|] { }", "struct C2 { }")]
+        [InlineData("interface [|c2|] { }", "interface C2 { }")]
+        [InlineData("delegate void [|c2|]();", "delegate void C2();")]
+        [InlineData("enum [|c2|] { }", "enum C2 { }")]
+        [InlineData("class M<[|t|]> {}", "class M<T> {}", Skip = "https://github.com/dotnet/roslyn/issues/18121")]
+        [InlineData("void M<[|t|]>() {}", "void M<T>() {}", Skip = "https://github.com/dotnet/roslyn/issues/18121")]
+        [InlineData("int [|m|] { get; }", "int M { get; }")]
+        [InlineData("void [|m|]() {}", "void M() {}")]
+        [InlineData("void Outer() { void [|m|]() {} }", "void Outer() { void M() {} }")]
+        [InlineData("int [|m|];", "int M;")]
+        [InlineData("event System.EventHandler [|m|];", "event System.EventHandler M;")]
+        [InlineData("void Outer(int [|m|]) {}", "void Outer(int M) {}")]
+        [InlineData("void Outer() { int [|m|]; }", "void Outer() { int M; }")]
+        [WorkItem(20907, "https://github.com/dotnet/roslyn/issues/20907")]
+        public async Task TestPascalCaseSymbol_NoneAndDefaultSymbolKinds(string camelCaseSymbol, string pascalCaseSymbol)
+        {
+            await TestMissingInRegularAndScriptAsync(
+$@"class C
+{{
+    {camelCaseSymbol}
+}}", new TestParameters(options: options.SymbolKindsArePascalCase(ImmutableArray<SymbolSpecification.SymbolKindOrTypeKind>.Empty)));
+
+            await TestInRegularAndScriptAsync(
+$@"class C
+{{
+    {camelCaseSymbol}
+}}",
+$@"class C
+{{
+    {pascalCaseSymbol}
+}}", options: options.SymbolKindsArePascalCase(symbolKinds: default));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.NamingStyle)]

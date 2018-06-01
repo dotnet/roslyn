@@ -14,6 +14,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
 {
     internal class SymbolSpecification
     {
+        private static readonly SymbolSpecification DefaultSymbolSpecificationTemplate = CreateDefaultSymbolSpecification();
+
         public Guid ID { get; }
         public string Name { get; }
 
@@ -29,9 +31,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
         {
             ID = id ?? Guid.NewGuid();
             Name = symbolSpecName;
-            ApplicableSymbolKindList = symbolKindList;
-            ApplicableAccessibilityList = accessibilityList.NullToEmpty();
-            RequiredModifierList = modifiers.NullToEmpty();
+            ApplicableSymbolKindList = symbolKindList.IsDefault ? DefaultSymbolSpecificationTemplate.ApplicableSymbolKindList : symbolKindList;
+            ApplicableAccessibilityList = accessibilityList.IsDefault ? DefaultSymbolSpecificationTemplate.ApplicableAccessibilityList : accessibilityList;
+            RequiredModifierList = modifiers.IsDefault ? DefaultSymbolSpecificationTemplate.RequiredModifierList : modifiers;
         }
 
         public static SymbolSpecification CreateDefaultSymbolSpecification()
@@ -82,7 +84,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
 
         internal bool AppliesTo(SymbolKindOrTypeKind kind, DeclarationModifiers modifiers, Accessibility accessibility)
         {
-            if (ApplicableSymbolKindList.Any() && !ApplicableSymbolKindList.Any(k => k.Equals(kind)))
+            if (!ApplicableSymbolKindList.Any(k => k.Equals(kind)))
             {
                 return false;
             }
@@ -93,8 +95,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
                 return false;
             }
 
-            if (ApplicableAccessibilityList.Any() &&
-                accessibility != Accessibility.NotApplicable &&
+            if (accessibility != Accessibility.NotApplicable &&
                 !ApplicableAccessibilityList.Any(k => k == accessibility))
             {
                 return false;
@@ -138,11 +139,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
         private bool AnyMatches<TSymbolMatcher>(ImmutableArray<TSymbolMatcher> matchers, ISymbol symbol)
             where TSymbolMatcher : ISymbolMatcher
         {
-            if (!matchers.Any())
-            {
-                return true;
-            }
-
             foreach (var matcher in matchers)
             {
                 if (matcher.MatchesSymbol(symbol))
@@ -156,7 +152,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
 
         private bool AnyMatches(ImmutableArray<Accessibility> matchers, ISymbol symbol)
         {
-            if (!matchers.Any())
+            if (symbol.DeclaredAccessibility == Accessibility.NotApplicable)
             {
                 return true;
             }
