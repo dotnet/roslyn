@@ -1658,7 +1658,6 @@ public class C
 {
   static void Goo() {}
 }",
-                    new MetadataReference[] { MscorlibRef_v4_0_30316_17626 },
                     options: options);
 
                 using (var metadata = ModuleMetadata.CreateFromImage(other.EmitToArray()))

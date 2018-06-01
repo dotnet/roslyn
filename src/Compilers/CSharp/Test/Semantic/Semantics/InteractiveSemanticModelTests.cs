@@ -349,8 +349,7 @@ var x = from c in ""goo"" select /*<bind>*/c/*</bind>*/";
 
         private CompilationUtils.SemanticInfoSummary GetBindInfoForTest(string testSrc)
         {
-            var compilation = CreateCompilation(
-                testSrc, parseOptions: TestOptions.Script, references: new[] { SystemCoreRef });
+            var compilation = CreateCompilation(testSrc, parseOptions: TestOptions.Script);
             var tree = compilation.SyntaxTrees[0];
             var model = compilation.GetSemanticModel(tree);
             var exprSyntaxToBind = GetExprSyntaxForBinding(GetExprSyntaxList(tree));

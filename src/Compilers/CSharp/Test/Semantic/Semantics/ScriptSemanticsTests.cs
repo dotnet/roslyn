@@ -1070,7 +1070,7 @@ System.TypedReference c;
             s1.VerifyEmitDiagnostics();
 
             s2.VerifyDiagnostics(
-                // (1,1): error CS0201: Only assignment, call, increment, decrement, and new object expressions can be used as a statement
+                // (1,1): error CS0201: Only assignment, call, increment, decrement, await, and new object expressions can be used as a statement
                 Diagnostic(ErrorCode.ERR_IllegalStatement, "i* i"));
         }
 

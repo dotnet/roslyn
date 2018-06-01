@@ -1323,8 +1323,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_IllegalStatement">
-        <source>Only assignment, call, increment, decrement, and new object expressions can be used as a statement</source>
-        <target state="translated">할당, 호출, 증가, 감소 및 새 개체 식만 문으로 사용할 수 있습니다.</target>
+        <source>Only assignment, call, increment, decrement, await, and new object expressions can be used as a statement</source>
+        <target state="needs-review-translation">할당, 호출, 증가, 감소 및 새 개체 식만 문으로 사용할 수 있습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadGetEnumerator">
