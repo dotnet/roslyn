@@ -1756,9 +1756,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundNode boundNodeForSyntacticParent,
             Binder binderOpt)
         {
-            LookupResultKind resultKind;
-            ImmutableArray<Symbol> symbols;
-
             if (lowestBoundNode is BoundSubpattern subpattern)
             {
                 return GetSymbolInfoForSubpattern(subpattern);
@@ -1776,14 +1773,16 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // Get symbols and result kind from the lowest and highest nodes associated with the
             // syntax node.
-            symbols = GetSemanticSymbols(boundExpr, boundNodeForSyntacticParent, binderOpt, options, out bool isDynamic, out resultKind, out ImmutableArray<Symbol> unusedMemberGroup);
+            ImmutableArray<Symbol> symbols = GetSemanticSymbols(
+                boundExpr, boundNodeForSyntacticParent, binderOpt, options, out bool isDynamic, out LookupResultKind resultKind, out ImmutableArray<Symbol> unusedMemberGroup);
 
             if (highestBoundNode is BoundExpression highestBoundExpr)
             {
                 LookupResultKind highestResultKind;
                 bool highestIsDynamic;
                 ImmutableArray<Symbol> unusedHighestMemberGroup;
-                ImmutableArray<Symbol> highestSymbols = GetSemanticSymbols(highestBoundExpr, boundNodeForSyntacticParent, binderOpt, options, out highestIsDynamic, out highestResultKind, out unusedHighestMemberGroup);
+                ImmutableArray<Symbol> highestSymbols = GetSemanticSymbols(
+                    highestBoundExpr, boundNodeForSyntacticParent, binderOpt, options, out highestIsDynamic, out highestResultKind, out unusedHighestMemberGroup);
 
                 if ((symbols.Length != 1 || resultKind == LookupResultKind.OverloadResolutionFailure) && highestSymbols.Length > 0)
                 {
@@ -1853,7 +1852,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (subpattern.Symbol?.OriginalDefinition is ErrorTypeSymbol originalErrorType)
             {
-                return new SymbolInfo(null, originalErrorType.CandidateSymbols.CastArray<ISymbol>(), originalErrorType.ResultKind.ToCandidateReason());
+                return new SymbolInfo(symbol: null, originalErrorType.CandidateSymbols.CastArray<ISymbol>(), originalErrorType.ResultKind.ToCandidateReason());
             }
 
             return new SymbolInfo(subpattern.Symbol, CandidateReason.None);
@@ -4086,7 +4085,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>
-        /// Get the semantic info of a named argument in an invocation-like expression.
+        /// Get the semantic info of a named argument in an invocation-like expression (e.g. `x` in `M(x: 3)`)
+        /// or the name in a Subpattern (e.g. either `Name` in `e is (Name: 3){Name: 3}`).
         /// </summary>
         private SymbolInfo GetNamedArgumentSymbolInfo(IdentifierNameSyntax identifierNameSyntax, CancellationToken cancellationToken)
         {

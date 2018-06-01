@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
     [CompilerTrait(CompilerFeature.Patterns)]
     public class PatternMatchingTests3 : PatternMatchingTestBase
     {
-        void AssertEmpty(SymbolInfo info)
+        private static void AssertEmpty(SymbolInfo info)
         {
             Assert.NotNull(info);
             Assert.Null(info.Symbol);
@@ -236,7 +236,7 @@ class Program
     public static void Main()
     {
         Point p = null;
-        Console.WriteLine(p is ( X: 3, Y: 4 ));
+        Console.WriteLine(p is (X: 3, Y: 4));
     }
 }
 class Point
@@ -246,12 +246,12 @@ class Point
 ";
             var compilation = CreatePatternCompilation(source);
             compilation.VerifyDiagnostics(
-                // (8,34): error CS8417: The name 'X' does not match the corresponding 'Deconstruct' parameter 'Z'.
-                //         Console.WriteLine(p is ( X: 3, Y: 4 ));
-                Diagnostic(ErrorCode.ERR_DeconstructParameterNameMismatch, "X").WithArguments("X", "Z").WithLocation(8, 34),
-                // (8,40): error CS8417: The name 'Y' does not match the corresponding 'Deconstruct' parameter 'W'.
-                //         Console.WriteLine(p is ( X: 3, Y: 4 ));
-                Diagnostic(ErrorCode.ERR_DeconstructParameterNameMismatch, "Y").WithArguments("Y", "W").WithLocation(8, 40)
+                // (8,33): error CS8417: The name 'X' does not match the corresponding 'Deconstruct' parameter 'Z'.
+                //         Console.WriteLine(p is (X: 3, Y: 4));
+                Diagnostic(ErrorCode.ERR_DeconstructParameterNameMismatch, "X").WithArguments("X", "Z").WithLocation(8, 33),
+                // (8,39): error CS8417: The name 'Y' does not match the corresponding 'Deconstruct' parameter 'W'.
+                //         Console.WriteLine(p is (X: 3, Y: 4));
+                Diagnostic(ErrorCode.ERR_DeconstructParameterNameMismatch, "Y").WithArguments("Y", "W").WithLocation(8, 39)
                 );
             var tree = compilation.SyntaxTrees[0];
             var model = compilation.GetSemanticModel(tree);
@@ -289,7 +289,7 @@ class Program
     public static void Main()
     {
         var p = (X: 3, Y: 4);
-        Console.WriteLine(p is ( X: 3, Y: 4 ));
+        Console.WriteLine(p is (X: 3, Y: 4));
     }
 }
 ";
@@ -330,18 +330,18 @@ class Program
     public static void Main()
     {
         var p = (Z: 3, W: 4);
-        Console.WriteLine(p is ( X: 3, Y: 4 ));
+        Console.WriteLine(p is (X: 3, Y: 4));
     }
 }
 ";
             var compilation = CreatePatternCompilation(source);
             compilation.VerifyDiagnostics(
-                // (8,34): error CS8416: The name 'X' does not identify tuple element 'Item1'.
-                //         Console.WriteLine(p is ( X: 3, Y: 4 ));
-                Diagnostic(ErrorCode.ERR_TupleElementNameMismatch, "X").WithArguments("X", "Item1").WithLocation(8, 34),
-                // (8,40): error CS8416: The name 'Y' does not identify tuple element 'Item2'.
-                //         Console.WriteLine(p is ( X: 3, Y: 4 ));
-                Diagnostic(ErrorCode.ERR_TupleElementNameMismatch, "Y").WithArguments("Y", "Item2").WithLocation(8, 40)
+                // (8,33): error CS8416: The name 'X' does not identify tuple element 'Item1'.
+                //         Console.WriteLine(p is (X: 3, Y: 4));
+                Diagnostic(ErrorCode.ERR_TupleElementNameMismatch, "X").WithArguments("X", "Item1").WithLocation(8, 33),
+                // (8,39): error CS8416: The name 'Y' does not identify tuple element 'Item2'.
+                //         Console.WriteLine(p is (X: 3, Y: 4));
+                Diagnostic(ErrorCode.ERR_TupleElementNameMismatch, "Y").WithArguments("Y", "Item2").WithLocation(8, 39)
                 );
             var tree = compilation.SyntaxTrees[0];
             var model = compilation.GetSemanticModel(tree);
