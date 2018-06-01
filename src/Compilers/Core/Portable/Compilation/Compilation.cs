@@ -2927,19 +2927,23 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         public abstract IEnumerable<ISymbol> GetSymbolsWithName(Func<string, bool> predicate, SymbolFilter filter = SymbolFilter.TypeAndMember, CancellationToken cancellationToken = default(CancellationToken));
 
+#pragma warning disable RS0026 // Do not add multiple public overloads with optional parameters
         /// <summary>
         /// Return true if there is a source declaration symbol name that matches the provided name.
-        /// This may be faster than <see cref="ContainsSymbolsWithName(Func{string, bool}, SymbolFilter, CancellationToken)"/>
-        /// when predicate is just a simple string check.
+        /// This may be faster than <see cref="ContainsSymbolsWithName(Func{string, bool},
+        /// SymbolFilter, CancellationToken)"/> when predicate is just a simple string check.
+        /// <paramref name="name"/> is case sensitive or not depending on the target language.
         /// </summary>
-        internal abstract bool ContainsSymbolsWithName(string name, SymbolFilter filter = SymbolFilter.TypeAndMember, CancellationToken cancellationToken = default(CancellationToken));
+        public abstract bool ContainsSymbolsWithName(string name, SymbolFilter filter = SymbolFilter.TypeAndMember, CancellationToken cancellationToken = default(CancellationToken));
 
         /// <summary>
         /// Return source declaration symbols whose name matches the provided name.  This may be
-        /// faster than <see cref="GetSymbolsWithName(Func{string, bool}, SymbolFilter, CancellationToken)"/>
-        /// when predicate is just a simple string check.
+        /// faster than <see cref="GetSymbolsWithName(Func{string, bool}, SymbolFilter,
+        /// CancellationToken)"/> when predicate is just a simple string check.  <paramref
+        /// name="name"/> is case sensitive or not depending on the target language.
         /// </summary>
-        internal abstract IEnumerable<ISymbol> GetSymbolsWithName(string name, SymbolFilter filter = SymbolFilter.TypeAndMember, CancellationToken cancellationToken = default(CancellationToken));
+        public abstract IEnumerable<ISymbol> GetSymbolsWithName(string name, SymbolFilter filter = SymbolFilter.TypeAndMember, CancellationToken cancellationToken = default(CancellationToken));
+#pragma warning restore RS0026 // Do not add multiple public overloads with optional parameters
 
         #endregion
 
