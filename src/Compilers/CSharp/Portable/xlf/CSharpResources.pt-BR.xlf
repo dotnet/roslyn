@@ -7361,7 +7361,7 @@ Para incorporar informações de tipo de interoperabilidade para os dois assembl
                               a part of
 -modulename:&lt;string&gt;          Specify the name of the source module
 </source>
-        <target state="translated">
+        <target state="needs-review-translation">
                               Opções do Compilador do Visual C#
 
                         – ARQUIVOS DE SAÍDA –

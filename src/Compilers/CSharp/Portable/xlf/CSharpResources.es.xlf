@@ -7361,7 +7361,7 @@ Para eliminar la advertencia puede usar /reference (establezca la propiedad Embe
                               a part of
 -modulename:&lt;string&gt;          Specify the name of the source module
 </source>
-        <target state="translated">
+        <target state="needs-review-translation">
                               Opciones del compilador de Visual C#
 
                         - ARCHIVOS DE SALIDA -

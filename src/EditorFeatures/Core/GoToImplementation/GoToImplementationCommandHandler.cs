@@ -34,13 +34,13 @@ namespace Microsoft.CodeAnalysis.Editor.GoToImplementation
             _streamingPresenters = streamingPresenters;
         }
 
-        public string DisplayName => EditorFeaturesResources.Go_To_Implementation;
-
         private (Document, IFindUsagesService) GetDocumentAndService(ITextSnapshot snapshot)
         {
             var document = snapshot.GetOpenDocumentInCurrentContextWithChanges();
             return (document, document?.GetLanguageService<IFindUsagesService>());
         }
+
+        public string DisplayName => EditorFeaturesResources.Go_To_Implementation;
 
         public VSCommanding.CommandState GetCommandState(GoToImplementationCommandArgs args)
         {

@@ -7361,7 +7361,7 @@ Pour supprimer l'avertissement, vous pouvez utiliser la commande /reference (dé
                               a part of
 -modulename:&lt;string&gt;          Specify the name of the source module
 </source>
-        <target state="translated">
+        <target state="needs-review-translation">
                               Options du compilateur Visual C#
 
                         - FICHIERS DE SORTIE -
