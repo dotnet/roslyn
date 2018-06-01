@@ -1323,8 +1323,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_IllegalStatement">
-        <source>Only assignment, call, increment, decrement, and new object expressions can be used as a statement</source>
-        <target state="translated">Yalnızca atama, çağrı, artırma, azaltma ve yeni nesne ifadeleri deyim olarak kullanılabilir</target>
+        <source>Only assignment, call, increment, decrement, await, and new object expressions can be used as a statement</source>
+        <target state="needs-review-translation">Yalnızca atama, çağrı, artırma, azaltma ve yeni nesne ifadeleri deyim olarak kullanılabilir</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadGetEnumerator">
