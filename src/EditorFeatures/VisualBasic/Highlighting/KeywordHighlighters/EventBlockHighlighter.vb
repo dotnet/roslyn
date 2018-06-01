@@ -10,29 +10,24 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.KeywordHighlighting
     Friend Class EventBlockHighlighter
         Inherits AbstractKeywordHighlighter(Of SyntaxNode)
 
-        Protected Overrides Function GetHighlights(node As SyntaxNode, cancellationToken As CancellationToken) As IEnumerable(Of TextSpan)
+        Protected Overrides Iterator Function GetHighlights(node As SyntaxNode, cancellationToken As CancellationToken) As IEnumerable(Of TextSpan)
+            If cancellationToken.IsCancellationRequested Then Return
             Dim eventBlock = node.GetAncestor(Of EventBlockSyntax)()
-            If eventBlock Is Nothing Then
-                Return SpecializedCollections.EmptyEnumerable(Of TextSpan)()
-            End If
-
-            Dim highlights As New List(Of TextSpan)()
+            If eventBlock Is Nothing Then Return
 
             With eventBlock
                 With .EventStatement
                     ' This span calculation should also capture the Custom keyword
                     Dim firstKeyword = If(.Modifiers.Count > 0, .Modifiers.First(), .DeclarationKeyword)
-                    highlights.Add(TextSpan.FromBounds(firstKeyword.SpanStart, .DeclarationKeyword.Span.End))
+                    Yield TextSpan.FromBounds(firstKeyword.SpanStart, .DeclarationKeyword.Span.End)
 
-                    If .ImplementsClause IsNot Nothing Then
-                        highlights.Add(.ImplementsClause.ImplementsKeyword.Span)
-                    End If
+                    If .ImplementsClause IsNot Nothing Then Yield .ImplementsClause.ImplementsKeyword.Span
+
                 End With
 
-                highlights.Add(.EndEventStatement.Span)
+                Yield .EndEventStatement.Span
             End With
 
-            Return highlights
         End Function
     End Class
 End Namespace

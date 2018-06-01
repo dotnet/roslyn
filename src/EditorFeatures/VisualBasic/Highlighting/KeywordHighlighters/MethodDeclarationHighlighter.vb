@@ -10,13 +10,10 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.KeywordHighlighting
     Friend Class MethodDeclarationHighlighter
         Inherits AbstractKeywordHighlighter(Of SyntaxNode)
 
-        Protected Overloads Overrides Function GetHighlights(node As SyntaxNode, cancellationToken As CancellationToken) As IEnumerable(Of TextSpan)
+        Protected Overloads Overrides Iterator Function GetHighlights(node As SyntaxNode, cancellationToken As CancellationToken) As IEnumerable(Of TextSpan)
+            If cancellationToken.IsCancellationRequested Then Return
             Dim methodBlock = node.GetAncestor(Of MethodBlockBaseSyntax)()
-            If methodBlock Is Nothing OrElse Not TypeOf methodBlock.BlockStatement Is MethodStatementSyntax Then
-                Return SpecializedCollections.EmptyEnumerable(Of TextSpan)()
-            End If
-
-            Dim highlights As New List(Of TextSpan)()
+            If methodBlock Is Nothing OrElse TypeOf methodBlock.BlockStatement IsNot MethodStatementSyntax Then Return
 
             With methodBlock
                 Dim isAsync = False
@@ -27,34 +24,34 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.KeywordHighlighting
                     isIterator = .Modifiers.Any(SyntaxKind.IteratorKeyword)
 
                     Dim firstKeyword = If(.Modifiers.Count > 0, .Modifiers.First(), .DeclarationKeyword)
-                    highlights.Add(TextSpan.FromBounds(firstKeyword.SpanStart, .DeclarationKeyword.Span.End))
+                    Yield TextSpan.FromBounds(firstKeyword.SpanStart, .DeclarationKeyword.Span.End)
 
-                    If .HandlesClause IsNot Nothing Then
-                        highlights.Add(.HandlesClause.HandlesKeyword.Span)
-                    End If
+                    If .HandlesClause IsNot Nothing Then Yield .HandlesClause.HandlesKeyword.Span
+                    If .ImplementsClause IsNot Nothing Then Yield .ImplementsClause.ImplementsKeyword.Span
 
-                    If .ImplementsClause IsNot Nothing Then
-                        highlights.Add(.ImplementsClause.ImplementsKeyword.Span)
-                    End If
                 End With
 
-                highlights.AddRange(
-                    .GetRelatedStatementHighlights(
-                        blockKind:= .BlockStatement.DeclarationKeyword.Kind,
-                        checkReturns:=True))
+                For Each highlight In .GetRelatedStatementHighlights(blockKind:= .BlockStatement.DeclarationKeyword.Kind, checkReturns:=True)
+                    If cancellationToken.IsCancellationRequested Then Return
+                    Yield highlight
+                Next
 
                 If isIterator Then
-                    highlights.AddRange(.GetRelatedYieldStatementHighlights())
+                    For Each highlight In .GetRelatedYieldStatementHighlights()
+                        If cancellationToken.IsCancellationRequested Then Return
+                        Yield highlight
+                    Next
                 End If
 
                 If isAsync Then
-                    HighlightRelatedAwaits(methodBlock, highlights, cancellationToken)
+                    For Each highlight In HighlightRelatedAwaits(methodBlock, cancellationToken)
+                        If cancellationToken.IsCancellationRequested Then Return
+                        Yield highlight
+                    Next
                 End If
-
-                highlights.Add(.EndBlockStatement.Span)
+                Yield .EndBlockStatement.Span
             End With
 
-            Return highlights
         End Function
     End Class
 End Namespace

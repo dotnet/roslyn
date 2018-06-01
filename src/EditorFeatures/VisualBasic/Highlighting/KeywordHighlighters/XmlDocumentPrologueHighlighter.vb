@@ -9,19 +9,15 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.KeywordHighlighting
     <ExportHighlighter(LanguageNames.VisualBasic)>
     Friend Class XmlProcessingInstructionHighlighter
         Inherits AbstractKeywordHighlighter(Of XmlProcessingInstructionSyntax)
-
-        Protected Overloads Overrides Function GetHighlights(xmlProcessingInstruction As XmlProcessingInstructionSyntax, cancellationToken As CancellationToken) As IEnumerable(Of TextSpan)
-            Dim highlights As New List(Of TextSpan)
-
+        Protected Overrides Iterator Function GetHighlights(xmlProcessingInstruction As XmlProcessingInstructionSyntax, cancellationToken As CancellationToken) As IEnumerable(Of TextSpan)
+            If cancellationToken.IsCancellationRequested Then Return
             With xmlProcessingInstruction
                 If Not .ContainsDiagnostics AndAlso
                    Not .HasAncestor(Of DocumentationCommentTriviaSyntax)() Then
-                    highlights.Add(.LessThanQuestionToken.Span)
-                    highlights.Add(.QuestionGreaterThanToken.Span)
+                    Yield .LessThanQuestionToken.Span
+                    Yield .QuestionGreaterThanToken.Span
                 End If
             End With
-
-            Return highlights
         End Function
     End Class
 End Namespace

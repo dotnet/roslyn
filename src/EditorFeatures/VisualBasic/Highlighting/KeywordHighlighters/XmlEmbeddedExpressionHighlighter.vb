@@ -10,18 +10,15 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.KeywordHighlighting
     Friend Class XmlEmbeddedExpressionHighlighter
         Inherits AbstractKeywordHighlighter(Of XmlEmbeddedExpressionSyntax)
 
-        Protected Overloads Overrides Function GetHighlights(xmlEmbeddExpression As XmlEmbeddedExpressionSyntax, cancellationToken As CancellationToken) As IEnumerable(Of TextSpan)
-            Dim highlights As New List(Of TextSpan)
-
+        Protected Overloads Overrides Iterator Function GetHighlights(xmlEmbeddExpression As XmlEmbeddedExpressionSyntax, cancellationToken As CancellationToken) As IEnumerable(Of TextSpan)
+            If cancellationToken.IsCancellationRequested Then Return
             With xmlEmbeddExpression
                 If Not .ContainsDiagnostics AndAlso
                    Not .HasAncestor(Of DocumentationCommentTriviaSyntax)() Then
-                    highlights.Add(.LessThanPercentEqualsToken.Span)
-                    highlights.Add(.PercentGreaterThanToken.Span)
+                    Yield .LessThanPercentEqualsToken.Span
+                    Yield .PercentGreaterThanToken.Span
                 End If
             End With
-
-            Return highlights
         End Function
     End Class
 End Namespace

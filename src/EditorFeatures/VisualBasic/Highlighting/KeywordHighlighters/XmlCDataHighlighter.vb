@@ -10,18 +10,15 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.KeywordHighlighting
     Friend Class XmlCDataHighlighter
         Inherits AbstractKeywordHighlighter(Of XmlCDataSectionSyntax)
 
-        Protected Overloads Overrides Function GetHighlights(xmlComment As XmlCDataSectionSyntax, cancellationToken As CancellationToken) As IEnumerable(Of TextSpan)
-            Dim highlights As New List(Of TextSpan)
-
+        Protected Overloads Overrides Iterator Function GetHighlights(xmlComment As XmlCDataSectionSyntax, cancellationToken As CancellationToken) As IEnumerable(Of TextSpan)
+            If cancellationToken.IsCancellationRequested Then Return
             With xmlComment
                 If Not .ContainsDiagnostics AndAlso
                    Not .HasAncestor(Of DocumentationCommentTriviaSyntax)() Then
-                    highlights.Add(.BeginCDataToken.Span)
-                    highlights.Add(.EndCDataToken.Span)
+                    Yield .BeginCDataToken.Span
+                    Yield .EndCDataToken.Span
                 End If
             End With
-
-            Return highlights
         End Function
     End Class
 End Namespace

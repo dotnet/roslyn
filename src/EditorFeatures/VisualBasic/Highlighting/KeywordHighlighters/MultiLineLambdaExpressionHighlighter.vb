@@ -10,13 +10,10 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.KeywordHighlighting
     Friend Class MultiLineLambdaExpressionHighlighter
         Inherits AbstractKeywordHighlighter(Of SyntaxNode)
 
-        Protected Overloads Overrides Function GetHighlights(node As SyntaxNode, cancellationToken As CancellationToken) As IEnumerable(Of TextSpan)
+        Protected Overloads Overrides Iterator Function GetHighlights(node As SyntaxNode, cancellationToken As CancellationToken) As IEnumerable(Of TextSpan)
+            If cancellationToken.IsCancellationRequested Then Return
             Dim lambdaExpression = node.GetAncestor(Of MultiLineLambdaExpressionSyntax)()
-            If lambdaExpression Is Nothing Then
-                Return SpecializedCollections.EmptyEnumerable(Of TextSpan)()
-            End If
-
-            Dim highlights As New List(Of TextSpan)()
+            If lambdaExpression Is Nothing Then Return
 
             With lambdaExpression
                 Dim isAsync = False
@@ -27,26 +24,31 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.KeywordHighlighting
                     isIterator = .Modifiers.Any(SyntaxKind.IteratorKeyword)
 
                     Dim firstKeyword = If(.Modifiers.Count > 0, .Modifiers.First(), .DeclarationKeyword)
-                    highlights.Add(TextSpan.FromBounds(firstKeyword.SpanStart, .DeclarationKeyword.Span.End))
+                    Yield TextSpan.FromBounds(firstKeyword.SpanStart, .DeclarationKeyword.Span.End)
                 End With
 
-                highlights.AddRange(
-                    .GetRelatedStatementHighlights(
-                        blockKind:= .SubOrFunctionHeader.DeclarationKeyword.Kind,
-                        checkReturns:=True))
+                For Each highlight In .GetRelatedStatementHighlights(blockKind:= .SubOrFunctionHeader.DeclarationKeyword.Kind, checkReturns:=True)
+                    If cancellationToken.IsCancellationRequested Then Return
+                    Yield highlight
+                Next
 
                 If isIterator Then
-                    highlights.AddRange(.GetRelatedYieldStatementHighlights())
+                    For Each highlight In .GetRelatedYieldStatementHighlights()
+                        If cancellationToken.IsCancellationRequested Then Return
+                        Yield highlight
+                    Next
                 End If
 
                 If isAsync Then
-                    HighlightRelatedAwaits(lambdaExpression, highlights, cancellationToken)
+                    For Each highlight In HighlightRelatedAwaits(lambdaExpression, cancellationToken)
+                        If cancellationToken.IsCancellationRequested Then Return
+                        Yield highlight
+                    Next
                 End If
 
-                highlights.Add(.EndSubOrFunctionStatement.Span)
+                Yield .EndSubOrFunctionStatement.Span
             End With
 
-            Return highlights
         End Function
     End Class
 End Namespace

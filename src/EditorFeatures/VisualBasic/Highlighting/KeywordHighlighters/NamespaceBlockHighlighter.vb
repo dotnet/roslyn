@@ -10,15 +10,14 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.KeywordHighlighting
     Friend Class NamespaceBlockHighlighter
         Inherits AbstractKeywordHighlighter(Of SyntaxNode)
 
-        Protected Overrides Function GetHighlights(node As SyntaxNode, cancellationToken As CancellationToken) As IEnumerable(Of TextSpan)
+        Protected Overrides Iterator Function GetHighlights(node As SyntaxNode, cancellationToken As CancellationToken) As IEnumerable(Of TextSpan)
+            If cancellationToken.IsCancellationRequested Then Return
             Dim namespaceBlock = node.GetAncestor(Of NamespaceBlockSyntax)()
-            If namespaceBlock Is Nothing Then
-                Return SpecializedCollections.EmptyEnumerable(Of TextSpan)()
-            End If
+            If namespaceBlock Is Nothing Then Return
 
             With namespaceBlock
-                Return { .NamespaceStatement.NamespaceKeyword.Span,
-                        .EndNamespaceStatement.Span}
+                Yield .NamespaceStatement.NamespaceKeyword.Span
+                Yield .EndNamespaceStatement.Span
             End With
         End Function
     End Class

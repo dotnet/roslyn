@@ -10,15 +10,13 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.KeywordHighlighting
     Friend Class SyncLockBlockHighlighter
         Inherits AbstractKeywordHighlighter(Of SyntaxNode)
 
-        Protected Overloads Overrides Function GetHighlights(node As SyntaxNode, cancellationToken As CancellationToken) As IEnumerable(Of TextSpan)
+        Protected Overloads Overrides Iterator Function GetHighlights(node As SyntaxNode, cancellationToken As CancellationToken) As IEnumerable(Of TextSpan)
+            If cancellationToken.IsCancellationRequested Then Return
             Dim syncLockBlock = node.GetAncestor(Of SyncLockBlockSyntax)()
-            If syncLockBlock Is Nothing Then
-                Return SpecializedCollections.EmptyEnumerable(Of TextSpan)()
-            End If
-
+            If syncLockBlock Is Nothing Then Return
             With syncLockBlock
-                Return { .SyncLockStatement.SyncLockKeyword.Span,
-                        .EndSyncLockStatement.Span}
+                Yield .SyncLockStatement.SyncLockKeyword.Span
+                Yield .EndSyncLockStatement.Span
             End With
         End Function
     End Class

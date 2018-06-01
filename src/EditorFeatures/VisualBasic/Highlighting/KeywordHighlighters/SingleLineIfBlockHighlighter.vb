@@ -10,18 +10,13 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.KeywordHighlighting
     Friend Class SingleLineIfBlockHighlighter
         Inherits AbstractKeywordHighlighter(Of SingleLineIfStatementSyntax)
 
-        Protected Overloads Overrides Function GetHighlights(ifStatement As SingleLineIfStatementSyntax, cancellationToken As CancellationToken) As IEnumerable(Of TextSpan)
-            Dim highlights As New List(Of TextSpan)
-
-            highlights.Add(ifStatement.IfKeyword.Span)
-
-            highlights.Add(ifStatement.ThenKeyword.Span)
-
-            If ifStatement.ElseClause IsNot Nothing Then
-                highlights.Add(ifStatement.ElseClause.ElseKeyword.Span)
-            End If
-
-            Return highlights
+        Protected Overloads Overrides Iterator Function GetHighlights(ifStatement As SingleLineIfStatementSyntax, cancellationToken As CancellationToken) As IEnumerable(Of TextSpan)
+            If cancellationToken.IsCancellationRequested Then Return
+            With ifStatement
+                Yield .IfKeyword.Span
+                Yield .ThenKeyword.Span
+                If .ElseClause IsNot Nothing Then Yield .ElseClause.ElseKeyword.Span
+            End With
         End Function
     End Class
 End Namespace

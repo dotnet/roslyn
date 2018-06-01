@@ -10,28 +10,20 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.KeywordHighlighting
     Friend Class PropertyBlockHighlighter
         Inherits AbstractKeywordHighlighter(Of SyntaxNode)
 
-        Protected Overrides Function GetHighlights(node As SyntaxNode, cancellationToken As CancellationToken) As IEnumerable(Of TextSpan)
+        Protected Overrides Iterator Function GetHighlights(node As SyntaxNode, cancellationToken As CancellationToken) As IEnumerable(Of TextSpan)
+            If cancellationToken.IsCancellationRequested Then Return
             Dim propertyBlock = node.GetAncestor(Of PropertyBlockSyntax)()
-            If propertyBlock Is Nothing Then
-                Return SpecializedCollections.EmptyEnumerable(Of TextSpan)()
-            End If
-
-            Dim highlights As New List(Of TextSpan)()
+            If propertyBlock Is Nothing Then Return
 
             With propertyBlock
                 With .PropertyStatement
                     Dim firstKeyword = If(.Modifiers.Count > 0, .Modifiers.First(), .DeclarationKeyword)
-                    highlights.Add(TextSpan.FromBounds(firstKeyword.SpanStart, .DeclarationKeyword.Span.End))
-
-                    If .ImplementsClause IsNot Nothing Then
-                        highlights.Add(.ImplementsClause.ImplementsKeyword.Span)
-                    End If
+                    Yield TextSpan.FromBounds(firstKeyword.SpanStart, .DeclarationKeyword.Span.End)
+                    If .ImplementsClause IsNot Nothing Then Yield .ImplementsClause.ImplementsKeyword.Span
                 End With
-
-                highlights.Add(.EndPropertyStatement.Span)
+                Yield .EndPropertyStatement.Span
             End With
 
-            Return highlights
         End Function
     End Class
 End Namespace

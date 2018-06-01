@@ -10,9 +10,8 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.KeywordHighlighting
     Friend Class XmlElementHighlighter
         Inherits AbstractKeywordHighlighter(Of XmlNodeSyntax)
 
-        Protected Overloads Overrides Function GetHighlights(node As XmlNodeSyntax, cancellationToken As CancellationToken) As IEnumerable(Of TextSpan)
-            Dim highlights As New List(Of TextSpan)
-
+        Protected Overloads Overrides Iterator Function GetHighlights(node As XmlNodeSyntax, cancellationToken As CancellationToken) As IEnumerable(Of TextSpan)
+            If cancellationToken.IsCancellationRequested Then Return
             Dim xmlElement = node.GetAncestor(Of XmlElementSyntax)()
             With xmlElement
                 If xmlElement IsNot Nothing AndAlso
@@ -21,18 +20,16 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.KeywordHighlighting
 
                     With .StartTag
                         If .Attributes.Count = 0 Then
-                            highlights.Add(.Span)
+                            Yield .Span
                         Else
-                            highlights.Add(TextSpan.FromBounds(.LessThanToken.SpanStart, .Name.Span.End))
-                            highlights.Add(.GreaterThanToken.Span)
+                            Yield TextSpan.FromBounds(.LessThanToken.SpanStart, .Name.Span.End)
+                            Yield .GreaterThanToken.Span
                         End If
                     End With
-                    highlights.Add(.EndTag.Span)
+                    Yield .EndTag.Span
                 End If
 
             End With
-
-            Return highlights
         End Function
     End Class
 End Namespace

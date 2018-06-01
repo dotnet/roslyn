@@ -10,45 +10,37 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.KeywordHighlighting
     Friend Class SelectBlockHighlighter
         Inherits AbstractKeywordHighlighter(Of SyntaxNode)
 
-        Protected Overloads Overrides Function GetHighlights(node As SyntaxNode, cancellationToken As CancellationToken) As IEnumerable(Of TextSpan)
-            If node.IsIncorrectExitStatement(SyntaxKind.ExitSelectStatement) Then
-                Return SpecializedCollections.EmptyEnumerable(Of TextSpan)()
-            End If
+        Protected Overloads Overrides Iterator Function GetHighlights(node As SyntaxNode, cancellationToken As CancellationToken) As IEnumerable(Of TextSpan)
+            If node.IsIncorrectExitStatement(SyntaxKind.ExitSelectStatement) Then Return
 
             Dim selectBlock = node.GetAncestor(Of SelectBlockSyntax)()
-            If selectBlock Is Nothing Then
-                Return SpecializedCollections.EmptyEnumerable(Of TextSpan)()
-            End If
-
-            Dim highlights As New List(Of TextSpan)
+            If selectBlock Is Nothing Then Return
 
             With selectBlock
                 With .SelectStatement
-                    highlights.Add(
-                        TextSpan.FromBounds(
-                            .SelectKeyword.SpanStart,
-                            If(.CaseKeyword.Kind <> SyntaxKind.None, .CaseKeyword, .SelectKeyword).Span.End))
+                    Yield TextSpan.FromBounds(.SelectKeyword.SpanStart, If(.CaseKeyword.Kind <> SyntaxKind.None, .CaseKeyword, .SelectKeyword).Span.End)
                 End With
 
                 For Each caseBlock In .CaseBlocks
+                    If cancellationToken.IsCancellationRequested Then Return
                     With caseBlock.CaseStatement
                         If caseBlock.Kind = SyntaxKind.CaseElseBlock Then
                             Dim elseKeyword = DirectCast(.Cases.First(), ElseCaseClauseSyntax).ElseKeyword
-                            highlights.Add(TextSpan.FromBounds(.CaseKeyword.SpanStart, elseKeyword.Span.End))
+                            Yield TextSpan.FromBounds(.CaseKeyword.SpanStart, elseKeyword.Span.End)
                         Else
-                            highlights.Add(.CaseKeyword.Span)
+                            Yield .CaseKeyword.Span
                         End If
                     End With
 
-                    highlights.AddRange(
-                        caseBlock.GetRelatedStatementHighlights(
-                            blockKind:=SyntaxKind.SelectKeyword))
+                    For Each highlight In caseBlock.GetRelatedStatementHighlights(blockKind:=SyntaxKind.SelectKeyword)
+                        If cancellationToken.IsCancellationRequested Then Return
+                        Yield highlight
+                    Next
                 Next
 
-                highlights.Add(.EndSelectStatement.Span)
+                Yield .EndSelectStatement.Span
             End With
 
-            Return highlights
         End Function
 
     End Class

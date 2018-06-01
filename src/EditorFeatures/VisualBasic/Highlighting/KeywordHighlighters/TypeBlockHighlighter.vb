@@ -10,34 +10,29 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.KeywordHighlighting
     Friend Class TypeBlockHighlighter
         Inherits AbstractKeywordHighlighter(Of SyntaxNode)
 
-        Protected Overloads Overrides Function GetHighlights(node As SyntaxNode, cancellationToken As CancellationToken) As IEnumerable(Of TextSpan)
+        Protected Overloads Overrides Iterator Function GetHighlights(node As SyntaxNode, cancellationToken As CancellationToken) As IEnumerable(Of TextSpan)
+            If cancellationToken.IsCancellationRequested Then Return
             Dim endBlockStatement = TryCast(node, EndBlockStatementSyntax)
             If endBlockStatement IsNot Nothing Then
                 If Not endBlockStatement.IsKind(SyntaxKind.EndClassStatement,
                                                 SyntaxKind.EndInterfaceStatement,
                                                 SyntaxKind.EndModuleStatement,
                                                 SyntaxKind.EndStructureStatement) Then
-                    Return SpecializedCollections.EmptyEnumerable(Of TextSpan)()
+                    Return
                 End If
             End If
 
             Dim typeBlock = node.GetAncestor(Of TypeBlockSyntax)()
-            If typeBlock Is Nothing Then
-                Return SpecializedCollections.EmptyEnumerable(Of TextSpan)()
-            End If
-
-            Dim highlights As New List(Of TextSpan)
+            If typeBlock Is Nothing Then Return
 
             With typeBlock
                 With .BlockStatement
                     Dim firstKeyword = If(.Modifiers.Count > 0, .Modifiers.First(), .DeclarationKeyword)
-                    highlights.Add(TextSpan.FromBounds(firstKeyword.SpanStart, .DeclarationKeyword.Span.End))
+                    Yield TextSpan.FromBounds(firstKeyword.SpanStart, .DeclarationKeyword.Span.End)
                 End With
 
-                highlights.Add(.EndBlockStatement.Span)
+                Yield .EndBlockStatement.Span
             End With
-
-            Return highlights
         End Function
     End Class
 End Namespace

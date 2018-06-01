@@ -10,31 +10,24 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.KeywordHighlighting
     Friend Class EnumBlockHighlighter
         Inherits AbstractKeywordHighlighter(Of SyntaxNode)
 
-        Protected Overloads Overrides Function GetHighlights(node As SyntaxNode, cancellationToken As CancellationToken) As IEnumerable(Of TextSpan)
+        Protected Overloads Overrides Iterator Function GetHighlights(node As SyntaxNode, cancellationToken As CancellationToken) As IEnumerable(Of TextSpan)
+            If cancellationToken.IsCancellationRequested Then Return
             Dim endBlockStatement = TryCast(node, EndBlockStatementSyntax)
-            If endBlockStatement IsNot Nothing Then
-                If endBlockStatement.Kind <> SyntaxKind.EndEnumStatement Then
-                    Return SpecializedCollections.EmptyEnumerable(Of TextSpan)()
-                End If
-            End If
+            If endBlockStatement IsNot Nothing AndAlso endBlockStatement.Kind <> SyntaxKind.EndEnumStatement Then Return
+
 
             Dim enumBlock = node.GetAncestor(Of EnumBlockSyntax)()
-            If enumBlock Is Nothing Then
-                Return SpecializedCollections.EmptyEnumerable(Of TextSpan)()
-            End If
-
-            Dim highlights As New List(Of TextSpan)
+            If enumBlock Is Nothing Then Return
 
             With enumBlock
                 With .EnumStatement
                     Dim firstKeyword = If(.Modifiers.Count > 0, .Modifiers.First(), .EnumKeyword)
-                    highlights.Add(TextSpan.FromBounds(firstKeyword.SpanStart, .EnumKeyword.Span.End))
+                    Yield TextSpan.FromBounds(firstKeyword.SpanStart, .EnumKeyword.Span.End)
                 End With
 
-                highlights.Add(.EndEnumStatement.Span)
+                Yield .EndEnumStatement.Span
             End With
 
-            Return highlights
         End Function
     End Class
 End Namespace

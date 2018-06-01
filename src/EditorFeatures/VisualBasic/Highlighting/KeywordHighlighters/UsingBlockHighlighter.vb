@@ -10,15 +10,13 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.KeywordHighlighting
     Friend Class UsingBlockHighlighter
         Inherits AbstractKeywordHighlighter(Of SyntaxNode)
 
-        Protected Overloads Overrides Function GetHighlights(node As SyntaxNode, cancellationToken As CancellationToken) As IEnumerable(Of TextSpan)
+        Protected Overloads Overrides Iterator Function GetHighlights(node As SyntaxNode, cancellationToken As CancellationToken) As IEnumerable(Of TextSpan)
+            If cancellationToken.IsCancellationRequested Then Return
             Dim usingBlock = node.GetAncestor(Of UsingBlockSyntax)()
-            If usingBlock Is Nothing Then
-                Return SpecializedCollections.EmptyEnumerable(Of TextSpan)()
-            End If
-
+            If usingBlock Is Nothing Then Return
             With usingBlock
-                Return { .UsingStatement.UsingKeyword.Span,
-                        .EndUsingStatement.Span}
+                Yield .UsingStatement.UsingKeyword.Span
+                Yield .EndUsingStatement.Span
             End With
         End Function
     End Class

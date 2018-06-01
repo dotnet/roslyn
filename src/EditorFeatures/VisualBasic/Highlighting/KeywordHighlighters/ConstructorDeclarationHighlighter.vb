@@ -10,29 +10,25 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.KeywordHighlighting
     Friend Class ConstructorDeclarationHighlighter
         Inherits AbstractKeywordHighlighter(Of SyntaxNode)
 
-        Protected Overloads Overrides Function GetHighlights(node As SyntaxNode, cancellationToken As CancellationToken) As IEnumerable(Of TextSpan)
+        Protected Overloads Overrides Iterator Function GetHighlights(node As SyntaxNode, cancellationToken As CancellationToken) As IEnumerable(Of TextSpan)
+            If cancellationToken.IsCancellationRequested Then Return
             Dim methodBlock = node.GetAncestor(Of MethodBlockBaseSyntax)()
-            If methodBlock Is Nothing OrElse Not TypeOf methodBlock.BlockStatement Is SubNewStatementSyntax Then
-                Return SpecializedCollections.EmptyEnumerable(Of TextSpan)()
-            End If
-
-            Dim highlights As New List(Of TextSpan)()
+            If methodBlock Is Nothing OrElse Not TypeOf methodBlock.BlockStatement Is SubNewStatementSyntax Then Return
 
             With methodBlock
                 With DirectCast(.BlockStatement, SubNewStatementSyntax)
                     Dim firstKeyword = If(.Modifiers.Count > 0, .Modifiers.First(), .DeclarationKeyword)
-                    highlights.Add(TextSpan.FromBounds(firstKeyword.SpanStart, .NewKeyword.Span.End))
+                    Yield TextSpan.FromBounds(firstKeyword.SpanStart, .NewKeyword.Span.End)
                 End With
 
-                highlights.AddRange(
-                    methodBlock.GetRelatedStatementHighlights(
-                        blockKind:=SyntaxKind.SubKeyword,
-                        checkReturns:=True))
+                For Each highlight In .GetRelatedStatementHighlights(blockKind:=SyntaxKind.SubKeyword, checkReturns:=True)
+                    If cancellationToken.IsCancellationRequested Then Return
+                    Yield highlight
+                Next
 
-                highlights.Add(.EndBlockStatement.Span)
+                Yield .EndBlockStatement.Span
+
             End With
-
-            Return highlights
         End Function
     End Class
 End Namespace

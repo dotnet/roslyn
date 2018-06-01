@@ -8,127 +8,103 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.KeywordHighlighting
     Friend Module KeywordHighlightingHelpers
 
-        Private Sub HighlightRelatedStatements(Of T As SyntaxNode)(
-            node As SyntaxNode,
-            highlights As List(Of TextSpan),
-            blockKind As SyntaxKind,
-            checkReturns As Boolean)
+        Private Iterator Function HighlightRelatedStatements(Of T As SyntaxNode)(
+                                                                                  thisnode As SyntaxNode,
+                                                                                  blockKind As SyntaxKind,
+                                                                                  checkReturns As Boolean
+                                                                                ) As IEnumerable(Of TextSpan)
+            Dim nodes As New LinkedList(Of SyntaxNode)
+            nodes.AddFirst(thisnode)
+            While nodes.Count > 0
+                Dim node = nodes(0)
+                nodes.RemoveFirst()
 
-            If blockKind <> SyntaxKind.None AndAlso TypeOf node Is ExitStatementSyntax Then
-                With DirectCast(node, ExitStatementSyntax)
-                    If .BlockKeyword.Kind = blockKind Then
-                        highlights.Add(.Span)
-                    End If
-                End With
-            ElseIf blockKind <> SyntaxKind.None AndAlso TypeOf node Is ContinueStatementSyntax Then
-                With DirectCast(node, ContinueStatementSyntax)
-                    If .BlockKeyword.Kind = blockKind Then
-                        highlights.Add(.Span)
-                    End If
-                End With
-            ElseIf checkReturns AndAlso TypeOf node Is ReturnStatementSyntax Then
-                With DirectCast(node, ReturnStatementSyntax)
-                    highlights.Add(.ReturnKeyword.Span)
-                End With
-            Else
-                For Each child In node.ChildNodes()
-                    If Not TypeOf child Is T AndAlso
-                       Not TypeOf child Is LambdaExpressionSyntax Then
-
-                        HighlightRelatedStatements(Of T)(child, highlights, blockKind, checkReturns)
-                    End If
-                Next
-            End If
-        End Sub
+                If blockKind <> SyntaxKind.None AndAlso TypeOf node Is ExitStatementSyntax Then
+                    With DirectCast(node, ExitStatementSyntax)
+                        If .BlockKeyword.Kind = blockKind Then Yield .Span
+                    End With
+                ElseIf blockKind <> SyntaxKind.None AndAlso TypeOf node Is ContinueStatementSyntax Then
+                    With DirectCast(node, ContinueStatementSyntax)
+                        If .BlockKeyword.Kind = blockKind Then Yield .Span
+                    End With
+                ElseIf checkReturns AndAlso TypeOf node Is ReturnStatementSyntax Then
+                    With DirectCast(node, ReturnStatementSyntax)
+                        Yield .ReturnKeyword.Span
+                    End With
+                Else
+                    Dim children = node.ChildNodes.Where(Function(child) TypeOf child IsNot T AndAlso TypeOf child IsNot LambdaExpressionSyntax)
+                    nodes.AddRangeAtHead(children)
+                End If
+            End While
+        End Function
 
         <Extension()>
         Friend Function GetRelatedStatementHighlights(Of T As SyntaxNode)(
-            node As T,
-            blockKind As SyntaxKind,
-            Optional checkReturns As Boolean = False) As IEnumerable(Of TextSpan)
+                                                                           node As T,
+                                                                           blockKind As SyntaxKind,
+                                                                  Optional checkReturns As Boolean = False
+                                                                         ) As IEnumerable(Of TextSpan)
 
-            Dim highlights As New List(Of TextSpan)
-            HighlightRelatedStatements(Of T)(node, highlights, blockKind, checkReturns)
-            Return highlights
+            Return HighlightRelatedStatements(Of T)(node, blockKind, checkReturns)
         End Function
 
         <Extension()>
         Friend Function IsIncorrectContinueStatement(node As SyntaxNode, expectedKind As SyntaxKind) As Boolean
             Dim continueStatement = TryCast(node, ContinueStatementSyntax)
-            If continueStatement IsNot Nothing Then
-                Return continueStatement.Kind <> expectedKind
-            End If
-
-            Return False
+            Return (continueStatement IsNot Nothing) AndAlso (continueStatement.Kind <> expectedKind)
         End Function
 
         <Extension()>
         Friend Function IsIncorrectExitStatement(node As SyntaxNode, expectedKind As SyntaxKind) As Boolean
             Dim exitStatement = TryCast(node, ExitStatementSyntax)
-            If exitStatement IsNot Nothing Then
-                Return exitStatement.Kind <> expectedKind
-            End If
-
-            Return False
+            Return (exitStatement IsNot Nothing) AndAlso (exitStatement.Kind <> expectedKind)
         End Function
 
         <Extension>
-        Friend Sub HighlightRelatedAwaits(node As SyntaxNode, highlights As List(Of TextSpan), cancellationToken As CancellationToken)
-            If TypeOf node Is AwaitExpressionSyntax Then
-                With DirectCast(node, AwaitExpressionSyntax)
-                    ' If there is already a highlight for the previous token and it is on the same line,
-                    ' we should expand the span of that highlight to include the Await keyword.
-                    ' Otherwise, just add the Await keyword span.
+        Friend Iterator Function HighlightRelatedAwaits(thisnode As SyntaxNode, cancellationToken As CancellationToken) As IEnumerable(Of TextSpan)
+            If cancellationToken.IsCancellationRequested Then Return
 
-                    Dim handled = False
-                    Dim previousToken = .AwaitKeyword.GetPreviousToken()
-                    If Not previousToken.Span.IsEmpty Then
-                        Dim text = node.SyntaxTree.GetText(cancellationToken)
-                        Dim previousLine = text.Lines.IndexOf(previousToken.SpanStart)
-                        Dim awaitLine = text.Lines.IndexOf(.AwaitKeyword.SpanStart)
+            Dim nodes As New LinkedList(Of SyntaxNode)
+            nodes.AddFirst(thisnode)
+            While nodes.Count > 0
 
-                        If previousLine = awaitLine Then
-                            Dim index = highlights.FindIndex(Function(s) s.Contains(previousToken.Span))
-                            If index >= 0 Then
-                                Dim span = highlights(index)
-                                highlights(index) = TextSpan.FromBounds(span.Start, .AwaitKeyword.Span.End)
-                                handled = True
-                            End If
-                        End If
-                    End If
+                Dim node = nodes(0) : nodes.RemoveFirst()
 
-                    If Not handled Then
-                        highlights.Add(.AwaitKeyword.Span)
-                    End If
-                End With
-            End If
+                If cancellationToken.IsCancellationRequested Then Continue While
 
-            For Each child In node.ChildNodes()
-                If Not TypeOf child Is LambdaExpressionSyntax Then
-                    HighlightRelatedAwaits(child, highlights, cancellationToken)
+                If TypeOf node Is AwaitExpressionSyntax Then
+                    With DirectCast(node, AwaitExpressionSyntax)
+                        Yield .AwaitKeyword.Span
+                    End With
                 End If
-            Next
-        End Sub
 
-        Private Sub HighlightRelatedYieldStatements(Of T)(node As SyntaxNode, highlights As List(Of TextSpan))
-            If TypeOf node Is YieldStatementSyntax Then
-                With DirectCast(node, YieldStatementSyntax)
-                    highlights.Add(.YieldKeyword.Span)
-                End With
-            Else
-                For Each child In node.ChildNodes()
-                    If Not TypeOf child Is LambdaExpressionSyntax Then
-                        HighlightRelatedYieldStatements(Of T)(child, highlights)
-                    End If
-                Next
-            End If
-        End Sub
+                Dim children = node.ChildNodes.Where(Function(child) TypeOf child IsNot LambdaExpressionSyntax)
+                nodes.AddRangeAtHead(children)
+
+            End While
+        End Function
+
+        Private Iterator Function HighlightRelatedYieldStatements(Of T)(thisnode As SyntaxNode) As IEnumerable(Of TextSpan)
+            Dim nodes As New LinkedList(Of SyntaxNode)
+            nodes.AddFirst(thisnode)
+            While nodes.Count > 0
+
+                Dim node = nodes(0) : nodes.RemoveFirst()
+
+                If TypeOf node Is YieldStatementSyntax Then
+                    With DirectCast(node, YieldStatementSyntax)
+                        Yield .YieldKeyword.Span
+                    End With
+                Else
+                    Dim children = node.ChildNodes().Where(Function(child) TypeOf child IsNot LambdaExpressionSyntax)
+                    nodes.AddRangeAtHead(children)
+                End If
+            End While
+        End Function
 
         <Extension>
         Friend Function GetRelatedYieldStatementHighlights(Of T As SyntaxNode)(node As T) As IEnumerable(Of TextSpan)
-            Dim highlights As New List(Of TextSpan)
-            HighlightRelatedYieldStatements(Of T)(node, highlights)
-            Return highlights
+            Return HighlightRelatedYieldStatements(Of T)(node)
         End Function
 
     End Module

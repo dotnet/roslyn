@@ -10,34 +10,30 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.KeywordHighlighting
     Friend Class ConditionalPreprocessorHighlighter
         Inherits AbstractKeywordHighlighter(Of DirectiveTriviaSyntax)
 
-        Protected Overloads Overrides Function GetHighlights(directive As DirectiveTriviaSyntax, cancellationToken As CancellationToken) As IEnumerable(Of TextSpan)
+        Protected Overloads Overrides Iterator Function GetHighlights(directive As DirectiveTriviaSyntax, cancellationToken As CancellationToken) As IEnumerable(Of TextSpan)
+            If cancellationToken.IsCancellationRequested Then Return
             Dim conditionals = directive.GetMatchingConditionalDirectives(cancellationToken)
-            If conditionals Is Nothing Then
-                Return SpecializedCollections.EmptyEnumerable(Of TextSpan)()
-            End If
+            If conditionals Is Nothing Then Return
 
             Dim highlights As New List(Of TextSpan)
 
             For Each conditional In conditionals
                 If TypeOf conditional Is IfDirectiveTriviaSyntax Then
                     With DirectCast(conditional, IfDirectiveTriviaSyntax)
-                        highlights.Add(TextSpan.FromBounds(.HashToken.SpanStart, .IfOrElseIfKeyword.Span.End))
-                        If .ThenKeyword.Kind <> SyntaxKind.None Then
-                            highlights.Add(.ThenKeyword.Span)
-                        End If
+                        Yield TextSpan.FromBounds(.HashToken.SpanStart, .IfOrElseIfKeyword.Span.End)
+                        If .ThenKeyword.Kind <> SyntaxKind.None Then Yield .ThenKeyword.Span
                     End With
                 ElseIf TypeOf conditional Is ElseDirectiveTriviaSyntax Then
                     With DirectCast(conditional, ElseDirectiveTriviaSyntax)
-                        highlights.Add(TextSpan.FromBounds(.HashToken.SpanStart, .ElseKeyword.Span.End))
+                        Yield TextSpan.FromBounds(.HashToken.SpanStart, .ElseKeyword.Span.End)
                     End With
                 ElseIf TypeOf conditional Is EndIfDirectiveTriviaSyntax Then
                     With DirectCast(conditional, EndIfDirectiveTriviaSyntax)
-                        highlights.Add(TextSpan.FromBounds(.HashToken.SpanStart, .IfKeyword.Span.End))
+                        Yield TextSpan.FromBounds(.HashToken.SpanStart, .IfKeyword.Span.End)
                     End With
                 End If
             Next
 
-            Return highlights
         End Function
     End Class
 End Namespace

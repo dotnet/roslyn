@@ -10,42 +10,35 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.KeywordHighlighting
     Friend Class ForLoopBlockHighlighter
         Inherits AbstractKeywordHighlighter(Of SyntaxNode)
 
-        Protected Overloads Overrides Function GetHighlights(node As SyntaxNode, cancellationToken As CancellationToken) As IEnumerable(Of TextSpan)
+        Protected Overloads Overrides Iterator Function GetHighlights(node As SyntaxNode, cancellationToken As CancellationToken) As IEnumerable(Of TextSpan)
+            If cancellationToken.IsCancellationRequested Then Return
             Dim forBlock = GetForBlockFromNode(node)
-            If forBlock Is Nothing Then
-                Return SpecializedCollections.EmptyEnumerable(Of TextSpan)()
-            End If
-
-            Dim highlights As New List(Of TextSpan)
+            If forBlock Is Nothing Then Return
 
             If TypeOf forBlock.ForOrForEachStatement Is ForStatementSyntax Then
                 With DirectCast(forBlock.ForOrForEachStatement, ForStatementSyntax)
-                    highlights.Add(.ForKeyword.Span)
-                    highlights.Add(.ToKeyword.Span)
-                    If .StepClause IsNot Nothing Then
-                        highlights.Add(.StepClause.StepKeyword.Span)
-                    End If
+                    Yield .ForKeyword.Span
+                    Yield .ToKeyword.Span
+                    If .StepClause IsNot Nothing Then Yield .StepClause.StepKeyword.Span
                 End With
             ElseIf TypeOf forBlock.ForOrForEachStatement Is ForEachStatementSyntax Then
                 With DirectCast(forBlock.ForOrForEachStatement, ForEachStatementSyntax)
-                    highlights.Add(TextSpan.FromBounds(.ForKeyword.SpanStart, .EachKeyword.Span.End))
-                    highlights.Add(.InKeyword.Span)
+                    Yield TextSpan.FromBounds(.ForKeyword.SpanStart, .EachKeyword.Span.End)
+                    Yield .InKeyword.Span
                 End With
             Else
                 Contract.Fail("Expected ForStatementSyntax or ForEachStatementSyntax, but was " & forBlock.ForOrForEachStatement.GetTypeDisplayName())
             End If
 
-            highlights.AddRange(
-                forBlock.GetRelatedStatementHighlights(
-                    blockKind:=SyntaxKind.ForKeyword))
+            For Each highlight In forBlock.GetRelatedStatementHighlights(blockKind:=SyntaxKind.ForKeyword)
+                If cancellationToken.IsCancellationRequested Then Return
+                Yield highlight
+            Next
 
             Dim nextStatement = GetNextStatementMatchingForBlock(forBlock)
 
-            If nextStatement IsNot Nothing Then
-                highlights.Add(nextStatement.NextKeyword.Span)
-            End If
+            If nextStatement IsNot Nothing Then Yield nextStatement.NextKeyword.Span
 
-            Return highlights
         End Function
 
         Private Function GetForBlockFromNode(node As SyntaxNode) As ForOrForEachBlockSyntax

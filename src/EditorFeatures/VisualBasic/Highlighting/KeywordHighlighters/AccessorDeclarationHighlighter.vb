@@ -10,45 +10,38 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.KeywordHighlighting
     Friend Class AccessorDeclarationHighlighter
         Inherits AbstractKeywordHighlighter(Of SyntaxNode)
 
-        Protected Overloads Overrides Function GetHighlights(node As SyntaxNode, cancellationToken As CancellationToken) As IEnumerable(Of TextSpan)
+        Protected Overloads Overrides Iterator Function GetHighlights(node As SyntaxNode, cancellationToken As CancellationToken) As IEnumerable(Of TextSpan)
+            If cancellationToken.IsCancellationRequested Then Return
+
             Dim methodBlock = node.GetAncestor(Of MethodBlockBaseSyntax)()
-            If methodBlock Is Nothing OrElse Not TypeOf methodBlock.BlockStatement Is AccessorStatementSyntax Then
-                Return SpecializedCollections.EmptyEnumerable(Of TextSpan)()
-            End If
-
-            Dim highlights As New List(Of TextSpan)()
-
+            If methodBlock Is Nothing OrElse Not TypeOf methodBlock.BlockStatement Is AccessorStatementSyntax Then Return
             With methodBlock
                 Dim isIterator = False
 
                 If TypeOf methodBlock.Parent Is PropertyBlockSyntax Then
-                    With DirectCast(methodBlock.Parent, PropertyBlockSyntax)
-                        isIterator = .PropertyStatement.Modifiers.Any(SyntaxKind.IteratorKeyword)
-                    End With
+                    isIterator = DirectCast(methodBlock.Parent, PropertyBlockSyntax).PropertyStatement.Modifiers.Any(SyntaxKind.IteratorKeyword)
                 End If
 
                 With DirectCast(.BlockStatement, AccessorStatementSyntax)
                     Dim firstKeyword = If(.Modifiers.Count > 0, .Modifiers.First(), .DeclarationKeyword)
-                    highlights.Add(TextSpan.FromBounds(firstKeyword.SpanStart, .DeclarationKeyword.Span.End))
+                    Yield TextSpan.FromBounds(firstKeyword.SpanStart, .DeclarationKeyword.Span.End)
                 End With
 
-                Dim blockKind = If(node.HasAncestor(Of PropertyBlockSyntax)(),
-                                   SyntaxKind.PropertyKeyword,
-                                   SyntaxKind.None)
-
-                highlights.AddRange(
-                    .GetRelatedStatementHighlights(
-                        blockKind,
-                        checkReturns:=True))
+                Dim blockKind = If(node.HasAncestor(Of PropertyBlockSyntax), SyntaxKind.PropertyKeyword, SyntaxKind.None)
+                For Each highlight In .GetRelatedStatementHighlights(blockKind, checkReturns:=True)
+                    If cancellationToken.IsCancellationRequested Then Return
+                    Yield highlight
+                Next
 
                 If isIterator Then
-                    highlights.AddRange(.GetRelatedYieldStatementHighlights())
+                    For Each highlight In .GetRelatedYieldStatementHighlights()
+                        If cancellationToken.IsCancellationRequested Then Return
+                        Yield highlight
+                    Next
                 End If
-
-                highlights.Add(.EndBlockStatement.Span)
+                Yield .EndBlockStatement.Span
             End With
 
-            Return highlights
         End Function
     End Class
 End Namespace
