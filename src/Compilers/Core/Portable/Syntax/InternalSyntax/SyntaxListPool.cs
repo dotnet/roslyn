@@ -78,19 +78,5 @@ namespace Microsoft.CodeAnalysis.Syntax.InternalSyntax
             _freeList = tmp;
         }
 
-        public SyntaxList<TNode> ToListAndFree<TNode>(SyntaxListBuilder<TNode> item)
-            where TNode : GreenNode
-        {
-            var list = item.ToList();
-            Free(item);
-            return list;
-        }
-        public SeparatedSyntaxList<TNode> ToListAndFree<TNode>(SeparatedSyntaxListBuilder<TNode> item)
-    where TNode : GreenNode
-        {
-            var list = item.ToList();
-            Free(item);
-            return list;
-        }
     }
 }
