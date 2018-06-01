@@ -1696,6 +1696,39 @@ IAnonymousObjectCreationOperation (OperationKind.AnonymousObjectCreation, Type: 
             VerifyOperationTreeAndDiagnosticsForTest<AnonymousObjectCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/27338")]
+        public void AnonymousTypeCreation_MixedInitializers()
+        {
+            string source = @"
+using System.Collections.Generic;
+using System.Linq;
+
+class ClassA
+{
+    void M(int a)
+    {
+        var o = /*<bind>*/new { a, b = 1 }/*</bind>*/;
+    }
+}
+";
+            string expectedOperationTree = @"
+IAnonymousObjectCreationOperation (OperationKind.AnonymousObjectCreation, Type: <anonymous type: System.Int32 a, System.Int32 b>) (Syntax: 'new { a, b = 1 }')
+  Initializers(2):
+      IParameterReferenceOperation: a (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'a')
+      ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32) (Syntax: 'b = 1')
+        Left: 
+          IPropertyReferenceOperation: System.Int32 <anonymous type: System.Int32 a, System.Int32 b>.b { get; } (OperationKind.PropertyReference, Type: System.Int32) (Syntax: 'b')
+            Instance Receiver: 
+              null
+        Right: 
+           ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
+";
+            var expectedDiagnostics = DiagnosticDescription.None;
+
+            VerifyOperationTreeAndDiagnosticsForTest<AnonymousObjectCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
+
         #region "Utility methods"
 
         private void AssertCannotConstruct(ISymbol type)
