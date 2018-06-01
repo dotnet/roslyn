@@ -3,6 +3,7 @@
 using System;
 using System.Windows;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CodeCleanup;
 using Microsoft.CodeAnalysis.Editor.Shared.Options;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Options;
 
@@ -49,23 +50,23 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
             FixLanguageFeaturesCheckBox.Content = CSharpVSResources.Fix_language_features;
 
             // IsCodeCleanupConfiguredCheckBox is hidden all the time, and it tracks if the user ever configured the code cleanup
-            BindToOption(IsCodeCleanupConfiguredCheckBox, FeatureOnOffOptions.IsCodeCleanupRulesConfigured, LanguageNames.CSharp);
+            BindToOption(IsCodeCleanupConfiguredCheckBox, CodeCleanupOptions.IsCodeCleanupRulesConfigured, LanguageNames.CSharp);
 
-            BindToOption(RemoveUnusedUsingsCheckBox, FeatureOnOffOptions.RemoveUnusedUsings, LanguageNames.CSharp);
-            BindToOption(SortUsingsCheckBox, FeatureOnOffOptions.SortUsings, LanguageNames.CSharp);
-            BindToOption(FixImplicitExplicitTypeCheckBox, FeatureOnOffOptions.FixImplicitExplicitType, LanguageNames.CSharp);
-            BindToOption(FixFrameworkTypesCheckBox, FeatureOnOffOptions.FixFrameworkTypes, LanguageNames.CSharp);
-            BindToOption(FixThisQualificationCheckBox, FeatureOnOffOptions.FixThisQualification, LanguageNames.CSharp);
-            BindToOption(FixAddRemoveBracesCheckBox, FeatureOnOffOptions.FixAddRemoveBraces, LanguageNames.CSharp);
-            BindToOption(FixAccessibilityModifiersCheckBox, FeatureOnOffOptions.FixAccessibilityModifiers, LanguageNames.CSharp);
-            BindToOption(SortAccessibilityModifiersCheckBox, FeatureOnOffOptions.SortAccessibilityModifiers, LanguageNames.CSharp);
-            BindToOption(MakeReadonlyCheckBox, FeatureOnOffOptions.MakeReadonly, LanguageNames.CSharp);
-            BindToOption(RemoveUnnecessaryCastsCheckBox, FeatureOnOffOptions.RemoveUnnecessaryCasts, LanguageNames.CSharp);
-            BindToOption(FixExpressionBodiedMembersCheckBox, FeatureOnOffOptions.FixExpressionBodiedMembers, LanguageNames.CSharp);
-            BindToOption(FixInlineVariableDeclarationsCheckBox, FeatureOnOffOptions.FixInlineVariableDeclarations, LanguageNames.CSharp);
-            BindToOption(RemoveUnusedVariablesCheckBox, FeatureOnOffOptions.RemoveUnusedVariables, LanguageNames.CSharp);
-            BindToOption(FixObjectCollectionInitializationCheckBox, FeatureOnOffOptions.FixObjectCollectionInitialization, LanguageNames.CSharp);
-            BindToOption(FixLanguageFeaturesCheckBox, FeatureOnOffOptions.FixLanguageFeatures, LanguageNames.CSharp);
+            BindToOption(RemoveUnusedUsingsCheckBox, CodeCleanupOptions.RemoveUnusedUsings, LanguageNames.CSharp);
+            BindToOption(SortUsingsCheckBox, CodeCleanupOptions.SortUsings, LanguageNames.CSharp);
+            BindToOption(FixImplicitExplicitTypeCheckBox, CodeCleanupOptions.FixImplicitExplicitType, LanguageNames.CSharp);
+            BindToOption(FixFrameworkTypesCheckBox, CodeCleanupOptions.FixFrameworkTypes, LanguageNames.CSharp);
+            BindToOption(FixThisQualificationCheckBox, CodeCleanupOptions.FixThisQualification, LanguageNames.CSharp);
+            BindToOption(FixAddRemoveBracesCheckBox, CodeCleanupOptions.FixAddRemoveBraces, LanguageNames.CSharp);
+            BindToOption(FixAccessibilityModifiersCheckBox, CodeCleanupOptions.FixAccessibilityModifiers, LanguageNames.CSharp);
+            BindToOption(SortAccessibilityModifiersCheckBox, CodeCleanupOptions.SortAccessibilityModifiers, LanguageNames.CSharp);
+            BindToOption(MakeReadonlyCheckBox, CodeCleanupOptions.MakeReadonly, LanguageNames.CSharp);
+            BindToOption(RemoveUnnecessaryCastsCheckBox, CodeCleanupOptions.RemoveUnnecessaryCasts, LanguageNames.CSharp);
+            BindToOption(FixExpressionBodiedMembersCheckBox, CodeCleanupOptions.FixExpressionBodiedMembers, LanguageNames.CSharp);
+            BindToOption(FixInlineVariableDeclarationsCheckBox, CodeCleanupOptions.FixInlineVariableDeclarations, LanguageNames.CSharp);
+            BindToOption(RemoveUnusedVariablesCheckBox, CodeCleanupOptions.RemoveUnusedVariables, LanguageNames.CSharp);
+            BindToOption(FixObjectCollectionInitializationCheckBox, CodeCleanupOptions.FixObjectCollectionInitialization, LanguageNames.CSharp);
+            BindToOption(FixLanguageFeaturesCheckBox, CodeCleanupOptions.FixLanguageFeatures, LanguageNames.CSharp);
         }
 
         private void FormatWhenTypingCheckBox_Checked(object sender, RoutedEventArgs e)

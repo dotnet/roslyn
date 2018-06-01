@@ -4,8 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Editor.Implementation.CodeCleanup;
-using Microsoft.CodeAnalysis.Editor.Shared.Options;
+using Microsoft.CodeAnalysis.CodeCleanup;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Extensions;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -81,7 +80,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Formatting
                     {
                         Format(args.TextView, document, selectionOpt: null, cancellationToken);
                     }
-                    else if (!docOptions.GetOption(FeatureOnOffOptions.IsCodeCleanupRulesConfigured))
+                    else if (!docOptions.GetOption(CodeCleanupOptions.IsCodeCleanupRulesConfigured))
                     {
                         ShowGoldBarForCodeCleanupConfiguration(document.Project.Solution.Workspace);
                         Format(args.TextView, document, selectionOpt: null, cancellationToken);

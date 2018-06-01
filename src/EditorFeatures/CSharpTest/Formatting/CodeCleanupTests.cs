@@ -3,8 +3,7 @@
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Editor.Implementation.CodeCleanup;
-using Microsoft.CodeAnalysis.Editor.Shared.Options;
+using Microsoft.CodeAnalysis.CodeCleanup;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -41,8 +40,8 @@ class Program
 }
 ";
             return AssertCodeCleanupResult(expected, code,
-                (FeatureOnOffOptions.IsCodeCleanupRulesConfigured, enabled: true),
-                (FeatureOnOffOptions.RemoveUnusedUsings, enabled: true));
+                (CodeCleanupOptions.IsCodeCleanupRulesConfigured, enabled: true),
+                (CodeCleanupOptions.RemoveUnusedUsings, enabled: true));
         }
 
         [Fact]
@@ -73,8 +72,8 @@ class Program
 }
 ";
             return AssertCodeCleanupResult(expected, code,
-                (FeatureOnOffOptions.IsCodeCleanupRulesConfigured, enabled: true),
-                (FeatureOnOffOptions.SortUsings, enabled: true));
+                (CodeCleanupOptions.IsCodeCleanupRulesConfigured, enabled: true),
+                (CodeCleanupOptions.SortUsings, enabled: true));
         }
 
         [Fact(Skip = "disable the test temporarily until figure out how to set up diagnostic analyzer")]
@@ -97,8 +96,8 @@ class Program
 }
 ";
             return AssertCodeCleanupResult(expected, code,
-                (FeatureOnOffOptions.IsCodeCleanupRulesConfigured, enabled:true),
-                (FeatureOnOffOptions.RemoveUnusedVariables, enabled: true));
+                (CodeCleanupOptions.IsCodeCleanupRulesConfigured, enabled: true),
+                (CodeCleanupOptions.RemoveUnusedVariables, enabled: true));
 
             //workspace.Options = workspace.Options.WithChangedOption(RemoteFeatureOptions.DiagnosticsEnabled, false);
         }

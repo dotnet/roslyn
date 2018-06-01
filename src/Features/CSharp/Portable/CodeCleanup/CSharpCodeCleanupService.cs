@@ -6,9 +6,9 @@ using System.Collections.Immutable;
 using System.Composition;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.CodeCleanup;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.Editor.Shared.Options;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
@@ -18,7 +18,7 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text;
 
-namespace Microsoft.CodeAnalysis.Editor.Implementation.CodeCleanup
+namespace Microsoft.CodeAnalysis.CSharp.CodeCleanup
 {
     [ExportLanguageService(typeof(ICodeCleanupService), LanguageNames.CSharp), Shared]
     internal class CSharpCodeCleanupService : ICodeCleanupService
@@ -33,7 +33,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CodeCleanup
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public CSharpCodeCleanupService(
-            ICodeFixService codeFixService)
+            // will remove the AllowDefault once CodeFixService is moved to Features
+            // https://github.com/dotnet/roslyn/issues/27369
+            [Import(AllowDefault = true)] ICodeFixService codeFixService)
         {
             _codeFixService = codeFixService;
         }
@@ -43,42 +45,42 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CodeCleanup
             var dictionary = new Dictionary<PerLanguageOption<bool>, ImmutableArray<string>>()
             {
                 {
-                    FeatureOnOffOptions.FixImplicitExplicitType,
+                    CodeCleanupOptions.FixImplicitExplicitType,
                     ImmutableArray.Create(IDEDiagnosticIds.UseImplicitTypeDiagnosticId,
                                           IDEDiagnosticIds.UseExplicitTypeDiagnosticId)
                 },
                 {
-                    FeatureOnOffOptions.FixThisQualification,
+                    CodeCleanupOptions.FixThisQualification,
                     ImmutableArray.Create(IDEDiagnosticIds.AddQualificationDiagnosticId,
                                           IDEDiagnosticIds.RemoveQualificationDiagnosticId)
                 },
                 {
-                    FeatureOnOffOptions.FixFrameworkTypes,
+                    CodeCleanupOptions.FixFrameworkTypes,
                     ImmutableArray.Create(IDEDiagnosticIds.PreferFrameworkTypeInDeclarationsDiagnosticId,
                                           IDEDiagnosticIds.PreferFrameworkTypeInMemberAccessDiagnosticId)
                 },
                 {
-                    FeatureOnOffOptions.FixAddRemoveBraces,
+                    CodeCleanupOptions.FixAddRemoveBraces,
                     ImmutableArray.Create(IDEDiagnosticIds.AddBracesDiagnosticId)
                 },
                 {
-                    FeatureOnOffOptions.FixAccessibilityModifiers,
+                    CodeCleanupOptions.FixAccessibilityModifiers,
                     ImmutableArray.Create(IDEDiagnosticIds.AddAccessibilityModifiersDiagnosticId)
                 },
                 {
-                    FeatureOnOffOptions.SortAccessibilityModifiers,
+                    CodeCleanupOptions.SortAccessibilityModifiers,
                     ImmutableArray.Create(IDEDiagnosticIds.OrderModifiersDiagnosticId)
                 },
                 {
-                    FeatureOnOffOptions.MakeReadonly,
+                    CodeCleanupOptions.MakeReadonly,
                     ImmutableArray.Create(IDEDiagnosticIds.MakeFieldReadonlyDiagnosticId)
                 },
                 {
-                    FeatureOnOffOptions.RemoveUnnecessaryCasts,
+                    CodeCleanupOptions.RemoveUnnecessaryCasts,
                     ImmutableArray.Create(IDEDiagnosticIds.RemoveUnnecessaryCastDiagnosticId)
                 },
                 {
-                    FeatureOnOffOptions.FixExpressionBodiedMembers,
+                    CodeCleanupOptions.FixExpressionBodiedMembers,
                     ImmutableArray.Create(IDEDiagnosticIds.UseExpressionBodyForConstructorsDiagnosticId,
                                           IDEDiagnosticIds.UseExpressionBodyForMethodsDiagnosticId,
                                           IDEDiagnosticIds.UseExpressionBodyForConversionOperatorsDiagnosticId,
@@ -88,16 +90,16 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CodeCleanup
                                           IDEDiagnosticIds.UseExpressionBodyForAccessorsDiagnosticId)
                 },
                 {
-                    FeatureOnOffOptions.FixInlineVariableDeclarations,
+                    CodeCleanupOptions.FixInlineVariableDeclarations,
                     ImmutableArray.Create(IDEDiagnosticIds.InlineDeclarationDiagnosticId)
                 },
                 {
-                    FeatureOnOffOptions.RemoveUnusedVariables,
+                    CodeCleanupOptions.RemoveUnusedVariables,
                     ImmutableArray.Create(IDEDiagnosticIds.DeclaredVariableNeverUsedDiagnosticId,
                                           IDEDiagnosticIds.AssignedVariableNeverUsedDiagnosticId)
                 },
                 {
-                    FeatureOnOffOptions.FixObjectCollectionInitialization,
+                    CodeCleanupOptions.FixObjectCollectionInitialization,
                     ImmutableArray.Create(IDEDiagnosticIds.UseObjectInitializerDiagnosticId,
                                           IDEDiagnosticIds.UseCollectionInitializerDiagnosticId)
                 }
@@ -110,7 +112,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CodeCleanup
         {
             var docOptions = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
 
-            document = await ApplyCodeFixesAsync(document, docOptions, cancellationToken).ConfigureAwait(false);
+            if (_codeFixService != null)
+            {
+                document = await ApplyCodeFixesAsync(document, docOptions, cancellationToken).ConfigureAwait(false);
+            }
+
             // do the remove usings after code fix, as code fix might remove some code which can results in unused usings.
             document = await RemoveSortUsingsAsync(document, docOptions, cancellationToken).ConfigureAwait(false);
 
@@ -120,7 +126,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CodeCleanup
         private async Task<Document> RemoveSortUsingsAsync(Document document, DocumentOptionSet docOptions, CancellationToken cancellationToken)
         {
             // remove usings
-            if (docOptions.GetOption(FeatureOnOffOptions.RemoveUnusedUsings))
+            if (docOptions.GetOption(CodeCleanupOptions.RemoveUnusedUsings))
             {
                 var removeUsingsService = document.GetLanguageService<IRemoveUnnecessaryImportsService>();
                 if (removeUsingsService != null)
@@ -130,7 +136,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CodeCleanup
             }
 
             // sort usings
-            if (docOptions.GetOption(FeatureOnOffOptions.SortUsings))
+            if (docOptions.GetOption(CodeCleanupOptions.SortUsings))
             {
                 document = await OrganizeImportsService.OrganizeImportsAsync(document, cancellationToken).ConfigureAwait(false);
             }
@@ -170,11 +176,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CodeCleanup
         {
             var diagnosticIds = new List<string>();
 
-            foreach (var featureOption in _optionDiagnosticsMappings.Keys)
+            foreach (var codeCleanupOptions in _optionDiagnosticsMappings.Keys)
             {
-                if (docOptions.GetOption(featureOption))
+                if (docOptions.GetOption(codeCleanupOptions))
                 {
-                    diagnosticIds.AddRange(_optionDiagnosticsMappings[featureOption]);
+                    diagnosticIds.AddRange(_optionDiagnosticsMappings[codeCleanupOptions]);
                 }
             }
 
