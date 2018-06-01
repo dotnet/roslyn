@@ -336,7 +336,7 @@ namespace Microsoft.CodeAnalysis.Operations
 
         public override IOperation VisitFlowAnonymousFunction(IFlowAnonymousFunctionOperation operation, object argument)
         {
-            return new FlowAnonymousFunctionExpression(operation.Symbol, operation.Syntax, operation.Type, operation.ConstantValue, operation.IsImplicit);
+            return new FlowAnonymousFunctionOperation(operation.Symbol, operation.Syntax, operation.Type, operation.ConstantValue, operation.IsImplicit);
         }
 
         public override IOperation VisitDelegateCreation(IDelegateCreationOperation operation, object argument)
@@ -557,7 +557,7 @@ namespace Microsoft.CodeAnalysis.Operations
 
         public override IOperation VisitFlowCaptureReference(IFlowCaptureReferenceOperation operation, object argument)
         {
-            return new FlowCaptureReference(operation.Id.Id, operation.Syntax, operation.Type, constantValue: operation.ConstantValue);
+            return new FlowCaptureReference(operation.Id, operation.Syntax, operation.Type, constantValue: operation.ConstantValue);
         }
 
         public override IOperation VisitIsNull(IIsNullOperation operation, object argument)

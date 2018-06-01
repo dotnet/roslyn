@@ -9,21 +9,18 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
     /// </summary>
     public struct CaptureId : IEquatable<CaptureId>
     {
-        internal CaptureId(int id)
+        internal CaptureId(int value)
         {
-            Id = id;
+            Value = value;
         }
 
-        // PROTOTYPE(dataflow): Make this a private readonly field once we remove all uses in ControlFlowGraphBuilder.
-        internal int Id { get; }
+        internal int Value { get; }
 
-        public bool Equals(CaptureId other) => Id == other.Id;
+        public bool Equals(CaptureId other) => Value == other.Value;
 
         public override bool Equals(object obj) => obj is CaptureId && Equals((CaptureId)obj);
 
-        public override int GetHashCode() => Id.GetHashCode();
-
-        public override string ToString() => Id.ToString();
+        public override int GetHashCode() => Value.GetHashCode();
     }
 }
 

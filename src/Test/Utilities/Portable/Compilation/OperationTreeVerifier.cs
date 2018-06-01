@@ -867,7 +867,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         public override void VisitFlowCapture(IFlowCaptureOperation operation)
         {
             LogString(nameof(IFlowCaptureOperation));
-            LogString($": {operation.Id}");
+            LogString($": {operation.Id.Value}");
             LogCommonPropertiesAndNewLine(operation);
 
             Visit(operation.Value, "Value");
@@ -878,7 +878,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         public override void VisitFlowCaptureReference(IFlowCaptureReferenceOperation operation)
         {
             LogString(nameof(IFlowCaptureReferenceOperation));
-            LogString($": {operation.Id}");
+            LogString($": {operation.Id.Value}");
             LogCommonPropertiesAndNewLine(operation);
         }
 
