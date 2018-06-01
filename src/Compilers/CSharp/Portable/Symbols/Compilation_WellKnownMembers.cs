@@ -975,6 +975,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return method.RefKind != RefKind.None;
             }
 
+            protected override bool IsByRefProperty(PropertySymbol property)
+            {
+                return property.RefKind != RefKind.None;
+            }
+
             protected override bool IsGenericMethodTypeParam(TypeSymbol type, int paramPosition)
             {
                 if (type.Kind != SymbolKind.TypeParameter)

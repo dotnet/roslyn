@@ -506,7 +506,13 @@ End Namespace
                          WellKnownType.System_ReadOnlySpan_T,
                          WellKnownType.System_IAsyncDisposable,
                          WellKnownType.System_Collections_Generic_IAsyncEnumerable_T,
-                         WellKnownType.System_Collections_Generic_IAsyncEnumerator_T
+                         WellKnownType.System_Collections_Generic_IAsyncEnumerator_T,
+                         WellKnownType.System_Threading_Tasks_ManualResetValueTaskSourceLogic_T,
+                         WellKnownType.System_Runtime_CompilerServices_IStrongBox_T,
+                         WellKnownType.System_Threading_Tasks_Sources_ValueTaskSourceStatus,
+                         WellKnownType.System_Threading_Tasks_Sources_ValueTaskSourceOnCompletedFlags,
+                         WellKnownType.System_Threading_Tasks_Sources_IValueTaskSource_T,
+                         WellKnownType.System_Threading_Tasks_ValueTask_T
                         ' Not available on all platforms.
                         Continue For
                     Case WellKnownType.ExtSentinel
@@ -550,7 +556,13 @@ End Namespace
                          WellKnownType.System_ReadOnlySpan_T,
                          WellKnownType.System_IAsyncDisposable,
                          WellKnownType.System_Collections_Generic_IAsyncEnumerable_T,
-                         WellKnownType.System_Collections_Generic_IAsyncEnumerator_T
+                         WellKnownType.System_Collections_Generic_IAsyncEnumerator_T,
+                         WellKnownType.System_Threading_Tasks_ManualResetValueTaskSourceLogic_T,
+                         WellKnownType.System_Runtime_CompilerServices_IStrongBox_T,
+                         WellKnownType.System_Threading_Tasks_Sources_ValueTaskSourceStatus,
+                         WellKnownType.System_Threading_Tasks_Sources_ValueTaskSourceOnCompletedFlags,
+                         WellKnownType.System_Threading_Tasks_Sources_IValueTaskSource_T,
+                         WellKnownType.System_Threading_Tasks_ValueTask_T
                         ' Not available on all platforms.
                         Continue For
                     Case WellKnownType.ExtSentinel
@@ -604,7 +616,20 @@ End Namespace
                          WellKnownMember.System_IAsyncDisposable__DisposeAsync,
                          WellKnownMember.System_Collections_Generic_IAsyncEnumerable_T__GetAsyncEnumerator,
                          WellKnownMember.System_Collections_Generic_IAsyncEnumerator_T__TryGetNext,
-                         WellKnownMember.System_Collections_Generic_IAsyncEnumerator_T__WaitForNextAsync
+                         WellKnownMember.System_Collections_Generic_IAsyncEnumerator_T__WaitForNextAsync,
+                         WellKnownMember.System_Threading_Tasks_ManualResetValueTaskSourceLogic_T__ctor,
+                         WellKnownMember.System_Threading_Tasks_ManualResetValueTaskSourceLogic_T__get_Version,
+                         WellKnownMember.System_Threading_Tasks_ManualResetValueTaskSourceLogic_T__GetResult,
+                         WellKnownMember.System_Threading_Tasks_ManualResetValueTaskSourceLogic_T__GetStatus,
+                         WellKnownMember.System_Threading_Tasks_ManualResetValueTaskSourceLogic_T__OnCompleted,
+                         WellKnownMember.System_Threading_Tasks_ManualResetValueTaskSourceLogic_T__Reset,
+                         WellKnownMember.System_Threading_Tasks_ManualResetValueTaskSourceLogic_T__SetResult,
+                         WellKnownMember.System_Runtime_CompilerServices_IStrongBox_T__Value,
+                         WellKnownMember.System_Runtime_CompilerServices_IStrongBox_T__get_Value,
+                         WellKnownMember.System_Threading_Tasks_Sources_IValueTaskSource_T__GetResult,
+                         WellKnownMember.System_Threading_Tasks_Sources_IValueTaskSource_T__GetStatus,
+                         WellKnownMember.System_Threading_Tasks_Sources_IValueTaskSource_T__OnCompleted,
+                         WellKnownMember.System_Threading_Tasks_ValueTask_T__ctor
                         ' Not available yet, but will be in upcoming release.
                         Continue For
                     Case WellKnownMember.Microsoft_CodeAnalysis_Runtime_Instrumentation__CreatePayloadForMethodsSpanningSingleFile,
@@ -702,7 +727,20 @@ End Namespace
                          WellKnownMember.System_IAsyncDisposable__DisposeAsync,
                          WellKnownMember.System_Collections_Generic_IAsyncEnumerable_T__GetAsyncEnumerator,
                          WellKnownMember.System_Collections_Generic_IAsyncEnumerator_T__TryGetNext,
-                         WellKnownMember.System_Collections_Generic_IAsyncEnumerator_T__WaitForNextAsync
+                         WellKnownMember.System_Collections_Generic_IAsyncEnumerator_T__WaitForNextAsync,
+                         WellKnownMember.System_Threading_Tasks_ManualResetValueTaskSourceLogic_T__ctor,
+                         WellKnownMember.System_Threading_Tasks_ManualResetValueTaskSourceLogic_T__get_Version,
+                         WellKnownMember.System_Threading_Tasks_ManualResetValueTaskSourceLogic_T__GetResult,
+                         WellKnownMember.System_Threading_Tasks_ManualResetValueTaskSourceLogic_T__GetStatus,
+                         WellKnownMember.System_Threading_Tasks_ManualResetValueTaskSourceLogic_T__OnCompleted,
+                         WellKnownMember.System_Threading_Tasks_ManualResetValueTaskSourceLogic_T__Reset,
+                         WellKnownMember.System_Threading_Tasks_ManualResetValueTaskSourceLogic_T__SetResult,
+                         WellKnownMember.System_Runtime_CompilerServices_IStrongBox_T__Value,
+                         WellKnownMember.System_Runtime_CompilerServices_IStrongBox_T__get_Value,
+                         WellKnownMember.System_Threading_Tasks_Sources_IValueTaskSource_T__GetResult,
+                         WellKnownMember.System_Threading_Tasks_Sources_IValueTaskSource_T__GetStatus,
+                         WellKnownMember.System_Threading_Tasks_Sources_IValueTaskSource_T__OnCompleted,
+                         WellKnownMember.System_Threading_Tasks_ValueTask_T__ctor
                         ' Not available yet, but will be in upcoming release.
                         Continue For
                     Case WellKnownMember.Microsoft_CodeAnalysis_Runtime_Instrumentation__CreatePayloadForMethodsSpanningSingleFile,

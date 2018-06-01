@@ -566,6 +566,12 @@ namespace System
                     case WellKnownType.System_IAsyncDisposable:
                     case WellKnownType.System_Collections_Generic_IAsyncEnumerable_T:
                     case WellKnownType.System_Collections_Generic_IAsyncEnumerator_T:
+                    case WellKnownType.System_Threading_Tasks_ManualResetValueTaskSourceLogic_T:
+                    case WellKnownType.System_Runtime_CompilerServices_IStrongBox_T:
+                    case WellKnownType.System_Threading_Tasks_Sources_ValueTaskSourceStatus:
+                    case WellKnownType.System_Threading_Tasks_Sources_ValueTaskSourceOnCompletedFlags:
+                    case WellKnownType.System_Threading_Tasks_Sources_IValueTaskSource_T:
+                    case WellKnownType.System_Threading_Tasks_ValueTask_T:
                     // Not yet in the platform.
                     case WellKnownType.Microsoft_CodeAnalysis_Runtime_Instrumentation:
                         // Not always available.
@@ -874,6 +880,20 @@ namespace System
                     case WellKnownMember.System_Collections_Generic_IAsyncEnumerable_T__GetAsyncEnumerator:
                     case WellKnownMember.System_Collections_Generic_IAsyncEnumerator_T__TryGetNext:
                     case WellKnownMember.System_Collections_Generic_IAsyncEnumerator_T__WaitForNextAsync:
+                    case WellKnownMember.System_Threading_Tasks_ManualResetValueTaskSourceLogic_T__ctor:
+                    case WellKnownMember.System_Threading_Tasks_ManualResetValueTaskSourceLogic_T__get_Version:
+                    case WellKnownMember.System_Threading_Tasks_ManualResetValueTaskSourceLogic_T__GetResult:
+                    case WellKnownMember.System_Threading_Tasks_ManualResetValueTaskSourceLogic_T__GetStatus:
+                    case WellKnownMember.System_Threading_Tasks_ManualResetValueTaskSourceLogic_T__OnCompleted:
+                    case WellKnownMember.System_Threading_Tasks_ManualResetValueTaskSourceLogic_T__Reset:
+                    case WellKnownMember.System_Threading_Tasks_ManualResetValueTaskSourceLogic_T__SetResult:
+                    case WellKnownMember.System_Runtime_CompilerServices_IStrongBox_T__Value:
+                    case WellKnownMember.System_Runtime_CompilerServices_IStrongBox_T__get_Value:
+                    case WellKnownMember.System_Threading_Tasks_Sources_IValueTaskSource_T__GetResult:
+                    case WellKnownMember.System_Threading_Tasks_Sources_IValueTaskSource_T__GetStatus:
+                    case WellKnownMember.System_Threading_Tasks_Sources_IValueTaskSource_T__OnCompleted:
+                    case WellKnownMember.System_Threading_Tasks_ValueTask_T__ctor:
+
                         // Not yet in the platform.
                         continue;
                     case WellKnownMember.Microsoft_CodeAnalysis_Runtime_Instrumentation__CreatePayloadForMethodsSpanningSingleFile:
