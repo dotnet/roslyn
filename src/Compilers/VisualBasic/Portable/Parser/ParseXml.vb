@@ -2223,8 +2223,6 @@ TryResync:
 
             If anyChanges Then
                 Return New XmlAttributeSyntax(node.Kind, node.GetDiagnostics, node.GetAnnotations, nameNew, node.EqualsToken, node.Value)
-            Else
-                Return node
             End If
 
             Return node
@@ -2251,8 +2249,6 @@ TryResync:
 
             If anyChanges Then
                 Return InternalSyntaxFactory.XmlBracketedName(lessThanToken, DirectCast(name, XmlNameSyntax), greaterThanToken)
-            Else
-                Return node
             End If
 
             Return node
