@@ -44,6 +44,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options.Style.N
             {
                 SymbolKindList = new List<SymbolKindViewModel>
                 {
+                    new SymbolKindViewModel(SymbolKind.Namespace, "namespace", specification),
                     new SymbolKindViewModel(TypeKind.Class, "class", specification),
                     new SymbolKindViewModel(TypeKind.Struct, "struct", specification),
                     new SymbolKindViewModel(TypeKind.Interface, "interface", specification),
@@ -55,6 +56,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options.Style.N
                     new SymbolKindViewModel(SymbolKind.Event, "event", specification),
                     new SymbolKindViewModel(TypeKind.Delegate, "delegate", specification),
                     new SymbolKindViewModel(SymbolKind.Parameter, "parameter", specification),
+                    new SymbolKindViewModel(SymbolKind.TypeParameter, "type parameter", specification),
                     new SymbolKindViewModel(SymbolKind.Local, "local", specification)
                 };
 
@@ -80,6 +82,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options.Style.N
             {
                 SymbolKindList = new List<SymbolKindViewModel>
                 {
+                    new SymbolKindViewModel(SymbolKind.Namespace, "Namespace", specification),
                     new SymbolKindViewModel(TypeKind.Class, "Class", specification),
                     new SymbolKindViewModel(TypeKind.Struct, "Structure", specification),
                     new SymbolKindViewModel(TypeKind.Interface, "Interface", specification),
@@ -91,6 +94,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options.Style.N
                     new SymbolKindViewModel(SymbolKind.Event, "Event", specification),
                     new SymbolKindViewModel(TypeKind.Delegate, "Delegate", specification),
                     new SymbolKindViewModel(SymbolKind.Parameter, "Parameter", specification),
+                    new SymbolKindViewModel(SymbolKind.TypeParameter, "Type Parameter", specification),
                     new SymbolKindViewModel(SymbolKind.Local, "Local", specification)
                 };
 
