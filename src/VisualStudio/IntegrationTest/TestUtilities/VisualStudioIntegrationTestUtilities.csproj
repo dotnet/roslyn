@@ -60,7 +60,7 @@
       This is tracked by CPS issue https://devdiv.visualstudio.com/DevDiv/_workitems/edit/547065.
       Remove this reference once it's fixed.
      -->
-    <PackageReference Include="Microsoft.Tpl.Dataflow" Version="$(MicrosoftTplDataflowVersion)" ExcludeAssets="all"/>
+    <PackageReference Include="Microsoft.Tpl.Dataflow" Version="$(MicrosoftTplDataflowVersion)" ExcludeAssets="all" />
     <PackageReference Include="UIAComWrapper" Version="$(UIAComWrapperVersion)" />
   </ItemGroup>
   <ItemGroup>
