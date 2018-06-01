@@ -2189,8 +2189,6 @@ TryResync:
 
             If anyChanges Then
                 Return New XmlNameAttributeSyntax(node.Kind, node.GetDiagnostics, node.GetAnnotations, nameNew, node.EqualsToken, node.StartQuoteToken, node.Reference, node.EndQuoteToken)
-            Else
-                Return node
             End If
 
             Return node
@@ -2208,8 +2206,6 @@ TryResync:
 
             If anyChanges Then
                 Return New XmlCrefAttributeSyntax(node.Kind, node.GetDiagnostics, node.GetAnnotations, nameNew, node.EqualsToken, node.StartQuoteToken, node.Reference, node.EndQuoteToken)
-            Else
-                Return node
             End If
 
             Return node
