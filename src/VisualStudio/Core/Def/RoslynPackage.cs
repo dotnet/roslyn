@@ -227,31 +227,25 @@ namespace Microsoft.VisualStudio.LanguageServices.Setup
             object gate = new object();
             GlobalOperationRegistration localRegistration = null;
 
-            BulkFileOperation.Begin += (s, a) =>
-            {
-                StartBulkFileOperationNotification();
-            };
-
             BulkFileOperation.End += (s, a) =>
             {
                 StopBulkFileOperationNotification();
             };
 
-            if (BulkFileOperation.IsInProgress)
+            BulkFileOperation.Begin += (s, a) =>
             {
                 StartBulkFileOperationNotification();
-            }
+            };
 
             void StartBulkFileOperationNotification()
             {
                 lock (gate)
                 {
-                    // one is already running. this can happen if there was a race between
-                    // IsInProgress and Begin event if it is called in right moment
-                    // (we subscribed to Begin and operation started before we reach IsInProgress)
-                    // since we use both IsInProgress and Begin to start notification
+                    // this shouldn't happen, but we are using external component
+                    // so guarding us from them
                     if (localRegistration != null)
                     {
+                        WatsonReporter.Report(new Exception("BulkFileOperation already exist"));
                         return;
                     }
 
@@ -263,10 +257,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Setup
             {
                 lock (gate)
                 {
-                    // this can happen if we subscribed to events which are already started
-                    // before we do IsInProgress check
-                    //
-                    // IsInProgress will be fliped before End events so no race there.
+                    // this can happen if BulkFileOperation was already in the middle
+                    // of running. to make things simpler, decide to not use IsInProgress
+                    // which we need to worry about race case.
                     if (localRegistration == null)
                     {
                         return;
