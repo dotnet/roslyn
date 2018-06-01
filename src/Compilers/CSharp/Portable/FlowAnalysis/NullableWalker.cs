@@ -1880,7 +1880,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if ((object)method != null && method.IsGenericMethod && HasImplicitTypeArguments(node))
             {
-                method = InferMethod((BoundCall)node, method, GetArgumentsForMethodTypeInference(arguments, results));
+                method = InferMethodTypeArguments((BoundCall)node, method, GetArgumentsForMethodTypeInference(arguments, results));
                 parameters = method.Parameters;
             }
 
@@ -2223,7 +2223,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return (parameter, type);
         }
 
-        private MethodSymbol InferMethod(BoundCall node, MethodSymbol method, ImmutableArray<BoundExpression> arguments)
+        private MethodSymbol InferMethodTypeArguments(BoundCall node, MethodSymbol method, ImmutableArray<BoundExpression> arguments)
         {
             Debug.Assert(method.IsGenericMethod);
             // PROTOTYPE(NullableReferenceTypes): OverloadResolution.IsMemberApplicableInNormalForm and
