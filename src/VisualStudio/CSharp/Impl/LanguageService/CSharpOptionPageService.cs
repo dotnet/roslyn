@@ -14,7 +14,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.LanguageService
     [ExportWorkspaceService(typeof(IOptionPageService)), Shared]
     internal class CSharpOptionPageService : ForegroundThreadAffinitizedObject, IOptionPageService
     {
-        private CSharpPackage _package;
+        private readonly CSharpPackage _package;
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]

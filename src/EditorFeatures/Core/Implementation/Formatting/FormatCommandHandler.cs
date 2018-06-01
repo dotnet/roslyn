@@ -5,8 +5,6 @@ using System.Collections.Generic;
 using System.ComponentModel.Composition;
 using System.Linq;
 using System.Threading;
-using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Editor.Implementation.CodeCleanup;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Formatting.Rules;
@@ -54,17 +52,36 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Formatting
             _editorOperationsFactoryService = editorOperationsFactoryService;
         }
 
-        private Task<IList<TextChange>> GetFormatChangesAsync(ITextView textView, Document document, TextSpan? selectionOpt, CancellationToken cancellationToken)
+        private void Format(ITextView textView, Document document, TextSpan? selectionOpt, CancellationToken cancellationToken)
         {
             var formattingService = document.GetLanguageService<IEditorFormattingService>();
-            if (formattingService == null)
-            {
-                return null;
-            }
 
             using (Logger.LogBlock(FunctionId.CommandHandler_FormatCommand, KeyValueLogMessage.Create(LogType.UserAction, m => m["Span"] = selectionOpt?.Length ?? -1), cancellationToken))
+            using (var transaction = new CaretPreservingEditTransaction(EditorFeaturesResources.Formatting, textView, _undoHistoryRegistry, _editorOperationsFactoryService))
             {
-                return formattingService.GetFormattingChangesAsync(document, selectionOpt, cancellationToken);
+                var changes = formattingService.GetFormattingChangesAsync(document, selectionOpt, cancellationToken).WaitAndGetResult(cancellationToken);
+                if (changes.Count == 0)
+                {
+                    return;
+                }
+
+                if (selectionOpt.HasValue)
+                {
+                    var ruleFactory = document.Project.Solution.Workspace.Services.GetService<IHostDependentFormattingRuleFactoryService>();
+
+                    changes = ruleFactory.FilterFormattedChanges(document, selectionOpt.Value, changes).ToList();
+                    if (changes.Count == 0)
+                    {
+                        return;
+                    }
+                }
+
+                using (Logger.LogBlock(FunctionId.Formatting_ApplyResultToBuffer, cancellationToken))
+                {
+                    document.Project.Solution.Workspace.ApplyTextChanges(document.Id, changes, cancellationToken);
+                }
+
+                transaction.Complete();
             }
         }
 

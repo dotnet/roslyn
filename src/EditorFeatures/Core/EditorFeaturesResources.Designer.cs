@@ -612,6 +612,15 @@ namespace Microsoft.CodeAnalysis.Editor {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Do not show this message again.
+        /// </summary>
+        internal static string Do_not_show_this_message_again {
+            get {
+                return ResourceManager.GetString("Do_not_show_this_message_again", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Do you still want to proceed? it will generate broken code..
         /// </summary>
         internal static string Do_you_still_want_to_proceed_it_will_generate_broken_code {
@@ -653,15 +662,6 @@ namespace Microsoft.CodeAnalysis.Editor {
         internal static string Documentation_Comment_Command_Handler {
             get {
                 return ResourceManager.GetString("Documentation_Comment_Command_Handler", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Do not show this message again.
-        /// </summary>
-        internal static string Donot_show_this_message_again {
-            get {
-                return ResourceManager.GetString("Donot_show_this_message_again", resourceCulture);
             }
         }
         

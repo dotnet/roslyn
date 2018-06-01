@@ -12,7 +12,7 @@
         <target state="new">Configure it now</target>
         <note />
       </trans-unit>
-      <trans-unit id="Donot_show_this_message_again">
+      <trans-unit id="Do_not_show_this_message_again">
         <source>Do not show this message again</source>
         <target state="new">Do not show this message again</target>
         <note />

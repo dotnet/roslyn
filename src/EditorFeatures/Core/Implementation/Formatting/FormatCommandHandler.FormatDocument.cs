@@ -11,7 +11,6 @@ using Microsoft.CodeAnalysis.Extensions;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Commanding;
-using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Editor.Commanding.Commands;
 using Roslyn.Utilities;
 using VSCommanding = Microsoft.VisualStudio.Commanding;
@@ -49,7 +48,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Formatting
                                    optionPageService.ShowFormattingOptionPage();
                                    _infoBarOpen = false;
                                }),
-                new InfoBarUI(EditorFeaturesResources.Donot_show_this_message_again,
+                new InfoBarUI(EditorFeaturesResources.Do_not_show_this_message_again,
                               kind: InfoBarUI.UIKind.Button,
                               () => { }));
         }
@@ -76,22 +75,22 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Formatting
                 using (var transaction = new CaretPreservingEditTransaction(
                     EditorFeaturesResources.Formatting, args.TextView, _undoHistoryRegistry, _editorOperationsFactoryService))
                 {
-                    if (!docOptions.GetOption(FeatureOnOffOptions.IsCodeCleanupRulesConfigured))
+                    var codeCleanupService = document.GetLanguageService<ICodeCleanupService>();
+
+                    if (codeCleanupService == null)
+                    {
+                        Format(args.TextView, document, selectionOpt: null, cancellationToken);
+                    }
+                    else if (!docOptions.GetOption(FeatureOnOffOptions.IsCodeCleanupRulesConfigured))
                     {
                         ShowGoldBarForCodeCleanupConfiguration(document.Project.Solution.Workspace);
-
-                        // format
-                        var formatChanges = GetFormatChangesAsync(args.TextView, document, selectionOpt: null, cancellationToken).WaitAndGetResult(cancellationToken);
-                        if (formatChanges != null && formatChanges.Count > 0)
-                        {
-                            ApplyChanges(document, formatChanges, selectionOpt: null, cancellationToken);
-                        }
+                        Format(args.TextView, document, selectionOpt: null, cancellationToken);
                     }
                     else
                     {
                         // Code cleanup
                         var oldDoc = document;
-                        var codeCleanupChanges = GetCodeCleanupAndFormatChangesAsync(document, cancellationToken).WaitAndGetResult(cancellationToken);
+                        var codeCleanupChanges = GetCodeCleanupAndFormatChangesAsync(document, codeCleanupService, cancellationToken).WaitAndGetResult(cancellationToken);
 
                         if (codeCleanupChanges != null && codeCleanupChanges.Count() > 0)
                         {
@@ -106,14 +105,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Formatting
             return true;
         }
 
-        private async Task<IEnumerable<TextChange>> GetCodeCleanupAndFormatChangesAsync(Document document, CancellationToken cancellationToken)
+        private async Task<IEnumerable<TextChange>> GetCodeCleanupAndFormatChangesAsync(Document document, ICodeCleanupService codeCleanupService, CancellationToken cancellationToken)
         {
-            var codeCleanupService = document.GetLanguageService<ICodeCleanupService>();
-            if (codeCleanupService == null)
-            {
-                return null;
-            }
-
             var newDoc = await codeCleanupService.CleanupAndFormatDocumentAsync(document, cancellationToken).ConfigureAwait(false);
 
             return await newDoc.GetTextChangesAsync(document, cancellationToken).ConfigureAwait(false);
