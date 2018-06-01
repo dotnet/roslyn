@@ -3036,7 +3036,7 @@ namespace Microsoft.CodeAnalysis
                 (byte)WellKnownType.ExtSentinel, (byte)(WellKnownType.System_IAsyncDisposable - WellKnownType.ExtSentinel),                                    // DeclaringTypeId
                 0,                                                                                                                                             // Arity
                     0,                                                                                                                                         // Method Signature
-                    (byte)SignatureTypeCode.TypeHandle, (byte)WellKnownType.System_Threading_Tasks_Task, // Return Type: Task
+                    (byte)SignatureTypeCode.TypeHandle, (byte)WellKnownType.ExtSentinel, (byte)(WellKnownType.System_Threading_Tasks_ValueTask - WellKnownType.ExtSentinel), // Return Type: ValueTask
 
                 // System_Collections_Generic_IAsyncEnumerable_T__GetAsyncEnumerator
                 (byte)(MemberFlags.Method | MemberFlags.Virtual),                                                                                               // Flags
