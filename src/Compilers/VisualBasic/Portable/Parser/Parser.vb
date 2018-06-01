@@ -2072,7 +2072,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 GetNextToken()
             Loop
 
-            Dim result = _pool.ToListAndFree(kwList)
+            Dim result = kwList.ToListAndFreeBackTo(_pool)
             Return result
         End Function
 
@@ -2208,7 +2208,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
             _pool.Free(declarators)
 
-            Dim result = _pool.ToListAndFree(declarations)
+            Dim result = declarations.ToListAndFreeBackTo(_pool)
             Return result
         End Function
 
@@ -2426,7 +2426,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
                 Loop
 
-                initializers = _pool.ToListAndFree(expressions)
+                initializers = expressions.ToListAndFreeBackTo(_pool)
 
             End If
 
@@ -2525,7 +2525,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
                 Loop
 
-                initializers = _pool.ToListAndFree(expressions)
+                initializers = expressions.ToListAndFreeBackTo(_pool)
 
             Else
                 ' Create a missing initializer
@@ -3018,7 +3018,7 @@ checkNullable:
                 elementBuilder.Add(_syntaxFactory.TypedTupleElement(missing))
             End If
 
-            Dim tupleElements = _pool.ToListAndFree(elementBuilder)
+            Dim tupleElements = elementBuilder.ToListAndFreeBackTo(_pool)
 
             Dim tupleType = SyntaxFactory.TupleType(openParen, tupleElements, closeParen)
 
@@ -3196,7 +3196,7 @@ checkNullable:
                 TryEatNewLineAndGetToken(SyntaxKind.CloseParenToken, closeParen, createIfMissing:=True)
             End If
 
-            typeArguments = _pool.ToListAndFree(typeNames)
+            typeArguments = typeNames.ToListAndFreeBackTo(_pool)
             genericArguments = SyntaxFactory.TypeArgumentList(openParen, [of], typeArguments, closeParen)
 
             Return genericArguments
@@ -3245,7 +3245,7 @@ checkNullable:
 
             Loop While CurrentToken.Kind = SyntaxKind.OpenParenToken
 
-            Dim result As CoreInternalSyntax.SyntaxList(Of ArrayRankSpecifierSyntax) = _pool.ToListAndFree(arrayModifiers)
+            Dim result As CoreInternalSyntax.SyntaxList(Of ArrayRankSpecifierSyntax) = arrayModifiers.ToListAndFreeBackTo(_pool)
             Return result
         End Function
 
@@ -3316,7 +3316,7 @@ checkNullable:
                 innerArrayType = True
             Loop While CurrentToken.Kind = SyntaxKind.OpenParenToken
 
-            Dim modifiersArr As CoreInternalSyntax.SyntaxList(Of ArrayRankSpecifierSyntax) = _pool.ToListAndFree(arrayModifiers)
+            Dim modifiersArr As CoreInternalSyntax.SyntaxList(Of ArrayRankSpecifierSyntax) = arrayModifiers.ToListAndFreeBackTo(_pool)
             Return SyntaxFactory.ModifiedIdentifier(elementType, optionalNullable, optionalArrayBounds, modifiersArr)
         End Function
 
@@ -3360,7 +3360,7 @@ checkNullable:
                 separators.Add(sep)
             End While
 
-            Dim result = _pool.ToListAndFree(separators)
+            Dim result = separators.ToListAndFreeBackTo(_pool)
             Return result
         End Function
 
@@ -3411,7 +3411,7 @@ checkNullable:
                 arguments.AddSeparator(comma)
             Loop
 
-            Dim result = _pool.ToListAndFree(arguments)
+            Dim result = arguments.ToListAndFreeBackTo(_pool)
             Return result
         End Function
 
@@ -3514,7 +3514,7 @@ checkNullable:
                 ImplementsClauses.AddSeparator(comma)
             Loop
 
-            Dim result = _pool.ToListAndFree(ImplementsClauses)
+            Dim result = ImplementsClauses.ToListAndFreeBackTo(_pool)
             Return SyntaxFactory.ImplementsClause(implementsKeyword, result)
         End Function
 
@@ -3596,7 +3596,7 @@ checkNullable:
                 handlesClauseItems.AddSeparator(comma)
             Loop
 
-            Dim result = _pool.ToListAndFree(handlesClauseItems)
+            Dim result = handlesClauseItems.ToListAndFreeBackTo(_pool)
             Return SyntaxFactory.HandlesClause(handlesKeyword, result)
         End Function
 
@@ -4389,7 +4389,7 @@ checkNullable:
                         Dim closeBrace As PunctuationSyntax = Nothing
                         TryEatNewLineAndGetToken(SyntaxKind.CloseBraceToken, closeBrace, createIfMissing:=True)
 
-                        Dim constraintList = _pool.ToListAndFree(constraints)
+                        Dim constraintList = constraints.ToListAndFreeBackTo(_pool)
 
                         typeParameterConstraintClause = SyntaxFactory.TypeParameterMultipleConstraintClause(asKeyword, openBrace, constraintList, closeBrace)
 
@@ -4428,7 +4428,7 @@ checkNullable:
                 End If
             End If
 
-            Dim separatedTypeParameters = _pool.ToListAndFree(typeParameters)
+            Dim separatedTypeParameters = typeParameters.ToListAndFreeBackTo(_pool)
             Dim result As TypeParameterListSyntax = SyntaxFactory.TypeParameterList(openParen, ofKeyword, separatedTypeParameters, closeParen)
 
             Debug.Assert(result IsNot Nothing)
@@ -4561,7 +4561,7 @@ checkNullable:
 
             TryEatNewLineAndGetToken(SyntaxKind.CloseParenToken, closeParen, createIfMissing:=True)
 
-            Dim result = _pool.ToListAndFree(parameters)
+            Dim result = parameters.ToListAndFreeBackTo(_pool)
             Return result
 
         End Function
@@ -4626,7 +4626,7 @@ checkNullable:
                         specifier = ParameterSpecifiers.ParamArray
 
                     Case Else
-                        Dim result = _pool.ToListAndFree(keywords)
+                        Dim result = keywords.ToListAndFreeBackTo(_pool)
                         Return result
                 End Select
 
@@ -4737,7 +4737,7 @@ checkNullable:
                 importsClauses.AddSeparator(comma)
             Loop
 
-            Dim result = _pool.ToListAndFree(importsClauses)
+            Dim result = importsClauses.ToListAndFreeBackTo(_pool)
             Dim statement As ImportsStatementSyntax = SyntaxFactory.ImportsStatement(importsKeyword, result)
 
             Return statement
@@ -4897,7 +4897,7 @@ checkNullable:
                 typeNames.AddSeparator(comma)
             Loop
 
-            Dim separatedTypeNames = _pool.ToListAndFree(typeNames)
+            Dim separatedTypeNames = typeNames.ToListAndFreeBackTo(_pool)
 
             Dim result As InheritsOrImplementsStatementSyntax = Nothing
             Select Case (keyword.Kind)
@@ -5457,8 +5457,8 @@ checkNullable:
                 Nothing)
 
             attributes.Add(attribute)
-            attributeBlocks.Add(SyntaxFactory.AttributeList(lessThan, _pool.ToListAndFree(attributes), greaterThan))
-            Dim result = _pool.ToListAndFree(attributeBlocks)
+            attributeBlocks.Add(SyntaxFactory.AttributeList(lessThan, attributes.ToListAndFreeBackTo(_pool), greaterThan))
+            Dim result = attributeBlocks.ToListAndFreeBackTo(_pool)
             Return result
         End Function
 
@@ -5580,7 +5580,7 @@ checkNullable:
 
             Loop While CurrentToken.Kind = SyntaxKind.LessThanToken
 
-            Dim result = _pool.ToListAndFree(attributeBlocks)
+            Dim result = attributeBlocks.ToListAndFreeBackTo(_pool)
             _pool.Free(attributes)
 
             Return result

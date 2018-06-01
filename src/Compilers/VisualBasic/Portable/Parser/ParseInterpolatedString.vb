@@ -77,7 +77,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 End Select
 
                 If Not skipped.IsNull Then
-                    content = AddLeadingSyntax(content, _pool.ToListAndFree(skipped), ERRID.ERR_Syntax)
+                    content = AddLeadingSyntax(content, skipped.ToListAndFreeBackTo(_pool), ERRID.ERR_Syntax)
                     skipped = Nothing
                 End If
 
@@ -85,12 +85,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             Loop
 
             If Not skipped.IsNull Then
-                doubleQuoteToken = AddLeadingSyntax(doubleQuoteToken, _pool.ToListAndFree(skipped), ERRID.ERR_Syntax)
+                doubleQuoteToken = AddLeadingSyntax(doubleQuoteToken, skipped.ToListAndFreeBackTo(_pool), ERRID.ERR_Syntax)
                 skipped = Nothing
             End If
 
             Dim node = SyntaxFactory.InterpolatedStringExpression(dollarSignDoubleQuoteToken,
-                                                              _pool.ToListAndFree(contentBuilder),
+                                                              contentBuilder.ToListAndFreeBackTo(_pool),
                                                               doubleQuoteToken)
             Return CheckFeatureAvailability(Feature.InterpolatedStrings, node)
         End Function
