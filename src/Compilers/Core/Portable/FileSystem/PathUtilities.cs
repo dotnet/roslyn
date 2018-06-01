@@ -706,7 +706,8 @@ namespace Roslyn.Utilities
                     return false;
                 }
 
-                Debug.Assert(IsAbsolute(fullPath));
+                // Uncomment when this is fixed: https://github.com/dotnet/roslyn/issues/19592
+                // Debug.Assert(IsAbsolute(fullPath));
 
                 var fileInfo = new FileInfo(fullPath);
                 return !string.IsNullOrEmpty(fileInfo.Name);
