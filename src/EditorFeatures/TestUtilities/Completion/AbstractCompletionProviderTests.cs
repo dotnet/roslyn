@@ -817,5 +817,21 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
                 }
             }
         }
+
+        protected async Task<ImmutableArray<CompletionItem>> GetCompletionItemsAsync(
+            string markup, SourceCodeKind sourceCodeKind, bool usePreviousCharAsTrigger = false)
+        {
+            MarkupTestFile.GetPosition(markup.NormalizeLineEndings(), out var code, out int position);
+            var document = WorkspaceFixture.UpdateDocument(code, sourceCodeKind);
+
+            var trigger = usePreviousCharAsTrigger
+                ? CompletionTrigger.CreateInsertionTrigger(insertedCharacter: code.ElementAt(position - 1))
+                : CompletionTrigger.Invoke;
+
+            var completionService = GetCompletionService(document.Project.Solution.Workspace);
+            var completionList = await GetCompletionListAsync(completionService, document, position, trigger);
+
+            return completionList == null ? ImmutableArray<CompletionItem>.Empty : completionList.Items;
+        }
     }
 }
