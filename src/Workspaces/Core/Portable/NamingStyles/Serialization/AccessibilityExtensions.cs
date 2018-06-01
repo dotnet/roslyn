@@ -35,9 +35,17 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
                 case SymbolKind.TypeParameter:
                     continue;
 
-                case SymbolKind.Method when ((IMethodSymbol)currentSymbol).MethodKind == MethodKind.LocalFunction:
-                    // Always treat local functions as 'local'
-                    return Accessibility.NotApplicable;
+                case SymbolKind.Method:
+                    switch (((IMethodSymbol)currentSymbol).MethodKind)
+                    {
+                    case MethodKind.AnonymousFunction:
+                    case MethodKind.LocalFunction:
+                        // Always treat anonymous and local functions as 'local'
+                        return Accessibility.NotApplicable;
+
+                    default:
+                        return currentSymbol.DeclaredAccessibility;
+                    }
 
                 default:
                     return currentSymbol.DeclaredAccessibility;

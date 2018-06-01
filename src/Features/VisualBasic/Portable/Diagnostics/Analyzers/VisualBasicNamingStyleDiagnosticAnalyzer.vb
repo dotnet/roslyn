@@ -13,6 +13,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Diagnostics.Analyzers
             ImmutableArray.Create(
                 SyntaxKind.ModifiedIdentifier,
                 SyntaxKind.CatchStatement,
+                SyntaxKind.Parameter,
                 SyntaxKind.TypeParameter)
     End Class
 End Namespace
