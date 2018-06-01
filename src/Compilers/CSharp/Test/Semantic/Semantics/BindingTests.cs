@@ -2139,7 +2139,7 @@ namespace System.ServiceModel
             var source =
 @"class C<T> { }
 class C<T> : System.Attribute { }";
-            CreateCompilation(source).VerifyDiagnostics(
+            CreateCompilation(source, parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp7)).VerifyDiagnostics(
                 // (2,7): error CS0101: The namespace '<global namespace>' already contains a definition for 'C'
                 // class C<T> : System.Attribute { }
                 Diagnostic(ErrorCode.ERR_DuplicateNameInNS, "C").WithArguments("C", "<global namespace>"),
