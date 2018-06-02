@@ -142,19 +142,43 @@ class C
         [WpfFact]
         [Trait(Traits.Feature, Traits.Features.EditorConfig)]
         [Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)]
+        [WorkItem(15003, "https://github.com/dotnet/roslyn/issues/15003")]
+        [WorkItem(19089, "https://github.com/dotnet/roslyn/issues/19089")]
         public void ApplyEditorConfigAndFixAllOccurrences()
         {
             var markup = @"
 class C
 {
-    public string first;
-    public string second;
-
-    public void Method()
+    public int X1
     {
-        first = null;
-        $$second = null;
+        get
+        {
+            $$return 3;
+        }
     }
+
+    public int Y1 => 5;
+
+    public int X2
+    {
+        get
+        {
+            return 3;
+        }
+    }
+
+    public int Y2 => 5;
+}";
+            var expectedText = @"
+class C
+{
+    public int X1 => 3;
+
+    public int Y1 => 5;
+
+    public int X2 => 3;
+
+    public int Y2 => 5;
 }";
 
             // CodingConventions only sends notifications if a file is open for all directories in the project
@@ -162,6 +186,12 @@ class C
 
             // Switch back to the main document we'll be editing
             VisualStudio.SolutionExplorer.OpenFile(new ProjectUtils.Project(ProjectName), "Class1.cs");
+
+            /*
+             * The first portion of this test adds a .editorconfig file to configure the analyzer behavior, and verifies
+             * that diagnostics appear automatically in response to the newly-created file. A fix all operation is
+             * applied, and the result is verified against the expected outcome for the .editorconfig style.
+             */
 
             MarkupTestFile.GetSpans(markup, out var text, out ImmutableArray<TextSpan> spans);
             SetUpEditor(markup);
@@ -171,7 +201,7 @@ class C
             var editorConfig = @"root = true
 
 [*.cs]
-dotnet_style_qualification_for_field = true:warning
+csharp_style_expression_bodied_properties = true:warning
 ";
 
             VisualStudio.SolutionExplorer.AddFile(new ProjectUtils.Project(ProjectName), ".editorconfig", editorConfig, open: false);
@@ -188,12 +218,12 @@ dotnet_style_qualification_for_field = true:warning
             VisualStudio.Editor.Verify.CodeActions(
                 new[]
                 {
-                    "Add 'this.'",
+                    "Use expression body for properties",
                     "Preview changes",
                     "Document",
                     "Project",
                     "Solution",
-                    "Suppress IDE0009",
+                    "Suppress IDE0025",
                     "in Source",
                     "Preview changes",
                     "Document",
@@ -205,7 +235,7 @@ dotnet_style_qualification_for_field = true:warning
                     "Project",
                     "Solution",
                 },
-                applyFix: "Add 'this.'",
+                applyFix: "Use expression body for properties",
                 fixAllScope: FixAllScope.Project,
                 ensureExpectedItemsAreOrdered: true,
                 verifyCompleteList: true,
@@ -215,7 +245,14 @@ dotnet_style_qualification_for_field = true:warning
             VisualStudio.PreviewChangesDialog.VerifyOpen(expectedTitle, Helper.HangMitigatingTimeout);
             VisualStudio.PreviewChangesDialog.ClickApplyAndWaitForFeature(expectedTitle, FeatureAttribute.DiagnosticService);
 
-            Assert.Equal(text.Replace("first =", "this.first =").Replace("second =", "this.second ="), VisualStudio.Editor.GetText());
+            Assert.Equal(expectedText, VisualStudio.Editor.GetText());
+
+            /*
+             * The first portion of this test modifier the existing .editorconfig file to configure the analyzer to the
+             * opposite style of the initial configuration, and verifies that diagnostics update automatically in
+             * response to the changes. A fix all operation is applied, and the result is verified against the expected
+             * outcome for the modified .editorconfig style.
+             */
 
             VisualStudio.SolutionExplorer.SetFileContents(new ProjectUtils.Project(ProjectName), ".editorconfig", editorConfig.Replace("true:warning", "false:warning"));
 
@@ -231,12 +268,12 @@ dotnet_style_qualification_for_field = true:warning
             VisualStudio.Editor.Verify.CodeActions(
                 new[]
                 {
-                    "Remove 'this' qualification",
+                    "Use block body for properties",
                     "Preview changes",
                     "Document",
                     "Project",
                     "Solution",
-                    "Suppress IDE0003",
+                    "Suppress IDE0025",
                     "in Source",
                     "Preview changes",
                     "Document",
@@ -248,7 +285,7 @@ dotnet_style_qualification_for_field = true:warning
                     "Project",
                     "Solution",
                 },
-                applyFix: "Remove 'this' qualification",
+                applyFix: "Use block body for properties",
                 fixAllScope: FixAllScope.Project,
                 ensureExpectedItemsAreOrdered: true,
                 verifyCompleteList: true,
@@ -257,7 +294,43 @@ dotnet_style_qualification_for_field = true:warning
             VisualStudio.PreviewChangesDialog.VerifyOpen(expectedTitle, Helper.HangMitigatingTimeout);
             VisualStudio.PreviewChangesDialog.ClickApplyAndWaitForFeature(expectedTitle, FeatureAttribute.DiagnosticService);
 
-            Assert.Equal(text, VisualStudio.Editor.GetText());
+            expectedText = @"
+class C
+{
+    public int X1
+    {
+        get
+        {
+            return 3;
+        }
+    }
+
+    public int Y1
+    {
+        get
+        {
+            return 5;
+        }
+    }
+
+    public int X2
+    {
+        get
+        {
+            return 3;
+        }
+    }
+
+    public int Y2
+    {
+        get
+        {
+            return 5;
+        }
+    }
+}";
+
+            Assert.Equal(expectedText, VisualStudio.Editor.GetText());
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
