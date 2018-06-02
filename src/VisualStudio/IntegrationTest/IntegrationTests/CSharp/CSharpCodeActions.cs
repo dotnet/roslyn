@@ -145,11 +145,16 @@ class C
         public void ApplyEditorConfigAndFixAllOccurrences()
         {
             var markup = @"
-using System;
 class C
 {
-    public String first;
-    public $$String second;
+    public string first;
+    public string second;
+
+    public void Method()
+    {
+        first = null;
+        $$second = null;
+    }
 }";
 
             // CodingConventions only sends notifications if a file is open for all directories in the project
@@ -161,25 +166,14 @@ class C
             MarkupTestFile.GetSpans(markup, out var text, out ImmutableArray<TextSpan> spans);
             SetUpEditor(markup);
             VisualStudio.WaitForApplicationIdle(CancellationToken.None);
-            VisualStudio.Editor.InvokeCodeActionList();
-            VisualStudio.Editor.Verify.CodeActions(
-                new[]
-                {
-                    "Encapsulate field: 'second' (and use property)",
-                    "Preview changes",
-                    "Encapsulate field: 'second' (but still use field)",
-                    "Preview changes",
-                },
-                ensureExpectedItemsAreOrdered: true,
-                verifyCompleteList: true);
+            VisualStudio.Editor.Verify.CodeActionsNotShowing();
 
             var editorConfig = @"root = true
 
 [*.cs]
-dotnet_style_predefined_type_for_locals_parameters_members = true:warning
+dotnet_style_qualification_for_field = true:warning
 ";
 
-            VisualStudio.Editor.DismissLightBulbSession();
             VisualStudio.SolutionExplorer.AddFile(new ProjectUtils.Project(ProjectName), ".editorconfig", editorConfig, open: false);
 
             // We have no way of waiting on the CodingConventions library to send its file system changed notifications
@@ -194,16 +188,12 @@ dotnet_style_predefined_type_for_locals_parameters_members = true:warning
             VisualStudio.Editor.Verify.CodeActions(
                 new[]
                 {
-                    "Simplify name 'String'",
+                    "Add 'this.'",
                     "Preview changes",
                     "Document",
                     "Project",
                     "Solution",
-                    "Encapsulate field: 'second' (and use property)",
-                    "Preview changes",
-                    "Encapsulate field: 'second' (but still use field)",
-                    "Preview changes",
-                    "Suppress IDE0012",
+                    "Suppress IDE0009",
                     "in Source",
                     "Preview changes",
                     "Document",
@@ -215,7 +205,7 @@ dotnet_style_predefined_type_for_locals_parameters_members = true:warning
                     "Project",
                     "Solution",
                 },
-                applyFix: "Simplify name 'String'",
+                applyFix: "Add 'this.'",
                 fixAllScope: FixAllScope.Project,
                 ensureExpectedItemsAreOrdered: true,
                 verifyCompleteList: true,
@@ -225,7 +215,7 @@ dotnet_style_predefined_type_for_locals_parameters_members = true:warning
             VisualStudio.PreviewChangesDialog.VerifyOpen(expectedTitle, Helper.HangMitigatingTimeout);
             VisualStudio.PreviewChangesDialog.ClickApplyAndWaitForFeature(expectedTitle, FeatureAttribute.DiagnosticService);
 
-            Assert.Equal(text.Replace("String", "string"), VisualStudio.Editor.GetText());
+            Assert.Equal(text.Replace("first =", "this.first =").Replace("second =", "this.second ="), VisualStudio.Editor.GetText());
 
             VisualStudio.SolutionExplorer.SetFileContents(new ProjectUtils.Project(ProjectName), ".editorconfig", editorConfig.Replace("true:warning", "false:warning"));
 
@@ -241,16 +231,12 @@ dotnet_style_predefined_type_for_locals_parameters_members = true:warning
             VisualStudio.Editor.Verify.CodeActions(
                 new[]
                 {
-                    "Use framework type",
+                    "Remove 'this' qualification",
                     "Preview changes",
                     "Document",
                     "Project",
                     "Solution",
-                    "Encapsulate field: 'second' (and use property)",
-                    "Preview changes",
-                    "Encapsulate field: 'second' (but still use field)",
-                    "Preview changes",
-                    "Suppress IDE0014",
+                    "Suppress IDE0003",
                     "in Source",
                     "Preview changes",
                     "Document",
@@ -262,7 +248,7 @@ dotnet_style_predefined_type_for_locals_parameters_members = true:warning
                     "Project",
                     "Solution",
                 },
-                applyFix: "Use framework type",
+                applyFix: "Remove 'this' qualification",
                 fixAllScope: FixAllScope.Project,
                 ensureExpectedItemsAreOrdered: true,
                 verifyCompleteList: true,
