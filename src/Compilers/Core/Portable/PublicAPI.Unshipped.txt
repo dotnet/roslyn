@@ -2,7 +2,7 @@ Microsoft.CodeAnalysis.Diagnostics.Telemetry.AnalyzerTelemetryInfo.Concurrent.ge
 Microsoft.CodeAnalysis.Diagnostics.Telemetry.AnalyzerTelemetryInfo.Concurrent.set -> void
 *REMOVED*Microsoft.CodeAnalysis.Operations.IEventAssignmentOperation.EventReference.get -> Microsoft.CodeAnalysis.Operations.IEventReferenceOperation
 Microsoft.CodeAnalysis.FlowAnalysis.BasicBlock
-Microsoft.CodeAnalysis.FlowAnalysis.BasicBlock.Condition.get -> Microsoft.CodeAnalysis.IOperation
+Microsoft.CodeAnalysis.FlowAnalysis.BasicBlock.BranchValue.get -> Microsoft.CodeAnalysis.IOperation
 Microsoft.CodeAnalysis.FlowAnalysis.BasicBlock.ConditionKind.get -> Microsoft.CodeAnalysis.FlowAnalysis.ControlFlowConditionKind
 Microsoft.CodeAnalysis.FlowAnalysis.BasicBlock.ConditionalSuccessor.get -> Microsoft.CodeAnalysis.FlowAnalysis.ControlFlowBranch
 Microsoft.CodeAnalysis.FlowAnalysis.BasicBlock.EnclosingRegion.get -> Microsoft.CodeAnalysis.FlowAnalysis.ControlFlowRegion
@@ -12,7 +12,6 @@ Microsoft.CodeAnalysis.FlowAnalysis.BasicBlock.Kind.get -> Microsoft.CodeAnalysi
 Microsoft.CodeAnalysis.FlowAnalysis.BasicBlock.Operations.get -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.IOperation>
 Microsoft.CodeAnalysis.FlowAnalysis.BasicBlock.Ordinal.get -> int
 Microsoft.CodeAnalysis.FlowAnalysis.BasicBlock.Predecessors.get -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.FlowAnalysis.ControlFlowBranch>
-Microsoft.CodeAnalysis.FlowAnalysis.BasicBlock.Value.get -> Microsoft.CodeAnalysis.IOperation
 Microsoft.CodeAnalysis.FlowAnalysis.BasicBlockKind
 Microsoft.CodeAnalysis.FlowAnalysis.BasicBlockKind.Block = 2 -> Microsoft.CodeAnalysis.FlowAnalysis.BasicBlockKind
 Microsoft.CodeAnalysis.FlowAnalysis.BasicBlockKind.Entry = 0 -> Microsoft.CodeAnalysis.FlowAnalysis.BasicBlockKind

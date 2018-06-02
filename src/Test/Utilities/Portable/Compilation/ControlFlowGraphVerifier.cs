@@ -107,8 +107,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                         Assert.Equal(0, i);
                         Assert.Empty(block.Operations);
                         Assert.Empty(block.Predecessors);
-                        Assert.Null(block.Condition);
-                        Assert.Null(block.Value);
+                        Assert.Null(block.BranchValue);
                         Assert.NotNull(block.FallThroughSuccessor);
                         Assert.NotNull(block.FallThroughSuccessor.Destination);
                         Assert.Null(block.ConditionalSuccessor);
@@ -128,8 +127,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                         Assert.Empty(block.Operations);
                         Assert.Null(block.FallThroughSuccessor);
                         Assert.Null(block.ConditionalSuccessor);
-                        Assert.Null(block.Condition);
-                        Assert.Null(block.Value);
+                        Assert.Null(block.BranchValue);
                         Assert.Same(graph.Root, currentRegion);
                         Assert.Same(currentRegion, block.EnclosingRegion);
                         Assert.Equal(i, currentRegion.LastBlockOrdinal);
@@ -158,43 +156,41 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                 {
                     appendIndent();
                     stringBuilder.Append("    Predecessors:");
-                    var visitedPredecessors = new Dictionary<int, ControlFlowBranch>();
-                    foreach (ControlFlowBranch predecessorBranch in predecessors)
+                    int previousPredecessorOrdinal = -1;
+                    for (var predecessorIndex = 0; predecessorIndex < predecessors.Length; predecessorIndex++)
                     {
+                        var predecessorBranch = predecessors[predecessorIndex];
                         Assert.Same(block, predecessorBranch.Destination);
                         var predecessor = predecessorBranch.Source;
+                        Assert.True(previousPredecessorOrdinal < predecessor.Ordinal);
+                        previousPredecessorOrdinal = predecessor.Ordinal;
                         Assert.Same(blocks[predecessor.Ordinal], predecessor);
-                        Assert.True(predecessor.ConditionalSuccessor?.Destination == block || predecessor.FallThroughSuccessor?.Destination == block);
 
-                        if (block.Kind != BasicBlockKind.Exit && predecessor.FallThroughSuccessor?.Destination == block)
+                        if (predecessorBranch.IsConditionalSuccessor)
                         {
-                            Assert.Null(predecessor.Value);
-                        }
-
-                        if (visitedPredecessors.TryGetValue(predecessor.Ordinal, out ControlFlowBranch visitedBranch))
-                        {
-                            // Multiple branches from same predecessor - one must be conditional and other fall through.
-                            Assert.NotNull(predecessor.Condition);
+                            Assert.Same(predecessor.ConditionalSuccessor, predecessorBranch);
                             Assert.NotEqual(ControlFlowConditionKind.None, predecessor.ConditionKind);
-
-                            if (visitedBranch.IsConditionalSuccessor)
-                            {
-                                Assert.False(predecessorBranch.IsConditionalSuccessor);
-                                Assert.Same(visitedBranch, predecessor.ConditionalSuccessor);
-                                Assert.Same(predecessorBranch, predecessor.FallThroughSuccessor);
-                            }
-                            else
-                            {
-                                Assert.True(predecessorBranch.IsConditionalSuccessor);
-                                Assert.Same(visitedBranch, predecessor.FallThroughSuccessor);
-                                Assert.Same(predecessorBranch, predecessor.ConditionalSuccessor);
-                            }
                         }
                         else
                         {
-                            stringBuilder.Append($" [{getBlockId(predecessor)}]");
-                            visitedPredecessors.Add(predecessor.Ordinal, predecessorBranch);
+                            Assert.Same(predecessor.FallThroughSuccessor, predecessorBranch);
                         }
+
+                        stringBuilder.Append($" [{getBlockId(predecessor)}");
+
+                        if (predecessorIndex < predecessors.Length - 1 && predecessors[predecessorIndex + 1].Source == predecessor)
+                        {
+                            // Multiple branches from same predecessor - one must be conditional and other fall through.
+                            Assert.True(predecessorBranch.IsConditionalSuccessor);
+                            predecessorIndex++;
+                            predecessorBranch = predecessors[predecessorIndex];
+                            Assert.Same(predecessor.FallThroughSuccessor, predecessorBranch);
+                            Assert.False(predecessorBranch.IsConditionalSuccessor);
+
+                            stringBuilder.Append("*2");
+                        }
+
+                        stringBuilder.Append("]");
                     }
 
                     stringBuilder.AppendLine();
@@ -214,7 +210,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
                 ControlFlowBranch conditionalBranch = block.ConditionalSuccessor;
 
-                if (block.Condition != null)
+                if (block.ConditionKind != ControlFlowConditionKind.None)
                 {
                     Assert.NotNull(conditionalBranch);
                     Assert.True(conditionalBranch.IsConditionalSuccessor);
@@ -233,7 +229,8 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                     string jumpIfTrue = block.ConditionKind == ControlFlowConditionKind.WhenTrue ? "True" : "False";
                     appendLine($"    Jump if {jumpIfTrue} ({conditionalBranch.Semantics}) to Block[{getDestinationString(ref conditionalBranch)}]");
 
-                    IOperation value = block.Condition;
+                    IOperation value = block.BranchValue;
+                    Assert.NotNull(value);
                     validateRoot(value);
                     stringBuilder.Append(OperationTreeVerifier.GetOperationTree(compilation, value, initialIndent: 8 + indent));
                     validateBranch(block, conditionalBranch);
@@ -250,7 +247,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                 if (block.Kind == BasicBlockKind.Exit)
                 {
                     Assert.Null(nextBranch);
-                    Assert.Null(block.Value);
+                    Assert.Null(block.BranchValue);
                 }
                 else
                 {
@@ -271,7 +268,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                     }
 
                     appendLine($"    Next ({nextBranch.Semantics}) Block[{getDestinationString(ref nextBranch)}]");
-                    IOperation value = block.Value;
+                    IOperation value = block.ConditionKind == ControlFlowConditionKind.None ? block.BranchValue : null;
 
                     if (value != null)
                     {
@@ -607,7 +604,7 @@ endRegion:
 
             void validateLocalsAndMethodsLifetime(BasicBlock block)
             {
-                ISymbol[] localsOrMethodsInBlock = Enumerable.Concat(block.Operations, new[] { block.Condition, block.Value }).
+                ISymbol[] localsOrMethodsInBlock = Enumerable.Concat(block.Operations, new[] { block.BranchValue }).
                                                    Where(o => o != null).
                                                    SelectMany(o => o.DescendantsAndSelf().
                                                                    Select(node =>

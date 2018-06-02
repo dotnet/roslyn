@@ -703,7 +703,7 @@ Block[B1] - Block
 
     Next (Regular) Block[B2]
 Block[B2] - Block
-    Predecessors: [B1]
+    Predecessors: [B1*2]
     Statements (1)
         IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'result = false;')
           Expression: 
@@ -762,7 +762,7 @@ Block[B1] - Block
 
     Next (Regular) Block[B2]
 Block[B2] - Block
-    Predecessors: [B1]
+    Predecessors: [B1*2]
     Statements (1)
         IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'result = false;')
           Expression: 
@@ -833,7 +833,7 @@ Block[B2] - Block
 
     Next (Regular) Block[B3]
 Block[B3] - Block
-    Predecessors: [B1] [B2]
+    Predecessors: [B1] [B2*2]
     Statements (1)
         IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'result = false;')
           Expression: 

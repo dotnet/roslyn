@@ -385,18 +385,22 @@ Block[B0] - Entry
 Block[B1] - Block
     Predecessors: [B0]
     Statements (0)
-    Jump if False (Regular) to Block[B2]
+    Jump if False (Regular) to Block[B3]
         IParameterReferenceOperation: a (OperationKind.ParameterReference, Type: System.Boolean) (Syntax: 'a')
 
-    Next (Return) Block[B3]
-        ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
+    Next (Regular) Block[B2]
 Block[B2] - Block
     Predecessors: [B1]
     Statements (0)
-    Next (Return) Block[B3]
+    Next (Return) Block[B4]
+        ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
+Block[B3] - Block
+    Predecessors: [B1]
+    Statements (0)
+    Next (Return) Block[B4]
         ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2) (Syntax: '2')
-Block[B3] - Exit
-    Predecessors: [B1] [B2]
+Block[B4] - Exit
+    Predecessors: [B2] [B3]
     Statements (0)
 ";
             VerifyFlowGraphForTest<BlockSyntax>(compilation, expectedGraph);
@@ -988,10 +992,14 @@ Block[B1] - Block
     Jump if True (Regular) to Block[B1]
         IParameterReferenceOperation: a (OperationKind.ParameterReference, Type: System.Boolean) (Syntax: 'a')
 
-    Next (Return) Block[B2]
-        ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
-Block[B2] - Exit
+    Next (Regular) Block[B2]
+Block[B2] - Block
     Predecessors: [B1]
+    Statements (0)
+    Next (Return) Block[B3]
+        ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
+Block[B3] - Exit
+    Predecessors: [B2]
     Statements (0)
 ";
             VerifyFlowGraphForTest<BlockSyntax>(compilation, expectedGraph);
@@ -1027,18 +1035,22 @@ Block[B0] - Entry
 Block[B1] - Block
     Predecessors: [B0]
     Statements (0)
-    Jump if False (Regular) to Block[B2]
+    Jump if False (Regular) to Block[B3]
         IParameterReferenceOperation: a (OperationKind.ParameterReference, Type: System.Boolean) (Syntax: 'a')
 
-    Next (Return) Block[B3]
-        ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
+    Next (Regular) Block[B2]
 Block[B2] - Block
     Predecessors: [B1]
     Statements (0)
-    Next (Return) Block[B3]
+    Next (Return) Block[B4]
+        ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
+Block[B3] - Block
+    Predecessors: [B1]
+    Statements (0)
+    Next (Return) Block[B4]
         ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2) (Syntax: '2')
-Block[B3] - Exit
-    Predecessors: [B1] [B2]
+Block[B4] - Exit
+    Predecessors: [B2] [B3]
     Statements (0)
 ";
             VerifyFlowGraphForTest<BlockSyntax>(compilation, expectedGraph);
@@ -1082,18 +1094,22 @@ Block[B1] - Block
               Right: 
                 ILiteralOperation (OperationKind.Literal, Type: System.Boolean, Constant: True) (Syntax: 'true')
 
-    Jump if False (Regular) to Block[B2]
+    Jump if False (Regular) to Block[B3]
         IParameterReferenceOperation: a (OperationKind.ParameterReference, Type: System.Boolean) (Syntax: 'a')
 
-    Next (Return) Block[B3]
-        ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
+    Next (Regular) Block[B2]
 Block[B2] - Block
     Predecessors: [B1]
     Statements (0)
-    Next (Return) Block[B3]
+    Next (Return) Block[B4]
+        ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
+Block[B3] - Block
+    Predecessors: [B1]
+    Statements (0)
+    Next (Return) Block[B4]
         ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2) (Syntax: '2')
-Block[B3] - Exit
-    Predecessors: [B1] [B2]
+Block[B4] - Exit
+    Predecessors: [B2] [B3]
     Statements (0)
 ";
             VerifyFlowGraphForTest<BlockSyntax>(compilation, expectedGraph);
