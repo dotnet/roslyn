@@ -238,6 +238,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                         sourceCodeKind,
                         id,
                         updatedHandler,
+                        openedHandler,
+                        closingHandler,
                         documentServiceFactory);
                 }
 

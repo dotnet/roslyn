@@ -134,7 +134,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
             this.RunningDocumentTable = (IVsRunningDocumentTable4)serviceProvider.GetService(typeof(SVsRunningDocumentTable));
 
-            var displayName = hierarchy != null && hierarchy.TryGetName(out var name) ? name : projectSystemName;
+            var displayName = projectSystemName;
             this.DisplayName = displayName;
 
             this.ProjectTracker = projectTracker;

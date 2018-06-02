@@ -86,6 +86,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
             Workspace workspace,
             IVsHierarchy hierarchy,
             uint itemId,
+            string filePath,
             IComponentModel componentModel,
             IDocumentServiceFactory documentServiceFactory,
             IFormattingRule vbHelperFormattingRule)
@@ -97,16 +98,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
             _componentModel = componentModel;
             _workspace = workspace;
             _hostType = GetHostType();
-            if (!ErrorHandler.Succeeded(((IVsProject)hierarchy).GetMkDocument(itemId, out var filePath)))
-            {
-                // we couldn't look up the document moniker from an hierarchy for an itemid.
-                // Since we only use this moniker as a key, we could fall back to something else, like the document name.
-                Debug.Assert(false, "Could not get the document moniker for an item from its hierarchy.");
-                if (!hierarchy.TryGetItemName(itemId, out filePath))
-                {
-                    Environment.FailFast("Failed to get document moniker for a contained document");
-                }
-            }
 
             if (Project.Hierarchy != null)
             {

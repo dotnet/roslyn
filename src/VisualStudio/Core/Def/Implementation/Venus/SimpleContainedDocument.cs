@@ -14,6 +14,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
 {
+    using System.Diagnostics;
     using System.Threading;
     using System.Threading.Tasks;
     using Workspace = Microsoft.CodeAnalysis.Workspace;
@@ -28,7 +29,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
         /// </summary>
         private readonly DocumentProvider _documentProvider;
         private readonly SourceTextContainer _sourceTextContainer;
+        private readonly ReiteratedVersionSnapshotTracker _snapshotTracker;
         private readonly EventHandler _updatedHandler;
+
+        private ITextBuffer _openTextBuffer;
 
         public DocumentId Id { get; }
         public IReadOnlyList<string> Folders { get; }
@@ -47,6 +51,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
             SourceCodeKind sourceCodeKind,
             DocumentId id,
             EventHandler updatedHandler,
+            EventHandler<bool> openedHandler,
+            EventHandler<bool> closingHandler,
             IDocumentServiceFactory documentServiceFactory)
         {
             Contract.ThrowIfNull(documentProvider);
@@ -71,7 +77,19 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
             _sourceTextContainer = sourceTextContainer;
             _sourceTextContainer.TextChanged += OnTextChanged;
 
+            _snapshotTracker = new ReiteratedVersionSnapshotTracker(null);
+
             this.DocumentServiceFactory = documentServiceFactory;
+
+            if (openedHandler != null)
+            {
+                Opened += openedHandler;
+            }
+
+            if (closingHandler != null)
+            {
+                Closing += closingHandler;
+            }
         }
 
         public uint GetItemId()
@@ -101,8 +119,33 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
                 documentServiceFactory: DocumentServiceFactory);
         }
 
+        internal void ProcessOpen(ITextBuffer openedBuffer, bool isCurrentContext)
+        {
+            Debug.Assert(openedBuffer != null);
+
+            _sourceTextContainer.TextChanged -= OnTextChanged;
+            _snapshotTracker.StartTracking(openedBuffer);
+
+            _openTextBuffer = openedBuffer;
+            Opened?.Invoke(this, isCurrentContext);
+        }
+
+        internal void ProcessClose(bool updateActiveContext)
+        {
+            // Todo: it might already be closed...
+            // For now, continue asserting as it can be clicked through.
+            Debug.Assert(_openTextBuffer != null);
+            Closing?.Invoke(this, updateActiveContext);
+
+            var buffer = _openTextBuffer;
+            _openTextBuffer = null;
+
+            _snapshotTracker.StopTracking(buffer);
+            _sourceTextContainer.TextChanged += OnTextChanged;
+        }
+
         public string FilePath => Key.Moniker;
-        public bool IsOpen => false;
+        public bool IsOpen => _openTextBuffer != null;
 
 #pragma warning disable 67
 
@@ -112,8 +155,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
 
 #pragma warning restore 67
 
-        public ITextBuffer GetOpenTextBuffer() => null;
-        public SourceTextContainer GetOpenTextContainer() => null;
+        public ITextBuffer GetOpenTextBuffer() => _openTextBuffer;
+        public SourceTextContainer GetOpenTextContainer() => _openTextBuffer.AsTextContainer();
 
         public string Name
         {

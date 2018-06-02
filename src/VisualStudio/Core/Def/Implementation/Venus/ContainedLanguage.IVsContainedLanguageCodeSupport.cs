@@ -42,7 +42,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
             TextSpan[] pSpanInsertionPoint)
         {
             var thisDocument = GetThisDocument();
-            var targetDocumentId = this.ContainedDocument.FindProjectDocumentIdWithItemId(itemidInsertionPoint);
+            var targetDocumentId = this.FindProjectDocumentIdWithItemId(itemidInsertionPoint);
             var targetDocument = thisDocument.Project.Solution.GetDocument(targetDocumentId);
             if (targetDocument == null)
             {
@@ -142,7 +142,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
                     if (ContainedLanguageCodeSupport.TryGetMemberNavigationPoint(GetThisDocument(), pszClassName, pszUniqueMemberID, out textSpan, out var targetDocument, c.CancellationToken))
                     {
                         succeeded = true;
-                        itemId = this.ContainedDocument.FindItemIdOfDocument(targetDocument);
+                        itemId = this.FindItemIdOfDocument(targetDocument);
                     }
                 });
 
@@ -208,6 +208,16 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
             }
 
             return document;
+        }
+
+        protected DocumentId FindProjectDocumentIdWithItemId(uint itemidInsertionPoint)
+        {
+            return Project.GetCurrentDocuments().SingleOrDefault(d => d.GetItemId() == itemidInsertionPoint).Id;
+        }
+
+        protected uint FindItemIdOfDocument(Document document)
+        {
+            return Project.GetDocumentOrAdditionalDocument(document.Id).GetItemId();
         }
 
         private static readonly int s_CONTAINEDLANGUAGE_CANNOTFINDITEM = MakeHResult(1, FACILITY_ITF, 0x8003);

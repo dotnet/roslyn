@@ -60,7 +60,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Venus
                                                  pSpanInsertionPoint() As VsTextSpan) As Integer Implements IVsContainedLanguageStaticEventBinding.EnsureStaticEventHandler
 
             Dim thisDocument = GetThisDocument()
-            Dim targetDocumentId = Me.ContainedDocument.FindProjectDocumentIdWithItemId(itemidInsertionPoint)
+            Dim targetDocumentId = FindProjectDocumentIdWithItemId(itemidInsertionPoint)
             Dim targetDocument = thisDocument.Project.Solution.GetDocument(targetDocumentId)
             If targetDocument Is Nothing Then
                 Throw New InvalidOperationException("Can't generate into that itemid")

@@ -1,5 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
+using System.Diagnostics;
 using System.Runtime.InteropServices;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -29,7 +31,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
 
         protected readonly Workspace Workspace;
         protected readonly IComponentModel ComponentModel;
-        protected readonly ContainedDocument ContainedDocument;
+        protected readonly IVisualStudioHostDocument ContainedDocument;
 
         // Set when a TextViewFIlter is set.  We hold onto this to keep our TagSource objects alive even if Venus
         // disconnects the subject buffer from the view temporarily (which they do frequently).  Otherwise, we have to
@@ -70,19 +72,45 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
             var dataBuffer = _editorAdaptersFactoryService.GetDataBuffer(primaryVsTextBuffer);
             SetDataBuffer(dataBuffer);
 
-            this.ContainedDocument = new ContainedDocument(
-                this, sourceCodeKind, this.Workspace, hierarchy, itemid, componentModel,
-                documentServiceFactory, vbHelperFormattingRule);
+            if (!ErrorHandler.Succeeded(((IVsProject)hierarchy).GetMkDocument(itemid, out var filePath)))
+            {
+                // we couldn't look up the document moniker from an hierarchy for an itemid.
+                // Since we only use this moniker as a key, we could fall back to something else, like the document name.
+                Debug.Assert(false, "Could not get the document moniker for an item from its hierarchy.");
+                if (!hierarchy.TryGetItemName(itemid, out filePath))
+                {
+                    Environment.FailFast("Failed to get document moniker for a contained document");
+                }
+            }
+            
+            if (this.Project.GetCurrentDocumentFromPath(filePath) is SimpleContainedDocument existingDocument)
+            {
+                this.ContainedDocument = existingDocument;
+                existingDocument.ProcessOpen(this.SubjectBuffer, isCurrentContext: true);
+            }
+            else
+            {
+                this.ContainedDocument = new ContainedDocument(
+                    this, sourceCodeKind, this.Workspace, hierarchy, itemid, filePath, componentModel,
+                    documentServiceFactory, vbHelperFormattingRule);
+                this.Project.AddDocument(this.ContainedDocument, isCurrentContext: true, hookupHandlers: true);
+            }
 
-            // TODO: Can contained documents be linked or shared?
-            this.Project.AddDocument(this.ContainedDocument, isCurrentContext: true, hookupHandlers: true);
             this.DataBuffer.Changed += OnDataBufferChanged;
         }
 
         private void OnDisconnect()
         {
             this.DataBuffer.Changed -= OnDataBufferChanged;
-            this.Project.RemoveDocument(this.ContainedDocument);
+
+            if (this.ContainedDocument is ContainedDocument)
+            {
+                this.Project.RemoveDocument(this.ContainedDocument);
+            }
+            else if (this.ContainedDocument is SimpleContainedDocument existingDocument)
+            {
+                existingDocument.ProcessClose(updateActiveContext: true);
+            }
         }
 
         private void OnDataBufferChanged(object sender, TextContentChangedEventArgs e)

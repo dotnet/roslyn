@@ -2,12 +2,12 @@
 
 using System;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using Microsoft.CodeAnalysis.Experiment;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.TextManager.Interop;
-using VsServiceProvider = Microsoft.VisualStudio.OLE.Interop.IServiceProvider;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
 {
@@ -44,6 +44,32 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
                                 Marshal.Release(service);
                             }
                         }
+                    }
+                }
+            }
+
+            // This is just a hack, because the managed project system doesn't provide exensibility for 
+            // use to implement IVsContainedLanguageProjectNameProvider. Assuming they provide us a way to implement
+            // this interface then the existing logic would work as desired without any changes.
+            if (projectName == null)
+            {
+                Marshal.ThrowExceptionForHR(((IVsProject)hierarchy).GetItemContext((uint)VSConstants.VSITEMID.Root, out var itemContext));
+
+                var sid = typeof(IVsContainedLanguageProjectNameProvider).GUID;
+                var iid = typeof(IVsContainedLanguageProjectNameProvider).GUID;
+
+                Marshal.ThrowExceptionForHR(itemContext.QueryService(ref sid, ref iid, out var output));
+
+                try
+                {
+                    var containedLanguageProjectNameProvider = (IVsContainedLanguageProjectNameProvider)Marshal.GetObjectForIUnknown(output);
+                    containedLanguageProjectNameProvider.GetProjectName(itemid, out projectName);
+                }
+                finally
+                {
+                    if (output != IntPtr.Zero)
+                    {
+                        Marshal.Release(output);
                     }
                 }
             }
