@@ -27,12 +27,13 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
                 bool applyFix = false,
                 bool verifyNotShowing = false,
                 bool ensureExpectedItemsAreOrdered = false,
+                bool verifyCompleteList = false,
                 FixAllScope? fixAllScope = null,
                 bool blockUntilComplete = true)
             {
                 var expectedItems = new[] { expectedItem };
                 CodeActions(expectedItems, applyFix ? expectedItem : null, verifyNotShowing,
-                    ensureExpectedItemsAreOrdered, fixAllScope, blockUntilComplete);
+                    ensureExpectedItemsAreOrdered, verifyCompleteList, fixAllScope, blockUntilComplete);
             }
 
             public void CodeActions(
@@ -40,6 +41,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
                 string applyFix = null,
                 bool verifyNotShowing = false,
                 bool ensureExpectedItemsAreOrdered = false,
+                bool verifyCompleteList = false,
                 FixAllScope? fixAllScope = null,
                 bool blockUntilComplete = true)
             {
@@ -58,15 +60,27 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
                 {
                     if (ensureExpectedItemsAreOrdered)
                     {
-                        TestUtilities.ThrowIfExpectedItemNotFoundInOrder(
-                            actions,
-                            expectedItems);
+                        if (verifyCompleteList)
+                        {
+                            Assert.Equal(expectedItems, actions);
+                        }
+                        else
+                        {
+                            TestUtilities.ThrowIfExpectedItemNotFoundInOrder(
+                                actions,
+                                expectedItems);
+                        }
                     }
                     else
                     {
                         TestUtilities.ThrowIfExpectedItemNotFound(
                             actions,
                             expectedItems);
+
+                        if (verifyCompleteList)
+                        {
+                            Assert.Equal(expectedItems.Count(), actions.Length);
+                        }
                     }
                 }
 

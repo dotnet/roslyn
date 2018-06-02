@@ -1,8 +1,12 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Immutable;
 using System.Linq;
+using System.Threading;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CodeFixes;
+using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
@@ -133,6 +137,141 @@ class C
             VisualStudio.Editor.Verify.CodeAction("Delegate invocation can be simplified.", applyFix: true, ensureExpectedItemsAreOrdered: true, blockUntilComplete: true);
             VisualStudio.Editor.Verify.TextContains("First?.");
             VisualStudio.Editor.Verify.TextContains("Second?.");
+        }
+
+        [WpfFact]
+        [Trait(Traits.Feature, Traits.Features.EditorConfig)]
+        [Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)]
+        public void ApplyEditorConfigAndFixAllOccurrences()
+        {
+            var markup = @"
+using System;
+class C
+{
+    public String first;
+    public $$String second;
+}";
+
+            // CodingConventions only sends notifications if a file is open for all directories in the project
+            VisualStudio.SolutionExplorer.OpenFile(new ProjectUtils.Project(ProjectName), @"Properties\AssemblyInfo.cs");
+
+            // Switch back to the main document we'll be editing
+            VisualStudio.SolutionExplorer.OpenFile(new ProjectUtils.Project(ProjectName), "Class1.cs");
+
+            MarkupTestFile.GetSpans(markup, out var text, out ImmutableArray<TextSpan> spans);
+            SetUpEditor(markup);
+            VisualStudio.WaitForApplicationIdle(CancellationToken.None);
+            VisualStudio.Editor.InvokeCodeActionList();
+            VisualStudio.Editor.Verify.CodeActions(
+                new[]
+                {
+                    "Encapsulate field: 'second' (and use property)",
+                    "Preview changes",
+                    "Encapsulate field: 'second' (but still use field)",
+                    "Preview changes",
+                },
+                ensureExpectedItemsAreOrdered: true,
+                verifyCompleteList: true);
+
+            var editorConfig = @"root = true
+
+[*.cs]
+dotnet_style_predefined_type_for_locals_parameters_members = true:warning
+";
+
+            VisualStudio.Editor.DismissLightBulbSession();
+            VisualStudio.SolutionExplorer.AddFile(new ProjectUtils.Project(ProjectName), ".editorconfig", editorConfig, open: false);
+
+            // We have no way of waiting on the CodingConventions library to send its file system changed notifications
+            Thread.Sleep(TimeSpan.FromSeconds(1));
+
+            VisualStudio.WaitForApplicationIdle(CancellationToken.None);
+            VisualStudio.Workspace.WaitForAllAsyncOperations(
+                FeatureAttribute.Workspace,
+                FeatureAttribute.SolutionCrawler,
+                FeatureAttribute.DiagnosticService);
+            VisualStudio.Editor.InvokeCodeActionList();
+            VisualStudio.Editor.Verify.CodeActions(
+                new[]
+                {
+                    "Simplify name 'String'",
+                    "Preview changes",
+                    "Document",
+                    "Project",
+                    "Solution",
+                    "Encapsulate field: 'second' (and use property)",
+                    "Preview changes",
+                    "Encapsulate field: 'second' (but still use field)",
+                    "Preview changes",
+                    "Suppress IDE0012",
+                    "in Source",
+                    "Preview changes",
+                    "Document",
+                    "Project",
+                    "Solution",
+                    "in Suppression File",
+                    "Preview changes",
+                    "Document",
+                    "Project",
+                    "Solution",
+                },
+                applyFix: "Simplify name 'String'",
+                fixAllScope: FixAllScope.Project,
+                ensureExpectedItemsAreOrdered: true,
+                verifyCompleteList: true,
+                blockUntilComplete: false);
+
+            var expectedTitle = "Preview Changes - Fix all occurrences";
+            VisualStudio.PreviewChangesDialog.VerifyOpen(expectedTitle, Helper.HangMitigatingTimeout);
+            VisualStudio.PreviewChangesDialog.ClickApplyAndWaitForFeature(expectedTitle, FeatureAttribute.DiagnosticService);
+
+            Assert.Equal(text.Replace("String", "string"), VisualStudio.Editor.GetText());
+
+            VisualStudio.SolutionExplorer.SetFileContents(new ProjectUtils.Project(ProjectName), ".editorconfig", editorConfig.Replace("true:warning", "false:warning"));
+
+            // We have no way of waiting on the CodingConventions library to send its file system changed notifications
+            Thread.Sleep(TimeSpan.FromSeconds(1));
+
+            VisualStudio.WaitForApplicationIdle(CancellationToken.None);
+            VisualStudio.Workspace.WaitForAllAsyncOperations(
+                FeatureAttribute.Workspace,
+                FeatureAttribute.SolutionCrawler,
+                FeatureAttribute.DiagnosticService);
+            VisualStudio.Editor.InvokeCodeActionList();
+            VisualStudio.Editor.Verify.CodeActions(
+                new[]
+                {
+                    "Use framework type",
+                    "Preview changes",
+                    "Document",
+                    "Project",
+                    "Solution",
+                    "Encapsulate field: 'second' (and use property)",
+                    "Preview changes",
+                    "Encapsulate field: 'second' (but still use field)",
+                    "Preview changes",
+                    "Suppress IDE0014",
+                    "in Source",
+                    "Preview changes",
+                    "Document",
+                    "Project",
+                    "Solution",
+                    "in Suppression File",
+                    "Preview changes",
+                    "Document",
+                    "Project",
+                    "Solution",
+                },
+                applyFix: "Use framework type",
+                fixAllScope: FixAllScope.Project,
+                ensureExpectedItemsAreOrdered: true,
+                verifyCompleteList: true,
+                blockUntilComplete: false);
+
+            VisualStudio.PreviewChangesDialog.VerifyOpen(expectedTitle, Helper.HangMitigatingTimeout);
+            VisualStudio.PreviewChangesDialog.ClickApplyAndWaitForFeature(expectedTitle, FeatureAttribute.DiagnosticService);
+
+            Assert.Equal(text, VisualStudio.Editor.GetText());
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
