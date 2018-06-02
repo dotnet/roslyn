@@ -40,8 +40,8 @@ class Program
 }
 ";
             return AssertCodeCleanupResult(expected, code,
-                (CodeCleanupOptions.IsCodeCleanupRulesConfigured, enabled: true),
-                (CodeCleanupOptions.RemoveUnusedUsings, enabled: true));
+                (CodeCleanupOptions.AreCodeCleanupRulesConfigured, enabled: true),
+                (CodeCleanupOptions.RemoveUnusedImports, enabled: true));
         }
 
         [Fact]
@@ -72,8 +72,8 @@ class Program
 }
 ";
             return AssertCodeCleanupResult(expected, code,
-                (CodeCleanupOptions.IsCodeCleanupRulesConfigured, enabled: true),
-                (CodeCleanupOptions.SortUsings, enabled: true));
+                (CodeCleanupOptions.AreCodeCleanupRulesConfigured, enabled: true),
+                (CodeCleanupOptions.SortImports, enabled: true));
         }
 
         [Fact(Skip = "disable the test temporarily until figure out how to set up diagnostic analyzer")]
@@ -96,7 +96,7 @@ class Program
 }
 ";
             return AssertCodeCleanupResult(expected, code,
-                (CodeCleanupOptions.IsCodeCleanupRulesConfigured, enabled: true),
+                (CodeCleanupOptions.AreCodeCleanupRulesConfigured, enabled: true),
                 (CodeCleanupOptions.RemoveUnusedVariables, enabled: true));
 
             //workspace.Options = workspace.Options.WithChangedOption(RemoteFeatureOptions.DiagnosticsEnabled, false);

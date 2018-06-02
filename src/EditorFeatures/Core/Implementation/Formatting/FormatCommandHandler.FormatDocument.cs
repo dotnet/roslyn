@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Formatting
             return GetCommandState(args.SubjectBuffer);
         }
 
-        private void ShowGoldBarForCodeCleanupConfiguration(Workspace workspace)
+        private void ShowGoldBarForCodeCleanupConfiguration(Document document)
         {
             AssertIsForeground();
 
@@ -36,20 +36,20 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Formatting
 
             _infoBarOpen = true;
 
-            var optionPageService = workspace.Services.GetRequiredService<IOptionPageService>();
-            var infoBarService = workspace.Services.GetRequiredService<IInfoBarService>();
+            var optionPageService = document.GetLanguageService<IOptionPageService>();
+            var infoBarService = document.Project.Solution.Workspace.Services.GetRequiredService<IInfoBarService>();
             infoBarService.ShowInfoBarInGlobalView(
                 EditorFeaturesResources.Code_cleanup_is_not_configured,
                 new InfoBarUI(EditorFeaturesResources.Configure_it_now,
                               kind: InfoBarUI.UIKind.Button,
-                               () =>
-                               {
-                                   optionPageService.ShowFormattingOptionPage();
-                                   _infoBarOpen = false;
-                               }),
+                              () =>
+                              {
+                                  optionPageService.ShowFormattingOptionPage();
+                                  _infoBarOpen = false;
+                              }),
                 new InfoBarUI(EditorFeaturesResources.Do_not_show_this_message_again,
                               kind: InfoBarUI.UIKind.Button,
-                              () => { }));
+                              () => { })); // no action needed. _infoBarOpen remains true so the infoBar will not shown again.
         }
 
         public bool ExecuteCommand(FormatDocumentCommandArgs args, CommandExecutionContext context)
@@ -80,9 +80,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Formatting
                     {
                         Format(args.TextView, document, selectionOpt: null, cancellationToken);
                     }
-                    else if (!docOptions.GetOption(CodeCleanupOptions.IsCodeCleanupRulesConfigured))
+                    else if (!docOptions.GetOption(CodeCleanupOptions.AreCodeCleanupRulesConfigured))
                     {
-                        ShowGoldBarForCodeCleanupConfiguration(document.Project.Solution.Workspace);
+                        ShowGoldBarForCodeCleanupConfiguration(document);
                         Format(args.TextView, document, selectionOpt: null, cancellationToken);
                     }
                     else

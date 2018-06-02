@@ -43,7 +43,7 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.CodeFixes.UnitTests
                 Dim diagnosticService = New TestDiagnosticAnalyzerService(LanguageNames.CSharp, workspaceDiagnosticAnalyzer)
                 Dim analyzer = diagnosticService.CreateIncrementalAnalyzer(workspace)
                 Dim logger = SpecializedCollections.SingletonEnumerable(New Lazy(Of IErrorLoggerService)(Function() workspace.Services.GetService(Of IErrorLoggerService)))
-                Dim codefixService = New CodeAnalysis.CodeFixes.CodeFixService(
+                Dim codefixService = New CodeFixService(
                                         diagnosticService,
                                         logger,
                                         {New Lazy(Of CodeFixProvider, Mef.CodeChangeProviderMetadata)(
@@ -106,7 +106,7 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.CodeFixes.UnitTests
                 Dim diagnosticService = New TestDiagnosticAnalyzerService(LanguageNames.VisualBasic, workspaceDiagnosticAnalyzer)
                 Dim analyzer = diagnosticService.CreateIncrementalAnalyzer(workspace)
                 Dim logger = SpecializedCollections.SingletonEnumerable(New Lazy(Of IErrorLoggerService)(Function() workspace.Services.GetService(Of IErrorLoggerService)))
-                Dim codefixService = New CodeAnalysis.CodeFixes.CodeFixService(
+                Dim codefixService = New CodeFixService(
                                         diagnosticService,
                                         logger,
                                         {New Lazy(Of CodeFixProvider, Mef.CodeChangeProviderMetadata)(

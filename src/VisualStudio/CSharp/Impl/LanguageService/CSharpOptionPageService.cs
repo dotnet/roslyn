@@ -2,7 +2,8 @@
 
 using System;
 using System.Composition;
-using Microsoft.CodeAnalysis.Editor.Implementation;
+using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.VisualStudio.LanguageServices.CSharp.Options.Formatting;
@@ -11,7 +12,7 @@ using Microsoft.VisualStudio.Shell.Interop;
 
 namespace Microsoft.VisualStudio.LanguageServices.CSharp.LanguageService
 {
-    [ExportWorkspaceService(typeof(IOptionPageService)), Shared]
+    [ExportLanguageService(typeof(IOptionPageService), LanguageNames.CSharp), Shared]
     internal class CSharpOptionPageService : ForegroundThreadAffinitizedObject, IOptionPageService
     {
         private readonly CSharpPackage _package;

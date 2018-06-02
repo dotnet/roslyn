@@ -9,17 +9,17 @@ namespace Microsoft.CodeAnalysis.CodeCleanup
 {
     internal static class CodeCleanupOptions
     {
-        public static readonly PerLanguageOption<bool> IsCodeCleanupRulesConfigured = new PerLanguageOption<bool>(
-            nameof(CodeCleanupOptions), nameof(IsCodeCleanupRulesConfigured), defaultValue: false,
-            storageLocations: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Is Code Cleanup Rules Configured"));
+        public static readonly PerLanguageOption<bool> AreCodeCleanupRulesConfigured = new PerLanguageOption<bool>(
+            nameof(CodeCleanupOptions), nameof(AreCodeCleanupRulesConfigured), defaultValue: false,
+            storageLocations: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Are Code Cleanup Rules Configured"));
 
-        public static readonly PerLanguageOption<bool> RemoveUnusedUsings = new PerLanguageOption<bool>(
-            nameof(CodeCleanupOptions), nameof(RemoveUnusedUsings), defaultValue: true,
-            storageLocations: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.Remove Unused Usings"));
+        public static readonly PerLanguageOption<bool> RemoveUnusedImports = new PerLanguageOption<bool>(
+            nameof(CodeCleanupOptions), nameof(RemoveUnusedImports), defaultValue: true,
+            storageLocations: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.Remove Unused Imports"));
 
-        public static readonly PerLanguageOption<bool> SortUsings = new PerLanguageOption<bool>(
-            nameof(CodeCleanupOptions), nameof(SortUsings), defaultValue: true,
-            storageLocations: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.Sort Usings"));
+        public static readonly PerLanguageOption<bool> SortImports = new PerLanguageOption<bool>(
+            nameof(CodeCleanupOptions), nameof(SortImports), defaultValue: true,
+            storageLocations: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.Sort Imports"));
 
         public static readonly PerLanguageOption<bool> FixImplicitExplicitType = new PerLanguageOption<bool>(
             nameof(CodeCleanupOptions), nameof(FixImplicitExplicitType), defaultValue: true,
@@ -78,6 +78,7 @@ namespace Microsoft.CodeAnalysis.CodeCleanup
     internal class CodeCleanupOptionsProvider : IOptionProvider
     {
         public ImmutableArray<IOption> Options { get; } = ImmutableArray.Create<IOption>(
+            CodeCleanupOptions.AreCodeCleanupRulesConfigured,
             CodeCleanupOptions.FixAccessibilityModifiers,
             CodeCleanupOptions.FixAddRemoveBraces,
             CodeCleanupOptions.FixExpressionBodiedMembers,
@@ -87,13 +88,12 @@ namespace Microsoft.CodeAnalysis.CodeCleanup
             CodeCleanupOptions.FixLanguageFeatures,
             CodeCleanupOptions.FixObjectCollectionInitialization,
             CodeCleanupOptions.FixThisQualification,
-            CodeCleanupOptions.IsCodeCleanupRulesConfigured,
             CodeCleanupOptions.MakeReadonly,
             CodeCleanupOptions.RemoveUnnecessaryCasts,
-            CodeCleanupOptions.RemoveUnusedUsings,
+            CodeCleanupOptions.RemoveUnusedImports,
             CodeCleanupOptions.RemoveUnusedVariables,
             CodeCleanupOptions.SortAccessibilityModifiers,
-            CodeCleanupOptions.SortUsings
+            CodeCleanupOptions.SortImports
             );
     }
 }

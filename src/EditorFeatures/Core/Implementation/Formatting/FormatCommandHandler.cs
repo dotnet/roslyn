@@ -65,22 +65,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Formatting
                     return;
                 }
 
-                if (selectionOpt.HasValue)
-                {
-                    var ruleFactory = document.Project.Solution.Workspace.Services.GetService<IHostDependentFormattingRuleFactoryService>();
-
-                    changes = ruleFactory.FilterFormattedChanges(document, selectionOpt.Value, changes).ToList();
-                    if (changes.Count == 0)
-                    {
-                        return;
-                    }
-                }
-
-                using (Logger.LogBlock(FunctionId.Formatting_ApplyResultToBuffer, cancellationToken))
-                {
-                    document.Project.Solution.Workspace.ApplyTextChanges(document.Id, changes, cancellationToken);
-                }
-
+                ApplyChanges(document, changes, selectionOpt, cancellationToken);
                 transaction.Complete();
             }
         }

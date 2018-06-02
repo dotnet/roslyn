@@ -126,7 +126,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeCleanup
         private async Task<Document> RemoveSortUsingsAsync(Document document, DocumentOptionSet docOptions, CancellationToken cancellationToken)
         {
             // remove usings
-            if (docOptions.GetOption(CodeCleanupOptions.RemoveUnusedUsings))
+            if (docOptions.GetOption(CodeCleanupOptions.RemoveUnusedImports))
             {
                 var removeUsingsService = document.GetLanguageService<IRemoveUnnecessaryImportsService>();
                 if (removeUsingsService != null)
@@ -136,7 +136,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeCleanup
             }
 
             // sort usings
-            if (docOptions.GetOption(CodeCleanupOptions.SortUsings))
+            if (docOptions.GetOption(CodeCleanupOptions.SortImports))
             {
                 document = await OrganizeImportsService.OrganizeImportsAsync(document, cancellationToken).ConfigureAwait(false);
             }

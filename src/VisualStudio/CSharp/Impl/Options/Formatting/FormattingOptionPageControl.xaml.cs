@@ -50,10 +50,10 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
             FixLanguageFeaturesCheckBox.Content = CSharpVSResources.Fix_language_features;
 
             // IsCodeCleanupConfiguredCheckBox is hidden all the time, and it tracks if the user ever configured the code cleanup
-            BindToOption(IsCodeCleanupConfiguredCheckBox, CodeCleanupOptions.IsCodeCleanupRulesConfigured, LanguageNames.CSharp);
+            BindToOption(AreCodeCleanupRulesConfiguredCheckBox, CodeCleanupOptions.AreCodeCleanupRulesConfigured, LanguageNames.CSharp);
 
-            BindToOption(RemoveUnusedUsingsCheckBox, CodeCleanupOptions.RemoveUnusedUsings, LanguageNames.CSharp);
-            BindToOption(SortUsingsCheckBox, CodeCleanupOptions.SortUsings, LanguageNames.CSharp);
+            BindToOption(RemoveUnusedUsingsCheckBox, CodeCleanupOptions.RemoveUnusedImports, LanguageNames.CSharp);
+            BindToOption(SortUsingsCheckBox, CodeCleanupOptions.SortImports, LanguageNames.CSharp);
             BindToOption(FixImplicitExplicitTypeCheckBox, CodeCleanupOptions.FixImplicitExplicitType, LanguageNames.CSharp);
             BindToOption(FixFrameworkTypesCheckBox, CodeCleanupOptions.FixFrameworkTypes, LanguageNames.CSharp);
             BindToOption(FixThisQualificationCheckBox, CodeCleanupOptions.FixThisQualification, LanguageNames.CSharp);
@@ -93,10 +93,10 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
 
         internal void SetCodeCleanupAsConfigured()
         {
-            // IsCodeCleanupConfiguredCheckBox is hidden all the time, and it tracks if the user ever configured the code cleanup
-            if (!IsCodeCleanupConfiguredCheckBox.IsChecked.HasValue || IsCodeCleanupConfiguredCheckBox.IsChecked.Value == false)
+            // AreCodeCleanupConfiguredCheckBox is hidden all the time, and it tracks if the user ever configured the code cleanup
+            if (!AreCodeCleanupRulesConfiguredCheckBox.IsChecked.HasValue || AreCodeCleanupRulesConfiguredCheckBox.IsChecked.Value == false)
             {
-                IsCodeCleanupConfiguredCheckBox.IsChecked = true;
+                AreCodeCleanupRulesConfiguredCheckBox.IsChecked = true;
             }
         }
     }
