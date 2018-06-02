@@ -205,15 +205,6 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Generate Event Subscription Command Handler.
-        /// </summary>
-        internal static string Event_Hookup_Command_Handler {
-            get {
-                return ResourceManager.GetString("Event_Hookup_Command_Handler", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Extract Method.
         /// </summary>
         internal static string Extract_Method {
@@ -327,6 +318,15 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp {
         internal static string Format_document_settings {
             get {
                 return ResourceManager.GetString("Format_document_settings", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Generate Event Subscription.
+        /// </summary>
+        internal static string Generate_Event_Subscription {
+            get {
+                return ResourceManager.GetString("Generate Event Subscription", resourceCulture);
             }
         }
         

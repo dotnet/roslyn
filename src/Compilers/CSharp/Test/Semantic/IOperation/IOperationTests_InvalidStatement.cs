@@ -269,7 +269,7 @@ IConditionalOperation (OperationKind.Conditional, Type: null, IsInvalid) (Syntax
                 // CS0029: Cannot implicitly convert type 'Program' to 'bool'
                 //         else if (x) x;
                 Diagnostic(ErrorCode.ERR_NoImplicitConv, "x").WithArguments("Program", "bool").WithLocation(12, 18),
-                // CS0201: Only assignment, call, increment, decrement, and new object expressions can be used as a statement
+                // CS0201: Only assignment, call, increment, decrement, await, and new object expressions can be used as a statement
                 //         else if (x) x;
                 Diagnostic(ErrorCode.ERR_IllegalStatement, "x").WithLocation(12, 21)
             };
@@ -315,7 +315,7 @@ IForLoopOperation (LoopKind.For) (OperationKind.Loop, Type: null, IsInvalid) (Sy
                 // CS0103: The name 'P' does not exist in the current context
                 //         /*<bind>*/for (P; x;)
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "P").WithArguments("P").WithLocation(9, 24),
-                // CS0201: Only assignment, call, increment, decrement, and new object expressions can be used as a statement
+                // CS0201: Only assignment, call, increment, decrement, await, and new object expressions can be used as a statement
                 //         /*<bind>*/for (P; x;)
                 Diagnostic(ErrorCode.ERR_IllegalStatement, "P").WithLocation(9, 24),
                 // CS0029: Cannot implicitly convert type 'Program' to 'bool'

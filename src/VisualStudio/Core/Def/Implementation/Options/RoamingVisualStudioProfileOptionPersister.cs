@@ -80,6 +80,31 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
             return SpecializedTasks.EmptyTask;
         }
 
+        private object GetFirstOrDefaultValue(OptionKey optionKey, IEnumerable<RoamingProfileStorageLocation> roamingSerializations)
+        {
+            // There can be more than 1 roaming location in the order of their priority.
+            // When fetching a value, we iterate all of them until we find the first one that exists.
+            // When persisting a value, we always use the first location.
+            // This functionality exists for breaking changes to persistence of some options. In such a case, there
+            // will be a new location added to the beginning with a new name. When fetching a value, we might find the old
+            // location (and can upgrade the value accordingly) but we only write to the new location so that
+            // we don't interfere with older versions. This will essentially "fork" the user's options at the time of upgrade.
+
+            foreach (var roamingSerialization in roamingSerializations)
+            {
+                var storageKey = roamingSerialization.GetKeyNameForLanguage(optionKey.Language);
+
+                RecordObservedValueToWatchForChanges(optionKey, storageKey);
+
+                if (_settingManager.TryGetValue(storageKey, out object value) == GetValueResult.Success)
+                {
+                    return value;
+                }
+            }
+
+            return optionKey.Option.DefaultValue;
+        }
+
         public bool TryFetch(OptionKey optionKey, out object value)
         {
             if (_settingManager == null)
@@ -90,19 +115,15 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
             }
 
             // Do we roam this at all?
-            var roamingSerialization = optionKey.Option.StorageLocations.OfType<RoamingProfileStorageLocation>().SingleOrDefault();
+            var roamingSerializations = optionKey.Option.StorageLocations.OfType<RoamingProfileStorageLocation>();
 
-            if (roamingSerialization == null)
+            if (!roamingSerializations.Any())
             {
                 value = null;
                 return false;
             }
 
-            var storageKey = roamingSerialization.GetKeyNameForLanguage(optionKey.Language);
-
-            RecordObservedValueToWatchForChanges(optionKey, storageKey);
-
-            value = _settingManager.GetValueOrDefault(storageKey, optionKey.Option.DefaultValue);
+            value = GetFirstOrDefaultValue(optionKey, roamingSerializations);
 
             // VS's ISettingsManager has some quirks around storing enums.  Specifically,
             // it *can* persist and retrieve enums, but only if you properly call 
@@ -222,7 +243,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
             }
 
             // Do we roam this at all?
-            var roamingSerialization = optionKey.Option.StorageLocations.OfType<RoamingProfileStorageLocation>().SingleOrDefault();
+            var roamingSerialization = optionKey.Option.StorageLocations.OfType<RoamingProfileStorageLocation>().FirstOrDefault();
 
             if (roamingSerialization == null)
             {

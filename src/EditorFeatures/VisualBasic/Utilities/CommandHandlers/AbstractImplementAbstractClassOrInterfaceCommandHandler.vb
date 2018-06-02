@@ -23,7 +23,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.Utilities.CommandHandlers
 
         Public ReadOnly Property DisplayName As String Implements INamed.DisplayName
             Get
-                Return VBEditorResources.Implement_Abstract_Class_Or_Interface_Command_Handler
+                Return VBEditorResources.Implement_Abstract_Class_Or_Interface
             End Get
         End Property
 

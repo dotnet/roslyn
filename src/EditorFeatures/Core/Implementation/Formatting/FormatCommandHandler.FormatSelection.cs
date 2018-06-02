@@ -42,7 +42,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Formatting
                 return false;
             }
 
-            using (context.WaitContext.AddScope(allowCancellation: true, EditorFeaturesResources.Formatting_currently_selected_text))
+            using (context.OperationContext.AddScope(allowCancellation: true, EditorFeaturesResources.Formatting_currently_selected_text))
             {
                 var buffer = args.SubjectBuffer;
 
@@ -54,7 +54,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Formatting
                 }
 
                 var formattingSpan = selection[0].Span.ToTextSpan();
-                Format(args.TextView, document, formattingSpan, context.WaitContext.UserCancellationToken);
+
+                Format(args.TextView, document, formattingSpan, context.OperationContext.UserCancellationToken);
 
                 // make behavior same as dev12.
                 // make sure we set selection back and set caret position at the end of selection

@@ -54,7 +54,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Formatting
 
         public bool ExecuteCommand(FormatDocumentCommandArgs args, CommandExecutionContext context)
         {
-            if (!args.SubjectBuffer.CanApplyChangeDocumentToWorkspace())
+            if (!CanExecuteCommand(args.SubjectBuffer))
             {
                 return false;
             }
@@ -65,9 +65,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Formatting
                 return false;
             }
 
-            using (context.WaitContext.AddScope(allowCancellation: true, EditorFeaturesResources.Formatting_document))
+            using (context.OperationContext.AddScope(allowCancellation: true, EditorFeaturesResources.Formatting_document))
             {
-                var cancellationToken = context.WaitContext.UserCancellationToken;
+                var cancellationToken = context.OperationContext.UserCancellationToken;
 
                 var docOptions = document.GetOptionsAsync(cancellationToken).WaitAndGetResult(cancellationToken);
 

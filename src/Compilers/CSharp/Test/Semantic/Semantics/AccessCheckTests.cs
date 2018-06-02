@@ -1063,7 +1063,7 @@ class C
     }
 }
 ";
-            var compilationC = CreateCompilation(sourceC, assemblyName: "C", references: new[] { referenceA, referenceB, SystemCoreRef });
+            var compilationC = CreateCompilation(sourceC, assemblyName: "C", references: new[] { referenceA, referenceB });
             compilationC.VerifyDiagnostics(
                 // (6,9): error CS0122: 'B.M(int)' is inaccessible due to its protection level
                 //         b.M(d);
