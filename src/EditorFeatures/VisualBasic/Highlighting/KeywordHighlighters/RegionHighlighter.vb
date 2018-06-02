@@ -11,10 +11,16 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.KeywordHighlighting
         Inherits AbstractKeywordHighlighter(Of DirectiveTriviaSyntax)
 
         Protected Overloads Overrides Iterator Function GetHighlights(directive As DirectiveTriviaSyntax, cancellationToken As CancellationToken) As IEnumerable(Of TextSpan)
-            If cancellationToken.IsCancellationRequested Then Return
+            If cancellationToken.IsCancellationRequested Then
+                Return
+            End If
+
             If TypeOf directive Is RegionDirectiveTriviaSyntax OrElse TypeOf directive Is EndRegionDirectiveTriviaSyntax Then
                 Dim match = directive.GetMatchingStartOrEndDirective(cancellationToken)
-                If match Is Nothing Then Return
+                If match Is Nothing Then
+                    Return
+                End If
+
                 Dim region = DirectCast(If(TypeOf directive Is RegionDirectiveTriviaSyntax, directive, match), RegionDirectiveTriviaSyntax)
                 Dim endRegion = DirectCast(If(TypeOf directive Is EndRegionDirectiveTriviaSyntax, directive, match), EndRegionDirectiveTriviaSyntax)
                 Yield TextSpan.FromBounds(region.HashToken.SpanStart, region.RegionKeyword.Span.End)

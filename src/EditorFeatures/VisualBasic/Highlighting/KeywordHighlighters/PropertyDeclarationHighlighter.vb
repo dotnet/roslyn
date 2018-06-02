@@ -14,13 +14,17 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.KeywordHighlighting
             ' If the ancestor is not a property block, treat this as an auto-property.
             ' Otherwise, let the PropertyBlockHighlighter take over.
             Dim propertyBlock = propertyDeclaration.GetAncestor(Of PropertyBlockSyntax)()
-            If propertyBlock IsNot Nothing Then Return
+            If propertyBlock IsNot Nothing Then
+                Return
+            End If
 
             With propertyDeclaration
                 Dim firstKeyword = If(.Modifiers.Count > 0, .Modifiers.First(), .DeclarationKeyword)
                 Yield TextSpan.FromBounds(firstKeyword.SpanStart, .DeclarationKeyword.Span.End)
 
-                If .ImplementsClause IsNot Nothing Then Yield .ImplementsClause.ImplementsKeyword.Span
+                If .ImplementsClause IsNot Nothing Then
+                    Yield .ImplementsClause.ImplementsKeyword.Span
+                End If
             End With
 
         End Function

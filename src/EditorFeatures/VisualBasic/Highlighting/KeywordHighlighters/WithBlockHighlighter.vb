@@ -11,9 +11,15 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.KeywordHighlighting
         Inherits AbstractKeywordHighlighter(Of SyntaxNode)
 
         Protected Overloads Overrides Iterator Function GetHighlights(node As SyntaxNode, cancellationToken As CancellationToken) As IEnumerable(Of TextSpan)
-            If cancellationToken.IsCancellationRequested Then Return
+            If cancellationToken.IsCancellationRequested Then
+                Return
+            End If
+
             Dim withBlock = node.GetAncestor(Of WithBlockSyntax)()
-            If withBlock Is Nothing Then Return
+            If withBlock Is Nothing Then
+                Return
+            End If
+
             With withBlock
                 Yield .WithStatement.WithKeyword.Span
                 Yield .EndWithStatement.Span

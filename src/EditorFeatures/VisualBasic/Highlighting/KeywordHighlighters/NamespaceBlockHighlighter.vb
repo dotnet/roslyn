@@ -11,9 +11,14 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.KeywordHighlighting
         Inherits AbstractKeywordHighlighter(Of SyntaxNode)
 
         Protected Overrides Iterator Function GetHighlights(node As SyntaxNode, cancellationToken As CancellationToken) As IEnumerable(Of TextSpan)
-            If cancellationToken.IsCancellationRequested Then Return
+            If cancellationToken.IsCancellationRequested Then
+                Return
+            End If
+
             Dim namespaceBlock = node.GetAncestor(Of NamespaceBlockSyntax)()
-            If namespaceBlock Is Nothing Then Return
+            If namespaceBlock Is Nothing Then
+                Return
+            End If
 
             With namespaceBlock
                 Yield .NamespaceStatement.NamespaceKeyword.Span

@@ -11,10 +11,14 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.KeywordHighlighting
         Inherits AbstractKeywordHighlighter(Of SyntaxNode)
 
         Protected Overloads Overrides Iterator Function GetHighlights(node As SyntaxNode, cancellationToken As CancellationToken) As IEnumerable(Of TextSpan)
-            If node.IsIncorrectExitStatement(SyntaxKind.ExitSelectStatement) Then Return
+            If node.IsIncorrectExitStatement(SyntaxKind.ExitSelectStatement) Then
+                Return
+            End If
 
             Dim selectBlock = node.GetAncestor(Of SelectBlockSyntax)()
-            If selectBlock Is Nothing Then Return
+            If selectBlock Is Nothing Then
+                Return
+            End If
 
             With selectBlock
                 With .SelectStatement
@@ -22,7 +26,9 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.KeywordHighlighting
                 End With
 
                 For Each caseBlock In .CaseBlocks
-                    If cancellationToken.IsCancellationRequested Then Return
+                    If cancellationToken.IsCancellationRequested Then
+                        Return
+                    End If
                     With caseBlock.CaseStatement
                         If caseBlock.Kind = SyntaxKind.CaseElseBlock Then
                             Dim elseKeyword = DirectCast(.Cases.First(), ElseCaseClauseSyntax).ElseKeyword
@@ -33,7 +39,9 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.KeywordHighlighting
                     End With
 
                     For Each highlight In caseBlock.GetRelatedStatementHighlights(blockKind:=SyntaxKind.SelectKeyword)
-                        If cancellationToken.IsCancellationRequested Then Return
+                        If cancellationToken.IsCancellationRequested Then
+                            Return
+                        End If
                         Yield highlight
                     Next
                 Next

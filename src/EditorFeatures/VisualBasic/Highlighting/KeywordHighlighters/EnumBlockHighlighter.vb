@@ -11,13 +11,19 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.KeywordHighlighting
         Inherits AbstractKeywordHighlighter(Of SyntaxNode)
 
         Protected Overloads Overrides Iterator Function GetHighlights(node As SyntaxNode, cancellationToken As CancellationToken) As IEnumerable(Of TextSpan)
-            If cancellationToken.IsCancellationRequested Then Return
+            If cancellationToken.IsCancellationRequested Then
+                Return
+            End If
             Dim endBlockStatement = TryCast(node, EndBlockStatementSyntax)
-            If endBlockStatement IsNot Nothing AndAlso endBlockStatement.Kind <> SyntaxKind.EndEnumStatement Then Return
+            If endBlockStatement IsNot Nothing AndAlso endBlockStatement.Kind <> SyntaxKind.EndEnumStatement Then
+                Return
+            End If
 
 
             Dim enumBlock = node.GetAncestor(Of EnumBlockSyntax)()
-            If enumBlock Is Nothing Then Return
+            If enumBlock Is Nothing Then
+                Return
+            End If
 
             With enumBlock
                 With .EnumStatement

@@ -11,15 +11,22 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.KeywordHighlighting
         Inherits AbstractKeywordHighlighter(Of SyntaxNode)
 
         Protected Overrides Iterator Function GetHighlights(node As SyntaxNode, cancellationToken As CancellationToken) As IEnumerable(Of TextSpan)
-            If cancellationToken.IsCancellationRequested Then Return
+            If cancellationToken.IsCancellationRequested Then
+                Return
+            End If
+
             Dim propertyBlock = node.GetAncestor(Of PropertyBlockSyntax)()
-            If propertyBlock Is Nothing Then Return
+            If propertyBlock Is Nothing Then
+                Return
+            End If
 
             With propertyBlock
                 With .PropertyStatement
                     Dim firstKeyword = If(.Modifiers.Count > 0, .Modifiers.First(), .DeclarationKeyword)
                     Yield TextSpan.FromBounds(firstKeyword.SpanStart, .DeclarationKeyword.Span.End)
-                    If .ImplementsClause IsNot Nothing Then Yield .ImplementsClause.ImplementsKeyword.Span
+                    If .ImplementsClause IsNot Nothing Then
+                        Yield .ImplementsClause.ImplementsKeyword.Span
+                    End If
                 End With
                 Yield .EndPropertyStatement.Span
             End With

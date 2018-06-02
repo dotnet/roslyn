@@ -11,15 +11,22 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.KeywordHighlighting
         Inherits AbstractKeywordHighlighter(Of SyntaxNode)
 
         Protected Overloads Overrides Iterator Function GetHighlights(node As SyntaxNode, cancellationToken As CancellationToken) As IEnumerable(Of TextSpan)
-            If cancellationToken.IsCancellationRequested Then Return
+            If cancellationToken.IsCancellationRequested Then
+                Return
+            End If
+
             Dim forBlock = GetForBlockFromNode(node)
-            If forBlock Is Nothing Then Return
+            If forBlock Is Nothing Then
+                Return
+            End If
 
             If TypeOf forBlock.ForOrForEachStatement Is ForStatementSyntax Then
                 With DirectCast(forBlock.ForOrForEachStatement, ForStatementSyntax)
                     Yield .ForKeyword.Span
                     Yield .ToKeyword.Span
-                    If .StepClause IsNot Nothing Then Yield .StepClause.StepKeyword.Span
+                    If .StepClause IsNot Nothing Then
+                        Yield .StepClause.StepKeyword.Span
+                    End If
                 End With
             ElseIf TypeOf forBlock.ForOrForEachStatement Is ForEachStatementSyntax Then
                 With DirectCast(forBlock.ForOrForEachStatement, ForEachStatementSyntax)
@@ -31,13 +38,18 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.KeywordHighlighting
             End If
 
             For Each highlight In forBlock.GetRelatedStatementHighlights(blockKind:=SyntaxKind.ForKeyword)
-                If cancellationToken.IsCancellationRequested Then Return
+                If cancellationToken.IsCancellationRequested Then
+                    Return
+                End If
                 Yield highlight
             Next
 
             Dim nextStatement = GetNextStatementMatchingForBlock(forBlock)
 
-            If nextStatement IsNot Nothing Then Yield nextStatement.NextKeyword.Span
+            If nextStatement IsNot Nothing Then
+                Yield nextStatement.NextKeyword.Span
+            End If
+
 
         End Function
 

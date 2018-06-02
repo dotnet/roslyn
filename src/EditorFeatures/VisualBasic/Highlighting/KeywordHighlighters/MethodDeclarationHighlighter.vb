@@ -11,9 +11,13 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.KeywordHighlighting
         Inherits AbstractKeywordHighlighter(Of SyntaxNode)
 
         Protected Overloads Overrides Iterator Function GetHighlights(node As SyntaxNode, cancellationToken As CancellationToken) As IEnumerable(Of TextSpan)
-            If cancellationToken.IsCancellationRequested Then Return
+            If cancellationToken.IsCancellationRequested Then
+                Return
+            End If
             Dim methodBlock = node.GetAncestor(Of MethodBlockBaseSyntax)()
-            If methodBlock Is Nothing OrElse TypeOf methodBlock.BlockStatement IsNot MethodStatementSyntax Then Return
+            If methodBlock Is Nothing OrElse TypeOf methodBlock.BlockStatement IsNot MethodStatementSyntax Then
+                Return
+            End If
 
             With methodBlock
                 Dim isAsync = False
@@ -26,26 +30,36 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.KeywordHighlighting
                     Dim firstKeyword = If(.Modifiers.Count > 0, .Modifiers.First(), .DeclarationKeyword)
                     Yield TextSpan.FromBounds(firstKeyword.SpanStart, .DeclarationKeyword.Span.End)
 
-                    If .HandlesClause IsNot Nothing Then Yield .HandlesClause.HandlesKeyword.Span
-                    If .ImplementsClause IsNot Nothing Then Yield .ImplementsClause.ImplementsKeyword.Span
+                    If .HandlesClause IsNot Nothing Then
+                        Yield .HandlesClause.HandlesKeyword.Span
+                    End If
+                    If .ImplementsClause IsNot Nothing Then
+                        Yield .ImplementsClause.ImplementsKeyword.Span
+                    End If
 
                 End With
 
                 For Each highlight In .GetRelatedStatementHighlights(blockKind:= .BlockStatement.DeclarationKeyword.Kind, checkReturns:=True)
-                    If cancellationToken.IsCancellationRequested Then Return
+                    If cancellationToken.IsCancellationRequested Then
+                        Return
+                    End If
                     Yield highlight
                 Next
 
                 If isIterator Then
                     For Each highlight In .GetRelatedYieldStatementHighlights()
-                        If cancellationToken.IsCancellationRequested Then Return
+                        If cancellationToken.IsCancellationRequested Then
+                            Return
+                        End If
                         Yield highlight
                     Next
                 End If
 
                 If isAsync Then
                     For Each highlight In HighlightRelatedAwaits(methodBlock, cancellationToken)
-                        If cancellationToken.IsCancellationRequested Then Return
+                        If cancellationToken.IsCancellationRequested Then
+                            Return
+                        End If
                         Yield highlight
                     Next
                 End If

@@ -11,28 +11,38 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.KeywordHighlighting
         Inherits AbstractKeywordHighlighter(Of MultiLineIfBlockSyntax)
 
         Protected Overloads Overrides Iterator Function GetHighlights(ifBlock As MultiLineIfBlockSyntax, cancellationToken As CancellationToken) As IEnumerable(Of TextSpan)
-            If cancellationToken.IsCancellationRequested Then Return
+            If cancellationToken.IsCancellationRequested Then
+                Return
+            End If
 
             With ifBlock.IfStatement
                 ' ElseIf case
                 Yield .IfKeyword.Span
 
-                If .ThenKeyword.Kind <> SyntaxKind.None Then Yield .ThenKeyword.Span
+                If .ThenKeyword.Kind <> SyntaxKind.None Then
+                    Yield .ThenKeyword.Span
+                End If
             End With
 
             For Each elseIfBlock In ifBlock.ElseIfBlocks
-                If cancellationToken.IsCancellationRequested Then Return
+                If cancellationToken.IsCancellationRequested Then
+                    Return
+                End If
                 ' 
                 With elseIfBlock.ElseIfStatement
                     ' ElseIf case
                     Yield .ElseIfKeyword.Span
 
-                    If .ThenKeyword.Kind <> SyntaxKind.None Then Yield .ThenKeyword.Span
+                    If .ThenKeyword.Kind <> SyntaxKind.None Then
+                        Yield .ThenKeyword.Span
+                    End If
                 End With
 
             Next
 
-            If ifBlock.ElseBlock IsNot Nothing Then Yield ifBlock.ElseBlock.ElseStatement.ElseKeyword.Span
+            If ifBlock.ElseBlock IsNot Nothing Then
+                Yield ifBlock.ElseBlock.ElseStatement.ElseKeyword.Span
+            End If
 
             Yield ifBlock.EndIfStatement.Span
 

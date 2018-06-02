@@ -11,7 +11,9 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.KeywordHighlighting
         Inherits AbstractKeywordHighlighter(Of XmlNodeSyntax)
 
         Protected Overloads Overrides Iterator Function GetHighlights(node As XmlNodeSyntax, cancellationToken As CancellationToken) As IEnumerable(Of TextSpan)
-            If cancellationToken.IsCancellationRequested Then Return
+            If cancellationToken.IsCancellationRequested Then
+                Return
+            End If
             Dim xmlElement = node.GetAncestor(Of XmlElementSyntax)()
             With xmlElement
                 If xmlElement IsNot Nothing AndAlso

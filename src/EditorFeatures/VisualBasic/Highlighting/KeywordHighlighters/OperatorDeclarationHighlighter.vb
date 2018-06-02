@@ -11,9 +11,14 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.KeywordHighlighting
         Inherits AbstractKeywordHighlighter(Of SyntaxNode)
 
         Protected Overloads Overrides Iterator Function GetHighlights(node As SyntaxNode, cancellationToken As CancellationToken) As IEnumerable(Of TextSpan)
-            If cancellationToken.IsCancellationRequested Then Return
+            If cancellationToken.IsCancellationRequested Then
+                Return
+            End If
+
             Dim methodBlock = node.GetAncestor(Of MethodBlockBaseSyntax)()
-            If methodBlock Is Nothing OrElse Not TypeOf methodBlock.BlockStatement Is OperatorStatementSyntax Then Return
+            If methodBlock Is Nothing OrElse Not TypeOf methodBlock.BlockStatement Is OperatorStatementSyntax Then
+                Return
+            End If
 
             With methodBlock
                 With DirectCast(.BlockStatement, OperatorStatementSyntax)
@@ -22,7 +27,9 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.KeywordHighlighting
                 End With
 
                 For Each highlight In .GetRelatedStatementHighlights(blockKind:=SyntaxKind.None, checkReturns:=True)
-                    If cancellationToken.IsCancellationRequested Then Return
+                    If cancellationToken.IsCancellationRequested Then
+                        Return
+                    End If
                     Yield highlight
                 Next
                 Yield .EndBlockStatement.Span

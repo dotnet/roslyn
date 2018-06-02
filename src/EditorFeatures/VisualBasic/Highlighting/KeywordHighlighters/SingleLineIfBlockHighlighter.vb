@@ -11,11 +11,15 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.KeywordHighlighting
         Inherits AbstractKeywordHighlighter(Of SingleLineIfStatementSyntax)
 
         Protected Overloads Overrides Iterator Function GetHighlights(ifStatement As SingleLineIfStatementSyntax, cancellationToken As CancellationToken) As IEnumerable(Of TextSpan)
-            If cancellationToken.IsCancellationRequested Then Return
+            If cancellationToken.IsCancellationRequested Then
+                Return
+            End If
             With ifStatement
                 Yield .IfKeyword.Span
                 Yield .ThenKeyword.Span
-                If .ElseClause IsNot Nothing Then Yield .ElseClause.ElseKeyword.Span
+                If .ElseClause IsNot Nothing Then
+                    Yield .ElseClause.ElseKeyword.Span
+                End If
             End With
         End Function
     End Class

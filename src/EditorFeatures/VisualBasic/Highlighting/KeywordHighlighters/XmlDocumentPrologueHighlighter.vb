@@ -10,7 +10,9 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.KeywordHighlighting
     Friend Class XmlProcessingInstructionHighlighter
         Inherits AbstractKeywordHighlighter(Of XmlProcessingInstructionSyntax)
         Protected Overrides Iterator Function GetHighlights(xmlProcessingInstruction As XmlProcessingInstructionSyntax, cancellationToken As CancellationToken) As IEnumerable(Of TextSpan)
-            If cancellationToken.IsCancellationRequested Then Return
+            If cancellationToken.IsCancellationRequested Then
+                Return
+            End If
             With xmlProcessingInstruction
                 If Not .ContainsDiagnostics AndAlso
                    Not .HasAncestor(Of DocumentationCommentTriviaSyntax)() Then

@@ -11,11 +11,16 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.KeywordHighlighting
         Inherits AbstractKeywordHighlighter(Of SyntaxNode)
 
         Protected Overloads Overrides Iterator Function GetHighlights(node As SyntaxNode, cancellationToken As CancellationToken) As IEnumerable(Of TextSpan)
-            If cancellationToken.IsCancellationRequested Then Return
-            If node.IsIncorrectContinueStatement(SyntaxKind.ContinueDoStatement) Then Return
-            If node.IsIncorrectExitStatement(SyntaxKind.ExitDoStatement) Then Return
+            If cancellationToken.IsCancellationRequested OrElse
+               node.IsIncorrectContinueStatement(SyntaxKind.ContinueDoStatement) OrElse
+               node.IsIncorrectExitStatement(SyntaxKind.ExitDoStatement) Then
+                Return
+            End If
+
             Dim doLoop = node.GetAncestor(Of DoLoopBlockSyntax)()
-            If doLoop Is Nothing Then Return
+            If doLoop Is Nothing Then
+                Return
+            End If
 
 
             With doLoop.DoStatement
@@ -23,7 +28,9 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.KeywordHighlighting
             End With
 
             For Each highlight In doLoop.GetRelatedStatementHighlights(blockKind:=SyntaxKind.DoKeyword)
-                If cancellationToken.IsCancellationRequested Then Return
+                If cancellationToken.IsCancellationRequested Then
+                    Return
+                End If
                 Yield highlight
             Next
 

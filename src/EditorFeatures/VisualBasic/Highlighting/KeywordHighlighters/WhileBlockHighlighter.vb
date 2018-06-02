@@ -11,15 +11,23 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.KeywordHighlighting
         Inherits AbstractKeywordHighlighter(Of SyntaxNode)
 
         Protected Overloads Overrides Iterator Function GetHighlights(node As SyntaxNode, cancellationToken As CancellationToken) As IEnumerable(Of TextSpan)
-            If cancellationToken.IsCancellationRequested Then Return
-            If node.IsIncorrectContinueStatement(SyntaxKind.ContinueWhileStatement) Then Return
-            If node.IsIncorrectExitStatement(SyntaxKind.ExitWhileStatement) Then Return
+            If cancellationToken.IsCancellationRequested OrElse
+               node.IsIncorrectContinueStatement(SyntaxKind.ContinueWhileStatement) OrElse
+               node.IsIncorrectExitStatement(SyntaxKind.ExitWhileStatement) Then
+                Return
+            End If
+
             Dim whileBlock = node.GetAncestor(Of WhileBlockSyntax)()
-            If whileBlock Is Nothing Then Return
+            If whileBlock Is Nothing Then
+                Return
+            End If
+
             With whileBlock
                 Yield .WhileStatement.WhileKeyword.Span
                 For Each highlight In .GetRelatedStatementHighlights(blockKind:=SyntaxKind.WhileKeyword)
-                    If cancellationToken.IsCancellationRequested Then Return
+                    If cancellationToken.IsCancellationRequested Then
+                        Return
+                    End If
                     Yield highlight
                 Next
                 Yield .EndWhileStatement.Span

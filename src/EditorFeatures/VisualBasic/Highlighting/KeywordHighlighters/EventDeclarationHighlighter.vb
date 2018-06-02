@@ -11,11 +11,15 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.KeywordHighlighting
         Inherits AbstractKeywordHighlighter(Of EventStatementSyntax)
 
         Protected Overrides Iterator Function GetHighlights(eventDeclaration As EventStatementSyntax, cancellationToken As CancellationToken) As IEnumerable(Of TextSpan)
-            If cancellationToken.IsCancellationRequested Then Return
+            If cancellationToken.IsCancellationRequested Then
+                Return
+            End If
             ' If the ancestor is not a event block, treat this as a single line event.
             ' Otherwise, let the EventBlockHighlighter take over.
             Dim eventBlock = eventDeclaration.GetAncestor(Of EventBlockSyntax)()
-            If eventBlock IsNot Nothing Then Return
+            If eventBlock IsNot Nothing Then
+                Return
+            End If
 
             Dim highlights As New List(Of TextSpan)()
 
@@ -23,7 +27,9 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.KeywordHighlighting
                 Dim firstKeyword = If(.Modifiers.Count > 0, .Modifiers.First(), .DeclarationKeyword)
                 Yield TextSpan.FromBounds(firstKeyword.SpanStart, .DeclarationKeyword.Span.End)
 
-                If .ImplementsClause IsNot Nothing Then Yield .ImplementsClause.ImplementsKeyword.Span
+                If .ImplementsClause IsNot Nothing Then
+                    Yield .ImplementsClause.ImplementsKeyword.Span
+                End If
 
             End With
         End Function

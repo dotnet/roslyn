@@ -11,9 +11,13 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.KeywordHighlighting
         Inherits AbstractKeywordHighlighter(Of DirectiveTriviaSyntax)
 
         Protected Overloads Overrides Iterator Function GetHighlights(directive As DirectiveTriviaSyntax, cancellationToken As CancellationToken) As IEnumerable(Of TextSpan)
-            If cancellationToken.IsCancellationRequested Then Return
+            If cancellationToken.IsCancellationRequested Then
+                Return
+            End If
             Dim conditionals = directive.GetMatchingConditionalDirectives(cancellationToken)
-            If conditionals Is Nothing Then Return
+            If conditionals Is Nothing Then
+                Return
+            End If
 
             Dim highlights As New List(Of TextSpan)
 
@@ -21,7 +25,9 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.KeywordHighlighting
                 If TypeOf conditional Is IfDirectiveTriviaSyntax Then
                     With DirectCast(conditional, IfDirectiveTriviaSyntax)
                         Yield TextSpan.FromBounds(.HashToken.SpanStart, .IfOrElseIfKeyword.Span.End)
-                        If .ThenKeyword.Kind <> SyntaxKind.None Then Yield .ThenKeyword.Span
+                        If .ThenKeyword.Kind <> SyntaxKind.None Then
+                            Yield .ThenKeyword.Span
+                        End If
                     End With
                 ElseIf TypeOf conditional Is ElseDirectiveTriviaSyntax Then
                     With DirectCast(conditional, ElseDirectiveTriviaSyntax)

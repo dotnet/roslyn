@@ -21,16 +21,23 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.KeywordHighlighting
 
                 If blockKind <> SyntaxKind.None AndAlso TypeOf node Is ExitStatementSyntax Then
                     With DirectCast(node, ExitStatementSyntax)
-                        If .BlockKeyword.Kind = blockKind Then Yield .Span
+                        If .BlockKeyword.Kind = blockKind Then
+                            Yield .Span
+                        End If
                     End With
+
                 ElseIf blockKind <> SyntaxKind.None AndAlso TypeOf node Is ContinueStatementSyntax Then
                     With DirectCast(node, ContinueStatementSyntax)
-                        If .BlockKeyword.Kind = blockKind Then Yield .Span
+                        If .BlockKeyword.Kind = blockKind Then
+                            Yield .Span
+                        End If
                     End With
+
                 ElseIf checkReturns AndAlso TypeOf node Is ReturnStatementSyntax Then
                     With DirectCast(node, ReturnStatementSyntax)
                         Yield .ReturnKeyword.Span
                     End With
+
                 Else
                     Dim children = node.ChildNodes.Where(Function(child) TypeOf child IsNot T AndAlso TypeOf child IsNot LambdaExpressionSyntax)
                     nodes.AddRangeAtHead(children)
@@ -70,7 +77,9 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.KeywordHighlighting
 
                 Dim node = nodes(0) : nodes.RemoveFirst()
 
-                If cancellationToken.IsCancellationRequested Then Continue While
+                If cancellationToken.IsCancellationRequested Then
+                    Continue While
+                End If
 
                 If TypeOf node Is AwaitExpressionSyntax Then
                     With DirectCast(node, AwaitExpressionSyntax)

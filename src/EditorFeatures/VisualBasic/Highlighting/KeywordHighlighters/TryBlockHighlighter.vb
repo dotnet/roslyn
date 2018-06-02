@@ -11,17 +11,25 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.KeywordHighlighting
         Inherits AbstractKeywordHighlighter(Of SyntaxNode)
 
         Protected Overloads Overrides Iterator Function GetHighlights(node As SyntaxNode, cancellationToken As CancellationToken) As IEnumerable(Of TextSpan)
-            If cancellationToken.IsCancellationRequested Then Return
-            If TypeOf node Is ExitStatementSyntax AndAlso node.Kind <> SyntaxKind.ExitTryStatement Then Return
+            If cancellationToken.IsCancellationRequested Then
+                Return
+            End If
+            If TypeOf node Is ExitStatementSyntax AndAlso node.Kind <> SyntaxKind.ExitTryStatement Then
+                Return
+            End If
 
             Dim tryBlock = node.GetAncestor(Of TryBlockSyntax)()
-            If tryBlock Is Nothing Then Return
+            If tryBlock Is Nothing Then
+                Return
+            End If
 
             With tryBlock
                 Yield .TryStatement.TryKeyword.Span
 
                 For Each highlight In HighlightRelatedStatements(tryBlock, cancellationToken)
-                    If cancellationToken.IsCancellationRequested Then Return
+                    If cancellationToken.IsCancellationRequested Then
+                        Return
+                    End If
                     Yield highlight
                 Next
 
@@ -29,16 +37,22 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.KeywordHighlighting
                     With catchBlock.CatchStatement
                         Yield .CatchKeyword.Span
 
-                        If .WhenClause IsNot Nothing Then Yield .WhenClause.WhenKeyword.Span
+                        If .WhenClause IsNot Nothing Then
+                            Yield .WhenClause.WhenKeyword.Span
+                        End If
 
                     End With
                     For Each highlight In HighlightRelatedStatements(catchBlock, cancellationToken)
-                        If cancellationToken.IsCancellationRequested Then Return
+                        If cancellationToken.IsCancellationRequested Then
+                            Return
+                        End If
                         Yield highlight
                     Next
                 Next
 
-                If .FinallyBlock IsNot Nothing Then Yield .FinallyBlock.FinallyStatement.FinallyKeyword.Span
+                If .FinallyBlock IsNot Nothing Then
+                    Yield .FinallyBlock.FinallyStatement.FinallyKeyword.Span
+                End If
 
                 Yield .EndTryStatement.Span
 
@@ -51,23 +65,15 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.KeywordHighlighting
             While nodes.Count > 0
 
                 Dim node = nodes(0) : nodes.RemoveFirst()
-                If cancellationToken.IsCancellationRequested Then Continue While
+                If cancellationToken.IsCancellationRequested Then
+                    Continue While
+                End If
 
                 If node.Kind = SyntaxKind.ExitTryStatement Then
                     Yield node.Span
                 Else
                     Dim children = node.ChildNodes.Where(Function(child) TypeOf child IsNot TryBlockSyntax AndAlso TypeOf child IsNot LambdaExpressionSyntax)
                     nodes.AddRangeAtHead(children)
-
-                    'For Each childNodeOrToken In node.ChildNodesAndTokens()
-                    'If childNodeOrToken.IsToken Then Continue For
-                    'Dim child = childNodeOrToken.AsNode()
-                    '    If TypeOf child IsNot TryBlockSyntax AndAlso TypeOf child Is Not LambdaExpressionSyntax Then
-                    '        For Each highlight In HighlightRelatedStatements(child)
-                    '            Yield highlight
-                    '        Next
-                    '    End If
-                    'Next
                 End If
             End While
         End Function
