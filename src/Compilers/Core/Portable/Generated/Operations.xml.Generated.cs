@@ -3285,9 +3285,9 @@ namespace Microsoft.CodeAnalysis.Operations
         public override IBlockOperation Body => SetParentOperation(_lazyBody.Value, this);
     }
 
-    internal sealed class FlowAnonymousFunctionExpression : Operation, IFlowAnonymousFunctionOperation
+    internal sealed class FlowAnonymousFunctionOperation : Operation, IFlowAnonymousFunctionOperation
     {
-        public FlowAnonymousFunctionExpression(IMethodSymbol symbol, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
+        public FlowAnonymousFunctionOperation(IMethodSymbol symbol, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
             base(OperationKind.FlowAnonymousFunction, semanticModel: null, syntax, type, constantValue, isImplicit)
         {
             Symbol = symbol;
@@ -6587,6 +6587,12 @@ namespace Microsoft.CodeAnalysis.Operations
             base(OperationKind.FlowCaptureReference, semanticModel: null, syntax: syntax, type: type, constantValue: constantValue, isImplicit: true)
         {
             Id = new CaptureId(id);
+        }
+
+        public FlowCaptureReference(CaptureId id, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
+            base(OperationKind.FlowCaptureReference, semanticModel: null, syntax: syntax, type: type, constantValue: constantValue, isImplicit: true)
+        {
+            Id = id;
         }
 
         public CaptureId Id { get; }

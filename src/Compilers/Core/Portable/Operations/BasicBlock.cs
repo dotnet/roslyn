@@ -11,7 +11,8 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
     public sealed class BasicBlock
     {
 #if DEBUG
-        private bool _sealed;
+        private bool _successorsAreSealed;
+        private bool _predecessorsAreSealed;
 #endif
 
         private ControlFlowBranch _lazySuccessor;
@@ -53,7 +54,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
             get
             {
 #if DEBUG
-                Debug.Assert(_sealed);
+                Debug.Assert(_successorsAreSealed);
 #endif
 
                 return _lazySuccessor;
@@ -65,7 +66,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
             get
             {
 #if DEBUG
-                Debug.Assert(_sealed);
+                Debug.Assert(_successorsAreSealed);
 #endif
 
                 return _lazyConditionalSuccessor;
@@ -77,7 +78,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
             get
             {
 #if DEBUG
-                Debug.Assert(_sealed);
+                Debug.Assert(_predecessorsAreSealed);
 #endif
                 return _lazyPredecessors;
             }
@@ -92,21 +93,33 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
         /// </summary>
         public ControlFlowRegion EnclosingRegion { get; }
 
-        internal void SetSuccessorsAndPredecessors(ControlFlowBranch successor, ControlFlowBranch conditionalSuccessor, ImmutableArray<ControlFlowBranch> predecessors)
+        internal void SetSuccessors(ControlFlowBranch successor, ControlFlowBranch conditionalSuccessor)
         {
 #if DEBUG
-            Debug.Assert(!_sealed);
+            Debug.Assert(!_successorsAreSealed);
             Debug.Assert(_lazySuccessor == null);
             Debug.Assert(_lazyConditionalSuccessor == null);
-            Debug.Assert(_lazyPredecessors.IsDefault);
 #endif
 
             _lazySuccessor = successor;
             _lazyConditionalSuccessor = conditionalSuccessor;
+
+#if DEBUG
+            _successorsAreSealed = true;
+#endif
+        }
+
+        internal void SetPredecessors(ImmutableArray<ControlFlowBranch> predecessors)
+        {
+#if DEBUG
+            Debug.Assert(!_predecessorsAreSealed);
+            Debug.Assert(_lazyPredecessors.IsDefault);
+#endif
+
             _lazyPredecessors = predecessors;
 
 #if DEBUG
-            _sealed = true;
+            _predecessorsAreSealed = true;
 #endif
         }
     }

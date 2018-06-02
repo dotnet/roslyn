@@ -13,105 +13,292 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
     {
         internal sealed class BasicBlockBuilder
         {
-            private readonly ArrayBuilder<IOperation> _statementsBuilder;
-            private readonly HashSet<BasicBlockBuilder> _predecessorsBuilder;
-            public (IOperation Condition, bool JumpIfTrue, Branch Branch) InternalConditional;
-            public (IOperation Value, Branch Branch) InternalNext;
-            
+            public int Ordinal;
+            public readonly BasicBlockKind Kind;
+            private ArrayBuilder<IOperation> _statements;
+
+            // The most common case is that we have one, or two predecessors.
+            // Let's avoid allocating a HashSet for these cases.
+            private BasicBlockBuilder _predecessor1;
+            private BasicBlockBuilder _predecessor2;
+            private PooledHashSet<BasicBlockBuilder> _predecessors;
+
+            public (IOperation Condition, bool JumpIfTrue, Branch Branch) Conditional;
+            public (IOperation Value, Branch Branch) FallThrough;
+            public bool IsReachable;
+            public ControlFlowRegion Region;
+
             public BasicBlockBuilder(BasicBlockKind kind)
             {
                 Kind = kind;
-                _statementsBuilder = ArrayBuilder<IOperation>.GetInstance();
-                _predecessorsBuilder = new HashSet<BasicBlockBuilder>();
+                Ordinal = -1;
+                IsReachable = false;
             }
 
-            public IReadOnlyCollection<IOperation> Statements => _statementsBuilder;
-            public ImmutableArray<IOperation> GetImmutableStatements() => _statementsBuilder.ToImmutableAndFree();
-            public ISet<BasicBlockBuilder> Predecessors => _predecessorsBuilder;
-            public BasicBlockKind Kind { get; }
+            public bool HasStatements => _statements?.Count > 0;
 
-            public int Ordinal { get; set; } = -1;
-
-            public bool IsReachable { get; set; } = false;
-
-            public ControlFlowRegion Region { get; set; }
-
-            internal void AddStatement(IOperation statement)
+            public void AddStatement(IOperation operation)
             {
-                _statementsBuilder.Add(statement);
-            }
-
-            internal void AddStatements(IEnumerable<IOperation> statements)
-            {
-                _statementsBuilder.AddRange(statements);
-            }
-
-            internal void RemoveStatements()
-            {
-                _statementsBuilder.Clear();
-            }
-
-            internal void AddPredecessor(BasicBlockBuilder block)
-            {
-                _predecessorsBuilder.Add(block);
-            }
-
-            internal void RemovePredecessor(BasicBlockBuilder block)
-            {
-                _predecessorsBuilder.Remove(block);
-            }
-
-            public struct Branch
-            {
-                private ImmutableArray<ControlFlowRegion> _lazyFinallyRegions;
-
-                public ControlFlowBranchSemantics Kind { get; set; }
-                public BasicBlockBuilder Destination { get; set; }
-
-                /// <summary>
-                /// What regions are exited (from inner most to outer most) if this branch is taken.
-                /// </summary>
-                public ImmutableArray<ControlFlowRegion> LeavingRegions { get; set; }
-
-                /// <summary>
-                /// What regions are entered (from outer most to inner most) if this branch is taken.
-                /// </summary>
-                public ImmutableArray<ControlFlowRegion> EnteringRegions { get; set; }
-
-                /// <summary>
-                /// The finally regions the control goes through if the branch is taken
-                /// </summary>
-                public ImmutableArray<ControlFlowRegion> FinallyRegions
+                if (_statements == null)
                 {
-                    get
+                    _statements = ArrayBuilder<IOperation>.GetInstance();
+                }
+
+                _statements.Add(operation);
+            }
+
+            public void MoveStatementsFrom(BasicBlockBuilder other)
+            {
+                if (other._statements == null)
+                {
+                    return;
+                }
+                else if (_statements == null)
+                {
+                    _statements = other._statements;
+                    other._statements = null;
+                }
+                else
+                {
+                    _statements.AddRange(other._statements);
+                    other._statements.Clear();
+                }
+            }
+
+            public BasicBlock ToImmutable()
+            {
+                var block = new BasicBlock(Kind,
+                                           _statements?.ToImmutableAndFree() ?? ImmutableArray<IOperation>.Empty,
+                                           Conditional.Condition,
+                                           FallThrough.Value,
+                                           getConditionKind(),
+                                           Ordinal,
+                                           IsReachable, 
+                                           Region);
+                _statements = null;
+                return block;
+
+                ControlFlowConditionKind getConditionKind()
+                {
+                    if (Conditional.Condition == null)
                     {
-                        if (_lazyFinallyRegions.IsDefault)
-                        {
-                            ArrayBuilder<ControlFlowRegion> builder = null;
-                            ImmutableArray<ControlFlowRegion> leavingRegions = LeavingRegions;
-                            int stopAt = leavingRegions.Length - 1;
-                            for (int i = 0; i < stopAt; i++)
-                            {
-                                if (leavingRegions[i].Kind == ControlFlowRegionKind.Try && leavingRegions[i + 1].Kind == ControlFlowRegionKind.TryAndFinally)
-                                {
-                                    if (builder == null)
-                                    {
-                                        builder = ArrayBuilder<ControlFlowRegion>.GetInstance();
-                                    }
+                        return ControlFlowConditionKind.None;
+                    }
 
-                                    builder.Add(leavingRegions[i + 1].NestedRegions.Last());
-                                    Debug.Assert(builder.Last().Kind == ControlFlowRegionKind.Finally);
-                                }
-                            }
+                    return Conditional.JumpIfTrue ? ControlFlowConditionKind.WhenTrue : ControlFlowConditionKind.WhenFalse;
+                }
+            }
 
-                            var result = builder == null ? ImmutableArray<ControlFlowRegion>.Empty : builder.ToImmutableAndFree();
-
-                            ImmutableInterlocked.InterlockedInitialize(ref _lazyFinallyRegions, result);
-                        }
-
-                        return _lazyFinallyRegions;
+            public bool HasPredecessors
+            {
+                get
+                {
+                    if (_predecessors != null)
+                    {
+                        Debug.Assert(_predecessor1 == null);
+                        Debug.Assert(_predecessor2 == null);
+                        return _predecessors.Count > 0;
+                    }
+                    else
+                    {
+                        return _predecessor1 != null || _predecessor2 != null;
                     }
                 }
+            }
+
+            public BasicBlockBuilder GetSingletonPredecessorOrDefault()
+            {
+                if (_predecessors != null)
+                {
+                    Debug.Assert(_predecessor1 == null);
+                    Debug.Assert(_predecessor2 == null);
+                    return _predecessors.AsSingleton();
+                }
+                else if (_predecessor2 == null)
+                {
+                    return _predecessor1;
+                }
+                else if (_predecessor1 == null)
+                {
+                    return _predecessor2;
+                }
+                else
+                {
+                    return null;
+                }
+            }
+
+            public void AddPredecessor(BasicBlockBuilder predecessor)
+            {
+                if (_predecessors != null)
+                {
+                    Debug.Assert(_predecessor1 == null);
+                    Debug.Assert(_predecessor2 == null);
+                    _predecessors.Add(predecessor);
+                }
+                else if (_predecessor1 == predecessor)
+                {
+                    return;
+                }
+                else if (_predecessor2 == predecessor)
+                {
+                    return;
+                }
+                else if (_predecessor1 == null)
+                {
+                    _predecessor1 = predecessor;
+                }
+                else if (_predecessor2 == null)
+                {
+                    _predecessor2 = predecessor;
+                }
+                else
+                {
+                    _predecessors = PooledHashSet<BasicBlockBuilder>.GetInstance();
+                    _predecessors.Add(_predecessor1);
+                    _predecessors.Add(_predecessor2);
+                    _predecessors.Add(predecessor);
+                    Debug.Assert(_predecessors.Count == 3);
+                    _predecessor1 = null;
+                    _predecessor2 = null;
+                }
+            }
+
+            public void RemovePredecessor(BasicBlockBuilder predecessor)
+            {
+                if (_predecessors != null)
+                {
+                    Debug.Assert(_predecessor1 == null);
+                    Debug.Assert(_predecessor2 == null);
+                    _predecessors.Remove(predecessor);
+                }
+                else if (_predecessor1 == predecessor)
+                {
+                    _predecessor1 = null;
+                }
+                else if (_predecessor2 == predecessor)
+                {
+                    _predecessor2 = null;
+                }
+            }
+
+            public void GetPredecessors(ArrayBuilder<BasicBlockBuilder> builder)
+            {
+                if (_predecessors != null)
+                {
+                    Debug.Assert(_predecessor1 == null);
+                    Debug.Assert(_predecessor2 == null);
+
+                    foreach (BasicBlockBuilder predecessor in _predecessors)
+                    {
+                        builder.Add(predecessor);
+                    }
+
+                    return;
+                }
+
+                if (_predecessor1 != null)
+                {
+                    builder.Add(_predecessor1);
+                }
+
+                if (_predecessor2 != null)
+                {
+                    builder.Add(_predecessor2);
+                }
+            }
+
+            public ImmutableArray<ControlFlowBranch> ConvertPredecessorsToBranches(ArrayBuilder<BasicBlock> blocks)
+            {
+                if (!HasPredecessors)
+                {
+                    return ImmutableArray<ControlFlowBranch>.Empty;
+                }
+
+                BasicBlock block = blocks[Ordinal];
+
+                var branches = ArrayBuilder<ControlFlowBranch>.GetInstance(_predecessors?.Count ?? 2);
+
+                if (_predecessors != null)
+                {
+                    Debug.Assert(_predecessor1 == null);
+                    Debug.Assert(_predecessor2 == null);
+
+                    foreach (BasicBlockBuilder predecessorBlockBuilder in _predecessors)
+                    {
+                        addBranches(predecessorBlockBuilder);
+                    }
+
+                    _predecessors.Free();
+                    _predecessors = null;
+                }
+                else
+                {
+                    if (_predecessor1 != null)
+                    {
+                        addBranches(_predecessor1);
+                        _predecessor1 = null;
+                    }
+
+                    if (_predecessor2 != null)
+                    {
+                        addBranches(_predecessor2);
+                        _predecessor2 = null;
+                    }
+                }
+
+                // Order predecessors by source ordinal and conditional first to ensure deterministic predecessor ordering.
+                branches.Sort((x, y) =>
+                {
+                    int result = x.Source.Ordinal - y.Source.Ordinal;
+                    if (result == 0 && x.IsConditionalSuccessor != y.IsConditionalSuccessor)
+                    {
+                        if (x.IsConditionalSuccessor)
+                        {
+                            result = -1;
+                        }
+                        else
+                        {
+                            result = 1;
+                        }
+                    }
+
+                    return result;
+                });
+
+
+                return branches.ToImmutableAndFree();
+
+                void addBranches(BasicBlockBuilder predecessorBlockBuilder)
+                {
+                    BasicBlock predecessor = blocks[predecessorBlockBuilder.Ordinal];
+                    if (predecessor.FallThroughSuccessor.Destination == block)
+                    {
+                        branches.Add(predecessor.FallThroughSuccessor);
+                    }
+
+                    if (predecessor.ConditionalSuccessor?.Destination == block)
+                    {
+                        branches.Add(predecessor.ConditionalSuccessor);
+                    }
+                }
+            }
+
+            public void Free()
+            {
+                Ordinal = -1;
+                _statements?.Free();
+                _statements = null;
+                _predecessors?.Free();
+                _predecessors = null;
+                _predecessor1 = null;
+                _predecessor2 = null;
+            }
+
+            internal struct Branch
+            {
+                public ControlFlowBranchSemantics Kind { get; set; }
+                public BasicBlockBuilder Destination { get; set; }
             }
         }
     }
