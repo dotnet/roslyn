@@ -1016,5 +1016,37 @@ public unsafe struct Test
                     });
             }
         }
+
+        [Fact, WorkItem(26688, "https://github.com/dotnet/roslyn/issues/26688")]
+        public void FixedFieldDoesNotRequirePinningWithThis()
+        {
+            CompileAndVerify(@"
+using System;
+unsafe struct Foo
+{
+    public fixed int Bar[2];
+
+    public Foo(int value1, int value2)
+    {
+        this.Bar[0] = value1;
+        this.Bar[1] = value2;
+    }
+
+    public int M1 => this.Bar[0];
+    public int M2 => Bar[1];
+}
+class Program
+{
+    static void Main()
+    {
+        Foo foo = new Foo(1, 2);
+
+        Console.WriteLine(foo.M1);
+        Console.WriteLine(foo.M2);
+    }
+}", options: TestOptions.UnsafeReleaseExe, verify: Verification.Skipped, expectedOutput: @"
+1
+2");
+        }
     }
 }
