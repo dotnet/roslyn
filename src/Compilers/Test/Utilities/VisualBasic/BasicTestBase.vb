@@ -897,10 +897,10 @@ Public MustInherit Class BasicTestBase
         Dim fileName = "a.vb"
         parseOptions = If(parseOptions?.WithFlowAnalysisFeature(), TestOptions.RegularWithFlowAnalysisFeature)
         Dim syntaxTree = Parse(testSrc, fileName, parseOptions)
-        Dim defaultRefs = If(useLatestFramework, LatestVbReferences, DefaultVbReferences)
-        Dim references = defaultRefs.Concat({ValueTupleRef, SystemRuntimeFacadeRef})
+        Dim references As IEnumerable(Of MetadataReference) = TargetFrameworkUtil.Mscorlib45ExtendedReferences.Add(
+            If(useLatestFramework, TestBase.MsvbRef_v4_0_30319_17929, TestBase.MsvbRef))
         references = If(additionalReferences IsNot Nothing, references.Concat(additionalReferences), references)
-        Dim compilation = CreateCompilationWithMscorlib45AndVBRuntime({syntaxTree}, references:=references, options:=If(compilationOptions, TestOptions.ReleaseDll))
+        Dim compilation = CreateEmptyCompilation({syntaxTree}, references:=references, options:=If(compilationOptions, TestOptions.ReleaseDll))
         VerifyFlowGraphAndDiagnosticsForTest(Of TSyntaxNode)(compilation, expectedFlowGraph, expectedDiagnostics, which)
     End Sub
 
