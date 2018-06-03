@@ -23,8 +23,11 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
             private BasicBlockBuilder _predecessor2;
             private PooledHashSet<BasicBlockBuilder> _predecessors;
 
-            public (IOperation Condition, bool JumpIfTrue, Branch Branch) Conditional;
-            public (IOperation Value, Branch Branch) FallThrough;
+            public IOperation BranchValue;
+            public ControlFlowConditionKind ConditionKind;
+            public Branch Conditional;
+            public Branch FallThrough;
+
             public bool IsReachable;
             public ControlFlowRegion Region;
 
@@ -39,6 +42,8 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
 
             public void AddStatement(IOperation operation)
             {
+                Debug.Assert(operation != null);
+
                 if (_statements == null)
                 {
                     _statements = ArrayBuilder<IOperation>.GetInstance();
@@ -69,24 +74,13 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
             {
                 var block = new BasicBlock(Kind,
                                            _statements?.ToImmutableAndFree() ?? ImmutableArray<IOperation>.Empty,
-                                           Conditional.Condition,
-                                           FallThrough.Value,
-                                           getConditionKind(),
+                                           BranchValue,
+                                           ConditionKind,
                                            Ordinal,
                                            IsReachable, 
                                            Region);
                 _statements = null;
                 return block;
-
-                ControlFlowConditionKind getConditionKind()
-                {
-                    if (Conditional.Condition == null)
-                    {
-                        return ControlFlowConditionKind.None;
-                    }
-
-                    return Conditional.JumpIfTrue ? ControlFlowConditionKind.WhenTrue : ControlFlowConditionKind.WhenFalse;
-                }
             }
 
             public bool HasPredecessors
@@ -103,6 +97,16 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
                     {
                         return _predecessor1 != null || _predecessor2 != null;
                     }
+                }
+            }
+
+            public bool HasCondition
+            {
+                get
+                {
+                    bool result = ConditionKind != ControlFlowConditionKind.None;
+                    Debug.Assert(!result || BranchValue != null);
+                    return result;
                 }
             }
 
@@ -130,6 +134,8 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
 
             public void AddPredecessor(BasicBlockBuilder predecessor)
             {
+                Debug.Assert(predecessor != null);
+
                 if (_predecessors != null)
                 {
                     Debug.Assert(_predecessor1 == null);
@@ -166,6 +172,8 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
 
             public void RemovePredecessor(BasicBlockBuilder predecessor)
             {
+                Debug.Assert(predecessor != null);
+
                 if (_predecessors != null)
                 {
                     Debug.Assert(_predecessor1 == null);
@@ -212,6 +220,8 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
             {
                 if (!HasPredecessors)
                 {
+                    _predecessors?.Free();
+                    _predecessors = null;
                     return ImmutableArray<ControlFlowBranch>.Empty;
                 }
 
@@ -265,7 +275,6 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
 
                     return result;
                 });
-
 
                 return branches.ToImmutableAndFree();
 

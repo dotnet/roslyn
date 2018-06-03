@@ -22,8 +22,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
         internal BasicBlock(
             BasicBlockKind kind,
             ImmutableArray<IOperation> operations,
-            IOperation condition,
-            IOperation value,
+            IOperation branchValue,
             ControlFlowConditionKind conditionKind,
             int ordinal,
             bool isReachable,
@@ -31,8 +30,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
         {
             Kind = kind;
             Operations = operations;
-            Condition = condition;
-            Value = value;
+            BranchValue = branchValue;
             ConditionKind = conditionKind;
             Ordinal = ordinal;
             IsReachable = isReachable;
@@ -43,10 +41,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
 
         public ImmutableArray<IOperation> Operations { get; }
 
-        public IOperation Condition { get; }
-
-        // PROTOTYPE(dataflow): Merge Value and Condition into a single property "BranchValue"
-        public IOperation Value { get; }
+        public IOperation BranchValue { get; }
 
         public ControlFlowConditionKind ConditionKind { get; }
         public ControlFlowBranch FallThroughSuccessor
@@ -114,6 +109,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
 #if DEBUG
             Debug.Assert(!_predecessorsAreSealed);
             Debug.Assert(_lazyPredecessors.IsDefault);
+            Debug.Assert(!predecessors.IsDefault);
 #endif
 
             _lazyPredecessors = predecessors;

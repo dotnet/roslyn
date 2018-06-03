@@ -2634,20 +2634,24 @@ Block[B0] - Entry
 Block[B1] - Block
     Predecessors: [B0]
     Statements (0)
-    Jump if False (Regular) to Block[B2]
+    Jump if False (Regular) to Block[B3]
         IParameterReferenceOperation: a (OperationKind.ParameterReference, Type: System.Boolean) (Syntax: 'a')
 
-    Next (Throw) Block[null]
-        ILiteralOperation (OperationKind.Literal, Type: null, Constant: null) (Syntax: 'null')
+    Next (Regular) Block[B2]
 Block[B2] - Block
     Predecessors: [B1]
     Statements (0)
-    Jump if False (Regular) to Block[B4]
+    Next (Throw) Block[null]
+        ILiteralOperation (OperationKind.Literal, Type: null, Constant: null) (Syntax: 'null')
+Block[B3] - Block
+    Predecessors: [B1]
+    Statements (0)
+    Jump if False (Regular) to Block[B5]
         IParameterReferenceOperation: b (OperationKind.ParameterReference, Type: System.Boolean) (Syntax: 'b')
 
-    Next (Regular) Block[B3]
-Block[B3] - Block
-    Predecessors: [B2]
+    Next (Regular) Block[B4]
+Block[B4] - Block
+    Predecessors: [B3]
     Statements (1)
         IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'result = false;')
           Expression: 
@@ -2657,9 +2661,9 @@ Block[B3] - Block
               Right: 
                 ILiteralOperation (OperationKind.Literal, Type: System.Boolean, Constant: False) (Syntax: 'false')
 
-    Next (Regular) Block[B5]
-Block[B4] - Block
-    Predecessors: [B2]
+    Next (Regular) Block[B6]
+Block[B5] - Block
+    Predecessors: [B3]
     Statements (1)
         IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'result = true;')
           Expression: 
@@ -2669,9 +2673,9 @@ Block[B4] - Block
               Right: 
                 ILiteralOperation (OperationKind.Literal, Type: System.Boolean, Constant: True) (Syntax: 'true')
 
-    Next (Regular) Block[B5]
-Block[B5] - Exit
-    Predecessors: [B3] [B4]
+    Next (Regular) Block[B6]
+Block[B6] - Exit
+    Predecessors: [B4] [B5]
     Statements (0)
 ";
             var expectedDiagnostics = DiagnosticDescription.None;

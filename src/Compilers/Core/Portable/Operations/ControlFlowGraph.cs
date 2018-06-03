@@ -94,14 +94,12 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
                 switch (operation.Kind)
                 {
                     case OperationKind.LocalFunction:
-                        var localFunction = (ILocalFunctionOperation)operation;
-                        Debug.Assert(nestedMethod == localFunction.Symbol);
+                        Debug.Assert(nestedMethod == ((ILocalFunctionOperation)operation).Symbol);
                         graph = ControlFlowGraphBuilder.Create(operation, enclosing);
                         break;
                     
                     case OperationKind.AnonymousFunction:
-                        var anonymousFunction = (IAnonymousFunctionOperation)operation;
-                        Debug.Assert(nestedMethod == anonymousFunction.Symbol);
+                        Debug.Assert(nestedMethod == ((IAnonymousFunctionOperation)operation).Symbol);
                         graph = ControlFlowGraphBuilder.Create(operation, enclosing);
                         break;
 
