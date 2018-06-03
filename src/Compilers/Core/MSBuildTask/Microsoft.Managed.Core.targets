@@ -50,6 +50,15 @@
     </PropertyGroup>
   </Target>
 
+  <Target Name="DiscoverEditorConfigFiles" Condition="'$(DiscoverEditorConfigFiles)' != 'false'"
+          BeforeTargets="CoreCompile"
+          DependsOnTargets="_BeforeVBCSCoreCompile">
+    <DiscoverEditorConfigFiles InputFiles="@(Compile)">
+      <Output TaskParameter="EditorConfigFiles" ItemName="EditorConfigFiles" />
+    </DiscoverEditorConfigFiles>
+  </Target>
+
+
   <!--
     ========================
     DeterministicSourcePaths
