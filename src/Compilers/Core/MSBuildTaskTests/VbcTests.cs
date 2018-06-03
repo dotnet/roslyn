@@ -397,17 +397,17 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
         {
             var vbc = new Vbc();
             vbc.Sources = MSBuildUtil.CreateTaskItems("test.vb");
-            vbc.EditorConfigFiles = MSBuildUtil.CreateTaskItems(".editorconfig");
+            vbc.AnalyzerConfigFiles = MSBuildUtil.CreateTaskItems(".editorconfig");
             Assert.Equal(@"/optionstrict:custom /out:test.exe /editorconfig:.editorconfig test.vb", vbc.GenerateResponseFileContents());
 
             vbc = new Vbc();
             vbc.Sources = MSBuildUtil.CreateTaskItems("test.vb", "subdir\\test.vb");
-            vbc.EditorConfigFiles = MSBuildUtil.CreateTaskItems(".editorconfig", "subdir\\.editorconfig");
+            vbc.AnalyzerConfigFiles = MSBuildUtil.CreateTaskItems(".editorconfig", "subdir\\.editorconfig");
             Assert.Equal(@"/optionstrict:custom /out:test.exe /editorconfig:.editorconfig /editorconfig:subdir\.editorconfig test.vb subdir\test.vb", vbc.GenerateResponseFileContents());
 
             vbc = new Vbc();
             vbc.Sources = MSBuildUtil.CreateTaskItems("test.vb");
-            vbc.EditorConfigFiles = MSBuildUtil.CreateTaskItems("..\\.editorconfig", "sub dir\\.editorconfig");
+            vbc.AnalyzerConfigFiles = MSBuildUtil.CreateTaskItems("..\\.editorconfig", "sub dir\\.editorconfig");
             Assert.Equal(@"/optionstrict:custom /out:test.exe /editorconfig:..\.editorconfig /editorconfig:""sub dir\.editorconfig"" test.vb", vbc.GenerateResponseFileContents());
         }
     }

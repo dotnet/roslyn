@@ -139,10 +139,10 @@ namespace Microsoft.CodeAnalysis.BuildTasks
             get { return _store.GetOrDefault(nameof(PublicSign), false); }
         }
 
-        public ITaskItem[] EditorConfigFiles
+        public ITaskItem[] AnalyzerConfigFiles
         {
-            set { _store[nameof(EditorConfigFiles)] = value; }
-            get { return (ITaskItem[])_store[nameof(EditorConfigFiles)]; }
+            set { _store[nameof(AnalyzerConfigFiles)] = value; }
+            get { return (ITaskItem[])_store[nameof(AnalyzerConfigFiles)]; }
         }
 
         public bool EmitDebugInformation
@@ -877,11 +877,11 @@ namespace Microsoft.CodeAnalysis.BuildTasks
         /// </summary>
         private void AddEditorConfigFilesToCommandLine(CommandLineBuilderExtension commandLine)
         {
-            if (EditorConfigFiles != null)
+            if (AnalyzerConfigFiles != null)
             {
-                foreach (ITaskItem editorConfigFile in EditorConfigFiles)
+                foreach (ITaskItem editorConfigFile in AnalyzerConfigFiles)
                 {
-                    commandLine.AppendSwitchIfNotNull("/editorconfig:", editorConfigFile.ItemSpec);
+                    commandLine.AppendSwitchIfNotNull("/analyzerconfig:", editorConfigFile.ItemSpec);
                 }
             }
         }

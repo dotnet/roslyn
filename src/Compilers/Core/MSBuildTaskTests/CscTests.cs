@@ -393,17 +393,17 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
         {
             var csc = new Csc();
             csc.Sources = MSBuildUtil.CreateTaskItems("test.cs");
-            csc.EditorConfigFiles = MSBuildUtil.CreateTaskItems(".editorconfig");
+            csc.AnalyzerConfigFiles = MSBuildUtil.CreateTaskItems(".editorconfig");
             Assert.Equal(@"/out:test.exe /editorconfig:.editorconfig test.cs", csc.GenerateResponseFileContents());
 
             csc = new Csc();
             csc.Sources = MSBuildUtil.CreateTaskItems("test.cs", "subdir\\test.cs");
-            csc.EditorConfigFiles = MSBuildUtil.CreateTaskItems(".editorconfig", "subdir\\.editorconfig");
+            csc.AnalyzerConfigFiles = MSBuildUtil.CreateTaskItems(".editorconfig", "subdir\\.editorconfig");
             Assert.Equal(@"/out:test.exe /editorconfig:.editorconfig /editorconfig:subdir\.editorconfig test.cs subdir\test.cs", csc.GenerateResponseFileContents());
 
             csc = new Csc();
             csc.Sources = MSBuildUtil.CreateTaskItems("test.cs");
-            csc.EditorConfigFiles = MSBuildUtil.CreateTaskItems("..\\.editorconfig", "sub dir\\.editorconfig");
+            csc.AnalyzerConfigFiles = MSBuildUtil.CreateTaskItems("..\\.editorconfig", "sub dir\\.editorconfig");
             Assert.Equal(@"/out:test.exe /editorconfig:..\.editorconfig /editorconfig:""sub dir\.editorconfig"" test.cs", csc.GenerateResponseFileContents());
         }
     }

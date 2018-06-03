@@ -794,6 +794,7 @@ try {
     }
 
     if ($bootstrap) {
+        Stop-BuildProcesses
         $bootstrapDir = Make-BootstrapBuild
     }
 
