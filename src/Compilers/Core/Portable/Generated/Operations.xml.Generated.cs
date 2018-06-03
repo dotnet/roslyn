@@ -6908,4 +6908,84 @@ namespace Microsoft.CodeAnalysis.Operations
             return visitor.VisitDiscardOperation(this, argument);
         }
     }
+
+    /// <summary>
+    /// Represents a standalone VB query Aggregate operation with more than one item in Into clause.
+    /// </summary>
+    internal abstract partial class BaseAggregateQueryOperation : Operation, IAggregateQueryOperation
+    {
+        protected BaseAggregateQueryOperation(SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
+            base(OperationKind.None, semanticModel, syntax, type, constantValue, isImplicit)
+        {
+        }
+
+        public override IEnumerable<IOperation> Children
+        {
+            get
+            {
+                if (Group != null)
+                {
+                    yield return Group;
+                }
+                if (Aggregation != null)
+                {
+                    yield return Aggregation;
+                }
+            }
+        }
+
+        /// <summary>
+        /// See BoundAggregateClause node in VB compiler.
+        /// </summary>
+        public abstract IOperation Group { get; }
+
+        /// <summary>
+        /// See BoundAggregateClause node in VB compiler.
+        /// </summary>
+        public abstract IOperation Aggregation { get; }
+
+        public override void Accept(OperationVisitor visitor)
+        {
+            visitor.VisitAggregateQuery(this);
+        }
+        public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
+        {
+            return visitor.VisitAggregateQuery(this, argument);
+        }
+    }
+
+    /// <summary>
+    /// Represents a standalone VB query Aggregate operation with more than one item in Into clause.
+    /// </summary>
+    internal sealed partial class AggregateQueryOperation : BaseAggregateQueryOperation
+    {
+        public AggregateQueryOperation(IOperation group, IOperation aggregation, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
+            base(semanticModel, syntax, type, constantValue, isImplicit)
+        {
+            Group = SetParentOperation(group, this);
+            Aggregation = SetParentOperation(aggregation, this);
+        }
+
+        public override IOperation Group { get; }
+        public override IOperation Aggregation { get; }
+    }
+
+    /// <summary>
+    /// Represents a standalone VB query Aggregate operation with more than one item in Into clause.
+    /// </summary>
+    internal sealed partial class LazyAggregateQueryOperation : BaseAggregateQueryOperation
+    {
+        private readonly Lazy<IOperation> _lazyGroup;
+        private readonly Lazy<IOperation> _lazyAggregation;
+
+        public LazyAggregateQueryOperation(Lazy<IOperation> group, Lazy<IOperation> aggregation, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
+            base(semanticModel, syntax, type, constantValue, isImplicit)
+        {
+            _lazyGroup = group ?? throw new System.ArgumentNullException(nameof(group));
+            _lazyAggregation = aggregation ?? throw new System.ArgumentNullException(nameof(aggregation));
+        }
+
+        public override IOperation Group => SetParentOperation(_lazyGroup.Value, this);
+        public override IOperation Aggregation => SetParentOperation(_lazyAggregation.Value, this);
+    }
 }

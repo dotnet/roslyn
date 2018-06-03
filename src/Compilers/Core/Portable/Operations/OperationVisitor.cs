@@ -145,6 +145,12 @@ namespace Microsoft.CodeAnalysis.Operations
             VisitNoneOperation(operation);
         }
 
+        internal virtual void VisitAggregateQuery(IAggregateQueryOperation operation)
+        {
+            //DefaultVisit(operation);
+            VisitNoneOperation(operation);
+        }
+
         public virtual void VisitExpressionStatement(IExpressionStatementOperation operation)
         {
             DefaultVisit(operation);
@@ -694,6 +700,12 @@ namespace Microsoft.CodeAnalysis.Operations
         internal virtual TResult VisitFixed(IFixedOperation operation, TArgument argument)
         {
             // https://github.com/dotnet/roslyn/issues/21281
+            //return DefaultVisit(operation, argument);
+            return VisitNoneOperation(operation, argument);
+        }
+
+        internal virtual TResult VisitAggregateQuery(IAggregateQueryOperation operation, TArgument argument)
+        {
             //return DefaultVisit(operation, argument);
             return VisitNoneOperation(operation, argument);
         }
