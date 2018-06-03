@@ -4492,7 +4492,7 @@ class C
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
-        public async Task DontOfferToRemoveCastFormObjectToStruct()
+        public async Task DontOfferToRemoveCastWhereNoConversionExists()
         {
             await TestMissingInRegularAndScriptAsync(
                 @"
