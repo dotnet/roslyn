@@ -107,7 +107,7 @@ IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDecla
       null
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
-                // CS0201: Only assignment, call, increment, decrement, and new object expressions can be used as a statement
+                // CS0201: Only assignment, call, increment, decrement, await, and new object expressions can be used as a statement
                 //         /*<bind>*/Action a = () => 1;/*</bind>*/
                 Diagnostic(ErrorCode.ERR_IllegalStatement, "1").WithLocation(7, 36)
             };
@@ -207,7 +207,7 @@ IDelegateCreationOperation (OperationKind.DelegateCreation, Type: System.Action,
             null
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
-                // CS0201: Only assignment, call, increment, decrement, and new object expressions can be used as a statement
+                // CS0201: Only assignment, call, increment, decrement, await, and new object expressions can be used as a statement
                 //         Action a = /*<bind>*/(Action)(() => 1)/*</bind>*/;
                 Diagnostic(ErrorCode.ERR_IllegalStatement, "1").WithLocation(7, 45)
             };
@@ -913,7 +913,7 @@ IDelegateCreationOperation (OperationKind.DelegateCreation, Type: System.Action,
             null
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
-                // CS0201: Only assignment, call, increment, decrement, and new object expressions can be used as a statement
+                // CS0201: Only assignment, call, increment, decrement, await, and new object expressions can be used as a statement
                 //         Action a = /*<bind>*/new Action(() => 1)/*</bind>*/;
                 Diagnostic(ErrorCode.ERR_IllegalStatement, "1").WithLocation(7, 47)
             };
@@ -1373,7 +1373,7 @@ IInvalidOperation (OperationKind.Invalid, Type: System.Action, IsInvalid) (Synta
                   null
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
-                // CS0201: Only assignment, call, increment, decrement, and new object expressions can be used as a statement
+                // CS0201: Only assignment, call, increment, decrement, await, and new object expressions can be used as a statement
                 //         Action a = /*<bind>*/new Action((Action)(() => 1))/*</bind>*/;
                 Diagnostic(ErrorCode.ERR_IllegalStatement, "1").WithLocation(7, 56)
             };

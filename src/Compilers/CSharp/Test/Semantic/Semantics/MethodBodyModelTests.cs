@@ -789,8 +789,7 @@ class F
 }
 ";
             var tree = Parse(text);
-            var comp = CreateCompilation(tree,
-                references: new[] { TestReferences.NetFx.v4_0_30319.System });
+            var comp = CreateCompilation(tree);
             Assert.Equal(string.Empty, string.Join(Environment.NewLine, comp.GetDiagnostics()));
         }
 

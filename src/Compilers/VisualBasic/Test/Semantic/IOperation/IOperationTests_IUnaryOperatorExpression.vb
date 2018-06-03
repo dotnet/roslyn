@@ -2131,7 +2131,7 @@ IUnaryOperation (UnaryOperatorKind.Minus, IsLifted) (OperationKind.UnaryOperator
             Dim fileName = "a.vb"
             Dim syntaxTree = Parse(source, fileName)
             Dim references = DefaultVbReferences.Concat({ValueTupleRef, SystemRuntimeFacadeRef})
-            Dim compilation = CreateCompilationWithMscorlib45AndVBRuntime({syntaxTree}, references:=references, options:=TestOptions.ReleaseDll.WithOverflowChecks(False))
+            Dim compilation = CreateEmptyCompilation({syntaxTree}, references:=references, options:=TestOptions.ReleaseDll.WithOverflowChecks(False))
 
             VerifyOperationTreeAndDiagnosticsForTest(Of UnaryExpressionSyntax)(compilation, fileName, expectedOperationTree, expectedDiagnostics)
         End Sub
@@ -2158,7 +2158,7 @@ IUnaryOperation (UnaryOperatorKind.Minus) (OperationKind.UnaryOperator, Type: Sy
             Dim fileName = "a.vb"
             Dim syntaxTree = Parse(source, fileName)
             Dim references = DefaultVbReferences.Concat({ValueTupleRef, SystemRuntimeFacadeRef})
-            Dim compilation = CreateCompilationWithMscorlib45AndVBRuntime({syntaxTree}, references:=references, options:=TestOptions.ReleaseDll.WithOverflowChecks(False))
+            Dim compilation = CreateEmptyCompilation({syntaxTree}, references:=references, options:=TestOptions.ReleaseDll.WithOverflowChecks(False))
 
             VerifyOperationTreeAndDiagnosticsForTest(Of UnaryExpressionSyntax)(compilation, fileName, expectedOperationTree, expectedDiagnostics)
         End Sub
