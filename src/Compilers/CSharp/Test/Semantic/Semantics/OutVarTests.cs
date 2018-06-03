@@ -1700,7 +1700,7 @@ public class Cls
     }
 }";
             var compilation = CreateCompilation(text,
-                                                            references: new MetadataReference[] { CSharpRef, SystemCoreRef },
+                                                            references: new MetadataReference[] { CSharpRef },
                                                             options: TestOptions.ReleaseExe,
                                                             parseOptions: TestOptions.Regular);
 
@@ -8989,7 +8989,7 @@ public class X
                 // (12,23): error CS0103: The name 'let' does not exist in the current context
                 //         return (o) => let x1 = o;
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "let").WithArguments("let").WithLocation(12, 23),
-                // (12,23): error CS0201: Only assignment, call, increment, decrement, and new object expressions can be used as a statement
+                // (12,23): error CS0201: Only assignment, call, increment, decrement, await, and new object expressions can be used as a statement
                 //         return (o) => let x1 = o;
                 Diagnostic(ErrorCode.ERR_IllegalStatement, "let").WithLocation(12, 23),
                 // (12,27): error CS0103: The name 'x1' does not exist in the current context
@@ -9004,7 +9004,7 @@ public class X
                 // (17,23): error CS0103: The name 'let' does not exist in the current context
                 //         return (o) => let var x2 = o;
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "let").WithArguments("let").WithLocation(17, 23),
-                // (17,23): error CS0201: Only assignment, call, increment, decrement, and new object expressions can be used as a statement
+                // (17,23): error CS0201: Only assignment, call, increment, decrement, await, and new object expressions can be used as a statement
                 //         return (o) => let var x2 = o;
                 Diagnostic(ErrorCode.ERR_IllegalStatement, "let").WithLocation(17, 23),
                 // (17,36): error CS0103: The name 'o' does not exist in the current context
@@ -19153,7 +19153,7 @@ public class Cls
     }
 }";
             var compilation = CreateCompilation(text,
-                                                            references: new MetadataReference[] { CSharpRef, SystemCoreRef },
+                                                            references: new MetadataReference[] { CSharpRef },
                                                             options: TestOptions.ReleaseExe,
                                                             parseOptions: TestOptions.Regular);
 
@@ -19929,7 +19929,7 @@ public class Cls
     }
 }";
             // the C# dynamic binder does not support ref or out indexers, so we don't run this
-            CompileAndVerify(text, references: new[] { SystemCoreRef, CSharpRef }).VerifyIL("Cls.Main()",
+            CompileAndVerify(text, references: new[] { CSharpRef }).VerifyIL("Cls.Main()",
 @"{
   // Code size       87 (0x57)
   .maxstack  7
@@ -19983,7 +19983,7 @@ public class Cls
     }
 }";
             // the C# dynamic binder does not support ref or out indexers, so we don't run this
-            CompileAndVerify(text, references: new[] { SystemCoreRef, CSharpRef }).VerifyIL("Cls.Main()",
+            CompileAndVerify(text, references: new[] { CSharpRef }).VerifyIL("Cls.Main()",
 @"
 {
   // Code size       87 (0x57)
@@ -20039,7 +20039,7 @@ public class Cls
     }
 }";
             // the C# dynamic binder does not support ref or out indexers, so we don't run this
-            var comp = CreateCompilation(text, options: TestOptions.DebugDll, references: new[] { SystemCoreRef, CSharpRef });
+            var comp = CreateCompilation(text, options: TestOptions.DebugDll, references: new[] { CSharpRef });
             comp.VerifyDiagnostics(
                 // (7,23): error CS8183: Cannot infer the type of implicitly-typed discard.
                 //         var x = d[out var _];
@@ -32277,7 +32277,7 @@ public class C
         // Note that the embedded statement is parsed as a missing identifier, followed by && with many spaces attached as leading trivia
     }
 }";
-            var comp = CreateCompilation(source, options: TestOptions.DebugDll, references: new[] { SystemCoreRef });
+            var comp = CreateCompilation(source, options: TestOptions.DebugDll);
 
             var tree = comp.SyntaxTrees[0];
             var model = comp.GetSemanticModel(tree);

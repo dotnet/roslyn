@@ -2007,32 +2007,32 @@ This version used in: {2}</source>
       </trans-unit>
       <trans-unit id="Alias_ambiguous_type_0">
         <source>Alias ambiguous type '{0}'</source>
-        <target state="new">Alias ambiguous type '{0}'</target>
+        <target state="translated">別名不明確類型 '{0}'</target>
         <note />
       </trans-unit>
       <trans-unit id="Warning_colon_Collection_was_modified_during_iteration">
         <source>Warning: Collection was modified during iteration.</source>
-        <target state="new">Warning: Collection was modified during iteration.</target>
+        <target state="translated">警告: 集合已於反覆運算期間被修改</target>
         <note />
       </trans-unit>
       <trans-unit id="Warning_colon_Iteration_variable_crossed_function_boundary">
         <source>Warning: Iteration variable crossed function boundary.</source>
-        <target state="new">Warning: Iteration variable crossed function boundary.</target>
+        <target state="translated">警告: 反覆運算變數已跨越函式界線</target>
         <note />
       </trans-unit>
       <trans-unit id="Warning_colon_Collection_may_be_modified_during_iteration">
         <source>Warning: Collection may be modified during iteration.</source>
-        <target state="new">Warning: Collection may be modified during iteration.</target>
+        <target state="translated">警告: 集合可能於反覆運算期間被修改</target>
         <note />
       </trans-unit>
       <trans-unit id="Add_readonly_modifier">
         <source>Add readonly modifier</source>
-        <target state="new">Add readonly modifier</target>
+        <target state="translated">新增唯讀修飾詞</target>
         <note />
       </trans-unit>
       <trans-unit id="Make_field_readonly">
         <source>Make field readonly</source>
-        <target state="new">Make field readonly</target>
+        <target state="translated">使欄位唯讀</target>
         <note />
       </trans-unit>
       <trans-unit id="Convert_to_conditional_expression">

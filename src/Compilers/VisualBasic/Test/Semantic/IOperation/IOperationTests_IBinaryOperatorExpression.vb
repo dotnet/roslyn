@@ -993,7 +993,7 @@ IBlockOperation (26 statements, 3 locals) (OperationKind.Block, Type: null) (Syn
             Dim fileName = "a.vb"
             Dim syntaxTree = Parse(source, fileName)
             Dim references = DefaultVbReferences.Concat({ValueTupleRef, SystemRuntimeFacadeRef})
-            Dim compilation = CreateCompilationWithMscorlib45AndVBRuntime({syntaxTree}, references:=references, options:=TestOptions.ReleaseDll.WithOverflowChecks(False))
+            Dim compilation = CreateEmptyCompilation({syntaxTree}, references:=references, options:=TestOptions.ReleaseDll.WithOverflowChecks(False))
 
             VerifyOperationTreeAndDiagnosticsForTest(Of MethodBlockSyntax)(compilation, fileName, expectedOperationTree, expectedDiagnostics)
         End Sub
@@ -1442,7 +1442,7 @@ IBlockOperation (12 statements, 2 locals) (OperationKind.Block, Type: null) (Syn
             Dim fileName = "a.vb"
             Dim syntaxTree = Parse(source, fileName)
             Dim references = DefaultVbReferences.Concat({ValueTupleRef, SystemRuntimeFacadeRef})
-            Dim compilation = CreateCompilationWithMscorlib45AndVBRuntime({syntaxTree}, references:=references, options:=TestOptions.ReleaseDll.WithOverflowChecks(False))
+            Dim compilation = CreateEmptyCompilation({syntaxTree}, references:=references, options:=TestOptions.ReleaseDll.WithOverflowChecks(False))
 
             VerifyOperationTreeAndDiagnosticsForTest(Of MethodBlockSyntax)(compilation, fileName, expectedOperationTree, expectedDiagnostics)
         End Sub

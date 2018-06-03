@@ -113,6 +113,21 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.NamingStyle
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.NamingStyle)]
+        public async Task TestPascalCaseMethod_LocalFunctionIsIgnored()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"class C
+{
+    void M()
+    {
+        void [|f|]()
+        {
+        }
+    }
+}", new TestParameters(options: options.MethodNamesArePascalCase));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.NamingStyle)]
         public async Task TestCamelCaseParameters()
         {
             await TestInRegularAndScriptAsync(
@@ -695,6 +710,117 @@ class C
     }
 }",
                 options: options.LocalsAreCamelCaseConstantsAreUpperCase);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.NamingStyle)]
+        public async Task TestCamelCaseLocalFunctions()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    void M()
+    {
+        void [|F|]()
+        {
+        }
+    }
+}",
+@"class C
+{
+    void M()
+    {
+        void f()
+        {
+        }
+    }
+}",
+                options: options.LocalFunctionNamesAreCamelCase);
+        }
+ 
+        [Fact, Trait(Traits.Feature, Traits.Features.NamingStyle)]
+        public async Task TestCamelCaseLocalFunctions_MethodIsIgnored()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"class C
+{
+    void [|M|]()
+    {
+    }
+}", new TestParameters(options: options.LocalFunctionNamesAreCamelCase));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.NamingStyle)]
+        public async Task TestAsyncFunctions_AsyncMethod()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    async void [|M|]()
+    {
+    }
+}",
+@"class C
+{
+    async void MAsync()
+    {
+    }
+}",
+                options: options.AsyncFunctionNamesEndWithAsync);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.NamingStyle)]
+        public async Task TestAsyncFunctions_AsyncLocalFunction()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    void M()
+    {
+        async void [|F|]()
+        {
+        }
+    }
+}",
+@"class C
+{
+    void M()
+    {
+        async void FAsync()
+        {
+        }
+    }
+}",
+                options: options.AsyncFunctionNamesEndWithAsync);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.NamingStyle)]
+        public async Task TestAsyncFunctions_NonAsyncMethodIgnored()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"class C
+{
+    void [|M|]()
+    {
+        async void F()
+        {
+        }
+    }
+}", new TestParameters(options: options.AsyncFunctionNamesEndWithAsync));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.NamingStyle)]
+        public async Task TestAsyncFunctions_NonAsyncLocalFunctionIgnored()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"class C
+{
+    async void M()
+    {
+        void [|F|]()
+        {
+        }
+    }
+}", new TestParameters(options: options.AsyncFunctionNamesEndWithAsync));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.NamingStyle)]
