@@ -4490,5 +4490,22 @@ class C
     }
 }", parameters: new TestParameters(new CSharpParseOptions(LanguageVersion.CSharp7_1)));
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        public async Task DontOfferToRemoveCastFormObjectToStruct()
+        {
+            await TestMissingInRegularAndScriptAsync(
+                @"
+using System;
+
+class C
+{
+    void M()
+    {
+        object o = null;
+        TypedReference r2 = [|(TypedReference)o|];
+    }
+}");
+        }
     }
 }
