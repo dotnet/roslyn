@@ -303,9 +303,9 @@ Block[B1] - Block
           Expression: 
             ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: ?, IsInvalid, IsImplicit) (Syntax: '.I = 0')
               Left: 
-                IInvalidOperation (OperationKind.Invalid, Type: null, IsInvalid, IsImplicit) (Syntax: '.I')
+                IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid, IsImplicit) (Syntax: '.I')
                   Children(1):
-                      IInvalidOperation (OperationKind.Invalid, Type: null, IsInvalid) (Syntax: '.I')
+                      IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid) (Syntax: '.I')
                         Children(0)
               Right: 
                 ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0) (Syntax: '0')

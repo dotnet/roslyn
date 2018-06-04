@@ -2440,14 +2440,23 @@ Block[B0] - Entry
     Next (Regular) Block[B1]
 Block[B1] - Block
     Predecessors: [B0]
-    Statements (4)
+    Statements (7)
         IParameterReferenceOperation: other1 (OperationKind.ParameterReference, Type: System.Object, IsInvalid) (Syntax: 'other1')
 
+        IInvalidOperation (OperationKind.Invalid, Type: null, IsInvalid) (Syntax: 'Case other1')
+          Children(0)
+
         IParameterReferenceOperation: other2 (OperationKind.ParameterReference, Type: System.Object, IsInvalid) (Syntax: 'other2')
+
+        IInvalidOperation (OperationKind.Invalid, Type: null, IsInvalid) (Syntax: 'Case < other2')
+          Children(0)
 
         IParameterReferenceOperation: other3 (OperationKind.ParameterReference, Type: System.Object, IsInvalid) (Syntax: 'other3')
 
         IParameterReferenceOperation: other4 (OperationKind.ParameterReference, Type: System.Object, IsInvalid) (Syntax: 'other4')
+
+        IInvalidOperation (OperationKind.Invalid, Type: null, IsInvalid) (Syntax: 'Case other3 To other4')
+          Children(0)
 
     Next (Regular) Block[B2]
 Block[B2] - Exit
@@ -2482,7 +2491,10 @@ Block[B0] - Entry
     Next (Regular) Block[B1]
 Block[B1] - Block
     Predecessors: [B0]
-    Statements (1)
+    Statements (2)
+        IInvalidOperation (OperationKind.Invalid, Type: null, IsInvalid) (Syntax: 'Case Else')
+          Children(0)
+
         IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'result = false')
           Expression: 
             ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Boolean, IsImplicit) (Syntax: 'result = false')

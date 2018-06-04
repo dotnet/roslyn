@@ -1966,7 +1966,7 @@ Block[B1] - Block
           Left: 
             IParameterReferenceOperation: p1 (OperationKind.ParameterReference, Type: System.Int32, IsInvalid, IsImplicit) (Syntax: '= M1()')
           Right: 
-            IInvalidOperation (OperationKind.Invalid, Type: null, IsInvalid, IsImplicit) (Syntax: 'M1()')
+            IInvalidOperation (OperationKind.Invalid, Type: System.Int32, IsInvalid, IsImplicit) (Syntax: 'M1()')
               Children(1):
                   IInvocationOperation (Function C.M1() As System.Int32) (OperationKind.Invocation, Type: System.Int32, IsInvalid) (Syntax: 'M1()')
                     Instance Receiver: 
@@ -2052,7 +2052,7 @@ Block[B4] - Block
           Left: 
             IParameterReferenceOperation: p1 (OperationKind.ParameterReference, Type: System.Int32, IsInvalid, IsImplicit) (Syntax: '= If(M1(), M2())')
           Right: 
-            IInvalidOperation (OperationKind.Invalid, Type: null, IsInvalid, IsImplicit) (Syntax: 'If(M1(), M2())')
+            IInvalidOperation (OperationKind.Invalid, Type: System.Int32, IsInvalid, IsImplicit) (Syntax: 'If(M1(), M2())')
               Children(1):
                   IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: System.Int32, IsInvalid, IsImplicit) (Syntax: 'If(M1(), M2())')
 

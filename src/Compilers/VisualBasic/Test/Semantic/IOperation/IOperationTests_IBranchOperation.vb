@@ -124,8 +124,18 @@ BC30132: Label 'label1' is not defined.
 Block[B0] - Entry
     Statements (0)
     Next (Regular) Block[B1]
-Block[B1] - Exit
+Block[B1] - Block
     Predecessors: [B0]
+    Statements (2)
+        IInvalidOperation (OperationKind.Invalid, Type: null, IsInvalid) (Syntax: 'label1')
+          Children(0)
+
+        IInvalidOperation (OperationKind.Invalid, Type: null, IsInvalid) (Syntax: 'Goto label1')
+          Children(0)
+
+    Next (Regular) Block[B2]
+Block[B2] - Exit
+    Predecessors: [B1]
     Statements (0)
 ]]>.Value
 
@@ -290,13 +300,20 @@ Block[B0] - Entry
     Statements (0)
     Next (Regular) Block[B1]
 Block[B1] - Block
-    Predecessors: [B0] [B1]
+    Predecessors: [B0] [B2]
     Statements (0)
-    Jump if False (Regular) to Block[B2]
+    Jump if False (Regular) to Block[B3]
         IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: System.Boolean) (Syntax: 'x')
 
+    Next (Regular) Block[B2]
+Block[B2] - Block
+    Predecessors: [B1]
+    Statements (1)
+        IInvalidOperation (OperationKind.Invalid, Type: null, IsInvalid) (Syntax: 'Exit Do')
+          Children(0)
+
     Next (Regular) Block[B1]
-Block[B2] - Exit
+Block[B3] - Exit
     Predecessors: [B1]
     Statements (0)
 ]]>.Value
@@ -325,8 +342,15 @@ BC30089: 'Exit Do' can only appear inside a 'Do' statement.
 Block[B0] - Entry
     Statements (0)
     Next (Regular) Block[B1]
-Block[B1] - Exit
+Block[B1] - Block
     Predecessors: [B0]
+    Statements (1)
+        IInvalidOperation (OperationKind.Invalid, Type: null, IsInvalid) (Syntax: 'Exit Do')
+          Children(0)
+
+    Next (Regular) Block[B2]
+Block[B2] - Exit
+    Predecessors: [B1]
     Statements (0)
 ]]>.Value
 
@@ -489,13 +513,20 @@ Block[B0] - Entry
     Statements (0)
     Next (Regular) Block[B1]
 Block[B1] - Block
-    Predecessors: [B0] [B1]
+    Predecessors: [B0] [B2]
     Statements (0)
-    Jump if False (Regular) to Block[B2]
+    Jump if False (Regular) to Block[B3]
         IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: System.Boolean) (Syntax: 'x')
 
+    Next (Regular) Block[B2]
+Block[B2] - Block
+    Predecessors: [B1]
+    Statements (1)
+        IInvalidOperation (OperationKind.Invalid, Type: null, IsInvalid) (Syntax: 'Continue Do')
+          Children(0)
+
     Next (Regular) Block[B1]
-Block[B2] - Exit
+Block[B3] - Exit
     Predecessors: [B1]
     Statements (0)
 ]]>.Value
@@ -524,8 +555,15 @@ BC30782: 'Continue Do' can only appear inside a 'Do' statement.
 Block[B0] - Entry
     Statements (0)
     Next (Regular) Block[B1]
-Block[B1] - Exit
+Block[B1] - Block
     Predecessors: [B0]
+    Statements (1)
+        IInvalidOperation (OperationKind.Invalid, Type: null, IsInvalid) (Syntax: 'Continue Do')
+          Children(0)
+
+    Next (Regular) Block[B2]
+Block[B2] - Exit
+    Predecessors: [B1]
     Statements (0)
 ]]>.Value
 
@@ -696,8 +734,15 @@ BC30393: 'Exit Try' can only appear inside a 'Try' statement.
 Block[B0] - Entry
     Statements (0)
     Next (Regular) Block[B1]
-Block[B1] - Exit
+Block[B1] - Block
     Predecessors: [B0]
+    Statements (1)
+        IInvalidOperation (OperationKind.Invalid, Type: null, IsInvalid) (Syntax: 'Exit Try')
+          Children(0)
+
+    Next (Regular) Block[B2]
+Block[B2] - Exit
+    Predecessors: [B1]
     Statements (0)
 ]]>.Value
 
@@ -773,8 +818,15 @@ BC30067: 'Exit Function' is not valid in a Sub or Property.
 Block[B0] - Entry
     Statements (0)
     Next (Regular) Block[B1]
-Block[B1] - Exit
+Block[B1] - Block
     Predecessors: [B0]
+    Statements (1)
+        IInvalidOperation (OperationKind.Invalid, Type: null, IsInvalid) (Syntax: 'Exit Function')
+          Children(0)
+
+    Next (Regular) Block[B2]
+Block[B2] - Exit
+    Predecessors: [B1]
     Statements (0)
 ]]>.Value
 
@@ -2476,8 +2528,33 @@ BC30099: 'Exit Select' can only appear inside a 'Select' statement.
 Block[B0] - Entry
     Statements (0)
     Next (Regular) Block[B1]
-Block[B1] - Exit
+Block[B1] - Block
     Predecessors: [B0]
+    Statements (7)
+        IInvalidOperation (OperationKind.Invalid, Type: null, IsInvalid) (Syntax: 'Continue Do')
+          Children(0)
+
+        IInvalidOperation (OperationKind.Invalid, Type: null, IsInvalid) (Syntax: 'Continue While')
+          Children(0)
+
+        IInvalidOperation (OperationKind.Invalid, Type: null, IsInvalid) (Syntax: 'Continue For')
+          Children(0)
+
+        IInvalidOperation (OperationKind.Invalid, Type: null, IsInvalid) (Syntax: 'Exit Do')
+          Children(0)
+
+        IInvalidOperation (OperationKind.Invalid, Type: null, IsInvalid) (Syntax: 'Exit While')
+          Children(0)
+
+        IInvalidOperation (OperationKind.Invalid, Type: null, IsInvalid) (Syntax: 'Exit For')
+          Children(0)
+
+        IInvalidOperation (OperationKind.Invalid, Type: null, IsInvalid) (Syntax: 'Exit Select')
+          Children(0)
+
+    Next (Regular) Block[B2]
+Block[B2] - Exit
+    Predecessors: [B1]
     Statements (0)
 ]]>.Value
 
@@ -2653,8 +2730,18 @@ Block[B0] - Entry
         Block[B0#0R1] - Entry
             Statements (0)
             Next (Regular) Block[B1#0R1]
-        Block[B1#0R1] - Exit
+        Block[B1#0R1] - Block
             Predecessors: [B0#0R1]
+            Statements (2)
+                IInvalidOperation (OperationKind.Invalid, Type: null, IsInvalid) (Syntax: 'label1')
+                  Children(0)
+
+                IInvalidOperation (OperationKind.Invalid, Type: null, IsInvalid) (Syntax: 'GoTo label1')
+                  Children(0)
+
+            Next (Regular) Block[B2#0R1]
+        Block[B2#0R1] - Exit
+            Predecessors: [B1#0R1]
             Statements (0)
     }
 }

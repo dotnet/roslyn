@@ -541,14 +541,14 @@ Block[B1] - Block
                   Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                     (DelegateRelaxationLevelNone)
                   Operand: 
-                    IInvalidOperation (OperationKind.Invalid, Type: null, IsInvalid) (Syntax: 'M(x, M2(y,z))')
+                    IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid) (Syntax: 'M(x, M2(y,z))')
                       Children(3):
-                          IInvalidOperation (OperationKind.Invalid, Type: null, IsInvalid) (Syntax: 'M')
+                          IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid) (Syntax: 'M')
                             Children(0)
                           IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'x')
-                          IInvalidOperation (OperationKind.Invalid, Type: null, IsInvalid) (Syntax: 'M2(y,z)')
+                          IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid) (Syntax: 'M2(y,z)')
                             Children(3):
-                                IInvalidOperation (OperationKind.Invalid, Type: null, IsInvalid) (Syntax: 'M2')
+                                IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid) (Syntax: 'M2')
                                   Children(0)
                                 IParameterReferenceOperation: y (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'y')
                                 IParameterReferenceOperation: z (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'z')
@@ -597,7 +597,7 @@ Block[B1] - Block
 
         IFlowCaptureOperation: 1 (OperationKind.FlowCapture, Type: null, IsInvalid, IsImplicit) (Syntax: 'M')
           Value: 
-            IInvalidOperation (OperationKind.Invalid, Type: null, IsInvalid) (Syntax: 'M')
+            IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid) (Syntax: 'M')
               Children(0)
 
         IFlowCaptureOperation: 2 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'x')
@@ -606,7 +606,7 @@ Block[B1] - Block
 
         IFlowCaptureOperation: 3 (OperationKind.FlowCapture, Type: null, IsInvalid, IsImplicit) (Syntax: 'M2')
           Value: 
-            IInvalidOperation (OperationKind.Invalid, Type: null, IsInvalid) (Syntax: 'M2')
+            IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid) (Syntax: 'M2')
               Children(0)
 
         IFlowCaptureOperation: 4 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'y')
@@ -646,13 +646,13 @@ Block[B4] - Block
                   Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                     (DelegateRelaxationLevelNone)
                   Operand: 
-                    IInvalidOperation (OperationKind.Invalid, Type: null, IsInvalid) (Syntax: 'M(x, M2(y,If(b,1,2)))')
+                    IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid) (Syntax: 'M(x, M2(y,If(b,1,2)))')
                       Children(3):
-                          IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: null, IsInvalid, IsImplicit) (Syntax: 'M')
+                          IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: ?, IsInvalid, IsImplicit) (Syntax: 'M')
                           IFlowCaptureReferenceOperation: 2 (OperationKind.FlowCaptureReference, Type: System.Int32, IsImplicit) (Syntax: 'x')
-                          IInvalidOperation (OperationKind.Invalid, Type: null, IsInvalid) (Syntax: 'M2(y,If(b,1,2))')
+                          IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid) (Syntax: 'M2(y,If(b,1,2))')
                             Children(3):
-                                IFlowCaptureReferenceOperation: 3 (OperationKind.FlowCaptureReference, Type: null, IsInvalid, IsImplicit) (Syntax: 'M2')
+                                IFlowCaptureReferenceOperation: 3 (OperationKind.FlowCaptureReference, Type: ?, IsInvalid, IsImplicit) (Syntax: 'M2')
                                 IFlowCaptureReferenceOperation: 4 (OperationKind.FlowCaptureReference, Type: System.Int32, IsImplicit) (Syntax: 'y')
                                 IFlowCaptureReferenceOperation: 5 (OperationKind.FlowCaptureReference, Type: System.Int32, IsImplicit) (Syntax: 'If(b,1,2)')
 
@@ -700,7 +700,7 @@ Block[B1] - Block
 
         IFlowCaptureOperation: 1 (OperationKind.FlowCapture, Type: null, IsInvalid, IsImplicit) (Syntax: 'M')
           Value: 
-            IInvalidOperation (OperationKind.Invalid, Type: null, IsInvalid) (Syntax: 'M')
+            IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid) (Syntax: 'M')
               Children(0)
 
         IFlowCaptureOperation: 2 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'x')
@@ -709,7 +709,7 @@ Block[B1] - Block
 
         IFlowCaptureOperation: 3 (OperationKind.FlowCapture, Type: null, IsInvalid, IsImplicit) (Syntax: 'M2')
           Value: 
-            IInvalidOperation (OperationKind.Invalid, Type: null, IsInvalid) (Syntax: 'M2')
+            IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid) (Syntax: 'M2')
               Children(0)
 
     Jump if False (Regular) to Block[B3]
@@ -745,13 +745,13 @@ Block[B4] - Block
                   Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                     (DelegateRelaxationLevelNone)
                   Operand: 
-                    IInvalidOperation (OperationKind.Invalid, Type: null, IsInvalid) (Syntax: 'M(x, M2(If(b,1,2), y))')
+                    IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid) (Syntax: 'M(x, M2(If(b,1,2), y))')
                       Children(3):
-                          IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: null, IsInvalid, IsImplicit) (Syntax: 'M')
+                          IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: ?, IsInvalid, IsImplicit) (Syntax: 'M')
                           IFlowCaptureReferenceOperation: 2 (OperationKind.FlowCaptureReference, Type: System.Int32, IsImplicit) (Syntax: 'x')
-                          IInvalidOperation (OperationKind.Invalid, Type: null, IsInvalid) (Syntax: 'M2(If(b,1,2), y)')
+                          IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid) (Syntax: 'M2(If(b,1,2), y)')
                             Children(3):
-                                IFlowCaptureReferenceOperation: 3 (OperationKind.FlowCaptureReference, Type: null, IsInvalid, IsImplicit) (Syntax: 'M2')
+                                IFlowCaptureReferenceOperation: 3 (OperationKind.FlowCaptureReference, Type: ?, IsInvalid, IsImplicit) (Syntax: 'M2')
                                 IFlowCaptureReferenceOperation: 4 (OperationKind.FlowCaptureReference, Type: System.Int32, IsImplicit) (Syntax: 'If(b,1,2)')
                                 IParameterReferenceOperation: y (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'y')
 
@@ -799,7 +799,7 @@ Block[B1] - Block
 
         IFlowCaptureOperation: 1 (OperationKind.FlowCapture, Type: null, IsInvalid, IsImplicit) (Syntax: 'M')
           Value: 
-            IInvalidOperation (OperationKind.Invalid, Type: null, IsInvalid) (Syntax: 'M')
+            IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid) (Syntax: 'M')
               Children(0)
 
         IFlowCaptureOperation: 2 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'x')
@@ -808,7 +808,7 @@ Block[B1] - Block
 
         IFlowCaptureOperation: 3 (OperationKind.FlowCapture, Type: null, IsInvalid, IsImplicit) (Syntax: 'M2')
           Value: 
-            IInvalidOperation (OperationKind.Invalid, Type: null, IsInvalid) (Syntax: 'M2')
+            IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid) (Syntax: 'M2')
               Children(0)
 
     Jump if False (Regular) to Block[B3]
@@ -867,13 +867,13 @@ Block[B7] - Block
                   Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                     (DelegateRelaxationLevelNone)
                   Operand: 
-                    IInvalidOperation (OperationKind.Invalid, Type: null, IsInvalid) (Syntax: 'M(x, M2(If( ... If(a,3,4)))')
+                    IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid) (Syntax: 'M(x, M2(If( ... If(a,3,4)))')
                       Children(3):
-                          IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: null, IsInvalid, IsImplicit) (Syntax: 'M')
+                          IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: ?, IsInvalid, IsImplicit) (Syntax: 'M')
                           IFlowCaptureReferenceOperation: 2 (OperationKind.FlowCaptureReference, Type: System.Int32, IsImplicit) (Syntax: 'x')
-                          IInvalidOperation (OperationKind.Invalid, Type: null, IsInvalid) (Syntax: 'M2(If(b,1,2), If(a,3,4))')
+                          IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid) (Syntax: 'M2(If(b,1,2), If(a,3,4))')
                             Children(3):
-                                IFlowCaptureReferenceOperation: 3 (OperationKind.FlowCaptureReference, Type: null, IsInvalid, IsImplicit) (Syntax: 'M2')
+                                IFlowCaptureReferenceOperation: 3 (OperationKind.FlowCaptureReference, Type: ?, IsInvalid, IsImplicit) (Syntax: 'M2')
                                 IFlowCaptureReferenceOperation: 4 (OperationKind.FlowCaptureReference, Type: System.Int32, IsImplicit) (Syntax: 'If(b,1,2)')
                                 IFlowCaptureReferenceOperation: 5 (OperationKind.FlowCaptureReference, Type: System.Int32, IsImplicit) (Syntax: 'If(a,3,4)')
 

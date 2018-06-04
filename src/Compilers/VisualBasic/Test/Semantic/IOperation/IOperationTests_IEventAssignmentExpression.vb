@@ -837,7 +837,7 @@ Block[B1] - Block
           Expression: 
             IEventAssignmentOperation (EventRemove) (OperationKind.EventAssignment, Type: null, IsInvalid, IsImplicit) (Syntax: 'RemoveHandl ... tX, Nothing')
               Event Reference: 
-                IInvalidOperation (OperationKind.Invalid, Type: null, IsInvalid) (Syntax: 'EventX')
+                IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid) (Syntax: 'EventX')
                   Children(0)
               Handler: 
                 ILiteralOperation (OperationKind.Literal, Type: null, Constant: null) (Syntax: 'Nothing')
@@ -1045,7 +1045,7 @@ Block[B1] - Block
               Event Reference: 
                 IParenthesizedOperation (OperationKind.Parenthesized, Type: ?, IsInvalid) (Syntax: '(v.DomainUnload())')
                   Operand: 
-                    IInvalidOperation (OperationKind.Invalid, Type: null, IsInvalid) (Syntax: 'v.DomainUnload()')
+                    IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid) (Syntax: 'v.DomainUnload()')
                       Children(1):
                           IOperation:  (OperationKind.None, Type: null, IsInvalid) (Syntax: 'v.DomainUnload')
               Handler: 

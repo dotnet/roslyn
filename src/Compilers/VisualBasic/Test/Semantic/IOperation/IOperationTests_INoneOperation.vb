@@ -180,14 +180,14 @@ Block[B4] - Block
           Expression: 
             IOperation:  (OperationKind.None, Type: null, IsInvalid, IsImplicit) (Syntax: 'Mid(If(b, s ... 1, 1) = str')
               Children(2):
-                  IInvalidOperation (OperationKind.Invalid, Type: null, IsInvalid, IsImplicit) (Syntax: 'If(b, str1, str2)')
+                  IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid, IsImplicit) (Syntax: 'If(b, str1, str2)')
                     Children(1):
                         IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.String, IsInvalid, IsImplicit) (Syntax: 'If(b, str1, str2)')
                   IOperation:  (OperationKind.None, Type: null, IsInvalid, IsImplicit) (Syntax: 'Mid(If(b, s ... 1, 1) = str')
                     Children(4):
                         IParenthesizedOperation (OperationKind.Parenthesized, Type: System.String, IsInvalid) (Syntax: 'Mid(If(b, s ... tr2), 1, 1)')
                           Operand: 
-                            IInvalidOperation (OperationKind.Invalid, Type: null, IsInvalid, IsImplicit) (Syntax: 'If(b, str1, str2)')
+                            IInvalidOperation (OperationKind.Invalid, Type: System.String, IsInvalid, IsImplicit) (Syntax: 'If(b, str1, str2)')
                               Children(0)
                         ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
                         ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
