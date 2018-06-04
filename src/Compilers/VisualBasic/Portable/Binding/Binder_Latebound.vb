@@ -70,10 +70,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             Dim result = New BoundLateMemberAccess(node, name, containerType, receiver, boundTypeArguments, LateBoundAccessKind.Unknown, objType)
 
-            If receiver IsNot Nothing AndAlso Not receiver.WasCompilerGenerated AndAlso result.Syntax Is receiver.Syntax Then
-                result.SetWasCompilerGenerated()
-            End If
-
             Return result
         End Function
 

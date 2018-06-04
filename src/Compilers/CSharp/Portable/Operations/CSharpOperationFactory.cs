@@ -615,7 +615,7 @@ namespace Microsoft.CodeAnalysis.Operations
             return new LazyObjectOrCollectionInitializerExpression(initializers, _semanticModel, syntax, type, constantValue, isImplicit);
         }
 
-        private IOperation CreateBoundObjectInitializerMemberOperation(BoundObjectInitializerMember boundObjectInitializerMember)
+        private IOperation CreateBoundObjectInitializerMemberOperation(BoundObjectInitializerMember boundObjectInitializerMember, bool isObjectOrCollectionInitializer = false)
         {
             Symbol memberSymbol = boundObjectInitializerMember.MemberSymbol;
 
@@ -664,7 +664,9 @@ namespace Microsoft.CodeAnalysis.Operations
                     }
                     else
                     {
-                        var accessor = property.GetOwnOrInheritedSetMethod();
+                        // In nested member initializers, the property is not actually set. Instead, it is retrieved for a series of Add method calls or nested property setter calls,
+                        // so we need to use the getter for this property
+                        MethodSymbol accessor = isObjectOrCollectionInitializer ? property.GetOwnOrInheritedGetMethod() : property.GetOwnOrInheritedSetMethod();
                         if (accessor == null || boundObjectInitializerMember.ResultKind == LookupResultKind.OverloadResolutionFailure || accessor.OriginalDefinition is ErrorMethodSymbol)
                         {
                             Lazy<ImmutableArray<IOperation>> children = new Lazy<ImmutableArray<IOperation>>(() =>
@@ -765,7 +767,10 @@ namespace Microsoft.CodeAnalysis.Operations
             ITypeSymbol type = boundCollectionElementInitializer.Type;
             Optional<object> constantValue = ConvertToOptional(boundCollectionElementInitializer.ConstantValue);
             bool isImplicit = boundCollectionElementInitializer.WasCompilerGenerated;
-            return new LazyDynamicInvocationExpression(operation, arguments, argumentNames: ImmutableArray<string>.Empty, argumentRefKinds: ImmutableArray<RefKind>.Empty, _semanticModel, syntax, type, constantValue, isImplicit);
+            BoundImplicitReceiver implicitReceiver = boundCollectionElementInitializer.ImplicitReceiver;
+            Lazy<IOperation> addReference = new Lazy<IOperation>(() =>
+                CreateBoundDynamicMemberAccessOperation(implicitReceiver, typeArgumentsOpt: ImmutableArray<TypeSymbol>.Empty, memberName: "Add", implicitReceiver.Syntax, type: null, value: default, isImplicit: true));
+            return new LazyDynamicInvocationExpression(addReference, arguments, argumentNames: ImmutableArray<string>.Empty, argumentRefKinds: ImmutableArray<RefKind>.Empty, _semanticModel, syntax, type, constantValue, isImplicit);
         }
 
         private IOperation CreateUnboundLambdaOperation(UnboundLambda unboundLambda)
@@ -1067,7 +1072,17 @@ namespace Microsoft.CodeAnalysis.Operations
         {
             Debug.Assert(IsMemberInitializer(boundAssignmentOperator));
 
-            Lazy<IOperation> target = new Lazy<IOperation>(() => Create(boundAssignmentOperator.Left));
+            Lazy<IOperation> target = new Lazy<IOperation>(() => {
+                // We can have bad expressions on the left, fall back to standard creation if that's this case
+                if (boundAssignmentOperator.Left.Kind == BoundKind.ObjectInitializerMember)
+                {
+                    return _cache.GetOrAdd(boundAssignmentOperator.Left, key => CreateBoundObjectInitializerMemberOperation((BoundObjectInitializerMember)key, isObjectOrCollectionInitializer: true));
+                }
+                else
+                {
+                    return Create(boundAssignmentOperator.Left);
+                }
+            });
             Lazy<IObjectOrCollectionInitializerOperation> value = new Lazy<IObjectOrCollectionInitializerOperation>(() => (IObjectOrCollectionInitializerOperation)Create(boundAssignmentOperator.Right));
             SyntaxNode syntax = boundAssignmentOperator.Syntax;
             ITypeSymbol type = boundAssignmentOperator.Type;

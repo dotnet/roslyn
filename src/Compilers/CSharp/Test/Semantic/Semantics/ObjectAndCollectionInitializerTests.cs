@@ -423,7 +423,10 @@ IObjectCreationOperation (Constructor: Test..ctor()) (OperationKind.ObjectCreati
                 Initializers(1):
                     IDynamicInvocationOperation (OperationKind.DynamicInvocation, Type: System.Void, IsImplicit) (Syntax: '1')
                       Expression: 
-                        IInstanceReferenceOperation (ReferenceKind: ImplicitReceiver) (OperationKind.InstanceReference, Type: dynamic, IsImplicit) (Syntax: 'list')
+                        IDynamicMemberReferenceOperation (Member Name: ""Add"", Containing Type: null) (OperationKind.DynamicMemberReference, Type: null, IsImplicit) (Syntax: 'list')
+                          Type Arguments(0)
+                          Instance Receiver: 
+                            IInstanceReferenceOperation (ReferenceKind: ImplicitReceiver) (OperationKind.InstanceReference, Type: dynamic, IsImplicit) (Syntax: 'list')
                       Arguments(1):
                           ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
                       ArgumentNames(0)
