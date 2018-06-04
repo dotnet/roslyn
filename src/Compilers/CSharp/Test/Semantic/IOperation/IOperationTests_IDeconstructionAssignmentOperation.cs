@@ -507,7 +507,7 @@ Block[B4] - Block
     Statements (2)
         IFlowCaptureOperation: 2 (OperationKind.FlowCapture, Type: null, IsInvalid, IsImplicit) (Syntax: 'c1?.fI1')
           Value: 
-            IInvalidOperation (OperationKind.Invalid, Type: System.Int32?, IsInvalid, IsImplicit) (Syntax: 'c1?.fI1')
+            IOperation:  (OperationKind.None, Type: null, IsInvalid, IsImplicit) (Syntax: 'c1?.fI1')
               Children(1):
                   IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: System.Int32?, IsInvalid, IsImplicit) (Syntax: 'c1?.fI1')
 
@@ -553,7 +553,7 @@ Block[B7] - Block
                 ITupleOperation (OperationKind.Tuple, Type: (System.Int32? fI1, System.Int32 i1), IsInvalid) (Syntax: '(c1?.fI1, i1)')
                   NaturalType: (System.Int32? fI1, System.Int32 i1)
                   Elements(2):
-                      IFlowCaptureReferenceOperation: 2 (OperationKind.FlowCaptureReference, Type: System.Int32?, IsInvalid, IsImplicit) (Syntax: 'c1?.fI1')
+                      IFlowCaptureReferenceOperation: 2 (OperationKind.FlowCaptureReference, Type: null, IsInvalid, IsImplicit) (Syntax: 'c1?.fI1')
                       IFlowCaptureReferenceOperation: 3 (OperationKind.FlowCaptureReference, Type: System.Int32, IsImplicit) (Syntax: 'i1')
               Right: 
                 IFlowCaptureReferenceOperation: 4 (OperationKind.FlowCaptureReference, Type: (System.Int32, System.Int32), IsImplicit) (Syntax: 'b ? (1, 2) : (3, 4)')

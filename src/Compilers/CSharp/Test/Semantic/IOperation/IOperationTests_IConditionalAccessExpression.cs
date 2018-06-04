@@ -666,7 +666,7 @@ Block[B4] - Block
           Expression: 
             ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32?, IsInvalid) (Syntax: 'x?.P1 = 0')
               Left: 
-                IInvalidOperation (OperationKind.Invalid, Type: System.Int32?, IsInvalid, IsImplicit) (Syntax: 'x?.P1')
+                IOperation:  (OperationKind.None, Type: null, IsInvalid, IsImplicit) (Syntax: 'x?.P1')
                   Children(1):
                       IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: System.Int32?, IsInvalid, IsImplicit) (Syntax: 'x?.P1')
               Right: 
@@ -751,7 +751,7 @@ Block[B4] - Block
           Expression: 
             ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32?, IsInvalid) (Syntax: 'x?.P1 = 0')
               Left: 
-                IInvalidOperation (OperationKind.Invalid, Type: System.Int32?, IsInvalid, IsImplicit) (Syntax: 'x?.P1')
+                IOperation:  (OperationKind.None, Type: null, IsInvalid, IsImplicit) (Syntax: 'x?.P1')
                   Children(1):
                       IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: System.Int32?, IsInvalid, IsImplicit) (Syntax: 'x?.P1')
               Right: 

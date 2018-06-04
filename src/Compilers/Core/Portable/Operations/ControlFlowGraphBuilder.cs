@@ -5602,6 +5602,49 @@ oneMoreTime:
                 operation.Syntax, operation.Type, operation.ConstantValue, IsImplicit(operation));
         }
 
+        public override IOperation VisitInvalid(IInvalidOperation operation, int? captureIdForResult)
+        {
+            if (_currentStatement == operation)
+            {
+                VisitInvalidOperationStatement(operation);
+                return null;
+            }
+            return VisitInvalidOperationExpression(operation);
+        }
+
+        private void VisitInvalidOperationStatement(IInvalidOperation operation)
+        {
+            Debug.Assert(_currentStatement == operation, "VisitInvalidOperationStatementAssert");
+            VisitStatements(operation.Children);
+        }
+
+        private IOperation VisitInvalidOperationExpression(IInvalidOperation operation)
+        {
+            int startingStackSize = _evalStack.Count;
+            foreach (IOperation child in operation.Children)
+            {
+                _evalStack.Push(Visit(child));
+            }
+
+            int numChildren = _evalStack.Count - startingStackSize;
+            Debug.Assert(numChildren == operation.Children.Count());
+
+            if (numChildren == 0)
+            {
+                return Operation.CreateOperationNone(semanticModel: null, operation.Syntax, operation.ConstantValue, ImmutableArray<IOperation>.Empty, IsImplicit(operation));
+            }
+
+            var childrenBuilder = ArrayBuilder<IOperation>.GetInstance(numChildren);
+            for (int i = 0; i < numChildren; i++)
+            {
+                childrenBuilder.Add(_evalStack.Pop());
+            }
+
+            childrenBuilder.ReverseContents();
+
+            return Operation.CreateOperationNone(semanticModel: null, operation.Syntax, operation.ConstantValue, childrenBuilder.ToImmutableAndFree(), IsImplicit(operation));
+        }
+
         public override IOperation VisitConstantPattern(IConstantPatternOperation operation, int? captureIdForResult)
         {
             return new ConstantPattern(Visit(operation.Value), semanticModel: null,
@@ -5708,11 +5751,6 @@ oneMoreTime:
         public override IOperation VisitTypeParameterObjectCreation(ITypeParameterObjectCreationOperation operation, int? captureIdForResult)
         {
             return new TypeParameterObjectCreationExpression(Visit(operation.Initializer), semanticModel: null, operation.Syntax, operation.Type, operation.ConstantValue, IsImplicit(operation));
-        }
-
-        public override IOperation VisitInvalid(IInvalidOperation operation, int? captureIdForResult)
-        {
-            return new InvalidOperation(VisitArray(operation.Children.ToImmutableArray()), semanticModel: null, operation.Syntax, operation.Type, operation.ConstantValue, IsImplicit(operation));
         }
 
         public override IOperation VisitTranslatedQuery(ITranslatedQueryOperation operation, int? captureIdForResult)

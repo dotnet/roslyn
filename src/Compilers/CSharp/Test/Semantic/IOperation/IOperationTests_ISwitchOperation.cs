@@ -998,9 +998,7 @@ Block[B1] - Block
 Block[B2] - Block
     Predecessors: [B1]
     Statements (1)
-        IInvalidOperation (OperationKind.Invalid, Type: null, IsInvalid) (Syntax: 'goto case 3;')
-          Children(1):
-              ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 3, IsInvalid) (Syntax: '3')
+        ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 3, IsInvalid) (Syntax: '3')
 
     Next (Regular) Block[B3]
 Block[B3] - Exit
@@ -2711,8 +2709,7 @@ Block[B2] - Block
           Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
             (NoConversion)
           Operand: 
-            IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid) (Syntax: 'guard')
-              Children(0)
+            IOperation:  (OperationKind.None, Type: null, IsInvalid) (Syntax: 'guard')
 
     Next (Regular) Block[B3]
 Block[B3] - Block

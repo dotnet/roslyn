@@ -331,18 +331,10 @@ class C
 Block[B0] - Entry
     Statements (0)
     Next (Regular) Block[B1]
-Block[B1] - Block
+Block[B1] - Exit
     Predecessors: [B0]
-    Statements (1)
-        IInvalidOperation (OperationKind.Invalid, Type: null, IsInvalid) (Syntax: 'goto label1;')
-          Children(1):
-              IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid) (Syntax: 'label1')
-                Children(0)
-
-    Next (Regular) Block[B2]
-Block[B2] - Exit
-    Predecessors: [B1]
-    Statements (0)";
+    Statements (0)
+";
             VerifyFlowGraphForTest<BlockSyntax>(compilation, expectedGraph);
         }
 
@@ -375,22 +367,8 @@ class C
 Block[B0] - Entry
     Statements (0)
     Next (Regular) Block[B1]
-Block[B1] - Block
+Block[B1] - Exit
     Predecessors: [B0]
-    Statements (2)
-        IInvalidOperation (OperationKind.Invalid, Type: null, IsInvalid) (Syntax: 'goto label1;')
-          Children(1):
-              IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid) (Syntax: 'label1')
-                Children(0)
-
-        IInvalidOperation (OperationKind.Invalid, Type: null, IsInvalid) (Syntax: 'goto label1;')
-          Children(1):
-              IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid) (Syntax: 'label1')
-                Children(0)
-
-    Next (Regular) Block[B2]
-Block[B2] - Exit
-    Predecessors: [B1]
     Statements (0)
 ";
             VerifyFlowGraphForTest<BlockSyntax>(compilation, expectedGraph);
@@ -424,21 +402,12 @@ Block[B0] - Entry
 Block[B1] - Block
     Predecessors: [B0]
     Statements (0)
-    Jump if False (Regular) to Block[B3]
+    Jump if False (Regular) to Block[B2]
         IParameterReferenceOperation: a (OperationKind.ParameterReference, Type: System.Boolean) (Syntax: 'a')
 
     Next (Regular) Block[B2]
-Block[B2] - Block
+Block[B2] - Exit
     Predecessors: [B1]
-    Statements (1)
-        IInvalidOperation (OperationKind.Invalid, Type: null, IsInvalid) (Syntax: 'goto label2;')
-          Children(1):
-              IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid) (Syntax: 'label2')
-                Children(0)
-
-    Next (Regular) Block[B3]
-Block[B3] - Exit
-    Predecessors: [B1] [B2]
     Statements (0)
 ";
             VerifyFlowGraphForTest<BlockSyntax>(compilation, expectedGraph);
@@ -476,37 +445,19 @@ Block[B0] - Entry
 Block[B1] - Block
     Predecessors: [B0]
     Statements (0)
-    Jump if False (Regular) to Block[B3]
+    Jump if False (Regular) to Block[B2]
         IParameterReferenceOperation: a (OperationKind.ParameterReference, Type: System.Boolean) (Syntax: 'a')
 
     Next (Regular) Block[B2]
 Block[B2] - Block
     Predecessors: [B1]
-    Statements (1)
-        IInvalidOperation (OperationKind.Invalid, Type: null, IsInvalid) (Syntax: 'goto label2;')
-          Children(1):
-              IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid) (Syntax: 'label2')
-                Children(0)
-
-    Next (Regular) Block[B3]
-Block[B3] - Block
-    Predecessors: [B1] [B2]
     Statements (0)
-    Jump if False (Regular) to Block[B5]
+    Jump if False (Regular) to Block[B3]
         IParameterReferenceOperation: b (OperationKind.ParameterReference, Type: System.Boolean) (Syntax: 'b')
 
-    Next (Regular) Block[B4]
-Block[B4] - Block
-    Predecessors: [B3]
-    Statements (1)
-        IInvalidOperation (OperationKind.Invalid, Type: null, IsInvalid) (Syntax: 'goto label2;')
-          Children(1):
-              IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid) (Syntax: 'label2')
-                Children(0)
-
-    Next (Regular) Block[B5]
-Block[B5] - Exit
-    Predecessors: [B3] [B4]
+    Next (Regular) Block[B3]
+Block[B3] - Exit
+    Predecessors: [B2]
     Statements (0)
 ";
             VerifyFlowGraphForTest<BlockSyntax>(compilation, expectedGraph);
@@ -545,18 +496,9 @@ Block[B1] - Block
     Jump if False (Regular) to Block[B2]
         IParameterReferenceOperation: a (OperationKind.ParameterReference, Type: System.Boolean) (Syntax: 'a')
 
-    Next (Regular) Block[B3]
-Block[B2] - Block
+    Next (Regular) Block[B2]
+Block[B2] - Exit
     Predecessors: [B1]
-    Statements (1)
-        IInvalidOperation (OperationKind.Invalid, Type: null, IsInvalid) (Syntax: 'goto label1;')
-          Children(1):
-              IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid) (Syntax: 'label1')
-                Children(0)
-
-    Next (Regular) Block[B3]
-Block[B3] - Exit
-    Predecessors: [B1] [B2]
     Statements (0)
 ";
             VerifyFlowGraphForTest<BlockSyntax>(compilation, expectedGraph);
@@ -600,34 +542,16 @@ Block[B1] - Block
     Jump if False (Regular) to Block[B2]
         IParameterReferenceOperation: a (OperationKind.ParameterReference, Type: System.Boolean) (Syntax: 'a')
 
-    Next (Regular) Block[B3]
+    Next (Regular) Block[B2]
 Block[B2] - Block
     Predecessors: [B1]
-    Statements (1)
-        IInvalidOperation (OperationKind.Invalid, Type: null, IsInvalid) (Syntax: 'goto label1;')
-          Children(1):
-              IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid) (Syntax: 'label1')
-                Children(0)
-
-    Next (Regular) Block[B3]
-Block[B3] - Block
-    Predecessors: [B1] [B2]
     Statements (0)
-    Jump if False (Regular) to Block[B4]
+    Jump if False (Regular) to Block[B3]
         IParameterReferenceOperation: b (OperationKind.ParameterReference, Type: System.Boolean) (Syntax: 'b')
 
-    Next (Regular) Block[B5]
-Block[B4] - Block
-    Predecessors: [B3]
-    Statements (1)
-        IInvalidOperation (OperationKind.Invalid, Type: null, IsInvalid) (Syntax: 'goto label1;')
-          Children(1):
-              IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid) (Syntax: 'label1')
-                Children(0)
-
-    Next (Regular) Block[B5]
-Block[B5] - Exit
-    Predecessors: [B3] [B4]
+    Next (Regular) Block[B3]
+Block[B3] - Exit
+    Predecessors: [B2]
     Statements (0)
 ";
             VerifyFlowGraphForTest<BlockSyntax>(compilation, expectedGraph);
@@ -716,15 +640,8 @@ class C
 Block[B0] - Entry
     Statements (0)
     Next (Regular) Block[B1]
-Block[B1] - Block
+Block[B1] - Exit
     Predecessors: [B0]
-    Statements (1)
-        IInvalidOperation (OperationKind.Invalid, Type: null, IsInvalid) (Syntax: 'break;')
-          Children(0)
-
-    Next (Regular) Block[B2]
-Block[B2] - Exit
-    Predecessors: [B1]
     Statements (0)
 ";
             VerifyFlowGraphForTest<BlockSyntax>(compilation, expectedGraph);
@@ -905,15 +822,8 @@ class P
 Block[B0] - Entry
     Statements (0)
     Next (Regular) Block[B1]
-Block[B1] - Block
+Block[B1] - Exit
     Predecessors: [B0]
-    Statements (1)
-        IInvalidOperation (OperationKind.Invalid, Type: null, IsInvalid) (Syntax: 'continue;')
-          Children(0)
-
-    Next (Regular) Block[B2]
-Block[B2] - Exit
-    Predecessors: [B1]
     Statements (0)
 ";
             var expectedDiagnostics = new[] {
@@ -969,88 +879,39 @@ outsideLabel:;
 Block[B0] - Entry
     Statements (0)
     Next (Regular) Block[B1]
-Block[B1] - Block
-    Predecessors: [B0]
-    Statements (3)
-        IInvalidOperation (OperationKind.Invalid, Type: null, IsInvalid) (Syntax: 'goto finallyLabel;')
-          Children(1):
-              IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid) (Syntax: 'finallyLabel')
-                Children(0)
-
-        IInvalidOperation (OperationKind.Invalid, Type: null, IsInvalid) (Syntax: 'goto catchlabel;')
-          Children(1):
-              IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid) (Syntax: 'catchlabel')
-                Children(0)
-
-        IInvalidOperation (OperationKind.Invalid, Type: null, IsInvalid) (Syntax: 'goto trylabel;')
-          Children(1):
-              IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid) (Syntax: 'trylabel')
-                Children(0)
-
-    Next (Regular) Block[B2]
         Entering: {R1} {R2} {R3} {R4}
 
 .try {R1, R2}
 {
     .try {R3, R4}
     {
-        Block[B2] - Block
-            Predecessors: [B1]
-            Statements (2)
-                IInvalidOperation (OperationKind.Invalid, Type: null, IsInvalid) (Syntax: 'goto finallyLabel;')
-                  Children(1):
-                      IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid) (Syntax: 'finallyLabel')
-                        Children(0)
-
-                IInvalidOperation (OperationKind.Invalid, Type: null, IsInvalid) (Syntax: 'goto catchlabel;')
-                  Children(1):
-                      IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid) (Syntax: 'catchlabel')
-                        Children(0)
-
-            Next (Regular) Block[B6]
+        Block[B1] - Block
+            Predecessors: [B0]
+            Statements (0)
+            Next (Regular) Block[B5]
                 Finalizing: {R6}
                 Leaving: {R4} {R3} {R2} {R1}
     }
     .catch {R5} (System.Object)
     {
-        Block[B3] - Block
+        Block[B2] - Block
             Predecessors (0)
-            Statements (2)
-                IInvalidOperation (OperationKind.Invalid, Type: null, IsInvalid) (Syntax: 'goto finallyLabel;')
-                  Children(1):
-                      IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid) (Syntax: 'finallyLabel')
-                        Children(0)
-
-                IInvalidOperation (OperationKind.Invalid, Type: null, IsInvalid) (Syntax: 'goto trylabel;')
-                  Children(1):
-                      IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid) (Syntax: 'trylabel')
-                        Children(0)
-
-            Next (Regular) Block[B6]
+            Statements (0)
+            Next (Regular) Block[B5]
                 Finalizing: {R6}
                 Leaving: {R5} {R3} {R2} {R1}
     }
 }
 .finally {R6}
 {
-    Block[B4] - Block
+    Block[B3] - Block
         Predecessors (0)
-        Statements (2)
-            IInvalidOperation (OperationKind.Invalid, Type: null, IsInvalid) (Syntax: 'goto catchlabel;')
-              Children(1):
-                  IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid) (Syntax: 'catchlabel')
-                    Children(0)
-
-            IInvalidOperation (OperationKind.Invalid, Type: null, IsInvalid) (Syntax: 'goto trylabel;')
-              Children(1):
-                  IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid) (Syntax: 'trylabel')
-                    Children(0)
-
-        Next (Regular) Block[B6]
+        Statements (0)
+        Next (Regular) Block[B5]
             Leaving: {R6} {R1}
 }
 
-Block[B5] - Block [UnReachable]
+Block[B4] - Block [UnReachable]
     Predecessors (0)
     Statements (1)
         IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'x = true;')
@@ -1061,9 +922,9 @@ Block[B5] - Block [UnReachable]
               Right: 
                 ILiteralOperation (OperationKind.Literal, Type: System.Boolean, Constant: True) (Syntax: 'true')
 
-    Next (Regular) Block[B6]
-Block[B6] - Exit
-    Predecessors: [B2] [B3] [B4] [B5]
+    Next (Regular) Block[B5]
+Block[B5] - Exit
+    Predecessors: [B1] [B2] [B3] [B4]
     Statements (0)
 ";
             var expectedDiagnostics = new[] {

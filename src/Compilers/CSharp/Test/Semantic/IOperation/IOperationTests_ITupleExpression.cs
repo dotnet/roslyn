@@ -1645,7 +1645,7 @@ Block[B4] - Block
                   NaturalType: (System.Int32 i1, System.Int32)
                   Elements(2):
                       IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.Int32, IsImplicit) (Syntax: 'i1')
-                      IInvalidOperation (OperationKind.Invalid, Type: System.Int32, IsInvalid, IsImplicit) (Syntax: 'b ? i2 : i3')
+                      IOperation:  (OperationKind.None, Type: null, IsInvalid, IsImplicit) (Syntax: 'b ? i2 : i3')
                         Children(1):
                             IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: System.Int32, IsInvalid, IsImplicit) (Syntax: 'b ? i2 : i3')
               Right: 
@@ -1884,7 +1884,7 @@ Block[B4] - Block
           Expression: 
             ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: (System.Int32, System.Int32), IsInvalid) (Syntax: '(b ? (i1, i ...  = (i5, i6)')
               Left: 
-                IInvalidOperation (OperationKind.Invalid, Type: (System.Int32, System.Int32), IsInvalid, IsImplicit) (Syntax: 'b ? (i1, i2) : (i3, i4)')
+                IOperation:  (OperationKind.None, Type: null, IsInvalid, IsImplicit) (Syntax: 'b ? (i1, i2) : (i3, i4)')
                   Children(1):
                       IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: (System.Int32, System.Int32), IsInvalid, IsImplicit) (Syntax: 'b ? (i1, i2) : (i3, i4)')
               Right: 
@@ -1993,7 +1993,7 @@ Block[B0] - Entry
               Expression: 
                 ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: (var, var), IsInvalid) (Syntax: '(b ? (var i ... )) = (1, 2)')
                   Left: 
-                    IInvalidOperation (OperationKind.Invalid, Type: (var, var), IsInvalid, IsImplicit) (Syntax: 'b ? (var i1 ... i3, var i4)')
+                    IOperation:  (OperationKind.None, Type: null, IsInvalid, IsImplicit) (Syntax: 'b ? (var i1 ... i3, var i4)')
                       Children(1):
                           IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: (var, var), IsInvalid, IsImplicit) (Syntax: 'b ? (var i1 ... i3, var i4)')
                   Right: 

@@ -2507,8 +2507,7 @@ Block[B0] - Entry
               Left: 
                 ILocalReferenceOperation: d (IsDeclaration: True) (OperationKind.LocalReference, Type: System.Int32, IsInvalid, IsImplicit) (Syntax: 'd = ')
               Right: 
-                IInvalidOperation (OperationKind.Invalid, Type: null, IsInvalid) (Syntax: '')
-                  Children(0)
+                IOperation:  (OperationKind.None, Type: null, IsInvalid) (Syntax: '')
 
         Next (Regular) Block[B2]
             Leaving: {R1}
@@ -2874,7 +2873,7 @@ Block[B0] - Entry
               Left: 
                 ILocalReferenceOperation: b (IsDeclaration: True) (OperationKind.LocalReference, Type: System.Int32, IsInvalid, IsImplicit) (Syntax: 'b = 1')
               Right: 
-                IInvalidOperation (OperationKind.Invalid, Type: System.Int32, IsInvalid, IsImplicit) (Syntax: '1')
+                IOperation:  (OperationKind.None, Type: null, IsInvalid, IsImplicit) (Syntax: '1')
                   Children(1):
                       ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1, IsInvalid) (Syntax: '1')
 

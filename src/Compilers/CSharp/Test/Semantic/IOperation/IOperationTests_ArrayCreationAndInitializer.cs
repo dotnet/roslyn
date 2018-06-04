@@ -2008,7 +2008,7 @@ Block[B1] - Block
 
         IFlowCaptureOperation: 3 (OperationKind.FlowCapture, Type: null, IsInvalid, IsImplicit) (Syntax: 'v3')
           Value: 
-            IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid, IsImplicit) (Syntax: 'v3')
+            IOperation:  (OperationKind.None, Type: null, IsInvalid, IsImplicit) (Syntax: 'v3')
               Children(1):
                   IParameterReferenceOperation: v3 (OperationKind.ParameterReference, Type: System.Int32, IsInvalid) (Syntax: 'v3')
 
@@ -2057,7 +2057,7 @@ Block[B4] - Block
                   Initializer: 
                     IArrayInitializerOperation (2 elements) (OperationKind.ArrayInitializer, Type: null, IsInvalid) (Syntax: '{ v3, { v1 ?? v2 } }')
                       Element Values(2):
-                          IFlowCaptureReferenceOperation: 3 (OperationKind.FlowCaptureReference, Type: ?, IsInvalid, IsImplicit) (Syntax: 'v3')
+                          IFlowCaptureReferenceOperation: 3 (OperationKind.FlowCaptureReference, Type: null, IsInvalid, IsImplicit) (Syntax: 'v3')
                           IArrayInitializerOperation (1 elements) (OperationKind.ArrayInitializer, Type: null) (Syntax: '{ v1 ?? v2 }')
                             Element Values(1):
                                 IFlowCaptureReferenceOperation: 5 (OperationKind.FlowCaptureReference, Type: System.Int32, IsImplicit) (Syntax: 'v1 ?? v2')

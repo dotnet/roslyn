@@ -2825,7 +2825,7 @@ Block[B5] - Block [UnReachable]
           Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
             (NoConversion)
           Operand: 
-            IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid, IsImplicit) (Syntax: 'throw a ?? b')
+            IOperation:  (OperationKind.None, Type: null, IsInvalid, IsImplicit) (Syntax: 'throw a ?? b')
               Children(1):
                   IOperation:  (OperationKind.None, Type: null, IsInvalid, IsImplicit) (Syntax: 'throw a ?? b')
 

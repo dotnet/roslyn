@@ -454,7 +454,7 @@ Block[B1] - Block
               Right: 
                 IDynamicIndexerAccessOperation (OperationKind.DynamicIndexerAccess, Type: dynamic, IsInvalid) (Syntax: 'C[d]')
                   Expression: 
-                    IInvalidOperation (OperationKind.Invalid, Type: C, IsInvalid, IsImplicit) (Syntax: 'C')
+                    IOperation:  (OperationKind.None, Type: null, IsInvalid, IsImplicit) (Syntax: 'C')
                       Children(1):
                           IOperation:  (OperationKind.None, Type: null, IsInvalid) (Syntax: 'C')
                   Arguments(1):
