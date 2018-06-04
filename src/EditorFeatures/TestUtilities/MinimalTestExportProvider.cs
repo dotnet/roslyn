@@ -33,7 +33,6 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests
                 typeof(Microsoft.CodeAnalysis.Editor.UnitTests.TestOptionsServiceFactory),
                 typeof(Implementation.Classification.ClassificationTypeFormatDefinitions), // to include EditorFeatures.Wpf
                 typeof(DefaultSymbolMappingService),
-                typeof(TestWaitIndicator),
                 typeof(TestExtensionErrorHandler),
                 typeof(TestExportJoinableTaskContext), // Needed by editor components, but not actually exported anywhere else
                 // typeof(TestObscuringTipManager) // Needed by editor components, but only exported in editor VS layer. Tracked by https://devdiv.visualstudio.com/DevDiv/_workitems?id=544569.
