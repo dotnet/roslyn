@@ -18,3 +18,7 @@ folder "InstallDir:Common7\IDE\ItemTemplates\CSharp\General\EditorConfig"
 folder "InstallDir:Common7\IDE\ItemTemplates\AspNetCore\General\EditorConfig"
   file source="$(MSBuildProjectDirectory)\..\..\..\Templates\Editorconfig\Microsoft.VisualStudio.Templates.Editorconfig\ModifiedTemplates\Editorconfig.CS.AspNetCore.Default.vstemplate"
   file source="$(MSBuildProjectDirectory)\..\..\..\Templates\Editorconfig\Microsoft.VisualStudio.Templates.Editorconfig\ModifiedTemplates\Editorconfig.CS.AspNetCore.DotNet.vstemplate"
+folder "InstallDir:Common7\IDE\ItemTemplates\VisualBasic\General\EditorConfig"
+  file source="$(MSBuildProjectDirectory)\..\..\..\Templates\Editorconfig\Microsoft.VisualStudio.Templates.Editorconfig\ModifiedTemplates\Editorconfig.VB.DotNet.vstemplate"
+  file source="$(MSBuildProjectDirectory)\..\..\..\Templates\Editorconfig\Microsoft.VisualStudio.Templates.Editorconfig\ModifiedTemplates\Editorconfig.VB.Default.vstemplate"
+
