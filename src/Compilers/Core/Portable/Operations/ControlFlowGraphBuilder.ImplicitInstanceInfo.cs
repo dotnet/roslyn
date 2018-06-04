@@ -36,12 +36,12 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
                 AnonymousTypePropertyCaptureIds = null;
             }
 
-            public ImplicitInstanceInfo(ITypeSymbol currentInitializedAnonymousType)
+            public ImplicitInstanceInfo(INamedTypeSymbol currentInitializedAnonymousType)
             {
                 Debug.Assert(currentInitializedAnonymousType.IsAnonymousType);
 
                 Object = null;
-                AnonymousType = (INamedTypeSymbol)currentInitializedAnonymousType;
+                AnonymousType = currentInitializedAnonymousType;
                 AnonymousTypePropertyCaptureIds = PooledDictionary<IPropertySymbol, int>.GetInstance();
             }
 

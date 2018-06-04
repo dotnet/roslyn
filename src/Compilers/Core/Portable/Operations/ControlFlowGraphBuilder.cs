@@ -5036,7 +5036,7 @@ oneMoreTime:
         public override IOperation VisitAnonymousObjectCreation(IAnonymousObjectCreationOperation operation, int? captureIdForResult)
         {
             ImplicitInstanceInfo savedCurrentImplicitInstance = _currentImplicitInstance;
-            _currentImplicitInstance = new ImplicitInstanceInfo(operation.Type);
+            _currentImplicitInstance = new ImplicitInstanceInfo((INamedTypeSymbol)operation.Type);
 
             var properties = operation.Type.GetMembers().OfType<IPropertySymbol>().ToImmutableArray();
             Debug.Assert(properties.Length == operation.Initializers.Length);
@@ -5067,7 +5067,7 @@ oneMoreTime:
                             IOperation visitedTarget = new PropertyReferenceExpression(initializedProperty, propertyReference.Instance, ImmutableArray<IArgumentOperation>.Empty,
                                 semanticModel: null, propertyReference.Syntax, propertyReference.Type, propertyReference.ConstantValue, IsImplicit(propertyReference));
                             IOperation visitedValue = visitAndCaptureInitializer(initializedProperty, simpleAssignment.Value);
-                            var visitedAssignment = new SimpleAssignmentExpression(visitedTarget, isRef: false, visitedValue,
+                            var visitedAssignment = new SimpleAssignmentExpression(visitedTarget, isRef: simpleAssignment.IsRef, visitedValue,
                                 semanticModel: null, simpleAssignment.Syntax, simpleAssignment.Type, simpleAssignment.ConstantValue, IsImplicit(simpleAssignment));
                             initializerBuilder.Add(visitedAssignment);
                             continue;
