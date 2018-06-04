@@ -1693,8 +1693,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_FriendRefNotEqualToThis">
-        <source>Friend access was granted by '{0}', but the public key of the output assembly does not match that specified by the attribute in the granting assembly.</source>
-        <target state="translated">Sestavení {0} udělilo přístup typu Friend, ale veřejný klíč výstupního sestavení neodpovídá klíči určenému atributem v udělujícím sestavení.</target>
+        <source>Friend access was granted by '{0}', but the public key of the output assembly ('{1}') does not match that specified by the InternalsVisibleTo attribute in the granting assembly.</source>
+        <target state="needs-review-translation">Sestavení {0} udělilo přístup typu Friend, ale veřejný klíč výstupního sestavení neodpovídá klíči určenému atributem v udělujícím sestavení.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_FriendRefSigningMismatch">
