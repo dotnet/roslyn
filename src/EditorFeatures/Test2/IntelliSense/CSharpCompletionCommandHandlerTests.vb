@@ -364,7 +364,7 @@ class Variable
             End Using
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact(Skip:="https://github.com/dotnet/roslyn/issues/27454"), Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function TestParenthesizedDeconstructionDeclarationWithSymbol() As Task
             Using state = TestState.CreateCSharpTestState(
                   <Document><![CDATA[
@@ -391,7 +391,7 @@ class Variable
             End Using
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact(Skip:="https://github.com/dotnet/roslyn/issues/27454"), Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function TestParenthesizedDeconstructionDeclarationWithInt() As Task
             Using state = TestState.CreateCSharpTestState(
                   <Document><![CDATA[
@@ -417,7 +417,7 @@ class Integer
             End Using
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact(Skip:="https://github.com/dotnet/roslyn/issues/27454"), Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function TestIncompleteParenthesizedDeconstructionDeclaration() As Task
             Using state = TestState.CreateCSharpTestState(
                   <Document><![CDATA[
@@ -450,7 +450,7 @@ class Variable
             End Using
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact(Skip:="https://github.com/dotnet/roslyn/issues/27454"), Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function TestIncompleteParenthesizedDeconstructionDeclaration2() As Task
             Using state = TestState.CreateCSharpTestState(
                   <Document><![CDATA[
@@ -482,7 +482,7 @@ class Variable
             End Using
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact(Skip:="https://github.com/dotnet/roslyn/issues/27441"), Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function TestBackspaceInIncompleteParenthesizedDeconstructionDeclaration() As Task
             Using state = TestState.CreateCSharpTestState(
                   <Document><![CDATA[
@@ -512,7 +512,7 @@ class Variable
             End Using
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact(Skip:="https://github.com/dotnet/roslyn/issues/27441"), Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function TestBackspaceInParenthesizedDeconstructionDeclaration() As Task
             Using state = TestState.CreateCSharpTestState(
                   <Document><![CDATA[
@@ -950,7 +950,7 @@ class Class
             End Using
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact(Skip:="https://github.com/dotnet/roslyn/issues/27439"), Trait(Traits.Feature, Traits.Features.Completion)>
         <WorkItem(13527, "https://github.com/dotnet/roslyn/issues/13527")>
         Public Async Function TestSymbolInTupleLiteral() As Task
             Using state = TestState.CreateCSharpTestState(
@@ -970,7 +970,7 @@ class C
             End Using
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact(Skip:="https://github.com/dotnet/roslyn/issues/27439"), Trait(Traits.Feature, Traits.Features.Completion)>
         <WorkItem(13527, "https://github.com/dotnet/roslyn/issues/13527")>
         Public Async Function TestSymbolInTupleLiteralAfterComma() As Task
             Using state = TestState.CreateCSharpTestState(
@@ -1050,7 +1050,7 @@ class C
             End Using
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact(Skip:="https://github.com/dotnet/roslyn/issues/27439"), Trait(Traits.Feature, Traits.Features.Completion)>
         <WorkItem(19335, "https://github.com/dotnet/roslyn/issues/19335")>
         Public Async Function TabInTupleNameInTupleLiteral() As Task
             Using state = TestState.CreateCSharpTestState(
@@ -1072,7 +1072,7 @@ class C
             End Using
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact(Skip:="https://github.com/dotnet/roslyn/issues/27439"), Trait(Traits.Feature, Traits.Features.Completion)>
         <WorkItem(19335, "https://github.com/dotnet/roslyn/issues/19335")>
         Public Async Function TabInExactTupleNameInTupleLiteral() As Task
             Using state = TestState.CreateCSharpTestState(
@@ -1094,7 +1094,7 @@ class C
             End Using
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact(Skip:="https://github.com/dotnet/roslyn/issues/27439"), Trait(Traits.Feature, Traits.Features.Completion)>
         <WorkItem(19335, "https://github.com/dotnet/roslyn/issues/19335")>
         Public Async Function TabInTupleNameInTupleLiteralAfterComma() As Task
             Using state = TestState.CreateCSharpTestState(
@@ -1116,7 +1116,7 @@ class C
             End Using
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact(Skip:="https://github.com/dotnet/roslyn/issues/27439"), Trait(Traits.Feature, Traits.Features.Completion)>
         <WorkItem(13527, "https://github.com/dotnet/roslyn/issues/13527")>
         Public Async Function TestKeywordInTupleLiteral() As Task
             Using state = TestState.CreateCSharpTestState(
@@ -1368,7 +1368,7 @@ class Program
             End Using
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact(Skip:="https://github.com/dotnet/roslyn/issues/27439"), Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function CommitForUsingDirective1() As Task
             Using state = TestState.CreateCSharpTestState(
                               <Document>
@@ -1384,7 +1384,7 @@ class Program
             End Using
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact(Skip:="https://github.com/dotnet/roslyn/issues/27439"), Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function CommitForUsingDirective2() As Task
             Using state = TestState.CreateCSharpTestState(
                               <Document>
@@ -1400,7 +1400,7 @@ class Program
             End Using
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact(Skip:="https://github.com/dotnet/roslyn/issues/27439"), Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function CommitForUsingDirective3() As Task
             Using state = TestState.CreateCSharpTestState(
                               <Document>
@@ -1416,7 +1416,7 @@ class Program
             End Using
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact(Skip:="https://github.com/dotnet/roslyn/issues/27439"), Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function CommitForUsingDirective4() As Task
             Using state = TestState.CreateCSharpTestState(
                             <Document>
@@ -1481,7 +1481,7 @@ class Goo
         End Function
 
         <WorkItem(544017, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544017")>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact(Skip:="https://github.com/dotnet/roslyn/issues/27445"), Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function EnumCompletionTriggeredOnSpace() As Task
             Using state = TestState.CreateCSharpTestState(
                               <Document>
@@ -1504,7 +1504,7 @@ class Goo
         End Function
 
         <WorkItem(479078, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/479078")>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact(Skip:="https://github.com/dotnet/roslyn/issues/27445"), Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function EnumCompletionTriggeredOnSpaceForNullables() As Task
             Using state = TestState.CreateCSharpTestState(
                               <Document>
@@ -1546,22 +1546,22 @@ class Goo
             End Using
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact(Skip:="https://github.com/dotnet/roslyn/issues/27445"), Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function EnumCompletionNotTriggeredOnPlusCommitCharacter() As Task
             Await EnumCompletionNotTriggeredOn("+"c)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact(Skip:="https://github.com/dotnet/roslyn/issues/27445"), Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function EnumCompletionNotTriggeredOnLeftBraceCommitCharacter() As Task
             Await EnumCompletionNotTriggeredOn("{"c)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact(Skip:="https://github.com/dotnet/roslyn/issues/27445"), Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function EnumCompletionNotTriggeredOnSpaceCommitCharacter() As Task
             Await EnumCompletionNotTriggeredOn(" "c)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact(Skip:="https://github.com/dotnet/roslyn/issues/27445"), Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function EnumCompletionNotTriggeredOnSemicolonCommitCharacter() As Task
             Await EnumCompletionNotTriggeredOn(";"c)
         End Function
@@ -1688,7 +1688,7 @@ public class @event
             End Using
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact(Skip:="https://github.com/dotnet/roslyn/issues/27439"), Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function TestDoNotInsertColonSoThatUserCanCompleteOutAVariableNameThatDoesNotCurrentlyExist_IE_TheCyrusCase() As Task
             Using state = TestState.CreateCSharpTestState(
                               <Document>
@@ -1762,7 +1762,7 @@ public class Goo
         End Function
 
         <WorkItem(544940, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544940")>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact(Skip:="https://github.com/dotnet/roslyn/issues/27440"), Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function AttributeNamedPropertyCompletionCommitWithEquals() As Task
             Using state = TestState.CreateCSharpTestState(
                             <Document>
@@ -1783,7 +1783,7 @@ public class Goo
         End Function
 
         <WorkItem(544940, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544940")>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact(Skip:="https://github.com/dotnet/roslyn/issues/27440"), Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function AttributeNamedPropertyCompletionCommitWithSpace() As Task
             Using state = TestState.CreateCSharpTestState(
                             <Document>
@@ -1890,7 +1890,7 @@ class C
         End Function
 
         <WorkItem(546561, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546561")>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact(Skip:="https://github.com/dotnet/roslyn/issues/27456"), Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function TestNamedParameterAgainstMRU() As Task
             Using state = TestState.CreateCSharpTestState(
                 <Document><![CDATA[
@@ -1945,7 +1945,7 @@ class A
         End Function
 
         <WorkItem(546403, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546403")>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact(Skip:="https://github.com/dotnet/roslyn/issues/27455"), Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function TestMissingOnObjectCreationAfterVar2() As Task
             Using state = TestState.CreateCSharpTestState(
                 <Document><![CDATA[
@@ -2037,7 +2037,7 @@ class C
         End Function
 
         <WorkItem(5487, "https://github.com/dotnet/roslyn/issues/5487")>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact(Skip:="https://github.com/dotnet/roslyn/issues/27453"), Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function TestCommitCharTypedAtTheBeginingOfTheFilterSpan() As Task
             Using state = TestState.CreateCSharpTestState(
                   <Document><![CDATA[
@@ -2065,7 +2065,7 @@ class C
         End Function
 
         <WorkItem(622957, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/622957")>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact(Skip:="https://github.com/dotnet/roslyn/issues/27450"), Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function TestBangFiltersInDocComment() As Task
             Using state = TestState.CreateCSharpTestState(
                   <Document><![CDATA[
@@ -2522,7 +2522,7 @@ class C
         End Class
 
         <WorkItem(1015893, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1015893")>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact(Skip:="https://github.com/dotnet/roslyn/issues/27441"), Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function BackspaceDismissesIfComputationIsIncomplete() As Task
             Dim slowProvider = New SlowProvider()
             Using state = TestState.CreateCSharpTestState(
@@ -2548,7 +2548,7 @@ class C
         End Function
 
         <WorkItem(1065600, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1065600")>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact(Skip:="https://github.com/dotnet/roslyn/issues/27442"), Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function CommitUniqueItemWithBoxSelection() As Task
             Using state = TestState.CreateCSharpTestState(
                 <Document><![CDATA[
@@ -2639,7 +2639,7 @@ $$]]></Document>, extraExportedTypes:={GetType(CSharpEditorFormattingService)}.T
         End Function
 
         <WorkItem(4978, "https://github.com/dotnet/roslyn/issues/4978")>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact(Skip:="https://github.com/dotnet/roslyn/issues/27446"), Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function SessionNotStartedWhenCaretNotMappableIntoSubjectBuffer() As Task
             ' In inline diff view, typing delete next to a "deletion",
             ' can cause our CommandChain to be called with a subjectbuffer
@@ -3026,7 +3026,7 @@ class Program
         End Function
 
         <WorkItem(13481, "https://github.com/dotnet/roslyn/issues/13481")>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact(Skip:="https://github.com/dotnet/roslyn/issues/27441"), Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function TestBackspaceSelection1() As Task
             Using state = TestState.CreateCSharpTestState(
                 <Document><![CDATA[
@@ -3054,7 +3054,7 @@ class Program
         End Function
 
         <WorkItem(13481, "https://github.com/dotnet/roslyn/issues/13481")>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact(Skip:="https://github.com/dotnet/roslyn/issues/27441"), Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function TestBackspaceSelection2() As Task
             Using state = TestState.CreateCSharpTestState(
                 <Document><![CDATA[
@@ -3445,7 +3445,7 @@ class C
         End Function
 
         <WorkItem(14704, "https://github.com/dotnet/roslyn/issues/14704")>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact(Skip:="https://github.com/dotnet/roslyn/issues/27441"), Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function BackspaceTriggerSubstringMatching() As Task
             Using state = TestState.CreateCSharpTestState(
                               <Document>
@@ -3468,7 +3468,7 @@ class Program
         End Function
 
         <WorkItem(16236, "https://github.com/dotnet/roslyn/issues/16236")>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact(Skip:="https://github.com/dotnet/roslyn/issues/27440"), Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function AttributeNamedParameterEqualsItemCommittedOnSpace() As Task
             Using state = TestState.CreateCSharpTestState(
                               <Document>
@@ -3566,7 +3566,7 @@ class C
             End Using
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact(Skip:="https://github.com/dotnet/roslyn/issues/27448"), Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub TestLargeChangeBrokenUpIntoSmallTextChanges()
             Dim provider = New MultipleChangeCompletionProvider()
 
@@ -3631,7 +3631,7 @@ class C
             End Using
         End Sub
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact(Skip:="https://github.com/dotnet/roslyn/issues/27448"), Trait(Traits.Feature, Traits.Features.Completion)>
         Public Sub TestLargeChangeBrokenUpIntoSmallTextChanges2()
             Dim provider = New MultipleChangeCompletionProvider()
 
@@ -3697,7 +3697,7 @@ class C
         End Sub
 
         <WorkItem(296512, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=296512")>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact(Skip:="https://github.com/dotnet/roslyn/issues/27449"), Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function TestRegionDirectiveIndentation() As Task
             Using state = TestState.CreateCSharpTestState(
                               <Document>
