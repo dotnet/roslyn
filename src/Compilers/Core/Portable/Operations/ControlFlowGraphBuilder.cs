@@ -28,6 +28,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
         private IOperation _currentSwitchOperationExpression;
         private IOperation _forToLoopBinaryOperatorLeftOperand;
         private IOperation _forToLoopBinaryOperatorRightOperand;
+        private IOperation _currentAggregationGroup;
         private bool _forceImplicit; // Force all rewritten nodes to be marked as implicit regardless of their original state.
 
         // PROTOTYPE(dataflow): does the public API IFlowCaptureOperation.Id specify how identifiers are created or assigned?
@@ -774,6 +775,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
                                          next.Kind == ControlFlowBranchSemantics.Error ||
                                          next.Kind == ControlFlowBranchSemantics.ProgramTermination);
 
+                            Debug.Assert(!block.HasCondition); // This is ensured by an "if" above.
                             IOperation value = block.BranchValue;
 
                             RegionBuilder implicitEntryRegion = tryGetImplicitEntryRegion(block, currentRegion);
@@ -4212,12 +4214,28 @@ oneMoreTime:
             return new FlowCaptureReference(id, underlying.Syntax, underlying.Type, underlying.ConstantValue);
         }
 
+        internal override IOperation VisitAggregateQuery(IAggregateQueryOperation operation, int? captureIdForResult)
+        {
+            SpillEvalStack();
+
+            int groupCaptureId = VisitAndCapture(operation.Group);
+
+            IOperation previousAggregationGroup = _currentAggregationGroup;
+            _currentAggregationGroup = GetCaptureReference(groupCaptureId, operation.Group);
+
+            IOperation result = Visit(operation.Aggregation);
+
+            _currentAggregationGroup = previousAggregationGroup;
+            return result;
+        }
+
         public override IOperation VisitSwitch(ISwitchOperation operation, int? captureIdForResult)
         {
             Debug.Assert(_currentStatement == operation);
 
             INamedTypeSymbol booleanType = ((Operation)operation).SemanticModel.Compilation.GetSpecialType(SpecialType.System_Boolean);
             int expressionCaptureId = VisitAndCapture(operation.Value);
+            FlowCaptureReference switchValue = GetCaptureReference(expressionCaptureId, operation.Value);
 
             ImmutableArray<ILocalSymbol> locals = getLocals();
             EnterRegion(new RegionBuilder(ControlFlowRegionKind.LocalLifetime, locals: locals));
@@ -4262,7 +4280,7 @@ oneMoreTime:
                 {
                     Debug.Assert(section.Clauses.All(c => c.Label == null));
                     Debug.Assert(_currentSwitchOperationExpression == null);
-                    _currentSwitchOperationExpression = getSwitchValue();
+                    _currentSwitchOperationExpression = switchValue;
                     VisitConditionalBranch(condition, ref nextSection, sense: false);
                     _currentSwitchOperationExpression = null;
                 }
@@ -4304,7 +4322,7 @@ oneMoreTime:
                             bool leftIsNullable = ITypeSymbolHelpers.IsNullableType(operation.Value.Type);
                             bool rightIsNullable = ITypeSymbolHelpers.IsNullableType(compareWith.Type);
                             bool isLifted = leftIsNullable || rightIsNullable;
-                            IOperation leftOperand = getSwitchValue();
+                            IOperation leftOperand = OperationCloner.CloneOperation(switchValue);
                             IOperation rightOperand = Visit(compareWith);
 
                             if (isLifted)
@@ -4345,7 +4363,8 @@ oneMoreTime:
                     case CaseKind.Pattern:
                         var patternClause = (IPatternCaseClauseOperation)caseClause;
 
-                        condition = new IsPatternExpression(getSwitchValue(), Visit(patternClause.Pattern), semanticModel: null, patternClause.Pattern.Syntax, booleanType, constantValue: default, isImplicit: true);
+                        condition = new IsPatternExpression(OperationCloner.CloneOperation(switchValue), Visit(patternClause.Pattern), semanticModel: null,
+                                                            patternClause.Pattern.Syntax, booleanType, constantValue: default, isImplicit: true);
                         condition = Operation.SetParentOperation(condition, null);
                         LinkBlocks(CurrentBasicBlock, condition, jumpIfTrue: false, RegularBranch(nextCase));
 
@@ -4392,11 +4411,6 @@ oneMoreTime:
                     default:
                         throw ExceptionUtilities.UnexpectedValue(caseClause.CaseKind);
                 }
-            }
-
-            FlowCaptureReference getSwitchValue()
-            {
-                return new FlowCaptureReference(expressionCaptureId, operation.Value.Syntax, operation.Value.Type, operation.Value.ConstantValue);
             }
         }
 
@@ -5593,6 +5607,40 @@ oneMoreTime:
             return new OmittedArgumentExpression(semanticModel: null, operation.Syntax, operation.Type, operation.ConstantValue, IsImplicit(operation));
         }
 
+        internal override IOperation VisitPlaceholder(IPlaceholderOperation operation, int? captureIdForResult)
+        {
+            switch (operation.PlaceholderKind)
+            {
+                case PlaceholderKind.SwitchOperationExpression:
+                    if (_currentSwitchOperationExpression != null)
+                    {
+                        return OperationCloner.CloneOperation(_currentSwitchOperationExpression);
+                    }
+                    break;
+                case PlaceholderKind.ForToLoopBinaryOperatorLeftOperand:
+                    if (_forToLoopBinaryOperatorLeftOperand != null)
+                    {
+                        return _forToLoopBinaryOperatorLeftOperand;
+                    }
+                    break;
+                case PlaceholderKind.ForToLoopBinaryOperatorRightOperand:
+                    if (_forToLoopBinaryOperatorRightOperand != null)
+                    {
+                        return _forToLoopBinaryOperatorRightOperand;
+                    }
+                    break;
+                case PlaceholderKind.AggregationGroup:
+                    if (_currentAggregationGroup != null)
+                    {
+                        return OperationCloner.CloneOperation(_currentAggregationGroup);
+                    }
+                    break;
+            }
+
+            Debug.Assert(false, "All placeholders should be handled above. Have we introduced a new scenario where placeholders are used?");
+            return new PlaceholderExpression(operation.PlaceholderKind, semanticModel: null, operation.Syntax, operation.Type, operation.ConstantValue, IsImplicit(operation));
+        }
+
         public override IOperation VisitIsPattern(IIsPatternOperation operation, int? captureIdForResult)
         {
             _evalStack.Push(Visit(operation.Value));
@@ -5639,6 +5687,7 @@ oneMoreTime:
         }
 
         #region PROTOTYPE(dataflow): Naive implementation that simply clones nodes and erases SemanticModel, likely to change
+
         private ImmutableArray<T> VisitArray<T>(ImmutableArray<T> nodes) where T : IOperation
         {
             // clone the array
@@ -5661,33 +5710,6 @@ oneMoreTime:
         internal override IOperation VisitPointerIndirectionReference(IPointerIndirectionReferenceOperation operation, int? captureIdForResult)
         {
             return new PointerIndirectionReferenceExpression(Visit(operation.Pointer), semanticModel: null, operation.Syntax, operation.Type, operation.ConstantValue, IsImplicit(operation));
-        }
-
-        internal override IOperation VisitPlaceholder(IPlaceholderOperation operation, int? captureIdForResult)
-        {
-            switch (operation.PlaceholderKind)
-            {
-                case PlaceholderKind.SwitchOperationExpression:
-                    if (_currentSwitchOperationExpression != null)
-                    {
-                        return OperationCloner.CloneOperation(_currentSwitchOperationExpression);
-                    }
-                    break;
-                case PlaceholderKind.ForToLoopBinaryOperatorLeftOperand:
-                    if (_forToLoopBinaryOperatorLeftOperand != null)
-                    {
-                        return _forToLoopBinaryOperatorLeftOperand;
-                    }
-                    break;
-                case PlaceholderKind.ForToLoopBinaryOperatorRightOperand:
-                    if (_forToLoopBinaryOperatorRightOperand != null)
-                    {
-                        return _forToLoopBinaryOperatorRightOperand;
-                    }
-                    break;
-            }
-
-            return new PlaceholderExpression(operation.PlaceholderKind, semanticModel: null, operation.Syntax, operation.Type, operation.ConstantValue, IsImplicit(operation));
         }
 
         public override IOperation VisitAnonymousObjectCreation(IAnonymousObjectCreationOperation operation, int? captureIdForResult)

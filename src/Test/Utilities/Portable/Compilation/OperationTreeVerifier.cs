@@ -706,6 +706,15 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             Visit(operation.Body, "Body");
         }
 
+        internal override void VisitAggregateQuery(IAggregateQueryOperation operation)
+        {
+            LogString(nameof(IAggregateQueryOperation));
+            LogCommonPropertiesAndNewLine(operation);
+
+            Visit(operation.Group, "Group");
+            Visit(operation.Aggregation, "Aggregation");
+        }
+
         public override void VisitExpressionStatement(IExpressionStatementOperation operation)
         {
             LogString(nameof(IExpressionStatementOperation));
@@ -1012,7 +1021,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         {
             LogString(nameof(IPlaceholderOperation));
             LogCommonPropertiesAndNewLine(operation);
-            Assert.Equal(PlaceholderKind.Unspecified, operation.PlaceholderKind);
+            Assert.Equal(PlaceholderKind.AggregationGroup, operation.PlaceholderKind);
         }
 
         public override void VisitUnaryOperator(IUnaryOperation operation)

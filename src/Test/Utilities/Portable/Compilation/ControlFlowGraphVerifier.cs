@@ -723,6 +723,8 @@ endRegion:
                     return ((IInstanceReferenceOperation)n).ReferenceKind == InstanceReferenceKind.ContainingTypeInstance;
 
                 case OperationKind.None:
+                    return !(n is IPlaceholderOperation);
+
                 case OperationKind.Invalid:
                 case OperationKind.YieldReturn:
                 case OperationKind.ExpressionStatement:
