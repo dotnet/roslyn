@@ -8019,5 +8019,83 @@ class Program
     }
 }");
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
+        public async Task TestIdentifierInsideLock1()
+        {
+            await TestInRegularAndScriptAsync(
+@"class Class
+{
+    void Method()
+    {
+        lock ([|goo|])
+        {
+        }
+    }
+}",
+@"class Class
+{
+    private object goo;
+
+    void Method()
+    {
+        lock (goo)
+        {
+        }
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
+        public async Task TestIdentifierInsideLock2()
+        {
+            await TestInRegularAndScriptAsync(
+@"class Class
+{
+    void Method()
+    {
+        lock ([|goo|])
+        {
+        }
+    }
+}",
+@"class Class
+{
+    private readonly object goo;
+
+    void Method()
+    {
+        lock (goo)
+        {
+        }
+    }
+}", index: 1);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
+        public async Task TestIdentifierInsideLock3()
+        {
+            await TestInRegularAndScriptAsync(
+@"class Class
+{
+    void Method()
+    {
+        lock ([|goo|])
+        {
+        }
+    }
+}",
+@"class Class
+{
+    public object goo { get; private set; }
+
+    void Method()
+    {
+        lock (goo)
+        {
+        }
+    }
+}", index: 2);
+        }
     }
 }
