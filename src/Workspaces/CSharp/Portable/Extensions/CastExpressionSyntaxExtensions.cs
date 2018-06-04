@@ -392,12 +392,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
 
             var expressionToCastType = semanticModel.ClassifyConversion(cast.SpanStart, cast.Expression, castType, isExplicitInSource: true);
             var outerType = GetOuterCastType(cast, semanticModel, out var parentIsOrAsExpression) ?? castTypeInfo.ConvertedType;
-
-            // If there is no conversion then there will be a compiler error, but offering the code fix before that is confusing, so jump out.
-            if (!expressionToCastType.Exists)
-            {
-                return false;
-            }
             
             // Simple case: If the conversion from the inner expression to the cast type is identity,
             // the cast can be removed.
@@ -458,10 +452,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             {
                 var castToOuterType = semanticModel.ClassifyConversion(cast.SpanStart, cast, outerType);
                 var expressionToOuterType = GetSpeculatedExpressionToOuterTypeConversion(speculationAnalyzer.ReplacedExpression, speculationAnalyzer, cancellationToken);
+                var originalIsAnonymousFunction = expressionToOuterType.IsAnonymousFunction;
 
                 // CONSIDER: Anonymous function conversions cannot be compared from different semantic models as lambda symbol comparison requires syntax tree equality. Should this be a compiler bug?
                 // For now, just revert back to computing expressionToOuterType using the original semantic model.
-                if (expressionToOuterType.IsAnonymousFunction)
+                if (originalIsAnonymousFunction)
                 {
                     expressionToOuterType = semanticModel.ClassifyConversion(cast.SpanStart, cast.Expression, outerType);
                 }
@@ -536,7 +531,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
 
                 if (castToOuterType.IsIdentity &&
                     !expressionToCastType.IsUnboxing &&
-                    expressionToCastType == expressionToOuterType)
+                    expressionToCastType == expressionToOuterType &&
+                    // if the conversion to the outer type doesn't exist, then we shouldn't offer, except for anonymous functions which can't be reasoned about
+                    (expressionToOuterType.Exists || originalIsAnonymousFunction))
                 {
                     return true;
                 }
