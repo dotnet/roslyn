@@ -542,7 +542,7 @@ Block[B1] - Block
               Instance Receiver: 
                 IParameterReferenceOperation: args (OperationKind.ParameterReference, Type: System.String()) (Syntax: 'args')
 
-    Jump if False (Regular) to Block[B3]
+    Jump if False (Regular) to Block[B2]
         IBinaryOperation (BinaryOperatorKind.Equals) (OperationKind.BinaryOperator, Type: System.Boolean, IsImplicit) (Syntax: '1')
           Left: 
             IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.Int32, IsImplicit) (Syntax: 'args.Length')
@@ -550,17 +550,8 @@ Block[B1] - Block
             ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
 
     Next (Regular) Block[B2]
-Block[B2] - Block
+Block[B2] - Exit
     Predecessors: [B1]
-    Statements (1)
-        IInvalidOperation (OperationKind.Invalid, Type: null, IsInvalid) (Syntax: 'GoTo Label1')
-          Children(1):
-              IInvalidOperation (OperationKind.Invalid, Type: null, IsInvalid) (Syntax: 'Label1')
-                Children(0)
-
-    Next (Regular) Block[B3]
-Block[B3] - Exit
-    Predecessors: [B1] [B2]
     Statements (0)
 ]]>.Value
 

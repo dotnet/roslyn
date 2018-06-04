@@ -827,7 +827,7 @@ Block[B1] - Block
           Expression: 
             IEventAssignmentOperation (EventAdd) (OperationKind.EventAssignment, Type: null, IsInvalid, IsImplicit) (Syntax: 'AddHandler  ... tB, Nothing')
               Event Reference: 
-                IInvalidOperation (OperationKind.Invalid, Type: null, IsInvalid) (Syntax: 'MyBase.EventB')
+                IOperation:  (OperationKind.None, Type: null, IsInvalid) (Syntax: 'MyBase.EventB')
                   Children(1):
                       IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: Form1, IsInvalid) (Syntax: 'MyBase')
               Handler: 
@@ -837,8 +837,7 @@ Block[B1] - Block
           Expression: 
             IEventAssignmentOperation (EventRemove) (OperationKind.EventAssignment, Type: null, IsInvalid, IsImplicit) (Syntax: 'RemoveHandl ... tX, Nothing')
               Event Reference: 
-                IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid) (Syntax: 'EventX')
-                  Children(0)
+                IOperation:  (OperationKind.None, Type: null, IsInvalid) (Syntax: 'EventX')
               Handler: 
                 ILiteralOperation (OperationKind.Literal, Type: null, Constant: null) (Syntax: 'Nothing')
 
@@ -884,7 +883,7 @@ Block[B1] - Block
     Statements (2)
         IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsInvalid, IsImplicit) (Syntax: 'MyBase.EventB')
           Value: 
-            IInvalidOperation (OperationKind.Invalid, Type: null, IsInvalid) (Syntax: 'MyBase.EventB')
+            IOperation:  (OperationKind.None, Type: null, IsInvalid) (Syntax: 'MyBase.EventB')
               Children(1):
                   IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: Form1, IsInvalid) (Syntax: 'MyBase')
 
@@ -1045,7 +1044,7 @@ Block[B1] - Block
               Event Reference: 
                 IParenthesizedOperation (OperationKind.Parenthesized, Type: ?, IsInvalid) (Syntax: '(v.DomainUnload())')
                   Operand: 
-                    IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid) (Syntax: 'v.DomainUnload()')
+                    IOperation:  (OperationKind.None, Type: null, IsInvalid) (Syntax: 'v.DomainUnload()')
                       Children(1):
                           IOperation:  (OperationKind.None, Type: null, IsInvalid) (Syntax: 'v.DomainUnload')
               Handler: 
