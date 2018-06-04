@@ -669,27 +669,11 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             switch (operation.Language)
             {
                 case LanguageNames.CSharp:
-                    if (conversion.IsLanguageAgnostic)
-                    {
-                        Assert.Throws<InvalidCastException>(() => CSharp.CSharpExtensions.GetConversion(operation));
-                    }
-                    else
-                    {
-                        CSharp.Conversion csharpConversion = CSharp.CSharpExtensions.GetConversion(operation);
-                    }
-
+                    CSharp.Conversion csharpConversion = CSharp.CSharpExtensions.GetConversion(operation);
                     Assert.Throws<ArgumentException>(() => VisualBasic.VisualBasicExtensions.GetConversion(operation));
                     break;
                 case LanguageNames.VisualBasic:
-                    if (conversion.IsLanguageAgnostic)
-                    {
-                        Assert.Throws<InvalidCastException>(() => VisualBasic.VisualBasicExtensions.GetConversion(operation));
-                    }
-                    else
-                    {
-                        VisualBasic.Conversion visualBasicConversion = VisualBasic.VisualBasicExtensions.GetConversion(operation);
-                    }
-
+                    VisualBasic.Conversion visualBasicConversion = VisualBasic.VisualBasicExtensions.GetConversion(operation);
                     Assert.Throws<ArgumentException>(() => CSharp.CSharpExtensions.GetConversion(operation));
                     break;
                 default:

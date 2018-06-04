@@ -149,7 +149,8 @@ Block[B2] - Block
         IFlowCaptureOperation: 1 (OperationKind.FlowCapture, Type: null, IsInvalid, IsImplicit) (Syntax: '.P1()')
           Value: 
             IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Nullable(Of System.Int32), IsInvalid, IsImplicit) (Syntax: '.P1()')
-              Conversion: CommonConversion (Exists: True)
+              Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                (WideningNullable)
               Operand: 
                 IPropertyReferenceOperation: Property S1.P1 As System.Int32 (OperationKind.PropertyReference, Type: System.Int32, IsInvalid) (Syntax: '.P1()')
                   Instance Receiver: 
@@ -238,7 +239,8 @@ Block[B2] - Block
         IFlowCaptureOperation: 1 (OperationKind.FlowCapture, Type: null, IsInvalid, IsImplicit) (Syntax: '.P1')
           Value: 
             IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Nullable(Of System.Int32), IsInvalid, IsImplicit) (Syntax: '.P1')
-              Conversion: CommonConversion (Exists: True)
+              Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                (WideningNullable)
               Operand: 
                 IPropertyReferenceOperation: Property S1.P1 As System.Int32 (OperationKind.PropertyReference, Type: System.Int32, IsInvalid) (Syntax: '.P1')
                   Instance Receiver: 
@@ -327,7 +329,8 @@ Block[B2] - Block
         IFlowCaptureOperation: 1 (OperationKind.FlowCapture, Type: null, IsInvalid, IsImplicit) (Syntax: '.F1')
           Value: 
             IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Nullable(Of System.Int32), IsInvalid, IsImplicit) (Syntax: '.F1')
-              Conversion: CommonConversion (Exists: True)
+              Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                (WideningNullable)
               Operand: 
                 IFieldReferenceOperation: S1.F1 As System.Int32 (OperationKind.FieldReference, Type: System.Int32, IsInvalid) (Syntax: '.F1')
                   Instance Receiver: 

@@ -207,27 +207,14 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         {
             var exists = FormatBoolProperty(nameof(conversion.Exists), conversion.Exists);
 
-            if (conversion.IsLanguageAgnostic)
-            {
-                Assert.False(conversion.IsIdentity);
-                Assert.False(conversion.IsNumeric);
-                Assert.False(conversion.IsReference);
-                Assert.False(conversion.IsUserDefined);
-                Assert.Null(conversion.MethodSymbol);
+            var isIdentity = FormatBoolProperty(nameof(conversion.IsIdentity), conversion.IsIdentity);
+            var isNumeric = FormatBoolProperty(nameof(conversion.IsNumeric), conversion.IsNumeric);
+            var isReference = FormatBoolProperty(nameof(conversion.IsReference), conversion.IsReference);
+            var isUserDefined = FormatBoolProperty(nameof(conversion.IsUserDefined), conversion.IsUserDefined);
 
-                LogString($"{header}: {nameof(CommonConversion)} ({exists})");
-            }
-            else
-            {
-                var isIdentity = FormatBoolProperty(nameof(conversion.IsIdentity), conversion.IsIdentity);
-                var isNumeric = FormatBoolProperty(nameof(conversion.IsNumeric), conversion.IsNumeric);
-                var isReference = FormatBoolProperty(nameof(conversion.IsReference), conversion.IsReference);
-                var isUserDefined = FormatBoolProperty(nameof(conversion.IsUserDefined), conversion.IsUserDefined);
-
-                LogString($"{header}: {nameof(CommonConversion)} ({exists}, {isIdentity}, {isNumeric}, {isReference}, {isUserDefined}) (");
-                LogSymbol(conversion.MethodSymbol, nameof(conversion.MethodSymbol));
-                LogString(")");
-            }
+            LogString($"{header}: {nameof(CommonConversion)} ({exists}, {isIdentity}, {isNumeric}, {isReference}, {isUserDefined}) (");
+            LogSymbol(conversion.MethodSymbol, nameof(conversion.MethodSymbol));
+            LogString(")");
         }
 
         private void LogSymbol(ISymbol symbol, string header, bool logDisplayString = true)
@@ -1109,7 +1096,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             Indent();
             LogConversion(operation.Conversion);
 
-            if (((Operation)operation).SemanticModel == null && !operation.Conversion.IsLanguageAgnostic)
+            if (((Operation)operation).SemanticModel == null)
             {
                 LogNewLine();
                 Indent();

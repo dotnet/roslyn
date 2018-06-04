@@ -4763,7 +4763,8 @@ Block[B2] - Block
         IFlowCaptureOperation: 2 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'a && b')
           Value: 
             IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: dynamic, IsImplicit) (Syntax: 'a')
-              Conversion: CommonConversion (Exists: True)
+              Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                (Boxing)
               Operand: 
                 IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: System.Boolean, IsImplicit) (Syntax: 'a')
 
@@ -4839,7 +4840,8 @@ Block[B2] - Block
         IFlowCaptureOperation: 2 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'a || b')
           Value: 
             IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: dynamic, IsImplicit) (Syntax: 'a')
-              Conversion: CommonConversion (Exists: True)
+              Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                (Boxing)
               Operand: 
                 IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: System.Boolean, IsImplicit) (Syntax: 'a')
 
@@ -4982,7 +4984,8 @@ Block[B1] - Block
 
     Jump if True (Regular) to Block[B3]
         IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Boolean, IsInvalid, IsImplicit) (Syntax: 'a')
-          Conversion: CommonConversion (Exists: True)
+          Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+            (NoConversion)
           Operand: 
             IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: C, IsInvalid, IsImplicit) (Syntax: 'a')
 
@@ -4993,7 +4996,8 @@ Block[B2] - Block
         IFlowCaptureOperation: 2 (OperationKind.FlowCapture, Type: null, IsInvalid, IsImplicit) (Syntax: 'a && b')
           Value: 
             IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: dynamic, IsInvalid, IsImplicit) (Syntax: 'a')
-              Conversion: CommonConversion (Exists: True)
+              Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                (Boxing)
               Operand: 
                 IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: C, IsInvalid, IsImplicit) (Syntax: 'a')
 
@@ -5143,8 +5147,9 @@ Block[B1] - Block
             IParameterReferenceOperation: a (OperationKind.ParameterReference, Type: C) (Syntax: 'a')
 
     Jump if True (Regular) to Block[B3]
-        IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Boolean, IsImplicit) (Syntax: 'a')
-          Conversion: CommonConversion (Exists: True)
+        IConversionOperation (TryCast: False, Unchecked) (OperatorMethod: System.Boolean C.op_Implicit(C c)) (OperationKind.Conversion, Type: System.Boolean, IsImplicit) (Syntax: 'a')
+          Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: True) (MethodSymbol: System.Boolean C.op_Implicit(C c))
+            (ImplicitUserDefined)
           Operand: 
             IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: C, IsImplicit) (Syntax: 'a')
 
@@ -5155,7 +5160,8 @@ Block[B2] - Block
         IFlowCaptureOperation: 2 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'a && b')
           Value: 
             IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: dynamic, IsImplicit) (Syntax: 'a')
-              Conversion: CommonConversion (Exists: True)
+              Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                (Boxing)
               Operand: 
                 IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: C, IsImplicit) (Syntax: 'a')
 
@@ -5224,8 +5230,9 @@ Block[B1] - Block
             IParameterReferenceOperation: a (OperationKind.ParameterReference, Type: C) (Syntax: 'a')
 
     Jump if False (Regular) to Block[B3]
-        IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Boolean, IsImplicit) (Syntax: 'a')
-          Conversion: CommonConversion (Exists: True)
+        IConversionOperation (TryCast: False, Unchecked) (OperatorMethod: System.Boolean C.op_Implicit(C c)) (OperationKind.Conversion, Type: System.Boolean, IsImplicit) (Syntax: 'a')
+          Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: True) (MethodSymbol: System.Boolean C.op_Implicit(C c))
+            (ImplicitUserDefined)
           Operand: 
             IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: C, IsImplicit) (Syntax: 'a')
 
@@ -5236,7 +5243,8 @@ Block[B2] - Block
         IFlowCaptureOperation: 2 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'a || b')
           Value: 
             IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: dynamic, IsImplicit) (Syntax: 'a')
-              Conversion: CommonConversion (Exists: True)
+              Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                (Boxing)
               Operand: 
                 IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: C, IsImplicit) (Syntax: 'a')
 
@@ -5382,8 +5390,9 @@ Block[B1] - Block
             IParameterReferenceOperation: a (OperationKind.ParameterReference, Type: C?, IsInvalid) (Syntax: 'a')
 
     Jump if True (Regular) to Block[B3]
-        IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Boolean, IsInvalid, IsImplicit) (Syntax: 'a')
-          Conversion: CommonConversion (Exists: True)
+        IConversionOperation (TryCast: False, Unchecked) (OperatorMethod: System.Boolean C.op_Implicit(C c)) (OperationKind.Conversion, Type: System.Boolean, IsInvalid, IsImplicit) (Syntax: 'a')
+          Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: True) (MethodSymbol: System.Boolean C.op_Implicit(C c))
+            (ExplicitUserDefined)
           Operand: 
             IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: C?, IsInvalid, IsImplicit) (Syntax: 'a')
 
@@ -5394,7 +5403,8 @@ Block[B2] - Block
         IFlowCaptureOperation: 2 (OperationKind.FlowCapture, Type: null, IsInvalid, IsImplicit) (Syntax: 'a && b')
           Value: 
             IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: dynamic, IsInvalid, IsImplicit) (Syntax: 'a')
-              Conversion: CommonConversion (Exists: True)
+              Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                (Boxing)
               Operand: 
                 IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: C?, IsInvalid, IsImplicit) (Syntax: 'a')
 
@@ -5467,8 +5477,9 @@ Block[B1] - Block
             IParameterReferenceOperation: a (OperationKind.ParameterReference, Type: C?) (Syntax: 'a')
 
     Jump if True (Regular) to Block[B3]
-        IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Boolean, IsImplicit) (Syntax: 'a')
-          Conversion: CommonConversion (Exists: True)
+        IConversionOperation (TryCast: False, Unchecked) (OperatorMethod: System.Boolean C.op_Implicit(C? c)) (OperationKind.Conversion, Type: System.Boolean, IsImplicit) (Syntax: 'a')
+          Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: True) (MethodSymbol: System.Boolean C.op_Implicit(C? c))
+            (ImplicitUserDefined)
           Operand: 
             IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: C?, IsImplicit) (Syntax: 'a')
 
@@ -5479,7 +5490,8 @@ Block[B2] - Block
         IFlowCaptureOperation: 2 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'a && b')
           Value: 
             IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: dynamic, IsImplicit) (Syntax: 'a')
-              Conversion: CommonConversion (Exists: True)
+              Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                (Boxing)
               Operand: 
                 IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: C?, IsImplicit) (Syntax: 'a')
 
@@ -5548,8 +5560,9 @@ Block[B1] - Block
             IParameterReferenceOperation: a (OperationKind.ParameterReference, Type: C) (Syntax: 'a')
 
     Jump if True (Regular) to Block[B3]
-        IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Boolean, IsImplicit) (Syntax: 'a')
-          Conversion: CommonConversion (Exists: True)
+        IConversionOperation (TryCast: False, Unchecked) (OperatorMethod: System.Boolean C.op_Implicit(C? c)) (OperationKind.Conversion, Type: System.Boolean, IsImplicit) (Syntax: 'a')
+          Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: True) (MethodSymbol: System.Boolean C.op_Implicit(C? c))
+            (ImplicitUserDefined)
           Operand: 
             IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: C, IsImplicit) (Syntax: 'a')
 
@@ -5560,7 +5573,8 @@ Block[B2] - Block
         IFlowCaptureOperation: 2 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'a && b')
           Value: 
             IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: dynamic, IsImplicit) (Syntax: 'a')
-              Conversion: CommonConversion (Exists: True)
+              Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                (Boxing)
               Operand: 
                 IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: C, IsImplicit) (Syntax: 'a')
 
@@ -5719,7 +5733,8 @@ Block[B2] - Block
         IFlowCaptureOperation: 2 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'a && b')
           Value: 
             IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: dynamic, IsImplicit) (Syntax: 'a')
-              Conversion: CommonConversion (Exists: True)
+              Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                (Boxing)
               Operand: 
                 IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: C, IsImplicit) (Syntax: 'a')
 
@@ -5800,7 +5815,8 @@ Block[B2] - Block
         IFlowCaptureOperation: 2 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'a || b')
           Value: 
             IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: dynamic, IsImplicit) (Syntax: 'a')
-              Conversion: CommonConversion (Exists: True)
+              Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                (Boxing)
               Operand: 
                 IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: C, IsImplicit) (Syntax: 'a')
 
@@ -5949,7 +5965,8 @@ Block[B1] - Block
 
     Jump if True (Regular) to Block[B3]
         IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Boolean, IsInvalid, IsImplicit) (Syntax: 'a')
-          Conversion: CommonConversion (Exists: True)
+          Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+            (NoConversion)
           Operand: 
             IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: C?, IsInvalid, IsImplicit) (Syntax: 'a')
 
@@ -5960,7 +5977,8 @@ Block[B2] - Block
         IFlowCaptureOperation: 2 (OperationKind.FlowCapture, Type: null, IsInvalid, IsImplicit) (Syntax: 'a && b')
           Value: 
             IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: dynamic, IsInvalid, IsImplicit) (Syntax: 'a')
-              Conversion: CommonConversion (Exists: True)
+              Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                (Boxing)
               Operand: 
                 IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: C?, IsInvalid, IsImplicit) (Syntax: 'a')
 
@@ -6035,7 +6053,8 @@ Block[B1] - Block
 
     Jump if True (Regular) to Block[B3]
         IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Boolean, IsInvalid, IsImplicit) (Syntax: 'a')
-          Conversion: CommonConversion (Exists: True)
+          Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+            (NoConversion)
           Operand: 
             IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: C?, IsInvalid, IsImplicit) (Syntax: 'a')
 
@@ -6046,7 +6065,8 @@ Block[B2] - Block
         IFlowCaptureOperation: 2 (OperationKind.FlowCapture, Type: null, IsInvalid, IsImplicit) (Syntax: 'a && b')
           Value: 
             IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: dynamic, IsInvalid, IsImplicit) (Syntax: 'a')
-              Conversion: CommonConversion (Exists: True)
+              Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                (Boxing)
               Operand: 
                 IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: C?, IsInvalid, IsImplicit) (Syntax: 'a')
 
@@ -6134,7 +6154,8 @@ Block[B2] - Block
         IFlowCaptureOperation: 2 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'a && b')
           Value: 
             IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: dynamic, IsImplicit) (Syntax: 'a')
-              Conversion: CommonConversion (Exists: True)
+              Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                (Boxing)
               Operand: 
                 IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: C, IsImplicit) (Syntax: 'a')
 
@@ -6215,7 +6236,8 @@ Block[B2] - Block
         IFlowCaptureOperation: 2 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'a && b')
           Value: 
             IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: dynamic, IsImplicit) (Syntax: 'a')
-              Conversion: CommonConversion (Exists: True)
+              Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                (Boxing)
               Operand: 
                 IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: C, IsImplicit) (Syntax: 'a')
 
@@ -6290,7 +6312,8 @@ Block[B1] - Block
 
     Jump if True (Regular) to Block[B3]
         IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Boolean, IsInvalid, IsImplicit) (Syntax: 'a')
-          Conversion: CommonConversion (Exists: True)
+          Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+            (ExplicitNullable)
           Operand: 
             IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: System.Boolean?, IsInvalid, IsImplicit) (Syntax: 'a')
 
@@ -6301,7 +6324,8 @@ Block[B2] - Block
         IFlowCaptureOperation: 2 (OperationKind.FlowCapture, Type: null, IsInvalid, IsImplicit) (Syntax: 'a && b')
           Value: 
             IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: dynamic, IsInvalid, IsImplicit) (Syntax: 'a')
-              Conversion: CommonConversion (Exists: True)
+              Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                (Boxing)
               Operand: 
                 IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: System.Boolean?, IsInvalid, IsImplicit) (Syntax: 'a')
 

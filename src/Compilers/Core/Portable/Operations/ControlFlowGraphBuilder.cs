@@ -1303,7 +1303,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
             int captureId = VisitAndCapture(operation.Value);
 
             IOperation previousInitializedInstance = _currentImplicitInstance;
-            _currentImplicitInstance = new FlowCaptureReference(captureId, operation.Value.Syntax, operation.Value.Type, operation.Value.ConstantValue);
+            _currentImplicitInstance = GetCaptureReference(captureId, operation.Value);
 
             VisitStatement(operation.Body);
 
@@ -1452,7 +1452,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
 
                 AppendNewBlock(afterIf);
 
-                return new FlowCaptureReference(captureId, operation.Syntax, operation.Type, operation.ConstantValue);
+                return GetCaptureReference(captureId, operation);
             }
         }
 
@@ -1506,7 +1506,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
 #endif
                                 );
 
-                    _evalStack[i] = new FlowCaptureReference(captureId, operation.Syntax, operation.Type, operation.ConstantValue);
+                    _evalStack[i] = GetCaptureReference(captureId, operation);
                 }
             }
         }
@@ -1824,8 +1824,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
             var done = new BasicBlockBuilder(BasicBlockKind.Block);
             var checkRight = new BasicBlockBuilder(BasicBlockKind.Block);
 
-            condition = new ConversionOperation(Visit(left), ConvertibleConversion.Instance, isTryCast: false, isChecked: false,
-                                                semanticModel: null, left.Syntax, booleanType, constantValue: default, isImplicit: true);
+            condition = CreateConversion(compilation, Visit(left), booleanType);
 
             LinkBlocks(CurrentBasicBlock, Operation.SetParentOperation(condition, null), jumpIfTrue: isAndAlso, RegularBranch(checkRight));
             _currentBasicBlock = null;
@@ -1837,23 +1836,29 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
 
             AppendNewBlock(checkRight);
 
-            condition = new ConversionOperation(Visit(right), ConvertibleConversion.Instance, isTryCast: false, isChecked: false,
-                                                semanticModel: null, right.Syntax, booleanType, constantValue: default, isImplicit: true);
+            condition = CreateConversion(compilation, Visit(right), booleanType);
 
             AddStatement(new FlowCapture(resultId, binOp.Syntax, condition));
 
             AppendNewBlock(done);
 
-            return new ConversionOperation(new FlowCaptureReference(resultId, binOp.Syntax, booleanType, constantValue: default),
-                                           ConvertibleConversion.Instance, isTryCast: false, isChecked: false,
+            condition = new FlowCaptureReference(resultId, binOp.Syntax, booleanType, constantValue: default);
+            return new ConversionOperation(condition, compilation.ClassifyConvertibleConversion(condition, binOp.Type, out _), isTryCast: false, isChecked: false,
                                            semanticModel: null, binOp.Syntax, binOp.Type, binOp.ConstantValue, isImplicit: true);
+        }
+
+        private static IOperation CreateConversion(Compilation compilation, IOperation operand, ITypeSymbol type)
+        {
+            return new ConversionOperation(operand, compilation.ClassifyConvertibleConversion(operand, type, out Optional<object> constantValue), isTryCast: false, isChecked: false,
+                                           semanticModel: null, operand.Syntax, type, constantValue, isImplicit: true);
         }
 
         private IOperation VisitDynamicBinaryConditionalOperator(IBinaryOperation binOp, int? captureIdForResult)
         {
             SpillEvalStack();
 
-            INamedTypeSymbol booleanType = ((Operation)binOp).SemanticModel.Compilation.GetSpecialType(SpecialType.System_Boolean);
+            Compilation compilation = ((Operation)binOp).SemanticModel.Compilation;
+            INamedTypeSymbol booleanType = compilation.GetSpecialType(SpecialType.System_Boolean);
             IOperation left = binOp.LeftOperand;
             IOperation right = binOp.RightOperand;
             IMethodSymbol unaryOperatorMethod = ((BaseBinaryOperatorExpression)binOp).UnaryOperatorMethod;
@@ -1897,10 +1902,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
             else
             {
                 // This is either an error case, or left is implicitly convertible to boolean
-                // PROTOTYPE(dataflow): In case the conversion is user-defined, neither bound node, nor IBinaryOperation
-                //                      has information about that method. For now we create conversion without that information too.
-                condition = new ConversionOperation(condition, ConvertibleConversion.Instance, isTryCast: false, isChecked: false,
-                                                    semanticModel: null, left.Syntax, booleanType, constantValue: default, isImplicit: true);
+                condition = CreateConversion(compilation, condition, booleanType);
                 jumpIfTrue = isAndAlso;
             }
 
@@ -1912,8 +1914,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
 
             if (!ITypeSymbolHelpers.IsDynamicType(left.Type))
             {
-                resultFromLeft = new ConversionOperation(resultFromLeft, ConvertibleConversion.Instance, isTryCast: false, isChecked: false,
-                                                         semanticModel: null, left.Syntax, binOp.Type, constantValue: default, isImplicit: true);
+                resultFromLeft = CreateConversion(compilation, resultFromLeft, binOp.Type);
             }
 
             AddStatement(new FlowCapture(resultId, binOp.Syntax, resultFromLeft));
@@ -2063,7 +2064,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
                 AppendNewBlock(labEnd);
             }
 
-            return new FlowCaptureReference(captureId, condition.Syntax, condition.Type, condition.ConstantValue);
+            return GetCaptureReference(captureId, condition);
         }
 
         private IOperation VisitConditionalExpression(IOperation condition, bool sense, int? captureIdForResult, BasicBlockBuilder fallToTrueOpt, BasicBlockBuilder fallToFalseOpt)
@@ -2272,17 +2273,18 @@ oneMoreTime:
         /// </summary>
         private IOperation NullCheckAndConvertCoalesceValue(ICoalesceOperation operation, BasicBlockBuilder whenNull)
         {
-            SyntaxNode valueSyntax = operation.Value.Syntax;
-            ITypeSymbol valueTypeOpt = operation.Value.Type;
+            IOperation operationValue = operation.Value;
+            SyntaxNode valueSyntax = operationValue.Syntax;
+            ITypeSymbol valueTypeOpt = operationValue.Type;
 
             SpillEvalStack();
-            int testExpressionCaptureId = VisitAndCapture(operation.Value);
+            int testExpressionCaptureId = VisitAndCapture(operationValue);
 
-            Optional<object> constantValue = operation.Value.ConstantValue;
+            Optional<object> constantValue = operationValue.ConstantValue;
 
             Compilation compilation = ((Operation)operation).SemanticModel.Compilation;
             LinkBlocks(CurrentBasicBlock,
-                       Operation.SetParentOperation(MakeIsNullOperation(new FlowCaptureReference(testExpressionCaptureId, valueSyntax, valueTypeOpt, constantValue),
+                       Operation.SetParentOperation(MakeIsNullOperation(GetCaptureReference(testExpressionCaptureId, operationValue),
                                                                         compilation),
                                                     null),
                        jumpIfTrue: true,
@@ -2290,7 +2292,7 @@ oneMoreTime:
             _currentBasicBlock = null;
 
             CommonConversion testConversion = operation.ValueConversion;
-            var capturedValue = new FlowCaptureReference(testExpressionCaptureId, valueSyntax, valueTypeOpt, constantValue);
+            FlowCaptureReference capturedValue = GetCaptureReference(testExpressionCaptureId, operationValue);
             IOperation convertedTestExpression = null;
 
             if (testConversion.Exists)
@@ -2349,7 +2351,7 @@ oneMoreTime:
 
             AppendNewBlock(afterCoalesce);
 
-            return new FlowCaptureReference(resultCaptureId, operation.Syntax, operation.Type, operation.ConstantValue);
+            return GetCaptureReference(resultCaptureId, operation);
         }
 
         private static BasicBlockBuilder.Branch RegularBranch(BasicBlockBuilder destination)
@@ -2449,14 +2451,14 @@ oneMoreTime:
                 Optional<object> constantValue = testExpression.ConstantValue;
 
                 LinkBlocks(CurrentBasicBlock,
-                           Operation.SetParentOperation(MakeIsNullOperation(new FlowCaptureReference(testExpressionCaptureId, testExpressionSyntax, testExpressionType, constantValue),
+                           Operation.SetParentOperation(MakeIsNullOperation(GetCaptureReference(testExpressionCaptureId, testExpression),
                                                                             compilation),
                                                         null),
                            jumpIfTrue: true,
                            RegularBranch(whenNull));
                 _currentBasicBlock = null;
 
-                IOperation receiver = new FlowCaptureReference(testExpressionCaptureId, testExpressionSyntax, testExpressionType, constantValue);
+                IOperation receiver = GetCaptureReference(testExpressionCaptureId, testExpression);
 
                 if (ITypeSymbolHelpers.IsNullableType(testExpressionType))
                 {
@@ -2511,7 +2513,7 @@ oneMoreTime:
                 {
                     IOperation access = Visit(currentConditionalAccess.WhenNotNull);
                     AddStatement(new FlowCapture(resultCaptureId, currentConditionalAccess.WhenNotNull.Syntax,
-                        MakeNullable(access, operation.Type)));
+                        MakeNullable(compilation, access, operation.Type)));
                 }
                 else
                 {
@@ -2542,7 +2544,7 @@ oneMoreTime:
 
                 AppendNewBlock(afterAccess);
 
-                return new FlowCaptureReference(resultCaptureId, operation.Syntax, operation.Type, operation.ConstantValue);
+                return GetCaptureReference(resultCaptureId, operation);
             }
         }
 
@@ -2972,11 +2974,11 @@ oneMoreTime:
 
                 if (shouldConvertToIDisposableBeforeTry(resource))
                 {
-                    resource = ConvertToIDisposable(resource, iDisposable);
+                    resource = ConvertToIDisposable(compilation, resource, iDisposable);
                 }
 
                 AddStatement(new FlowCapture(captureId, resource.Syntax, resource));
-                processResource(new FlowCaptureReference(captureId, resource.Syntax, resource.Type, constantValue: default), resourceQueueOpt: null);
+                processResource(GetCaptureReference(captureId, resource), resourceQueueOpt: null);
             }
 
             LeaveRegion();
@@ -3033,10 +3035,10 @@ oneMoreTime:
 
                 if (shouldConvertToIDisposableBeforeTry(resource))
                 {
-                    resource = ConvertToIDisposable(resource, iDisposable);
+                    resource = ConvertToIDisposable(compilation, resource, iDisposable);
                     int captureId = _availableCaptureId++;
                     AddStatement(new FlowCapture(captureId, resource.Syntax, resource));
-                    resource = new FlowCaptureReference(captureId, resource.Syntax, resource.Type, constantValue: default);
+                    resource = GetCaptureReference(captureId, resource);
                 }
 
                 var afterTryFinally = new BasicBlockBuilder(BasicBlockKind.Block);
@@ -3073,10 +3075,10 @@ oneMoreTime:
             if (!knownToImplementIDisposable)
             {
                 Debug.Assert(!isNotNullableValueType(resource.Type));
-                resource = ConvertToIDisposable(resource, iDisposable, isTryCast: true);
+                resource = ConvertToIDisposable(compilation, resource, iDisposable, isTryCast: true);
                 int captureId = _availableCaptureId++;
                 AddStatement(new FlowCapture(captureId, resource.Syntax, resource));
-                resource = new FlowCaptureReference(captureId, resource.Syntax, iDisposable, constantValue: default);
+                resource = GetCaptureReference(captureId, resource);
             }
 
             if (!knownToImplementIDisposable || !isNotNullableValueType(resource.Type))
@@ -3089,7 +3091,7 @@ oneMoreTime:
 
             if (!resource.Type.Equals(iDisposable))
             {
-                resource = ConvertToIDisposable(resource, iDisposable);
+                resource = ConvertToIDisposable(compilation, resource, iDisposable);
             }
 
             AddStatement(tryDispose(resource) ??
@@ -3121,11 +3123,11 @@ oneMoreTime:
             }
         }
 
-        private static IOperation ConvertToIDisposable(IOperation operand, ITypeSymbol iDisposable, bool isTryCast = false)
+        private static IOperation ConvertToIDisposable(Compilation compilation, IOperation operand, ITypeSymbol iDisposable, bool isTryCast = false)
         {
             Debug.Assert(iDisposable.SpecialType == SpecialType.System_IDisposable);
-            return new ConversionOperation(operand, ConvertibleConversion.Instance, isTryCast, isChecked: false,
-                                           semanticModel: null, operand.Syntax, iDisposable, constantValue: default, isImplicit: true);
+            return new ConversionOperation(operand, compilation.ClassifyConvertibleConversion(operand, iDisposable, out var constantValue), isTryCast, isChecked: false,
+                                           semanticModel: null, operand.Syntax, iDisposable, constantValue, isImplicit: true);
         }
 
         public override IOperation VisitLock(ILockOperation operation, int? captureIdForResult)
@@ -3171,13 +3173,12 @@ oneMoreTime:
 
             if (!objectType.Equals(lockedValue.Type))
             {
-                lockedValue = new ConversionOperation(lockedValue, ConvertibleConversion.Instance, isTryCast: false, isChecked: false,
-                                                      semanticModel: null, lockedValue.Syntax, objectType, constantValue: default, isImplicit: true);
+                lockedValue = CreateConversion(semanticModel.Compilation, lockedValue, objectType);
             }
 
             int captureId = _availableCaptureId++;
             AddStatement(new FlowCapture(captureId, lockedValue.Syntax, lockedValue));
-            lockedValue = new FlowCaptureReference(captureId, lockedValue.Syntax, lockedValue.Type, constantValue: default);
+            lockedValue = GetCaptureReference(captureId, lockedValue);
 
             var enterMethod = (IMethodSymbol)semanticModel.Compilation.CommonGetWellKnownTypeMember(WellKnownMember.System_Threading_Monitor__Enter2);
             bool legacyMode = (enterMethod == null);
@@ -3958,9 +3959,7 @@ oneMoreTime:
                     {
                         int captureId = _availableCaptureId++;
                         AddStatement(new FlowCapture(captureId, controlVariableReferenceforCondition.Syntax, controlVariableReferenceforCondition));
-                        controlVariableReferenceforCondition = new FlowCaptureReference(captureId, controlVariableReferenceforCondition.Syntax, 
-                                                                                        controlVariableReferenceforCondition.Type,
-                                                                                        controlVariableReferenceforCondition.ConstantValue);
+                        controlVariableReferenceforCondition = GetCaptureReference(captureId, controlVariableReferenceforCondition);
                     }
 
                     var notPositive = new BasicBlockBuilder(BasicBlockKind.Block);
@@ -4171,7 +4170,7 @@ oneMoreTime:
 
                     if (isNullable)
                     {
-                        increment = MakeNullable(increment, controlVariableReferenceForAssignment.Type);
+                        increment = MakeNullable(compilation, increment, controlVariableReferenceForAssignment.Type);
                     }
 
                     controlVariableReferenceForAssignment = _evalStack.Pop();
@@ -4233,7 +4232,8 @@ oneMoreTime:
         {
             Debug.Assert(_currentStatement == operation);
 
-            INamedTypeSymbol booleanType = ((Operation)operation).SemanticModel.Compilation.GetSpecialType(SpecialType.System_Boolean);
+            Compilation compilation = ((Operation)operation).SemanticModel.Compilation;
+            INamedTypeSymbol booleanType = compilation.GetSpecialType(SpecialType.System_Boolean);
             int expressionCaptureId = VisitAndCapture(operation.Value);
             FlowCaptureReference switchValue = GetCaptureReference(expressionCaptureId, operation.Value);
 
@@ -4331,12 +4331,12 @@ oneMoreTime:
                                 {
                                     if (leftOperand.Type != null)
                                     {
-                                        leftOperand = MakeNullable(leftOperand, compareWith.Type);
+                                        leftOperand = MakeNullable(compilation, leftOperand, compareWith.Type);
                                     }
                                 }
                                 else if (!rightIsNullable && rightOperand.Type != null)
                                 {
-                                    rightOperand = MakeNullable(rightOperand, operation.Value.Type);
+                                    rightOperand = MakeNullable(compilation, rightOperand, operation.Value.Type);
                                 }
                             }
 
@@ -4414,14 +4414,12 @@ oneMoreTime:
             }
         }
 
-        private static IOperation MakeNullable(IOperation operand, ITypeSymbol type)
+        private static IOperation MakeNullable(Compilation compilation, IOperation operand, ITypeSymbol type)
         {
             Debug.Assert(ITypeSymbolHelpers.IsNullableType(type));
             Debug.Assert(ITypeSymbolHelpers.GetNullableUnderlyingType(type).Equals(operand.Type));
 
-            return new ConversionOperation(operand, ConvertibleConversion.Instance, isTryCast: false, isChecked: false,
-                                           semanticModel: null, operand.Syntax, type,
-                                           constantValue: default, isImplicit: true);
+            return CreateConversion(compilation, operand, type);
         }
 
         public override IOperation VisitSwitchCase(ISwitchCaseOperation operation, int? captureIdForResult)
@@ -4715,7 +4713,7 @@ oneMoreTime:
                 int initializerCaptureId = _availableCaptureId++;
                 AddStatement(new FlowCapture(initializerCaptureId, initializedInstance.Syntax, initializedInstance));
 
-                initializedInstance = new FlowCaptureReference(initializerCaptureId, initializedInstance.Syntax, initializedInstance.Type, initializedInstance.ConstantValue);
+                initializedInstance = GetCaptureReference(initializerCaptureId, initializedInstance);
                 HandleObjectOrCollectionInitializer(operation.Initializer, initializedInstance);
             }
 
@@ -4863,7 +4861,7 @@ oneMoreTime:
                                 // recapturing things that have already been captured once.
                                 IOperation value = arg.Value;
                                 int captureId = VisitAndCapture(value);
-                                IOperation capturedValue = new FlowCaptureReference(captureId, value.Syntax, value.Type, value.ConstantValue);
+                                IOperation capturedValue = GetCaptureReference(captureId, value);
                                 BaseArgument baseArgument = (BaseArgument)arg;
                                 propertyArgumentsBuilder.Add(new ArgumentOperation(capturedValue, arg.ArgumentKind, arg.Parameter,
                                                                                    baseArgument.InConversionConvertibleOpt,
@@ -4889,7 +4887,7 @@ oneMoreTime:
                         ImmutableArray<IOperation> indicies = arrayReference.Indices.SelectAsArray(indexExpr =>
                         {
                             int captureId = VisitAndCapture(indexExpr);
-                            return (IOperation)new FlowCaptureReference(captureId, indexExpr.Syntax, indexExpr.Type, indexExpr.ConstantValue);
+                            return (IOperation)GetCaptureReference(captureId, indexExpr);
                         });
                         _evalStack.Push(Visit(arrayReference.ArrayReference));
                         return (success: true, indicies);

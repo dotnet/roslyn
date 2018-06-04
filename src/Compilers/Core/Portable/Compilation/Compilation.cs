@@ -1120,6 +1120,8 @@ namespace Microsoft.CodeAnalysis
         public bool HasImplicitConversion(ITypeSymbol fromType, ITypeSymbol toType)
             => fromType != null && toType != null && this.ClassifyCommonConversion(fromType, toType).IsImplicit;
 
+        internal abstract IConvertibleConversion ClassifyConvertibleConversion(IOperation source, ITypeSymbol destination, out Optional<object> constantValue);
+
         #endregion
 
         #region Diagnostics

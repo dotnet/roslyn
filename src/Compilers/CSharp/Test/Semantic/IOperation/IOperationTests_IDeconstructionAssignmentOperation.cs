@@ -487,7 +487,8 @@ Block[B2] - Block
         IFlowCaptureOperation: 1 (OperationKind.FlowCapture, Type: null, IsInvalid, IsImplicit) (Syntax: '.fI1')
           Value: 
             IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Int32?, IsInvalid, IsImplicit) (Syntax: '.fI1')
-              Conversion: CommonConversion (Exists: True)
+              Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                (ImplicitNullable)
               Operand: 
                 IFieldReferenceOperation: System.Int32 C.fI1 (OperationKind.FieldReference, Type: System.Int32, IsInvalid) (Syntax: '.fI1')
                   Instance Receiver: 
