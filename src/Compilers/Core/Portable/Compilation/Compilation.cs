@@ -340,6 +340,17 @@ namespace Microsoft.CodeAnalysis
         }
 
         /// <summary>
+        /// The previous submission, if any, or null.
+        /// </summary>
+        private Compilation PreviousSubmission
+        {
+            get
+            {
+                return ScriptCompilationInfo?.PreviousScriptCompilation;
+            }
+        }
+
+        /// <summary>
         /// Gets or allocates a runtime submission slot index for this compilation.
         /// </summary>
         /// <returns>Non-negative integer if this is a submission and it or a previous submission contains code, negative integer otherwise.</returns>
@@ -1115,9 +1126,21 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// Checks if <paramref name="symbol"/> is accessible from within <paramref name="within"/>. An optional qualifier of type
         /// <paramref name="throughType"/> is used to resolve protected access for instance members. All symbols are
-        /// required to be from this compilation or some assembly referenced by this compilation. <paramref name="within"/> is required
-        /// to be an <see cref="ITypeSymbol"/> or <see cref="IAssemblySymbol"/>.
+        /// required to be from this compilation or some assembly referenced (<see cref="References"/>) by this
+        /// compilation. <paramref name="within"/> is required to be an <see cref="ITypeSymbol"/> or <see cref="IAssemblySymbol"/>.
         /// </summary>
+        /// <remarks>
+        /// <para>Submissions can reference symbols from previous submissions and their referenced assemblies, even
+        /// though those references are missing from <see cref="References"/>.
+        /// See https://github.com/dotnet/roslyn/issues/27356.
+        /// This implementation works around that by permitting symbols from previous submissions as well.</para>
+        /// <para>It is advised to avoid the use of this API within the compilers, as the compilers have additional
+        /// requirements for access checking that are not satisfied by this implementation, including the
+        /// avoidance of infinite recursion that could result from the use of the ISymbol APIs here, the detection
+        /// of use-site diagnostics, and additional
+        /// returned details (from the compiler's internal APIs) that are helpful for more precisely diagnosing
+        /// reasons for accessibility failure.</para>
+        /// </remarks>
         public bool IsSymbolAccessibleWithin(
             ISymbol symbol,
             ISymbol within,
@@ -1138,38 +1161,65 @@ namespace Microsoft.CodeAnalysis
                 throw new ArgumentException(CodeAnalysisResources.IsSymbolAccessibleBadWithin, nameof(within));
             }
 
-            checkInCompilation(symbol, nameof(symbol));
-            checkInCompilation(within, nameof(within));
+            checkInCompilationReferences(symbol, nameof(symbol));
+            checkInCompilationReferences(within, nameof(within));
             if (!(throughType is null))
             {
-                checkInCompilation(throughType, nameof(throughType));
+                checkInCompilationReferences(throughType, nameof(throughType));
             }
 
             return IsSymbolAccessibleWithinCore(symbol, within, throughType);
 
-            void checkInCompilation(ISymbol s, string parameterName)
+            void checkInCompilationReferences(ISymbol s, string parameterName)
             {
                 var containingAssembly = computeContainingAssembly(s);
-                if (!assemblyIsOk(containingAssembly))
+                if (!assemblyIsInReferences(containingAssembly))
                 {
                     throw new ArgumentException(string.Format(CodeAnalysisResources.IsSymbolAccessibleWrongAssembly, parameterName), parameterName);
                 }
             }
 
-            bool assemblyIsOk(IAssemblySymbol a)
+            bool assemblyIsInReferences(IAssemblySymbol a)
             {
-                if (a == this.Assembly)
+                if (assemblyIsInCompilationReferences(a, this))
                 {
                     return true;
                 }
 
-                foreach (var reference in this.References)
+                if (this.IsSubmission)
                 {
-                    var moduleOrAssembly = this.CommonGetAssemblyOrModuleSymbol(reference);
-                    var assembly = moduleOrAssembly as IAssemblySymbol ?? moduleOrAssembly.ContainingAssembly;
-                    if (a == assembly)
+                    // Submissions can reference symbols from previous submissions and their referenced assemblies, even
+                    // though those references are missing from this.References. We work around that by digging in
+                    // to find references of previous submissions. See https://github.com/dotnet/roslyn/issues/27356
+                    for (Compilation c = this.PreviousSubmission; c != null; c = c.PreviousSubmission)
                     {
-                        return true;
+                        if (assemblyIsInCompilationReferences(a, c))
+                        {
+                            return true;
+                        }
+                    }
+                }
+
+                return false;
+            }
+
+            bool assemblyIsInCompilationReferences(IAssemblySymbol a, Compilation compilation)
+            {
+                if (a == compilation.Assembly)
+                {
+                    return true;
+                }
+
+                foreach (var reference in compilation.References)
+                {
+                    var moduleOrAssembly = compilation.CommonGetAssemblyOrModuleSymbol(reference);
+                    if (!(moduleOrAssembly is null))
+                    {
+                        var assembly = moduleOrAssembly as IAssemblySymbol ?? moduleOrAssembly.ContainingAssembly;
+                        if (a == assembly)
+                        {
+                            return true;
+                        }
                     }
                 }
 
@@ -1200,9 +1250,9 @@ namespace Microsoft.CodeAnalysis
                         case SymbolKind.ErrorType:
                         case SymbolKind.Preprocessing:
                         case SymbolKind.Namespace:
-                            // these symbols are not restricted in where they can be accessed, so we treat
-                            // them as in the current assembly for access purposes
-                            return this.Assembly;
+                            // these symbols are not restricted in where they can be accessed, so unless they report
+                            // a containing assembly, we treat them as in the current assembly for access purposes
+                            return s.ContainingAssembly ?? this.Assembly;
                         default:
                             return s.ContainingAssembly;
                     }

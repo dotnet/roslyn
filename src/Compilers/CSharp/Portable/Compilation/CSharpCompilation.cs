@@ -1791,28 +1791,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             ISymbol within,
             ITypeSymbol throughType)
         {
-            var symbol0 = symbol as Symbol;
-            if (symbol0 is null)
-            {
-                throw new ArgumentException(string.Format(CodeAnalysisResources.IsSymbolAccessibleWrongAssembly, nameof(symbol)), nameof(symbol));
-            }
-
-            var within0 = within as Symbol;
-            if (within0 is null)
-            {
-                throw new ArgumentException(string.Format(CodeAnalysisResources.IsSymbolAccessibleWrongAssembly, nameof(within)), nameof(within));
-            }
-
-            var throughType0 = throughType as TypeSymbol;
-            if (!(throughType is null) && throughType0 is null)
-            {
-                throw new ArgumentException(string.Format(CodeAnalysisResources.IsSymbolAccessibleWrongAssembly, nameof(throughType)), nameof(throughType));
-            }
-
+            var symbol0 = symbol.EnsureCSharpSymbolOrNull<ISymbol, Symbol>(nameof(symbol));
+            var within0 = within.EnsureCSharpSymbolOrNull<ISymbol, Symbol>(nameof(within));
+            var throughType0 = throughType.EnsureCSharpSymbolOrNull<ITypeSymbol, TypeSymbol>(nameof(throughType));
             HashSet<DiagnosticInfo> useSiteDiagnostics = null;
             return
-                within0 is AssemblySymbol withinAssembly ?
-                AccessCheck.IsSymbolAccessible(symbol0, withinAssembly, ref useSiteDiagnostics) :
+                within0.Kind == SymbolKind.Assembly ?
+                AccessCheck.IsSymbolAccessible(symbol0, (AssemblySymbol)within0, ref useSiteDiagnostics) :
                 AccessCheck.IsSymbolAccessible(symbol0, (NamedTypeSymbol)within0, ref useSiteDiagnostics, throughType0);
         }
 

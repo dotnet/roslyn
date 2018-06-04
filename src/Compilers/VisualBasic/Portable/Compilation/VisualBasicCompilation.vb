@@ -1852,24 +1852,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Private Protected Overrides Function IsSymbolAccessibleWithinCore(symbol As ISymbol, within As ISymbol, throughType As ITypeSymbol) As Boolean
-            Dim symbol0 = TryCast(symbol, Symbol)
-            If (symbol0 Is Nothing) Then
-                Throw New ArgumentException(String.Format(CodeAnalysisResources.IsSymbolAccessibleWrongAssembly, NameOf(symbol)), NameOf(symbol))
-            End If
-
-            Dim within0 = TryCast(within, Symbol)
-            If (within0 Is Nothing) Then
-                Throw New ArgumentException(String.Format(CodeAnalysisResources.IsSymbolAccessibleWrongAssembly, NameOf(within)), NameOf(within))
-            End If
-
-            Dim throughType0 = TryCast(throughType, TypeSymbol)
-            If throughType IsNot Nothing AndAlso throughType0 Is Nothing Then
-                Throw New ArgumentException(String.Format(CodeAnalysisResources.IsSymbolAccessibleWrongAssembly, NameOf(throughType)), NameOf(throughType))
-            End If
-
-            Return If(TypeOf within0 Is AssemblySymbol,
-                AccessCheck.IsSymbolAccessible(symbol0, CType(within0, AssemblySymbol), useSiteDiagnostics:=Nothing),
-                AccessCheck.IsSymbolAccessible(symbol0, CType(within0, NamedTypeSymbol), throughType0, useSiteDiagnostics:=Nothing))
+            Dim symbol0 = symbol.EnsureVbSymbolOrNothing(Of Symbol)(NameOf(symbol))
+            Dim within0 = within.EnsureVbSymbolOrNothing(Of Symbol)(NameOf(within))
+            Dim throughType0 = throughType.EnsureVbSymbolOrNothing(Of TypeSymbol)(NameOf(throughType))
+            Return If(within0.Kind = SymbolKind.Assembly,
+                AccessCheck.IsSymbolAccessible(symbol0, DirectCast(within0, AssemblySymbol), useSiteDiagnostics:=Nothing),
+                AccessCheck.IsSymbolAccessible(symbol0, DirectCast(within0, NamedTypeSymbol), throughType0, useSiteDiagnostics:=Nothing))
         End Function
 
 #End Region
