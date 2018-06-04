@@ -31,9 +31,6 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
         private IOperation _currentAggregationGroup;
         private bool _forceImplicit; // Force all rewritten nodes to be marked as implicit regardless of their original state.
 
-        // PROTOTYPE(dataflow): does the public API IFlowCaptureOperation.Id specify how identifiers are created or assigned?
-        // Should we use uint to exclude negative integers? Should we randomize them in any way to avoid dependencies 
-        // being taken?
         private int _availableCaptureId = 0;
 
         /// <summary>
@@ -4676,9 +4673,6 @@ oneMoreTime:
 
         public override IOperation VisitInvocation(IInvocationOperation operation, int? captureIdForResult)
         {
-            // PROTOTYPE(dataflow): It looks like there is a bug in IOperation tree generation for non-error scenario in 
-            //                      Microsoft.CodeAnalysis.CSharp.UnitTests.SemanticModelGetSemanticInfoTests.ObjectCreation3
-            //                      We have ICollectionElementInitializerOperation, but not IObjectCreationOperation.
             IOperation instance = operation.TargetMethod.IsStatic ? null : operation.Instance;
             (IOperation visitedInstance, ImmutableArray<IArgumentOperation> visitedArguments) = VisitInstanceWithArguments(instance, operation.Arguments);
             return new InvocationExpression(operation.TargetMethod, visitedInstance, operation.IsVirtual, visitedArguments, semanticModel: null, operation.Syntax,
@@ -4722,7 +4716,6 @@ oneMoreTime:
 
         private void HandleObjectOrCollectionInitializer(IObjectOrCollectionInitializerOperation initializer, IOperation initializedInstance)
         {
-            // PROTOTYPE(dataflow): Handle collection initializers
             IOperation previousInitializedInstance = _currentImplicitInstance;
             _currentImplicitInstance = initializedInstance;
 
@@ -4761,6 +4754,18 @@ oneMoreTime:
 
                     case OperationKind.Literal:
                         // PROTOTYPE(dataflow): See Microsoft.CodeAnalysis.VisualBasic.UnitTests.BindingErrorTests.BC30994ERR_AggrInitInvalidForObject
+                        //                      Just drop it for now to enable other test scenarios.
+                        return;
+
+                    case OperationKind.LocalReference:
+                        // PROTOTYPE(dataflow): See Microsoft.CodeAnalysis.VisualBasic.UnitTests.Semantics.IOperationTests.TestClone
+                        //                      Just drop it for now to enable other test scenarios.
+                        return;
+
+                    case OperationKind.BinaryOperator:
+                    case OperationKind.FieldReference:
+                        // PROTOTYPE(dataflow): See Microsoft.CodeAnalysis.VisualBasic.UnitTests.SimpleFlowTests.LogicalExpressionInErroneousObjectInitializer
+                        //                      Just drop it for now to enable other test scenarios.
                         return;
 
                     case OperationKind.Invalid:
@@ -4936,25 +4941,12 @@ oneMoreTime:
 
         public override IOperation VisitObjectOrCollectionInitializer(IObjectOrCollectionInitializerOperation operation, int? captureIdForResult)
         {
-            // PROTOTYPE(dataflow): It looks like we need to handle the standalone case, happens in error scenarios,
-            //                      see DefaultValueNonNullForNullableParameterTypeWithMissingNullableReference_IndexerInObjectCreationInitializer unit-test.
-            //                      For now will just visit children and recreate the node, should add tests to confirm that this is an appropriate
-            //                      rewrite (probably not appropriate, see comment in VisitMemberInitializer).  
-
-            IOperation save = _currentImplicitInstance;
-            _currentImplicitInstance = null;
-            PushArray(operation.Initializers);
-            _currentImplicitInstance = save;
-            return new ObjectOrCollectionInitializerExpression(PopArray(operation.Initializers), semanticModel: null, operation.Syntax, operation.Type, operation.ConstantValue, operation.IsImplicit);
+            throw ExceptionUtilities.Unreachable;
         }
 
         public override IOperation VisitMemberInitializer(IMemberInitializerOperation operation, int? captureIdForResult)
         {
-            // PROTOTYPE(dataflow): It looks like this is reachable at the moment for error scenarios.
-            //                      See Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen.CodeGenTupleTests.SimpleTupleNew2
-            //                      Going to return invalid operation for now to unblock testing.
-            //throw ExceptionUtilities.Unreachable;
-            return MakeInvalidOperation(operation.Syntax, operation.Type, ImmutableArray<IOperation>.Empty);
+            throw ExceptionUtilities.Unreachable;
         }
 
         public override IOperation VisitLocalFunction(ILocalFunctionOperation operation, int? captureIdForResult)
@@ -5076,9 +5068,9 @@ oneMoreTime:
                 }
                 else
                 {
-                    // PROTOTYPE(dataflow): We can get here in some error scenarios, for example
-                    //                      Microsoft.CodeAnalysis.CSharp.UnitTests.IOperationTests.DefaultValueNonNullForNullableParameterTypeWithMissingNullableReference_IndexerInObjectCreationInitializer
-                    //                      To enable other test scenarios, I will simply produce an invalid operation, but we need to confirm with specific tests that this is good enough
+                    // PROTOTYPE(dataflow): We can get here in valid scenarios involing BoundNoPiaObjectCreationExpression node.
+                    //                      This is another form of an object creation that can have an initializer.
+                    //                      See Microsoft.CodeAnalysis.CSharp.UnitTests.Emit.NoPiaEmbedTypes.DynamicCollectionInitializer unit-test, for example. 
                     return MakeInvalidOperation(operation.Syntax, operation.Type, ImmutableArray<IOperation>.Empty);
                 }
             }
@@ -5717,7 +5709,10 @@ oneMoreTime:
 
         public override IOperation VisitDynamicObjectCreation(IDynamicObjectCreationOperation operation, int? captureIdForResult)
         {
-            return new DynamicObjectCreationExpression(VisitArray(operation.Arguments), ((HasDynamicArgumentsExpression)operation).ArgumentNames, ((HasDynamicArgumentsExpression)operation).ArgumentRefKinds, Visit(operation.Initializer), semanticModel: null, operation.Syntax, operation.Type, operation.ConstantValue, IsImplicit(operation));
+            return new DynamicObjectCreationExpression(VisitArray(operation.Arguments), ((HasDynamicArgumentsExpression)operation).ArgumentNames,
+                                                       ((HasDynamicArgumentsExpression)operation).ArgumentRefKinds,
+                                                       initializer: null, // PROTOTYPE(dataflow): Dropping initializer for now to enable test hook verification
+                                                       semanticModel: null, operation.Syntax, operation.Type, operation.ConstantValue, IsImplicit(operation));
         }
 
         public override IOperation VisitDefaultValue(IDefaultValueOperation operation, int? captureIdForResult)
@@ -5727,12 +5722,47 @@ oneMoreTime:
 
         public override IOperation VisitTypeParameterObjectCreation(ITypeParameterObjectCreationOperation operation, int? captureIdForResult)
         {
-            return new TypeParameterObjectCreationExpression(Visit(operation.Initializer), semanticModel: null, operation.Syntax, operation.Type, operation.ConstantValue, IsImplicit(operation));
+            return new TypeParameterObjectCreationExpression(initializer: null, // PROTOTYPE(dataflow): Dropping initializer for now to enable test hook verification
+                                                             semanticModel: null, operation.Syntax, operation.Type, operation.ConstantValue, IsImplicit(operation));
         }
 
         public override IOperation VisitInvalid(IInvalidOperation operation, int? captureIdForResult)
         {
-            return new InvalidOperation(VisitArray(operation.Children.ToImmutableArray()), semanticModel: null, operation.Syntax, operation.Type, operation.ConstantValue, IsImplicit(operation));
+            var children = ArrayBuilder<IOperation>.GetInstance();
+            children.AddRange(operation.Children);
+
+            if (children.Count != 0 && children.Last().Kind == OperationKind.ObjectOrCollectionInitializer)
+            {
+                // We are dealing with erroneous object creation. All children, but the last one are arguments for the constructor,
+                // but overload resolution failed.
+                SpillEvalStack();
+
+                var initializer = (IObjectOrCollectionInitializerOperation)children.Last();
+                children.RemoveLast();
+
+                foreach (var argument in children)
+                {
+                    _evalStack.Push(Visit(argument));
+                }
+
+                for (int i = children.Count - 1; i >= 0; i--)
+                {
+                    children[i] = _evalStack.Pop();
+                }
+
+                IOperation initializedInstance = new InvalidOperation(children.ToImmutableAndFree(), semanticModel: null, operation.Syntax, operation.Type,
+                                                                      operation.ConstantValue, IsImplicit(operation));
+
+                int initializerCaptureId = _availableCaptureId++;
+                AddStatement(new FlowCapture(initializerCaptureId, initializedInstance.Syntax, initializedInstance));
+
+                initializedInstance = GetCaptureReference(initializerCaptureId, initializedInstance);
+                HandleObjectOrCollectionInitializer(initializer, initializedInstance);
+
+                return initializedInstance;
+            }
+
+            return new InvalidOperation(VisitArray(children.ToImmutableAndFree()), semanticModel: null, operation.Syntax, operation.Type, operation.ConstantValue, IsImplicit(operation));
         }
 
         public override IOperation VisitTranslatedQuery(ITranslatedQueryOperation operation, int? captureIdForResult)
