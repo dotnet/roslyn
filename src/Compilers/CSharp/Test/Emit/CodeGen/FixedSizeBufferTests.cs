@@ -1048,5 +1048,24 @@ class Program
 1
 2");
         }
+
+        [Fact, WorkItem(26743, "https://github.com/dotnet/roslyn/issues/26743")]
+        public void FixedFieldDoesNotAllowAddressOfOperator()
+        {
+            CreateCompilation(@"
+unsafe struct Foo
+{
+    private fixed int Bar[2];
+
+    public int* M1 => &this.Bar[0];
+    public int* M2 => &Bar[1];
+}", options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
+                // (6,23): error CS0212: You can only take the address of an unfixed expression inside of a fixed statement initializer
+                //     public int* M1 => &this.Bar[0];
+                Diagnostic(ErrorCode.ERR_FixedNeeded, "&this.Bar[0]").WithLocation(6, 23),
+                // (7,23): error CS0212: You can only take the address of an unfixed expression inside of a fixed statement initializer
+                //     public int* M2 => &Bar[1];
+                Diagnostic(ErrorCode.ERR_FixedNeeded, "&Bar[1]").WithLocation(7, 23));
+        }
     }
 }
