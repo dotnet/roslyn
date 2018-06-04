@@ -1909,7 +1909,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                     if (conclusion == IVTConclusion.PublicKeyDoesntMatch)
                         bag.Add(ErrorCode.ERR_FriendRefNotEqualToThis, NoLocation.Singleton,
-                                                                      otherAssembly.Identity);
+                                                                      otherAssembly.Identity, this.Identity);
                     else if (conclusion == IVTConclusion.OneSignedOneNot)
                         bag.Add(ErrorCode.ERR_FriendRefSigningMismatch, NoLocation.Singleton,
                                                                       otherAssembly.Identity);
