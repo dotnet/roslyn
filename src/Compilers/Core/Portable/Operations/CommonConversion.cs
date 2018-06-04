@@ -21,13 +21,6 @@ namespace Microsoft.CodeAnalysis.Operations
             IsNumeric =     1 << 2,
             IsReference =   1 << 3,
             IsImplicit =    1 << 4,
-
-            /// <summary>
-            /// Conversion is not created by language specific analysis. 
-            /// No language specific information can be retrieved for this conversion
-            /// from language specific APIs.
-            /// </summary>
-            IsLanguageAgnostic = 1 << 5,
         }
 
         private readonly ConversionKind _conversionKind;
@@ -40,12 +33,6 @@ namespace Microsoft.CodeAnalysis.Operations
                               (isReference ? ConversionKind.IsReference : ConversionKind.None) |
                               (isImplicit ? ConversionKind.IsImplicit : ConversionKind.None);
             MethodSymbol = methodSymbol;
-        }
-
-        internal CommonConversion(bool exists)
-        {
-            _conversionKind = (exists ? ConversionKind.Exists : ConversionKind.None) | ConversionKind.IsLanguageAgnostic;
-            MethodSymbol = null;
         }
 
         /// <summary>
@@ -81,11 +68,5 @@ namespace Microsoft.CodeAnalysis.Operations
         /// Otherwise, returns null.
         /// </summary>
         public IMethodSymbol MethodSymbol { get; }
-        /// <summary>
-        /// Returns true if the conversion is not created by language specific analysis.
-        /// No language specific information can be retrieved for this conversion
-        /// from language specific APIs.
-        /// </summary>
-        public bool IsLanguageAgnostic => (_conversionKind & ConversionKind.IsLanguageAgnostic) == ConversionKind.IsLanguageAgnostic;
     }
 }
