@@ -119,9 +119,16 @@ namespace Microsoft.CodeAnalysis.CSharp
             ArrayBuilder<(RefKind, TypeSymbolWithAnnotations)> returnTypes,
             VariableState initialState,
             Action<BoundExpression, TypeSymbolWithAnnotations> callbackOpt)
-            : base(compilation, method, node, new EmptyStructTypeCache(compilation, dev12CompilerCompatibility: false), trackUnassignments: false, variableSlot: initialState?.VariableSlot, variableBySlot: (initialState is null) ? default : initialState.VariableBySlot)
+            : base(
+                  compilation,
+                  method,
+                  node,
+                  new EmptyStructTypeCache(compilation, dev12CompilerCompatibility: false),
+                  trackUnassignments: false,
+                  variableSlot: initialState?.VariableSlot,
+                  variableBySlot: (initialState is null) ? default : initialState.VariableBySlot)
         {
-            _sourceAssembly = ((object)method == null) ? null : (SourceAssemblySymbol)method.ContainingAssembly;
+            _sourceAssembly = (method is null) ? null : (SourceAssemblySymbol)method.ContainingAssembly;
             _callbackOpt = callbackOpt;
             // PROTOTYPE(NullableReferenceTypes): Do we really need a Binder?
             // If so, are we interested in an InMethodBinder specifically?
