@@ -8020,6 +8020,7 @@ class Program
 }");
         }
 
+        [WorkItem(26406, "https://github.com/dotnet/roslyn/issues/26406")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
         public async Task TestIdentifierInsideLock1()
         {
@@ -8046,6 +8047,7 @@ class Program
 }");
         }
 
+        [WorkItem(26406, "https://github.com/dotnet/roslyn/issues/26406")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
         public async Task TestIdentifierInsideLock2()
         {
@@ -8072,6 +8074,7 @@ class Program
 }", index: 1);
         }
 
+        [WorkItem(26406, "https://github.com/dotnet/roslyn/issues/26406")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
         public async Task TestIdentifierInsideLock3()
         {
