@@ -521,7 +521,7 @@ Block[B1] - Block
     Statements (2)
         IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null, IsInvalid) (Syntax: 'c1.M2(o1);')
           Expression: 
-            IOperation:  (OperationKind.None, Type: null, IsInvalid) (Syntax: 'c1.M2(o1)')
+            IInvalidOperation (OperationKind.Invalid, Type: null, IsInvalid) (Syntax: 'c1.M2(o1)')
               Children(2):
                   IParameterReferenceOperation: c1 (OperationKind.ParameterReference, Type: MyClass, IsInvalid) (Syntax: 'c1')
                   IParameterReferenceOperation: o1 (OperationKind.ParameterReference, Type: System.Object) (Syntax: 'o1')
@@ -557,7 +557,7 @@ Block[B4] - Block
     Statements (1)
         IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null, IsInvalid) (Syntax: '(c1 ?? c2).M2(o2);')
           Expression: 
-            IOperation:  (OperationKind.None, Type: null, IsInvalid) (Syntax: '(c1 ?? c2).M2(o2)')
+            IInvalidOperation (OperationKind.Invalid, Type: null, IsInvalid) (Syntax: '(c1 ?? c2).M2(o2)')
               Children(2):
                   IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: MyClass, IsInvalid, IsImplicit) (Syntax: 'c1 ?? c2')
                   IParameterReferenceOperation: o2 (OperationKind.ParameterReference, Type: System.Object) (Syntax: 'o2')

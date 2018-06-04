@@ -1118,7 +1118,8 @@ Block[B1] - Block
               Instance Receiver: 
                 IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: C, IsInvalid, IsImplicit) (Syntax: '= /*</bind>*/')
           Right: 
-            IOperation:  (OperationKind.None, Type: null, IsInvalid) (Syntax: '')
+            IInvalidOperation (OperationKind.Invalid, Type: null, IsInvalid) (Syntax: '')
+              Children(0)
 
     Next (Regular) Block[B2]
 Block[B2] - Exit
@@ -1603,7 +1604,8 @@ Block[B1] - Block
               Instance Receiver: 
                 IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: C, IsInvalid, IsImplicit) (Syntax: '= /*</bind>*/')
           Right: 
-            IOperation:  (OperationKind.None, Type: null, IsInvalid) (Syntax: '')
+            IInvalidOperation (OperationKind.Invalid, Type: null, IsInvalid) (Syntax: '')
+              Children(0)
 
     Next (Regular) Block[B2]
 Block[B2] - Exit
@@ -1943,7 +1945,8 @@ Block[B1] - Block
           Left: 
             IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: System.Int32, IsInvalid, IsImplicit) (Syntax: '= /*</bind>*/')
           Right: 
-            IOperation:  (OperationKind.None, Type: null, IsInvalid) (Syntax: '')
+            IInvalidOperation (OperationKind.Invalid, Type: null, IsInvalid) (Syntax: '')
+              Children(0)
 
     Next (Regular) Block[B2]
 Block[B2] - Exit

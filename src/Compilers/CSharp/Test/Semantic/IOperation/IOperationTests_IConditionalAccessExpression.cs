@@ -666,7 +666,7 @@ Block[B4] - Block
           Expression: 
             ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32?, IsInvalid) (Syntax: 'x?.P1 = 0')
               Left: 
-                IOperation:  (OperationKind.None, Type: null, IsInvalid, IsImplicit) (Syntax: 'x?.P1')
+                IInvalidOperation (OperationKind.Invalid, Type: null, IsInvalid, IsImplicit) (Syntax: 'x?.P1')
                   Children(1):
                       IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: System.Int32?, IsInvalid, IsImplicit) (Syntax: 'x?.P1')
               Right: 
@@ -676,6 +676,7 @@ Block[B4] - Block
 Block[B5] - Exit
     Predecessors: [B4]
     Statements (0)
+
 ";
             var expectedDiagnostics = new[] {
                 // file.cs(6,9): error CS0131: The left-hand side of an assignment must be a variable, property or indexer
@@ -751,7 +752,7 @@ Block[B4] - Block
           Expression: 
             ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32?, IsInvalid) (Syntax: 'x?.P1 = 0')
               Left: 
-                IOperation:  (OperationKind.None, Type: null, IsInvalid, IsImplicit) (Syntax: 'x?.P1')
+                IInvalidOperation (OperationKind.Invalid, Type: null, IsInvalid, IsImplicit) (Syntax: 'x?.P1')
                   Children(1):
                       IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: System.Int32?, IsInvalid, IsImplicit) (Syntax: 'x?.P1')
               Right: 

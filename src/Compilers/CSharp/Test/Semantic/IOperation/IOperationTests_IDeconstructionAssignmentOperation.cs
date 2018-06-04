@@ -507,7 +507,7 @@ Block[B4] - Block
     Statements (2)
         IFlowCaptureOperation: 2 (OperationKind.FlowCapture, Type: null, IsInvalid, IsImplicit) (Syntax: 'c1?.fI1')
           Value: 
-            IOperation:  (OperationKind.None, Type: null, IsInvalid, IsImplicit) (Syntax: 'c1?.fI1')
+            IInvalidOperation (OperationKind.Invalid, Type: null, IsInvalid, IsImplicit) (Syntax: 'c1?.fI1')
               Children(1):
                   IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: System.Int32?, IsInvalid, IsImplicit) (Syntax: 'c1?.fI1')
 

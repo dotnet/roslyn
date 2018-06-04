@@ -174,7 +174,7 @@ Block[B4] - Block
           Expression: 
             ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: ?, IsInvalid, IsImplicit) (Syntax: 'x?.P1() = Nothing')
               Left: 
-                IOperation:  (OperationKind.None, Type: null, IsInvalid, IsImplicit) (Syntax: 'x?.P1()')
+                IInvalidOperation (OperationKind.Invalid, Type: null, IsInvalid, IsImplicit) (Syntax: 'x?.P1()')
                   Children(1):
                       IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: System.Nullable(Of System.Int32), IsInvalid, IsImplicit) (Syntax: 'x?.P1()')
               Right: 
@@ -263,7 +263,7 @@ Block[B4] - Block
           Expression: 
             ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: ?, IsInvalid, IsImplicit) (Syntax: 'x?.P1 = Nothing')
               Left: 
-                IOperation:  (OperationKind.None, Type: null, IsInvalid, IsImplicit) (Syntax: 'x?.P1')
+                IInvalidOperation (OperationKind.Invalid, Type: null, IsInvalid, IsImplicit) (Syntax: 'x?.P1')
                   Children(1):
                       IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: System.Nullable(Of System.Int32), IsInvalid, IsImplicit) (Syntax: 'x?.P1')
               Right: 
@@ -352,7 +352,7 @@ Block[B4] - Block
           Expression: 
             ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: ?, IsInvalid, IsImplicit) (Syntax: 'x?.F1 = Nothing')
               Left: 
-                IOperation:  (OperationKind.None, Type: null, IsInvalid, IsImplicit) (Syntax: 'x?.F1')
+                IInvalidOperation (OperationKind.Invalid, Type: null, IsInvalid, IsImplicit) (Syntax: 'x?.F1')
                   Children(1):
                       IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: System.Nullable(Of System.Int32), IsInvalid, IsImplicit) (Syntax: 'x?.F1')
               Right: 

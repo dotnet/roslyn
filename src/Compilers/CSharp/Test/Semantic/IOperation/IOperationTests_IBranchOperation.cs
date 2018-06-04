@@ -407,7 +407,7 @@ Block[B1] - Block
 
     Next (Regular) Block[B2]
 Block[B2] - Exit
-    Predecessors: [B1]
+    Predecessors: [B1*2]
     Statements (0)
 ";
             VerifyFlowGraphForTest<BlockSyntax>(compilation, expectedGraph);
@@ -450,14 +450,14 @@ Block[B1] - Block
 
     Next (Regular) Block[B2]
 Block[B2] - Block
-    Predecessors: [B1]
+    Predecessors: [B1*2]
     Statements (0)
     Jump if False (Regular) to Block[B3]
         IParameterReferenceOperation: b (OperationKind.ParameterReference, Type: System.Boolean) (Syntax: 'b')
 
     Next (Regular) Block[B3]
 Block[B3] - Exit
-    Predecessors: [B2]
+    Predecessors: [B2*2]
     Statements (0)
 ";
             VerifyFlowGraphForTest<BlockSyntax>(compilation, expectedGraph);
@@ -498,7 +498,7 @@ Block[B1] - Block
 
     Next (Regular) Block[B2]
 Block[B2] - Exit
-    Predecessors: [B1]
+    Predecessors: [B1*2]
     Statements (0)
 ";
             VerifyFlowGraphForTest<BlockSyntax>(compilation, expectedGraph);
@@ -544,14 +544,14 @@ Block[B1] - Block
 
     Next (Regular) Block[B2]
 Block[B2] - Block
-    Predecessors: [B1]
+    Predecessors: [B1*2]
     Statements (0)
     Jump if False (Regular) to Block[B3]
         IParameterReferenceOperation: b (OperationKind.ParameterReference, Type: System.Boolean) (Syntax: 'b')
 
     Next (Regular) Block[B3]
 Block[B3] - Exit
-    Predecessors: [B2]
+    Predecessors: [B2*2]
     Statements (0)
 ";
             VerifyFlowGraphForTest<BlockSyntax>(compilation, expectedGraph);

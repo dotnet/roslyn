@@ -551,7 +551,7 @@ Block[B1] - Block
 
     Next (Regular) Block[B2]
 Block[B2] - Exit
-    Predecessors: [B1]
+    Predecessors: [B1*2]
     Statements (0)
 ]]>.Value
 

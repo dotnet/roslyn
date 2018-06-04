@@ -45,7 +45,7 @@ Block[B1] - Block
                   Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                     (NarrowingValue)
                   Operand: 
-                    IOperation:  (OperationKind.None, Type: null, IsInvalid) (Syntax: 'M2(i2,,)')
+                    IInvalidOperation (OperationKind.Invalid, Type: null, IsInvalid) (Syntax: 'M2(i2,,)')
                       Children(4):
                           IOperation:  (OperationKind.None, Type: null) (Syntax: 'M2')
                             Children(1):
@@ -139,7 +139,7 @@ Block[B4] - Block
                   Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                     (NarrowingValue)
                   Operand: 
-                    IOperation:  (OperationKind.None, Type: null, IsInvalid) (Syntax: 'M2(i2, , If(b,1,2))')
+                    IInvalidOperation (OperationKind.Invalid, Type: null, IsInvalid) (Syntax: 'M2(i2, , If(b,1,2))')
                       Children(4):
                           IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: null, IsImplicit) (Syntax: 'M2')
                           IFlowCaptureReferenceOperation: 2 (OperationKind.FlowCaptureReference, Type: System.Int32, IsImplicit) (Syntax: 'i2')

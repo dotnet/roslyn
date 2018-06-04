@@ -890,7 +890,7 @@ Block[B1] - Block
           Expression: 
             ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Void, IsInvalid) (Syntax: '(c.MyEvent  ... andler) = 0')
               Left: 
-                IOperation:  (OperationKind.None, Type: null, IsInvalid, IsImplicit) (Syntax: 'c.MyEvent += handler')
+                IInvalidOperation (OperationKind.Invalid, Type: null, IsInvalid, IsImplicit) (Syntax: 'c.MyEvent += handler')
                   Children(1):
                       IEventAssignmentOperation (EventAdd) (OperationKind.EventAssignment, Type: System.Void, IsInvalid) (Syntax: 'c.MyEvent += handler')
                         Event Reference: 
@@ -943,7 +943,7 @@ Block[B1] - Block
     Statements (2)
         IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsInvalid, IsImplicit) (Syntax: 'c.MyEvent += handler')
           Value: 
-            IOperation:  (OperationKind.None, Type: null, IsInvalid, IsImplicit) (Syntax: 'c.MyEvent += handler')
+            IInvalidOperation (OperationKind.Invalid, Type: null, IsInvalid, IsImplicit) (Syntax: 'c.MyEvent += handler')
               Children(1):
                   IEventAssignmentOperation (EventAdd) (OperationKind.EventAssignment, Type: System.Void, IsInvalid) (Syntax: 'c.MyEvent += handler')
                     Event Reference: 

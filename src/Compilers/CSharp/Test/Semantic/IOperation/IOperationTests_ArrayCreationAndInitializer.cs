@@ -2008,7 +2008,7 @@ Block[B1] - Block
 
         IFlowCaptureOperation: 3 (OperationKind.FlowCapture, Type: null, IsInvalid, IsImplicit) (Syntax: 'v3')
           Value: 
-            IOperation:  (OperationKind.None, Type: null, IsInvalid, IsImplicit) (Syntax: 'v3')
+            IInvalidOperation (OperationKind.Invalid, Type: null, IsInvalid, IsImplicit) (Syntax: 'v3')
               Children(1):
                   IParameterReferenceOperation: v3 (OperationKind.ParameterReference, Type: System.Int32, IsInvalid) (Syntax: 'v3')
 

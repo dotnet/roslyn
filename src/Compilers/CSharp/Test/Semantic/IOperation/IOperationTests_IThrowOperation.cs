@@ -262,7 +262,7 @@ Block[B2] - Block [UnReachable]
                   Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                     (NoConversion)
                   Operand: 
-                    IOperation:  (OperationKind.None, Type: null, IsInvalid, IsImplicit) (Syntax: 'throw ex + x')
+                    IInvalidOperation (OperationKind.Invalid, Type: null, IsInvalid, IsImplicit) (Syntax: 'throw ex + x')
                       Children(1):
                           IOperation:  (OperationKind.None, Type: null, IsInvalid, IsImplicit) (Syntax: 'throw ex + x')
 
@@ -323,7 +323,7 @@ Block[B2] - Block [UnReachable]
                   Operand: 
                     IBinaryOperation (BinaryOperatorKind.Add) (OperationKind.BinaryOperator, Type: ?, IsInvalid) (Syntax: '(throw ex) + x')
                       Left: 
-                        IOperation:  (OperationKind.None, Type: null, IsInvalid, IsImplicit) (Syntax: 'throw ex')
+                        IInvalidOperation (OperationKind.Invalid, Type: null, IsInvalid, IsImplicit) (Syntax: 'throw ex')
                           Children(1):
                               IOperation:  (OperationKind.None, Type: null, IsInvalid, IsImplicit) (Syntax: 'throw ex')
                       Right: 
@@ -392,7 +392,7 @@ Block[B2] - Block [UnReachable]
                       Left: 
                         IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: System.Int32, IsImplicit) (Syntax: 'x')
                       Right: 
-                        IOperation:  (OperationKind.None, Type: null, IsInvalid, IsImplicit) (Syntax: 'throw ex')
+                        IInvalidOperation (OperationKind.Invalid, Type: null, IsInvalid, IsImplicit) (Syntax: 'throw ex')
                           Children(1):
                               IOperation:  (OperationKind.None, Type: null, IsInvalid, IsImplicit) (Syntax: 'throw ex')
 
@@ -459,7 +459,7 @@ Block[B2] - Block [UnReachable]
                       Left: 
                         IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: System.Int32, IsImplicit) (Syntax: 'x')
                       Right: 
-                        IOperation:  (OperationKind.None, Type: null, IsInvalid, IsImplicit) (Syntax: 'throw ex')
+                        IInvalidOperation (OperationKind.Invalid, Type: null, IsInvalid, IsImplicit) (Syntax: 'throw ex')
                           Children(1):
                               IOperation:  (OperationKind.None, Type: null, IsInvalid, IsImplicit) (Syntax: 'throw ex')
 
@@ -887,13 +887,14 @@ Block[B0] - Entry
         Predecessors: [B2]
         Statements (0)
         Next (Throw) Block[null]
-            IOperation:  (OperationKind.None, Type: null, IsInvalid) (Syntax: '')
+            IInvalidOperation (OperationKind.Invalid, Type: null, IsInvalid) (Syntax: '')
+              Children(0)
     Block[B5] - Block [UnReachable]
         Predecessors (0)
         Statements (1)
             IFlowCaptureOperation: 2 (OperationKind.FlowCapture, Type: null, IsInvalid, IsImplicit) (Syntax: 'throw')
               Value: 
-                IOperation:  (OperationKind.None, Type: null, IsInvalid, IsImplicit) (Syntax: 'throw')
+                IInvalidOperation (OperationKind.Invalid, Type: null, IsInvalid, IsImplicit) (Syntax: 'throw')
                   Children(1):
                       IOperation:  (OperationKind.None, Type: null, IsInvalid, IsImplicit) (Syntax: 'throw')
 
@@ -903,7 +904,7 @@ Block[B0] - Entry
         Statements (1)
             IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null, IsInvalid) (Syntax: 'M(x, (y ?? throw), z);')
               Expression: 
-                IOperation:  (OperationKind.None, Type: null, IsInvalid) (Syntax: 'M(x, (y ?? throw), z)')
+                IInvalidOperation (OperationKind.Invalid, Type: null, IsInvalid) (Syntax: 'M(x, (y ?? throw), z)')
                   Children(3):
                       IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.Object, IsImplicit) (Syntax: 'x')
                       IFlowCaptureReferenceOperation: 2 (OperationKind.FlowCaptureReference, Type: ?, IsInvalid, IsImplicit) (Syntax: 'y ?? throw')

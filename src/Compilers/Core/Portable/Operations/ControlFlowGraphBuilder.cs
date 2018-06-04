@@ -5618,6 +5618,7 @@ oneMoreTime:
             VisitStatements(operation.Children);
         }
 
+
         private IOperation VisitInvalidOperationExpression(IInvalidOperation operation)
         {
             int startingStackSize = _evalStack.Count;
@@ -5631,7 +5632,7 @@ oneMoreTime:
 
             if (numChildren == 0)
             {
-                return Operation.CreateOperationNone(semanticModel: null, operation.Syntax, operation.ConstantValue, ImmutableArray<IOperation>.Empty, IsImplicit(operation));
+                return new InvalidOperation(ImmutableArray<IOperation>.Empty, semanticModel: null, operation.Syntax, null, operation.ConstantValue, IsImplicit(operation));
             }
 
             var childrenBuilder = ArrayBuilder<IOperation>.GetInstance(numChildren);
@@ -5642,7 +5643,7 @@ oneMoreTime:
 
             childrenBuilder.ReverseContents();
 
-            return Operation.CreateOperationNone(semanticModel: null, operation.Syntax, operation.ConstantValue, childrenBuilder.ToImmutableAndFree(), IsImplicit(operation));
+            return new InvalidOperation(childrenBuilder.ToImmutableAndFree(), semanticModel: null, operation.Syntax, null, operation.ConstantValue,  IsImplicit(operation));
         }
 
         public override IOperation VisitConstantPattern(IConstantPatternOperation operation, int? captureIdForResult)

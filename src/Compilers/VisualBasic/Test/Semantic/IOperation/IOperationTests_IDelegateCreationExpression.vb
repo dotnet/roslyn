@@ -4672,7 +4672,7 @@ Block[B4] - Block
               Right: 
                 IDelegateCreationOperation (OperationKind.DelegateCreation, Type: System.Action, IsInvalid, IsImplicit) (Syntax: 'AddressOf If(a2, a3)')
                   Target: 
-                    IOperation:  (OperationKind.None, Type: null, IsInvalid) (Syntax: 'AddressOf If(a2, a3)')
+                    IInvalidOperation (OperationKind.Invalid, Type: null, IsInvalid) (Syntax: 'AddressOf If(a2, a3)')
                       Children(1):
                           IFlowCaptureReferenceOperation: 2 (OperationKind.FlowCaptureReference, Type: System.Action, IsInvalid, IsImplicit) (Syntax: 'If(a2, a3)')
 

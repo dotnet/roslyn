@@ -1952,7 +1952,7 @@ Block[B1] - Block
     Statements (1)
         IInvalidOperation (OperationKind.Invalid, Type: null, IsInvalid, IsImplicit) (Syntax: 'x')
           Children(1):
-              IOperation:  (OperationKind.None, Type: null, IsInvalid, IsImplicit) (Syntax: 'x')
+              IInvalidOperation (OperationKind.Invalid, Type: null, IsInvalid, IsImplicit) (Syntax: 'x')
                 Children(1):
                     IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: C, IsInvalid) (Syntax: 'x')
 

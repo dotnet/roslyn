@@ -2653,17 +2653,8 @@ Block[B0] - Entry
         Block[B0#0R1] - Entry
             Statements (0)
             Next (Regular) Block[B1#0R1]
-        Block[B1#0R1] - Block
+        Block[B1#0R1] - Exit
             Predecessors: [B0#0R1]
-            Statements (1)
-                IInvalidOperation (OperationKind.Invalid, Type: null, IsInvalid) (Syntax: 'GoTo label1')
-                  Children(1):
-                      IInvalidOperation (OperationKind.Invalid, Type: null, IsInvalid) (Syntax: 'label1')
-                        Children(0)
-
-            Next (Regular) Block[B2#0R1]
-        Block[B2#0R1] - Exit
-            Predecessors: [B1#0R1]
             Statements (0)
     }
 }

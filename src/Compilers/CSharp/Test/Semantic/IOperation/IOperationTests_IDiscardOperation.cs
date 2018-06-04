@@ -237,7 +237,7 @@ Block[B4] - Block
                   NaturalType: (System.Int32, System.Int32)
                   Elements(2):
                       IDiscardOperation (Symbol: System.Int32 _) (OperationKind.Discard, Type: System.Int32) (Syntax: '_')
-                      IOperation:  (OperationKind.None, Type: null, IsInvalid, IsImplicit) (Syntax: 'b ? i1 : i2')
+                      IInvalidOperation (OperationKind.Invalid, Type: null, IsInvalid, IsImplicit) (Syntax: 'b ? i1 : i2')
                         Children(1):
                             IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.Int32, IsInvalid, IsImplicit) (Syntax: 'b ? i1 : i2')
               Right: 

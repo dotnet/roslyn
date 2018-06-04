@@ -2709,7 +2709,8 @@ Block[B2] - Block
           Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
             (NoConversion)
           Operand: 
-            IOperation:  (OperationKind.None, Type: null, IsInvalid) (Syntax: 'guard')
+            IInvalidOperation (OperationKind.Invalid, Type: null, IsInvalid) (Syntax: 'guard')
+              Children(0)
 
     Next (Regular) Block[B3]
 Block[B3] - Block

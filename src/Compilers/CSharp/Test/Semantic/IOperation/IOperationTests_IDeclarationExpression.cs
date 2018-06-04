@@ -69,7 +69,8 @@ Block[B0] - Entry
         Statements (1)
             IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsInvalid, IsImplicit) (Syntax: '')
               Value: 
-                IOperation:  (OperationKind.None, Type: null, IsInvalid) (Syntax: '')
+                IInvalidOperation (OperationKind.Invalid, Type: null, IsInvalid) (Syntax: '')
+                  Children(0)
 
         Next (Regular) Block[B4]
     Block[B3] - Block
@@ -77,7 +78,8 @@ Block[B0] - Entry
         Statements (1)
             IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsInvalid, IsImplicit) (Syntax: '')
               Value: 
-                IOperation:  (OperationKind.None, Type: null, IsInvalid) (Syntax: '')
+                IInvalidOperation (OperationKind.Invalid, Type: null, IsInvalid) (Syntax: '')
+                  Children(0)
 
         Next (Regular) Block[B4]
     Block[B4] - Block
@@ -85,7 +87,7 @@ Block[B0] - Entry
         Statements (1)
             IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null, IsInvalid) (Syntax: 'M2(b ? out  ... ut var i2);')
               Expression: 
-                IOperation:  (OperationKind.None, Type: null, IsInvalid) (Syntax: 'M2(b ? out  ... out var i2)')
+                IInvalidOperation (OperationKind.Invalid, Type: null, IsInvalid) (Syntax: 'M2(b ? out  ... out var i2)')
                   Children(3):
                       IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: ?, IsInvalid, IsImplicit) (Syntax: 'b ? ')
                       IDeclarationExpressionOperation (OperationKind.DeclarationExpression, Type: var) (Syntax: 'var i1')
@@ -100,6 +102,7 @@ Block[B0] - Entry
 Block[B5] - Exit
     Predecessors: [B4]
     Statements (0)
+
 ";
             VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedFlowGraph, expectedDiagnostics);
         }

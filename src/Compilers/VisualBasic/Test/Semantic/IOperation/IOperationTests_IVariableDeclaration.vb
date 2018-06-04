@@ -2996,7 +2996,8 @@ Block[B0] - Entry
               Left: 
                 ILocalReferenceOperation: d (IsDeclaration: True) (OperationKind.LocalReference, Type: System.Int32, IsImplicit) (Syntax: 'd')
               Right: 
-                IOperation:  (OperationKind.None, Type: null, IsInvalid) (Syntax: '')
+                IInvalidOperation (OperationKind.Invalid, Type: null, IsInvalid) (Syntax: '')
+                  Children(0)
 
         Next (Regular) Block[B2]
             Leaving: {R1}
@@ -3043,7 +3044,8 @@ Block[B0] - Entry
               Left: 
                 ILocalReferenceOperation: d (IsDeclaration: True) (OperationKind.LocalReference, Type: ?, IsImplicit) (Syntax: 'd')
               Right: 
-                IOperation:  (OperationKind.None, Type: null, IsInvalid) (Syntax: 'New')
+                IInvalidOperation (OperationKind.Invalid, Type: null, IsInvalid) (Syntax: 'New')
+                  Children(0)
 
         Next (Regular) Block[B2]
             Leaving: {R1}
@@ -3349,7 +3351,7 @@ Block[B0] - Entry
                                 ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1, IsImplicit) (Syntax: '10')
                         Initializer: 
                           null
-                      IOperation:  (OperationKind.None, Type: null, IsInvalid, IsImplicit) (Syntax: 'As New Integer()')
+                      IInvalidOperation (OperationKind.Invalid, Type: null, IsInvalid, IsImplicit) (Syntax: 'As New Integer()')
                         Children(1):
                             IObjectCreationOperation (Constructor: Sub System.Int32..ctor()) (OperationKind.ObjectCreation, Type: System.Int32, IsInvalid) (Syntax: 'New Integer()')
                               Arguments(0)
