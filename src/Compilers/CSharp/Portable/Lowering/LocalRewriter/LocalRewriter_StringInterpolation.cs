@@ -119,7 +119,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             BoundExpression result;
 
-            if (CanLowerToStringConcatenation(node))
+            if (!_inExpressionLambda && CanLowerToStringConcatenation(node))
             {
                 // All fill-ins, if any, are strings, and none of them have alignment or format specifiers.
                 // We can lower to a more efficient string concatenation
