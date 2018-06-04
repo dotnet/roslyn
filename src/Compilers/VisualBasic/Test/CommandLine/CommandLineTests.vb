@@ -103,14 +103,11 @@ dotnet_diagnostic.BC42024.severity = garbage")
 
             Assert.Equal(analyzerConfig.Path, Assert.Single(cmd.Arguments.AnalyzerConfigPaths))
 
-            Dim normalizedDir = Path.GetDirectoryName(analyzerConfig.Path).Replace(
-                PathUtilities.DirectorySeparatorChar, "/"c) + "/"
-
-            Dim outWriter = new StringWriter(CultureInfo.InvariantCulture)
+            Dim outWriter = New StringWriter(CultureInfo.InvariantCulture)
             Dim exitCode = cmd.Run(outWriter)
             Assert.Equal(0, exitCode)
             Assert.Equal(
-$"vbc : warning BC42500: The diagnostic 'bc42024' was given an invalid severity 'garbage' in the analyzer config file in directory '{normalizedDir}'.
+$"vbc : warning BC42500: The diagnostic 'bc42024' was given an invalid severity 'garbage' in the analyzer config file at '{analyzerConfig.Path}'.
 {src.Path}(4) : warning BC42024: Unused local variable: 'x'.
 
         Dim x As Integer
