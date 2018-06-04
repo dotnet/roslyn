@@ -55,8 +55,20 @@ Block[B1] - Block
                   Operand: 
                     IAnonymousObjectCreationOperation (OperationKind.AnonymousObjectCreation, Type: <anonymous type: Key a As System.Int32, Key b As System.Int32>) (Syntax: 'New With {  ... ey .b = j }')
                       Initializers(2):
-                          IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: System.Int32, IsImplicit) (Syntax: 'i')
-                          IFlowCaptureReferenceOperation: 2 (OperationKind.FlowCaptureReference, Type: System.Int32, IsImplicit) (Syntax: 'j')
+                          ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32) (Syntax: 'Key .a = i')
+                            Left: 
+                              IPropertyReferenceOperation: ReadOnly Property <anonymous type: Key a As System.Int32, Key b As System.Int32>.a As System.Int32 (OperationKind.PropertyReference, Type: System.Int32) (Syntax: 'a')
+                                Instance Receiver: 
+                                  null
+                            Right: 
+                              IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: System.Int32, IsImplicit) (Syntax: 'i')
+                          ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32) (Syntax: 'Key .b = j')
+                            Left: 
+                              IPropertyReferenceOperation: ReadOnly Property <anonymous type: Key a As System.Int32, Key b As System.Int32>.b As System.Int32 (OperationKind.PropertyReference, Type: System.Int32) (Syntax: 'b')
+                                Instance Receiver: 
+                                  null
+                            Right: 
+                              IFlowCaptureReferenceOperation: 2 (OperationKind.FlowCaptureReference, Type: System.Int32, IsImplicit) (Syntax: 'j')
 
     Next (Regular) Block[B2]
 Block[B2] - Exit
@@ -172,9 +184,8 @@ Block[B1] - Block
           Value: 
             ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32) (Syntax: 'i')
               Left: 
-                IPropertyReferenceOperation: Property <anonymous type: i As System.Int32, b As System.Int32>.b As System.Int32 (OperationKind.PropertyReference, Type: System.Int32) (Syntax: 'b')
-                  Instance Receiver: 
-                    null
+                IInvalidOperation (OperationKind.Invalid, Type: System.Int32, IsImplicit) (Syntax: 'b')
+                  Children(0)
               Right: 
                 IParameterReferenceOperation: i (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'i')
 
@@ -217,7 +228,7 @@ Imports System.Linq
 
 Class C
     Sub M(p As Object, a As List(Of Integer), b As List(Of String))'BIND:"Sub M(p As Object, a As List(Of Integer), b As List(Of String))"
-        p = From x In a From y In b Select New With {x, y}
+        p = From x In a From y In b
     End Sub
 End Class
 ]]>.Value
@@ -232,23 +243,23 @@ Block[B0] - Entry
 
 .locals {R1}
 {
-    Methods: [Function (x As System.Int32) As System.Collections.Generic.IEnumerable(Of System.String)] [Function (x As System.Int32, y As System.String) As <anonymous type: x As System.Int32, y As System.String>]
+    Methods: [Function (x As System.Int32) As System.Collections.Generic.IEnumerable(Of System.String)] [Function (x As System.Int32, y As System.String) As <anonymous type: Key x As System.Int32, Key y As System.String>]
     Block[B1] - Block
         Predecessors: [B0]
         Statements (1)
-            IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'p = From x  ... With {x, y}')
+            IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'p = From x  ... From y In b')
               Expression: 
-                ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Object, IsImplicit) (Syntax: 'p = From x  ... With {x, y}')
+                ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Object, IsImplicit) (Syntax: 'p = From x  ... From y In b')
                   Left: 
                     IParameterReferenceOperation: p (OperationKind.ParameterReference, Type: System.Object) (Syntax: 'p')
                   Right: 
-                    IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Object, IsImplicit) (Syntax: 'From x In a ... With {x, y}')
+                    IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Object, IsImplicit) (Syntax: 'From x In a From y In b')
                       Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
                         (WideningReference)
                       Operand: 
-                        ITranslatedQueryOperation (OperationKind.TranslatedQuery, Type: System.Collections.Generic.IEnumerable(Of <anonymous type: x As System.Int32, y As System.String>)) (Syntax: 'From x In a ... With {x, y}')
+                        ITranslatedQueryOperation (OperationKind.TranslatedQuery, Type: System.Collections.Generic.IEnumerable(Of <anonymous type: Key x As System.Int32, Key y As System.String>)) (Syntax: 'From x In a From y In b')
                           Expression: 
-                            IInvocationOperation ( Function System.Collections.Generic.IEnumerable(Of System.Int32).SelectMany(Of System.String, <anonymous type: x As System.Int32, y As System.String>)(collectionSelector As System.Func(Of System.Int32, System.Collections.Generic.IEnumerable(Of System.String)), resultSelector As System.Func(Of System.Int32, System.String, <anonymous type: x As System.Int32, y As System.String>)) As System.Collections.Generic.IEnumerable(Of <anonymous type: x As System.Int32, y As System.String>)) (OperationKind.Invocation, Type: System.Collections.Generic.IEnumerable(Of <anonymous type: x As System.Int32, y As System.String>), IsImplicit) (Syntax: 'y In b')
+                            IInvocationOperation ( Function System.Collections.Generic.IEnumerable(Of System.Int32).SelectMany(Of System.String, <anonymous type: Key x As System.Int32, Key y As System.String>)(collectionSelector As System.Func(Of System.Int32, System.Collections.Generic.IEnumerable(Of System.String)), resultSelector As System.Func(Of System.Int32, System.String, <anonymous type: Key x As System.Int32, Key y As System.String>)) As System.Collections.Generic.IEnumerable(Of <anonymous type: Key x As System.Int32, Key y As System.String>)) (OperationKind.Invocation, Type: System.Collections.Generic.IEnumerable(Of <anonymous type: Key x As System.Int32, Key y As System.String>), IsImplicit) (Syntax: 'y In b')
                               Instance Receiver: 
                                 IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Collections.Generic.IEnumerable(Of System.Int32), IsImplicit) (Syntax: 'x In a')
                                   Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
@@ -262,10 +273,10 @@ Block[B0] - Entry
                                         IFlowAnonymousFunctionOperation (Symbol: Function (x As System.Int32) As System.Collections.Generic.IEnumerable(Of System.String)) (OperationKind.FlowAnonymousFunction, Type: null, IsImplicit) (Syntax: 'b')
                                     InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                                     OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                                  IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: resultSelector) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'New With {x, y}')
-                                    IDelegateCreationOperation (OperationKind.DelegateCreation, Type: System.Func(Of System.Int32, System.String, <anonymous type: x As System.Int32, y As System.String>), IsImplicit) (Syntax: 'New With {x, y}')
+                                  IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: resultSelector) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'From y In b')
+                                    IDelegateCreationOperation (OperationKind.DelegateCreation, Type: System.Func(Of System.Int32, System.String, <anonymous type: Key x As System.Int32, Key y As System.String>), IsImplicit) (Syntax: 'From y In b')
                                       Target: 
-                                        IFlowAnonymousFunctionOperation (Symbol: Function (x As System.Int32, y As System.String) As <anonymous type: x As System.Int32, y As System.String>) (OperationKind.FlowAnonymousFunction, Type: null, IsImplicit) (Syntax: 'New With {x, y}')
+                                        IFlowAnonymousFunctionOperation (Symbol: Function (x As System.Int32, y As System.String) As <anonymous type: Key x As System.Int32, Key y As System.String>) (OperationKind.FlowAnonymousFunction, Type: null, IsImplicit) (Syntax: 'From y In b')
                                     InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                                     OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
 
@@ -291,7 +302,7 @@ Block[B0] - Entry
             Statements (0)
     }
     
-    {   Function (x As System.Int32, y As System.String) As <anonymous type: x As System.Int32, y As System.String>
+    {   Function (x As System.Int32, y As System.String) As <anonymous type: Key x As System.Int32, Key y As System.String>
     
         Block[B0#1R1] - Entry
             Statements (0)
@@ -301,14 +312,14 @@ Block[B0] - Entry
             Statements (2)
                 IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'x')
                   Value: 
-                    IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'x')
+                    IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: System.Int32, IsImplicit) (Syntax: 'x')
 
                 IFlowCaptureOperation: 1 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'y')
                   Value: 
-                    IParameterReferenceOperation: y (OperationKind.ParameterReference, Type: System.String) (Syntax: 'y')
+                    IParameterReferenceOperation: y (OperationKind.ParameterReference, Type: System.String, IsImplicit) (Syntax: 'y')
 
             Next (Return) Block[B2#1R1]
-                IAnonymousObjectCreationOperation (OperationKind.AnonymousObjectCreation, Type: <anonymous type: x As System.Int32, y As System.String>) (Syntax: 'New With {x, y}')
+                IAnonymousObjectCreationOperation (OperationKind.AnonymousObjectCreation, Type: <anonymous type: Key x As System.Int32, Key y As System.String>, IsImplicit) (Syntax: 'y In b')
                   Initializers(2):
                       IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.Int32, IsImplicit) (Syntax: 'x')
                       IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: System.String, IsImplicit) (Syntax: 'y')
@@ -337,7 +348,7 @@ Imports System.Linq
 
 Class C
     Sub M(p As Object, a As List(Of Integer))'BIND:"Sub M(p As Object, a As List(Of Integer))"
-        p = From x In a Let y = x Select New With {x, y}
+        p = From x In a Let y = x
     End Sub
 End Class
 ]]>.Value
@@ -352,43 +363,34 @@ Block[B0] - Entry
 
 .locals {R1}
 {
-    Methods: [Function (x As System.Int32) As <anonymous type: Key x As System.Int32, Key y As System.Int32>] [Function ($VB$It As <anonymous type: Key x As System.Int32, Key y As System.Int32>) As <anonymous type: x As System.Int32, y As System.Int32>]
+    Methods: [Function (x As System.Int32) As <anonymous type: Key x As System.Int32, Key y As System.Int32>]
     Block[B1] - Block
         Predecessors: [B0]
         Statements (1)
-            IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'p = From x  ... With {x, y}')
+            IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'p = From x  ... a Let y = x')
               Expression: 
-                ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Object, IsImplicit) (Syntax: 'p = From x  ... With {x, y}')
+                ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Object, IsImplicit) (Syntax: 'p = From x  ... a Let y = x')
                   Left: 
                     IParameterReferenceOperation: p (OperationKind.ParameterReference, Type: System.Object) (Syntax: 'p')
                   Right: 
-                    IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Object, IsImplicit) (Syntax: 'From x In a ... With {x, y}')
+                    IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Object, IsImplicit) (Syntax: 'From x In a Let y = x')
                       Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
                         (WideningReference)
                       Operand: 
-                        ITranslatedQueryOperation (OperationKind.TranslatedQuery, Type: System.Collections.Generic.IEnumerable(Of <anonymous type: x As System.Int32, y As System.Int32>)) (Syntax: 'From x In a ... With {x, y}')
+                        ITranslatedQueryOperation (OperationKind.TranslatedQuery, Type: System.Collections.Generic.IEnumerable(Of <anonymous type: Key x As System.Int32, Key y As System.Int32>)) (Syntax: 'From x In a Let y = x')
                           Expression: 
-                            IInvocationOperation ( Function System.Collections.Generic.IEnumerable(Of <anonymous type: Key x As System.Int32, Key y As System.Int32>).Select(Of <anonymous type: x As System.Int32, y As System.Int32>)(selector As System.Func(Of <anonymous type: Key x As System.Int32, Key y As System.Int32>, <anonymous type: x As System.Int32, y As System.Int32>)) As System.Collections.Generic.IEnumerable(Of <anonymous type: x As System.Int32, y As System.Int32>)) (OperationKind.Invocation, Type: System.Collections.Generic.IEnumerable(Of <anonymous type: x As System.Int32, y As System.Int32>), IsImplicit) (Syntax: 'Select New With {x, y}')
+                            IInvocationOperation ( Function System.Collections.Generic.IEnumerable(Of System.Int32).Select(Of <anonymous type: Key x As System.Int32, Key y As System.Int32>)(selector As System.Func(Of System.Int32, <anonymous type: Key x As System.Int32, Key y As System.Int32>)) As System.Collections.Generic.IEnumerable(Of <anonymous type: Key x As System.Int32, Key y As System.Int32>)) (OperationKind.Invocation, Type: System.Collections.Generic.IEnumerable(Of <anonymous type: Key x As System.Int32, Key y As System.Int32>), IsImplicit) (Syntax: 'y = x')
                               Instance Receiver: 
-                                IInvocationOperation ( Function System.Collections.Generic.IEnumerable(Of System.Int32).Select(Of <anonymous type: Key x As System.Int32, Key y As System.Int32>)(selector As System.Func(Of System.Int32, <anonymous type: Key x As System.Int32, Key y As System.Int32>)) As System.Collections.Generic.IEnumerable(Of <anonymous type: Key x As System.Int32, Key y As System.Int32>)) (OperationKind.Invocation, Type: System.Collections.Generic.IEnumerable(Of <anonymous type: Key x As System.Int32, Key y As System.Int32>), IsImplicit) (Syntax: 'y = x')
-                                  Instance Receiver: 
-                                    IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Collections.Generic.IEnumerable(Of System.Int32), IsImplicit) (Syntax: 'x In a')
-                                      Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
-                                        (WideningReference)
-                                      Operand: 
-                                        IParameterReferenceOperation: a (OperationKind.ParameterReference, Type: System.Collections.Generic.List(Of System.Int32)) (Syntax: 'a')
-                                  Arguments(1):
-                                      IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: selector) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'x')
-                                        IDelegateCreationOperation (OperationKind.DelegateCreation, Type: System.Func(Of System.Int32, <anonymous type: Key x As System.Int32, Key y As System.Int32>), IsImplicit) (Syntax: 'x')
-                                          Target: 
-                                            IFlowAnonymousFunctionOperation (Symbol: Function (x As System.Int32) As <anonymous type: Key x As System.Int32, Key y As System.Int32>) (OperationKind.FlowAnonymousFunction, Type: null, IsImplicit) (Syntax: 'x')
-                                        InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                                        OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                                IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Collections.Generic.IEnumerable(Of System.Int32), IsImplicit) (Syntax: 'x In a')
+                                  Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
+                                    (WideningReference)
+                                  Operand: 
+                                    IParameterReferenceOperation: a (OperationKind.ParameterReference, Type: System.Collections.Generic.List(Of System.Int32)) (Syntax: 'a')
                               Arguments(1):
-                                  IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: selector) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'New With {x, y}')
-                                    IDelegateCreationOperation (OperationKind.DelegateCreation, Type: System.Func(Of <anonymous type: Key x As System.Int32, Key y As System.Int32>, <anonymous type: x As System.Int32, y As System.Int32>), IsImplicit) (Syntax: 'New With {x, y}')
+                                  IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: selector) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'x')
+                                    IDelegateCreationOperation (OperationKind.DelegateCreation, Type: System.Func(Of System.Int32, <anonymous type: Key x As System.Int32, Key y As System.Int32>), IsImplicit) (Syntax: 'x')
                                       Target: 
-                                        IFlowAnonymousFunctionOperation (Symbol: Function ($VB$It As <anonymous type: Key x As System.Int32, Key y As System.Int32>) As <anonymous type: x As System.Int32, y As System.Int32>) (OperationKind.FlowAnonymousFunction, Type: null, IsImplicit) (Syntax: 'New With {x, y}')
+                                        IFlowAnonymousFunctionOperation (Symbol: Function (x As System.Int32) As <anonymous type: Key x As System.Int32, Key y As System.Int32>) (OperationKind.FlowAnonymousFunction, Type: null, IsImplicit) (Syntax: 'x')
                                     InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                                     OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
 
@@ -418,36 +420,6 @@ Block[B0] - Entry
                       IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: System.Int32, IsImplicit) (Syntax: 'x')
         Block[B2#0R1] - Exit
             Predecessors: [B1#0R1]
-            Statements (0)
-    }
-    
-    {   Function ($VB$It As <anonymous type: Key x As System.Int32, Key y As System.Int32>) As <anonymous type: x As System.Int32, y As System.Int32>
-    
-        Block[B0#1R1] - Entry
-            Statements (0)
-            Next (Regular) Block[B1#1R1]
-        Block[B1#1R1] - Block
-            Predecessors: [B0#1R1]
-            Statements (2)
-                IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'x')
-                  Value: 
-                    IPropertyReferenceOperation: ReadOnly Property <anonymous type: Key x As System.Int32, Key y As System.Int32>.x As System.Int32 (OperationKind.PropertyReference, Type: System.Int32) (Syntax: 'x')
-                      Instance Receiver: 
-                        IParameterReferenceOperation: $VB$It (OperationKind.ParameterReference, Type: <anonymous type: Key x As System.Int32, Key y As System.Int32>, IsImplicit) (Syntax: 'New With {x, y}')
-
-                IFlowCaptureOperation: 1 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'y')
-                  Value: 
-                    IPropertyReferenceOperation: ReadOnly Property <anonymous type: Key x As System.Int32, Key y As System.Int32>.y As System.Int32 (OperationKind.PropertyReference, Type: System.Int32) (Syntax: 'y')
-                      Instance Receiver: 
-                        IParameterReferenceOperation: $VB$It (OperationKind.ParameterReference, Type: <anonymous type: Key x As System.Int32, Key y As System.Int32>, IsImplicit) (Syntax: 'New With {x, y}')
-
-            Next (Return) Block[B2#1R1]
-                IAnonymousObjectCreationOperation (OperationKind.AnonymousObjectCreation, Type: <anonymous type: x As System.Int32, y As System.Int32>) (Syntax: 'New With {x, y}')
-                  Initializers(2):
-                      IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.Int32, IsImplicit) (Syntax: 'x')
-                      IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: System.Int32, IsImplicit) (Syntax: 'y')
-        Block[B2#1R1] - Exit
-            Predecessors: [B1#1R1]
             Statements (0)
     }
 }
@@ -526,8 +498,20 @@ Block[B1] - Block
               Operand: 
                 IAnonymousObjectCreationOperation (OperationKind.AnonymousObjectCreation, Type: <anonymous type: a As System.Int32, b As System.Int32>) (Syntax: 'New With {. ... 2, .b = .a}')
                   Initializers(2):
-                      IFlowCaptureReferenceOperation: 2 (OperationKind.FlowCaptureReference, Type: System.Int32, IsImplicit) (Syntax: 'i2')
-                      IFlowCaptureReferenceOperation: 3 (OperationKind.FlowCaptureReference, Type: System.Int32, IsImplicit) (Syntax: '.a')
+                      ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32) (Syntax: '.a = i2')
+                        Left: 
+                          IPropertyReferenceOperation: Property <anonymous type: a As System.Int32, b As System.Int32>.a As System.Int32 (OperationKind.PropertyReference, Type: System.Int32) (Syntax: 'a')
+                            Instance Receiver: 
+                              null
+                        Right: 
+                          IFlowCaptureReferenceOperation: 2 (OperationKind.FlowCaptureReference, Type: System.Int32, IsImplicit) (Syntax: 'i2')
+                      ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32) (Syntax: '.b = .a')
+                        Left: 
+                          IPropertyReferenceOperation: Property <anonymous type: a As System.Int32, b As System.Int32>.b As System.Int32 (OperationKind.PropertyReference, Type: System.Int32) (Syntax: 'b')
+                            Instance Receiver: 
+                              null
+                        Right: 
+                          IFlowCaptureReferenceOperation: 3 (OperationKind.FlowCaptureReference, Type: System.Int32, IsImplicit) (Syntax: '.a')
 
         IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'p = New C() ... , .b = .a}}')
           Expression: 
@@ -594,8 +578,20 @@ Block[B1] - Block
           Value: 
             IAnonymousObjectCreationOperation (OperationKind.AnonymousObjectCreation, Type: <anonymous type: a As System.Int32, b As System.Int32>) (Syntax: 'New With {. ... 2, .b = .a}')
               Initializers(2):
-                  IFlowCaptureReferenceOperation: 2 (OperationKind.FlowCaptureReference, Type: System.Int32, IsImplicit) (Syntax: 'i2')
-                  IFlowCaptureReferenceOperation: 3 (OperationKind.FlowCaptureReference, Type: System.Int32, IsImplicit) (Syntax: '.a')
+                  ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32) (Syntax: '.a = i2')
+                    Left: 
+                      IPropertyReferenceOperation: Property <anonymous type: a As System.Int32, b As System.Int32>.a As System.Int32 (OperationKind.PropertyReference, Type: System.Int32) (Syntax: 'a')
+                        Instance Receiver: 
+                          null
+                    Right: 
+                      IFlowCaptureReferenceOperation: 2 (OperationKind.FlowCaptureReference, Type: System.Int32, IsImplicit) (Syntax: 'i2')
+                  ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32) (Syntax: '.b = .a')
+                    Left: 
+                      IPropertyReferenceOperation: Property <anonymous type: a As System.Int32, b As System.Int32>.b As System.Int32 (OperationKind.PropertyReference, Type: System.Int32) (Syntax: 'b')
+                        Instance Receiver: 
+                          null
+                    Right: 
+                      IFlowCaptureReferenceOperation: 3 (OperationKind.FlowCaptureReference, Type: System.Int32, IsImplicit) (Syntax: '.a')
 
         IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'p = New Wit ... , .b = .a}}')
           Expression: 
@@ -609,8 +605,99 @@ Block[B1] - Block
                   Operand: 
                     IAnonymousObjectCreationOperation (OperationKind.AnonymousObjectCreation, Type: <anonymous type: a As System.Int32, b As <anonymous type: a As System.Int32, b As System.Int32>>) (Syntax: 'New With {. ... , .b = .a}}')
                       Initializers(2):
-                          IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: System.Int32, IsImplicit) (Syntax: 'i1')
-                          IFlowCaptureReferenceOperation: 4 (OperationKind.FlowCaptureReference, Type: <anonymous type: a As System.Int32, b As System.Int32>, IsImplicit) (Syntax: 'New With {. ... 2, .b = .a}')
+                          ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32) (Syntax: '.a = i1')
+                            Left: 
+                              IPropertyReferenceOperation: Property <anonymous type: a As System.Int32, b As <anonymous type: a As System.Int32, b As System.Int32>>.a As System.Int32 (OperationKind.PropertyReference, Type: System.Int32) (Syntax: 'a')
+                                Instance Receiver: 
+                                  null
+                            Right: 
+                              IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: System.Int32, IsImplicit) (Syntax: 'i1')
+                          ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: <anonymous type: a As System.Int32, b As System.Int32>) (Syntax: '.b = New Wi ... 2, .b = .a}')
+                            Left: 
+                              IPropertyReferenceOperation: Property <anonymous type: a As System.Int32, b As <anonymous type: a As System.Int32, b As System.Int32>>.b As <anonymous type: a As System.Int32, b As System.Int32> (OperationKind.PropertyReference, Type: <anonymous type: a As System.Int32, b As System.Int32>) (Syntax: 'b')
+                                Instance Receiver: 
+                                  null
+                            Right: 
+                              IFlowCaptureReferenceOperation: 4 (OperationKind.FlowCaptureReference, Type: <anonymous type: a As System.Int32, b As System.Int32>, IsImplicit) (Syntax: 'New With {. ... 2, .b = .a}')
+
+    Next (Regular) Block[B2]
+Block[B2] - Exit
+    Predecessors: [B1]
+    Statements (0)
+]]>.Value
+
+            VerifyFlowGraphAndDiagnosticsForTest(Of MethodBlockSyntax)(source, expectedFlowGraph, expectedDiagnostics)
+        End Sub
+
+        <CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)>
+        <Fact()>
+        Public Sub AnonymousObjectCreation_NoControlFlow_08()
+            Dim source = <![CDATA[
+Imports System
+
+Class C
+    Sub M(p As Object)'BIND:"Sub M(p As Object)"
+        p = New With {.a = .b, .b = .b}
+    End Sub
+End Class
+]]>.Value
+
+            Dim expectedDiagnostics = <![CDATA[
+BC36559: Anonymous type member property 'b' cannot be used to infer the type of another member property because the type of 'b' is not yet established.
+        p = New With {.a = .b, .b = .b}
+                           ~~
+BC36559: Anonymous type member property 'b' cannot be used to infer the type of another member property because the type of 'b' is not yet established.
+        p = New With {.a = .b, .b = .b}
+                                    ~~
+]]>.Value
+
+            Dim expectedFlowGraph = <![CDATA[
+Block[B0] - Entry
+    Statements (0)
+    Next (Regular) Block[B1]
+Block[B1] - Block
+    Predecessors: [B0]
+    Statements (4)
+        IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'p')
+          Value: 
+            IParameterReferenceOperation: p (OperationKind.ParameterReference, Type: System.Object) (Syntax: 'p')
+
+        IFlowCaptureOperation: 1 (OperationKind.FlowCapture, Type: null, IsInvalid, IsImplicit) (Syntax: '.b')
+          Value: 
+            IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid) (Syntax: '.b')
+              Children(0)
+
+        IFlowCaptureOperation: 2 (OperationKind.FlowCapture, Type: null, IsInvalid, IsImplicit) (Syntax: '.b')
+          Value: 
+            IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid) (Syntax: '.b')
+              Children(0)
+
+        IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null, IsInvalid) (Syntax: 'p = New Wit ... b, .b = .b}')
+          Expression: 
+            ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Object, IsInvalid, IsImplicit) (Syntax: 'p = New Wit ... b, .b = .b}')
+              Left: 
+                IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.Object, IsImplicit) (Syntax: 'p')
+              Right: 
+                IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Object, IsInvalid, IsImplicit) (Syntax: 'New With {. ... b, .b = .b}')
+                  Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
+                    (WideningReference)
+                  Operand: 
+                    IAnonymousObjectCreationOperation (OperationKind.AnonymousObjectCreation, Type: <anonymous type: a As ?, b As ?>, IsInvalid) (Syntax: 'New With {. ... b, .b = .b}')
+                      Initializers(2):
+                          ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: ?, IsInvalid) (Syntax: '.a = .b')
+                            Left: 
+                              IPropertyReferenceOperation: Property <anonymous type: a As ?, b As ?>.a As ? (OperationKind.PropertyReference, Type: ?) (Syntax: 'a')
+                                Instance Receiver: 
+                                  null
+                            Right: 
+                              IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: ?, IsInvalid, IsImplicit) (Syntax: '.b')
+                          ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: ?, IsInvalid) (Syntax: '.b = .b')
+                            Left: 
+                              IPropertyReferenceOperation: Property <anonymous type: a As ?, b As ?>.b As ? (OperationKind.PropertyReference, Type: ?) (Syntax: 'b')
+                                Instance Receiver: 
+                                  null
+                            Right: 
+                              IFlowCaptureReferenceOperation: 2 (OperationKind.FlowCaptureReference, Type: ?, IsInvalid, IsImplicit) (Syntax: '.b')
 
     Next (Regular) Block[B2]
 Block[B2] - Exit
@@ -676,9 +763,27 @@ Block[B1] - Block
                   Operand: 
                     IAnonymousObjectCreationOperation (OperationKind.AnonymousObjectCreation, Type: <anonymous type: i As System.Int32, i As System.Int32, j As System.Int32>, IsInvalid) (Syntax: 'New With {. ... 2, .j = .i}')
                       Initializers(3):
-                          IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: System.Int32, IsImplicit) (Syntax: 'i1')
-                          IFlowCaptureReferenceOperation: 2 (OperationKind.FlowCaptureReference, Type: System.Int32, IsInvalid, IsImplicit) (Syntax: 'i2')
-                          IFlowCaptureReferenceOperation: 3 (OperationKind.FlowCaptureReference, Type: System.Int32, IsImplicit) (Syntax: '.i')
+                          ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32) (Syntax: '.i = i1')
+                            Left: 
+                              IPropertyReferenceOperation: Property <anonymous type: i As System.Int32, i As System.Int32, j As System.Int32>.i As System.Int32 (OperationKind.PropertyReference, Type: System.Int32) (Syntax: 'i')
+                                Instance Receiver: 
+                                  null
+                            Right: 
+                              IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: System.Int32, IsImplicit) (Syntax: 'i1')
+                          ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32, IsInvalid) (Syntax: '.i = i2')
+                            Left: 
+                              IPropertyReferenceOperation: Property <anonymous type: i As System.Int32, i As System.Int32, j As System.Int32>.i As System.Int32 (OperationKind.PropertyReference, Type: System.Int32, IsInvalid) (Syntax: 'i')
+                                Instance Receiver: 
+                                  null
+                            Right: 
+                              IFlowCaptureReferenceOperation: 2 (OperationKind.FlowCaptureReference, Type: System.Int32, IsInvalid, IsImplicit) (Syntax: 'i2')
+                          ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32) (Syntax: '.j = .i')
+                            Left: 
+                              IPropertyReferenceOperation: Property <anonymous type: i As System.Int32, i As System.Int32, j As System.Int32>.j As System.Int32 (OperationKind.PropertyReference, Type: System.Int32) (Syntax: 'j')
+                                Instance Receiver: 
+                                  null
+                            Right: 
+                              IFlowCaptureReferenceOperation: 3 (OperationKind.FlowCaptureReference, Type: System.Int32, IsImplicit) (Syntax: '.i')
 
     Next (Regular) Block[B2]
 Block[B2] - Exit
@@ -737,7 +842,13 @@ Block[B1] - Block
                   Operand: 
                     IAnonymousObjectCreationOperation (OperationKind.AnonymousObjectCreation, Type: <anonymous type: a As ?>, IsInvalid) (Syntax: 'New With {.a = }')
                       Initializers(1):
-                          IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: null, IsInvalid, IsImplicit) (Syntax: '')
+                          ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: ?, IsInvalid) (Syntax: '.a = ')
+                            Left: 
+                              IPropertyReferenceOperation: Property <anonymous type: a As ?>.a As ? (OperationKind.PropertyReference, Type: ?) (Syntax: 'a')
+                                Instance Receiver: 
+                                  null
+                            Right: 
+                              IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: null, IsInvalid, IsImplicit) (Syntax: '')
 
     Next (Regular) Block[B2]
 Block[B2] - Exit
@@ -804,7 +915,83 @@ Block[B1] - Block
                   Operand: 
                     IAnonymousObjectCreationOperation (OperationKind.AnonymousObjectCreation, Type: <anonymous type: M2 As System.Boolean>, IsInvalid) (Syntax: 'New With {.M2(i) = j}')
                       Initializers(1):
-                          IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: System.Boolean, IsInvalid, IsImplicit) (Syntax: '(i) = j')
+                          ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Boolean, IsInvalid) (Syntax: '.M2(i) = j')
+                            Left: 
+                              IPropertyReferenceOperation: Property <anonymous type: M2 As System.Boolean>.M2 As System.Boolean (OperationKind.PropertyReference, Type: System.Boolean, IsInvalid) (Syntax: 'M2')
+                                Instance Receiver: 
+                                  null
+                            Right: 
+                              IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: System.Boolean, IsInvalid, IsImplicit) (Syntax: '(i) = j')
+
+    Next (Regular) Block[B2]
+Block[B2] - Exit
+    Predecessors: [B1]
+    Statements (0)
+]]>.Value
+
+            VerifyFlowGraphAndDiagnosticsForTest(Of MethodBlockSyntax)(source, expectedFlowGraph, expectedDiagnostics)
+        End Sub
+
+        <CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)>
+        <Fact()>
+        Public Sub AnonymousObjectCreation_NoControlFlow_Error04()
+            ' Property reference with argument as an assignment target.
+            Dim source = <![CDATA[
+Imports System
+
+Class C
+    Sub M(p As Object, i As Integer, j As Integer) 'BIND:"Sub M(p As Object, i As Integer, j As Integer)"
+        p = New With {.a(i) = j}
+    End Sub
+End Class
+]]>.Value
+
+            Dim expectedDiagnostics = <![CDATA[
+BC30984: '=' expected (object initializer).
+        p = New With {.a(i) = j}
+                        ~
+]]>.Value
+
+            Dim expectedFlowGraph = <![CDATA[
+Block[B0] - Entry
+    Statements (0)
+    Next (Regular) Block[B1]
+Block[B1] - Block
+    Predecessors: [B0]
+    Statements (3)
+        IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'p')
+          Value: 
+            IParameterReferenceOperation: p (OperationKind.ParameterReference, Type: System.Object) (Syntax: 'p')
+
+        IFlowCaptureOperation: 1 (OperationKind.FlowCapture, Type: null, IsInvalid, IsImplicit) (Syntax: '(i) = j')
+          Value: 
+            IBinaryOperation (BinaryOperatorKind.Equals, Checked) (OperationKind.BinaryOperator, Type: System.Boolean, IsInvalid) (Syntax: '(i) = j')
+              Left: 
+                IParenthesizedOperation (OperationKind.Parenthesized, Type: System.Int32, IsInvalid) (Syntax: '(i)')
+                  Operand: 
+                    IParameterReferenceOperation: i (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'i')
+              Right: 
+                IParameterReferenceOperation: j (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'j')
+
+        IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null, IsInvalid) (Syntax: 'p = New With {.a(i) = j}')
+          Expression: 
+            ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Object, IsInvalid, IsImplicit) (Syntax: 'p = New With {.a(i) = j}')
+              Left: 
+                IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.Object, IsImplicit) (Syntax: 'p')
+              Right: 
+                IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Object, IsInvalid, IsImplicit) (Syntax: 'New With {.a(i) = j}')
+                  Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
+                    (WideningReference)
+                  Operand: 
+                    IAnonymousObjectCreationOperation (OperationKind.AnonymousObjectCreation, Type: <anonymous type: a As System.Boolean>, IsInvalid) (Syntax: 'New With {.a(i) = j}')
+                      Initializers(1):
+                          ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Boolean, IsInvalid) (Syntax: '.a(i) = j')
+                            Left: 
+                              IPropertyReferenceOperation: Property <anonymous type: a As System.Boolean>.a As System.Boolean (OperationKind.PropertyReference, Type: System.Boolean, IsInvalid) (Syntax: 'a')
+                                Instance Receiver: 
+                                  null
+                            Right: 
+                              IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: System.Boolean, IsInvalid, IsImplicit) (Syntax: '(i) = j')
 
     Next (Regular) Block[B2]
 Block[B2] - Exit
@@ -889,8 +1076,20 @@ Block[B4] - Block
                   Operand: 
                     IAnonymousObjectCreationOperation (OperationKind.AnonymousObjectCreation, Type: <anonymous type: a As System.Int32, b As System.Int32>) (Syntax: 'New With {  ... ), .b = j }')
                       Initializers(2):
-                          IFlowCaptureReferenceOperation: 2 (OperationKind.FlowCaptureReference, Type: System.Int32, IsImplicit) (Syntax: 'If(i1, i2)')
-                          IFlowCaptureReferenceOperation: 3 (OperationKind.FlowCaptureReference, Type: System.Int32, IsImplicit) (Syntax: 'j')
+                          ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32) (Syntax: '.a = If(i1, i2)')
+                            Left: 
+                              IPropertyReferenceOperation: Property <anonymous type: a As System.Int32, b As System.Int32>.a As System.Int32 (OperationKind.PropertyReference, Type: System.Int32) (Syntax: 'a')
+                                Instance Receiver: 
+                                  null
+                            Right: 
+                              IFlowCaptureReferenceOperation: 2 (OperationKind.FlowCaptureReference, Type: System.Int32, IsImplicit) (Syntax: 'If(i1, i2)')
+                          ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32) (Syntax: '.b = j')
+                            Left: 
+                              IPropertyReferenceOperation: Property <anonymous type: a As System.Int32, b As System.Int32>.b As System.Int32 (OperationKind.PropertyReference, Type: System.Int32) (Syntax: 'b')
+                                Instance Receiver: 
+                                  null
+                            Right: 
+                              IFlowCaptureReferenceOperation: 3 (OperationKind.FlowCaptureReference, Type: System.Int32, IsImplicit) (Syntax: 'j')
 
     Next (Regular) Block[B5]
 Block[B5] - Exit
@@ -975,8 +1174,20 @@ Block[B4] - Block
                   Operand: 
                     IAnonymousObjectCreationOperation (OperationKind.AnonymousObjectCreation, Type: <anonymous type: a As System.Int32, b As System.Int32>) (Syntax: 'New With {  ... If(i1, i2)}')
                       Initializers(2):
-                          IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: System.Int32, IsImplicit) (Syntax: 'j')
-                          IFlowCaptureReferenceOperation: 3 (OperationKind.FlowCaptureReference, Type: System.Int32, IsImplicit) (Syntax: 'If(i1, i2)')
+                          ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32) (Syntax: '.a = j')
+                            Left: 
+                              IPropertyReferenceOperation: Property <anonymous type: a As System.Int32, b As System.Int32>.a As System.Int32 (OperationKind.PropertyReference, Type: System.Int32) (Syntax: 'a')
+                                Instance Receiver: 
+                                  null
+                            Right: 
+                              IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: System.Int32, IsImplicit) (Syntax: 'j')
+                          ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32) (Syntax: '.b = If(i1, i2)')
+                            Left: 
+                              IPropertyReferenceOperation: Property <anonymous type: a As System.Int32, b As System.Int32>.b As System.Int32 (OperationKind.PropertyReference, Type: System.Int32) (Syntax: 'b')
+                                Instance Receiver: 
+                                  null
+                            Right: 
+                              IFlowCaptureReferenceOperation: 3 (OperationKind.FlowCaptureReference, Type: System.Int32, IsImplicit) (Syntax: 'If(i1, i2)')
 
     Next (Regular) Block[B5]
 Block[B5] - Exit
@@ -1089,8 +1300,20 @@ Block[B7] - Block
                   Operand: 
                     IAnonymousObjectCreationOperation (OperationKind.AnonymousObjectCreation, Type: <anonymous type: a As System.Int32, b As System.Int32>) (Syntax: 'New With {  ... If(j1, j2)}')
                       Initializers(2):
-                          IFlowCaptureReferenceOperation: 2 (OperationKind.FlowCaptureReference, Type: System.Int32, IsImplicit) (Syntax: 'If(i1, i2)')
-                          IFlowCaptureReferenceOperation: 4 (OperationKind.FlowCaptureReference, Type: System.Int32, IsImplicit) (Syntax: 'If(j1, j2)')
+                          ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32) (Syntax: '.a = If(i1, i2)')
+                            Left: 
+                              IPropertyReferenceOperation: Property <anonymous type: a As System.Int32, b As System.Int32>.a As System.Int32 (OperationKind.PropertyReference, Type: System.Int32) (Syntax: 'a')
+                                Instance Receiver: 
+                                  null
+                            Right: 
+                              IFlowCaptureReferenceOperation: 2 (OperationKind.FlowCaptureReference, Type: System.Int32, IsImplicit) (Syntax: 'If(i1, i2)')
+                          ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32) (Syntax: '.b = If(j1, j2)')
+                            Left: 
+                              IPropertyReferenceOperation: Property <anonymous type: a As System.Int32, b As System.Int32>.b As System.Int32 (OperationKind.PropertyReference, Type: System.Int32) (Syntax: 'b')
+                                Instance Receiver: 
+                                  null
+                            Right: 
+                              IFlowCaptureReferenceOperation: 4 (OperationKind.FlowCaptureReference, Type: System.Int32, IsImplicit) (Syntax: 'If(j1, j2)')
 
     Next (Regular) Block[B8]
 Block[B8] - Exit

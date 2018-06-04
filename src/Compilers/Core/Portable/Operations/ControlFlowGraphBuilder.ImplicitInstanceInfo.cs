@@ -12,7 +12,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
         /// Or the current anonymous type object being initialized if we're visiting an anonymous type object initializer.
         /// Or the target of a VB With statement.
         /// </summary>
-        private struct CurrentImplicitInstance
+        private struct ImplicitInstanceInfo
         {
             /// <summary>
             /// Holds the current object instance being initialized if we're visiting an object initializer.
@@ -29,14 +29,14 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
             /// </summary>
             public PooledDictionary<IPropertySymbol, int> AnonymousTypePropertyCaptureIds { get; }
 
-            public CurrentImplicitInstance(IOperation currentImplicitInstance)
+            public ImplicitInstanceInfo(IOperation currentImplicitInstance)
             {
                 Object = currentImplicitInstance;
                 AnonymousType = null;
                 AnonymousTypePropertyCaptureIds = null;
             }
 
-            public CurrentImplicitInstance(ITypeSymbol currentInitializedAnonymousType)
+            public ImplicitInstanceInfo(ITypeSymbol currentInitializedAnonymousType)
             {
                 Debug.Assert(currentInitializedAnonymousType.IsAnonymousType);
 
