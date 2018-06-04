@@ -1698,8 +1698,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_FriendRefNotEqualToThis">
-        <source>Friend access was granted by '{0}', but the public key of the output assembly does not match that specified by the attribute in the granting assembly.</source>
-        <target state="translated">フレンド アクセスのアクセス権は '{0}' によって付与されますが、出力アセンブリの公開キーは、付与するアセンブリで属性によって指定される公開キーと一致しません。</target>
+        <source>Friend access was granted by '{0}', but the public key of the output assembly ('{1}') does not match that specified by the InternalsVisibleTo attribute in the granting assembly.</source>
+        <target state="needs-review-translation">フレンド アクセスのアクセス権は '{0}' によって付与されますが、出力アセンブリの公開キーは、付与するアセンブリで属性によって指定される公開キーと一致しません。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_FriendRefSigningMismatch">

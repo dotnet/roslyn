@@ -1698,8 +1698,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_FriendRefNotEqualToThis">
-        <source>Friend access was granted by '{0}', but the public key of the output assembly does not match that specified by the attribute in the granting assembly.</source>
-        <target state="translated">{0}' ha concedido acceso de confianza, pero la clave pública del ensamblado de salida no coincide con la especificada por el atributo en el ensamblado de concesión.</target>
+        <source>Friend access was granted by '{0}', but the public key of the output assembly ('{1}') does not match that specified by the InternalsVisibleTo attribute in the granting assembly.</source>
+        <target state="needs-review-translation">{0}' ha concedido acceso de confianza, pero la clave pública del ensamblado de salida no coincide con la especificada por el atributo en el ensamblado de concesión.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_FriendRefSigningMismatch">
