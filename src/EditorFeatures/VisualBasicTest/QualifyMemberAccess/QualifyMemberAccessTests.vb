@@ -618,5 +618,17 @@ End Class
 ",
 CodeStyleOptions.QualifyFieldAccess)
         End Function
+
+        <WorkItem(26893, "https://github.com/dotnet/roslyn/issues/26893")>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsQualifyMemberAccess)>
+        Public Async Function DoNotReportToQualify_InAttribute1() As Task
+            Await TestMissingAsyncWithOption("
+<Obsolete(NameOf([|Foo|]))>
+class C
+    Private Foo As String
+End Class
+",
+CodeStyleOptions.QualifyFieldAccess)
+        End Function
     End Class
 End Namespace
