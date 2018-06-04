@@ -1340,8 +1340,7 @@ Block[B0] - Entry
 
 Block[B5] - Exit
     Predecessors: [B4]
-    Statements (0)
-";
+    Statements (0)";
             VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedFlowGraph, expectedDiagnostics);
         }
 
@@ -2578,17 +2577,17 @@ Block[B0] - Entry
                   Operand: 
                     IFlowCaptureReferenceOperation: 2 (OperationKind.FlowCaptureReference, Type: ?, IsInvalid, IsImplicit) (Syntax: 'b ? (')
 
-            IInvalidOperation (OperationKind.Invalid, Type: null, IsInvalid) (Syntax: '{ P1 = 3, P2 = 4 }')
+            IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid) (Syntax: '{ P1 = 3, P2 = 4 }')
               Children(2):
                   ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: ?, IsInvalid) (Syntax: 'P1 = 3')
                     Left: 
-                      IInvalidOperation (OperationKind.Invalid, Type: null, IsInvalid) (Syntax: 'P1')
+                      IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid) (Syntax: 'P1')
                         Children(0)
                     Right: 
                       ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 3, IsInvalid) (Syntax: '3')
                   ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: ?, IsInvalid) (Syntax: 'P2 = 4')
                     Left: 
-                      IInvalidOperation (OperationKind.Invalid, Type: null, IsInvalid) (Syntax: 'P2')
+                      IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid) (Syntax: 'P2')
                         Children(0)
                     Right: 
                       ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 4, IsInvalid) (Syntax: '4')
@@ -2608,7 +2607,7 @@ Block[B0] - Entry
               Expression: 
                 ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: ?, IsInvalid) (Syntax: 'P1 = 3')
                   Left: 
-                    IInvalidOperation (OperationKind.Invalid, Type: null, IsInvalid) (Syntax: 'P1')
+                    IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid) (Syntax: 'P1')
                       Children(0)
                   Right: 
                     ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 3, IsInvalid) (Syntax: '3')
@@ -2617,7 +2616,7 @@ Block[B0] - Entry
               Expression: 
                 ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: ?, IsInvalid) (Syntax: 'P2 = 4')
                   Left: 
-                    IInvalidOperation (OperationKind.Invalid, Type: null, IsInvalid) (Syntax: 'P2')
+                    IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid) (Syntax: 'P2')
                       Children(0)
                   Right: 
                     ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 4) (Syntax: '4')
@@ -3931,7 +3930,7 @@ Block[B0] - Entry
     Block[B4] - Block
         Predecessors: [B2] [B3]
         Statements (2)
-            IInvalidOperation (OperationKind.Invalid, Type: null, IsInvalid, IsImplicit) (Syntax: 'O[b ? 1 : 2] = null')
+            IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid, IsImplicit) (Syntax: 'O[b ? 1 : 2] = null')
               Children(1):
                   ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Object, IsInvalid) (Syntax: 'O[b ? 1 : 2] = null')
                     Left: 
@@ -5755,7 +5754,7 @@ Block[B0] - Entry
         Statements (2)
             ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Object, IsInvalid) (Syntax: '(P1 ?? P2) = null')
               Left: 
-                IInvalidOperation (OperationKind.Invalid, Type: null, IsInvalid, IsImplicit) (Syntax: 'P1 ?? P2')
+                IInvalidOperation (OperationKind.Invalid, Type: System.Object, IsInvalid, IsImplicit) (Syntax: 'P1 ?? P2')
                   Children(1):
                       IFlowCaptureReferenceOperation: 2 (OperationKind.FlowCaptureReference, Type: System.Object, IsInvalid, IsImplicit) (Syntax: 'P1 ?? P2')
               Right: 
@@ -5874,7 +5873,7 @@ Block[B0] - Entry
         Statements (2)
             ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Object, IsInvalid) (Syntax: '(P1 ?? P2) = null')
               Left: 
-                IInvalidOperation (OperationKind.Invalid, Type: null, IsInvalid, IsImplicit) (Syntax: 'P1 ?? P2')
+                IInvalidOperation (OperationKind.Invalid, Type: System.Object, IsInvalid, IsImplicit) (Syntax: 'P1 ?? P2')
                   Children(1):
                       IFlowCaptureReferenceOperation: 2 (OperationKind.FlowCaptureReference, Type: System.Object, IsInvalid, IsImplicit) (Syntax: 'P1 ?? P2')
               Right: 
@@ -6090,7 +6089,7 @@ Block[B0] - Entry
     Block[B4] - Block
         Predecessors: [B2] [B3]
         Statements (2)
-            IInvalidOperation (OperationKind.Invalid, Type: null, IsInvalid, IsImplicit) (Syntax: '(C21 ?? C22).I1 = 1')
+            IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid, IsImplicit) (Syntax: '(C21 ?? C22).I1 = 1')
               Children(1):
                   ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32, IsInvalid) (Syntax: '(C21 ?? C22).I1 = 1')
                     Left: 
@@ -6294,11 +6293,11 @@ Block[B0] - Entry
 
             ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: ?) (Syntax: 'I1 = 1')
               Left: 
-                IInvalidOperation (OperationKind.Invalid, Type: null, IsImplicit) (Syntax: 'I1')
+                IInvalidOperation (OperationKind.Invalid, Type: ?, IsImplicit) (Syntax: 'I1')
                   Children(1):
                       IOperation:  (OperationKind.None, Type: null) (Syntax: 'I1')
                         Children(1):
-                            IInvalidOperation (OperationKind.Invalid, Type: null, IsInvalid, IsImplicit) (Syntax: 'C21')
+                            IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid, IsImplicit) (Syntax: 'C21')
                               Children(1):
                                   IOperation:  (OperationKind.None, Type: null, IsInvalid) (Syntax: 'C21')
                                     Children(1):
@@ -6308,11 +6307,11 @@ Block[B0] - Entry
 
             ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: ?) (Syntax: 'I2 = 2')
               Left: 
-                IInvalidOperation (OperationKind.Invalid, Type: null, IsImplicit) (Syntax: 'I2')
+                IInvalidOperation (OperationKind.Invalid, Type: ?, IsImplicit) (Syntax: 'I2')
                   Children(1):
                       IOperation:  (OperationKind.None, Type: null) (Syntax: 'I2')
                         Children(1):
-                            IInvalidOperation (OperationKind.Invalid, Type: null, IsInvalid, IsImplicit) (Syntax: 'C21')
+                            IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid, IsImplicit) (Syntax: 'C21')
                               Children(1):
                                   IOperation:  (OperationKind.None, Type: null, IsInvalid) (Syntax: 'C21')
                                     Children(1):
@@ -6379,11 +6378,11 @@ Block[B0] - Entry
 
             ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: ?) (Syntax: 'I1 = 1')
               Left: 
-                IInvalidOperation (OperationKind.Invalid, Type: null, IsImplicit) (Syntax: 'I1')
+                IInvalidOperation (OperationKind.Invalid, Type: ?, IsImplicit) (Syntax: 'I1')
                   Children(1):
                       IOperation:  (OperationKind.None, Type: null) (Syntax: 'I1')
                         Children(1):
-                            IInvalidOperation (OperationKind.Invalid, Type: null, IsInvalid) (Syntax: '[GetInt()]')
+                            IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid) (Syntax: '[GetInt()]')
                               Children(2):
                                   IInvocationOperation ( System.Int32 Class.GetInt()) (OperationKind.Invocation, Type: System.Int32, IsInvalid) (Syntax: 'GetInt()')
                                     Instance Receiver: 
@@ -6395,11 +6394,11 @@ Block[B0] - Entry
 
             ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: ?) (Syntax: 'I2 = 2')
               Left: 
-                IInvalidOperation (OperationKind.Invalid, Type: null, IsImplicit) (Syntax: 'I2')
+                IInvalidOperation (OperationKind.Invalid, Type: ?, IsImplicit) (Syntax: 'I2')
                   Children(1):
                       IOperation:  (OperationKind.None, Type: null) (Syntax: 'I2')
                         Children(1):
-                            IInvalidOperation (OperationKind.Invalid, Type: null, IsInvalid) (Syntax: '[GetInt()]')
+                            IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid) (Syntax: '[GetInt()]')
                               Children(2):
                                   IInvocationOperation ( System.Int32 Class.GetInt()) (OperationKind.Invocation, Type: System.Int32, IsInvalid) (Syntax: 'GetInt()')
                                     Instance Receiver: 
@@ -6503,11 +6502,11 @@ Block[B0] - Entry
         Statements (3)
             ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: ?) (Syntax: 'I1 = 2')
               Left: 
-                IInvalidOperation (OperationKind.Invalid, Type: null, IsImplicit) (Syntax: 'I1')
+                IInvalidOperation (OperationKind.Invalid, Type: ?, IsImplicit) (Syntax: 'I1')
                   Children(1):
                       IOperation:  (OperationKind.None, Type: null) (Syntax: 'I1')
                         Children(1):
-                            IInvalidOperation (OperationKind.Invalid, Type: null, IsInvalid) (Syntax: '[GetInt() ?? 1]')
+                            IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid) (Syntax: '[GetInt() ?? 1]')
                               Children(2):
                                   IFlowCaptureReferenceOperation: 2 (OperationKind.FlowCaptureReference, Type: System.Int32, IsInvalid, IsImplicit) (Syntax: 'GetInt() ?? 1')
                                   IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: Class, IsInvalid, IsImplicit) (Syntax: 'new Class { ...  I2 = 3 } }')
@@ -6516,11 +6515,11 @@ Block[B0] - Entry
 
             ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: ?) (Syntax: 'I2 = 3')
               Left: 
-                IInvalidOperation (OperationKind.Invalid, Type: null, IsImplicit) (Syntax: 'I2')
+                IInvalidOperation (OperationKind.Invalid, Type: ?, IsImplicit) (Syntax: 'I2')
                   Children(1):
                       IOperation:  (OperationKind.None, Type: null) (Syntax: 'I2')
                         Children(1):
-                            IInvalidOperation (OperationKind.Invalid, Type: null, IsInvalid) (Syntax: '[GetInt() ?? 1]')
+                            IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid) (Syntax: '[GetInt() ?? 1]')
                               Children(2):
                                   IFlowCaptureReferenceOperation: 2 (OperationKind.FlowCaptureReference, Type: System.Int32, IsInvalid, IsImplicit) (Syntax: 'GetInt() ?? 1')
                                   IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: Class, IsInvalid, IsImplicit) (Syntax: 'new Class { ...  I2 = 3 } }')

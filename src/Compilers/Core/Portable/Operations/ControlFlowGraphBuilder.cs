@@ -5224,8 +5224,7 @@ oneMoreTime:
         {
             if (_currentStatement == operation)
             {
-                VisitNoneOperationStatement(operation);
-                return null;
+                return VisitNoneOperationStatement(operation);
             }
             else
             {
@@ -5233,10 +5232,11 @@ oneMoreTime:
             }
         }
 
-        private void VisitNoneOperationStatement(IOperation operation)
+        private IOperation VisitNoneOperationStatement(IOperation operation)
         {
             Debug.Assert(_currentStatement == operation);
             VisitStatements(operation.Children);
+            return Operation.CreateOperationNone(semanticModel: null, operation.Syntax, operation.ConstantValue, ImmutableArray<IOperation>.Empty, IsImplicit(operation));
         }
 
         private IOperation VisitNoneOperationExpression(IOperation operation)
@@ -5606,16 +5606,16 @@ oneMoreTime:
         {
             if (_currentStatement == operation)
             {
-                VisitInvalidOperationStatement(operation);
-                return null;
+                return VisitInvalidOperationStatement(operation);
             }
             return VisitInvalidOperationExpression(operation);
         }
 
-        private void VisitInvalidOperationStatement(IInvalidOperation operation)
+        private IOperation VisitInvalidOperationStatement(IInvalidOperation operation)
         {
             Debug.Assert(_currentStatement == operation);
             VisitStatements(operation.Children);
+            return new InvalidOperation(ImmutableArray<IOperation>.Empty, semanticModel: null, operation.Syntax, operation.Type, operation.ConstantValue, IsImplicit(operation));
         }
 
 
@@ -5632,7 +5632,7 @@ oneMoreTime:
 
             if (numChildren == 0)
             {
-                return new InvalidOperation(ImmutableArray<IOperation>.Empty, semanticModel: null, operation.Syntax, null, operation.ConstantValue, IsImplicit(operation));
+                return new InvalidOperation(ImmutableArray<IOperation>.Empty, semanticModel: null, operation.Syntax, operation.Type, operation.ConstantValue, IsImplicit(operation));
             }
 
             var childrenBuilder = ArrayBuilder<IOperation>.GetInstance(numChildren);
@@ -5643,7 +5643,7 @@ oneMoreTime:
 
             childrenBuilder.ReverseContents();
 
-            return new InvalidOperation(childrenBuilder.ToImmutableAndFree(), semanticModel: null, operation.Syntax, null, operation.ConstantValue,  IsImplicit(operation));
+            return new InvalidOperation(childrenBuilder.ToImmutableAndFree(), semanticModel: null, operation.Syntax, operation.Type, operation.ConstantValue,  IsImplicit(operation));
         }
 
         public override IOperation VisitConstantPattern(IConstantPatternOperation operation, int? captureIdForResult)

@@ -296,7 +296,7 @@ Block[B4] - Block
                 IOperation:  (OperationKind.None, Type: null, IsInvalid) (Syntax: 'i[1, (a ? b : c)]')
                   Children(2):
                       IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: System.Int32*, IsInvalid, IsImplicit) (Syntax: 'i')
-                      IInvalidOperation (OperationKind.Invalid, Type: null, IsInvalid, IsImplicit) (Syntax: 'i[1, (a ? b : c)]')
+                      IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid, IsImplicit) (Syntax: 'i[1, (a ? b : c)]')
                         Children(2):
                             IFlowCaptureReferenceOperation: 2 (OperationKind.FlowCaptureReference, Type: System.Int32, Constant: 1, IsInvalid, IsImplicit) (Syntax: '1')
                             IFlowCaptureReferenceOperation: 3 (OperationKind.FlowCaptureReference, Type: System.Int32, IsInvalid, IsImplicit) (Syntax: 'a ? b : c')

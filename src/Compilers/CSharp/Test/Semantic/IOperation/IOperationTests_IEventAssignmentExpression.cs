@@ -890,7 +890,7 @@ Block[B1] - Block
           Expression: 
             ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Void, IsInvalid) (Syntax: '(c.MyEvent  ... andler) = 0')
               Left: 
-                IInvalidOperation (OperationKind.Invalid, Type: null, IsInvalid, IsImplicit) (Syntax: 'c.MyEvent += handler')
+                IInvalidOperation (OperationKind.Invalid, Type: System.Void, IsInvalid, IsImplicit) (Syntax: 'c.MyEvent += handler')
                   Children(1):
                       IEventAssignmentOperation (EventAdd) (OperationKind.EventAssignment, Type: System.Void, IsInvalid) (Syntax: 'c.MyEvent += handler')
                         Event Reference: 
@@ -943,7 +943,7 @@ Block[B1] - Block
     Statements (2)
         IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsInvalid, IsImplicit) (Syntax: 'c.MyEvent += handler')
           Value: 
-            IInvalidOperation (OperationKind.Invalid, Type: null, IsInvalid, IsImplicit) (Syntax: 'c.MyEvent += handler')
+            IInvalidOperation (OperationKind.Invalid, Type: System.Void, IsInvalid, IsImplicit) (Syntax: 'c.MyEvent += handler')
               Children(1):
                   IEventAssignmentOperation (EventAdd) (OperationKind.EventAssignment, Type: System.Void, IsInvalid) (Syntax: 'c.MyEvent += handler')
                     Event Reference: 
@@ -989,7 +989,7 @@ Block[B4] - Block
           Expression: 
             ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Void, IsInvalid) (Syntax: '(c.MyEvent  ...  = x1 ?? x2')
               Left: 
-                IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: null, IsInvalid, IsImplicit) (Syntax: 'c.MyEvent += handler')
+                IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.Void, IsInvalid, IsImplicit) (Syntax: 'c.MyEvent += handler')
               Right: 
                 IFlowCaptureReferenceOperation: 2 (OperationKind.FlowCaptureReference, Type: System.Int32, IsImplicit) (Syntax: 'x1 ?? x2')
 
