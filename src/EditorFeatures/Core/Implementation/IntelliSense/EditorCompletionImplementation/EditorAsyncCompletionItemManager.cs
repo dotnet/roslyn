@@ -520,7 +520,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.E
             ImmutableArray<EditorCompletion.CompletionFilter> activeFilters,
             bool mustSetSelection)
         {
-            // TODO: DismissIfEmpty?
+            // TODO: DismissIfEmpty? https://github.com/dotnet/roslyn/issues/27431
             // If the user was just typing, and the list went to empty *and* this is a 
             // language that wants to dismiss on empty, then just return a null model
             // to stop the completion session.

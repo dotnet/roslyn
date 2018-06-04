@@ -120,7 +120,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.E
                 attributeImages = ImmutableArray.Create(
                     new ImageElement(
                         warningImage,
-                        "Temporary Automation Name")); // TODO: Get automation names, here and below
+                        "Temporary Automation Name")); // TODO: Get automation names, here and below https://github.com/dotnet/roslyn/issues/27430
             }
 
             var item = new EditorCompletion.CompletionItem(
