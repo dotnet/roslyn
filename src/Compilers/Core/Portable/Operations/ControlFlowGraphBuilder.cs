@@ -5614,7 +5614,7 @@ oneMoreTime:
 
         private void VisitInvalidOperationStatement(IInvalidOperation operation)
         {
-            Debug.Assert(_currentStatement == operation, "VisitInvalidOperationStatementAssert");
+            Debug.Assert(_currentStatement == operation);
             VisitStatements(operation.Children);
         }
 
