@@ -256,7 +256,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
             If block Then
                 Await WaitForAsynchronousOperationsAsync()
             End If
-            Dim session = GetExportedValue(Of IAsyncCompletionBroker)().GetSession(_textView)
+            Dim session = GetExportedValue(Of IAsyncCompletionBroker)().GetSession(TextView)
             If (session Is Nothing) Then
                 Return
             End If
@@ -277,7 +277,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
 
         Public Async Function AssertCompletionSession() As Task
             Await WaitForAsynchronousOperationsAsync()
-            Dim session = GetExportedValue(Of IAsyncCompletionBroker)().GetSession(_textView)
+            Dim session = GetExportedValue(Of IAsyncCompletionBroker)().GetSession(TextView)
             Assert.NotNull(session)
         End Function
 
@@ -292,7 +292,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
 
         Public Function CompletionItemsContainsAll(displayText As String()) As Boolean
             AssertNoAsynchronousOperationsRunning()
-            Dim session = GetExportedValue(Of IAsyncCompletionBroker)().GetSession(_textView)
+            Dim session = GetExportedValue(Of IAsyncCompletionBroker)().GetSession(TextView)
             Assert.NotNull(session)
             Dim items = session.GetComputedItems(CancellationToken.None)
             Return displayText.All(Function(v) items.Items.Any(
@@ -301,7 +301,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
 
         Public Function CompletionItemsContainsAny(displayText As String()) As Boolean
             AssertNoAsynchronousOperationsRunning()
-            Dim session = GetExportedValue(Of IAsyncCompletionBroker)().GetSession(_textView)
+            Dim session = GetExportedValue(Of IAsyncCompletionBroker)().GetSession(TextView)
             Assert.NotNull(session)
             Dim items = session.GetComputedItems(CancellationToken.None)
 
@@ -311,7 +311,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
 
         Public Sub AssertItemsInOrder(expectedOrder As String())
             AssertNoAsynchronousOperationsRunning()
-            Dim session = GetExportedValue(Of IAsyncCompletionBroker)().GetSession(_textView)
+            Dim session = GetExportedValue(Of IAsyncCompletionBroker)().GetSession(TextView)
             Assert.NotNull(session)
             ' Assert.True(False) ' TODO!!!
             Dim items = session.GetComputedItems(CancellationToken.None).Items
@@ -330,7 +330,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
                                Optional filterText As String = Nothing) As Task
             Await WaitForAsynchronousOperationsAsync()
 
-            Dim session = GetExportedValue(Of IAsyncCompletionBroker)().GetSession(_textView)
+            Dim session = GetExportedValue(Of IAsyncCompletionBroker)().GetSession(TextView)
             Assert.NotNull(session)
             Dim items = session.GetComputedItems(CancellationToken.None)
 

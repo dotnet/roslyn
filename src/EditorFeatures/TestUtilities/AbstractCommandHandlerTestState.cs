@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests
         public readonly TestWorkspace Workspace;
         public readonly IEditorOperations EditorOperations;
         public readonly ITextUndoHistoryRegistry UndoHistoryRegistry;
-        protected readonly ITextView _textView;
+        private readonly ITextView _textView;
         private readonly ITextBuffer _subjectBuffer;
 
         public AbstractCommandHandlerTestState(
