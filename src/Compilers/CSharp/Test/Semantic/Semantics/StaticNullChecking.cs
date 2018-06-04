@@ -24038,6 +24038,21 @@ class C
         }
 
         [Fact]
+        public void PartialClassConstraintMismatch()
+        {
+            var source =
+@"class A { }
+partial class B<T> where T : A { }
+partial class B<T> where T : A? { }";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
+            // PROTOTYPE(NullableReferenceTypes): Should report ErrorCode.ERR_PartialWrongConstraints.
+            comp.VerifyDiagnostics(
+                // (3,30): error CS0706: Invalid constraint type. A type used as a constraint must be an interface, a non-sealed class or a type parameter.
+                // partial class B<T> where T : A? { }
+                Diagnostic(ErrorCode.ERR_BadConstraintType, "A?").WithLocation(3, 30));
+        }
+
+        [Fact]
         public void AssignmentNullability()
         {
             var source =
