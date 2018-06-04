@@ -703,7 +703,7 @@ Block[B1] - Block
 
     Next (Regular) Block[B2]
 Block[B2] - Block
-    Predecessors: [B1]
+    Predecessors: [B1*2]
     Statements (1)
         IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'result = false;')
           Expression: 
@@ -762,7 +762,7 @@ Block[B1] - Block
 
     Next (Regular) Block[B2]
 Block[B2] - Block
-    Predecessors: [B1]
+    Predecessors: [B1*2]
     Statements (1)
         IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'result = false;')
           Expression: 
@@ -833,7 +833,7 @@ Block[B2] - Block
 
     Next (Regular) Block[B3]
 Block[B3] - Block
-    Predecessors: [B1] [B2]
+    Predecessors: [B1] [B2*2]
     Statements (1)
         IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'result = false;')
           Expression: 
@@ -1560,7 +1560,8 @@ Block[B1] - Block
             IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.Int32?, IsImplicit) (Syntax: 'input')
           Right: 
             IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Int32?, IsImplicit) (Syntax: '1')
-              Conversion: CommonConversion (Exists: True)
+              Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                (ImplicitNullable)
               Operand: 
                 ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
 
@@ -2911,7 +2912,8 @@ Block[B1] - Block
                 IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.Int32?, IsImplicit) (Syntax: 'input')
               Right: 
                 IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Int32?, IsInvalid, IsImplicit) (Syntax: '1+(input is ... 1 ? x1 : 0)')
-                  Conversion: CommonConversion (Exists: True)
+                  Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                    (ImplicitNullable)
                   Operand: 
                     IBinaryOperation (BinaryOperatorKind.Add) (OperationKind.BinaryOperator, Type: System.Int32, IsInvalid) (Syntax: '1+(input is ... 1 ? x1 : 0)')
                       Left: 

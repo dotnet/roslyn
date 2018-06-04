@@ -645,5 +645,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             // called.
             FinishLoad();
         }
+
+        internal void OnBeforeOpenSolution()
+        {
+            AssertIsForeground();
+
+            _solutionLoadComplete = false;
+        }
     }
 }

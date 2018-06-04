@@ -1626,7 +1626,7 @@ class Query
        Console.WriteLine(r1);
     }
 }";
-            var compilation = CreateCompilation(csSource, new[] { LinqAssemblyRef });
+            var compilation = CreateCompilation(csSource);
             foreach (var dd in compilation.GetDiagnostics()) Console.WriteLine(dd);
             compilation.VerifyDiagnostics();
             var tree = compilation.SyntaxTrees[0];
@@ -1902,7 +1902,7 @@ class Program
     }
 }";
 
-            CompileAndVerify(csSource, references: new[] { LinqAssemblyRef }, expectedOutput: "3 3 4 4");
+            CompileAndVerify(csSource, expectedOutput: "3 3 4 4");
         }
 
         [WorkItem(541782, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541782")]
@@ -1929,7 +1929,7 @@ class Program
         System.Console.Write(serializer.Trim());
     }
 }";
-            CompileAndVerify(csSource, references: new[] { LinqAssemblyRef }, expectedOutput: "3 4");
+            CompileAndVerify(csSource, expectedOutput: "3 4");
         }
 
 
@@ -1959,7 +1959,7 @@ class Program
     }
 }";
 
-            CompileAndVerify(csSource, references: new[] { LinqAssemblyRef }, expectedOutput: "1 2 3");
+            CompileAndVerify(csSource, expectedOutput: "1 2 3");
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
@@ -2093,7 +2093,7 @@ class Program
     }
 }";
 
-            CompileAndVerify(csSource, references: new[] { LinqAssemblyRef }, expectedOutput: "3 4");
+            CompileAndVerify(csSource, expectedOutput: "3 4");
         }
 
         [WorkItem(541942, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541942")]
@@ -2124,7 +2124,7 @@ class P
     }
 }";
 
-            CompileAndVerify(csSource, references: new[] { LinqAssemblyRef }, expectedOutput: "45");
+            CompileAndVerify(csSource, expectedOutput: "45");
         }
 
         [Fact]

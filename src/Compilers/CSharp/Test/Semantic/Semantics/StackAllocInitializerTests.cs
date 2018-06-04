@@ -738,19 +738,19 @@ unsafe class Test
                 // (6,9): error CS1525: Invalid expression term 'stackalloc'
                 //         stackalloc[] {1};
                 Diagnostic(ErrorCode.ERR_InvalidExprTerm, "stackalloc").WithArguments("stackalloc").WithLocation(6, 9),
-                // (6,9): error CS0201: Only assignment, call, increment, decrement, and new object expressions can be used as a statement
+                // (6,9): error CS0201: Only assignment, call, increment, decrement, await, and new object expressions can be used as a statement
                 //         stackalloc[] {1};
                 Diagnostic(ErrorCode.ERR_IllegalStatement, "stackalloc[] {1}").WithLocation(6, 9),
                 // (7,9): error CS1525: Invalid expression term 'stackalloc'
                 //         stackalloc int[] {1};
                 Diagnostic(ErrorCode.ERR_InvalidExprTerm, "stackalloc").WithArguments("stackalloc").WithLocation(7, 9),
-                // (7,9): error CS0201: Only assignment, call, increment, decrement, and new object expressions can be used as a statement
+                // (7,9): error CS0201: Only assignment, call, increment, decrement, await, and new object expressions can be used as a statement
                 //         stackalloc int[] {1};
                 Diagnostic(ErrorCode.ERR_IllegalStatement, "stackalloc int[] {1}").WithLocation(7, 9),
                 // (8,9): error CS1525: Invalid expression term 'stackalloc'
                 //         stackalloc int[1] {1};
                 Diagnostic(ErrorCode.ERR_InvalidExprTerm, "stackalloc").WithArguments("stackalloc").WithLocation(8, 9),
-                // (8,9): error CS0201: Only assignment, call, increment, decrement, and new object expressions can be used as a statement
+                // (8,9): error CS0201: Only assignment, call, increment, decrement, await, and new object expressions can be used as a statement
                 //         stackalloc int[1] {1};
                 Diagnostic(ErrorCode.ERR_IllegalStatement, "stackalloc int[1] {1}").WithLocation(8, 9)
                 );

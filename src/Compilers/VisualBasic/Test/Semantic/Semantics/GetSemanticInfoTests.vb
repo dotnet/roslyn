@@ -5509,7 +5509,7 @@ Namespace Test
     End Interface
 End Namespace
     ]]></file>
-</compilation>, TestOptions.ReleaseDll)
+</compilation>, options:=TestOptions.ReleaseDll)
 
             AssertTheseDiagnostics(pia, <expected></expected>)
 

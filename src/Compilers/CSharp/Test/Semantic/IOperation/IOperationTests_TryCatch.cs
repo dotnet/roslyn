@@ -2590,7 +2590,7 @@ Block[B0] - Entry
 
         Next (Regular) Block[B3]
     Block[B3] - Block
-        Predecessors: [B2]
+        Predecessors: [B2*2]
         Statements (0)
         Next (StructuredExceptionHandling) Block[null]
 }
@@ -3575,7 +3575,7 @@ Block[B0] - Entry
 }
 
 Block[B3] - Exit
-    Predecessors: [B1] [B2]
+    Predecessors: [B1*2] [B2]
     Statements (0)
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
@@ -3747,16 +3747,20 @@ Block[B0] - Entry
     Block[B1] - Block
         Predecessors: [B0]
         Statements (0)
-        Jump if False (Regular) to Block[B3]
+        Jump if False (Regular) to Block[B4]
             ILiteralOperation (OperationKind.Literal, Type: System.Boolean, Constant: True) (Syntax: 'true')
             Leaving: {R2} {R1}
 
+        Next (Regular) Block[B2]
+    Block[B2] - Block
+        Predecessors: [B1]
+        Statements (0)
         Next (Throw) Block[null]
             ILiteralOperation (OperationKind.Literal, Type: null, Constant: null) (Syntax: 'null')
 }
 .catch {R3} (System.Object)
 {
-    Block[B2] - Block
+    Block[B3] - Block
         Predecessors (0)
         Statements (1)
             IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'b = true;')
@@ -3767,12 +3771,12 @@ Block[B0] - Entry
                   Right: 
                     ILiteralOperation (OperationKind.Literal, Type: System.Boolean, Constant: True) (Syntax: 'true')
 
-        Next (Regular) Block[B3]
+        Next (Regular) Block[B4]
             Leaving: {R3} {R1}
 }
 
-Block[B3] - Exit
-    Predecessors: [B1] [B2]
+Block[B4] - Exit
+    Predecessors: [B1] [B3]
     Statements (0)
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
@@ -3811,16 +3815,20 @@ Block[B0] - Entry
     Block[B1] - Block
         Predecessors: [B0]
         Statements (0)
-        Jump if False (Regular) to Block[B3]
+        Jump if False (Regular) to Block[B4]
             ILiteralOperation (OperationKind.Literal, Type: System.Boolean, Constant: False) (Syntax: 'false')
             Leaving: {R2} {R1}
 
+        Next (Regular) Block[B2]
+    Block[B2] - Block [UnReachable]
+        Predecessors: [B1]
+        Statements (0)
         Next (Throw) Block[null]
             ILiteralOperation (OperationKind.Literal, Type: null, Constant: null) (Syntax: 'null')
 }
 .catch {R3} (System.Object)
 {
-    Block[B2] - Block
+    Block[B3] - Block
         Predecessors (0)
         Statements (1)
             IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'b = true;')
@@ -3831,12 +3839,12 @@ Block[B0] - Entry
                   Right: 
                     ILiteralOperation (OperationKind.Literal, Type: System.Boolean, Constant: True) (Syntax: 'true')
 
-        Next (Regular) Block[B3]
+        Next (Regular) Block[B4]
             Leaving: {R3} {R1}
 }
 
-Block[B3] - Exit
-    Predecessors: [B1] [B2]
+Block[B4] - Exit
+    Predecessors: [B1] [B3]
     Statements (0)
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
@@ -4090,7 +4098,7 @@ Block[B0] - Entry
 }
 
 Block[B3] - Exit
-    Predecessors: [B1] [B2]
+    Predecessors: [B1*2] [B2]
     Statements (0)
 ";
             var expectedDiagnostics = new[] {
@@ -4168,7 +4176,7 @@ Block[B0] - Entry
 }
 
 Block[B3] - Exit
-    Predecessors: [B1] [B2]
+    Predecessors: [B1*2] [B2]
     Statements (0)
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
@@ -4211,11 +4219,15 @@ Block[B0] - Entry
     Block[B1] - Block
         Predecessors: [B0]
         Statements (0)
-        Jump if False (Regular) to Block[B3]
+        Jump if False (Regular) to Block[B4]
             ILiteralOperation (OperationKind.Literal, Type: System.Boolean, Constant: True) (Syntax: 'true')
             Leaving: {R2} {R1}
 
-        Next (Return) Block[B4]
+        Next (Regular) Block[B2]
+    Block[B2] - Block
+        Predecessors: [B1]
+        Statements (0)
+        Next (Return) Block[B5]
             IInvocationOperation (System.Boolean[] P.ThisCanThrow()) (OperationKind.Invocation, Type: System.Boolean[]) (Syntax: 'ThisCanThrow()')
               Instance Receiver: 
                 null
@@ -4224,7 +4236,7 @@ Block[B0] - Entry
 }
 .catch {R3} (System.Object)
 {
-    Block[B2] - Block
+    Block[B3] - Block
         Predecessors (0)
         Statements (1)
             IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'b = true;')
@@ -4235,21 +4247,21 @@ Block[B0] - Entry
                   Right: 
                     ILiteralOperation (OperationKind.Literal, Type: System.Boolean, Constant: True) (Syntax: 'true')
 
-        Next (Regular) Block[B3]
+        Next (Regular) Block[B4]
             Leaving: {R3} {R1}
 }
 
-Block[B3] - Block
-    Predecessors: [B1] [B2]
+Block[B4] - Block
+    Predecessors: [B1] [B3]
     Statements (0)
-    Next (Return) Block[B4]
+    Next (Return) Block[B5]
         IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Boolean[], Constant: null, IsImplicit) (Syntax: 'null')
           Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
             (ImplicitReference)
           Operand: 
             ILiteralOperation (OperationKind.Literal, Type: null, Constant: null) (Syntax: 'null')
-Block[B4] - Exit
-    Predecessors: [B1] [B3]
+Block[B5] - Exit
+    Predecessors: [B2] [B4]
     Statements (0)
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
@@ -4292,11 +4304,15 @@ Block[B0] - Entry
     Block[B1] - Block
         Predecessors: [B0]
         Statements (0)
-        Jump if False (Regular) to Block[B3]
+        Jump if False (Regular) to Block[B4]
             ILiteralOperation (OperationKind.Literal, Type: System.Boolean, Constant: False) (Syntax: 'false')
             Leaving: {R2} {R1}
 
-        Next (Return) Block[B4]
+        Next (Regular) Block[B2]
+    Block[B2] - Block [UnReachable]
+        Predecessors: [B1]
+        Statements (0)
+        Next (Return) Block[B5]
             IInvocationOperation (System.Boolean[] P.ThisCanThrow()) (OperationKind.Invocation, Type: System.Boolean[]) (Syntax: 'ThisCanThrow()')
               Instance Receiver: 
                 null
@@ -4305,7 +4321,7 @@ Block[B0] - Entry
 }
 .catch {R3} (System.Object)
 {
-    Block[B2] - Block
+    Block[B3] - Block
         Predecessors (0)
         Statements (1)
             IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'b = true;')
@@ -4316,21 +4332,21 @@ Block[B0] - Entry
                   Right: 
                     ILiteralOperation (OperationKind.Literal, Type: System.Boolean, Constant: True) (Syntax: 'true')
 
-        Next (Regular) Block[B3]
+        Next (Regular) Block[B4]
             Leaving: {R3} {R1}
 }
 
-Block[B3] - Block
-    Predecessors: [B1] [B2]
+Block[B4] - Block
+    Predecessors: [B1] [B3]
     Statements (0)
-    Next (Return) Block[B4]
+    Next (Return) Block[B5]
         IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Boolean[], Constant: null, IsImplicit) (Syntax: 'null')
           Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
             (ImplicitReference)
           Operand: 
             ILiteralOperation (OperationKind.Literal, Type: null, Constant: null) (Syntax: 'null')
-Block[B4] - Exit
-    Predecessors: [B1] [B3]
+Block[B5] - Exit
+    Predecessors: [B2] [B4]
     Statements (0)
 ";
             var expectedDiagnostics = new[] {
@@ -6531,7 +6547,7 @@ Block[B0] - Entry
     Block[B1] - Block
         Predecessors: [B0]
         Statements (0)
-        Next (Regular) Block[B4]
+        Next (Regular) Block[B5]
             Finalizing: {R3}
             Leaving: {R2} {R1}
 }
@@ -6540,18 +6556,22 @@ Block[B0] - Entry
     Block[B2] - Block
         Predecessors (0)
         Statements (0)
-        Jump if False (Regular) to Block[B3]
+        Jump if False (Regular) to Block[B4]
             ILiteralOperation (OperationKind.Literal, Type: System.Boolean, Constant: True) (Syntax: 'true')
 
+        Next (Regular) Block[B3]
+    Block[B3] - Block
+        Predecessors: [B2]
+        Statements (0)
         Next (Throw) Block[null]
             ILiteralOperation (OperationKind.Literal, Type: null, Constant: null) (Syntax: 'null')
-    Block[B3] - Block [UnReachable]
+    Block[B4] - Block [UnReachable]
         Predecessors: [B2]
         Statements (0)
         Next (StructuredExceptionHandling) Block[null]
 }
 
-Block[B4] - Exit [UnReachable]
+Block[B5] - Exit [UnReachable]
     Predecessors: [B1]
     Statements (0)
 ";
@@ -6590,7 +6610,7 @@ Block[B0] - Entry
     Block[B1] - Block
         Predecessors: [B0]
         Statements (0)
-        Next (Regular) Block[B4]
+        Next (Regular) Block[B5]
             Finalizing: {R3}
             Leaving: {R2} {R1}
 }
@@ -6599,18 +6619,22 @@ Block[B0] - Entry
     Block[B2] - Block
         Predecessors (0)
         Statements (0)
-        Jump if False (Regular) to Block[B3]
+        Jump if False (Regular) to Block[B4]
             ILiteralOperation (OperationKind.Literal, Type: System.Boolean, Constant: False) (Syntax: 'false')
 
+        Next (Regular) Block[B3]
+    Block[B3] - Block [UnReachable]
+        Predecessors: [B2]
+        Statements (0)
         Next (Throw) Block[null]
             ILiteralOperation (OperationKind.Literal, Type: null, Constant: null) (Syntax: 'null')
-    Block[B3] - Block
+    Block[B4] - Block
         Predecessors: [B2]
         Statements (0)
         Next (StructuredExceptionHandling) Block[null]
 }
 
-Block[B4] - Exit
+Block[B5] - Exit
     Predecessors: [B1]
     Statements (0)
 ";
@@ -6649,7 +6673,7 @@ Block[B0] - Entry
     Block[B1] - Block
         Predecessors: [B0]
         Statements (0)
-        Next (Regular) Block[B4]
+        Next (Regular) Block[B5]
             Finalizing: {R3}
             Leaving: {R2} {R1}
 }
@@ -6658,18 +6682,22 @@ Block[B0] - Entry
     Block[B2] - Block
         Predecessors (0)
         Statements (0)
-        Jump if False (Regular) to Block[B3]
+        Jump if False (Regular) to Block[B4]
             IParameterReferenceOperation: b (OperationKind.ParameterReference, Type: System.Boolean) (Syntax: 'b')
 
+        Next (Regular) Block[B3]
+    Block[B3] - Block
+        Predecessors: [B2]
+        Statements (0)
         Next (Throw) Block[null]
             ILiteralOperation (OperationKind.Literal, Type: null, Constant: null) (Syntax: 'null')
-    Block[B3] - Block
+    Block[B4] - Block
         Predecessors: [B2]
         Statements (0)
         Next (StructuredExceptionHandling) Block[null]
 }
 
-Block[B4] - Exit
+Block[B5] - Exit
     Predecessors: [B1]
     Statements (0)
 ";

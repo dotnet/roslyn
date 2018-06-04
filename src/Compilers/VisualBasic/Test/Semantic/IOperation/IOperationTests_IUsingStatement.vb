@@ -1102,7 +1102,8 @@ Block[B0] - Entry
                     IInvocationOperation (virtual Sub System.IDisposable.Dispose()) (OperationKind.Invocation, Type: System.Void, IsImplicit) (Syntax: 's2')
                       Instance Receiver: 
                         IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.IDisposable, IsImplicit) (Syntax: 's2')
-                          Conversion: CommonConversion (Exists: True)
+                          Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                            (WideningValue)
                           Operand: 
                             ILocalReferenceOperation: s2 (OperationKind.LocalReference, Type: S2, IsImplicit) (Syntax: 's2')
                       Arguments(0)
@@ -1127,7 +1128,8 @@ Block[B0] - Entry
                 IInvocationOperation (virtual Sub System.IDisposable.Dispose()) (OperationKind.Invocation, Type: System.Void, IsImplicit) (Syntax: 'c1')
                   Instance Receiver: 
                     IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.IDisposable, IsImplicit) (Syntax: 'c1')
-                      Conversion: CommonConversion (Exists: True)
+                      Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
+                        (WideningReference)
                       Operand: 
                         ILocalReferenceOperation: c1 (OperationKind.LocalReference, Type: C1, IsImplicit) (Syntax: 'c1')
                   Arguments(0)
@@ -1142,6 +1144,86 @@ Block[B0] - Entry
 
 Block[B8] - Exit
     Predecessors: [B3]
+    Statements (0)
+]]>.Value
+
+            VerifyFlowGraphAndDiagnosticsForTest(Of MethodBlockSyntax)(source, expectedFlowGraph, expectedDiagnostics)
+        End Sub
+
+        <CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)>
+        <Fact()>
+        Public Sub UsingFlow_15()
+            Dim source = <![CDATA[
+Imports System
+Public Class C
+    Sub M() 'BIND:"Sub M"
+        Using Nothing
+        End Using
+    End Sub
+End Class
+]]>.Value
+
+            Dim expectedDiagnostics = String.Empty
+
+            Dim expectedFlowGraph = <![CDATA[
+Block[B0] - Entry
+    Statements (0)
+    Next (Regular) Block[B1]
+Block[B1] - Block
+    Predecessors: [B0]
+    Statements (1)
+        IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'Nothing')
+          Value: 
+            IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Object, Constant: null, IsImplicit) (Syntax: 'Nothing')
+              Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                (WideningNothingLiteral)
+              Operand: 
+                ILiteralOperation (OperationKind.Literal, Type: null, Constant: null) (Syntax: 'Nothing')
+
+    Next (Regular) Block[B2]
+        Entering: {R1} {R2}
+
+.try {R1, R2}
+{
+    Block[B2] - Block
+        Predecessors: [B1]
+        Statements (0)
+        Next (Regular) Block[B6]
+            Finalizing: {R3}
+            Leaving: {R2} {R1}
+}
+.finally {R3}
+{
+    Block[B3] - Block
+        Predecessors (0)
+        Statements (0)
+        Jump if True (Regular) to Block[B5]
+            IIsNullOperation (OperationKind.IsNull, Type: System.Boolean, Constant: True, IsImplicit) (Syntax: 'Nothing')
+              Operand: 
+                IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.Object, Constant: null, IsImplicit) (Syntax: 'Nothing')
+
+        Next (Regular) Block[B4]
+    Block[B4] - Block [UnReachable]
+        Predecessors: [B3]
+        Statements (1)
+            IInvocationOperation (virtual Sub System.IDisposable.Dispose()) (OperationKind.Invocation, Type: System.Void, IsImplicit) (Syntax: 'Nothing')
+              Instance Receiver: 
+                IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.IDisposable, Constant: null, IsImplicit) (Syntax: 'Nothing')
+                  Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
+                    (NarrowingReference)
+                  Operand: 
+                    IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.Object, Constant: null, IsImplicit) (Syntax: 'Nothing')
+              Arguments(0)
+
+        Next (Regular) Block[B5]
+    Block[B5] - Block
+        Predecessors: [B3] [B4]
+        Statements (0)
+        Next (StructuredExceptionHandling) Block[null]
+}
+
+Block[B6] - Exit
+    Predecessors: [B2]
     Statements (0)
 ]]>.Value
 

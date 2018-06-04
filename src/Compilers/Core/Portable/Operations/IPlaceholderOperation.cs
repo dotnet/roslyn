@@ -10,6 +10,7 @@ namespace Microsoft.CodeAnalysis.Operations
         SwitchOperationExpression = 1,
         ForToLoopBinaryOperatorLeftOperand = 2,
         ForToLoopBinaryOperatorRightOperand = 3,
+        AggregationGroup = 4,
     }
 
     /// <summary>

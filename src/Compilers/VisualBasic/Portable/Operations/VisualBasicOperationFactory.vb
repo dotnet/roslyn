@@ -266,8 +266,7 @@ Namespace Microsoft.CodeAnalysis.Operations
                     ' Queryable source has no special representation in the IOperation tree
                     Return Create(DirectCast(boundNode, BoundQueryableSource).Source)
                 Case BoundKind.AggregateClause
-                    ' Aggregate clause has no special representation in the IOperation tree
-                    Return Create(DirectCast(boundNode, BoundAggregateClause).UnderlyingExpression)
+                    Return CreateBoundAggregateClauseOperation(DirectCast(boundNode, BoundAggregateClause))
                 Case BoundKind.Ordering
                     ' Ordering clause has no special representation in the IOperation tree
                     Return Create(DirectCast(boundNode, BoundOrdering).UnderlyingExpression)
@@ -976,6 +975,10 @@ Namespace Microsoft.CodeAnalysis.Operations
                             Debug.Assert(boundRValuePlaceholder Is operators.RightOperandPlaceholder)
                             placeholderKind = PlaceholderKind.ForToLoopBinaryOperatorRightOperand
                         End If
+
+                    Case BoundKind.AggregateClause
+                        placeholderKind = PlaceholderKind.AggregationGroup
+
                 End Select
             End If
 
@@ -1636,6 +1639,24 @@ Namespace Microsoft.CodeAnalysis.Operations
             Dim constantValue As [Optional](Of Object) = ConvertToOptional(boundQueryExpression.ConstantValueOpt)
             Dim isImplicit As Boolean = boundQueryExpression.WasCompilerGenerated
             Return New LazyTranslatedQueryExpression(expression, _semanticModel, syntax, type, constantValue, isImplicit)
+        End Function
+
+        Private Function CreateBoundAggregateClauseOperation(boundAggregateClause As BoundAggregateClause) As IOperation
+            If boundAggregateClause.CapturedGroupOpt Is Nothing Then
+                ' This Aggregate clause has no special representation in the IOperation tree
+                Return Create(boundAggregateClause.UnderlyingExpression)
+            End If
+
+            Debug.Assert(boundAggregateClause.GroupPlaceholderOpt IsNot Nothing)
+            RecordParent(boundAggregateClause.GroupPlaceholderOpt, boundAggregateClause)
+
+            Dim group As Lazy(Of IOperation) = New Lazy(Of IOperation)(Function() Create(boundAggregateClause.CapturedGroupOpt))
+            Dim aggregation As Lazy(Of IOperation) = New Lazy(Of IOperation)(Function() Create(boundAggregateClause.UnderlyingExpression))
+            Dim syntax As SyntaxNode = boundAggregateClause.Syntax
+            Dim type As ITypeSymbol = boundAggregateClause.Type
+            Dim constantValue As [Optional](Of Object) = ConvertToOptional(boundAggregateClause.ConstantValueOpt)
+            Dim isImplicit As Boolean = boundAggregateClause.WasCompilerGenerated
+            Return New LazyAggregateQueryOperation(group, aggregation, _semanticModel, syntax, type, constantValue, isImplicit)
         End Function
 
         Private Function CreateBoundNullableIsTrueOperator(boundNullableIsTrueOperator As BoundNullableIsTrueOperator) As IOperation

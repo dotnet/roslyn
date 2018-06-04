@@ -1068,7 +1068,7 @@ Block[B1] - Block
 
     Next (Regular) Block[B2]
 Block[B2] - Block
-    Predecessors: [B1]
+    Predecessors: [B1*2]
     Statements (0)
     Next (Throw) Block[null]
         IParameterReferenceOperation: ex (OperationKind.ParameterReference, Type: System.Exception) (Syntax: 'ex')
@@ -1476,17 +1476,21 @@ Block[B0] - Entry
 Block[B1] - Block
     Predecessors: [B0]
     Statements (0)
-    Jump if False (Regular) to Block[B2]
+    Jump if False (Regular) to Block[B3]
         IParameterReferenceOperation: a (OperationKind.ParameterReference, Type: System.Boolean) (Syntax: 'a')
 
-    Next (Throw) Block[null]
-        IParameterReferenceOperation: ex1 (OperationKind.ParameterReference, Type: System.Exception) (Syntax: 'ex1')
+    Next (Regular) Block[B2]
 Block[B2] - Block
     Predecessors: [B1]
     Statements (0)
     Next (Throw) Block[null]
+        IParameterReferenceOperation: ex1 (OperationKind.ParameterReference, Type: System.Exception) (Syntax: 'ex1')
+Block[B3] - Block
+    Predecessors: [B1]
+    Statements (0)
+    Next (Throw) Block[null]
         IParameterReferenceOperation: ex2 (OperationKind.ParameterReference, Type: System.Exception) (Syntax: 'ex2')
-Block[B3] - Exit [UnReachable]
+Block[B4] - Exit [UnReachable]
     Predecessors (0)
     Statements (0)
 ";
@@ -1531,17 +1535,21 @@ Block[B1] - Block
               Right: 
                 ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
 
-    Jump if False (Regular) to Block[B2]
+    Jump if False (Regular) to Block[B3]
         IParameterReferenceOperation: a (OperationKind.ParameterReference, Type: System.Boolean) (Syntax: 'a')
 
-    Next (Throw) Block[null]
-        IParameterReferenceOperation: ex1 (OperationKind.ParameterReference, Type: System.Exception) (Syntax: 'ex1')
+    Next (Regular) Block[B2]
 Block[B2] - Block
     Predecessors: [B1]
     Statements (0)
     Next (Throw) Block[null]
+        IParameterReferenceOperation: ex1 (OperationKind.ParameterReference, Type: System.Exception) (Syntax: 'ex1')
+Block[B3] - Block
+    Predecessors: [B1]
+    Statements (0)
+    Next (Throw) Block[null]
         IParameterReferenceOperation: ex2 (OperationKind.ParameterReference, Type: System.Exception) (Syntax: 'ex2')
-Block[B3] - Exit [UnReachable]
+Block[B4] - Exit [UnReachable]
     Predecessors (0)
     Statements (0)
 ";

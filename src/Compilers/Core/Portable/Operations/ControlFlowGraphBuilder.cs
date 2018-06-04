@@ -28,11 +28,9 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
         private IOperation _currentSwitchOperationExpression;
         private IOperation _forToLoopBinaryOperatorLeftOperand;
         private IOperation _forToLoopBinaryOperatorRightOperand;
+        private IOperation _currentAggregationGroup;
         private bool _forceImplicit; // Force all rewritten nodes to be marked as implicit regardless of their original state.
 
-        // PROTOTYPE(dataflow): does the public API IFlowCaptureOperation.Id specify how identifiers are created or assigned?
-        // Should we use uint to exclude negative integers? Should we randomize them in any way to avoid dependencies 
-        // being taken?
         private int _availableCaptureId = 0;
 
         /// <summary>
@@ -115,7 +113,6 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
             var methodsMap = ImmutableDictionary.CreateBuilder<IMethodSymbol, (ControlFlowRegion, IOperation, int)>();
             ControlFlowRegion region = root.ToImmutableRegionAndFree(blocks, methods, methodsMap, enclosing);
             root = null;
-            CalculateBranchLeaveEnterLists(blocks);
             MarkReachableBlocks(blocks);
 
             Debug.Assert(builder._evalStack.Count == 0);
@@ -126,111 +123,54 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
             return new ControlFlowGraph(body, ToImmutableBlocks(blocks), region, methods.ToImmutableAndFree(), methodsMap.ToImmutable());
         }
 
-        private static ImmutableArray<BasicBlock> ToImmutableBlocks(ArrayBuilder<BasicBlockBuilder> blocksBuilder)
+        private static ImmutableArray<BasicBlock> ToImmutableBlocks(ArrayBuilder<BasicBlockBuilder> blockBuilders)
         {
-            var builder = ArrayBuilder<BasicBlock>.GetInstance(blocksBuilder.Count);
-            var branchMap = PooledDictionary<(BasicBlockBuilder source, BasicBlockBuilder destination, bool isFallThrough), ControlFlowBranch>.GetInstance();
-            var ordinalToBlockMap = PooledDictionary<int, BasicBlock>.GetInstance();
+            var builder = ArrayBuilder<BasicBlock>.GetInstance(blockBuilders.Count);
 
             // Pass 1: Iterate through blocksBuilder to create basic blocks.
-            foreach (BasicBlockBuilder blockBuilder in blocksBuilder)
+            foreach (BasicBlockBuilder blockBuilder in blockBuilders)
             {
-                var block = new BasicBlock(blockBuilder.Kind,
-                    blockBuilder.GetImmutableStatements(),
-                    blockBuilder.InternalConditional.Condition,
-                    blockBuilder.InternalNext.Value,
-                    getConditionKind(blockBuilder),
-                    blockBuilder.Ordinal,
-                    blockBuilder.IsReachable, blockBuilder.Region);
-                builder.Add(block);
-                ordinalToBlockMap.Add(block.Ordinal, block);
+                builder.Add(blockBuilder.ToImmutable());
             }
 
             // Pass 2: Create control flow branches with source and destination info and
             //         update the branch information for the created basic blocks.
-            for (int i = 0; i < blocksBuilder.Count; i++)
+            foreach (BasicBlockBuilder blockBuilder in blockBuilders)
             {
-                BasicBlockBuilder blockBuilder = blocksBuilder[i];
-                BasicBlock block = builder[i];
-
                 ControlFlowBranch successor = getFallThroughSuccessor(blockBuilder);
                 ControlFlowBranch conditionalSuccessor = getConditionalSuccessor(blockBuilder);
-                ImmutableArray<ControlFlowBranch> predecessors = getPredecessors(blockBuilder);
-                block.SetSuccessorsAndPredecessors(successor, conditionalSuccessor, predecessors);
+                builder[blockBuilder.Ordinal].SetSuccessors(successor, conditionalSuccessor);
             }
 
-            branchMap.Free();
-            ordinalToBlockMap.Free();
+            // Pass 3: Set the predecessors for the created basic blocks.
+            foreach (BasicBlockBuilder blockBuilder in blockBuilders)
+            {
+                builder[blockBuilder.Ordinal].SetPredecessors(blockBuilder.ConvertPredecessorsToBranches(builder));
+            }
+
             return builder.ToImmutableAndFree();
 
-            ControlFlowConditionKind getConditionKind(BasicBlockBuilder blockBuilder)
+            ControlFlowBranch getFallThroughSuccessor(BasicBlockBuilder blockBuilder)
             {
-                if (blockBuilder.InternalConditional.Condition == null)
-                {
-                    return ControlFlowConditionKind.None;
-                }
-
-                return blockBuilder.InternalConditional.JumpIfTrue ? ControlFlowConditionKind.WhenTrue : ControlFlowConditionKind.WhenFalse;
+                return blockBuilder.Kind != BasicBlockKind.Exit ?
+                           getBranch(in blockBuilder.FallThrough, blockBuilder, isConditionalSuccessor: false) :
+                           null;
             }
 
-            ControlFlowBranch getFallThroughSuccessor(BasicBlockBuilder blockBuilder) =>
-                blockBuilder.Kind != BasicBlockKind.Exit ?
-                    getBranch(blockBuilder.InternalNext.Branch,
-                        blockBuilder,
-                        isFallThrough: true) :
-                    null;
-
-            ControlFlowBranch getConditionalSuccessor(BasicBlockBuilder blockBuilder) =>
-                blockBuilder.InternalConditional.Condition != null ?
-                    getBranch(blockBuilder.InternalConditional.Branch,
-                        blockBuilder,
-                        isFallThrough: false) :
-                    null;
-
-            ImmutableArray<ControlFlowBranch> getPredecessors(BasicBlockBuilder blockBuilder)
+            ControlFlowBranch getConditionalSuccessor(BasicBlockBuilder blockBuilder)
             {
-                if (blockBuilder.Predecessors.Count == 0)
-                {
-                    return ImmutableArray<ControlFlowBranch>.Empty;
-                }
-
-                var predecessorsBuilder = ArrayBuilder<ControlFlowBranch>.GetInstance(blockBuilder.Predecessors.Count);
-
-                // Order predecessors by ordinal to ensure deterministic predecessor ordering.
-                foreach (BasicBlockBuilder predecessorBlockBuilder in blockBuilder.Predecessors.OrderBy(p => p.Ordinal))
-                {
-                    if (predecessorBlockBuilder.InternalNext.Branch.Destination == blockBuilder)
-                    {
-                        predecessorsBuilder.Add(getFallThroughSuccessor(predecessorBlockBuilder));
-                    }
-
-                    if (predecessorBlockBuilder.InternalConditional.Branch.Destination == blockBuilder)
-                    {
-                        predecessorsBuilder.Add(getConditionalSuccessor(predecessorBlockBuilder));
-                    }
-                }
-
-                return predecessorsBuilder.ToImmutableAndFree();
+                return blockBuilder.HasCondition ?
+                           getBranch(in blockBuilder.Conditional, blockBuilder, isConditionalSuccessor: true) :
+                           null;
             }
 
-            ControlFlowBranch getBranch(BasicBlockBuilder.Branch branch, BasicBlockBuilder source, bool isFallThrough)
+            ControlFlowBranch getBranch(in BasicBlockBuilder.Branch branch, BasicBlockBuilder source, bool isConditionalSuccessor)
             {
-                (BasicBlockBuilder source, BasicBlockBuilder destination, bool isFallThrough) key = (source, branch.Destination, isFallThrough);
-                if (!branchMap.TryGetValue(key, out ControlFlowBranch controlFlowBranch))
-                {
-                    controlFlowBranch = new ControlFlowBranch(
-                        source: ordinalToBlockMap[source.Ordinal],
-                        destination: branch.Destination != null ? ordinalToBlockMap[branch.Destination.Ordinal] : null,
+                return new ControlFlowBranch(
+                        source: builder[source.Ordinal],
+                        destination: branch.Destination != null ? builder[branch.Destination.Ordinal] : null,
                         branch.Kind,
-                        isConditionalSuccessor: !isFallThrough,
-                        branch.LeavingRegions,
-                        branch.EnteringRegions,
-                        branch.FinallyRegions);
-
-                    branchMap.Add(key, controlFlowBranch);
-                }
-
-                return controlFlowBranch;
+                        isConditionalSuccessor);
             }
         }
 
@@ -281,27 +221,26 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
                 current.IsReachable = true;
                 bool fallThrough = true;
 
-                (IOperation Condition, bool JumpIfTrue, BasicBlockBuilder.Branch Branch) conditional = current.InternalConditional;
-                if (conditional.Condition != null)
+                if (current.HasCondition)
                 {
-                    if (conditional.Condition.ConstantValue.HasValue && conditional.Condition.ConstantValue.Value is bool constant)
+                    if (current.BranchValue.ConstantValue.HasValue && current.BranchValue.ConstantValue.Value is bool constant)
                     {
-                        if (constant == conditional.JumpIfTrue)
+                        if (constant == (current.ConditionKind == ControlFlowConditionKind.WhenTrue))
                         {
-                            followBranch(current, conditional.Branch);
+                            followBranch(current, in current.Conditional);
                             fallThrough = false;
                         }
                     }
                     else
                     {
-                        followBranch(current, conditional.Branch);
+                        followBranch(current, in current.Conditional);
                     }
                 }
 
                 if (fallThrough)
                 {
-                    BasicBlockBuilder.Branch branch = current.InternalNext.Branch;
-                    followBranch(current, branch);
+                    BasicBlockBuilder.Branch branch = current.FallThrough;
+                    followBranch(current, in branch);
 
                     if (current.Ordinal == lastBlockOrdinal && branch.Kind != ControlFlowBranchSemantics.Throw && branch.Kind != ControlFlowBranchSemantics.Rethrow)
                     {
@@ -320,7 +259,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
             toVisit.Free();
             return visited;
 
-            void followBranch(BasicBlockBuilder current, BasicBlockBuilder.Branch branch)
+            void followBranch(BasicBlockBuilder current, in BasicBlockBuilder.Branch branch)
             {
                 switch (branch.Kind)
                 {
@@ -395,7 +334,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
                     visited.UnionWith(isolated);
 
                     continueDispatch = isolatedFellThrough &&
-                                       blocks[@finally.LastBlockOrdinal].InternalNext.Branch.Kind == ControlFlowBranchSemantics.StructuredExceptionHandling;
+                                       blocks[@finally.LastBlockOrdinal].FallThrough.Kind == ControlFlowBranchSemantics.StructuredExceptionHandling;
 
                     continueDispatchAfterFinally.Add(@finally, continueDispatch);
                 }
@@ -494,59 +433,6 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
             }
         }
 
-        private static void CalculateBranchLeaveEnterLists(ArrayBuilder<BasicBlockBuilder> blocks)
-        {
-            var builder = ArrayBuilder<ControlFlowRegion>.GetInstance();
-
-            foreach (BasicBlockBuilder b in blocks)
-            {
-                calculateBranchLeaveEnterLists(ref b.InternalConditional.Branch, b);
-                calculateBranchLeaveEnterLists(ref b.InternalNext.Branch, b);
-            }
-
-            builder.Free();
-            return;
-
-            void calculateBranchLeaveEnterLists(ref BasicBlockBuilder.Branch branch, BasicBlockBuilder source)
-            {
-                if (branch.Destination == null)
-                {
-                    branch.LeavingRegions = ImmutableArray<ControlFlowRegion>.Empty;
-                    branch.EnteringRegions = ImmutableArray<ControlFlowRegion>.Empty;
-                }
-                else
-                {
-                    branch.LeavingRegions = calculateLeaveList(source, branch.Destination);
-                    branch.EnteringRegions = calculateEnterList(source, branch.Destination);
-                }
-            }
-
-            ImmutableArray<ControlFlowRegion> calculateLeaveList(BasicBlockBuilder source, BasicBlockBuilder destination)
-            {
-                collectRegions(destination.Ordinal, source.Region);
-                return builder.ToImmutable();
-            }
-
-            ImmutableArray<ControlFlowRegion> calculateEnterList(BasicBlockBuilder source, BasicBlockBuilder destination)
-            {
-                collectRegions(source.Ordinal, destination.Region);
-                builder.ReverseContents();
-                return builder.ToImmutable();
-            }
-
-            void collectRegions(int destinationOrdinal, ControlFlowRegion source)
-            {
-                builder.Clear();
-
-                while (!source.ContainsBlock(destinationOrdinal))
-                {
-                    Debug.Assert(source.Kind != ControlFlowRegionKind.Root);
-                    builder.Add(source);
-                    source = source.EnclosingRegion;
-                }
-            }
-        }
-
         /// <summary>
         /// Do a pass to eliminate blocks without statements that can be merged with predecessor(s) and
         /// to eliminate regions that can be merged with parents.
@@ -634,7 +520,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
                                 {
                                     BasicBlockBuilder block = subRegion.FirstBlock;
 
-                                    if (block.Statements.Count == 0 && block.InternalConditional.Condition == null && block.InternalNext.Value == null)
+                                    if (!block.HasStatements && block.BranchValue == null)
                                     {
                                         // This sub-region has no executable code, merge block into the parent and drop the sub-region
                                         Debug.Assert(regionMap[block] == subRegion);
@@ -716,6 +602,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
             ArrayBuilder<RegionBuilder> fromCurrent = null;
             ArrayBuilder<RegionBuilder> fromDestination = null;
             ArrayBuilder<RegionBuilder> fromPredecessor = null;
+            ArrayBuilder<BasicBlockBuilder> predecessorsBuilder = null;
 
             bool anyRemoved = false;
             bool retry;
@@ -747,23 +634,21 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
                     //    retry = true;
                     //}
 
-                    if (block.Statements.Count > 0)
+                    if (block.HasStatements)
                     {
                         // See if we can move all statements to the previous block
-                        ISet<BasicBlockBuilder> predecessors = block.Predecessors;
-                        BasicBlockBuilder predecessor;
-                        if (predecessors.Count == 1 &&
-                            (predecessor = predecessors.Single()).InternalConditional.Condition == null &&
+                        BasicBlockBuilder predecessor = block.GetSingletonPredecessorOrDefault();
+                        if (predecessor != null &&
+                            !predecessor.HasCondition &&
                             predecessor.Ordinal < block.Ordinal &&
                             predecessor.Kind != BasicBlockKind.Entry &&
-                            predecessor.InternalNext.Branch.Destination == block &&
+                            predecessor.FallThrough.Destination == block &&
                             regionMap[predecessor] == regionMap[block])
                         {
-                            Debug.Assert(predecessor.InternalNext.Value == null);
-                            Debug.Assert(predecessor.InternalNext.Branch.Kind == ControlFlowBranchSemantics.Regular);
+                            Debug.Assert(predecessor.BranchValue == null);
+                            Debug.Assert(predecessor.FallThrough.Kind == ControlFlowBranchSemantics.Regular);
 
-                            predecessor.AddStatements(block.Statements);
-                            block.RemoveStatements();
+                            predecessor.MoveStatementsFrom(block);
                             retry = true;
                         }
                         else
@@ -772,9 +657,9 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
                         }
                     }
 
-                    ref BasicBlockBuilder.Branch next = ref block.InternalNext.Branch;
+                    ref BasicBlockBuilder.Branch next = ref block.FallThrough;
 
-                    Debug.Assert((block.InternalNext.Value != null) == (next.Kind == ControlFlowBranchSemantics.Return || next.Kind == ControlFlowBranchSemantics.Throw));
+                    Debug.Assert((block.BranchValue != null && !block.HasCondition) == (next.Kind == ControlFlowBranchSemantics.Return || next.Kind == ControlFlowBranchSemantics.Throw));
                     Debug.Assert((next.Destination == null) ==
                                  (next.Kind == ControlFlowBranchSemantics.ProgramTermination ||
                                   next.Kind == ControlFlowBranchSemantics.Throw ||
@@ -792,7 +677,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
                     }
 #endif
 
-                    if (block.InternalConditional.Condition == null)
+                    if (!block.HasCondition)
                     {
                         if (next.Destination == block)
                         {
@@ -810,7 +695,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
                             // Remove Try/Finally if Finally is empty
                             if (currentRegion.Kind == ControlFlowRegionKind.Finally &&
                                 next.Destination == null && next.Kind == ControlFlowBranchSemantics.StructuredExceptionHandling &&
-                                block.Predecessors.Count == 0)
+                                !block.HasPredecessors)
                             {
                                 // Nothing useful is happening in this finally, let's remove it
                                 RegionBuilder tryAndFinally = currentRegion.Enclosing;
@@ -850,24 +735,22 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
 
                         if (next.Kind == ControlFlowBranchSemantics.StructuredExceptionHandling)
                         {
-                            Debug.Assert(block.InternalNext.Value == null);
+                            Debug.Assert(block.HasCondition || block.BranchValue == null);
                             Debug.Assert(next.Destination == null);
 
-                            ISet<BasicBlockBuilder> predecessors = block.Predecessors;
-
                             // It is safe to drop an unreachable empty basic block
-                            if (predecessors.Count > 0)
+                            if (block.HasPredecessors)
                             {
-                                if (predecessors.Count != 1)
+                                BasicBlockBuilder predecessor = block.GetSingletonPredecessorOrDefault();
+
+                                if (predecessor == null)
                                 {
                                     continue;
                                 }
 
-                                BasicBlockBuilder predecessor = predecessors.Single();
-
                                 if (predecessor.Ordinal != i - 1 ||
-                                    predecessor.InternalNext.Branch.Destination != block ||
-                                    predecessor.InternalConditional.Branch.Destination == block ||
+                                    predecessor.FallThrough.Destination != block ||
+                                    predecessor.Conditional.Destination == block ||
                                     regionMap[predecessor] != currentRegion)
                                 {
                                     // Do not merge StructuredExceptionHandling into the middle of the filter or finally,
@@ -878,7 +761,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
                                     continue;
                                 }
 
-                                predecessor.InternalNext = block.InternalNext;
+                                predecessor.FallThrough = block.FallThrough;
                             }
                         }
                         else
@@ -890,8 +773,8 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
                                          next.Kind == ControlFlowBranchSemantics.Error ||
                                          next.Kind == ControlFlowBranchSemantics.ProgramTermination);
 
-                            ISet<BasicBlockBuilder> predecessors = block.Predecessors;
-                            IOperation value = block.InternalNext.Value;
+                            Debug.Assert(!block.HasCondition); // This is ensured by an "if" above.
+                            IOperation value = block.BranchValue;
 
                             RegionBuilder implicitEntryRegion = tryGetImplicitEntryRegion(block, currentRegion);
 
@@ -910,10 +793,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
 
                             if (value != null)
                             {
-                                BasicBlockBuilder predecessor;
-                                int predecessorsCount = predecessors.Count;
-
-                                if (predecessorsCount == 0 && next.Kind == ControlFlowBranchSemantics.Return)
+                                if (!block.HasPredecessors && next.Kind == ControlFlowBranchSemantics.Return)
                                 {
                                     // Let's drop an unreachable compiler generated return that VB optimistically adds at the end of a method body
                                     if (next.Destination.Kind != BasicBlockKind.Exit ||
@@ -926,49 +806,67 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
                                 }
                                 else
                                 {
-                                    if (predecessorsCount != 1 ||
-                                      (predecessor = predecessors.Single()).InternalConditional.Branch.Destination == block ||
-                                      predecessor.Kind == BasicBlockKind.Entry ||
-                                      regionMap[predecessor] != currentRegion)
+                                    BasicBlockBuilder predecessor = block.GetSingletonPredecessorOrDefault();
+                                    if (predecessor == null ||
+                                        predecessor.BranchValue != null ||
+                                        predecessor.Kind == BasicBlockKind.Entry ||
+                                        regionMap[predecessor] != currentRegion)
                                     {
                                         // Do not merge return/throw with expression with more than one predecessor
-                                        // Do not merge return/throw with expression with conditional branch
+                                        // Do not merge return/throw into a block with conditional branch
                                         // Do not merge return/throw with expression with an entry block
                                         // Do not merge return/throw with expression into a different region
                                         continue;
                                     }
 
-                                    Debug.Assert(predecessor.InternalNext.Branch.Destination == block);
+                                    Debug.Assert(predecessor.FallThrough.Destination == block);
                                 }
                             }
 
                             // For throw/re-throw assume there is no specific destination region
                             RegionBuilder destinationRegionOpt = next.Destination == null ? null : regionMap[next.Destination];
 
-                            // If source and destination are in different regions, it might
-                            // be unsafe to merge branches.
-                            if (currentRegion != destinationRegionOpt)
+                            if (block.HasPredecessors)
                             {
-                                fromCurrent?.Clear();
-                                fromDestination?.Clear();
-
-                                if (!checkBranchesFromPredecessors(block, currentRegion, destinationRegionOpt))
+                                if (predecessorsBuilder == null)
                                 {
-                                    continue;
+                                    predecessorsBuilder = ArrayBuilder<BasicBlockBuilder>.GetInstance();
                                 }
-                            }
-
-                            foreach (BasicBlockBuilder predecessor in predecessors)
-                            {
-                                if (tryMergeBranch(predecessor, ref predecessor.InternalNext.Branch, block))
+                                else
                                 {
-                                    Debug.Assert(predecessor.InternalNext.Value == null);
-                                    predecessor.InternalNext.Value = value;
+                                    predecessorsBuilder.Clear();
                                 }
 
-                                if (tryMergeBranch(predecessor, ref predecessor.InternalConditional.Branch, block))
+                                block.GetPredecessors(predecessorsBuilder);
+
+                                // If source and destination are in different regions, it might
+                                // be unsafe to merge branches.
+                                if (currentRegion != destinationRegionOpt)
                                 {
-                                    Debug.Assert(value == null);
+                                    fromCurrent?.Clear();
+                                    fromDestination?.Clear();
+
+                                    if (!checkBranchesFromPredecessors(predecessorsBuilder, currentRegion, destinationRegionOpt))
+                                    {
+                                        continue;
+                                    }
+                                }
+
+                                foreach (BasicBlockBuilder predecessor in predecessorsBuilder)
+                                {
+                                    if (tryMergeBranch(predecessor, ref predecessor.FallThrough, block))
+                                    {
+                                        if (value != null)
+                                        {
+                                            Debug.Assert(predecessor.BranchValue == null);
+                                            predecessor.BranchValue = value;
+                                        }
+                                    }
+
+                                    if (tryMergeBranch(predecessor, ref predecessor.Conditional, block))
+                                    {
+                                        Debug.Assert(value == null);
+                                    }
                                 }
                             }
 
@@ -995,9 +893,9 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
                                      next.Kind == ControlFlowBranchSemantics.Error ||
                                      next.Kind == ControlFlowBranchSemantics.ProgramTermination);
 
-                        ISet<BasicBlockBuilder> predecessors = block.Predecessors;
+                        BasicBlockBuilder predecessor = block.GetSingletonPredecessorOrDefault();
 
-                        if (predecessors.Count != 1)
+                        if (predecessor == null)
                         {
                             continue;
                         }
@@ -1010,23 +908,22 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
                             continue;
                         }
 
-                        BasicBlockBuilder predecessor = predecessors.Single();
-
                         if (predecessor.Kind != BasicBlockKind.Entry &&
-                            predecessor.InternalNext.Branch.Destination == block &&
-                            predecessor.InternalConditional.Condition == null &&
+                            predecessor.FallThrough.Destination == block &&
+                            !predecessor.HasCondition &&
                             regionMap[predecessor] == currentRegion)
                         {
                             Debug.Assert(predecessor != block);
-                            Debug.Assert(predecessor.InternalNext.Value == null);
+                            Debug.Assert(predecessor.BranchValue == null);
 
-                            mergeBranch(predecessor, ref predecessor.InternalNext.Branch, ref next);
+                            mergeBranch(predecessor, ref predecessor.FallThrough, ref next);
 
-                            predecessor.InternalNext.Value = block.InternalNext.Value;
                             next.Destination?.RemovePredecessor(block);
 
-                            predecessor.InternalConditional = block.InternalConditional;
-                            BasicBlockBuilder destination = block.InternalConditional.Branch.Destination;
+                            predecessor.BranchValue = block.BranchValue;
+                            predecessor.ConditionKind = block.ConditionKind;
+                            predecessor.Conditional = block.Conditional;
+                            BasicBlockBuilder destination = block.Conditional.Destination;
                             if (destination != null)
                             {
                                 destination.AddPredecessor(predecessor);
@@ -1050,6 +947,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
             fromCurrent?.Free();
             fromDestination?.Free();
             fromPredecessor?.Free();
+            predecessorsBuilder?.Free();
 
             return anyRemoved;
 
@@ -1113,14 +1011,14 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
                 Debug.Assert(removed);
                 Debug.Assert(blocks[block.Ordinal] == block);
                 blocks.RemoveAt(block.Ordinal);
-                block.Ordinal = -1;
+                block.Free();
             }
 
             bool tryMergeBranch(BasicBlockBuilder predecessor, ref BasicBlockBuilder.Branch predecessorBranch, BasicBlockBuilder successor)
             {
                 if (predecessorBranch.Destination == successor)
                 {
-                    mergeBranch(predecessor, ref predecessorBranch, ref successor.InternalNext.Branch);
+                    mergeBranch(predecessor, ref predecessorBranch, ref successor.FallThrough);
                     return true;
                 }
 
@@ -1135,9 +1033,9 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
                 predecessorBranch.Kind = successorBranch.Kind;
             }
 
-            bool checkBranchesFromPredecessors(BasicBlockBuilder block, RegionBuilder currentRegion, RegionBuilder destinationRegionOpt)
+            bool checkBranchesFromPredecessors(ArrayBuilder<BasicBlockBuilder> predecessors, RegionBuilder currentRegion, RegionBuilder destinationRegionOpt)
             {
-                foreach (BasicBlockBuilder predecessor in block.Predecessors)
+                foreach (BasicBlockBuilder predecessor in predecessors)
                 {
                     RegionBuilder predecessorRegion = regionMap[predecessor];
 
@@ -1249,8 +1147,8 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
             // Mark branches using unresolved labels as errors.
             foreach (BasicBlockBuilder block in blocks)
             {
-                fixupBranch(ref block.InternalConditional.Branch);
-                fixupBranch(ref block.InternalNext.Branch);
+                fixupBranch(ref block.Conditional);
+                fixupBranch(ref block.FallThrough);
             }
 
             unresolved.Free();
@@ -1322,7 +1220,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
             {
                 BasicBlockBuilder prevBlock = _blocks.Last();
 
-                if (prevBlock.InternalNext.Branch.Destination == null)
+                if (prevBlock.FallThrough.Destination == null)
                 {
                     LinkBlocks(prevBlock, block);
                 }
@@ -1363,10 +1261,10 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
 
         private static void LinkBlocks(BasicBlockBuilder prevBlock, BasicBlockBuilder nextBlock, ControlFlowBranchSemantics branchKind = ControlFlowBranchSemantics.Regular)
         {
-            Debug.Assert(prevBlock.InternalNext.Value == null);
-            Debug.Assert(prevBlock.InternalNext.Branch.Destination == null);
-            prevBlock.InternalNext.Branch.Destination = nextBlock;
-            prevBlock.InternalNext.Branch.Kind = branchKind;
+            Debug.Assert(prevBlock.HasCondition || prevBlock.BranchValue == null);
+            Debug.Assert(prevBlock.FallThrough.Destination == null);
+            prevBlock.FallThrough.Destination = nextBlock;
+            prevBlock.FallThrough.Kind = branchKind;
             nextBlock.AddPredecessor(prevBlock);
         }
 
@@ -1403,8 +1301,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
             int captureId = VisitAndCapture(operation.Value);
 
             ImplicitInstanceInfo previousInitializedInstance = _currentImplicitInstance;
-            _currentImplicitInstance = new ImplicitInstanceInfo(
-                new FlowCaptureReference(captureId, operation.Value.Syntax, operation.Value.Type, operation.Value.ConstantValue));
+            _currentImplicitInstance = new ImplicitInstanceInfo(GetCaptureReference(captureId, operation.Value));
 
             VisitStatement(operation.Body);
 
@@ -1553,7 +1450,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
 
                 AppendNewBlock(afterIf);
 
-                return new FlowCaptureReference(captureId, operation.Syntax, operation.Type, operation.ConstantValue);
+                return GetCaptureReference(captureId, operation);
             }
         }
 
@@ -1570,7 +1467,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
 
             int captureId;
             if (rewritten.Kind != OperationKind.FlowCaptureReference ||
-                saveAvailableCaptureId > (captureId = ((IFlowCaptureReferenceOperation)rewritten).Id.Id))
+                saveAvailableCaptureId > (captureId = ((IFlowCaptureReferenceOperation)rewritten).Id.Value))
             {
                 captureId = _availableCaptureId++;
                 AddStatement(new FlowCapture(captureId, operation.Syntax, rewritten));
@@ -1582,7 +1479,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
         private void CaptureResultIfNotAlready(SyntaxNode syntax, int captureId, IOperation result)
         {
             if (result.Kind != OperationKind.FlowCaptureReference ||
-                captureId != ((IFlowCaptureReferenceOperation)result).Id.Id)
+                captureId != ((IFlowCaptureReferenceOperation)result).Id.Value)
             {
                 AddStatement(new FlowCapture(captureId, syntax, result));
             }
@@ -1607,7 +1504,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
 #endif
                                 );
 
-                    _evalStack[i] = new FlowCaptureReference(captureId, operation.Syntax, operation.Type, operation.ConstantValue);
+                    _evalStack[i] = GetCaptureReference(captureId, operation);
                 }
             }
         }
@@ -1869,7 +1766,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
             }
 
             condition = UnwrapNullableValue(condition, compilation);
-            LinkBlocks(CurrentBasicBlock, (Operation.SetParentOperation(condition, null), JumpIfTrue: false, RegularBranch(checkRight)));
+            LinkBlocks(CurrentBasicBlock, Operation.SetParentOperation(condition, null), jumpIfTrue: false, RegularBranch(checkRight));
             _currentBasicBlock = null;
 
             int resultId = captureIdForResult ?? _availableCaptureId++;
@@ -1888,7 +1785,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
             }
 
             condition = UnwrapNullableValue(condition, compilation);
-            LinkBlocks(CurrentBasicBlock, (Operation.SetParentOperation(condition, null), JumpIfTrue: true, RegularBranch(resultIsLeft)));
+            LinkBlocks(CurrentBasicBlock, Operation.SetParentOperation(condition, null), jumpIfTrue: true, RegularBranch(resultIsLeft));
             _currentBasicBlock = null;
 
             AddStatement(new FlowCapture(resultId, binOp.Syntax, GetCaptureReference(rightId, right)));
@@ -1925,10 +1822,9 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
             var done = new BasicBlockBuilder(BasicBlockKind.Block);
             var checkRight = new BasicBlockBuilder(BasicBlockKind.Block);
 
-            condition = new ConversionOperation(Visit(left), ConvertibleConversion.Instance, isTryCast: false, isChecked: false,
-                                                semanticModel: null, left.Syntax, booleanType, constantValue: default, isImplicit: true);
+            condition = CreateConversion(compilation, Visit(left), booleanType);
 
-            LinkBlocks(CurrentBasicBlock, (Operation.SetParentOperation(condition, null), JumpIfTrue: isAndAlso, RegularBranch(checkRight)));
+            LinkBlocks(CurrentBasicBlock, Operation.SetParentOperation(condition, null), jumpIfTrue: isAndAlso, RegularBranch(checkRight));
             _currentBasicBlock = null;
 
             int resultId = _availableCaptureId++;
@@ -1938,23 +1834,29 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
 
             AppendNewBlock(checkRight);
 
-            condition = new ConversionOperation(Visit(right), ConvertibleConversion.Instance, isTryCast: false, isChecked: false,
-                                                semanticModel: null, right.Syntax, booleanType, constantValue: default, isImplicit: true);
+            condition = CreateConversion(compilation, Visit(right), booleanType);
 
             AddStatement(new FlowCapture(resultId, binOp.Syntax, condition));
 
             AppendNewBlock(done);
 
-            return new ConversionOperation(new FlowCaptureReference(resultId, binOp.Syntax, booleanType, constantValue: default),
-                                           ConvertibleConversion.Instance, isTryCast: false, isChecked: false,
+            condition = new FlowCaptureReference(resultId, binOp.Syntax, booleanType, constantValue: default);
+            return new ConversionOperation(condition, compilation.ClassifyConvertibleConversion(condition, binOp.Type, out _), isTryCast: false, isChecked: false,
                                            semanticModel: null, binOp.Syntax, binOp.Type, binOp.ConstantValue, isImplicit: true);
+        }
+
+        private static IOperation CreateConversion(Compilation compilation, IOperation operand, ITypeSymbol type)
+        {
+            return new ConversionOperation(operand, compilation.ClassifyConvertibleConversion(operand, type, out Optional<object> constantValue), isTryCast: false, isChecked: false,
+                                           semanticModel: null, operand.Syntax, type, constantValue, isImplicit: true);
         }
 
         private IOperation VisitDynamicBinaryConditionalOperator(IBinaryOperation binOp, int? captureIdForResult)
         {
             SpillEvalStack();
 
-            INamedTypeSymbol booleanType = ((Operation)binOp).SemanticModel.Compilation.GetSpecialType(SpecialType.System_Boolean);
+            Compilation compilation = ((Operation)binOp).SemanticModel.Compilation;
+            INamedTypeSymbol booleanType = compilation.GetSpecialType(SpecialType.System_Boolean);
             IOperation left = binOp.LeftOperand;
             IOperation right = binOp.RightOperand;
             IMethodSymbol unaryOperatorMethod = ((BaseBinaryOperatorExpression)binOp).UnaryOperatorMethod;
@@ -1998,14 +1900,11 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
             else
             {
                 // This is either an error case, or left is implicitly convertible to boolean
-                // PROTOTYPE(dataflow): In case the conversion is user-defined, neither bound node, nor IBinaryOperation
-                //                      has information about that method. For now we create conversion without that information too.
-                condition = new ConversionOperation(condition, ConvertibleConversion.Instance, isTryCast: false, isChecked: false,
-                                                    semanticModel: null, left.Syntax, booleanType, constantValue: default, isImplicit: true);
+                condition = CreateConversion(compilation, condition, booleanType);
                 jumpIfTrue = isAndAlso;
             }
 
-            LinkBlocks(CurrentBasicBlock, (Operation.SetParentOperation(condition, null), jumpIfTrue, RegularBranch(doBitWise)));
+            LinkBlocks(CurrentBasicBlock, Operation.SetParentOperation(condition, null), jumpIfTrue, RegularBranch(doBitWise));
             _currentBasicBlock = null;
 
             int resultId = captureIdForResult ?? _availableCaptureId++;
@@ -2013,8 +1912,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
 
             if (!ITypeSymbolHelpers.IsDynamicType(left.Type))
             {
-                resultFromLeft = new ConversionOperation(resultFromLeft, ConvertibleConversion.Instance, isTryCast: false, isChecked: false,
-                                                         semanticModel: null, left.Syntax, binOp.Type, constantValue: default, isImplicit: true);
+                resultFromLeft = CreateConversion(compilation, resultFromLeft, binOp.Type);
             }
 
             AddStatement(new FlowCapture(resultId, binOp.Syntax, resultFromLeft));
@@ -2067,7 +1965,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
                 if (unaryOperatorMethod == null ? isLifted : !ITypeSymbolHelpers.IsNullableType(unaryOperatorMethod.Parameters[0].Type))
                 {
                     condition = MakeIsNullOperation(condition, booleanType);
-                    LinkBlocks(CurrentBasicBlock, (Operation.SetParentOperation(condition, null), JumpIfTrue: true, RegularBranch(doBitWise)));
+                    LinkBlocks(CurrentBasicBlock, Operation.SetParentOperation(condition, null), jumpIfTrue: true, RegularBranch(doBitWise));
                     _currentBasicBlock = null;
 
                     Debug.Assert(unaryOperatorMethod == null || !ITypeSymbolHelpers.IsNullableType(unaryOperatorMethod.Parameters[0].Type));
@@ -2090,7 +1988,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
                 condition = MakeInvalidOperation(booleanType, condition);
             }
 
-            LinkBlocks(CurrentBasicBlock, (Operation.SetParentOperation(condition, null), JumpIfTrue: false, RegularBranch(doBitWise)));
+            LinkBlocks(CurrentBasicBlock, Operation.SetParentOperation(condition, null), jumpIfTrue: false, RegularBranch(doBitWise));
             _currentBasicBlock = null;
 
             int resultId = captureIdForResult ?? _availableCaptureId++;
@@ -2158,13 +2056,13 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
                 AppendNewBlock(lazyFallThrough);
 
                 var constantValue = new Optional<object>(stopValue);
-                SyntaxNode leftSyntax = (lazyFallThrough.Predecessors.Count == 1 ? condition.LeftOperand : condition).Syntax;
+                SyntaxNode leftSyntax = (lazyFallThrough.GetSingletonPredecessorOrDefault() != null ? condition.LeftOperand : condition).Syntax;
                 AddStatement(new FlowCapture(captureId, leftSyntax, new LiteralExpression(semanticModel: null, leftSyntax, condition.Type, constantValue, isImplicit: true)));
 
                 AppendNewBlock(labEnd);
             }
 
-            return new FlowCaptureReference(captureId, condition.Syntax, condition.Type, condition.ConstantValue);
+            return GetCaptureReference(captureId, condition);
         }
 
         private IOperation VisitConditionalExpression(IOperation condition, bool sense, int? captureIdForResult, BasicBlockBuilder fallToTrueOpt, BasicBlockBuilder fallToFalseOpt)
@@ -2319,7 +2217,7 @@ oneMoreTime:
 
                             convertedTestExpression = Operation.SetParentOperation(convertedTestExpression, null);
                             dest = dest ?? new BasicBlockBuilder(BasicBlockKind.Block);
-                            LinkBlocks(CurrentBasicBlock, (convertedTestExpression, sense, RegularBranch(dest)));
+                            LinkBlocks(CurrentBasicBlock, convertedTestExpression, sense, RegularBranch(dest));
                             _currentBasicBlock = null;
 
                             var afterCoalesce = new BasicBlockBuilder(BasicBlockKind.Block);
@@ -2350,19 +2248,22 @@ oneMoreTime:
                 default:
                     condition = Operation.SetParentOperation(Visit(condition), null);
                     dest = dest ?? new BasicBlockBuilder(BasicBlockKind.Block);
-                    LinkBlocks(CurrentBasicBlock, (condition, sense, RegularBranch(dest)));
+                    LinkBlocks(CurrentBasicBlock, condition, sense, RegularBranch(dest));
                     _currentBasicBlock = null;
                     return;
             }
         }
 
-        private static void LinkBlocks(BasicBlockBuilder previous, (IOperation Condition, bool JumpIfTrue, BasicBlockBuilder.Branch Branch) next)
+        private static void LinkBlocks(BasicBlockBuilder previous, IOperation condition, bool jumpIfTrue, BasicBlockBuilder.Branch branch)
         {
-            Debug.Assert(previous.InternalConditional.Condition == null);
-            Debug.Assert(next.Condition != null);
-            Debug.Assert(next.Condition.Parent == null);
-            next.Branch.Destination.AddPredecessor(previous);
-            previous.InternalConditional = next;
+            Debug.Assert(previous.BranchValue == null);
+            Debug.Assert(!previous.HasCondition);
+            Debug.Assert(condition != null);
+            Debug.Assert(condition.Parent == null);
+            branch.Destination.AddPredecessor(previous);
+            previous.BranchValue = condition;
+            previous.ConditionKind = jumpIfTrue ? ControlFlowConditionKind.WhenTrue : ControlFlowConditionKind.WhenFalse;
+            previous.Conditional = branch;
         }
 
         /// <summary>
@@ -2370,25 +2271,26 @@ oneMoreTime:
         /// </summary>
         private IOperation NullCheckAndConvertCoalesceValue(ICoalesceOperation operation, BasicBlockBuilder whenNull)
         {
-            SyntaxNode valueSyntax = operation.Value.Syntax;
-            ITypeSymbol valueTypeOpt = operation.Value.Type;
+            IOperation operationValue = operation.Value;
+            SyntaxNode valueSyntax = operationValue.Syntax;
+            ITypeSymbol valueTypeOpt = operationValue.Type;
 
             SpillEvalStack();
-            int testExpressionCaptureId = VisitAndCapture(operation.Value);
+            int testExpressionCaptureId = VisitAndCapture(operationValue);
 
-            Optional<object> constantValue = operation.Value.ConstantValue;
+            Optional<object> constantValue = operationValue.ConstantValue;
 
             Compilation compilation = ((Operation)operation).SemanticModel.Compilation;
             LinkBlocks(CurrentBasicBlock,
-                       (Operation.SetParentOperation(MakeIsNullOperation(new FlowCaptureReference(testExpressionCaptureId, valueSyntax, valueTypeOpt, constantValue),
-                                                                         compilation),
-                                                     null),
-                        true,
-                        RegularBranch(whenNull)));
+                       Operation.SetParentOperation(MakeIsNullOperation(GetCaptureReference(testExpressionCaptureId, operationValue),
+                                                                        compilation),
+                                                    null),
+                       jumpIfTrue: true,
+                       RegularBranch(whenNull));
             _currentBasicBlock = null;
 
             CommonConversion testConversion = operation.ValueConversion;
-            var capturedValue = new FlowCaptureReference(testExpressionCaptureId, valueSyntax, valueTypeOpt, constantValue);
+            FlowCaptureReference capturedValue = GetCaptureReference(testExpressionCaptureId, operationValue);
             IOperation convertedTestExpression = null;
 
             if (testConversion.Exists)
@@ -2447,7 +2349,7 @@ oneMoreTime:
 
             AppendNewBlock(afterCoalesce);
 
-            return new FlowCaptureReference(resultCaptureId, operation.Syntax, operation.Type, operation.ConstantValue);
+            return GetCaptureReference(resultCaptureId, operation);
         }
 
         private static BasicBlockBuilder.Branch RegularBranch(BasicBlockBuilder destination)
@@ -2547,14 +2449,14 @@ oneMoreTime:
                 Optional<object> constantValue = testExpression.ConstantValue;
 
                 LinkBlocks(CurrentBasicBlock,
-                           (Operation.SetParentOperation(MakeIsNullOperation(new FlowCaptureReference(testExpressionCaptureId, testExpressionSyntax, testExpressionType, constantValue),
-                                                                             compilation),
-                                                         null),
-                            true,
-                            RegularBranch(whenNull)));
+                           Operation.SetParentOperation(MakeIsNullOperation(GetCaptureReference(testExpressionCaptureId, testExpression),
+                                                                            compilation),
+                                                        null),
+                           jumpIfTrue: true,
+                           RegularBranch(whenNull));
                 _currentBasicBlock = null;
 
-                IOperation receiver = new FlowCaptureReference(testExpressionCaptureId, testExpressionSyntax, testExpressionType, constantValue);
+                IOperation receiver = GetCaptureReference(testExpressionCaptureId, testExpression);
 
                 if (ITypeSymbolHelpers.IsNullableType(testExpressionType))
                 {
@@ -2609,7 +2511,7 @@ oneMoreTime:
                 {
                     IOperation access = Visit(currentConditionalAccess.WhenNotNull);
                     AddStatement(new FlowCapture(resultCaptureId, currentConditionalAccess.WhenNotNull.Syntax,
-                        MakeNullable(access, operation.Type)));
+                        MakeNullable(compilation, access, operation.Type)));
                 }
                 else
                 {
@@ -2640,7 +2542,7 @@ oneMoreTime:
 
                 AppendNewBlock(afterAccess);
 
-                return new FlowCaptureReference(resultCaptureId, operation.Syntax, operation.Type, operation.ConstantValue);
+                return GetCaptureReference(resultCaptureId, operation);
             }
         }
 
@@ -2806,11 +2708,11 @@ oneMoreTime:
                         VisitConditionalBranch(filter, ref catchBlock, sense: true);
                         var continueDispatchBlock = new BasicBlockBuilder(BasicBlockKind.Block);
                         AppendNewBlock(continueDispatchBlock);
-                        continueDispatchBlock.InternalNext.Branch.Kind = ControlFlowBranchSemantics.StructuredExceptionHandling;
+                        continueDispatchBlock.FallThrough.Kind = ControlFlowBranchSemantics.StructuredExceptionHandling;
                         LeaveRegion();
 
-                        Debug.Assert(filterRegion.LastBlock.InternalNext.Branch.Destination == null);
-                        Debug.Assert(filterRegion.FirstBlock.Predecessors.Count == 0);
+                        Debug.Assert(filterRegion.LastBlock.FallThrough.Destination == null);
+                        Debug.Assert(!filterRegion.FirstBlock.HasPredecessors);
                     }
 
                     var handlerRegion = new RegionBuilder(ControlFlowRegionKind.Catch, catchClause.ExceptionType,
@@ -2833,13 +2735,21 @@ oneMoreTime:
                     {
                         Debug.Assert(_currentRegion == filterAndHandlerRegion);
                         LeaveRegion();
-                        Debug.Assert(filterAndHandlerRegion.Regions[0].LastBlock.InternalNext.Branch.Destination == null);
-                        Debug.Assert(handlerRegion.FirstBlock.Predecessors.All(p => filterAndHandlerRegion.Regions[0].FirstBlock.Ordinal <= p.Ordinal &&
-                                                                                    filterAndHandlerRegion.Regions[0].LastBlock.Ordinal >= p.Ordinal));
+#if DEBUG
+                        Debug.Assert(filterAndHandlerRegion.Regions[0].LastBlock.FallThrough.Destination == null);
+                        if (handlerRegion.FirstBlock.HasPredecessors)
+                        {
+                            var predecessors = ArrayBuilder<BasicBlockBuilder>.GetInstance();
+                            handlerRegion.FirstBlock.GetPredecessors(predecessors);
+                            Debug.Assert(predecessors.All(p => filterAndHandlerRegion.Regions[0].FirstBlock.Ordinal <= p.Ordinal &&
+                                                          filterAndHandlerRegion.Regions[0].LastBlock.Ordinal >= p.Ordinal));
+                            predecessors.Free();
+                        }
+#endif 
                     }
                     else
                     {
-                        Debug.Assert(handlerRegion.FirstBlock.Predecessors.Count == 0);
+                        Debug.Assert(!handlerRegion.FirstBlock.HasPredecessors);
                     }
                 }
 
@@ -2858,16 +2768,16 @@ oneMoreTime:
                 VisitStatement(operation.Finally);
                 var continueDispatchBlock = new BasicBlockBuilder(BasicBlockKind.Block);
                 AppendNewBlock(continueDispatchBlock);
-                continueDispatchBlock.InternalNext.Branch.Kind = ControlFlowBranchSemantics.StructuredExceptionHandling;
+                continueDispatchBlock.FallThrough.Kind = ControlFlowBranchSemantics.StructuredExceptionHandling;
                 LeaveRegion();
                 Debug.Assert(_currentRegion == tryAndFinallyRegion);
                 LeaveRegion();
-                Debug.Assert(finallyRegion.LastBlock.InternalNext.Branch.Destination == null);
-                Debug.Assert(finallyRegion.FirstBlock.Predecessors.Count == 0);
+                Debug.Assert(finallyRegion.LastBlock.FallThrough.Destination == null);
+                Debug.Assert(!finallyRegion.FirstBlock.HasPredecessors);
             }
 
             AppendNewBlock(afterTryCatchFinally, linkToPrevious: false);
-            Debug.Assert(tryAndFinallyRegion?.Regions[1].LastBlock.InternalNext.Branch.Destination == null);
+            Debug.Assert(tryAndFinallyRegion?.Regions[1].LastBlock.FallThrough.Destination == null);
 
             return null;
         }
@@ -2929,7 +2839,9 @@ oneMoreTime:
                 case OperationKind.Return:
                     BasicBlockBuilder current = CurrentBasicBlock;
                     LinkBlocks(CurrentBasicBlock, _exit, returnedValue is null ? ControlFlowBranchSemantics.Regular : ControlFlowBranchSemantics.Return);
-                    current.InternalNext.Value = Operation.SetParentOperation(returnedValue, null);
+                    Debug.Assert(current.BranchValue == null);
+                    Debug.Assert(!current.HasCondition);
+                    current.BranchValue = Operation.SetParentOperation(returnedValue, null);
                     _currentBasicBlock = null;
                     break;
 
@@ -3007,11 +2919,12 @@ oneMoreTime:
 
             BasicBlockBuilder current = CurrentBasicBlock;
             AppendNewBlock(new BasicBlockBuilder(BasicBlockKind.Block), linkToPrevious: false);
-            Debug.Assert(current.InternalNext.Value == null);
-            Debug.Assert(current.InternalNext.Branch.Destination == null);
-            Debug.Assert(current.InternalNext.Branch.Kind == ControlFlowBranchSemantics.None);
-            current.InternalNext.Value = exception;
-            current.InternalNext.Branch.Kind = operation.Exception == null ? ControlFlowBranchSemantics.Rethrow : ControlFlowBranchSemantics.Throw;
+            Debug.Assert(current.BranchValue == null);
+            Debug.Assert(!current.HasCondition);
+            Debug.Assert(current.FallThrough.Destination == null);
+            Debug.Assert(current.FallThrough.Kind == ControlFlowBranchSemantics.None);
+            current.BranchValue = exception;
+            current.FallThrough.Kind = operation.Exception == null ? ControlFlowBranchSemantics.Rethrow : ControlFlowBranchSemantics.Throw;
 
             if (isStatement)
             {
@@ -3059,11 +2972,11 @@ oneMoreTime:
 
                 if (shouldConvertToIDisposableBeforeTry(resource))
                 {
-                    resource = ConvertToIDisposable(resource, iDisposable);
+                    resource = ConvertToIDisposable(compilation, resource, iDisposable);
                 }
 
                 AddStatement(new FlowCapture(captureId, resource.Syntax, resource));
-                processResource(new FlowCaptureReference(captureId, resource.Syntax, resource.Type, constantValue: default), resourceQueueOpt: null);
+                processResource(GetCaptureReference(captureId, resource), resourceQueueOpt: null);
             }
 
             LeaveRegion();
@@ -3120,10 +3033,10 @@ oneMoreTime:
 
                 if (shouldConvertToIDisposableBeforeTry(resource))
                 {
-                    resource = ConvertToIDisposable(resource, iDisposable);
+                    resource = ConvertToIDisposable(compilation, resource, iDisposable);
                     int captureId = _availableCaptureId++;
                     AddStatement(new FlowCapture(captureId, resource.Syntax, resource));
-                    resource = new FlowCaptureReference(captureId, resource.Syntax, resource.Type, constantValue: default);
+                    resource = GetCaptureReference(captureId, resource);
                 }
 
                 var afterTryFinally = new BasicBlockBuilder(BasicBlockKind.Block);
@@ -3152,7 +3065,7 @@ oneMoreTime:
             Debug.Assert(_currentRegion.Kind == ControlFlowRegionKind.TryAndFinally);
 
             var endOfFinally = new BasicBlockBuilder(BasicBlockKind.Block);
-            endOfFinally.InternalNext.Branch.Kind = ControlFlowBranchSemantics.StructuredExceptionHandling;
+            endOfFinally.FallThrough.Kind = ControlFlowBranchSemantics.StructuredExceptionHandling;
 
             EnterRegion(new RegionBuilder(ControlFlowRegionKind.Finally));
             AppendNewBlock(new BasicBlockBuilder(BasicBlockKind.Block));
@@ -3160,23 +3073,23 @@ oneMoreTime:
             if (!knownToImplementIDisposable)
             {
                 Debug.Assert(!isNotNullableValueType(resource.Type));
-                resource = ConvertToIDisposable(resource, iDisposable, isTryCast: true);
+                resource = ConvertToIDisposable(compilation, resource, iDisposable, isTryCast: true);
                 int captureId = _availableCaptureId++;
                 AddStatement(new FlowCapture(captureId, resource.Syntax, resource));
-                resource = new FlowCaptureReference(captureId, resource.Syntax, iDisposable, constantValue: default);
+                resource = GetCaptureReference(captureId, resource);
             }
 
             if (!knownToImplementIDisposable || !isNotNullableValueType(resource.Type))
             {
                 IOperation condition = MakeIsNullOperation(OperationCloner.CloneOperation(resource), compilation);
                 condition = Operation.SetParentOperation(condition, null);
-                LinkBlocks(CurrentBasicBlock, (condition, JumpIfTrue: true, RegularBranch(endOfFinally)));
+                LinkBlocks(CurrentBasicBlock, condition, jumpIfTrue: true, RegularBranch(endOfFinally));
                 _currentBasicBlock = null;
             }
 
             if (!resource.Type.Equals(iDisposable))
             {
-                resource = ConvertToIDisposable(resource, iDisposable);
+                resource = ConvertToIDisposable(compilation, resource, iDisposable);
             }
 
             AddStatement(tryDispose(resource) ??
@@ -3208,11 +3121,11 @@ oneMoreTime:
             }
         }
 
-        private static IOperation ConvertToIDisposable(IOperation operand, ITypeSymbol iDisposable, bool isTryCast = false)
+        private static IOperation ConvertToIDisposable(Compilation compilation, IOperation operand, ITypeSymbol iDisposable, bool isTryCast = false)
         {
             Debug.Assert(iDisposable.SpecialType == SpecialType.System_IDisposable);
-            return new ConversionOperation(operand, ConvertibleConversion.Instance, isTryCast, isChecked: false,
-                                           semanticModel: null, operand.Syntax, iDisposable, constantValue: default, isImplicit: true);
+            return new ConversionOperation(operand, compilation.ClassifyConvertibleConversion(operand, iDisposable, out var constantValue), isTryCast, isChecked: false,
+                                           semanticModel: null, operand.Syntax, iDisposable, constantValue, isImplicit: true);
         }
 
         public override IOperation VisitLock(ILockOperation operation, int? captureIdForResult)
@@ -3258,13 +3171,12 @@ oneMoreTime:
 
             if (!objectType.Equals(lockedValue.Type))
             {
-                lockedValue = new ConversionOperation(lockedValue, ConvertibleConversion.Instance, isTryCast: false, isChecked: false,
-                                                      semanticModel: null, lockedValue.Syntax, objectType, constantValue: default, isImplicit: true);
+                lockedValue = CreateConversion(semanticModel.Compilation, lockedValue, objectType);
             }
 
             int captureId = _availableCaptureId++;
             AddStatement(new FlowCapture(captureId, lockedValue.Syntax, lockedValue));
-            lockedValue = new FlowCaptureReference(captureId, lockedValue.Syntax, lockedValue.Type, constantValue: default);
+            lockedValue = GetCaptureReference(captureId, lockedValue);
 
             var enterMethod = (IMethodSymbol)semanticModel.Compilation.CommonGetWellKnownTypeMember(WellKnownMember.System_Threading_Monitor__Enter2);
             bool legacyMode = (enterMethod == null);
@@ -3335,7 +3247,7 @@ oneMoreTime:
             LeaveRegion();
 
             var endOfFinally = new BasicBlockBuilder(BasicBlockKind.Block);
-            endOfFinally.InternalNext.Branch.Kind = ControlFlowBranchSemantics.StructuredExceptionHandling;
+            endOfFinally.FallThrough.Kind = ControlFlowBranchSemantics.StructuredExceptionHandling;
 
             EnterRegion(new RegionBuilder(ControlFlowRegionKind.Finally));
             AppendNewBlock(new BasicBlockBuilder(BasicBlockKind.Block));
@@ -3345,7 +3257,7 @@ oneMoreTime:
                 // if ($lockTaken)
                 IOperation condition = OperationCloner.CloneOperation(lockTaken);
                 condition = Operation.SetParentOperation(condition, null);
-                LinkBlocks(CurrentBasicBlock, (condition, JumpIfTrue: false, RegularBranch(endOfFinally)));
+                LinkBlocks(CurrentBasicBlock, condition, jumpIfTrue: false, RegularBranch(endOfFinally));
                 _currentBasicBlock = null;
             }
 
@@ -3436,7 +3348,7 @@ oneMoreTime:
             AppendNewBlock(@continue);
 
             IOperation condition = Operation.SetParentOperation(getCondition(enumerator), null);
-            LinkBlocks(CurrentBasicBlock, (condition, JumpIfTrue: false, RegularBranch(@break)));
+            LinkBlocks(CurrentBasicBlock, condition, jumpIfTrue: false, RegularBranch(@break));
             _currentBasicBlock = null;
 
             EnterRegion(new RegionBuilder(ControlFlowRegionKind.LocalLifetime, locals: operation.Locals));
@@ -3734,7 +3646,7 @@ oneMoreTime:
 #if DEBUG
                     Debug.Assert(stackSize == _evalStack.Count);
 #endif
-                    LinkBlocks(CurrentBasicBlock, (Operation.SetParentOperation(condition, null), JumpIfTrue: false, RegularBranch(@break)));
+                    LinkBlocks(CurrentBasicBlock, Operation.SetParentOperation(condition, null), jumpIfTrue: false, RegularBranch(@break));
                     LinkBlocks(CurrentBasicBlock, bodyBlock);
                     _currentBasicBlock = null;
                 }
@@ -3802,7 +3714,7 @@ oneMoreTime:
                             {
                                 var whenNotNull = new BasicBlockBuilder(BasicBlockKind.Block);
 
-                                LinkBlocks(CurrentBasicBlock, (Operation.SetParentOperation(stepValueIsNull, null), JumpIfTrue: false, RegularBranch(whenNotNull)));
+                                LinkBlocks(CurrentBasicBlock, Operation.SetParentOperation(stepValueIsNull, null), jumpIfTrue: false, RegularBranch(whenNotNull));
                                 _currentBasicBlock = null;
 
                                 // "isUp = false"
@@ -3889,7 +3801,7 @@ oneMoreTime:
 #if DEBUG
                     Debug.Assert(stackSize == _evalStack.Count);
 #endif
-                    LinkBlocks(CurrentBasicBlock, (Operation.SetParentOperation(condition, null), JumpIfTrue: false, RegularBranch(@break)));
+                    LinkBlocks(CurrentBasicBlock, Operation.SetParentOperation(condition, null), jumpIfTrue: false, RegularBranch(@break));
                     LinkBlocks(CurrentBasicBlock, bodyBlock);
                     _currentBasicBlock = null;
                     return;
@@ -3908,7 +3820,7 @@ oneMoreTime:
                     controlVariableReferenceForCondition = GetCaptureReference(captureId, controlVariableReferenceForCondition);
 
                     var notPositive = new BasicBlockBuilder(BasicBlockKind.Block);
-                    LinkBlocks(CurrentBasicBlock, (Operation.SetParentOperation(positiveFlag, null), JumpIfTrue: false, RegularBranch(notPositive)));
+                    LinkBlocks(CurrentBasicBlock, Operation.SetParentOperation(positiveFlag, null), jumpIfTrue: false, RegularBranch(notPositive));
                     _currentBasicBlock = null;
 
                     _forToLoopBinaryOperatorLeftOperand = controlVariableReferenceForCondition;
@@ -3990,7 +3902,7 @@ oneMoreTime:
                                                                  constantValue: default,
                                                                  isImplicit: true);
 
-                        LinkBlocks(CurrentBasicBlock, (Operation.SetParentOperation(condition, null), JumpIfTrue: false, RegularBranch(@break)));
+                        LinkBlocks(CurrentBasicBlock, Operation.SetParentOperation(condition, null), jumpIfTrue: false, RegularBranch(@break));
                         LinkBlocks(CurrentBasicBlock, bodyBlock);
                         _currentBasicBlock = null;
                         return;
@@ -4000,7 +3912,7 @@ oneMoreTime:
                     {
                         // Must be an error case.
                         condition = MakeInvalidOperation(operation.LimitValue.Syntax, booleanType, controlVariableReferenceforCondition, limitReference);
-                        LinkBlocks(CurrentBasicBlock, (Operation.SetParentOperation(condition, null), JumpIfTrue: false, RegularBranch(@break)));
+                        LinkBlocks(CurrentBasicBlock, Operation.SetParentOperation(condition, null), jumpIfTrue: false, RegularBranch(@break));
                         LinkBlocks(CurrentBasicBlock, bodyBlock);
                         _currentBasicBlock = null;
                         return;
@@ -4027,7 +3939,7 @@ oneMoreTime:
                         // if either limit or control variable is null, we exit the loop
                         var whenBothNotNull = new BasicBlockBuilder(BasicBlockKind.Block);
 
-                        LinkBlocks(CurrentBasicBlock, (Operation.SetParentOperation(eitherLimitOrControlVariableIsNull, null), JumpIfTrue: false, RegularBranch(whenBothNotNull)));
+                        LinkBlocks(CurrentBasicBlock, Operation.SetParentOperation(eitherLimitOrControlVariableIsNull, null), jumpIfTrue: false, RegularBranch(whenBothNotNull));
                         LinkBlocks(CurrentBasicBlock, @break);
                         AppendNewBlock(whenBothNotNull);
 
@@ -4045,13 +3957,11 @@ oneMoreTime:
                     {
                         int captureId = _availableCaptureId++;
                         AddStatement(new FlowCapture(captureId, controlVariableReferenceforCondition.Syntax, controlVariableReferenceforCondition));
-                        controlVariableReferenceforCondition = new FlowCaptureReference(captureId, controlVariableReferenceforCondition.Syntax, 
-                                                                                        controlVariableReferenceforCondition.Type,
-                                                                                        controlVariableReferenceforCondition.ConstantValue);
+                        controlVariableReferenceforCondition = GetCaptureReference(captureId, controlVariableReferenceforCondition);
                     }
 
                     var notPositive = new BasicBlockBuilder(BasicBlockKind.Block);
-                    LinkBlocks(CurrentBasicBlock, (Operation.SetParentOperation(positiveFlag, null), JumpIfTrue: false, RegularBranch(notPositive)));
+                    LinkBlocks(CurrentBasicBlock, Operation.SetParentOperation(positiveFlag, null), jumpIfTrue: false, RegularBranch(notPositive));
                     _currentBasicBlock = null;
 
                     condition = new BinaryOperatorExpression(BinaryOperatorKind.LessThanOrEqual,
@@ -4068,7 +3978,7 @@ oneMoreTime:
                                                              constantValue: default,
                                                              isImplicit: true);
 
-                    LinkBlocks(CurrentBasicBlock, (Operation.SetParentOperation(condition, null), JumpIfTrue: false, RegularBranch(@break)));
+                    LinkBlocks(CurrentBasicBlock, Operation.SetParentOperation(condition, null), jumpIfTrue: false, RegularBranch(@break));
                     LinkBlocks(CurrentBasicBlock, bodyBlock);
 
                     AppendNewBlock(notPositive);
@@ -4087,7 +3997,7 @@ oneMoreTime:
                                                              constantValue: default,
                                                              isImplicit: true);
 
-                    LinkBlocks(CurrentBasicBlock, (Operation.SetParentOperation(condition, null), JumpIfTrue: false, RegularBranch(@break)));
+                    LinkBlocks(CurrentBasicBlock, Operation.SetParentOperation(condition, null), jumpIfTrue: false, RegularBranch(@break));
                     LinkBlocks(CurrentBasicBlock, bodyBlock);
                     _currentBasicBlock = null;
                     return;
@@ -4202,7 +4112,7 @@ oneMoreTime:
                                                                             isImplicit: true);
 
                         condition = Operation.SetParentOperation(condition, null);
-                        LinkBlocks(CurrentBasicBlock, (condition, JumpIfTrue: false, RegularBranch(whenNotNull)));
+                        LinkBlocks(CurrentBasicBlock, condition, jumpIfTrue: false, RegularBranch(whenNotNull));
                         _currentBasicBlock = null;
 
                         AddStatement(new SimpleAssignmentExpression(controlVariableReferenceForAssignment,
@@ -4258,7 +4168,7 @@ oneMoreTime:
 
                     if (isNullable)
                     {
-                        increment = MakeNullable(increment, controlVariableReferenceForAssignment.Type);
+                        increment = MakeNullable(compilation, increment, controlVariableReferenceForAssignment.Type);
                     }
 
                     controlVariableReferenceForAssignment = _evalStack.Pop();
@@ -4301,12 +4211,29 @@ oneMoreTime:
             return new FlowCaptureReference(id, underlying.Syntax, underlying.Type, underlying.ConstantValue);
         }
 
+        internal override IOperation VisitAggregateQuery(IAggregateQueryOperation operation, int? captureIdForResult)
+        {
+            SpillEvalStack();
+
+            int groupCaptureId = VisitAndCapture(operation.Group);
+
+            IOperation previousAggregationGroup = _currentAggregationGroup;
+            _currentAggregationGroup = GetCaptureReference(groupCaptureId, operation.Group);
+
+            IOperation result = Visit(operation.Aggregation);
+
+            _currentAggregationGroup = previousAggregationGroup;
+            return result;
+        }
+
         public override IOperation VisitSwitch(ISwitchOperation operation, int? captureIdForResult)
         {
             Debug.Assert(_currentStatement == operation);
 
-            INamedTypeSymbol booleanType = ((Operation)operation).SemanticModel.Compilation.GetSpecialType(SpecialType.System_Boolean);
+            Compilation compilation = ((Operation)operation).SemanticModel.Compilation;
+            INamedTypeSymbol booleanType = compilation.GetSpecialType(SpecialType.System_Boolean);
             int expressionCaptureId = VisitAndCapture(operation.Value);
+            FlowCaptureReference switchValue = GetCaptureReference(expressionCaptureId, operation.Value);
 
             ImmutableArray<ILocalSymbol> locals = getLocals();
             EnterRegion(new RegionBuilder(ControlFlowRegionKind.LocalLifetime, locals: locals));
@@ -4351,7 +4278,7 @@ oneMoreTime:
                 {
                     Debug.Assert(section.Clauses.All(c => c.Label == null));
                     Debug.Assert(_currentSwitchOperationExpression == null);
-                    _currentSwitchOperationExpression = getSwitchValue();
+                    _currentSwitchOperationExpression = switchValue;
                     VisitConditionalBranch(condition, ref nextSection, sense: false);
                     _currentSwitchOperationExpression = null;
                 }
@@ -4393,7 +4320,7 @@ oneMoreTime:
                             bool leftIsNullable = ITypeSymbolHelpers.IsNullableType(operation.Value.Type);
                             bool rightIsNullable = ITypeSymbolHelpers.IsNullableType(compareWith.Type);
                             bool isLifted = leftIsNullable || rightIsNullable;
-                            IOperation leftOperand = getSwitchValue();
+                            IOperation leftOperand = OperationCloner.CloneOperation(switchValue);
                             IOperation rightOperand = Visit(compareWith);
 
                             if (isLifted)
@@ -4402,12 +4329,12 @@ oneMoreTime:
                                 {
                                     if (leftOperand.Type != null)
                                     {
-                                        leftOperand = MakeNullable(leftOperand, compareWith.Type);
+                                        leftOperand = MakeNullable(compilation, leftOperand, compareWith.Type);
                                     }
                                 }
                                 else if (!rightIsNullable && rightOperand.Type != null)
                                 {
-                                    rightOperand = MakeNullable(rightOperand, operation.Value.Type);
+                                    rightOperand = MakeNullable(compilation, rightOperand, operation.Value.Type);
                                 }
                             }
 
@@ -4426,7 +4353,7 @@ oneMoreTime:
                                                                      isImplicit: true);
 
                             condition = Operation.SetParentOperation(condition, null);
-                            LinkBlocks(CurrentBasicBlock, (condition, JumpIfTrue: false, RegularBranch(nextCase)));
+                            LinkBlocks(CurrentBasicBlock, condition, jumpIfTrue: false, RegularBranch(nextCase));
                             AppendNewBlock(labeled);
                             _currentBasicBlock = null;
                         }
@@ -4434,9 +4361,10 @@ oneMoreTime:
                     case CaseKind.Pattern:
                         var patternClause = (IPatternCaseClauseOperation)caseClause;
 
-                        condition = new IsPatternExpression(getSwitchValue(), Visit(patternClause.Pattern), semanticModel: null, patternClause.Pattern.Syntax, booleanType, constantValue: default, isImplicit: true);
+                        condition = new IsPatternExpression(OperationCloner.CloneOperation(switchValue), Visit(patternClause.Pattern), semanticModel: null,
+                                                            patternClause.Pattern.Syntax, booleanType, constantValue: default, isImplicit: true);
                         condition = Operation.SetParentOperation(condition, null);
-                        LinkBlocks(CurrentBasicBlock, (condition, JumpIfTrue: false, RegularBranch(nextCase)));
+                        LinkBlocks(CurrentBasicBlock, condition, jumpIfTrue: false, RegularBranch(nextCase));
 
                         if (patternClause.Guard != null)
                         {
@@ -4482,21 +4410,14 @@ oneMoreTime:
                         throw ExceptionUtilities.UnexpectedValue(caseClause.CaseKind);
                 }
             }
-
-            FlowCaptureReference getSwitchValue()
-            {
-                return new FlowCaptureReference(expressionCaptureId, operation.Value.Syntax, operation.Value.Type, operation.Value.ConstantValue);
-            }
         }
 
-        private static IOperation MakeNullable(IOperation operand, ITypeSymbol type)
+        private static IOperation MakeNullable(Compilation compilation, IOperation operand, ITypeSymbol type)
         {
             Debug.Assert(ITypeSymbolHelpers.IsNullableType(type));
             Debug.Assert(ITypeSymbolHelpers.GetNullableUnderlyingType(type).Equals(operand.Type));
 
-            return new ConversionOperation(operand, ConvertibleConversion.Instance, isTryCast: false, isChecked: false,
-                                           semanticModel: null, operand.Syntax, type,
-                                           constantValue: default, isImplicit: true);
+            return CreateConversion(compilation, operand, type);
         }
 
         public override IOperation VisitSwitchCase(ISwitchCaseOperation operation, int? captureIdForResult)
@@ -4534,10 +4455,11 @@ oneMoreTime:
             Debug.Assert(_currentStatement == operation);
             BasicBlockBuilder current = CurrentBasicBlock;
             AppendNewBlock(new BasicBlockBuilder(BasicBlockKind.Block), linkToPrevious: false);
-            Debug.Assert(current.InternalNext.Value == null);
-            Debug.Assert(current.InternalNext.Branch.Destination == null);
-            Debug.Assert(current.InternalNext.Branch.Kind == ControlFlowBranchSemantics.None);
-            current.InternalNext.Branch.Kind = ControlFlowBranchSemantics.ProgramTermination;
+            Debug.Assert(current.BranchValue == null);
+            Debug.Assert(!current.HasCondition);
+            Debug.Assert(current.FallThrough.Destination == null);
+            Debug.Assert(current.FallThrough.Kind == ControlFlowBranchSemantics.None);
+            current.FallThrough.Kind = ControlFlowBranchSemantics.ProgramTermination;
             return null;
         }
 
@@ -4659,7 +4581,7 @@ oneMoreTime:
                 var initializationSemaphore = new StaticLocalInitializationSemaphoreOperation(localSymbol, declarator.Syntax, booleanType);
                 Operation.SetParentOperation(initializationSemaphore, null);
 
-                LinkBlocks(CurrentBasicBlock, (initializationSemaphore, JumpIfTrue: false, RegularBranch(afterInitialization)));
+                LinkBlocks(CurrentBasicBlock, initializationSemaphore, jumpIfTrue: false, RegularBranch(afterInitialization));
 
                 _currentBasicBlock = null;
                 EnterRegion(new RegionBuilder(ControlFlowRegionKind.StaticLocalInitializer,
@@ -4752,9 +4674,6 @@ oneMoreTime:
 
         public override IOperation VisitInvocation(IInvocationOperation operation, int? captureIdForResult)
         {
-            // PROTOTYPE(dataflow): It looks like there is a bug in IOperation tree generation for non-error scenario in 
-            //                      Microsoft.CodeAnalysis.CSharp.UnitTests.SemanticModelGetSemanticInfoTests.ObjectCreation3
-            //                      We have ICollectionElementInitializerOperation, but not IObjectCreationOperation.
             IOperation instance = operation.TargetMethod.IsStatic ? null : operation.Instance;
             (IOperation visitedInstance, ImmutableArray<IArgumentOperation> visitedArguments) = VisitInstanceWithArguments(instance, operation.Arguments);
             return new InvocationExpression(operation.TargetMethod, visitedInstance, operation.IsVirtual, visitedArguments, semanticModel: null, operation.Syntax,
@@ -4789,7 +4708,7 @@ oneMoreTime:
                 int initializerCaptureId = _availableCaptureId++;
                 AddStatement(new FlowCapture(initializerCaptureId, initializedInstance.Syntax, initializedInstance));
 
-                initializedInstance = new FlowCaptureReference(initializerCaptureId, initializedInstance.Syntax, initializedInstance.Type, initializedInstance.ConstantValue);
+                initializedInstance = GetCaptureReference(initializerCaptureId, initializedInstance);
                 HandleObjectOrCollectionInitializer(operation.Initializer, initializedInstance);
             }
 
@@ -4798,7 +4717,6 @@ oneMoreTime:
 
         private void HandleObjectOrCollectionInitializer(IObjectOrCollectionInitializerOperation initializer, IOperation initializedInstance)
         {
-            // PROTOTYPE(dataflow): Handle collection initializers
             ImplicitInstanceInfo previousInitializedInstance = _currentImplicitInstance;
             _currentImplicitInstance = new ImplicitInstanceInfo(initializedInstance);
 
@@ -4837,6 +4755,18 @@ oneMoreTime:
 
                     case OperationKind.Literal:
                         // PROTOTYPE(dataflow): See Microsoft.CodeAnalysis.VisualBasic.UnitTests.BindingErrorTests.BC30994ERR_AggrInitInvalidForObject
+                        //                      Just drop it for now to enable other test scenarios.
+                        return;
+
+                    case OperationKind.LocalReference:
+                        // PROTOTYPE(dataflow): See Microsoft.CodeAnalysis.VisualBasic.UnitTests.Semantics.IOperationTests.TestClone
+                        //                      Just drop it for now to enable other test scenarios.
+                        return;
+
+                    case OperationKind.BinaryOperator:
+                    case OperationKind.FieldReference:
+                        // PROTOTYPE(dataflow): See Microsoft.CodeAnalysis.VisualBasic.UnitTests.SimpleFlowTests.LogicalExpressionInErroneousObjectInitializer
+                        //                      Just drop it for now to enable other test scenarios.
                         return;
 
                     case OperationKind.Invalid:
@@ -4937,7 +4867,7 @@ oneMoreTime:
                                 // recapturing things that have already been captured once.
                                 IOperation value = arg.Value;
                                 int captureId = VisitAndCapture(value);
-                                IOperation capturedValue = new FlowCaptureReference(captureId, value.Syntax, value.Type, value.ConstantValue);
+                                IOperation capturedValue = GetCaptureReference(captureId, value);
                                 BaseArgument baseArgument = (BaseArgument)arg;
                                 propertyArgumentsBuilder.Add(new ArgumentOperation(capturedValue, arg.ArgumentKind, arg.Parameter,
                                                                                    baseArgument.InConversionConvertibleOpt,
@@ -4963,7 +4893,7 @@ oneMoreTime:
                         ImmutableArray<IOperation> indicies = arrayReference.Indices.SelectAsArray(indexExpr =>
                         {
                             int captureId = VisitAndCapture(indexExpr);
-                            return (IOperation)new FlowCaptureReference(captureId, indexExpr.Syntax, indexExpr.Type, indexExpr.ConstantValue);
+                            return (IOperation)GetCaptureReference(captureId, indexExpr);
                         });
                         _evalStack.Push(Visit(arrayReference.ArrayReference));
                         return (success: true, indicies);
@@ -5012,25 +4942,12 @@ oneMoreTime:
 
         public override IOperation VisitObjectOrCollectionInitializer(IObjectOrCollectionInitializerOperation operation, int? captureIdForResult)
         {
-            // PROTOTYPE(dataflow): It looks like we need to handle the standalone case, happens in error scenarios,
-            //                      see DefaultValueNonNullForNullableParameterTypeWithMissingNullableReference_IndexerInObjectCreationInitializer unit-test.
-            //                      For now will just visit children and recreate the node, should add tests to confirm that this is an appropriate
-            //                      rewrite (probably not appropriate, see comment in VisitMemberInitializer).  
-
-            ImplicitInstanceInfo save = _currentImplicitInstance;
-            _currentImplicitInstance = default;
-            PushArray(operation.Initializers);
-            _currentImplicitInstance = save;
-            return new ObjectOrCollectionInitializerExpression(PopArray(operation.Initializers), semanticModel: null, operation.Syntax, operation.Type, operation.ConstantValue, operation.IsImplicit);
+            throw ExceptionUtilities.Unreachable;
         }
 
         public override IOperation VisitMemberInitializer(IMemberInitializerOperation operation, int? captureIdForResult)
         {
-            // PROTOTYPE(dataflow): It looks like this is reachable at the moment for error scenarios.
-            //                      See Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen.CodeGenTupleTests.SimpleTupleNew2
-            //                      Going to return invalid operation for now to unblock testing.
-            //throw ExceptionUtilities.Unreachable;
-            return MakeInvalidOperation(operation.Syntax, operation.Type, ImmutableArray<IOperation>.Empty);
+            throw ExceptionUtilities.Unreachable;
         }
 
         public override IOperation VisitAnonymousObjectCreation(IAnonymousObjectCreationOperation operation, int? captureIdForResult)
@@ -5126,7 +5043,7 @@ oneMoreTime:
             }
 
             owner.Add(operation.Symbol, operation);
-            return new FlowAnonymousFunctionExpression(operation.Symbol, operation.Syntax, operation.Type, operation.ConstantValue, IsImplicit(operation));
+            return new FlowAnonymousFunctionOperation(operation.Symbol, operation.Syntax, operation.Type, operation.ConstantValue, IsImplicit(operation));
         }
 
         public override IOperation VisitFlowAnonymousFunction(IFlowAnonymousFunctionOperation operation, int? captureIdForResult)
@@ -5217,9 +5134,9 @@ oneMoreTime:
                 }
                 else
                 {
-                    // PROTOTYPE(dataflow): We can get here in some error scenarios, for example
-                    //                      Microsoft.CodeAnalysis.CSharp.UnitTests.IOperationTests.DefaultValueNonNullForNullableParameterTypeWithMissingNullableReference_IndexerInObjectCreationInitializer
-                    //                      To enable other test scenarios, I will simply produce an invalid operation, but we need to confirm with specific tests that this is good enough
+                    // PROTOTYPE(dataflow): We can get here in valid scenarios involing BoundNoPiaObjectCreationExpression node.
+                    //                      This is another form of an object creation that can have an initializer.
+                    //                      See Microsoft.CodeAnalysis.CSharp.UnitTests.Emit.NoPiaEmbedTypes.DynamicCollectionInitializer unit-test, for example. 
                     return MakeInvalidOperation(operation.Syntax, operation.Type, ImmutableArray<IOperation>.Empty);
                 }
             }
@@ -5763,6 +5680,40 @@ oneMoreTime:
             return new OmittedArgumentExpression(semanticModel: null, operation.Syntax, operation.Type, operation.ConstantValue, IsImplicit(operation));
         }
 
+        internal override IOperation VisitPlaceholder(IPlaceholderOperation operation, int? captureIdForResult)
+        {
+            switch (operation.PlaceholderKind)
+            {
+                case PlaceholderKind.SwitchOperationExpression:
+                    if (_currentSwitchOperationExpression != null)
+                    {
+                        return OperationCloner.CloneOperation(_currentSwitchOperationExpression);
+                    }
+                    break;
+                case PlaceholderKind.ForToLoopBinaryOperatorLeftOperand:
+                    if (_forToLoopBinaryOperatorLeftOperand != null)
+                    {
+                        return _forToLoopBinaryOperatorLeftOperand;
+                    }
+                    break;
+                case PlaceholderKind.ForToLoopBinaryOperatorRightOperand:
+                    if (_forToLoopBinaryOperatorRightOperand != null)
+                    {
+                        return _forToLoopBinaryOperatorRightOperand;
+                    }
+                    break;
+                case PlaceholderKind.AggregationGroup:
+                    if (_currentAggregationGroup != null)
+                    {
+                        return OperationCloner.CloneOperation(_currentAggregationGroup);
+                    }
+                    break;
+            }
+
+            Debug.Assert(false, "All placeholders should be handled above. Have we introduced a new scenario where placeholders are used?");
+            return new PlaceholderExpression(operation.PlaceholderKind, semanticModel: null, operation.Syntax, operation.Type, operation.ConstantValue, IsImplicit(operation));
+        }
+
         public override IOperation VisitIsPattern(IIsPatternOperation operation, int? captureIdForResult)
         {
             _evalStack.Push(Visit(operation.Value));
@@ -5809,6 +5760,7 @@ oneMoreTime:
         }
 
         #region PROTOTYPE(dataflow): Naive implementation that simply clones nodes and erases SemanticModel, likely to change
+
         private ImmutableArray<T> VisitArray<T>(ImmutableArray<T> nodes) where T : IOperation
         {
             // clone the array
@@ -5833,36 +5785,12 @@ oneMoreTime:
             return new PointerIndirectionReferenceExpression(Visit(operation.Pointer), semanticModel: null, operation.Syntax, operation.Type, operation.ConstantValue, IsImplicit(operation));
         }
 
-        internal override IOperation VisitPlaceholder(IPlaceholderOperation operation, int? captureIdForResult)
-        {
-            switch (operation.PlaceholderKind)
-            {
-                case PlaceholderKind.SwitchOperationExpression:
-                    if (_currentSwitchOperationExpression != null)
-                    {
-                        return OperationCloner.CloneOperation(_currentSwitchOperationExpression);
-                    }
-                    break;
-                case PlaceholderKind.ForToLoopBinaryOperatorLeftOperand:
-                    if (_forToLoopBinaryOperatorLeftOperand != null)
-                    {
-                        return _forToLoopBinaryOperatorLeftOperand;
-                    }
-                    break;
-                case PlaceholderKind.ForToLoopBinaryOperatorRightOperand:
-                    if (_forToLoopBinaryOperatorRightOperand != null)
-                    {
-                        return _forToLoopBinaryOperatorRightOperand;
-                    }
-                    break;
-            }
-
-            return new PlaceholderExpression(operation.PlaceholderKind, semanticModel: null, operation.Syntax, operation.Type, operation.ConstantValue, IsImplicit(operation));
-        }
-
         public override IOperation VisitDynamicObjectCreation(IDynamicObjectCreationOperation operation, int? captureIdForResult)
         {
-            return new DynamicObjectCreationExpression(VisitArray(operation.Arguments), ((HasDynamicArgumentsExpression)operation).ArgumentNames, ((HasDynamicArgumentsExpression)operation).ArgumentRefKinds, Visit(operation.Initializer), semanticModel: null, operation.Syntax, operation.Type, operation.ConstantValue, IsImplicit(operation));
+            return new DynamicObjectCreationExpression(VisitArray(operation.Arguments), ((HasDynamicArgumentsExpression)operation).ArgumentNames,
+                                                       ((HasDynamicArgumentsExpression)operation).ArgumentRefKinds,
+                                                       initializer: null, // PROTOTYPE(dataflow): Dropping initializer for now to enable test hook verification
+                                                       semanticModel: null, operation.Syntax, operation.Type, operation.ConstantValue, IsImplicit(operation));
         }
 
         public override IOperation VisitDefaultValue(IDefaultValueOperation operation, int? captureIdForResult)
@@ -5872,12 +5800,47 @@ oneMoreTime:
 
         public override IOperation VisitTypeParameterObjectCreation(ITypeParameterObjectCreationOperation operation, int? captureIdForResult)
         {
-            return new TypeParameterObjectCreationExpression(Visit(operation.Initializer), semanticModel: null, operation.Syntax, operation.Type, operation.ConstantValue, IsImplicit(operation));
+            return new TypeParameterObjectCreationExpression(initializer: null, // PROTOTYPE(dataflow): Dropping initializer for now to enable test hook verification
+                                                             semanticModel: null, operation.Syntax, operation.Type, operation.ConstantValue, IsImplicit(operation));
         }
 
         public override IOperation VisitInvalid(IInvalidOperation operation, int? captureIdForResult)
         {
-            return new InvalidOperation(VisitArray(operation.Children.ToImmutableArray()), semanticModel: null, operation.Syntax, operation.Type, operation.ConstantValue, IsImplicit(operation));
+            var children = ArrayBuilder<IOperation>.GetInstance();
+            children.AddRange(operation.Children);
+
+            if (children.Count != 0 && children.Last().Kind == OperationKind.ObjectOrCollectionInitializer)
+            {
+                // We are dealing with erroneous object creation. All children, but the last one are arguments for the constructor,
+                // but overload resolution failed.
+                SpillEvalStack();
+
+                var initializer = (IObjectOrCollectionInitializerOperation)children.Last();
+                children.RemoveLast();
+
+                foreach (var argument in children)
+                {
+                    _evalStack.Push(Visit(argument));
+                }
+
+                for (int i = children.Count - 1; i >= 0; i--)
+                {
+                    children[i] = _evalStack.Pop();
+                }
+
+                IOperation initializedInstance = new InvalidOperation(children.ToImmutableAndFree(), semanticModel: null, operation.Syntax, operation.Type,
+                                                                      operation.ConstantValue, IsImplicit(operation));
+
+                int initializerCaptureId = _availableCaptureId++;
+                AddStatement(new FlowCapture(initializerCaptureId, initializedInstance.Syntax, initializedInstance));
+
+                initializedInstance = GetCaptureReference(initializerCaptureId, initializedInstance);
+                HandleObjectOrCollectionInitializer(initializer, initializedInstance);
+
+                return initializedInstance;
+            }
+
+            return new InvalidOperation(VisitArray(children.ToImmutableAndFree()), semanticModel: null, operation.Syntax, operation.Type, operation.ConstantValue, IsImplicit(operation));
         }
 
         public override IOperation VisitTranslatedQuery(ITranslatedQueryOperation operation, int? captureIdForResult)

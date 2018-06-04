@@ -2456,7 +2456,7 @@ Block[B0] - Entry
     Statements (0)
     Next (Regular) Block[B1]
 Block[B1] - Block
-    Predecessors: [B0] [B1] [B2]
+    Predecessors: [B0] [B1*2] [B2]
     Statements (0)
     Jump if False (Regular) to Block[B1]
         IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: System.Boolean) (Syntax: 'x')

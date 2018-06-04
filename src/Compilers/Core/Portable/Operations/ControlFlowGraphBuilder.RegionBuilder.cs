@@ -58,7 +58,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
                 // Some expressions (like "As New" initializers, for example) can be visited multiple times.
                 // That can lead to multiple attempts to add the same lambda into the list.
                 // Let's detect that.
-                if (Methods.Count > 0 && symbol.MethodKind == MethodKind.AnonymousFunction)
+                if (symbol.MethodKind == MethodKind.AnonymousFunction)
                 {
                     foreach ((IMethodSymbol m, IOperation o) in Methods)
                     {

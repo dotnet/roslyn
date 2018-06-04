@@ -852,7 +852,7 @@ class C
 
             var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
-                // (6,9): error CS0201: Only assignment, call, increment, decrement, and new object expressions can be used as a statement
+                // (6,9): error CS0201: Only assignment, call, increment, decrement, await, and new object expressions can be used as a statement
                 //         (a) => a;
                 Diagnostic(ErrorCode.ERR_IllegalStatement, "(a) => a").WithLocation(6, 9)
                 );
@@ -876,7 +876,7 @@ IAnonymousFunctionOperation (Symbol: lambda expression) (OperationKind.Anonymous
   IBlockOperation (0 statements) (OperationKind.Block, Type: null, IsInvalid) (Syntax: '{ }')
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
-                // CS0201: Only assignment, call, increment, decrement, and new object expressions can be used as a statement
+                // CS0201: Only assignment, call, increment, decrement, await, and new object expressions can be used as a statement
                 //         /*<bind>*/(a, b) => { }/*</bind>*/;
                 Diagnostic(ErrorCode.ERR_IllegalStatement, "(a, b) => { }").WithLocation(6, 19)
             };
@@ -4221,7 +4221,7 @@ class C
                 // (6,28): error CS8185: A declaration is not allowed in this context.
                 //         (var (a,b), var c, int d);
                 Diagnostic(ErrorCode.ERR_DeclarationExpressionNotPermitted, "int d").WithLocation(6, 28),
-                // (6,9): error CS0201: Only assignment, call, increment, decrement, and new object expressions can be used as a statement
+                // (6,9): error CS0201: Only assignment, call, increment, decrement, await, and new object expressions can be used as a statement
                 //         (var (a,b), var c, int d);
                 Diagnostic(ErrorCode.ERR_IllegalStatement, "(var (a,b), var c, int d)").WithLocation(6, 9),
                 // (6,28): error CS0165: Use of unassigned local variable 'd'
@@ -4361,7 +4361,7 @@ class C
                 // (2,20): error CS8185: A declaration is not allowed in this context.
                 // (var (a,b), var c, int d);
                 Diagnostic(ErrorCode.ERR_DeclarationExpressionNotPermitted, "int d").WithLocation(2, 20),
-                // (2,1): error CS0201: Only assignment, call, increment, decrement, and new object expressions can be used as a statement
+                // (2,1): error CS0201: Only assignment, call, increment, decrement, await, and new object expressions can be used as a statement
                 // (var (a,b), var c, int d);
                 Diagnostic(ErrorCode.ERR_IllegalStatement, "(var (a,b), var c, int d)").WithLocation(2, 1)
                 );
@@ -4489,7 +4489,7 @@ class C
                 // (6,29): error CS8185: A declaration is not allowed in this context.
                 //         (var (_, _), var _, int _);
                 Diagnostic(ErrorCode.ERR_DeclarationExpressionNotPermitted, "int _").WithLocation(6, 29),
-                // (6,9): error CS0201: Only assignment, call, increment, decrement, and new object expressions can be used as a statement
+                // (6,9): error CS0201: Only assignment, call, increment, decrement, await, and new object expressions can be used as a statement
                 //         (var (_, _), var _, int _);
                 Diagnostic(ErrorCode.ERR_IllegalStatement, "(var (_, _), var _, int _)").WithLocation(6, 9)
                 );
@@ -4613,7 +4613,7 @@ class C
                 // (2,21): error CS8185: A declaration is not allowed in this context.
                 // (var (_, _), var _, int _);
                 Diagnostic(ErrorCode.ERR_DeclarationExpressionNotPermitted, "int _").WithLocation(2, 21),
-                // (2,1): error CS0201: Only assignment, call, increment, decrement, and new object expressions can be used as a statement
+                // (2,1): error CS0201: Only assignment, call, increment, decrement, await, and new object expressions can be used as a statement
                 // (var (_, _), var _, int _);
                 Diagnostic(ErrorCode.ERR_IllegalStatement, "(var (_, _), var _, int _)").WithLocation(2, 1)
                 );
@@ -5162,7 +5162,7 @@ class C
                 // (6,30): error CS8185: A declaration is not allowed in this context.
                 //         ((var (a,b), var c), int d);
                 Diagnostic(ErrorCode.ERR_DeclarationExpressionNotPermitted, "int d").WithLocation(6, 30),
-                // (6,9): error CS0201: Only assignment, call, increment, decrement, and new object expressions can be used as a statement
+                // (6,9): error CS0201: Only assignment, call, increment, decrement, await, and new object expressions can be used as a statement
                 //         ((var (a,b), var c), int d);
                 Diagnostic(ErrorCode.ERR_IllegalStatement, "((var (a,b), var c), int d)").WithLocation(6, 9),
                 // (6,30): error CS0165: Use of unassigned local variable 'd'
@@ -5316,7 +5316,7 @@ class C
                 // (2,22): error CS8185: A declaration is not allowed in this context.
                 // ((var (a,b), var c), int d);
                 Diagnostic(ErrorCode.ERR_DeclarationExpressionNotPermitted, "int d").WithLocation(2, 22),
-                // (2,1): error CS0201: Only assignment, call, increment, decrement, and new object expressions can be used as a statement
+                // (2,1): error CS0201: Only assignment, call, increment, decrement, await, and new object expressions can be used as a statement
                 // ((var (a,b), var c), int d);
                 Diagnostic(ErrorCode.ERR_IllegalStatement, "((var (a,b), var c), int d)").WithLocation(2, 1)
                 );
@@ -5457,7 +5457,7 @@ class C
                 // (6,31): error CS8185: A declaration is not allowed in this context.
                 //         ((var (_, _), var _), int _);
                 Diagnostic(ErrorCode.ERR_DeclarationExpressionNotPermitted, "int _").WithLocation(6, 31),
-                // (6,9): error CS0201: Only assignment, call, increment, decrement, and new object expressions can be used as a statement
+                // (6,9): error CS0201: Only assignment, call, increment, decrement, await, and new object expressions can be used as a statement
                 //         ((var (_, _), var _), int _);
                 Diagnostic(ErrorCode.ERR_IllegalStatement, "((var (_, _), var _), int _)").WithLocation(6, 9)
                 );
@@ -5594,7 +5594,7 @@ class C
                 // (2,23): error CS8185: A declaration is not allowed in this context.
                 // ((var (_, _), var _), int _);
                 Diagnostic(ErrorCode.ERR_DeclarationExpressionNotPermitted, "int _").WithLocation(2, 23),
-                // (2,1): error CS0201: Only assignment, call, increment, decrement, and new object expressions can be used as a statement
+                // (2,1): error CS0201: Only assignment, call, increment, decrement, await, and new object expressions can be used as a statement
                 // ((var (_, _), var _), int _);
                 Diagnostic(ErrorCode.ERR_IllegalStatement, "((var (_, _), var _), int _)").WithLocation(2, 1)
                 );
@@ -5631,7 +5631,7 @@ class C
                 // (6,26): error CS8185: A declaration is not allowed in this context.
                 //         (var ((a,b), c), int d);
                 Diagnostic(ErrorCode.ERR_DeclarationExpressionNotPermitted, "int d").WithLocation(6, 26),
-                // (6,9): error CS0201: Only assignment, call, increment, decrement, and new object expressions can be used as a statement
+                // (6,9): error CS0201: Only assignment, call, increment, decrement, await, and new object expressions can be used as a statement
                 //         (var ((a,b), c), int d);
                 Diagnostic(ErrorCode.ERR_IllegalStatement, "(var ((a,b), c), int d)").WithLocation(6, 9),
                 // (6,26): error CS0165: Use of unassigned local variable 'd'
@@ -5750,7 +5750,7 @@ class C
                 // (2,18): error CS8185: A declaration is not allowed in this context.
                 // (var ((a,b), c), int d);
                 Diagnostic(ErrorCode.ERR_DeclarationExpressionNotPermitted, "int d").WithLocation(2, 18),
-                // (2,1): error CS0201: Only assignment, call, increment, decrement, and new object expressions can be used as a statement
+                // (2,1): error CS0201: Only assignment, call, increment, decrement, await, and new object expressions can be used as a statement
                 // (var ((a,b), c), int d);
                 Diagnostic(ErrorCode.ERR_IllegalStatement, "(var ((a,b), c), int d)").WithLocation(2, 1)
                 );
@@ -5857,7 +5857,7 @@ class C
                 // (6,27): error CS8185: A declaration is not allowed in this context.
                 //         (var ((_, _), _), int _);
                 Diagnostic(ErrorCode.ERR_DeclarationExpressionNotPermitted, "int _").WithLocation(6, 27),
-                // (6,9): error CS0201: Only assignment, call, increment, decrement, and new object expressions can be used as a statement
+                // (6,9): error CS0201: Only assignment, call, increment, decrement, await, and new object expressions can be used as a statement
                 //         (var ((_, _), _), int _);
                 Diagnostic(ErrorCode.ERR_IllegalStatement, "(var ((_, _), _), int _)").WithLocation(6, 9)
                 );
@@ -5957,7 +5957,7 @@ class C
                 // (2,19): error CS8185: A declaration is not allowed in this context.
                 // (var ((_, _), _), int _);
                 Diagnostic(ErrorCode.ERR_DeclarationExpressionNotPermitted, "int _").WithLocation(2, 19),
-                // (2,1): error CS0201: Only assignment, call, increment, decrement, and new object expressions can be used as a statement
+                // (2,1): error CS0201: Only assignment, call, increment, decrement, await, and new object expressions can be used as a statement
                 // (var ((_, _), _), int _);
                 Diagnostic(ErrorCode.ERR_IllegalStatement, "(var ((_, _), _), int _)").WithLocation(2, 1)
                 );

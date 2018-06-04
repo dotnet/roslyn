@@ -207,27 +207,14 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         {
             var exists = FormatBoolProperty(nameof(conversion.Exists), conversion.Exists);
 
-            if (conversion.IsLanguageAgnostic)
-            {
-                Assert.False(conversion.IsIdentity);
-                Assert.False(conversion.IsNumeric);
-                Assert.False(conversion.IsReference);
-                Assert.False(conversion.IsUserDefined);
-                Assert.Null(conversion.MethodSymbol);
+            var isIdentity = FormatBoolProperty(nameof(conversion.IsIdentity), conversion.IsIdentity);
+            var isNumeric = FormatBoolProperty(nameof(conversion.IsNumeric), conversion.IsNumeric);
+            var isReference = FormatBoolProperty(nameof(conversion.IsReference), conversion.IsReference);
+            var isUserDefined = FormatBoolProperty(nameof(conversion.IsUserDefined), conversion.IsUserDefined);
 
-                LogString($"{header}: {nameof(CommonConversion)} ({exists})");
-            }
-            else
-            {
-                var isIdentity = FormatBoolProperty(nameof(conversion.IsIdentity), conversion.IsIdentity);
-                var isNumeric = FormatBoolProperty(nameof(conversion.IsNumeric), conversion.IsNumeric);
-                var isReference = FormatBoolProperty(nameof(conversion.IsReference), conversion.IsReference);
-                var isUserDefined = FormatBoolProperty(nameof(conversion.IsUserDefined), conversion.IsUserDefined);
-
-                LogString($"{header}: {nameof(CommonConversion)} ({exists}, {isIdentity}, {isNumeric}, {isReference}, {isUserDefined}) (");
-                LogSymbol(conversion.MethodSymbol, nameof(conversion.MethodSymbol));
-                LogString(")");
-            }
+            LogString($"{header}: {nameof(CommonConversion)} ({exists}, {isIdentity}, {isNumeric}, {isReference}, {isUserDefined}) (");
+            LogSymbol(conversion.MethodSymbol, nameof(conversion.MethodSymbol));
+            LogString(")");
         }
 
         private void LogSymbol(ISymbol symbol, string header, bool logDisplayString = true)
@@ -706,6 +693,15 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             Visit(operation.Body, "Body");
         }
 
+        internal override void VisitAggregateQuery(IAggregateQueryOperation operation)
+        {
+            LogString(nameof(IAggregateQueryOperation));
+            LogCommonPropertiesAndNewLine(operation);
+
+            Visit(operation.Group, "Group");
+            Visit(operation.Aggregation, "Aggregation");
+        }
+
         public override void VisitExpressionStatement(IExpressionStatementOperation operation)
         {
             LogString(nameof(IExpressionStatementOperation));
@@ -867,7 +863,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         public override void VisitFlowCapture(IFlowCaptureOperation operation)
         {
             LogString(nameof(IFlowCaptureOperation));
-            LogString($": {operation.Id}");
+            LogString($": {operation.Id.Value}");
             LogCommonPropertiesAndNewLine(operation);
 
             Visit(operation.Value, "Value");
@@ -878,7 +874,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         public override void VisitFlowCaptureReference(IFlowCaptureReferenceOperation operation)
         {
             LogString(nameof(IFlowCaptureReferenceOperation));
-            LogString($": {operation.Id}");
+            LogString($": {operation.Id.Value}");
             LogCommonPropertiesAndNewLine(operation);
         }
 
@@ -1012,7 +1008,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         {
             LogString(nameof(IPlaceholderOperation));
             LogCommonPropertiesAndNewLine(operation);
-            Assert.Equal(PlaceholderKind.Unspecified, operation.PlaceholderKind);
+            Assert.Equal(PlaceholderKind.AggregationGroup, operation.PlaceholderKind);
         }
 
         public override void VisitUnaryOperator(IUnaryOperation operation)
@@ -1100,7 +1096,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             Indent();
             LogConversion(operation.Conversion);
 
-            if (((Operation)operation).SemanticModel == null && !operation.Conversion.IsLanguageAgnostic)
+            if (((Operation)operation).SemanticModel == null)
             {
                 LogNewLine();
                 Indent();
