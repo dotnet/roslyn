@@ -10730,6 +10730,68 @@ class CL1<T>
         public void AnonymousTypes_05()
         {
             var source =
+@"interface I<T> { }
+interface IIn<in T> { }
+interface IOut<out T> { }
+class C
+{
+    static void F0(string x0, string? y0)
+    {
+        var a0 = new { F = x0 };
+        var b0 = new { F = y0 };
+        a0 = b0;
+        b0 = a0;
+    }
+    static void F1(I<string> x1, I<string?> y1)
+    {
+        var a1 = new { F = x1 };
+        var b1 = new { F = y1 };
+        a1 = b1;
+        b1 = a1;
+    }
+    static void F2(IIn<string> x2, IIn<string?> y2)
+    {
+        var a2 = new { F = x2 };
+        var b2 = new { F = y2 };
+        a2 = b2;
+        b2 = a2;
+    }
+    static void F3(IOut<string> x3, IOut<string?> y3)
+    {
+        var a3 = new { F = x3 };
+        var b3 = new { F = y3 };
+        a3 = b3;
+        b3 = a3;
+    }
+}";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
+            // PROTOTYPE(NullableReferenceTypes): Should report a warning for `a0 = b0`.
+            // PROTOTYPE(NullableReferenceTypes): Should not report a warning for `b3 = a3`.
+            comp.VerifyDiagnostics(
+                // (17,14): warning CS8619: Nullability of reference types in value of type '<anonymous type: I<string?> F>' doesn't match target type '<anonymous type: I<string> F>'.
+                //         a1 = b1;
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "b1").WithArguments("<anonymous type: I<string?> F>", "<anonymous type: I<string> F>").WithLocation(17, 14),
+                // (18,14): warning CS8619: Nullability of reference types in value of type '<anonymous type: I<string> F>' doesn't match target type '<anonymous type: I<string?> F>'.
+                //         b1 = a1;
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "a1").WithArguments("<anonymous type: I<string> F>", "<anonymous type: I<string?> F>").WithLocation(18, 14),
+                // (24,14): warning CS8619: Nullability of reference types in value of type '<anonymous type: IIn<string?> F>' doesn't match target type '<anonymous type: IIn<string> F>'.
+                //         a2 = b2;
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "b2").WithArguments("<anonymous type: IIn<string?> F>", "<anonymous type: IIn<string> F>").WithLocation(24, 14),
+                // (25,14): warning CS8619: Nullability of reference types in value of type '<anonymous type: IIn<string> F>' doesn't match target type '<anonymous type: IIn<string?> F>'.
+                //         b2 = a2;
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "a2").WithArguments("<anonymous type: IIn<string> F>", "<anonymous type: IIn<string?> F>").WithLocation(25, 14),
+                // (31,14): warning CS8619: Nullability of reference types in value of type '<anonymous type: IOut<string?> F>' doesn't match target type '<anonymous type: IOut<string> F>'.
+                //         a3 = b3;
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "b3").WithArguments("<anonymous type: IOut<string?> F>", "<anonymous type: IOut<string> F>").WithLocation(31, 14),
+                // (32,14): warning CS8619: Nullability of reference types in value of type '<anonymous type: IOut<string> F>' doesn't match target type '<anonymous type: IOut<string?> F>'.
+                //         b3 = a3;
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "a3").WithArguments("<anonymous type: IOut<string> F>", "<anonymous type: IOut<string?> F>").WithLocation(32, 14));
+        }
+
+        [Fact]
+        public void AnonymousTypes_06()
+        {
+            var source =
 @"class C
 {
     static void F(string x, string y)
@@ -10738,9 +10800,7 @@ class CL1<T>
         y = new { x, y = y }.y ?? y;
     }
 }";
-            var comp = CreateCompilation(
-                source,
-                parseOptions: TestOptions.Regular8);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
             // PROTOTYPE(NullableReferenceTypes): Should report ErrorCode.HDN_ExpressionIsProbablyNeverNull.
             // See comment in DataFlowPass.VisitAnonymousObjectCreationExpression.
             comp.VerifyDiagnostics();
