@@ -941,8 +941,9 @@ class C
     }
 }";
             var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8, options: TestOptions.ReleaseModule);
-            // No missing attribute warning since the nullable state of the lambda
-            // return type was inferred in flow analysis, not from initial binding.
+            // The lambda signature is emitted without a [Nullable] attribute because
+            // the return type is inferred from flow analysis, not from initial binding.
+            // As a result, there is no missing attribute warning.
             comp.VerifyEmitDiagnostics();
         }
 

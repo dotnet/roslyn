@@ -2615,6 +2615,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             for (int i = 0; i < count; i++)
             {
                 var invokeParameter = invoke.Parameters[i];
+                // Parameter nullability is expected to match exactly. This corresponds to the behavior of initial binding.
+                //    Action<string> x = (object o) => { }; // error CS1661: Cannot convert lambda expression to delegate type 'Action<string>' because the parameter types do not match the delegate parameter types
+                //    Action<object> y = (object? o) => { }; // warning CS8622: Nullability of reference types in type of parameter 'o' of 'lambda expression' doesn't match the target delegate 'Action<object>'.
+                // PROTOTYPE(NullableReferenceTypes): Consider relaxing and allow implicit conversions of nullability.
+                // (Compare with method group conversions which pass `requireIdentity: false`.)
                 if (IsNullabilityMismatch(invokeParameter.Type, unboundLambda.ParameterType(i), requireIdentity: true))
                 {
                     ReportStaticNullCheckingDiagnostics(ErrorCode.WRN_NullabilityMismatchInParameterTypeOfTargetDelegate, syntax,
