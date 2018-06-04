@@ -685,7 +685,7 @@ class C
             c = ref x;
         });
     }
-}", references: new[] { LinqAssemblyRef });
+}");
             comp.VerifyDiagnostics(
                 // (12,22): error CS1939: Cannot pass the range variable 'c' as an out or ref parameter
                 //             rx = ref c;
@@ -1610,7 +1610,7 @@ public class Test
     }
 
 }";
-            var comp = CreateCompilation(text, references: new[] { MscorlibRef, SystemCoreRef, LinqAssemblyRef });
+            var comp = CreateCompilation(text, targetFramework: TargetFramework.Empty, references: new[] { MscorlibRef, SystemCoreRef });
             comp.VerifyDiagnostics(
                 // (16,34): error CS8159: Cannot return the range variable 'ch' by reference
                 //             select(D1)(() => ref ch);
@@ -1661,7 +1661,7 @@ public class Test
     }
 
 }";
-            var comp = CreateCompilation(text, references: new[] { MscorlibRef, SystemCoreRef });
+            var comp = CreateCompilation(text);
             comp.VerifyDiagnostics(
     // (14,26): error CS1657: Cannot use 'M' as a ref or out value because it is a 'method group'
     //         ref char r = ref M;
@@ -2274,7 +2274,7 @@ class C
 ";
             CompileAndVerify(text,
                 expectedOutput: "frog",
-                references: new[] { SystemCoreRef, CSharpRef }).VerifyDiagnostics();
+                references: new[] { CSharpRef }).VerifyDiagnostics();
         }
 
         [Fact]

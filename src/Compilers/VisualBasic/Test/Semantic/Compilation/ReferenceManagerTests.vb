@@ -676,7 +676,10 @@ Class D
 End Class
 </text>.Value
 
-            c = CreateCompilationWithMscorlib40({source}, {r1, r2}, options:=TestOptions.ReleaseDll)
+            c = CreateEmptyCompilation(
+                {source},
+                TargetFrameworkUtil.Mscorlib40References.AddRange({r1, r2}),
+                options:=TestOptions.ReleaseDll)
             c.AssertTheseDiagnostics()
             Assert.Null(c.GetReferencedAssemblySymbol(r1))
             Assert.NotNull(c.GetReferencedAssemblySymbol(r2))
@@ -688,12 +691,18 @@ Class D
 End Class
 </text>.Value
 
-            c = CreateCompilationWithMscorlib40({source}, {r1, r2}, options:=TestOptions.ReleaseDll)
+            c = CreateEmptyCompilation(
+                {source},
+                TargetFrameworkUtil.Mscorlib40References.AddRange({r1, r2}),
+                options:=TestOptions.ReleaseDll)
             Assert.Null(c.GetReferencedAssemblySymbol(r1))
             Assert.NotNull(c.GetReferencedAssemblySymbol(r2))
             c.AssertTheseDiagnostics()
 
-            c = CreateCompilationWithMscorlib40({source}, {r1, rEmbed}, options:=TestOptions.ReleaseDll)
+            c = CreateEmptyCompilation(
+                {source},
+                TargetFrameworkUtil.Mscorlib40References.AddRange({r1, rEmbed}),
+                options:=TestOptions.ReleaseDll)
             c.AssertTheseDiagnostics(<errors>
 BC31549: Cannot embed interop types from assembly 'C, Version=1.0.0.0, Culture=neutral, PublicKeyToken=374d0c2befcd8cc9' because it is missing the 'System.Runtime.InteropServices.GuidAttribute' attribute.
 BC31553: Cannot embed interop types from assembly 'C, Version=1.0.0.0, Culture=neutral, PublicKeyToken=374d0c2befcd8cc9' because it is missing either the 'System.Runtime.InteropServices.ImportedFromTypeLibAttribute' attribute or the 'System.Runtime.InteropServices.PrimaryInteropAssemblyAttribute' attribute.
@@ -704,7 +713,10 @@ BC31541: Reference to class 'C' is not allowed when its assembly is configured t
             Assert.Null(c.GetReferencedAssemblySymbol(r1))
             Assert.NotNull(c.GetReferencedAssemblySymbol(rEmbed))
 
-            c = CreateCompilationWithMscorlib40({source}, {rEmbed, r1}, options:=TestOptions.ReleaseDll)
+            c = CreateEmptyCompilation(
+                {source},
+                TargetFrameworkUtil.Mscorlib40References.AddRange({rEmbed, r1}),
+                options:=TestOptions.ReleaseDll)
             c.AssertTheseDiagnostics()
             Assert.Null(c.GetReferencedAssemblySymbol(rEmbed))
             Assert.NotNull(c.GetReferencedAssemblySymbol(r1))
@@ -1969,8 +1981,9 @@ End Class
             Dim dRef = CreateCompilationWithMscorlib40({"<Assembly: System.Reflection.AssemblyVersion(""1.0.0.0"")> : Public Interface D : Inherits B : End Interface"}, {b2Ref}, options:=s_signedDll, assemblyName:="D").EmitToImageReference()
             Dim eRef = CreateCompilationWithMscorlib40({"<Assembly: System.Reflection.AssemblyVersion(""1.0.0.0"")> : Public Interface E : Inherits B : End Interface"}, {b1Ref}, options:=s_signedDll, assemblyName:="E").EmitToImageReference()
 
-            Dim aRef = CreateCompilationWithMscorlib40({"<Assembly: System.Reflection.AssemblyVersion(""1.0.0.0"")> : Public Interface A : Inherits D, E : End Interface"},
-                                                     {dRef, eRef, b1Ref, b2Ref},
+            Dim references = TargetFrameworkUtil.Mscorlib40References.AddRange({dRef, eRef, b1Ref, b2Ref})
+            Dim aRef = CreateEmptyCompilation({"<Assembly: System.Reflection.AssemblyVersion(""1.0.0.0"")> : Public Interface A : Inherits D, E : End Interface"},
+                                                     references,
                                                      s_signedDll,
                                                      assemblyName:="A").EmitToImageReference()
 
@@ -2016,7 +2029,11 @@ End Class
             Dim dRef = CreateCompilationWithMscorlib40({"<Assembly: System.Reflection.AssemblyVersion(""1.0.0.0"")>: Public Interface D : Inherits B : End Interface"}, {b2Ref}, options:=s_signedDll, assemblyName:="D").EmitToImageReference()
             Dim eRef = CreateCompilationWithMscorlib40({"<Assembly: System.Reflection.AssemblyVersion(""1.0.0.0"")>: Public Interface E : Inherits B : End Interface"}, {b1Ref}, options:=s_signedDll, assemblyName:="E").EmitToImageReference()
 
-            Dim aRef = CreateCompilationWithMscorlib40({"<Assembly: System.Reflection.AssemblyVersion(""1.0.0.0"")>: Public Interface A : Inherits D, E : End Interface"}, {dRef, eRef, b1Ref, b2Ref}, s_signedDll, assemblyName:="A").EmitToImageReference()
+            Dim aRef = CreateEmptyCompilation(
+                {"<Assembly: System.Reflection.AssemblyVersion(""1.0.0.0"")>: Public Interface A : Inherits D, E : End Interface"},
+                TargetFrameworkUtil.Mscorlib40References.AddRange({dRef, eRef, b1Ref, b2Ref}),
+                s_signedDll,
+                assemblyName:="A").EmitToImageReference()
 
             Dim resolverC = New TestMissingMetadataReferenceResolver(New Dictionary(Of String, MetadataReference) From
             {

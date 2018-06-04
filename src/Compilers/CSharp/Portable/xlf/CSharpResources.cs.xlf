@@ -1323,8 +1323,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_IllegalStatement">
-        <source>Only assignment, call, increment, decrement, and new object expressions can be used as a statement</source>
-        <target state="translated">Jako příkaz jde použít jenom objektové výrazy přiřazení, volání, zvýšení nebo snížení hodnoty nebo výrazy obsahující operátor new.</target>
+        <source>Only assignment, call, increment, decrement, await, and new object expressions can be used as a statement</source>
+        <target state="needs-review-translation">Jako příkaz jde použít jenom objektové výrazy přiřazení, volání, zvýšení nebo snížení hodnoty nebo výrazy obsahující operátor new.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadGetEnumerator">

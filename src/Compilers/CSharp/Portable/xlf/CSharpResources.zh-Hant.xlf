@@ -1323,8 +1323,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_IllegalStatement">
-        <source>Only assignment, call, increment, decrement, and new object expressions can be used as a statement</source>
-        <target state="translated">只有指派、呼叫、遞增、遞減以及新的物件運算式，可以用做為陳述式。</target>
+        <source>Only assignment, call, increment, decrement, await, and new object expressions can be used as a statement</source>
+        <target state="needs-review-translation">只有指派、呼叫、遞增、遞減以及新的物件運算式，可以用做為陳述式。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadGetEnumerator">

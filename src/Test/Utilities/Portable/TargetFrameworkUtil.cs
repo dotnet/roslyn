@@ -79,7 +79,7 @@ namespace Roslyn.Test.Utilities
         public static ImmutableArray<MetadataReference> StandardAndVBRuntimeReferences => CoreClrShim.IsRunningOnCoreClr ? NetStandard20References.Add(NetStandard20.MicrosoftVisualBasicRef) : Mscorlib46ExtendedReferences.Add(TestBase.MsvbRef_v4_0_30319_17929);
         public static ImmutableArray<MetadataReference> StandardCompatReferences => CoreClrShim.IsRunningOnCoreClr ? NetStandard20References : Mscorlib40References;
         public static ImmutableArray<MetadataReference> DefaultVbReferencs => ImmutableArray.Create(TestBase.MscorlibRef, TestBase.SystemRef, TestBase.SystemCoreRef, TestBase.MsvbRef);
- 
+
         public static ImmutableArray<MetadataReference> GetReferences(TargetFramework tf)
         {
             switch (tf)
@@ -114,15 +114,61 @@ namespace Roslyn.Test.Utilities
                 return references;
             }
 
-            foreach (var r in additionalReferences)
+            checkForDuplicateReferences();
+            return references.AddRange(additionalReferences);
+
+            // Check to see if there are any duplicate references. This guards against tests inadvertently passing multiple copies of 
+            // say System.Core to the tests and implicitly depending on the higher one to win. The few tests which actually mean to 
+            // pass multiple verisons of a DLL should manually construct the reference list and not use this helper.
+            void checkForDuplicateReferences()
             {
-                if (references.Contains(r))
+                var nameSet = new HashSet<string>(getNames(references), StringComparer.OrdinalIgnoreCase);
+                foreach (var r in additionalReferences)
                 {
-                    throw new Exception($"Duplicate reference detected {r.Display}");
+                    if (references.Contains(r))
+                    {
+                        throw new Exception($"Duplicate reference detected {r.Display}");
+                    }
+
+                    var name = getName(r);
+                    if (name != null && !nameSet.Add(name))
+                    {
+                        throw new Exception($"Duplicate reference detected {r.Display} - {name}");
+                    }
                 }
             }
 
-            return references.AddRange(additionalReferences);
+            IEnumerable<string> getNames(IEnumerable<MetadataReference> e) 
+            {
+                foreach (var r in e)
+                {
+                    var name = getName(r);
+                    if (name != null)
+                    {
+                        yield return name;
+                    }
+                }
+            }
+
+            string getName(MetadataReference m)
+            {
+                if (m is PortableExecutableReference p &&
+                    p.GetMetadata() is AssemblyMetadata assemblyMetadata)
+                {
+                    try
+                    {
+                        var identity = assemblyMetadata.GetAssembly().Identity;
+                        return identity?.Name;
+                    }
+                    catch (BadImageFormatException)
+                    {
+                        // Happens when a native image is incorrectly passed as a PE.
+                        return null;
+                    }
+                }
+
+                return null;
+            }
         }
     }
 }
