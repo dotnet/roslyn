@@ -4491,6 +4491,7 @@ class C
 }", parameters: new TestParameters(new CSharpParseOptions(LanguageVersion.CSharp7_1)));
         }
 
+        [WorkItem(27239, "https://github.com/dotnet/roslyn/issues/27239")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
         public async Task DontOfferToRemoveCastWhereNoConversionExists()
         {
