@@ -44,6 +44,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.E
             }
 
             var completionService = document.GetLanguageService<CompletionService>();
+
+            // TODO: Confirm adherence to VS threading requirements https://github.com/dotnet/roslyn/issues/27418
             var completionList = await completionService.GetCompletionsAsync(
                 document,
                 triggerLocation,
@@ -69,18 +71,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.E
                         completionList.SuggestionModeItem.DisplayText,
                         (completionList.SuggestionModeItem.Properties.TryGetValue("Description", out var description)
                             ? description
-                            : "_")) // TODO: Allow Empty String
+                            : "_")) // TODO: Allow Empty String https://github.com/dotnet/roslyn/issues/27419
                     : null;
             return new EditorCompletion.CompletionContext(
                 items,
                 suggestionItemOptions,
                 suggestionItemOptions == null ? EditorCompletion.InitialSelectionHint.RegularSelection : EditorCompletion.InitialSelectionHint.SoftSelection);
-
-            //return new EditorCompletion.CompletionContext(
-            //    items,
-            //    useSoftSelection: false,
-            //    completionList.SuggestionModeItem != null,
-            //    completionList.SuggestionModeItem?.DisplayText);
         }
 
         private static RoslynTrigger GetRoslynTrigger(EditorCompletion.InitialTrigger trigger)
@@ -95,7 +91,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.E
                 case EditorCompletion.InitialTriggerReason.Deletion:
                     return RoslynTrigger.CreateDeletionTrigger(trigger.Character);
                 case EditorCompletion.InitialTriggerReason.Snippets:
-                    // TODO: Exclusive snippet mode isn't currently supported
+                    // TODO: Exclusive snippet mode isn't currently supported https://github.com/dotnet/roslyn/issues/27423
                     return default;
                 default:
                     return default;
@@ -173,6 +169,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.E
 
         public async Task<object> GetDescriptionAsync(EditorCompletion.CompletionItem item, CancellationToken cancellationToken)
         {
+            // TODO: Should string.Empty returns here be null to avoid an empty popup? https://github.com/dotnet/roslyn/issues/27420
+
             if (!item.Properties.TryGetProperty<RoslynCompletionItem>(RoslynItem, out var roslynItem) ||
                 !item.Properties.TryGetProperty<ITextBuffer>(TriggerBuffer, out var triggerBuffer))
             {
@@ -232,20 +230,21 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.E
                 return false;
             }
 
+            // TODO: Use GetTextSynchronously https://github.com/dotnet/roslyn/issues/27425
             if (!document.TryGetText(out var sourceText))
             {
                 applicableSpan = default;
                 return false;
             }
 
-            // TODO: TypeChar of 0 means Invoke or InvokeAndCommitIfUnique. An API update will make this better.
+            // TODO: TypeChar of 0 means Invoke or InvokeAndCommitIfUnique. An API update will make this better. https://github.com/dotnet/roslyn/issues/27426
             if (typeChar != 0 && !service.ShouldTriggerCompletion(sourceText, triggerLocation.Position, RoslynTrigger.CreateInsertionTrigger(typeChar)))
             {
                 applicableSpan = default;
                 return false;
             }
 
-            // TODO: Check CompletionOptions.TriggerOnTyping
+            // TODO: Check CompletionOptions.TriggerOnTyping  https://github.com/dotnet/roslyn/issues/27427
             // TODO: Check CompletionOptions.TriggerOnDeletion
 
             applicableSpan = new SnapshotSpan(triggerLocation.Snapshot, service.GetDefaultCompletionListSpan(sourceText, triggerLocation.Position).ToSpan());

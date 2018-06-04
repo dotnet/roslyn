@@ -42,7 +42,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.E
             var completionService = document.GetLanguageService<CompletionService>();
             if (!item.Properties.TryGetProperty<RoslynCompletionItem>(CompletionItemSource.RoslynItem, out var roslynItem))
             {
-                // This isn't an item we provided. Let the editor handle it normally.
+                // This isn't an item we provided (e.g. Razor). Let the editor handle it normally.
                 return new EditorCompletion.CommitResult(isHandled: false, EditorCompletion.CommitBehavior.None);
             }
 
@@ -74,8 +74,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.E
             char commitCharacter,
             CancellationToken token)
         {
+            // TODO: Store the document so we don't have to get it again (and risk changes having happened): https://github.com/dotnet/roslyn/issues/27417
             var document = buffer.CurrentSnapshot.GetOpenDocumentInCurrentContextWithChanges();
             var service = (CompletionServiceWithProviders)document.GetLanguageService<CompletionService>();
+
+            // TODO: Better error handling https://github.com/dotnet/roslyn/issues/27412
 
             using (var edit = buffer.CreateEdit())
             {
