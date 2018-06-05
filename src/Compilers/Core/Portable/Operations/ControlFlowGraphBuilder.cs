@@ -35,9 +35,10 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
 
         /// <summary>
         /// Holds the current object being initialized if we're visiting an object initializer.
+        /// Or the current anonymous type object being initialized if we're visiting an anonymous type object initializer.
         /// Or the target of a VB With statement.
         /// </summary>
-        private IOperation _currentImplicitInstance;
+        private ImplicitInstanceInfo _currentImplicitInstance;
 
         private ControlFlowGraphBuilder()
         { }
@@ -1299,8 +1300,8 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
             Debug.Assert(_currentStatement == operation);
             int captureId = VisitAndCapture(operation.Value);
 
-            IOperation previousInitializedInstance = _currentImplicitInstance;
-            _currentImplicitInstance = GetCaptureReference(captureId, operation.Value);
+            ImplicitInstanceInfo previousInitializedInstance = _currentImplicitInstance;
+            _currentImplicitInstance = new ImplicitInstanceInfo(GetCaptureReference(captureId, operation.Value));
 
             VisitStatement(operation.Body);
 
@@ -4720,32 +4721,48 @@ oneMoreTime:
             IOperation initializedInstance = new ObjectCreationExpression(operation.Constructor, initializer: null, visitedArgs, semanticModel: null, operation.Syntax, operation.Type,
                                                                           operation.ConstantValue, IsImplicit(operation));
 
-            if (operation.Initializer != null)
-            {
-                SpillEvalStack();
-
-                int initializerCaptureId = _availableCaptureId++;
-                AddStatement(new FlowCapture(initializerCaptureId, initializedInstance.Syntax, initializedInstance));
-
-                initializedInstance = GetCaptureReference(initializerCaptureId, initializedInstance);
-                HandleObjectOrCollectionInitializer(operation.Initializer, initializedInstance);
-            }
+            initializedInstance = HandleObjectOrCollectionInitializer(operation.Initializer, initializedInstance);
 
             return initializedInstance;
         }
 
-        private void HandleObjectOrCollectionInitializer(IObjectOrCollectionInitializerOperation initializer, IOperation initializedInstance)
+        public override IOperation VisitTypeParameterObjectCreation(ITypeParameterObjectCreationOperation operation, int? captureIdForResult)
         {
-            IOperation previousInitializedInstance = _currentImplicitInstance;
-            _currentImplicitInstance = initializedInstance;
+            var initializedInstance = new TypeParameterObjectCreationExpression(initializer: null, semanticModel: null, operation.Syntax, operation.Type, operation.ConstantValue, IsImplicit(operation));
+            return HandleObjectOrCollectionInitializer(operation.Initializer, initializedInstance);
+        }
 
-            foreach (IOperation innerInitializer in initializer.Initializers)
+        private IOperation HandleObjectOrCollectionInitializer(IObjectOrCollectionInitializerOperation initializer, IOperation objectCreation)
+        {
+            // If the initializer is null, nothing to spill. Just return the original instance.
+            if (initializer == null)
             {
-                handleInitializer(innerInitializer);
+                return objectCreation;
             }
 
-            _currentImplicitInstance = previousInitializedInstance;
-            return;
+            // Initializer wasn't null, so spill the stack and capture the initialized instance. Returns a reference to the captured instance.
+            SpillEvalStack();
+
+            int initializerCaptureId = _availableCaptureId++;
+            AddStatement(new FlowCapture(initializerCaptureId, objectCreation.Syntax, objectCreation));
+            objectCreation = GetCaptureReference(initializerCaptureId, objectCreation);
+
+            visitInitializer(initializer, objectCreation);
+
+            return objectCreation;
+
+            void visitInitializer(IObjectOrCollectionInitializerOperation initializerOperation, IOperation initializedInstance)
+            {
+                ImplicitInstanceInfo previousInitializedInstance = _currentImplicitInstance;
+                _currentImplicitInstance = new ImplicitInstanceInfo(initializedInstance);
+
+                foreach (IOperation innerInitializer in initializerOperation.Initializers)
+                {
+                    handleInitializer(innerInitializer);
+                }
+
+                _currentImplicitInstance = previousInitializedInstance;
+            }
 
             void handleInitializer(IOperation innerInitializer)
             {
@@ -4862,7 +4879,7 @@ oneMoreTime:
 
                 (bool pushSuccess, ImmutableArray<IOperation> arguments) = tryPushTarget(memberInitializer.InitializedMember);
                 IOperation instance = pushSuccess ? popTarget(memberInitializer.InitializedMember, arguments) : Visit(memberInitializer.InitializedMember);
-                HandleObjectOrCollectionInitializer(memberInitializer.Initializer, instance);
+                visitInitializer(memberInitializer.Initializer, instance);
             }
 
             (bool success, ImmutableArray<IOperation> arguments) tryPushTarget(IOperation instance)
@@ -4969,6 +4986,77 @@ oneMoreTime:
         {
             Debug.Assert(false, "This code path should not be reachable.");
             return MakeInvalidOperation(operation.Syntax, operation.Type, ImmutableArray<IOperation>.Empty);
+        }
+
+        public override IOperation VisitAnonymousObjectCreation(IAnonymousObjectCreationOperation operation, int? captureIdForResult)
+        {
+            if (operation.Initializers.IsEmpty)
+            {
+                return new AnonymousObjectCreationExpression(initializers: ImmutableArray<IOperation>.Empty, semanticModel: null,
+                    operation.Syntax, operation.Type, operation.ConstantValue, IsImplicit(operation));
+            }
+
+            ImplicitInstanceInfo savedCurrentImplicitInstance = _currentImplicitInstance;
+            _currentImplicitInstance = new ImplicitInstanceInfo((INamedTypeSymbol)operation.Type);
+
+            var properties = operation.Type.GetMembers().OfType<IPropertySymbol>().ToImmutableArray();
+            Debug.Assert(properties.Length == operation.Initializers.Length);
+
+            SpillEvalStack();
+
+            var initializerBuilder = ArrayBuilder<IOperation>.GetInstance(operation.Initializers.Length);
+            for (int i = 0; i < operation.Initializers.Length; i++)
+            {
+                IOperation initializer = operation.Initializers[i];
+                IPropertySymbol initializedProperty = properties[i];
+
+                // Due to https://github.com/dotnet/roslyn/issues/25266,
+                // the initializer may or may not be a simple assignment to anonymous type property.
+                if (initializer.Kind == OperationKind.SimpleAssignment)
+                {
+                    var simpleAssignment = (ISimpleAssignmentOperation)initializer;
+                    if (simpleAssignment.Target.Kind == OperationKind.PropertyReference)
+                    {
+                        var propertyReference = (IPropertyReferenceOperation)simpleAssignment.Target;
+
+                        // Due to https://github.com/dotnet/roslyn/issues/22736,
+                        // Instance is null for property reference in an anonymous initializer.
+                        if (propertyReference.Instance == null &&
+                            propertyReference.Property == initializedProperty &&
+                            propertyReference.Arguments.IsEmpty)
+                        {
+                            IOperation visitedTarget = new PropertyReferenceExpression(initializedProperty, propertyReference.Instance, ImmutableArray<IArgumentOperation>.Empty,
+                                semanticModel: null, propertyReference.Syntax, propertyReference.Type, propertyReference.ConstantValue, IsImplicit(propertyReference));
+                            IOperation visitedValue = visitAndCaptureInitializer(initializedProperty, simpleAssignment.Value);
+                            var visitedAssignment = new SimpleAssignmentExpression(visitedTarget, isRef: simpleAssignment.IsRef, visitedValue,
+                                semanticModel: null, simpleAssignment.Syntax, simpleAssignment.Type, simpleAssignment.ConstantValue, IsImplicit(simpleAssignment));
+                            initializerBuilder.Add(visitedAssignment);
+                            continue;
+                        }
+                    }
+                }
+
+                initializerBuilder.Add(visitAndCaptureInitializer(initializedProperty, initializer));
+            }
+
+            _currentImplicitInstance.Free();
+            _currentImplicitInstance = savedCurrentImplicitInstance;
+
+            return new AnonymousObjectCreationExpression(initializerBuilder.ToImmutableAndFree(), semanticModel: null,
+                operation.Syntax, operation.Type, operation.ConstantValue, IsImplicit(operation));
+
+            FlowCaptureReference visitAndCaptureInitializer(IPropertySymbol initializedProperty, IOperation initializer)
+            {
+                int captureId = VisitAndCapture(initializer);
+                
+                // For VB, previously initialized properties can be referenced in subsequent initializers.
+                // We store the capture Id for the property for such property references.
+                // Note that for VB error cases with duplicate property names, all the property symbols are considered equal.
+                // We use the last duplicate property's capture id and use it in subsequent property references.
+                _currentImplicitInstance.AnonymousTypePropertyCaptureIds[initializedProperty] = captureId;
+
+                return GetCaptureReference(captureId, initializer);
+            }
         }
 
         public override IOperation VisitLocalFunction(ILocalFunctionOperation operation, int? captureIdForResult)
@@ -5084,9 +5172,9 @@ oneMoreTime:
                 // When we're in an object or collection initializer, we need to replace the instance reference with a reference to the object being initialized
                 Debug.Assert(operation.IsImplicit);
 
-                if (_currentImplicitInstance != null)
+                if (_currentImplicitInstance.ImplicitInstance != null)
                 {
-                    return OperationCloner.CloneOperation(_currentImplicitInstance);
+                    return OperationCloner.CloneOperation(_currentImplicitInstance.ImplicitInstance);
                 }
                 else
                 {
@@ -5401,6 +5489,23 @@ oneMoreTime:
 
         public override IOperation VisitPropertyReference(IPropertyReferenceOperation operation, int? captureIdForResult)
         {
+            // Check if this is an anonymous type property reference with an implicit receiver within an anonymous object initializer.
+            // Due to https://github.com/dotnet/roslyn/issues/22736,
+            // Instance is null for property reference with implicit instance reference within an anonymous initializer.
+            if (operation.Instance == null &&
+                operation.Property.ContainingType.IsAnonymousType &&
+                operation.Property.ContainingType == _currentImplicitInstance.AnonymousType)
+            {
+                if (_currentImplicitInstance.AnonymousTypePropertyCaptureIds.TryGetValue(operation.Property, out int captureId))
+                {
+                    return GetCaptureReference(captureId, operation);
+                }
+                else
+                {
+                    return MakeInvalidOperation(operation.Syntax, operation.Type, ImmutableArray<IOperation>.Empty);
+                }
+            }
+
             IOperation instance = operation.Property.IsStatic ? null : operation.Instance;
             (IOperation visitedInstance, ImmutableArray<IArgumentOperation> visitedArguments) = VisitInstanceWithArguments(instance, operation.Arguments);
             return new PropertyReferenceExpression(operation.Property, visitedInstance, visitedArguments, semanticModel: null,
@@ -5521,7 +5626,7 @@ oneMoreTime:
             AddStatement(assignment);
 
             LeaveRegion();
-    	}
+        }
 
         public override IOperation VisitEventAssignment(IEventAssignmentOperation operation, int? captureIdForResult)
         {
@@ -5653,6 +5758,11 @@ oneMoreTime:
             return new PlaceholderExpression(operation.PlaceholderKind, semanticModel: null, operation.Syntax, operation.Type, operation.ConstantValue, IsImplicit(operation));
         }
 
+        public override IOperation VisitConversion(IConversionOperation operation, int? captureIdForResult)
+        {
+            return new ConversionOperation(Visit(operation.Operand), ((BaseConversionExpression)operation).ConvertibleConversion, operation.IsTryCast, operation.IsChecked, semanticModel: null, operation.Syntax, operation.Type, operation.ConstantValue, IsImplicit(operation));
+        }
+
         public override IOperation VisitIsPattern(IIsPatternOperation operation, int? captureIdForResult)
         {
             _evalStack.Push(Visit(operation.Value));
@@ -5714,19 +5824,9 @@ oneMoreTime:
             return new ArgumentOperation(Visit(operation.Value), operation.ArgumentKind, operation.Parameter, baseArgument.InConversionConvertibleOpt, baseArgument.OutConversionConvertibleOpt, semanticModel: null, operation.Syntax, IsImplicit(operation));
         }
 
-        public override IOperation VisitConversion(IConversionOperation operation, int? captureIdForResult)
-        {
-            return new ConversionOperation(Visit(operation.Operand), ((BaseConversionExpression)operation).ConvertibleConversion, operation.IsTryCast, operation.IsChecked, semanticModel: null, operation.Syntax, operation.Type, operation.ConstantValue, IsImplicit(operation));
-        }
-
         internal override IOperation VisitPointerIndirectionReference(IPointerIndirectionReferenceOperation operation, int? captureIdForResult)
         {
             return new PointerIndirectionReferenceExpression(Visit(operation.Pointer), semanticModel: null, operation.Syntax, operation.Type, operation.ConstantValue, IsImplicit(operation));
-        }
-
-        public override IOperation VisitAnonymousObjectCreation(IAnonymousObjectCreationOperation operation, int? captureIdForResult)
-        {
-            return new AnonymousObjectCreationExpression(VisitArray(operation.Initializers), semanticModel: null, operation.Syntax, operation.Type, operation.ConstantValue, IsImplicit(operation));
         }
 
         public override IOperation VisitDynamicObjectCreation(IDynamicObjectCreationOperation operation, int? captureIdForResult)
@@ -5740,12 +5840,6 @@ oneMoreTime:
         public override IOperation VisitDefaultValue(IDefaultValueOperation operation, int? captureIdForResult)
         {
             return new DefaultValueExpression(semanticModel: null, operation.Syntax, operation.Type, operation.ConstantValue, IsImplicit(operation));
-        }
-
-        public override IOperation VisitTypeParameterObjectCreation(ITypeParameterObjectCreationOperation operation, int? captureIdForResult)
-        {
-            return new TypeParameterObjectCreationExpression(initializer: null, // PROTOTYPE(dataflow): Dropping initializer for now to enable test hook verification
-                                                             semanticModel: null, operation.Syntax, operation.Type, operation.ConstantValue, IsImplicit(operation));
         }
 
         public override IOperation VisitInvalid(IInvalidOperation operation, int? captureIdForResult)
@@ -5775,11 +5869,7 @@ oneMoreTime:
                 IOperation initializedInstance = new InvalidOperation(children.ToImmutableAndFree(), semanticModel: null, operation.Syntax, operation.Type,
                                                                       operation.ConstantValue, IsImplicit(operation));
 
-                int initializerCaptureId = _availableCaptureId++;
-                AddStatement(new FlowCapture(initializerCaptureId, initializedInstance.Syntax, initializedInstance));
-
-                initializedInstance = GetCaptureReference(initializerCaptureId, initializedInstance);
-                HandleObjectOrCollectionInitializer(initializer, initializedInstance);
+                initializedInstance = HandleObjectOrCollectionInitializer(initializer, initializedInstance);
 
                 return initializedInstance;
             }
