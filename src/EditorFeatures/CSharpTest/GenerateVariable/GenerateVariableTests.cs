@@ -8148,7 +8148,7 @@ class C
 @"
 class C
 {
-    private const object Y;
+    private const int Y;
 
     void M2()
     {

@@ -246,7 +246,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public static bool IsNamedArgumentName(SyntaxNode node)
         {
             // An argument name is an IdentifierName inside a NameColon, inside an Argument, inside an ArgumentList, inside an
-            // Invocation, ObjectCreation, ObjectInitializer, or ElementAccess.
+            // Invocation, ObjectCreation, ObjectInitializer, ElementAccess or Subpattern.
 
             if (!node.IsKind(IdentifierName))
             { 
@@ -260,6 +260,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             var parent2 = parent1.Parent;
+            if (parent2.IsKind(SyntaxKind.Subpattern))
+            {
+                return true;
+            }
+
             if (parent2 == null || !(parent2.IsKind(Argument) || parent2.IsKind(AttributeArgument)))
             {
                 return false;

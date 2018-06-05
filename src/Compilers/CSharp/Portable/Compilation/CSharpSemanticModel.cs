@@ -1756,6 +1756,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundNode boundNodeForSyntacticParent,
             Binder binderOpt)
         {
+            if (lowestBoundNode is BoundSubpattern subpattern)
+            {
+                return GetSymbolInfoForSubpattern(subpattern);
+            }
+
             if (!(lowestBoundNode is BoundExpression boundExpr))
             {
                 return SymbolInfo.None;
@@ -1768,17 +1773,16 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // Get symbols and result kind from the lowest and highest nodes associated with the
             // syntax node.
-            LookupResultKind resultKind;
-            bool isDynamic;
-            ImmutableArray<Symbol> unusedMemberGroup;
-            var symbols = GetSemanticSymbols(boundExpr, boundNodeForSyntacticParent, binderOpt, options, out isDynamic, out resultKind, out unusedMemberGroup);
+            ImmutableArray<Symbol> symbols = GetSemanticSymbols(
+                boundExpr, boundNodeForSyntacticParent, binderOpt, options, out bool isDynamic, out LookupResultKind resultKind, out ImmutableArray<Symbol> unusedMemberGroup);
 
             if (highestBoundNode is BoundExpression highestBoundExpr)
             {
                 LookupResultKind highestResultKind;
                 bool highestIsDynamic;
                 ImmutableArray<Symbol> unusedHighestMemberGroup;
-                ImmutableArray<Symbol> highestSymbols = GetSemanticSymbols(highestBoundExpr, boundNodeForSyntacticParent, binderOpt, options, out highestIsDynamic, out highestResultKind, out unusedHighestMemberGroup);
+                ImmutableArray<Symbol> highestSymbols = GetSemanticSymbols(
+                    highestBoundExpr, boundNodeForSyntacticParent, binderOpt, options, out highestIsDynamic, out highestResultKind, out unusedHighestMemberGroup);
 
                 if ((symbols.Length != 1 || resultKind == LookupResultKind.OverloadResolutionFailure) && highestSymbols.Length > 0)
                 {
@@ -1842,6 +1846,16 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             return SymbolInfoFactory.Create(symbols, resultKind, isDynamic);
+        }
+
+        private SymbolInfo GetSymbolInfoForSubpattern(BoundSubpattern subpattern)
+        {
+            if (subpattern.Symbol?.OriginalDefinition is ErrorTypeSymbol originalErrorType)
+            {
+                return new SymbolInfo(symbol: null, originalErrorType.CandidateSymbols.CastArray<ISymbol>(), originalErrorType.ResultKind.ToCandidateReason());
+            }
+
+            return new SymbolInfo(subpattern.Symbol, CandidateReason.None);
         }
 
         private static void AddUnwrappingErrorTypes(ArrayBuilder<Symbol> builder, Symbol s)
@@ -4073,7 +4087,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>
-        /// Get the semantic info of a named argument in an invocation-like expression.
+        /// Get the semantic info of a named argument in an invocation-like expression (e.g. `x` in `M(x: 3)`)
+        /// or the name in a Subpattern (e.g. either `Name` in `e is (Name: 3){Name: 3}`).
         /// </summary>
         private SymbolInfo GetNamedArgumentSymbolInfo(IdentifierNameSyntax identifierNameSyntax, CancellationToken cancellationToken)
         {
@@ -4103,9 +4118,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return (object)tupleElement == null ? SymbolInfo.None : new SymbolInfo(tupleElement, ImmutableArray<ISymbol>.Empty, CandidateReason.None);
             }
 
+            if (parent3.IsKind(SyntaxKind.PropertyPatternClause) || parent3.IsKind(SyntaxKind.DeconstructionPatternClause))
+            {
+                return GetSymbolInfoWorker(identifierNameSyntax, SymbolInfoOptions.DefaultOptions, cancellationToken);
+            }
+
             CSharpSyntaxNode containingInvocation = parent3.Parent;
             SymbolInfo containingInvocationInfo = GetSymbolInfoWorker(containingInvocation, SymbolInfoOptions.PreferConstructorsToType | SymbolInfoOptions.ResolveAliases, cancellationToken);
-
 
             if ((object)containingInvocationInfo.Symbol != null)
             {
