@@ -215,6 +215,12 @@ Class C
 End Class"))
         End Sub
 
+        <Fact>
+        Public Sub IsQueryKeyword_From()
+            Assert.True(IsQueryKeyword(WrapInMethod("
+Dim result = $$From var1 In collection1, var2 In collection2")))
+        End Sub
+
         Private Function IsMethodLevelMember(markup As String) As Boolean
             Dim code As String = Nothing
             Dim span As TextSpan
@@ -226,6 +232,25 @@ End Class"))
             Return service.IsMethodLevelMember(node)
         End Function
 
+        Private Function WrapInMethod(methodBody As String) As String
+            Return $"
+Class C
+    Sub M()
+        { methodBody }
+    End Sub
+End Class"
+        End Function
+
+        Private Function IsQueryKeyword(markup As String) As Boolean
+            Dim code As String = Nothing
+            Dim position As Integer
+            MarkupTestFile.GetPosition(markup, code, position)
+            Dim tree = SyntaxFactory.ParseSyntaxTree(code)
+            Dim token = tree.GetRoot().FindToken(position)
+            Dim service = VisualBasicSyntaxFactsService.Instance
+
+            Return service.IsQueryKeyword(token)
+        End Function
     End Class
 
 End Namespace
