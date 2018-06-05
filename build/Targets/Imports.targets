@@ -496,4 +496,13 @@
     <Error Text="PathMap, DeterministicSourceRoot and RepoRoot shall not contain spaces (https://github.com/dotnet/roslyn/issues/22835)" 
            Condition="$(PathMap.Contains(' '))" />
   </Target>
+
+  <!--
+    Delegates to XliffTasks to validate that all localizable resources have been translated.
+    We can't use EnsureAllResoucesTranslated directly because the XliffTasks package is only pulled in by projects that
+    produce shipping binaries.
+  -->
+  <Target Name="CheckLocStatus"
+          DependsOnTargets="EnsureAllResourcesTranslated"
+          Condition="'$(NonShipping)' != 'true'" />
 </Project>
