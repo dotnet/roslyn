@@ -465,6 +465,41 @@ Dim customersWithOrders = From cust In customers
                           $$Take While HasOrders(cust)")))
         End Sub
 
+        <Fact>
+        Public Sub IsQueryKeyword_Not_WhileStatement_1()
+            Assert.False(IsQueryKeyword(WrapInMethod("
+Dim index As Integer = 0
+$$While index <= 10
+    index += 1
+End While")))
+        End Sub
+
+        <Fact>
+        Public Sub IsQueryKeyword_Not_WhileStatement_2()
+            Assert.False(IsQueryKeyword(WrapInMethod("
+Dim index As Integer = 0
+While index <= 10
+    index += 1
+End $$While")))
+        End Sub
+
+        <Fact>
+        Public Sub IsQueryKeyword_Not_DoWhileLoop()
+            Assert.False(IsQueryKeyword(WrapInMethod("
+Do $$While index <= 10
+    index += 1
+Loop")))
+        End Sub
+
+        <Fact>
+        Public Sub IsQueryKeyword_Not_DoLoopWhile()
+            Assert.False(IsQueryKeyword(WrapInMethod("
+Dim index As Integer = 0
+Do
+    index += 1
+Loop $$While index < 10")))
+        End Sub
+
         Private Function IsMethodLevelMember(markup As String) As Boolean
             Dim code As String = Nothing
             Dim span As TextSpan
