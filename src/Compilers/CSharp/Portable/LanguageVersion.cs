@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.ComponentModel;
 using System.Globalization;
 using Roslyn.Utilities;
 
@@ -237,6 +238,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// Try parse a <see cref="LanguageVersion"/> from a string input, returning default if input was null.
         /// </summary>
+        [EditorBrowsable(EditorBrowsableState.Never)]
         public static bool TryParse(this string version, out LanguageVersion result)
         {
             if (version == null)
