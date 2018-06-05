@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 
         private static NamingRule CreateGetAsyncRule()
         {
-            var kinds = ImmutableArray.Create(new SymbolKindOrTypeKind(SymbolKind.Method));
+            var kinds = ImmutableArray.Create(new SymbolKindOrTypeKind(MethodKind.Ordinary));
             var modifiers = ImmutableArray.Create(new ModifierKind(ModifierKindEnum.IsAsync));
             return new NamingRule(
                 new SymbolSpecification(Guid.NewGuid(), "endswithasync", kinds, ImmutableArray.Create<Accessibility>(), modifiers),
@@ -43,7 +43,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 
         private static NamingRule CreateEndWithAsyncRule()
         {
-            var kinds = ImmutableArray.Create(new SymbolKindOrTypeKind(SymbolKind.Method));
+            var kinds = ImmutableArray.Create(new SymbolKindOrTypeKind(MethodKind.Ordinary));
             var modifiers = ImmutableArray.Create(new ModifierKind(ModifierKindEnum.IsAsync));
             return new NamingRule(
                 new SymbolSpecification(Guid.NewGuid(), "endswithasynct", kinds, ImmutableArray.Create<Accessibility>(), modifiers),
@@ -53,7 +53,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 
         private static NamingRule CreateMethodStartsWithGetRule()
         {
-            var kinds = ImmutableArray.Create(new SymbolKindOrTypeKind(SymbolKind.Method));
+            var kinds = ImmutableArray.Create(new SymbolKindOrTypeKind(MethodKind.Ordinary));
             var modifiers = ImmutableArray.Create<ModifierKind>();
             return new NamingRule(
                 new SymbolSpecification(Guid.NewGuid(), "startswithget", kinds, ImmutableArray.Create<Accessibility>(), modifiers),

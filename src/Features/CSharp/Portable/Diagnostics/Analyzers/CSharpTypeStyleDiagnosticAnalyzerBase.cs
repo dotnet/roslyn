@@ -71,7 +71,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.TypeStyle
 
             // The severity preference is not Hidden, as indicated by IsStylePreferred.
             var descriptor = Descriptor;
-            context.ReportDiagnostic(CreateDiagnostic(descriptor, declarationStatement, declaredType.Span, typeStyle.Severity));
+            context.ReportDiagnostic(CreateDiagnostic(descriptor, declarationStatement, declaredType.StripRefIfNeeded().Span, typeStyle.Severity));
         }
 
         private Diagnostic CreateDiagnostic(DiagnosticDescriptor descriptor, SyntaxNode declaration, TextSpan diagnosticSpan, ReportDiagnostic severity) 

@@ -1323,8 +1323,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_IllegalStatement">
-        <source>Only assignment, call, increment, decrement, and new object expressions can be used as a statement</source>
-        <target state="translated">Somente expressões de atribuição, chamada, incremento, diminuição e novo objeto podem ser usadas como uma instrução</target>
+        <source>Only assignment, call, increment, decrement, await, and new object expressions can be used as a statement</source>
+        <target state="needs-review-translation">Somente expressões de atribuição, chamada, incremento, diminuição e novo objeto podem ser usadas como uma instrução</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadGetEnumerator">
@@ -1693,8 +1693,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_FriendRefNotEqualToThis">
-        <source>Friend access was granted by '{0}', but the public key of the output assembly does not match that specified by the attribute in the granting assembly.</source>
-        <target state="translated">O acesso Friend foi concedido por "{0}", mas a chave pública do assembly de saída não corresponde àquela especificada pelo atributo no assembly de concessão.</target>
+        <source>Friend access was granted by '{0}', but the public key of the output assembly ('{1}') does not match that specified by the InternalsVisibleTo attribute in the granting assembly.</source>
+        <target state="needs-review-translation">O acesso Friend foi concedido por "{0}", mas a chave pública do assembly de saída não corresponde àquela especificada pelo atributo no assembly de concessão.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_FriendRefSigningMismatch">
@@ -2723,7 +2723,7 @@ Se tal classe for usada como uma classe base e se a classe derivada definir um d
       </trans-unit>
       <trans-unit id="ERR_MissingStructOffset">
         <source>'{0}': instance field in types marked with StructLayout(LayoutKind.Explicit) must have a FieldOffset attribute</source>
-        <target state="needs-review-translation">'"{0}": tipos de campo de instância marcados com StructLayout(LayoutKind.Explicit) devem ter um atributo FieldOffset</target>
+        <target state="translated">'{0}': campo de instância em tipos marcados com StructLayout(LayoutKind.Explicit) precisam ter um atributo FieldOffset</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_ExternMethodNoImplementation">
@@ -4167,7 +4167,7 @@ Um bloco catch() depois de um bloco catch (System.Exception e) poderá capturar 
       </trans-unit>
       <trans-unit id="ERR_ForEachMissingMember">
         <source>foreach statement cannot operate on variables of type '{0}' because '{0}' does not contain a public instance definition for '{1}'</source>
-        <target state="needs-review-translation">Instrução foreach não pode operar em variáveis do tipo "{0}" porque "{0}" não contém uma definição pública para "{1}"</target>
+        <target state="translated">A instrução foreach não pode operar em variáveis do tipo '{0}' porque '{0}' não contém uma definição da instância pública para '{1}'</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_BadXMLRefParamType">
@@ -4412,7 +4412,7 @@ Um bloco catch() depois de um bloco catch (System.Exception e) poderá capturar 
       </trans-unit>
       <trans-unit id="ERR_AnonDelegateCantUse">
         <source>Cannot use ref, out, or in parameter '{0}' inside an anonymous method, lambda expression, query expression, or local function</source>
-        <target state="needs-review-translation">Não é possível usar os parâmetro ref, out ou in '{0}' dentro de um método anônimo, expressão lambda ou expressão de consulta</target>
+        <target state="translated">Não é possível usar os parâmetro ref, out ou in '{0}' dentro de um método anônimo, de uma expressão lambda de uma expressão de consulta ou de uma função local</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_IllegalInnerUnsafe">
@@ -4682,7 +4682,7 @@ Um bloco catch() depois de um bloco catch (System.Exception e) poderá capturar 
       </trans-unit>
       <trans-unit id="ERR_BadPlatformType">
         <source>Invalid option '{0}' for /platform; must be anycpu, x86, Itanium, arm, arm64 or x64</source>
-        <target state="needs-review-translation">Opção inválida "{0}" para /platform; deve ser anycpu, x86, Itanium ou x64</target>
+        <target state="translated">Opção inválida '{0}' para /platform; precisa ser anycpu, x86, Itanium, arm, arm64 ou x64</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ThisStructNotInAnonMeth">
@@ -7381,7 +7381,7 @@ Para incorporar informações de tipo de interoperabilidade para os dois assembl
  /doc:&lt;file&gt;                   Arquivo de Documentação XML a ser gerado
  /refout:&lt;file&gt;                Saída do assembly de referência a ser gerado
  /platform:&lt;string&gt;            Limitar em quais plataformas o código pode ser executado: x86,
-                               Itanium, x64, arm, anycpu32bitpreferred ou
+                               Itanium, x64, arm, arm64, anycpu32bitpreferred ou
                                anycpu. O padrão é anycpu.
 
                         – ARQUIVOS DE ENTRADA –
@@ -8582,32 +8582,32 @@ Para incorporar informações de tipo de interoperabilidade para os dois assembl
       </trans-unit>
       <trans-unit id="ERR_InDynamicMethodArg">
         <source>Arguments with 'in' modifier cannot be used in dynamically dispatched expessions.</source>
-        <target state="new">Arguments with 'in' modifier cannot be used in dynamically dispatched expessions.</target>
+        <target state="translated">Argumentos com o modificador 'in' não podem ser usados em expressões dinamicamente expedidas.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_DoNotUseFixedBufferAttrOnProperty">
         <source>Do not use 'System.Runtime.CompilerServices.FixedBuffer' attribute on a property</source>
-        <target state="new">Do not use 'System.Runtime.CompilerServices.FixedBuffer' attribute on a property</target>
+        <target state="translated">Não use o atributo 'System.Runtime.CompilerServices.FixedBuffer' em uma propriedade</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_FeatureNotAvailableInVersion7_3">
         <source>Feature '{0}' is not available in C# 7.3. Please use language version {1} or greater.</source>
-        <target state="new">Feature '{0}' is not available in C# 7.3. Please use language version {1} or greater.</target>
+        <target state="translated">O recurso '{0}' não está disponível em C# 7.3. Use a versão da linguagem {1} ou superior.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_AttributesOnBackingFieldsNotAvailable">
         <source>Field-targeted attributes on auto-properties are not supported in language version {0}. Please use language version {1} or greater.</source>
-        <target state="new">Field-targeted attributes on auto-properties are not supported in language version {0}. Please use language version {1} or greater.</target>
+        <target state="translated">Os atributos direcionados a campo em propriedades automáticas não são compatíveis com a versão da linguagem {0}. Use a versão da linguagem {1} ou superior.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_AttributesOnBackingFieldsNotAvailable_Title">
         <source>Field-targeted attributes on auto-properties are not supported in this version of the language.</source>
-        <target state="new">Field-targeted attributes on auto-properties are not supported in this version of the language.</target>
+        <target state="translated">Os atributos direcionados a campo em propriedades automáticas não são compatíveis com esta versão da linguagem.</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureRefConditional">
         <source>ref conditional expression</source>
-        <target state="new">ref conditional expression</target>
+        <target state="translated">expressão condicional ref</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InterfaceImplementedImplicitlyByVariadic">
@@ -8617,12 +8617,12 @@ Para incorporar informações de tipo de interoperabilidade para os dois assembl
       </trans-unit>
       <trans-unit id="IDS_FeatureTupleEquality">
         <source>tuple equality</source>
-        <target state="new">tuple equality</target>
+        <target state="translated">igualdade de tupla</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_TupleSizesMismatchForBinOps">
         <source>Tuple types used as operands of an == or != operator must have matching cardinalities. But this operator has tuple types of cardinality {0} on the left and {1} on the right.</source>
-        <target state="new">Tuple types used as operands of an == or != operator must have matching cardinalities. But this operator has tuple types of cardinality {0} on the left and {1} on the right.</target>
+        <target state="translated">Os tipos de tupla usados como operandos de um operador == ou != precisam ter cardinalidades correspondentes. No entanto, este operador tem tipos de tupla de cardinalidade {0} na esquerda e {1} na direita.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InvalidHashAlgorithmName">
@@ -8632,117 +8632,117 @@ Para incorporar informações de tipo de interoperabilidade para os dois assembl
       </trans-unit>
       <trans-unit id="ERR_ExpressionTreeContainsTupleBinOp">
         <source>An expression tree may not contain a tuple == or != operator</source>
-        <target state="new">An expression tree may not contain a tuple == or != operator</target>
+        <target state="translated">Uma árvore de expressão não pode conter um operador == ou != de tupla</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_TupleBinopLiteralNameMismatch">
         <source>The tuple element name '{0}' is ignored because a different name or no name is specified on the other side of the tuple == or != operator.</source>
-        <target state="new">The tuple element name '{0}' is ignored because a different name or no name is specified on the other side of the tuple == or != operator.</target>
+        <target state="translated">O nome do elemento da tupla '{0}' foi ignorado porque um nome diferente ou nenhum nome foi especificado no outro lado do operador == ou != de tupla.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_TupleBinopLiteralNameMismatch_Title">
         <source>The tuple element name is ignored because a different name or no name is specified on the other side of the tuple == or != operator.</source>
-        <target state="new">The tuple element name is ignored because a different name or no name is specified on the other side of the tuple == or != operator.</target>
+        <target state="translated">O nome do elemento da tupla foi ignorado porque um nome diferente ou nenhum nome foi especificado no outro lado do operador == ou != de tupla.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_UnmanagedBoundWithClass">
         <source>'{0}': cannot specify both a constraint class and the 'unmanaged' constraint</source>
-        <target state="new">'{0}': cannot specify both a constraint class and the 'unmanaged' constraint</target>
+        <target state="translated">'{0}': não é possível especificar uma classe de restrição e a restrição 'unmanaged'</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureRefReassignment">
         <source>ref reassignment</source>
-        <target state="new">ref reassignment</target>
+        <target state="translated">reatribuição de ref</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureRefFor">
         <source>ref for-loop variables</source>
-        <target state="new">ref for-loop variables</target>
+        <target state="translated">variáveis de loop ref for</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureRefForEach">
         <source>ref foreach iteration variables</source>
-        <target state="new">ref foreach iteration variables</target>
+        <target state="translated">variáveis de iteração ref foreach</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_RefLocalOrParamExpected">
         <source>The left-hand side of a ref assignment must be a ref local or parameter.</source>
-        <target state="new">The left-hand side of a ref assignment must be a ref local or parameter.</target>
+        <target state="translated">O lado esquerdo da atribuição ref precisa ser um parâmetro ou local ref.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_RefAssignNarrower">
         <source>Cannot ref-assign '{1}' to '{0}' because '{1}' has a narrower escape scope than '{0}'.</source>
-        <target state="new">Cannot ref-assign '{1}' to '{0}' because '{1}' has a narrower escape scope than '{0}'.</target>
+        <target state="translated">Não é possível atribuir ref '{1}' a '{0}' porque '{1}' tem um escopo de escape mais limitado que '{0}'.</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureEnumGenericTypeConstraint">
         <source>enum generic type constraints</source>
-        <target state="new">enum generic type constraints</target>
+        <target state="translated">restrições de tipo genérico enum</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureDelegateGenericTypeConstraint">
         <source>delegate generic type constraints</source>
-        <target state="new">delegate generic type constraints</target>
+        <target state="translated">restrições de tipo genérico delegate</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureUnmanagedGenericTypeConstraint">
         <source>unmanaged generic type constraints</source>
-        <target state="new">unmanaged generic type constraints</target>
+        <target state="translated">restrições de tipo genérico unmanaged</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NewBoundWithUnmanaged">
         <source>The 'new()' constraint cannot be used with the 'unmanaged' constraint</source>
-        <target state="new">The 'new()' constraint cannot be used with the 'unmanaged' constraint</target>
+        <target state="translated">A restrição 'new()' não pode ser usada com a restrição 'unmanaged'</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_UnmanagedConstraintMustBeFirst">
         <source>The 'unmanaged' constraint must come before any other constraints</source>
-        <target state="new">The 'unmanaged' constraint must come before any other constraints</target>
+        <target state="translated">A restrição 'unmanaged' deve vir antes das outras restrições</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_UnmanagedConstraintNotSatisfied">
         <source>The type '{2}' must be a non-nullable value type, along with all fields at any level of nesting, in order to use it as parameter '{1}' in the generic type or method '{0}'</source>
-        <target state="new">The type '{2}' must be a non-nullable value type, along with all fields at any level of nesting, in order to use it as parameter '{1}' in the generic type or method '{0}'</target>
+        <target state="translated">O tipo '{2}' precisa ser um tipo de valor que não permite valor nulo, juntamente com todos os campos em qualquer nível de aninhamento, para ser usado como um parâmetro '{1}' no tipo genérico ou no método '{0}'</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ConWithUnmanagedCon">
         <source>Type parameter '{1}' has the 'unmanaged' constraint so '{1}' cannot be used as a constraint for '{0}'</source>
-        <target state="new">Type parameter '{1}' has the 'unmanaged' constraint so '{1}' cannot be used as a constraint for '{0}'</target>
+        <target state="translated">O parâmetro de tipo '{1}' tem a restrição 'unmanaged' e, por isso, '{1}' não pode ser usado como uma restrição de '{0}'</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureStackAllocInitializer">
         <source>stackalloc initializer</source>
-        <target state="new">stackalloc initializer</target>
+        <target state="translated">inicializador stackalloc</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InvalidStackAllocArray">
         <source>"Invalid rank specifier: expected ']'</source>
-        <target state="new">"Invalid rank specifier: expected ']'</target>
+        <target state="translated">"Especificador de classificação inválido: era esperado ']'</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureExpressionVariablesInQueriesAndInitializers">
         <source>declaration of expression variables in member initializers and queries</source>
-        <target state="new">declaration of expression variables in member initializers and queries</target>
+        <target state="translated">declaração de variáveis de expressão em inicializadores e em consultas do membro</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ExprCannotBeFixed">
         <source>The given expression cannot be used in a fixed statement</source>
-        <target state="new">The given expression cannot be used in a fixed statement</target>
+        <target state="translated">A expressão determinada não pode ser usada em uma instrução fixa</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureExtensibleFixedStatement">
         <source>extensible fixed statement</source>
-        <target state="new">extensible fixed statement</target>
+        <target state="translated">instrução fixa extensível</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureIndexingMovableFixedBuffers">
         <source>indexing movable fixed buffers</source>
-        <target state="new">indexing movable fixed buffers</target>
+        <target state="translated">buffers fixos móveis de indexação</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InvalidObjectCreation">
         <source>Invalid object creation</source>
-        <target state="new">Invalid object creation</target>
+        <target state="translated">Criação de objeto inválido</target>
         <note />
       </trans-unit>
       <trans-unit id="FTL_InvalidInputFileName">

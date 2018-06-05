@@ -86,7 +86,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
                 }
 
                 var initializerExpression = CSharpUseImplicitTypeHelper.GetInitializerExpression(initializer.Value);
-                var declaredTypeSymbol = semanticModel.GetTypeInfo(variableDeclaration.Type, cancellationToken).Type;
+                var declaredTypeSymbol = semanticModel.GetTypeInfo(variableDeclaration.Type.StripRefIfNeeded(), cancellationToken).Type;
                 return TypeStyleHelper.IsTypeApparentInAssignmentExpression(stylePreferences, initializerExpression, semanticModel, cancellationToken, declaredTypeSymbol);
             }
 
@@ -104,7 +104,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
                 var typeSyntax = GetTypeSyntaxFromDeclaration(declarationStatement);
 
                 return typeSyntax != null
-                    ? IsMadeOfSpecialTypes(semanticModel.GetTypeInfo(typeSyntax).Type)
+                    ? IsMadeOfSpecialTypes(semanticModel.GetTypeInfo(typeSyntax.StripRefIfNeeded()).Type)
                     : false;
             }
 

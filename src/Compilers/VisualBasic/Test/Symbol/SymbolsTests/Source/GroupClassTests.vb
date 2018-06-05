@@ -361,7 +361,7 @@ End Namespace
     ]]></file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlib40(compilationDef, TestOptions.ReleaseDll)
+            Dim compilation = CreateCompilationWithMscorlib40(compilationDef, options:=TestOptions.ReleaseDll)
 
             Dim MyGroupCollectionAttribute = compilation.GetTypeByMetadataName("Microsoft.VisualBasic.MyGroupCollectionAttribute")
 
@@ -488,7 +488,7 @@ End Namespace
     ]]></file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlib40(compilationDef, TestOptions.ReleaseDll)
+            Dim compilation = CreateCompilationWithMscorlib40(compilationDef, options:=TestOptions.ReleaseDll)
 
             Dim MyTests = compilation.GetTypeByMetadataName("MyTests")
 
