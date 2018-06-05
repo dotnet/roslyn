@@ -248,7 +248,7 @@ csharp_style_expression_bodied_properties = true:warning
             Assert.Equal(expectedText, VisualStudio.Editor.GetText());
 
             /*
-             * The first portion of this test modifier the existing .editorconfig file to configure the analyzer to the
+             * The second portion of this test modifier the existing .editorconfig file to configure the analyzer to the
              * opposite style of the initial configuration, and verifies that diagnostics update automatically in
              * response to the changes. A fix all operation is applied, and the result is verified against the expected
              * outcome for the modified .editorconfig style.

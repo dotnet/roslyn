@@ -13,6 +13,22 @@ namespace Microsoft.CodeAnalysis.Editor.Options
 {
     internal sealed partial class EditorConfigDocumentOptionsProvider
     {
+        /// <summary>
+        /// This maps <see cref="CodingConventionsChangedEventArgs"/> instances to sets of projects which were updated
+        /// in response to an event notification.
+        /// </summary>
+        /// <remarks>
+        /// <para>The coding conventions library creates one instance of
+        /// <see cref="CodingConventionsChangedEventArgs"/> in response to a notification from the file system (through
+        /// file watcher APIs), and then dispatches this instance to all <see cref="ICodingConventionContext"/> that
+        /// need to be updated in response to the change. Since <see cref="HandleCodingConventionsChangedAsync"/>
+        /// updates a full project, and a project can have multiple documents that each have their own
+        /// <see cref="ICodingConventionContext"/>, the sets in this map avoid refreshing projects multiple times in
+        /// response to the same underlying file system event.</para>
+        /// 
+        /// <para>Since the event notifications from the coding conventions library are asynchronous, uses of the values
+        /// stored in this map need to be synchronized by a <see langword="lock"/> construct.</para>
+        /// </remarks>
         private static readonly ConditionalWeakTable<CodingConventionsChangedEventArgs, HashSet<ProjectId>> s_projectNotifications =
             new ConditionalWeakTable<CodingConventionsChangedEventArgs, HashSet<ProjectId>>();
 

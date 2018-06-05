@@ -12,6 +12,7 @@ using Microsoft.VisualStudio.CodingConventions;
 
 namespace Microsoft.CodeAnalysis.Editor.Options
 {
+    // This class is currently linked into both EditorFeatures.Wpf (VS in-process) and RemoteWorkspaces (Roslyn out-of-process).
     internal sealed partial class EditorConfigDocumentOptionsProvider : IDocumentOptionsProvider
     {
         private readonly object _gate = new object();
@@ -30,7 +31,7 @@ namespace Microsoft.CodeAnalysis.Editor.Options
         internal EditorConfigDocumentOptionsProvider(Workspace workspace, ICodingConventionsManager codingConventionsManager, IAsynchronousOperationListenerProvider listenerProvider)
         {
             _workspace = workspace;
-            _listener = listenerProvider.GetListener(FeatureAttribute.SolutionCrawler);
+            _listener = listenerProvider.GetListener(FeatureAttribute.Workspace);
             _codingConventionsManager = codingConventionsManager;
             _errorLogger = workspace.Services.GetService<IErrorLoggerService>();
 
@@ -38,6 +39,11 @@ namespace Microsoft.CodeAnalysis.Editor.Options
             workspace.DocumentClosed += Workspace_DocumentClosed;
         }
 
+        /// <summary>
+        /// This partial method allows implementations of <see cref="EditorConfigDocumentOptionsProvider"/> (which are
+        /// linked into both the in-process and out-of-process implementations as source files) to handle the creation
+        /// of <see cref="ICodingConventionContext"/> in different ways.
+        /// </summary>
         partial void OnCodingConventionContextCreated(DocumentId documentId, ICodingConventionContext context);
 
         private void Workspace_DocumentClosed(object sender, DocumentEventArgs e)
