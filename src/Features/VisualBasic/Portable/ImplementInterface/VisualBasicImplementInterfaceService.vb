@@ -154,7 +154,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ImplementInterface
             decls(decls.Length - 1) = decls(decls.Length - 1).WithAppendedTrailingTrivia(
                 SyntaxFactory.TriviaList(
                     SyntaxFactory.Trivia(SyntaxFactory.EndRegionDirectiveTrivia()),
-                    SyntaxFactory.CarriageReturnLineFeed))
+                    SyntaxFactory.ElasticCarriageReturnLineFeed))
 
             ' Ensure that open and close brace tokens are generated in case they are missing.
             Dim newNode = classBlock.AddMembers(decls).FixTerminators()
