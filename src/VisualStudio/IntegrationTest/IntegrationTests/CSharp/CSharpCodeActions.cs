@@ -215,30 +215,10 @@ csharp_style_expression_bodied_properties = true:warning
                 FeatureAttribute.SolutionCrawler,
                 FeatureAttribute.DiagnosticService);
             VisualStudio.Editor.InvokeCodeActionList();
-            VisualStudio.Editor.Verify.CodeActions(
-                new[]
-                {
-                    "Use expression body for properties",
-                    "Preview changes",
-                    "Document",
-                    "Project",
-                    "Solution",
-                    "Suppress IDE0025",
-                    "in Source",
-                    "Preview changes",
-                    "Document",
-                    "Project",
-                    "Solution",
-                    "in Suppression File",
-                    "Preview changes",
-                    "Document",
-                    "Project",
-                    "Solution",
-                },
-                applyFix: "Use expression body for properties",
+            VisualStudio.Editor.Verify.CodeAction(
+                "Use expression body for properties",
+                applyFix: true,
                 fixAllScope: FixAllScope.Project,
-                ensureExpectedItemsAreOrdered: true,
-                verifyCompleteList: true,
                 blockUntilComplete: false);
 
             var expectedTitle = "Preview Changes - Fix all occurrences";
@@ -265,30 +245,10 @@ csharp_style_expression_bodied_properties = true:warning
                 FeatureAttribute.SolutionCrawler,
                 FeatureAttribute.DiagnosticService);
             VisualStudio.Editor.InvokeCodeActionList();
-            VisualStudio.Editor.Verify.CodeActions(
-                new[]
-                {
-                    "Use block body for properties",
-                    "Preview changes",
-                    "Document",
-                    "Project",
-                    "Solution",
-                    "Suppress IDE0025",
-                    "in Source",
-                    "Preview changes",
-                    "Document",
-                    "Project",
-                    "Solution",
-                    "in Suppression File",
-                    "Preview changes",
-                    "Document",
-                    "Project",
-                    "Solution",
-                },
-                applyFix: "Use block body for properties",
+            VisualStudio.Editor.Verify.CodeAction(
+                "Use block body for properties",
+                applyFix: true,
                 fixAllScope: FixAllScope.Project,
-                ensureExpectedItemsAreOrdered: true,
-                verifyCompleteList: true,
                 blockUntilComplete: false);
 
             VisualStudio.PreviewChangesDialog.VerifyOpen(expectedTitle, Helper.HangMitigatingTimeout);
