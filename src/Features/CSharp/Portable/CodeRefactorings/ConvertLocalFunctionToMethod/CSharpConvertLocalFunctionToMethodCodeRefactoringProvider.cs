@@ -61,7 +61,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertLocalFunctionToM
                 return;
             }
 
-            context.RegisterRefactoring(new MyCodeAction(c => UpdateDocumentAsync(root, document, parentBlock, localFunction, c)));
+            context.RegisterRefactoring(new MyCodeAction(CSharpFeaturesResources.Convert_to_method,
+                c => UpdateDocumentAsync(root, document, parentBlock, localFunction, c)));
         }
 
         private static async Task<Document> UpdateDocumentAsync(
@@ -311,8 +312,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertLocalFunctionToM
 
         private sealed class MyCodeAction : CodeActions.CodeAction.DocumentChangeAction
         {
-            public MyCodeAction(Func<CancellationToken, Task<Document>> createChangedDocument)
-                : base(CSharpFeaturesResources.Convert_to_method, createChangedDocument)
+            public MyCodeAction(string title, Func<CancellationToken, Task<Document>> createChangedDocument)
+                : base(title, createChangedDocument)
             {
             }
         }

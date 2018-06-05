@@ -297,20 +297,20 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Convert to &apos;switch&apos;.
-        /// </summary>
-        internal static string Convert_to_switch {
-            get {
-                return ResourceManager.GetString("Convert_to_switch", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Convert to method.
         /// </summary>
         internal static string Convert_to_method {
             get {
                 return ResourceManager.GetString("Convert_to_method", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Convert to &apos;switch&apos;.
+        /// </summary>
+        internal static string Convert_to_switch {
+            get {
+                return ResourceManager.GetString("Convert_to_switch", resourceCulture);
             }
         }
         
