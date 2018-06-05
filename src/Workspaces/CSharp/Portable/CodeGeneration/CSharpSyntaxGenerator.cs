@@ -2895,6 +2895,10 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                     return ((ConstructorDeclarationSyntax)declaration).Body?.Statements ?? s_EmptyList;
                 case SyntaxKind.DestructorDeclaration:
                     return ((DestructorDeclarationSyntax)declaration).Body?.Statements ?? s_EmptyList;
+                case SyntaxKind.LocalFunctionStatement:
+                    return ((LocalFunctionStatementSyntax)declaration).Body?.Statements ?? s_EmptyList;
+                case SyntaxKind.AnonymousMethodExpression:
+                    return (((AnonymousMethodExpressionSyntax)declaration).Body as BlockSyntax)?.Statements ?? s_EmptyList;
                 case SyntaxKind.ParenthesizedLambdaExpression:
                     return (((ParenthesizedLambdaExpressionSyntax)declaration).Body as BlockSyntax)?.Statements ?? s_EmptyList;
                 case SyntaxKind.SimpleLambdaExpression:
@@ -2927,6 +2931,10 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                     return ((ConstructorDeclarationSyntax)declaration).WithBody(somebody).WithSemicolonToken(semicolon).WithExpressionBody(null);
                 case SyntaxKind.DestructorDeclaration:
                     return ((DestructorDeclarationSyntax)declaration).WithBody(somebody).WithSemicolonToken(semicolon).WithExpressionBody(null);
+                case SyntaxKind.LocalFunctionStatement:
+                    return ((LocalFunctionStatementSyntax)declaration).WithBody(somebody).WithSemicolonToken(semicolon).WithExpressionBody(null);
+                case SyntaxKind.AnonymousMethodExpression:
+                    return ((AnonymousMethodExpressionSyntax)declaration).WithBody(body);
                 case SyntaxKind.ParenthesizedLambdaExpression:
                     return ((ParenthesizedLambdaExpressionSyntax)declaration).WithBody(body);
                 case SyntaxKind.SimpleLambdaExpression:
@@ -3772,9 +3780,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         }
 
         public override SyntaxNode CastExpression(SyntaxNode type, SyntaxNode expression)
-        {
-            return SyntaxFactory.CastExpression((TypeSyntax)type, Parenthesize(expression)).WithAdditionalAnnotations(Simplifier.Annotation);
-        }
+            => SyntaxFactory.CastExpression((TypeSyntax)type, Parenthesize(expression)).WithAdditionalAnnotations(Simplifier.Annotation);
 
         public override SyntaxNode ConvertExpression(SyntaxNode type, SyntaxNode expression)
         {

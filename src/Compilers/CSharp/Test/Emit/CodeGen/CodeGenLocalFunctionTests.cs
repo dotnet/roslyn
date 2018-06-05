@@ -212,7 +212,7 @@ class Program
                 }
             });
     }
-}", references: new[] { LinqAssemblyRef });
+}");
         }
 
         [Fact]

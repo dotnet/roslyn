@@ -1,7 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using Roslyn.Utilities;
@@ -15,7 +14,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         private readonly ushort _arity;
         private readonly DeclarationModifiers _modifiers;
         private readonly ImmutableArray<SingleTypeDeclaration> _children;
-        private readonly ICollection<string> _memberNames;
 
         [Flags]
         internal enum TypeDeclarationFlags : byte
@@ -36,7 +34,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             TypeDeclarationFlags declFlags,
             SyntaxReference syntaxReference,
             SourceLocation nameLocation,
-            ICollection<string> memberNames,
+            ImmutableHashSet<string> memberNames,
             ImmutableArray<SingleTypeDeclaration> children,
             ImmutableArray<Diagnostic> diagnostics)
             : base(name, syntaxReference, nameLocation, diagnostics)
@@ -46,7 +44,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             _kind = kind;
             _arity = (ushort)arity;
             _modifiers = modifiers;
-            _memberNames = memberNames;
+            MemberNames = memberNames;
             _children = children;
             _flags = declFlags;
         }
@@ -83,13 +81,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        public ICollection<string> MemberNames
-        {
-            get
-            {
-                return _memberNames;
-            }
-        }
+        public ImmutableHashSet<string> MemberNames { get; }
 
         public bool AnyMemberHasExtensionMethodSyntax
         {

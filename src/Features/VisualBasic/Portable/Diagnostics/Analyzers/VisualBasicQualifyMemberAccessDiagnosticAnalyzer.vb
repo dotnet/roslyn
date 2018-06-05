@@ -7,13 +7,13 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Namespace Microsoft.CodeAnalysis.VisualBasic.QualifyMemberAccess
     <DiagnosticAnalyzer(LanguageNames.VisualBasic)>
     Friend NotInheritable Class VisualBasicQualifyMemberAccessDiagnosticAnalyzer
-        Inherits AbstractQualifyMemberAccessDiagnosticAnalyzer(Of SyntaxKind)
+        Inherits AbstractQualifyMemberAccessDiagnosticAnalyzer(Of SyntaxKind, ExpressionSyntax, SimpleNameSyntax)
 
         Protected Overrides Function GetLanguageName() As String
             Return LanguageNames.VisualBasic
         End Function
 
-        Protected Overrides Function IsAlreadyQualifiedMemberAccess(node As SyntaxNode) As Boolean
+        Protected Overrides Function IsAlreadyQualifiedMemberAccess(node As ExpressionSyntax) As Boolean
             Return node.IsKind(SyntaxKind.MeExpression)
         End Function
 

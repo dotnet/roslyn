@@ -8,7 +8,7 @@
     <OutputType>Library</OutputType>
     <RootNamespace>Roslyn.VisualStudio.CSharp.UnitTests</RootNamespace>
     <AssemblyName>Roslyn.VisualStudio.CSharp.UnitTests</AssemblyName>
-    <TargetFramework>net461</TargetFramework>
+    <TargetFramework>net46</TargetFramework>
     <RuntimeIdentifier>$(RoslynDesktopRuntimeIdentifier)</RuntimeIdentifier>
     <RoslynProjectType>UnitTest</RoslynProjectType>
   </PropertyGroup>
@@ -68,7 +68,7 @@
     <Reference Include="WindowsBase" />
     <!-- Force a reference to Microsoft.VisualStudio.Text.Internal. This NuGet package includes an empty ref folder so nobody accidentally uses APIs from it,
          but includes the lib folder so it's copied as a dependency of Microsoft.VisualStudio.Platform.VSEditor. Unfortunately we still have test code that
-         does depend on internal APIs, so we need to a force a reference here. -->
+         does depend on internal APIs, so we need to a force a reference here. This hack is tracked by https://devdiv.visualstudio.com/DevDiv/_workitems/edit/567115 -->
     <Reference Include="$(NuGetPackageRoot)\microsoft.visualstudio.text.internal\$(MicrosoftVisualStudioTextInternalVersion)\lib\net46\Microsoft.VisualStudio.Text.Internal.dll" />
     <PackageReference Include="BasicUndo" Version="$(BasicUndoVersion)" />
     <PackageReference Include="EnvDTE" Version="$(EnvDTEVersion)" />
@@ -80,11 +80,11 @@
     <PackageReference Include="Microsoft.VisualStudio.Validation" Version="$(MicrosoftVisualStudioValidationVersion)" />
   </ItemGroup>
   <ItemGroup>
-    <Content Include="$(NuGetPackageRoot)\sqlitepclraw.lib.e_sqlite3.v110_xp\1.1.2\runtimes\win7-x86\native\e_sqlite3.dll">
+    <Content Include="$(NuGetPackageRoot)\sqlitepclraw.lib.e_sqlite3.v110_xp\$(SQLitePCLRawbundle_greenVersion)\runtimes\win-x86\native\e_sqlite3.dll">
       <Link>x86\e_sqlite3.dll</Link>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Include="$(NuGetPackageRoot)\sqlitepclraw.lib.e_sqlite3.v110_xp\1.1.2\runtimes\win7-x64\native\e_sqlite3.dll">
+    <Content Include="$(NuGetPackageRoot)\sqlitepclraw.lib.e_sqlite3.v110_xp\$(SQLitePCLRawbundle_greenVersion)\runtimes\win-x64\native\e_sqlite3.dll">
       <Link>x64\e_sqlite3.dll</Link>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>

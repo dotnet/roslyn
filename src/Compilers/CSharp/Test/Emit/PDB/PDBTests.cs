@@ -3030,25 +3030,25 @@ class Student : Person { public double GPA; }
         <entry offset=""0x0"" startLine=""19"" startColumn=""5"" endLine=""19"" endColumn=""6"" document=""1"" />
         <entry offset=""0x1"" startLine=""20"" startColumn=""9"" endLine=""20"" endColumn=""19"" document=""1"" />
         <entry offset=""0x4"" hidden=""true"" document=""1"" />
-        <entry offset=""0x28"" hidden=""true"" document=""1"" />
-        <entry offset=""0x2a"" startLine=""22"" startColumn=""28"" endLine=""22"" endColumn=""44"" document=""1"" />
-        <entry offset=""0x3d"" startLine=""23"" startColumn=""17"" endLine=""23"" endColumn=""57"" document=""1"" />
-        <entry offset=""0x5c"" hidden=""true"" document=""1"" />
-        <entry offset=""0x61"" startLine=""25"" startColumn=""17"" endLine=""25"" endColumn=""57"" document=""1"" />
-        <entry offset=""0x82"" hidden=""true"" document=""1"" />
-        <entry offset=""0x87"" startLine=""27"" startColumn=""17"" endLine=""27"" endColumn=""59"" document=""1"" />
-        <entry offset=""0xa3"" startLine=""29"" startColumn=""17"" endLine=""29"" endColumn=""43"" document=""1"" />
-        <entry offset=""0xb7"" startLine=""31"" startColumn=""5"" endLine=""31"" endColumn=""6"" document=""1"" />
+        <entry offset=""0x2b"" hidden=""true"" document=""1"" />
+        <entry offset=""0x2d"" startLine=""22"" startColumn=""28"" endLine=""22"" endColumn=""44"" document=""1"" />
+        <entry offset=""0x40"" startLine=""23"" startColumn=""17"" endLine=""23"" endColumn=""57"" document=""1"" />
+        <entry offset=""0x5f"" hidden=""true"" document=""1"" />
+        <entry offset=""0x64"" startLine=""25"" startColumn=""17"" endLine=""25"" endColumn=""57"" document=""1"" />
+        <entry offset=""0x85"" hidden=""true"" document=""1"" />
+        <entry offset=""0x8a"" startLine=""27"" startColumn=""17"" endLine=""27"" endColumn=""59"" document=""1"" />
+        <entry offset=""0xab"" startLine=""29"" startColumn=""17"" endLine=""29"" endColumn=""43"" document=""1"" />
+        <entry offset=""0xbf"" startLine=""31"" startColumn=""5"" endLine=""31"" endColumn=""6"" document=""1"" />
       </sequencePoints>
-      <scope startOffset=""0x0"" endOffset=""0xba"">
-        <scope startOffset=""0x28"" endOffset=""0x5c"">
-          <local name=""s"" il_index=""3"" il_start=""0x28"" il_end=""0x5c"" attributes=""0"" />
+      <scope startOffset=""0x0"" endOffset=""0xc2"">
+        <scope startOffset=""0x2b"" endOffset=""0x5f"">
+          <local name=""s"" il_index=""3"" il_start=""0x2b"" il_end=""0x5f"" attributes=""0"" />
         </scope>
-        <scope startOffset=""0x5c"" endOffset=""0x82"">
-          <local name=""s"" il_index=""4"" il_start=""0x5c"" il_end=""0x82"" attributes=""0"" />
+        <scope startOffset=""0x5f"" endOffset=""0x85"">
+          <local name=""s"" il_index=""4"" il_start=""0x5f"" il_end=""0x85"" attributes=""0"" />
         </scope>
-        <scope startOffset=""0x82"" endOffset=""0xa3"">
-          <local name=""t"" il_index=""5"" il_start=""0x82"" il_end=""0xa3"" attributes=""0"" />
+        <scope startOffset=""0x85"" endOffset=""0xab"">
+          <local name=""t"" il_index=""5"" il_start=""0x85"" il_end=""0xab"" attributes=""0"" />
         </scope>
       </scope>
     </method>
@@ -3109,7 +3109,7 @@ class Student : Person { public double GPA; }
         <forward declaringType=""Program"" methodName=""Main"" parameterNames=""args"" />
         <encLocalSlotMap>
           <slot kind=""30"" offset=""0"" />
-          <slot kind=""30"" offset=""383"" />
+          <slot kind=""30"" offset=""202"" />
           <slot kind=""35"" offset=""11"" />
           <slot kind=""35"" offset=""11"" />
           <slot kind=""35"" offset=""11"" />
@@ -3119,7 +3119,7 @@ class Student : Person { public double GPA; }
         <encLambdaMap>
           <methodOrdinal>2</methodOrdinal>
           <closure offset=""0"" />
-          <closure offset=""383"" />
+          <closure offset=""202"" />
           <lambda offset=""109"" closure=""1"" />
           <lambda offset=""202"" closure=""1"" />
           <lambda offset=""295"" closure=""1"" />
@@ -3209,7 +3209,7 @@ class Student : Person { public double GPA; }
         <forward declaringType=""Program"" methodName=""Main"" parameterNames=""args"" />
         <encLocalSlotMap>
           <slot kind=""30"" offset=""0"" />
-          <slot kind=""30"" offset=""475"" />
+          <slot kind=""30"" offset=""234"" />
           <slot kind=""35"" offset=""11"" />
           <slot kind=""35"" offset=""11"" />
           <slot kind=""35"" offset=""11"" />
@@ -3219,7 +3219,7 @@ class Student : Person { public double GPA; }
         <encLambdaMap>
           <methodOrdinal>2</methodOrdinal>
           <closure offset=""0"" />
-          <closure offset=""475"" />
+          <closure offset=""234"" />
           <lambda offset=""111"" closure=""1"" />
           <lambda offset=""234"" closure=""1"" />
           <lambda offset=""357"" closure=""1"" />
@@ -8931,7 +8931,7 @@ class Program
                 Assert.False(result.Success);
                 result.Diagnostics.Verify(
                     // error CS2021: File name 'test\?.pdb' is empty, contains invalid characters, has a drive specification without an absolute path, or is too long
-                    Diagnostic(ErrorCode.FTL_InputFileNameTooLong).WithArguments("test\\?.pdb").WithLocation(1, 1));
+                    Diagnostic(ErrorCode.FTL_InvalidInputFileName).WithArguments("test\\?.pdb").WithLocation(1, 1));
             }
         }
     }

@@ -1282,7 +1282,6 @@ End Module",
 Module Program
     Sub Main
         Dim a = Sub(x As Integer)
-
                     If True Then
                         Dim {|Rename:value|} As Integer = x + 1
                         Console.WriteLine(value)
@@ -1308,7 +1307,6 @@ End Module",
 Module Program
     Sub Main
         Dim a = Sub(x As Integer)
-
                     If True Then
                         Console.WriteLine()
                     Else
@@ -2534,7 +2532,7 @@ b
 c""|]
     End Sub
 End Class"
-            Await TestSmartTagTextAsync(code, String.Format(FeaturesResources.Introduce_local_constant_for_0, """a b c"""), index:=2)
+            Await TestSmartTagTextAsync(code, String.Format(FeaturesResources.Introduce_local_constant_for_0, """a b c"""), New TestParameters(index:=2))
         End Function
 
         <WorkItem(1065661, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1065661")>

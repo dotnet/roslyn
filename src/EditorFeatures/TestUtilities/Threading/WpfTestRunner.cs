@@ -71,7 +71,7 @@ namespace Roslyn.Test.Utilities
                         s_wpfFactRequirementReason = null;
 
                         // Just call back into the normal xUnit dispatch process now that we are on an STA Thread with no synchronization context.
-                        var invoker = new WpfTestInvoker(SharedData, Test, MessageBus, TestClass, ConstructorArguments, TestMethod, TestMethodArguments, BeforeAfterAttributes, aggregator, CancellationTokenSource);
+                        var invoker = new XunitTestInvoker(Test, MessageBus, TestClass, ConstructorArguments, TestMethod, TestMethodArguments, BeforeAfterAttributes, aggregator, CancellationTokenSource);
                         return invoker.RunAsync().JoinUsingDispatcher(CancellationTokenSource.Token);
                     }
                     finally

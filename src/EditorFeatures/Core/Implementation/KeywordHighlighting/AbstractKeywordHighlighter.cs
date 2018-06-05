@@ -8,9 +8,20 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.Highlighting
 {
-    internal abstract class AbstractKeywordHighlighter<TNode> : IHighlighter
-        where TNode : SyntaxNode
+    internal abstract class AbstractKeywordHighlighter<TNode> : AbstractKeywordHighlighter where TNode : SyntaxNode
     {
+        protected sealed override bool IsHighlightableNode(SyntaxNode node) => node is TNode;
+
+        protected sealed override IEnumerable<TextSpan> GetHighlightsForNode(SyntaxNode node, CancellationToken cancellationToken)
+            => GetHighlights((TNode)node, cancellationToken);
+
+        protected abstract IEnumerable<TextSpan> GetHighlights(TNode node, CancellationToken cancellationToken);
+    }
+
+    internal abstract class AbstractKeywordHighlighter : IHighlighter
+    {
+        protected abstract bool IsHighlightableNode(SyntaxNode node);
+
         public IEnumerable<TextSpan> GetHighlights(
             SyntaxNode root, int position, CancellationToken cancellationToken)
         {
@@ -18,9 +29,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Highlighting
             {
                 for (var parent = token.Parent; parent != null; parent = parent.Parent)
                 {
-                    if (parent is TNode parentTNode)
+                    if (IsHighlightableNode(parent))
                     {
-                        var highlights = GetHighlights(parentTNode, cancellationToken);
+                        var highlights = GetHighlightsForNode(parent, cancellationToken);
 
                         // Only return them if any of them matched
                         if (highlights.Any(span => span.IntersectsWith(position)))
@@ -35,7 +46,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Highlighting
             return SpecializedCollections.EmptyEnumerable<TextSpan>();
         }
 
-        protected abstract IEnumerable<TextSpan> GetHighlights(TNode node, CancellationToken cancellationToken);
+        protected abstract IEnumerable<TextSpan> GetHighlightsForNode(SyntaxNode node, CancellationToken cancellationToken);
 
         protected TextSpan EmptySpan(int position)
         {
