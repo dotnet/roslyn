@@ -29,9 +29,9 @@ namespace Microsoft.CodeAnalysis.Utilities
 
         internal static ForegroundThreadDataKind CreateDefault(ForegroundThreadDataKind defaultKind)
         {
-            var syncConextTypeName = SynchronizationContext.Current?.GetType().FullName;
+            var syncContextTypeName = SynchronizationContext.Current?.GetType().FullName;
 
-            switch (syncConextTypeName)
+            switch (syncContextTypeName)
             {
                 case "System.Windows.Threading.DispatcherSynchronizationContext":
 
