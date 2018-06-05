@@ -81,9 +81,6 @@ namespace Microsoft.CodeAnalysis.Remote
                 solution = await UpdateProjectsAsync(solution, oldSolutionChecksums.Projects, newSolutionChecksums.Projects).ConfigureAwait(false);
             }
 
-            // make sure created solution has same checksum as given one
-            await ValidateChecksumAsync(newSolutionChecksum, solution).ConfigureAwait(false);
-
             return solution;
         }
 
@@ -615,65 +612,6 @@ namespace Microsoft.CodeAnalysis.Remote
             }
 
             return builder.ToImmutableAndFree();
-        }
-
-        private async Task ValidateChecksumAsync(Checksum givenSolutionChecksum, Solution solution)
-        {
-            // have this to avoid error on async
-            await SpecializedTasks.EmptyTask.ConfigureAwait(false);
-
-#if DEBUG
-            var currentSolutionChecksum = await solution.State.GetChecksumAsync(_cancellationToken).ConfigureAwait(false);
-
-            if (givenSolutionChecksum == currentSolutionChecksum)
-            {
-                return;
-            }
-
-            Contract.Requires(false, "checksum not same");
-
-            var map = solution.GetAssetMap();
-            await RemoveDuplicateChecksumsAsync(givenSolutionChecksum, map).ConfigureAwait(false);
-
-            foreach (var kv in map.Where(kv => kv.Value is ChecksumWithChildren).ToList())
-            {
-                map.Remove(kv.Key);
-            }
-
-            var sb = new StringBuilder();
-            foreach (var kv in map)
-            {
-                sb.AppendLine($"{kv.Key.ToString()}, {kv.Value.ToString()}");
-            }
-
-            Logger.Log(FunctionId.SolutionCreator_AssetDifferences, sb.ToString());
-#endif
-
-            return;
-        }
-
-        private async Task RemoveDuplicateChecksumsAsync(Checksum givenSolutionChecksum, Dictionary<Checksum, object> map)
-        {
-            var solutionChecksums = await _assetService.GetAssetAsync<SolutionStateChecksums>(givenSolutionChecksum, _cancellationToken).ConfigureAwait(false);
-            map.RemoveChecksums(solutionChecksums);
-
-            foreach (var projectChecksum in solutionChecksums.Projects)
-            {
-                var projectChecksums = await _assetService.GetAssetAsync<ProjectStateChecksums>(projectChecksum, _cancellationToken).ConfigureAwait(false);
-                map.RemoveChecksums(projectChecksums);
-
-                foreach (var documentChecksum in projectChecksums.Documents)
-                {
-                    var documentChecksums = await _assetService.GetAssetAsync<DocumentStateChecksums>(documentChecksum, _cancellationToken).ConfigureAwait(false);
-                    map.RemoveChecksums(documentChecksums);
-                }
-
-                foreach (var documentChecksum in projectChecksums.AdditionalDocuments)
-                {
-                    var documentChecksums = await _assetService.GetAssetAsync<DocumentStateChecksums>(documentChecksum, _cancellationToken).ConfigureAwait(false);
-                    map.RemoveChecksums(documentChecksums);
-                }
-            }
         }
     }
 }

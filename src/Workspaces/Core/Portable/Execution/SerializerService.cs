@@ -73,7 +73,7 @@ namespace Microsoft.CodeAnalysis.Serialization
                         return Checksum.Create(kind, _hostSerializationService.CreateChecksum((AnalyzerReference)value, cancellationToken));
 
                     case WellKnownSynchronizationKind.SourceText:
-                        return Checksum.Create(kind, ((SourceText)value).GetChecksum());
+                        return Checksum.Create(kind, _hostSerializationService.CreateChecksum((SourceText)value, cancellationToken));
 
                     default:
                         // object that is not part of solution is not supported since we don't know what inputs are required to
@@ -87,7 +87,7 @@ namespace Microsoft.CodeAnalysis.Serialization
         {
             var kind = value.GetWellKnownSynchronizationKind();
 
-            using (Logger.LogBlock(FunctionId.Serializer_Serialize, kind.ToString(), cancellationToken))
+            using (Logger.LogBlock(FunctionId.Serializer_Serialize, kind.ToStringFast(), cancellationToken))
             {
                 cancellationToken.ThrowIfCancellationRequested();
 
@@ -143,7 +143,7 @@ namespace Microsoft.CodeAnalysis.Serialization
 
         public T Deserialize<T>(WellKnownSynchronizationKind kind, ObjectReader reader, CancellationToken cancellationToken)
         {
-            using (Logger.LogBlock(FunctionId.Serializer_Deserialize, kind.ToString(), cancellationToken))
+            using (Logger.LogBlock(FunctionId.Serializer_Deserialize, kind.ToStringFast(), cancellationToken))
             {
                 cancellationToken.ThrowIfCancellationRequested();
 

@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Runtime.InteropServices;
 using Roslyn.Utilities;
@@ -43,6 +44,31 @@ namespace Microsoft.CodeAnalysis
             {
                 // Avoid a direct dereferencing assignment since sizeof(Sha1Hash) may be greater than Sha1HashSize.
                 _checkSum = Sha1Hash.FromPointer((Sha1Hash*)data);
+            }
+        }
+
+        public unsafe Checksum(ImmutableArray<byte> checksum)
+        {
+            if (checksum.Length == 0)
+            {
+                _checkSum = default;
+                return;
+            }
+            else if (checksum.Length != Sha1HashSize)
+            {
+                throw new ArgumentException($"{nameof(checksum)} must be a SHA-1 hash", nameof(checksum));
+            }
+
+            using (var pooled = SharedPools.ByteArray.GetPooledObject())
+            {
+                var bytes = pooled.Object;
+                checksum.CopyTo(bytes);
+
+                fixed (byte* data = bytes)
+                {
+                    // Avoid a direct dereferencing assignment since sizeof(Sha1Hash) may be greater than Sha1HashSize.
+                    _checkSum = Sha1Hash.FromPointer((Sha1Hash*)data);
+                }
             }
         }
 
