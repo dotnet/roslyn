@@ -661,6 +661,18 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             HashSet<DiagnosticInfo> useSiteDiagnostics = null;
             this.LookupSymbolsSimpleName(result, qualifierOpt, identifierValueText, 0, basesBeingResolved, options, diagnose: true, useSiteDiagnostics: ref useSiteDiagnostics);
+
+            if (result.Kind == LookupResultKind.Empty)
+            {
+                // If we're looking for a namespace member and the name included an alias
+                // qualifier, query the aliased assembly directly for the forwarded type.
+                var aliasOpt = GetAliasQualifier(node);
+                if (aliasOpt != null)
+                {
+                    this.LookupSymbolsSimpleName(result, qualifierOpt, identifierValueText, 0, basesBeingResolved, LookupOptions.ForwardedTypesOnly, diagnose: true, useSiteDiagnostics: ref useSiteDiagnostics);
+                }
+            }
+
             diagnostics.Add(node, useSiteDiagnostics);
 
             Symbol bindingResult;
@@ -679,8 +691,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else
             {
-                bool wasError;
-
                 if (isNameofArgument && result.IsMultiViable && result.Symbols.Count > 1)
                 {
                     symbols.AddRange(result.Symbols);
@@ -688,6 +698,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
                 else
                 {
+                    bool wasError;
                     bindingResult = ResultSymbol(result, identifierValueText, 0, node, diagnostics, suppressUseSiteDiagnostics, out wasError, qualifierOpt, options);
                     if (bindingResult.Kind == SymbolKind.Alias)
                     {
@@ -707,6 +718,29 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             result.Free();
             return bindingResult;
+        }
+
+        private static string GetAliasQualifier(ExpressionSyntax node)
+        {
+            while (true)
+            {
+                if (node.Kind() == SyntaxKind.AliasQualifiedName)
+                {
+                    return ((AliasQualifiedNameSyntax)node).Alias.Identifier.ValueText;
+                }
+                var parent = node.Parent as ExpressionSyntax;
+                if (parent?.Kind() != SyntaxKind.QualifiedName)
+                {
+                    break;
+                }
+                var qualifiedName = (QualifiedNameSyntax)parent;
+                if (node != qualifiedName.Right)
+                {
+                    break;
+                }
+                node = qualifiedName.Left;
+            }
+            return null;
         }
 
         private void ReportUseSiteDiagnosticForDynamic(DiagnosticBag diagnostics, IdentifierNameSyntax node)
@@ -1711,18 +1745,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (result.Kind == LookupResultKind.Empty)
             {
-                string aliasOpt = null;
-                SyntaxNode node = where;
-                while (node is ExpressionSyntax)
-                {
-                    if (node.Kind() == SyntaxKind.AliasQualifiedName)
-                    {
-                        aliasOpt = ((AliasQualifiedNameSyntax)node).Alias.Identifier.ValueText;
-                        break;
-                    }
-                    node = node.Parent;
-                }
-
+                var expr = where as ExpressionSyntax;
+                string aliasOpt = (expr == null) ? null : GetAliasQualifier(expr);
                 CSDiagnosticInfo info = NotFound(where, simpleName, arity, (where as NameSyntax)?.ErrorDisplayName() ?? simpleName, diagnostics, aliasOpt, qualifierOpt, options);
                 return new ExtendedErrorTypeSymbol(qualifierOpt ?? Compilation.Assembly.GlobalNamespace, simpleName, arity, info);
             }

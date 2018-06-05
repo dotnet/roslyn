@@ -38,6 +38,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         /// </summary>
         private Dictionary<string, TypeDefinitionHandle> _lazyNoPiaLocalTypes;
 
+        private Dictionary<string, ImmutableArray<NamedTypeSymbol>> _lazyForwardedTypes;
+
         /// <summary>
         /// All type members in a flat array
         /// </summary>
@@ -131,6 +133,27 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         public sealed override ImmutableArray<NamedTypeSymbol> GetTypeMembers(string name, int arity)
         {
             return GetTypeMembers(name).WhereAsArray(type => type.Arity == arity);
+        }
+
+        internal sealed override ImmutableArray<NamedTypeSymbol> GetForwardedTypes(string name)
+        {
+            var forwardedTypes = GetForwardedTypes();
+            return forwardedTypes.TryGetValue(name, out ImmutableArray<NamedTypeSymbol> types) ?
+                types :
+                ImmutableArray<NamedTypeSymbol>.Empty;
+        }
+
+        private Dictionary<string, ImmutableArray<NamedTypeSymbol>> GetForwardedTypes()
+        {
+            if (_lazyForwardedTypes == null)
+            {
+                var builder = ArrayBuilder<NamedTypeSymbol>.GetInstance();
+                builder.AddRange(ContainingPEModule.GetForwardedTypes());
+                var types = builder.ToDictionary(t => t.Name, StringOrdinalComparer.Instance);
+                Interlocked.CompareExchange(ref _lazyForwardedTypes, types, null);
+                builder.Free();
+            }
+            return _lazyForwardedTypes;
         }
 
         public sealed override ImmutableArray<Location> Locations

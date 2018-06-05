@@ -1742,5 +1742,70 @@ public class Forwarded<T>
                 }
             }
         }
+
+        [WorkItem(27375, "https://github.com/dotnet/roslyn/issues/27375")]
+        [Fact]
+        public void AliasToForwarder_01()
+        {
+            // Library v1: no forwarding.
+            const string sourceA1 =
+@"[assembly: System.Reflection.AssemblyVersion(""1.0.0.0"")]
+namespace MyNamespace
+{
+    public class MyClass { }
+}";
+            var compA1 = CreateCompilation(sourceA1, assemblyName: "A");
+            var refA1 = compA1.EmitToImageReference(aliases: ImmutableArray.Create("A"));
+
+            const string sourceB1 = sourceA1;
+            var compB1 = CreateCompilation(sourceB1, assemblyName: "B");
+            var refB1 = compB1.EmitToImageReference(aliases: ImmutableArray.Create("B"));
+
+            const string sourceProgram =
+@"extern alias A;
+extern alias B;
+class Program
+{
+    static void Main()
+    {
+        var a = new A::MyNamespace.MyClass();
+        var b = new B::MyNamespace.MyClass();
+    }
+}";
+            var comp = CreateCompilation(sourceProgram, references: new[] { refA1, refB1 });
+            comp.VerifyDiagnostics();
+
+            // Library v2: forwarding to implementation assembly.
+            const string sourceBImpl =
+@"namespace MyNamespace
+{
+    public class MyClass { }
+}";
+            var compBImpl = CreateCompilation(sourceBImpl, assemblyName: "BImpl");
+            var refBImpl = compBImpl.EmitToImageReference();
+
+            const string sourceB2 =
+@"[assembly: System.Reflection.AssemblyVersion(""2.0.0.0"")]
+[assembly: System.Runtime.CompilerServices.TypeForwardedTo(typeof(MyNamespace.MyClass))]";
+            var compB2 = CreateCompilation(sourceB2, references: new[] { refBImpl }, assemblyName: "B");
+            var refB2 = compB2.EmitToImageReference(aliases: ImmutableArray.Create("B"));
+
+            comp = CreateCompilation(sourceProgram, references: new[] { refA1, refB2, refBImpl });
+            comp.VerifyDiagnostics();
+        }
+
+        [WorkItem(27375, "https://github.com/dotnet/roslyn/issues/27375")]
+        [Fact]
+        public void AliasToForwarder_02()
+        {
+            // TODO: Test:
+            // Two forwarded types with same name
+            // Alias::Type
+            // Alias::Namespace.UnknownType
+            // Alias::Namespace.GenericType<T>
+            // nameof(Alias::Namespace.Type)
+            // [assembly: TypeForwardedTo(...)] in source assembly
+            Assert.False(true);
+        }
     }
 }
