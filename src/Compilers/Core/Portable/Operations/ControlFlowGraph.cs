@@ -11,7 +11,11 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis.FlowAnalysis
 {
     /// <summary>
-    /// PROTOTYPE(dataflow): Add documentation
+    /// Control flow graph representation for a given executable code block <see cref="OriginalOperation"/>.
+    /// This graph contains a set of <see cref="BasicBlock"/>s, with an entry block, zero
+    /// or more intermediate basic blocks and an exit block.
+    /// Each basic block contains zero or more <see cref="BasicBlock.Operations"/> and
+    /// explicit <see cref="ControlFlowBranch"/>(s) to other basic block(s).
     /// </summary>
     public sealed partial class ControlFlowGraph
     {
@@ -50,12 +54,14 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
         }
 
         /// <summary>
-        /// PROTOTYPE(dataflow): Add documentation
+        /// Original operation, representing an executable code block, from which this control flow graph was generated.
+        /// Note that <see cref="BasicBlock.Operations"/> in the control flow graph are not in the same operation tree as
+        /// the original operation.
         /// </summary>
         public IOperation OriginalOperation { get; }
 
         /// <summary>
-        /// PROTOTYPE(dataflow): Add documentation
+        /// Basic blocks for the control flow graph.
         /// </summary>
         public ImmutableArray<BasicBlock> Blocks { get; }
 
@@ -65,13 +71,14 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
         public ControlFlowRegion Root { get; }
 
         /// <summary>
-        /// PROTOTYPE(dataflow): Add documentation
+        /// Lambdas and local functions declared within <see cref="OriginalOperation"/>.
         /// </summary>
         public ImmutableArray<IMethodSymbol> NestedMethods { get; }
 
         /// <summary>
-        /// PROTOTYPE(dataflow): Add documentation
+        /// Creates a control flow graph for the given <paramref name="nestedMethod"/>.
         /// </summary>
+        /// <param name="nestedMethod">Nested method from <see cref="NestedMethods"/>.</param>
         public ControlFlowGraph GetNestedControlFlowGraph(IMethodSymbol nestedMethod)
         {
             // PROTOTYPE(dataflow): It looks like the indexing below will throw right exceptions on all invalid inputs.

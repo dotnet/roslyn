@@ -89,8 +89,9 @@ namespace Microsoft.CodeAnalysis
         protected abstract IOperation GetOperationCore(SyntaxNode node, CancellationToken cancellationToken);
 
         /// <summary>
-        /// PROTOTYPE(dataflow): Add documentation.
+        /// Gets a <see cref="ControlFlowGraph"/> for the given executable code block <paramref name="body"/>.
         /// </summary>
+        /// <param name="body">Root operation block, which must have a null parent.</param>
         public static ControlFlowGraph GetControlFlowGraph(Operations.IBlockOperation body)
         {
             if (body == null)
@@ -100,16 +101,21 @@ namespace Microsoft.CodeAnalysis
 
             if (body.Parent != null)
             {
-                // PROTOTYPE(dataflow): Special message?
-                throw new ArgumentException();
+                throw new ArgumentException(CodeAnalysisResources.NotARootOperation, nameof(body));
+            }
+
+            if (((Operation)body).SemanticModel == null)
+            {
+                throw new ArgumentException(CodeAnalysisResources.OperationHasNullSemanticModel, nameof(body));
             }
 
             return GetControlFlowGraphCore(body);
         }
 
         /// <summary>
-        /// PROTOTYPE(dataflow): Add documentation.
+        /// Gets a <see cref="ControlFlowGraph"/> for the given executable code block <paramref name="initializer"/>.
         /// </summary>
+        /// <param name="initializer">Root field initializer operation, which must have a null parent.</param>
         public static ControlFlowGraph GetControlFlowGraph(Operations.IFieldInitializerOperation initializer)
         {
             if (initializer == null)
@@ -119,16 +125,21 @@ namespace Microsoft.CodeAnalysis
 
             if (initializer.Parent != null)
             {
-                // PROTOTYPE(dataflow): Special message?
-                throw new ArgumentException();
+                throw new ArgumentException(CodeAnalysisResources.NotARootOperation, nameof(initializer));
+            }
+
+            if (((Operation)initializer).SemanticModel == null)
+            {
+                throw new ArgumentException(CodeAnalysisResources.OperationHasNullSemanticModel, nameof(initializer));
             }
 
             return GetControlFlowGraphCore(initializer);
         }
 
         /// <summary>
-        /// PROTOTYPE(dataflow): Add documentation.
+        /// Gets a <see cref="ControlFlowGraph"/> for the given executable code block <paramref name="initializer"/>.
         /// </summary>
+        /// <param name="initializer">Root property initializer operation, which must have a null parent.</param>
         public static ControlFlowGraph GetControlFlowGraph(Operations.IPropertyInitializerOperation initializer)
         {
             if (initializer == null)
@@ -138,16 +149,21 @@ namespace Microsoft.CodeAnalysis
 
             if (initializer.Parent != null)
             {
-                // PROTOTYPE(dataflow): Special message?
-                throw new ArgumentException();
+                throw new ArgumentException(CodeAnalysisResources.NotARootOperation, nameof(initializer));
+            }
+
+            if (((Operation)initializer).SemanticModel == null)
+            {
+                throw new ArgumentException(CodeAnalysisResources.OperationHasNullSemanticModel, nameof(initializer));
             }
 
             return GetControlFlowGraphCore(initializer);
         }
 
         /// <summary>
-        /// PROTOTYPE(dataflow): Add documentation.
+        /// Gets a <see cref="ControlFlowGraph"/> for the given executable code block <paramref name="initializer"/>.
         /// </summary>
+        /// <param name="initializer">Root parameter initializer operation, which must have a null parent.</param>
         public static ControlFlowGraph GetControlFlowGraph(Operations.IParameterInitializerOperation initializer)
         {
             if (initializer == null)
@@ -157,16 +173,21 @@ namespace Microsoft.CodeAnalysis
 
             if (initializer.Parent != null)
             {
-                // PROTOTYPE(dataflow): Special message?
-                throw new ArgumentException();
+                throw new ArgumentException(CodeAnalysisResources.NotARootOperation, nameof(initializer));
+            }
+
+            if (((Operation)initializer).SemanticModel == null)
+            {
+                throw new ArgumentException(CodeAnalysisResources.OperationHasNullSemanticModel, nameof(initializer));
             }
 
             return GetControlFlowGraphCore(initializer);
         }
 
         /// <summary>
-        /// PROTOTYPE(dataflow): Add documentation.
+        /// Gets a <see cref="ControlFlowGraph"/> for the given executable code block <paramref name="constructorBody"/>.
         /// </summary>
+        /// <param name="constructorBody">Root constructor body operation, which must have a null parent.</param>
         public static ControlFlowGraph GetControlFlowGraph(Operations.IConstructorBodyOperation constructorBody)
         {
             if (constructorBody == null)
@@ -176,16 +197,21 @@ namespace Microsoft.CodeAnalysis
 
             if (constructorBody.Parent != null)
             {
-                // PROTOTYPE(dataflow): Special message?
-                throw new ArgumentException();
+                throw new ArgumentException(CodeAnalysisResources.NotARootOperation, nameof(constructorBody));
+            }
+
+            if (((Operation)constructorBody).SemanticModel == null)
+            {
+                throw new ArgumentException(CodeAnalysisResources.OperationHasNullSemanticModel, nameof(constructorBody));
             }
 
             return GetControlFlowGraphCore(constructorBody);
         }
 
         /// <summary>
-        /// PROTOTYPE(dataflow): Add documentation.
+        /// Gets a <see cref="ControlFlowGraph"/> for the given executable code block <paramref name="methodBody"/>.
         /// </summary>
+        /// <param name="methodBody">Root method body operation, which must have a null parent.</param>
         public static ControlFlowGraph GetControlFlowGraph(Operations.IMethodBodyOperation methodBody)
         {
             if (methodBody == null)
@@ -195,8 +221,12 @@ namespace Microsoft.CodeAnalysis
 
             if (methodBody.Parent != null)
             {
-                // PROTOTYPE(dataflow): Special message?
-                throw new ArgumentException();
+                throw new ArgumentException(CodeAnalysisResources.NotARootOperation, nameof(methodBody));
+            }
+
+            if (((Operation)methodBody).SemanticModel == null)
+            {
+                throw new ArgumentException(CodeAnalysisResources.OperationHasNullSemanticModel, nameof(methodBody));
             }
 
             return GetControlFlowGraphCore(methodBody);
@@ -204,12 +234,6 @@ namespace Microsoft.CodeAnalysis
 
         private static ControlFlowGraph GetControlFlowGraphCore(IOperation operation)
         {
-            if (((Operation)operation).SemanticModel == null)
-            {
-                // PROTOTYPE(dataflow): Special message?
-                throw new ArgumentException();
-            }
-
             if (!operation.Syntax.SyntaxTree.Options.Features.ContainsKey("flow-analysis"))
             {
                 throw new InvalidOperationException(CodeAnalysisResources.FlowAnalysisFeatureDisabled);

@@ -8,7 +8,8 @@ using Microsoft.CodeAnalysis.PooledObjects;
 namespace Microsoft.CodeAnalysis.FlowAnalysis
 {
     /// <summary>
-    /// PROTOTYPE(dataflow): Add documentation
+    /// Represents a control flow branch from a <see cref="Source"/> basic block to a <see cref="Destination"/>
+    /// basic block in a <see cref="ControlFlowGraph"/>.
     /// </summary>
     public sealed class ControlFlowBranch
     {
@@ -28,16 +29,29 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
             IsConditionalSuccessor = isConditionalSuccessor;
         }
 
+        /// <summary>
+        /// Source basic block of this branch.
+        /// </summary>
         public BasicBlock Source { get; }
 
+        /// <summary>
+        /// Destination basic block of this branch.
+        /// </summary>
         public BasicBlock Destination { get; }
 
+        /// <summary>
+        /// Semantics associated with this branch.
+        /// </summary>
         public ControlFlowBranchSemantics Semantics { get; }
 
+        /// <summary>
+        /// Indicates if this branch represents <see cref="BasicBlock.ConditionalSuccessor"/> of the <see cref="Source"/> basic block.
+        /// </summary>
         public bool IsConditionalSuccessor { get; }
 
         /// <summary>
-        /// What regions are exited (from inner most to outer most) if this branch is taken.
+        /// Regions exited if this branch is taken.
+        /// Ordered from the innermost region to the outermost region.
         /// </summary>
         public ImmutableArray<ControlFlowRegion> LeavingRegions
         {
@@ -78,7 +92,8 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
         }
 
         /// <summary>
-        /// What regions are entered (from outer most to inner most) if this branch is taken.
+        /// Regions entered if this branch is taken.
+        /// Ordered from the outermost region to the innermost region.
         /// </summary>
         public ImmutableArray<ControlFlowRegion> EnteringRegions
         {
@@ -107,7 +122,8 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
         }
 
         /// <summary>
-        /// The finally regions the control goes through if the branch is taken
+        /// The finally regions the control goes through if this branch is taken.
+        /// Ordered in the sequence by which the finally regions are executed.
         /// </summary>
         public ImmutableArray<ControlFlowRegion> FinallyRegions
         {

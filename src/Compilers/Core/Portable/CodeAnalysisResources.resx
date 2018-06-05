@@ -618,4 +618,10 @@
   <data name="FlowAnalysisFeatureDisabled" xml:space="preserve">
     <value>Feature 'Flow-Analysis' is disabled.</value>
   </data>
+  <data name="NotARootOperation" xml:space="preserve">
+    <value>Given operation has a non-null parent.</value>
+  </data>
+  <data name="OperationHasNoSemanticModel" xml:space="preserve">
+    <value>Given operation has a null semantic model.</value>
+  </data>
 </root>
