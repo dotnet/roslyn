@@ -6,6 +6,7 @@ Imports Microsoft.CodeAnalysis.Completion
 Imports Microsoft.CodeAnalysis.Editor.CommandHandlers
 Imports Microsoft.CodeAnalysis.Editor.Implementation.Formatting
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
+Imports Microsoft.CodeAnalysis.Editor.VisualBasic.LineCommit
 Imports Microsoft.CodeAnalysis.SignatureHelp
 Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.VisualStudio.Commanding
@@ -79,7 +80,8 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
         Private Shared Function CombineExcludedTypes(excludedTypes As IList(Of Type), includeFormatCommandHandler As Boolean) As IList(Of Type)
             Dim result = New List(Of Type) From {
                 GetType(IIntelliSensePresenter(Of ICompletionPresenterSession, ICompletionSession)),
-                GetType(IIntelliSensePresenter(Of ISignatureHelpPresenterSession, ISignatureHelpSession))
+                GetType(IIntelliSensePresenter(Of ISignatureHelpPresenterSession, ISignatureHelpSession)),
+                GetType(CommitConnectionListener) ' Exclude CommitConnectionListener to keep existing Copmletion tests. It seems that VSEditor started calling CommitConnectionListener, and this leads to extra CodeCleanup that didn't happen before.
             }
 
             If Not includeFormatCommandHandler Then
