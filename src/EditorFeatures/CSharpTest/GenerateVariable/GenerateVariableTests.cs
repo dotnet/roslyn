@@ -8019,5 +8019,86 @@ class Program
     }
 }");
         }
+
+        [WorkItem(26406, "https://github.com/dotnet/roslyn/issues/26406")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
+        public async Task TestIdentifierInsideLock1()
+        {
+            await TestInRegularAndScriptAsync(
+@"class Class
+{
+    void Method()
+    {
+        lock ([|goo|])
+        {
+        }
+    }
+}",
+@"class Class
+{
+    private object goo;
+
+    void Method()
+    {
+        lock (goo)
+        {
+        }
+    }
+}");
+        }
+
+        [WorkItem(26406, "https://github.com/dotnet/roslyn/issues/26406")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
+        public async Task TestIdentifierInsideLock2()
+        {
+            await TestInRegularAndScriptAsync(
+@"class Class
+{
+    void Method()
+    {
+        lock ([|goo|])
+        {
+        }
+    }
+}",
+@"class Class
+{
+    private readonly object goo;
+
+    void Method()
+    {
+        lock (goo)
+        {
+        }
+    }
+}", index: 1);
+        }
+
+        [WorkItem(26406, "https://github.com/dotnet/roslyn/issues/26406")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
+        public async Task TestIdentifierInsideLock3()
+        {
+            await TestInRegularAndScriptAsync(
+@"class Class
+{
+    void Method()
+    {
+        lock ([|goo|])
+        {
+        }
+    }
+}",
+@"class Class
+{
+    public object goo { get; private set; }
+
+    void Method()
+    {
+        lock (goo)
+        {
+        }
+    }
+}", index: 2);
+        }
     }
 }
