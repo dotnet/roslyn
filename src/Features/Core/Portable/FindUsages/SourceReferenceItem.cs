@@ -8,7 +8,7 @@ namespace Microsoft.CodeAnalysis.FindUsages
     /// Information about a symbol's reference that can be used for display and 
     /// navigation in an editor.
     /// </summary>
-    internal sealed class SourceReferenceItem
+    public sealed class SourceReferenceItem
     {
         /// <summary>
         /// The definition this reference corresponds to.

@@ -1,1 +1,111 @@
-
+Microsoft.CodeAnalysis.DocumentSpan
+Microsoft.CodeAnalysis.DocumentSpan.Document.get -> Microsoft.CodeAnalysis.Document
+Microsoft.CodeAnalysis.DocumentSpan.DocumentSpan(Microsoft.CodeAnalysis.Document document, Microsoft.CodeAnalysis.Text.TextSpan sourceSpan) -> void
+Microsoft.CodeAnalysis.DocumentSpan.DocumentSpan(Microsoft.CodeAnalysis.Document document, Microsoft.CodeAnalysis.Text.TextSpan sourceSpan, System.Collections.Immutable.ImmutableDictionary<string, object> properties) -> void
+Microsoft.CodeAnalysis.DocumentSpan.Equals(Microsoft.CodeAnalysis.DocumentSpan obj) -> bool
+Microsoft.CodeAnalysis.DocumentSpan.Properties.get -> System.Collections.Immutable.ImmutableDictionary<string, object>
+Microsoft.CodeAnalysis.DocumentSpan.SourceSpan.get -> Microsoft.CodeAnalysis.Text.TextSpan
+Microsoft.CodeAnalysis.FindUsages.DefinitionItem
+Microsoft.CodeAnalysis.FindUsages.DefinitionItem.DefinitionItem(System.Collections.Immutable.ImmutableArray<string> tags, System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.TaggedText> displayParts, System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.TaggedText> nameDisplayParts, System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.TaggedText> originationParts, System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.DocumentSpan> sourceSpans, System.Collections.Immutable.ImmutableDictionary<string, string> properties, bool displayIfNoReferences) -> void
+Microsoft.CodeAnalysis.FindUsages.DefinitionItem.DisplayIfNoReferences.get -> bool
+Microsoft.CodeAnalysis.FindUsages.DefinitionItem.DisplayParts.get -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.TaggedText>
+Microsoft.CodeAnalysis.FindUsages.DefinitionItem.NameDisplayParts.get -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.TaggedText>
+Microsoft.CodeAnalysis.FindUsages.DefinitionItem.OriginationParts.get -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.TaggedText>
+Microsoft.CodeAnalysis.FindUsages.DefinitionItem.Properties.get -> System.Collections.Immutable.ImmutableDictionary<string, string>
+Microsoft.CodeAnalysis.FindUsages.DefinitionItem.SourceSpans.get -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.DocumentSpan>
+Microsoft.CodeAnalysis.FindUsages.DefinitionItem.Tags.get -> System.Collections.Immutable.ImmutableArray<string>
+Microsoft.CodeAnalysis.FindUsages.SourceReferenceItem
+Microsoft.CodeAnalysis.FindUsages.SourceReferenceItem.Definition.get -> Microsoft.CodeAnalysis.FindUsages.DefinitionItem
+Microsoft.CodeAnalysis.FindUsages.SourceReferenceItem.IsWrittenTo.get -> bool
+Microsoft.CodeAnalysis.FindUsages.SourceReferenceItem.SourceReferenceItem(Microsoft.CodeAnalysis.FindUsages.DefinitionItem definition, Microsoft.CodeAnalysis.DocumentSpan sourceSpan, bool isWrittenTo) -> void
+Microsoft.CodeAnalysis.FindUsages.SourceReferenceItem.SourceSpan.get -> Microsoft.CodeAnalysis.DocumentSpan
+Microsoft.CodeAnalysis.Glyph
+Microsoft.CodeAnalysis.Glyph.AddReference = 73 -> Microsoft.CodeAnalysis.Glyph
+Microsoft.CodeAnalysis.Glyph.Assembly = 1 -> Microsoft.CodeAnalysis.Glyph
+Microsoft.CodeAnalysis.Glyph.BasicFile = 2 -> Microsoft.CodeAnalysis.Glyph
+Microsoft.CodeAnalysis.Glyph.BasicProject = 3 -> Microsoft.CodeAnalysis.Glyph
+Microsoft.CodeAnalysis.Glyph.CSharpFile = 8 -> Microsoft.CodeAnalysis.Glyph
+Microsoft.CodeAnalysis.Glyph.CSharpProject = 9 -> Microsoft.CodeAnalysis.Glyph
+Microsoft.CodeAnalysis.Glyph.ClassInternal = 7 -> Microsoft.CodeAnalysis.Glyph
+Microsoft.CodeAnalysis.Glyph.ClassPrivate = 6 -> Microsoft.CodeAnalysis.Glyph
+Microsoft.CodeAnalysis.Glyph.ClassProtected = 5 -> Microsoft.CodeAnalysis.Glyph
+Microsoft.CodeAnalysis.Glyph.ClassPublic = 4 -> Microsoft.CodeAnalysis.Glyph
+Microsoft.CodeAnalysis.Glyph.CompletionWarning = 72 -> Microsoft.CodeAnalysis.Glyph
+Microsoft.CodeAnalysis.Glyph.ConstantInternal = 13 -> Microsoft.CodeAnalysis.Glyph
+Microsoft.CodeAnalysis.Glyph.ConstantPrivate = 12 -> Microsoft.CodeAnalysis.Glyph
+Microsoft.CodeAnalysis.Glyph.ConstantProtected = 11 -> Microsoft.CodeAnalysis.Glyph
+Microsoft.CodeAnalysis.Glyph.ConstantPublic = 10 -> Microsoft.CodeAnalysis.Glyph
+Microsoft.CodeAnalysis.Glyph.DelegateInternal = 17 -> Microsoft.CodeAnalysis.Glyph
+Microsoft.CodeAnalysis.Glyph.DelegatePrivate = 16 -> Microsoft.CodeAnalysis.Glyph
+Microsoft.CodeAnalysis.Glyph.DelegateProtected = 15 -> Microsoft.CodeAnalysis.Glyph
+Microsoft.CodeAnalysis.Glyph.DelegatePublic = 14 -> Microsoft.CodeAnalysis.Glyph
+Microsoft.CodeAnalysis.Glyph.EnumInternal = 21 -> Microsoft.CodeAnalysis.Glyph
+Microsoft.CodeAnalysis.Glyph.EnumMemberInternal = 25 -> Microsoft.CodeAnalysis.Glyph
+Microsoft.CodeAnalysis.Glyph.EnumMemberPrivate = 24 -> Microsoft.CodeAnalysis.Glyph
+Microsoft.CodeAnalysis.Glyph.EnumMemberProtected = 23 -> Microsoft.CodeAnalysis.Glyph
+Microsoft.CodeAnalysis.Glyph.EnumMemberPublic = 22 -> Microsoft.CodeAnalysis.Glyph
+Microsoft.CodeAnalysis.Glyph.EnumPrivate = 20 -> Microsoft.CodeAnalysis.Glyph
+Microsoft.CodeAnalysis.Glyph.EnumProtected = 19 -> Microsoft.CodeAnalysis.Glyph
+Microsoft.CodeAnalysis.Glyph.EnumPublic = 18 -> Microsoft.CodeAnalysis.Glyph
+Microsoft.CodeAnalysis.Glyph.Error = 26 -> Microsoft.CodeAnalysis.Glyph
+Microsoft.CodeAnalysis.Glyph.EventInternal = 31 -> Microsoft.CodeAnalysis.Glyph
+Microsoft.CodeAnalysis.Glyph.EventPrivate = 30 -> Microsoft.CodeAnalysis.Glyph
+Microsoft.CodeAnalysis.Glyph.EventProtected = 29 -> Microsoft.CodeAnalysis.Glyph
+Microsoft.CodeAnalysis.Glyph.EventPublic = 28 -> Microsoft.CodeAnalysis.Glyph
+Microsoft.CodeAnalysis.Glyph.ExtensionMethodInternal = 35 -> Microsoft.CodeAnalysis.Glyph
+Microsoft.CodeAnalysis.Glyph.ExtensionMethodPrivate = 34 -> Microsoft.CodeAnalysis.Glyph
+Microsoft.CodeAnalysis.Glyph.ExtensionMethodProtected = 33 -> Microsoft.CodeAnalysis.Glyph
+Microsoft.CodeAnalysis.Glyph.ExtensionMethodPublic = 32 -> Microsoft.CodeAnalysis.Glyph
+Microsoft.CodeAnalysis.Glyph.FieldInternal = 39 -> Microsoft.CodeAnalysis.Glyph
+Microsoft.CodeAnalysis.Glyph.FieldPrivate = 38 -> Microsoft.CodeAnalysis.Glyph
+Microsoft.CodeAnalysis.Glyph.FieldProtected = 37 -> Microsoft.CodeAnalysis.Glyph
+Microsoft.CodeAnalysis.Glyph.FieldPublic = 36 -> Microsoft.CodeAnalysis.Glyph
+Microsoft.CodeAnalysis.Glyph.InterfaceInternal = 43 -> Microsoft.CodeAnalysis.Glyph
+Microsoft.CodeAnalysis.Glyph.InterfacePrivate = 42 -> Microsoft.CodeAnalysis.Glyph
+Microsoft.CodeAnalysis.Glyph.InterfaceProtected = 41 -> Microsoft.CodeAnalysis.Glyph
+Microsoft.CodeAnalysis.Glyph.InterfacePublic = 40 -> Microsoft.CodeAnalysis.Glyph
+Microsoft.CodeAnalysis.Glyph.Intrinsic = 44 -> Microsoft.CodeAnalysis.Glyph
+Microsoft.CodeAnalysis.Glyph.Keyword = 45 -> Microsoft.CodeAnalysis.Glyph
+Microsoft.CodeAnalysis.Glyph.Label = 46 -> Microsoft.CodeAnalysis.Glyph
+Microsoft.CodeAnalysis.Glyph.Local = 47 -> Microsoft.CodeAnalysis.Glyph
+Microsoft.CodeAnalysis.Glyph.MethodInternal = 52 -> Microsoft.CodeAnalysis.Glyph
+Microsoft.CodeAnalysis.Glyph.MethodPrivate = 51 -> Microsoft.CodeAnalysis.Glyph
+Microsoft.CodeAnalysis.Glyph.MethodProtected = 50 -> Microsoft.CodeAnalysis.Glyph
+Microsoft.CodeAnalysis.Glyph.MethodPublic = 49 -> Microsoft.CodeAnalysis.Glyph
+Microsoft.CodeAnalysis.Glyph.ModuleInternal = 56 -> Microsoft.CodeAnalysis.Glyph
+Microsoft.CodeAnalysis.Glyph.ModulePrivate = 55 -> Microsoft.CodeAnalysis.Glyph
+Microsoft.CodeAnalysis.Glyph.ModuleProtected = 54 -> Microsoft.CodeAnalysis.Glyph
+Microsoft.CodeAnalysis.Glyph.ModulePublic = 53 -> Microsoft.CodeAnalysis.Glyph
+Microsoft.CodeAnalysis.Glyph.Namespace = 48 -> Microsoft.CodeAnalysis.Glyph
+Microsoft.CodeAnalysis.Glyph.None = 0 -> Microsoft.CodeAnalysis.Glyph
+Microsoft.CodeAnalysis.Glyph.NuGet = 74 -> Microsoft.CodeAnalysis.Glyph
+Microsoft.CodeAnalysis.Glyph.OpenFolder = 57 -> Microsoft.CodeAnalysis.Glyph
+Microsoft.CodeAnalysis.Glyph.Operator = 58 -> Microsoft.CodeAnalysis.Glyph
+Microsoft.CodeAnalysis.Glyph.Parameter = 59 -> Microsoft.CodeAnalysis.Glyph
+Microsoft.CodeAnalysis.Glyph.PropertyInternal = 63 -> Microsoft.CodeAnalysis.Glyph
+Microsoft.CodeAnalysis.Glyph.PropertyPrivate = 62 -> Microsoft.CodeAnalysis.Glyph
+Microsoft.CodeAnalysis.Glyph.PropertyProtected = 61 -> Microsoft.CodeAnalysis.Glyph
+Microsoft.CodeAnalysis.Glyph.PropertyPublic = 60 -> Microsoft.CodeAnalysis.Glyph
+Microsoft.CodeAnalysis.Glyph.RangeVariable = 64 -> Microsoft.CodeAnalysis.Glyph
+Microsoft.CodeAnalysis.Glyph.Reference = 65 -> Microsoft.CodeAnalysis.Glyph
+Microsoft.CodeAnalysis.Glyph.Snippet = 71 -> Microsoft.CodeAnalysis.Glyph
+Microsoft.CodeAnalysis.Glyph.StatusInformation = 27 -> Microsoft.CodeAnalysis.Glyph
+Microsoft.CodeAnalysis.Glyph.StructureInternal = 69 -> Microsoft.CodeAnalysis.Glyph
+Microsoft.CodeAnalysis.Glyph.StructurePrivate = 68 -> Microsoft.CodeAnalysis.Glyph
+Microsoft.CodeAnalysis.Glyph.StructureProtected = 67 -> Microsoft.CodeAnalysis.Glyph
+Microsoft.CodeAnalysis.Glyph.StructurePublic = 66 -> Microsoft.CodeAnalysis.Glyph
+Microsoft.CodeAnalysis.Glyph.TypeParameter = 70 -> Microsoft.CodeAnalysis.Glyph
+Microsoft.CodeAnalysis.Navigation.INavigableItem
+Microsoft.CodeAnalysis.Navigation.INavigableItem.ChildItems.get -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Navigation.INavigableItem>
+Microsoft.CodeAnalysis.Navigation.INavigableItem.DisplayFileLocation.get -> bool
+Microsoft.CodeAnalysis.Navigation.INavigableItem.DisplayTaggedParts.get -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.TaggedText>
+Microsoft.CodeAnalysis.Navigation.INavigableItem.Document.get -> Microsoft.CodeAnalysis.Document
+Microsoft.CodeAnalysis.Navigation.INavigableItem.Glyph.get -> Microsoft.CodeAnalysis.Glyph
+Microsoft.CodeAnalysis.Navigation.INavigableItem.IsImplicitlyDeclared.get -> bool
+Microsoft.CodeAnalysis.Navigation.INavigableItem.SourceSpan.get -> Microsoft.CodeAnalysis.Text.TextSpan
+abstract Microsoft.CodeAnalysis.FindUsages.DefinitionItem.CanNavigateTo(Microsoft.CodeAnalysis.Workspace workspace) -> bool
+abstract Microsoft.CodeAnalysis.FindUsages.DefinitionItem.TryNavigateTo(Microsoft.CodeAnalysis.Workspace workspace, bool isPreview) -> bool
+override Microsoft.CodeAnalysis.DocumentSpan.Equals(object obj) -> bool
+override Microsoft.CodeAnalysis.DocumentSpan.GetHashCode() -> int
+static Microsoft.CodeAnalysis.DocumentSpan.operator !=(Microsoft.CodeAnalysis.DocumentSpan d1, Microsoft.CodeAnalysis.DocumentSpan d2) -> bool
+static Microsoft.CodeAnalysis.DocumentSpan.operator ==(Microsoft.CodeAnalysis.DocumentSpan d1, Microsoft.CodeAnalysis.DocumentSpan d2) -> bool

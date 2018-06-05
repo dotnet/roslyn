@@ -9,7 +9,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor
 {
-    internal abstract class NavigationBarItem
+    public abstract class NavigationBarItem
     {
         public string Text { get; }
         public Glyph Glyph { get; }

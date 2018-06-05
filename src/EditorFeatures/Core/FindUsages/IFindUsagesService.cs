@@ -6,7 +6,7 @@ using Microsoft.CodeAnalysis.Host;
 
 namespace Microsoft.CodeAnalysis.Editor.FindUsages
 {
-    internal interface IFindUsagesService : ILanguageService
+    public interface IFindUsagesService : ILanguageService
     {
         /// <summary>
         /// Finds the references for the symbol at the specific position in the document,

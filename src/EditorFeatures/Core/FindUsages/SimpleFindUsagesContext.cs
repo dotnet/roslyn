@@ -12,7 +12,7 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
     /// Simple implementation of a <see cref="FindUsagesContext"/> that just aggregates the results
     /// for consumers that just want the data once it is finally computed.
     /// </summary>
-    internal class SimpleFindUsagesContext : FindUsagesContext
+    public class SimpleFindUsagesContext : FindUsagesContext
     {
         private readonly object _gate = new object();
         private readonly ImmutableArray<DefinitionItem>.Builder _definitionItems =

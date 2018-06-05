@@ -1,0 +1,57 @@
+Microsoft.CodeAnalysis.Editor.FindUsages.IFindUsagesService
+Microsoft.CodeAnalysis.Editor.FindUsages.IFindUsagesService.FindImplementationsAsync(Microsoft.CodeAnalysis.Document document, int position, Microsoft.CodeAnalysis.FindUsages.IFindUsagesContext context) -> System.Threading.Tasks.Task
+Microsoft.CodeAnalysis.Editor.FindUsages.IFindUsagesService.FindReferencesAsync(Microsoft.CodeAnalysis.Document document, int position, Microsoft.CodeAnalysis.FindUsages.IFindUsagesContext context) -> System.Threading.Tasks.Task
+Microsoft.CodeAnalysis.Editor.FindUsages.SimpleFindUsagesContext
+Microsoft.CodeAnalysis.Editor.FindUsages.SimpleFindUsagesContext.GetDefinitions() -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.FindUsages.DefinitionItem>
+Microsoft.CodeAnalysis.Editor.FindUsages.SimpleFindUsagesContext.GetReferences() -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.FindUsages.SourceReferenceItem>
+Microsoft.CodeAnalysis.Editor.FindUsages.SimpleFindUsagesContext.Message.get -> string
+Microsoft.CodeAnalysis.Editor.FindUsages.SimpleFindUsagesContext.SearchTitle.get -> string
+Microsoft.CodeAnalysis.Editor.FindUsages.SimpleFindUsagesContext.SimpleFindUsagesContext(System.Threading.CancellationToken cancellationToken) -> void
+Microsoft.CodeAnalysis.Editor.IGoToDefinitionService
+Microsoft.CodeAnalysis.Editor.IGoToDefinitionService.FindDefinitionsAsync(Microsoft.CodeAnalysis.Document document, int position, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task<System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.Navigation.INavigableItem>>
+Microsoft.CodeAnalysis.Editor.IGoToDefinitionService.TryGoToDefinition(Microsoft.CodeAnalysis.Document document, int position, System.Threading.CancellationToken cancellationToken) -> bool
+Microsoft.CodeAnalysis.Editor.IMetadataAsSourceFileService
+Microsoft.CodeAnalysis.Editor.IMetadataAsSourceFileService.CleanupGeneratedFiles() -> void
+Microsoft.CodeAnalysis.Editor.IMetadataAsSourceFileService.GetGeneratedFileAsync(Microsoft.CodeAnalysis.Project project, Microsoft.CodeAnalysis.ISymbol symbol, bool allowDecompilation, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<Microsoft.CodeAnalysis.Editor.MetadataAsSourceFile>
+Microsoft.CodeAnalysis.Editor.IMetadataAsSourceFileService.IsNavigableMetadataSymbol(Microsoft.CodeAnalysis.ISymbol symbol) -> bool
+Microsoft.CodeAnalysis.Editor.IMetadataAsSourceFileService.TryAddDocumentToWorkspace(string filePath, Microsoft.VisualStudio.Text.ITextBuffer buffer) -> bool
+Microsoft.CodeAnalysis.Editor.IMetadataAsSourceFileService.TryRemoveDocumentFromWorkspace(string filePath) -> bool
+Microsoft.CodeAnalysis.Editor.INavigationBarItemService
+Microsoft.CodeAnalysis.Editor.INavigationBarItemService.GetItemsAsync(Microsoft.CodeAnalysis.Document document, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task<System.Collections.Generic.IList<Microsoft.CodeAnalysis.Editor.NavigationBarItem>>
+Microsoft.CodeAnalysis.Editor.INavigationBarItemService.NavigateToItem(Microsoft.CodeAnalysis.Document document, Microsoft.CodeAnalysis.Editor.NavigationBarItem item, Microsoft.VisualStudio.Text.Editor.ITextView view, System.Threading.CancellationToken cancellationToken) -> void
+Microsoft.CodeAnalysis.Editor.INavigationBarItemService.ShowItemGrayedIfNear(Microsoft.CodeAnalysis.Editor.NavigationBarItem item) -> bool
+Microsoft.CodeAnalysis.Editor.MetadataAsSourceFile
+Microsoft.CodeAnalysis.Editor.MetadataAsSourceFile.DocumentTitle.get -> string
+Microsoft.CodeAnalysis.Editor.MetadataAsSourceFile.DocumentTooltip.get -> string
+Microsoft.CodeAnalysis.Editor.MetadataAsSourceFile.FilePath.get -> string
+Microsoft.CodeAnalysis.Editor.MetadataAsSourceFile.IdentifierLocation.get -> Microsoft.CodeAnalysis.Location
+Microsoft.CodeAnalysis.Editor.NavigationBarItem
+Microsoft.CodeAnalysis.Editor.NavigationBarItem.Bolded.get -> bool
+Microsoft.CodeAnalysis.Editor.NavigationBarItem.ChildItems.get -> System.Collections.Generic.IList<Microsoft.CodeAnalysis.Editor.NavigationBarItem>
+Microsoft.CodeAnalysis.Editor.NavigationBarItem.Glyph.get -> Microsoft.CodeAnalysis.Glyph
+Microsoft.CodeAnalysis.Editor.NavigationBarItem.Grayed.get -> bool
+Microsoft.CodeAnalysis.Editor.NavigationBarItem.Indent.get -> int
+Microsoft.CodeAnalysis.Editor.NavigationBarItem.NavigationBarItem(string text, Microsoft.CodeAnalysis.Glyph glyph, System.Collections.Generic.IList<Microsoft.CodeAnalysis.Text.TextSpan> spans, System.Collections.Generic.IList<Microsoft.CodeAnalysis.Editor.NavigationBarItem> childItems = null, int indent = 0, bool bolded = false, bool grayed = false) -> void
+Microsoft.CodeAnalysis.Editor.NavigationBarItem.Spans.get -> System.Collections.Generic.IList<Microsoft.CodeAnalysis.Text.TextSpan>
+Microsoft.CodeAnalysis.Editor.NavigationBarItem.Text.get -> string
+Microsoft.CodeAnalysis.FindUsages.FindUsagesContext
+Microsoft.CodeAnalysis.FindUsages.FindUsagesContext.FindUsagesContext() -> void
+Microsoft.CodeAnalysis.FindUsages.IFindUsagesContext
+Microsoft.CodeAnalysis.FindUsages.IFindUsagesContext.CancellationToken.get -> System.Threading.CancellationToken
+Microsoft.CodeAnalysis.FindUsages.IFindUsagesContext.OnDefinitionFoundAsync(Microsoft.CodeAnalysis.FindUsages.DefinitionItem definition) -> System.Threading.Tasks.Task
+Microsoft.CodeAnalysis.FindUsages.IFindUsagesContext.OnReferenceFoundAsync(Microsoft.CodeAnalysis.FindUsages.SourceReferenceItem reference) -> System.Threading.Tasks.Task
+Microsoft.CodeAnalysis.FindUsages.IFindUsagesContext.ReportMessageAsync(string message) -> System.Threading.Tasks.Task
+Microsoft.CodeAnalysis.FindUsages.IFindUsagesContext.ReportProgressAsync(int current, int maximum) -> System.Threading.Tasks.Task
+Microsoft.CodeAnalysis.FindUsages.IFindUsagesContext.SetSearchTitleAsync(string title) -> System.Threading.Tasks.Task
+override Microsoft.CodeAnalysis.Editor.FindUsages.SimpleFindUsagesContext.CancellationToken.get -> System.Threading.CancellationToken
+override Microsoft.CodeAnalysis.Editor.FindUsages.SimpleFindUsagesContext.OnDefinitionFoundAsync(Microsoft.CodeAnalysis.FindUsages.DefinitionItem definition) -> System.Threading.Tasks.Task
+override Microsoft.CodeAnalysis.Editor.FindUsages.SimpleFindUsagesContext.OnReferenceFoundAsync(Microsoft.CodeAnalysis.FindUsages.SourceReferenceItem reference) -> System.Threading.Tasks.Task
+override Microsoft.CodeAnalysis.Editor.FindUsages.SimpleFindUsagesContext.ReportMessageAsync(string message) -> System.Threading.Tasks.Task
+override Microsoft.CodeAnalysis.Editor.FindUsages.SimpleFindUsagesContext.SetSearchTitleAsync(string title) -> System.Threading.Tasks.Task
+virtual Microsoft.CodeAnalysis.FindUsages.FindUsagesContext.CancellationToken.get -> System.Threading.CancellationToken
+virtual Microsoft.CodeAnalysis.FindUsages.FindUsagesContext.OnCompletedAsync() -> System.Threading.Tasks.Task
+virtual Microsoft.CodeAnalysis.FindUsages.FindUsagesContext.OnDefinitionFoundAsync(Microsoft.CodeAnalysis.FindUsages.DefinitionItem definition) -> System.Threading.Tasks.Task
+virtual Microsoft.CodeAnalysis.FindUsages.FindUsagesContext.OnReferenceFoundAsync(Microsoft.CodeAnalysis.FindUsages.SourceReferenceItem reference) -> System.Threading.Tasks.Task
+virtual Microsoft.CodeAnalysis.FindUsages.FindUsagesContext.ReportMessageAsync(string message) -> System.Threading.Tasks.Task
+virtual Microsoft.CodeAnalysis.FindUsages.FindUsagesContext.ReportProgressAsync(int current, int maximum) -> System.Threading.Tasks.Task
+virtual Microsoft.CodeAnalysis.FindUsages.FindUsagesContext.SetSearchTitleAsync(string title) -> System.Threading.Tasks.Task

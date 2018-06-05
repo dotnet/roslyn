@@ -28,6 +28,13 @@ namespace Microsoft.CodeAnalysis.Remote
             _serializerService = serializerService;
         }
 
+        public AssetService(AssetStorage assetStorage, ISerializerService serializerService)
+        {
+            _serializerService = serializerService;
+            _scopeId = 0;
+            _assetStorage = assetStorage;
+        }
+
         public IEnumerable<T> GetGlobalAssetsOfType<T>(CancellationToken cancellationToken)
         {
             return _assetStorage.GetGlobalAssetsOfType<T>(cancellationToken);

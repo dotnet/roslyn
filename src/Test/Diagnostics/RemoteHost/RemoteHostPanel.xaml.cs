@@ -46,9 +46,21 @@ namespace Roslyn.Hosting.Diagnostics.RemoteHost
                     }
                 }
 
+                var solutionBuilder = new SolutionBuilder();
+                var workspaceId = WorkspaceIdText.Text;
+
                 // save from BG
                 var checksum = await Task.Run(
-                    () => SolutionAssetManager.SaveAsync(fileName, _workspace.CurrentSolution, CancellationToken.None)).ConfigureAwait(true);
+                    async () =>
+                    {
+                        if (!string.IsNullOrWhiteSpace(workspaceId))
+                        {
+                            var (solution, idMap) = await solutionBuilder.GetSolutionAndIdMapAsync(workspaceId, CancellationToken.None).ConfigureAwait(false);
+                            return await SolutionAssetManager.SaveAsync(fileName, solution, CancellationToken.None).ConfigureAwait(false);
+                        }
+
+                        return await SolutionAssetManager.SaveAsync(fileName, _workspace.CurrentSolution, CancellationToken.None).ConfigureAwait(false);
+                    }).ConfigureAwait(true);
 
                 SaveChecksum.Content = checksum.ToString();
             }

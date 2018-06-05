@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 
 namespace Microsoft.CodeAnalysis.FindUsages
 {
-    internal interface IFindUsagesContext
+    public interface IFindUsagesContext
     {
         CancellationToken CancellationToken { get; }
 

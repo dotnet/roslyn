@@ -18,6 +18,8 @@
             <Button Content="Save" x:Name="SolutionSaveButton" Click="OnSolutionSave"/>
             <Label x:Name="FileToSave" MinWidth="100"/>
             <Button Content="Choose File" x:Name="FileToSaveButton" Click="OnFileToSave"/>
+            <Label Content="Workspace Id" />
+            <TextBox x:Name="WorkspaceIdText" Text="c561c8381c324c99bb930429f389c016-latest"/>
         </StackPanel>
         <StackPanel Grid.Row="1" Orientation="Horizontal">
             <Label Content="Solution Checksum" />

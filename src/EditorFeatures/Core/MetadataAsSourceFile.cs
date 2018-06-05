@@ -3,7 +3,7 @@
 
 namespace Microsoft.CodeAnalysis.Editor
 {
-    internal sealed class MetadataAsSourceFile
+    public sealed class MetadataAsSourceFile
     {
         private readonly string _filePath;
         private readonly Location _identifierLocation;

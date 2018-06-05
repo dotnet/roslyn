@@ -5,7 +5,7 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.Navigation
 {
-    internal interface INavigableItem
+    public interface INavigableItem
     {
         Glyph Glyph { get; }
 

@@ -1,1 +1,23 @@
-
+Roslyn.Assets.IDocumentAsset
+Roslyn.Assets.IDocumentAsset.FilePath.get -> string
+Roslyn.Assets.IDocumentAsset.Folders.get -> System.Collections.Generic.IEnumerable<string>
+Roslyn.Assets.IDocumentAsset.GetContentAsync(System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task<System.IO.Stream>
+Roslyn.Assets.IDocumentAsset.LastModified.get -> System.DateTimeOffset?
+Roslyn.Assets.IDocumentAsset.Name.get -> string
+Roslyn.Assets.IProjectAsset
+Roslyn.Assets.IProjectAsset.CommandLineArgs.get -> string
+Roslyn.Assets.IProjectAsset.FullPath.get -> string
+Roslyn.Assets.IProjectAsset.GetDocumentsAsync(System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task<System.Collections.Generic.IEnumerable<Roslyn.Assets.IDocumentAsset>>
+Roslyn.Assets.IProjectAsset.GetMetadataReferencesAsync(System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task<System.Collections.Generic.IEnumerable<(string, System.IO.Stream)>>
+Roslyn.Assets.IProjectAsset.GetProjectReferencesAsync(System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task<System.Collections.Generic.IEnumerable<(string, object)>>
+Roslyn.Assets.IProjectAsset.Id.get -> object
+Roslyn.Assets.IProjectAsset.LanguageName.get -> string
+Roslyn.Assets.IProjectAsset.Name.get -> string
+Roslyn.Assets.ISolutionAsset
+Roslyn.Assets.ISolutionAsset.GetProjectsAsync(System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task<System.Collections.Generic.IEnumerable<Roslyn.Assets.IProjectAsset>>
+Roslyn.Assets.ISolutionProvider
+Roslyn.Assets.ISolutionProvider.CreateSolutionAsync(System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task<Microsoft.CodeAnalysis.Solution>
+Roslyn.Assets.SolutionProvider
+static Roslyn.Assets.SolutionProvider.FromAsset(Roslyn.Assets.ISolutionAsset asset) -> Roslyn.Assets.ISolutionProvider
+static Roslyn.Assets.SolutionProvider.FromStream(System.IO.Stream stream) -> Roslyn.Assets.ISolutionProvider
+static readonly Roslyn.Assets.SolutionProvider.ExternalHostAssemblies -> System.Collections.Immutable.ImmutableArray<System.Reflection.Assembly>

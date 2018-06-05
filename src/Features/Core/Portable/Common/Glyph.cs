@@ -2,7 +2,7 @@
 
 namespace Microsoft.CodeAnalysis
 {
-    internal enum Glyph
+    public enum Glyph
     {
         None,
 

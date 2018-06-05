@@ -10,6 +10,7 @@ using System.Threading;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Execution
@@ -25,7 +26,7 @@ namespace Microsoft.CodeAnalysis.Execution
         public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
         {
             return new Service(
-                workspaceServices.GetService<ITemporaryStorageService>(),
+                workspaceServices.GetService<ITemporaryStorageService>() as ITemporaryStorageService2,
                 workspaceServices.GetService<IDocumentationProviderService>());
         }
 
@@ -35,7 +36,7 @@ namespace Microsoft.CodeAnalysis.Execution
             // typical low number, high volumn data cache.
             private static readonly ConcurrentDictionary<Encoding, byte[]> s_encodingCache = new ConcurrentDictionary<Encoding, byte[]>(concurrencyLevel: 2, capacity: 5);
 
-            public Service(ITemporaryStorageService service, IDocumentationProviderService documentationService) :
+            public Service(ITemporaryStorageService2 service, IDocumentationProviderService documentationService) :
                 base(service, documentationService)
             {
             }
@@ -108,6 +109,11 @@ namespace Microsoft.CodeAnalysis.Execution
 
                 return ReadEncodingFrom(serialized, reader, cancellationToken);
             }
+
+            //public override Checksum CreateChecksum(SourceText sourceText, CancellationToken cancellationToken)
+            //{
+            //    return new Checksum(sourceText.GetChecksum());
+            //}
 
             protected override string GetAnalyzerAssemblyPath(AnalyzerFileReference reference)
             {

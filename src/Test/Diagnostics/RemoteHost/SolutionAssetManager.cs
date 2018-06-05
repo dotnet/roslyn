@@ -11,6 +11,7 @@ using Microsoft.CodeAnalysis.Execution;
 using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.Remote.Shared;
 using Microsoft.CodeAnalysis.Serialization;
+using Roslyn.Assets;
 using Roslyn.Utilities;
 
 namespace Roslyn.Hosting.Diagnostics.RemoteHost

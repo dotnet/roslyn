@@ -6,7 +6,7 @@ using Microsoft.VisualStudio.Text;
 
 namespace Microsoft.CodeAnalysis.Editor
 {
-    internal interface IMetadataAsSourceFileService
+    public interface IMetadataAsSourceFileService
     {
         /// <summary>
         /// Generates a file on disk containing general information about the symbol's containing

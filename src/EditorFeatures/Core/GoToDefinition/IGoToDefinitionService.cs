@@ -8,7 +8,7 @@ using Microsoft.CodeAnalysis.Navigation;
 
 namespace Microsoft.CodeAnalysis.Editor
 {
-    internal interface IGoToDefinitionService : ILanguageService
+    public interface IGoToDefinitionService : ILanguageService
     {
         /// <summary>
         /// Finds the definitions for the symbol at the specific position in the document.

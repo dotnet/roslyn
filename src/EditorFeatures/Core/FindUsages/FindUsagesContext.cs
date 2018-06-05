@@ -7,7 +7,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.FindUsages
 {
-    internal abstract class FindUsagesContext : IFindUsagesContext
+    public abstract class FindUsagesContext : IFindUsagesContext
     {
         public virtual CancellationToken CancellationToken { get; }
 

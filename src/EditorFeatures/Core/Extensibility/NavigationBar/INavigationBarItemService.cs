@@ -8,7 +8,7 @@ using Microsoft.VisualStudio.Text.Editor;
 
 namespace Microsoft.CodeAnalysis.Editor
 {
-    internal interface INavigationBarItemService : ILanguageService
+    public interface INavigationBarItemService : ILanguageService
     {
         Task<IList<NavigationBarItem>> GetItemsAsync(Document document, CancellationToken cancellationToken);
         bool ShowItemGrayedIfNear(NavigationBarItem item);
