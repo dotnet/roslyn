@@ -35,18 +35,18 @@ namespace Microsoft.CodeAnalysis.CodeStyle
         protected readonly DiagnosticDescriptor UnnecessaryWithoutSuggestionDescriptor;
 
         protected readonly LocalizableString _localizableTitle;
-        protected readonly LocalizableString _localizableMessage;
+        protected readonly LocalizableString _localizableMessageFormat;
 
         private readonly bool _configurable;
 
         protected AbstractCodeStyleDiagnosticAnalyzer(
             string descriptorId, LocalizableString title,
-            LocalizableString message = null,
+            LocalizableString messageFormat = null,
             bool configurable = true)
         {
             DescriptorId = descriptorId;
             _localizableTitle = title;
-            _localizableMessage = message ?? title;
+            _localizableMessageFormat = messageFormat ?? title;
             _configurable = configurable;
 
             Descriptor = CreateDescriptor();
@@ -62,19 +62,19 @@ namespace Microsoft.CodeAnalysis.CodeStyle
 
         protected DiagnosticDescriptor CreateUnnecessaryDescriptor(string descriptorId)
             => CreateDescriptorWithId(
-                descriptorId, _localizableTitle, _localizableMessage,
+                descriptorId, _localizableTitle, _localizableMessageFormat,
                 DiagnosticCustomTags.Unnecessary);
 
         public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics { get; }
 
         protected DiagnosticDescriptor CreateDescriptor(params string[] customTags)
-            => CreateDescriptorWithId(DescriptorId, _localizableTitle, _localizableMessage, customTags);
+            => CreateDescriptorWithId(DescriptorId, _localizableTitle, _localizableMessageFormat, customTags);
 
         protected DiagnosticDescriptor CreateDescriptorWithTitle(LocalizableString title, params string[] customTags)
             => CreateDescriptorWithId(DescriptorId, title, title, customTags);
 
         protected DiagnosticDescriptor CreateDescriptorWithId(
-            string id, LocalizableString title, LocalizableString message,
+            string id, LocalizableString title, LocalizableString messageFormat,
             params string[] customTags)
         {
             if (!_configurable)
@@ -83,7 +83,7 @@ namespace Microsoft.CodeAnalysis.CodeStyle
             }
 
             return new DiagnosticDescriptor(
-                id, title, message,
+                id, title, messageFormat,
                 DiagnosticCategory.Style,
                 DiagnosticSeverity.Hidden,
                 isEnabledByDefault: true,
