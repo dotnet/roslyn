@@ -204,10 +204,11 @@ class C
 csharp_style_expression_bodied_properties = true:warning
 ";
 
+            var versionStamp = VisualStudio.Workspace.GetLatestProjectVersion();
             VisualStudio.SolutionExplorer.AddFile(new ProjectUtils.Project(ProjectName), ".editorconfig", editorConfig, open: false);
 
-            // We have no way of waiting on the CodingConventions library to send its file system changed notifications
-            Thread.Sleep(TimeSpan.FromSeconds(1));
+            // Wait for CodingConventions library events to propagate to the workspace
+            VisualStudio.Workspace.WaitForNewProjectVersion(versionStamp, Helper.HangMitigatingTimeout);
 
             VisualStudio.WaitForApplicationIdle(CancellationToken.None);
             VisualStudio.Workspace.WaitForAllAsyncOperations(
@@ -234,10 +235,11 @@ csharp_style_expression_bodied_properties = true:warning
              * outcome for the modified .editorconfig style.
              */
 
+            versionStamp = VisualStudio.Workspace.GetLatestProjectVersion();
             VisualStudio.SolutionExplorer.SetFileContents(new ProjectUtils.Project(ProjectName), ".editorconfig", editorConfig.Replace("true:warning", "false:warning"));
 
-            // We have no way of waiting on the CodingConventions library to send its file system changed notifications
-            Thread.Sleep(TimeSpan.FromSeconds(1));
+            // Wait for CodingConventions library events to propagate to the workspace
+            VisualStudio.Workspace.WaitForNewProjectVersion(versionStamp, Helper.HangMitigatingTimeout);
 
             VisualStudio.WaitForApplicationIdle(CancellationToken.None);
             VisualStudio.Workspace.WaitForAllAsyncOperations(
