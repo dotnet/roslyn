@@ -14,8 +14,8 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnusedVariable
     [ExtensionOrder(After = PredefinedCodeFixProviderNames.AddImport)]
     internal partial class CSharpRemoveUnusedVariableCodeFixProvider : AbstractRemoveUnusedVariableCodeFixProvider<LocalDeclarationStatementSyntax, VariableDeclaratorSyntax, VariableDeclarationSyntax>
     {
-        private const string CS0168 = nameof(CS0168);
-        private const string CS0219 = nameof(CS0219);
+        public const string CS0168 = nameof(CS0168);
+        public const string CS0219 = nameof(CS0219);
 
         public sealed override ImmutableArray<string> FixableDiagnosticIds
             => ImmutableArray.Create(CS0168, CS0219);

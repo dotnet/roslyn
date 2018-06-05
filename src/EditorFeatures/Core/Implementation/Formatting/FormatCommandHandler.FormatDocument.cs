@@ -106,7 +106,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Formatting
 
         private async Task<IEnumerable<TextChange>> GetCodeCleanupAndFormatChangesAsync(Document document, ICodeCleanupService codeCleanupService, CancellationToken cancellationToken)
         {
-            var newDoc = await codeCleanupService.CleanupAndFormatDocumentAsync(document, cancellationToken).ConfigureAwait(false);
+            var newDoc = await codeCleanupService.CleanupAsync(document, cancellationToken).ConfigureAwait(false);
 
             return await newDoc.GetTextChangesAsync(document, cancellationToken).ConfigureAwait(false);
         }

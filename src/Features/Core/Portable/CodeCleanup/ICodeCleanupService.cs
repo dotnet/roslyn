@@ -8,6 +8,6 @@ namespace Microsoft.CodeAnalysis.CodeCleanup
 {
     internal interface ICodeCleanupService : ILanguageService
     {
-        Task<Document> CleanupAndFormatDocumentAsync(Document document, CancellationToken cancellationToken);
+        Task<Document> CleanupAsync(Document document, CancellationToken cancellationToken);
     }
 }

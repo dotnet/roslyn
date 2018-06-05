@@ -5,6 +5,7 @@ using System.Windows;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeCleanup;
 using Microsoft.CodeAnalysis.Editor.Shared.Options;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Options;
 
 namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
@@ -49,9 +50,6 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
             FixObjectCollectionInitializationCheckBox.Content = CSharpVSResources.Fix_object_collection_initialization;
             FixLanguageFeaturesCheckBox.Content = CSharpVSResources.Fix_language_features;
 
-            // IsCodeCleanupConfiguredCheckBox is hidden all the time, and it tracks if the user ever configured the code cleanup
-            BindToOption(AreCodeCleanupRulesConfiguredCheckBox, CodeCleanupOptions.AreCodeCleanupRulesConfigured, LanguageNames.CSharp);
-
             BindToOption(RemoveUnusedUsingsCheckBox, CodeCleanupOptions.RemoveUnusedImports, LanguageNames.CSharp);
             BindToOption(SortUsingsCheckBox, CodeCleanupOptions.SortImports, LanguageNames.CSharp);
             BindToOption(FixImplicitExplicitTypeCheckBox, CodeCleanupOptions.FixImplicitExplicitType, LanguageNames.CSharp);
@@ -93,10 +91,15 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
 
         internal void SetCodeCleanupAsConfigured()
         {
-            // AreCodeCleanupConfiguredCheckBox is hidden all the time, and it tracks if the user ever configured the code cleanup
-            if (!AreCodeCleanupRulesConfiguredCheckBox.IsChecked.HasValue || AreCodeCleanupRulesConfiguredCheckBox.IsChecked.Value == false)
+            var areCodeCleanupRulesConfigured = OptionService.GetOption<bool>(CodeCleanupOptions.AreCodeCleanupRulesConfigured, LanguageNames.CSharp);
+
+            if (!areCodeCleanupRulesConfigured)
             {
-                AreCodeCleanupRulesConfiguredCheckBox.IsChecked = true;
+                var oldOptions = OptionService.GetOptions();
+                var newOptions = oldOptions.WithChangedOption(CodeCleanupOptions.AreCodeCleanupRulesConfigured, LanguageNames.CSharp, true);
+
+                OptionService.SetOptions(newOptions);
+                OptionLogger.Log(oldOptions, newOptions);
             }
         }
     }

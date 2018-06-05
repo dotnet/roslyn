@@ -8,6 +8,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeCleanup;
 using Microsoft.CodeAnalysis.CodeFixes;
+using Microsoft.CodeAnalysis.CSharp.RemoveUnusedVariable;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Host.Mef;
@@ -28,7 +29,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeCleanup
         /// </summary>
         private static ImmutableDictionary<PerLanguageOption<bool>, ImmutableArray<string>> _optionDiagnosticsMappings = GetCodeCleanupOptionMapping();
 
-        private readonly ICodeFixService _codeFixService;
+        private readonly ICodeFixService _codeFixServiceOpt;
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -37,7 +38,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeCleanup
             // https://github.com/dotnet/roslyn/issues/27369
             [Import(AllowDefault = true)] ICodeFixService codeFixService)
         {
-            _codeFixService = codeFixService;
+            _codeFixServiceOpt = codeFixService;
         }
 
         private static ImmutableDictionary<PerLanguageOption<bool>, ImmutableArray<string>> GetCodeCleanupOptionMapping()
@@ -95,8 +96,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeCleanup
                 },
                 {
                     CodeCleanupOptions.RemoveUnusedVariables,
-                    ImmutableArray.Create(IDEDiagnosticIds.DeclaredVariableNeverUsedDiagnosticId,
-                                          IDEDiagnosticIds.AssignedVariableNeverUsedDiagnosticId)
+                    ImmutableArray.Create(CSharpRemoveUnusedVariableCodeFixProvider.CS0168,
+                                          CSharpRemoveUnusedVariableCodeFixProvider.CS0219)
                 },
                 {
                     CodeCleanupOptions.FixObjectCollectionInitialization,
@@ -108,11 +109,11 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeCleanup
             return dictionary.ToImmutableDictionary();
         }
 
-        public async Task<Document> CleanupAndFormatDocumentAsync(Document document, CancellationToken cancellationToken)
+        public async Task<Document> CleanupAsync(Document document, CancellationToken cancellationToken)
         {
             var docOptions = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
 
-            if (_codeFixService != null)
+            if (_codeFixServiceOpt != null)
             {
                 document = await ApplyCodeFixesAsync(document, docOptions, cancellationToken).ConfigureAwait(false);
             }
@@ -156,7 +157,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeCleanup
                 var syntaxTree = await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
                 var textSpan = new TextSpan(0, syntaxTree.Length);
 
-                var fixCollection = await _codeFixService.GetFixesAsync(document, textSpan, diagnosticId, cancellationToken).ConfigureAwait(false);
+                var fixCollection = await _codeFixServiceOpt.GetFixesAsync(document, textSpan, diagnosticId, cancellationToken).ConfigureAwait(false);
                 if (fixCollection == null)
                 {
                     continue;
@@ -172,15 +173,15 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeCleanup
             return document;
         }
 
-        private List<string> GetEnabledDiagnosticIds(DocumentOptionSet docOptions)
+        private IEnumerable<string> GetEnabledDiagnosticIds(DocumentOptionSet docOptions)
         {
             var diagnosticIds = new List<string>();
 
-            foreach (var codeCleanupOptions in _optionDiagnosticsMappings.Keys)
+            foreach (var kv in _optionDiagnosticsMappings)
             {
-                if (docOptions.GetOption(codeCleanupOptions))
+                if (docOptions.GetOption(kv.Key))
                 {
-                    diagnosticIds.AddRange(_optionDiagnosticsMappings[codeCleanupOptions]);
+                    diagnosticIds.AddRange(kv.Value);
                 }
             }
 
