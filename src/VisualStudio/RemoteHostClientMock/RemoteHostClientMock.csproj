@@ -23,6 +23,7 @@
     <Nonshipping>true</Nonshipping>
   </PropertyGroup>
   <ItemGroup Label="Project References">
+    <ProjectReference Include="..\..\Compilers\Core\Portable\CodeAnalysis.csproj" />
     <ProjectReference Include="..\..\EditorFeatures\TestUtilities\ServicesTestUtilities.csproj" />
     <ProjectReference Include="..\..\VisualStudio\Core\Def\ServicesVisualStudio.csproj">
       <IncludeOutputGroupsInVSIX>BuiltProjectOutputGroup%3b</IncludeOutputGroupsInVSIX>
