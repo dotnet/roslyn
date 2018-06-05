@@ -13,6 +13,7 @@ namespace Microsoft.CodeAnalysis.Utilities
         JoinableTask,
         ForcedByPackageInitialize,
         MonoDevelopGtk,
+        MonoDevelopXwt,
         Unknown
     }
 
@@ -47,6 +48,10 @@ namespace Microsoft.CodeAnalysis.Utilities
                 case "MonoDevelop.Ide.DispatchService+GtkSynchronizationContext":
 
                     return MonoDevelopGtk;
+
+                case "Xwt.XwtSynchronizationContext":
+
+                    return MonoDevelopXwt;
 
                 default:
 
