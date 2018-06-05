@@ -29,7 +29,6 @@ namespace Microsoft.CodeAnalysis.SQLite
             }
 
             protected override string DataTableName => DocumentDataTableName;
-            protected override byte[] DataTableNamePtr => DocumentDataTableNamePtr;
 
             protected override (DocumentId, string) GetWriteQueueKey((Document document, string name) key)
                 => (key.document.Id, key.name);
