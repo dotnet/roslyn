@@ -154,7 +154,8 @@
 collection.
   </Rules>
   <Rules AnalyzerId="Microsoft.VisualStudio.SDK.Analyzers" RuleNamespace="Microsoft.VisualStudio.SDK.Analyzers">
-    <Rule Id="VSSDK001" Action="Warning" />
-    <Rule Id="VSSDK003" Action="Warning" />
+    <!-- https://github.com/Microsoft/VSSDK-Analyzers/blob/master/doc/index.md -->
+    <Rule Id="VSSDK001" Action="Warning" /> <!-- Derive from AsyncPackage -->
+    <Rule Id="VSSDK003" Action="Warning" /> <!-- Support async tool windows -->
   </Rules>
 </RuleSet>
