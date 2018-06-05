@@ -425,7 +425,10 @@ IObjectOrCollectionInitializerOperation (OperationKind.ObjectOrCollectionInitial
             Initializers(1):
                 IDynamicInvocationOperation (OperationKind.DynamicInvocation, Type: System.Void) (Syntax: '{ x, y }')
                   Expression: 
-                    IInstanceReferenceOperation (ReferenceKind: ImplicitReceiver) (OperationKind.InstanceReference, Type: dynamic, IsImplicit) (Syntax: 'X')
+                    IDynamicMemberReferenceOperation (Member Name: ""Add"", Containing Type: null) (OperationKind.DynamicMemberReference, Type: null, IsImplicit) (Syntax: 'X')
+                      Type Arguments(0)
+                      Instance Receiver: 
+                        IInstanceReferenceOperation (ReferenceKind: ImplicitReceiver) (OperationKind.InstanceReference, Type: dynamic, IsImplicit) (Syntax: 'X')
                   Arguments(2):
                       IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'x')
                       IParameterReferenceOperation: y (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'y')

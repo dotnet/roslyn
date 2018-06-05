@@ -1764,6 +1764,38 @@ namespace Microsoft.CodeAnalysis.CSharp
             return ClassifyConversion(source, destination).ToCommonConversion();
         }
 
+        internal override IConvertibleConversion ClassifyConvertibleConversion(IOperation source, ITypeSymbol destination, out Optional<object> constantValue)
+        {
+            constantValue = default;
+
+            if (destination is null)
+            {
+                return Conversion.NoConversion;
+            }
+
+            ITypeSymbol sourceType = source.Type;
+
+            if (sourceType is null)
+            {
+                if (source.ConstantValue.HasValue && source.ConstantValue.Value is null && destination.IsReferenceType)
+                {
+                    constantValue = source.ConstantValue;
+                    return Conversion.DefaultOrNullLiteral;
+                }
+
+                return Conversion.NoConversion;
+            }
+
+            Conversion result = ClassifyConversion(sourceType, destination);
+
+            if (result.IsReference && source.ConstantValue.HasValue && source.ConstantValue.Value is null)
+            {
+                constantValue = source.ConstantValue;
+            }
+
+            return result;
+        }
+
         /// <summary>
         /// Returns a new ArrayTypeSymbol representing an array type tied to the base types of the
         /// COR Library in this Compilation.

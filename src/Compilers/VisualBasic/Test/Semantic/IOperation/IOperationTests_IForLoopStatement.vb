@@ -2470,7 +2470,8 @@ Block[B11] - Block
             IFlowCaptureReferenceOperation: 6 (OperationKind.FlowCaptureReference, Type: System.Nullable(Of System.Int32), IsImplicit) (Syntax: 'i')
           Right: 
             IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Nullable(Of System.Int32), IsImplicit) (Syntax: '[step]')
-              Conversion: CommonConversion (Exists: True)
+              Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                (WideningNullable)
               Operand: 
                 IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperator, Type: System.Int32, IsImplicit) (Syntax: '[step]')
                   Left: 
@@ -2702,7 +2703,8 @@ Block[B5] - Block
             IFlowCaptureReferenceOperation: 4 (OperationKind.FlowCaptureReference, Type: System.Nullable(Of C), IsInvalid, IsImplicit) (Syntax: 'i')
           Right: 
             IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Nullable(Of C), IsInvalid, IsImplicit) (Syntax: '[step]')
-              Conversion: CommonConversion (Exists: True)
+              Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                (WideningNullable)
               Operand: 
                 IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperator, Type: C, IsInvalid, IsImplicit) (Syntax: '[step]')
                   Left: 
@@ -3020,7 +3022,8 @@ Block[B11] - Block
             IFlowCaptureReferenceOperation: 6 (OperationKind.FlowCaptureReference, Type: System.Nullable(Of MyEnum), IsImplicit) (Syntax: 'i')
           Right: 
             IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Nullable(Of MyEnum), IsImplicit) (Syntax: '[step]')
-              Conversion: CommonConversion (Exists: True)
+              Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                (WideningNullable)
               Operand: 
                 IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperator, Type: MyEnum, IsImplicit) (Syntax: '[step]')
                   Left: 
@@ -4567,7 +4570,8 @@ Block[B38] - Block
             IFlowCaptureReferenceOperation: 12 (OperationKind.FlowCaptureReference, Type: System.Nullable(Of System.Double), IsImplicit) (Syntax: 'If(c1, c2).i')
           Right: 
             IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Nullable(Of System.Double), IsImplicit) (Syntax: 'If(bStep, step1, step2)')
-              Conversion: CommonConversion (Exists: True)
+              Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                (WideningNullable)
               Operand: 
                 IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperator, Type: System.Double, IsImplicit) (Syntax: 'If(bStep, step1, step2)')
                   Left: 
@@ -7863,7 +7867,8 @@ Block[B11] - Block
             IFlowCaptureReferenceOperation: 6 (OperationKind.FlowCaptureReference, Type: System.Nullable(Of System.Int32), IsImplicit) (Syntax: 'i')
           Right: 
             IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Nullable(Of System.Int32), IsImplicit) (Syntax: '[step]')
-              Conversion: CommonConversion (Exists: True)
+              Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                (WideningNullable)
               Operand: 
                 IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperator, Type: System.Int32, IsImplicit) (Syntax: '[step]')
                   Left: 

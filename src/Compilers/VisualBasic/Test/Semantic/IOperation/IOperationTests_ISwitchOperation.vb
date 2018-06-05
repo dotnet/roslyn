@@ -6892,7 +6892,8 @@ Block[B1] - Block
 
     Jump if True (Regular) to Block[B3]
         IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Boolean, IsImplicit) (Syntax: 'other1 To other2')
-          Conversion: CommonConversion (Exists: True)
+          Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+            (NarrowingValue)
           Operand: 
             IBinaryOperation (BinaryOperatorKind.GreaterThanOrEqual, Checked) (OperatorMethod: Function C.op_GreaterThanOrEqual(x As C, y As System.Int16) As System.Object) (OperationKind.BinaryOperator, Type: System.Object, IsImplicit) (Syntax: 'other1 To other2')
               Left: 
@@ -6919,7 +6920,8 @@ Block[B3] - Block
         IFlowCaptureOperation: 1 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'other1 To other2')
           Value: 
             IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Boolean, IsImplicit) (Syntax: 'other1 To other2')
-              Conversion: CommonConversion (Exists: True)
+              Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                (NarrowingValue)
               Operand: 
                 IBinaryOperation (BinaryOperatorKind.LessThanOrEqual, Checked) (OperatorMethod: Function C.op_LessThanOrEqual(x As C, y As System.Int16) As System.Object) (OperationKind.BinaryOperator, Type: System.Object, IsImplicit) (Syntax: 'other1 To other2')
                   Left: 
@@ -6941,7 +6943,8 @@ Block[B4] - Block
             (NarrowingValue)
           Operand: 
             IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Object, IsImplicit) (Syntax: 'other1 To other2')
-              Conversion: CommonConversion (Exists: True)
+              Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                (WideningValue)
               Operand: 
                 IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: System.Boolean, IsImplicit) (Syntax: 'other1 To other2')
 
@@ -7759,7 +7762,8 @@ Block[B1] - Block
 
     Jump if True (Regular) to Block[B3]
         IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Boolean, IsImplicit) (Syntax: 'other1 To other2')
-          Conversion: CommonConversion (Exists: True)
+          Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+            (NarrowingValue)
           Operand: 
             IBinaryOperation (BinaryOperatorKind.GreaterThanOrEqual, Checked) (OperationKind.BinaryOperator, Type: System.Object, IsImplicit) (Syntax: 'other1 To other2')
               Left: 
@@ -7786,7 +7790,8 @@ Block[B3] - Block
         IFlowCaptureOperation: 1 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'other1 To other2')
           Value: 
             IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Boolean, IsImplicit) (Syntax: 'other1 To other2')
-              Conversion: CommonConversion (Exists: True)
+              Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                (NarrowingValue)
               Operand: 
                 IBinaryOperation (BinaryOperatorKind.LessThanOrEqual, Checked) (OperationKind.BinaryOperator, Type: System.Object, IsImplicit) (Syntax: 'other1 To other2')
                   Left: 
@@ -7808,7 +7813,8 @@ Block[B4] - Block
             (NarrowingValue)
           Operand: 
             IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Object, IsImplicit) (Syntax: 'other1 To other2')
-              Conversion: CommonConversion (Exists: True)
+              Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                (WideningValue)
               Operand: 
                 IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: System.Boolean, IsImplicit) (Syntax: 'other1 To other2')
 
@@ -7863,7 +7869,8 @@ Block[B1] - Block
 
     Jump if True (Regular) to Block[B3]
         IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Boolean, IsImplicit) (Syntax: 'other1 To other2')
-          Conversion: CommonConversion (Exists: True)
+          Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+            (NarrowingValue)
           Operand: 
             IBinaryOperation (BinaryOperatorKind.GreaterThanOrEqual, Checked) (OperationKind.BinaryOperator, Type: System.Object, IsImplicit) (Syntax: 'other1 To other2')
               Left: 
@@ -7890,7 +7897,8 @@ Block[B3] - Block
         IFlowCaptureOperation: 1 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'other1 To other2')
           Value: 
             IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Boolean, IsImplicit) (Syntax: 'other1 To other2')
-              Conversion: CommonConversion (Exists: True)
+              Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                (NarrowingValue)
               Operand: 
                 IBinaryOperation (BinaryOperatorKind.LessThanOrEqual, Checked) (OperationKind.BinaryOperator, Type: System.Object, IsImplicit) (Syntax: 'other1 To other2')
                   Left: 
@@ -7912,7 +7920,8 @@ Block[B4] - Block
             (NarrowingValue)
           Operand: 
             IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Object, IsImplicit) (Syntax: 'other1 To other2')
-              Conversion: CommonConversion (Exists: True)
+              Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                (WideningValue)
               Operand: 
                 IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: System.Boolean, IsImplicit) (Syntax: 'other1 To other2')
 
@@ -7967,7 +7976,8 @@ Block[B1] - Block
 
     Jump if True (Regular) to Block[B3]
         IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Boolean, IsImplicit) (Syntax: 'other1 To other2')
-          Conversion: CommonConversion (Exists: True)
+          Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+            (NarrowingValue)
           Operand: 
             IBinaryOperation (BinaryOperatorKind.GreaterThanOrEqual, Checked) (OperationKind.BinaryOperator, Type: System.Object, IsImplicit) (Syntax: 'other1 To other2')
               Left: 
@@ -7994,7 +8004,8 @@ Block[B3] - Block
         IFlowCaptureOperation: 1 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'other1 To other2')
           Value: 
             IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Boolean, IsImplicit) (Syntax: 'other1 To other2')
-              Conversion: CommonConversion (Exists: True)
+              Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                (NarrowingValue)
               Operand: 
                 IBinaryOperation (BinaryOperatorKind.LessThanOrEqual, Checked) (OperationKind.BinaryOperator, Type: System.Object, IsImplicit) (Syntax: 'other1 To other2')
                   Left: 
@@ -8016,7 +8027,8 @@ Block[B4] - Block
             (NarrowingValue)
           Operand: 
             IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Object, IsImplicit) (Syntax: 'other1 To other2')
-              Conversion: CommonConversion (Exists: True)
+              Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                (WideningValue)
               Operand: 
                 IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: System.Boolean, IsImplicit) (Syntax: 'other1 To other2')
 
@@ -8071,7 +8083,8 @@ Block[B1] - Block
 
     Jump if True (Regular) to Block[B3]
         IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Boolean, IsImplicit) (Syntax: 'other1 To other2')
-          Conversion: CommonConversion (Exists: True)
+          Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+            (NarrowingValue)
           Operand: 
             IBinaryOperation (BinaryOperatorKind.GreaterThanOrEqual, Checked) (OperationKind.BinaryOperator, Type: System.Object, IsImplicit) (Syntax: 'other1 To other2')
               Left: 
@@ -8094,7 +8107,8 @@ Block[B3] - Block
         IFlowCaptureOperation: 1 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'other1 To other2')
           Value: 
             IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Boolean, IsImplicit) (Syntax: 'other1 To other2')
-              Conversion: CommonConversion (Exists: True)
+              Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                (NarrowingValue)
               Operand: 
                 IBinaryOperation (BinaryOperatorKind.LessThanOrEqual, Checked) (OperationKind.BinaryOperator, Type: System.Object, IsImplicit) (Syntax: 'other1 To other2')
                   Left: 
@@ -8112,7 +8126,8 @@ Block[B4] - Block
             (NarrowingValue)
           Operand: 
             IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Object, IsImplicit) (Syntax: 'other1 To other2')
-              Conversion: CommonConversion (Exists: True)
+              Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                (WideningValue)
               Operand: 
                 IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: System.Boolean, IsImplicit) (Syntax: 'other1 To other2')
 
@@ -9023,7 +9038,8 @@ Block[B0] - Entry
 
         Jump if True (Regular) to Block[B3]
             IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Boolean, IsImplicit) (Syntax: 'other1 To other2')
-              Conversion: CommonConversion (Exists: True)
+              Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                (NarrowingValue)
               Operand: 
                 IBinaryOperation (BinaryOperatorKind.GreaterThanOrEqual, Checked) (OperationKind.BinaryOperator, Type: System.Object, IsImplicit) (Syntax: 'other1 To other2')
                   Left: 
@@ -9050,7 +9066,8 @@ Block[B0] - Entry
             IFlowCaptureOperation: 1 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'other1 To other2')
               Value: 
                 IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Boolean, IsImplicit) (Syntax: 'other1 To other2')
-                  Conversion: CommonConversion (Exists: True)
+                  Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                    (NarrowingValue)
                   Operand: 
                     IBinaryOperation (BinaryOperatorKind.LessThanOrEqual, Checked) (OperationKind.BinaryOperator, Type: System.Object, IsImplicit) (Syntax: 'other1 To other2')
                       Left: 
@@ -9072,7 +9089,8 @@ Block[B0] - Entry
                 (NarrowingValue)
               Operand: 
                 IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Object, IsImplicit) (Syntax: 'other1 To other2')
-                  Conversion: CommonConversion (Exists: True)
+                  Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                    (WideningValue)
                   Operand: 
                     IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: System.Boolean, IsImplicit) (Syntax: 'other1 To other2')
             Leaving: {R1}

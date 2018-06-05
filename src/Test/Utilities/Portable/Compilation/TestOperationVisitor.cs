@@ -422,6 +422,12 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             AssertEx.Equal(new[] { operation.Variables, operation.Body }, operation.Children);
         }
 
+        internal override void VisitAggregateQuery(IAggregateQueryOperation operation)
+        {
+            Assert.Equal(OperationKind.None, operation.Kind);
+            AssertEx.Equal(new[] { operation.Group, operation.Aggregation }, operation.Children);
+        }
+
         public override void VisitExpressionStatement(IExpressionStatementOperation operation)
         {
             Assert.Equal(OperationKind.ExpressionStatement, operation.Kind);
@@ -663,27 +669,11 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             switch (operation.Language)
             {
                 case LanguageNames.CSharp:
-                    if (conversion.IsLanguageAgnostic)
-                    {
-                        Assert.Throws<InvalidCastException>(() => CSharp.CSharpExtensions.GetConversion(operation));
-                    }
-                    else
-                    {
-                        CSharp.Conversion csharpConversion = CSharp.CSharpExtensions.GetConversion(operation);
-                    }
-
+                    CSharp.Conversion csharpConversion = CSharp.CSharpExtensions.GetConversion(operation);
                     Assert.Throws<ArgumentException>(() => VisualBasic.VisualBasicExtensions.GetConversion(operation));
                     break;
                 case LanguageNames.VisualBasic:
-                    if (conversion.IsLanguageAgnostic)
-                    {
-                        Assert.Throws<InvalidCastException>(() => VisualBasic.VisualBasicExtensions.GetConversion(operation));
-                    }
-                    else
-                    {
-                        VisualBasic.Conversion visualBasicConversion = VisualBasic.VisualBasicExtensions.GetConversion(operation);
-                    }
-
+                    VisualBasic.Conversion visualBasicConversion = VisualBasic.VisualBasicExtensions.GetConversion(operation);
                     Assert.Throws<ArgumentException>(() => CSharp.CSharpExtensions.GetConversion(operation));
                     break;
                 default:
