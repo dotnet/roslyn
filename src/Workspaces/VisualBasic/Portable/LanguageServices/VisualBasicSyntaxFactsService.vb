@@ -300,26 +300,26 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Public Function IsQueryKeyword(token As SyntaxToken) As Boolean Implements ISyntaxFactsService.IsQueryKeyword
             Select Case token.Kind()
-                Case SyntaxKind.JoinKeyword
-                Case SyntaxKind.IntoKeyword
-                Case SyntaxKind.AggregateKeyword
-                Case SyntaxKind.DistinctKeyword
-                Case SyntaxKind.SkipKeyword
-                Case SyntaxKind.TakeKeyword
-                Case SyntaxKind.LetKeyword
-                Case SyntaxKind.ByKeyword
-                Case SyntaxKind.OrderKeyword
-                Case SyntaxKind.WhereKeyword
-                Case SyntaxKind.OnKeyword
-                Case SyntaxKind.FromKeyword
-                Case SyntaxKind.WhileKeyword
+                Case SyntaxKind.JoinKeyword,
+                Case SyntaxKind.IntoKeyword,
+                Case SyntaxKind.AggregateKeyword,
+                Case SyntaxKind.DistinctKeyword,
+                Case SyntaxKind.SkipKeyword,
+                Case SyntaxKind.TakeKeyword,
+                Case SyntaxKind.LetKeyword,
+                Case SyntaxKind.ByKeyword,
+                Case SyntaxKind.OrderKeyword,
+                Case SyntaxKind.WhereKeyword,
+                Case SyntaxKind.OnKeyword,
+                Case SyntaxKind.FromKeyword,
+                Case SyntaxKind.WhileKeyword,
                 Case SyntaxKind.SelectKeyword
                     Return TypeOf token.Parent Is QueryClauseSyntax
                 Case SyntaxKind.GroupKeyword
                     Return (TypeOf token.Parent Is QueryClauseSyntax) OrElse (token.Parent.IsKind(SyntaxKind.GroupAggregation))
                 Case SyntaxKind.EqualsKeyword
                     Return TypeOf token.Parent Is JoinConditionSyntax
-                Case SyntaxKind.AscendingKeyword
+                Case SyntaxKind.AscendingKeyword,
                 Case SyntaxKind.DescendingKeyword
                     Return TypeOf token.Parent Is OrderingSyntax
                 Case SyntaxKind.InKeyword
