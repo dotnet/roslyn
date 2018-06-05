@@ -1073,14 +1073,6 @@ public class Cls
             // unlike GetSymbolInfo or GetTypeInfo, GetOperation doesn't use SemanticModel's recovery mode.
             // what that means is that GetOperation might return null for ones GetSymbol/GetTypeInfo do return info from
             // error recovery mode
-            var foreachLoop = decl.Ancestors().OfType<ForEachVariableStatementSyntax>().FirstOrDefault();
-            if (foreachLoop?.Variable?.FullSpan.Contains(decl.Span) == true &&
-                foreachLoop?.Variable.IsKind(SyntaxKind.InvocationExpression) == true)
-            {
-                // invalid syntax case where operation is not supported
-                return;
-            }
-
             var typeofExpression = decl.Ancestors().OfType<TypeOfExpressionSyntax>().FirstOrDefault();
             if (typeofExpression?.Type?.FullSpan.Contains(decl.Span) == true)
             {
@@ -1707,7 +1699,7 @@ public class Cls
     }
 }";
             var compilation = CreateCompilation(text,
-                                                            references: new MetadataReference[] { CSharpRef, SystemCoreRef },
+                                                            references: new MetadataReference[] { CSharpRef },
                                                             options: TestOptions.ReleaseExe,
                                                             parseOptions: TestOptions.Regular);
 
@@ -8885,7 +8877,7 @@ public class X
                 // (12,23): error CS0103: The name 'let' does not exist in the current context
                 //         return (o) => let x1 = o;
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "let").WithArguments("let").WithLocation(12, 23),
-                // (12,23): error CS0201: Only assignment, call, increment, decrement, and new object expressions can be used as a statement
+                // (12,23): error CS0201: Only assignment, call, increment, decrement, await, and new object expressions can be used as a statement
                 //         return (o) => let x1 = o;
                 Diagnostic(ErrorCode.ERR_IllegalStatement, "let").WithLocation(12, 23),
                 // (12,27): error CS0103: The name 'x1' does not exist in the current context
@@ -8900,7 +8892,7 @@ public class X
                 // (17,23): error CS0103: The name 'let' does not exist in the current context
                 //         return (o) => let var x2 = o;
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "let").WithArguments("let").WithLocation(17, 23),
-                // (17,23): error CS0201: Only assignment, call, increment, decrement, and new object expressions can be used as a statement
+                // (17,23): error CS0201: Only assignment, call, increment, decrement, await, and new object expressions can be used as a statement
                 //         return (o) => let var x2 = o;
                 Diagnostic(ErrorCode.ERR_IllegalStatement, "let").WithLocation(17, 23),
                 // (17,36): error CS0103: The name 'o' does not exist in the current context
@@ -19049,7 +19041,7 @@ public class Cls
     }
 }";
             var compilation = CreateCompilation(text,
-                                                            references: new MetadataReference[] { CSharpRef, SystemCoreRef },
+                                                            references: new MetadataReference[] { CSharpRef },
                                                             options: TestOptions.ReleaseExe,
                                                             parseOptions: TestOptions.Regular);
 
@@ -19795,18 +19787,12 @@ public class Cls
     {
     }
 }";
-            var compilation = CreateCompilation(text,
-                                                            options: TestOptions.ReleaseExe,
-                                                            parseOptions: TestOptions.Regular);
+            var compilation = CreateCompilation(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular);
 
             compilation.VerifyDiagnostics(
-                // (7,25): error CS1740: Named argument 'y' cannot be specified multiple times
-                //         Test1(y: ref x, y: out var y);
-                Diagnostic(ErrorCode.ERR_DuplicateNamedArgument, "y").WithArguments("y").WithLocation(7, 25),
                 // (7,9): error CS7036: There is no argument given that corresponds to the required formal parameter 'x' of 'Cls.Test1(int, ref int)'
                 //         Test1(y: ref x, y: out var y);
-                Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "Test1").WithArguments("x", "Cls.Test1(int, ref int)").WithLocation(7, 9)
-                );
+                Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "Test1").WithArguments("x", "Cls.Test1(int, ref int)").WithLocation(7, 9));
 
             var tree = compilation.SyntaxTrees.Single();
             var model = compilation.GetSemanticModel(tree);
@@ -19831,7 +19817,7 @@ public class Cls
     }
 }";
             // the C# dynamic binder does not support ref or out indexers, so we don't run this
-            CompileAndVerify(text, references: new[] { SystemCoreRef, CSharpRef }).VerifyIL("Cls.Main()",
+            CompileAndVerify(text, references: new[] { CSharpRef }).VerifyIL("Cls.Main()",
 @"{
   // Code size       87 (0x57)
   .maxstack  7
@@ -19885,7 +19871,7 @@ public class Cls
     }
 }";
             // the C# dynamic binder does not support ref or out indexers, so we don't run this
-            CompileAndVerify(text, references: new[] { SystemCoreRef, CSharpRef }).VerifyIL("Cls.Main()",
+            CompileAndVerify(text, references: new[] { CSharpRef }).VerifyIL("Cls.Main()",
 @"
 {
   // Code size       87 (0x57)
@@ -19941,7 +19927,7 @@ public class Cls
     }
 }";
             // the C# dynamic binder does not support ref or out indexers, so we don't run this
-            var comp = CreateCompilation(text, options: TestOptions.DebugDll, references: new[] { SystemCoreRef, CSharpRef });
+            var comp = CreateCompilation(text, options: TestOptions.DebugDll, references: new[] { CSharpRef });
             comp.VerifyDiagnostics(
                 // (7,23): error CS8183: Cannot infer the type of implicitly-typed discard.
                 //         var x = d[out var _];
@@ -32179,7 +32165,7 @@ public class C
         // Note that the embedded statement is parsed as a missing identifier, followed by && with many spaces attached as leading trivia
     }
 }";
-            var comp = CreateCompilation(source, options: TestOptions.DebugDll, references: new[] { SystemCoreRef });
+            var comp = CreateCompilation(source, options: TestOptions.DebugDll);
 
             var tree = comp.SyntaxTrees[0];
             var model = comp.GetSemanticModel(tree);
@@ -33900,9 +33886,15 @@ public class C
             var compilation = CreateCompilation(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular);
 
             compilation.VerifyDiagnostics(
+                // (6,28): error CS8378: __arglist cannot have an argument passed by 'in' or 'out'
+                //         M(1, __arglist(out int y));
+                Diagnostic(ErrorCode.ERR_CantUseInOrOutInArglist, "int y").WithLocation(6, 28),
                 // (7,32): error CS8197: Cannot infer the type of implicitly-typed out variable 'z'.
                 //         M(2, __arglist(out var z));
-                Diagnostic(ErrorCode.ERR_TypeInferenceFailedForImplicitlyTypedOutVariable, "z").WithArguments("z").WithLocation(7, 32)
+                Diagnostic(ErrorCode.ERR_TypeInferenceFailedForImplicitlyTypedOutVariable, "z").WithArguments("z").WithLocation(7, 32),
+                // (7,28): error CS8378: __arglist cannot have an argument passed by 'in' or 'out'
+                //         M(2, __arglist(out var z));
+                Diagnostic(ErrorCode.ERR_CantUseInOrOutInArglist, "var z").WithLocation(7, 28)
                 );
 
             var tree = compilation.SyntaxTrees.Single();
@@ -33930,12 +33922,18 @@ public class C
             var compilation = CreateCompilation(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular);
 
             compilation.VerifyDiagnostics(
+                // (6,23): error CS8378: __arglist cannot have an argument passed by 'in' or 'out'
+                //         __arglist(out int y);
+                Diagnostic(ErrorCode.ERR_CantUseInOrOutInArglist, "int y").WithLocation(6, 23),
                 // (6,9): error CS0226: An __arglist expression may only appear inside of a call or new expression
                 //         __arglist(out int y);
                 Diagnostic(ErrorCode.ERR_IllegalArglist, "__arglist(out int y)").WithLocation(6, 9),
                 // (7,27): error CS8197: Cannot infer the type of implicitly-typed out variable 'z'.
                 //         __arglist(out var z);
                 Diagnostic(ErrorCode.ERR_TypeInferenceFailedForImplicitlyTypedOutVariable, "z").WithArguments("z").WithLocation(7, 27),
+                // (7,23): error CS8378: __arglist cannot have an argument passed by 'in' or 'out'
+                //         __arglist(out var z);
+                Diagnostic(ErrorCode.ERR_CantUseInOrOutInArglist, "var z").WithLocation(7, 23),
                 // (7,9): error CS0226: An __arglist expression may only appear inside of a call or new expression
                 //         __arglist(out var z);
                 Diagnostic(ErrorCode.ERR_IllegalArglist, "__arglist(out var z)").WithLocation(7, 9)

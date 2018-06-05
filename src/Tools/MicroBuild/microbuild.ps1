@@ -50,8 +50,6 @@ function Copy-InsertionItems() {
         "Vsix\VisualStudioInteractiveComponents\Roslyn.VisualStudio.InteractiveComponents.vsix",
         "Vsix\VisualStudioSetup\Microsoft.CodeAnalysis.VisualStudio.Setup.json",
         "Vsix\VisualStudioSetup\Roslyn.VisualStudio.Setup.vsix",
-        "Vsix\VisualStudioSetup.Next\Microsoft.CodeAnalysis.VisualStudio.Setup.Next.json",
-        "Vsix\VisualStudioSetup.Next\Roslyn.VisualStudio.Setup.Next.vsix",
         "Vsix\CodeAnalysisLanguageServices\Microsoft.CodeAnalysis.LanguageServices.vsman",
         "Vsix\PortableFacades\PortableFacades.vsix",
         "Vsix\PortableFacades\PortableFacades.vsman",
@@ -97,7 +95,7 @@ try {
     $configDir = Join-Path $binariesDir $config
     $setupDir = Join-Path $repoDir "src\Setup"
 
-    Exec-Block { & (Join-Path $scriptDir "build.ps1") -restore:$restore -build -cibuild:$cibuild -official:$official -release:$release -sign -signType $signType -pack -testDesktop:$testDesktop -binaryLog }
+    Exec-Block { & (Join-Path $scriptDir "build.ps1") -restore:$restore -build -cibuild:$cibuild -official:$official -release:$release -sign -signType $signType -pack -testDesktop:$testDesktop -binaryLog -procdump }
     Copy-InsertionItems
 
     # Insertion scripts currently look for a sentinel file on the drop share to determine that the build was green

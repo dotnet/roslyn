@@ -2133,41 +2133,41 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                     }
 
                 case SyntaxKind.VariableDeclaration:
+                {
+                    var vd = (VariableDeclarationSyntax)declaration;
+                    if (vd.Variables.Count == 1 && vd.Parent == null)
                     {
-                        var vd = (VariableDeclarationSyntax)declaration;
-                        if (vd.Variables.Count == 1 && vd.Parent == null)
+                        // this node is the declaration if it contains only one variable and has no parent.
+                        return DeclarationKind.Variable;
+                    }
+                    else
+                    {
+                        return DeclarationKind.None;
+                    }
+                }
+
+                case SyntaxKind.VariableDeclarator:
+                {
+                    var vd = declaration.Parent as VariableDeclarationSyntax;
+
+                    // this node is considered the declaration if it is one among many, or it has no parent
+                    if (vd == null || vd.Variables.Count > 1)
+                    {
+                        if (ParentIsFieldDeclaration(vd))
                         {
-                            // this node is the declaration if it contains only one variable and has no parent.
-                            return DeclarationKind.Variable;
+                            return DeclarationKind.Field;
+                        }
+                        else if (ParentIsEventFieldDeclaration(vd))
+                        {
+                            return DeclarationKind.Event;
                         }
                         else
                         {
-                            return DeclarationKind.None;
+                            return DeclarationKind.Variable;
                         }
                     }
-
-                case SyntaxKind.VariableDeclarator:
-                    {
-                        var vd = declaration.Parent as VariableDeclarationSyntax;
-
-                        // this node is considered the declaration if it is one among many, or it has no parent
-                        if (vd == null || vd.Variables.Count > 1)
-                        {
-                            if (ParentIsFieldDeclaration(vd))
-                            {
-                                return DeclarationKind.Field;
-                            }
-                            else if (ParentIsEventFieldDeclaration(vd))
-                            {
-                                return DeclarationKind.Event;
-                            }
-                            else
-                            {
-                                return DeclarationKind.Variable;
-                            }
-                        }
-                        break;
-                    }
+                    break;
+                }
 
                 case SyntaxKind.AttributeList:
                     var list = (AttributeListSyntax)declaration;
@@ -2895,6 +2895,10 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                     return ((ConstructorDeclarationSyntax)declaration).Body?.Statements ?? s_EmptyList;
                 case SyntaxKind.DestructorDeclaration:
                     return ((DestructorDeclarationSyntax)declaration).Body?.Statements ?? s_EmptyList;
+                case SyntaxKind.LocalFunctionStatement:
+                    return ((LocalFunctionStatementSyntax)declaration).Body?.Statements ?? s_EmptyList;
+                case SyntaxKind.AnonymousMethodExpression:
+                    return (((AnonymousMethodExpressionSyntax)declaration).Body as BlockSyntax)?.Statements ?? s_EmptyList;
                 case SyntaxKind.ParenthesizedLambdaExpression:
                     return (((ParenthesizedLambdaExpressionSyntax)declaration).Body as BlockSyntax)?.Statements ?? s_EmptyList;
                 case SyntaxKind.SimpleLambdaExpression:
@@ -2927,6 +2931,10 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                     return ((ConstructorDeclarationSyntax)declaration).WithBody(somebody).WithSemicolonToken(semicolon).WithExpressionBody(null);
                 case SyntaxKind.DestructorDeclaration:
                     return ((DestructorDeclarationSyntax)declaration).WithBody(somebody).WithSemicolonToken(semicolon).WithExpressionBody(null);
+                case SyntaxKind.LocalFunctionStatement:
+                    return ((LocalFunctionStatementSyntax)declaration).WithBody(somebody).WithSemicolonToken(semicolon).WithExpressionBody(null);
+                case SyntaxKind.AnonymousMethodExpression:
+                    return ((AnonymousMethodExpressionSyntax)declaration).WithBody(body);
                 case SyntaxKind.ParenthesizedLambdaExpression:
                     return ((ParenthesizedLambdaExpressionSyntax)declaration).WithBody(body);
                 case SyntaxKind.SimpleLambdaExpression:
@@ -3772,9 +3780,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         }
 
         public override SyntaxNode CastExpression(SyntaxNode type, SyntaxNode expression)
-        {
-            return SyntaxFactory.CastExpression((TypeSyntax)type, Parenthesize(expression)).WithAdditionalAnnotations(Simplifier.Annotation);
-        }
+            => SyntaxFactory.CastExpression((TypeSyntax)type, Parenthesize(expression)).WithAdditionalAnnotations(Simplifier.Annotation);
 
         public override SyntaxNode ConvertExpression(SyntaxNode type, SyntaxNode expression)
         {
@@ -4044,6 +4050,9 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         }
 
         public override SyntaxNode LocalDeclarationStatement(SyntaxNode type, string name, SyntaxNode initializer, bool isConst)
+            => LocalDeclarationStatement(type, name.ToIdentifierToken(), initializer, isConst);
+
+        internal override SyntaxNode LocalDeclarationStatement(SyntaxNode type, SyntaxToken name, SyntaxNode initializer, bool isConst)
         {
             return SyntaxFactory.LocalDeclarationStatement(
                 isConst ? SyntaxFactory.TokenList(SyntaxFactory.Token(SyntaxKind.ConstKeyword)) : default,
@@ -4056,21 +4065,20 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         internal override SyntaxNode EqualsValueClause(SyntaxToken operatorToken, SyntaxNode value)
             => SyntaxFactory.EqualsValueClause(operatorToken, (ExpressionSyntax)value);
 
-        private static VariableDeclarationSyntax VariableDeclaration(SyntaxNode type, string name, SyntaxNode expression = null)
+        private static VariableDeclarationSyntax VariableDeclaration(SyntaxNode type, SyntaxToken name, SyntaxNode expression)
         {
             return SyntaxFactory.VariableDeclaration(
                 type == null ? SyntaxFactory.IdentifierName("var") : (TypeSyntax)type,
-                SyntaxFactory.SingletonSeparatedList(
-                    SyntaxFactory.VariableDeclarator(
-                        name.ToIdentifierToken(),
-                        null,
-                        expression == null ? null : SyntaxFactory.EqualsValueClause((ExpressionSyntax)expression))));
+                    SyntaxFactory.SingletonSeparatedList(
+                        SyntaxFactory.VariableDeclarator(
+                            name, argumentList: null,
+                            expression == null ? null : SyntaxFactory.EqualsValueClause((ExpressionSyntax)expression))));
         }
 
         public override SyntaxNode UsingStatement(SyntaxNode type, string name, SyntaxNode expression, IEnumerable<SyntaxNode> statements)
         {
             return SyntaxFactory.UsingStatement(
-                VariableDeclaration(type, name, expression),
+                VariableDeclaration(type, name.ToIdentifierToken(), expression),
                 expression: null,
                 statement: CreateBlock(statements));
         }

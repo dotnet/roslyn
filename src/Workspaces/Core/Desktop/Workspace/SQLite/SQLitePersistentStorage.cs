@@ -3,7 +3,6 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Runtime.InteropServices;
 using System.Threading;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Options;
@@ -55,6 +54,7 @@ namespace Microsoft.CodeAnalysis.SQLite
         ///  -----------------------------------------------
         /// </summary>
         private const string SolutionDataTableName = "SolutionData" + Version;
+        private static readonly byte[] SolutionDataTableNamePtr = Util.ToUtf8WithNullTerminator(SolutionDataTableName);
 
         /// <summary>
         /// Inside the DB we have a table for data that we want associated with a <see cref="Project"/>.
@@ -72,6 +72,7 @@ namespace Microsoft.CodeAnalysis.SQLite
         ///  -----------------------------------------------
         /// </summary>
         private const string ProjectDataTableName = "ProjectData" + Version;
+        private static readonly byte[] ProjectDataTableNamePtr = Util.ToUtf8WithNullTerminator(ProjectDataTableName);
 
         /// <summary>
         /// Inside the DB we have a table for data that we want associated with a <see cref="Document"/>.
@@ -89,36 +90,11 @@ namespace Microsoft.CodeAnalysis.SQLite
         ///  ----------------------------------------------
         /// </summary>
         private const string DocumentDataTableName = "DocumentData" + Version;
+        private static readonly byte[] DocumentDataTableNamePtr = Util.ToUtf8WithNullTerminator(DocumentDataTableName);
 
         private const string DataIdColumnName = "DataId";
         private const string DataColumnName = "Data";
-
-        static SQLitePersistentStorage()
-        {
-            // Attempt to load the correct version of e_sqlite.dll.  That way when we call
-            // into SQLitePCL.Batteries_V2.Init it will be able to find it.
-            //
-            // Only do this on Windows when we can safely do the LoadLibrary call to this
-            // direct dll.  On other platforms, it is the responsibility of the host to ensure
-            // that the necessary sqlite library has already been loaded such that SQLitePCL.Batteries_V2
-            // will be able to call into it.
-            if (Environment.OSVersion.Platform == PlatformID.Win32NT)
-            {
-                var myFolder = Path.GetDirectoryName(
-                    typeof(SQLitePersistentStorage).Assembly.Location);
-
-                var is64 = IntPtr.Size == 8;
-                var subfolder = is64 ? "x64" : "x86";
-
-                LoadLibrary(Path.Combine(myFolder, subfolder, "e_sqlite3.dll"));
-            }
-
-            // Necessary to initialize SQLitePCL.
-            SQLitePCL.Batteries_V2.Init();
-        }
-
-        [DllImport("kernel32.dll")]
-        private static extern IntPtr LoadLibrary(string dllToLoad);
+        private static readonly byte[] DataColumnNamePtr = Util.ToUtf8WithNullTerminator(DataColumnName);
 
         private readonly CancellationTokenSource _shutdownTokenSource = new CancellationTokenSource();
 
@@ -232,7 +208,7 @@ namespace Microsoft.CodeAnalysis.SQLite
         }
 
         /// <summary>
-        /// Gets an <see cref="SqlConnection"/> from the connection pool, or creates one if none are available.
+        /// Gets a <see cref="SqlConnection"/> from the connection pool, or creates one if none are available.
         /// </summary>
         /// <remarks>
         /// Database connections have a large amount of overhead, and should be returned to the pool when they are no

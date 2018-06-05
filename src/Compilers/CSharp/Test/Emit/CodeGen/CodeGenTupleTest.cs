@@ -3086,7 +3086,7 @@ class C
                     model.GetDeclaredSymbol(x).ToTestDisplayString());
             };
 
-            var verifier = CompileAndVerify(source, expectedOutput: @"1 2 3 4 5 6 7 Alice 2 3 4 5", references: new[] { MscorlibRef }, sourceSymbolValidator: validator);
+            var verifier = CompileAndVerify(source, expectedOutput: @"1 2 3 4 5 6 7 Alice 2 3 4 5", sourceSymbolValidator: validator);
             verifier.VerifyDiagnostics();
         }
 
@@ -4382,7 +4382,7 @@ namespace System
             Assert.True(mItem1.CustomModifiers.IsEmpty);
             Assert.True(mItem1.GetAttributes().IsEmpty);
             Assert.Equal("error CS8128: Member 'Item1' was not found on type 'ValueTuple<T1, T2>' from assembly 'comp, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.",
-                         mItem1.GetUseSiteDiagnostic().ToString());
+                         mItem1.GetUseSiteDiagnostic().ToString(EnsureEnglishUICulture.PreferredOrNull));
             Assert.True(mItem1.Locations.IsEmpty);
             Assert.True(mItem1.DeclaringSyntaxReferences.IsEmpty);
             Assert.True(mItem1.IsImplicitlyDeclared);
@@ -14911,7 +14911,7 @@ class C
 
             var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
-                // (6,9): error CS0201: Only assignment, call, increment, decrement, and new object expressions can be used as a statement
+                // (6,9): error CS0201: Only assignment, call, increment, decrement, await, and new object expressions can be used as a statement
                 //         (x, x);
                 Diagnostic(ErrorCode.ERR_IllegalStatement, "(x, x)").WithLocation(6, 9)
                 );
@@ -15082,7 +15082,7 @@ class C
 " + trivial2uple + tupleattributes_cs;
             var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
-                // (6,9): error CS0201: Only assignment, call, increment, decrement, and new object expressions can be used as a statement
+                // (6,9): error CS0201: Only assignment, call, increment, decrement, await, and new object expressions can be used as a statement
                 //         (1, 1);
                 Diagnostic(ErrorCode.ERR_IllegalStatement, "(1, 1)").WithLocation(6, 9)
                 );
@@ -15261,7 +15261,7 @@ System.ValueTuple`2[System.Int32,System.ValueTuple`2[System.Int32,System.String]
 class Class { void Method() { tuple = (1, ""hello""); } }
 " + trivial2uple + tupleattributes_cs;
 
-            var comp = CreateCompilation(source, references: new[] { SystemRef });
+            var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
                 // (2,31): error CS0103: The name 'tuple' does not exist in the current context
                 // class Class { void Method() { tuple = (1, "hello"); } }
@@ -21317,7 +21317,7 @@ namespace System
         }
 
         // https://github.com/dotnet/roslyn/issues/25141
-#if NET461
+#if NET46
         [Fact]
         public void ValueTupleBase_AssemblyUnification()
         {
@@ -24252,6 +24252,138 @@ namespace System
                 // (10,9): error CS0191: A readonly field cannot be assigned to (except in a constructor or a variable initializer)
                 //         tuple.Item1 = 3;
                 Diagnostic(ErrorCode.ERR_AssgReadonly, "tuple.Item1").WithLocation(8, 9));
+        }
+
+        [Fact, WorkItem(24781, "https://github.com/dotnet/roslyn/issues/24781")]
+        public void InferenceWithTuple_AddingNames()
+        {
+            string source = @"
+using System;
+public interface IDo<T>
+{
+    IResult<TReturn> Do<TReturn>(Func<T, TReturn> fn);
+}
+
+public interface IResult<TReturn>
+{
+}
+
+public class Class1
+{
+    public void Test1(IDo<(int, int)> impl)
+    {
+        var case3 = impl.Do(((int x, int y) a) => a.x * a.y);
+    }
+}";
+
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics();
+
+            var tree = comp.SyntaxTrees.First();
+            var model = comp.GetSemanticModel(tree);
+            var doSyntax = tree.GetCompilationUnitRoot().DescendantNodes().OfType<InvocationExpressionSyntax>().Single();
+            Assert.Equal("impl.Do(((int x, int y) a) => a.x * a.y)", doSyntax.ToString());
+            var doSymbol = (IMethodSymbol)model.GetSymbolInfo(doSyntax).Symbol;
+            Assert.Equal("IResult<System.Int32>", doSymbol.ReturnType.ToTestDisplayString());
+        }
+
+        [Fact, WorkItem(24781, "https://github.com/dotnet/roslyn/issues/24781")]
+        public void InferenceWithTuple_DifferentNames()
+        {
+            string source = @"
+using System;
+public interface IDo<T>
+{
+    IResult<TReturn> Do<TReturn>(Func<T, TReturn> fn);
+}
+
+public interface IResult<TReturn>
+{
+}
+
+public class Class1
+{
+    public void Test1(IDo<(int a, int b)> impl)
+    {
+        var case3 = impl.Do(((int x, int y) a) => a.x * a.y);
+    }
+}";
+
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics();
+
+            var tree = comp.SyntaxTrees.First();
+            var model = comp.GetSemanticModel(tree);
+            var doSyntax = tree.GetCompilationUnitRoot().DescendantNodes().OfType<InvocationExpressionSyntax>().Single();
+            Assert.Equal("impl.Do(((int x, int y) a) => a.x * a.y)", doSyntax.ToString());
+            var doSymbol = (IMethodSymbol)model.GetSymbolInfo(doSyntax).Symbol;
+            Assert.Equal("IResult<System.Int32>", doSymbol.ReturnType.ToTestDisplayString());
+        }
+
+        [Fact, WorkItem(24781, "https://github.com/dotnet/roslyn/issues/24781")]
+        public void InferenceWithTuple_DroppingNames()
+        {
+            string source = @"
+using System;
+public interface IDo<T>
+{
+    IResult<TReturn> Do<TReturn>(Func<T, TReturn> fn);
+}
+
+public interface IResult<TReturn>
+{
+}
+
+public class Class1
+{
+    public void Test1(IDo<(int a, int b)> impl)
+    {
+        var case3 = impl.Do(((int, int) a) => a.Item1 * a.Item2);
+    }
+}";
+
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics();
+
+            var tree = comp.SyntaxTrees.First();
+            var model = comp.GetSemanticModel(tree);
+            var doSyntax = tree.GetCompilationUnitRoot().DescendantNodes().OfType<InvocationExpressionSyntax>().Single();
+            Assert.Equal("impl.Do(((int, int) a) => a.Item1 * a.Item2)", doSyntax.ToString());
+            var doSymbol = (IMethodSymbol)model.GetSymbolInfo(doSyntax).Symbol;
+            Assert.Equal("IResult<System.Int32>", doSymbol.ReturnType.ToTestDisplayString());
+        }
+
+        [Fact, WorkItem(24781, "https://github.com/dotnet/roslyn/issues/24781")]
+        public void InferenceWithDynamic()
+        {
+            string source = @"
+using System;
+public interface IDo<T>
+{
+    IResult<TReturn> Do<TReturn>(Func<T, TReturn> fn);
+}
+
+public interface IResult<TReturn>
+{
+}
+
+public class Class1
+{
+    public void Test1(IDo<object> impl)
+    {
+        var case3 = impl.Do((dynamic a) => 1);
+    }
+}";
+
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics();
+
+            var tree = comp.SyntaxTrees.First();
+            var model = comp.GetSemanticModel(tree);
+            var doSyntax = tree.GetCompilationUnitRoot().DescendantNodes().OfType<InvocationExpressionSyntax>().Single();
+            Assert.Equal("impl.Do((dynamic a) => 1)", doSyntax.ToString());
+            var doSymbol = (IMethodSymbol)model.GetSymbolInfo(doSyntax).Symbol;
+            Assert.Equal("IResult<System.Int32>", doSymbol.ReturnType.ToTestDisplayString());
         }
 
         [Fact]

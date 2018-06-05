@@ -1029,9 +1029,8 @@ static class S
 }");
             Assert.Null(semanticInfo.Symbol);
             Utils.CheckSymbols(semanticInfo.MethodGroup);
-            Utils.CheckSymbols(semanticInfo.CandidateSymbols,
-                "void string.E()",
-                "void string.E<string>()"
+            Utils.CheckSymbols(semanticInfo.CandidateSymbols
+                /* no candidates */
                 );
         }
 
@@ -11473,7 +11472,7 @@ class Program
 {
     static void Main(string[] args)
     {
-        Console.WriteLine(args[0]./*<bind>*/Goo/*</bind>*/());
+        args[0]./*<bind>*/Goo/*</bind>*/();
     }
 }
 ";
@@ -11484,7 +11483,7 @@ class Program
             Assert.Equal(ConversionKind.Identity, semanticInfo.ImplicitConversion.Kind);
 
             Assert.Null(semanticInfo.Symbol);
-            Assert.Equal(CandidateReason.Inaccessible, semanticInfo.CandidateReason);
+            Assert.Equal(CandidateReason.OverloadResolutionFailure, semanticInfo.CandidateReason);
             Assert.Equal(1, semanticInfo.CandidateSymbols.Length);
             var sortedCandidates = semanticInfo.CandidateSymbols.OrderBy(s => s.ToTestDisplayString(), StringComparer.Ordinal).ToArray();
             Assert.Equal("System.Int32 System.String.Goo()", sortedCandidates[0].ToTestDisplayString());
@@ -12368,12 +12367,9 @@ class Program
             Assert.Null(semanticInfo.ConvertedType);
             Assert.Equal(ConversionKind.Identity, semanticInfo.ImplicitConversion.Kind);
 
-            Assert.Null(semanticInfo.Symbol);
-            Assert.Equal(CandidateReason.NotCreatable, semanticInfo.CandidateReason);
-            Assert.Equal(1, semanticInfo.CandidateSymbols.Length);
-            var sortedCandidates = semanticInfo.CandidateSymbols.OrderBy(s => s.ToTestDisplayString(), StringComparer.Ordinal).ToArray();
-            Assert.Equal("dynamic", sortedCandidates[0].ToTestDisplayString());
-            Assert.Equal(SymbolKind.DynamicType, sortedCandidates[0].Kind);
+            Assert.Equal("dynamic", semanticInfo.Symbol.ToTestDisplayString());
+            Assert.Equal(CandidateReason.None, semanticInfo.CandidateReason);
+            Assert.Equal(0, semanticInfo.CandidateSymbols.Length);
 
             Assert.Equal(0, semanticInfo.MethodGroup.Length);
 
@@ -12396,8 +12392,8 @@ class Program
 ";
             var semanticInfo = GetSemanticInfoForTest<ObjectCreationExpressionSyntax>(sourceCode);
 
-            Assert.Equal("?", semanticInfo.Type.ToTestDisplayString());
-            Assert.Equal(TypeKind.Error, semanticInfo.Type.TypeKind);
+            Assert.Equal("dynamic", semanticInfo.Type.ToTestDisplayString());
+            Assert.Equal(TypeKind.Dynamic, semanticInfo.Type.TypeKind);
             Assert.Equal("System.Object", semanticInfo.ConvertedType.ToTestDisplayString());
             Assert.Equal(TypeKind.Class, semanticInfo.ConvertedType.TypeKind);
             Assert.Equal(ConversionKind.NoConversion, semanticInfo.ImplicitConversion.Kind);

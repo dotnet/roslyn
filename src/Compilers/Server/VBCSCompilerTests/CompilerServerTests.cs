@@ -187,6 +187,11 @@ End Module")
             bool shouldRunOnServer = true)
         {
             var arguments = new List<string>(argumentsSingle.Split(' '));
+
+            // This is validating that localization to a specific locale works no matter what the locale of the 
+            // machine running the tests are. 
+            arguments.Add("/preferreduilang:en");
+
             ReferenceNetstandardDllIfCoreClr(currentDirectory, arguments);
             CheckForBadShared(arguments);
             CreateFiles(currentDirectory, filesInDirectory);
@@ -1254,7 +1259,8 @@ class Program
             }
         }
 
-        [ConditionalFact(typeof(DesktopOnly))]
+        [WorkItem(25777, "https://github.com/dotnet/roslyn/issues/25777")]
+        [ConditionalFact(typeof(DesktopOnly), typeof(IsEnglishLocal))]
         public void BadKeepAlive1()
         {
             var result = RunCommandLineCompiler(CSharpCompilerClientExecutable, "/shared /keepalive", _tempDirectory, shouldRunOnServer: false);
@@ -1263,7 +1269,8 @@ class Program
             Assert.Equal("Missing argument for '/keepalive' option.", result.Output.Trim());
         }
 
-        [ConditionalFact(typeof(DesktopOnly))]
+        [WorkItem(25777, "https://github.com/dotnet/roslyn/issues/25777")]
+        [ConditionalFact(typeof(DesktopOnly), typeof(IsEnglishLocal))]
         public void BadKeepAlive2()
         {
             var result = RunCommandLineCompiler(CSharpCompilerClientExecutable, "/shared /keepalive:goo", _tempDirectory, shouldRunOnServer: false);
@@ -1272,7 +1279,8 @@ class Program
             Assert.Equal("Argument to '/keepalive' option is not a 32-bit integer.", result.Output.Trim());
         }
 
-        [ConditionalFact(typeof(DesktopOnly))]
+        [WorkItem(25777, "https://github.com/dotnet/roslyn/issues/25777")]
+        [ConditionalFact(typeof(DesktopOnly), typeof(IsEnglishLocal))]
         public void BadKeepAlive3()
         {
             var result = RunCommandLineCompiler(CSharpCompilerClientExecutable, "/shared /keepalive:-100", _tempDirectory, shouldRunOnServer: false);
@@ -1281,7 +1289,8 @@ class Program
             Assert.Equal("Arguments to '/keepalive' option below -1 are invalid.", result.Output.Trim());
         }
 
-        [ConditionalFact(typeof(DesktopOnly))]
+        [WorkItem(25777, "https://github.com/dotnet/roslyn/issues/25777")]
+        [ConditionalFact(typeof(DesktopOnly), typeof(IsEnglishLocal))]
         public void BadKeepAlive4()
         {
             var result = RunCommandLineCompiler(CSharpCompilerClientExecutable, "/shared /keepalive:9999999999", _tempDirectory, shouldRunOnServer: false);

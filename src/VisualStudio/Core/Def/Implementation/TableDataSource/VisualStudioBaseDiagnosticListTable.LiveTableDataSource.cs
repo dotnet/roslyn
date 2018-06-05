@@ -555,7 +555,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
             private static string GetDiagnosticUpdatedMessage(DiagnosticsUpdatedArgs e)
             {
                 var id = e.Id.ToString();
-                if (e.Id is AnalyzerUpdateArgsId analyzer)
+                if (e.Id is LiveDiagnosticUpdateArgsId live)
+                {
+                    id = $"{live.Analyzer.ToString()}/{live.Kind}";
+                }
+                else if (e.Id is AnalyzerUpdateArgsId analyzer)
                 {
                     id = analyzer.Analyzer.ToString();
                 }

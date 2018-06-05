@@ -2,9 +2,39 @@
 <xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
   <file datatype="xml" source-language="en" target-language="ru" original="../ServicesVSResources.resx">
     <body>
+      <trans-unit id="Always_for_clarity">
+        <source>Always for clarity</source>
+        <target state="new">Always for clarity</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Element_is_not_valid">
         <source>Element is not valid.</source>
         <target state="translated">Элемент недопустим.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Ignore">
+        <source>Ignore</source>
+        <target state="new">Ignore</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="In_other_operators">
+        <source>In other operators</source>
+        <target state="new">In other operators</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Keep_all_parentheses_in_colon">
+        <source>Keep all parentheses in:</source>
+        <target state="new">Keep all parentheses in:</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Never_if_unnecessary">
+        <source>Never if unnecessary</source>
+        <target state="new">Never if unnecessary</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Parentheses_preferences_colon">
+        <source>Parentheses preferences:</source>
+        <target state="new">Parentheses preferences:</target>
         <note />
       </trans-unit>
       <trans-unit id="You_must_select_at_least_one_member">
@@ -190,11 +220,6 @@
       <trans-unit id="Could_not_find_location_of_folder_on_disk">
         <source>Could not find location of folder on disk</source>
         <target state="translated">Не удалось найти путь к папке на диске.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Error_while_reading_0_colon_1">
-        <source>Error while reading '{0}': {1}</source>
-        <target state="translated">Ошибка при считывании "{0}": {1}</target>
         <note />
       </trans-unit>
       <trans-unit id="Assembly">
@@ -1103,11 +1128,6 @@ Additional information: {1}</source>
         <target state="translated">Управление спецификациями</target>
         <note />
       </trans-unit>
-      <trans-unit id="Manage_styles">
-        <source>Manage styles</source>
-        <target state="translated">Управление стилями</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Reorder">
         <source>Reorder</source>
         <target state="translated">Переупорядочить</target>
@@ -1433,8 +1453,8 @@ Additional information: {1}</source>
         <note />
       </trans-unit>
       <trans-unit id="ErrorReadingFile">
-        <source>Error while reading a file</source>
-        <target state="translated">Ошибка при чтении файла</target>
+        <source>Error while reading file '{0}': {1}</source>
+        <target state="translated">Ошибка при чтении файла "{0}": {1}</target>
         <note />
       </trans-unit>
       <trans-unit id="ModuleHasBeenUnloaded">
@@ -1498,14 +1518,29 @@ I agree to all of the foregoing:</source>
         <target state="translated">Заданные здесь параметры применяются только на вашем компьютере. Чтобы привязать параметры к решению, используйте EDITORCONFIG-файлы.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Snippet_Command_Handler">
-        <source>Snippet Command Handler</source>
-        <target state="new">Snippet Command Handler</target>
+      <trans-unit id="Sync_Class_View">
+        <source>Sync Class View</source>
+        <target state="translated">Синхронизировать представление классов</target>
         <note />
       </trans-unit>
-      <trans-unit id="Sync_Class_View_Command_Handler">
-        <source>Sync Class View Command Handler</source>
-        <target state="new">Sync Class View Command Handler</target>
+      <trans-unit id="CantApplyChangesUnexpectedError">
+        <source>Can't apply changes -- unexpected error: '{0}'</source>
+        <target state="translated">Не удается применить изменения, так как возникла непредвиденная ошибка: "{0}"</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Field_preferences_colon">
+        <source>Field preferences:</source>
+        <target state="translated">Предпочтения для полей:</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Prefer_readonly">
+        <source>Prefer readonly</source>
+        <target state="translated">Предпочитать только для чтения</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Manage_naming_styles">
+        <source>Manage naming styles</source>
+        <target state="translated">Управление стилями именования</target>
         <note />
       </trans-unit>
       <trans-unit id="Analyzing_0">
@@ -1516,6 +1551,16 @@ I agree to all of the foregoing:</source>
       <trans-unit id="Live_code_analysis">
         <source>Live code analysis</source>
         <target state="new">Live code analysis</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Prefer_conditional_expression_over_if_with_assignments">
+        <source>Prefer conditional expression over 'if' with assignments</source>
+        <target state="new">Prefer conditional expression over 'if' with assignments</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Prefer_conditional_expression_over_if_with_returns">
+        <source>Prefer conditional expression over 'if' with returns</source>
+        <target state="new">Prefer conditional expression over 'if' with returns</target>
         <note />
       </trans-unit>
     </body>
