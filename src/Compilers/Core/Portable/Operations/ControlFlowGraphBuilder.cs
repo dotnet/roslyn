@@ -5631,6 +5631,11 @@ oneMoreTime:
             return new PlaceholderExpression(operation.PlaceholderKind, semanticModel: null, operation.Syntax, operation.Type, operation.ConstantValue, IsImplicit(operation));
         }
 
+        public override IOperation VisitDefaultValue(IDefaultValueOperation operation, int? captureIdForResult)
+        {
+            return new DefaultValueExpression(semanticModel: null, operation.Syntax, operation.Type, operation.ConstantValue, IsImplicit(operation));
+        }
+
         public override IOperation VisitIsPattern(IIsPatternOperation operation, int? captureIdForResult)
         {
             _evalStack.Push(Visit(operation.Value));
@@ -5713,11 +5718,6 @@ oneMoreTime:
                                                        ((HasDynamicArgumentsExpression)operation).ArgumentRefKinds,
                                                        initializer: null, // PROTOTYPE(dataflow): Dropping initializer for now to enable test hook verification
                                                        semanticModel: null, operation.Syntax, operation.Type, operation.ConstantValue, IsImplicit(operation));
-        }
-
-        public override IOperation VisitDefaultValue(IDefaultValueOperation operation, int? captureIdForResult)
-        {
-            return new DefaultValueExpression(semanticModel: null, operation.Syntax, operation.Type, operation.ConstantValue, IsImplicit(operation));
         }
 
         public override IOperation VisitTypeParameterObjectCreation(ITypeParameterObjectCreationOperation operation, int? captureIdForResult)
