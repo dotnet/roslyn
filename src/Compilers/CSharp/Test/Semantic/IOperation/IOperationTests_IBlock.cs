@@ -891,7 +891,5 @@ Block[B6] - Exit
 ";
             VerifyFlowGraphForTest<BlockSyntax>(compilation, expectedGraph);
         }
-
-        // PROTOTYPE(dataflow): Add flow graph tests to VB.
     }
 }

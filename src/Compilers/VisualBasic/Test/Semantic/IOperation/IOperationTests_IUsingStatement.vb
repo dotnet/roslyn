@@ -1004,8 +1004,6 @@ IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (S
             VerifyOperationTreeAndDiagnosticsForTest(Of ExpressionStatementSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
 
-        ' PROTOTYPE(dataflow): Port applicable UsingFlow_01 - UsingFlow_13 test scenarios from C#.
-
         <CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)>
         <Fact()>
         Public Sub UsingFlow_14()

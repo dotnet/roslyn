@@ -102,8 +102,6 @@ BC32027: 'MyBase' must be followed by '.' and an identifier.
             VerifyOperationTreeAndDiagnosticsForTest(Of ConditionalAccessExpressionSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
 
-        ' PROTOTYPE(dataflow): port tests from C#
-
         <CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)>
         <Fact()>
         Public Sub ConditionalAccessFlow_06()

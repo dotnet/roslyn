@@ -187,8 +187,6 @@ Block[B2] - Exit
             VerifyFlowGraphAndDiagnosticsForTest(Of MethodBlockSyntax)(source, expectedFlowGraph, expectedDiagnostics)
         End Sub
 
-        ' PROTOTYPE(dataflow): Port ReturnFlow_03 - ReturnFlow_16 test scenarios from C#
-
         <CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)>
         <Fact()>
         Public Sub ReturnFlow_17()

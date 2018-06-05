@@ -1114,8 +1114,6 @@ Block[B6] - Exit
             VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedGraph, expectedDiagnostics);
         }
 
-        // PROTOTYPE(dataflow): Port unit-tests BranchFlow_38 - BranchFlow_48 from VB
-
         [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
         [Fact]
         public void BranchFlow_49()

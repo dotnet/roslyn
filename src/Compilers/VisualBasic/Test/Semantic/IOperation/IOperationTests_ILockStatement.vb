@@ -360,9 +360,6 @@ ILockOperation (OperationKind.Lock, Type: null) (Syntax: 'SyncLock o' ... nd Syn
             VerifyOperationTreeAndDiagnosticsForTest(Of SyncLockBlockSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
 
-        ' PROTOTYPE(dataflow): Port applicable LockFlow_** test scenarios from C#.
-
-
         <CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)>
         <Fact()>
         Public Sub LockFlow_04()
