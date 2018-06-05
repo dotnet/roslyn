@@ -5609,41 +5609,40 @@ oneMoreTime:
                 return VisitInvalidOperationStatement(operation);
             }
             return VisitInvalidOperationExpression(operation);
-        }
 
-        private IOperation VisitInvalidOperationStatement(IInvalidOperation operation)
-        {
-            Debug.Assert(_currentStatement == operation);
-            VisitStatements(operation.Children);
-            return new InvalidOperation(ImmutableArray<IOperation>.Empty, semanticModel: null, operation.Syntax, operation.Type, operation.ConstantValue, IsImplicit(operation));
-        }
-
-
-        private IOperation VisitInvalidOperationExpression(IInvalidOperation operation)
-        {
-            int startingStackSize = _evalStack.Count;
-            foreach (IOperation child in operation.Children)
+            IOperation VisitInvalidOperationStatement(IInvalidOperation invalidOperation)
             {
-                _evalStack.Push(Visit(child));
+                Debug.Assert(_currentStatement == invalidOperation);
+                VisitStatements(invalidOperation.Children);
+                return new InvalidOperation(ImmutableArray<IOperation>.Empty, semanticModel: null, invalidOperation.Syntax, invalidOperation.Type, invalidOperation.ConstantValue, IsImplicit(invalidOperation));
             }
 
-            int numChildren = _evalStack.Count - startingStackSize;
-            Debug.Assert(numChildren == operation.Children.Count());
-
-            if (numChildren == 0)
+            IOperation VisitInvalidOperationExpression(IInvalidOperation invalidOperation)
             {
-                return new InvalidOperation(ImmutableArray<IOperation>.Empty, semanticModel: null, operation.Syntax, operation.Type, operation.ConstantValue, IsImplicit(operation));
+                int startingStackSize = _evalStack.Count;
+                foreach (IOperation child in invalidOperation.Children)
+                {
+                    _evalStack.Push(Visit(child));
+                }
+
+                int numChildren = _evalStack.Count - startingStackSize;
+                Debug.Assert(numChildren == invalidOperation.Children.Count());
+
+                if (numChildren == 0)
+                {
+                    return new InvalidOperation(ImmutableArray<IOperation>.Empty, semanticModel: null, invalidOperation.Syntax, invalidOperation.Type, invalidOperation.ConstantValue, IsImplicit(operation));
+                }
+
+                var childrenBuilder = ArrayBuilder<IOperation>.GetInstance(numChildren);
+                for (int i = 0; i < numChildren; i++)
+                {
+                    childrenBuilder.Add(_evalStack.Pop());
+                }
+
+                childrenBuilder.ReverseContents();
+
+                return new InvalidOperation(childrenBuilder.ToImmutableAndFree(), semanticModel: null, invalidOperation.Syntax, invalidOperation.Type, invalidOperation.ConstantValue, IsImplicit(operation));
             }
-
-            var childrenBuilder = ArrayBuilder<IOperation>.GetInstance(numChildren);
-            for (int i = 0; i < numChildren; i++)
-            {
-                childrenBuilder.Add(_evalStack.Pop());
-            }
-
-            childrenBuilder.ReverseContents();
-
-            return new InvalidOperation(childrenBuilder.ToImmutableAndFree(), semanticModel: null, operation.Syntax, operation.Type, operation.ConstantValue,  IsImplicit(operation));
         }
 
         public override IOperation VisitConstantPattern(IConstantPatternOperation operation, int? captureIdForResult)

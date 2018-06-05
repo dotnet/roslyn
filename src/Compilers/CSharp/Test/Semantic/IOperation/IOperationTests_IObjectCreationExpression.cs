@@ -1340,7 +1340,8 @@ Block[B0] - Entry
 
 Block[B5] - Exit
     Predecessors: [B4]
-    Statements (0)";
+    Statements (0)
+";
             VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedFlowGraph, expectedDiagnostics);
         }
 
