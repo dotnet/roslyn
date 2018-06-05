@@ -41,7 +41,7 @@ public sealed class BehaviorCollection : DependencyObjectCollection
      return this[i];
     }
 }";
-            var comp = CreateCompilationWithMscorlib45(source, references: WinRtRefs);
+            var comp = CreateEmptyCompilation(source, references: WinRtRefs);
             comp.VerifyDiagnostics();
         }
 
@@ -7405,7 +7405,7 @@ public class Class1
     }
 }
 ";
-            var comp = CreateCompilationWithMscorlib45(source, references: WinRtRefs);
+            var comp = CreateEmptyCompilation(source, references: WinRtRefs);
             comp.VerifyDiagnostics();
 
             var tree = comp.SyntaxTrees.Single();

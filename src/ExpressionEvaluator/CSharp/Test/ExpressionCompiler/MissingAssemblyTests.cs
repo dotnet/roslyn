@@ -122,7 +122,7 @@ public class C
     }
 }
 ";
-            var comp = CreateCompilation(source, new[] { SystemCoreRef }, TestOptions.DebugDll);
+            var comp = CreateCompilation(source, options: TestOptions.DebugDll);
 
             WithRuntimeInstance(comp, new[] { MscorlibRef }, runtime =>
             {
@@ -164,12 +164,12 @@ public class C
     }
 }
 ";
-            var comp = CreateCompilation(source, new[] { SystemCoreRef }, TestOptions.DebugDll);
+            var comp = CreateCompilation(source, options: TestOptions.DebugDll);
             WithRuntimeInstance(comp, new[] { MscorlibRef }, runtime =>
             {
                 var context = CreateMethodContext(runtime, "C.M");
 
-                var expectedErrorTemplate = "error CS1061: 'int[]' does not contain a definition for '{0}' and no extension method '{0}' accepting a first argument of type 'int[]' could be found (are you missing a using directive or an assembly reference?)";
+                var expectedErrorTemplate = "error CS1061: 'int[]' does not contain a definition for '{0}' and no accessible extension method '{0}' accepting a first argument of type 'int[]' could be found (are you missing a using directive or an assembly reference?)";
                 var expectedMissingAssemblyIdentity = EvaluationContextBase.SystemCoreIdentity;
 
                 ResultProperties resultProperties;
@@ -235,7 +235,7 @@ namespace System.Linq
             {
                 var context = CreateMethodContext(runtime, "C.M");
 
-                var expectedErrorTemplate = "error CS1061: 'int[]' does not contain a definition for '{0}' and no extension method '{0}' accepting a first argument of type 'int[]' could be found (are you missing a using directive or an assembly reference?)";
+                var expectedErrorTemplate = "error CS1061: 'int[]' does not contain a definition for '{0}' and no accessible extension method '{0}' accepting a first argument of type 'int[]' could be found (are you missing a using directive or an assembly reference?)";
                 var expectedMissingAssemblyIdentity = EvaluationContextBase.SystemCoreIdentity;
 
                 ResultProperties resultProperties;
@@ -554,7 +554,7 @@ class C
     {
     }
 }";
-            var comp = CreateCompilation(source, WinRtRefs, TestOptions.DebugDll);
+            var comp = CreateEmptyCompilation(source, WinRtRefs, TestOptions.DebugDll);
             var runtimeAssemblies = ExpressionCompilerTestHelpers.GetRuntimeWinMds("Windows.Storage");
             Assert.True(runtimeAssemblies.Any());
 
@@ -597,7 +597,7 @@ class C
     {
     }
 }";
-            var comp = CreateCompilation(source, WinRtRefs, TestOptions.DebugDll);
+            var comp = CreateEmptyCompilation(source, WinRtRefs, TestOptions.DebugDll);
             var runtimeAssemblies = ExpressionCompilerTestHelpers.GetRuntimeWinMds("Windows.UI");
             Assert.True(runtimeAssemblies.Any());
 
@@ -916,7 +916,14 @@ LanguageVersion.CSharp7_1);
                         runtime.Modules.Select(m => m.MetadataBlock).ToImmutableArray(),
                         expression,
                         ImmutableArray<Alias>.Empty,
-                        (b, u) => EvaluationContext.CreateMethodContext(b.ToCompilation(), symReader, moduleVersionId, methodToken, methodVersion: 1, ilOffset: 0, localSignatureToken: localSignatureToken),
+                        (b, u) => EvaluationContext.CreateMethodContext(
+                            b.ToCompilation(default(Guid), MakeAssemblyReferencesKind.AllAssemblies),
+                            symReader,
+                            moduleVersionId,
+                            methodToken,
+                            methodVersion: 1,
+                            ilOffset: 0,
+                            localSignatureToken: localSignatureToken),
                         (AssemblyIdentity assemblyIdentity, out uint uSize) =>
                         {
                             retryCount++;

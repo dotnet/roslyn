@@ -54,6 +54,7 @@ namespace Microsoft.CodeAnalysis.SQLite
         ///  -----------------------------------------------
         /// </summary>
         private const string SolutionDataTableName = "SolutionData" + Version;
+        private static readonly byte[] SolutionDataTableNamePtr = Util.ToUtf8WithNullTerminator(SolutionDataTableName);
 
         /// <summary>
         /// Inside the DB we have a table for data that we want associated with a <see cref="Project"/>.
@@ -71,6 +72,7 @@ namespace Microsoft.CodeAnalysis.SQLite
         ///  -----------------------------------------------
         /// </summary>
         private const string ProjectDataTableName = "ProjectData" + Version;
+        private static readonly byte[] ProjectDataTableNamePtr = Util.ToUtf8WithNullTerminator(ProjectDataTableName);
 
         /// <summary>
         /// Inside the DB we have a table for data that we want associated with a <see cref="Document"/>.
@@ -88,9 +90,11 @@ namespace Microsoft.CodeAnalysis.SQLite
         ///  ----------------------------------------------
         /// </summary>
         private const string DocumentDataTableName = "DocumentData" + Version;
+        private static readonly byte[] DocumentDataTableNamePtr = Util.ToUtf8WithNullTerminator(DocumentDataTableName);
 
         private const string DataIdColumnName = "DataId";
         private const string DataColumnName = "Data";
+        private static readonly byte[] DataColumnNamePtr = Util.ToUtf8WithNullTerminator(DataColumnName);
 
         private readonly CancellationTokenSource _shutdownTokenSource = new CancellationTokenSource();
 
@@ -204,7 +208,7 @@ namespace Microsoft.CodeAnalysis.SQLite
         }
 
         /// <summary>
-        /// Gets an <see cref="SqlConnection"/> from the connection pool, or creates one if none are available.
+        /// Gets a <see cref="SqlConnection"/> from the connection pool, or creates one if none are available.
         /// </summary>
         /// <remarks>
         /// Database connections have a large amount of overhead, and should be returned to the pool when they are no

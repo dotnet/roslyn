@@ -536,7 +536,7 @@ class C
             comp.VerifyDiagnostics();
 
             comp.VerifyIL("C.M", @"{
-  // Code size       66 (0x42)
+  // Code size       63 (0x3f)
   .maxstack  2
   .locals init (System.ValueTuple<int?, bool?> V_0,
                 int? V_1,
@@ -553,28 +553,26 @@ class C
   IL_000b:  ldloca.s   V_1
   IL_000d:  call       ""int int?.GetValueOrDefault()""
   IL_0012:  ldloc.2
-  IL_0013:  beq.s      IL_0018
-  IL_0015:  ldc.i4.0
-  IL_0016:  br.s       IL_001f
-  IL_0018:  ldloca.s   V_1
-  IL_001a:  call       ""bool int?.HasValue.get""
-  IL_001f:  brfalse.s  IL_0040
-  IL_0021:  ldloc.0
-  IL_0022:  ldfld      ""bool? System.ValueTuple<int?, bool?>.Item2""
-  IL_0027:  stloc.3
-  IL_0028:  ldc.i4.1
-  IL_0029:  stloc.s    V_4
-  IL_002b:  ldloca.s   V_3
-  IL_002d:  call       ""bool bool?.GetValueOrDefault()""
-  IL_0032:  ldloc.s    V_4
-  IL_0034:  beq.s      IL_0038
-  IL_0036:  ldc.i4.0
-  IL_0037:  ret
-  IL_0038:  ldloca.s   V_3
-  IL_003a:  call       ""bool bool?.HasValue.get""
-  IL_003f:  ret
-  IL_0040:  ldc.i4.0
-  IL_0041:  ret
+  IL_0013:  ceq
+  IL_0015:  ldloca.s   V_1
+  IL_0017:  call       ""bool int?.HasValue.get""
+  IL_001c:  and
+  IL_001d:  brfalse.s  IL_003d
+  IL_001f:  ldloc.0
+  IL_0020:  ldfld      ""bool? System.ValueTuple<int?, bool?>.Item2""
+  IL_0025:  stloc.3
+  IL_0026:  ldc.i4.1
+  IL_0027:  stloc.s    V_4
+  IL_0029:  ldloca.s   V_3
+  IL_002b:  call       ""bool bool?.GetValueOrDefault()""
+  IL_0030:  ldloc.s    V_4
+  IL_0032:  ceq
+  IL_0034:  ldloca.s   V_3
+  IL_0036:  call       ""bool bool?.HasValue.get""
+  IL_003b:  and
+  IL_003c:  ret
+  IL_003d:  ldc.i4.0
+  IL_003e:  ret
 }");
         }
 
@@ -3011,6 +3009,152 @@ class C
                 // (10,18): warning CS0252: Possible unintended reference comparison; to get a value comparison, cast the left hand side to type 'string'
                 //         bool b = o == s;
                 Diagnostic(ErrorCode.WRN_BadRefCompareLeft, "o == s").WithArguments("string").WithLocation(10, 18)
+                );
+        }
+
+        [Fact, WorkItem(27047, "https://github.com/dotnet/roslyn/issues/27047")]
+        public void TestWithObsoleteImplicitConversion()
+        {
+            var source = @"
+class C
+{
+    private static bool TupleEquals((C, int)? nt1, (int, C) nt2)
+        => nt1 == nt2; // warn 1 and 2
+
+    private static bool TupleNotEquals((C, int)? nt1, (int, C) nt2)
+        => nt1 != nt2; // warn 3 and 4
+
+    [System.Obsolete(""obsolete"", error: true)]
+    public static implicit operator int(C c)
+        => throw null;
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (5,12): error CS0619: 'C.implicit operator int(C)' is obsolete: 'obsolete'
+                //         => nt1 == nt2; // warn 1 and 2
+                Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "nt1").WithArguments("C.implicit operator int(C)", "obsolete").WithLocation(5, 12),
+                // (5,19): error CS0619: 'C.implicit operator int(C)' is obsolete: 'obsolete'
+                //         => nt1 == nt2; // warn 1 and 2
+                Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "nt2").WithArguments("C.implicit operator int(C)", "obsolete").WithLocation(5, 19),
+                // (8,12): error CS0619: 'C.implicit operator int(C)' is obsolete: 'obsolete'
+                //         => nt1 != nt2; // warn 3 and 4
+                Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "nt1").WithArguments("C.implicit operator int(C)", "obsolete").WithLocation(8, 12),
+                // (8,19): error CS0619: 'C.implicit operator int(C)' is obsolete: 'obsolete'
+                //         => nt1 != nt2; // warn 3 and 4
+                Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "nt2").WithArguments("C.implicit operator int(C)", "obsolete").WithLocation(8, 19)
+                );
+        }
+
+        [Fact, WorkItem(27047, "https://github.com/dotnet/roslyn/issues/27047")]
+        public void TestWithObsoleteBoolConversion()
+        {
+            var source = @"
+public class A
+{
+    public static bool TupleEquals((A, A) t) => t == t; // warn 1 and 2
+    public static bool TupleNotEquals((A, A) t) => t != t; // warn 3 and 4
+
+    public static NotBool operator ==(A a1, A a2) => throw null;
+    public static NotBool operator !=(A a1, A a2) => throw null;
+    public override bool Equals(object o) => throw null;
+    public override int GetHashCode() => throw null;
+}
+public class NotBool
+{
+    [System.Obsolete(""obsolete"", error: true)]
+    public static implicit operator bool(NotBool b) => throw null;
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (4,49): error CS0619: 'NotBool.implicit operator bool(NotBool)' is obsolete: 'obsolete'
+                //     public static bool TupleEquals((A, A) t) => t == t; // warn 1 and 2
+                Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "t == t").WithArguments("NotBool.implicit operator bool(NotBool)", "obsolete").WithLocation(4, 49),
+                // (4,49): error CS0619: 'NotBool.implicit operator bool(NotBool)' is obsolete: 'obsolete'
+                //     public static bool TupleEquals((A, A) t) => t == t; // warn 1 and 2
+                Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "t == t").WithArguments("NotBool.implicit operator bool(NotBool)", "obsolete").WithLocation(4, 49),
+                // (5,52): error CS0619: 'NotBool.implicit operator bool(NotBool)' is obsolete: 'obsolete'
+                //     public static bool TupleNotEquals((A, A) t) => t != t; // warn 3 and 4
+                Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "t != t").WithArguments("NotBool.implicit operator bool(NotBool)", "obsolete").WithLocation(5, 52),
+                // (5,52): error CS0619: 'NotBool.implicit operator bool(NotBool)' is obsolete: 'obsolete'
+                //     public static bool TupleNotEquals((A, A) t) => t != t; // warn 3 and 4
+                Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "t != t").WithArguments("NotBool.implicit operator bool(NotBool)", "obsolete").WithLocation(5, 52)
+                );
+        }
+
+        [Fact, WorkItem(27047, "https://github.com/dotnet/roslyn/issues/27047")]
+        public void TestWithObsoleteComparisonOperators()
+        {
+            var source = @"
+public class A
+{
+    public static bool TupleEquals((A, A) t) => t == t; // warn 1 and 2
+    public static bool TupleNotEquals((A, A) t) => t != t; // warn 3 and 4
+
+    [System.Obsolete("""", error: true)]
+    public static bool operator ==(A a1, A a2) => throw null;
+    [System.Obsolete("""", error: true)]
+    public static bool operator !=(A a1, A a2) => throw null;
+
+    public override bool Equals(object o) => throw null;
+    public override int GetHashCode() => throw null;
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (4,49): error CS0619: 'A.operator ==(A, A)' is obsolete: ''
+                //     public static bool TupleEquals((A, A) t) => t == t; // warn 1 and 2
+                Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "t == t").WithArguments("A.operator ==(A, A)", "").WithLocation(4, 49),
+                // (4,49): error CS0619: 'A.operator ==(A, A)' is obsolete: ''
+                //     public static bool TupleEquals((A, A) t) => t == t; // warn 1 and 2
+                Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "t == t").WithArguments("A.operator ==(A, A)", "").WithLocation(4, 49),
+                // (5,52): error CS0619: 'A.operator !=(A, A)' is obsolete: ''
+                //     public static bool TupleNotEquals((A, A) t) => t != t; // warn 3 and 4
+                Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "t != t").WithArguments("A.operator !=(A, A)", "").WithLocation(5, 52),
+                // (5,52): error CS0619: 'A.operator !=(A, A)' is obsolete: ''
+                //     public static bool TupleNotEquals((A, A) t) => t != t; // warn 3 and 4
+                Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "t != t").WithArguments("A.operator !=(A, A)", "").WithLocation(5, 52)
+                );
+        }
+
+        [Fact, WorkItem(27047, "https://github.com/dotnet/roslyn/issues/27047")]
+        public void TestWithObsoleteTruthOperators()
+        {
+            var source = @"
+public class A
+{
+    public static bool TupleEquals((A, A) t) => t == t; // warn 1 and 2
+    public static bool TupleNotEquals((A, A) t) => t != t; // warn 3 and 4
+
+    public static NotBool operator ==(A a1, A a2) => throw null;
+    public static NotBool operator !=(A a1, A a2) => throw null;
+    public override bool Equals(object o) => throw null;
+    public override int GetHashCode() => throw null;
+}
+public class NotBool
+{
+    [System.Obsolete(""obsolete"", error: true)]
+    public static bool operator true(NotBool b) => throw null;
+
+    [System.Obsolete(""obsolete"", error: true)]
+    public static bool operator false(NotBool b) => throw null;
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (4,49): error CS0619: 'NotBool.operator false(NotBool)' is obsolete: 'obsolete'
+                //     public static bool TupleEquals((A, A) t) => t == t; // warn 1 and 2
+                Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "t == t").WithArguments("NotBool.operator false(NotBool)", "obsolete").WithLocation(4, 49),
+                // (4,49): error CS0619: 'NotBool.operator false(NotBool)' is obsolete: 'obsolete'
+                //     public static bool TupleEquals((A, A) t) => t == t; // warn 1 and 2
+                Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "t == t").WithArguments("NotBool.operator false(NotBool)", "obsolete").WithLocation(4, 49),
+                // (5,52): error CS0619: 'NotBool.operator true(NotBool)' is obsolete: 'obsolete'
+                //     public static bool TupleNotEquals((A, A) t) => t != t; // warn 3 and 4
+                Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "t != t").WithArguments("NotBool.operator true(NotBool)", "obsolete").WithLocation(5, 52),
+                // (5,52): error CS0619: 'NotBool.operator true(NotBool)' is obsolete: 'obsolete'
+                //     public static bool TupleNotEquals((A, A) t) => t != t; // warn 3 and 4
+                Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "t != t").WithArguments("NotBool.operator true(NotBool)", "obsolete").WithLocation(5, 52)
                 );
         }
 

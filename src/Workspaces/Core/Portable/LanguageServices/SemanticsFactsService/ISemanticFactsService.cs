@@ -95,13 +95,11 @@ namespace Microsoft.CodeAnalysis.LanguageServices
 
         ImmutableArray<IMethodSymbol> GetDeconstructionForEachMethods(SemanticModel semanticModel, SyntaxNode node);
 
-        bool IsAssignableTo(ITypeSymbol fromSymbol, ITypeSymbol toSymbol, Compilation compilation);
-
         bool IsPartial(ITypeSymbol typeSymbol, CancellationToken cancellationToken);
 
         IEnumerable<ISymbol> GetDeclaredSymbols(SemanticModel semanticModel, SyntaxNode memberDeclaration, CancellationToken cancellationToken);
 
-        SymbolInfo GetSymbolInfo(SemanticModel semanticModel, SyntaxNode node, SyntaxToken token, CancellationToken cancellationToken);
+        ImmutableArray<ISymbol> GetBestOrAllSymbols(SemanticModel semanticModel, SyntaxNode node, SyntaxToken token, CancellationToken cancellationToken);
 
         SyntaxToken GenerateUniqueName(
             SemanticModel semanticModel, SyntaxNode location, 

@@ -1154,7 +1154,7 @@ namespace Microsoft.CodeAnalysis
             string fullPath = FileUtilities.ResolveRelativePath(path, baseDirectory);
             if (fullPath == null)
             {
-                diagnostics.Add(messageProvider.CreateDiagnostic(messageProvider.FTL_InputFileNameTooLong, Location.None, path));
+                diagnostics.Add(messageProvider.CreateDiagnostic(messageProvider.FTL_InvalidInputFileName, Location.None, path));
             }
 
             return fullPath;

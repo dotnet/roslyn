@@ -78,7 +78,7 @@ namespace Microsoft.CodeAnalysis
         }
 
         /// <summary>
-        /// The value for an <see cref="TypedConstant"/> array. 
+        /// The value for a <see cref="TypedConstant"/> array. 
         /// </summary>
         public ImmutableArray<TypedConstant> Values
         {

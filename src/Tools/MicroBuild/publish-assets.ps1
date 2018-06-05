@@ -39,10 +39,9 @@ function Publish-NuGet([string]$packageDir, [string]$uploadUrl) {
     Push-Location $packageDir
     try {
         Write-Host "Publishing $(Split-Path -leaf $packageDir) to $uploadUrl"
-        $packages = [xml](Get-Content "$packageDir\myget_org-packages.config")
         $apiKey = Get-PublishKey $uploadUrl
-        foreach ($package in $packages.packages.package) {
-            $nupkg = $package.id + "." + $package.version + ".nupkg"
+        foreach ($package in Get-ChildItem *.nupkg) {
+            $nupkg = Split-Path -Leaf $package
             Write-Host "  Publishing $nupkg"
             if (-not (Test-Path $nupkg)) {
                 throw "$nupkg does not exist"

@@ -15,6 +15,74 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
     public class FixedSizeBufferTests : EmitMetadataTestBase
     {
         [Fact]
+        [WorkItem(26351, "https://github.com/dotnet/roslyn/pull/26351")]
+        public void NestedStructFixed()
+        {
+            var verifier = CompileAndVerify(@"
+class  X {
+    internal struct CaseRange {
+        public int Lo, Hi;
+        public unsafe fixed int Delta [3];
+
+        public CaseRange (int lo, int hi, int d1, int d2, int d3)
+        {
+            Lo = lo;
+            Hi = hi;
+            unsafe {
+                fixed (int *p = Delta) {
+                    p [0] = d1;
+                    p [1] = d2;
+                    p [2] = d3;
+                }
+            }
+        }
+    }
+
+    static void Main ()
+    {
+        var a = new CaseRange (0, 0, 0, 0, 0);
+    }
+}", options: TestOptions.UnsafeReleaseExe, verify: Verification.Fails);
+            verifier.VerifyIL("X.CaseRange..ctor", @"
+{
+  // Code size       49 (0x31)
+  .maxstack  3
+  .locals init (pinned int& V_0)
+  IL_0000:  ldarg.0
+  IL_0001:  ldarg.1
+  IL_0002:  stfld      ""int X.CaseRange.Lo""
+  IL_0007:  ldarg.0
+  IL_0008:  ldarg.2
+  IL_0009:  stfld      ""int X.CaseRange.Hi""
+  IL_000e:  ldarg.0
+  IL_000f:  ldflda     ""int* X.CaseRange.Delta""
+  IL_0014:  ldflda     ""int X.CaseRange.<Delta>e__FixedBuffer.FixedElementField""
+  IL_0019:  stloc.0
+  IL_001a:  ldloc.0
+  IL_001b:  conv.u
+  IL_001c:  dup
+  IL_001d:  ldarg.3
+  IL_001e:  stind.i4
+  IL_001f:  dup
+  IL_0020:  ldc.i4.4
+  IL_0021:  add
+  IL_0022:  ldarg.s    V_4
+  IL_0024:  stind.i4
+  IL_0025:  ldc.i4.2
+  IL_0026:  conv.i
+  IL_0027:  ldc.i4.4
+  IL_0028:  mul
+  IL_0029:  add
+  IL_002a:  ldarg.s    V_5
+  IL_002c:  stind.i4
+  IL_002d:  ldc.i4.0
+  IL_002e:  conv.u
+  IL_002f:  stloc.0
+  IL_0030:  ret
+}");
+        }
+
+        [Fact]
         public void SimpleFixedBuffer()
         {
             var text =
@@ -368,7 +436,7 @@ class Program
 {
   // Code size       62 (0x3e)
   .maxstack  4
-  .locals init (pinned int*& V_0)
+  .locals init (pinned int& V_0)
   IL_0000:  newobj     ""S1..ctor()""
   IL_0005:  dup
   IL_0006:  ldflda     ""S S1.field""
@@ -435,7 +503,7 @@ class Program
   // Code size       47 (0x2f)
   .maxstack  2
   .locals init (int* V_0, //p
-                pinned int*& V_1)
+                pinned int& V_1)
   IL_0000:  newobj     ""C..ctor()""
   IL_0005:  ldflda     ""S C.s""
   IL_000a:  ldflda     ""int* S.x""

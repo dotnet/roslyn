@@ -240,6 +240,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                         local.SetType(iterationVariableType);
                         local.SetValEscape(collectionEscape);
 
+                        if (local.RefKind != RefKind.None)
+                        {
+                            // The ref-escape of a ref-returning property is decided
+                            // by the value escape of its receiverm, in this case the
+                            // collection
+                            local.SetRefEscape(collectionEscape);
+                        }
+
                         if (!hasErrors)
                         {
                             BindValueKind requiredCurrentKind;
@@ -302,6 +310,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                         {
                             // Bind the expression for error recovery, but discard all new diagnostics
                             iterationErrorExpression = BindExpression(node.Variable, new DiagnosticBag());
+                            if (iterationErrorExpression.Kind == BoundKind.DiscardExpression)
+                            {
+                                iterationErrorExpression = ((BoundDiscardExpression)iterationErrorExpression).FailInference(this, diagnosticsOpt: null);
+                            }
                             hasErrors = true;
 
                             if (!node.HasErrors)

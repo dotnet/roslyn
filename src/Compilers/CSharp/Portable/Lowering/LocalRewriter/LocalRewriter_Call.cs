@@ -459,7 +459,16 @@ namespace Microsoft.CodeAnalysis.CSharp
             // Step one: Store everything that is non-trivial into a temporary; record the
             // stores in storesToTemps and make the actual argument a reference to the temp.
             // Do not yet attempt to deal with params arrays or optional arguments.
-            BuildStoresToTemps(expanded, argsToParamsOpt, parameters, argumentRefKindsOpt, rewrittenArguments, actualArguments, refKinds, storesToTemps);
+            BuildStoresToTemps(
+                expanded,
+                argsToParamsOpt,
+                parameters,
+                argumentRefKindsOpt,
+                rewrittenArguments,
+                forceLambdaSpilling: false, // lambda conversions can be re-orderd in calls without side affects
+                actualArguments,
+                refKinds,
+                storesToTemps);
 
 
             // all the formal arguments, except missing optionals, are now in place. 
@@ -665,6 +674,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             ImmutableArray<ParameterSymbol> parameters,
             ImmutableArray<RefKind> argumentRefKinds,
             ImmutableArray<BoundExpression> rewrittenArguments,
+            bool forceLambdaSpilling,
             /* out */ BoundExpression[] arguments,
             /* out */ ArrayBuilder<RefKind> refKinds,
             /* out */ ArrayBuilder<BoundAssignmentOperator> storesToTemps)
@@ -719,7 +729,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return;
                 }
 
-                if (IsSafeForReordering(argument, argRefKind))
+                if ((!forceLambdaSpilling || !isLambdaConversion(argument)) &&
+                    IsSafeForReordering(argument, argRefKind))
                 {
                     arguments[p] = argument;
                 }
@@ -732,6 +743,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
                 refKinds[p] = argRefKind;
             }
+
+            return;
+
+            bool isLambdaConversion(BoundExpression expr)
+                => expr is BoundConversion conv && conv.ConversionKind == ConversionKind.AnonymousFunction;
         }
 
         // This fills in the arguments and parameters arrays in evaluation order.
