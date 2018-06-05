@@ -4729,6 +4729,21 @@ oneMoreTime:
             return HandleObjectOrCollectionInitializer(operation.Initializer, initializedInstance);
         }
 
+        public override IOperation VisitDynamicObjectCreation(IDynamicObjectCreationOperation operation, int? captureIdForResult)
+        {
+            PushArray(operation.Arguments);
+            ImmutableArray<IOperation> visitedArguments = PopArray(operation.Arguments);
+
+            var hasDynamicArguments = (HasDynamicArgumentsExpression)operation;
+            IOperation initializedInstance = new DynamicObjectCreationExpression(visitedArguments, hasDynamicArguments.ArgumentNames, hasDynamicArguments.ArgumentRefKinds,
+                                                                          initializer: null, semanticModel: null, operation.Syntax, operation.Type,
+                                                                          operation.ConstantValue, IsImplicit(operation));
+
+            initializedInstance = HandleObjectOrCollectionInitializer(operation.Initializer, initializedInstance);
+
+            return initializedInstance;
+        }
+
         private IOperation HandleObjectOrCollectionInitializer(IObjectOrCollectionInitializerOperation initializer, IOperation objectCreation)
         {
             // If the initializer is null, nothing to spill. Just return the original instance.
@@ -5899,14 +5914,6 @@ oneMoreTime:
             // throw ExceptionUtilities.Unreachable;
             var baseArgument = (BaseArgument)operation;
             return new ArgumentOperation(Visit(operation.Value), operation.ArgumentKind, operation.Parameter, baseArgument.InConversionConvertibleOpt, baseArgument.OutConversionConvertibleOpt, semanticModel: null, operation.Syntax, IsImplicit(operation));
-        }
-
-        public override IOperation VisitDynamicObjectCreation(IDynamicObjectCreationOperation operation, int? captureIdForResult)
-        {
-            return new DynamicObjectCreationExpression(VisitArray(operation.Arguments), ((HasDynamicArgumentsExpression)operation).ArgumentNames,
-                                                       ((HasDynamicArgumentsExpression)operation).ArgumentRefKinds,
-                                                       initializer: null, // PROTOTYPE(dataflow): Dropping initializer for now to enable test hook verification
-                                                       semanticModel: null, operation.Syntax, operation.Type, operation.ConstantValue, IsImplicit(operation));
         }
 
         #endregion
