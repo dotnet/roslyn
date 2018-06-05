@@ -205,7 +205,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings.InvertIf
                     originalIfNode,
                     invertedIfNode.WithTrailingTrivia(
                         invertedIfNode.GetTrailingTrivia().Select(
-                            Function(t) If(t.Kind = SyntaxKind.ColonTrivia, SyntaxFactory.CarriageReturnLineFeed, t)))))
+                            Function(t) If(t.Kind = SyntaxKind.ColonTrivia, SyntaxFactory.ElasticCarriageReturnLineFeed, t)))))
         End Function
 #End If
 
