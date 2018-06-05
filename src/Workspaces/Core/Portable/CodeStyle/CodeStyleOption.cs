@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Generic;
 using System.Xml.Linq;
+using Microsoft.CodeAnalysis.Diagnostics;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CodeStyle
