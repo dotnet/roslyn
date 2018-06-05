@@ -324,8 +324,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Return TypeOf token.Parent Is OrderingSyntax
                 Case SyntaxKind.InKeyword
                     Return TypeOf token.Parent Is CollectionRangeVariableSyntax
+                Case Else
+                    Return False
             End Select
-            Return False
         End Function
 
         Public Function IsThrowExpression(node As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsThrowExpression
