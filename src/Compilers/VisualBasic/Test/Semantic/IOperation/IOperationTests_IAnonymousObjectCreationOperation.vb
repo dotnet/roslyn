@@ -710,6 +710,55 @@ Block[B2] - Exit
 
         <CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)>
         <Fact()>
+        Public Sub AnonymousObjectCreation_NoControlFlow_09()
+            ' Verify anonymous object creation with no initializers.
+            Dim source = <![CDATA[
+Imports System
+
+Class C
+    Sub M(p As Object)'BIND:"Sub M(p As Object)"
+        p = New With { }
+    End Sub
+End Class
+]]>.Value
+
+            Dim expectedDiagnostics = <![CDATA[
+BC36574: Anonymous type must contain at least one member.
+        p = New With { }
+                     ~
+]]>.Value
+
+            Dim expectedFlowGraph = <![CDATA[
+Block[B0] - Entry
+    Statements (0)
+    Next (Regular) Block[B1]
+Block[B1] - Block
+    Predecessors: [B0]
+    Statements (1)
+        IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null, IsInvalid) (Syntax: 'p = New With { }')
+          Expression: 
+            ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Object, IsInvalid, IsImplicit) (Syntax: 'p = New With { }')
+              Left: 
+                IParameterReferenceOperation: p (OperationKind.ParameterReference, Type: System.Object) (Syntax: 'p')
+              Right: 
+                IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Object, IsInvalid, IsImplicit) (Syntax: 'New With { }')
+                  Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                    (DelegateRelaxationLevelNone)
+                  Operand: 
+                    IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid) (Syntax: 'New With { }')
+                      Children(0)
+
+    Next (Regular) Block[B2]
+Block[B2] - Exit
+    Predecessors: [B1]
+    Statements (0)
+]]>.Value
+
+            VerifyFlowGraphAndDiagnosticsForTest(Of MethodBlockSyntax)(source, expectedFlowGraph, expectedDiagnostics)
+        End Sub
+
+        <CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)>
+        <Fact()>
         Public Sub AnonymousObjectCreation_NoControlFlow_Error01()
             ' Duplicate property name, ensure we have same number of initializers as properties.
             Dim source = <![CDATA[

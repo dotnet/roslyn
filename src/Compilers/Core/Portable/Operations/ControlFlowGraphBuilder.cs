@@ -4952,6 +4952,12 @@ oneMoreTime:
 
         public override IOperation VisitAnonymousObjectCreation(IAnonymousObjectCreationOperation operation, int? captureIdForResult)
         {
+            if (operation.Initializers.IsEmpty)
+            {
+                return new AnonymousObjectCreationExpression(initializers: ImmutableArray<IOperation>.Empty, semanticModel: null,
+                    operation.Syntax, operation.Type, operation.ConstantValue, IsImplicit(operation));
+            }
+
             ImplicitInstanceInfo savedCurrentImplicitInstance = _currentImplicitInstance;
             _currentImplicitInstance = new ImplicitInstanceInfo((INamedTypeSymbol)operation.Type);
 
@@ -5005,7 +5011,7 @@ oneMoreTime:
             {
                 int captureId = VisitAndCapture(initializer);
                 
-                // For VB, previously initialized properties can be reference in subsequent initializers.
+                // For VB, previously initialized properties can be referenced in subsequent initializers.
                 // We store the capture Id for the property for such property references.
                 // Note that for VB error cases with duplicate property names, all the property symbols are considered equal.
                 // We use the last duplicate property's capture id and use it in subsequent property references.
@@ -5128,9 +5134,9 @@ oneMoreTime:
                 // When we're in an object or collection initializer, we need to replace the instance reference with a reference to the object being initialized
                 Debug.Assert(operation.IsImplicit);
 
-                if (_currentImplicitInstance.Object != null)
+                if (_currentImplicitInstance.ImplicitInstance != null)
                 {
-                    return OperationCloner.CloneOperation(_currentImplicitInstance.Object);
+                    return OperationCloner.CloneOperation(_currentImplicitInstance.ImplicitInstance);
                 }
                 else
                 {

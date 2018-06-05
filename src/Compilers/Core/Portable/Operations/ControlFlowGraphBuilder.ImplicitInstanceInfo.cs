@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
             /// <summary>
             /// Holds the current object instance being initialized if we're visiting an object initializer.
             /// </summary>
-            public IOperation Object { get; }
+            public IOperation ImplicitInstance { get; }
 
             /// <summary>
             /// Holds the current anonymous type instance being initialized if we're visiting an anonymous object initializer.
@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
 
             public ImplicitInstanceInfo(IOperation currentImplicitInstance)
             {
-                Object = currentImplicitInstance;
+                ImplicitInstance = currentImplicitInstance;
                 AnonymousType = null;
                 AnonymousTypePropertyCaptureIds = null;
             }
@@ -40,7 +40,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
             {
                 Debug.Assert(currentInitializedAnonymousType.IsAnonymousType);
 
-                Object = null;
+                ImplicitInstance = null;
                 AnonymousType = currentInitializedAnonymousType;
                 AnonymousTypePropertyCaptureIds = PooledDictionary<IPropertySymbol, int>.GetInstance();
             }
