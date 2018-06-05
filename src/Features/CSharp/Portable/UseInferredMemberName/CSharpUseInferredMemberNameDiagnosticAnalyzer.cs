@@ -48,7 +48,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseInferredMemberName
 
             // Create a normal diagnostic
             context.ReportDiagnostic(
-                Diagnostic.Create(
+                DiagnosticHelper.Create(
                     Descriptor,
                     nameColon.GetLocation(),
                     optionSet.GetOption(CodeStyleOptions.PreferInferredTupleNames, context.Compilation.Language).Notification.Severity,
@@ -79,7 +79,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseInferredMemberName
 
             // Create a normal diagnostic
             context.ReportDiagnostic(
-                Diagnostic.Create(
+                DiagnosticHelper.Create(
                     Descriptor,
                     nameEquals.GetLocation(),
                     optionSet.GetOption(CodeStyleOptions.PreferInferredAnonymousTypeMemberNames, context.Compilation.Language).Notification.Severity,

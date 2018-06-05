@@ -74,7 +74,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseDeconstruction
                 return;
             }
 
-            context.ReportDiagnostic(Diagnostic.Create(
+            context.ReportDiagnostic(DiagnosticHelper.Create(
                 Descriptor,
                 variableDeclaration.Variables[0].Identifier.GetLocation(),
                 severity,
@@ -92,7 +92,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseDeconstruction
                 return;
             }
 
-            context.ReportDiagnostic(Diagnostic.Create(
+            context.ReportDiagnostic(DiagnosticHelper.Create(
                 Descriptor,
                 forEachStatement.Identifier.GetLocation(),
                 severity,

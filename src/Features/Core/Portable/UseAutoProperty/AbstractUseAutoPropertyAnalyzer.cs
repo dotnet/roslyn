@@ -322,7 +322,7 @@ namespace Microsoft.CodeAnalysis.UseAutoProperty
             }
 
             // Place the appropriate marker on the field depending on the user option.
-            var diagnostic1 = Diagnostic.Create(
+            var diagnostic1 = DiagnosticHelper.Create(
                 UnnecessaryWithSuggestionDescriptor,
                 nodeToFade.GetLocation(),
                 option.Notification.Severity,

@@ -50,7 +50,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseDefaultLiteral
 
             // Create a normal diagnostic that covers the entire default expression.
             context.ReportDiagnostic(
-                Diagnostic.Create(
+                DiagnosticHelper.Create(
                     Descriptor,
                     defaultExpression.GetLocation(),
                     optionSet.GetOption(CSharpCodeStyleOptions.PreferSimpleDefaultExpression).Notification.Severity,

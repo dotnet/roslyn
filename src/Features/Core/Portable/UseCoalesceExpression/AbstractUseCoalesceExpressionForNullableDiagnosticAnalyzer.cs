@@ -128,7 +128,7 @@ namespace Microsoft.CodeAnalysis.UseCoalesceExpression
                 conditionExpression.GetLocation(),
                 whenPartToKeep.GetLocation());
 
-            context.ReportDiagnostic(Diagnostic.Create(
+            context.ReportDiagnostic(DiagnosticHelper.Create(
                 Descriptor,
                 conditionalExpression.GetLocation(),
                 option.Notification.Severity,

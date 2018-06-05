@@ -131,7 +131,7 @@ namespace Microsoft.CodeAnalysis.CSharp.AddAccessibilityModifiers
 
             // Have an issue to flag, either add or remove. Report issue to user.
             var additionalLocations = ImmutableArray.Create(member.GetLocation());
-            context.ReportDiagnostic(Diagnostic.Create(
+            context.ReportDiagnostic(DiagnosticHelper.Create(
                 Descriptor,
                 name.GetLocation(),
                 option.Notification.Severity,

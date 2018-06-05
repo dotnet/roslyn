@@ -115,7 +115,7 @@ namespace Microsoft.CodeAnalysis.QualifyMemberAccess
                 var severity = optionValue.Notification.Severity;
                 if (severity.WithDefaultSeverity(DiagnosticSeverity.Hidden) < ReportDiagnostic.Hidden)
                 {
-                    context.ReportDiagnostic(Diagnostic.Create(
+                    context.ReportDiagnostic(DiagnosticHelper.Create(
                         Descriptor, 
                         simpleName.GetLocation(),
                         severity,

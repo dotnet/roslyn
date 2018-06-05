@@ -178,7 +178,7 @@ namespace Microsoft.CodeAnalysis.UseNullPropagation
                 properties = properties.Add(UseNullPropagationConstants.WhenPartIsNullable, "");
             }
 
-            context.ReportDiagnostic(Diagnostic.Create(
+            context.ReportDiagnostic(DiagnosticHelper.Create(
                 Descriptor,
                 conditionalExpression.GetLocation(),
                 option.Notification.Severity,

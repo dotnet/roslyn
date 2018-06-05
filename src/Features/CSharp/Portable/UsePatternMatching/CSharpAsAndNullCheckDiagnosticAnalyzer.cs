@@ -194,7 +194,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
                 asExpression.GetLocation());
 
             // Put a diagnostic with the appropriate severity on the declaration-statement itself.
-            syntaxContext.ReportDiagnostic(Diagnostic.Create(
+            syntaxContext.ReportDiagnostic(DiagnosticHelper.Create(
                 Descriptor,
                 declarationStatement.GetLocation(),
                 styleOption.Notification.Severity,

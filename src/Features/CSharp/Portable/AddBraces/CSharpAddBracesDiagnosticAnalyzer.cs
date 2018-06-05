@@ -78,7 +78,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.AddBraces
             }
 
             var firstToken = statement.GetFirstToken();
-            context.ReportDiagnostic(Diagnostic.Create(
+            context.ReportDiagnostic(DiagnosticHelper.Create(
                 Descriptor,
                 firstToken.GetLocation(),
                 option.Notification.Severity,

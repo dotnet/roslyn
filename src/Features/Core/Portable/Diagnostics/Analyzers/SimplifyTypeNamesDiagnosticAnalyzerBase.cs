@@ -164,7 +164,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.SimplifyTypeNames
             var builder = ImmutableDictionary.CreateBuilder<string, string>();
             builder["OptionName"] = nameof(CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInMemberAccess); // TODO: need the actual one
             builder["OptionLanguage"] = model.Language;
-            diagnostic = Diagnostic.Create(descriptor, tree.GetLocation(issueSpan), severity, additionalLocations: null, builder.ToImmutable());
+            diagnostic = DiagnosticHelper.Create(descriptor, tree.GetLocation(issueSpan), severity, additionalLocations: null, builder.ToImmutable());
             return true;
         }
 

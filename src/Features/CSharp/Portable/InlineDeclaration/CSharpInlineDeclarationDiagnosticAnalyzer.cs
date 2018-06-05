@@ -240,7 +240,7 @@ namespace Microsoft.CodeAnalysis.CSharp.InlineDeclaration
                 ? (SyntaxNode)localDeclaration
                 : localDeclarator;
 
-            context.ReportDiagnostic(Diagnostic.Create(
+            context.ReportDiagnostic(DiagnosticHelper.Create(
                 Descriptor,
                 reportNode.GetLocation(),
                 option.Notification.Severity,

@@ -113,7 +113,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.PreferFrameworkType
             // now, we have to make a context sensitive check to see if options settings for our context requires us to report a diagnostic.
             if (ShouldReportDiagnostic(predefinedTypeNode, optionSet, language, out var descriptor, out var severity))
             {
-                context.ReportDiagnostic(Diagnostic.Create(descriptor, predefinedTypeNode.GetLocation(), severity, additionalLocations: null, properties: null));
+                context.ReportDiagnostic(DiagnosticHelper.Create(descriptor, predefinedTypeNode.GetLocation(), severity, additionalLocations: null, properties: null));
             }
         }
 

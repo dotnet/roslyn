@@ -139,56 +139,15 @@ namespace Microsoft.CodeAnalysis
                 throw new ArgumentNullException(nameof(descriptor));
             }
 
-            return Create(
-                descriptor,
-                location,
-                effectiveSeverity.ToReportDiagnostic(),
-                additionalLocations,
-                properties,
-                messageArgs);
-        }
-
-        /// <summary>
-        /// Creates a <see cref="Diagnostic"/> instance.
-        /// </summary>
-        /// <param name="descriptor">A <see cref="DiagnosticDescriptor"/> describing the diagnostic.</param>
-        /// <param name="location">An optional primary location of the diagnostic. If null, <see cref="Location"/> will return <see cref="Location.None"/>.</param>
-        /// <param name="effectiveSeverity">Effective severity of the diagnostic.</param>
-        /// <param name="additionalLocations">
-        /// An optional set of additional locations related to the diagnostic.
-        /// Typically, these are locations of other items referenced in the message.
-        /// If null, <see cref="AdditionalLocations"/> will return an empty list.
-        /// </param>
-        /// <param name="properties">
-        /// An optional set of name-value pairs by means of which the analyzer that creates the diagnostic
-        /// can convey more detailed information to the fixer. If null, <see cref="Properties"/> will return
-        /// <see cref="ImmutableDictionary{TKey, TValue}.Empty"/>.
-        /// </param>
-        /// <param name="messageArgs">Arguments to the message of the diagnostic.</param>
-        /// <returns>The <see cref="Diagnostic"/> instance.</returns>
-        public static Diagnostic Create(
-            DiagnosticDescriptor descriptor,
-            Location location,
-            ReportDiagnostic effectiveSeverity,
-            IEnumerable<Location> additionalLocations,
-            ImmutableDictionary<string, string> properties,
-            params object[] messageArgs)
-        {
-            if (descriptor == null)
-            {
-                throw new ArgumentNullException(nameof(descriptor));
-            }
-
-            var warningLevel = GetDefaultWarningLevel(effectiveSeverity, descriptor.DefaultSeverity);
+            var warningLevel = GetDefaultWarningLevel(effectiveSeverity);
             return SimpleDiagnostic.Create(
                 descriptor,
-                severity: effectiveSeverity.ToDiagnosticSeverity() ?? descriptor.DefaultSeverity,
+                severity: effectiveSeverity,
                 warningLevel: warningLevel,
                 location: location ?? Location.None,
                 additionalLocations: additionalLocations,
                 messageArgs: messageArgs,
-                properties: properties,
-                isSuppressed: effectiveSeverity == ReportDiagnostic.Suppress);
+                properties: properties);
         }
 
         /// <summary>
@@ -560,22 +519,20 @@ namespace Microsoft.CodeAnalysis
         /// level N should also be included.
         /// </summary>
         /// <remarks>
-        /// <see cref="ReportDiagnostic.Info"/> and <see cref="ReportDiagnostic.Hidden"/> are treated as warning
+        /// <see cref="DiagnosticSeverity.Info"/> and <see cref="DiagnosticSeverity.Hidden"/> are treated as warning
         /// level 1. In other words, these diagnostics which typically interact with editor features are enabled unless
         /// the special <c>/warn:0</c> option is set.
         /// </remarks>
         /// <param name="severity">A <see cref="DiagnosticSeverity"/> value.</param>
         /// <returns>The default compiler warning level for <paramref name="severity"/>.</returns>
-        internal static int GetDefaultWarningLevel(ReportDiagnostic severity, DiagnosticSeverity defaultSeverity)
+        internal static int GetDefaultWarningLevel(DiagnosticSeverity severity)
         {
             switch (severity)
             {
-                case ReportDiagnostic.Error:
-                case ReportDiagnostic.Default when defaultSeverity == DiagnosticSeverity.Error:
+                case DiagnosticSeverity.Error:
                     return 0;
 
-                case ReportDiagnostic.Warn:
-                case ReportDiagnostic.Default when defaultSeverity == DiagnosticSeverity.Warning:
+                case DiagnosticSeverity.Warning:
                 default:
                     return 1;
             }
