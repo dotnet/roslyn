@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
             var element = new XElement(nameof(SerializableNamingRule),
                 new XAttribute(nameof(SymbolSpecificationID), SymbolSpecificationID),
                 new XAttribute(nameof(NamingStyleID), NamingStyleID),
-                new XAttribute(nameof(EnforcementLevel), EnforcementLevel.ToDiagnosticSeverity(DiagnosticSeverity.Hidden)));
+                new XAttribute(nameof(EnforcementLevel), EnforcementLevel.ToDiagnosticSeverity() ?? DiagnosticSeverity.Hidden));
 
             return element;
         }

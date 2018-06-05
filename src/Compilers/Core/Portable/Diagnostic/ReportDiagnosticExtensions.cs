@@ -6,7 +6,7 @@ namespace Microsoft.CodeAnalysis
 {
     public static class ReportDiagnosticExtensions
     {
-        public static DiagnosticSeverity ToDiagnosticSeverity(this ReportDiagnostic reportDiagnostic, DiagnosticSeverity defaultSeverity)
+        public static DiagnosticSeverity? ToDiagnosticSeverity(this ReportDiagnostic reportDiagnostic)
         {
             switch (reportDiagnostic)
             {
@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis
 
             case ReportDiagnostic.Suppress:
             case ReportDiagnostic.Default:
-                return defaultSeverity;
+                return null;
 
             default:
                 throw ExceptionUtilities.UnexpectedValue(reportDiagnostic);

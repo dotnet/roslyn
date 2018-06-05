@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.CodeStyle
         [Obsolete("Use " + nameof(Severity) + " instead.")]
         public DiagnosticSeverity Value
         {
-            get => Severity.ToDiagnosticSeverity(DiagnosticSeverity.Hidden);
+            get => Severity.ToDiagnosticSeverity() ?? DiagnosticSeverity.Hidden;
             set => Severity = value.ToReportDiagnostic();
         }
 

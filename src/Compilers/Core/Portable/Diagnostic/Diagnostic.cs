@@ -182,7 +182,7 @@ namespace Microsoft.CodeAnalysis
             var warningLevel = GetDefaultWarningLevel(effectiveSeverity, descriptor.DefaultSeverity);
             return SimpleDiagnostic.Create(
                 descriptor,
-                severity: effectiveSeverity.ToDiagnosticSeverity(descriptor.DefaultSeverity),
+                severity: effectiveSeverity.ToDiagnosticSeverity() ?? descriptor.DefaultSeverity,
                 warningLevel: warningLevel,
                 location: location ?? Location.None,
                 additionalLocations: additionalLocations,
