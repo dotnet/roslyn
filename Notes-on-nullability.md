@@ -68,6 +68,8 @@ Otherwise, the top-level nullability is passed through from `expr` and the type 
 
 You can only cast away nested nullability when there is an implicit conversion.
 
+Open issue: suppression of warnings on mismatching nested nullability, should cast handle that scenario or `!`?
+
 
 ----
 #### User-defined conversion operator
@@ -96,9 +98,9 @@ Open issue: there are two behaviors: (1) setting the top-level null-state, and (
 
 Top-level null-state is non-nullable.
 
-Doesn't suppress warnings.
-
 Doesn't affect nested nullability.
+
+Open issue: suppression of warnings on mismatching nested nullability, should cast handle that scenario or `!`?
 
 Open issue: confirm null-state when `expr` is oblivious top-level null-state.
 
