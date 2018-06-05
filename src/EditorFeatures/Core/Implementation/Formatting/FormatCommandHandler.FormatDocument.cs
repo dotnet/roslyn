@@ -7,11 +7,13 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeCleanup;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Extensions;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Commanding;
 using Microsoft.VisualStudio.Text.Editor.Commanding.Commands;
 using Roslyn.Utilities;
+using static Microsoft.CodeAnalysis.Options.OptionServiceFactory;
 using VSCommanding = Microsoft.VisualStudio.Commanding;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.Formatting
@@ -49,7 +51,14 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Formatting
                               }),
                 new InfoBarUI(EditorFeaturesResources.Do_not_show_this_message_again,
                               kind: InfoBarUI.UIKind.Button,
-                              () => { })); // no action needed. _infoBarOpen remains true so the infoBar will not shown again.
+                              () =>
+                              {
+                                  var optionService = document.Project.Solution.Workspace.Services.GetService<IOptionService>();
+                                  var oldOptions = optionService.GetOptions();
+                                  var newOptions = oldOptions.WithChangedOption(CodeCleanupOptions.NeverShowCodeCleanupInfoBarAgain,
+                                      document.Project.Language, true);
+                                  optionService.SetOptions(newOptions);
+                              }));
         }
 
         public bool ExecuteCommand(FormatDocumentCommandArgs args, CommandExecutionContext context)
@@ -80,21 +89,29 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Formatting
                     {
                         Format(args.TextView, document, selectionOpt: null, cancellationToken);
                     }
-                    else if (!docOptions.GetOption(CodeCleanupOptions.AreCodeCleanupRulesConfigured))
-                    {
-                        ShowGoldBarForCodeCleanupConfiguration(document);
-                        Format(args.TextView, document, selectionOpt: null, cancellationToken);
-                    }
                     else
                     {
-                        // Code cleanup
-                        var oldDoc = document;
-                        var codeCleanupChanges = GetCodeCleanupAndFormatChangesAsync(document, codeCleanupService, cancellationToken).WaitAndGetResult(cancellationToken);
-
-                        if (codeCleanupChanges != null && codeCleanupChanges.Count() > 0)
+                        if (docOptions.GetOption(CodeCleanupOptions.AreCodeCleanupRulesConfigured))
                         {
-                            ApplyChanges(oldDoc, codeCleanupChanges.ToList(), selectionOpt: null, cancellationToken);
+                            // Code cleanup
+                            var oldDoc = document;
+                            var codeCleanupChanges = GetCodeCleanupAndFormatChangesAsync(document, codeCleanupService, cancellationToken).WaitAndGetResult(cancellationToken);
+
+                            if (codeCleanupChanges != null && codeCleanupChanges.Count() > 0)
+                            {
+                                ApplyChanges(oldDoc, codeCleanupChanges.ToList(), selectionOpt: null, cancellationToken);
+                            }
                         }
+                        else
+                        {
+                            Format(args.TextView, document, selectionOpt: null, cancellationToken);
+
+                            if (!docOptions.GetOption(CodeCleanupOptions.NeverShowCodeCleanupInfoBarAgain))
+                            {
+                                ShowGoldBarForCodeCleanupConfiguration(document);
+                            }
+                        }
+
                     }
 
                     transaction.Complete();

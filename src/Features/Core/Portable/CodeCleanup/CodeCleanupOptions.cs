@@ -13,6 +13,10 @@ namespace Microsoft.CodeAnalysis.CodeCleanup
             nameof(CodeCleanupOptions), nameof(AreCodeCleanupRulesConfigured), defaultValue: false,
             storageLocations: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Are Code Cleanup Rules Configured"));
 
+        public static readonly PerLanguageOption<bool> NeverShowCodeCleanupInfoBarAgain = new PerLanguageOption<bool>(
+            nameof(CodeCleanupOptions), nameof(NeverShowCodeCleanupInfoBarAgain), defaultValue: false,
+            storageLocations: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Never Show Code Cleanup Info Bar Again"));
+
         public static readonly PerLanguageOption<bool> RemoveUnusedImports = new PerLanguageOption<bool>(
             nameof(CodeCleanupOptions), nameof(RemoveUnusedImports), defaultValue: true,
             storageLocations: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.Remove Unused Imports"));
