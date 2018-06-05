@@ -296,9 +296,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>
-        /// If you will be needing AssignedWhenTrue and AssignedWhenFalse, set `keepSplit` to `true`.
+        /// If you will be needing StateWhenTrue and StateWhenFalse, set `keepSplit` to `true`.
         /// </summary>
-        private void VisitLvalue(BoundExpression node, bool keepSplit = false)
+        private void VisitLvalue(BoundExpression node)
         {
             switch (node.Kind)
             {
@@ -329,7 +329,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case BoundKind.ObjectInitializerMember:
                     throw ExceptionUtilities.UnexpectedValue(node.Kind); // Should have been handled in VisitObjectCreationExpression().
                 default:
-                    VisitRvalue(node, keepSplit);
+                    VisitRvalue(node);
                     break;
             }
         }
@@ -1867,11 +1867,19 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 // PROTOTYPE(NullReferenceTypes): `ref` arguments should be treated as l-values
                 // for assignment. See `ref x3` in StaticNullChecking.PassingParameters_01.
-                VisitRvalue(argument, keepSplit);
+                if (keepSplit)
+                {
+                    Visit(argument);
+                    // No Unsplit
+                }
+                else
+                {
+                    VisitRvalue(argument);
+                }
             }
             else
             {
-                VisitLvalue(argument, keepSplit);
+                VisitLvalue(argument);
             }
         }
 
