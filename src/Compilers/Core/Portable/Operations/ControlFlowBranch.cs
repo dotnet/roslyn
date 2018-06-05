@@ -40,7 +40,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
         public BasicBlock Destination { get; }
 
         /// <summary>
-        /// Semantics associated with this branch.
+        /// Semantics associated with this branch (such as "regular", "return", "throw", etc).
         /// </summary>
         public ControlFlowBranchSemantics Semantics { get; }
 

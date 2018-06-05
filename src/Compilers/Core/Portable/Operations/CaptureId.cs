@@ -5,7 +5,7 @@ using System;
 namespace Microsoft.CodeAnalysis.FlowAnalysis
 {
     /// <summary>
-    /// Capture Id to represent an intermediate result from an <see cref="IFlowCaptureOperation"/>.
+    /// Capture Id is an opaque identifier to represent an intermediate result from an <see cref="IFlowCaptureOperation"/>.
     /// </summary>
     public struct CaptureId : IEquatable<CaptureId>
     {

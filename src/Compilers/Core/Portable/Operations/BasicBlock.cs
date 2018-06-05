@@ -42,7 +42,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
         }
 
         /// <summary>
-        /// Basic block kind.
+        /// Basic block kind (entry, block, or exit).
         /// </summary>
         public BasicBlockKind Kind { get; }
 
@@ -114,7 +114,8 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
         }
 
         /// <summary>
-        /// Unique ordinal for each basic block in a <see cref="ControlFlowGraph"/>.
+        /// Unique ordinal for each basic block in a <see cref="ControlFlowGraph"/>,
+        /// which can be used to index into <see cref="ControlFlowGraph.Blocks"/> array.
         /// </summary>
         public int Ordinal { get; }
 
