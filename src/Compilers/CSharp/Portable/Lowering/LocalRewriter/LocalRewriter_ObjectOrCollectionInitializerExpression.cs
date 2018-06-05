@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal sealed partial class LocalRewriter
     {
-        private static BoundExpression UpdateInitializers(BoundExpression initializerExpression, ImmutableArray<BoundExpression> newInitializers)
+        private static BoundObjectInitializerExpressionBase UpdateInitializers(BoundObjectInitializerExpressionBase initializerExpression, ImmutableArray<BoundExpression> newInitializers)
         {
             if (initializerExpression.Kind == BoundKind.ObjectInitializerExpression)
             {

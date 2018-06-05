@@ -143,6 +143,8 @@ Namespace Microsoft.CodeAnalysis.Operations
                     Return CreateBoundCollectionInitializerExpressionOperation(DirectCast(boundNode, BoundCollectionInitializerExpression))
                 Case BoundKind.NewT
                     Return CreateBoundNewTOperation(DirectCast(boundNode, BoundNewT))
+                Case BoundKind.NoPiaObjectCreationExpression
+                    Return CreateNoPiaObjectCreationExpressionOperation(DirectCast(boundNode, BoundNoPiaObjectCreationExpression))
                 Case BoundKind.ArrayCreation
                     Return CreateBoundArrayCreationOperation(DirectCast(boundNode, BoundArrayCreation))
                 Case BoundKind.ArrayInitialization
@@ -762,6 +764,15 @@ Namespace Microsoft.CodeAnalysis.Operations
             Dim constantValue As [Optional](Of Object) = ConvertToOptional(boundNewT.ConstantValueOpt)
             Dim isImplicit As Boolean = boundNewT.WasCompilerGenerated
             Return New LazyTypeParameterObjectCreationExpression(initializer, _semanticModel, syntax, type, constantValue, isImplicit)
+        End Function
+
+        Private Function CreateNoPiaObjectCreationExpressionOperation(creation As BoundNoPiaObjectCreationExpression) As INoPiaObjectCreationOperation
+            Dim initializer As Lazy(Of IObjectOrCollectionInitializerOperation) = New Lazy(Of IObjectOrCollectionInitializerOperation)(Function() DirectCast(Create(creation.InitializerOpt), IObjectOrCollectionInitializerOperation))
+            Dim syntax As SyntaxNode = creation.Syntax
+            Dim type As ITypeSymbol = creation.Type
+            Dim constantValue As [Optional](Of Object) = ConvertToOptional(creation.ConstantValueOpt)
+            Dim isImplicit As Boolean = creation.WasCompilerGenerated
+            Return New LazyNoPiaObjectCreationOperation(initializer, _semanticModel, syntax, type, constantValue, isImplicit)
         End Function
 
         Private Function CreateBoundArrayCreationOperation(boundArrayCreation As BoundArrayCreation) As IArrayCreationOperation

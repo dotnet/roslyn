@@ -979,7 +979,9 @@ struct S
                 references: new[] { MscorlibRef, SystemRef, compilation0.EmitToImageReference(embedInteropTypes: true) });
 
             string expectedOperationTree = @"
-IOperation:  (OperationKind.None, Type: null, IsInvalid) (Syntax: 'new I(x)')
+INoPiaObjectCreationOperation (OperationKind.None, Type: I, IsInvalid) (Syntax: 'new I(x)')
+  Initializer: 
+    null
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
                     // (6,25): error CS1729: 'I' does not contain a constructor that takes 1 arguments

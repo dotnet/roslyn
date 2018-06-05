@@ -4692,6 +4692,26 @@ oneMoreTime:
             return (visitedInstance, visitedArguments);
         }
 
+        internal override IOperation VisitNoPiaObjectCreation(INoPiaObjectCreationOperation operation, int? argument)
+        {
+            // Initializer is removed from the tree and turned into a series of statements that assign to the created instance
+            IOperation initializedInstance = new NoPiaObjectCreationOperation(initializer: null, semanticModel: null, operation.Syntax, operation.Type,
+                                                                              operation.ConstantValue, IsImplicit(operation));
+
+            if (operation.Initializer != null)
+            {
+                SpillEvalStack();
+
+                int initializerCaptureId = _availableCaptureId++;
+                AddStatement(new FlowCapture(initializerCaptureId, initializedInstance.Syntax, initializedInstance));
+
+                initializedInstance = GetCaptureReference(initializerCaptureId, initializedInstance);
+                HandleObjectOrCollectionInitializer(operation.Initializer, initializedInstance);
+            }
+
+            return initializedInstance;
+        }
+
         public override IOperation VisitObjectCreation(IObjectCreationOperation operation, int? captureIdForResult)
         {
             ImmutableArray<IArgumentOperation> visitedArgs = VisitArguments(operation.Arguments);
@@ -4941,12 +4961,14 @@ oneMoreTime:
 
         public override IOperation VisitObjectOrCollectionInitializer(IObjectOrCollectionInitializerOperation operation, int? captureIdForResult)
         {
-            throw ExceptionUtilities.Unreachable;
+            Debug.Assert(false, "This code path should not be reachable.");
+            return MakeInvalidOperation(operation.Syntax, operation.Type, ImmutableArray<IOperation>.Empty);
         }
 
         public override IOperation VisitMemberInitializer(IMemberInitializerOperation operation, int? captureIdForResult)
         {
-            throw ExceptionUtilities.Unreachable;
+            Debug.Assert(false, "This code path should not be reachable.");
+            return MakeInvalidOperation(operation.Syntax, operation.Type, ImmutableArray<IOperation>.Empty);
         }
 
         public override IOperation VisitLocalFunction(ILocalFunctionOperation operation, int? captureIdForResult)
