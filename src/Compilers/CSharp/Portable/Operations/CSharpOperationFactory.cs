@@ -769,7 +769,8 @@ namespace Microsoft.CodeAnalysis.Operations
             bool isImplicit = boundCollectionElementInitializer.WasCompilerGenerated;
             BoundImplicitReceiver implicitReceiver = boundCollectionElementInitializer.ImplicitReceiver;
             Lazy<IOperation> addReference = new Lazy<IOperation>(() =>
-                CreateBoundDynamicMemberAccessOperation(implicitReceiver, typeArgumentsOpt: ImmutableArray<TypeSymbol>.Empty, memberName: "Add", implicitReceiver.Syntax, type: null, value: default, isImplicit: true));
+                CreateBoundDynamicMemberAccessOperation(implicitReceiver, typeArgumentsOpt: ImmutableArray<TypeSymbol>.Empty, memberName: "Add",
+                                                        implicitReceiver.Syntax, type: null, value: default, isImplicit: true));
             return new LazyDynamicInvocationExpression(addReference, arguments, argumentNames: ImmutableArray<string>.Empty, argumentRefKinds: ImmutableArray<RefKind>.Empty, _semanticModel, syntax, type, constantValue, isImplicit);
         }
 
