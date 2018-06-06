@@ -2,7 +2,9 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles;
@@ -10,6 +12,7 @@ using Microsoft.CodeAnalysis.ErrorLogger;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.VisualStudio.CodingConventions;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Options
 {
@@ -35,6 +38,11 @@ namespace Microsoft.CodeAnalysis.Editor.Options
 
             workspace.DocumentOpened += Workspace_DocumentOpened;
             workspace.DocumentClosed += Workspace_DocumentClosed;
+
+            // workaround until this is fixed.
+            // https://github.com/dotnet/roslyn/issues/26377
+            // otherwise, we will leak files in _openDocumentContexts
+            workspace.WorkspaceChanged += Workspace_WorkspaceChanged;
         }
 
         private void Workspace_DocumentClosed(object sender, DocumentEventArgs e)
@@ -44,13 +52,7 @@ namespace Microsoft.CodeAnalysis.Editor.Options
                 if (_openDocumentContexts.TryGetValue(e.Document.Id, out var contextTask))
                 {
                     _openDocumentContexts.Remove(e.Document.Id);
-
-                    // Ensure we dispose the context, which we'll do asynchronously
-                    contextTask.ContinueWith(
-                        t => t.Result.Dispose(),
-                        CancellationToken.None,
-                        TaskContinuationOptions.OnlyOnRanToCompletion,
-                        TaskScheduler.Default);
+                    ReleaseContext_NoLock(contextTask);
                 }
             }
         }
@@ -61,6 +63,69 @@ namespace Microsoft.CodeAnalysis.Editor.Options
             {
                 _openDocumentContexts.Add(e.Document.Id, Task.Run(() => GetConventionContextAsync(e.Document.FilePath, CancellationToken.None)));
             }
+        }
+
+        private void Workspace_WorkspaceChanged(object sender, WorkspaceChangeEventArgs e)
+        {
+            switch (e.Kind)
+            {
+                case WorkspaceChangeKind.SolutionRemoved:
+                case WorkspaceChangeKind.SolutionCleared:
+                    ClearOpenFileCache();
+                    break;
+
+                case WorkspaceChangeKind.ProjectRemoved:
+                    ClearOpenFileCache(e.ProjectId);
+                    break;
+
+                default:
+                    break;
+            }
+        }
+
+        private void ClearOpenFileCache(ProjectId projectId = null)
+        {
+            lock (_gate)
+            {
+                var itemReleased = false;
+                foreach (var (documentId, contextTask) in _openDocumentContexts)
+                {
+                    if (projectId is null || documentId.ProjectId == projectId)
+                    {
+                        itemReleased = true;
+                        ReleaseContext_NoLock(contextTask);
+                    }
+                }
+
+                // If any items were released due to the Clear operation, we need to remove them from the map.
+                if (itemReleased)
+                {
+                    if (projectId is null)
+                    {
+                        _openDocumentContexts.Clear();
+                    }
+                    else
+                    {
+                        var itemsToRemove = _openDocumentContexts.Keys.Where(key => key.ProjectId == projectId).ToList();
+                        foreach (var documentId in itemsToRemove)
+                        {
+                            _openDocumentContexts.Remove(documentId);
+                        }
+                    }
+                }
+            }
+        }
+
+        private void ReleaseContext_NoLock(Task<ICodingConventionContext> contextTask)
+        {
+            Debug.Assert(Monitor.IsEntered(_gate));
+
+            // Ensure we dispose the context, which we'll do asynchronously
+            contextTask.ContinueWith(
+                t => t.Result.Dispose(),
+                CancellationToken.None,
+                TaskContinuationOptions.OnlyOnRanToCompletion,
+                TaskScheduler.Default);
         }
 
         public async Task<IDocumentOptions> GetOptionsForDocumentAsync(Document document, CancellationToken cancellationToken)
