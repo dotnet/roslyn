@@ -40,7 +40,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
         public int LastBlockOrdinal { get; }
 
         /// <summary>
-        /// Regions within this region
+        /// Regions nested within this region.
         /// </summary>
         public ImmutableArray<ControlFlowRegion> NestedRegions { get; }
 

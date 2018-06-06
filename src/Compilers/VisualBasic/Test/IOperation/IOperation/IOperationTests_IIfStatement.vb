@@ -1044,8 +1044,6 @@ IBlockOperation (1 statements) (OperationKind.Block, Type: null) (Syntax: 'Else 
             VerifyOperationTreeAndDiagnosticsForTest(Of SingleLineElseClauseSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
 
-        ' PROTOTYPE(dataflow): port tests from C# that haven't been ported yet
-
         <CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)>
         <Fact()>
         Public Sub IfFlow_03()

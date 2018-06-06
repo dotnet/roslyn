@@ -6988,4 +6988,65 @@ namespace Microsoft.CodeAnalysis.Operations
         public override IOperation Group => SetParentOperation(_lazyGroup.Value, this);
         public override IOperation Aggregation => SetParentOperation(_lazyAggregation.Value, this);
     }
+
+    /// <summary>
+    /// Represents a creation of an instance of a NoPia interface, i.e. new I(), where I is an embedded NoPia interface.
+    /// </summary>
+    internal abstract partial class BaseNoPiaObjectCreationOperation : Operation, INoPiaObjectCreationOperation
+    {
+        public BaseNoPiaObjectCreationOperation(SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
+            base(OperationKind.None, semanticModel, syntax, type, constantValue, isImplicit)
+        {
+        }
+
+        public override IEnumerable<IOperation> Children
+        {
+            get
+            {
+                if (Initializer != null)
+                {
+                    yield return Initializer;
+                }
+            }
+        }
+        /// <summary>
+        /// Object or collection initializer, if any.
+        /// </summary>
+        public abstract IObjectOrCollectionInitializerOperation Initializer { get; }
+        public override void Accept(OperationVisitor visitor)
+        {
+            visitor.VisitNoPiaObjectCreation(this);
+        }
+        public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
+        {
+            return visitor.VisitNoPiaObjectCreation(this, argument);
+        }
+    }
+
+    /// <summary>
+    /// Represents a creation of an instance of a NoPia interface, i.e. new I(), where I is an embedded NoPia interface.
+    /// </summary>
+    internal sealed partial class NoPiaObjectCreationOperation : BaseNoPiaObjectCreationOperation
+    {
+        public NoPiaObjectCreationOperation(IObjectOrCollectionInitializerOperation initializer, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
+            base(semanticModel, syntax, type, constantValue, isImplicit)
+        {
+            Initializer = SetParentOperation(initializer, this);
+        }
+        public override IObjectOrCollectionInitializerOperation Initializer { get; }
+    }
+
+    /// <summary>
+    /// Represents a creation of an instance of a NoPia interface, i.e. new I(), where I is an embedded NoPia interface.
+    /// </summary>
+    internal sealed partial class LazyNoPiaObjectCreationOperation : BaseNoPiaObjectCreationOperation
+    {
+        private readonly Lazy<IObjectOrCollectionInitializerOperation> _lazyInitializer;
+        public LazyNoPiaObjectCreationOperation(Lazy<IObjectOrCollectionInitializerOperation> initializer, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
+            base(semanticModel, syntax, type, constantValue, isImplicit)
+        {
+            _lazyInitializer = initializer ?? throw new System.ArgumentNullException(nameof(initializer));
+        }
+        public override IObjectOrCollectionInitializerOperation Initializer => SetParentOperation(_lazyInitializer.Value, this);
+    }
 }

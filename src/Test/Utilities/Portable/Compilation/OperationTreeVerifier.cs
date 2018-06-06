@@ -1563,6 +1563,14 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             Visit(operation.Initializer, "Initializer");
         }
 
+        internal override void VisitNoPiaObjectCreation(INoPiaObjectCreationOperation operation)
+        {
+            LogString(nameof(INoPiaObjectCreationOperation));
+            LogCommonPropertiesAndNewLine(operation);
+
+            Visit(operation.Initializer, "Initializer");
+        }
+
         public override void VisitInvalid(IInvalidOperation operation)
         {
             LogString(nameof(IInvalidOperation));
