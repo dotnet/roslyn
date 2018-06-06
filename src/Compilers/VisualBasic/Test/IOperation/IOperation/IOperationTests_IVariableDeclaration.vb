@@ -3074,7 +3074,6 @@ End Class]]>.Value
 
             Dim expectedDiagnostics = String.Empty
 
-            ' PROTOTYPE(dataflow): Is this good enough to indicate that the static local is only initialized once?
             Dim expectedFlowGraph = <![CDATA[
 Block[B0] - Entry
     Statements (0)
@@ -3885,10 +3884,6 @@ Block[B6] - Exit
 
             VerifyFlowGraphAndDiagnosticsForTest(Of MethodBlockSyntax)(source, expectedFlowGraph, expectedDiagnostics)
         End Sub
-
-
-
-        ' PROTOTYPE(dataflow): Test Using/For after support has been added
 
 #End Region
     End Class

@@ -3071,10 +3071,6 @@ Block[B2] - Exit
             VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedFlowGraph, expectedDiagnostics);
         }
 
-
-
-        // PROTOTYPE(dataflow): test using/for/fixed constructs after support has been added.
-
         #endregion
     }
 }

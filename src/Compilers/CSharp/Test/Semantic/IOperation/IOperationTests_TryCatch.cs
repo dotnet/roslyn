@@ -7783,7 +7783,5 @@ Block[B6] - Exit [UnReachable]
 
             VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedGraph, expectedDiagnostics);
         }
-
-        // PROTOTYPE(dataflow): Add flow graph tests to VB.
     }
 }

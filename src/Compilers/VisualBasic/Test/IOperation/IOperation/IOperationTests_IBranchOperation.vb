@@ -101,8 +101,6 @@ Block[B1] - Exit
             VerifyFlowGraphAndDiagnosticsForTest(Of MethodBlockSyntax)(source, expectedFlowGraph, expectedDiagnostics)
         End Sub
 
-        ' PROTOTYPE(dataflow): Port BranchFlow_02 - BranchFlow_05 unit-tests from C#
-
         <CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)>
         <Fact()>
         Public Sub BranchFlow_06()
@@ -140,8 +138,6 @@ Block[B2] - Exit
 
             VerifyFlowGraphAndDiagnosticsForTest(Of MethodBlockSyntax)(source, expectedFlowGraph, expectedDiagnostics)
         End Sub
-
-        ' PROTOTYPE(dataflow): Port BranchFlow_07 - BranchFlow_11 unit-tests from C#
 
         <CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)>
         <Fact()>
