@@ -4698,19 +4698,7 @@ oneMoreTime:
             // Initializer is removed from the tree and turned into a series of statements that assign to the created instance
             IOperation initializedInstance = new NoPiaObjectCreationOperation(initializer: null, semanticModel: null, operation.Syntax, operation.Type,
                                                                               operation.ConstantValue, IsImplicit(operation));
-
-            if (operation.Initializer != null)
-            {
-                SpillEvalStack();
-
-                int initializerCaptureId = _availableCaptureId++;
-                AddStatement(new FlowCapture(initializerCaptureId, initializedInstance.Syntax, initializedInstance));
-
-                initializedInstance = GetCaptureReference(initializerCaptureId, initializedInstance);
-                HandleObjectOrCollectionInitializer(operation.Initializer, initializedInstance);
-            }
-
-            return initializedInstance;
+            return HandleObjectOrCollectionInitializer(operation.Initializer, initializedInstance);
         }
 
         public override IOperation VisitObjectCreation(IObjectCreationOperation operation, int? captureIdForResult)
@@ -4978,13 +4966,13 @@ oneMoreTime:
 
         public override IOperation VisitObjectOrCollectionInitializer(IObjectOrCollectionInitializerOperation operation, int? captureIdForResult)
         {
-            Debug.Assert(false, "This code path should not be reachable.");
+            Debug.Fail("This code path should not be reachable.");
             return MakeInvalidOperation(operation.Syntax, operation.Type, ImmutableArray<IOperation>.Empty);
         }
 
         public override IOperation VisitMemberInitializer(IMemberInitializerOperation operation, int? captureIdForResult)
         {
-            Debug.Assert(false, "This code path should not be reachable.");
+            Debug.Fail("This code path should not be reachable.");
             return MakeInvalidOperation(operation.Syntax, operation.Type, ImmutableArray<IOperation>.Empty);
         }
 
@@ -5754,7 +5742,7 @@ oneMoreTime:
                     break;
             }
 
-            Debug.Assert(false, "All placeholders should be handled above. Have we introduced a new scenario where placeholders are used?");
+            Debug.Fail("All placeholders should be handled above. Have we introduced a new scenario where placeholders are used?");
             return new PlaceholderExpression(operation.PlaceholderKind, semanticModel: null, operation.Syntax, operation.Type, operation.ConstantValue, IsImplicit(operation));
         }
 
