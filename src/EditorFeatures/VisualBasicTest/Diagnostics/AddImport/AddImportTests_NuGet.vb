@@ -30,7 +30,9 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.CodeActions.AddImp
         End Function
 
         Friend Overrides Function CreateDiagnosticProviderAndFixer(workspace As Workspace) As (DiagnosticAnalyzer, CodeFixProvider)
-            Throw New NotImplementedException()
+            ' This is used by inherited tests to ensure the properties of diagnostic analyzers are correct. It's not
+            ' needed by the tests in this class, but can't throw an exception.
+            Return (Nothing, Nothing)
         End Function
 
         Friend Overrides Function CreateDiagnosticProviderAndFixer(workspace As Workspace, parameters As TestParameters) As (DiagnosticAnalyzer, CodeFixProvider)
@@ -172,8 +174,7 @@ Class C
     Dim n As [|NuGetType|]
 End Class",
 String.Format(FeaturesResources.Use_local_version_0, "2.0"),
-index:=1,
-parameters:=New TestParameters(fixProviderData:=data))
+parameters:=New TestParameters(index:=1, fixProviderData:=data))
 
             Await TestSmartTagTextAsync(
 "
@@ -181,8 +182,7 @@ Class C
     Dim n As [|NuGetType|]
 End Class",
 FeaturesResources.Find_and_install_latest_version,
-index:=2,
-parameters:=New TestParameters(fixProviderData:=data))
+parameters:=New TestParameters(index:=2, fixProviderData:=data))
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)>

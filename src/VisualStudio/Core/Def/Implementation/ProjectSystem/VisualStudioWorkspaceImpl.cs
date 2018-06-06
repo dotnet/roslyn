@@ -63,8 +63,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
         public VisualStudioWorkspaceImpl(ExportProvider exportProvider)
             : base(
-                MefV1HostServices.Create(exportProvider),
-                backgroundWork: WorkspaceBackgroundWork.ParseAndCompile)
+                MefV1HostServices.Create(exportProvider))
         {
             _textBufferCloneService = exportProvider.GetExportedValue<ITextBufferCloneService>();
             _textBufferFactoryService = exportProvider.GetExportedValue<ITextBufferFactoryService>();
@@ -166,7 +165,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             }
 
             // first make sure we can edit the document we will be updating (check them out from source control, etc)
-            var changedDocs = projectChanges.SelectMany(pd => pd.GetChangedDocuments()).ToList();
+            var changedDocs = projectChanges.SelectMany(pd => pd.GetChangedDocuments(true)).ToList();
             if (changedDocs.Count > 0)
             {
                 this.EnsureEditableDocuments(changedDocs);
@@ -204,7 +203,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 // This is because the remove/add of the documents in CPS is not synchronous
                 // (despite the DTE interfaces being synchronous).  So Roslyn calls the methods
                 // expecting the changes to happen immediately.  Because they are deferred in CPS
-                // this causes problems. 
+                // this causes problems.
                 return hierarchy.IsCapabilityMatch("CPS");
             }
 
@@ -720,7 +719,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             if (hostDocument != null)
             {
                 var document = this.CurrentSolution.GetDocument(documentId);
-                var text = this.GetTextForced(document);
+                var text = document.GetTextSynchronously(CancellationToken.None);
 
                 var project = hostDocument.Project.Hierarchy as IVsProject3;
 
@@ -776,7 +775,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         {
             CloseDocumentCore(documentId);
         }
-        
+
         public void OpenDocumentCore(DocumentId documentId, bool activate = true)
         {
             if (documentId == null)
@@ -813,8 +812,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             var itemId = document.GetItemId();
             if (itemId == (uint)VSConstants.VSITEMID.Nil)
             {
-                // If the ItemId is Nil, then IVsProject would not be able to open the 
-                // document using its ItemId. Thus, we must use OpenDocumentViaProject, which only 
+                // If the ItemId is Nil, then IVsProject would not be able to open the
+                // document using its ItemId. Thus, we must use OpenDocumentViaProject, which only
                 // depends on the file path.
 
                 return ErrorHandler.Succeeded(DeferredState.ShellOpenDocumentService.OpenDocumentViaProject(
@@ -830,12 +829,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 // If the ItemId is not Nil, then we should not call IVsUIShellDocument
                 // .OpenDocumentViaProject here because that simply takes a file path and opens the
                 // file within the context of the first project it finds. That would cause problems
-                // if the document we're trying to open is actually a linked file in another 
+                // if the document we're trying to open is actually a linked file in another
                 // project. So, we get the project's hierarchy and open the document using its item
                 // ID.
 
-                // It's conceivable that IVsHierarchy might not implement IVsProject. However, 
-                // OpenDocumentViaProject itself relies upon this QI working, so it should be OK to 
+                // It's conceivable that IVsHierarchy might not implement IVsProject. However,
+                // OpenDocumentViaProject itself relies upon this QI working, so it should be OK to
                 // use here.
 
                 var vsProject = document.Project.Hierarchy as IVsProject;
@@ -948,7 +947,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             else
             {
                 // Regular linked files
-                //     Transfer the item (open buffer) to the new hierarchy, and then hierarchy events 
+                //     Transfer the item (open buffer) to the new hierarchy, and then hierarchy events
                 //     will trigger the workspace to update.
                 var vsproj = hierarchy as IVsProject3;
                 var hr = vsproj.TransferItem(hostDocument.FilePath, hostDocument.FilePath, punkWindowFrame: null);
@@ -1033,12 +1032,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         /// linked files, this is always the provided <see cref="DocumentId"/>. For open linked
         /// files and open shared files, the active context is already tracked by the
         /// <see cref="Workspace"/> and can be looked up directly. For closed shared files, the
-        /// document in the shared project's <see cref="__VSHPROPID7.VSHPROPID_SharedItemContextHierarchy"/> 
+        /// document in the shared project's <see cref="__VSHPROPID7.VSHPROPID_SharedItemContextHierarchy"/>
         /// is preferred.
         /// </summary>
         internal override DocumentId GetDocumentIdInCurrentContext(DocumentId documentId)
         {
-            // If the document is open, then the Workspace knows the current context for both 
+            // If the document is open, then the Workspace knows the current context for both
             // linked and shared files
             if (IsDocumentOpen(documentId))
             {
@@ -1148,9 +1147,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             // workspace is going away. unregister this workspace from work coordinator
             StopSolutionCrawler();
 
-            // We should consider calling this here. It is commented out because Solution event tracking was 
-            // moved from VisualStudioProjectTracker, which is never Dispose()'d.  Rather than risk the 
-            // UnadviseSolutionEvents causing another issue (calling into dead COM objects, etc), we'll just 
+            // We should consider calling this here. It is commented out because Solution event tracking was
+            // moved from VisualStudioProjectTracker, which is never Dispose()'d.  Rather than risk the
+            // UnadviseSolutionEvents causing another issue (calling into dead COM objects, etc), we'll just
             // continue to skip it for now.
             // UnadviseSolutionEvents();
 
@@ -1240,7 +1239,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             }
 
             // Neither project denied the reference being added.  At this point, if either project
-            // allows the reference to be added, and the other doesn't block it, then we can add 
+            // allows the reference to be added, and the other doesn't block it, then we can add
             // the reference.
             if (canAddProjectReference == (int)__VSREFERENCEQUERYRESULT.REFERENCE_ALLOW ||
                 canBeReferenced == (int)__VSREFERENCEQUERYRESULT.REFERENCE_ALLOW)
@@ -1257,7 +1256,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 return false;
             }
 
-            // As long as the reference manager does not deny things, then we allow the 
+            // As long as the reference manager does not deny things, then we allow the
             // reference to be added.
             var result = referenceManager.QueryCanReferenceProject(referencingHierarchy, referencedHierarchy);
             return result != (uint)__VSREFERENCEQUERYRESULT.REFERENCE_DENY;

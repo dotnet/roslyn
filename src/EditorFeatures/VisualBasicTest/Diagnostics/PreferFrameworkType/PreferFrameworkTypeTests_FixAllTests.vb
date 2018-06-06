@@ -6,8 +6,6 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics.Prefer
     Partial Public Class PreferFrameworkTypeTests
         Inherits AbstractVisualBasicDiagnosticProviderBasedUserDiagnosticTest
 
-        Private ReadOnly _fixAllActionId As String = FeaturesResources.Use_framework_type
-
         <Fact>
         <Trait(Traits.Feature, Traits.Features.CodeActionsUseFrameworkType)>
         <Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)>
@@ -95,7 +93,7 @@ End Class]]>
                                </Project>
                            </Workspace>.ToString()
 
-            Await TestInRegularAndScriptAsync(input, expected, fixAllActionEquivalenceKey:=_fixAllActionId, options:=FrameworkTypeEverywhere)
+            Await TestInRegularAndScriptAsync(input, expected, options:=FrameworkTypeEverywhere)
         End Function
 
         <Fact>
@@ -185,7 +183,7 @@ End Class]]>
                                </Project>
                            </Workspace>.ToString()
 
-            Await TestInRegularAndScriptAsync(input, expected, fixAllActionEquivalenceKey:=_fixAllActionId, options:=FrameworkTypeEverywhere)
+            Await TestInRegularAndScriptAsync(input, expected, options:=FrameworkTypeEverywhere)
         End Function
 
         <Fact>
@@ -275,7 +273,7 @@ End Class]]>
                                </Project>
                            </Workspace>.ToString()
 
-            Await TestInRegularAndScriptAsync(input, expected, fixAllActionEquivalenceKey:=_fixAllActionId, options:=FrameworkTypeEverywhere)
+            Await TestInRegularAndScriptAsync(input, expected, options:=FrameworkTypeEverywhere)
         End Function
 
         <Fact>
@@ -407,7 +405,7 @@ End Class]]>
                                </Project>
                            </Workspace>.ToString()
 
-            Await TestInRegularAndScriptAsync(input, expected, fixAllActionEquivalenceKey:=_fixAllActionId, options:=FrameworkTypeEverywhere)
+            Await TestInRegularAndScriptAsync(input, expected, options:=FrameworkTypeEverywhere)
         End Function
     End Class
 End Namespace

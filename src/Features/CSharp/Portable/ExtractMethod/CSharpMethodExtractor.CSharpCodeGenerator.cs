@@ -402,10 +402,10 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
             }
 
             /// <summary>
-            /// If the statement has an `out var` declaration expression for a variable which
-            /// needs to be removed, we need to turn it into a plain `out` parameter, so that
+            /// If the statement has an <c>out var</c> declaration expression for a variable which
+            /// needs to be removed, we need to turn it into a plain <c>out</c> parameter, so that
             /// it doesn't declare a duplicate variable.
-            /// If the statement has a pattern declaration (such as `3 is int i`) for a variable
+            /// If the statement has a pattern declaration (such as <c>3 is int i</c>) for a variable
             /// which needs to be removed, we will annotate it as a conflict, since we don't have
             /// a better refactoring.
             /// </summary>
@@ -654,14 +654,14 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                     return methodDefinition.ReplaceToken(
                             methodDefinition.Body.OpenBraceToken,
                             methodDefinition.Body.OpenBraceToken.WithAppendedTrailingTrivia(
-                                SpecializedCollections.SingletonEnumerable(SyntaxFactory.CarriageReturnLineFeed)));
+                                SpecializedCollections.SingletonEnumerable(SyntaxFactory.ElasticCarriageReturnLineFeed)));
                 }
                 else if (methodDefinition.ExpressionBody != null)
                 {
                     return methodDefinition.ReplaceToken(
                             methodDefinition.ExpressionBody.ArrowToken,
                             methodDefinition.ExpressionBody.ArrowToken.WithPrependedLeadingTrivia(
-                                SpecializedCollections.SingletonEnumerable(SyntaxFactory.CarriageReturnLineFeed)));
+                                SpecializedCollections.SingletonEnumerable(SyntaxFactory.ElasticCarriageReturnLineFeed)));
                 }
                 else
                 {

@@ -43,16 +43,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
         private sealed class BasicTestBase : CommonTestBase
         {
-            protected override CompilationOptions CompilationOptionsReleaseDll
-            {
-                get { throw new NotImplementedException(); }
-            }
-
-            protected override Compilation GetCompilationForEmit(IEnumerable<string> source, IEnumerable<MetadataReference> additionalRefs, CompilationOptions options, ParseOptions parseOptions)
-            {
-                throw new NotImplementedException();
-            }
-
             internal override string VisualizeRealIL(IModuleSymbol peModule, CodeAnalysis.CodeGen.CompilationTestData.MethodData methodData, IReadOnlyDictionary<int, string> markers)
             {
                 throw new NotImplementedException();
