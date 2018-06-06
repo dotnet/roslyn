@@ -17,17 +17,17 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.NamingStyle
         {
             switch (symbolOrTypeKind)
             {
-            case TypeKind typeKind:
-                return new SymbolKindOrTypeKind(typeKind);
+                case TypeKind typeKind:
+                    return new SymbolKindOrTypeKind(typeKind);
 
-            case SymbolKind symbolKind:
-                return new SymbolKindOrTypeKind(symbolKind);
+                case SymbolKind symbolKind:
+                    return new SymbolKindOrTypeKind(symbolKind);
 
-            case MethodKind methodKind:
-                return new SymbolKindOrTypeKind(methodKind);
+                case MethodKind methodKind:
+                    return new SymbolKindOrTypeKind(methodKind);
 
-            default:
-                throw ExceptionUtilities.UnexpectedValue(symbolOrTypeKind);
+                default:
+                    throw ExceptionUtilities.UnexpectedValue(symbolOrTypeKind);
             }
         }
 
