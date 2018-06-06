@@ -328,14 +328,14 @@ namespace Microsoft.CodeAnalysis.NamingStyles
         private static string StripCommonPrefixes(string name)
         {
             var index = 0;
-            while (name.Length > index + 1)
+            while (index + 1 < name.Length)
             {
                 switch (char.ToLowerInvariant(name[index]))
                 {
                 case 'm':
                 case 's':
                 case 't':
-                    if (name.Length > index + 2 && name[index + 1] == '_')
+                    if (index + 2 < name.Length && name[index + 1] == '_')
                     {
                         index += 2;
                         continue;

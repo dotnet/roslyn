@@ -109,12 +109,14 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics.NamingStyles
                 prefix: "",
                 suffix: "",
                 wordSeparator: "");
+
             var namingRule = new SerializableNamingRule()
             {
                 SymbolSpecificationID = symbolSpecification.ID,
                 NamingStyleID = namingStyle.ID,
                 EnforcementLevel = DiagnosticSeverity.Error
             };
+
             var info = new NamingStylePreferences(
                 ImmutableArray.Create(symbolSpecification),
                 ImmutableArray.Create(namingStyle),
@@ -139,12 +141,14 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics.NamingStyles
                 prefix: "_",
                 suffix: "",
                 wordSeparator: "");
+
             var namingRule = new SerializableNamingRule()
             {
                 SymbolSpecificationID = symbolSpecification.ID,
                 NamingStyleID = namingStyle.ID,
                 EnforcementLevel = DiagnosticSeverity.Error
             };
+
             var info = new NamingStylePreferences(
                 ImmutableArray.Create(symbolSpecification),
                 ImmutableArray.Create(namingStyle),
