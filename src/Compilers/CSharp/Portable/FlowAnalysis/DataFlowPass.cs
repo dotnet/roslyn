@@ -1178,6 +1178,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     break;
 
                 case BoundKind.SuppressNullableWarningExpression:
+                    // for example, assigning to `x!` in `M(out x!)` assigns to `x`
                     AssignImpl(((BoundSuppressNullableWarningExpression)node).Expression, value, isRef, written, read);
                     break;
 

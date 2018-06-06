@@ -6599,11 +6599,13 @@ public static class Static
             var comp = CreateCompilation(@"
 public class C
 {
-    public void Main(string s)
+    public void Main(string s, string? ns)
     {
         s = Static.Oblivious!;
         var s2 = s;
         s2/*T:string!*/.ToString(); // ok
+        ns = Static.Oblivious!;
+        ns.ToString(); // ok
     }
 }
 ", references: new[] { libComp.EmitToImageReference() }, parseOptions: TestOptions.Regular8);
@@ -6611,6 +6613,106 @@ public class C
             VerifyVarLocal(comp, "string!");
             comp.VerifyTypes();
             comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void SuppressedValueGivesNonNullResult()
+        {
+            var comp = CreateCompilation(@"
+public class C
+{
+    public void Main(string? ns, bool b)
+    {
+        var x1 = F(ns!);
+        x1 /*T:string!*/ .ToString();
+
+        var listNS = List.Create(ns);
+        listNS /*T:List<string?>*/ .ToString();
+        var x2 = F2(listNS);
+        x2 /*T:string!*/ .ToString();
+    }
+    public T F<T>(T? x) where T : class => throw null;
+    public T F2<T>(List<T?> x) where T : class => throw null;
+}
+public class List { public static List<T> Create<T>(T t) => throw null; }
+public class List<T> { }
+", parseOptions: TestOptions.Regular8);
+
+            // PROTOTYPE(NullableReferenceTypes): should warn on F2(listNS)
+            comp.VerifyTypes();
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void NestedNullabilityMismatchIgnoresSuppression()
+        {
+            var obliviousComp = CreateCompilation(@"
+public static class Static
+{
+    public static string Oblivious = null;
+}
+", parseOptions: TestOptions.Regular7);
+
+            var comp = CreateCompilation(@"
+public class C
+{
+    public void Main(string s, string? ns)
+    {
+        var o = Static.Oblivious;
+
+        {
+            var listS = List.Create(s);
+            var listNS = List.Create(ns);
+            listS /*T:List<string!>*/ .ToString();
+            listNS /*T:List<string?>*/ .ToString();
+            listS = listNS!; // warn 1
+        }
+
+        {
+            var listS = List.Create(s);
+            var listO = List.Create(o);
+            listO /*T:List<string>*/ .ToString();
+            listS = listO; // ok
+        }
+
+        {
+            var listNS = List.Create(ns);
+            var listS = List.Create(s);
+            listNS = listS!; // warn 2
+        }
+
+        {
+            var listNS = List.Create(ns);
+            var listO = List.Create(o);
+            listNS = listO; // ok
+        }
+
+        {
+            var listO = List.Create(o);
+            var listNS = List.Create(ns);
+            listO = listNS; // ok
+        }
+
+        {
+            var listO = List.Create(o);
+            var listS = List.Create(s);
+            listO = listS; // ok
+        }
+    }
+}
+public class List { public static List<T> Create<T>(T t) => throw null; }
+public class List<T> { }
+", references: new[] { obliviousComp.EmitToImageReference() }, parseOptions: TestOptions.Regular8);
+
+            comp.VerifyTypes();
+            comp.VerifyDiagnostics(
+                // (13,21): warning CS8619: Nullability of reference types in value of type 'List<string?>' doesn't match target type 'List<string>'.
+                //             listS = listNS!; // warn 1
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "listNS!").WithArguments("List<string?>", "List<string>").WithLocation(13, 21),
+                // (26,22): warning CS8619: Nullability of reference types in value of type 'List<string>' doesn't match target type 'List<string?>'.
+                //             listNS = listS!; // warn 2
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "listS!").WithArguments("List<string>", "List<string?>").WithLocation(26, 22)
+                );
         }
 
         [Fact]
