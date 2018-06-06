@@ -147,7 +147,6 @@ namespace Microsoft.CodeAnalysis.Operations
 
         internal virtual void VisitAggregateQuery(IAggregateQueryOperation operation)
         {
-            //DefaultVisit(operation);
             VisitNoneOperation(operation);
         }
 
@@ -456,6 +455,11 @@ namespace Microsoft.CodeAnalysis.Operations
             DefaultVisit(operation);
         }
 
+        internal virtual void VisitNoPiaObjectCreation(INoPiaObjectCreationOperation operation)
+        {
+            VisitNoneOperation(operation);
+        }
+
         public virtual void VisitInvalid(IInvalidOperation operation)
         {
             DefaultVisit(operation);
@@ -706,7 +710,6 @@ namespace Microsoft.CodeAnalysis.Operations
 
         internal virtual TResult VisitAggregateQuery(IAggregateQueryOperation operation, TArgument argument)
         {
-            //return DefaultVisit(operation, argument);
             return VisitNoneOperation(operation, argument);
         }
 
@@ -1013,6 +1016,11 @@ namespace Microsoft.CodeAnalysis.Operations
         public virtual TResult VisitTypeParameterObjectCreation(ITypeParameterObjectCreationOperation operation, TArgument argument)
         {
             return DefaultVisit(operation, argument);
+        }
+
+        internal virtual TResult VisitNoPiaObjectCreation(INoPiaObjectCreationOperation operation, TArgument argument)
+        {
+            return VisitNoneOperation(operation, argument);
         }
 
         public virtual TResult VisitInvalid(IInvalidOperation operation, TArgument argument)

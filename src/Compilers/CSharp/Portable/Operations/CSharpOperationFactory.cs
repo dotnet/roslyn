@@ -123,6 +123,8 @@ namespace Microsoft.CodeAnalysis.Operations
                     return CreateBoundBadExpressionOperation((BoundBadExpression)boundNode);
                 case BoundKind.NewT:
                     return CreateBoundNewTOperation((BoundNewT)boundNode);
+                case BoundKind.NoPiaObjectCreationExpression:
+                    return CreateNoPiaObjectCreationExpressionOperation((BoundNoPiaObjectCreationExpression)boundNode);
                 case BoundKind.UnaryOperator:
                     return CreateBoundUnaryOperatorOperation((BoundUnaryOperator)boundNode);
                 case BoundKind.BinaryOperator:
@@ -1145,6 +1147,16 @@ namespace Microsoft.CodeAnalysis.Operations
             Optional<object> constantValue = ConvertToOptional(boundNewT.ConstantValue);
             bool isImplicit = boundNewT.WasCompilerGenerated;
             return new LazyTypeParameterObjectCreationExpression(initializer, _semanticModel, syntax, type, constantValue, isImplicit);
+        }
+
+        private INoPiaObjectCreationOperation CreateNoPiaObjectCreationExpressionOperation(BoundNoPiaObjectCreationExpression creation)
+        {
+            Lazy<IObjectOrCollectionInitializerOperation> initializer = new Lazy<IObjectOrCollectionInitializerOperation>(() => (IObjectOrCollectionInitializerOperation)Create(creation.InitializerExpressionOpt));
+            SyntaxNode syntax = creation.Syntax;
+            ITypeSymbol type = creation.Type;
+            Optional<object> constantValue = ConvertToOptional(creation.ConstantValue);
+            bool isImplicit = creation.WasCompilerGenerated;
+            return new LazyNoPiaObjectCreationOperation(initializer, _semanticModel, syntax, type, constantValue, isImplicit);
         }
 
         private IUnaryOperation CreateBoundUnaryOperatorOperation(BoundUnaryOperator boundUnaryOperator)

@@ -4693,6 +4693,14 @@ oneMoreTime:
             return (visitedInstance, visitedArguments);
         }
 
+        internal override IOperation VisitNoPiaObjectCreation(INoPiaObjectCreationOperation operation, int? argument)
+        {
+            // Initializer is removed from the tree and turned into a series of statements that assign to the created instance
+            IOperation initializedInstance = new NoPiaObjectCreationOperation(initializer: null, semanticModel: null, operation.Syntax, operation.Type,
+                                                                              operation.ConstantValue, IsImplicit(operation));
+            return HandleObjectOrCollectionInitializer(operation.Initializer, initializedInstance);
+        }
+
         public override IOperation VisitObjectCreation(IObjectCreationOperation operation, int? captureIdForResult)
         {
             ImmutableArray<IArgumentOperation> visitedArgs = VisitArguments(operation.Arguments);
@@ -4958,12 +4966,14 @@ oneMoreTime:
 
         public override IOperation VisitObjectOrCollectionInitializer(IObjectOrCollectionInitializerOperation operation, int? captureIdForResult)
         {
-            throw ExceptionUtilities.Unreachable;
+            Debug.Fail("This code path should not be reachable.");
+            return MakeInvalidOperation(operation.Syntax, operation.Type, ImmutableArray<IOperation>.Empty);
         }
 
         public override IOperation VisitMemberInitializer(IMemberInitializerOperation operation, int? captureIdForResult)
         {
-            throw ExceptionUtilities.Unreachable;
+            Debug.Fail("This code path should not be reachable.");
+            return MakeInvalidOperation(operation.Syntax, operation.Type, ImmutableArray<IOperation>.Empty);
         }
 
         public override IOperation VisitAnonymousObjectCreation(IAnonymousObjectCreationOperation operation, int? captureIdForResult)
@@ -5732,7 +5742,7 @@ oneMoreTime:
                     break;
             }
 
-            Debug.Assert(false, "All placeholders should be handled above. Have we introduced a new scenario where placeholders are used?");
+            Debug.Fail("All placeholders should be handled above. Have we introduced a new scenario where placeholders are used?");
             return new PlaceholderExpression(operation.PlaceholderKind, semanticModel: null, operation.Syntax, operation.Type, operation.ConstantValue, IsImplicit(operation));
         }
 
