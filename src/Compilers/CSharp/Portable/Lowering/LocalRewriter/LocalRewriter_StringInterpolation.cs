@@ -32,14 +32,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             return result;
         }
 
-        private static bool CanLowerToStringConcatenation(BoundInterpolatedString node)
+        private bool CanLowerToStringConcatenation(BoundInterpolatedString node)
         {
             foreach (var part in node.Parts)
             {
                 if (part is BoundStringInsert fillin)
                 {
                     // this is one of the expression holes
-                    if (fillin.HasErrors ||
+                    if (_inExpressionLambda ||
+                        fillin.HasErrors ||
                         fillin.Value.Type?.SpecialType != SpecialType.System_String ||
                         fillin.Alignment != null ||
                         fillin.Format != null)
@@ -119,7 +120,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             BoundExpression result;
 
-            if (!_inExpressionLambda && CanLowerToStringConcatenation(node))
+            if (CanLowerToStringConcatenation(node))
             {
                 // All fill-ins, if any, are strings, and none of them have alignment or format specifiers.
                 // We can lower to a more efficient string concatenation
