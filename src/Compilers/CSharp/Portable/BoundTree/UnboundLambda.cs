@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         BoundBlock IBoundLambdaOrFunction.Body { get => this.Body; }
     }
 
-    internal sealed class InferredLambdaReturnType
+    internal struct InferredLambdaReturnType
     {
         internal readonly bool FromSingleType;
         internal readonly RefKind RefKind;
@@ -93,6 +93,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // Diagnostics from NullableWalker.Analyze can be dropped here since Analyze
                 // will be called again from NullableWalker.ApplyConversion when the
                 // BoundLambda is converted to an anonymous function.
+                // PROTOTYPE(NullableReferenceTypes): Can we avoid generating extra
+                // diagnostics? And is this exponential when there are nested lambdas?
                 var diagnostics = DiagnosticBag.GetInstance();
                 var delegateType = Type.GetDelegateType();
                 var compilation = Binder.Compilation;
@@ -241,7 +243,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             public override BoundNode VisitLocalFunctionStatement(BoundLocalFunctionStatement node)
             {
-                // Do not recurse into nested lambdas; we don't want their returns.
+                // Do not recurse into local functions; we don't want their returns.
                 return null;
             }
 
@@ -251,7 +253,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var type = (expression is null) ?
                     NoReturnExpression :
                     TypeSymbolWithAnnotations.Create(expression.Type?.SetUnknownNullabilityForReferenceTypes());
-                _builder.Add((node.RefKind, type)); ;
+                _builder.Add((node.RefKind, type));
                 return null;
             }
         }
@@ -521,7 +523,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 SourceOrdinaryMethodSymbol.ReportAsyncParameterErrors(lambdaSymbol.Parameters, diagnostics, lambdaSymbol.DiagnosticLocation);
             }
 
-            var result = new BoundLambda(_unboundLambda.Syntax, _unboundLambda, block, diagnostics.ToReadOnlyAndFree(), lambdaBodyBinder, delegateType, inferredReturnType: null)
+            var result = new BoundLambda(_unboundLambda.Syntax, _unboundLambda, block, diagnostics.ToReadOnlyAndFree(), lambdaBodyBinder, delegateType, inferredReturnType: default)
             { WasCompilerGenerated = _unboundLambda.WasCompilerGenerated };
 
             return result;

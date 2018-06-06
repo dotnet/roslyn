@@ -22,11 +22,15 @@ namespace Microsoft.CodeAnalysis.CSharp
     /// </summary>
     internal sealed partial class NullableWalker : DataFlowPassBase<NullableWalker.LocalState>
     {
-        // PROTOTYPE(NullableReferenceTypes): Reference the collections directly from the NullableWalker
-        // for the containing method rather than copying the collections. (Items are added to the collections
-        // but never replaced so the collections are lazily populated but otherwise immutable.)
+        /// <summary>
+        /// Used to copy variable slots and types from the NullableWalker for the containing method
+        /// or lambda to the NullableWalker created for a nested lambda or local function.
+        /// </summary>
         internal sealed class VariableState
         {
+            // PROTOTYPE(NullableReferenceTypes): Reference the collections directly from the original
+            // NullableWalker ratherthan coping the collections. (Items are added to the collections
+            // but never replaced so the collections are lazily populated but otherwise immutable.)
             internal readonly ImmutableDictionary<VariableIdentifier, int> VariableSlot;
             internal readonly ImmutableArray<VariableIdentifier> VariableBySlot;
             internal readonly ImmutableDictionary<Symbol, TypeSymbolWithAnnotations> VariableTypes;
@@ -45,8 +49,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// The inferred type at the point of declaration of var locals and parameters.
         /// </summary>
-        // PROTOTYPE(NullableReferenceTypes): Does this need to
-        // move to LocalState so it participates in merging?
         private readonly PooledDictionary<Symbol, TypeSymbolWithAnnotations> _variableTypes = PooledDictionary<Symbol, TypeSymbolWithAnnotations>.GetInstance();
 
         /// <summary>
@@ -67,7 +69,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>
-        /// Which fields to use from _methodSignatureOpt.
+        /// Indicates whether to use the return type and nullability from _methodSignatureOpt to
+        /// calculate return expression conversions, and whether to use the parameter types and
+        /// nullability from _methodSignatureOpt for initial parameter state. If those fields are not
+        /// used from _methodSignatureOpt, the signature of _member is used instead in each case.
         /// </summary>
         private readonly MethodSignatureUse _methodSignatureUse;
 
@@ -82,6 +87,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         private readonly ArrayBuilder<(RefKind, TypeSymbolWithAnnotations)> _returnTypes;
 
+        /// <summary>
+        /// An optional callback for callers to receive notification of the inferred type and nullability
+        /// of each expression in the method. Since the walker may require multiple passes, the callback
+        /// may be invoked multiple times for a single expression, potentially with different nullability
+        /// each time. The last call for each expression will include the final inferred type and nullability.
+        /// </summary>
         private readonly Action<BoundExpression, TypeSymbolWithAnnotations> _callbackOpt;
 
         /// <summary>
@@ -279,6 +290,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SymbolKind.Event:
                     {
                         // PROTOTYPE(NullableReferenceTypes): State of containing struct should not be important.
+                        // And if it is important, what about fields of structs that are fields of other structs, etc.?
                         int containingSlot = variable.ContainingSlot;
                         if (containingSlot > 0 &&
                             variableBySlot[containingSlot].Symbol.GetTypeOrReturnType().TypeKind == TypeKind.Struct &&
@@ -706,7 +718,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             var methodParameters = ((MethodSymbol)_member).Parameters;
             var signatureParameters = (_methodSignatureUse & MethodSignatureUse.ParameterTypes) == 0 ? default : _methodSignatureOpt.Parameters;
             int n = methodParameters.Length;
-            // label out parameters as not assigned.
             for (int i = 0; i < n; i++)
             {
                 var parameter = methodParameters[i];

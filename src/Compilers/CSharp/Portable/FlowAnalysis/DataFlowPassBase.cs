@@ -49,12 +49,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             _emptyStructTypeCache = emptyStructs;
             if (variableSlot != null)
             {
-                foreach (var pair in variableSlot)
+                nextVariableSlot = variableBySlot.Length;
+                foreach (var (variable, slot) in variableSlot)
                 {
-                    _variableSlot.Add(pair.Key, pair.Value);
+                    Debug.Assert(slot < nextVariableSlot);
+                    _variableSlot.Add(variable, slot);
                 }
                 this.variableBySlot = variableBySlot.ToArray();
-                nextVariableSlot = variableBySlot.Length;
             }
         }
 
