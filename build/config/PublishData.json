@@ -42,6 +42,13 @@
             "vsix": [ "https://dotnet.myget.org/F/roslyn/vsix/upload" ],
             "channels": [ "dev15.8p1"]
         },
+       "dev15.8-preview3-vs-deps": {
+            "nugetKind": "PerBuildPreRelease",
+            "version": "2.9.*",
+            "nuget": [ "https://dotnet.myget.org/F/roslyn/api/v2/package" ],
+            "vsix": [ "https://dotnet.myget.org/F/roslyn/vsix/upload" ],
+            "channels": [ "dev15.8p1"]
+        },
         "dev15.5.x": {
             "nugetKind": "PerBuildPreRelease",
             "version": "2.6.*",
