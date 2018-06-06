@@ -480,6 +480,11 @@ namespace Microsoft.CodeAnalysis.Operations
             return new TypeParameterObjectCreationExpression(Visit(operation.Initializer), ((Operation)operation).SemanticModel, operation.Syntax, operation.Type, operation.ConstantValue, operation.IsImplicit);
         }
 
+        internal override IOperation VisitNoPiaObjectCreation(INoPiaObjectCreationOperation operation, object argument)
+        {
+            return new NoPiaObjectCreationOperation(Visit(operation.Initializer), ((Operation)operation).SemanticModel, operation.Syntax, operation.Type, operation.ConstantValue, operation.IsImplicit);
+        }
+
         public override IOperation VisitInvalid(IInvalidOperation operation, object argument)
         {
             return new InvalidOperation(VisitArray(operation.Children.ToImmutableArray()), ((Operation)operation).SemanticModel, operation.Syntax, operation.Type, operation.ConstantValue, operation.IsImplicit);
