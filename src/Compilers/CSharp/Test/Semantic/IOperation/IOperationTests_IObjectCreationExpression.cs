@@ -9973,5 +9973,172 @@ Block[B5] - Exit
 ";
             VerifyFlowGraphAndDiagnosticsForTest<MethodDeclarationSyntax>(source, expectedFlowGraph, expectedDiagnostics);
         }
+
+        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+        [Fact]
+        public void ObjectCreationFlow_68()
+        {
+            string source = @"
+public class MemberInitializerTest
+{
+    public int x, y;
+    /*<bind>*/public static void Main()
+    {
+        var i = new MemberInitializerTest { x = 0, y++ };
+    }/*</bind>*/
+}
+";
+            var expectedDiagnostics = new[] {
+                // file.cs(7,52): error CS0120: An object reference is required for the non-static field, method, or property 'MemberInitializerTest.y'
+                //         var i = new MemberInitializerTest { x = 0, y++ };
+                Diagnostic(ErrorCode.ERR_ObjectRequired, "y").WithArguments("MemberInitializerTest.y").WithLocation(7, 52),
+                // file.cs(7,52): error CS0747: Invalid initializer member declarator
+                //         var i = new MemberInitializerTest { x = 0, y++ };
+                Diagnostic(ErrorCode.ERR_InvalidInitializerElementInitializer, "y++").WithLocation(7, 52)
+            };
+
+            string expectedFlowGraph = @"
+Block[B0] - Entry
+    Statements (0)
+    Next (Regular) Block[B1]
+        Entering: {R1}
+
+.locals {R1}
+{
+    Locals: [MemberInitializerTest i]
+    Block[B1] - Block
+        Predecessors: [B0]
+        Statements (4)
+            IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsInvalid, IsImplicit) (Syntax: 'new MemberI ...  = 0, y++ }')
+              Value: 
+                IObjectCreationOperation (Constructor: MemberInitializerTest..ctor()) (OperationKind.ObjectCreation, Type: MemberInitializerTest, IsInvalid) (Syntax: 'new MemberI ...  = 0, y++ }')
+                  Arguments(0)
+                  Initializer: 
+                    null
+
+            ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32) (Syntax: 'x = 0')
+              Left: 
+                IFieldReferenceOperation: System.Int32 MemberInitializerTest.x (OperationKind.FieldReference, Type: System.Int32) (Syntax: 'x')
+                  Instance Receiver: 
+                    IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: MemberInitializerTest, IsInvalid, IsImplicit) (Syntax: 'new MemberI ...  = 0, y++ }')
+              Right: 
+                ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0) (Syntax: '0')
+
+            IIncrementOrDecrementOperation (Postfix) (OperationKind.Increment, Type: ?, IsInvalid) (Syntax: 'y++')
+              Target: 
+                IFieldReferenceOperation: System.Int32 MemberInitializerTest.y (OperationKind.FieldReference, Type: System.Int32, IsInvalid) (Syntax: 'y')
+                  Instance Receiver: 
+                    IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: MemberInitializerTest, IsInvalid, IsImplicit) (Syntax: 'y')
+
+            ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: MemberInitializerTest, IsInvalid, IsImplicit) (Syntax: 'i = new Mem ...  = 0, y++ }')
+              Left: 
+                ILocalReferenceOperation: i (IsDeclaration: True) (OperationKind.LocalReference, Type: MemberInitializerTest, IsInvalid, IsImplicit) (Syntax: 'i = new Mem ...  = 0, y++ }')
+              Right: 
+                IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: MemberInitializerTest, IsInvalid, IsImplicit) (Syntax: 'new MemberI ...  = 0, y++ }')
+
+        Next (Regular) Block[B2]
+            Leaving: {R1}
+}
+
+Block[B2] - Exit
+    Predecessors: [B1]
+    Statements (0)
+";
+            VerifyFlowGraphAndDiagnosticsForTest<MethodDeclarationSyntax>(source, expectedFlowGraph, expectedDiagnostics);
+        }
+
+        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+        [Fact]
+        public void ObjectCreationFlow_69()
+        {
+            string source = @"
+#pragma warning disable 0169
+class A
+{
+    dynamic this[int x, int y]
+    {
+        get
+        {
+            return new A();
+        }
+    }
+
+    dynamic this[string x, string y]
+    {
+        get
+        {
+            throw null;
+        }
+    }
+
+    int X, Y, Z;
+
+    /*<bind>*/static void Main(A a, dynamic x)
+    {
+        a = new A {[y: x, x: x] = { X = 1, Y = 1, Z = 1 } };
+    }/*</bind>*/
+}
+";
+            var expectedDiagnostics = DiagnosticDescription.None;
+
+            string expectedFlowGraph = @"
+Block[B0] - Entry
+    Statements (0)
+    Next (Regular) Block[B1]
+Block[B1] - Block
+    Predecessors: [B0]
+    Statements (8)
+        IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'a')
+          Value: 
+            IParameterReferenceOperation: a (OperationKind.ParameterReference, Type: A) (Syntax: 'a')
+
+        IFlowCaptureOperation: 1 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'new A {[y:  ... , Z = 1 } }')
+          Value: 
+            IObjectCreationOperation (Constructor: A..ctor()) (OperationKind.ObjectCreation, Type: A) (Syntax: 'new A {[y:  ... , Z = 1 } }')
+              Arguments(0)
+              Initializer: 
+                null
+
+        IFlowCaptureOperation: 2 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'x')
+          Value: 
+            IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: dynamic) (Syntax: 'x')
+
+        IFlowCaptureOperation: 3 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'x')
+          Value: 
+            IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: dynamic) (Syntax: 'x')
+
+        ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: dynamic) (Syntax: 'X = 1')
+          Left: 
+            IOperation:  (OperationKind.None, Type: null) (Syntax: 'X')
+          Right: 
+            ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
+
+        ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: dynamic) (Syntax: 'Y = 1')
+          Left: 
+            IOperation:  (OperationKind.None, Type: null) (Syntax: 'Y')
+          Right: 
+            ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
+
+        ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: dynamic) (Syntax: 'Z = 1')
+          Left: 
+            IOperation:  (OperationKind.None, Type: null) (Syntax: 'Z')
+          Right: 
+            ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
+
+        IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'a = new A { ...  Z = 1 } };')
+          Expression: 
+            ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: A) (Syntax: 'a = new A { ... , Z = 1 } }')
+              Left: 
+                IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: A, IsImplicit) (Syntax: 'a')
+              Right: 
+                IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: A, IsImplicit) (Syntax: 'new A {[y:  ... , Z = 1 } }')
+
+    Next (Regular) Block[B2]
+Block[B2] - Exit
+    Predecessors: [B1]
+    Statements (0)
+";
+            VerifyFlowGraphAndDiagnosticsForTest<MethodDeclarationSyntax>(source, expectedFlowGraph, expectedDiagnostics);
+        }
     }
 }
