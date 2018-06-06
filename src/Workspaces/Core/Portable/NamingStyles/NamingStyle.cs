@@ -332,23 +332,23 @@ namespace Microsoft.CodeAnalysis.NamingStyles
             {
                 switch (char.ToLowerInvariant(name[index]))
                 {
-                case 'm':
-                case 's':
-                case 't':
-                    if (index + 2 < name.Length && name[index + 1] == '_')
-                    {
-                        index += 2;
+                    case 'm':
+                    case 's':
+                    case 't':
+                        if (index + 2 < name.Length && name[index + 1] == '_')
+                        {
+                            index += 2;
+                            continue;
+                        }
+
+                        break;
+
+                    case '_':
+                        index++;
                         continue;
-                    }
 
-                    break;
-
-                case '_':
-                    index++;
-                    continue;
-
-                default:
-                    break;
+                    default:
+                        break;
                 }
 
                 // If we reach this point, the current iteration did not strip any additional characters
