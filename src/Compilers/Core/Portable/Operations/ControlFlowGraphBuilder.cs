@@ -4701,32 +4701,48 @@ oneMoreTime:
             IOperation initializedInstance = new ObjectCreationExpression(operation.Constructor, initializer: null, visitedArgs, semanticModel: null, operation.Syntax, operation.Type,
                                                                           operation.ConstantValue, IsImplicit(operation));
 
-            if (operation.Initializer != null)
-            {
-                SpillEvalStack();
-
-                int initializerCaptureId = _availableCaptureId++;
-                AddStatement(new FlowCapture(initializerCaptureId, initializedInstance.Syntax, initializedInstance));
-
-                initializedInstance = GetCaptureReference(initializerCaptureId, initializedInstance);
-                HandleObjectOrCollectionInitializer(operation.Initializer, initializedInstance);
-            }
+            initializedInstance = HandleObjectOrCollectionInitializer(operation.Initializer, initializedInstance);
 
             return initializedInstance;
         }
 
-        private void HandleObjectOrCollectionInitializer(IObjectOrCollectionInitializerOperation initializer, IOperation initializedInstance)
+        public override IOperation VisitTypeParameterObjectCreation(ITypeParameterObjectCreationOperation operation, int? captureIdForResult)
         {
-            ImplicitInstanceInfo previousInitializedInstance = _currentImplicitInstance;
-            _currentImplicitInstance = new ImplicitInstanceInfo(initializedInstance);
+            var initializedInstance = new TypeParameterObjectCreationExpression(initializer: null, semanticModel: null, operation.Syntax, operation.Type, operation.ConstantValue, IsImplicit(operation));
+            return HandleObjectOrCollectionInitializer(operation.Initializer, initializedInstance);
+        }
 
-            foreach (IOperation innerInitializer in initializer.Initializers)
+        private IOperation HandleObjectOrCollectionInitializer(IObjectOrCollectionInitializerOperation initializer, IOperation objectCreation)
+        {
+            // If the initializer is null, nothing to spill. Just return the original instance.
+            if (initializer == null)
             {
-                handleInitializer(innerInitializer);
+                return objectCreation;
             }
 
-            _currentImplicitInstance = previousInitializedInstance;
-            return;
+            // Initializer wasn't null, so spill the stack and capture the initialized instance. Returns a reference to the captured instance.
+            SpillEvalStack();
+
+            int initializerCaptureId = _availableCaptureId++;
+            AddStatement(new FlowCapture(initializerCaptureId, objectCreation.Syntax, objectCreation));
+            objectCreation = GetCaptureReference(initializerCaptureId, objectCreation);
+
+            visitInitializer(initializer, objectCreation);
+
+            return objectCreation;
+
+            void visitInitializer(IObjectOrCollectionInitializerOperation initializerOperation, IOperation initializedInstance)
+            {
+                ImplicitInstanceInfo previousInitializedInstance = _currentImplicitInstance;
+                _currentImplicitInstance = new ImplicitInstanceInfo(initializedInstance);
+
+                foreach (IOperation innerInitializer in initializerOperation.Initializers)
+                {
+                    handleInitializer(innerInitializer);
+                }
+
+                _currentImplicitInstance = previousInitializedInstance;
+            }
 
             void handleInitializer(IOperation innerInitializer)
             {
@@ -4843,7 +4859,7 @@ oneMoreTime:
 
                 (bool pushSuccess, ImmutableArray<IOperation> arguments) = tryPushTarget(memberInitializer.InitializedMember);
                 IOperation instance = pushSuccess ? popTarget(memberInitializer.InitializedMember, arguments) : Visit(memberInitializer.InitializedMember);
-                HandleObjectOrCollectionInitializer(memberInitializer.Initializer, instance);
+                visitInitializer(memberInitializer.Initializer, instance);
             }
 
             (bool success, ImmutableArray<IOperation> arguments) tryPushTarget(IOperation instance)
@@ -5720,6 +5736,11 @@ oneMoreTime:
             return new PlaceholderExpression(operation.PlaceholderKind, semanticModel: null, operation.Syntax, operation.Type, operation.ConstantValue, IsImplicit(operation));
         }
 
+        public override IOperation VisitConversion(IConversionOperation operation, int? captureIdForResult)
+        {
+            return new ConversionOperation(Visit(operation.Operand), ((BaseConversionExpression)operation).ConvertibleConversion, operation.IsTryCast, operation.IsChecked, semanticModel: null, operation.Syntax, operation.Type, operation.ConstantValue, IsImplicit(operation));
+        }
+
         public override IOperation VisitIsPattern(IIsPatternOperation operation, int? captureIdForResult)
         {
             _evalStack.Push(Visit(operation.Value));
@@ -5756,11 +5777,7 @@ oneMoreTime:
                 IOperation initializedInstance = new InvalidOperation(children.ToImmutableAndFree(), semanticModel: null, operation.Syntax, operation.Type,
                                                                       operation.ConstantValue, IsImplicit(operation));
 
-                int initializerCaptureId = _availableCaptureId++;
-                AddStatement(new FlowCapture(initializerCaptureId, initializedInstance.Syntax, initializedInstance));
-
-                initializedInstance = GetCaptureReference(initializerCaptureId, initializedInstance);
-                HandleObjectOrCollectionInitializer(initializer, initializedInstance);
+                initializedInstance = HandleObjectOrCollectionInitializer(initializer, initializedInstance);
 
                 return initializedInstance;
             }
@@ -5776,7 +5793,7 @@ oneMoreTime:
             }
             
             children.Free();
-            retun result;
+            return result;
 
             IOperation visitInvalidOperationStatement(IInvalidOperation invalidOperation)
             {
@@ -5799,7 +5816,7 @@ oneMoreTime:
                     children[i] = _evalStack.Pop();
                 }
 
-                return new InvalidOperation(childrenBuilder.ToImmutable(), semanticModel: null, invalidOperation.Syntax, invalidOperation.Type, invalidOperation.ConstantValue, IsImplicit(operation));
+                return new InvalidOperation(children.ToImmutable(), semanticModel: null, invalidOperation.Syntax, invalidOperation.Type, invalidOperation.ConstantValue, IsImplicit(operation));
             }
         }
 
@@ -5855,11 +5872,6 @@ oneMoreTime:
             return new ArgumentOperation(Visit(operation.Value), operation.ArgumentKind, operation.Parameter, baseArgument.InConversionConvertibleOpt, baseArgument.OutConversionConvertibleOpt, semanticModel: null, operation.Syntax, IsImplicit(operation));
         }
 
-        public override IOperation VisitConversion(IConversionOperation operation, int? captureIdForResult)
-        {
-            return new ConversionOperation(Visit(operation.Operand), ((BaseConversionExpression)operation).ConvertibleConversion, operation.IsTryCast, operation.IsChecked, semanticModel: null, operation.Syntax, operation.Type, operation.ConstantValue, IsImplicit(operation));
-        }
-
         internal override IOperation VisitPointerIndirectionReference(IPointerIndirectionReferenceOperation operation, int? captureIdForResult)
         {
             return new PointerIndirectionReferenceExpression(Visit(operation.Pointer), semanticModel: null, operation.Syntax, operation.Type, operation.ConstantValue, IsImplicit(operation));
@@ -5876,12 +5888,6 @@ oneMoreTime:
         public override IOperation VisitDefaultValue(IDefaultValueOperation operation, int? captureIdForResult)
         {
             return new DefaultValueExpression(semanticModel: null, operation.Syntax, operation.Type, operation.ConstantValue, IsImplicit(operation));
-        }
-
-        public override IOperation VisitTypeParameterObjectCreation(ITypeParameterObjectCreationOperation operation, int? captureIdForResult)
-        {
-            return new TypeParameterObjectCreationExpression(initializer: null, // PROTOTYPE(dataflow): Dropping initializer for now to enable test hook verification
-                                                             semanticModel: null, operation.Syntax, operation.Type, operation.ConstantValue, IsImplicit(operation));
         }
 
         public override IOperation VisitTranslatedQuery(ITranslatedQueryOperation operation, int? captureIdForResult)
