@@ -32,7 +32,6 @@ Block[B0] - Entry
 .locals {R1}
 {
     Locals: [c1 As C] [c2 As C]
-    Methods: [Function () As System.Int32]
     Block[B1] - Block
         Predecessors: [B0]
         Statements (6)
@@ -52,6 +51,27 @@ Block[B0] - Entry
                 IDelegateCreationOperation (OperationKind.DelegateCreation, Type: System.Func(Of System.Int32), IsImplicit) (Syntax: 'Function() 1')
                   Target: 
                     IFlowAnonymousFunctionOperation (Symbol: Function () As System.Int32) (OperationKind.FlowAnonymousFunction, Type: null) (Syntax: 'Function() 1')
+                    {
+                        Block[B0#A0] - Entry
+                            Statements (0)
+                            Next (Regular) Block[B1#A0]
+                                Entering: {R1#A0}
+
+                        .locals {R1#A0}
+                        {
+                            Locals: [<anonymous local> As System.Int32]
+                            Block[B1#A0] - Block
+                                Predecessors: [B0#A0]
+                                Statements (0)
+                                Next (Return) Block[B2#A0]
+                                    ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
+                                    Leaving: {R1#A0}
+                        }
+
+                        Block[B2#A0] - Exit
+                            Predecessors: [B1#A0]
+                            Statements (0)
+                    }
 
             ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: C, IsImplicit) (Syntax: 'c1, c2 As N ... nction() 1}')
               Left: 
@@ -75,6 +95,27 @@ Block[B0] - Entry
                 IDelegateCreationOperation (OperationKind.DelegateCreation, Type: System.Func(Of System.Int32), IsImplicit) (Syntax: 'Function() 1')
                   Target: 
                     IFlowAnonymousFunctionOperation (Symbol: Function () As System.Int32) (OperationKind.FlowAnonymousFunction, Type: null) (Syntax: 'Function() 1')
+                    {
+                        Block[B0#A1] - Entry
+                            Statements (0)
+                            Next (Regular) Block[B1#A1]
+                                Entering: {R1#A1}
+
+                        .locals {R1#A1}
+                        {
+                            Locals: [<anonymous local> As System.Int32]
+                            Block[B1#A1] - Block
+                                Predecessors: [B0#A1]
+                                Statements (0)
+                                Next (Return) Block[B2#A1]
+                                    ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
+                                    Leaving: {R1#A1}
+                        }
+
+                        Block[B2#A1] - Exit
+                            Predecessors: [B1#A1]
+                            Statements (0)
+                    }
 
             ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: C, IsImplicit) (Syntax: 'c1, c2 As N ... nction() 1}')
               Left: 
@@ -84,29 +125,6 @@ Block[B0] - Entry
 
         Next (Regular) Block[B2]
             Leaving: {R1}
-    
-    {   Function () As System.Int32
-    
-        Block[B0#0R1] - Entry
-            Statements (0)
-            Next (Regular) Block[B1#0R1]
-                Entering: {R1#0R1}
-
-        .locals {R1#0R1}
-        {
-            Locals: [<anonymous local> As System.Int32]
-            Block[B1#0R1] - Block
-                Predecessors: [B0#0R1]
-                Statements (0)
-                Next (Return) Block[B2#0R1]
-                    ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
-                    Leaving: {R1#0R1}
-        }
-
-        Block[B2#0R1] - Exit
-            Predecessors: [B1#0R1]
-            Statements (0)
-    }
 }
 
 Block[B2] - Exit
@@ -138,82 +156,70 @@ End Class]]>.Value
 Block[B0] - Entry
     Statements (0)
     Next (Regular) Block[B1]
-        Entering: {R1}
+Block[B1] - Block
+    Predecessors: [B0]
+    Statements (2)
+        IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'd1 = Sub (r ... End Sub')
+          Expression: 
+            ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Action(Of System.Boolean, System.Boolean), IsImplicit) (Syntax: 'd1 = Sub (r ... End Sub')
+              Left: 
+                IParameterReferenceOperation: d1 (OperationKind.ParameterReference, Type: System.Action(Of System.Boolean, System.Boolean)) (Syntax: 'd1')
+              Right: 
+                IDelegateCreationOperation (OperationKind.DelegateCreation, Type: System.Action(Of System.Boolean, System.Boolean), IsImplicit) (Syntax: 'Sub (result ... End Sub')
+                  Target: 
+                    IFlowAnonymousFunctionOperation (Symbol: Sub (result1 As System.Boolean, input1 As System.Boolean)) (OperationKind.FlowAnonymousFunction, Type: null) (Syntax: 'Sub (result ... End Sub')
+                    {
+                        Block[B0#A0] - Entry
+                            Statements (0)
+                            Next (Regular) Block[B1#A0]
+                        Block[B1#A0] - Block
+                            Predecessors: [B0#A0]
+                            Statements (1)
+                                IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'result1 = input1')
+                                  Expression: 
+                                    ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Boolean, IsImplicit) (Syntax: 'result1 = input1')
+                                      Left: 
+                                        IParameterReferenceOperation: result1 (OperationKind.ParameterReference, Type: System.Boolean) (Syntax: 'result1')
+                                      Right: 
+                                        IParameterReferenceOperation: input1 (OperationKind.ParameterReference, Type: System.Boolean) (Syntax: 'input1')
 
-.locals {R1}
-{
-    Methods: [Sub (result1 As System.Boolean, input1 As System.Boolean)] [Sub (result2 As System.Boolean, input2 As System.Boolean)]
-    Block[B1] - Block
-        Predecessors: [B0]
-        Statements (2)
-            IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'd1 = Sub (r ... End Sub')
-              Expression: 
-                ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Action(Of System.Boolean, System.Boolean), IsImplicit) (Syntax: 'd1 = Sub (r ... End Sub')
-                  Left: 
-                    IParameterReferenceOperation: d1 (OperationKind.ParameterReference, Type: System.Action(Of System.Boolean, System.Boolean)) (Syntax: 'd1')
-                  Right: 
-                    IDelegateCreationOperation (OperationKind.DelegateCreation, Type: System.Action(Of System.Boolean, System.Boolean), IsImplicit) (Syntax: 'Sub (result ... End Sub')
-                      Target: 
-                        IFlowAnonymousFunctionOperation (Symbol: Sub (result1 As System.Boolean, input1 As System.Boolean)) (OperationKind.FlowAnonymousFunction, Type: null) (Syntax: 'Sub (result ... End Sub')
+                            Next (Regular) Block[B2#A0]
+                        Block[B2#A0] - Exit
+                            Predecessors: [B1#A0]
+                            Statements (0)
+                    }
 
-            IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'd2 = Sub (r ... t2 = input2')
-              Expression: 
-                ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Action(Of System.Boolean, System.Boolean), IsImplicit) (Syntax: 'd2 = Sub (r ... t2 = input2')
-                  Left: 
-                    IParameterReferenceOperation: d2 (OperationKind.ParameterReference, Type: System.Action(Of System.Boolean, System.Boolean)) (Syntax: 'd2')
-                  Right: 
-                    IDelegateCreationOperation (OperationKind.DelegateCreation, Type: System.Action(Of System.Boolean, System.Boolean), IsImplicit) (Syntax: 'Sub (result ... t2 = input2')
-                      Target: 
-                        IFlowAnonymousFunctionOperation (Symbol: Sub (result2 As System.Boolean, input2 As System.Boolean)) (OperationKind.FlowAnonymousFunction, Type: null) (Syntax: 'Sub (result ... t2 = input2')
+        IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'd2 = Sub (r ... t2 = input2')
+          Expression: 
+            ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Action(Of System.Boolean, System.Boolean), IsImplicit) (Syntax: 'd2 = Sub (r ... t2 = input2')
+              Left: 
+                IParameterReferenceOperation: d2 (OperationKind.ParameterReference, Type: System.Action(Of System.Boolean, System.Boolean)) (Syntax: 'd2')
+              Right: 
+                IDelegateCreationOperation (OperationKind.DelegateCreation, Type: System.Action(Of System.Boolean, System.Boolean), IsImplicit) (Syntax: 'Sub (result ... t2 = input2')
+                  Target: 
+                    IFlowAnonymousFunctionOperation (Symbol: Sub (result2 As System.Boolean, input2 As System.Boolean)) (OperationKind.FlowAnonymousFunction, Type: null) (Syntax: 'Sub (result ... t2 = input2')
+                    {
+                        Block[B0#A1] - Entry
+                            Statements (0)
+                            Next (Regular) Block[B1#A1]
+                        Block[B1#A1] - Block
+                            Predecessors: [B0#A1]
+                            Statements (1)
+                                IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'result2 = input2')
+                                  Expression: 
+                                    ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Boolean, IsImplicit) (Syntax: 'result2 = input2')
+                                      Left: 
+                                        IParameterReferenceOperation: result2 (OperationKind.ParameterReference, Type: System.Boolean) (Syntax: 'result2')
+                                      Right: 
+                                        IParameterReferenceOperation: input2 (OperationKind.ParameterReference, Type: System.Boolean) (Syntax: 'input2')
 
-        Next (Regular) Block[B2]
-            Leaving: {R1}
-    
-    {   Sub (result1 As System.Boolean, input1 As System.Boolean)
-    
-        Block[B0#0R1] - Entry
-            Statements (0)
-            Next (Regular) Block[B1#0R1]
-        Block[B1#0R1] - Block
-            Predecessors: [B0#0R1]
-            Statements (1)
-                IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'result1 = input1')
-                  Expression: 
-                    ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Boolean, IsImplicit) (Syntax: 'result1 = input1')
-                      Left: 
-                        IParameterReferenceOperation: result1 (OperationKind.ParameterReference, Type: System.Boolean) (Syntax: 'result1')
-                      Right: 
-                        IParameterReferenceOperation: input1 (OperationKind.ParameterReference, Type: System.Boolean) (Syntax: 'input1')
+                            Next (Regular) Block[B2#A1]
+                        Block[B2#A1] - Exit
+                            Predecessors: [B1#A1]
+                            Statements (0)
+                    }
 
-            Next (Regular) Block[B2#0R1]
-        Block[B2#0R1] - Exit
-            Predecessors: [B1#0R1]
-            Statements (0)
-    }
-    
-    {   Sub (result2 As System.Boolean, input2 As System.Boolean)
-    
-        Block[B0#1R1] - Entry
-            Statements (0)
-            Next (Regular) Block[B1#1R1]
-        Block[B1#1R1] - Block
-            Predecessors: [B0#1R1]
-            Statements (1)
-                IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'result2 = input2')
-                  Expression: 
-                    ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Boolean, IsImplicit) (Syntax: 'result2 = input2')
-                      Left: 
-                        IParameterReferenceOperation: result2 (OperationKind.ParameterReference, Type: System.Boolean) (Syntax: 'result2')
-                      Right: 
-                        IParameterReferenceOperation: input2 (OperationKind.ParameterReference, Type: System.Boolean) (Syntax: 'input2')
-
-            Next (Regular) Block[B2#1R1]
-        Block[B2#1R1] - Exit
-            Predecessors: [B1#1R1]
-            Statements (0)
-    }
-}
-
+    Next (Regular) Block[B2]
 Block[B2] - Exit
     Predecessors: [B1]
     Statements (0)
@@ -254,7 +260,6 @@ Block[B0] - Entry
 .locals {R1}
 {
     Locals: [i As System.Int32]
-    Methods: [Sub (input1 As System.Int32)]
     Block[B1] - Block
         Predecessors: [B0]
         Statements (2)
@@ -273,81 +278,69 @@ Block[B0] - Entry
                     IDelegateCreationOperation (OperationKind.DelegateCreation, Type: System.Action(Of System.Int32), IsImplicit) (Syntax: 'Sub(input1) ... End Sub')
                       Target: 
                         IFlowAnonymousFunctionOperation (Symbol: Sub (input1 As System.Int32)) (OperationKind.FlowAnonymousFunction, Type: null) (Syntax: 'Sub(input1) ... End Sub')
+                        {
+                            Block[B0#A0] - Entry
+                                Statements (0)
+                                Next (Regular) Block[B1#A0]
+                            Block[B1#A0] - Block
+                                Predecessors: [B0#A0]
+                                Statements (2)
+                                    IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'input1 = i')
+                                      Expression: 
+                                        ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32, IsImplicit) (Syntax: 'input1 = i')
+                                          Left: 
+                                            IParameterReferenceOperation: input1 (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'input1')
+                                          Right: 
+                                            ILocalReferenceOperation: i (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'i')
+
+                                    IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'd2 = Sub(in ... End Sub')
+                                      Expression: 
+                                        ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Action(Of System.Boolean), IsImplicit) (Syntax: 'd2 = Sub(in ... End Sub')
+                                          Left: 
+                                            IParameterReferenceOperation: d2 (OperationKind.ParameterReference, Type: System.Action(Of System.Boolean)) (Syntax: 'd2')
+                                          Right: 
+                                            IDelegateCreationOperation (OperationKind.DelegateCreation, Type: System.Action(Of System.Boolean), IsImplicit) (Syntax: 'Sub(input2) ... End Sub')
+                                              Target: 
+                                                IFlowAnonymousFunctionOperation (Symbol: Sub (input2 As System.Boolean)) (OperationKind.FlowAnonymousFunction, Type: null) (Syntax: 'Sub(input2) ... End Sub')
+                                                {
+                                                    Block[B0#A0#A0] - Entry
+                                                        Statements (0)
+                                                        Next (Regular) Block[B1#A0#A0]
+                                                    Block[B1#A0#A0] - Block
+                                                        Predecessors: [B0#A0#A0]
+                                                        Statements (2)
+                                                            IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'input2 = true')
+                                                              Expression: 
+                                                                ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Boolean, IsImplicit) (Syntax: 'input2 = true')
+                                                                  Left: 
+                                                                    IParameterReferenceOperation: input2 (OperationKind.ParameterReference, Type: System.Boolean) (Syntax: 'input2')
+                                                                  Right: 
+                                                                    ILiteralOperation (OperationKind.Literal, Type: System.Boolean, Constant: True) (Syntax: 'true')
+
+                                                            IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'i+=1')
+                                                              Expression: 
+                                                                ICompoundAssignmentOperation (BinaryOperatorKind.Add, Checked) (OperationKind.CompoundAssignment, Type: System.Int32, IsImplicit) (Syntax: 'i+=1')
+                                                                  InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                                                                  OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                                                                  Left: 
+                                                                    ILocalReferenceOperation: i (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'i')
+                                                                  Right: 
+                                                                    ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
+
+                                                        Next (Regular) Block[B2#A0#A0]
+                                                    Block[B2#A0#A0] - Exit
+                                                        Predecessors: [B1#A0#A0]
+                                                        Statements (0)
+                                                }
+
+                                Next (Regular) Block[B2#A0]
+                            Block[B2#A0] - Exit
+                                Predecessors: [B1#A0]
+                                Statements (0)
+                        }
 
         Next (Regular) Block[B2]
             Leaving: {R1}
-    
-    {   Sub (input1 As System.Int32)
-    
-        Block[B0#0R1] - Entry
-            Statements (0)
-            Next (Regular) Block[B1#0R1]
-                Entering: {R1#0R1}
-
-        .locals {R1#0R1}
-        {
-            Methods: [Sub (input2 As System.Boolean)]
-            Block[B1#0R1] - Block
-                Predecessors: [B0#0R1]
-                Statements (2)
-                    IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'input1 = i')
-                      Expression: 
-                        ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32, IsImplicit) (Syntax: 'input1 = i')
-                          Left: 
-                            IParameterReferenceOperation: input1 (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'input1')
-                          Right: 
-                            ILocalReferenceOperation: i (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'i')
-
-                    IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'd2 = Sub(in ... End Sub')
-                      Expression: 
-                        ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Action(Of System.Boolean), IsImplicit) (Syntax: 'd2 = Sub(in ... End Sub')
-                          Left: 
-                            IParameterReferenceOperation: d2 (OperationKind.ParameterReference, Type: System.Action(Of System.Boolean)) (Syntax: 'd2')
-                          Right: 
-                            IDelegateCreationOperation (OperationKind.DelegateCreation, Type: System.Action(Of System.Boolean), IsImplicit) (Syntax: 'Sub(input2) ... End Sub')
-                              Target: 
-                                IFlowAnonymousFunctionOperation (Symbol: Sub (input2 As System.Boolean)) (OperationKind.FlowAnonymousFunction, Type: null) (Syntax: 'Sub(input2) ... End Sub')
-
-                Next (Regular) Block[B2#0R1]
-                    Leaving: {R1#0R1}
-            
-            {   Sub (input2 As System.Boolean)
-            
-                Block[B0#0R1#0R1] - Entry
-                    Statements (0)
-                    Next (Regular) Block[B1#0R1#0R1]
-                Block[B1#0R1#0R1] - Block
-                    Predecessors: [B0#0R1#0R1]
-                    Statements (2)
-                        IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'input2 = true')
-                          Expression: 
-                            ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Boolean, IsImplicit) (Syntax: 'input2 = true')
-                              Left: 
-                                IParameterReferenceOperation: input2 (OperationKind.ParameterReference, Type: System.Boolean) (Syntax: 'input2')
-                              Right: 
-                                ILiteralOperation (OperationKind.Literal, Type: System.Boolean, Constant: True) (Syntax: 'true')
-
-                        IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'i+=1')
-                          Expression: 
-                            ICompoundAssignmentOperation (BinaryOperatorKind.Add, Checked) (OperationKind.CompoundAssignment, Type: System.Int32, IsImplicit) (Syntax: 'i+=1')
-                              InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                              OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                              Left: 
-                                ILocalReferenceOperation: i (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'i')
-                              Right: 
-                                ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
-
-                    Next (Regular) Block[B2#0R1#0R1]
-                Block[B2#0R1#0R1] - Exit
-                    Predecessors: [B1#0R1#0R1]
-                    Statements (0)
-            }
-        }
-
-        Block[B2#0R1] - Exit
-            Predecessors: [B1#0R1]
-            Statements (0)
-    }
 }
 
 Block[B2] - Exit
@@ -381,7 +374,6 @@ Block[B0] - Entry
 .locals {R1}
 {
     Locals: [c1 As C] [c2 As C]
-    Methods: [Function () As System.Int32]
     Block[B1] - Block
         Predecessors: [B0]
         Statements (0)
@@ -412,6 +404,27 @@ Block[B0] - Entry
                     IDelegateCreationOperation (OperationKind.DelegateCreation, Type: System.Func(Of System.Int32), IsImplicit) (Syntax: 'Function() 1')
                       Target: 
                         IFlowAnonymousFunctionOperation (Symbol: Function () As System.Int32) (OperationKind.FlowAnonymousFunction, Type: null) (Syntax: 'Function() 1')
+                        {
+                            Block[B0#A0] - Entry
+                                Statements (0)
+                                Next (Regular) Block[B1#A0]
+                                    Entering: {R1#A0}
+
+                            .locals {R1#A0}
+                            {
+                                Locals: [<anonymous local> As System.Int32]
+                                Block[B1#A0] - Block
+                                    Predecessors: [B0#A0]
+                                    Statements (0)
+                                    Next (Return) Block[B2#A0]
+                                        ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
+                                        Leaving: {R1#A0}
+                            }
+
+                            Block[B2#A0] - Exit
+                                Predecessors: [B1#A0]
+                                Statements (0)
+                        }
 
                 ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: C, IsImplicit) (Syntax: 'c1, c2 As N ... nction() 1}')
                   Left: 
@@ -454,6 +467,27 @@ Block[B0] - Entry
                     IDelegateCreationOperation (OperationKind.DelegateCreation, Type: System.Func(Of System.Int32), IsImplicit) (Syntax: 'Function() 1')
                       Target: 
                         IFlowAnonymousFunctionOperation (Symbol: Function () As System.Int32) (OperationKind.FlowAnonymousFunction, Type: null) (Syntax: 'Function() 1')
+                        {
+                            Block[B0#A1] - Entry
+                                Statements (0)
+                                Next (Regular) Block[B1#A1]
+                                    Entering: {R1#A1}
+
+                            .locals {R1#A1}
+                            {
+                                Locals: [<anonymous local> As System.Int32]
+                                Block[B1#A1] - Block
+                                    Predecessors: [B0#A1]
+                                    Statements (0)
+                                    Next (Return) Block[B2#A1]
+                                        ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
+                                        Leaving: {R1#A1}
+                            }
+
+                            Block[B2#A1] - Exit
+                                Predecessors: [B1#A1]
+                                Statements (0)
+                        }
 
                 ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: C, IsImplicit) (Syntax: 'c1, c2 As N ... nction() 1}')
                   Left: 
@@ -464,33 +498,147 @@ Block[B0] - Entry
             Next (Regular) Block[B5]
                 Leaving: {R3} {R1}
     }
-    
-    {   Function () As System.Int32
-    
-        Block[B0#0R1] - Entry
-            Statements (0)
-            Next (Regular) Block[B1#0R1]
-                Entering: {R1#0R1}
-
-        .locals {R1#0R1}
-        {
-            Locals: [<anonymous local> As System.Int32]
-            Block[B1#0R1] - Block
-                Predecessors: [B0#0R1]
-                Statements (0)
-                Next (Return) Block[B2#0R1]
-                    ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
-                    Leaving: {R1#0R1}
-        }
-
-        Block[B2#0R1] - Exit
-            Predecessors: [B1#0R1]
-            Statements (0)
-    }
 }
 
 Block[B5] - Exit
     Predecessors: [B3] [B4]
+    Statements (0)
+]]>.Value
+
+            VerifyFlowGraphAndDiagnosticsForTest(Of MethodBlockSyntax)(source, expectedFlowGraph, expectedDiagnostics)
+        End Sub
+
+        <CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)>
+        <Fact()>
+        Public Sub LambdaFlow_05()
+            Dim source = <![CDATA[
+Class C
+    Public Property A As System.Func(Of Integer)
+
+    Sub M(d As System.Action(Of C, C, C), x as C, y as C, z as C)'BIND:"Sub M"
+        x = If(y, z)
+        d = Sub (result1, input1, input2)
+               result1 = If(input1, input2)
+            End Sub
+    End Sub
+End Class]]>.Value
+
+            Dim expectedDiagnostics = String.Empty
+
+            Dim expectedFlowGraph = <![CDATA[
+Block[B0] - Entry
+    Statements (0)
+    Next (Regular) Block[B1]
+Block[B1] - Block
+    Predecessors: [B0]
+    Statements (2)
+        IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'x')
+          Value: 
+            IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: C) (Syntax: 'x')
+
+        IFlowCaptureOperation: 1 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'y')
+          Value: 
+            IParameterReferenceOperation: y (OperationKind.ParameterReference, Type: C) (Syntax: 'y')
+
+    Jump if True (Regular) to Block[B3]
+        IIsNullOperation (OperationKind.IsNull, Type: System.Boolean, IsImplicit) (Syntax: 'y')
+          Operand: 
+            IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: C, IsImplicit) (Syntax: 'y')
+
+    Next (Regular) Block[B2]
+Block[B2] - Block
+    Predecessors: [B1]
+    Statements (1)
+        IFlowCaptureOperation: 2 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'y')
+          Value: 
+            IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: C, IsImplicit) (Syntax: 'y')
+
+    Next (Regular) Block[B4]
+Block[B3] - Block
+    Predecessors: [B1]
+    Statements (1)
+        IFlowCaptureOperation: 2 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'z')
+          Value: 
+            IParameterReferenceOperation: z (OperationKind.ParameterReference, Type: C) (Syntax: 'z')
+
+    Next (Regular) Block[B4]
+Block[B4] - Block
+    Predecessors: [B2] [B3]
+    Statements (2)
+        IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'x = If(y, z)')
+          Expression: 
+            ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: C, IsImplicit) (Syntax: 'x = If(y, z)')
+              Left: 
+                IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: C, IsImplicit) (Syntax: 'x')
+              Right: 
+                IFlowCaptureReferenceOperation: 2 (OperationKind.FlowCaptureReference, Type: C, IsImplicit) (Syntax: 'If(y, z)')
+
+        IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'd = Sub (re ... End Sub')
+          Expression: 
+            ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Action(Of C, C, C), IsImplicit) (Syntax: 'd = Sub (re ... End Sub')
+              Left: 
+                IParameterReferenceOperation: d (OperationKind.ParameterReference, Type: System.Action(Of C, C, C)) (Syntax: 'd')
+              Right: 
+                IDelegateCreationOperation (OperationKind.DelegateCreation, Type: System.Action(Of C, C, C), IsImplicit) (Syntax: 'Sub (result ... End Sub')
+                  Target: 
+                    IFlowAnonymousFunctionOperation (Symbol: Sub (result1 As C, input1 As C, input2 As C)) (OperationKind.FlowAnonymousFunction, Type: null) (Syntax: 'Sub (result ... End Sub')
+                    {
+                        Block[B0#A0] - Entry
+                            Statements (0)
+                            Next (Regular) Block[B1#A0]
+                        Block[B1#A0] - Block
+                            Predecessors: [B0#A0]
+                            Statements (2)
+                                IFlowCaptureOperation: 3 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'result1')
+                                  Value: 
+                                    IParameterReferenceOperation: result1 (OperationKind.ParameterReference, Type: C) (Syntax: 'result1')
+
+                                IFlowCaptureOperation: 4 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'input1')
+                                  Value: 
+                                    IParameterReferenceOperation: input1 (OperationKind.ParameterReference, Type: C) (Syntax: 'input1')
+
+                            Jump if True (Regular) to Block[B3#A0]
+                                IIsNullOperation (OperationKind.IsNull, Type: System.Boolean, IsImplicit) (Syntax: 'input1')
+                                  Operand: 
+                                    IFlowCaptureReferenceOperation: 4 (OperationKind.FlowCaptureReference, Type: C, IsImplicit) (Syntax: 'input1')
+
+                            Next (Regular) Block[B2#A0]
+                        Block[B2#A0] - Block
+                            Predecessors: [B1#A0]
+                            Statements (1)
+                                IFlowCaptureOperation: 5 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'input1')
+                                  Value: 
+                                    IFlowCaptureReferenceOperation: 4 (OperationKind.FlowCaptureReference, Type: C, IsImplicit) (Syntax: 'input1')
+
+                            Next (Regular) Block[B4#A0]
+                        Block[B3#A0] - Block
+                            Predecessors: [B1#A0]
+                            Statements (1)
+                                IFlowCaptureOperation: 5 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'input2')
+                                  Value: 
+                                    IParameterReferenceOperation: input2 (OperationKind.ParameterReference, Type: C) (Syntax: 'input2')
+
+                            Next (Regular) Block[B4#A0]
+                        Block[B4#A0] - Block
+                            Predecessors: [B2#A0] [B3#A0]
+                            Statements (1)
+                                IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'result1 = I ... t1, input2)')
+                                  Expression: 
+                                    ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: C, IsImplicit) (Syntax: 'result1 = I ... t1, input2)')
+                                      Left: 
+                                        IFlowCaptureReferenceOperation: 3 (OperationKind.FlowCaptureReference, Type: C, IsImplicit) (Syntax: 'result1')
+                                      Right: 
+                                        IFlowCaptureReferenceOperation: 5 (OperationKind.FlowCaptureReference, Type: C, IsImplicit) (Syntax: 'If(input1, input2)')
+
+                            Next (Regular) Block[B5#A0]
+                        Block[B5#A0] - Exit
+                            Predecessors: [B4#A0]
+                            Statements (0)
+                    }
+
+    Next (Regular) Block[B5]
+Block[B5] - Exit
+    Predecessors: [B4]
     Statements (0)
 ]]>.Value
 

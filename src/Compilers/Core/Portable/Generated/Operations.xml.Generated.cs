@@ -3287,12 +3287,16 @@ namespace Microsoft.CodeAnalysis.Operations
 
     internal sealed class FlowAnonymousFunctionOperation : Operation, IFlowAnonymousFunctionOperation
     {
-        public FlowAnonymousFunctionOperation(IMethodSymbol symbol, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit) :
-            base(OperationKind.FlowAnonymousFunction, semanticModel: null, syntax, type, constantValue, isImplicit)
+        public readonly ControlFlowGraphBuilder.Context Context;
+        public readonly IAnonymousFunctionOperation Original;
+
+        public FlowAnonymousFunctionOperation(in ControlFlowGraphBuilder.Context context, IAnonymousFunctionOperation original, bool isImplicit) :
+            base(OperationKind.FlowAnonymousFunction, semanticModel: null, original.Syntax, original.Type, original.ConstantValue, isImplicit)
         {
-            Symbol = symbol;
+            Context = context;
+            Original = original;
         }
-        public IMethodSymbol Symbol { get; }
+        public IMethodSymbol Symbol => Original.Symbol;
         public override IEnumerable<IOperation> Children
         {
             get

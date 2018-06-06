@@ -166,7 +166,9 @@ namespace Microsoft.CodeAnalysis
 
             try
             {
-                return ControlFlowGraphBuilder.Create(operation);
+                ControlFlowGraph controlFlowGraph = ControlFlowGraphBuilder.Create(operation);
+                Debug.Assert(controlFlowGraph.OriginalOperation == operation);
+                return controlFlowGraph;
             }
             catch (Exception e) when (FatalError.ReportWithoutCrashUnlessCanceled(e))
             {

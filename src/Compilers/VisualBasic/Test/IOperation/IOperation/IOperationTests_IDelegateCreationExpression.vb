@@ -4545,62 +4545,52 @@ End Class
 Block[B0] - Entry
     Statements (0)
     Next (Regular) Block[B1]
-        Entering: {R1}
+Block[B1] - Block
+    Predecessors: [B0]
+    Statements (3)
+        IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'a1 = Sub() ... End Sub')
+          Expression: 
+            ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Action, IsImplicit) (Syntax: 'a1 = Sub() ... End Sub')
+              Left: 
+                IParameterReferenceOperation: a1 (OperationKind.ParameterReference, Type: System.Action) (Syntax: 'a1')
+              Right: 
+                IDelegateCreationOperation (OperationKind.DelegateCreation, Type: System.Action, IsImplicit) (Syntax: 'Sub() ... End Sub')
+                  Target: 
+                    IFlowAnonymousFunctionOperation (Symbol: Sub ()) (OperationKind.FlowAnonymousFunction, Type: null) (Syntax: 'Sub() ... End Sub')
+                    {
+                        Block[B0#A0] - Entry
+                            Statements (0)
+                            Next (Regular) Block[B1#A0]
+                        Block[B1#A0] - Exit
+                            Predecessors: [B0#A0]
+                            Statements (0)
+                    }
 
-.locals {R1}
-{
-    Methods: [Sub ()]
-    Block[B1] - Block
-        Predecessors: [B0]
-        Statements (3)
-            IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'a1 = Sub() ... End Sub')
-              Expression: 
-                ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Action, IsImplicit) (Syntax: 'a1 = Sub() ... End Sub')
-                  Left: 
-                    IParameterReferenceOperation: a1 (OperationKind.ParameterReference, Type: System.Action) (Syntax: 'a1')
-                  Right: 
-                    IDelegateCreationOperation (OperationKind.DelegateCreation, Type: System.Action, IsImplicit) (Syntax: 'Sub() ... End Sub')
-                      Target: 
-                        IFlowAnonymousFunctionOperation (Symbol: Sub ()) (OperationKind.FlowAnonymousFunction, Type: null) (Syntax: 'Sub() ... End Sub')
+        IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'a2 = AddressOf M2')
+          Expression: 
+            ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Action, IsImplicit) (Syntax: 'a2 = AddressOf M2')
+              Left: 
+                IParameterReferenceOperation: a2 (OperationKind.ParameterReference, Type: System.Action) (Syntax: 'a2')
+              Right: 
+                IDelegateCreationOperation (OperationKind.DelegateCreation, Type: System.Action, IsImplicit) (Syntax: 'AddressOf M2')
+                  Target: 
+                    IMethodReferenceOperation: Sub C.M2() (OperationKind.MethodReference, Type: null) (Syntax: 'AddressOf M2')
+                      Instance Receiver: 
+                        IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: C, IsImplicit) (Syntax: 'M2')
 
-            IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'a2 = AddressOf M2')
-              Expression: 
-                ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Action, IsImplicit) (Syntax: 'a2 = AddressOf M2')
-                  Left: 
-                    IParameterReferenceOperation: a2 (OperationKind.ParameterReference, Type: System.Action) (Syntax: 'a2')
-                  Right: 
-                    IDelegateCreationOperation (OperationKind.DelegateCreation, Type: System.Action, IsImplicit) (Syntax: 'AddressOf M2')
-                      Target: 
-                        IMethodReferenceOperation: Sub C.M2() (OperationKind.MethodReference, Type: null) (Syntax: 'AddressOf M2')
-                          Instance Receiver: 
-                            IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: C, IsImplicit) (Syntax: 'M2')
+        IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'a3 = New Ac ... dressOf M3)')
+          Expression: 
+            ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Action, IsImplicit) (Syntax: 'a3 = New Ac ... dressOf M3)')
+              Left: 
+                IParameterReferenceOperation: a3 (OperationKind.ParameterReference, Type: System.Action) (Syntax: 'a3')
+              Right: 
+                IDelegateCreationOperation (OperationKind.DelegateCreation, Type: System.Action) (Syntax: 'New Action(AddressOf M3)')
+                  Target: 
+                    IMethodReferenceOperation: Sub C.M3() (Static) (OperationKind.MethodReference, Type: null) (Syntax: 'AddressOf M3')
+                      Instance Receiver: 
+                        null
 
-            IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'a3 = New Ac ... dressOf M3)')
-              Expression: 
-                ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Action, IsImplicit) (Syntax: 'a3 = New Ac ... dressOf M3)')
-                  Left: 
-                    IParameterReferenceOperation: a3 (OperationKind.ParameterReference, Type: System.Action) (Syntax: 'a3')
-                  Right: 
-                    IDelegateCreationOperation (OperationKind.DelegateCreation, Type: System.Action) (Syntax: 'New Action(AddressOf M3)')
-                      Target: 
-                        IMethodReferenceOperation: Sub C.M3() (Static) (OperationKind.MethodReference, Type: null) (Syntax: 'AddressOf M3')
-                          Instance Receiver: 
-                            null
-
-        Next (Regular) Block[B2]
-            Leaving: {R1}
-    
-    {   Sub ()
-    
-        Block[B0#0R1] - Entry
-            Statements (0)
-            Next (Regular) Block[B1#0R1]
-        Block[B1#0R1] - Exit
-            Predecessors: [B0#0R1]
-            Statements (0)
-    }
-}
-
+    Next (Regular) Block[B2]
 Block[B2] - Exit
     Predecessors: [B1]
     Statements (0)

@@ -518,5 +518,86 @@ Block[B5] - Exit
 
             VerifyFlowGraphAndDiagnosticsForTest(Of MethodBlockSyntax)(source, expectedFlowGraph, expectedDiagnostics)
         End Sub
+
+        <CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)>
+        <Fact()>
+        Public Sub WithFlow_06()
+            Dim source = <![CDATA[
+Class C
+    Public I As Integer
+End Class
+
+Class D
+    Sub M(c As C) 'BIND:"Sub M"
+        With c
+            Dim d As System.Action(Of Integer) = Sub(x As Integer) x = .I
+        End With
+    End Sub
+End Class
+]]>.Value
+
+            Dim expectedDiagnostics = String.Empty
+
+            Dim expectedFlowGraph = <![CDATA[
+Block[B0] - Entry
+    Statements (0)
+    Next (Regular) Block[B1]
+Block[B1] - Block
+    Predecessors: [B0]
+    Statements (1)
+        IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'c')
+          Value: 
+            IParameterReferenceOperation: c (OperationKind.ParameterReference, Type: C) (Syntax: 'c')
+
+    Next (Regular) Block[B2]
+        Entering: {R1}
+
+.locals {R1}
+{
+    Locals: [d As System.Action(Of System.Int32)]
+    Block[B2] - Block
+        Predecessors: [B1]
+        Statements (1)
+            ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Action(Of System.Int32), IsImplicit) (Syntax: 'd As System ... ger) x = .I')
+              Left: 
+                ILocalReferenceOperation: d (IsDeclaration: True) (OperationKind.LocalReference, Type: System.Action(Of System.Int32), IsImplicit) (Syntax: 'd')
+              Right: 
+                IDelegateCreationOperation (OperationKind.DelegateCreation, Type: System.Action(Of System.Int32), IsImplicit) (Syntax: 'Sub(x As Integer) x = .I')
+                  Target: 
+                    IFlowAnonymousFunctionOperation (Symbol: Sub (x As System.Int32)) (OperationKind.FlowAnonymousFunction, Type: null) (Syntax: 'Sub(x As Integer) x = .I')
+                    {
+                        Block[B0#A0] - Entry
+                            Statements (0)
+                            Next (Regular) Block[B1#A0]
+                        Block[B1#A0] - Block
+                            Predecessors: [B0#A0]
+                            Statements (1)
+                                IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'x = .I')
+                                  Expression: 
+                                    ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32, IsImplicit) (Syntax: 'x = .I')
+                                      Left: 
+                                        IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'x')
+                                      Right: 
+                                        IFieldReferenceOperation: C.I As System.Int32 (OperationKind.FieldReference, Type: System.Int32) (Syntax: '.I')
+                                          Instance Receiver: 
+                                            IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: C, IsImplicit) (Syntax: 'c')
+
+                            Next (Regular) Block[B2#A0]
+                        Block[B2#A0] - Exit
+                            Predecessors: [B1#A0]
+                            Statements (0)
+                    }
+
+        Next (Regular) Block[B3]
+            Leaving: {R1}
+}
+
+Block[B3] - Exit
+    Predecessors: [B2]
+    Statements (0)
+]]>.Value
+
+            VerifyFlowGraphAndDiagnosticsForTest(Of MethodBlockSyntax)(source, expectedFlowGraph, expectedDiagnostics)
+        End Sub
     End Class
 End Namespace

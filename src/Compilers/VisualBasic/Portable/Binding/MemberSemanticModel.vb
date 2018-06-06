@@ -2340,7 +2340,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     If initialization IsNot Nothing Then
 #If DEBUG Then
                         Dim haveBindersInTheMap As Binder.AnonymousTypeFieldInitializerBinder = Nothing
-                        Debug.Assert(Not _semanticModel._guardedAnonymousTypeBinderMap.TryGetValue(initialization, haveBindersInTheMap) OrElse haveBindersInTheMap Is node.Binder)
+                        ' The assert below is disabled due to https://github.com/dotnet/roslyn/issues/27533, need to follow up
+                        'Debug.Assert(Not _semanticModel._guardedAnonymousTypeBinderMap.TryGetValue(initialization, haveBindersInTheMap) OrElse haveBindersInTheMap Is node.Binder)
 #End If
                         _semanticModel._guardedAnonymousTypeBinderMap(initialization) = node.Binder
                     End If

@@ -17,16 +17,16 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.Test.Utilities
 {
-    public sealed class OperationTreeVerifier : OperationWalker
+    public class OperationTreeVerifier : OperationWalker
     {
-        private readonly Compilation _compilation;
-        private readonly IOperation _root;
-        private readonly StringBuilder _builder;
+        protected readonly Compilation _compilation;
+        protected readonly IOperation _root;
+        protected readonly StringBuilder _builder;
         private readonly Dictionary<SyntaxNode, IOperation> _explictNodeMap;
         private readonly Dictionary<ILabelSymbol, uint> _labelIdMap;
 
         private const string indent = "  ";
-        private string _currentIndent;
+        protected string _currentIndent;
         private bool _pendingIndent;
         private uint _currentLabelId = 0;
 
@@ -142,7 +142,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             return false;
         }
 
-        private void LogString(string str)
+        protected void LogString(string str)
         {
             if (_pendingIndent)
             {
@@ -153,7 +153,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             _builder.Append(str);
         }
 
-        private void LogNewLine()
+        protected void LogNewLine()
         {
             LogString(Environment.NewLine);
             _pendingIndent = true;
