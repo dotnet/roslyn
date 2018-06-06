@@ -1271,13 +1271,42 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
 
         public override IOperation VisitBlock(IBlockOperation operation, int? captureIdForResult)
         {
-            Debug.Assert(_currentStatement == operation);
+            StartVisitingStatement(operation);
 
             EnterRegion(new RegionBuilder(ControlFlowRegionKind.LocalLifetime, locals: operation.Locals));
             VisitStatements(operation.Operations);
             LeaveRegion();
 
-            return null;
+            return FinishVisitingStatement(operation);
+        }
+
+        private void StartVisitingStatement(IOperation operation)
+        {
+            Debug.Assert(_currentStatement == operation);
+            Debug.Assert(_evalStack.Count == 0);
+            SpillEvalStack();
+        }
+
+        private IOperation FinishVisitingStatement(IOperation originalOperaion, IOperation result = null)
+        {
+            Debug.Assert(((Operation)originalOperaion).SemanticModel != null, "Not an original node.");
+            Debug.Assert(_currentStatement == originalOperaion);
+            Debug.Assert(_evalStack.Count == 0);
+
+            if (_currentStatement == originalOperaion)
+            {
+                return result;
+            }
+
+            return result ?? MakeInvalidOperation(originalOperaion.Syntax, originalOperaion.Type, ImmutableArray<IOperation>.Empty);
+        }
+
+        private void VisitStatements(ArrayBuilder<IOperation> statements)
+        {
+            foreach (var statement in statements)
+            {
+                VisitStatement(statement);
+            }
         }
 
         private void VisitStatements(ImmutableArray<IOperation> statements)
@@ -1298,7 +1327,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
 
         internal override IOperation VisitWith(IWithOperation operation, int? captureIdForResult)
         {
-            Debug.Assert(_currentStatement == operation);
+            StartVisitingStatement(operation);
             int captureId = VisitAndCapture(operation.Value);
 
             ImplicitInstanceInfo previousInitializedInstance = _currentImplicitInstance;
@@ -1307,12 +1336,12 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
             VisitStatement(operation.Body);
 
             _currentImplicitInstance = previousInitializedInstance;
-            return null;
+            return FinishVisitingStatement(operation);
         }
 
         public override IOperation VisitConstructorBodyOperation(IConstructorBodyOperation operation, int? captureIdForResult)
         {
-            Debug.Assert(_currentStatement == operation);
+            StartVisitingStatement(operation);
 
             EnterRegion(new RegionBuilder(ControlFlowRegionKind.LocalLifetime, locals: operation.Locals));
 
@@ -1324,15 +1353,15 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
             VisitMethodBodyBaseOperation(operation);
 
             LeaveRegion();
-            return null;
+            return FinishVisitingStatement(operation);
         }
 
         public override IOperation VisitMethodBodyOperation(IMethodBodyOperation operation, int? captureIdForResult)
         {
-            Debug.Assert(_currentStatement == operation);
+            StartVisitingStatement(operation);
 
             VisitMethodBodyBaseOperation(operation);
-            return null;
+            return FinishVisitingStatement(operation);
         }
 
         private void VisitMethodBodyBaseOperation(IMethodBodyBaseOperation operation)
@@ -2419,13 +2448,6 @@ oneMoreTime:
 
         public override IOperation VisitConditionalAccess(IConditionalAccessOperation operation, int? captureIdForResult)
         {
-            // PROTOTYPE(dataflow): Consider to avoid nullable wrap/unwrap operations by merging conditional access
-            //                      with containing:
-            //                      - binary operator
-            //                      - coalesce expression
-            //                      - nullable conversion
-            //                      - etc. see references to UpdateConditionalAccess in local rewriter
-
             SpillEvalStack();
 
             var whenNull = new BasicBlockBuilder(BasicBlockKind.Block);
@@ -2549,26 +2571,26 @@ oneMoreTime:
 
         public override IOperation VisitExpressionStatement(IExpressionStatementOperation operation, int? captureIdForResult)
         {
-            Debug.Assert(_currentStatement == operation);
+            StartVisitingStatement(operation);
 
             IOperation underlying = Visit(operation.Operation);
 
             if (underlying == null)
             {
                 Debug.Assert(operation.Operation.Kind == OperationKind.ConditionalAccess);
-                return null;
+                return FinishVisitingStatement(operation);
             }
             else if (operation.Operation.Kind == OperationKind.Throw)
             {
-                return null;
+                return FinishVisitingStatement(operation);
             }
 
-            return new ExpressionStatement(underlying, semanticModel: null, operation.Syntax, operation.Type, operation.ConstantValue, IsImplicit(operation));
+            return FinishVisitingStatement(operation, new ExpressionStatement(underlying, semanticModel: null, operation.Syntax, operation.Type, operation.ConstantValue, IsImplicit(operation)));
         }
 
         public override IOperation VisitWhileLoop(IWhileLoopOperation operation, int? captureIdForResult)
         {
-            Debug.Assert(_currentStatement == operation);
+            StartVisitingStatement(operation);
             var locals = new RegionBuilder(ControlFlowRegionKind.LocalLifetime, locals: operation.Locals);
 
             var @continue = GetLabeledOrNewBlock(operation.ContinueLabel);
@@ -2636,12 +2658,12 @@ oneMoreTime:
             LeaveRegion();
 
             AppendNewBlock(@break);
-            return null;
+            return FinishVisitingStatement(operation);
         }
 
         public override IOperation VisitTry(ITryOperation operation, int? captureIdForResult)
         {
-            Debug.Assert(_currentStatement == operation);
+            StartVisitingStatement(operation);
 
             var afterTryCatchFinally = GetLabeledOrNewBlock(operation.ExitLabel);
 
@@ -2652,7 +2674,7 @@ oneMoreTime:
                 // pretend that there is no Try. Just visit body.
                 VisitStatement(operation.Body);
                 AppendNewBlock(afterTryCatchFinally);
-                return null;
+                return FinishVisitingStatement(operation);
             }
 
             RegionBuilder tryAndFinallyRegion = null;
@@ -2772,7 +2794,7 @@ oneMoreTime:
             AppendNewBlock(afterTryCatchFinally, linkToPrevious: false);
             Debug.Assert(tryAndFinallyRegion?.Regions[1].LastBlock.FallThrough.Destination == null);
 
-            return null;
+            return FinishVisitingStatement(operation);
         }
 
         private void AddExceptionStore(ITypeSymbol exceptionType, IOperation exceptionDeclarationOrExpression)
@@ -2819,7 +2841,7 @@ oneMoreTime:
 
         public override IOperation VisitReturn(IReturnOperation operation, int? captureIdForResult)
         {
-            Debug.Assert(_currentStatement == operation);
+            StartVisitingStatement(operation);
             IOperation returnedValue = Visit(operation.ReturnedValue);
 
             switch (operation.Kind)
@@ -2842,12 +2864,12 @@ oneMoreTime:
                     throw ExceptionUtilities.UnexpectedValue(operation.Kind);
             }
 
-            return null;
+            return FinishVisitingStatement(operation);
         }
 
         public override IOperation VisitLabeled(ILabeledOperation operation, int? captureIdForResult)
         {
-            Debug.Assert(_currentStatement == operation);
+            StartVisitingStatement(operation);
 
             BasicBlockBuilder labeled = GetLabeledOrNewBlock(operation.Label);
 
@@ -2859,7 +2881,7 @@ oneMoreTime:
 
             AppendNewBlock(labeled);
             VisitStatement(operation.Operation);
-            return null;
+            return FinishVisitingStatement(operation);
         }
 
         private BasicBlockBuilder GetLabeledOrNewBlock(ILabelSymbol labelOpt)
@@ -2887,16 +2909,16 @@ oneMoreTime:
 
         public override IOperation VisitBranch(IBranchOperation operation, int? captureIdForResult)
         {
-            Debug.Assert(_currentStatement == operation);
+            StartVisitingStatement(operation);
             LinkBlocks(CurrentBasicBlock, GetLabeledOrNewBlock(operation.Target));
             _currentBasicBlock = null;
-            return null;
+            return FinishVisitingStatement(operation);
         }
 
         public override IOperation VisitEmpty(IEmptyOperation operation, int? captureIdForResult)
         {
-            Debug.Assert(_currentStatement == operation);
-            return null;
+            StartVisitingStatement(operation);
+            return FinishVisitingStatement(operation);
         }
 
         public override IOperation VisitThrow(IThrowOperation operation, int? captureIdForResult)
@@ -2931,7 +2953,7 @@ oneMoreTime:
 
         public override IOperation VisitUsing(IUsingOperation operation, int? captureIdForResult)
         {
-            Debug.Assert(operation == _currentStatement);
+            StartVisitingStatement(operation);
 
             ITypeSymbol iDisposable = _compilation.GetSpecialType(SpecialType.System_IDisposable);
 
@@ -2972,7 +2994,7 @@ oneMoreTime:
             }
 
             LeaveRegion();
-            return null;
+            return FinishVisitingStatement(operation);
 
             void processQueue(ArrayBuilder<(IVariableDeclarationOperation, IVariableDeclaratorOperation)> resourceQueueOpt)
             {
@@ -3122,7 +3144,7 @@ oneMoreTime:
 
         public override IOperation VisitLock(ILockOperation operation, int? captureIdForResult)
         {
-            Debug.Assert(operation == _currentStatement);
+            StartVisitingStatement(operation);
 
             ITypeSymbol objectType = _compilation.GetSpecialType(SpecialType.System_Object);
 
@@ -3284,12 +3306,12 @@ oneMoreTime:
 
             AppendNewBlock(afterTryFinally, linkToPrevious: false);
 
-            return null;
+            return FinishVisitingStatement(operation);
         }
 
         public override IOperation VisitForEachLoop(IForEachLoopOperation operation, int? captureIdForResult)
         {
-            Debug.Assert(_currentStatement == operation);
+            StartVisitingStatement(operation);
 
             ForEachLoopOperationInfo info = ((BaseForEachLoopStatement)operation).Info;
 
@@ -3370,7 +3392,7 @@ oneMoreTime:
                 AppendNewBlock(afterTryFinally, linkToPrevious: false);
             }
 
-            return null;
+            return FinishVisitingStatement(operation);
 
             IOperation applyConversion(IConvertibleConversion conversionOpt, IOperation operand, ITypeSymbol targetType)
             {
@@ -3494,7 +3516,7 @@ oneMoreTime:
 
         public override IOperation VisitForToLoop(IForToLoopOperation operation, int? captureIdForResult)
         {
-            Debug.Assert(_currentStatement == operation);
+            StartVisitingStatement(operation);
 
             (ILocalSymbol loopObject, ForToLoopOperationUserDefinedInfo userDefinedInfo) = ((BaseForToLoopStatement)operation).Info;
             bool isObjectLoop = (loopObject != null);
@@ -3539,7 +3561,7 @@ oneMoreTime:
             LeaveRegion();
 
             AppendNewBlock(@break);
-            return null;
+            return FinishVisitingStatement(operation);
 
             IOperation tryCallObjectForLoopControlHelper(SyntaxNode syntax, WellKnownMember helper)
             {
@@ -4216,7 +4238,7 @@ oneMoreTime:
 
         public override IOperation VisitSwitch(ISwitchOperation operation, int? captureIdForResult)
         {
-            Debug.Assert(_currentStatement == operation);
+            StartVisitingStatement(operation);
 
             INamedTypeSymbol booleanType = _compilation.GetSpecialType(SpecialType.System_Boolean);
             int expressionCaptureId = VisitAndCapture(operation.Value);
@@ -4242,7 +4264,7 @@ oneMoreTime:
 
             AppendNewBlock(@break);
 
-            return null;
+            return FinishVisitingStatement(operation);
 
             ImmutableArray<ILocalSymbol> getLocals()
             {
@@ -4439,7 +4461,7 @@ oneMoreTime:
 
         public override IOperation VisitEnd(IEndOperation operation, int? captureIdForResult)
         {
-            Debug.Assert(_currentStatement == operation);
+            StartVisitingStatement(operation);
             BasicBlockBuilder current = CurrentBasicBlock;
             AppendNewBlock(new BasicBlockBuilder(BasicBlockKind.Block), linkToPrevious: false);
             Debug.Assert(current.BranchValue == null);
@@ -4447,12 +4469,12 @@ oneMoreTime:
             Debug.Assert(current.FallThrough.Destination == null);
             Debug.Assert(current.FallThrough.Kind == ControlFlowBranchSemantics.None);
             current.FallThrough.Kind = ControlFlowBranchSemantics.ProgramTermination;
-            return null;
+            return FinishVisitingStatement(operation);
         }
 
         public override IOperation VisitForLoop(IForLoopOperation operation, int? captureIdForResult)
         {
-            Debug.Assert(_currentStatement == operation);
+            StartVisitingStatement(operation);
 
             // for (initializer; condition; increment)
             //   body;
@@ -4510,12 +4532,12 @@ oneMoreTime:
 
             AppendNewBlock(@break);
 
-            return null;
+            return FinishVisitingStatement(operation);
         }
 
         internal override IOperation VisitFixed(IFixedOperation operation, int? captureIdForResult)
         {
-            Debug.Assert(_currentStatement == operation);
+            StartVisitingStatement(operation);
             EnterRegion(new RegionBuilder(ControlFlowRegionKind.LocalLifetime, locals: operation.Locals));
 
             HandleVariableDeclarations(operation.Variables);
@@ -4523,17 +4545,17 @@ oneMoreTime:
             VisitStatement(operation.Body);
 
             LeaveRegion();
-            return null;
+            return FinishVisitingStatement(operation);
         }
 
         public override IOperation VisitVariableDeclarationGroup(IVariableDeclarationGroupOperation operation, int? captureIdForResult)
         {
             // Anything that has a declaration group (such as for loops) needs to handle them directly itself,
             // this should only be encountered by the visitor for declaration statements.
-            Debug.Assert(_currentStatement == operation);
+            StartVisitingStatement(operation);
 
             HandleVariableDeclarations(operation);
-            return null;
+            return FinishVisitingStatement(operation);
         }
 
         private void HandleVariableDeclarations(IVariableDeclarationGroupOperation operation)
@@ -5036,13 +5058,13 @@ oneMoreTime:
 
         public override IOperation VisitLocalFunction(ILocalFunctionOperation operation, int? captureIdForResult)
         {
-            Debug.Assert(_currentStatement == operation);
+            StartVisitingStatement(operation);
 
             // PROTOTYPE(dataflow): Should we do anything special with attributes and parameter initializers?
             //                      Should we also expose graphs for those only as "nested" graphs?
             Debug.Assert(_currentRegion.AllowMethods);
             _currentRegion.Add(operation.Symbol, operation);
-            return null;
+            return FinishVisitingStatement(operation);
         }
 
         private IOperation VisitLocalFunctionAsRoot(ILocalFunctionOperation operation)
@@ -5526,17 +5548,17 @@ oneMoreTime:
 
         public override IOperation VisitParameterInitializer(IParameterInitializerOperation operation, int? captureIdForResult)
         {
-            Debug.Assert(_currentStatement == operation);
+            StartVisitingStatement(operation);
 
             var parameterRef = new ParameterReferenceExpression(operation.Parameter, semanticModel: null,
                 operation.Syntax, operation.Parameter.Type, constantValue: default, isImplicit: true);
             VisitInitializer(rewrittenTarget: parameterRef, initializer: operation);
-            return null;
+            return FinishVisitingStatement(operation);
         }
 
         public override IOperation VisitFieldInitializer(IFieldInitializerOperation operation, int? captureIdForResult)
         {
-            Debug.Assert(_currentStatement == operation);
+            StartVisitingStatement(operation);
 
             foreach (IFieldSymbol fieldSymbol in operation.InitializedFields)
             {
@@ -5549,12 +5571,12 @@ oneMoreTime:
                 VisitInitializer(rewrittenTarget: fieldRef, initializer: operation);
             }
 
-            return null;
+            return FinishVisitingStatement(operation);
         }
 
         public override IOperation VisitPropertyInitializer(IPropertyInitializerOperation operation, int? captureIdForResult)
         {
-            Debug.Assert(_currentStatement == operation);
+            StartVisitingStatement(operation);
 
             foreach (IPropertySymbol propertySymbol in operation.InitializedProperties)
             {
@@ -5589,7 +5611,7 @@ oneMoreTime:
                 VisitInitializer(rewrittenTarget: propertyRef, initializer: operation);
             }
 
-            return null;
+            return FinishVisitingStatement(operation);
         }
 
         private void VisitInitializer(IOperation rewrittenTarget, ISymbolInitializerOperation initializer)
@@ -5661,7 +5683,7 @@ oneMoreTime:
 
         public override IOperation VisitRaiseEvent(IRaiseEventOperation operation, int? captureIdForResult)
         {
-            Debug.Assert(_currentStatement == operation);
+            StartVisitingStatement(operation);
 
             var instance = operation.EventReference.Event.IsStatic ? null : operation.EventReference.Instance;
             if (instance != null)
@@ -5673,8 +5695,8 @@ oneMoreTime:
             IOperation visitedInstance = instance == null ? null : _evalStack.Pop();
             var visitedEventReference = new EventReferenceExpression(operation.EventReference.Event, visitedInstance,
                 semanticModel: null, operation.EventReference.Syntax, operation.EventReference.Type, operation.EventReference.ConstantValue, IsImplicit(operation.EventReference));
-            return new RaiseEventStatement(visitedEventReference, visitedArguments, semanticModel: null,
-                operation.Syntax, operation.Type, operation.ConstantValue, IsImplicit(operation));
+            return FinishVisitingStatement(operation, new RaiseEventStatement(visitedEventReference, visitedArguments, semanticModel: null,
+                                                                              operation.Syntax, operation.Type, operation.ConstantValue, IsImplicit(operation)));
         }
 
         public override IOperation VisitAddressOf(IAddressOfOperation operation, int? captureIdForResult)
