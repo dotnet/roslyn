@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeCleanup
         /// <summary>
         /// Maps format document code cleanup options to DiagnosticId[]
         /// </summary>
-        private static ImmutableDictionary<PerLanguageOption<bool>, ImmutableArray<string>> _optionDiagnosticsMappings = GetCodeCleanupOptionMapping();
+        private static ImmutableArray<Tuple<PerLanguageOption<bool>, ImmutableArray<string>>> _optionDiagnosticsMappings = GetCodeCleanupOptionMapping();
 
         private readonly ICodeFixService _codeFixServiceOpt;
 
@@ -41,46 +41,46 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeCleanup
             _codeFixServiceOpt = codeFixService;
         }
 
-        private static ImmutableDictionary<PerLanguageOption<bool>, ImmutableArray<string>> GetCodeCleanupOptionMapping()
+        private static ImmutableArray<Tuple<PerLanguageOption<bool>, ImmutableArray<string>>> GetCodeCleanupOptionMapping()
         {
-            var dictionary = new Dictionary<PerLanguageOption<bool>, ImmutableArray<string>>()
-            {
-                {
+            return ImmutableArray.Create<Tuple<PerLanguageOption<bool>, ImmutableArray<string>>>
+            (
+                Tuple.Create(
                     CodeCleanupOptions.FixImplicitExplicitType,
                     ImmutableArray.Create(IDEDiagnosticIds.UseImplicitTypeDiagnosticId,
                                           IDEDiagnosticIds.UseExplicitTypeDiagnosticId)
-                },
-                {
+                ),
+                Tuple.Create(
                     CodeCleanupOptions.FixThisQualification,
                     ImmutableArray.Create(IDEDiagnosticIds.AddQualificationDiagnosticId,
                                           IDEDiagnosticIds.RemoveQualificationDiagnosticId)
-                },
-                {
+                ),
+                Tuple.Create(
                     CodeCleanupOptions.FixFrameworkTypes,
                     ImmutableArray.Create(IDEDiagnosticIds.PreferFrameworkTypeInDeclarationsDiagnosticId,
                                           IDEDiagnosticIds.PreferFrameworkTypeInMemberAccessDiagnosticId)
-                },
-                {
+                ),
+                Tuple.Create(
                     CodeCleanupOptions.FixAddRemoveBraces,
                     ImmutableArray.Create(IDEDiagnosticIds.AddBracesDiagnosticId)
-                },
-                {
+                ),
+                Tuple.Create(
                     CodeCleanupOptions.FixAccessibilityModifiers,
                     ImmutableArray.Create(IDEDiagnosticIds.AddAccessibilityModifiersDiagnosticId)
-                },
-                {
+                ),
+                Tuple.Create(
                     CodeCleanupOptions.SortAccessibilityModifiers,
                     ImmutableArray.Create(IDEDiagnosticIds.OrderModifiersDiagnosticId)
-                },
-                {
+                ),
+                Tuple.Create(
                     CodeCleanupOptions.MakeReadonly,
                     ImmutableArray.Create(IDEDiagnosticIds.MakeFieldReadonlyDiagnosticId)
-                },
-                {
+                ),
+                Tuple.Create(
                     CodeCleanupOptions.RemoveUnnecessaryCasts,
                     ImmutableArray.Create(IDEDiagnosticIds.RemoveUnnecessaryCastDiagnosticId)
-                },
-                {
+                ),
+                Tuple.Create(
                     CodeCleanupOptions.FixExpressionBodiedMembers,
                     ImmutableArray.Create(IDEDiagnosticIds.UseExpressionBodyForConstructorsDiagnosticId,
                                           IDEDiagnosticIds.UseExpressionBodyForMethodsDiagnosticId,
@@ -89,24 +89,22 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeCleanup
                                           IDEDiagnosticIds.UseExpressionBodyForPropertiesDiagnosticId,
                                           IDEDiagnosticIds.UseExpressionBodyForIndexersDiagnosticId,
                                           IDEDiagnosticIds.UseExpressionBodyForAccessorsDiagnosticId)
-                },
-                {
+                ),
+                Tuple.Create(
                     CodeCleanupOptions.FixInlineVariableDeclarations,
                     ImmutableArray.Create(IDEDiagnosticIds.InlineDeclarationDiagnosticId)
-                },
-                {
+                ),
+                Tuple.Create(
                     CodeCleanupOptions.RemoveUnusedVariables,
                     ImmutableArray.Create(CSharpRemoveUnusedVariableCodeFixProvider.CS0168,
                                           CSharpRemoveUnusedVariableCodeFixProvider.CS0219)
-                },
-                {
+                ),
+                Tuple.Create(
                     CodeCleanupOptions.FixObjectCollectionInitialization,
                     ImmutableArray.Create(IDEDiagnosticIds.UseObjectInitializerDiagnosticId,
                                           IDEDiagnosticIds.UseCollectionInitializerDiagnosticId)
-                }
-            };
-
-            return dictionary.ToImmutableDictionary();
+                )
+            );
         }
 
         public async Task<Document> CleanupAsync(Document document, CancellationToken cancellationToken)
@@ -177,11 +175,11 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeCleanup
         {
             var diagnosticIds = new List<string>();
 
-            foreach (var kv in _optionDiagnosticsMappings)
+            foreach (var tuple in _optionDiagnosticsMappings)
             {
-                if (docOptions.GetOption(kv.Key))
+                if (docOptions.GetOption(tuple.Item1))
                 {
-                    diagnosticIds.AddRange(kv.Value);
+                    diagnosticIds.AddRange(tuple.Item2);
                 }
             }
 
