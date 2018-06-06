@@ -16,8 +16,8 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
 
         /// <summary>
         /// Region with the only purpose to represent the life-time of locals and nested methods (local functions, lambdas).
-        /// Lifetime for a local symbol represents the region within which the local allocation is valid and can be referenced.
-        /// Lifetime for a nested method represents the region within which the method can be referenced.
+        /// The lifetime of a local variable is the portion of program execution during which storage is guaranteed to be reserved for it.
+        /// The lifetime of a nested method is the portion of program execution within which the method can be referenced.
         /// </summary>
         LocalLifetime,
 
