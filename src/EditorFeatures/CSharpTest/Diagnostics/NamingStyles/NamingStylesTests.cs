@@ -88,6 +88,7 @@ $@"class C
         [InlineData("t_bar", "_bar")]
         [InlineData("bar", "_bar")]
         [InlineData("__bar", "_bar", Skip = "https://github.com/dotnet/roslyn/issues/26588")]
+        [InlineData("__s_bar", "_bar", Skip = "https://github.com/dotnet/roslyn/issues/26588")]
         [InlineData("m_s__t_Bar", "_bar")]
         // Special cases to ensure empty identifiers are not produced
         [InlineData("M_", "_m_")]
