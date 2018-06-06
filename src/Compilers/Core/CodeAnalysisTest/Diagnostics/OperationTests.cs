@@ -155,5 +155,122 @@ class C
             tree = tree.WithRootAndOptions(tree.GetRoot(), options);
             testFlowAnalysisFeatureFlagCore(expectException: false);
         }
+
+        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+        [Fact]
+        public void TestGetFlowGraphNullArgument()
+        {
+            Assert.Throws<ArgumentNullException>(() => SemanticModel.GetControlFlowGraph((IBlockOperation)null));
+            Assert.Throws<ArgumentNullException>(() => SemanticModel.GetControlFlowGraph((IFieldInitializerOperation)null));
+            Assert.Throws<ArgumentNullException>(() => SemanticModel.GetControlFlowGraph((IPropertyInitializerOperation)null));
+            Assert.Throws<ArgumentNullException>(() => SemanticModel.GetControlFlowGraph((IParameterInitializerOperation)null));
+            Assert.Throws<ArgumentNullException>(() => SemanticModel.GetControlFlowGraph((IConstructorBodyOperation)null));
+            Assert.Throws<ArgumentNullException>(() => SemanticModel.GetControlFlowGraph((IMethodBodyOperation)null));
+        }
+
+        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+        [Fact]
+        public void TestGetFlowGraphInvalidArgumentWithNonNullParent()
+        {
+            IOperation parent = new BlockStatement(ImmutableArray<IOperation>.Empty, ImmutableArray<ILocalSymbol>.Empty,
+                    semanticModel: null, syntax: null, type: null, constantValue: default, isImplicit: false);
+
+            TestGetFlowGraphInvalidArgumentCore(argumentExceptionMessage: CodeAnalysisResources.NotARootOperation, parent);
+        }
+
+        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+        [Fact]
+        public void TestGetFlowGraphInvalidArgumentWithNullSemanticModel()
+        {
+            TestGetFlowGraphInvalidArgumentCore(argumentExceptionMessage: CodeAnalysisResources.OperationHasNullSemanticModel, parent: null);
+        }
+
+        private void TestGetFlowGraphInvalidArgumentCore(string argumentExceptionMessage, IOperation parent)
+        {
+            try
+            {
+                IBlockOperation block = new BlockStatement(
+                    ImmutableArray<IOperation>.Empty, ImmutableArray<ILocalSymbol>.Empty,
+                    semanticModel: null, syntax: null, type: null, constantValue: default, isImplicit: false);
+                block = Operation.SetParentOperation(block, parent);
+                _ = SemanticModel.GetControlFlowGraph(block);
+            }
+            catch (ArgumentException ex)
+            {
+                Assert.Equal(new ArgumentException(argumentExceptionMessage, "body").Message, ex.Message);
+            }
+
+            try
+            {
+                IFieldInitializerOperation initializer = new FieldInitializer(
+                    ImmutableArray<ILocalSymbol>.Empty, ImmutableArray<IFieldSymbol>.Empty,
+                    value: null, kind: OperationKind.FieldInitializer,
+                    semanticModel: null, syntax: null, type: null, constantValue: default, isImplicit: false);
+                initializer = Operation.SetParentOperation(initializer, parent);
+                _ = SemanticModel.GetControlFlowGraph(initializer);
+            }
+            catch (ArgumentException ex)
+            {
+                Assert.Equal(new ArgumentException(argumentExceptionMessage, "initializer").Message, ex.Message);
+            }
+
+            try
+            {
+                IPropertyInitializerOperation initializer = new PropertyInitializer(
+                    ImmutableArray<ILocalSymbol>.Empty, ImmutableArray<IPropertySymbol>.Empty,
+                    value: null, kind: OperationKind.PropertyInitializer,
+                    semanticModel: null, syntax: null, type: null, constantValue: default, isImplicit: false);
+                initializer = Operation.SetParentOperation(initializer, parent);
+                _ = SemanticModel.GetControlFlowGraph(initializer);
+            }
+            catch (ArgumentException ex)
+            {
+                Assert.Equal(new ArgumentException(argumentExceptionMessage, "initializer").Message, ex.Message);
+            }
+
+            try
+            {
+                IParameterInitializerOperation initializer = new ParameterInitializer(
+                                    ImmutableArray<ILocalSymbol>.Empty, parameter: null,
+                                    value: null, kind: OperationKind.ParameterInitializer,
+                                    semanticModel: null, syntax: null, type: null, constantValue: default, isImplicit: false);
+                initializer = Operation.SetParentOperation(initializer, parent);
+                _ = SemanticModel.GetControlFlowGraph(initializer);
+            }
+            catch (ArgumentException ex)
+            {
+                Assert.Equal(new ArgumentException(argumentExceptionMessage, "initializer").Message, ex.Message);
+            }
+
+            try
+            {
+                IConstructorBodyOperation constructorBody = new ConstructorBodyOperation(
+                                    ImmutableArray<ILocalSymbol>.Empty,
+                                    initializer: null,
+                                    blockBody: null,
+                                    expressionBody: null,
+                                    semanticModel: null, syntax: null);
+                constructorBody = Operation.SetParentOperation(constructorBody, parent);
+                _ = SemanticModel.GetControlFlowGraph(constructorBody);
+            }
+            catch (ArgumentException ex)
+            {
+                Assert.Equal(new ArgumentException(argumentExceptionMessage, "constructorBody").Message, ex.Message);
+            }
+
+            try
+            {
+                IMethodBodyOperation methodBody = new MethodBodyOperation(
+                                                    blockBody: null,
+                                                    expressionBody: null,
+                                                    semanticModel: null, syntax: null);
+                methodBody = Operation.SetParentOperation(methodBody, parent);
+                _ = SemanticModel.GetControlFlowGraph(methodBody);
+            }
+            catch (ArgumentException ex)
+            {
+                Assert.Equal(new ArgumentException(argumentExceptionMessage, "methodBody").Message, ex.Message);
+            }
+        }
     }
 }

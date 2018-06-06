@@ -1,9 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System.Collections.Immutable;
-using System.Diagnostics;
 using Microsoft.CodeAnalysis.Operations;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.FlowAnalysis
 {
@@ -18,8 +15,9 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
         Root,
 
         /// <summary>
-        /// Region with the only purpose to represent the life-time of locals and methods (local functions, lambdas).
-        /// PROTOTYPE(dataflow): We should clearly explain what "life-time" refers to here, or use a different term.
+        /// Region with the only purpose to represent the life-time of locals and nested methods (local functions, lambdas).
+        /// The lifetime of a local variable is the portion of program execution during which storage is guaranteed to be reserved for it.
+        /// The lifetime of a nested method is the portion of program execution within which the method can be referenced.
         /// </summary>
         LocalLifetime,
 

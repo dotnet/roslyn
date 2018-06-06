@@ -4,11 +4,12 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
 {
     /// <summary>
     /// Represents that an intermediate result is being captured.
-    /// This node is produced only as part of a flow graph.
-    /// PROTOTYPE(dataflow): Finalize the design how capturing/referencing intermediate results is represented.
+    /// This node is produced only as part of a <see cref="ControlFlowGraph"/>.
     /// </summary>
     public interface IFlowCaptureOperation : IOperation
     {
+        // PROTOTYPE(dataflow): Finalize the design how capturing/referencing intermediate results is represented.
+        
         /// <summary>
         /// An id used to match references to the same intermediate result.
         /// </summary>
