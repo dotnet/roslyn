@@ -77,7 +77,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests
                 typeof(Microsoft.VisualStudio.Language.StandardClassification.PredefinedClassificationTypeNames).Assembly
             };
 
-            return assemblies.Concat(GetLanguageNeutralTypes().Select(t => t.Assembly)).Distinct();
+            return assemblies;
         }
     }
 }
