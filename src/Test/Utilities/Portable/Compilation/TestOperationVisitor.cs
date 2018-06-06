@@ -1030,6 +1030,19 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             }
         }
 
+        internal override void VisitNoPiaObjectCreation(INoPiaObjectCreationOperation operation)
+        {
+            Assert.Equal(OperationKind.None, operation.Kind);
+            if (operation.Initializer == null)
+            {
+                Assert.Empty(operation.Children);
+            }
+            else
+            {
+                Assert.Same(operation.Initializer, operation.Children.Single());
+            }
+        }
+
         public override void VisitInvalid(IInvalidOperation operation)
         {
             Assert.Equal(OperationKind.Invalid, operation.Kind);

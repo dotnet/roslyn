@@ -919,7 +919,9 @@ End Structure
                 references:={MscorlibRef, SystemRef, compilation0.EmitToImageReference(embedInteropTypes:=True)})
 
             Dim expectedOperationTree = <![CDATA[
-IOperation:  (OperationKind.None, Type: null, IsInvalid) (Syntax: 'New I(x)')
+INoPiaObjectCreationOperation (OperationKind.None, Type: I, IsInvalid) (Syntax: 'New I(x)')
+  Initializer: 
+    null
 ]]>.Value
 
             Dim expectedDiagnostics = <![CDATA[
