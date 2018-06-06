@@ -2440,19 +2440,23 @@ Block[B0] - Entry
     Next (Regular) Block[B1]
 Block[B1] - Block
     Predecessors: [B0]
-    Statements (3)
+    Statements (7)
+        IParameterReferenceOperation: other1 (OperationKind.ParameterReference, Type: System.Object, IsInvalid) (Syntax: 'other1')
+
         IInvalidOperation (OperationKind.Invalid, Type: null, IsInvalid) (Syntax: 'Case other1')
-          Children(1):
-              IParameterReferenceOperation: other1 (OperationKind.ParameterReference, Type: System.Object, IsInvalid) (Syntax: 'other1')
+          Children(0)
+
+        IParameterReferenceOperation: other2 (OperationKind.ParameterReference, Type: System.Object, IsInvalid) (Syntax: 'other2')
 
         IInvalidOperation (OperationKind.Invalid, Type: null, IsInvalid) (Syntax: 'Case < other2')
-          Children(1):
-              IParameterReferenceOperation: other2 (OperationKind.ParameterReference, Type: System.Object, IsInvalid) (Syntax: 'other2')
+          Children(0)
+
+        IParameterReferenceOperation: other3 (OperationKind.ParameterReference, Type: System.Object, IsInvalid) (Syntax: 'other3')
+
+        IParameterReferenceOperation: other4 (OperationKind.ParameterReference, Type: System.Object, IsInvalid) (Syntax: 'other4')
 
         IInvalidOperation (OperationKind.Invalid, Type: null, IsInvalid) (Syntax: 'Case other3 To other4')
-          Children(2):
-              IParameterReferenceOperation: other3 (OperationKind.ParameterReference, Type: System.Object, IsInvalid) (Syntax: 'other3')
-              IParameterReferenceOperation: other4 (OperationKind.ParameterReference, Type: System.Object, IsInvalid) (Syntax: 'other4')
+          Children(0)
 
     Next (Regular) Block[B2]
 Block[B2] - Exit

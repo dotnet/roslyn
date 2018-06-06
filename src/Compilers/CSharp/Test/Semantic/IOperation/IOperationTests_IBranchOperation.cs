@@ -333,16 +333,18 @@ Block[B0] - Entry
     Next (Regular) Block[B1]
 Block[B1] - Block
     Predecessors: [B0]
-    Statements (1)
+    Statements (2)
+        IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid) (Syntax: 'label1')
+          Children(0)
+
         IInvalidOperation (OperationKind.Invalid, Type: null, IsInvalid) (Syntax: 'goto label1;')
-          Children(1):
-              IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid) (Syntax: 'label1')
-                Children(0)
+          Children(0)
 
     Next (Regular) Block[B2]
 Block[B2] - Exit
     Predecessors: [B1]
-    Statements (0)";
+    Statements (0)
+";
             VerifyFlowGraphForTest<BlockSyntax>(compilation, expectedGraph);
         }
 
@@ -377,16 +379,18 @@ Block[B0] - Entry
     Next (Regular) Block[B1]
 Block[B1] - Block
     Predecessors: [B0]
-    Statements (2)
-        IInvalidOperation (OperationKind.Invalid, Type: null, IsInvalid) (Syntax: 'goto label1;')
-          Children(1):
-              IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid) (Syntax: 'label1')
-                Children(0)
+    Statements (4)
+        IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid) (Syntax: 'label1')
+          Children(0)
 
         IInvalidOperation (OperationKind.Invalid, Type: null, IsInvalid) (Syntax: 'goto label1;')
-          Children(1):
-              IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid) (Syntax: 'label1')
-                Children(0)
+          Children(0)
+
+        IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid) (Syntax: 'label1')
+          Children(0)
+
+        IInvalidOperation (OperationKind.Invalid, Type: null, IsInvalid) (Syntax: 'goto label1;')
+          Children(0)
 
     Next (Regular) Block[B2]
 Block[B2] - Exit
@@ -430,11 +434,12 @@ Block[B1] - Block
     Next (Regular) Block[B2]
 Block[B2] - Block
     Predecessors: [B1]
-    Statements (1)
+    Statements (2)
+        IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid) (Syntax: 'label2')
+          Children(0)
+
         IInvalidOperation (OperationKind.Invalid, Type: null, IsInvalid) (Syntax: 'goto label2;')
-          Children(1):
-              IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid) (Syntax: 'label2')
-                Children(0)
+          Children(0)
 
     Next (Regular) Block[B3]
 Block[B3] - Exit
@@ -482,11 +487,12 @@ Block[B1] - Block
     Next (Regular) Block[B2]
 Block[B2] - Block
     Predecessors: [B1]
-    Statements (1)
+    Statements (2)
+        IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid) (Syntax: 'label2')
+          Children(0)
+
         IInvalidOperation (OperationKind.Invalid, Type: null, IsInvalid) (Syntax: 'goto label2;')
-          Children(1):
-              IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid) (Syntax: 'label2')
-                Children(0)
+          Children(0)
 
     Next (Regular) Block[B3]
 Block[B3] - Block
@@ -498,11 +504,12 @@ Block[B3] - Block
     Next (Regular) Block[B4]
 Block[B4] - Block
     Predecessors: [B3]
-    Statements (1)
+    Statements (2)
+        IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid) (Syntax: 'label2')
+          Children(0)
+
         IInvalidOperation (OperationKind.Invalid, Type: null, IsInvalid) (Syntax: 'goto label2;')
-          Children(1):
-              IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid) (Syntax: 'label2')
-                Children(0)
+          Children(0)
 
     Next (Regular) Block[B5]
 Block[B5] - Exit
@@ -548,11 +555,12 @@ Block[B1] - Block
     Next (Regular) Block[B3]
 Block[B2] - Block
     Predecessors: [B1]
-    Statements (1)
+    Statements (2)
+        IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid) (Syntax: 'label1')
+          Children(0)
+
         IInvalidOperation (OperationKind.Invalid, Type: null, IsInvalid) (Syntax: 'goto label1;')
-          Children(1):
-              IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid) (Syntax: 'label1')
-                Children(0)
+          Children(0)
 
     Next (Regular) Block[B3]
 Block[B3] - Exit
@@ -603,11 +611,12 @@ Block[B1] - Block
     Next (Regular) Block[B3]
 Block[B2] - Block
     Predecessors: [B1]
-    Statements (1)
+    Statements (2)
+        IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid) (Syntax: 'label1')
+          Children(0)
+
         IInvalidOperation (OperationKind.Invalid, Type: null, IsInvalid) (Syntax: 'goto label1;')
-          Children(1):
-              IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid) (Syntax: 'label1')
-                Children(0)
+          Children(0)
 
     Next (Regular) Block[B3]
 Block[B3] - Block
@@ -619,11 +628,12 @@ Block[B3] - Block
     Next (Regular) Block[B5]
 Block[B4] - Block
     Predecessors: [B3]
-    Statements (1)
+    Statements (2)
+        IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid) (Syntax: 'label1')
+          Children(0)
+
         IInvalidOperation (OperationKind.Invalid, Type: null, IsInvalid) (Syntax: 'goto label1;')
-          Children(1):
-              IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid) (Syntax: 'label1')
-                Children(0)
+          Children(0)
 
     Next (Regular) Block[B5]
 Block[B5] - Exit
@@ -971,21 +981,24 @@ Block[B0] - Entry
     Next (Regular) Block[B1]
 Block[B1] - Block
     Predecessors: [B0]
-    Statements (3)
+    Statements (6)
+        IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid) (Syntax: 'finallyLabel')
+          Children(0)
+
         IInvalidOperation (OperationKind.Invalid, Type: null, IsInvalid) (Syntax: 'goto finallyLabel;')
-          Children(1):
-              IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid) (Syntax: 'finallyLabel')
-                Children(0)
+          Children(0)
+
+        IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid) (Syntax: 'catchlabel')
+          Children(0)
 
         IInvalidOperation (OperationKind.Invalid, Type: null, IsInvalid) (Syntax: 'goto catchlabel;')
-          Children(1):
-              IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid) (Syntax: 'catchlabel')
-                Children(0)
+          Children(0)
+
+        IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid) (Syntax: 'trylabel')
+          Children(0)
 
         IInvalidOperation (OperationKind.Invalid, Type: null, IsInvalid) (Syntax: 'goto trylabel;')
-          Children(1):
-              IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid) (Syntax: 'trylabel')
-                Children(0)
+          Children(0)
 
     Next (Regular) Block[B2]
         Entering: {R1} {R2} {R3} {R4}
@@ -996,16 +1009,18 @@ Block[B1] - Block
     {
         Block[B2] - Block
             Predecessors: [B1]
-            Statements (2)
+            Statements (4)
+                IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid) (Syntax: 'finallyLabel')
+                  Children(0)
+
                 IInvalidOperation (OperationKind.Invalid, Type: null, IsInvalid) (Syntax: 'goto finallyLabel;')
-                  Children(1):
-                      IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid) (Syntax: 'finallyLabel')
-                        Children(0)
+                  Children(0)
+
+                IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid) (Syntax: 'catchlabel')
+                  Children(0)
 
                 IInvalidOperation (OperationKind.Invalid, Type: null, IsInvalid) (Syntax: 'goto catchlabel;')
-                  Children(1):
-                      IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid) (Syntax: 'catchlabel')
-                        Children(0)
+                  Children(0)
 
             Next (Regular) Block[B6]
                 Finalizing: {R6}
@@ -1015,16 +1030,18 @@ Block[B1] - Block
     {
         Block[B3] - Block
             Predecessors (0)
-            Statements (2)
+            Statements (4)
+                IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid) (Syntax: 'finallyLabel')
+                  Children(0)
+
                 IInvalidOperation (OperationKind.Invalid, Type: null, IsInvalid) (Syntax: 'goto finallyLabel;')
-                  Children(1):
-                      IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid) (Syntax: 'finallyLabel')
-                        Children(0)
+                  Children(0)
+
+                IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid) (Syntax: 'trylabel')
+                  Children(0)
 
                 IInvalidOperation (OperationKind.Invalid, Type: null, IsInvalid) (Syntax: 'goto trylabel;')
-                  Children(1):
-                      IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid) (Syntax: 'trylabel')
-                        Children(0)
+                  Children(0)
 
             Next (Regular) Block[B6]
                 Finalizing: {R6}
@@ -1035,16 +1052,18 @@ Block[B1] - Block
 {
     Block[B4] - Block
         Predecessors (0)
-        Statements (2)
+        Statements (4)
+            IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid) (Syntax: 'catchlabel')
+              Children(0)
+
             IInvalidOperation (OperationKind.Invalid, Type: null, IsInvalid) (Syntax: 'goto catchlabel;')
-              Children(1):
-                  IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid) (Syntax: 'catchlabel')
-                    Children(0)
+              Children(0)
+
+            IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid) (Syntax: 'trylabel')
+              Children(0)
 
             IInvalidOperation (OperationKind.Invalid, Type: null, IsInvalid) (Syntax: 'goto trylabel;')
-              Children(1):
-                  IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid) (Syntax: 'trylabel')
-                    Children(0)
+              Children(0)
 
         Next (Regular) Block[B6]
             Leaving: {R6} {R1}

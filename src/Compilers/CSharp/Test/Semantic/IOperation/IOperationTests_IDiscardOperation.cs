@@ -251,7 +251,6 @@ Block[B4] - Block
 Block[B5] - Exit
     Predecessors: [B4]
     Statements (0)
-
 ";
             VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedFlowGraph, expectedDiagnostics);
         }

@@ -5335,8 +5335,7 @@ oneMoreTime:
         {
             if (_currentStatement == operation)
             {
-                VisitNoneOperationStatement(operation);
-                return null;
+                return VisitNoneOperationStatement(operation);
             }
             else
             {
@@ -5344,10 +5343,11 @@ oneMoreTime:
             }
         }
 
-        private void VisitNoneOperationStatement(IOperation operation)
+        private IOperation VisitNoneOperationStatement(IOperation operation)
         {
             Debug.Assert(_currentStatement == operation);
             VisitStatements(operation.Children);
+            return Operation.CreateOperationNone(semanticModel: null, operation.Syntax, operation.ConstantValue, ImmutableArray<IOperation>.Empty, IsImplicit(operation));
         }
 
         private IOperation VisitNoneOperationExpression(IOperation operation)
@@ -5774,6 +5774,76 @@ oneMoreTime:
                 operation.Syntax, operation.Type, operation.ConstantValue, IsImplicit(operation));
         }
 
+        public override IOperation VisitInvalid(IInvalidOperation operation, int? captureIdForResult)
+        {
+            var children = ArrayBuilder<IOperation>.GetInstance();
+            children.AddRange(operation.Children);
+
+            if (children.Count != 0 && children.Last().Kind == OperationKind.ObjectOrCollectionInitializer)
+            {
+                // We are dealing with erroneous object creation. All children, but the last one are arguments for the constructor,
+                // but overload resolution failed.
+                SpillEvalStack();
+
+                var initializer = (IObjectOrCollectionInitializerOperation)children.Last();
+                children.RemoveLast();
+
+                foreach (var argument in children)
+                {
+                    _evalStack.Push(Visit(argument));
+                }
+
+                for (int i = children.Count - 1; i >= 0; i--)
+                {
+                    children[i] = _evalStack.Pop();
+                }
+
+                IOperation initializedInstance = new InvalidOperation(children.ToImmutableAndFree(), semanticModel: null, operation.Syntax, operation.Type,
+                                                                      operation.ConstantValue, IsImplicit(operation));
+
+                initializedInstance = HandleObjectOrCollectionInitializer(initializer, initializedInstance);
+
+                return initializedInstance;
+            }
+        
+            IOperation result;
+            if (_currentStatement == operation)
+            {
+                result = visitInvalidOperationStatement(operation);
+            }
+            else
+            {
+                result = visitInvalidOperationExpression(operation);
+            }
+            
+            children.Free();
+            return result;
+
+            IOperation visitInvalidOperationStatement(IInvalidOperation invalidOperation)
+            {
+                Debug.Assert(_currentStatement == invalidOperation);
+                VisitStatements(children);
+                return new InvalidOperation(ImmutableArray<IOperation>.Empty, semanticModel: null, invalidOperation.Syntax, invalidOperation.Type, invalidOperation.ConstantValue, IsImplicit(invalidOperation));
+            }
+
+            IOperation visitInvalidOperationExpression(IInvalidOperation invalidOperation)
+            {
+                foreach (IOperation child in children)
+                {
+                    _evalStack.Push(Visit(child));
+                }
+
+                Debug.Assert(children.Count == invalidOperation.Children.Count());
+
+                for (int i = children.Count - 1; i >= 0; i--)
+                {
+                    children[i] = _evalStack.Pop();
+                }
+
+                return new InvalidOperation(children.ToImmutable(), semanticModel: null, invalidOperation.Syntax, invalidOperation.Type, invalidOperation.ConstantValue, IsImplicit(operation));
+            }
+        }
+
         public override IOperation VisitConstantPattern(IConstantPatternOperation operation, int? captureIdForResult)
         {
             return new ConstantPattern(Visit(operation.Value), semanticModel: null,
@@ -5837,41 +5907,6 @@ oneMoreTime:
                                                        ((HasDynamicArgumentsExpression)operation).ArgumentRefKinds,
                                                        initializer: null, // PROTOTYPE(dataflow): Dropping initializer for now to enable test hook verification
                                                        semanticModel: null, operation.Syntax, operation.Type, operation.ConstantValue, IsImplicit(operation));
-        }
-
-        public override IOperation VisitInvalid(IInvalidOperation operation, int? captureIdForResult)
-        {
-            var children = ArrayBuilder<IOperation>.GetInstance();
-            children.AddRange(operation.Children);
-
-            if (children.Count != 0 && children.Last().Kind == OperationKind.ObjectOrCollectionInitializer)
-            {
-                // We are dealing with erroneous object creation. All children, but the last one are arguments for the constructor,
-                // but overload resolution failed.
-                SpillEvalStack();
-
-                var initializer = (IObjectOrCollectionInitializerOperation)children.Last();
-                children.RemoveLast();
-
-                foreach (var argument in children)
-                {
-                    _evalStack.Push(Visit(argument));
-                }
-
-                for (int i = children.Count - 1; i >= 0; i--)
-                {
-                    children[i] = _evalStack.Pop();
-                }
-
-                IOperation initializedInstance = new InvalidOperation(children.ToImmutableAndFree(), semanticModel: null, operation.Syntax, operation.Type,
-                                                                      operation.ConstantValue, IsImplicit(operation));
-
-                initializedInstance = HandleObjectOrCollectionInitializer(initializer, initializedInstance);
-
-                return initializedInstance;
-            }
-
-            return new InvalidOperation(VisitArray(children.ToImmutableAndFree()), semanticModel: null, operation.Syntax, operation.Type, operation.ConstantValue, IsImplicit(operation));
         }
 
         public override IOperation VisitTranslatedQuery(ITranslatedQueryOperation operation, int? captureIdForResult)

@@ -124,11 +124,12 @@ Block[B0] - Entry
     Next (Regular) Block[B1]
 Block[B1] - Block
     Predecessors: [B0]
-    Statements (1)
+    Statements (2)
+        IInvalidOperation (OperationKind.Invalid, Type: null, IsInvalid) (Syntax: 'label1')
+          Children(0)
+
         IInvalidOperation (OperationKind.Invalid, Type: null, IsInvalid) (Syntax: 'Goto label1')
-          Children(1):
-              IInvalidOperation (OperationKind.Invalid, Type: null, IsInvalid) (Syntax: 'label1')
-                Children(0)
+          Children(0)
 
     Next (Regular) Block[B2]
 Block[B2] - Exit
@@ -2727,11 +2728,12 @@ Block[B0] - Entry
             Next (Regular) Block[B1#0R1]
         Block[B1#0R1] - Block
             Predecessors: [B0#0R1]
-            Statements (1)
+            Statements (2)
+                IInvalidOperation (OperationKind.Invalid, Type: null, IsInvalid) (Syntax: 'label1')
+                  Children(0)
+
                 IInvalidOperation (OperationKind.Invalid, Type: null, IsInvalid) (Syntax: 'GoTo label1')
-                  Children(1):
-                      IInvalidOperation (OperationKind.Invalid, Type: null, IsInvalid) (Syntax: 'label1')
-                        Children(0)
+                  Children(0)
 
             Next (Regular) Block[B2#0R1]
         Block[B2#0R1] - Exit

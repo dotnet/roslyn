@@ -508,5 +508,64 @@ BC36005: 'ElseIf' must be preceded by a matching 'If' or 'ElseIf'.
 
             VerifyOperationTreeAndDiagnosticsForTest(Of ElseIfStatementSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
+
+        <CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)>
+        <Fact>
+        Public Sub InvalidStatementFlow_01()
+            Dim source = <![CDATA[
+Module Program
+    Sub Main(args As String())'BIND:"Sub Main(args As String())"
+        Select Case args.Length
+            Case 1
+                GoTo Label1
+        End Select
+    End Sub
+End Module
+]]>.Value
+
+            Dim expectedDiagnostics = <![CDATA[
+BC30132: Label 'Label1' is not defined.
+                GoTo Label1
+                     ~~~~~~
+]]>.Value
+
+            Dim expectedFlowGraph = <![CDATA[
+Block[B0] - Entry
+    Statements (0)
+    Next (Regular) Block[B1]
+Block[B1] - Block
+    Predecessors: [B0]
+    Statements (1)
+        IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'args.Length')
+          Value: 
+            IPropertyReferenceOperation: ReadOnly Property System.Array.Length As System.Int32 (OperationKind.PropertyReference, Type: System.Int32) (Syntax: 'args.Length')
+              Instance Receiver: 
+                IParameterReferenceOperation: args (OperationKind.ParameterReference, Type: System.String()) (Syntax: 'args')
+
+    Jump if False (Regular) to Block[B3]
+        IBinaryOperation (BinaryOperatorKind.Equals) (OperationKind.BinaryOperator, Type: System.Boolean, IsImplicit) (Syntax: '1')
+          Left: 
+            IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.Int32, IsImplicit) (Syntax: 'args.Length')
+          Right: 
+            ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
+
+    Next (Regular) Block[B2]
+Block[B2] - Block
+    Predecessors: [B1]
+    Statements (2)
+        IInvalidOperation (OperationKind.Invalid, Type: null, IsInvalid) (Syntax: 'Label1')
+          Children(0)
+
+        IInvalidOperation (OperationKind.Invalid, Type: null, IsInvalid) (Syntax: 'GoTo Label1')
+          Children(0)
+
+    Next (Regular) Block[B3]
+Block[B3] - Exit
+    Predecessors: [B1] [B2]
+    Statements (0)
+]]>.Value
+
+            VerifyFlowGraphAndDiagnosticsForTest(Of MethodBlockSyntax)(source, expectedFlowGraph, expectedDiagnostics)
+        End Sub
     End Class
 End Namespace

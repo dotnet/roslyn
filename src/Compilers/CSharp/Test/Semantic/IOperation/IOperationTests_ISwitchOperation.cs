@@ -997,10 +997,11 @@ Block[B1] - Block
     Next (Regular) Block[B2]
 Block[B2] - Block
     Predecessors: [B1]
-    Statements (1)
+    Statements (2)
+        ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 3, IsInvalid) (Syntax: '3')
+
         IInvalidOperation (OperationKind.Invalid, Type: null, IsInvalid) (Syntax: 'goto case 3;')
-          Children(1):
-              ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 3, IsInvalid) (Syntax: '3')
+          Children(0)
 
     Next (Regular) Block[B3]
 Block[B3] - Exit
