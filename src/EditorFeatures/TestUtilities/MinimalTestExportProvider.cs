@@ -85,7 +85,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests
                 typeof(Microsoft.VisualStudio.Text.Utilities.IExperimentationServiceInternal).Assembly,
             };
 
-            return assemblies.Concat(GetLanguageNeutralTypes().Select(t => t.Assembly)).Distinct();
+            return assemblies;
         }
     }
 }
