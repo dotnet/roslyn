@@ -53,16 +53,24 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             }
         }
 
-#pragma warning disable RS0026
+#pragma warning disable RS0026 // Do not add multiple public overloads with optional parameters
 
         /// <summary>
-        /// Find the symbols for declarations made in source with the specified name.
+        /// Find the symbols for declarations made in source with the specified pattern. This pattern is matched
+        /// using heuristics that may change from release to release. So, the set of symbols matched by a given
+        /// pattern may change between releases. For example, new symbols may be matched by a pattern and/or
+        /// symbols previously matched by a pattern no longer are. However, the set of symbols matched by a
+        /// specific release will be consistent for a specific pattern.
         /// </summary>
         public static Task<IEnumerable<ISymbol>> FindSourceDeclarationsWithPatternAsync(Solution solution, string pattern, CancellationToken cancellationToken = default)
             => FindSourceDeclarationsWithPatternAsync(solution, pattern, SymbolFilter.All, cancellationToken);
 
         /// <summary>
-        /// Find the symbols for declarations made in source with the specified name.
+        /// Find the symbols for declarations made in source with the specified pattern. This pattern is matched
+        /// using heuristics that may change from release to release. So, the set of symbols matched by a given
+        /// pattern may change between releases. For example, new symbols may be matched by a pattern and/or
+        /// symbols previously matched by a pattern no longer are. However, the set of symbols matched by a
+        /// specific release will be consistent for a specific pattern.
         /// </summary>
         public static async Task<IEnumerable<ISymbol>> FindSourceDeclarationsWithPatternAsync(
             Solution solution, string pattern, SymbolFilter filter, CancellationToken cancellationToken = default)
@@ -76,13 +84,21 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         }
 
         /// <summary>
-        /// Find the symbols for declarations made in source with the specified pattern.
+        /// Find the symbols for declarations made in source with the specified pattern. This pattern is matched
+        /// using heuristics that may change from release to release. So, the set of symbols matched by a given
+        /// pattern may change between releases. For example, new symbols may be matched by a pattern and/or
+        /// symbols previously matched by a pattern no longer are. However, the set of symbols matched by a
+        /// specific release will be consistent for a specific pattern.
         /// </summary>
         public static Task<IEnumerable<ISymbol>> FindSourceDeclarationsWithPatternAsync(Project project, string pattern, CancellationToken cancellationToken = default)
             => FindSourceDeclarationsWithPatternAsync(project, pattern, SymbolFilter.All, cancellationToken);
 
         /// <summary>
-        /// Find the symbols for declarations made in source with the specified pattern.
+        /// Find the symbols for declarations made in source with the specified pattern. This pattern is matched
+        /// using heuristics that may change from release to release. So, the set of symbols matched by a given
+        /// pattern may change between releases. For example, new symbols may be matched by a pattern and/or
+        /// symbols previously matched by a pattern no longer are. However, the set of symbols matched by a
+        /// specific release will be consistent for a specific pattern.
         /// </summary>
         public static async Task<IEnumerable<ISymbol>> FindSourceDeclarationsWithPatternAsync(
             Project project, string pattern, SymbolFilter filter, CancellationToken cancellationToken = default)
