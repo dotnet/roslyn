@@ -6,6 +6,7 @@ using System.ComponentModel;
 using System.ComponentModel.Composition;
 using System.Diagnostics;
 using System.Linq;
+using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Xml.Linq;
 using Microsoft.CodeAnalysis.CodeStyle;
@@ -141,17 +142,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
                     value = Enum.ToObject(optionKey.Option.Type, value);
                 }
             }
-            else if (optionKey.Option.Type == typeof(CodeStyleOption<bool>))
+            else if (typeof(ICodeStyleOption).IsAssignableFrom (optionKey.Option.Type))
             {
-                return DeserializeCodeStyleOption<bool>(ref value);
-            }
-            else if (optionKey.Option.Type == typeof(CodeStyleOption<ExpressionBodyPreference>))
-            {
-                return DeserializeCodeStyleOption<ExpressionBodyPreference>(ref value);
-            }
-            else if (optionKey.Option.Type == typeof(CodeStyleOption<ParenthesesPreference>))
-            {
-                return DeserializeCodeStyleOption<ParenthesesPreference>(ref value);
+                return DeserializeCodeStyleOption(ref value, optionKey.Option.Type);
             }
             else if (optionKey.Option.Type == typeof(NamingStylePreferences))
             {
@@ -202,13 +195,15 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
             return true;
         }
 
-        private bool DeserializeCodeStyleOption<T>(ref object value)
+        private bool DeserializeCodeStyleOption(ref object value, Type type)
         {
             if (value is string serializedValue)
             {
                 try
                 {
-                    value = CodeStyleOption<T>.FromXElement(XElement.Parse(serializedValue));
+                    var fromXElement = type.GetMethod(nameof(CodeStyleOption<object>.FromXElement), BindingFlags.Public | BindingFlags.Static);
+
+                    value = fromXElement.Invoke(null, new object[] { XElement.Parse(serializedValue) });
                     return true;
                 }
                 catch (Exception)
