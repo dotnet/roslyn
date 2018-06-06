@@ -288,6 +288,8 @@ Namespace Microsoft.CodeAnalysis.Operations
                 Case BoundKind.RangeVariableAssignment
                     ' Range variable assignment has no special representation in the IOperation tree
                     Return Create(DirectCast(boundNode, BoundRangeVariableAssignment).Value)
+                Case BoundKind.BadVariable
+                    Return Create(DirectCast(boundNode, BoundBadVariable).Expression)
                 Case BoundKind.NullableIsTrueOperator
                     Return CreateBoundNullableIsTrueOperator(DirectCast(boundNode, BoundNullableIsTrueOperator))
                 Case Else

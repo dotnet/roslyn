@@ -1047,7 +1047,9 @@ Block[B1] - Block
                   Operand: 
                     IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid) (Syntax: 'v.DomainUnload()')
                       Children(1):
-                          IOperation:  (OperationKind.None, Type: null, IsInvalid) (Syntax: 'v.DomainUnload')
+                          IEventReferenceOperation: Event System.AppDomain.DomainUnload As System.EventHandler (OperationKind.EventReference, Type: System.EventHandler, IsInvalid) (Syntax: 'v.DomainUnload')
+                            Instance Receiver: 
+                              IParameterReferenceOperation: v (OperationKind.ParameterReference, Type: System.AppDomain, IsInvalid) (Syntax: 'v')
               Handler: 
                 IParameterReferenceOperation: handler (OperationKind.ParameterReference, Type: System.EventHandler) (Syntax: 'handler')
 
