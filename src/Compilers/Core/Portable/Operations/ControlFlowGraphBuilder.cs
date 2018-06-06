@@ -13,6 +13,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
 {
     internal sealed partial class ControlFlowGraphBuilder : OperationVisitor<int?, IOperation>
     {
+        private readonly Compilation _compilation;
         private readonly BasicBlockBuilder _entry = new BasicBlockBuilder(BasicBlockKind.Entry);
         private readonly BasicBlockBuilder _exit = new BasicBlockBuilder(BasicBlockKind.Exit);
 
@@ -40,8 +41,11 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
         /// </summary>
         private ImplicitInstanceInfo _currentImplicitInstance;
 
-        private ControlFlowGraphBuilder()
-        { }
+        private ControlFlowGraphBuilder(Compilation compilation)
+        {
+            Debug.Assert(compilation != null);
+            _compilation = compilation;
+        }
 
         private bool IsImplicit(IOperation operation)
         {
@@ -50,11 +54,8 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
 
         public static ControlFlowGraph Create(IOperation body, ControlFlowRegion enclosing = null)
         {
-            // PROTOTYPE(dataflow): Consider getting the SemanticModel and Compilation from the root node, 
-            //                      storing them in readonly fields in ControlFlowGraphBuilder, and reusing
-            //                      throughout the process rather than getting them from individual nodes.
-
             Debug.Assert(body != null);
+            Debug.Assert(((Operation)body).SemanticModel != null);
 
 #if DEBUG
             if (enclosing == null)
@@ -74,7 +75,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
             }
 #endif 
 
-            var builder = new ControlFlowGraphBuilder();
+            var builder = new ControlFlowGraphBuilder(((Operation)body).SemanticModel.Compilation);
             var blocks = ArrayBuilder<BasicBlockBuilder>.GetInstance();
             builder._blocks = blocks;
             builder._evalStack = ArrayBuilder<IOperation>.GetInstance();
@@ -1711,7 +1712,6 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
         {
             SpillEvalStack();
 
-            Compilation compilation = ((Operation)binOp).SemanticModel.Compilation;
             IOperation left = binOp.LeftOperand;
             IOperation right = binOp.RightOperand;
             IOperation condition;
@@ -1765,7 +1765,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
                 condition = negateNullable(condition);
             }
 
-            condition = UnwrapNullableValue(condition, compilation);
+            condition = UnwrapNullableValue(condition);
             LinkBlocks(CurrentBasicBlock, Operation.SetParentOperation(condition, null), jumpIfTrue: false, RegularBranch(checkRight));
             _currentBasicBlock = null;
 
@@ -1784,7 +1784,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
                 condition = negateNullable(condition);
             }
 
-            condition = UnwrapNullableValue(condition, compilation);
+            condition = UnwrapNullableValue(condition);
             LinkBlocks(CurrentBasicBlock, Operation.SetParentOperation(condition, null), jumpIfTrue: true, RegularBranch(resultIsLeft));
             _currentBasicBlock = null;
 
@@ -1811,8 +1811,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
         {
             SpillEvalStack();
 
-            Compilation compilation = ((Operation)binOp).SemanticModel.Compilation;
-            INamedTypeSymbol booleanType = compilation.GetSpecialType(SpecialType.System_Boolean);
+            INamedTypeSymbol booleanType = _compilation.GetSpecialType(SpecialType.System_Boolean);
             IOperation left = binOp.LeftOperand;
             IOperation right = binOp.RightOperand;
             IOperation condition;
@@ -1822,7 +1821,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
             var done = new BasicBlockBuilder(BasicBlockKind.Block);
             var checkRight = new BasicBlockBuilder(BasicBlockKind.Block);
 
-            condition = CreateConversion(compilation, Visit(left), booleanType);
+            condition = CreateConversion(Visit(left), booleanType);
 
             LinkBlocks(CurrentBasicBlock, Operation.SetParentOperation(condition, null), jumpIfTrue: isAndAlso, RegularBranch(checkRight));
             _currentBasicBlock = null;
@@ -1834,20 +1833,20 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
 
             AppendNewBlock(checkRight);
 
-            condition = CreateConversion(compilation, Visit(right), booleanType);
+            condition = CreateConversion(Visit(right), booleanType);
 
             AddStatement(new FlowCapture(resultId, binOp.Syntax, condition));
 
             AppendNewBlock(done);
 
             condition = new FlowCaptureReference(resultId, binOp.Syntax, booleanType, constantValue: default);
-            return new ConversionOperation(condition, compilation.ClassifyConvertibleConversion(condition, binOp.Type, out _), isTryCast: false, isChecked: false,
+            return new ConversionOperation(condition, _compilation.ClassifyConvertibleConversion(condition, binOp.Type, out _), isTryCast: false, isChecked: false,
                                            semanticModel: null, binOp.Syntax, binOp.Type, binOp.ConstantValue, isImplicit: true);
         }
 
-        private static IOperation CreateConversion(Compilation compilation, IOperation operand, ITypeSymbol type)
+        private IOperation CreateConversion(IOperation operand, ITypeSymbol type)
         {
-            return new ConversionOperation(operand, compilation.ClassifyConvertibleConversion(operand, type, out Optional<object> constantValue), isTryCast: false, isChecked: false,
+            return new ConversionOperation(operand, _compilation.ClassifyConvertibleConversion(operand, type, out Optional<object> constantValue), isTryCast: false, isChecked: false,
                                            semanticModel: null, operand.Syntax, type, constantValue, isImplicit: true);
         }
 
@@ -1855,8 +1854,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
         {
             SpillEvalStack();
 
-            Compilation compilation = ((Operation)binOp).SemanticModel.Compilation;
-            INamedTypeSymbol booleanType = compilation.GetSpecialType(SpecialType.System_Boolean);
+            INamedTypeSymbol booleanType = _compilation.GetSpecialType(SpecialType.System_Boolean);
             IOperation left = binOp.LeftOperand;
             IOperation right = binOp.RightOperand;
             IMethodSymbol unaryOperatorMethod = ((BaseBinaryOperatorExpression)binOp).UnaryOperatorMethod;
@@ -1900,7 +1898,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
             else
             {
                 // This is either an error case, or left is implicitly convertible to boolean
-                condition = CreateConversion(compilation, condition, booleanType);
+                condition = CreateConversion(condition, booleanType);
                 jumpIfTrue = isAndAlso;
             }
 
@@ -1912,7 +1910,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
 
             if (!ITypeSymbolHelpers.IsDynamicType(left.Type))
             {
-                resultFromLeft = CreateConversion(compilation, resultFromLeft, binOp.Type);
+                resultFromLeft = CreateConversion(resultFromLeft, binOp.Type);
             }
 
             AddStatement(new FlowCapture(resultId, binOp.Syntax, resultFromLeft));
@@ -1944,8 +1942,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
         {
             SpillEvalStack();
 
-            Compilation compilation = ((Operation)binOp).SemanticModel.Compilation;
-            INamedTypeSymbol booleanType = compilation.GetSpecialType(SpecialType.System_Boolean);
+            INamedTypeSymbol booleanType = _compilation.GetSpecialType(SpecialType.System_Boolean);
             bool isLifted = binOp.IsLifted;
             IOperation left = binOp.LeftOperand;
             IOperation right = binOp.RightOperand;
@@ -1969,7 +1966,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
                     _currentBasicBlock = null;
 
                     Debug.Assert(unaryOperatorMethod == null || !ITypeSymbolHelpers.IsNullableType(unaryOperatorMethod.Parameters[0].Type));
-                    condition = UnwrapNullableValue(GetCaptureReference(leftId, left), compilation);
+                    condition = UnwrapNullableValue(GetCaptureReference(leftId, left));
                 }
             }
             else if (unaryOperatorMethod != null && ITypeSymbolHelpers.IsNullableType(unaryOperatorMethod.Parameters[0].Type))
@@ -2280,10 +2277,8 @@ oneMoreTime:
 
             Optional<object> constantValue = operationValue.ConstantValue;
 
-            Compilation compilation = ((Operation)operation).SemanticModel.Compilation;
             LinkBlocks(CurrentBasicBlock,
-                       Operation.SetParentOperation(MakeIsNullOperation(GetCaptureReference(testExpressionCaptureId, operationValue),
-                                                                        compilation),
+                       Operation.SetParentOperation(MakeIsNullOperation(GetCaptureReference(testExpressionCaptureId, operationValue)),
                                                     null),
                        jumpIfTrue: true,
                        RegularBranch(whenNull));
@@ -2300,7 +2295,7 @@ oneMoreTime:
                 if (ITypeSymbolHelpers.IsNullableType(valueTypeOpt) &&
                     (!testConversion.IsIdentity || !ITypeSymbolHelpers.IsNullableType(operation.Type)))
                 {
-                    possiblyUnwrappedValue = TryUnwrapNullableValue(capturedValue, compilation);
+                    possiblyUnwrappedValue = TryUnwrapNullableValue(capturedValue);
                 }
                 else
                 {
@@ -2376,9 +2371,9 @@ oneMoreTime:
                                         constantValue: default, isImplicit: true);
         }
 
-        private static IsNullOperation MakeIsNullOperation(IOperation operand, Compilation compilation)
+        private IsNullOperation MakeIsNullOperation(IOperation operand)
         {
-            return MakeIsNullOperation(operand, compilation.GetSpecialType(SpecialType.System_Boolean));
+            return MakeIsNullOperation(operand, _compilation.GetSpecialType(SpecialType.System_Boolean));
         }
 
         private static IsNullOperation MakeIsNullOperation(IOperation operand, ITypeSymbol booleanType)
@@ -2390,13 +2385,13 @@ oneMoreTime:
                                        constantValue.HasValue ? new Optional<object>(constantValue.Value == null) : default);
         }
 
-        private static IOperation TryUnwrapNullableValue(IOperation value, Compilation compilation)
+        private IOperation TryUnwrapNullableValue(IOperation value)
         {
             ITypeSymbol valueType = value.Type;
 
             Debug.Assert(ITypeSymbolHelpers.IsNullableType(valueType));
 
-            var method = (IMethodSymbol)compilation.CommonGetSpecialTypeMember(SpecialMember.System_Nullable_T_GetValueOrDefault);
+            var method = (IMethodSymbol)_compilation.CommonGetSpecialTypeMember(SpecialMember.System_Nullable_T_GetValueOrDefault);
 
             if (method != null)
             {
@@ -2415,10 +2410,10 @@ oneMoreTime:
             return null;
         }
 
-        private static IOperation UnwrapNullableValue(IOperation value, Compilation compilation)
+        private IOperation UnwrapNullableValue(IOperation value)
         {
             Debug.Assert(ITypeSymbolHelpers.IsNullableType(value.Type));
-            return TryUnwrapNullableValue(value, compilation) ??
+            return TryUnwrapNullableValue(value) ??
                    MakeInvalidOperation(ITypeSymbolHelpers.GetNullableUnderlyingType(value.Type), value);
         }
 
@@ -2435,7 +2430,6 @@ oneMoreTime:
 
             var whenNull = new BasicBlockBuilder(BasicBlockKind.Block);
 
-            Compilation compilation = ((Operation)operation).SemanticModel.Compilation;
             IConditionalAccessOperation currentConditionalAccess = operation;
             IOperation testExpression;
 
@@ -2449,8 +2443,7 @@ oneMoreTime:
                 Optional<object> constantValue = testExpression.ConstantValue;
 
                 LinkBlocks(CurrentBasicBlock,
-                           Operation.SetParentOperation(MakeIsNullOperation(GetCaptureReference(testExpressionCaptureId, testExpression),
-                                                                            compilation),
+                           Operation.SetParentOperation(MakeIsNullOperation(GetCaptureReference(testExpressionCaptureId, testExpression)),
                                                         null),
                            jumpIfTrue: true,
                            RegularBranch(whenNull));
@@ -2460,7 +2453,7 @@ oneMoreTime:
 
                 if (ITypeSymbolHelpers.IsNullableType(testExpressionType))
                 {
-                    receiver = UnwrapNullableValue(receiver, compilation);
+                    receiver = UnwrapNullableValue(receiver);
                 }
 
                 // PROTOTYPE(dataflow): It looks like there is a bug in IOperation tree around XmlMemberAccessExpressionSyntax,
@@ -2511,7 +2504,7 @@ oneMoreTime:
                 {
                     IOperation access = Visit(currentConditionalAccess.WhenNotNull);
                     AddStatement(new FlowCapture(resultCaptureId, currentConditionalAccess.WhenNotNull.Syntax,
-                        MakeNullable(compilation, access, operation.Type)));
+                        MakeNullable(access, operation.Type)));
                 }
                 else
                 {
@@ -2940,8 +2933,7 @@ oneMoreTime:
         {
             Debug.Assert(operation == _currentStatement);
 
-            Compilation compilation = ((Operation)operation).SemanticModel.Compilation;
-            ITypeSymbol iDisposable = compilation.GetSpecialType(SpecialType.System_IDisposable);
+            ITypeSymbol iDisposable = _compilation.GetSpecialType(SpecialType.System_IDisposable);
 
             EnterRegion(new RegionBuilder(ControlFlowRegionKind.LocalLifetime, locals: operation.Locals));
 
@@ -2972,7 +2964,7 @@ oneMoreTime:
 
                 if (shouldConvertToIDisposableBeforeTry(resource))
                 {
-                    resource = ConvertToIDisposable(compilation, resource, iDisposable);
+                    resource = ConvertToIDisposable(resource, iDisposable);
                 }
 
                 AddStatement(new FlowCapture(captureId, resource.Syntax, resource));
@@ -3033,7 +3025,7 @@ oneMoreTime:
 
                 if (shouldConvertToIDisposableBeforeTry(resource))
                 {
-                    resource = ConvertToIDisposable(compilation, resource, iDisposable);
+                    resource = ConvertToIDisposable(resource, iDisposable);
                     int captureId = _availableCaptureId++;
                     AddStatement(new FlowCapture(captureId, resource.Syntax, resource));
                     resource = GetCaptureReference(captureId, resource);
@@ -3051,7 +3043,7 @@ oneMoreTime:
                 Debug.Assert(_currentRegion.Kind == ControlFlowRegionKind.Try);
                 LeaveRegion();
 
-                AddDisposingFinally(resource, knownToImplementIDisposable: true, iDisposable, compilation);
+                AddDisposingFinally(resource, knownToImplementIDisposable: true, iDisposable);
 
                 Debug.Assert(_currentRegion.Kind == ControlFlowRegionKind.TryAndFinally);
                 LeaveRegion();
@@ -3060,7 +3052,7 @@ oneMoreTime:
             }
         }
 
-        private void AddDisposingFinally(IOperation resource, bool knownToImplementIDisposable, ITypeSymbol iDisposable, Compilation compilation)
+        private void AddDisposingFinally(IOperation resource, bool knownToImplementIDisposable, ITypeSymbol iDisposable)
         {
             Debug.Assert(_currentRegion.Kind == ControlFlowRegionKind.TryAndFinally);
 
@@ -3073,7 +3065,7 @@ oneMoreTime:
             if (!knownToImplementIDisposable)
             {
                 Debug.Assert(!isNotNullableValueType(resource.Type));
-                resource = ConvertToIDisposable(compilation, resource, iDisposable, isTryCast: true);
+                resource = ConvertToIDisposable(resource, iDisposable, isTryCast: true);
                 int captureId = _availableCaptureId++;
                 AddStatement(new FlowCapture(captureId, resource.Syntax, resource));
                 resource = GetCaptureReference(captureId, resource);
@@ -3081,7 +3073,7 @@ oneMoreTime:
 
             if (!knownToImplementIDisposable || !isNotNullableValueType(resource.Type))
             {
-                IOperation condition = MakeIsNullOperation(OperationCloner.CloneOperation(resource), compilation);
+                IOperation condition = MakeIsNullOperation(OperationCloner.CloneOperation(resource));
                 condition = Operation.SetParentOperation(condition, null);
                 LinkBlocks(CurrentBasicBlock, condition, jumpIfTrue: true, RegularBranch(endOfFinally));
                 _currentBasicBlock = null;
@@ -3089,7 +3081,7 @@ oneMoreTime:
 
             if (!resource.Type.Equals(iDisposable))
             {
-                resource = ConvertToIDisposable(compilation, resource, iDisposable);
+                resource = ConvertToIDisposable(resource, iDisposable);
             }
 
             AddStatement(tryDispose(resource) ??
@@ -3104,7 +3096,7 @@ oneMoreTime:
             {
                 Debug.Assert(value.Type == iDisposable);
 
-                var method = (IMethodSymbol)compilation.CommonGetSpecialTypeMember(SpecialMember.System_IDisposable__Dispose);
+                var method = (IMethodSymbol)_compilation.CommonGetSpecialTypeMember(SpecialMember.System_IDisposable__Dispose);
                 if (method != null)
                 {
                     return new InvocationExpression(method, value, isVirtual: true,
@@ -3121,10 +3113,10 @@ oneMoreTime:
             }
         }
 
-        private static IOperation ConvertToIDisposable(Compilation compilation, IOperation operand, ITypeSymbol iDisposable, bool isTryCast = false)
+        private IOperation ConvertToIDisposable(IOperation operand, ITypeSymbol iDisposable, bool isTryCast = false)
         {
             Debug.Assert(iDisposable.SpecialType == SpecialType.System_IDisposable);
-            return new ConversionOperation(operand, compilation.ClassifyConvertibleConversion(operand, iDisposable, out var constantValue), isTryCast, isChecked: false,
+            return new ConversionOperation(operand, _compilation.ClassifyConvertibleConversion(operand, iDisposable, out var constantValue), isTryCast, isChecked: false,
                                            semanticModel: null, operand.Syntax, iDisposable, constantValue, isImplicit: true);
         }
 
@@ -3132,8 +3124,7 @@ oneMoreTime:
         {
             Debug.Assert(operation == _currentStatement);
 
-            SemanticModel semanticModel = ((Operation)operation).SemanticModel;
-            ITypeSymbol objectType = semanticModel.Compilation.GetSpecialType(SpecialType.System_Object);
+            ITypeSymbol objectType = _compilation.GetSpecialType(SpecialType.System_Object);
 
             // If Monitor.Enter(object, ref bool) is available:
             //
@@ -3171,19 +3162,19 @@ oneMoreTime:
 
             if (!objectType.Equals(lockedValue.Type))
             {
-                lockedValue = CreateConversion(semanticModel.Compilation, lockedValue, objectType);
+                lockedValue = CreateConversion(lockedValue, objectType);
             }
 
             int captureId = _availableCaptureId++;
             AddStatement(new FlowCapture(captureId, lockedValue.Syntax, lockedValue));
             lockedValue = GetCaptureReference(captureId, lockedValue);
 
-            var enterMethod = (IMethodSymbol)semanticModel.Compilation.CommonGetWellKnownTypeMember(WellKnownMember.System_Threading_Monitor__Enter2);
+            var enterMethod = (IMethodSymbol)_compilation.CommonGetWellKnownTypeMember(WellKnownMember.System_Threading_Monitor__Enter2);
             bool legacyMode = (enterMethod == null);
 
             if (legacyMode)
             {
-                enterMethod = (IMethodSymbol)semanticModel.Compilation.CommonGetWellKnownTypeMember(WellKnownMember.System_Threading_Monitor__Enter);
+                enterMethod = (IMethodSymbol)_compilation.CommonGetWellKnownTypeMember(WellKnownMember.System_Threading_Monitor__Enter);
 
                 // Monitor.Enter($lock);
                 if (enterMethod == null)
@@ -3216,7 +3207,7 @@ oneMoreTime:
             if (!legacyMode)
             {
                 // Monitor.Enter($lock, ref $lockTaken);
-                lockTaken = new FlowCaptureReference(_availableCaptureId++, lockedValue.Syntax, semanticModel.Compilation.GetSpecialType(SpecialType.System_Boolean), constantValue: default);
+                lockTaken = new FlowCaptureReference(_availableCaptureId++, lockedValue.Syntax, _compilation.GetSpecialType(SpecialType.System_Boolean), constantValue: default);
                 AddStatement(new InvocationExpression(enterMethod, instance: null, isVirtual: false,
                                                       ImmutableArray.Create<IArgumentOperation>(
                                                                 new ArgumentOperation(lockedValue,
@@ -3262,7 +3253,7 @@ oneMoreTime:
             }
 
             // Monitor.Exit($lock);
-            var exitMethod = (IMethodSymbol)semanticModel.Compilation.CommonGetWellKnownTypeMember(WellKnownMember.System_Threading_Monitor__Exit);
+            var exitMethod = (IMethodSymbol)_compilation.CommonGetWellKnownTypeMember(WellKnownMember.System_Threading_Monitor__Exit);
             lockedValue = OperationCloner.CloneOperation(lockedValue);
 
             if (exitMethod == null)
@@ -3369,11 +3360,9 @@ oneMoreTime:
                 Debug.Assert(_currentRegion.Kind == ControlFlowRegionKind.Try);
                 LeaveRegion();
 
-                Compilation compilation = ((Operation)operation).SemanticModel.Compilation;
                 AddDisposingFinally(OperationCloner.CloneOperation(enumerator),
                                     info.KnownToImplementIDisposable,
-                                    compilation.GetSpecialType(SpecialType.System_IDisposable),
-                                    compilation);
+                                    _compilation.GetSpecialType(SpecialType.System_IDisposable));
 
                 Debug.Assert(_currentRegion.Kind == ControlFlowRegionKind.TryAndFinally);
                 LeaveRegion();
@@ -3426,7 +3415,7 @@ oneMoreTime:
                 else
                 {
                     // This must be an error case
-                    return MakeInvalidOperation(((Operation)operation).SemanticModel.Compilation.GetSpecialType(SpecialType.System_Boolean), enumeratorRef);
+                    return MakeInvalidOperation(_compilation.GetSpecialType(SpecialType.System_Boolean), enumeratorRef);
                 }
             }
 
@@ -3516,8 +3505,7 @@ oneMoreTime:
                 locals = locals.Insert(0, loopObject);
             }
 
-            Compilation compilation = ((Operation)operation).SemanticModel.Compilation;
-            ITypeSymbol booleanType = compilation.GetSpecialType(SpecialType.System_Boolean);
+            ITypeSymbol booleanType = _compilation.GetSpecialType(SpecialType.System_Boolean);
             BasicBlockBuilder @continue = GetLabeledOrNewBlock(operation.ContinueLabel);
             BasicBlockBuilder @break = GetLabeledOrNewBlock(operation.ExitLabel);
             BasicBlockBuilder checkConditionBlock = new BasicBlockBuilder(BasicBlockKind.Block);
@@ -3562,7 +3550,7 @@ oneMoreTime:
                                                                        operation.LoopControlVariable.Syntax, loopObject.Type,
                                                                        constantValue: default, isImplicit: true);
 
-                var method = (IMethodSymbol)compilation.CommonGetWellKnownTypeMember(helper);
+                var method = (IMethodSymbol)_compilation.CommonGetWellKnownTypeMember(helper);
                 int parametersCount = WellKnownMembers.GetDescriptor(helper).ParametersCount;
 
                 if (method is null)
@@ -3693,7 +3681,7 @@ oneMoreTime:
                         if (ITypeSymbolHelpers.IsNullableType(stepValue.Type))
                         {
                             stepValueIsNull = MakeIsNullOperation(GetCaptureReference(stepValueId, operation.StepValue), booleanType);
-                            stepValue = UnwrapNullableValue(stepValue, compilation);
+                            stepValue = UnwrapNullableValue(stepValue);
                         }
 
                         ITypeSymbol stepValueEnumUnderlyingTypeOrSelf = ITypeSymbolHelpers.GetEnumUnderlyingTypeOrSelf(stepValue.Type);
@@ -3932,7 +3920,7 @@ oneMoreTime:
                                                                                           unaryOperatorMethod: null,
                                                                                           semanticModel: null,
                                                                                           operation.StepValue.Syntax,
-                                                                                          compilation.GetSpecialType(SpecialType.System_Boolean),
+                                                                                          _compilation.GetSpecialType(SpecialType.System_Boolean),
                                                                                           constantValue: default,
                                                                                           isImplicit: true);
 
@@ -3947,8 +3935,8 @@ oneMoreTime:
                         limitReference = GetCaptureReference(limitValueId, operation.LimitValue);
 
                         Debug.Assert(ITypeSymbolHelpers.IsNullableType(controlVariableReferenceforCondition.Type));
-                        controlVariableReferenceforCondition = UnwrapNullableValue(controlVariableReferenceforCondition, compilation);
-                        limitReference = UnwrapNullableValue(limitReference, compilation);
+                        controlVariableReferenceforCondition = UnwrapNullableValue(controlVariableReferenceforCondition);
+                        limitReference = UnwrapNullableValue(limitReference);
                     }
 
                     // If (positiveFlag, ctrl <= limit, ctrl >= limit)
@@ -4012,7 +4000,7 @@ oneMoreTime:
             {
                 int bits = stepEnumUnderlyingTypeOrSelf.SpecialType.VBForToShiftBits();
 
-                var shiftConst = new LiteralExpression(semanticModel: null, operand.Syntax, compilation.GetSpecialType(SpecialType.System_Int32),
+                var shiftConst = new LiteralExpression(semanticModel: null, operand.Syntax, _compilation.GetSpecialType(SpecialType.System_Int32),
                                                        constantValue: bits, isImplicit: true);
 
                 var shiftedStep = new BinaryOperatorExpression(BinaryOperatorKind.RightShift,
@@ -4107,7 +4095,7 @@ oneMoreTime:
                                                                             unaryOperatorMethod: null,
                                                                             semanticModel: null,
                                                                             operation.StepValue.Syntax,
-                                                                            compilation.GetSpecialType(SpecialType.System_Boolean),
+                                                                            _compilation.GetSpecialType(SpecialType.System_Boolean),
                                                                             constantValue: default,
                                                                             isImplicit: true);
 
@@ -4148,8 +4136,8 @@ oneMoreTime:
                     if (isNullable)
                     {
                         Debug.Assert(ITypeSymbolHelpers.IsNullableType(controlVariableReferenceForIncrement.Type));
-                        controlVariableReferenceForIncrement = UnwrapNullableValue(controlVariableReferenceForIncrement, compilation);
-                        stepValueForIncrement = UnwrapNullableValue(stepValueForIncrement, compilation);
+                        controlVariableReferenceForIncrement = UnwrapNullableValue(controlVariableReferenceForIncrement);
+                        stepValueForIncrement = UnwrapNullableValue(stepValueForIncrement);
                     }
 
                     IOperation increment = new BinaryOperatorExpression(BinaryOperatorKind.Add,
@@ -4168,7 +4156,7 @@ oneMoreTime:
 
                     if (isNullable)
                     {
-                        increment = MakeNullable(compilation, increment, controlVariableReferenceForAssignment.Type);
+                        increment = MakeNullable(increment, controlVariableReferenceForAssignment.Type);
                     }
 
                     controlVariableReferenceForAssignment = _evalStack.Pop();
@@ -4230,8 +4218,7 @@ oneMoreTime:
         {
             Debug.Assert(_currentStatement == operation);
 
-            Compilation compilation = ((Operation)operation).SemanticModel.Compilation;
-            INamedTypeSymbol booleanType = compilation.GetSpecialType(SpecialType.System_Boolean);
+            INamedTypeSymbol booleanType = _compilation.GetSpecialType(SpecialType.System_Boolean);
             int expressionCaptureId = VisitAndCapture(operation.Value);
             FlowCaptureReference switchValue = GetCaptureReference(expressionCaptureId, operation.Value);
 
@@ -4329,12 +4316,12 @@ oneMoreTime:
                                 {
                                     if (leftOperand.Type != null)
                                     {
-                                        leftOperand = MakeNullable(compilation, leftOperand, compareWith.Type);
+                                        leftOperand = MakeNullable(leftOperand, compareWith.Type);
                                     }
                                 }
                                 else if (!rightIsNullable && rightOperand.Type != null)
                                 {
-                                    rightOperand = MakeNullable(compilation, rightOperand, operation.Value.Type);
+                                    rightOperand = MakeNullable(rightOperand, operation.Value.Type);
                                 }
                             }
 
@@ -4412,12 +4399,12 @@ oneMoreTime:
             }
         }
 
-        private static IOperation MakeNullable(Compilation compilation, IOperation operand, ITypeSymbol type)
+        private IOperation MakeNullable(IOperation operand, ITypeSymbol type)
         {
             Debug.Assert(ITypeSymbolHelpers.IsNullableType(type));
             Debug.Assert(ITypeSymbolHelpers.GetNullableUnderlyingType(type).Equals(operand.Type));
 
-            return CreateConversion(compilation, operand, type);
+            return CreateConversion(operand, type);
         }
 
         public override IOperation VisitSwitchCase(ISwitchCaseOperation operation, int? captureIdForResult)
@@ -4577,7 +4564,7 @@ oneMoreTime:
             {
                 afterInitialization = new BasicBlockBuilder(BasicBlockKind.Block);
 
-                ITypeSymbol booleanType = ((Operation)declaration).SemanticModel.Compilation.GetSpecialType(SpecialType.System_Boolean);
+                ITypeSymbol booleanType = _compilation.GetSpecialType(SpecialType.System_Boolean);
                 var initializationSemaphore = new StaticLocalInitializationSemaphoreOperation(localSymbol, declarator.Syntax, booleanType);
                 Operation.SetParentOperation(initializationSemaphore, null);
 
@@ -5791,7 +5778,7 @@ oneMoreTime:
         public IOperation Visit(IOperation operation)
         {
             // We should never be revisiting nodes we've already visited, and we don't set SemanticModel in this builder.
-            Debug.Assert(operation == null || ((Operation)operation).SemanticModel != null);
+            Debug.Assert(operation == null || ((Operation)operation).SemanticModel.Compilation == _compilation);
             return Visit(operation, argument: null);
         }
 
