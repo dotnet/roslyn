@@ -116,12 +116,12 @@ namespace Roslyn.Diagnostics.Analyzers
 
         protected abstract class AbstractSyntaxAnalyzer
         {
-            protected INamedTypeSymbol genericEnumerableSymbol;
+            protected INamedTypeSymbol GenericEnumerableSymbol { get; }
             private readonly IMethodSymbol _genericEmptyEnumerableSymbol;
 
             public AbstractSyntaxAnalyzer(INamedTypeSymbol genericEnumerableSymbol, IMethodSymbol genericEmptyEnumerableSymbol)
             {
-                this.genericEnumerableSymbol = genericEnumerableSymbol;
+                this.GenericEnumerableSymbol = genericEnumerableSymbol;
                 _genericEmptyEnumerableSymbol = genericEmptyEnumerableSymbol;
             }
 
@@ -133,7 +133,7 @@ namespace Roslyn.Diagnostics.Analyzers
                 var arrayType = typeInfo.Type as IArrayTypeSymbol;
 
                 return typeInfo.ConvertedType != null &&
-                    typeInfo.ConvertedType.OriginalDefinition == genericEnumerableSymbol &&
+                    typeInfo.ConvertedType.OriginalDefinition == GenericEnumerableSymbol &&
                     arrayType != null &&
                     arrayType.Rank == 1;
             }
