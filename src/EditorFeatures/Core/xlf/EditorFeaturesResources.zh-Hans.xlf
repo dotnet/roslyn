@@ -1134,6 +1134,11 @@ Do you want to proceed?</source>
         <target state="translated">交互</target>
         <note />
       </trans-unit>
+      <trans-unit id="Paste_in_Interactive">
+        <source>Paste in Interactive</source>
+        <target state="translated">交互粘贴</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Navigate_To_Highlight_Reference">
         <source>Navigate To Highlighted Reference</source>
         <target state="translated">导航到突出显示引用</target>
@@ -1157,11 +1162,6 @@ Do you want to proceed?</source>
       <trans-unit id="Smart_Token_Formatter">
         <source>Smart Token Formatter</source>
         <target state="translated">智能令牌格式化程序</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Paste_in_Interactive">
-        <source>Paste in Interactive</source>
-        <target state="translated">交互粘贴</target>
         <note />
       </trans-unit>
     </body>

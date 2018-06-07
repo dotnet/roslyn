@@ -16,7 +16,6 @@
     <dependencies>
       <group targetFramework="netstandard1.3">
         <dependency id="Microsoft.CodeAnalysis.Analyzers"              version="$MicrosoftCodeAnalysisAnalyzersVersion$" />
-
         <dependency id="System.AppContext"                             version="$SystemAppContextVersion$"/>
         <dependency id="System.Collections"                            version="$SystemCollectionsVersion$"/>
         <dependency id="System.Collections.Concurrent"                 version="$SystemCollectionsConcurrentVersion$"/>

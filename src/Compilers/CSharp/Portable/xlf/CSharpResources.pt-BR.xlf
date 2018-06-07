@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
   <file datatype="xml" source-language="en" target-language="pt-BR" original="../CSharpResources.resx">
     <body>
@@ -379,12 +379,12 @@
       </trans-unit>
       <trans-unit id="SyntaxTreeNotFound">
         <source>SyntaxTree is not part of the compilation</source>
-        <target state="new">SyntaxTree is not part of the compilation</target>
+        <target state="translated">A SyntaxTree não faz parte da compilação</target>
         <note />
       </trans-unit>
       <trans-unit id="SyntaxTreeNotFoundToRemove">
         <source>SyntaxTree is not part of the compilation, so it cannot be removed</source>
-        <target state="new">SyntaxTree is not part of the compilation, so it cannot be removed</target>
+        <target state="translated">A SyntaxTree não faz parte da compilação, portanto, não pode ser removida</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_TypeParameterSameAsOuterMethodTypeParameter">
@@ -3777,7 +3777,7 @@ Um bloco catch() depois de um bloco catch (System.Exception e) poderá capturar 
       </trans-unit>
       <trans-unit id="ERR_NoSuchMemberOrExtension">
         <source>'{0}' does not contain a definition for '{1}' and no accessible extension method '{1}' accepting a first argument of type '{0}' could be found (are you missing a using directive or an assembly reference?)</source>
-        <target state="needs-review-translation">'"{0}" não contém uma definição para "{1}" e não foi possível encontrar nenhum método de extensão "{1}" que aceite um primeiro argumento do tipo "{0}" (há uma diretiva de uso ou referência de assembly ausente?)</target>
+        <target state="translated">‘{0}’ não contém uma definição para "{1}" e não foi possível encontrar nenhum método de extensão "{1}" que aceite um primeiro argumento do tipo ‘{0}’ (você está se esquecendo de usar uma diretiva ou uma referência de assembly?)</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NoSuchMemberOrExtensionNeedUsing">
@@ -4387,7 +4387,7 @@ Um bloco catch() depois de um bloco catch (System.Exception e) poderá capturar 
       </trans-unit>
       <trans-unit id="ERR_BadIteratorArgType">
         <source>Iterators cannot have ref, in or out parameters</source>
-        <target state="needs-review-translation">Iteradores não podem ter parâmetros ref nem out</target>
+        <target state="translated">Os iteradores não podem ter parâmetros ref, in ou out</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadIteratorReturn">
@@ -5257,7 +5257,7 @@ Um bloco catch() depois de um bloco catch (System.Exception e) poderá capturar 
       </trans-unit>
       <trans-unit id="ERR_ByRefParameterInExpressionTree">
         <source>An expression tree lambda may not contain a ref, in or out parameter</source>
-        <target state="needs-review-translation">Uma árvore de expressão da expressão lambda não pode conter um parâmetro out ou ref</target>
+        <target state="translated">Uma árvore de expressão da expressão lambda não pode conter um parâmetro ref, in ou out</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_VarArgsInExpressionTree">
@@ -5815,7 +5815,7 @@ Forneça ao compilador alguma forma de diferenciar os métodos. Por exemplo, voc
       </trans-unit>
       <trans-unit id="ERR_BadAsyncArgType">
         <source>Async methods cannot have ref, in or out parameters</source>
-        <target state="needs-review-translation">Os métodos assíncronos não podem ter parâmetros ref ou out</target>
+        <target state="translated">Os métodos assíncronos não podem ter parâmetros ref, in ou out</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadAwaitWithoutAsync">
@@ -7827,7 +7827,7 @@ Para incorporar informações de tipo de interoperabilidade para os dois assembl
       </trans-unit>
       <trans-unit id="SyntaxTreeFromLoadNoRemoveReplace">
         <source>SyntaxTree resulted from a #load directive and cannot be removed or replaced directly.</source>
-        <target state="needs-review-translation">A SyntaxTree "{0}" é resultado de uma diretiva #load, e não é permitido removê-la nem substituí-la diretamente.</target>
+        <target state="translated">A SyntaxTree o é resultado de uma diretiva #load e não pode ser removida nem substituída diretamente.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_SourceFileReferencesNotSupported">
@@ -8747,12 +8747,12 @@ Para incorporar informações de tipo de interoperabilidade para os dois assembl
       </trans-unit>
       <trans-unit id="FTL_InvalidInputFileName">
         <source>File name '{0}' is empty, contains invalid characters, has a drive specification without an absolute path, or is too long</source>
-        <target state="new">File name '{0}' is empty, contains invalid characters, has a drive specification without an absolute path, or is too long</target>
+        <target state="translated">Nome do arquivo "{0}" está vazio, contém caracteres inválidos, tem uma especificação de unidade sem um caminho absoluto ou é muito longo</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CantUseInOrOutInArglist">
         <source>__arglist cannot have an argument passed by 'in' or 'out'</source>
-        <target state="new">__arglist cannot have an argument passed by 'in' or 'out'</target>
+        <target state="translated">__arglist não pode ter um argumento passado por 'in' ou 'out'</target>
         <note />
       </trans-unit>
     </body>
