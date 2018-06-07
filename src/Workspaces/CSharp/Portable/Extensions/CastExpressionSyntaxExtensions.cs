@@ -452,11 +452,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             {
                 var castToOuterType = semanticModel.ClassifyConversion(cast.SpanStart, cast, outerType);
                 var expressionToOuterType = GetSpeculatedExpressionToOuterTypeConversion(speculationAnalyzer.ReplacedExpression, speculationAnalyzer, cancellationToken);
-                var originalIsAnonymousFunction = expressionToOuterType.IsAnonymousFunction;
+
+                // if the conversion to the outer type doesn't exist, then we shouldn't offer, except for anonymous functions which can't be reasoned about the same way (see below)
+                if (!expressionToOuterType.Exists && !expressionToOuterType.IsAnonymousFunction)
+                {
+                    return false;
+                }
 
                 // CONSIDER: Anonymous function conversions cannot be compared from different semantic models as lambda symbol comparison requires syntax tree equality. Should this be a compiler bug?
                 // For now, just revert back to computing expressionToOuterType using the original semantic model.
-                if (originalIsAnonymousFunction)
+                if (expressionToOuterType.IsAnonymousFunction)
                 {
                     expressionToOuterType = semanticModel.ClassifyConversion(cast.SpanStart, cast.Expression, outerType);
                 }
@@ -531,9 +536,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
 
                 if (castToOuterType.IsIdentity &&
                     !expressionToCastType.IsUnboxing &&
-                    expressionToCastType == expressionToOuterType &&
-                    // if the conversion to the outer type doesn't exist, then we shouldn't offer, except for anonymous functions which can't be reasoned about
-                    (expressionToOuterType.Exists || originalIsAnonymousFunction))
+                    expressionToCastType == expressionToOuterType)
                 {
                     return true;
                 }
