@@ -18,7 +18,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Snippets
         Inherits AbstractSnippetInfoService
 
         <ImportingConstructor>
-        Public Sub New(serviceProvider As SVsServiceProvider, <ImportMany> listenerProvider As IAsynchronousOperationListenerProvider)
+        Public Sub New(serviceProvider As SVsServiceProvider, listenerProvider As IAsynchronousOperationListenerProvider)
             MyBase.New(serviceProvider, Guids.VisualBasicDebuggerLanguageId, listenerProvider)
         End Sub
     End Class

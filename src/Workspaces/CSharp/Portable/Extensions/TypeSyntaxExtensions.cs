@@ -51,7 +51,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
 
             var nameToken = nameSyntax.GetNameToken();
 
-            var symbols = semanticModelOpt.LookupName(nameToken, namespacesAndTypesOnly: true, cancellationToken: cancellationToken);
+            var symbols = semanticModelOpt.LookupName(nameToken, namespacesAndTypesOnly: true, cancellationToken);
             var firstSymbol = symbols.FirstOrDefault();
 
             var typeSymbol = firstSymbol != null && firstSymbol.Kind == SymbolKind.Alias
@@ -122,5 +122,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 return property.Type.GenerateTypeSyntax();
             }
         }
+
+        public static TypeSyntax StripRefIfNeeded(this TypeSyntax type)
+            => type is RefTypeSyntax refType ? refType.Type : type;
     }
 }

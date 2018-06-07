@@ -6,9 +6,14 @@
     <RuntimeIdentifiers>$(RoslynPortableRuntimeIdentifiers)</RuntimeIdentifiers>
     <OutputType>Exe</OutputType>
     <AssemblyName>IlAsmDeploy</AssemblyName>
+
+    <!-- 
+      When the project is published as a self-contained app do not require the latest runtime patch. 
+      This is ok since the app is only used for testing.
+    -->
+    <TargetLatestRuntimePatch>false</TargetLatestRuntimePatch> 
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="Microsoft.NETCore.App" Version="$(MicrosoftNETCoreAppVersion)" />
     <PackageReference Include="Microsoft.NETCore.ILAsm" Version="$(MicrosoftNETCoreILAsmVersion)" />
   </ItemGroup>
 </Project>

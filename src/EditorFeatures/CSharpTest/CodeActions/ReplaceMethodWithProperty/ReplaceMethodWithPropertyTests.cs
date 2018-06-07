@@ -7,6 +7,7 @@ using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.ReplaceMethodWithProperty;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -1430,8 +1431,7 @@ index: 1);
         public async Task TupleWithDifferentNames_GetAndSet()
         {
             // Cannot refactor tuples with different names together
-            await Assert.ThrowsAsync<Xunit.Sdk.InRangeException>(() =>
-                TestWithAllCodeStyleOff(
+            await TestActionCountAsync(
 @"using System;
 
 class C
@@ -1444,8 +1444,7 @@ class C
     {
     }
 }",
-@"",
-index: 1));
+count: 1, new TestParameters(options: AllCodeStyleOff));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]

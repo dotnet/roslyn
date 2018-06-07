@@ -13,7 +13,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Semantics
 
         <Fact>
         Public Sub SimpleForeachTest()
-            Dim compilation1 = CreateCompilationWithMscorlib(
+            Dim compilation1 = CreateCompilationWithMscorlib40(
 <compilation name="SimpleForeachTest">
     <file name="a.vb">
 Imports System
@@ -45,7 +45,7 @@ End Class
         ' Narrowing conversions from the elements in group to element are evaluated and performed at run time
         <Fact>
         Public Sub NarrowConversions()
-            Dim compilation1 = CreateCompilationWithMscorlib(
+            Dim compilation1 = CreateCompilationWithMscorlib40(
 <compilation name="NarrowConversions">
     <file name="a.vb">
 Option Strict On
@@ -78,7 +78,7 @@ End Class
         ' Narrowing conversions from the elements in group to element are evaluated and performed at run time
         <Fact>
         Public Sub NarrowConversions_2()
-            Dim compilation1 = CreateCompilationWithMscorlib(
+            Dim compilation1 = CreateCompilationWithMscorlib40(
 <compilation name="NarrowConversions">
     <file name="a.vb">
 Option Strict On
@@ -108,7 +108,7 @@ End Class
         <WorkItem(542234, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542234")>
         <Fact>
         Public Sub IterationVarInCollectionExpression()
-            Dim compilation1 = CreateCompilationWithMscorlib(
+            Dim compilation1 = CreateCompilationWithMscorlib40(
 <compilation name="IterationVarInCollectionExpression">
     <file name="a.vb">
 Option Infer On
@@ -145,7 +145,7 @@ End Structure
         ' Using the iteration variable in the collection expression
         <Fact>
         Public Sub IterationVarInCollectionExpression_1()
-            Dim compilation1 = CreateCompilationWithMscorlib(
+            Dim compilation1 = CreateCompilationWithMscorlib40(
 <compilation name="IterationVarInCollectionExpression">
     <file name="a.vb">
 Class C
@@ -172,7 +172,7 @@ End Class
         ' Traversing items in 'Nothing'
         <Fact>
         Public Sub TraversingNothingStrictOn()
-            Dim compilation1 = CreateCompilationWithMscorlib(
+            Dim compilation1 = CreateCompilationWithMscorlib40(
 <compilation name="TraversingNothing">
     <file name="a.vb">
 Option Infer Off
@@ -201,7 +201,7 @@ End Class
         ' Traversing items in 'Nothing'
         <Fact()>
         Public Sub TraversingNothingStrictOff()
-            Dim compilation1 = CreateCompilationWithMscorlib(
+            Dim compilation1 = CreateCompilationWithMscorlib40(
 <compilation name="TraversingNothing">
     <file name="a.vb">
 Option Strict Off
@@ -235,7 +235,7 @@ End Class
         <WorkItem(542234, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542234")>
         <Fact>
         Public Sub NestedForeach()
-            Dim compilation1 = CreateCompilationWithMscorlib(
+            Dim compilation1 = CreateCompilationWithMscorlib40(
 <compilation name="NestedForeach">
     <file name="a.vb">
 Class C
@@ -280,7 +280,7 @@ End Class
         <WorkItem(542080, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542080")>
         <Fact>
         Public Sub NestedForeach_1()
-            Dim compilation1 = CreateCompilationWithMscorlib(
+            Dim compilation1 = CreateCompilationWithMscorlib40(
 <compilation name="NestedForeach_1">
     <file name="a.vb">
 Class C
@@ -321,7 +321,7 @@ End Class
         ' Breaking from nested Loops
         <Fact>
         Public Sub BreakFromForeach()
-            Dim compilation1 = CreateCompilationWithMscorlib(
+            Dim compilation1 = CreateCompilationWithMscorlib40(
 <compilation name="BreakFromForeach">
     <file name="a.vb">
 Class C
@@ -366,7 +366,7 @@ End Class
         <WorkItem(542234, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542234")>
         <Fact>
         Public Sub ContinueInForeach()
-            Dim compilation1 = CreateCompilationWithMscorlib(
+            Dim compilation1 = CreateCompilationWithMscorlib40(
 <compilation name="ContinueInForeach">
     <file name="a.vb">
 Class C
@@ -409,7 +409,7 @@ End Class
         ' Query expression works in foreach
         <Fact()>
         Public Sub QueryExpressionInForeach()
-            Dim compilation1 = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
+            Dim compilation1 = CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(
 <compilation name="QueryExpressionInForeach">
     <file name="a.vb">
 Imports System
@@ -425,7 +425,7 @@ Class C
     End Sub
 End Class
     </file>
-</compilation>, additionalRefs:={TestBase.LinqAssemblyRef})
+</compilation>, references:={TestBase.LinqAssemblyRef})
 
             SemanticInfoTypeTestForeach(compilation1, 1, "System.Collections.Generic.IEnumerable(Of String)", "System.Collections.Generic.IEnumerable(Of String)")
 
@@ -441,7 +441,7 @@ End Class
         ' No confusion in a foreach statement when from is a value type
         <Fact>
         Public Sub ReDimFrom()
-            Dim compilation1 = CreateCompilationWithMscorlib(
+            Dim compilation1 = CreateCompilationWithMscorlib40(
 <compilation name="ReDimFrom">
     <file name="a.vb">
 Option Infer On
@@ -476,7 +476,7 @@ End Structure
 
         <Fact>
         Public Sub BC30302ERR_TypeCharWithType1()
-            Dim compilation1 = CreateCompilationWithMscorlib(
+            Dim compilation1 = CreateCompilationWithMscorlib40(
     <compilation>
         <file name="c.vb">
 Option Infer On
@@ -530,7 +530,7 @@ End Class
 
         <Fact>
         Public Sub BC30039ERR_LoopControlMustNotBeProperty()
-            Dim compilation1 = CreateCompilationWithMscorlib(
+            Dim compilation1 = CreateCompilationWithMscorlib40(
 <compilation name="LoopControlMustNotBeProperty">
     <file name="a.vb">
 Option Infer On
@@ -577,7 +577,7 @@ End Class
 
         <Fact>
         Public Sub BC30277ERR_TypecharNoMatch2_2()
-            Dim compilation1 = CreateCompilationWithMscorlib(
+            Dim compilation1 = CreateCompilationWithMscorlib40(
 <compilation name="TypecharNoMatch2">
     <file name="a.vb">
 Class C
@@ -615,7 +615,7 @@ End Class
 
         <Fact>
         Public Sub BC30288ERR_DuplicateLocals1_1()
-            Dim compilation1 = CreateCompilationWithMscorlib(
+            Dim compilation1 = CreateCompilationWithMscorlib40(
     <compilation name="DuplicateLocals1">
         <file name="a.vb">
 Class C
@@ -642,7 +642,7 @@ End Class
         <WorkItem(542234, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542234")>
         <Fact>
         Public Sub BC30290ERR_LocalSameAsFunc_1()
-            Dim compilation1 = CreateCompilationWithMscorlib(
+            Dim compilation1 = CreateCompilationWithMscorlib40(
 <compilation name="LocalSameAsFunc">
     <file name="a.vb">
 Class C
@@ -684,7 +684,7 @@ End Class
 
         <Fact>
         Public Sub BC30311ERR_TypeMismatch2_1()
-            Dim compilation1 = CreateCompilationWithMscorlib(
+            Dim compilation1 = CreateCompilationWithMscorlib40(
 <compilation>
     <file name="a.vb">
 Class C
@@ -709,7 +709,7 @@ End Class
 
         <Fact>
         Public Sub BC30311ERR_TypeMismatch2_2()
-            Dim compilation1 = CreateCompilationWithMscorlib(
+            Dim compilation1 = CreateCompilationWithMscorlib40(
 <compilation>
     <file name="a.vb">
 Class C
@@ -736,7 +736,7 @@ End Class
 
         <Fact>
         Public Sub BC30369ERR_BadInstanceMemberAccess_3()
-            Dim compilation1 = CreateCompilationWithMscorlib(
+            Dim compilation1 = CreateCompilationWithMscorlib40(
 <compilation>
     <file name="a.vb">
         Class C
@@ -763,7 +763,7 @@ End Class
 
         <Fact>
         Public Sub BC30369ERR_BadInstanceMemberAccess_4()
-            Dim compilation1 = CreateCompilationWithMscorlib(
+            Dim compilation1 = CreateCompilationWithMscorlib40(
 <compilation>
     <file name="a.vb">
         Class C
@@ -792,7 +792,7 @@ End Class
         <WorkItem(542083, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542083")>
         <Fact>
         Public Sub BC30369ERR_BadInstanceMemberAccess_5()
-            Dim compilation1 = CreateCompilationWithMscorlib(
+            Dim compilation1 = CreateCompilationWithMscorlib40(
 <compilation>
     <file name="a.vb">
 Class C
@@ -824,7 +824,7 @@ End Class
 
         <Fact>
         Public Sub BC30369ERR_BadInstanceMemberAccess_6()
-            Dim compilation1 = CreateCompilationWithMscorlib(
+            Dim compilation1 = CreateCompilationWithMscorlib40(
 <compilation>
     <file name="a.vb">
 Class C
@@ -854,7 +854,7 @@ End Class
 
         <Fact>
         Public Sub BC30532ERR_DateToDoubleConversion_1()
-            Dim compilation1 = CreateCompilationWithMscorlib(
+            Dim compilation1 = CreateCompilationWithMscorlib40(
     <compilation name="DateToDoubleConversion">
         <file name="a.vb">
 Imports System
@@ -881,7 +881,7 @@ End Class
         <WorkItem(542234, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542234")>
         <Fact()>
         Public Sub BC32006ERR_CharToIntegralTypeMismatch1_1()
-            Dim compilation1 = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
+            Dim compilation1 = CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(
     <compilation name="CharToIntegralTypeMismatch1">
         <file name="a.vb">
         Imports System
@@ -896,7 +896,7 @@ End Class
         Public Structure S
         End Structure
     </file>
-    </compilation>, additionalRefs:={TestBase.LinqAssemblyRef})
+    </compilation>, references:={TestBase.LinqAssemblyRef})
 
             SemanticInfoTypeTestForeach(compilation1, 1, "System.Collections.Generic.IEnumerable(Of Char)", "System.Collections.Generic.IEnumerable(Of Char)")
             GetDeclareSymbolTestForeach(compilation1, Nothing)
@@ -911,7 +911,7 @@ End Class
 
         <Fact>
         Public Sub BC32023ERR_ForEachCollectionDesignPattern1_1()
-            Dim compilation1 = CreateCompilationWithMscorlib(
+            Dim compilation1 = CreateCompilationWithMscorlib40(
     <compilation name="ForEachCollectionDesignPattern1">
         <file name="a.vb">
         Class C
@@ -937,7 +937,7 @@ End Class
         <WorkItem(542234, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542234")>
         <Fact>
         Public Sub VarDeclOutOfForeach()
-            Dim compilation1 = CreateCompilationWithMscorlib(
+            Dim compilation1 = CreateCompilationWithMscorlib40(
     <compilation name="VarDeclOutOfForeach">
         <file name="a.vb">
 Option Strict On
@@ -967,7 +967,7 @@ End Class
         <WorkItem(542081, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542081")>
         <Fact>
         Public Sub LambdaAsIteration()
-            Dim compilation1 = CreateCompilationWithMscorlib(
+            Dim compilation1 = CreateCompilationWithMscorlib40(
 <compilation name="LambdaAsIteration">
     <file name="a.vb">
 Imports System
@@ -996,7 +996,7 @@ End Class
 
         <Fact>
         Public Sub CollectionHasNoDifferentConvertedTypeForDesignPatternMatch()
-            Dim compilation1 = CreateCompilationWithMscorlib(
+            Dim compilation1 = CreateCompilationWithMscorlib40(
 <compilation name="CollectionHasConvertedType">
     <file name="a.vb">
 Option Strict On
@@ -1031,7 +1031,7 @@ End Class
 
         <Fact>
         Public Sub CollectionHasConvertedTypeIEnumerable()
-            Dim compilation1 = CreateCompilationWithMscorlib(
+            Dim compilation1 = CreateCompilationWithMscorlib40(
 <compilation name="CollectionHasConvertedType">
     <file name="a.vb">
 Option Strict On
@@ -1066,7 +1066,7 @@ End Class
 
         <Fact>
         Public Sub CollectionHasConvertedTypeGenericIEnumerable()
-            Dim compilation1 = CreateCompilationWithMscorlib(
+            Dim compilation1 = CreateCompilationWithMscorlib40(
 <compilation name="CollectionHasConvertedType">
     <file name="a.vb">
 Option Strict On
@@ -1110,7 +1110,7 @@ End Class
 
         <Fact>
         Public Sub GetDeclaredSymbolOfForEachStatement()
-            Dim compilation1 = CreateCompilationWithMscorlib(
+            Dim compilation1 = CreateCompilationWithMscorlib40(
 <compilation name="CollectionHasConvertedType">
     <file name="a.vb">
 Option Strict On
@@ -1137,7 +1137,7 @@ End Class
         <WorkItem(667616, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/667616")>
         <Fact>
         Public Sub PortableLibraryStringForEach()
-            Dim comp = CreateCompilationWithReferences(
+            Dim comp = CreateEmptyCompilationWithReferences(
 <compilation>
     <file name="a.vb">
 Public Class C
@@ -1177,7 +1177,7 @@ End Class
         <WorkItem(667616, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/667616")>
         <Fact>
         Public Sub PortableLibraryStringForEach_ExplicitCast()
-            Dim comp = CreateCompilationWithReferences(
+            Dim comp = CreateEmptyCompilationWithReferences(
 <compilation>
     <file name="a.vb">
 Public Class C
@@ -1240,7 +1240,7 @@ End Module
                     </file>
                 </compilation>
 
-            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(source)
+            Dim comp = CreateCompilationWithMscorlib40AndVBRuntime(source)
             comp.AssertNoDiagnostics()
 
             Dim udc = comp.GlobalNamespace.GetMember(Of NamedTypeSymbol)("C").GetMember(Of MethodSymbol)(WellKnownMemberNames.ImplicitConversionName)

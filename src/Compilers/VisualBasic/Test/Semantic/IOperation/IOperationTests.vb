@@ -46,7 +46,7 @@ End Module
                              </file>
                          </compilation>
 
-            Dim comp = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source)
+            Dim comp = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(source)
             Dim tree = comp.SyntaxTrees.Single()
             Dim model = comp.GetSemanticModel(tree)
             Dim nodes = tree.GetRoot().DescendantNodes().OfType(Of AssignmentStatementSyntax).ToArray()
@@ -171,7 +171,7 @@ End Module
                              </file>
                          </compilation>
 
-            Dim comp = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source)
+            Dim comp = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(source)
             Dim tree = comp.SyntaxTrees.Single()
             Dim model = comp.GetSemanticModel(tree)
             Dim nodes = tree.GetRoot().DescendantNodes().OfType(Of AssignmentStatementSyntax).ToArray()
@@ -350,7 +350,7 @@ End Module
                              </file>
                          </compilation>
 
-            Dim comp = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source)
+            Dim comp = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(source)
             Dim tree = comp.SyntaxTrees.Single()
 
             comp.AssertTheseDiagnostics(
@@ -522,7 +522,7 @@ BC30518: Overload resolution failed because no accessible 'P1' can be called wit
             Dim fileName = "a.vb"
             Dim syntaxTree = Parse(sourceCode, fileName, options:=Nothing)
 
-            Dim compilation = CreateCompilationWithMscorlib45AndVBRuntime({syntaxTree}, DefaultVbReferences.Concat({ValueTupleRef, SystemRuntimeFacadeRef}))
+            Dim compilation = CreateEmptyCompilation({syntaxTree}, DefaultVbReferences.Concat({ValueTupleRef, SystemRuntimeFacadeRef}))
             Dim tree = (From t In compilation.SyntaxTrees Where t.FilePath = fileName).Single()
             Dim model = compilation.GetSemanticModel(tree)
 
@@ -537,7 +537,7 @@ BC30518: Overload resolution failed because no accessible 'P1' can be called wit
             Dim fileName = "a.vb"
             Dim syntaxTree = Parse(sourceCode, fileName, options:=Nothing)
 
-            Dim compilation = CreateCompilationWithMscorlib45AndVBRuntime({syntaxTree}, DefaultVbReferences.Concat({ValueTupleRef, SystemRuntimeFacadeRef}))
+            Dim compilation = CreateEmptyCompilation({syntaxTree}, DefaultVbReferences.Concat({ValueTupleRef, SystemRuntimeFacadeRef}))
             Dim tree = (From t In compilation.SyntaxTrees Where t.FilePath = fileName).Single()
             Dim model = compilation.GetSemanticModel(tree)
 

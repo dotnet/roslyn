@@ -153,6 +153,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                     typeParameter.HasConstructorConstraint,
                     typeParameter.HasReferenceTypeConstraint,
                     typeParameter.HasValueTypeConstraint,
+                    typeParameter.HasUnmanagedTypeConstraint,
                     typeParameter.Ordinal);
 
                 newTypeParameters.Add(newTypeParameter);

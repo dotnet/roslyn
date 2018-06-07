@@ -38,7 +38,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void FunctionPrototypeForwarded()
         {
             var text = "public class A{};";
-            var comp = CreateWinRtCompilation(text);
+            var comp = CreateCompilationWithWinRT(text);
 
             var winmdlib = comp.ExternalReferences.Where(r => r.Display == "Windows").Single();
             var winmdNS = comp.GetReferencedAssemblySymbol(winmdlib);
@@ -60,7 +60,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void DelegateConstructorMarkedPublic()
         {
             var text = "public class A{};";
-            var comp = CreateWinRtCompilation(text);
+            var comp = CreateCompilationWithWinRT(text);
 
             var winmdlib = comp.ExternalReferences.Where(r => r.Display == "Windows").Single();
             var winmdNS = comp.GetReferencedAssemblySymbol(winmdlib);
@@ -81,7 +81,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void TypeForwardingRenaming()
         {
             var text = "public class A{};";
-            var comp = CreateWinRtCompilation(text);
+            var comp = CreateCompilationWithWinRT(text);
 
             var winmdlib = comp.ExternalReferences.Where(r => r.Display == "Windows").Single();
             var winmdNS = comp.GetReferencedAssemblySymbol(winmdlib);
@@ -102,7 +102,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void WinMdTypesDefPrivate()
         {
             var text = "public class A{};";
-            var comp = CreateWinRtCompilation(text);
+            var comp = CreateCompilationWithWinRT(text);
             var winmdlib = comp.ExternalReferences.Where(r => r.Display == "Windows").Single();
             var winmdNS = comp.GetReferencedAssemblySymbol(winmdlib);
             var wns1 = winmdNS.GlobalNamespace.GetMember<NamespaceSymbol>("Windows");
@@ -121,7 +121,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         {
             var text = "public class A{};";
 
-            var comp = CreateWinRtCompilation(text);
+            var comp = CreateCompilationWithWinRT(text);
 
             var winmdlib = comp.ExternalReferences.Where(r => r.Display == "Windows").Single();
             var winmdNS = comp.GetReferencedAssemblySymbol(winmdlib);
@@ -154,7 +154,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                                 }
                              };";
 
-            CompileAndVerify(text, WinRtRefs, expectedOutput: "#FF000000");
+            CompileAndVerify(text, WinRtRefs, targetFramework: TargetFramework.Empty, expectedOutput: "#FF000000");
         }
 
         /// <summary>
@@ -165,7 +165,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         {
             var text = "public class A{};";
 
-            var comp = CreateWinRtCompilation(text);
+            var comp = CreateCompilationWithWinRT(text);
 
             var winmdlib = comp.ExternalReferences.Where(r => r.Display == "Windows").Single();
             var winmdNS = comp.GetReferencedAssemblySymbol(winmdlib);
@@ -231,6 +231,7 @@ public class MyAttribute : System.Attribute
             CompileAndVerify(
                 source,
                 WinRtRefs.Concat(new[] { AssemblyMetadata.CreateFromImage(TestResources.WinRt.W1).GetReference() }),
+                targetFramework: TargetFramework.Empty,
                 symbolValidator: m =>
             {
                 var module = (PEModuleSymbol)m;

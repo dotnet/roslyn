@@ -24,6 +24,8 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 {
     public static class CompilationExtensions
     {
+        internal static bool EnableVerifyIOperation { get; } = !string.IsNullOrEmpty(Environment.GetEnvironmentVariable("ROSLYN_TEST_IOPERATION"));
+
         internal static ImmutableArray<byte> EmitToArray(
             this Compilation compilation,
             EmitOptions options = null,
@@ -174,11 +176,11 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             SyntaxTree tree = compilation.SyntaxTrees.First();
             SyntaxNode root = tree.GetRoot();
             SemanticModel model = compilation.GetSemanticModel(tree);
-            var declarations = new List<DeclarationInfo>();
-            model.ComputeDeclarationsInNode(root, getSymbol: true, builder: declarations, cancellationToken: CancellationToken.None);
+            var declarationsBuilder = ArrayBuilder<DeclarationInfo>.GetInstance();
+            model.ComputeDeclarationsInNode(root, getSymbol: true, builder: declarationsBuilder, cancellationToken: CancellationToken.None);
 
             var actualTextBuilder = new StringBuilder();
-            foreach (DeclarationInfo declaration in declarations.Where(d => d.DeclaredSymbol != null).OrderBy(d => d.DeclaredSymbol.ToTestDisplayString()))
+            foreach (DeclarationInfo declaration in declarationsBuilder.ToArrayAndFree().Where(d => d.DeclaredSymbol != null).OrderBy(d => d.DeclaredSymbol.ToTestDisplayString()))
             {
                 if (!CanHaveExecutableCodeBlock(declaration.DeclaredSymbol))
                 {
@@ -255,7 +257,11 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
         public static void ValidateIOperations(Func<Compilation> createCompilation)
         {
-#if TEST_IOPERATION_INTERFACE
+            if (!EnableVerifyIOperation)
+            {
+                return;
+            }
+
             var compilation = createCompilation();
             var roots = ArrayBuilder<IOperation>.GetInstance();
             var stopWatch = new Stopwatch();
@@ -322,7 +328,6 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
             roots.Free();
             stopWatch.Stop();
-#endif
         }
     }
 }

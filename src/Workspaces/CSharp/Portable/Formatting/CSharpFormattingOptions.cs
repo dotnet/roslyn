@@ -123,7 +123,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
 
         public static Option<BinaryOperatorSpacingOptions> SpacingAroundBinaryOperator { get; } = new Option<BinaryOperatorSpacingOptions>(nameof(CSharpFormattingOptions), nameof(SpacingAroundBinaryOperator), defaultValue: BinaryOperatorSpacingOptions.Single,
             storageLocations: new OptionStorageLocation[] {
-                new EditorConfigStorageLocation<BinaryOperatorSpacingOptions>("csharp_space_around_binary_operators ", s => ParseEditorConfigSpacingAroundBinaryOperator(s)),
+                new EditorConfigStorageLocation<BinaryOperatorSpacingOptions>("csharp_space_around_binary_operators", s => ParseEditorConfigSpacingAroundBinaryOperator(s)),
                 new RoamingProfileStorageLocation("TextEditor.CSharp.Specific.SpacingAroundBinaryOperator")});
 
         public static Option<bool> IndentBraces { get; } = new Option<bool>(nameof(CSharpFormattingOptions), nameof(IndentBraces), defaultValue: false,

@@ -30,6 +30,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
             /// </summary>
             private readonly IAsynchronousOperationListener _listener;
             private readonly IForegroundNotificationService _notificationService;
+            private readonly CancellationToken _cancellationToken;
 
             /// <summary>
             /// We keep track of the last time we reported a span, so that if things have been idle for
@@ -63,12 +64,14 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
                 ITextBuffer subjectBuffer,
                 IAsynchronousOperationListener listener,
                 IForegroundNotificationService notificationService,
-                Action<NormalizedSnapshotSpanCollection> notifyEditorNow)
+                Action<NormalizedSnapshotSpanCollection> notifyEditorNow,
+                CancellationToken cancellationToken)
             {
                 Contract.ThrowIfNull(notifyEditorNow);
                 _subjectBuffer = subjectBuffer;
                 _listener = listener;
                 _notificationService = notificationService;
+                _cancellationToken = cancellationToken;
                 _notifyEditorNow = notifyEditorNow;
             }
 
@@ -140,15 +143,19 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
                     // RecomputeTags. We must eventually notify the editor about these changes so that the
                     // UI reaches parity with our internal model.  Also, if we cancel it, then
                     // 'reportTagsScheduled' will stay 'true' forever and we'll never notify the UI.
-                    _notificationService.RegisterNotification(() =>
-                    {
-                        AssertIsForeground();
+                    _notificationService.RegisterNotification(
+                        () =>
+                        {
+                            AssertIsForeground();
 
-                        // First, clear the flag.  That way any new changes we hear about will enqueue a task
-                        // to run at a later point.
-                        _notificationRequestEnqueued = false;
-                        this.NotifyEditor();
-                    }, (int)delay.ComputeTimeDelay(_subjectBuffer).TotalMilliseconds, _listener.BeginAsyncOperation("EnqueueNotificationRequest"));
+                            // First, clear the flag.  That way any new changes we hear about will enqueue a task
+                            // to run at a later point.
+                            _notificationRequestEnqueued = false;
+                            this.NotifyEditor();
+                        },
+                        (int)delay.ComputeTimeDelay(_subjectBuffer).TotalMilliseconds,
+                        _listener.BeginAsyncOperation("EnqueueNotificationRequest"),
+                        _cancellationToken);
                 }
             }
 

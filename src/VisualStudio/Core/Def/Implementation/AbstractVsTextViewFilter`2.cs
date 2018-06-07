@@ -11,6 +11,7 @@ using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Editor;
 using Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
+using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.TextManager.Interop;
 using Roslyn.Utilities;
@@ -22,7 +23,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
         where TPackage : AbstractPackage<TPackage, TLanguageService>
         where TLanguageService : AbstractLanguageService<TPackage, TLanguageService>
     {
-        private readonly AbstractLanguageService<TPackage, TLanguageService> _languageService;
+        protected AbstractLanguageService<TPackage, TLanguageService> LanguageService { get; }
 
         protected AbstractVsTextViewFilter(
             AbstractLanguageService<TPackage, TLanguageService> languageService,
@@ -31,7 +32,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             ICommandHandlerServiceFactory commandHandlerServiceFactory)
             : base(wpfTextView, commandHandlerServiceFactory, editorAdaptersFactoryService, languageService.SystemServiceProvider)
         {
-            _languageService = languageService;
+            LanguageService = languageService;
         }
 
         int IVsTextViewFilter.GetDataTipText(TextSpan[] pSpan, out string pbstrText)
@@ -48,17 +49,23 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
 
         protected virtual int GetDataTipTextImpl(TextSpan[] pSpan, out string pbstrText)
         {
+            var subjectBuffer = WpfTextView.GetBufferContainingCaret();
+            if (subjectBuffer == null)
+            {
+                pbstrText = null;
+                return VSConstants.E_FAIL;
+            }
+
+            return GetDataTipTextImpl(subjectBuffer, pSpan, out pbstrText);
+        }
+ 
+        protected int GetDataTipTextImpl(ITextBuffer subjectBuffer, TextSpan[] pSpan, out string pbstrText)
+        {
             pbstrText = null;
 
-            var debugInfo = _languageService.LanguageDebugInfo;
+            var debugInfo = LanguageService.LanguageDebugInfo;
             if (debugInfo != null)
             {
-                var subjectBuffer = WpfTextView.GetBufferContainingCaret();
-                if (subjectBuffer == null)
-                {
-                    return VSConstants.E_FAIL;
-                }
-
                 var vsBuffer = EditorAdaptersFactory.GetBufferAdapter(subjectBuffer);
 
                 // TODO: broken in REPL
@@ -78,7 +85,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             try
             {
                 int result = VSConstants.S_OK;
-                _languageService.Package.ComponentModel.GetService<IWaitIndicator>().Wait(
+                LanguageService.Package.ComponentModel.GetService<IWaitIndicator>().Wait(
                     "Intellisense",
                     allowCancel: true,
                     action: c => result = GetPairExtentsWorker(iLine, iIndex, pSpan, c.CancellationToken));
@@ -93,10 +100,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
 
         private int GetPairExtentsWorker(int iLine, int iIndex, TextSpan[] pSpan, CancellationToken cancellationToken)
         {
-            var braceMatcher = _languageService.Package.ComponentModel.GetService<IBraceMatchingService>();
+            var braceMatcher = LanguageService.Package.ComponentModel.GetService<IBraceMatchingService>();
             return GetPairExtentsWorker(
                 WpfTextView,
-                _languageService.Workspace,
+                LanguageService.Workspace,
                 braceMatcher,
                 iLine,
                 iIndex,

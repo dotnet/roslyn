@@ -76,6 +76,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         private readonly PooledHashSet<Symbol> _capturedVariables = PooledHashSet<Symbol>.GetInstance();
 
+        private readonly PooledHashSet<Symbol> _capturedInside = PooledHashSet<Symbol>.GetInstance();
+        private readonly PooledHashSet<Symbol> _capturedOutside = PooledHashSet<Symbol>.GetInstance();
+
         /// <summary>
         /// The current source assembly.
         /// </summary>
@@ -138,6 +141,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             _usedLocalFunctions.Free();
             _writtenVariables.Free();
             _capturedVariables.Free();
+            _capturedInside.Free();
+            _capturedOutside.Free();
             _unsafeAddressTakenVariables.Free();
             _variableSlot.Free();
 
@@ -449,23 +454,23 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <param name="variable"></param>
         private void NoteCaptured(Symbol variable)
         {
-            if (variable.Kind != SymbolKind.RangeVariable || this.regionPlace == PreciseAbstractFlowPass<LocalState>.RegionPlace.Inside)
+            if (this.regionPlace == RegionPlace.Inside)
             {
+                _capturedInside.Add(variable);
+                _capturedVariables.Add(variable);
+            }
+            else if (variable.Kind != SymbolKind.RangeVariable)
+            {
+                _capturedOutside.Add(variable);
                 _capturedVariables.Add(variable);
             }
         }
 
-        protected IEnumerable<Symbol> GetCaptured()
-        {
-            // do not expose poolable capturedVariables outside of this class
-            return _capturedVariables.ToArray();
-        }
-
-        protected IEnumerable<Symbol> GetUnsafeAddressTaken()
-        {
-            // do not expose poolable unsafeAddressTakenVariables outside of this class
-            return _unsafeAddressTakenVariables.Keys.ToArray();
-        }
+        // do not expose PooledHashSet<T> outside of this class
+        protected IEnumerable<Symbol> GetCapturedInside() => _capturedInside.ToArray();
+        protected IEnumerable<Symbol> GetCapturedOutside() => _capturedOutside.ToArray();
+        protected IEnumerable<Symbol> GetCaptured() => _capturedVariables.ToArray();
+        protected IEnumerable<Symbol> GetUnsafeAddressTaken() => _unsafeAddressTakenVariables.Keys.ToArray();
 
 #region Tracking reads/writes of variables for warnings
 
@@ -1234,6 +1239,22 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
 
                 case BoundKind.Parameter:
+                    {
+                        var paramExpr = (BoundParameter)node;
+                        var param = paramExpr.ParameterSymbol;
+                        // If we're ref-reassigning an out parameter we're effectively
+                        // leaving the original
+                        if (isRef && param.RefKind == RefKind.Out)
+                        {
+                            LeaveParameter(param, node.Syntax, paramExpr.Syntax.Location);
+                        }
+
+                        int slot = MakeSlot(paramExpr);
+                        SetSlotState(slot, written);
+                        if (written) NoteWrite(paramExpr, value, read);
+                        break;
+                    }
+
                 case BoundKind.ThisReference:
                 case BoundKind.FieldAccess:
                 case BoundKind.EventAccess:

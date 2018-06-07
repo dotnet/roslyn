@@ -104,7 +104,7 @@ class Program
     partial ref struct S {}
 }
 ";
-            var comp = CreateStandardCompilation(text);
+            var comp = CreateCompilation(text);
             comp.VerifyDiagnostics(
                 // (4,13): error CS1585: Member modifier 'ref' must precede the member type and name
                 //     partial ref struct S {}
@@ -120,7 +120,7 @@ class Program
         [Fact]
         public void RefPartialStruct()
         {
-            var comp = CreateStandardCompilation(@"
+            var comp = CreateCompilation(@"
 class C
 {
     ref partial struct S {}
@@ -132,7 +132,7 @@ class C
         [Fact]
         public void RefPartialReadonlyStruct()
         {
-            var comp = CreateStandardCompilation(@"
+            var comp = CreateCompilation(@"
 class C
 {
     ref partial readonly struct S {}
@@ -153,7 +153,7 @@ class C
         [Fact]
         public void RefReadonlyPartialStruct()
         {
-            var comp = CreateStandardCompilation(@"
+            var comp = CreateCompilation(@"
 class C
 {
     partial ref readonly struct S {}
@@ -180,7 +180,7 @@ class C
         [Fact]
         public void ReadonlyPartialRefStruct()
         {
-            var comp = CreateStandardCompilation(@"
+            var comp = CreateCompilation(@"
 class C
 {
     readonly partial ref struct S {}
@@ -201,7 +201,7 @@ class C
         [Fact]
         public void ReadonlyRefPartialStruct()
         {
-            var comp = CreateStandardCompilation(@"
+            var comp = CreateCompilation(@"
 class C
 {
     readonly ref partial struct S {}

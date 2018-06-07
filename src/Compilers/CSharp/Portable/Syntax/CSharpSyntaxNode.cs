@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.CSharp
     //to defer the realization of strings. Often diagnostics generated while binding
     //in service of a SemanticModel API are never realized. So this
     //deferral can result in meaningful savings of strings.
-    public abstract partial class CSharpSyntaxNode : SyntaxNode, IMessageSerializable
+    public abstract partial class CSharpSyntaxNode : SyntaxNode, IFormattable
     {
         internal CSharpSyntaxNode(GreenNode green, SyntaxNode parent, int position)
             : base(green, parent, position)
@@ -549,5 +549,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         #endregion
+
+        string IFormattable.ToString(string format, IFormatProvider formatProvider)
+        {
+            return ToString();
+        }
     }
 }

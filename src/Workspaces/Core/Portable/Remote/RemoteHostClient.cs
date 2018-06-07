@@ -5,7 +5,6 @@ using System.Collections.Generic;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Execution;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Remote
@@ -102,14 +101,10 @@ namespace Microsoft.CodeAnalysis.Remote
 
             protected Connection()
             {
+#if DEBUG
+                _creationCallStack = Environment.StackTrace;
+#endif
                 _disposed = false;
-            }
-
-            protected abstract Task OnRegisterPinnedRemotableDataScopeAsync(PinnedRemotableDataScope scope);
-
-            public virtual Task RegisterPinnedRemotableDataScopeAsync(PinnedRemotableDataScope scope)
-            {
-                return OnRegisterPinnedRemotableDataScopeAsync(scope);
             }
 
             public abstract Task InvokeAsync(string targetName, IReadOnlyList<object> arguments, CancellationToken cancellationToken);
@@ -117,7 +112,7 @@ namespace Microsoft.CodeAnalysis.Remote
             public abstract Task InvokeAsync(string targetName, IReadOnlyList<object> arguments, Func<Stream, CancellationToken, Task> funcWithDirectStreamAsync, CancellationToken cancellationToken);
             public abstract Task<T> InvokeAsync<T>(string targetName, IReadOnlyList<object> arguments, Func<Stream, CancellationToken, Task<T>> funcWithDirectStreamAsync, CancellationToken cancellationToken);
 
-            protected virtual void OnDisposed()
+            protected virtual void Dispose(bool disposing)
             {
                 // do nothing
             }
@@ -131,8 +126,24 @@ namespace Microsoft.CodeAnalysis.Remote
 
                 _disposed = true;
 
-                OnDisposed();
+                Dispose(disposing: true);
+                GC.SuppressFinalize(this);
             }
+
+#if DEBUG
+            private readonly string _creationCallStack;
+
+            ~Connection()
+            {
+                // this can happen if someone kills OOP. 
+                // when that happen, we don't want to crash VS, so this is debug only check
+                if (!Environment.HasShutdownStarted)
+                {
+                    Contract.Requires(false, 
+                        $"Unless OOP process (RoslynCodeAnalysisService) is explicitly killed, this should have been disposed!\r\n {_creationCallStack}");
+                }
+            }
+#endif
         }
     }
 }

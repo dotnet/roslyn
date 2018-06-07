@@ -18,7 +18,7 @@ Imports System
 ]]></file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.ReleaseDll.WithOutputKind(OutputKind.WindowsRuntimeMetadata))
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(source, TestOptions.ReleaseDll.WithOutputKind(OutputKind.WindowsRuntimeMetadata))
 
             Dim actual = PdbTestUtilities.GetTokenToLocationMap(compilation, True)
 
@@ -63,7 +63,7 @@ End Module
 ]]></file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.ReleaseDll.WithOutputKind(OutputKind.WindowsRuntimeMetadata))
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(source, TestOptions.ReleaseDll.WithOutputKind(OutputKind.WindowsRuntimeMetadata))
 
             Dim actual = PdbTestUtilities.GetTokenToLocationMap(compilation, True)
 
@@ -95,7 +95,7 @@ End Namespace
 ]]></file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.ReleaseDll.WithOutputKind(OutputKind.WindowsRuntimeMetadata))
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(source, TestOptions.ReleaseDll.WithOutputKind(OutputKind.WindowsRuntimeMetadata))
 
             Dim actual = PdbTestUtilities.GetTokenToLocationMap(compilation, True)
 
@@ -154,7 +154,7 @@ End Namespace
 </compilation>
 
             Dim compilation =
-                CompilationUtils.CreateCompilationWithReferences(
+                CompilationUtils.CreateEmptyCompilationWithReferences(
                     source,
                     LatestVbReferences,
                     options:=TestOptions.ReleaseDll.WithOutputKind(OutputKind.WindowsRuntimeMetadata))
@@ -220,7 +220,7 @@ End Namespace
 ]]></file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.ReleaseDll.WithOutputKind(OutputKind.WindowsRuntimeMetadata))
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(source, TestOptions.ReleaseDll.WithOutputKind(OutputKind.WindowsRuntimeMetadata))
 
             Dim actual = PdbTestUtilities.GetTokenToLocationMap(compilation, True)
 

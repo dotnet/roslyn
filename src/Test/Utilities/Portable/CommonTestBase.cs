@@ -14,6 +14,7 @@ using System.Text;
 using System.Threading;
 using System.Xml.Linq;
 using Microsoft.CodeAnalysis.CodeGen;
+using Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE;
 using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.Operations;
 using Roslyn.Test.Utilities;
@@ -36,82 +37,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
     {
         #region Emit
 
-        protected abstract Compilation GetCompilationForEmit(
-            IEnumerable<string> source,
-            IEnumerable<MetadataReference> additionalRefs,
-            CompilationOptions options,
-            ParseOptions parseOptions);
-
-        protected abstract CompilationOptions CompilationOptionsReleaseDll { get; }
-
-        internal CompilationVerifier CompileAndVerify(
-            string source,
-            IEnumerable<MetadataReference> additionalRefs = null,
-            IEnumerable<ModuleData> dependencies = null,
-            Action<IModuleSymbol> sourceSymbolValidator = null,
-            Action<PEAssembly> assemblyValidator = null,
-            Action<IModuleSymbol> symbolValidator = null,
-            SignatureDescription[] expectedSignatures = null,
-            string expectedOutput = null,
-            CompilationOptions options = null,
-            ParseOptions parseOptions = null,
-            EmitOptions emitOptions = null,
-            Verification verify = Verification.Passes)
-        {
-            return CompileAndVerify(
-                sources: new string[] { source },
-                additionalRefs: additionalRefs,
-                dependencies: dependencies,
-                sourceSymbolValidator: sourceSymbolValidator,
-                assemblyValidator: assemblyValidator,
-                symbolValidator: symbolValidator,
-                expectedSignatures: expectedSignatures,
-                expectedOutput: expectedOutput,
-                options: options,
-                parseOptions: parseOptions,
-                emitOptions: emitOptions,
-                verify: verify);
-        }
-
-        internal CompilationVerifier CompileAndVerify(
-            IEnumerable<string> sources,
-            IEnumerable<MetadataReference> additionalRefs = null,
-            IEnumerable<ModuleData> dependencies = null,
-            Action<IModuleSymbol> sourceSymbolValidator = null,
-            Action<PEAssembly> assemblyValidator = null,
-            Action<IModuleSymbol> symbolValidator = null,
-            SignatureDescription[] expectedSignatures = null,
-            string expectedOutput = null,
-            int? expectedReturnCode = null,
-            string[] args = null,
-            CompilationOptions options = null,
-            ParseOptions parseOptions = null,
-            EmitOptions emitOptions = null,
-            Verification verify = Verification.Passes)
-        {
-            if (options == null)
-            {
-                options = CompilationOptionsReleaseDll.WithOutputKind((expectedOutput != null) ? OutputKind.ConsoleApplication : OutputKind.DynamicallyLinkedLibrary);
-            }
-
-            var compilation = GetCompilationForEmit(sources, additionalRefs, options, parseOptions);
-
-            return this.CompileAndVerify(
-                compilation,
-                null,
-                dependencies,
-                sourceSymbolValidator,
-                assemblyValidator,
-                symbolValidator,
-                expectedSignatures,
-                expectedOutput,
-                expectedReturnCode,
-                args,
-                emitOptions,
-                verify);
-        }
-
-        internal CompilationVerifier CompileAndVerify(
+        internal CompilationVerifier CompileAndVerifyCommon(
             Compilation compilation,
             IEnumerable<ResourceDescription> manifestResources = null,
             IEnumerable<ModuleData> dependencies = null,
@@ -168,10 +94,10 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             return result;
         }
 
-        internal CompilationVerifier CompileAndVerifyFieldMarshal(string source, Dictionary<string, byte[]> expectedBlobs, bool isField = true)
+        internal CompilationVerifier CompileAndVerifyFieldMarshalCommon(Compilation compilation, Dictionary<string, byte[]> expectedBlobs, bool isField = true)
         {
-            return CompileAndVerifyFieldMarshal(
-                source,
+            return CompileAndVerifyFieldMarshalCommon(
+                compilation,
                 (s, _omitted1) =>
                 {
                     Assert.True(expectedBlobs.ContainsKey(s), "Expecting marshalling blob for " + (isField ? "field " : "parameter ") + s);
@@ -180,9 +106,9 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                 isField);
         }
 
-        internal CompilationVerifier CompileAndVerifyFieldMarshal(string source, Func<string, PEAssembly, byte[]> getExpectedBlob, bool isField = true)
+        internal CompilationVerifier CompileAndVerifyFieldMarshalCommon(Compilation compilation, Func<string, PEAssembly, byte[]> getExpectedBlob, bool isField = true)
         {
-            return CompileAndVerify(source, options: CompilationOptionsReleaseDll, assemblyValidator: (assembly) => MetadataValidation.MarshalAsMetadataValidator(assembly, getExpectedBlob, isField));
+            return CompileAndVerifyCommon(compilation, assemblyValidator: (assembly) => MetadataValidation.MarshalAsMetadataValidator(assembly, getExpectedBlob, isField));
         }
 
         static internal void RunValidators(CompilationVerifier verifier, Action<PEAssembly> assemblyValidator, Action<IModuleSymbol> symbolValidator)
@@ -499,6 +425,12 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                 minorSubsystemVersion: 0,
                 linkerMajorVersion: 0,
                 linkerMinorVersion: 0);
+        }
+
+        internal void AssertDeclaresType(PEModuleSymbol peModule, WellKnownType type, Accessibility expectedAccessibility)
+        {
+            var name = MetadataTypeName.FromFullName(type.GetMetadataName());
+            Assert.Equal(expectedAccessibility, peModule.LookupTopLevelMetadataType(ref name).DeclaredAccessibility);
         }
 
         #endregion
