@@ -3,12 +3,12 @@
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.CodeAnalysis.CSharp.CodeFixes.SimplifyTypeNames;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Xunit;
 
-namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.SimplifyTypeNames
+namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SimplifyTypeNames
 {
     public partial class SimplifyTypeNamesTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest
     {
@@ -77,10 +77,10 @@ using System;
 
 class Program
 {
-    static int F(int x, System.Int16 y)
+    static int F(int x, short y)
     {
         int i1 = 0;
-        System.Int16 s1 = 0;
+        short s1 = 0;
         int i2 = 0;
         return i1 + s1 + i2;
     }
@@ -185,10 +185,10 @@ using System;
 
 class Program
 {
-    static int F(int x, System.Int16 y)
+    static int F(int x, short y)
     {
         int i1 = 0;
-        System.Int16 s1 = 0;
+        short s1 = 0;
         int i2 = 0;
         return i1 + s1 + i2;
     }
@@ -199,10 +199,10 @@ using System;
 
 class Program2
 {
-    static int F(int x, System.Int16 y)
+    static int F(int x, short y)
     {
         int i1 = 0;
-        System.Int16 s1 = 0;
+        short s1 = 0;
         int i2 = 0;
         return i1 + s1 + i2;
     }
@@ -293,10 +293,10 @@ using System;
 
 class Program
 {
-    static int F(int x, System.Int16 y)
+    static int F(int x, short y)
     {
         int i1 = 0;
-        System.Int16 s1 = 0;
+        short s1 = 0;
         int i2 = 0;
         return i1 + s1 + i2;
     }
@@ -307,10 +307,10 @@ using System;
 
 class Program2
 {
-    static int F(int x, System.Int16 y)
+    static int F(int x, short y)
     {
         int i1 = 0;
-        System.Int16 s1 = 0;
+        short s1 = 0;
         int i2 = 0;
         return i1 + s1 + i2;
     }
@@ -323,10 +323,10 @@ using System;
 
 class Program2
 {
-    static int F(int x, System.Int16 y)
+    static int F(int x, short y)
     {
         int i1 = 0;
-        System.Int16 s1 = 0;
+        short s1 = 0;
         int i2 = 0;
         return i1 + s1 + i2;
     }

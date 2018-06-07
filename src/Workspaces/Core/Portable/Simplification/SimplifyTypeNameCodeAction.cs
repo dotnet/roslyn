@@ -9,8 +9,9 @@ namespace Microsoft.CodeAnalysis.Simplification
 {
     internal class SimplifyTypeNameCodeAction : CodeAction.DocumentChangeAction
     {
-        public SimplifyTypeNameCodeAction(string title, Func<CancellationToken, Task<Document>> createChangedDocument, string id)
-            : base(title, createChangedDocument, id)
+        public SimplifyTypeNameCodeAction(
+            string title, Func<CancellationToken, Task<Document>> createChangedDocument, string equivalenceKey)
+            : base(title, createChangedDocument, equivalenceKey)
         {
         }
     }
