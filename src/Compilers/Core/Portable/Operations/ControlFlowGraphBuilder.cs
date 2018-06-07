@@ -4807,9 +4807,6 @@ oneMoreTime:
                 if (!pushSuccess)
                 {
                     // Error case. We don't try any error recovery here, just return whatever the default visit would.
-
-                    // PROTOTYPE(dataflow): At the moment we can get here in other cases as well, see tryPushTarget
-                    // Debug.Assert(assignmentOperation.Target.Kind == OperationKind.Invalid);
                     return Visit(assignmentOperation);
                 }
 
@@ -4930,6 +4927,10 @@ oneMoreTime:
                         _evalStack.Push(Visit(dynamicIndexer.Operation));
                         return (success: true, arguments);
 
+                    case OperationKind.DynamicMemberReference:
+                        var dynamicReference = (IDynamicMemberReferenceOperation)instance;
+                        _evalStack.Push(Visit(dynamicReference.Instance));
+                        return (success: true, arguments: ImmutableArray<IOperation>.Empty);
 
                     default:
                         // As in the assert in handleInitializer, this assert documents the operation kinds that we know go through this path,
@@ -4962,12 +4963,19 @@ oneMoreTime:
                                                                propertyReference.Type, propertyReference.ConstantValue, IsImplicit(propertyReference));
                     case OperationKind.ArrayElementReference:
                         Debug.Assert(((IArrayElementReferenceOperation)originalTarget).Indices.Length == arguments.Length);
-                        return new ArrayElementReferenceExpression(instance, arguments, semanticModel: null, originalTarget.Syntax, originalTarget.Type, originalTarget.ConstantValue, IsImplicit(originalTarget));
+                        return new ArrayElementReferenceExpression(instance, arguments, semanticModel: null, originalTarget.Syntax, originalTarget.Type,
+                                                                   originalTarget.ConstantValue, IsImplicit(originalTarget));
                     case OperationKind.DynamicIndexerAccess:
                         var dynamicAccess = (HasDynamicArgumentsExpression)originalTarget;
                         Debug.Assert(dynamicAccess.Arguments.Length == arguments.Length);
                         return new DynamicIndexerAccessExpression(instance, arguments, dynamicAccess.ArgumentNames, dynamicAccess.ArgumentRefKinds, semanticModel: null,
                                                                   dynamicAccess.Syntax, dynamicAccess.Type, dynamicAccess.ConstantValue, IsImplicit(dynamicAccess));
+                    case OperationKind.DynamicMemberReference:
+                        var dynamicReference = (IDynamicMemberReferenceOperation)originalTarget;
+                        Debug.Assert(arguments.IsEmpty);
+                        return new DynamicMemberReferenceExpression(instance, dynamicReference.MemberName, dynamicReference.TypeArguments,
+                                                                    dynamicReference.ContainingType, semanticModel: null, dynamicReference.Syntax,
+                                                                    dynamicReference.Type, dynamicReference.ConstantValue, IsImplicit(dynamicReference));
                     default:
                         // Unlike in tryPushTarget, we assume that if this method is called, we were successful in pushing, so
                         // this must be one of the explicitly handled kinds
