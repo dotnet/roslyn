@@ -2048,12 +2048,13 @@ End Module
                 Diagnostic(ERRID.ERR_BadIteratorReturn, "Sub").WithLocation(28, 21),
                 Diagnostic(ERRID.HDN_UnusedImportStatement, "Imports System.Collections.Generic").WithLocation(2, 1))
             comp.VerifyAnalyzerDiagnostics({New MemberReferenceAnalyzer}, Nothing, Nothing, False,
-                Diagnostic(MemberReferenceAnalyzer.HandlerAddedDescriptor.Id, "AddHandler, New Object").WithLocation(26, 24),
-                Diagnostic(MemberReferenceAnalyzer.InvalidEventDescriptor.Id, "AddHandler, New Object").WithLocation(26, 24),
-                Diagnostic(MemberReferenceAnalyzer.HandlerAddedDescriptor.Id, "AddHandler receiver?.TestEvent, AddressOf Main").WithLocation(15, 9),
-                Diagnostic(MemberReferenceAnalyzer.InvalidEventDescriptor.Id, "AddHandler receiver?.TestEvent, AddressOf Main").WithLocation(15, 9),
-                Diagnostic(MemberReferenceAnalyzer.HandlerAddedDescriptor.Id, "AddHandler Function(ByVal x) x").WithLocation(6, 9),
-                Diagnostic(MemberReferenceAnalyzer.InvalidEventDescriptor.Id, "AddHandler Function(ByVal x) x").WithLocation(6, 9))
+                Diagnostic("HandlerAdded", "AddHandler Function(ByVal x) x").WithLocation(6, 9),
+                Diagnostic("InvalidEvent", "AddHandler Function(ByVal x) x").WithLocation(6, 9),
+                Diagnostic("HandlerAdded", "AddHandler receiver?.TestEvent, AddressOf Main").WithLocation(15, 9),
+                Diagnostic("InvalidEvent", "AddHandler receiver?.TestEvent, AddressOf Main").WithLocation(15, 9),
+                Diagnostic("HandlerAdded", "AddHandler, New Object").WithLocation(26, 24),
+                Diagnostic("InvalidEvent", "AddHandler, New Object").WithLocation(26, 24),
+                Diagnostic("EventReference", ".TestEvent").WithLocation(15, 29))
         End Sub
 
         <Fact, WorkItem(9127, "https://github.com/dotnet/roslyn/issues/9127")>

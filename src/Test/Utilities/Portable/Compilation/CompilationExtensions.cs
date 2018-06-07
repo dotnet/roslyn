@@ -273,8 +273,8 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
             void checkTimeout()
             {
-                const int timeout = 10000;
-                Assert.False(stopWatch.ElapsedMilliseconds > timeout, "ValidateIOperations took too long");
+                const int timeout = 15000;
+                Assert.False(stopWatch.ElapsedMilliseconds > timeout, $"ValidateIOperations took too long: {stopWatch.ElapsedMilliseconds} ms");
             }
 
             foreach (var tree in compilation.SyntaxTrees)

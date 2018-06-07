@@ -2478,7 +2478,7 @@ oneMoreTime:
                     receiver = UnwrapNullableValue(receiver);
                 }
 
-                // PROTOTYPE(dataflow): It looks like there is a bug in IOperation tree around XmlMemberAccessExpressionSyntax,
+                // https://github.com/dotnet/roslyn/issues/27564: It looks like there is a bug in IOperation tree around XmlMemberAccessExpressionSyntax,
                 //                      a None operation is created and all children are dropped.
                 //                      See Microsoft.CodeAnalysis.VisualBasic.UnitTests.Semantics.ConditionalAccessTests.AnonymousTypeMemberName_01
                 //                      The following assert is triggered because of that. Disabling it for now.
@@ -2500,10 +2500,7 @@ oneMoreTime:
                 Debug.Assert(captureIdForResult == null);
 
                 IOperation result = Visit(currentConditionalAccess.WhenNotNull);
-                // PROTOTYPE(dataflow): It looks like there is a bug in IOperation tree,
-                //                      See Microsoft.CodeAnalysis.VisualBasic.UnitTests.Semantics.ConditionalAccessTests.ConditionalAccessToEvent_04
-                //                      The following assert is triggered because of that. Disabling it for now.
-                //Debug.Assert(_currentConditionalAccessInstance == null);
+                Debug.Assert(_currentConditionalAccessInstance == null);
                 _currentConditionalAccessInstance = null;
 
                 if (_currentStatement != operation)
@@ -2533,7 +2530,7 @@ oneMoreTime:
                     VisitAndCapture(currentConditionalAccess.WhenNotNull, resultCaptureId);
                 }
 
-                // PROTOTYPE(dataflow): It looks like there is a bug in IOperation tree around XmlMemberAccessExpressionSyntax,
+                // https://github.com/dotnet/roslyn/issues/27564: It looks like there is a bug in IOperation tree around XmlMemberAccessExpressionSyntax,
                 //                      a None operation is created and all children are dropped.
                 //                      See Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator.UnitTests.ExpressionCompilerTests.ConditionalAccessExpressionType
                 //                      The following assert is triggered because of that. Disabling it for now.
