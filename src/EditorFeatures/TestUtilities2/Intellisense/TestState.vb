@@ -271,7 +271,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
                 Return ' Yikes
             End Try
 
-            Assert.True(session.IsDismissed)
+            Assert.True(session.IsDismissed OrElse session.GetComputedItems(CancellationToken.None).Items.Count() = 0)
 
         End Function
 

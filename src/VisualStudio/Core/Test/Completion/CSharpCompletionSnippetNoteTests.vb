@@ -33,7 +33,7 @@ class C
             End Using
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact(Skip:="https://github.com/dotnet/roslyn/issues/27439"), Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function ColonDoesntTriggerSnippetInTupleLiteral() As Task
             Using state = CreateCSharpSnippetExpansionNoteTestState(_markup, "interface")
                 state.SendTypeChars("var t = (interfac")
@@ -44,7 +44,7 @@ class C
             End Using
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact(Skip:="https://github.com/dotnet/roslyn/issues/27439"), Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function ColonDoesntTriggerSnippetInTupleLiteralAfterComma() As Task
             Using state = CreateCSharpSnippetExpansionNoteTestState(_markup, "interface")
                 state.SendTypeChars("var t = (1, interfac")
