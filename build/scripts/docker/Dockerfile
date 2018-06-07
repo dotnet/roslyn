@@ -15,6 +15,7 @@ RUN rm -rf rm -rf /var/lib/apt/lists/* && \
             git \
             curl \
             tar \
+            unzip \
             sudo && \
     apt-get clean
 

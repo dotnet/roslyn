@@ -282,10 +282,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             var addedDocument = forkedSolution.GetDocument(documentId);
 
             var rootToFormat = addedDocument.GetSyntaxRootSynchronously(cancellationToken);
-            var documentOptions = addedDocument.GetOptionsAsync(cancellationToken).WaitAndGetResult(cancellationToken);
+            var documentOptions = ThreadHelper.JoinableTaskFactory.Run(() => addedDocument.GetOptionsAsync(cancellationToken));
 
             var formattedTextChanges = Formatter.GetFormattedTextChanges(rootToFormat, workspace, documentOptions, cancellationToken);
-            var formattedText = addedDocument.GetTextAsync(cancellationToken).WaitAndGetResult(cancellationToken).WithChanges(formattedTextChanges);
+            var formattedText = addedDocument.GetTextSynchronously(cancellationToken).WithChanges(formattedTextChanges);
 
             // Ensure the line endings are normalized. The formatter doesn't touch everything if it doesn't need to.
             string targetLineEnding = documentOptions.GetOption(FormattingOptions.NewLine);

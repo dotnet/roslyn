@@ -2979,7 +2979,7 @@ class F
   ProtectionLevel Prop { get { return 0; } }
 }
 ";
-            CreateCompilation(text, references: new[] { SystemRef }).VerifyDiagnostics(
+            CreateCompilation(text).VerifyDiagnostics(
                 // (9,17): error CS0120: An object reference is required for the non-static field, method, or property 'F.Prop'
                 //   [DefaultValue(Prop.Privacy)] // CS0120
                 Diagnostic(ErrorCode.ERR_ObjectRequired, "Prop").WithArguments("F.Prop"),
@@ -7441,7 +7441,7 @@ public class MyList<T>
    }
 }";
             CreateCompilation(text).VerifyDiagnostics(
-                // (9,10): error CS0201: Only assignment, call, increment, decrement, and new object expressions can be used as a statement
+                // (9,10): error CS0201: Only assignment, call, increment, decrement, await, and new object expressions can be used as a statement
                 Diagnostic(ErrorCode.ERR_IllegalStatement, "checked(i++)"));
         }
 
@@ -7460,16 +7460,16 @@ class A
     }
 }";
             CreateCompilation(text, parseOptions: TestOptions.Regular.WithTuplesFeature()).VerifyDiagnostics(
-    // (6,9): error CS0201: Only assignment, call, increment, decrement, and new object expressions can be used as a statement
+    // (6,9): error CS0201: Only assignment, call, increment, decrement, await, and new object expressions can be used as a statement
     //         (a) => a;
     Diagnostic(ErrorCode.ERR_IllegalStatement, "(a) => a").WithLocation(6, 9),
-    // (7,9): error CS0201: Only assignment, call, increment, decrement, and new object expressions can be used as a statement
+    // (7,9): error CS0201: Only assignment, call, increment, decrement, await, and new object expressions can be used as a statement
     //         (a, b) => { };
     Diagnostic(ErrorCode.ERR_IllegalStatement, "(a, b) => { }").WithLocation(7, 9),
-    // (9,9): error CS0201: Only assignment, call, increment, decrement, and new object expressions can be used as a statement
+    // (9,9): error CS0201: Only assignment, call, increment, decrement, await, and new object expressions can be used as a statement
     //         x + y; x == 1;
     Diagnostic(ErrorCode.ERR_IllegalStatement, "x + y").WithLocation(9, 9),
-    // (9,16): error CS0201: Only assignment, call, increment, decrement, and new object expressions can be used as a statement
+    // (9,16): error CS0201: Only assignment, call, increment, decrement, await, and new object expressions can be used as a statement
     //         x + y; x == 1;
     Diagnostic(ErrorCode.ERR_IllegalStatement, "x == 1").WithLocation(9, 16),
     // (4,23): error CS0161: 'A.Main()': not all code paths return a value
@@ -7494,16 +7494,16 @@ class A
 }";
             var comp = CreateCompilation(new[] { Parse(test, options: TestOptions.Regular6) }, new MetadataReference[] { });
             comp.VerifyDiagnostics(
-    // (6,9): error CS0201: Only assignment, call, increment, decrement, and new object expressions can be used as a statement
+    // (6,9): error CS0201: Only assignment, call, increment, decrement, await, and new object expressions can be used as a statement
     //         (a) => a;
     Diagnostic(ErrorCode.ERR_IllegalStatement, "(a) => a").WithLocation(6, 9),
-    // (7,9): error CS0201: Only assignment, call, increment, decrement, and new object expressions can be used as a statement
+    // (7,9): error CS0201: Only assignment, call, increment, decrement, await, and new object expressions can be used as a statement
     //         (a, b) => { };
     Diagnostic(ErrorCode.ERR_IllegalStatement, "(a, b) => { }").WithLocation(7, 9),
-    // (9,9): error CS0201: Only assignment, call, increment, decrement, and new object expressions can be used as a statement
+    // (9,9): error CS0201: Only assignment, call, increment, decrement, await, and new object expressions can be used as a statement
     //         x + y; x == 1;
     Diagnostic(ErrorCode.ERR_IllegalStatement, "x + y").WithLocation(9, 9),
-    // (9,16): error CS0201: Only assignment, call, increment, decrement, and new object expressions can be used as a statement
+    // (9,16): error CS0201: Only assignment, call, increment, decrement, await, and new object expressions can be used as a statement
     //         x + y; x == 1;
     Diagnostic(ErrorCode.ERR_IllegalStatement, "x == 1").WithLocation(9, 16),
     // (4,23): error CS0161: 'A.Main()': not all code paths return a value
@@ -8052,10 +8052,10 @@ public class MyClass
             CreateCompilation(text, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
                 // (7,23): error CS0213: You cannot use the fixed statement to take the address of an already fixed expression
                 //       fixed (int *j = &i) { }  // CS0213
-                Diagnostic(ErrorCode.ERR_FixedNotNeeded, "&i"),
-                // (14,26): error CS0213: You cannot use the fixed statement to take the address of an already fixed expression
+                Diagnostic(ErrorCode.ERR_FixedNotNeeded, "&i").WithLocation(7, 23),
+                // (14,26): error CS9385: The given expression cannot be used in a fixed statement
                 //          fixed (int *c = b) { }  // CS0213
-                Diagnostic(ErrorCode.ERR_FixedNotNeeded, "b"));
+                Diagnostic(ErrorCode.ERR_ExprCannotBeFixed, "b").WithLocation(14, 26));
         }
 
         [Fact]
@@ -8768,9 +8768,9 @@ class FixedTest
 }
 ";
             CreateCompilation(text, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
-                // (20,23): error CS0254: The right hand side of a fixed statement assignment may not be a cast expression
+                // (20,23): error CS9385: The given expression cannot be used in a fixed statement
                 //       fixed (int* p = (int*)&pt.x)   // CS0254
-                Diagnostic(ErrorCode.ERR_BadCastInFixed, "(int*)&pt.x"));
+                Diagnostic(ErrorCode.ERR_ExprCannotBeFixed, "(int*)&pt.x").WithLocation(20, 23));
         }
 
         [Fact]
@@ -9746,7 +9746,7 @@ namespace N
         }
     }
 }";
-            CreateCompilation(text, references: new[] { SystemCoreRef }).VerifyDiagnostics(
+            CreateCompilation(text).VerifyDiagnostics(
                 // (4,7): error CS0310: 'B' must be a non-abstract type with a public parameterless constructor in order to use it as parameter 'T' in the generic type or method 'C<T>'
                 // using CB = N.C<N.B>;
                 Diagnostic(ErrorCode.ERR_NewConstraintNotSatisfied, "CB").WithArguments("N.C<T>", "T", "N.B").WithLocation(4, 7),
@@ -9811,7 +9811,7 @@ class D<T> where T : new()
         D<C>.M();
     }
 }";
-            CreateCompilation(text, references: new[] { SystemCoreRef }).VerifyDiagnostics(
+            CreateCompilation(text).VerifyDiagnostics(
                 // (18,11): error CS0310: 'B' must be a non-abstract type with a public parameterless constructor in order to use it as parameter 'T' in the generic type or method 'D<T>'
                 Diagnostic(ErrorCode.ERR_NewConstraintNotSatisfied, "B").WithArguments("D<T>", "T", "B").WithLocation(18, 11),
                 // (19,11): error CS0310: 'C' must be a non-abstract type with a public parameterless constructor in order to use it as parameter 'T' in the generic type or method 'D<T>'
@@ -14638,10 +14638,10 @@ class C : IEnumerable
 ";
             var comp = CreateCompilation(text);
             comp.VerifyDiagnostics(
-                // (11,46): error CS1623: Iterators cannot have ref or out parameters
+                // (11,46): error CS1623: Iterators cannot have ref, in or out parameters
                 //     public IEnumerator GetEnumerator(ref int i)  // CS1623
                 Diagnostic(ErrorCode.ERR_BadIteratorArgType, "i"),
-                // (16,48): error CS1623: Iterators cannot have ref or out parameters
+                // (16,48): error CS1623: Iterators cannot have ref, in or out parameters
                 //     public IEnumerator GetEnumerator(out float f)  // CS1623
                 Diagnostic(ErrorCode.ERR_BadIteratorArgType, "f")
                 );
@@ -15407,6 +15407,93 @@ class C
         }
 
         [Fact]
+        public void CS1666ERR_FixedBufferNotFixedErr()
+        {
+            var text = @"
+unsafe struct S
+{
+    public fixed int buffer[1];
+}
+
+unsafe class Test
+{
+    public static void Main()
+    {
+        var inst = new Test();
+        System.Console.Write(inst.example1());
+        System.Console.Write(inst.field.buffer[0]);
+        System.Console.Write(inst.example2());
+        System.Console.Write(inst.field.buffer[0]);
+    }
+
+    S field = new S();
+
+    private int example1()
+    {
+        return (field.buffer[0] = 7);   // OK
+    }
+
+    private int example2()
+    {
+        fixed (int* p = field.buffer)
+        {
+            return (p[0] = 8);   // OK
+        }
+    }
+}
+";
+
+            CreateCompilation(text, options: TestOptions.UnsafeReleaseExe, parseOptions: TestOptions.Regular7_2).VerifyDiagnostics(
+                // (13,30): error CS8320: Feature 'indexing movable fixed buffers' is not available in C# 7.2. Please use language version 7.3 or greater.
+                //         System.Console.Write(inst.field.buffer[0]);
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_2, "inst.field.buffer").WithArguments("indexing movable fixed buffers", "7.3").WithLocation(13, 30),
+                // (15,30): error CS8320: Feature 'indexing movable fixed buffers' is not available in C# 7.2. Please use language version 7.3 or greater.
+                //         System.Console.Write(inst.field.buffer[0]);
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_2, "inst.field.buffer").WithArguments("indexing movable fixed buffers", "7.3").WithLocation(15, 30),
+                // (22,17): error CS8320: Feature 'indexing movable fixed buffers' is not available in C# 7.2. Please use language version 7.3 or greater.
+                //         return (field.buffer[0] = 7);   // OK
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_2, "field.buffer").WithArguments("indexing movable fixed buffers", "7.3").WithLocation(22, 17)
+                 );
+        }
+
+        [Fact]
+        public void CS1666ERR_FixedBufferNotUnsafeErr()
+        {
+            var text = @"
+unsafe struct S
+{
+    public fixed int buffer[1];
+}
+
+class Test
+{
+    public static void Main()
+    {
+        var inst = new Test();
+        System.Console.Write(inst.example1());
+        System.Console.Write(inst.field.buffer[0]);
+    }
+
+    S field = new S();
+
+    private int example1()
+    {
+        return (field.buffer[0] = 7);   // OK
+    }
+}
+";
+
+            CreateCompilation(text, options: TestOptions.UnsafeReleaseExe).VerifyDiagnostics(
+                // (13,30): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+                //         System.Console.Write(inst.field.buffer[0]);
+                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "inst.field.buffer").WithLocation(13, 30),
+                // (20,17): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+                //         return (field.buffer[0] = 7);   // OK
+                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "field.buffer").WithLocation(20, 17)
+                 );
+        }
+
+        [Fact]
         public void CS1666ERR_FixedBufferNotFixed()
         {
             var text = @"
@@ -15417,26 +15504,73 @@ unsafe struct S
 
 unsafe class Test
 {
+    public static void Main()
+    {
+        var inst = new Test();
+        System.Console.Write(inst.example1());
+        System.Console.Write(inst.field.buffer[0]);
+        System.Console.Write(inst.example2());
+        System.Console.Write(inst.field.buffer[0]);
+    }
+
     S field = new S();
 
-    private bool example1()
+    private int example1()
     {
-        return (field.buffer[0] == 0);   // CS1666 error
+        return (field.buffer[0] = 7);   // OK
     }
-    private bool example2()
+
+    private int example2()
     {
         fixed (int* p = field.buffer)
         {
-            return (p[0] == 0);   // OK
+            return (p[0] = 8);   // OK
         }
     }
 }
 ";
-            CreateCompilation(text, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
-                // (13,17): error CS1666: You cannot use fixed size buffers contained in unfixed expressions. Try using the fixed statement.
-                //         return (field.buffer[0] == 0);   // CS1666 error
-                Diagnostic(ErrorCode.ERR_FixedBufferNotFixed, "field.buffer")
-                );
+
+            var c = CompileAndVerify(text, expectedOutput: "7788", verify: Verification.Fails, options:TestOptions.UnsafeReleaseExe);
+
+            c.VerifyIL("Test.example1()", @"
+{
+  // Code size       22 (0x16)
+  .maxstack  3
+  .locals init (int V_0)
+  IL_0000:  ldarg.0
+  IL_0001:  ldflda     ""S Test.field""
+  IL_0006:  ldflda     ""int* S.buffer""
+  IL_000b:  ldflda     ""int S.<buffer>e__FixedBuffer.FixedElementField""
+  IL_0010:  ldc.i4.7
+  IL_0011:  dup
+  IL_0012:  stloc.0
+  IL_0013:  stind.i4
+  IL_0014:  ldloc.0
+  IL_0015:  ret
+}
+");
+
+            c.VerifyIL("Test.example2()", @"
+{
+  // Code size       25 (0x19)
+  .maxstack  3
+  .locals init (pinned int& V_0,
+                int V_1)
+  IL_0000:  ldarg.0
+  IL_0001:  ldflda     ""S Test.field""
+  IL_0006:  ldflda     ""int* S.buffer""
+  IL_000b:  ldflda     ""int S.<buffer>e__FixedBuffer.FixedElementField""
+  IL_0010:  stloc.0
+  IL_0011:  ldloc.0
+  IL_0012:  conv.u
+  IL_0013:  ldc.i4.8
+  IL_0014:  dup
+  IL_0015:  stloc.1
+  IL_0016:  stind.i4
+  IL_0017:  ldloc.1
+  IL_0018:  ret
+}
+");
         }
 
         [Fact]
@@ -15610,7 +15744,7 @@ class Errors
    }
 }
 ";
-            var compilation = CreateCompilation(text, references: new[] { SystemCoreRef });
+            var compilation = CreateCompilation(text);
             compilation.VerifyDiagnostics(
                 // (7,13): error CS1661: Cannot convert anonymous method to delegate type 'E' because the parameter types do not match the delegate parameter types
                 //       E e = delegate(out int i) { };   // CS1676
@@ -15638,7 +15772,7 @@ class Errors
     }
 }
 ";
-            var compilation = CreateCompilation(text, references: new[] { SystemCoreRef });
+            var compilation = CreateCompilation(text);
             compilation.VerifyDiagnostics(
                 // (7,15): error CS1661: Cannot convert anonymous method to delegate type 'D' because the parameter types do not match the delegate parameter types
                 //         D d = delegate(out int i) { };   // CS1677
@@ -15849,23 +15983,24 @@ public unsafe class C
     {
         C myC = new C();
         myC.UnsafeMethod().name[3] = 'a';  // CS1708
-        C._s1.name[3] = 'a';  // CS1708
-        myC._s2.name[3] = 'a';  // CS1708
+        C._s1.name[3] = 'a';  // CS1648
+        myC._s2.name[3] = 'a';  // CS1648
     }
 
     static readonly S _s1;
     public readonly S _s2;
 }";
             CreateCompilation(text, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
-                // (18,9): error CS1666: You cannot use fixed size buffers contained in unfixed expressions. Try using the fixed statement.
+                // (18,9): error CS1708: Fixed size buffers can only be accessed through locals or fields
                 //         myC.UnsafeMethod().name[3] = 'a';  // CS1708
-                Diagnostic(ErrorCode.ERR_FixedBufferNotFixed, "myC.UnsafeMethod().name").WithLocation(18, 9),
-                // (19,9): error CS1666: You cannot use fixed size buffers contained in unfixed expressions. Try using the fixed statement.
-                //         C._s1.name[3] = 'a';  // CS1708
-                Diagnostic(ErrorCode.ERR_FixedBufferNotFixed, "C._s1.name").WithLocation(19, 9),
-                // (20,9): error CS1666: You cannot use fixed size buffers contained in unfixed expressions. Try using the fixed statement.
-                //         myC._s2.name[3] = 'a';  // CS1708
-                Diagnostic(ErrorCode.ERR_FixedBufferNotFixed, "myC._s2.name").WithLocation(20, 9));
+                Diagnostic(ErrorCode.ERR_FixedNeedsLvalue, "myC.UnsafeMethod().name").WithLocation(18, 9),
+                // (19,9): error CS1650: Fields of static readonly field 'C._s1' cannot be assigned to (except in a static constructor or a variable initializer)
+                //         C._s1.name[3] = 'a';  // CS1648
+                Diagnostic(ErrorCode.ERR_AssgReadonlyStatic2, "C._s1.name[3]").WithArguments("C._s1").WithLocation(19, 9),
+                // (20,9): error CS1648: Members of readonly field 'C._s2' cannot be modified (except in a constructor or a variable initializer)
+                //         myC._s2.name[3] = 'a';  // CS1648
+                Diagnostic(ErrorCode.ERR_AssgReadonly2, "myC._s2.name[3]").WithArguments("C._s2").WithLocation(20, 9)
+                );
         }
 
         [Fact, WorkItem(543995, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543995"), WorkItem(544258, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544258")]
@@ -16098,22 +16233,19 @@ public class C
 public class C
 {
     public static int Main()
-        {
-            Test(Name: ""5"", Name: """");
+    {
+        Test(age: 5, Name: ""5"", Name: """");
         return 0;
-        }
-    public static void Test(int age , string Name)
-    { }
+    }
+    public static void Test(int age, string Name)
+    {
+    }
 }";
             var compilation = CSharpTestBase.CreateCompilation(text);
             compilation.VerifyDiagnostics(
-                // (6,29): error CS1740: Named argument 'Name' cannot be specified multiple times
-                //             Test(Name: "5", Name: "");
-                Diagnostic(ErrorCode.ERR_DuplicateNamedArgument, "Name").WithArguments("Name").WithLocation(6, 29),
-                // (6,13): error CS7036: There is no argument given that corresponds to the required formal parameter 'age' of 'C.Test(int, string)'
-                //             Test(Name: "5", Name: "");
-                Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "Test").WithArguments("age", "C.Test(int, string)").WithLocation(6, 13)
-                );
+                // (6,33): error CS1740: Named argument 'Name' cannot be specified multiple times
+                //         Test(age: 5, Name: "5", Name: "");
+                Diagnostic(ErrorCode.ERR_DuplicateNamedArgument, "Name").WithArguments("Name").WithLocation(6, 33));
         }
 
         [Fact]
@@ -16626,7 +16758,7 @@ class Test
     }
 }
 ";
-            CreateCompilation(text, new[] { LinqAssemblyRef }).VerifyDiagnostics(
+            CreateCompilation(text).VerifyDiagnostics(
                 // (13,35): error CS1939: Cannot pass the range variable 'x' as an out or ref parameter
                 //                 select Test.F(ref x); // CS1939
                 Diagnostic(ErrorCode.ERR_QueryOutRefRangeVariable, "x").WithArguments("x"));
@@ -16854,7 +16986,7 @@ class Test
     }
 }
 ";
-            CreateCompilation(program, new[] { LinqAssemblyRef }).VerifyDiagnostics(
+            CreateCompilation(program).VerifyDiagnostics(
                 Diagnostic(ErrorCode.ERR_QueryRangeVariableReadOnly, "i").WithArguments("i"));
         }
 
@@ -16916,9 +17048,29 @@ class Test
 }
 ";
             CreateCompilationWithMscorlib40AndSystemCore(text).VerifyDiagnostics(
-                // (7,75): error CS1951: An expression tree lambda may not contain an out or ref parameter
+                // (7,75): error CS1951: An expression tree lambda may not contain a ref, in or out parameter
                 //         System.Linq.Expressions.Expression<TestDelegate> tree1 = (ref int x) => x; // CS1951
-                Diagnostic(ErrorCode.ERR_ByRefParameterInExpressionTree, "x")
+                Diagnostic(ErrorCode.ERR_ByRefParameterInExpressionTree, "x").WithLocation(7, 75)
+                );
+        }
+
+        [Fact]
+        public void CS1951ERR_InParameterInExpressionTree()
+        {
+            var text = @"
+public delegate int TestDelegate(in int i);
+class Test
+{
+    static void Main()
+    {
+        System.Linq.Expressions.Expression<TestDelegate> tree1 = (in int x) => x; // CS1951
+    }
+}
+";
+            CreateCompilationWithMscorlib40AndSystemCore(text).VerifyDiagnostics(
+                // (7,74): error CS1951: An expression tree lambda may not contain a ref, in or out parameter
+                //         System.Linq.Expressions.Expression<TestDelegate> tree1 = (in int x) => x; // CS1951
+                Diagnostic(ErrorCode.ERR_ByRefParameterInExpressionTree, "x").WithLocation(7, 74)
                 );
         }
 
@@ -23670,13 +23822,13 @@ class Program
 }
 ";
             CreateCompilationWithMscorlib45(text, options: TestOptions.ReleaseDll).VerifyDiagnostics(
-    // (8,9): error CS0201: Only assignment, call, increment, decrement, and new object expressions can be used as a statement
+    // (8,9): error CS0201: Only assignment, call, increment, decrement, await, and new object expressions can be used as a statement
     //         x?.Length;
     Diagnostic(ErrorCode.ERR_IllegalStatement, "x?.Length").WithLocation(8, 9),
-    // (9,9): error CS0201: Only assignment, call, increment, decrement, and new object expressions can be used as a statement
+    // (9,9): error CS0201: Only assignment, call, increment, decrement, await, and new object expressions can be used as a statement
     //         x?[1];
     Diagnostic(ErrorCode.ERR_IllegalStatement, "x?[1]").WithLocation(9, 9),
-    // (10,9): error CS0201: Only assignment, call, increment, decrement, and new object expressions can be used as a statement
+    // (10,9): error CS0201: Only assignment, call, increment, decrement, await, and new object expressions can be used as a statement
     //         x?.ToString()[1];
     Diagnostic(ErrorCode.ERR_IllegalStatement, "x?.ToString()[1]").WithLocation(10, 9)
                );

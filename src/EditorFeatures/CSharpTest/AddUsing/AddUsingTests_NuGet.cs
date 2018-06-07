@@ -9,10 +9,10 @@ using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp.AddImport;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Packaging;
 using Microsoft.CodeAnalysis.SymbolSearch;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Moq;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -159,8 +159,7 @@ parameters: new TestParameters(fixProviderData: data));
     [|NuGetType|] n;
 }",
 string.Format(FeaturesResources.Use_local_version_0, "2.0"),
-index: 1,
-parameters: new TestParameters(fixProviderData: data));
+parameters: new TestParameters(index: 1, fixProviderData: data));
 
             await TestSmartTagTextAsync(
 @"class C
@@ -168,8 +167,7 @@ parameters: new TestParameters(fixProviderData: data));
     [|NuGetType|] n;
 }",
 FeaturesResources.Find_and_install_latest_version,
-index: 2,
-parameters: new TestParameters(fixProviderData: data));
+parameters: new TestParameters(index: 2, fixProviderData: data));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)]

@@ -8,7 +8,7 @@ using Microsoft.CodeAnalysis.Text;
 namespace Microsoft.CodeAnalysis.CodeRefactorings
 {
     /// <summary>
-    /// Context for code refactorings provided by an <see cref="CodeRefactoringProvider"/>.
+    /// Context for code refactorings provided by a <see cref="CodeRefactoringProvider"/>.
     /// </summary>
     public struct CodeRefactoringContext
     {

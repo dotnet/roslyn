@@ -21,9 +21,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
     End Class
 
     Friend Class VisualBasicSemanticFactsService
+        Inherits AbstractSemanticFactsService
         Implements ISemanticFactsService
 
         Public Shared ReadOnly Instance As New VisualBasicSemanticFactsService()
+
+        Protected Overrides ReadOnly Property SyntaxFactsService As ISyntaxFactsService = VisualBasicSyntaxFactsService.Instance
 
         Private Sub New()
         End Sub
@@ -83,7 +86,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Public Function IsPreProcessorDirectiveContext(semanticModel As SemanticModel, position As Integer, cancellationToken As CancellationToken) As Boolean Implements ISemanticFactsService.IsPreProcessorDirectiveContext
-            Return DirectCast(semanticModel.SyntaxTree, SyntaxTree).IsInPreprocessorDirectiveContext(position, cancellationToken)
+            Return semanticModel.SyntaxTree.IsInPreprocessorDirectiveContext(position, cancellationToken)
         End Function
 
         Public Function IsGlobalStatementContext(semanticModel As SemanticModel, position As Integer, cancellationToken As CancellationToken) As Boolean Implements ISemanticFactsService.IsGlobalStatementContext
@@ -261,10 +264,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return ImmutableArray(Of IMethodSymbol).Empty
         End Function
 
-        Public Function IsAssignableTo(fromSymbol As ITypeSymbol, toSymbol As ITypeSymbol, compilation As Compilation) As Boolean Implements ISemanticFactsService.IsAssignableTo
-            Return fromSymbol IsNot Nothing AndAlso toSymbol IsNot Nothing AndAlso DirectCast(compilation, VisualBasicCompilation).ClassifyConversion(fromSymbol, toSymbol).IsWidening
-        End Function
-
         Public Function IsNameOfContext(semanticModel As SemanticModel, position As Integer, cancellationToken As CancellationToken) As Boolean Implements ISemanticFactsService.IsNameOfContext
             Return semanticModel.SyntaxTree.IsNameOfContext(position, cancellationToken)
         End Function
@@ -289,6 +288,25 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End If
 
             Return {semanticModel.GetDeclaredSymbol(memberDeclaration, cancellationToken)}
+        End Function
+
+        Public Function GetBestOrAllSymbols(semanticModel As SemanticModel, node As SyntaxNode, token As SyntaxToken, cancellationToken As CancellationToken) As ImmutableArray(Of ISymbol) Implements ISemanticFactsService.GetBestOrAllSymbols
+            Return semanticModel.GetSymbolInfo(node, cancellationToken).GetBestOrAllSymbols()
+        End Function
+
+        Private Function ISemanticFactsService_GenerateUniqueName(
+            semanticModel As SemanticModel, location As SyntaxNode, containerOpt As SyntaxNode, baseName As String, cancellationToken As CancellationToken) As SyntaxToken Implements ISemanticFactsService.GenerateUniqueName
+            Return MyBase.GenerateUniqueName(semanticModel, location, containerOpt, baseName, cancellationToken)
+        End Function
+
+        Private Function ISemanticFactsService_GenerateUniqueName(
+            semanticModel As SemanticModel, location As SyntaxNode, containerOpt As SyntaxNode, baseName As String, usedNames As IEnumerable(Of String), cancellationToken As CancellationToken) As SyntaxToken Implements ISemanticFactsService.GenerateUniqueName
+            Return MyBase.GenerateUniqueName(semanticModel, location, containerOpt, baseName, usedNames, cancellationToken)
+        End Function
+
+        Private Function ISemanticFactsService_GenerateUniqueLocalName(
+            semanticModel As SemanticModel, location As SyntaxNode, containerOpt As SyntaxNode, baseName As String, cancellationToken As CancellationToken) As SyntaxToken Implements ISemanticFactsService.GenerateUniqueLocalName
+            Return MyBase.GenerateUniqueLocalName(semanticModel, location, containerOpt, baseName, cancellationToken)
         End Function
     End Class
 End Namespace

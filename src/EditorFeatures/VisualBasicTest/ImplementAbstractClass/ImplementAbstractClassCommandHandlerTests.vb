@@ -13,6 +13,7 @@ Imports Microsoft.VisualStudio.Text.Operations
 Imports VSCommanding = Microsoft.VisualStudio.Commanding
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.ImplementAbstractClass
+    <[UseExportProvider]>
     Public Class ImplementAbstractClassCommandHandlerTests
 
         <WorkItem(530553, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530553")>

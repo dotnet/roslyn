@@ -496,9 +496,9 @@
         <target state="translated">PE görüntüsü yönetilen meta verileri içermiyor.</target>
         <note />
       </trans-unit>
-      <trans-unit id="ChangesMustBeOrderedAndNotOverlapping">
-        <source>The changes must be ordered and not overlapping.</source>
-        <target state="translated">Değişiklikler sıralanmalı ve çakışmamalıdır.</target>
+      <trans-unit id="ChangesMustNotOverlap">
+        <source>The changes must not overlap.</source>
+        <target state="needs-review-translation">Değişiklikler sıralanmalı ve çakışmamalıdır.</target>
         <note />
       </trans-unit>
       <trans-unit id="DiagnosticIdCantBeNullOrWhitespace">

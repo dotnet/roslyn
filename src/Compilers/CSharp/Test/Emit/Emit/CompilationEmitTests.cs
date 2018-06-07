@@ -1,5 +1,5 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
-#if NET461
+#if NET46
 
 using System;
 using System.Collections.Immutable;
@@ -3727,7 +3727,7 @@ public sealed class ContentType
             var result = compilation.Emit(new MemoryStream(), options: new EmitOptions(outputNameOverride: "x\0x"));
             result.Diagnostics.Verify(
                 // error CS2041: Invalid output name: Name contains invalid characters.
-                Diagnostic(ErrorCode.ERR_InvalidOutputName).WithArguments(CodeAnalysisResources.NameContainsInvalidCharacter).WithLocation(1, 1));
+                Diagnostic(ErrorCode.ERR_InvalidOutputName).WithArguments("Name contains invalid characters.").WithLocation(1, 1));
 
             Assert.False(result.Success);
         }
@@ -4671,6 +4671,7 @@ class C
             string source = @"class Goo {}";
             var compilation = CreateCompilation(source);
 
+            using (new EnsureEnglishUICulture())
             using (var output = new MemoryStream())
             {
                 var pdbStream = new BrokenStream();
@@ -4897,7 +4898,7 @@ class C4
         return d(ref o, 2);
     }
 }";
-            var compilation = CreateCompilation(source, options: TestOptions.ReleaseDll, references: new[] { SystemCoreRef, CSharpRef });
+            var compilation = CreateCompilation(source, options: TestOptions.ReleaseDll, references: new[] { CSharpRef });
             var bytes = compilation.EmitToArray();
             using (var metadata = ModuleMetadata.CreateFromImage(bytes))
             {
@@ -4951,6 +4952,7 @@ public class X
             var comp = CreateCompilation("class C {}");
             var broken = new BrokenStream();
             broken.BreakHow = BrokenStream.BreakHowType.ThrowOnWrite;
+            using (new EnsureEnglishUICulture())
             using (var peStream = new MemoryStream())
             {
                 var portablePdbOptions = EmitOptions.Default
