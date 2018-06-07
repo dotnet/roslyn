@@ -1,11 +1,9 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections;
-using System.Collections.Generic;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -89,6 +87,28 @@ class C
             CreateCompilation(source).VerifyDiagnostics(
                 // (6,16): error CS1674: 'method group': type used in a using statement must be implicitly convertible to 'System.IDisposable'
                 Diagnostic(ErrorCode.ERR_NoConvToIDisp, "Main").WithArguments("method group"));
+        }
+
+        [Fact]
+        public void UsingPatternTest()
+        {
+            var source = @"
+class C1
+{
+    public C1() { }
+    public void Dispose() { }
+}
+
+class C2
+{
+    static void Main()
+    {
+        using (C1 c = new C1())
+        {
+        }
+    }
+}";
+            CreateCompilation(source).VerifyDiagnostics();
         }
 
         [Fact]

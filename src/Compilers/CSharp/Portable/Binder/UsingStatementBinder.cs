@@ -7,7 +7,6 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 using System.Collections.Generic;
-using System;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -100,9 +99,27 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 TypeSymbol declType = declarations[0].DeclaredType.Type;
 
+                MethodSymbol disposeMethod = SatisfiesDisposePattern(declType, diagnostics);
+
                 if (declType.IsDynamic())
                 {
                     iDisposableConversion = Conversion.ImplicitDynamic;
+                }
+                else if ((object)disposeMethod != null && disposeMethod.ReturnsVoid)
+                {
+                    BoundStatement boundBody2 = originalBinder.BindPossibleEmbeddedStatement(_syntax.Statement, diagnostics);
+
+                    Debug.Assert(GetDeclaredLocalsForScope(_syntax) == this.Locals);
+                    return new BoundUsingStatement(
+                        _syntax,
+                        this.Locals,
+                        declarationsOpt,
+                        expressionOpt,
+                        Conversion.Identity,
+                        boundBody2,
+                        disposeMethod,
+                        hasErrors
+                        );
                 }
                 else
                 {
@@ -132,8 +149,27 @@ namespace Microsoft.CodeAnalysis.CSharp
                 expressionOpt,
                 iDisposableConversion,
                 boundBody,
+                null, // This ensures that a pattern-matched Dispose statement is not used.
                 hasErrors);
         }
+
+        /// <summary>
+        /// Checks for a Dispose method on exprType. Failing to satisfy the pattern is not an error -
+        /// it just means we have to check for an interface instead.
+        /// </summary>
+        /// <param name="exprType">Type of the expression over which to iterate</param>
+        /// <param name="diagnostics">Populated with warnings if there are near misses</param>
+        /// <returns>True if a matching method is found (still need to verify return type).</returns>
+        private MethodSymbol SatisfiesDisposePattern(TypeSymbol exprType, DiagnosticBag diagnostics)
+        {
+            LookupResult lookupResult = LookupResult.GetInstance();
+            SyntaxNode exp = _syntax.Expression != null ? (SyntaxNode) _syntax.Expression : (SyntaxNode) _syntax.Declaration;
+            MethodSymbol disposeMethod = FindPatternMethod(exprType, WellKnownMemberNames.GetDisposeMethodName, lookupResult, exp, warningsOnly: true, diagnostics: diagnostics, _syntax.SyntaxTree);
+            lookupResult.Free();
+
+            return disposeMethod;
+        }
+        
 
         internal override ImmutableArray<LocalSymbol> GetDeclaredLocalsForScope(SyntaxNode scopeDesignator)
         {
