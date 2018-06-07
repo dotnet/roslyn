@@ -4,7 +4,7 @@
     <body>
       <trans-unit id="ERR_OutVariableCannotBeByRef">
         <source>An out variable cannot be declared as a ref local</source>
-        <target state="new">An out variable cannot be declared as a ref local</target>
+        <target state="translated">Uma variável out não pode ser declarada como uma referência local</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_NULL">
@@ -389,12 +389,12 @@
       </trans-unit>
       <trans-unit id="WRN_TypeParameterSameAsOuterMethodTypeParameter">
         <source>Type parameter '{0}' has the same name as the type parameter from outer method '{1}'</source>
-        <target state="new">Type parameter '{0}' has the same name as the type parameter from outer method '{1}'</target>
+        <target state="translated">O parâmetro de tipo ‘{0}’ tem o mesmo nome que o parâmetro de tipo do método externo '{1}'</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_TypeParameterSameAsOuterMethodTypeParameter_Title">
         <source>Type parameter has the same type as the type parameter from outer method.</source>
-        <target state="new">Type parameter has the same type as the type parameter from outer method.</target>
+        <target state="translated">O parâmetro de tipo tem o mesmo tipo que o parâmetro de tipo do método externo.</target>
         <note />
       </trans-unit>
       <trans-unit id="XML_InvalidToken">
@@ -4612,7 +4612,7 @@ Um bloco catch() depois de um bloco catch (System.Exception e) poderá capturar 
       </trans-unit>
       <trans-unit id="ERR_CantConvAnonMethParams">
         <source>Cannot convert {0} to type '{1}' because the parameter types do not match the delegate parameter types</source>
-        <target state="needs-review-translation">Não é possível converter {0} para tipo delegate "{1}" porque os tipos de parâmetro não correspondem aos tipos de parâmetro delegate</target>
+        <target state="translated">Não é possível converter {0} para o tipo '{1}' porque os tipos de parâmetro não correspondem aos tipos de parâmetro delegados</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CantConvAnonMethReturns">
@@ -7361,7 +7361,7 @@ Para incorporar informações de tipo de interoperabilidade para os dois assembl
                               a part of
 -modulename:&lt;string&gt;          Specify the name of the source module
 </source>
-        <target state="needs-review-translation">
+        <target state="translated">
                               Opções do Compilador do Visual C#
 
                         – ARQUIVOS DE SAÍDA –

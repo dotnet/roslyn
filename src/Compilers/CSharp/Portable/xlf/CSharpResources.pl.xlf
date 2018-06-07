@@ -4,7 +4,7 @@
     <body>
       <trans-unit id="ERR_OutVariableCannotBeByRef">
         <source>An out variable cannot be declared as a ref local</source>
-        <target state="new">An out variable cannot be declared as a ref local</target>
+        <target state="translated">Zmiennej out nie można zadeklarować jako lokalnej zmiennej ref</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_NULL">
@@ -389,12 +389,12 @@
       </trans-unit>
       <trans-unit id="WRN_TypeParameterSameAsOuterMethodTypeParameter">
         <source>Type parameter '{0}' has the same name as the type parameter from outer method '{1}'</source>
-        <target state="new">Type parameter '{0}' has the same name as the type parameter from outer method '{1}'</target>
+        <target state="translated">Parametr typu „{0}” ma tę samą nazwę co parametr typu z metody zewnętrznej „{1}”</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_TypeParameterSameAsOuterMethodTypeParameter_Title">
         <source>Type parameter has the same type as the type parameter from outer method.</source>
-        <target state="new">Type parameter has the same type as the type parameter from outer method.</target>
+        <target state="translated">Parametr typu ma ten sam typ co parametr typu z metody zewnętrznej.</target>
         <note />
       </trans-unit>
       <trans-unit id="XML_InvalidToken">
@@ -4612,7 +4612,7 @@ Blok catch() po bloku catch (System.Exception e) może przechwytywać wyjątki n
       </trans-unit>
       <trans-unit id="ERR_CantConvAnonMethParams">
         <source>Cannot convert {0} to type '{1}' because the parameter types do not match the delegate parameter types</source>
-        <target state="needs-review-translation">Nie można przekonwertować {0} na typ delegowany „{1}”, ponieważ typy parametrów nie pasują do typów parametru delegowanego</target>
+        <target state="translated">Nie można przekonwertować elementu {0} na typ „{1}”, ponieważ typy parametrów nie pasują do typów parametru delegowanego</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CantConvAnonMethReturns">
@@ -7361,7 +7361,7 @@ Aby usunąć ostrzeżenie, możesz zamiast tego użyć opcji /reference (ustaw w
                               a part of
 -modulename:&lt;string&gt;          Specify the name of the source module
 </source>
-        <target state="needs-review-translation">
+        <target state="translated">
                               Opcje kompilatora Visual C#
 
                         - PLIKI WYJŚCIOWE -
