@@ -1256,5 +1256,301 @@ Block[B2] - Exit
 
             VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedGraph, expectedDiagnostics);
         }
+
+        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+        [Fact]
+        public void LocalFunctionFlow_09()
+        {
+            string source = @"
+#pragma warning disable CS8321
+class C
+{
+    void M(C x, C y, C z)
+/*<bind>*/{
+        x = y ?? z;
+
+        void local(C result, C input1, C input2)
+        {
+            result = input1 ?? input2;
+        }
+    }/*</bind>*/
+}
+";
+            string expectedGraph = @"
+Block[B0] - Entry
+    Statements (0)
+    Next (Regular) Block[B1]
+        Entering: {R1}
+
+.locals {R1}
+{
+    Methods: [void local(C result, C input1, C input2)]
+    Block[B1] - Block
+        Predecessors: [B0]
+        Statements (2)
+            IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'x')
+              Value: 
+                IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: C) (Syntax: 'x')
+
+            IFlowCaptureOperation: 1 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'y')
+              Value: 
+                IParameterReferenceOperation: y (OperationKind.ParameterReference, Type: C) (Syntax: 'y')
+
+        Jump if True (Regular) to Block[B3]
+            IIsNullOperation (OperationKind.IsNull, Type: System.Boolean, IsImplicit) (Syntax: 'y')
+              Operand: 
+                IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: C, IsImplicit) (Syntax: 'y')
+
+        Next (Regular) Block[B2]
+    Block[B2] - Block
+        Predecessors: [B1]
+        Statements (1)
+            IFlowCaptureOperation: 2 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'y')
+              Value: 
+                IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: C, IsImplicit) (Syntax: 'y')
+
+        Next (Regular) Block[B4]
+    Block[B3] - Block
+        Predecessors: [B1]
+        Statements (1)
+            IFlowCaptureOperation: 2 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'z')
+              Value: 
+                IParameterReferenceOperation: z (OperationKind.ParameterReference, Type: C) (Syntax: 'z')
+
+        Next (Regular) Block[B4]
+    Block[B4] - Block
+        Predecessors: [B2] [B3]
+        Statements (1)
+            IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'x = y ?? z;')
+              Expression: 
+                ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: C) (Syntax: 'x = y ?? z')
+                  Left: 
+                    IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: C, IsImplicit) (Syntax: 'x')
+                  Right: 
+                    IFlowCaptureReferenceOperation: 2 (OperationKind.FlowCaptureReference, Type: C, IsImplicit) (Syntax: 'y ?? z')
+
+        Next (Regular) Block[B5]
+            Leaving: {R1}
+    
+    {   void local(C result, C input1, C input2)
+    
+        Block[B0#0R1] - Entry
+            Statements (0)
+            Next (Regular) Block[B1#0R1]
+        Block[B1#0R1] - Block
+            Predecessors: [B0#0R1]
+            Statements (2)
+                IFlowCaptureOperation: 3 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'result')
+                  Value: 
+                    IParameterReferenceOperation: result (OperationKind.ParameterReference, Type: C) (Syntax: 'result')
+
+                IFlowCaptureOperation: 4 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'input1')
+                  Value: 
+                    IParameterReferenceOperation: input1 (OperationKind.ParameterReference, Type: C) (Syntax: 'input1')
+
+            Jump if True (Regular) to Block[B3#0R1]
+                IIsNullOperation (OperationKind.IsNull, Type: System.Boolean, IsImplicit) (Syntax: 'input1')
+                  Operand: 
+                    IFlowCaptureReferenceOperation: 4 (OperationKind.FlowCaptureReference, Type: C, IsImplicit) (Syntax: 'input1')
+
+            Next (Regular) Block[B2#0R1]
+        Block[B2#0R1] - Block
+            Predecessors: [B1#0R1]
+            Statements (1)
+                IFlowCaptureOperation: 5 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'input1')
+                  Value: 
+                    IFlowCaptureReferenceOperation: 4 (OperationKind.FlowCaptureReference, Type: C, IsImplicit) (Syntax: 'input1')
+
+            Next (Regular) Block[B4#0R1]
+        Block[B3#0R1] - Block
+            Predecessors: [B1#0R1]
+            Statements (1)
+                IFlowCaptureOperation: 5 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'input2')
+                  Value: 
+                    IParameterReferenceOperation: input2 (OperationKind.ParameterReference, Type: C) (Syntax: 'input2')
+
+            Next (Regular) Block[B4#0R1]
+        Block[B4#0R1] - Block
+            Predecessors: [B2#0R1] [B3#0R1]
+            Statements (1)
+                IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'result = in ...  ?? input2;')
+                  Expression: 
+                    ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: C) (Syntax: 'result = in ... 1 ?? input2')
+                      Left: 
+                        IFlowCaptureReferenceOperation: 3 (OperationKind.FlowCaptureReference, Type: C, IsImplicit) (Syntax: 'result')
+                      Right: 
+                        IFlowCaptureReferenceOperation: 5 (OperationKind.FlowCaptureReference, Type: C, IsImplicit) (Syntax: 'input1 ?? input2')
+
+            Next (Regular) Block[B5#0R1]
+        Block[B5#0R1] - Exit
+            Predecessors: [B4#0R1]
+            Statements (0)
+    }
+}
+
+Block[B5] - Exit
+    Predecessors: [B4]
+    Statements (0)
+";
+            var expectedDiagnostics = DiagnosticDescription.None;
+
+            VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedGraph, expectedDiagnostics);
+        }
+
+        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+        [Fact]
+        public void LocalFunctionFlow_10()
+        {
+            string source = @"
+#pragma warning disable CS8321
+class C
+{
+    void M()
+/*<bind>*/{
+        void local1(C result1, C input11, C input12)
+        {
+            result1 = input11 ?? input12;
+        }
+        void local2(C result2, C input21, C input22)
+        {
+            result2 = input21 ?? input22;
+        }
+    }/*</bind>*/
+}
+";
+            string expectedGraph = @"
+Block[B0] - Entry
+    Statements (0)
+    Next (Regular) Block[B1]
+        Entering: {R1}
+
+.locals {R1}
+{
+    Methods: [void local1(C result1, C input11, C input12)] [void local2(C result2, C input21, C input22)]
+    Block[B1] - Block
+        Predecessors: [B0]
+        Statements (0)
+        Next (Regular) Block[B2]
+            Leaving: {R1}
+    
+    {   void local1(C result1, C input11, C input12)
+    
+        Block[B0#0R1] - Entry
+            Statements (0)
+            Next (Regular) Block[B1#0R1]
+        Block[B1#0R1] - Block
+            Predecessors: [B0#0R1]
+            Statements (2)
+                IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'result1')
+                  Value: 
+                    IParameterReferenceOperation: result1 (OperationKind.ParameterReference, Type: C) (Syntax: 'result1')
+
+                IFlowCaptureOperation: 1 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'input11')
+                  Value: 
+                    IParameterReferenceOperation: input11 (OperationKind.ParameterReference, Type: C) (Syntax: 'input11')
+
+            Jump if True (Regular) to Block[B3#0R1]
+                IIsNullOperation (OperationKind.IsNull, Type: System.Boolean, IsImplicit) (Syntax: 'input11')
+                  Operand: 
+                    IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: C, IsImplicit) (Syntax: 'input11')
+
+            Next (Regular) Block[B2#0R1]
+        Block[B2#0R1] - Block
+            Predecessors: [B1#0R1]
+            Statements (1)
+                IFlowCaptureOperation: 2 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'input11')
+                  Value: 
+                    IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: C, IsImplicit) (Syntax: 'input11')
+
+            Next (Regular) Block[B4#0R1]
+        Block[B3#0R1] - Block
+            Predecessors: [B1#0R1]
+            Statements (1)
+                IFlowCaptureOperation: 2 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'input12')
+                  Value: 
+                    IParameterReferenceOperation: input12 (OperationKind.ParameterReference, Type: C) (Syntax: 'input12')
+
+            Next (Regular) Block[B4#0R1]
+        Block[B4#0R1] - Block
+            Predecessors: [B2#0R1] [B3#0R1]
+            Statements (1)
+                IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'result1 = i ... ?? input12;')
+                  Expression: 
+                    ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: C) (Syntax: 'result1 = i ...  ?? input12')
+                      Left: 
+                        IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: C, IsImplicit) (Syntax: 'result1')
+                      Right: 
+                        IFlowCaptureReferenceOperation: 2 (OperationKind.FlowCaptureReference, Type: C, IsImplicit) (Syntax: 'input11 ?? input12')
+
+            Next (Regular) Block[B5#0R1]
+        Block[B5#0R1] - Exit
+            Predecessors: [B4#0R1]
+            Statements (0)
+    }
+    
+    {   void local2(C result2, C input21, C input22)
+    
+        Block[B0#1R1] - Entry
+            Statements (0)
+            Next (Regular) Block[B1#1R1]
+        Block[B1#1R1] - Block
+            Predecessors: [B0#1R1]
+            Statements (2)
+                IFlowCaptureOperation: 3 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'result2')
+                  Value: 
+                    IParameterReferenceOperation: result2 (OperationKind.ParameterReference, Type: C) (Syntax: 'result2')
+
+                IFlowCaptureOperation: 4 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'input21')
+                  Value: 
+                    IParameterReferenceOperation: input21 (OperationKind.ParameterReference, Type: C) (Syntax: 'input21')
+
+            Jump if True (Regular) to Block[B3#1R1]
+                IIsNullOperation (OperationKind.IsNull, Type: System.Boolean, IsImplicit) (Syntax: 'input21')
+                  Operand: 
+                    IFlowCaptureReferenceOperation: 4 (OperationKind.FlowCaptureReference, Type: C, IsImplicit) (Syntax: 'input21')
+
+            Next (Regular) Block[B2#1R1]
+        Block[B2#1R1] - Block
+            Predecessors: [B1#1R1]
+            Statements (1)
+                IFlowCaptureOperation: 5 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'input21')
+                  Value: 
+                    IFlowCaptureReferenceOperation: 4 (OperationKind.FlowCaptureReference, Type: C, IsImplicit) (Syntax: 'input21')
+
+            Next (Regular) Block[B4#1R1]
+        Block[B3#1R1] - Block
+            Predecessors: [B1#1R1]
+            Statements (1)
+                IFlowCaptureOperation: 5 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'input22')
+                  Value: 
+                    IParameterReferenceOperation: input22 (OperationKind.ParameterReference, Type: C) (Syntax: 'input22')
+
+            Next (Regular) Block[B4#1R1]
+        Block[B4#1R1] - Block
+            Predecessors: [B2#1R1] [B3#1R1]
+            Statements (1)
+                IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'result2 = i ... ?? input22;')
+                  Expression: 
+                    ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: C) (Syntax: 'result2 = i ...  ?? input22')
+                      Left: 
+                        IFlowCaptureReferenceOperation: 3 (OperationKind.FlowCaptureReference, Type: C, IsImplicit) (Syntax: 'result2')
+                      Right: 
+                        IFlowCaptureReferenceOperation: 5 (OperationKind.FlowCaptureReference, Type: C, IsImplicit) (Syntax: 'input21 ?? input22')
+
+            Next (Regular) Block[B5#1R1]
+        Block[B5#1R1] - Exit
+            Predecessors: [B4#1R1]
+            Statements (0)
+    }
+}
+
+Block[B2] - Exit
+    Predecessors: [B1]
+    Statements (0)
+";
+            var expectedDiagnostics = DiagnosticDescription.None;
+
+            VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedGraph, expectedDiagnostics);
+        }
     }
 }

@@ -239,96 +239,84 @@ End Class
 Block[B0] - Entry
     Statements (0)
     Next (Regular) Block[B1]
-        Entering: {R1}
-
-.locals {R1}
-{
-    Methods: [Function (x As System.Int32) As System.Collections.Generic.IEnumerable(Of System.String)] [Function (x As System.Int32, y As System.String) As <anonymous type: Key x As System.Int32, Key y As System.String>]
-    Block[B1] - Block
-        Predecessors: [B0]
-        Statements (1)
-            IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'p = From x  ... From y In b')
-              Expression: 
-                ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Object, IsImplicit) (Syntax: 'p = From x  ... From y In b')
-                  Left: 
-                    IParameterReferenceOperation: p (OperationKind.ParameterReference, Type: System.Object) (Syntax: 'p')
-                  Right: 
-                    IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Object, IsImplicit) (Syntax: 'From x In a From y In b')
-                      Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
-                        (WideningReference)
-                      Operand: 
-                        ITranslatedQueryOperation (OperationKind.TranslatedQuery, Type: System.Collections.Generic.IEnumerable(Of <anonymous type: Key x As System.Int32, Key y As System.String>)) (Syntax: 'From x In a From y In b')
-                          Expression: 
-                            IInvocationOperation ( Function System.Collections.Generic.IEnumerable(Of System.Int32).SelectMany(Of System.String, <anonymous type: Key x As System.Int32, Key y As System.String>)(collectionSelector As System.Func(Of System.Int32, System.Collections.Generic.IEnumerable(Of System.String)), resultSelector As System.Func(Of System.Int32, System.String, <anonymous type: Key x As System.Int32, Key y As System.String>)) As System.Collections.Generic.IEnumerable(Of <anonymous type: Key x As System.Int32, Key y As System.String>)) (OperationKind.Invocation, Type: System.Collections.Generic.IEnumerable(Of <anonymous type: Key x As System.Int32, Key y As System.String>), IsImplicit) (Syntax: 'y In b')
-                              Instance Receiver: 
-                                IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Collections.Generic.IEnumerable(Of System.Int32), IsImplicit) (Syntax: 'x In a')
-                                  Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
-                                    (WideningReference)
-                                  Operand: 
-                                    IParameterReferenceOperation: a (OperationKind.ParameterReference, Type: System.Collections.Generic.List(Of System.Int32)) (Syntax: 'a')
-                              Arguments(2):
-                                  IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: collectionSelector) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'b')
-                                    IDelegateCreationOperation (OperationKind.DelegateCreation, Type: System.Func(Of System.Int32, System.Collections.Generic.IEnumerable(Of System.String)), IsImplicit) (Syntax: 'b')
-                                      Target: 
-                                        IFlowAnonymousFunctionOperation (Symbol: Function (x As System.Int32) As System.Collections.Generic.IEnumerable(Of System.String)) (OperationKind.FlowAnonymousFunction, Type: null, IsImplicit) (Syntax: 'b')
-                                    InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                                    OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                                  IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: resultSelector) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'From y In b')
-                                    IDelegateCreationOperation (OperationKind.DelegateCreation, Type: System.Func(Of System.Int32, System.String, <anonymous type: Key x As System.Int32, Key y As System.String>), IsImplicit) (Syntax: 'From y In b')
-                                      Target: 
-                                        IFlowAnonymousFunctionOperation (Symbol: Function (x As System.Int32, y As System.String) As <anonymous type: Key x As System.Int32, Key y As System.String>) (OperationKind.FlowAnonymousFunction, Type: null, IsImplicit) (Syntax: 'From y In b')
-                                    InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                                    OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-
-        Next (Regular) Block[B2]
-            Leaving: {R1}
-    
-    {   Function (x As System.Int32) As System.Collections.Generic.IEnumerable(Of System.String)
-    
-        Block[B0#0R1] - Entry
-            Statements (0)
-            Next (Regular) Block[B1#0R1]
-        Block[B1#0R1] - Block
-            Predecessors: [B0#0R1]
-            Statements (0)
-            Next (Return) Block[B2#0R1]
-                IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Collections.Generic.IEnumerable(Of System.String), IsImplicit) (Syntax: 'y In b')
+Block[B1] - Block
+    Predecessors: [B0]
+    Statements (1)
+        IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'p = From x  ... From y In b')
+          Expression: 
+            ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Object, IsImplicit) (Syntax: 'p = From x  ... From y In b')
+              Left: 
+                IParameterReferenceOperation: p (OperationKind.ParameterReference, Type: System.Object) (Syntax: 'p')
+              Right: 
+                IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Object, IsImplicit) (Syntax: 'From x In a From y In b')
                   Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
                     (WideningReference)
                   Operand: 
-                    IParameterReferenceOperation: b (OperationKind.ParameterReference, Type: System.Collections.Generic.List(Of System.String)) (Syntax: 'b')
-        Block[B2#0R1] - Exit
-            Predecessors: [B1#0R1]
-            Statements (0)
-    }
-    
-    {   Function (x As System.Int32, y As System.String) As <anonymous type: Key x As System.Int32, Key y As System.String>
-    
-        Block[B0#1R1] - Entry
-            Statements (0)
-            Next (Regular) Block[B1#1R1]
-        Block[B1#1R1] - Block
-            Predecessors: [B0#1R1]
-            Statements (2)
-                IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'x')
-                  Value: 
-                    IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: System.Int32, IsImplicit) (Syntax: 'x')
+                    ITranslatedQueryOperation (OperationKind.TranslatedQuery, Type: System.Collections.Generic.IEnumerable(Of <anonymous type: Key x As System.Int32, Key y As System.String>)) (Syntax: 'From x In a From y In b')
+                      Expression: 
+                        IInvocationOperation ( Function System.Collections.Generic.IEnumerable(Of System.Int32).SelectMany(Of System.String, <anonymous type: Key x As System.Int32, Key y As System.String>)(collectionSelector As System.Func(Of System.Int32, System.Collections.Generic.IEnumerable(Of System.String)), resultSelector As System.Func(Of System.Int32, System.String, <anonymous type: Key x As System.Int32, Key y As System.String>)) As System.Collections.Generic.IEnumerable(Of <anonymous type: Key x As System.Int32, Key y As System.String>)) (OperationKind.Invocation, Type: System.Collections.Generic.IEnumerable(Of <anonymous type: Key x As System.Int32, Key y As System.String>), IsImplicit) (Syntax: 'y In b')
+                          Instance Receiver: 
+                            IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Collections.Generic.IEnumerable(Of System.Int32), IsImplicit) (Syntax: 'x In a')
+                              Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
+                                (WideningReference)
+                              Operand: 
+                                IParameterReferenceOperation: a (OperationKind.ParameterReference, Type: System.Collections.Generic.List(Of System.Int32)) (Syntax: 'a')
+                          Arguments(2):
+                              IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: collectionSelector) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'b')
+                                IDelegateCreationOperation (OperationKind.DelegateCreation, Type: System.Func(Of System.Int32, System.Collections.Generic.IEnumerable(Of System.String)), IsImplicit) (Syntax: 'b')
+                                  Target: 
+                                    IFlowAnonymousFunctionOperation (Symbol: Function (x As System.Int32) As System.Collections.Generic.IEnumerable(Of System.String)) (OperationKind.FlowAnonymousFunction, Type: null, IsImplicit) (Syntax: 'b')
+                                    {
+                                        Block[B0#A0] - Entry
+                                            Statements (0)
+                                            Next (Regular) Block[B1#A0]
+                                        Block[B1#A0] - Block
+                                            Predecessors: [B0#A0]
+                                            Statements (0)
+                                            Next (Return) Block[B2#A0]
+                                                IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Collections.Generic.IEnumerable(Of System.String), IsImplicit) (Syntax: 'y In b')
+                                                  Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
+                                                    (WideningReference)
+                                                  Operand: 
+                                                    IParameterReferenceOperation: b (OperationKind.ParameterReference, Type: System.Collections.Generic.List(Of System.String)) (Syntax: 'b')
+                                        Block[B2#A0] - Exit
+                                            Predecessors: [B1#A0]
+                                            Statements (0)
+                                    }
+                                InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                                OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                              IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: resultSelector) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'From y In b')
+                                IDelegateCreationOperation (OperationKind.DelegateCreation, Type: System.Func(Of System.Int32, System.String, <anonymous type: Key x As System.Int32, Key y As System.String>), IsImplicit) (Syntax: 'From y In b')
+                                  Target: 
+                                    IFlowAnonymousFunctionOperation (Symbol: Function (x As System.Int32, y As System.String) As <anonymous type: Key x As System.Int32, Key y As System.String>) (OperationKind.FlowAnonymousFunction, Type: null, IsImplicit) (Syntax: 'From y In b')
+                                    {
+                                        Block[B0#A1] - Entry
+                                            Statements (0)
+                                            Next (Regular) Block[B1#A1]
+                                        Block[B1#A1] - Block
+                                            Predecessors: [B0#A1]
+                                            Statements (2)
+                                                IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'x')
+                                                  Value: 
+                                                    IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: System.Int32, IsImplicit) (Syntax: 'x')
 
-                IFlowCaptureOperation: 1 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'y')
-                  Value: 
-                    IParameterReferenceOperation: y (OperationKind.ParameterReference, Type: System.String, IsImplicit) (Syntax: 'y')
+                                                IFlowCaptureOperation: 1 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'y')
+                                                  Value: 
+                                                    IParameterReferenceOperation: y (OperationKind.ParameterReference, Type: System.String, IsImplicit) (Syntax: 'y')
 
-            Next (Return) Block[B2#1R1]
-                IAnonymousObjectCreationOperation (OperationKind.AnonymousObjectCreation, Type: <anonymous type: Key x As System.Int32, Key y As System.String>, IsImplicit) (Syntax: 'y In b')
-                  Initializers(2):
-                      IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.Int32, IsImplicit) (Syntax: 'x')
-                      IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: System.String, IsImplicit) (Syntax: 'y')
-        Block[B2#1R1] - Exit
-            Predecessors: [B1#1R1]
-            Statements (0)
-    }
-}
+                                            Next (Return) Block[B2#A1]
+                                                IAnonymousObjectCreationOperation (OperationKind.AnonymousObjectCreation, Type: <anonymous type: Key x As System.Int32, Key y As System.String>, IsImplicit) (Syntax: 'y In b')
+                                                  Initializers(2):
+                                                      IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.Int32, IsImplicit) (Syntax: 'x')
+                                                      IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: System.String, IsImplicit) (Syntax: 'y')
+                                        Block[B2#A1] - Exit
+                                            Predecessors: [B1#A1]
+                                            Statements (0)
+                                    }
+                                InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                                OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
 
+    Next (Regular) Block[B2]
 Block[B2] - Exit
     Predecessors: [B1]
     Statements (0)
@@ -359,71 +347,61 @@ End Class
 Block[B0] - Entry
     Statements (0)
     Next (Regular) Block[B1]
-        Entering: {R1}
+Block[B1] - Block
+    Predecessors: [B0]
+    Statements (1)
+        IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'p = From x  ... a Let y = x')
+          Expression: 
+            ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Object, IsImplicit) (Syntax: 'p = From x  ... a Let y = x')
+              Left: 
+                IParameterReferenceOperation: p (OperationKind.ParameterReference, Type: System.Object) (Syntax: 'p')
+              Right: 
+                IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Object, IsImplicit) (Syntax: 'From x In a Let y = x')
+                  Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
+                    (WideningReference)
+                  Operand: 
+                    ITranslatedQueryOperation (OperationKind.TranslatedQuery, Type: System.Collections.Generic.IEnumerable(Of <anonymous type: Key x As System.Int32, Key y As System.Int32>)) (Syntax: 'From x In a Let y = x')
+                      Expression: 
+                        IInvocationOperation ( Function System.Collections.Generic.IEnumerable(Of System.Int32).Select(Of <anonymous type: Key x As System.Int32, Key y As System.Int32>)(selector As System.Func(Of System.Int32, <anonymous type: Key x As System.Int32, Key y As System.Int32>)) As System.Collections.Generic.IEnumerable(Of <anonymous type: Key x As System.Int32, Key y As System.Int32>)) (OperationKind.Invocation, Type: System.Collections.Generic.IEnumerable(Of <anonymous type: Key x As System.Int32, Key y As System.Int32>), IsImplicit) (Syntax: 'y = x')
+                          Instance Receiver: 
+                            IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Collections.Generic.IEnumerable(Of System.Int32), IsImplicit) (Syntax: 'x In a')
+                              Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
+                                (WideningReference)
+                              Operand: 
+                                IParameterReferenceOperation: a (OperationKind.ParameterReference, Type: System.Collections.Generic.List(Of System.Int32)) (Syntax: 'a')
+                          Arguments(1):
+                              IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: selector) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'x')
+                                IDelegateCreationOperation (OperationKind.DelegateCreation, Type: System.Func(Of System.Int32, <anonymous type: Key x As System.Int32, Key y As System.Int32>), IsImplicit) (Syntax: 'x')
+                                  Target: 
+                                    IFlowAnonymousFunctionOperation (Symbol: Function (x As System.Int32) As <anonymous type: Key x As System.Int32, Key y As System.Int32>) (OperationKind.FlowAnonymousFunction, Type: null, IsImplicit) (Syntax: 'x')
+                                    {
+                                        Block[B0#A0] - Entry
+                                            Statements (0)
+                                            Next (Regular) Block[B1#A0]
+                                        Block[B1#A0] - Block
+                                            Predecessors: [B0#A0]
+                                            Statements (2)
+                                                IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'x')
+                                                  Value: 
+                                                    IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: System.Int32, IsImplicit) (Syntax: 'x')
 
-.locals {R1}
-{
-    Methods: [Function (x As System.Int32) As <anonymous type: Key x As System.Int32, Key y As System.Int32>]
-    Block[B1] - Block
-        Predecessors: [B0]
-        Statements (1)
-            IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'p = From x  ... a Let y = x')
-              Expression: 
-                ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Object, IsImplicit) (Syntax: 'p = From x  ... a Let y = x')
-                  Left: 
-                    IParameterReferenceOperation: p (OperationKind.ParameterReference, Type: System.Object) (Syntax: 'p')
-                  Right: 
-                    IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Object, IsImplicit) (Syntax: 'From x In a Let y = x')
-                      Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
-                        (WideningReference)
-                      Operand: 
-                        ITranslatedQueryOperation (OperationKind.TranslatedQuery, Type: System.Collections.Generic.IEnumerable(Of <anonymous type: Key x As System.Int32, Key y As System.Int32>)) (Syntax: 'From x In a Let y = x')
-                          Expression: 
-                            IInvocationOperation ( Function System.Collections.Generic.IEnumerable(Of System.Int32).Select(Of <anonymous type: Key x As System.Int32, Key y As System.Int32>)(selector As System.Func(Of System.Int32, <anonymous type: Key x As System.Int32, Key y As System.Int32>)) As System.Collections.Generic.IEnumerable(Of <anonymous type: Key x As System.Int32, Key y As System.Int32>)) (OperationKind.Invocation, Type: System.Collections.Generic.IEnumerable(Of <anonymous type: Key x As System.Int32, Key y As System.Int32>), IsImplicit) (Syntax: 'y = x')
-                              Instance Receiver: 
-                                IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Collections.Generic.IEnumerable(Of System.Int32), IsImplicit) (Syntax: 'x In a')
-                                  Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
-                                    (WideningReference)
-                                  Operand: 
-                                    IParameterReferenceOperation: a (OperationKind.ParameterReference, Type: System.Collections.Generic.List(Of System.Int32)) (Syntax: 'a')
-                              Arguments(1):
-                                  IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: selector) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'x')
-                                    IDelegateCreationOperation (OperationKind.DelegateCreation, Type: System.Func(Of System.Int32, <anonymous type: Key x As System.Int32, Key y As System.Int32>), IsImplicit) (Syntax: 'x')
-                                      Target: 
-                                        IFlowAnonymousFunctionOperation (Symbol: Function (x As System.Int32) As <anonymous type: Key x As System.Int32, Key y As System.Int32>) (OperationKind.FlowAnonymousFunction, Type: null, IsImplicit) (Syntax: 'x')
-                                    InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                                    OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                                                IFlowCaptureOperation: 1 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'x')
+                                                  Value: 
+                                                    IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'x')
 
-        Next (Regular) Block[B2]
-            Leaving: {R1}
-    
-    {   Function (x As System.Int32) As <anonymous type: Key x As System.Int32, Key y As System.Int32>
-    
-        Block[B0#0R1] - Entry
-            Statements (0)
-            Next (Regular) Block[B1#0R1]
-        Block[B1#0R1] - Block
-            Predecessors: [B0#0R1]
-            Statements (2)
-                IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'x')
-                  Value: 
-                    IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: System.Int32, IsImplicit) (Syntax: 'x')
+                                            Next (Return) Block[B2#A0]
+                                                IAnonymousObjectCreationOperation (OperationKind.AnonymousObjectCreation, Type: <anonymous type: Key x As System.Int32, Key y As System.Int32>, IsImplicit) (Syntax: 'y = x')
+                                                  Initializers(2):
+                                                      IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.Int32, IsImplicit) (Syntax: 'x')
+                                                      IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: System.Int32, IsImplicit) (Syntax: 'x')
+                                        Block[B2#A0] - Exit
+                                            Predecessors: [B1#A0]
+                                            Statements (0)
+                                    }
+                                InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                                OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
 
-                IFlowCaptureOperation: 1 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'x')
-                  Value: 
-                    IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'x')
-
-            Next (Return) Block[B2#0R1]
-                IAnonymousObjectCreationOperation (OperationKind.AnonymousObjectCreation, Type: <anonymous type: Key x As System.Int32, Key y As System.Int32>, IsImplicit) (Syntax: 'y = x')
-                  Initializers(2):
-                      IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.Int32, IsImplicit) (Syntax: 'x')
-                      IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: System.Int32, IsImplicit) (Syntax: 'x')
-        Block[B2#0R1] - Exit
-            Predecessors: [B1#0R1]
-            Statements (0)
-    }
-}
-
+    Next (Regular) Block[B2]
 Block[B2] - Exit
     Predecessors: [B1]
     Statements (0)
@@ -1367,6 +1345,214 @@ Block[B7] - Block
     Next (Regular) Block[B8]
 Block[B8] - Exit
     Predecessors: [B7]
+    Statements (0)
+]]>.Value
+
+            VerifyFlowGraphAndDiagnosticsForTest(Of MethodBlockSyntax)(source, expectedFlowGraph, expectedDiagnostics)
+        End Sub
+
+        <CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)>
+        <Fact()>
+        Public Sub AnonymousObjectCreation_LambdaContext()
+            Dim source = <![CDATA[
+Imports System
+
+Class C
+    Sub M(c1 As C, c2 As C)'BIND:"Sub M"
+        Dim x, y As New With { .a = c1, .b = Function() If (c2, .a) }
+    End Sub
+End Class
+]]>.Value
+
+            Dim expectedDiagnostics = <![CDATA[
+BC36549: Anonymous type property 'a' cannot be used in the definition of a lambda expression within the same initialization list.
+        Dim x, y As New With { .a = c1, .b = Function() If (c2, .a) }
+                                                                ~~
+BC36549: Anonymous type property 'a' cannot be used in the definition of a lambda expression within the same initialization list.
+        Dim x, y As New With { .a = c1, .b = Function() If (c2, .a) }
+                                                                ~~
+]]>.Value
+
+            Dim expectedFlowGraph = <![CDATA[
+Block[B0] - Entry
+    Statements (0)
+    Next (Regular) Block[B1]
+        Entering: {R1}
+
+.locals {R1}
+{
+    Locals: [x As <anonymous type: a As C, b As Function <generated method>() As ?>] [y As <anonymous type: a As C, b As Function <generated method>() As ?>]
+    Block[B1] - Block
+        Predecessors: [B0]
+        Statements (6)
+            IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'c1')
+              Value: 
+                IParameterReferenceOperation: c1 (OperationKind.ParameterReference, Type: C) (Syntax: 'c1')
+
+            IFlowCaptureOperation: 1 (OperationKind.FlowCapture, Type: null, IsInvalid, IsImplicit) (Syntax: 'Function() If (c2, .a)')
+              Value: 
+                IDelegateCreationOperation (OperationKind.DelegateCreation, Type: Function <generated method>() As ?, IsInvalid, IsImplicit) (Syntax: 'Function() If (c2, .a)')
+                  Target: 
+                    IFlowAnonymousFunctionOperation (Symbol: Function () As ?) (OperationKind.FlowAnonymousFunction, Type: null, IsInvalid) (Syntax: 'Function() If (c2, .a)')
+                    {
+                        Block[B0#A0] - Entry
+                            Statements (0)
+                            Next (Regular) Block[B1#A0]
+                                Entering: {R1#A0}
+
+                        .locals {R1#A0}
+                        {
+                            Locals: [<anonymous local> As ?]
+                            Block[B1#A0] - Block
+                                Predecessors: [B0#A0]
+                                Statements (1)
+                                    IFlowCaptureOperation: 4 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'c2')
+                                      Value: 
+                                        IParameterReferenceOperation: c2 (OperationKind.ParameterReference, Type: C) (Syntax: 'c2')
+
+                                Jump if True (Regular) to Block[B3#A0]
+                                    IIsNullOperation (OperationKind.IsNull, Type: System.Boolean, IsImplicit) (Syntax: 'c2')
+                                      Operand: 
+                                        IFlowCaptureReferenceOperation: 4 (OperationKind.FlowCaptureReference, Type: C, IsImplicit) (Syntax: 'c2')
+
+                                Next (Regular) Block[B2#A0]
+                            Block[B2#A0] - Block
+                                Predecessors: [B1#A0]
+                                Statements (1)
+                                    IFlowCaptureOperation: 5 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'c2')
+                                      Value: 
+                                        IFlowCaptureReferenceOperation: 4 (OperationKind.FlowCaptureReference, Type: C, IsImplicit) (Syntax: 'c2')
+
+                                Next (Regular) Block[B4#A0]
+                            Block[B3#A0] - Block
+                                Predecessors: [B1#A0]
+                                Statements (1)
+                                    IFlowCaptureOperation: 5 (OperationKind.FlowCapture, Type: null, IsInvalid, IsImplicit) (Syntax: '.a')
+                                      Value: 
+                                        IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: C, IsInvalid, IsImplicit) (Syntax: '.a')
+
+                                Next (Regular) Block[B4#A0]
+                            Block[B4#A0] - Block
+                                Predecessors: [B2#A0] [B3#A0]
+                                Statements (0)
+                                Next (Return) Block[B5#A0]
+                                    IFlowCaptureReferenceOperation: 5 (OperationKind.FlowCaptureReference, Type: C, IsInvalid, IsImplicit) (Syntax: 'If (c2, .a)')
+                                    Leaving: {R1#A0}
+                        }
+
+                        Block[B5#A0] - Exit
+                            Predecessors: [B4#A0]
+                            Statements (0)
+                    }
+
+            ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: <anonymous type: a As C, b As Function <generated method>() As ?>, IsInvalid, IsImplicit) (Syntax: 'x, y As New ...  (c2, .a) }')
+              Left: 
+                ILocalReferenceOperation: x (IsDeclaration: True) (OperationKind.LocalReference, Type: <anonymous type: a As C, b As Function <generated method>() As ?>, IsImplicit) (Syntax: 'x')
+              Right: 
+                IAnonymousObjectCreationOperation (OperationKind.AnonymousObjectCreation, Type: <anonymous type: a As C, b As Function <generated method>() As ?>, IsInvalid) (Syntax: 'New With {  ...  (c2, .a) }')
+                  Initializers(2):
+                      ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: C) (Syntax: '.a = c1')
+                        Left: 
+                          IPropertyReferenceOperation: Property <anonymous type: a As C, b As Function <generated method>() As ?>.a As C (OperationKind.PropertyReference, Type: C) (Syntax: 'a')
+                            Instance Receiver: 
+                              null
+                        Right: 
+                          IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: C, IsImplicit) (Syntax: 'c1')
+                      ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: Function <generated method>() As ?, IsInvalid) (Syntax: '.b = Functi ... If (c2, .a)')
+                        Left: 
+                          IPropertyReferenceOperation: Property <anonymous type: a As C, b As Function <generated method>() As ?>.b As <generated method> (OperationKind.PropertyReference, Type: Function <generated method>() As ?) (Syntax: 'b')
+                            Instance Receiver: 
+                              null
+                        Right: 
+                          IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: Function <generated method>() As ?, IsInvalid, IsImplicit) (Syntax: 'Function() If (c2, .a)')
+
+            IFlowCaptureOperation: 2 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'c1')
+              Value: 
+                IParameterReferenceOperation: c1 (OperationKind.ParameterReference, Type: C) (Syntax: 'c1')
+
+            IFlowCaptureOperation: 3 (OperationKind.FlowCapture, Type: null, IsInvalid, IsImplicit) (Syntax: 'Function() If (c2, .a)')
+              Value: 
+                IDelegateCreationOperation (OperationKind.DelegateCreation, Type: Function <generated method>() As ?, IsInvalid, IsImplicit) (Syntax: 'Function() If (c2, .a)')
+                  Target: 
+                    IFlowAnonymousFunctionOperation (Symbol: Function () As ?) (OperationKind.FlowAnonymousFunction, Type: null, IsInvalid) (Syntax: 'Function() If (c2, .a)')
+                    {
+                        Block[B0#A1] - Entry
+                            Statements (0)
+                            Next (Regular) Block[B1#A1]
+                                Entering: {R1#A1}
+
+                        .locals {R1#A1}
+                        {
+                            Locals: [<anonymous local> As ?]
+                            Block[B1#A1] - Block
+                                Predecessors: [B0#A1]
+                                Statements (1)
+                                    IFlowCaptureOperation: 6 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'c2')
+                                      Value: 
+                                        IParameterReferenceOperation: c2 (OperationKind.ParameterReference, Type: C) (Syntax: 'c2')
+
+                                Jump if True (Regular) to Block[B3#A1]
+                                    IIsNullOperation (OperationKind.IsNull, Type: System.Boolean, IsImplicit) (Syntax: 'c2')
+                                      Operand: 
+                                        IFlowCaptureReferenceOperation: 6 (OperationKind.FlowCaptureReference, Type: C, IsImplicit) (Syntax: 'c2')
+
+                                Next (Regular) Block[B2#A1]
+                            Block[B2#A1] - Block
+                                Predecessors: [B1#A1]
+                                Statements (1)
+                                    IFlowCaptureOperation: 7 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'c2')
+                                      Value: 
+                                        IFlowCaptureReferenceOperation: 6 (OperationKind.FlowCaptureReference, Type: C, IsImplicit) (Syntax: 'c2')
+
+                                Next (Regular) Block[B4#A1]
+                            Block[B3#A1] - Block
+                                Predecessors: [B1#A1]
+                                Statements (1)
+                                    IFlowCaptureOperation: 7 (OperationKind.FlowCapture, Type: null, IsInvalid, IsImplicit) (Syntax: '.a')
+                                      Value: 
+                                        IFlowCaptureReferenceOperation: 2 (OperationKind.FlowCaptureReference, Type: C, IsInvalid, IsImplicit) (Syntax: '.a')
+
+                                Next (Regular) Block[B4#A1]
+                            Block[B4#A1] - Block
+                                Predecessors: [B2#A1] [B3#A1]
+                                Statements (0)
+                                Next (Return) Block[B5#A1]
+                                    IFlowCaptureReferenceOperation: 7 (OperationKind.FlowCaptureReference, Type: C, IsInvalid, IsImplicit) (Syntax: 'If (c2, .a)')
+                                    Leaving: {R1#A1}
+                        }
+
+                        Block[B5#A1] - Exit
+                            Predecessors: [B4#A1]
+                            Statements (0)
+                    }
+
+            ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: <anonymous type: a As C, b As Function <generated method>() As ?>, IsInvalid, IsImplicit) (Syntax: 'x, y As New ...  (c2, .a) }')
+              Left: 
+                ILocalReferenceOperation: y (IsDeclaration: True) (OperationKind.LocalReference, Type: <anonymous type: a As C, b As Function <generated method>() As ?>, IsImplicit) (Syntax: 'y')
+              Right: 
+                IAnonymousObjectCreationOperation (OperationKind.AnonymousObjectCreation, Type: <anonymous type: a As C, b As Function <generated method>() As ?>, IsInvalid) (Syntax: 'New With {  ...  (c2, .a) }')
+                  Initializers(2):
+                      ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: C) (Syntax: '.a = c1')
+                        Left: 
+                          IPropertyReferenceOperation: Property <anonymous type: a As C, b As Function <generated method>() As ?>.a As C (OperationKind.PropertyReference, Type: C) (Syntax: 'a')
+                            Instance Receiver: 
+                              null
+                        Right: 
+                          IFlowCaptureReferenceOperation: 2 (OperationKind.FlowCaptureReference, Type: C, IsImplicit) (Syntax: 'c1')
+                      ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: Function <generated method>() As ?, IsInvalid) (Syntax: '.b = Functi ... If (c2, .a)')
+                        Left: 
+                          IPropertyReferenceOperation: Property <anonymous type: a As C, b As Function <generated method>() As ?>.b As <generated method> (OperationKind.PropertyReference, Type: Function <generated method>() As ?) (Syntax: 'b')
+                            Instance Receiver: 
+                              null
+                        Right: 
+                          IFlowCaptureReferenceOperation: 3 (OperationKind.FlowCaptureReference, Type: Function <generated method>() As ?, IsInvalid, IsImplicit) (Syntax: 'Function() If (c2, .a)')
+
+        Next (Regular) Block[B2]
+            Leaving: {R1}
+}
+
+Block[B2] - Exit
+    Predecessors: [B1]
     Statements (0)
 ]]>.Value
 

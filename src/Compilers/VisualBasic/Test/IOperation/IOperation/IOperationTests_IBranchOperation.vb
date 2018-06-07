@@ -2700,48 +2700,38 @@ BC30132: Label 'label1' is not defined.
 Block[B0] - Entry
     Statements (0)
     Next (Regular) Block[B1]
-        Entering: {R1}
+Block[B1] - Block
+    Predecessors: [B0]
+    Statements (1)
+        IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null, IsInvalid) (Syntax: 'd = Sub () ... End Sub')
+          Expression: 
+            ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Action, IsInvalid, IsImplicit) (Syntax: 'd = Sub () ... End Sub')
+              Left: 
+                IParameterReferenceOperation: d (OperationKind.ParameterReference, Type: System.Action) (Syntax: 'd')
+              Right: 
+                IDelegateCreationOperation (OperationKind.DelegateCreation, Type: System.Action, IsInvalid, IsImplicit) (Syntax: 'Sub () ... End Sub')
+                  Target: 
+                    IFlowAnonymousFunctionOperation (Symbol: Sub ()) (OperationKind.FlowAnonymousFunction, Type: null, IsInvalid) (Syntax: 'Sub () ... End Sub')
+                    {
+                        Block[B0#A0] - Entry
+                            Statements (0)
+                            Next (Regular) Block[B1#A0]
+                        Block[B1#A0] - Block
+                            Predecessors: [B0#A0]
+                            Statements (2)
+                                IInvalidOperation (OperationKind.Invalid, Type: null, IsInvalid) (Syntax: 'label1')
+                                  Children(0)
 
-.locals {R1}
-{
-    Methods: [Sub ()]
-    Block[B1] - Block
-        Predecessors: [B0]
-        Statements (1)
-            IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null, IsInvalid) (Syntax: 'd = Sub () ... End Sub')
-              Expression: 
-                ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Action, IsInvalid, IsImplicit) (Syntax: 'd = Sub () ... End Sub')
-                  Left: 
-                    IParameterReferenceOperation: d (OperationKind.ParameterReference, Type: System.Action) (Syntax: 'd')
-                  Right: 
-                    IDelegateCreationOperation (OperationKind.DelegateCreation, Type: System.Action, IsInvalid, IsImplicit) (Syntax: 'Sub () ... End Sub')
-                      Target: 
-                        IFlowAnonymousFunctionOperation (Symbol: Sub ()) (OperationKind.FlowAnonymousFunction, Type: null, IsInvalid) (Syntax: 'Sub () ... End Sub')
+                                IInvalidOperation (OperationKind.Invalid, Type: null, IsInvalid) (Syntax: 'GoTo label1')
+                                  Children(0)
 
-        Next (Regular) Block[B2]
-            Leaving: {R1}
-    
-    {   Sub ()
-    
-        Block[B0#0R1] - Entry
-            Statements (0)
-            Next (Regular) Block[B1#0R1]
-        Block[B1#0R1] - Block
-            Predecessors: [B0#0R1]
-            Statements (2)
-                IInvalidOperation (OperationKind.Invalid, Type: null, IsInvalid) (Syntax: 'label1')
-                  Children(0)
+                            Next (Regular) Block[B2#A0]
+                        Block[B2#A0] - Exit
+                            Predecessors: [B1#A0]
+                            Statements (0)
+                    }
 
-                IInvalidOperation (OperationKind.Invalid, Type: null, IsInvalid) (Syntax: 'GoTo label1')
-                  Children(0)
-
-            Next (Regular) Block[B2#0R1]
-        Block[B2#0R1] - Exit
-            Predecessors: [B1#0R1]
-            Statements (0)
-    }
-}
-
+    Next (Regular) Block[B2]
 Block[B2] - Exit
     Predecessors: [B1]
     Statements (0)

@@ -87,8 +87,9 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             var visitor = TestOperationVisitor.Singleton;
             ControlFlowRegion currentRegion = graph.Root;
             bool lastPrintedBlockIsInCurrentRegion = true;
-            PooledObjects.PooledDictionary<ControlFlowRegion, int> regionMap = buildRegionMap();
-            var methodsMap = PooledObjects.PooledDictionary<IMethodSymbol, ControlFlowGraph>.GetInstance();
+            PooledDictionary<ControlFlowRegion, int> regionMap = buildRegionMap();
+            var localFunctionsMap = PooledDictionary<IMethodSymbol, ControlFlowGraph>.GetInstance();
+            var anonymousFunctionsMap = PooledDictionary<IFlowAnonymousFunctionOperation, ControlFlowGraph>.GetInstance();
 
             for (int i = 0; i < blocks.Length; i++)
             {
@@ -117,7 +118,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                         Assert.Same(enclosing, currentRegion.EnclosingRegion);
                         Assert.Null(currentRegion.ExceptionType);
                         Assert.Empty(currentRegion.Locals);
-                        Assert.Empty(currentRegion.NestedMethods);
+                        Assert.Empty(currentRegion.LocalFunctions);
                         Assert.Equal(ControlFlowRegionKind.Root, currentRegion.Kind);
                         Assert.True(block.IsReachable);
                         break;
@@ -205,7 +206,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                 foreach (var statement in statements)
                 {
                     validateRoot(statement);
-                    stringBuilder.AppendLine(OperationTreeVerifier.GetOperationTree(compilation, statement, initialIndent: 8 + indent));
+                    stringBuilder.AppendLine(getOperationTree(statement));
                 }
 
                 ControlFlowBranch conditionalBranch = block.ConditionalSuccessor;
@@ -232,7 +233,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                     IOperation value = block.BranchValue;
                     Assert.NotNull(value);
                     validateRoot(value);
-                    stringBuilder.Append(OperationTreeVerifier.GetOperationTree(compilation, value, initialIndent: 8 + indent));
+                    stringBuilder.Append(getOperationTree(value));
                     validateBranch(block, conditionalBranch);
                     stringBuilder.AppendLine();
                 }
@@ -274,7 +275,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                     {
                         Assert.True(ControlFlowBranchSemantics.Return == nextBranch.Semantics || ControlFlowBranchSemantics.Throw == nextBranch.Semantics);
                         validateRoot(value);
-                        stringBuilder.Append(OperationTreeVerifier.GetOperationTree(compilation, value, initialIndent: 8 + indent));
+                        stringBuilder.Append(getOperationTree(value));
                     }
                     else
                     {
@@ -297,16 +298,22 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                 }
             }
 
-            foreach (IMethodSymbol m in graph.NestedMethods)
+            foreach (IMethodSymbol m in graph.LocalFunctions)
             {
-                ControlFlowGraph g = methodsMap[m];
-                Assert.Same(g, graph.GetNestedControlFlowGraph(m));
+                ControlFlowGraph g = localFunctionsMap[m];
+                Assert.Same(g, graph.GetLocalFunctionControlFlowGraph(m));
             }
 
-            Assert.Equal(graph.NestedMethods.Length, methodsMap.Count);
+            Assert.Equal(graph.LocalFunctions.Length, localFunctionsMap.Count);
+
+            foreach (KeyValuePair<IFlowAnonymousFunctionOperation, ControlFlowGraph> pair in anonymousFunctionsMap)
+            {
+                Assert.Same(pair.Value, graph.GetAnonymousFunctionControlFlowGraph(pair.Key));
+            }
 
             regionMap.Free();
-            methodsMap.Free();
+            localFunctionsMap.Free();
+            anonymousFunctionsMap.Free();
             return;
 
             string getDestinationString(ref ControlFlowBranch branch)
@@ -357,14 +364,12 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                     stringBuilder.AppendLine();
                 }
 
-                if (!region.NestedMethods.IsEmpty)
+                if (!region.LocalFunctions.IsEmpty)
                 {
                     appendIndent();
                     stringBuilder.Append("Methods:");
-                    foreach (IMethodSymbol method in region.NestedMethods)
+                    foreach (IMethodSymbol method in region.LocalFunctions)
                     {
-                        // PROTOTYPE(dataflow): For C# lambdas this prints [lambda expression], which is not very helpful if we want to tell lambdas apart.
-                        //                      That is how symbol display is implemented for C#.
                         stringBuilder.Append($" [{method.ToTestDisplayString()}]");
                     }
                     stringBuilder.AppendLine();
@@ -393,7 +398,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                 {
                     case ControlFlowRegionKind.Filter:
                         Assert.Empty(region.Locals);
-                        Assert.True(region.NestedMethods.All(m => m.MethodKind == MethodKind.AnonymousFunction));
+                        Assert.Empty(region.LocalFunctions);
                         Assert.Equal(firstBlockOrdinal, region.EnclosingRegion.FirstBlockOrdinal);
                         Assert.Same(region.ExceptionType, region.EnclosingRegion.ExceptionType);
                         enterRegion($".filter {{{getRegionId(region)}}}");
@@ -427,14 +432,14 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                         break;
                     case ControlFlowRegionKind.LocalLifetime:
                         Assert.Null(region.ExceptionType);
-                        Assert.False(region.Locals.IsEmpty && region.NestedMethods.IsEmpty);
+                        Assert.False(region.Locals.IsEmpty && region.LocalFunctions.IsEmpty);
                         enterRegion($".locals {{{getRegionId(region)}}}");
                         break;
 
                     case ControlFlowRegionKind.TryAndCatch:
                     case ControlFlowRegionKind.TryAndFinally:
                         Assert.Empty(region.Locals);
-                        Assert.Empty(region.NestedMethods);
+                        Assert.Empty(region.LocalFunctions);
                         Assert.Null(region.ExceptionType);
                         break;
 
@@ -473,16 +478,15 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                 }
 
                 string regionId = getRegionId(region);
-                for (var i = 0; i < region.NestedMethods.Length; i++)
+                for (var i = 0; i < region.LocalFunctions.Length; i++)
                 {
-                    var method = region.NestedMethods[i];
+                    var method = region.LocalFunctions[i];
                     appendLine("");
-                    // PROTOTYPE(dataflow): For C# lambdas this prints "lambda expression", which is not very helpful if we want to tell lambdas apart.
-                    //                      That is how symbol display is implemented for C#.
                     appendLine("{   " + method.ToTestDisplayString());
                     appendLine("");
-                    var g = graph.GetNestedControlFlowGraph(method);
-                    methodsMap.Add(method, g);
+                    var g = graph.GetLocalFunctionControlFlowGraph(method);
+                    localFunctionsMap.Add(method, g);
+                    Assert.Equal(OperationKind.LocalFunction, g.OriginalOperation.Kind);
                     GetFlowGraph(stringBuilder, compilation, g, region, $"#{i}{regionId}", indent + 4);
                     appendLine("}");
                 }
@@ -621,8 +625,6 @@ endRegion:
                                                                                   case OperationKind.Invocation:
                                                                                       method = ((IInvocationOperation)node).TargetMethod;
                                                                                       return method.MethodKind == MethodKind.LocalFunction ? method.OriginalDefinition : null;
-                                                                                  case OperationKind.FlowAnonymousFunction:
-                                                                                      return ((IFlowAnonymousFunctionOperation)node).Symbol;
                                                                                   default:
                                                                                       return (ISymbol)null;
                                                                               }
@@ -645,7 +647,7 @@ endRegion:
                         Assert.True(localsAndMethodsInRegions.Add(l));
                     }
 
-                    foreach (IMethodSymbol m in region.NestedMethods)
+                    foreach (IMethodSymbol m in region.LocalFunctions)
                     {
                         Assert.True(localsAndMethodsInRegions.Add(m));
                     }
@@ -670,6 +672,49 @@ endRegion:
             string getRegionId(ControlFlowRegion region)
             {
                 return $"R{regionMap[region]}{idSuffix}";
+            }
+
+            string getOperationTree(IOperation operation)
+            {
+                var walker = new OperationTreeSerializer(graph, currentRegion, idSuffix, anonymousFunctionsMap, compilation, operation, initialIndent: 8 + indent);
+                walker.Visit(operation);
+                return walker.Builder.ToString();
+            }
+        }
+
+        private sealed class OperationTreeSerializer : OperationTreeVerifier
+        {
+            private readonly ControlFlowGraph _graph;
+            private readonly ControlFlowRegion _region;
+            private readonly string _idSuffix;
+            private readonly Dictionary<IFlowAnonymousFunctionOperation, ControlFlowGraph> _anonymousFunctionsMap;
+
+            public OperationTreeSerializer(ControlFlowGraph graph, ControlFlowRegion region, string idSuffix, 
+                                           Dictionary<IFlowAnonymousFunctionOperation, ControlFlowGraph> anonymousFunctionsMap,
+                                           Compilation compilation, IOperation root, int initialIndent) :
+                base(compilation, root, initialIndent)
+            {
+                _graph = graph;
+                _region = region;
+                _idSuffix = idSuffix;
+                _anonymousFunctionsMap = anonymousFunctionsMap;
+            }
+
+            public System.Text.StringBuilder Builder => _builder;
+
+            public override void VisitFlowAnonymousFunction(IFlowAnonymousFunctionOperation operation)
+            {
+                base.VisitFlowAnonymousFunction(operation);
+
+                LogString("{");
+                LogNewLine();
+                var g = _graph.GetAnonymousFunctionControlFlowGraph(operation);
+                int id = _anonymousFunctionsMap.Count;
+                _anonymousFunctionsMap.Add(operation, g);
+                Assert.Equal(OperationKind.AnonymousFunction, g.OriginalOperation.Kind);
+                GetFlowGraph(_builder, _compilation, g, _region, $"#A{id}{_idSuffix}", _currentIndent.Length + 4);
+                LogString("}");
+                LogNewLine();
             }
         }
 

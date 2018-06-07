@@ -50,9 +50,9 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
         public ImmutableArray<ILocalSymbol> Locals { get; }
 
         /// <summary>
-        /// Methods (local functions or lambdas) declared within the region.
+        /// Local functions declared within the region.
         /// </summary>
-        public ImmutableArray<IMethodSymbol> NestedMethods { get; }
+        public ImmutableArray<IMethodSymbol> LocalFunctions { get; }
 
         internal ControlFlowRegion(ControlFlowRegionKind kind, int firstBlockOrdinal, int lastBlockOrdinal,
                         ImmutableArray<ControlFlowRegion> nestedRegions,
@@ -69,7 +69,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
             LastBlockOrdinal = lastBlockOrdinal;
             ExceptionType = exceptionType;
             Locals = locals.NullToEmpty();
-            NestedMethods = methods.NullToEmpty();
+            LocalFunctions = methods.NullToEmpty();
             NestedRegions = nestedRegions.NullToEmpty();
             EnclosingRegion = enclosingRegion;
 

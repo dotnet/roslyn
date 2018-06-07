@@ -19,14 +19,20 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
     /// </summary>
     public sealed partial class ControlFlowGraph
     {
-        private readonly ImmutableDictionary<IMethodSymbol, (ControlFlowRegion region, IOperation operation, int ordinal)> _methodsMap;
-        private ControlFlowGraph[] _lazySubGraphs;
+        private readonly ControlFlowGraphBuilder.CaptureIdDispenser _captureIdDispenser;
+        private readonly ImmutableDictionary<IMethodSymbol, (ControlFlowRegion region, ILocalFunctionOperation operation, int ordinal)> _localFunctionsMap;
+        private ControlFlowGraph[] _lazyLocalFunctionsGraphs;
+        private readonly ImmutableDictionary<IFlowAnonymousFunctionOperation, (ControlFlowRegion region, int ordinal)> _anonymousFunctionsMap;
+        private ControlFlowGraph[] _lazyAnonymousFunctionsGraphs;
 
         internal ControlFlowGraph(IOperation originalOperation,
+                                  ControlFlowGraphBuilder.CaptureIdDispenser captureIdDispenser,
                                   ImmutableArray<BasicBlock> blocks, ControlFlowRegion root,
-                                  ImmutableArray<IMethodSymbol> nestedMethods,
-                                  ImmutableDictionary<IMethodSymbol, (ControlFlowRegion region, IOperation operation, int ordinal)> methodsMap)
+                                  ImmutableArray<IMethodSymbol> localFunctions,
+                                  ImmutableDictionary<IMethodSymbol, (ControlFlowRegion region, ILocalFunctionOperation operation, int ordinal)> localFunctionsMap,
+                                  ImmutableDictionary<IFlowAnonymousFunctionOperation, (ControlFlowRegion region, int ordinal)> anonymousFunctionsMap)
         {
+            Debug.Assert(captureIdDispenser != null);
             Debug.Assert(!blocks.IsDefault);
             Debug.Assert(blocks.First().Kind == BasicBlockKind.Entry);
             Debug.Assert(blocks.Last().Kind == BasicBlockKind.Exit);
@@ -34,23 +40,26 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
             Debug.Assert(root.Kind == ControlFlowRegionKind.Root);
             Debug.Assert(root.FirstBlockOrdinal == 0);
             Debug.Assert(root.LastBlockOrdinal == blocks.Length - 1);
-            Debug.Assert(!nestedMethods.IsDefault);
-            Debug.Assert(methodsMap != null);
-            Debug.Assert(methodsMap.Count == nestedMethods.Length);
-            Debug.Assert(nestedMethods.Distinct().Count() == nestedMethods.Length);
+            Debug.Assert(!localFunctions.IsDefault);
+            Debug.Assert(localFunctionsMap != null);
+            Debug.Assert(localFunctionsMap.Count == localFunctions.Length);
+            Debug.Assert(localFunctions.Distinct().Count() == localFunctions.Length);
+            Debug.Assert(anonymousFunctionsMap != null);
 #if DEBUG
-            foreach (IMethodSymbol method in nestedMethods)
+            foreach (IMethodSymbol method in localFunctions)
             {
-                Debug.Assert(method.MethodKind == MethodKind.AnonymousFunction || method.MethodKind == MethodKind.LocalFunction);
-                Debug.Assert(methodsMap.ContainsKey(method));
+                Debug.Assert(method.MethodKind == MethodKind.LocalFunction);
+                Debug.Assert(localFunctionsMap.ContainsKey(method));
             }
 #endif 
 
             OriginalOperation = originalOperation;
             Blocks = blocks;
             Root = root;
-            NestedMethods = nestedMethods;
-            _methodsMap = methodsMap;
+            LocalFunctions = localFunctions;
+            _localFunctionsMap = localFunctionsMap;
+            _anonymousFunctionsMap = anonymousFunctionsMap;
+            _captureIdDispenser = captureIdDispenser;
         }
 
         /// <summary>
@@ -71,53 +80,65 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
         public ControlFlowRegion Root { get; }
 
         /// <summary>
-        /// Lambdas and local functions declared within <see cref="OriginalOperation"/>.
+        /// Local functions declared within <see cref="OriginalOperation"/>.
         /// </summary>
-        public ImmutableArray<IMethodSymbol> NestedMethods { get; }
+        public ImmutableArray<IMethodSymbol> LocalFunctions { get; }
 
         /// <summary>
-        /// Creates a control flow graph for the given <paramref name="nestedMethod"/>.
+        /// Creates a control flow graph for the given <paramref name="localFunction"/>.
         /// </summary>
-        /// <param name="nestedMethod">Nested method from <see cref="NestedMethods"/>.</param>
-        public ControlFlowGraph GetNestedControlFlowGraph(IMethodSymbol nestedMethod)
+        public ControlFlowGraph GetLocalFunctionControlFlowGraph(IMethodSymbol localFunction)
         {
             // PROTOTYPE(dataflow): It looks like the indexing below will throw right exceptions on all invalid inputs.
             //                      However, we should consider if we want to perform our own validation for the input.
             //                      In any case, we need to add unit tests to cover behavior of this API with respect to
             //                      an invalid input (including null).
 
-            (ControlFlowRegion enclosing, IOperation operation, int ordinal) = _methodsMap[nestedMethod];
-            Debug.Assert(nestedMethod == NestedMethods[ordinal]);
+            (ControlFlowRegion enclosing, ILocalFunctionOperation operation, int ordinal) = _localFunctionsMap[localFunction];
+            Debug.Assert(localFunction == LocalFunctions[ordinal]);
 
-            if (_lazySubGraphs == null)
+            if (_lazyLocalFunctionsGraphs == null)
             {
-                Interlocked.CompareExchange(ref _lazySubGraphs, new ControlFlowGraph[NestedMethods.Length], null);
+                Interlocked.CompareExchange(ref _lazyLocalFunctionsGraphs, new ControlFlowGraph[LocalFunctions.Length], null);
             }
 
-            if (_lazySubGraphs[ordinal] == null)
+            if (_lazyLocalFunctionsGraphs[ordinal] == null)
             {
-                ControlFlowGraph graph;
-
-                switch (operation.Kind)
-                {
-                    case OperationKind.LocalFunction:
-                        Debug.Assert(nestedMethod == ((ILocalFunctionOperation)operation).Symbol);
-                        graph = ControlFlowGraphBuilder.Create(operation, enclosing);
-                        break;
-                    
-                    case OperationKind.AnonymousFunction:
-                        Debug.Assert(nestedMethod == ((IAnonymousFunctionOperation)operation).Symbol);
-                        graph = ControlFlowGraphBuilder.Create(operation, enclosing);
-                        break;
-
-                    default:
-                        throw ExceptionUtilities.UnexpectedValue(operation.Kind);
-                }
-
-                Interlocked.CompareExchange(ref _lazySubGraphs[ordinal], graph, null);
+                Debug.Assert(localFunction == operation.Symbol);
+                ControlFlowGraph graph = ControlFlowGraphBuilder.Create(operation, enclosing, _captureIdDispenser);
+                Debug.Assert(graph.OriginalOperation == operation);
+                Interlocked.CompareExchange(ref _lazyLocalFunctionsGraphs[ordinal], graph, null);
             }
 
-            return _lazySubGraphs[ordinal];
+            return _lazyLocalFunctionsGraphs[ordinal];
+        }
+
+        /// <summary>
+        /// Creates a control flow graph for the given <paramref name="anonymousFunction"/>.
+        /// </summary>
+        public ControlFlowGraph GetAnonymousFunctionControlFlowGraph(IFlowAnonymousFunctionOperation anonymousFunction)
+        {
+            // PROTOTYPE(dataflow): It looks like the indexing below will throw right exceptions on all invalid inputs.
+            //                      However, we should consider if we want to perform our own validation for the input.
+            //                      In any case, we need to add unit tests to cover behavior of this API with respect to
+            //                      an invalid input (including null).
+
+            (ControlFlowRegion enclosing, int ordinal) = _anonymousFunctionsMap[anonymousFunction];
+
+            if (_lazyAnonymousFunctionsGraphs == null)
+            {
+                Interlocked.CompareExchange(ref _lazyAnonymousFunctionsGraphs, new ControlFlowGraph[_anonymousFunctionsMap.Count], null);
+            }
+
+            if (_lazyAnonymousFunctionsGraphs[ordinal] == null)
+            {
+                var anonymous = (FlowAnonymousFunctionOperation)anonymousFunction;
+                ControlFlowGraph graph = ControlFlowGraphBuilder.Create(anonymous.Original, enclosing, _captureIdDispenser, in anonymous.Context);
+                Debug.Assert(graph.OriginalOperation == anonymous.Original);
+                Interlocked.CompareExchange(ref _lazyAnonymousFunctionsGraphs[ordinal], graph, null);
+            }
+
+            return _lazyAnonymousFunctionsGraphs[ordinal];
         }
     }
 }

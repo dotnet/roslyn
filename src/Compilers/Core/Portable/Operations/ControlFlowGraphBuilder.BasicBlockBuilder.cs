@@ -40,6 +40,8 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
 
             public bool HasStatements => _statements?.Count > 0;
 
+            public ArrayBuilder<IOperation> StatementsOpt => _statements;
+
             public void AddStatement(IOperation operation)
             {
                 Debug.Assert(operation != null);

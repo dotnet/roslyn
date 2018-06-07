@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.Collections.Generic;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.PooledObjects;
 
@@ -31,6 +32,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
 
             public ImplicitInstanceInfo(IOperation currentImplicitInstance)
             {
+                Debug.Assert(currentImplicitInstance != null);
                 ImplicitInstance = currentImplicitInstance;
                 AnonymousType = null;
                 AnonymousTypePropertyCaptureIds = null;
@@ -43,6 +45,35 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
                 ImplicitInstance = null;
                 AnonymousType = currentInitializedAnonymousType;
                 AnonymousTypePropertyCaptureIds = PooledDictionary<IPropertySymbol, int>.GetInstance();
+            }
+
+            public ImplicitInstanceInfo(in Context context)
+            {
+                Debug.Assert(context.ImplicitInstance == null || context.AnonymousType == null);
+
+                if (context.ImplicitInstance != null)
+                {
+                    ImplicitInstance = context.ImplicitInstance;
+                    AnonymousType = null;
+                    AnonymousTypePropertyCaptureIds = null;
+                }
+                else if (context.AnonymousType != null)
+                {
+                    ImplicitInstance = null;
+                    AnonymousType = context.AnonymousType;
+                    AnonymousTypePropertyCaptureIds = PooledDictionary<IPropertySymbol, int>.GetInstance();
+
+                    foreach (KeyValuePair<IPropertySymbol, int> pair in context.AnonymousTypePropertyCaptureIds)
+                    {
+                        AnonymousTypePropertyCaptureIds.Add(pair.Key, pair.Value);
+                    }
+                }
+                else
+                {
+                    ImplicitInstance = null;
+                    AnonymousType = null;
+                    AnonymousTypePropertyCaptureIds = null;
+                }
             }
 
             public void Free()

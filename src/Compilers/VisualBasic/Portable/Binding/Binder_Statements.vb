@@ -1036,7 +1036,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 #If DEBUG Then
                     For i = 0 To names.Count - 1
                         Debug.Assert(locals(i).InitializedByAsNew)
-                        Debug.Assert(locals(i).InitializerOpt Is Nothing OrElse locals(i).InitializerOpt.Kind = BoundKind.BadExpression OrElse locals(i).InitializerOpt.Kind = BoundKind.ArrayCreation)
+                        ' The assert below is disabled due to https://github.com/dotnet/roslyn/issues/27533, need to follow up
+                        'Debug.Assert(locals(i).InitializerOpt Is Nothing OrElse locals(i).InitializerOpt.Kind = BoundKind.BadExpression OrElse locals(i).InitializerOpt.Kind = BoundKind.ArrayCreation)
                     Next
 #End If
 
