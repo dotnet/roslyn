@@ -8,7 +8,7 @@ namespace Microsoft.CodeAnalysis
     {
         public static SymbolKey GetSymbolKey(this ISymbol symbol)
         {
-            return SymbolKey.Create(symbol, CancellationToken.None);
+            return SymbolKey.From(symbol, CancellationToken.None);
         }
     }
 }

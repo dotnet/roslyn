@@ -4,7 +4,6 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
 {
@@ -25,12 +24,12 @@ namespace Microsoft.CodeAnalysis
                 var reducedFromResolution = reader.ReadSymbolKey();
                 var receiverTypeResolution = reader.ReadSymbolKey();
 
-                var q = from m in reducedFromResolution.GetAllSymbols().OfType<IMethodSymbol>()
-                        from t in receiverTypeResolution.GetAllSymbols().OfType<ITypeSymbol>()
+                var q = from m in reducedFromResolution.GetAllSymbols<IMethodSymbol>()
+                        from t in receiverTypeResolution.GetAllSymbols<ITypeSymbol>()
                         let r = m.ReduceExtensionMethod(t)
                         select r;
 
-                return CreateSymbolInfo(q);
+                return SymbolKeyResolution.Create(q);
             }
         }
     }
@@ -52,18 +51,18 @@ namespace Microsoft.CodeAnalysis
 
                 Debug.Assert(!typeArgumentResolutions.IsDefault);
                 var typeArguments = typeArgumentResolutions.Select(
-                    r => GetFirstSymbol<ITypeSymbol>(r)).ToArray();
+                    r => r.GetFirstSymbol<ITypeSymbol>()).ToArray();
 
                 if (typeArguments.Any(s_typeIsNull))
                 {
                     return default;
                 }
 
-                var result = constructedFromResolution.GetAllSymbols()
-                       .OfType<IMethodSymbol>()
-                       .Select(m => m.Construct(typeArguments));
+                var result = constructedFromResolution
+                    .GetAllSymbols<IMethodSymbol>()
+                    .Select(m => m.Construct(typeArguments));
 
-                return CreateSymbolInfo(result);
+                return SymbolKeyResolution.Create(result);
             }
         }
     }
@@ -124,7 +123,7 @@ namespace Microsoft.CodeAnalysis
 
                 var result = new List<IMethodSymbol>();
 
-                var namedTypes = containingSymbolResolution.GetAllSymbols().OfType<INamedTypeSymbol>();
+                var namedTypes = containingSymbolResolution.GetAllSymbols<INamedTypeSymbol>();
                 foreach (var namedType in namedTypes)
                 {
                     var method = Resolve(reader, metadataName, arity, isPartialMethodImplementationPart,
@@ -149,11 +148,11 @@ namespace Microsoft.CodeAnalysis
                     // can at least be read (if not resolved) properly.
                     reader.PushMethod(methodOpt: null);
                     var parameterTypeResolutions = reader.ReadSymbolKeyArray();
-                    var returnType = GetFirstSymbol<ITypeSymbol>(reader.ReadSymbolKey());
+                    var returnType = reader.ReadSymbolKey().GetFirstSymbol<ITypeSymbol>();
                     reader.PopMethod(methodOpt: null);
                 }
 
-                return CreateSymbolInfo(result);
+                return SymbolKeyResolution.Create(result);
             }
 
             private static IMethodSymbol Resolve(
@@ -215,10 +214,10 @@ namespace Microsoft.CodeAnalysis
                 IMethodSymbol method)
             {
                 var originalParameterTypeResolutions = reader.ReadSymbolKeyArray();
-                var returnType = GetFirstSymbol<ITypeSymbol>(reader.ReadSymbolKey());
+                var returnType = reader.ReadSymbolKey().GetFirstSymbol<ITypeSymbol>();
 
                 var originalParameterTypes = originalParameterTypeResolutions.Select(
-                    r => GetFirstSymbol<ITypeSymbol>(r)).ToArray();
+                    r => r.GetFirstSymbol<ITypeSymbol>()).ToArray();
 
                 if (!originalParameterTypes.Any(s_typeIsNull))
                 {

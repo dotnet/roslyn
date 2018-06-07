@@ -38,17 +38,17 @@ namespace Microsoft.CodeAnalysis
 
                 if (typeArgumentResolutions.IsDefault)
                 {
-                    return CreateSymbolInfo(errorTypes);
+                    return SymbolKeyResolution.Create(errorTypes);
                 }
 
                 var typeArguments = typeArgumentResolutions.Select(
-                    r => GetFirstSymbol<ITypeSymbol>(r)).ToArray();
+                    r => r.GetFirstSymbol<ITypeSymbol>()).ToArray();
                 if (typeArguments.Any(s_typeIsNull))
                 {
                     return default;
                 }
 
-                return CreateSymbolInfo(errorTypes.Select(t => t.Construct(typeArguments)));
+                return SymbolKeyResolution.Create(errorTypes.Select(t => t.Construct(typeArguments)));
             }
 
             private static IEnumerable<INamedTypeSymbol> ResolveErrorTypes(
@@ -61,7 +61,7 @@ namespace Microsoft.CodeAnalysis
                 }
                 else
                 {
-                    foreach (var container in containingSymbolResolution.GetAllSymbols().OfType<INamespaceOrTypeSymbol>())
+                    foreach (var container in containingSymbolResolution.GetAllSymbols<INamespaceOrTypeSymbol>())
                     {
                         yield return reader.Compilation.CreateErrorTypeSymbol(container, name, arity);
                     }

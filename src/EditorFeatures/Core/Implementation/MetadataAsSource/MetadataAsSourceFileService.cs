@@ -97,7 +97,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.MetadataAsSource
             MetadataAsSourceGeneratedFileInfo fileInfo;
             Location navigateLocation = null;
             var topLevelNamedType = MetadataAsSourceHelpers.GetTopLevelContainingNamedType(symbol);
-            var symbolId = SymbolKey.Create(symbol, cancellationToken);
+            var symbolId = SymbolKey.From(symbol, cancellationToken);
 
             using (await _gate.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
             {
@@ -388,11 +388,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.MetadataAsSource
 
             if (peMetadataReference.FilePath != null)
             {
-                return new UniqueDocumentKey(peMetadataReference.FilePath, project.Language, SymbolKey.Create(topLevelNamedType, cancellationToken), allowDecompilation);
+                return new UniqueDocumentKey(peMetadataReference.FilePath, project.Language, SymbolKey.From(topLevelNamedType, cancellationToken), allowDecompilation);
             }
             else
             {
-                return new UniqueDocumentKey(topLevelNamedType.ContainingAssembly.Identity, project.Language, SymbolKey.Create(topLevelNamedType, cancellationToken), allowDecompilation);
+                return new UniqueDocumentKey(topLevelNamedType.ContainingAssembly.Identity, project.Language, SymbolKey.From(topLevelNamedType, cancellationToken), allowDecompilation);
             }
         }
 

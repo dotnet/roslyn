@@ -4,10 +4,8 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
-using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.Shared.Utilities;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
 {
@@ -81,11 +79,11 @@ namespace Microsoft.CodeAnalysis
     {
         private readonly static Func<ITypeSymbol, bool> s_typeIsNull = t => t == null;
 
-        private readonly string _symbolKeyData;
+        private readonly string _encodedSymbolData;
 
-        public SymbolKey(string symbolKeyData)
+        private SymbolKey(string encodedSymbolData)
         {
-            _symbolKeyData = symbolKeyData ?? throw new ArgumentNullException();
+            _encodedSymbolData = encodedSymbolData ?? throw new ArgumentNullException();
         }
 
         public static IEqualityComparer<SymbolKey> GetComparer(bool ignoreCase, bool ignoreAssemblyKeys)
@@ -100,33 +98,13 @@ namespace Microsoft.CodeAnalysis
             return reader.RemoveAssemblySymbolKeys();
         };
 
-        /// <summary>
-        /// Tries to resolve the provided <paramref name="symbolKey"/> in the given 
-        /// <paramref name="compilation"/> to a matching symbol.  <paramref name="resolveLocations"/>
-        /// should only be given <see langword="true"/> if the symbol was produced from a compilation
-        /// that has the exact same source as the compilation we're resolving against.  Otherwise
-        /// the locations resolved may not actually be correct in the final compilation.
-        /// </summary>
-        public static SymbolKeyResolution Resolve(
-            string symbolKey, Compilation compilation,
-            bool ignoreAssemblyKey = false, bool resolveLocations = false,
-            CancellationToken cancellationToken = default)
-        {
-            using (var reader = SymbolKeyReader.GetReader(
-                symbolKey, compilation, ignoreAssemblyKey, resolveLocations, cancellationToken))
-            {
-                var result = reader.ReadFirstSymbolKey();
-                Debug.Assert(reader.Position == symbolKey.Length);
-                return result;
-            }
-        }
+        public static SymbolKey From(ISymbol symbol, CancellationToken cancellationToken = default)
+            => new SymbolKey(Encode(symbol, cancellationToken));
 
-        public static SymbolKey Create(ISymbol symbol, CancellationToken cancellationToken = default)
-        {
-            return new SymbolKey(ToString(symbol, cancellationToken));
-        }
+        public static SymbolKey From(string encodedSymbolData)
+            => new SymbolKey(encodedSymbolData);
 
-        public static string ToString(ISymbol symbol, CancellationToken cancellationToken = default)
+        public static string Encode(ISymbol symbol, CancellationToken cancellationToken = default)
         {
             using (var writer = SymbolKeyWriter.GetWriter(cancellationToken))
             {
@@ -141,88 +119,40 @@ namespace Microsoft.CodeAnalysis
             CancellationToken cancellationToken = default)
         {
             return Resolve(
-                _symbolKeyData, compilation,
+                _encodedSymbolData, compilation,
                 ignoreAssemblyKey, resolveLocations,
                 cancellationToken);
         }
 
+        /// <summary>
+        /// Tries to resolve the provided <paramref name="encodedSymbolData"/> in the given 
+        /// <paramref name="compilation"/> to a matching symbol.  <paramref name="resolveLocations"/>
+        /// should only be given <see langword="true"/> if the symbol was produced from a compilation
+        /// that has the exact same source as the compilation we're resolving against.  Otherwise
+        /// the locations resolved may not actually be correct in the final compilation.
+        /// </summary>
+        public static SymbolKeyResolution Resolve(
+            string encodedSymbolData, Compilation compilation,
+            bool ignoreAssemblyKey = false, bool resolveLocations = false,
+            CancellationToken cancellationToken = default)
+        {
+            using (var reader = SymbolKeyReader.GetReader(
+                encodedSymbolData, compilation, ignoreAssemblyKey, resolveLocations, cancellationToken))
+            {
+                var result = reader.ReadFirstSymbolKey();
+                Debug.Assert(reader.Position == encodedSymbolData.Length);
+                return result;
+            }
+        }
+
         public override string ToString()
-            => _symbolKeyData;
-
-        private static IEnumerable<ISymbol> GetAllSymbols(SymbolKeyResolution info)
-        {
-            if (info.Symbol != null)
-            {
-                yield return info.Symbol;
-            }
-            else
-            {
-                foreach (var symbol in info.CandidateSymbols)
-                {
-                    yield return symbol;
-                }
-            }
-        }
-
-        private static IEnumerable<TType> GetAllSymbols<TType>(SymbolKeyResolution info)
-            => GetAllSymbols(info).OfType<TType>();
-
-        private static SymbolKeyResolution CreateSymbolInfo(IEnumerable<ISymbol> symbols)
-        {
-            return symbols == null
-                ? default
-                : CreateSymbolInfo(symbols.WhereNotNull().ToArray());
-        }
-
-        private static SymbolKeyResolution CreateSymbolInfo(ISymbol[] symbols)
-        {
-            return symbols.Length == 0
-                ? default
-                : symbols.Length == 1
-                    ? new SymbolKeyResolution(symbols[0])
-                    : new SymbolKeyResolution(ImmutableArray.Create<ISymbol>(symbols), CandidateReason.Ambiguous);
-        }
+            => _encodedSymbolData;
 
         private static bool Equals(Compilation compilation, string name1, string name2)
             => Equals(compilation.IsCaseSensitive, name1, name2);
 
         private static bool Equals(bool isCaseSensitive, string name1, string name2)
             => string.Equals(name1, name2, isCaseSensitive ? StringComparison.Ordinal : StringComparison.OrdinalIgnoreCase);
-
-        private static string GetName(string metadataName)
-        {
-            var index = metadataName.IndexOf('`');
-            return index > 0
-                ? metadataName.Substring(0, index)
-                : metadataName;
-        }
-
-        private static IEnumerable<INamedTypeSymbol> InstantiateTypes(
-            Compilation compilation,
-            bool ignoreAssemblyKey,
-            ImmutableArray<INamedTypeSymbol> types,
-            int arity,
-            ImmutableArray<SymbolKeyResolution> typeArgumentKeys)
-        {
-            if (arity == 0 || typeArgumentKeys.IsDefault || typeArgumentKeys.IsEmpty)
-            {
-                return types;
-            }
-
-            // TODO(cyrusn): We're only accepting a type argument if it resolves unambiguously.
-            // However, we could consider the case where they resolve ambiguously and return
-            // different named type instances when that happens.
-            var typeArguments = typeArgumentKeys.Select(a => GetFirstSymbol<ITypeSymbol>(a)).ToArray();
-            return typeArguments.Any(s_typeIsNull)
-                ? SpecializedCollections.EmptyEnumerable<INamedTypeSymbol>()
-                : types.Select(t => t.Construct(typeArguments));
-        }
-
-        private static TSymbol GetFirstSymbol<TSymbol>(SymbolKeyResolution resolution)
-            where TSymbol : ISymbol
-        {
-            return resolution.GetAllSymbols().OfType<TSymbol>().FirstOrDefault();
-        }
 
         private static bool ParameterRefKindsMatch(
             ImmutableArray<IParameterSymbol> parameters,

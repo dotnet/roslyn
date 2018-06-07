@@ -19,10 +19,10 @@ namespace Microsoft.CodeAnalysis
 
                 // Don't check ModuleIds for equality because in practice, no-one uses them,
                 // and there is no way to set netmodule name programmatically using Roslyn
-                var modules = GetAllSymbols<IAssemblySymbol>(containingSymbolResolution)
+                var modules = containingSymbolResolution.GetAllSymbols<IAssemblySymbol>()
                     .SelectMany(a => a.Modules);
 
-                return CreateSymbolInfo(modules);
+                return SymbolKeyResolution.Create(modules);
             }
         }
     }

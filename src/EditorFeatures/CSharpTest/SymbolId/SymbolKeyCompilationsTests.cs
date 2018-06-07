@@ -311,7 +311,7 @@ namespace NS
             ResolveAndVerifySymbol(typeSym01, typeSym00, comp1);
 
             // old C1 (new C2) NOT resolve to old C1
-            var symkey = SymbolKey.Create(typeSym02, CancellationToken.None);
+            var symkey = SymbolKey.From(typeSym02, CancellationToken.None);
             var syminfo = symkey.Resolve(comp1);
             Assert.Null(syminfo.Symbol);
         }

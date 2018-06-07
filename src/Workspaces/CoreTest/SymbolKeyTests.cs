@@ -578,7 +578,7 @@ class C
             var xSymbol = testModel.LookupSymbols(position).First(s => s.Name == "x");
 
             // This should not throw an exception.
-            Assert.NotNull(SymbolKey.Create(xSymbol));
+            Assert.NotNull(SymbolKey.From(xSymbol));
         }
 
         [Fact]
@@ -603,7 +603,7 @@ public class C
             var methods = GetDeclaredSymbols(compilation1).OfType<IMethodSymbol>();
             foreach (var method in methods)
             {
-                var key = SymbolKey.Create(method);
+                var key = SymbolKey.From(method);
                 key.Resolve(compilation2);
             }
         }
@@ -633,7 +633,7 @@ class C
             foreach (var symbol in symbols)
             {
                 // Ensure we don't crash getting these symbol keys.
-                var id = SymbolKey.ToString(symbol);
+                var id = SymbolKey.Encode(symbol);
                 Assert.NotNull(id);
                 var found = SymbolKey.Resolve(id, compilation: compilation).GetAnySymbol();
                 Assert.NotNull(found);
@@ -671,7 +671,7 @@ class C
                 n => n is CSharp.Syntax.MethodDeclarationSyntax).Single();
 
             // Ensure we don't crash getting these symbol keys.
-            var id = SymbolKey.ToString(symbol);
+            var id = SymbolKey.Encode(symbol);
             Assert.NotNull(id);
 
             // Validate that if the client does ask to resolve locations that we
@@ -708,7 +708,7 @@ class C
                 n => n is CSharp.Syntax.MethodDeclarationSyntax).Single();
 
             // Ensure we don't crash getting these symbol keys.
-            var id = SymbolKey.ToString(symbol);
+            var id = SymbolKey.Encode(symbol);
             Assert.NotNull(id);
 
             // Validate that if the client does ask to resolve locations that we
@@ -733,7 +733,7 @@ class C
 
         private void TestRoundTrip(ISymbol symbol, Compilation compilation, Func<ISymbol, object> fnId = null)
         {
-            var id = SymbolKey.ToString(symbol);
+            var id = SymbolKey.Encode(symbol);
             Assert.NotNull(id);
             var found = SymbolKey.Resolve(id, compilation).GetAnySymbol();
             Assert.NotNull(found);

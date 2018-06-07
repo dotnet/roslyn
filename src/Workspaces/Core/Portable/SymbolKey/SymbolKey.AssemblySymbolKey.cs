@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis
             {
                 var assemblyName = reader.ReadString();
 
-                return CreateSymbolInfo(GetAssemblySymbols(
+                return SymbolKeyResolution.Create(GetAssemblySymbols(
                     assemblyName, reader.Compilation, reader.IgnoreAssemblyKey));
             }
 

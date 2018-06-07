@@ -1,36 +1,48 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Linq;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
 {
     internal struct SymbolKeyResolution
     {
-        private readonly ISymbol _symbol;
         private readonly ImmutableArray<ISymbol> _candidateSymbols;
-        private readonly CandidateReason _candidateReason;
 
-        internal SymbolKeyResolution(ISymbol symbol) : this()
+        public ISymbol Symbol { get; }
+        public ImmutableArray<ISymbol> CandidateSymbols => _candidateSymbols.NullToEmpty();
+        public CandidateReason CandidateReason { get; }
+
+        internal SymbolKeyResolution(ISymbol symbol)
         {
-            _symbol = symbol;
+            Symbol = symbol;
             _candidateSymbols = ImmutableArray<ISymbol>.Empty;
-            _candidateReason = CandidateReason.None;
+            CandidateReason = CandidateReason.None;
         }
 
         internal SymbolKeyResolution(ImmutableArray<ISymbol> candidateSymbols, CandidateReason candidateReason)
         {
-            _symbol = null;
+            Symbol = null;
             _candidateSymbols = candidateSymbols;
-            _candidateReason = candidateReason;
+            CandidateReason = candidateReason;
         }
 
-        public ISymbol Symbol => _symbol;
-
-        public ImmutableArray<ISymbol> CandidateSymbols
+        internal static SymbolKeyResolution Create(IEnumerable<ISymbol> symbols)
         {
-            get { return _candidateSymbols.NullToEmpty(); }
+            return symbols == null
+                ? default
+                : Create(symbols.WhereNotNull().ToArray());
         }
 
-        public CandidateReason CandidateReason => _candidateReason;
+        internal static SymbolKeyResolution Create(ISymbol[] symbols)
+        {
+            return symbols.Length == 0
+                ? default
+                : symbols.Length == 1
+                    ? new SymbolKeyResolution(symbols[0])
+                    : new SymbolKeyResolution(ImmutableArray.Create(symbols), CandidateReason.Ambiguous);
+        }
     }
 }

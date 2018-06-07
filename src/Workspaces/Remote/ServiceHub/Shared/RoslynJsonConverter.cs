@@ -164,7 +164,7 @@ namespace Microsoft.CodeAnalysis.Remote
         private class SymbolKeyJsonConverter : BaseJsonConverter<SymbolKey>
         {
             protected override SymbolKey ReadValue(JsonReader reader, JsonSerializer serializer)
-                => new SymbolKey((string)reader.Value);
+                => SymbolKey.From((string)reader.Value);
 
             protected override void WriteValue(JsonWriter writer, SymbolKey value, JsonSerializer serializer)
                 => writer.WriteValue(value.ToString());

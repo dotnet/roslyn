@@ -38,10 +38,11 @@ namespace Microsoft.CodeAnalysis
                 var isUnboundGenericType = reader.ReadBoolean();
                 var typeArgumentsOpt = reader.ReadSymbolKeyArray();
 
-                var types = GetAllSymbols<INamespaceOrTypeSymbol>(containingSymbolResolution).SelectMany(
+                var types = containingSymbolResolution.GetAllSymbols<INamespaceOrTypeSymbol>().SelectMany(
                     s => Resolve(reader, s, metadataName, arity, typeKind, isUnboundGenericType, typeArgumentsOpt));
-                return CreateSymbolInfo(types);
+                return SymbolKeyResolution.Create(types);
             }
+
             private static IEnumerable<INamedTypeSymbol> Resolve(
                 SymbolKeyReader reader,
                 INamespaceOrTypeSymbol container,
@@ -58,6 +59,35 @@ namespace Microsoft.CodeAnalysis
                 return isUnboundGenericType
                     ? result.Select(t => t.ConstructUnboundGenericType())
                     : result;
+            }
+
+            private static string GetName(string metadataName)
+            {
+                var index = metadataName.IndexOf('`');
+                return index > 0
+                    ? metadataName.Substring(0, index)
+                    : metadataName;
+            }
+
+            private static IEnumerable<INamedTypeSymbol> InstantiateTypes(
+                Compilation compilation,
+                bool ignoreAssemblyKey,
+                ImmutableArray<INamedTypeSymbol> types,
+                int arity,
+                ImmutableArray<SymbolKeyResolution> typeArgumentKeys)
+            {
+                if (arity == 0 || typeArgumentKeys.IsDefault || typeArgumentKeys.IsEmpty)
+                {
+                    return types;
+                }
+
+                // TODO(cyrusn): We're only accepting a type argument if it resolves unambiguously.
+                // However, we could consider the case where they resolve ambiguously and return
+                // different named type instances when that happens.
+                var typeArguments = typeArgumentKeys.Select(a => a.GetFirstSymbol<ITypeSymbol>()).ToArray();
+                return typeArguments.Any(s_typeIsNull)
+                    ? SpecializedCollections.EmptyEnumerable<INamedTypeSymbol>()
+                    : types.Select(t => t.Construct(typeArguments));
             }
         }
     }

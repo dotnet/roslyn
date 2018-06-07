@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis
             public static SymbolKeyResolution Resolve(SymbolKeyReader reader)
             {
                 var propertyTypeSymbols = reader.ReadSymbolKeyArray();
-                var propertyTypes = propertyTypeSymbols.Select(r => GetFirstSymbol<ITypeSymbol>(r)).ToImmutableArray();
+                var propertyTypes = propertyTypeSymbols.Select(r => r.GetFirstSymbol<ITypeSymbol>()).ToImmutableArray();
                 var propertyNames = reader.ReadStringArray();
                 var propertyIsReadOnly = reader.ReadBooleanArray();
                 var propertyLocations = reader.ReadLocationArray();

@@ -79,9 +79,9 @@ namespace Microsoft.CodeAnalysis
 
                     try
                     {
-                        var result = GetAllSymbols<INamedTypeSymbol>(underlyingTypeResolution).Select(
+                        var result = underlyingTypeResolution.GetAllSymbols<INamedTypeSymbol>().Select(
                             t => reader.Compilation.CreateTupleTypeSymbol(t, elementNames, elementLocations));
-                        return CreateSymbolInfo(result);
+                        return SymbolKeyResolution.Create(result);
                     }
                     catch (ArgumentException)
                     {

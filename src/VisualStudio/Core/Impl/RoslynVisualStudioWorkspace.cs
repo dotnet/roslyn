@@ -117,7 +117,7 @@ namespace Microsoft.VisualStudio.LanguageServices
             }
 
             var originalCompilation = project.GetCompilationAsync(cancellationToken).WaitAndGetResult(cancellationToken);
-            var symbolId = SymbolKey.Create(symbol, cancellationToken);
+            var symbolId = SymbolKey.From(symbol, cancellationToken);
             var currentCompilation = currentProject.GetCompilationAsync(cancellationToken).WaitAndGetResult(cancellationToken);
             var symbolInfo = symbolId.Resolve(currentCompilation, cancellationToken: cancellationToken);
 

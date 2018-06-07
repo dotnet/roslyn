@@ -1,7 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Linq;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
 {
@@ -20,9 +19,9 @@ namespace Microsoft.CodeAnalysis
                 var metadataName = reader.ReadString();
                 var containingTypeResolution = reader.ReadSymbolKey();
 
-                var fields = GetAllSymbols<INamedTypeSymbol>(containingTypeResolution)
+                var fields = containingTypeResolution.GetAllSymbols<INamedTypeSymbol>()
                     .SelectMany(t => t.GetMembers(metadataName)).OfType<IFieldSymbol>();
-                return CreateSymbolInfo(fields);
+                return SymbolKeyResolution.Create(fields);
             }
         }
     }

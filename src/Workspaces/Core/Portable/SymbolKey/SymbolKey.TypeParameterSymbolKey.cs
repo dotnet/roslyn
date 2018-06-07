@@ -36,7 +36,7 @@ namespace Microsoft.CodeAnalysis
                             return SpecializedCollections.EmptyEnumerable<ITypeParameterSymbol>();
                         }
                     });
-                return CreateSymbolInfo(result);
+                return SymbolKeyResolution.Create(result);
             }
         }
     }

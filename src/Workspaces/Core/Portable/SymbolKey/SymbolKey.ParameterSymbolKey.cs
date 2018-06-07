@@ -21,9 +21,9 @@ namespace Microsoft.CodeAnalysis
                 var metadataName = reader.ReadString();
                 var containingSymbolResolution = reader.ReadSymbolKey();
 
-                var parameters = GetAllSymbols(containingSymbolResolution).SelectMany(
+                var parameters = containingSymbolResolution.GetAllSymbols().SelectMany(
                     s => Resolve(reader, s, metadataName));
-                return CreateSymbolInfo(parameters);
+                return SymbolKeyResolution.Create(parameters);
             }
 
             private static IEnumerable<IParameterSymbol> Resolve(

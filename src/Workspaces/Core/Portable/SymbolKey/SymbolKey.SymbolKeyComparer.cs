@@ -25,14 +25,14 @@ namespace Microsoft.CodeAnalysis
                 if (!_options.IgnoreAssemblyKey)
                 {
                     // Easiest case.  We can directly compare the raw contents of the keys.
-                    return comparer.Equals(x._symbolKeyData, y._symbolKeyData);
+                    return comparer.Equals(x._encodedSymbolData, y._encodedSymbolData);
                 }
                 else
                 {
                     // This is harder.  To compare these we need to remove the entries related to 
                     // assemblies.
-                    var data1 = RemoveAssemblyKeys(x._symbolKeyData);
-                    var data2 = RemoveAssemblyKeys(y._symbolKeyData);
+                    var data1 = RemoveAssemblyKeys(x._encodedSymbolData);
+                    var data2 = RemoveAssemblyKeys(y._encodedSymbolData);
 
                     return comparer.Equals(data1, data2);
                 }

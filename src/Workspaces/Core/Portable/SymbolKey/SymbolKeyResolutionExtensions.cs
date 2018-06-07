@@ -22,10 +22,11 @@ namespace Microsoft.CodeAnalysis
             return null;
         }
 
+        internal static IEnumerable<TType> GetAllSymbols<TType>(this SymbolKeyResolution resolution)
+            => resolution.GetAllSymbols().OfType<TType>();
+
         internal static IEnumerable<ISymbol> GetAllSymbols(this SymbolKeyResolution resolution)
-        {
-            return GetAllSymbolsWorker(resolution).Distinct();
-        }
+            => GetAllSymbolsWorker(resolution).Distinct();
 
         private static IEnumerable<ISymbol> GetAllSymbolsWorker(SymbolKeyResolution resolution)
         {
@@ -38,6 +39,12 @@ namespace Microsoft.CodeAnalysis
             {
                 yield return symbol;
             }
+        }
+
+        internal static TSymbol GetFirstSymbol<TSymbol>(this SymbolKeyResolution resolution)
+            where TSymbol : ISymbol
+        {
+            return resolution.GetAllSymbols<TSymbol>().FirstOrDefault();
         }
     }
 }

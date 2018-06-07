@@ -1,7 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Linq;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
 {
@@ -25,14 +24,14 @@ namespace Microsoft.CodeAnalysis
                 var isIndexer = reader.ReadBoolean();
                 var refKinds = reader.ReadRefKindArray();
                 var originalParameterTypes = reader.ReadSymbolKeyArray().Select(
-                    r => GetFirstSymbol<ITypeSymbol>(r)).ToArray();
+                    r => r.GetFirstSymbol<ITypeSymbol>()).ToArray();
 
                 if (originalParameterTypes.Any(s_typeIsNull))
                 {
                     return default;
                 }
 
-                var properties = containingSymbolResolution.GetAllSymbols().OfType<INamedTypeSymbol>()
+                var properties = containingSymbolResolution.GetAllSymbols<INamedTypeSymbol>()
                     .SelectMany(t => t.GetMembers())
                     .OfType<IPropertySymbol>()
                     .Where(p => p.Parameters.Length == refKinds.Length &&
@@ -42,7 +41,7 @@ namespace Microsoft.CodeAnalysis
                     ParameterRefKindsMatch(p.OriginalDefinition.Parameters, refKinds) &&
                     reader.ParameterTypesMatch(p.OriginalDefinition.Parameters, originalParameterTypes));
 
-                return CreateSymbolInfo(matchingProperties);
+                return SymbolKeyResolution.Create(matchingProperties);
             }
         }
     }

@@ -71,7 +71,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Peek
             }
             else
             {
-                var symbolKey = SymbolKey.Create(symbol, cancellationToken);
+                var symbolKey = SymbolKey.From(symbol, cancellationToken);
 
                 var firstLocation = symbol.Locations.FirstOrDefault();
                 if (firstLocation != null)

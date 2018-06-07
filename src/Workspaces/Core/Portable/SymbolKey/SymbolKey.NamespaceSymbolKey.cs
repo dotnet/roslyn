@@ -64,10 +64,10 @@ namespace Microsoft.CodeAnalysis
                     return new SymbolKeyResolution(reader.Compilation.GlobalNamespace);
                 }
 
-                var namespaces = GetAllSymbols(containingSymbolResolution).SelectMany(
+                var namespaces = containingSymbolResolution.GetAllSymbols().SelectMany(
                     s => Resolve(s, metadataName));
 
-                return CreateSymbolInfo(namespaces);
+                return SymbolKeyResolution.Create(namespaces);
             }
 
             private static IEnumerable<INamespaceSymbol> Resolve(ISymbol container, string metadataName)
