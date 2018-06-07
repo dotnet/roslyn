@@ -2283,6 +2283,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             TypeSyntax typeSyntax = declarationExpression.Type;
             VariableDesignationSyntax designation = declarationExpression.Designation;
+
+            if (typeSyntax.GetRefKind() != RefKind.None)
+            {
+                diagnostics.Add(ErrorCode.ERR_OutVariableCannotBeByRef, declarationExpression.Type.Location);
+            }
+
             switch (designation.Kind())
             {
                 case SyntaxKind.DiscardDesignation:
@@ -6084,7 +6090,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             this.LookupExtensionMethodsInSingleBinder(scope, lookupResult, rightName, arity, options, ref useSiteDiagnostics);
             diagnostics.Add(node, useSiteDiagnostics);
 
-            if (!lookupResult.IsClear)
+            if (lookupResult.IsMultiViable)
             {
                 Debug.Assert(lookupResult.Symbols.Any());
                 var members = ArrayBuilder<Symbol>.GetInstance();

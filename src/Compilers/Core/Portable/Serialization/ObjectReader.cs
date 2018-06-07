@@ -80,7 +80,7 @@ namespace Roslyn.Utilities
 
         /// <summary>
         /// Attempts to create a <see cref="ObjectReader"/> from the provided <paramref name="stream"/>.
-        /// If the <paramref name="stream"/> does not start with a valid header, then <code>null</code> will
+        /// If the <paramref name="stream"/> does not start with a valid header, then <see langword="null"/> will
         /// be returned.
         /// </summary>
         public static ObjectReader TryGetReader(
@@ -607,7 +607,12 @@ namespace Roslyn.Utilities
 
             // recursive: read and construct instance immediately from member elements encoding next in the stream
             var instance = typeReader(this);
-            _objectReferenceMap.AddValue(objectId, instance);
+
+            if (instance.ShouldReuseInSerialization)
+            {
+                _objectReferenceMap.AddValue(objectId, instance);
+            }
+
             return instance;
         }
 

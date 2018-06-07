@@ -274,6 +274,8 @@ namespace Microsoft.CodeAnalysis
         System_Runtime_InteropServices_UnmanagedType,
         System_Runtime_CompilerServices_IsUnmanagedAttribute,
 
+        Microsoft_VisualBasic_Conversion,
+
         NextAvailable,
     }
 
@@ -541,6 +543,7 @@ namespace Microsoft.CodeAnalysis
             "System.ReadOnlySpan`1",
             "System.Runtime.InteropServices.UnmanagedType",
             "System.Runtime.CompilerServices.IsUnmanagedAttribute",
+            "Microsoft.VisualBasic.Conversion",
         };
 
         private readonly static Dictionary<string, WellKnownType> s_nameToTypeIdMap = new Dictionary<string, WellKnownType>((int)Count);

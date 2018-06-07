@@ -126,3 +126,8 @@ Example:
     `error CS8313: A default literal 'default' is not valid as a case constant. Use another literal (e.g. '0' or 'null') as appropriate. If you intended to write the default label, use 'default:' without 'case'.`
 - Visual Studio 2017 version 15.7: https://github.com/dotnet/roslyn/issues/25399 C# compiler will now produce errors if partial methods parameters have different ref-kinds in implementation vs definition.
 - Visual Studio 2017 version 15.7: https://github.com/dotnet/roslyn/issues/23525 C# compiler will now produce errors if there was an invalid pdbpath supplied to an embedded pdb, instead of just writing it to the binary.
+- Visutal Studio 2017 version 15.7: https://github.com/dotnet/csharplang/blob/master/proposals/csharp-7.3/tuple-equality.md#compatibility The "tuple equality" features (in C# 7.3) introduces built-in operators `==` and `!=` on tuple types. Those built-in operators take precedence over user-defined comparison operators on a custom `ValueTuple` type.
+
+- Visual Studio 2017 version 15.8: https://github.com/dotnet/roslyn/issues/22455 C# compiler will now produce errors if there was an "in" or an "out" argument to an "__arglist" call. "out" was always allowed, and "in" was introduced in 15.5.
+- Visual Studio 2017 version 15.8: https://github.com/dotnet/roslyn/issues/26418 C# compiler will now produce errors on out variable declarations that have "ref" or "ref readonly" ref kinds. Example: M(out ref int x);
+- Visual Studio 2017 version 15.8: https://github.com/dotnet/roslyn/issues/27047 The C# compiler will now produce diagnostics for operators marked as obsolete when they are used as part of a tuple comparison.

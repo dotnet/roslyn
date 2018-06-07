@@ -128,6 +128,14 @@
       <NgenArchitecture>All</NgenArchitecture>
       <NgenPriority>3</NgenPriority>
     </ProjectReference>
+    <ProjectReference Include="..\..\Workspaces\Core\MSBuild\Workspaces.MSBuild.csproj">
+      <Name>Workspaces.MSBuild</Name>
+      <IncludeOutputGroupsInVSIX>BuiltProjectOutputGroup</IncludeOutputGroupsInVSIX>
+      <ForceIncludeInVSIX>true</ForceIncludeInVSIX>
+      <Ngen>true</Ngen>
+      <NgenArchitecture>All</NgenArchitecture>
+      <NgenPriority>3</NgenPriority>
+    </ProjectReference>
     <ProjectReference Include="..\..\Workspaces\CSharp\Portable\CSharpWorkspace.csproj">
       <Name>CSharpWorkspace</Name>
       <IncludeOutputGroupsInVSIX>BuiltProjectOutputGroup</IncludeOutputGroupsInVSIX>
@@ -228,20 +236,21 @@
     <NuGetPackageToIncludeInVsix Include="System.Composition.TypedParts" />
     <NuGetPackageToIncludeInVsix Include="System.Composition.Convention" />
     <NuGetPackageToIncludeInVsix Include="System.Composition.Hosting" />
+    <NuGetPackageToIncludeInVsix Include="System.Threading.Tasks.Extensions" />
     <NuGetPackageToIncludeInVsix Include="ICSharpCode.Decompiler" />
     <NuGetPackageToIncludeInVsix Include="Mono.Cecil" />
   </ItemGroup>
   <ItemGroup>
-    <VSIXSourceItem Include="$(NuGetPackageRoot)\SQLitePCLRaw.bundle_green\1.1.2\lib\net45\SQLitePCLRaw.batteries_green.dll" />
-    <VSIXSourceItem Include="$(NuGetPackageRoot)\SQLitePCLRaw.bundle_green\1.1.2\lib\net45\SQLitePCLRaw.batteries_v2.dll" />
-    <VSIXSourceItem Include="$(NuGetPackageRoot)\SQLitePCLRaw.provider.e_sqlite3.net45\1.1.2\lib\net45\SQLitePCLRaw.provider.e_sqlite3.dll" />
-    <VSIXSourceItem Include="$(NuGetPackageRoot)\SQLitePCLRaw.core\1.1.2\lib\net45\SQLitePCLRaw.core.dll" />
-    <Content Include="$(NuGetPackageRoot)\sqlitepclraw.lib.e_sqlite3.v110_xp\1.1.2\runtimes\win7-x86\native\e_sqlite3.dll">
+    <VSIXSourceItem Include="$(NuGetPackageRoot)\SQLitePCLRaw.bundle_green\$(SQLitePCLRawbundle_greenVersion)\lib\net45\SQLitePCLRaw.batteries_green.dll" />
+    <VSIXSourceItem Include="$(NuGetPackageRoot)\SQLitePCLRaw.bundle_green\$(SQLitePCLRawbundle_greenVersion)\lib\net45\SQLitePCLRaw.batteries_v2.dll" />
+    <VSIXSourceItem Include="$(NuGetPackageRoot)\SQLitePCLRaw.provider.e_sqlite3.net45\$(SQLitePCLRawbundle_greenVersion)\lib\net45\SQLitePCLRaw.provider.e_sqlite3.dll" />
+    <VSIXSourceItem Include="$(NuGetPackageRoot)\SQLitePCLRaw.core\$(SQLitePCLRawbundle_greenVersion)\lib\net45\SQLitePCLRaw.core.dll" />
+    <Content Include="$(NuGetPackageRoot)\sqlitepclraw.lib.e_sqlite3.v110_xp\$(SQLitePCLRawbundle_greenVersion)\runtimes\win-x86\native\e_sqlite3.dll">
       <Link>x86\e_sqlite3.dll</Link>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       <IncludeInVSIX>true</IncludeInVSIX>
     </Content>
-    <Content Include="$(NuGetPackageRoot)\sqlitepclraw.lib.e_sqlite3.v110_xp\1.1.2\runtimes\win7-x64\native\e_sqlite3.dll">
+    <Content Include="$(NuGetPackageRoot)\sqlitepclraw.lib.e_sqlite3.v110_xp\$(SQLitePCLRawbundle_greenVersion)\runtimes\win-x64\native\e_sqlite3.dll">
       <Link>x64\e_sqlite3.dll</Link>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       <IncludeInVSIX>true</IncludeInVSIX>

@@ -21,10 +21,6 @@
     <GetVsixSourceItemsDependsOn>$(GetVsixSourceItemsDependsOn);IncludeNuGetResolvedAssets</GetVsixSourceItemsDependsOn>
     <ProducingSignedVsix Condition="'$(ShouldSignBuild)' == 'true' AND '$(NonShipping)' != 'true' AND '$(CreateVsixContainer)' == 'true'">true</ProducingSignedVsix>
 
-    <!-- The netstandard 1.3 package by default includes Microsoft.CodeAnalysis.  That's a bit
-         of a non-starter since we build it.  Using manual references for now -->
-    <DisableImplicitFrameworkReferences Condition="'$(DisableImplicitFrameworkReferences)' == ''" >true</DisableImplicitFrameworkReferences>
-      
     <!-- Only generate our runtimeconfig.json files for net core apps. It's unnecessary in desktop projects
          but gets included in lots of output items like VSIX. -->
     <GenerateRuntimeConfigurationFiles Condition="'$(TargetFramework)' != 'netcoreapp1.1' AND '$(TargetFramework)' != 'netcoreapp2.0'">false</GenerateRuntimeConfigurationFiles>
@@ -389,7 +385,7 @@
     https://github.com/dotnet/roslyn/issues/18753
   -->
   <ItemGroup>
-    <None Remove="$(NuGetPackageFolders)xunit.runner.visualstudio\$(xunitrunnervisualstudioVersion)\build\net20\..\_common\xunit.abstractions.dll" />
+    <None Remove="$(NuGetPackageRoot)xunit.runner.visualstudio\$(xunitrunnervisualstudioVersion)\build\net20\..\_common\xunit.abstractions.dll" />
   </ItemGroup>
 
   <!-- We need to run publish on our CoreCLR executables (CscCore and VbcCore) without rebuilding
