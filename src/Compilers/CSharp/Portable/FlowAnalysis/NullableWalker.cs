@@ -1679,26 +1679,26 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // Ignore NotNullWhenFalse that is inapplicable
                 annotations = removeInapplicableNotNullWhenSense(parameter, annotations, sense: false);
 
-                // EnsuresTrue must be applied to a bool parameter
-                if ((annotations & FlowAnalysisAnnotations.EnsuresTrue) != 0 &&
+                // AssertsTrue must be applied to a bool parameter
+                if ((annotations & FlowAnalysisAnnotations.AssertsTrue) != 0 &&
                     (parameter.Type.SpecialType != SpecialType.System_Boolean))
                 {
-                    annotations &= ~FlowAnalysisAnnotations.EnsuresTrue;
+                    annotations &= ~FlowAnalysisAnnotations.AssertsTrue;
                 }
 
-                // EnsuresFalse must be applied to a bool parameter
-                if ((annotations & FlowAnalysisAnnotations.EnsuresFalse) != 0 &&
+                // AssertsFalse must be applied to a bool parameter
+                if ((annotations & FlowAnalysisAnnotations.AssertsFalse) != 0 &&
                     (parameter.Type.SpecialType != SpecialType.System_Boolean))
                 {
-                    annotations &= ~FlowAnalysisAnnotations.EnsuresFalse;
+                    annotations &= ~FlowAnalysisAnnotations.AssertsFalse;
                 }
 
-                // We'll ignore EnsuresTrue and EnsuresFalse if both set in metadata
-                if ((annotations & FlowAnalysisAnnotations.EnsuresTrue) != 0 &&
-                     (annotations & FlowAnalysisAnnotations.EnsuresFalse) != 0)
+                // We'll ignore AssertsTrue and AssertsFalse if both set in metadata
+                if ((annotations & FlowAnalysisAnnotations.AssertsTrue) != 0 &&
+                     (annotations & FlowAnalysisAnnotations.AssertsFalse) != 0)
                 {
-                    annotations &= ~FlowAnalysisAnnotations.EnsuresTrue;
-                    annotations &= ~FlowAnalysisAnnotations.EnsuresFalse;
+                    annotations &= ~FlowAnalysisAnnotations.AssertsTrue;
+                    annotations &= ~FlowAnalysisAnnotations.AssertsFalse;
                 }
 
                 return annotations;
@@ -1900,8 +1900,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             for (int i = 0; i < arguments.Length; i++)
             {
                 FlowAnalysisAnnotations annotation = annotations[i];
-                bool ensuresTrue = (annotation & FlowAnalysisAnnotations.EnsuresTrue) != 0;
-                bool ensuresFalse = (annotation & FlowAnalysisAnnotations.EnsuresFalse) != 0;
+                bool assertsTrue = (annotation & FlowAnalysisAnnotations.AssertsTrue) != 0;
+                bool assertsFalse = (annotation & FlowAnalysisAnnotations.AssertsFalse) != 0;
 
                 if (this.IsConditionalState)
                 {
@@ -1916,12 +1916,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                     LocalState whenFalse = this.StateWhenFalse.Clone();
 
                     this.SetState(whenTrue);
-                    visitArgumentEvaluateAndUnsplit(i, ensuresTrue, ensuresFalse);
+                    visitArgumentEvaluateAndUnsplit(i, assertsTrue, assertsFalse);
                     Debug.Assert(!IsConditionalState);
                     whenTrue = this.State; // LocalState may be a struct
 
                     this.SetState(whenFalse);
-                    visitArgumentEvaluateAndUnsplit(i, ensuresTrue, ensuresFalse);
+                    visitArgumentEvaluateAndUnsplit(i, assertsTrue, assertsFalse);
                     Debug.Assert(!IsConditionalState);
                     whenFalse = this.State; // LocalState may be a struct
 
@@ -1929,7 +1929,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
                 else
                 {
-                    visitArgumentEvaluateAndUnsplit(i, ensuresTrue, ensuresFalse);
+                    visitArgumentEvaluateAndUnsplit(i, assertsTrue, assertsFalse);
                 }
 
                 var argument = arguments[i];
@@ -1963,8 +1963,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             _result = _invalidType;
 
             // Evaluate an argument, potentially producing a split state.
-            // Then unsplit it based on [EnsuresTrue] or [EnsuresFalse] attributes, or default Unsplit otherwise.
-            void visitArgumentEvaluateAndUnsplit(int argumentIndex, bool ensuresTrue, bool ensuresFalse)
+            // Then unsplit it based on [AssertsTrue] or [AssertsFalse] attributes, or default Unsplit otherwise.
+            void visitArgumentEvaluateAndUnsplit(int argumentIndex, bool assertsTrue, bool assertsFalse)
             {
                 VisitArgumentEvaluate(arguments, refKindsOpt, argumentIndex, keepSplit: true);
 
@@ -1972,11 +1972,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     return;
                 }
-                else if (ensuresTrue)
+                else if (assertsTrue)
                 {
                     this.SetState(this.StateWhenTrue);
                 }
-                else if (ensuresFalse)
+                else if (assertsFalse)
                 {
                     this.SetState(this.StateWhenFalse);
                 }

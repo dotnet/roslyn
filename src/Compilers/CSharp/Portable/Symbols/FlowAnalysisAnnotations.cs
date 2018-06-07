@@ -12,14 +12,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         NotNullWhenTrue = 1 << 0,
         NotNullWhenFalse = 1 << 1,
         EnsuresNotNull = NotNullWhenTrue | NotNullWhenFalse,
-        EnsuresTrue = 1 << 2,
-        EnsuresFalse = 1 << 3,
+        AssertsTrue = 1 << 2,
+        AssertsFalse = 1 << 3,
     }
 
     internal static class FlowAnalysisAnnotationsFacts
     {
         // For EnsuresNotNull, you should set NotNullWhenTrue and NotNullWhenFalse
-        internal static FlowAnalysisAnnotations Create(bool notNullWhenTrue, bool notNullWhenFalse, bool ensuresTrue, bool ensuresFalse)
+        internal static FlowAnalysisAnnotations Create(bool notNullWhenTrue, bool notNullWhenFalse, bool assertsTrue, bool assertsFalse)
         {
             FlowAnalysisAnnotations value = None;
             if (notNullWhenFalse)
@@ -32,14 +32,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 value |= NotNullWhenTrue;
             }
 
-            if (ensuresTrue)
+            if (assertsTrue)
             {
-                value |= EnsuresTrue;
+                value |= AssertsTrue;
             }
 
-            if (ensuresFalse)
+            if (assertsFalse)
             {
-                value |= EnsuresFalse;
+                value |= AssertsFalse;
             }
 
             return value;

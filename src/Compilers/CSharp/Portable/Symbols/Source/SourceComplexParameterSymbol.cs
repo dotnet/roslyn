@@ -144,8 +144,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return FlowAnalysisAnnotationsFacts.Create(
                     notNullWhenTrue: hasEnsuresNotNull || attributeData?.HasNotNullWhenTrueAttribute == true,
                     notNullWhenFalse: hasEnsuresNotNull || attributeData?.HasNotNullWhenFalseAttribute == true,
-                    ensuresTrue: attributeData?.HasEnsuresTrueAttribute == true,
-                    ensuresFalse: attributeData?.HasEnsuresFalseAttribute == true);
+                    assertsTrue: attributeData?.HasAssertsTrueAttribute == true,
+                    assertsFalse: attributeData?.HasAssertsFalseAttribute == true);
             }
         }
 
@@ -639,13 +639,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 arguments.GetOrCreateData<CommonParameterWellKnownAttributeData>().HasEnsuresNotNullAttribute = true;
             }
-            else if (attribute.IsTargetAttribute(this, AttributeDescription.EnsuresTrueAttribute))
+            else if (attribute.IsTargetAttribute(this, AttributeDescription.AssertsTrueAttribute))
             {
-                arguments.GetOrCreateData<CommonParameterWellKnownAttributeData>().HasEnsuresTrueAttribute = true;
+                arguments.GetOrCreateData<CommonParameterWellKnownAttributeData>().HasAssertsTrueAttribute = true;
             }
-            else if (attribute.IsTargetAttribute(this, AttributeDescription.EnsuresFalseAttribute))
+            else if (attribute.IsTargetAttribute(this, AttributeDescription.AssertsFalseAttribute))
             {
-                arguments.GetOrCreateData<CommonParameterWellKnownAttributeData>().HasEnsuresFalseAttribute = true;
+                arguments.GetOrCreateData<CommonParameterWellKnownAttributeData>().HasAssertsFalseAttribute = true;
             }
         }
 

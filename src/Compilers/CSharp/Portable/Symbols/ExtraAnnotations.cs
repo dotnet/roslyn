@@ -40,10 +40,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 { "System.Boolean System.String.IsNullOrEmpty(System.String)", Array(default, NotNullWhenFalse) },
                 { "System.Boolean System.String.IsNullOrWhiteSpace(System.String)", Array(default, NotNullWhenFalse) },
                 { "System.Boolean System.String.Contains(System.String)", Array(default, EnsuresNotNull) },
-                { "System.Void System.Diagnostics.Debug.Assert(System.Boolean)", Array(default, EnsuresTrue) },
-                { "System.Void System.Diagnostics.Debug.Assert(System.Boolean, System.String)", Array(default, EnsuresTrue, default) },
-                { "System.Void System.Diagnostics.Debug.Assert(System.Boolean, System.String, System.String)", Array(default, EnsuresTrue, default, default) },
-                { "System.Void System.Diagnostics.Debug.Assert(System.Boolean, System.String, System.String, System.Object[])", Array(default, EnsuresTrue, default, default, default) },
+                { "System.Void System.Diagnostics.Debug.Assert(System.Boolean)", Array(default, AssertsTrue) },
+                { "System.Void System.Diagnostics.Debug.Assert(System.Boolean, System.String)", Array(default, AssertsTrue, default) },
+                { "System.Void System.Diagnostics.Debug.Assert(System.Boolean, System.String, System.String)", Array(default, AssertsTrue, default, default) },
+                { "System.Void System.Diagnostics.Debug.Assert(System.Boolean, System.String, System.String, System.Object[])", Array(default, AssertsTrue, default, default, default) },
             }.ToImmutableDictionary();
 
         internal static string MakeMethodKey(PEMethodSymbol method, ParamInfo<TypeSymbol>[] paramInfo)

@@ -109,24 +109,24 @@ namespace System.Runtime.CompilerServices
 }
 ";
 
-        private const string EnsuresTrueAttributeDefinition = @"
+        private const string AssertsTrueAttributeDefinition = @"
 namespace System.Runtime.CompilerServices
 {
     [AttributeUsage(AttributeTargets.Parameter, AllowMultiple = false)]
-    public class EnsuresTrueAttribute : Attribute
+    public class AssertsTrueAttribute : Attribute
     {
-        public EnsuresTrueAttribute () { }
+        public AssertsTrueAttribute () { }
     }
 }
 ";
 
-        private const string EnsuresFalseAttributeDefinition = @"
+        private const string AssertsFalseAttributeDefinition = @"
 namespace System.Runtime.CompilerServices
 {
     [AttributeUsage(AttributeTargets.Parameter, AllowMultiple = false)]
-    public class EnsuresFalseAttribute : Attribute
+    public class AssertsFalseAttribute : Attribute
     {
-        public EnsuresFalseAttribute () { }
+        public AssertsFalseAttribute () { }
     }
 }
 ";
@@ -6716,7 +6716,7 @@ public class C
         }
 
         [Fact]
-        public void EnsuresTrue_NotNull()
+        public void AssertsTrue_NotNull()
         {
             CSharpCompilation c = CreateCompilation(@"
 using System.Runtime.CompilerServices;
@@ -6728,15 +6728,15 @@ class C
         c.ToString();
     }
 
-    void MyAssert([EnsuresTrue] bool condition) => throw null;
+    void MyAssert([AssertsTrue] bool condition) => throw null;
 }
-" + EnsuresTrueAttributeDefinition, parseOptions: TestOptions.Regular8);
+" + AssertsTrueAttributeDefinition, parseOptions: TestOptions.Regular8);
 
             c.VerifyDiagnostics();
         }
 
         [Fact]
-        public void EnsuresTrue_Null()
+        public void AssertsTrue_Null()
         {
             CSharpCompilation c = CreateCompilation(@"
 using System.Runtime.CompilerServices;
@@ -6748,9 +6748,9 @@ class C
         c.ToString();
     }
 
-    void MyAssert([EnsuresTrue] bool condition) => throw null;
+    void MyAssert([AssertsTrue] bool condition) => throw null;
 }
-" + EnsuresTrueAttributeDefinition, parseOptions: TestOptions.Regular8);
+" + AssertsTrueAttributeDefinition, parseOptions: TestOptions.Regular8);
 
             c.VerifyDiagnostics(
                 // (8,9): warning CS8602: Possible dereference of a null reference.
@@ -6760,7 +6760,7 @@ class C
         }
 
         [Fact]
-        public void EnsuresTrue_MethodWithReturnType()
+        public void AssertsTrue_MethodWithReturnType()
         {
             CSharpCompilation c = CreateCompilation(@"
 using System.Runtime.CompilerServices;
@@ -6778,15 +6778,15 @@ class C
         }
     }
 
-    bool MyAssert([EnsuresTrue] bool condition) => throw null;
+    bool MyAssert([AssertsTrue] bool condition) => throw null;
 }
-" + EnsuresTrueAttributeDefinition, parseOptions: TestOptions.Regular8);
+" + AssertsTrueAttributeDefinition, parseOptions: TestOptions.Regular8);
 
             c.VerifyDiagnostics();
         }
 
         [Fact]
-        public void EnsuresTrue_Debug_Assert1_NotNull()
+        public void AssertsTrue_Debug_Assert1_NotNull()
         {
             CSharpCompilation c = CreateCompilation(@"
 class C
@@ -6803,7 +6803,7 @@ class C
         }
 
         [Fact]
-        public void EnsuresTrue_Debug_Assert1_NotNullAndNotEmpty()
+        public void AssertsTrue_Debug_Assert1_NotNullAndNotEmpty()
         {
             CSharpCompilation c = CreateCompilation(@"
 class C
@@ -6820,7 +6820,7 @@ class C
         }
 
         [Fact]
-        public void EnsuresTrue_Debug_Assert1_NotNullOrUnknown()
+        public void AssertsTrue_Debug_Assert1_NotNullOrUnknown()
         {
             CSharpCompilation c = CreateCompilation(@"
 class C
@@ -6841,7 +6841,7 @@ class C
         }
 
         [Fact]
-        public void EnsuresTrue_Debug_Assert2_NotNull()
+        public void AssertsTrue_Debug_Assert2_NotNull()
         {
             CSharpCompilation c = CreateCompilation(@"
 class C
@@ -6858,7 +6858,7 @@ class C
         }
 
         [Fact]
-        public void EnsuresTrue_Debug_Assert3_NotNull()
+        public void AssertsTrue_Debug_Assert3_NotNull()
         {
             CSharpCompilation c = CreateCompilation(@"
 class C
@@ -6875,7 +6875,7 @@ class C
         }
 
         [Fact]
-        public void EnsuresTrue_Debug_Assert4_NotNull()
+        public void AssertsTrue_Debug_Assert4_NotNull()
         {
             CSharpCompilation c = CreateCompilation(@"
 class C
@@ -6892,7 +6892,7 @@ class C
         }
 
         [Fact]
-        public void EnsuresTrue_Debug_Assert_IsNull()
+        public void AssertsTrue_Debug_Assert_IsNull()
         {
             CSharpCompilation c = CreateCompilation(@"
 class C
@@ -6913,7 +6913,7 @@ class C
         }
 
         [Fact]
-        public void EnsuresTrue_Debug_Assert_NoDuplicateDiagnostics()
+        public void AssertsTrue_Debug_Assert_NoDuplicateDiagnostics()
         {
             CSharpCompilation c = CreateCompilation(@"
 class C
@@ -6938,7 +6938,7 @@ class C
         }
 
         [Fact]
-        public void EnsuresTrue_Debug_Assert_InTry()
+        public void AssertsTrue_Debug_Assert_InTry()
         {
             CSharpCompilation c = CreateCompilation(@"
 class C
@@ -6964,7 +6964,7 @@ class C
         }
 
         [Fact]
-        public void EnsuresTrue_WithNotNullWhenFalse()
+        public void AssertsTrue_WithNotNullWhenFalse()
         {
             CSharpCompilation c = CreateCompilation(@"
 class C
@@ -7622,7 +7622,7 @@ namespace System.Diagnostics
 
             c.VerifyDiagnostics();
 
-            VerifyAnnotations(c, "System.Diagnostics.Debug.Assert", EnsuresTrue, None);
+            VerifyAnnotations(c, "System.Diagnostics.Debug.Assert", AssertsTrue, None);
         }
 
         [Fact]
