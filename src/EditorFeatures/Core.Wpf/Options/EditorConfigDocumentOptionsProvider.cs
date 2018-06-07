@@ -87,31 +87,20 @@ namespace Microsoft.CodeAnalysis.Editor.Options
         {
             lock (_gate)
             {
-                var itemReleased = false;
+                var itemsToRemove = new List<DocumentId>();
                 foreach (var (documentId, contextTask) in _openDocumentContexts)
                 {
                     if (projectId is null || documentId.ProjectId == projectId)
                     {
-                        itemReleased = true;
+                        itemsToRemove.Add(documentId);
                         ReleaseContext_NoLock(contextTask);
                     }
                 }
 
                 // If any items were released due to the Clear operation, we need to remove them from the map.
-                if (itemReleased)
+                foreach (var documentId in itemsToRemove)
                 {
-                    if (projectId is null)
-                    {
-                        _openDocumentContexts.Clear();
-                    }
-                    else
-                    {
-                        var itemsToRemove = _openDocumentContexts.Keys.Where(key => key.ProjectId == projectId).ToList();
-                        foreach (var documentId in itemsToRemove)
-                        {
-                            _openDocumentContexts.Remove(documentId);
-                        }
-                    }
+                    _openDocumentContexts.Remove(documentId);
                 }
             }
         }
