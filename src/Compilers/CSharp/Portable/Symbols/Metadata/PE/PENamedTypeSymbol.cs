@@ -458,15 +458,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                         TypeSymbol decodedType = new MetadataDecoder(moduleSymbol, this).GetTypeOfToken(token);
                         var result = (NamedTypeSymbol)DynamicTypeDecoder.TransformType(decodedType, 0, _handle, moduleSymbol);
                         result = (NamedTypeSymbol)TupleTypeDecoder.DecodeTupleTypesIfApplicable(result, _handle, moduleSymbol);
-
-                        // PROTOTYPE(NullableReferenceTypes): Should call NullableTypeDecoder.TransformOrEraseNullability
-                        // here (see StaticNullChecking.UnannotatedAssemblies_09) but TransformOrEraseNullability results in
-                        // a StackOverflowException when building Roslyn.sln.
-                        if (moduleSymbol.UtilizesNullableReferenceTypes)
-                        {
-                            result = (NamedTypeSymbol)NullableTypeDecoder.TransformType(TypeSymbolWithAnnotations.Create(result), _handle, moduleSymbol).TypeSymbol;
-                        }
-                        return result;
+                        return DecodeNullable(result, _handle, moduleSymbol);
                     }
                 }
                 catch (BadImageFormatException mrEx)
@@ -487,7 +479,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
                 if (interfaceImpls.Count > 0)
                 {
-                    NamedTypeSymbol[] symbols = new NamedTypeSymbol[interfaceImpls.Count];
+                    var symbols = ArrayBuilder<NamedTypeSymbol>.GetInstance(interfaceImpls.Count);
                     var tokenDecoder = new MetadataDecoder(moduleSymbol, this);
 
                     int i = 0;
@@ -497,12 +489,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                         TypeSymbol typeSymbol = tokenDecoder.GetTypeOfToken(interfaceHandle);
 
                         typeSymbol = TupleTypeDecoder.DecodeTupleTypesIfApplicable(typeSymbol, interfaceImpl, moduleSymbol);
-
-                        var namedTypeSymbol = typeSymbol as NamedTypeSymbol;
-                        symbols[i++] = (object)namedTypeSymbol != null ? namedTypeSymbol : new UnsupportedMetadataTypeSymbol(); // interface tmpList contains a bad type
+                        var result = typeSymbol as NamedTypeSymbol;
+                        if (result is null)
+                        {
+                            result = new UnsupportedMetadataTypeSymbol(); // interface tmpList contains a bad type
+                        }
+                        else
+                        {
+                            result = DecodeNullable(result, interfaceImpl, moduleSymbol);
+                        }
+                        symbols.Add(result);
                     }
 
-                    return symbols.AsImmutableOrNull();
+                    return symbols.ToImmutableAndFree();
                 }
 
                 return ImmutableArray<NamedTypeSymbol>.Empty;
@@ -511,6 +510,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             {
                 return ImmutableArray.Create<NamedTypeSymbol>(new UnsupportedMetadataTypeSymbol(mrEx));
             }
+        }
+
+        private static NamedTypeSymbol DecodeNullable(NamedTypeSymbol type, EntityHandle handle, PEModuleSymbol moduleSymbol)
+        {
+            // PROTOTYPE(NullableReferenceTypes): Should call NullableTypeDecoder.TransformOrEraseNullability
+            // here (see StaticNullChecking.UnannotatedAssemblies_09) but TransformOrEraseNullability results in
+            // a StackOverflowException when building Roslyn.sln.
+            if (moduleSymbol.UtilizesNullableReferenceTypes)
+            {
+                type = (NamedTypeSymbol)NullableTypeDecoder.TransformType(TypeSymbolWithAnnotations.Create(type), handle, moduleSymbol).TypeSymbol;
+            }
+            return type;
         }
 
         public override NamedTypeSymbol ConstructedFrom

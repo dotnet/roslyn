@@ -316,13 +316,13 @@ class C
         public void EmitAttribute_BaseClass()
         {
             var source =
-@"class A<T>
+@"public class A<T>
 {
 }
-class B1 : A<object>
+public class B1 : A<object>
 {
 }
-class B2 : A<object?>
+public class B2 : A<object?>
 {
 }";
             var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
@@ -337,12 +337,76 @@ class B2 : A<object?>
                 AssertNoNullableAttribute(type.BaseType().GetAttributes());
                 AssertNullableAttribute(type.GetAttributes());
             });
+            var source2 =
+@"class C
+{
+    static void F(A<object> x, A<object?> y)
+    {
+    }
+    static void G(B1 x, B2 y)
+    {
+        F(x, x);
+        F(y, y);
+    }
+}";
+            var comp2 = CreateCompilation(source2, parseOptions: TestOptions.Regular8, references: new[] { comp.EmitToImageReference() });
+            comp2.VerifyEmitDiagnostics(
+                // (8,14): warning CS8620: Nullability of reference types in argument of type 'B1' doesn't match target type 'A<object?>' for parameter 'y' in 'void C.F(A<object> x, A<object?> y)'.
+                //         F(x, x);
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInArgument, "x").WithArguments("B1", "A<object?>", "y", "void C.F(A<object> x, A<object?> y)").WithLocation(8, 14),
+                // (9,11): warning CS8620: Nullability of reference types in argument of type 'B2' doesn't match target type 'A<object>' for parameter 'x' in 'void C.F(A<object> x, A<object?> y)'.
+                //         F(y, y);
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInArgument, "y").WithArguments("B2", "A<object>", "x", "void C.F(A<object> x, A<object?> y)").WithLocation(9, 11));
         }
 
-        // PROTOTYPE(NullableReferenceTypes): Synthesize [Nullable] for interface
-        // implementations. See TypeSymbolExtensions.GetTypeRefWithAttributes.
-        [Fact(Skip = "TODO")]
-        public void EmitAttribute_Interface()
+        [Fact]
+        public void EmitAttribute_Interface_01()
+        {
+            var source =
+@"public interface I<T>
+{
+}
+public class A : I<object>
+{
+}
+public class B : I<object?>
+{
+}";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
+            CompileAndVerify(comp, validator: assembly =>
+            {
+                var reader = assembly.GetMetadataReader();
+                var typeDef = GetTypeDefinitionByName(reader, "A");
+                var interfaceImpl = reader.GetInterfaceImplementation(typeDef.GetInterfaceImplementations().Single());
+                AssertAttributes(reader, interfaceImpl.GetCustomAttributes());
+                typeDef = GetTypeDefinitionByName(reader, "B");
+                interfaceImpl = reader.GetInterfaceImplementation(typeDef.GetInterfaceImplementations().Single());
+                AssertAttributes(reader, interfaceImpl.GetCustomAttributes(), "MethodDefinition:Void System.Runtime.CompilerServices.NullableAttribute..ctor(Boolean[])");
+            });
+            var source2 =
+@"class C
+{
+    static void F(I<object> x, I<object?> y)
+    {
+    }
+    static void G(A x, B y)
+    {
+        F(x, x);
+        F(y, y);
+    }
+}";
+            var comp2 = CreateCompilation(source2, parseOptions: TestOptions.Regular8, references: new[] { comp.EmitToImageReference() });
+            comp2.VerifyEmitDiagnostics(
+                // (8,14): warning CS8620: Nullability of reference types in argument of type 'A' doesn't match target type 'I<object?>' for parameter 'y' in 'void C.F(I<object> x, I<object?> y)'.
+                //         F(x, x);
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInArgument, "x").WithArguments("A", "I<object?>", "y", "void C.F(I<object> x, I<object?> y)").WithLocation(8, 14),
+                // (9,11): warning CS8620: Nullability of reference types in argument of type 'B' doesn't match target type 'I<object>' for parameter 'x' in 'void C.F(I<object> x, I<object?> y)'.
+                //         F(y, y);
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInArgument, "y").WithArguments("B", "I<object>", "x", "void C.F(I<object> x, I<object?> y)").WithLocation(9, 11));
+        }
+
+        [Fact]
+        public void EmitAttribute_Interface_02()
         {
             var source =
 @"public interface I<T>
@@ -354,26 +418,24 @@ public class A : I<(object X, object Y)>
 public class B : I<(object X, object? Y)>
 {
 }";
-            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8, references: new[] { SystemRuntimeFacadeRef, ValueTupleRef });
-            CompileAndVerify(comp, symbolValidator: module =>
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
+            CompileAndVerify(comp, validator: assembly =>
             {
-                var type = module.ContainingAssembly.GetTypeByMetadataName("I`1");
-                AssertNoNullableAttribute(type.GetAttributes());
-                type = module.ContainingAssembly.GetTypeByMetadataName("A");
-                AssertNoNullableAttribute(type.Interfaces().Single().GetAttributes());
-                AssertNoNullableAttribute(type.GetAttributes());
-                type = module.ContainingAssembly.GetTypeByMetadataName("B");
-                AssertNoNullableAttribute(type.Interfaces().Single().GetAttributes());
-                // No [Nullable] or [TupleElementNames] attributes on 'B' but
-                // there should be attributes on the interfaceimpl.
-                AssertNoNullableAttribute(type.GetAttributes());
+                var reader = assembly.GetMetadataReader();
+                var typeDef = GetTypeDefinitionByName(reader, "A");
+                var interfaceImpl = reader.GetInterfaceImplementation(typeDef.GetInterfaceImplementations().Single());
+                AssertAttributes(reader, interfaceImpl.GetCustomAttributes(),
+                    "MemberReference:Void System.Runtime.CompilerServices.TupleElementNamesAttribute..ctor(String[])");
+                typeDef = GetTypeDefinitionByName(reader, "B");
+                interfaceImpl = reader.GetInterfaceImplementation(typeDef.GetInterfaceImplementations().Single());
+                AssertAttributes(reader, interfaceImpl.GetCustomAttributes(),
+                    "MemberReference:Void System.Runtime.CompilerServices.TupleElementNamesAttribute..ctor(String[])",
+                    "MethodDefinition:Void System.Runtime.CompilerServices.NullableAttribute..ctor(Boolean[])");
             });
-            AssertAttribute(comp, "NullableAttribute");
-            AssertAttribute(comp, "TupleElementNamesAttribute");
             var source2 =
 @"class C
 {
-    static void F(I<object> x, I<object?> y)
+    static void F(I<(object, object)> a, I<(object, object?)> b)
     {
     }
     static void G(A a, B b)
@@ -383,8 +445,34 @@ public class B : I<(object X, object? Y)>
     }
 }";
             var comp2 = CreateCompilation(source2, parseOptions: TestOptions.Regular8, references: new[] { comp.EmitToImageReference() });
-            // PROTOTYPE(NullableReferenceTypes): Should report warnings.
-            comp2.VerifyEmitDiagnostics();
+            comp2.VerifyEmitDiagnostics(
+                // (8,14): warning CS8620: Nullability of reference types in argument of type 'A' doesn't match target type 'I<(object, object?)>' for parameter 'b' in 'void C.F(I<(object, object)> a, I<(object, object?)> b)'.
+                //         F(a, a);
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInArgument, "a").WithArguments("A", "I<(object, object?)>", "b", "void C.F(I<(object, object)> a, I<(object, object?)> b)").WithLocation(8, 14),
+                // (9,14): warning CS8620: Nullability of reference types in argument of type 'B' doesn't match target type 'I<(object, object?)>' for parameter 'b' in 'void C.F(I<(object, object)> a, I<(object, object?)> b)'.
+                //         F(b, b);
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInArgument, "b").WithArguments("B", "I<(object, object?)>", "b", "void C.F(I<(object, object)> a, I<(object, object?)> b)").WithLocation(9, 14));
+        }
+
+        [Fact]
+        public void EmitAttribute_Constraint()
+        {
+            var source =
+@"public class A<T>
+{
+}
+public class B<T> where T : A<object?>
+{
+}";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
+            CompileAndVerify(comp, validator: assembly =>
+            {
+                var reader = assembly.GetMetadataReader();
+                var typeDef = GetTypeDefinitionByName(reader, "B`1");
+                var typeParameter = reader.GetGenericParameter(typeDef.GetGenericParameters()[0]);
+                var constraint = reader.GetGenericParameterConstraint(typeParameter.GetConstraints()[0]);
+                AssertAttributes(reader, constraint.GetCustomAttributes(), "MethodDefinition:Void System.Runtime.CompilerServices.NullableAttribute..ctor(Boolean[])");
+            });
         }
 
         [Fact]
@@ -773,9 +861,7 @@ class B : A<object?>
                 Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "B").WithArguments("System.Runtime.CompilerServices.NullableAttribute").WithLocation(4, 7));
         }
 
-        // PROTOTYPE(NullableReferenceTypes): Synthesize [Nullable] for interface
-        // implementations. See TypeSymbolExtensions.GetTypeRefWithAttributes.
-        [Fact(Skip = "TODO")]
+        [Fact]
         public void ModuleMissingAttribute_Interface()
         {
             var source =
@@ -785,7 +871,7 @@ class B : A<object?>
 class C : I<(object X, object? Y)>
 {
 }";
-            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8, options: TestOptions.ReleaseModule, references: new[] { SystemRuntimeFacadeRef, ValueTupleRef });
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8, options: TestOptions.ReleaseModule);
             comp.VerifyEmitDiagnostics(
                 // (4,7): error CS0518: Predefined type 'System.Runtime.CompilerServices.NullableAttribute' is not defined or imported
                 // class C : I<(object X, object? Y)>
@@ -1032,6 +1118,17 @@ class C
                 var attributes = metadataReader.GetCustomAttributeRows().Select(metadataReader.GetCustomAttributeName).ToArray();
                 Assert.True(attributes.Contains(attributeName));
             }
+        }
+
+        private static TypeDefinition GetTypeDefinitionByName(MetadataReader reader, string name)
+        {
+            return reader.GetTypeDefinition(reader.TypeDefinitions.Single(h => reader.StringComparer.Equals(reader.GetTypeDefinition(h).Name, name)));
+        }
+
+        private static void AssertAttributes(MetadataReader reader, CustomAttributeHandleCollection handles, params string[] expectedNames)
+        {
+            var actualNames = handles.Select(h => reader.Dump(reader.GetCustomAttribute(h).Constructor)).ToArray();
+            AssertEx.SetEqual(actualNames, expectedNames);
         }
     }
 }
