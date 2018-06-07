@@ -29,7 +29,7 @@
       </trans-unit>
       <trans-unit id="if_statement_can_be_simplified">
         <source>'if' statement can be simplified</source>
-        <target state="new">'if' statement can be simplified</target>
+        <target state="translated">'if' deyimi basitleştirilebilir</target>
         <note />
       </trans-unit>
       <trans-unit id="lambda_expression">
@@ -634,7 +634,7 @@
       </trans-unit>
       <trans-unit id="Invert_if">
         <source>Invert if</source>
-        <target state="new">Invert if</target>
+        <target state="translated">if ifadesini tersine çevir</target>
         <note />
       </trans-unit>
     </body>

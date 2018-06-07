@@ -1134,6 +1134,11 @@ Continuare?</target>
         <target state="translated">Finestra interattiva</target>
         <note />
       </trans-unit>
+      <trans-unit id="Paste_in_Interactive">
+        <source>Paste in Interactive</source>
+        <target state="translated">Incolla in finestra interattiva</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Navigate_To_Highlight_Reference">
         <source>Navigate To Highlighted Reference</source>
         <target state="translated">Passa al riferimento evidenziato</target>
@@ -1157,11 +1162,6 @@ Continuare?</target>
       <trans-unit id="Smart_Token_Formatter">
         <source>Smart Token Formatter</source>
         <target state="translated">Formattatore di token intelligente</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Paste_in_Interactive">
-        <source>Paste in Interactive</source>
-        <target state="translated">Incolla in finestra interattiva</target>
         <note />
       </trans-unit>
     </body>

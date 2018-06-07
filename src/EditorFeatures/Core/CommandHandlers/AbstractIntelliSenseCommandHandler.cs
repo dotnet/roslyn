@@ -29,19 +29,16 @@ namespace Microsoft.CodeAnalysis.Editor.CommandHandlers
         IChainedCommandHandler<DownKeyCommandArgs>
     {
         private readonly CompletionCommandHandler _completionCommandHandler;
-        private readonly SignatureHelpCommandHandler _signatureHelpCommandHandler;
-        private readonly QuickInfoCommandHandlerAndSourceProvider _quickInfoCommandHandler;
+        private readonly SignatureHelpCommandHandler _signatureHelpCommandHandler;        
 
         public string DisplayName => EditorFeaturesResources.IntelliSense;
 
         protected AbstractIntelliSenseCommandHandler(
             CompletionCommandHandler completionCommandHandler,
-            SignatureHelpCommandHandler signatureHelpCommandHandler,
-            QuickInfoCommandHandlerAndSourceProvider quickInfoCommandHandler)
+            SignatureHelpCommandHandler signatureHelpCommandHandler)
         {
             _completionCommandHandler = completionCommandHandler;
-            _signatureHelpCommandHandler = signatureHelpCommandHandler;
-            _quickInfoCommandHandler = quickInfoCommandHandler;
+            _signatureHelpCommandHandler = signatureHelpCommandHandler;            
         }
 
         public VSCommanding.CommandState GetCommandState(EscapeKeyCommandArgs args, Func<VSCommanding.CommandState> nextHandler)
@@ -62,8 +59,7 @@ namespace Microsoft.CodeAnalysis.Editor.CommandHandlers
         public void ExecuteCommand(EscapeKeyCommandArgs args, Action nextHandler, CommandExecutionContext context)
         {
             if ((_completionCommandHandler != null && _completionCommandHandler.TryHandleEscapeKey(args)) ||
-                (_signatureHelpCommandHandler != null && _signatureHelpCommandHandler.TryHandleEscapeKey(args)) ||
-                (_quickInfoCommandHandler != null && _quickInfoCommandHandler.TryHandleEscapeKey(args)))
+                (_signatureHelpCommandHandler != null && _signatureHelpCommandHandler.TryHandleEscapeKey(args)))
             {
                 return;
             }
