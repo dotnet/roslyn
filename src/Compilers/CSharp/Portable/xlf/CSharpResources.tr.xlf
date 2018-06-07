@@ -1478,8 +1478,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_IllegalStatement">
-        <source>Only assignment, call, increment, decrement, and new object expressions can be used as a statement</source>
-        <target state="translated">Yalnızca atama, çağrı, artırma, azaltma ve yeni nesne ifadeleri deyim olarak kullanılabilir</target>
+        <source>Only assignment, call, increment, decrement, await, and new object expressions can be used as a statement</source>
+        <target state="needs-review-translation">Yalnızca atama, çağrı, artırma, azaltma ve yeni nesne ifadeleri deyim olarak kullanılabilir</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadGetEnumerator">
@@ -1848,8 +1848,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_FriendRefNotEqualToThis">
-        <source>Friend access was granted by '{0}', but the public key of the output assembly does not match that specified by the attribute in the granting assembly.</source>
-        <target state="translated">{0}' öğesine friend erişimi izni verildi, ancak çıkış derlemesinin ortak anahtarı, izin veren derlemedeki öznitelik tarafından belirtilenle eşleşmiyor.</target>
+        <source>Friend access was granted by '{0}', but the public key of the output assembly ('{1}') does not match that specified by the InternalsVisibleTo attribute in the granting assembly.</source>
+        <target state="needs-review-translation">{0}' öğesine friend erişimi izni verildi, ancak çıkış derlemesinin ortak anahtarı, izin veren derlemedeki öznitelik tarafından belirtilenle eşleşmiyor.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_FriendRefSigningMismatch">
@@ -4766,8 +4766,8 @@ RuntimeCompatibilityAttribute AssemblyInfo.cs dosyasında false olarak ayarlanm�
         <note />
       </trans-unit>
       <trans-unit id="ERR_CantConvAnonMethParams">
-        <source>Cannot convert {0} to delegate type '{1}' because the parameter types do not match the delegate parameter types</source>
-        <target state="translated">{0} parametre türleri temsilci parametre türleriyle eşleşmediğinden '{1}' temsilci türüne dönüştürülemiyor</target>
+        <source>Cannot convert {0} to type '{1}' because the parameter types do not match the delegate parameter types</source>
+        <target state="needs-review-translation">{0} parametre türleri temsilci parametre türleriyle eşleşmediğinden '{1}' temsilci türüne dönüştürülemiyor</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CantConvAnonMethReturns">

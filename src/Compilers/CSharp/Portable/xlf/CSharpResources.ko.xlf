@@ -1478,8 +1478,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_IllegalStatement">
-        <source>Only assignment, call, increment, decrement, and new object expressions can be used as a statement</source>
-        <target state="translated">할당, 호출, 증가, 감소 및 새 개체 식만 문으로 사용할 수 있습니다.</target>
+        <source>Only assignment, call, increment, decrement, await, and new object expressions can be used as a statement</source>
+        <target state="needs-review-translation">할당, 호출, 증가, 감소 및 새 개체 식만 문으로 사용할 수 있습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadGetEnumerator">
@@ -1848,8 +1848,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_FriendRefNotEqualToThis">
-        <source>Friend access was granted by '{0}', but the public key of the output assembly does not match that specified by the attribute in the granting assembly.</source>
-        <target state="translated">{0}'에서 friend 액세스 권한을 부여했지만, 출력 어셈블리의 공용 키가 부여한 어셈블리의 특성에서 지정된 키와 일치하지 않습니다.</target>
+        <source>Friend access was granted by '{0}', but the public key of the output assembly ('{1}') does not match that specified by the InternalsVisibleTo attribute in the granting assembly.</source>
+        <target state="needs-review-translation">{0}'에서 friend 액세스 권한을 부여했지만, 출력 어셈블리의 공용 키가 부여한 어셈블리의 특성에서 지정된 키와 일치하지 않습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_FriendRefSigningMismatch">
@@ -4766,8 +4766,8 @@ catch (System.Exception e) 블록 뒤의 catch() 블록은 RuntimeCompatibilityA
         <note />
       </trans-unit>
       <trans-unit id="ERR_CantConvAnonMethParams">
-        <source>Cannot convert {0} to delegate type '{1}' because the parameter types do not match the delegate parameter types</source>
-        <target state="translated">매개 변수 형식이 대리자 매개 변수 형식과 일치하지 않으므로 {0}을(를) 대리자 형식 '{1}'(으)로 변환할 수 없습니다.</target>
+        <source>Cannot convert {0} to type '{1}' because the parameter types do not match the delegate parameter types</source>
+        <target state="needs-review-translation">매개 변수 형식이 대리자 매개 변수 형식과 일치하지 않으므로 {0}을(를) 대리자 형식 '{1}'(으)로 변환할 수 없습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CantConvAnonMethReturns">

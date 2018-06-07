@@ -1478,8 +1478,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_IllegalStatement">
-        <source>Only assignment, call, increment, decrement, and new object expressions can be used as a statement</source>
-        <target state="translated">Solo las expresiones de asignación, llamada, incremento, decremento y objeto nuevo se pueden usar como instrucción</target>
+        <source>Only assignment, call, increment, decrement, await, and new object expressions can be used as a statement</source>
+        <target state="needs-review-translation">Solo las expresiones de asignación, llamada, incremento, decremento y objeto nuevo se pueden usar como instrucción</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadGetEnumerator">
@@ -1848,8 +1848,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_FriendRefNotEqualToThis">
-        <source>Friend access was granted by '{0}', but the public key of the output assembly does not match that specified by the attribute in the granting assembly.</source>
-        <target state="translated">{0}' ha concedido acceso de confianza, pero la clave pública del ensamblado de salida no coincide con la especificada por el atributo en el ensamblado de concesión.</target>
+        <source>Friend access was granted by '{0}', but the public key of the output assembly ('{1}') does not match that specified by the InternalsVisibleTo attribute in the granting assembly.</source>
+        <target state="needs-review-translation">{0}' ha concedido acceso de confianza, pero la clave pública del ensamblado de salida no coincide con la especificada por el atributo en el ensamblado de concesión.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_FriendRefSigningMismatch">
@@ -4766,8 +4766,8 @@ Un bloque catch() después de un bloque catch (System.Exception e) puede abarcar
         <note />
       </trans-unit>
       <trans-unit id="ERR_CantConvAnonMethParams">
-        <source>Cannot convert {0} to delegate type '{1}' because the parameter types do not match the delegate parameter types</source>
-        <target state="translated">No se puede convertir {0} en el tipo delegado '{1}' porque los tipos de parámetros no coinciden con los tipos de parámetros delegados</target>
+        <source>Cannot convert {0} to type '{1}' because the parameter types do not match the delegate parameter types</source>
+        <target state="needs-review-translation">No se puede convertir {0} en el tipo delegado '{1}' porque los tipos de parámetros no coinciden con los tipos de parámetros delegados</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CantConvAnonMethReturns">

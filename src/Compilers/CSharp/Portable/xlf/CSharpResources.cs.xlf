@@ -1478,8 +1478,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_IllegalStatement">
-        <source>Only assignment, call, increment, decrement, and new object expressions can be used as a statement</source>
-        <target state="translated">Jako příkaz jde použít jenom objektové výrazy přiřazení, volání, zvýšení nebo snížení hodnoty nebo výrazy obsahující operátor new.</target>
+        <source>Only assignment, call, increment, decrement, await, and new object expressions can be used as a statement</source>
+        <target state="needs-review-translation">Jako příkaz jde použít jenom objektové výrazy přiřazení, volání, zvýšení nebo snížení hodnoty nebo výrazy obsahující operátor new.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadGetEnumerator">
@@ -1848,8 +1848,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_FriendRefNotEqualToThis">
-        <source>Friend access was granted by '{0}', but the public key of the output assembly does not match that specified by the attribute in the granting assembly.</source>
-        <target state="translated">Sestavení {0} udělilo přístup typu Friend, ale veřejný klíč výstupního sestavení neodpovídá klíči určenému atributem v udělujícím sestavení.</target>
+        <source>Friend access was granted by '{0}', but the public key of the output assembly ('{1}') does not match that specified by the InternalsVisibleTo attribute in the granting assembly.</source>
+        <target state="needs-review-translation">Sestavení {0} udělilo přístup typu Friend, ale veřejný klíč výstupního sestavení neodpovídá klíči určenému atributem v udělujícím sestavení.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_FriendRefSigningMismatch">
@@ -4766,8 +4766,8 @@ Blok catch() po bloku catch (System.Exception e) může zachytit výjimky, kter�
         <note />
       </trans-unit>
       <trans-unit id="ERR_CantConvAnonMethParams">
-        <source>Cannot convert {0} to delegate type '{1}' because the parameter types do not match the delegate parameter types</source>
-        <target state="translated">{0} nejde převést na typ delegáta {1}, protože se typy parametrů neshodují s typy parametrů delegáta.</target>
+        <source>Cannot convert {0} to type '{1}' because the parameter types do not match the delegate parameter types</source>
+        <target state="needs-review-translation">{0} nejde převést na typ delegáta {1}, protože se typy parametrů neshodují s typy parametrů delegáta.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CantConvAnonMethReturns">

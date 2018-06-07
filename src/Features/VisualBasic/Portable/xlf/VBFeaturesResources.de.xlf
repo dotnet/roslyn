@@ -1804,17 +1804,17 @@ Sub(&lt;Parameterliste&gt;) &lt;Ausdruck&gt;</target>
       </trans-unit>
       <trans-unit id="Convert_to_Select_Case">
         <source>Convert to 'Select Case'</source>
-        <target state="new">Convert to 'Select Case'</target>
+        <target state="translated">In "Select Case" konvertieren</target>
         <note />
       </trans-unit>
       <trans-unit id="Convert_to_For_Each">
         <source>Convert to 'For Each'</source>
-        <target state="new">Convert to 'For Each'</target>
+        <target state="translated">In "For Each" konvertieren</target>
         <note />
       </trans-unit>
       <trans-unit id="Convert_to_For">
         <source>Convert  to 'For'</source>
-        <target state="new">Convert  to 'For'</target>
+        <target state="translated">In "For" konvertieren</target>
         <note />
       </trans-unit>
       <trans-unit id="Invert_If">

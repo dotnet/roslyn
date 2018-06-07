@@ -435,7 +435,7 @@ End Module
             Assert.False(result.Success)
             result.Diagnostics.Verify(Diagnostic(ERRID.ERR_ResourceInModule))
 
-            Dim c_mod1 = CreateCompilationWithMscorlib40(source, TestOptions.ReleaseModule)
+            Dim c_mod1 = CreateCompilationWithMscorlib40(source, options:=TestOptions.ReleaseModule)
 
             Dim output_mod1 = New MemoryStream()
             result = c_mod1.Emit(output_mod1, manifestResources:=
@@ -477,7 +477,7 @@ End Module
                 Assert.Equal(arrayOfEmbeddedData, rBytes)
             End If
 
-            Dim c_mod2 = CreateCompilationWithMscorlib40(source, TestOptions.ReleaseModule)
+            Dim c_mod2 = CreateCompilationWithMscorlib40(source, options:=TestOptions.ReleaseModule)
 
             Dim output_mod2 = New MemoryStream()
             result = c_mod2.Emit(output_mod2, manifestResources:=
@@ -527,7 +527,7 @@ End Module
                 Assert.Equal(resourceFileData, rBytes)
             End If
 
-            Dim c_mod3 = CreateCompilationWithMscorlib40(source, TestOptions.ReleaseModule)
+            Dim c_mod3 = CreateCompilationWithMscorlib40(source, options:=TestOptions.ReleaseModule)
 
             Dim output_mod3 = New MemoryStream()
             result = c_mod3.Emit(output_mod3, manifestResources:=
