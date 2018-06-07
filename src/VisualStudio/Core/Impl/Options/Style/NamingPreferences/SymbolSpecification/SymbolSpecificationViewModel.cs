@@ -9,6 +9,7 @@ using Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Notification;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Utilities;
+using Roslyn.Utilities;
 using static Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles.SymbolSpecification;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options.Style.NamingPreferences
@@ -48,7 +49,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options.Style.N
                     new SymbolKindViewModel(TypeKind.Interface, "interface", specification),
                     new SymbolKindViewModel(TypeKind.Enum, "enum", specification),
                     new SymbolKindViewModel(SymbolKind.Property, "property", specification),
-                    new SymbolKindViewModel(SymbolKind.Method, "method", specification),
+                    new SymbolKindViewModel(MethodKind.Ordinary, "method", specification),
+                    new SymbolKindViewModel(MethodKind.LocalFunction, "local function", specification),
                     new SymbolKindViewModel(SymbolKind.Field, "field", specification),
                     new SymbolKindViewModel(SymbolKind.Event, "event", specification),
                     new SymbolKindViewModel(TypeKind.Delegate, "delegate", specification),
@@ -127,7 +129,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options.Style.N
             return new SymbolSpecification(
                 ID,
                 ItemName,
-                SymbolKindList.Where(s => s.IsChecked).Select(s => s.CreateSymbolKindOrTypeKind()).ToImmutableArray(),
+                SymbolKindList.Where(s => s.IsChecked).Select(s => s.CreateSymbolOrTypeOrMethodKind()).ToImmutableArray(),
                 AccessibilityList.Where(a => a.IsChecked).Select(a => a._accessibility).ToImmutableArray(),
                 ModifierList.Where(m => m.IsChecked).Select(m => new ModifierKind(m._modifier)).ToImmutableArray());
         }
@@ -165,6 +167,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options.Style.N
 
             private readonly SymbolKind? _symbolKind;
             private readonly TypeKind? _typeKind;
+            private readonly MethodKind? _methodKind;
 
             private bool _isChecked;
 
@@ -182,16 +185,20 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options.Style.N
                 IsChecked = specification.ApplicableSymbolKindList.Any(k => k.TypeKind == typeKind);
             }
 
-            internal SymbolKindOrTypeKind CreateSymbolKindOrTypeKind()
+            public SymbolKindViewModel(MethodKind methodKind, string name, SymbolSpecification specification)
             {
-                if (_symbolKind.HasValue)
-                {
-                    return new SymbolKindOrTypeKind(_symbolKind.Value);
-                }
-                else
-                {
-                    return new SymbolKindOrTypeKind(_typeKind.Value);
-                }
+                _methodKind = methodKind;
+                Name = name;
+                IsChecked = specification.ApplicableSymbolKindList.Any(k => k.MethodKind == methodKind);
+            }
+
+            internal SymbolKindOrTypeKind CreateSymbolOrTypeOrMethodKind()
+            {
+                return
+                    _symbolKind.HasValue ? new SymbolKindOrTypeKind(_symbolKind.Value) :
+                    _typeKind.HasValue ? new SymbolKindOrTypeKind(_typeKind.Value) :
+                    _methodKind.HasValue ? new SymbolKindOrTypeKind(_methodKind.Value) :
+                    throw ExceptionUtilities.Unreachable;
             }
         }
 

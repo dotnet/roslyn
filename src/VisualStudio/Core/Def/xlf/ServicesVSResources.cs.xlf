@@ -222,11 +222,6 @@
         <target state="translated">Nepovedlo se najít umístění složky na disku.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Error_while_reading_0_colon_1">
-        <source>Error while reading '{0}': {1}</source>
-        <target state="translated">Při čtení {0} došlo k chybě: {1}</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Assembly">
         <source>Assembly </source>
         <target state="translated">Sestavení </target>
@@ -1458,8 +1453,8 @@ Pro aktuální řešení je povolené zjednodušené načtení řešení. Jeho z
         <note />
       </trans-unit>
       <trans-unit id="ErrorReadingFile">
-        <source>Error while reading a file</source>
-        <target state="translated">Chyba při čtení souboru</target>
+        <source>Error while reading file '{0}': {1}</source>
+        <target state="translated">Při čtení souboru {0} došlo k chybě: {1}</target>
         <note />
       </trans-unit>
       <trans-unit id="ModuleHasBeenUnloaded">
@@ -1523,29 +1518,29 @@ Souhlasím se všemi výše uvedenými podmínkami:</target>
         <target state="translated">Nastavení nakonfigurovaná zde platí pouze pro váš počítač. Pokud je chcete nakonfigurovat tak, aby byla součástí vašeho řešení a přecházela mezi zařízeními, použijte soubory .editorconfig.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Snippet_Command_Handler">
-        <source>Snippet Command Handler</source>
-        <target state="new">Snippet Command Handler</target>
+      <trans-unit id="Sync_Class_View">
+        <source>Sync Class View</source>
+        <target state="translated">Synchronizovat Zobrazení tříd</target>
         <note />
       </trans-unit>
-      <trans-unit id="Sync_Class_View_Command_Handler">
-        <source>Sync Class View Command Handler</source>
-        <target state="new">Sync Class View Command Handler</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Manage_naming_styles">
-        <source>Manage naming styles</source>
-        <target state="new">Manage naming styles</target>
+      <trans-unit id="CantApplyChangesUnexpectedError">
+        <source>Can't apply changes -- unexpected error: '{0}'</source>
+        <target state="translated">Změny nelze použít – neočekávaná chyba: {0}</target>
         <note />
       </trans-unit>
       <trans-unit id="Field_preferences_colon">
         <source>Field preferences:</source>
-        <target state="new">Field preferences:</target>
+        <target state="translated">Předvolby pole:</target>
         <note />
       </trans-unit>
       <trans-unit id="Prefer_readonly">
         <source>Prefer readonly</source>
-        <target state="new">Prefer readonly</target>
+        <target state="translated">Upřednostnit jen pro čtení</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Manage_naming_styles">
+        <source>Manage naming styles</source>
+        <target state="translated">Spravovat styly pojmenování</target>
         <note />
       </trans-unit>
       <trans-unit id="Analyzing_0">

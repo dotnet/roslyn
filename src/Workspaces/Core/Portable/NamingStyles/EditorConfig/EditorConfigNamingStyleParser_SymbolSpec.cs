@@ -67,7 +67,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
         private static readonly SymbolKindOrTypeKind _interface = new SymbolKindOrTypeKind(TypeKind.Interface);
         private static readonly SymbolKindOrTypeKind _enum = new SymbolKindOrTypeKind(TypeKind.Enum);
         private static readonly SymbolKindOrTypeKind _property = new SymbolKindOrTypeKind(SymbolKind.Property);
-        private static readonly SymbolKindOrTypeKind _method = new SymbolKindOrTypeKind(SymbolKind.Method);
+        private static readonly SymbolKindOrTypeKind _method = new SymbolKindOrTypeKind(MethodKind.Ordinary);
+        private static readonly SymbolKindOrTypeKind _localFunction = new SymbolKindOrTypeKind(MethodKind.LocalFunction);
         private static readonly SymbolKindOrTypeKind _field = new SymbolKindOrTypeKind(SymbolKind.Field);
         private static readonly SymbolKindOrTypeKind _event = new SymbolKindOrTypeKind(SymbolKind.Event);
         private static readonly SymbolKindOrTypeKind _delegate = new SymbolKindOrTypeKind(TypeKind.Delegate);
@@ -81,6 +82,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
                 _enum,
                 _property,
                 _method,
+                _localFunction,
                 _field,
                 _event,
                 _delegate,
@@ -121,6 +123,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
                         break;
                     case "method":
                         builder.Add(_method);
+                        break;
+                    case "local_function":
+                        builder.Add(_localFunction);
                         break;
                     case "field":
                         builder.Add(_field);
