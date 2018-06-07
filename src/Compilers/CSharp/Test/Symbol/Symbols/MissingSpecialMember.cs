@@ -572,6 +572,7 @@ namespace System
                     case WellKnownType.System_Threading_Tasks_Sources_ValueTaskSourceOnCompletedFlags:
                     case WellKnownType.System_Threading_Tasks_Sources_IValueTaskSource_T:
                     case WellKnownType.System_Threading_Tasks_ValueTask_T:
+                    case WellKnownType.System_Threading_Tasks_ValueTask:
                     // Not yet in the platform.
                     case WellKnownType.Microsoft_CodeAnalysis_Runtime_Instrumentation:
                         // Not always available.
