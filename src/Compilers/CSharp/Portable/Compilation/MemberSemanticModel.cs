@@ -854,7 +854,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             var boundConversion = boundDeconstruction.Right;
-            Debug.Assert(boundConversion != null || boundDeconstruction.HasAnyErrors);
+            Debug.Assert(boundConversion != null);
+            if (boundConversion is null)
+            {
+                return default;
+            }
 
             return new DeconstructionInfo(boundConversion.Conversion);
         }
@@ -869,6 +873,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var boundDeconstruction = boundForEach.DeconstructionOpt;
             Debug.Assert(boundDeconstruction != null || boundForEach.HasAnyErrors);
+            if (boundDeconstruction is null)
+            {
+                return default;
+            }
 
             return new DeconstructionInfo(boundDeconstruction.DeconstructionAssignment.Right.Conversion);
         }
