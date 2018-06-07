@@ -221,7 +221,8 @@ End Class</text>
             <%= code.Value %>
         </Document>
     </Project>
-</Workspace>)
+</Workspace>,
+exportProvider:=ExportProviderCache.GetOrCreateExportProviderFactory(TestExportProvider.EntireAssemblyCatalogWithCSharpAndVisualBasic.WithoutPartsOfType(GetType(CommitConnectionListener))).CreateExportProvider())
         End Function
     End Class
 End Namespace

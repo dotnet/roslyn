@@ -1207,7 +1207,6 @@ End Class
 
         Protected Overrides Function CreateTestWorkspace(code As String) As TestWorkspace
             Return TestWorkspace.CreateVisualBasic(code, exportProvider:=ExportProviderCache.GetOrCreateExportProviderFactory(TestExportProvider.EntireAssemblyCatalogWithCSharpAndVisualBasic.WithoutPartsOfType(GetType(CommitConnectionListener))).CreateExportProvider())
-            'Return TestWorkspace.CreateVisualBasic(code, exportProvider:=ExportProviderCache.GetOrCreateExportProviderFactory(TestExportProvider.EntireAssemblyCatalogWithCSharpAndVisualBasic).CreateExportProvider())
         End Function
 
         Protected Overrides ReadOnly Property DocumentationCommentCharacter As Char
