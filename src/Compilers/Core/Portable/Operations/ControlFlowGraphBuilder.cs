@@ -1464,24 +1464,60 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
                 // result - capture
 
                 SpillEvalStack();
-                int captureId = captureIdForResult ?? _captureIdDispenser.GetNextId();
 
                 BasicBlockBuilder whenFalse = null;
                 VisitConditionalBranch(operation.Condition, ref whenFalse, sense: false);
 
-                VisitAndCapture(operation.WhenTrue, captureId);
-
                 var afterIf = new BasicBlockBuilder(BasicBlockKind.Block);
-                LinkBlocks(CurrentBasicBlock, afterIf);
-                _currentBasicBlock = null;
+                IOperation result;
 
-                AppendNewBlock(whenFalse);
+                // Specialy handle cases with "throw" as operation.WhenTrue or operation.WhenFalse. We don't need to create an additional
+                // capture for the result because there won't be any result from the throwing branches.
+                if (operation.WhenTrue is IConversionOperation whenTrueConversion && whenTrueConversion.Operand.Kind == OperationKind.Throw)
+                {
+                    IOperation rewrittenThrow = Visit(whenTrueConversion.Operand);
+                    Debug.Assert(rewrittenThrow.Kind == OperationKind.None);
+                    Debug.Assert(rewrittenThrow.Children.IsEmpty());
 
-                VisitAndCapture(operation.WhenFalse, captureId);
+                    LinkBlocks(CurrentBasicBlock, afterIf);
+                    _currentBasicBlock = null;
+
+                    AppendNewBlock(whenFalse);
+
+                    result = Visit(operation.WhenFalse);
+                }
+                else if (operation.WhenFalse is IConversionOperation whenFalseConversion && whenFalseConversion.Operand.Kind == OperationKind.Throw)
+                {
+                    result = Visit(operation.WhenTrue);
+
+                    LinkBlocks(CurrentBasicBlock, afterIf);
+                    _currentBasicBlock = null;
+
+                    AppendNewBlock(whenFalse);
+
+                    IOperation rewrittenThrow = Visit(whenFalseConversion.Operand);
+                    Debug.Assert(rewrittenThrow.Kind == OperationKind.None);
+                    Debug.Assert(rewrittenThrow.Children.IsEmpty());
+                }
+                else
+                {
+                    int captureId = captureIdForResult ?? _captureIdDispenser.GetNextId();
+
+                    VisitAndCapture(operation.WhenTrue, captureId);
+
+                    LinkBlocks(CurrentBasicBlock, afterIf);
+                    _currentBasicBlock = null;
+
+                    AppendNewBlock(whenFalse);
+
+                    VisitAndCapture(operation.WhenFalse, captureId);
+
+                    result = GetCaptureReference(captureId, operation);
+                }
 
                 AppendNewBlock(afterIf);
 
-                return GetCaptureReference(captureId, operation);
+                return result;
             }
         }
 
@@ -2360,21 +2396,42 @@ oneMoreTime:
             var whenNull = new BasicBlockBuilder(BasicBlockKind.Block);
             IOperation convertedTestExpression = NullCheckAndConvertCoalesceValue(operation, whenNull);
 
-            int resultCaptureId = captureIdForResult ?? _captureIdDispenser.GetNextId();
-
-            AddStatement(new FlowCapture(resultCaptureId, operation.Value.Syntax, convertedTestExpression));
-
+            IOperation result;
             var afterCoalesce = new BasicBlockBuilder(BasicBlockKind.Block);
-            LinkBlocks(CurrentBasicBlock, afterCoalesce);
-            _currentBasicBlock = null;
 
-            AppendNewBlock(whenNull);
+            if (operation.WhenNull is IConversionOperation conversion && conversion.Operand.Kind == OperationKind.Throw)
+            {
+                // This is a special case with "throw" as an alternative. We don't need to create an additional
+                // capture for the result because there won't be any result from the alternative branch.
+                result = convertedTestExpression;
 
-            VisitAndCapture(operation.WhenNull, resultCaptureId);
+                LinkBlocks(CurrentBasicBlock, afterCoalesce);
+                _currentBasicBlock = null;
+
+                AppendNewBlock(whenNull);
+
+                IOperation rewrittenThrow = Visit(conversion.Operand);
+                Debug.Assert(rewrittenThrow.Kind == OperationKind.None);
+                Debug.Assert(rewrittenThrow.Children.IsEmpty());
+            }
+            else
+            {
+                int resultCaptureId = captureIdForResult ?? _captureIdDispenser.GetNextId();
+
+                AddStatement(new FlowCapture(resultCaptureId, operation.Value.Syntax, convertedTestExpression));
+                result = GetCaptureReference(resultCaptureId, operation);
+
+                LinkBlocks(CurrentBasicBlock, afterCoalesce);
+                _currentBasicBlock = null;
+
+                AppendNewBlock(whenNull);
+
+                VisitAndCapture(operation.WhenNull, resultCaptureId);
+            }
 
             AppendNewBlock(afterCoalesce);
 
-            return GetCaptureReference(resultCaptureId, operation);
+            return result;
         }
 
         private static BasicBlockBuilder.Branch RegularBranch(BasicBlockBuilder destination)
