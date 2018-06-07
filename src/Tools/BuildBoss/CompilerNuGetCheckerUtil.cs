@@ -325,7 +325,7 @@ namespace BuildBoss
             }
 
             var allGood = true;
-            var regex = new Regex(@"^\s*file source=(.*) vs.file.*$", RegexOptions.IgnoreCase);
+            var regex = new Regex(@"^\s*file source=([^ ]*).*$", RegexOptions.IgnoreCase);
             foreach (var line in allLines)
             {
                 var match = regex.Match(line);
