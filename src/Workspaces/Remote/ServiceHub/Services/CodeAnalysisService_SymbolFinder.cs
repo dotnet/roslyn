@@ -121,6 +121,23 @@ namespace Microsoft.CodeAnalysis.Remote
             }, cancellationToken);
         }
 
+        public Task<IList<SerializableSymbolAndProjectId>> FindSolutionSourceDeclarationsWithPatternAsync(
+            string pattern, SymbolFilter criteria, CancellationToken cancellationToken)
+        {
+            return RunServiceAsync(async token =>
+            {
+                using (UserOperationBooster.Boost())
+                {
+                    var solution = await GetSolutionAsync(token).ConfigureAwait(false);
+
+                    var result = await DeclarationFinder.FindSourceDeclarationsWithPatternInCurrentProcessAsync(
+                        solution, pattern, criteria, token).ConfigureAwait(false);
+
+                    return (IList<SerializableSymbolAndProjectId>)result.SelectAsArray(SerializableSymbolAndProjectId.Dehydrate);
+                }
+            }, cancellationToken);
+        }
+
         public Task<IList<SerializableSymbolAndProjectId>> FindProjectSourceDeclarationsWithPatternAsync(
             ProjectId projectId, string pattern, SymbolFilter criteria, CancellationToken cancellationToken)
         {
