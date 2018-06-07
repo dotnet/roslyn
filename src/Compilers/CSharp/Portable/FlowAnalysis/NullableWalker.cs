@@ -298,7 +298,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// If you will be needing StateWhenTrue and StateWhenFalse, set `keepSplit` to `true`.
         /// </summary>
-        private void VisitLvalue(BoundExpression node)
+        private new void VisitLvalue(BoundExpression node)
         {
             switch (node.Kind)
             {
@@ -1910,7 +1910,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     // We'll first assume that we're in the unconditional state where the method returns true,
                     // then we'll repeat assuming the method returns false.
-
 
                     LocalState whenTrue = this.StateWhenTrue.Clone();
                     LocalState whenFalse = this.StateWhenFalse.Clone();
