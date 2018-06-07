@@ -1310,16 +1310,6 @@ namespace Microsoft.CodeAnalysis.Operations
             return new LazyArrayElementReferenceExpression(arrayReference, indices, _semanticModel, syntax, type, constantValue, isImplicit);
         }
 
-        private IPointerIndirectionReferenceOperation CreateBoundPointerIndirectionOperatorOperation(BoundPointerIndirectionOperator boundPointerIndirectionOperator)
-        {
-            Lazy<IOperation> pointer = new Lazy<IOperation>(() => Create(boundPointerIndirectionOperator.Operand));
-            SyntaxNode syntax = boundPointerIndirectionOperator.Syntax;
-            ITypeSymbol type = boundPointerIndirectionOperator.Type;
-            Optional<object> constantValue = ConvertToOptional(boundPointerIndirectionOperator.ConstantValue);
-            bool isImplicit = boundPointerIndirectionOperator.WasCompilerGenerated;
-            return new LazyPointerIndirectionReferenceExpression(pointer, _semanticModel, syntax, type, constantValue, isImplicit);
-        }
-
         private INameOfOperation CreateBoundNameOfOperatorOperation(BoundNameOfOperator boundNameOfOperator)
         {
             Lazy<IOperation> argument = new Lazy<IOperation>(() => Create(boundNameOfOperator.Argument));
