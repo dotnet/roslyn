@@ -5844,6 +5844,11 @@ oneMoreTime:
             }
         }
 
+        public override IOperation VisitTranslatedQuery(ITranslatedQueryOperation operation, int? captureIdForResult)
+        {
+            return new TranslatedQueryExpression(Visit(operation.Operation), semanticModel: null, operation.Syntax, operation.Type, operation.ConstantValue, IsImplicit(operation));
+        }
+
         public override IOperation VisitConstantPattern(IConstantPatternOperation operation, int? captureIdForResult)
         {
             return new ConstantPattern(Visit(operation.Value), semanticModel: null,
@@ -5902,11 +5907,6 @@ oneMoreTime:
                                                        ((HasDynamicArgumentsExpression)operation).ArgumentRefKinds,
                                                        initializer: null, // PROTOTYPE(dataflow): Dropping initializer for now to enable test hook verification
                                                        semanticModel: null, operation.Syntax, operation.Type, operation.ConstantValue, IsImplicit(operation));
-        }
-
-        public override IOperation VisitTranslatedQuery(ITranslatedQueryOperation operation, int? captureIdForResult)
-        {
-            return new TranslatedQueryExpression(Visit(operation.Operation), semanticModel: null, operation.Syntax, operation.Type, operation.ConstantValue, IsImplicit(operation));
         }
 
         #endregion
