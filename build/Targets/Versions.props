@@ -19,7 +19,7 @@
     <!-- The release moniker for our packages.  Developers should use "dev" and official builds pick the branch
          moniker listed below -->
     <RoslynNuGetMoniker Condition="'$(RoslynNuGetMoniker)' == ''">dev</RoslynNuGetMoniker>
-    <RoslynNuGetMoniker Condition="'$(OfficialBuild)' == 'true'">beta6</RoslynNuGetMoniker> 
+    <RoslynNuGetMoniker Condition="'$(OfficialBuild)' == 'true'">beta7</RoslynNuGetMoniker> 
 
     <!-- This is the base of the NuGet versioning for prerelease packages -->
     <NuGetPreReleaseVersion>$(RoslynFileVersionBase)-$(RoslynNuGetMoniker)</NuGetPreReleaseVersion>
