@@ -3,6 +3,7 @@
 using System;
 using Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
+using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.VisualStudio.Commanding;
 using Microsoft.VisualStudio.Text.Editor.Commanding;
 using Microsoft.VisualStudio.Text.Editor.Commanding.Commands;
@@ -32,7 +33,7 @@ namespace Microsoft.CodeAnalysis.Editor.CommandHandlers
     {
         private readonly IAsyncCompletionService _completionService;
 
-        public string DisplayName => EditorFeaturesResources.Completion_Command_Handler;
+        public string DisplayName => EditorFeaturesResources.Code_Completion;
 
         protected AbstractCompletionCommandHandler(IAsyncCompletionService completionService)
         {
@@ -119,6 +120,8 @@ namespace Microsoft.CodeAnalysis.Editor.CommandHandlers
         void IChainedCommandHandler<TypeCharCommandArgs>.ExecuteCommand(TypeCharCommandArgs args, Action nextHandler, CommandExecutionContext context)
         {
             AssertIsForeground();
+
+            Logger.Log(FunctionId.Completion_ExecuteCommand_TypeChar, a => a.TypedChar.ToString(), args);
             ExecuteCommandWorker(args, nextHandler, context);
         }
 

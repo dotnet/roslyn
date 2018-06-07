@@ -492,50 +492,61 @@ namespace Microsoft.CodeAnalysis.CSharp
             var hasErrors = localSymbol.ScopeBinder
                 .ValidateDeclarationNameConflictsInScope(localSymbol, diagnostics);
 
-            BoundBlock block;
+            BoundBlock blockBody = null;
+            BoundBlock expressionBody = null;
             if (node.Body != null)
             {
-                block = BindEmbeddedBlock(node.Body, diagnostics);
+                blockBody = runAnalysis(BindEmbeddedBlock(node.Body, diagnostics), diagnostics);
+
+                if (node.ExpressionBody != null)
+                {
+                    var expressionBodyDiagnostics = new DiagnosticBag();
+                    expressionBody = runAnalysis(BindExpressionBodyAsBlock(node.ExpressionBody, expressionBodyDiagnostics), expressionBodyDiagnostics);
+                }
             }
             else if (node.ExpressionBody != null)
             {
-                block = BindExpressionBodyAsBlock(node.ExpressionBody, diagnostics);
+                expressionBody = runAnalysis(BindExpressionBodyAsBlock(node.ExpressionBody, diagnostics), diagnostics);
             }
             else
             {
-                block = null;
                 hasErrors = true;
                 diagnostics.Add(ErrorCode.ERR_LocalFunctionMissingBody, localSymbol.Locations[0], localSymbol);
             }
 
-            if (block != null)
-            {
-                localSymbol.ComputeReturnType();
-
-                // Have to do ControlFlowPass here because in MethodCompiler, we don't call this for synthed methods
-                // rather we go directly to LowerBodyOrInitializer, which skips over flow analysis (which is in CompileMethod)
-                // (the same thing - calling ControlFlowPass.Analyze in the lowering - is done for lambdas)
-                // It's a bit of code duplication, but refactoring would make things worse.
-                var endIsReachable = ControlFlowPass.Analyze(localSymbol.DeclaringCompilation, localSymbol, block, diagnostics);
-                if (endIsReachable)
-                {
-                    if (ImplicitReturnIsOkay(localSymbol))
-                    {
-                        block = FlowAnalysisPass.AppendImplicitReturn(block, localSymbol);
-                    }
-                    else
-                    {
-                        diagnostics.Add(ErrorCode.ERR_ReturnExpected, localSymbol.Locations[0], localSymbol);
-                    }
-                }
-            }
+            Debug.Assert(blockBody != null || expressionBody != null || hasErrors);
 
             localSymbol.GetDeclarationDiagnostics(diagnostics);
 
             Symbol.CheckForBlockAndExpressionBody(
                 node.Body, node.ExpressionBody, node, diagnostics);
 
-            return new BoundLocalFunctionStatement(node, localSymbol, block, hasErrors);
+            return new BoundLocalFunctionStatement(node, localSymbol, blockBody, expressionBody, hasErrors);
+
+            BoundBlock runAnalysis(BoundBlock block, DiagnosticBag blockDiagnostics)
+            {
+                if (block != null)
+                {
+                    // Have to do ControlFlowPass here because in MethodCompiler, we don't call this for synthed methods
+                    // rather we go directly to LowerBodyOrInitializer, which skips over flow analysis (which is in CompileMethod)
+                    // (the same thing - calling ControlFlowPass.Analyze in the lowering - is done for lambdas)
+                    // It's a bit of code duplication, but refactoring would make things worse.
+                    var endIsReachable = ControlFlowPass.Analyze(localSymbol.DeclaringCompilation, localSymbol, block, blockDiagnostics);
+                    if (endIsReachable)
+                    {
+                        if (ImplicitReturnIsOkay(localSymbol))
+                        {
+                            block = FlowAnalysisPass.AppendImplicitReturn(block, localSymbol);
+                        }
+                        else
+                        {
+                            blockDiagnostics.Add(ErrorCode.ERR_ReturnExpected, localSymbol.Locations[0], localSymbol);
+                        }
+                    }
+                }
+
+                return block;
+            }
         }
 
         private bool ImplicitReturnIsOkay(MethodSymbol method)
@@ -1045,7 +1056,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(!ReferenceEquals(declType, null));
             Debug.Assert(declType.IsPointerType());
 
-            if (ReferenceEquals(initializerOpt, null))
+            if (initializerOpt?.HasAnyErrors != false)
             {
                 return false;
             }
@@ -1053,94 +1064,188 @@ namespace Microsoft.CodeAnalysis.CSharp
             TypeSymbol initializerType = initializerOpt.Type;
             SyntaxNode initializerSyntax = initializerOpt.Syntax;
 
-            if (ReferenceEquals(initializerType, null))
+            if ((object)initializerType == null)
             {
-                initializerOpt = GenerateConversionForAssignment(declType, initializerOpt, diagnostics);
-                if (!initializerOpt.HasAnyErrors)
-                {
-                    // Dev10 just reports the assignment conversion error, which must occur, except for these cases:
-                    Debug.Assert(
-                        initializerOpt is BoundConvertedStackAllocExpression ||
-                        initializerOpt is BoundConversion conversion && (conversion.Operand.IsLiteralNull() || conversion.Operand.Kind == BoundKind.DefaultExpression),
-                        "All other typeless expressions should have conversion errors");
-
-                    // CONSIDER: this is a very confusing error message, but it's what Dev10 reports.
-                    Error(diagnostics, ErrorCode.ERR_FixedNotNeeded, initializerSyntax);
-                }
-            }
-            else
-            {
-                TypeSymbol elementType;
-                bool hasErrors = false;
-
-                if (initializerType.SpecialType == SpecialType.System_String)
-                {
-                    elementType = this.GetSpecialType(SpecialType.System_Char, diagnostics, initializerSyntax);
-                    Debug.Assert(!elementType.IsManagedType);
-                }
-                else if (initializerType.IsArray())
-                {
-                    // See ExpressionBinder::BindPtrToArray (though most of that functionality is now in LocalRewriter).
-                    var arrayType = (ArrayTypeSymbol)initializerType;
-                    elementType = arrayType.ElementType;
-
-                    if (elementType.IsManagedType)
-                    {
-                        Error(diagnostics, ErrorCode.ERR_ManagedAddr, initializerSyntax, elementType);
-                        hasErrors = true;
-                    }
-                }
-                else if (!initializerOpt.HasAnyErrors)
-                {
-                    elementType = initializerOpt.Type;
-                    switch (initializerOpt.Kind)
-                    {
-                        case BoundKind.AddressOfOperator:
-                            elementType = ((BoundAddressOfOperator)initializerOpt).Operand.Type;
-                            break;
-                        case BoundKind.FieldAccess:
-                            var fa = (BoundFieldAccess)initializerOpt;
-                            if (!fa.FieldSymbol.IsFixed)
-                            {
-                                Error(diagnostics, ErrorCode.ERR_FixedNotNeeded, initializerSyntax);
-                                return true;
-                            }
-                            else
-                            {
-                                elementType = ((PointerTypeSymbol)fa.Type).PointedAtType;
-                            }
-                            break;
-                        case BoundKind.Conversion:
-                            // The following assertion would not be correct because there might be an implicit conversion after (above) the explicit one.
-                            //Debug.Assert(((BoundConversion)initializerOpt).ExplicitCastInCode, "The assignment conversion hasn't been applied yet, so this must be from source.");
-
-                            // NOTE: Dev10 specifically doesn't report this error for the array or string cases.
-                            Error(diagnostics, ErrorCode.ERR_BadCastInFixed, initializerSyntax);
-                            return true;
-                        default:
-                            // CONSIDER: this is a very confusing error message, but it's what Dev10 reports.
-                            Error(diagnostics, ErrorCode.ERR_FixedNotNeeded, initializerSyntax);
-                            return true;
-                    }
-                }
-                else
-                {
-                    // convert to generate any additional conversion errors
-                    initializerOpt = GenerateConversionForAssignment(declType, initializerOpt, diagnostics);
-                    return true;
-                }
-
-                initializerOpt = GetFixedLocalCollectionInitializer(initializerOpt, elementType, declType, hasErrors, diagnostics);
+                Error(diagnostics, ErrorCode.ERR_ExprCannotBeFixed, initializerSyntax);
+                return false;
             }
 
+            TypeSymbol elementType;
+            bool hasErrors = false;
+            MethodSymbol fixedPatternMethod = null;
+
+            switch (initializerOpt.Kind)
+            {
+                case BoundKind.AddressOfOperator:
+                    elementType = ((BoundAddressOfOperator)initializerOpt).Operand.Type;
+                    break;
+
+                case BoundKind.FieldAccess:
+                    var fa = (BoundFieldAccess)initializerOpt;
+                    if (fa.FieldSymbol.IsFixed)
+                    {
+                        elementType = ((PointerTypeSymbol)fa.Type).PointedAtType;
+                        break;
+                    }
+
+                    goto default;
+
+                default:
+                    //  fixed (T* variable = <expr>) ...
+
+                    // check for arrays
+                    if (initializerType.IsArray())
+                    {
+                        // See ExpressionBinder::BindPtrToArray (though most of that functionality is now in LocalRewriter).
+                        elementType = ((ArrayTypeSymbol)initializerType).ElementType;
+                        break;
+                    }
+
+                    // check for a special ref-returning method
+                    var additionalDiagnostics = DiagnosticBag.GetInstance();
+                    fixedPatternMethod = GetFixedPatternMethodOpt(initializerOpt, additionalDiagnostics);
+
+                    // check for String
+                    // NOTE: We will allow the pattern method to take precendence, but only if it is an instance member of System.String
+                    if (initializerType.SpecialType == SpecialType.System_String &&
+                        ((object)fixedPatternMethod == null || fixedPatternMethod.ContainingType.SpecialType != SpecialType.System_String))
+                    {
+                        fixedPatternMethod = null;
+                        elementType = this.GetSpecialType(SpecialType.System_Char, diagnostics, initializerSyntax);
+                        additionalDiagnostics.Free();
+                        break;
+                    }
+
+                    // if the feature was enabled, but something went wrong with the method, report that, otherwise don't. 
+                    // If feature is not enabled, additional errors would be just noise.
+                    bool extensibleFixedEnabled = ((CSharpParseOptions)initializerOpt.SyntaxTree.Options)?.IsFeatureEnabled(MessageID.IDS_FeatureExtensibleFixedStatement) != false;
+                    if (extensibleFixedEnabled)
+                    {
+                        diagnostics.AddRange(additionalDiagnostics);
+                    }
+
+                    additionalDiagnostics.Free();
+
+                    if ((object)fixedPatternMethod != null)
+                    {
+                        elementType = fixedPatternMethod.ReturnType;
+                        CheckFeatureAvailability(initializerOpt.Syntax, MessageID.IDS_FeatureExtensibleFixedStatement, diagnostics);
+                        break;
+                    }
+                    else
+                    {
+                        Error(diagnostics, ErrorCode.ERR_ExprCannotBeFixed, initializerSyntax);
+                        return false;
+                    }
+            }
+
+            if (elementType.IsManagedType)
+            {
+                Error(diagnostics, ErrorCode.ERR_ManagedAddr, initializerSyntax, elementType);
+                hasErrors = true;
+            }
+
+            initializerOpt = GetFixedLocalCollectionInitializer(initializerOpt, elementType, declType, fixedPatternMethod, hasErrors, diagnostics);
             return true;
+        }
+
+        private MethodSymbol GetFixedPatternMethodOpt(BoundExpression initializer, DiagnosticBag additionalDiagnostics)
+        {
+            if (initializer.Type.SpecialType == SpecialType.System_Void)
+            {
+                return null;
+            }
+
+            const string methodName = "GetPinnableReference";
+
+            DiagnosticBag bindingDiagnostics = DiagnosticBag.GetInstance();
+            try
+            {
+                var boundAccess = BindInstanceMemberAccess(
+                    initializer.Syntax,
+                    initializer.Syntax,
+                    initializer,
+                    methodName,
+                    rightArity: 0,
+                    typeArgumentsSyntax: default,
+                    typeArguments: default,
+                    invoked: true,
+                    indexed: false,
+                    bindingDiagnostics);
+
+                if (boundAccess.Kind != BoundKind.MethodGroup)
+                {
+                    // the thing is not even a method
+                    return null;
+                }
+
+                var analyzedArguments = AnalyzedArguments.GetInstance();
+                BoundExpression patternMethodCall = BindMethodGroupInvocation(
+                    initializer.Syntax, 
+                    initializer.Syntax, 
+                    methodName, 
+                    (BoundMethodGroup)boundAccess, 
+                    analyzedArguments, 
+                    bindingDiagnostics, 
+                    queryClause: null, 
+                    allowUnexpandedForm: false);
+
+                analyzedArguments.Free();
+
+                if (patternMethodCall.Kind != BoundKind.Call)
+                {
+                    // did not find anything callable
+                    return null;
+                }
+
+                var call = (BoundCall)patternMethodCall;
+                if (call.ResultKind == LookupResultKind.Empty)
+                {
+                    // did not find any methods that even remotely fit
+                    return null;
+                }
+
+                // we have succeeded or almost succeded to bind the method
+                // report additional binding diagnostics that we have seen so far
+                additionalDiagnostics.AddRange(bindingDiagnostics);
+
+                var patterMethodSymbol = call.Method;
+                if (patterMethodSymbol is ErrorMethodSymbol ||
+                    patternMethodCall.HasAnyErrors)
+                {
+                    // bound to something uncallable
+                    return null;
+                }
+
+                if (HasOptionalOrVariableParameters(patterMethodSymbol) ||
+                    patterMethodSymbol.ReturnsVoid ||
+                    !patterMethodSymbol.RefKind.IsManagedReference() ||
+                    !(patterMethodSymbol.ParameterCount == 0 || patterMethodSymbol.IsStatic && patterMethodSymbol.ParameterCount == 1))
+                {
+                    // the method does not fit the pattern
+                    additionalDiagnostics.Add(ErrorCode.WRN_PatternBadSignature, initializer.Syntax.Location, initializer.Type, "fixed", patterMethodSymbol);
+                    return null;
+                }
+
+                return patterMethodSymbol;
+            }
+            finally
+            {
+                bindingDiagnostics.Free();
+            }
         }
 
         /// <summary>
         /// Wrap the initializer in a BoundFixedLocalCollectionInitializer so that the rewriter will have the
         /// information it needs (e.g. conversions, helper methods).
         /// </summary>
-        private BoundExpression GetFixedLocalCollectionInitializer(BoundExpression initializer, TypeSymbol elementType, TypeSymbol declType, bool hasErrors, DiagnosticBag diagnostics)
+        private BoundExpression GetFixedLocalCollectionInitializer(
+            BoundExpression initializer, 
+            TypeSymbol elementType, 
+            TypeSymbol declType, 
+            MethodSymbol patternMethodOpt,
+            bool hasErrors, 
+            DiagnosticBag diagnostics)
         {
             Debug.Assert(initializer != null);
 
@@ -1162,6 +1267,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 pointerType,
                 elementConversion,
                 initializer,
+                patternMethodOpt,
                 declType,
                 hasErrors);
         }
@@ -1669,7 +1775,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (reason == LambdaConversionResult.BadParameterCount)
             {
                 // Delegate '{0}' does not take {1} arguments
-                Error(diagnostics, ErrorCode.ERR_BadDelArgCount, syntax, targetType, anonymousFunction.ParameterCount);
+                Error(diagnostics, ErrorCode.ERR_BadDelArgCount, syntax, delegateType, anonymousFunction.ParameterCount);
                 return;
             }
 
@@ -1727,7 +1833,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (reason == LambdaConversionResult.MismatchedParameterType)
             {
-                // Cannot convert {0} to delegate type '{1}' because the parameter types do not match the delegate parameter types
+                // Cannot convert {0} to type '{1}' because the parameter types do not match the delegate parameter types
                 Error(diagnostics, ErrorCode.ERR_CantConvAnonMethParams, syntax, id, targetType);
                 Debug.Assert(anonymousFunction.ParameterCount == delegateParameters.Length);
                 for (int i = 0; i < anonymousFunction.ParameterCount; ++i)

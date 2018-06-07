@@ -398,6 +398,41 @@ class C
         }
 
         [Fact]
+        public void TestILForAlwaysValuedNullable()
+        {
+            var source = @"
+class C
+{
+    static void Main()
+    {
+        System.Console.Write($""{(new int?(Identity(42)), (int?)2) == (new int?(42), new int?(2))} "");
+    }
+    static int Identity(int x) => x;
+}";
+            var comp = CompileAndVerify(source, expectedOutput: "True");
+            comp.VerifyDiagnostics();
+
+            comp.VerifyIL("C.Main", @"{
+  // Code size       39 (0x27)
+  .maxstack  3
+  IL_0000:  ldstr      ""{0} ""
+  IL_0005:  ldc.i4.s   42
+  IL_0007:  call       ""int C.Identity(int)""
+  IL_000c:  ldc.i4.s   42
+  IL_000e:  bne.un.s   IL_0016
+  IL_0010:  ldc.i4.2
+  IL_0011:  ldc.i4.2
+  IL_0012:  ceq
+  IL_0014:  br.s       IL_0017
+  IL_0016:  ldc.i4.0
+  IL_0017:  box        ""bool""
+  IL_001c:  call       ""string string.Format(string, object)""
+  IL_0021:  call       ""void System.Console.Write(string)""
+  IL_0026:  ret
+}");
+        }
+
+        [Fact]
         public void TestILForNullableElementsEqualsToNull()
         {
             var source = @"
@@ -501,7 +536,7 @@ class C
             comp.VerifyDiagnostics();
 
             comp.VerifyIL("C.M", @"{
-  // Code size       66 (0x42)
+  // Code size       63 (0x3f)
   .maxstack  2
   .locals init (System.ValueTuple<int?, bool?> V_0,
                 int? V_1,
@@ -518,28 +553,26 @@ class C
   IL_000b:  ldloca.s   V_1
   IL_000d:  call       ""int int?.GetValueOrDefault()""
   IL_0012:  ldloc.2
-  IL_0013:  beq.s      IL_0018
-  IL_0015:  ldc.i4.0
-  IL_0016:  br.s       IL_001f
-  IL_0018:  ldloca.s   V_1
-  IL_001a:  call       ""bool int?.HasValue.get""
-  IL_001f:  brfalse.s  IL_0040
-  IL_0021:  ldloc.0
-  IL_0022:  ldfld      ""bool? System.ValueTuple<int?, bool?>.Item2""
-  IL_0027:  stloc.3
-  IL_0028:  ldc.i4.1
-  IL_0029:  stloc.s    V_4
-  IL_002b:  ldloca.s   V_3
-  IL_002d:  call       ""bool bool?.GetValueOrDefault()""
-  IL_0032:  ldloc.s    V_4
-  IL_0034:  beq.s      IL_0038
-  IL_0036:  ldc.i4.0
-  IL_0037:  ret
-  IL_0038:  ldloca.s   V_3
-  IL_003a:  call       ""bool bool?.HasValue.get""
-  IL_003f:  ret
-  IL_0040:  ldc.i4.0
-  IL_0041:  ret
+  IL_0013:  ceq
+  IL_0015:  ldloca.s   V_1
+  IL_0017:  call       ""bool int?.HasValue.get""
+  IL_001c:  and
+  IL_001d:  brfalse.s  IL_003d
+  IL_001f:  ldloc.0
+  IL_0020:  ldfld      ""bool? System.ValueTuple<int?, bool?>.Item2""
+  IL_0025:  stloc.3
+  IL_0026:  ldc.i4.1
+  IL_0027:  stloc.s    V_4
+  IL_0029:  ldloca.s   V_3
+  IL_002b:  call       ""bool bool?.GetValueOrDefault()""
+  IL_0030:  ldloc.s    V_4
+  IL_0032:  ceq
+  IL_0034:  ldloca.s   V_3
+  IL_0036:  call       ""bool bool?.HasValue.get""
+  IL_003b:  and
+  IL_003c:  ret
+  IL_003d:  ldc.i4.0
+  IL_003e:  ret
 }");
         }
 
@@ -613,13 +646,43 @@ public struct S
     public static implicit operator S(int value) { return new S() { I = value }; }
     public static bool operator==(S s1, S s2) { System.Console.Write($""{s1.I} == {s2.I}, ""); return s1.I == s2.I; }
     public static bool operator!=(S s1, S s2) { throw null; }
+    public override bool Equals(object o) { throw null; }
+    public override int GetHashCode() { throw null; }
 }";
+            var comp = CompileAndVerify(source, expectedOutput: "1 == 1, 2 == 2, True");
+            comp.VerifyDiagnostics();
+        }
 
-            // https://github.com/dotnet/roslyn/issues/25488
-            // We need to create a temp for `this`, otherwise it gets mutated
+        [Fact]
+        public void TestThisClass()
+        {
+            var source = @"
+public class C
+{
+    public int I;
+    public static void Main()
+    {
+        C c = new C() { I = 1 };
+        c.M();
+    }
+    void M()
+    {
+        System.Console.Write((this, 2) == (2, this.Mutate()));
+    }
 
-            var comp = CompileAndVerify(source, expectedOutput: "2 == 1, False");
-            //comp.VerifyDiagnostics();
+    C Mutate()
+    {
+        I++;
+        return this;
+    }
+    public static implicit operator C(int value) { return new C() { I = value }; }
+    public static bool operator==(C c1, C c2) { System.Console.Write($""{c1.I} == {c2.I}, ""); return c1.I == c2.I; }
+    public static bool operator!=(C c1, C c2) { throw null; }
+    public override bool Equals(object o) { throw null; }
+    public override int GetHashCode() { throw null; }
+}";
+            var comp = CompileAndVerify(source, expectedOutput: "2 == 2, 2 == 2, True");
+            comp.VerifyDiagnostics();
         }
 
         [Fact]
@@ -2949,6 +3012,152 @@ class C
                 );
         }
 
+        [Fact, WorkItem(27047, "https://github.com/dotnet/roslyn/issues/27047")]
+        public void TestWithObsoleteImplicitConversion()
+        {
+            var source = @"
+class C
+{
+    private static bool TupleEquals((C, int)? nt1, (int, C) nt2)
+        => nt1 == nt2; // warn 1 and 2
+
+    private static bool TupleNotEquals((C, int)? nt1, (int, C) nt2)
+        => nt1 != nt2; // warn 3 and 4
+
+    [System.Obsolete(""obsolete"", error: true)]
+    public static implicit operator int(C c)
+        => throw null;
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (5,12): error CS0619: 'C.implicit operator int(C)' is obsolete: 'obsolete'
+                //         => nt1 == nt2; // warn 1 and 2
+                Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "nt1").WithArguments("C.implicit operator int(C)", "obsolete").WithLocation(5, 12),
+                // (5,19): error CS0619: 'C.implicit operator int(C)' is obsolete: 'obsolete'
+                //         => nt1 == nt2; // warn 1 and 2
+                Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "nt2").WithArguments("C.implicit operator int(C)", "obsolete").WithLocation(5, 19),
+                // (8,12): error CS0619: 'C.implicit operator int(C)' is obsolete: 'obsolete'
+                //         => nt1 != nt2; // warn 3 and 4
+                Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "nt1").WithArguments("C.implicit operator int(C)", "obsolete").WithLocation(8, 12),
+                // (8,19): error CS0619: 'C.implicit operator int(C)' is obsolete: 'obsolete'
+                //         => nt1 != nt2; // warn 3 and 4
+                Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "nt2").WithArguments("C.implicit operator int(C)", "obsolete").WithLocation(8, 19)
+                );
+        }
+
+        [Fact, WorkItem(27047, "https://github.com/dotnet/roslyn/issues/27047")]
+        public void TestWithObsoleteBoolConversion()
+        {
+            var source = @"
+public class A
+{
+    public static bool TupleEquals((A, A) t) => t == t; // warn 1 and 2
+    public static bool TupleNotEquals((A, A) t) => t != t; // warn 3 and 4
+
+    public static NotBool operator ==(A a1, A a2) => throw null;
+    public static NotBool operator !=(A a1, A a2) => throw null;
+    public override bool Equals(object o) => throw null;
+    public override int GetHashCode() => throw null;
+}
+public class NotBool
+{
+    [System.Obsolete(""obsolete"", error: true)]
+    public static implicit operator bool(NotBool b) => throw null;
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (4,49): error CS0619: 'NotBool.implicit operator bool(NotBool)' is obsolete: 'obsolete'
+                //     public static bool TupleEquals((A, A) t) => t == t; // warn 1 and 2
+                Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "t == t").WithArguments("NotBool.implicit operator bool(NotBool)", "obsolete").WithLocation(4, 49),
+                // (4,49): error CS0619: 'NotBool.implicit operator bool(NotBool)' is obsolete: 'obsolete'
+                //     public static bool TupleEquals((A, A) t) => t == t; // warn 1 and 2
+                Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "t == t").WithArguments("NotBool.implicit operator bool(NotBool)", "obsolete").WithLocation(4, 49),
+                // (5,52): error CS0619: 'NotBool.implicit operator bool(NotBool)' is obsolete: 'obsolete'
+                //     public static bool TupleNotEquals((A, A) t) => t != t; // warn 3 and 4
+                Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "t != t").WithArguments("NotBool.implicit operator bool(NotBool)", "obsolete").WithLocation(5, 52),
+                // (5,52): error CS0619: 'NotBool.implicit operator bool(NotBool)' is obsolete: 'obsolete'
+                //     public static bool TupleNotEquals((A, A) t) => t != t; // warn 3 and 4
+                Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "t != t").WithArguments("NotBool.implicit operator bool(NotBool)", "obsolete").WithLocation(5, 52)
+                );
+        }
+
+        [Fact, WorkItem(27047, "https://github.com/dotnet/roslyn/issues/27047")]
+        public void TestWithObsoleteComparisonOperators()
+        {
+            var source = @"
+public class A
+{
+    public static bool TupleEquals((A, A) t) => t == t; // warn 1 and 2
+    public static bool TupleNotEquals((A, A) t) => t != t; // warn 3 and 4
+
+    [System.Obsolete("""", error: true)]
+    public static bool operator ==(A a1, A a2) => throw null;
+    [System.Obsolete("""", error: true)]
+    public static bool operator !=(A a1, A a2) => throw null;
+
+    public override bool Equals(object o) => throw null;
+    public override int GetHashCode() => throw null;
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (4,49): error CS0619: 'A.operator ==(A, A)' is obsolete: ''
+                //     public static bool TupleEquals((A, A) t) => t == t; // warn 1 and 2
+                Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "t == t").WithArguments("A.operator ==(A, A)", "").WithLocation(4, 49),
+                // (4,49): error CS0619: 'A.operator ==(A, A)' is obsolete: ''
+                //     public static bool TupleEquals((A, A) t) => t == t; // warn 1 and 2
+                Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "t == t").WithArguments("A.operator ==(A, A)", "").WithLocation(4, 49),
+                // (5,52): error CS0619: 'A.operator !=(A, A)' is obsolete: ''
+                //     public static bool TupleNotEquals((A, A) t) => t != t; // warn 3 and 4
+                Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "t != t").WithArguments("A.operator !=(A, A)", "").WithLocation(5, 52),
+                // (5,52): error CS0619: 'A.operator !=(A, A)' is obsolete: ''
+                //     public static bool TupleNotEquals((A, A) t) => t != t; // warn 3 and 4
+                Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "t != t").WithArguments("A.operator !=(A, A)", "").WithLocation(5, 52)
+                );
+        }
+
+        [Fact, WorkItem(27047, "https://github.com/dotnet/roslyn/issues/27047")]
+        public void TestWithObsoleteTruthOperators()
+        {
+            var source = @"
+public class A
+{
+    public static bool TupleEquals((A, A) t) => t == t; // warn 1 and 2
+    public static bool TupleNotEquals((A, A) t) => t != t; // warn 3 and 4
+
+    public static NotBool operator ==(A a1, A a2) => throw null;
+    public static NotBool operator !=(A a1, A a2) => throw null;
+    public override bool Equals(object o) => throw null;
+    public override int GetHashCode() => throw null;
+}
+public class NotBool
+{
+    [System.Obsolete(""obsolete"", error: true)]
+    public static bool operator true(NotBool b) => throw null;
+
+    [System.Obsolete(""obsolete"", error: true)]
+    public static bool operator false(NotBool b) => throw null;
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (4,49): error CS0619: 'NotBool.operator false(NotBool)' is obsolete: 'obsolete'
+                //     public static bool TupleEquals((A, A) t) => t == t; // warn 1 and 2
+                Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "t == t").WithArguments("NotBool.operator false(NotBool)", "obsolete").WithLocation(4, 49),
+                // (4,49): error CS0619: 'NotBool.operator false(NotBool)' is obsolete: 'obsolete'
+                //     public static bool TupleEquals((A, A) t) => t == t; // warn 1 and 2
+                Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "t == t").WithArguments("NotBool.operator false(NotBool)", "obsolete").WithLocation(4, 49),
+                // (5,52): error CS0619: 'NotBool.operator true(NotBool)' is obsolete: 'obsolete'
+                //     public static bool TupleNotEquals((A, A) t) => t != t; // warn 3 and 4
+                Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "t != t").WithArguments("NotBool.operator true(NotBool)", "obsolete").WithLocation(5, 52),
+                // (5,52): error CS0619: 'NotBool.operator true(NotBool)' is obsolete: 'obsolete'
+                //     public static bool TupleNotEquals((A, A) t) => t != t; // warn 3 and 4
+                Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "t != t").WithArguments("NotBool.operator true(NotBool)", "obsolete").WithLocation(5, 52)
+                );
+        }
+
         [Fact]
         public void TestEqualOnNullableVsNullableTuples()
         {
@@ -3056,7 +3265,322 @@ class C
 ";
             var comp = CreateCompilation(source, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics();
-            CompileAndVerify(comp, expectedOutput: "True");
+            var verifier = CompileAndVerify(comp, expectedOutput: "True");
+            verifier.VerifyIL("C.Main", @"{
+  // Code size       57 (0x39)
+  .maxstack  3
+  .locals init (System.ValueTuple<int, int> V_0,
+                System.ValueTuple<int, int> V_1)
+  IL_0000:  nop
+  IL_0001:  ldloca.s   V_0
+  IL_0003:  ldc.i4.1
+  IL_0004:  ldc.i4.2
+  IL_0005:  call       ""System.ValueTuple<int, int>..ctor(int, int)""
+  IL_000a:  ldloca.s   V_1
+  IL_000c:  ldc.i4.1
+  IL_000d:  ldc.i4.2
+  IL_000e:  call       ""System.ValueTuple<int, int>..ctor(int, int)""
+  IL_0013:  ldloc.0
+  IL_0014:  ldfld      ""int System.ValueTuple<int, int>.Item1""
+  IL_0019:  ldloc.1
+  IL_001a:  ldfld      ""int System.ValueTuple<int, int>.Item1""
+  IL_001f:  bne.un.s   IL_0031
+  IL_0021:  ldloc.0
+  IL_0022:  ldfld      ""int System.ValueTuple<int, int>.Item2""
+  IL_0027:  ldloc.1
+  IL_0028:  ldfld      ""int System.ValueTuple<int, int>.Item2""
+  IL_002d:  ceq
+  IL_002f:  br.s       IL_0032
+  IL_0031:  ldc.i4.0
+  IL_0032:  call       ""void System.Console.Write(bool)""
+  IL_0037:  nop
+  IL_0038:  ret
+}
+");
+        }
+
+        [Fact]
+        public void TestEqualOnNullableVsNullableTuples_OneSideNeverNull()
+        {
+            var source = @"
+class C
+{
+    public static void Main()
+    {
+        System.Console.Write(((int, int)?) (1, 2) == (1, 2));
+    }
+}
+";
+            var comp = CreateCompilation(source, options: TestOptions.DebugExe);
+            comp.VerifyDiagnostics();
+            var verifier = CompileAndVerify(comp, expectedOutput: "True");
+            verifier.VerifyIL("C.Main", @"{
+  // Code size       38 (0x26)
+  .maxstack  3
+  .locals init (System.ValueTuple<int, int> V_0)
+  IL_0000:  nop
+  IL_0001:  ldloca.s   V_0
+  IL_0003:  ldc.i4.1
+  IL_0004:  ldc.i4.2
+  IL_0005:  call       ""System.ValueTuple<int, int>..ctor(int, int)""
+  IL_000a:  ldloc.0
+  IL_000b:  ldfld      ""int System.ValueTuple<int, int>.Item1""
+  IL_0010:  ldc.i4.1
+  IL_0011:  bne.un.s   IL_001e
+  IL_0013:  ldloc.0
+  IL_0014:  ldfld      ""int System.ValueTuple<int, int>.Item2""
+  IL_0019:  ldc.i4.2
+  IL_001a:  ceq
+  IL_001c:  br.s       IL_001f
+  IL_001e:  ldc.i4.0
+  IL_001f:  call       ""void System.Console.Write(bool)""
+  IL_0024:  nop
+  IL_0025:  ret
+}
+");
+        }
+
+        [Fact]
+        public void TestEqualOnNullableVsNullableTuples_Tuple_AlwaysNull_AlwaysNull()
+        {
+            var source = @"
+class C
+{
+    public static void Main()
+    {
+        System.Console.Write(((int, int)?)null == ((int, int)?)null);
+    }
+}
+";
+            var comp = CreateCompilation(source, options: TestOptions.DebugExe);
+            comp.VerifyDiagnostics();
+            var verifier = CompileAndVerify(comp, expectedOutput: "True");
+            verifier.VerifyIL("C.Main", @"{
+  // Code size        9 (0x9)
+  .maxstack  1
+  IL_0000:  nop
+  IL_0001:  ldc.i4.1
+  IL_0002:  call       ""void System.Console.Write(bool)""
+  IL_0007:  nop
+  IL_0008:  ret
+}
+");
+
+            CompileAndVerify(source, options: TestOptions.ReleaseExe).VerifyIL("C.Main", @"{
+  // Code size        7 (0x7)
+  .maxstack  1
+  IL_0000:  ldc.i4.1
+  IL_0001:  call       ""void System.Console.Write(bool)""
+  IL_0006:  ret
+}
+");
+        }
+
+        [Fact]
+        public void TestEqualOnNullableVsNullableTuples_Tuple_MaybeNull_AlwaysNull()
+        {
+            var source = @"
+class C
+{
+    public static void Main()
+    {
+        M(null);
+        M((1, 2));
+    }
+    public static void M((int, int)? t)
+    {
+        System.Console.Write(t == ((int, int)?)null);
+    }
+}
+";
+
+            CompileAndVerify(source, expectedOutput: "TrueFalse", options: TestOptions.ReleaseExe).VerifyIL("C.M", @"{
+  // Code size       18 (0x12)
+  .maxstack  2
+  .locals init ((int, int)? V_0)
+  IL_0000:  ldarg.0
+  IL_0001:  stloc.0
+  IL_0002:  ldloca.s   V_0
+  IL_0004:  call       ""bool (int, int)?.HasValue.get""
+  IL_0009:  ldc.i4.0
+  IL_000a:  ceq
+  IL_000c:  call       ""void System.Console.Write(bool)""
+  IL_0011:  ret
+}
+");
+        }
+
+        [Fact]
+        public void TestNotEqualOnNullableVsNullableTuples_Tuple_MaybeNull_AlwaysNull()
+        {
+            var source = @"
+class C
+{
+    public static void Main()
+    {
+        M(null);
+        M((1, 2));
+    }
+    public static void M((int, int)? t)
+    {
+        System.Console.Write(t != ((int, int)?)null);
+    }
+}
+";
+
+            CompileAndVerify(source, expectedOutput: "FalseTrue", options: TestOptions.ReleaseExe).VerifyIL("C.M", @"{
+  // Code size       15 (0xf)
+  .maxstack  1
+  .locals init ((int, int)? V_0)
+  IL_0000:  ldarg.0
+  IL_0001:  stloc.0
+  IL_0002:  ldloca.s   V_0
+  IL_0004:  call       ""bool (int, int)?.HasValue.get""
+  IL_0009:  call       ""void System.Console.Write(bool)""
+  IL_000e:  ret
+}
+");
+        }
+
+        [Fact]
+        public void TestNotEqualOnNullableVsNullableTuples_Tuple_AlwaysNull_MaybeNull()
+        {
+            var source = @"
+class C
+{
+    public static void Main()
+    {
+        M(null);
+        M((1, 2));
+    }
+    public static void M((int, int)? t)
+    {
+        System.Console.Write(((int, int)?)null == t);
+    }
+}
+";
+
+            CompileAndVerify(source, expectedOutput: "TrueFalse", options: TestOptions.ReleaseExe).VerifyIL("C.M", @"{
+  // Code size       18 (0x12)
+  .maxstack  2
+  .locals init ((int, int)? V_0)
+  IL_0000:  ldarg.0
+  IL_0001:  stloc.0
+  IL_0002:  ldloca.s   V_0
+  IL_0004:  call       ""bool (int, int)?.HasValue.get""
+  IL_0009:  ldc.i4.0
+  IL_000a:  ceq
+  IL_000c:  call       ""void System.Console.Write(bool)""
+  IL_0011:  ret
+}
+");
+        }
+
+        [Fact]
+        public void TestEqualOnNullableVsNullableTuples_Tuple_NeverNull_AlwaysNull()
+        {
+            var source = @"
+class C
+{
+    public static void Main()
+    {
+        System.Console.Write((1, 2) == ((int, int)?)null);
+    }
+}
+";
+
+            CompileAndVerify(source, expectedOutput: "False", options: TestOptions.ReleaseExe).VerifyIL("C.Main", @"{
+  // Code size        7 (0x7)
+  .maxstack  1
+  IL_0000:  ldc.i4.0
+  IL_0001:  call       ""void System.Console.Write(bool)""
+  IL_0006:  ret
+}
+");
+        }
+
+        [Fact]
+        public void TestEqualOnNullableVsNullableTuples_Tuple_AlwaysNull_MaybeNull()
+        {
+            var source = @"
+class C
+{
+    public static void Main()
+    {
+        M(null);
+        M((1, 2));
+    }
+    public static void M((int, int)? t)
+    {
+        System.Console.Write(((int, int)?)null == t);
+    }
+}
+";
+
+            CompileAndVerify(source, expectedOutput: "TrueFalse", options: TestOptions.ReleaseExe).VerifyIL("C.M", @"{
+  // Code size       18 (0x12)
+  .maxstack  2
+  .locals init ((int, int)? V_0)
+  IL_0000:  ldarg.0
+  IL_0001:  stloc.0
+  IL_0002:  ldloca.s   V_0
+  IL_0004:  call       ""bool (int, int)?.HasValue.get""
+  IL_0009:  ldc.i4.0
+  IL_000a:  ceq
+  IL_000c:  call       ""void System.Console.Write(bool)""
+  IL_0011:  ret
+}
+");
+        }
+
+        [Fact]
+        public void TestEqualOnNullableVsNullableTuples_Tuple_AlwaysNull_NeverNull()
+        {
+            var source = @"
+class C
+{
+    public static void Main()
+    {
+        System.Console.Write(((int, int)?)null == (1, 2));
+    }
+}
+";
+
+            CompileAndVerify(source, expectedOutput: "False", options: TestOptions.ReleaseExe).VerifyIL("C.Main", @"{
+  // Code size        7 (0x7)
+  .maxstack  1
+  IL_0000:  ldc.i4.0
+  IL_0001:  call       ""void System.Console.Write(bool)""
+  IL_0006:  ret
+}
+");
+        }
+
+        [Fact]
+        public void TestEqualOnNullableVsNullableTuples_ElementAlwaysNull()
+        {
+            var source = @"
+class C
+{
+    public static void Main()
+    {
+        System.Console.Write((null, null) == (new int?(), new int?()));
+    }
+}
+";
+            var comp = CreateCompilation(source, options: TestOptions.DebugExe);
+            comp.VerifyDiagnostics();
+            var verifier = CompileAndVerify(comp, expectedOutput: "True");
+            verifier.VerifyIL("C.Main", @"{
+  // Code size        9 (0x9)
+  .maxstack  1
+  IL_0000:  nop
+  IL_0001:  ldc.i4.1
+  IL_0002:  call       ""void System.Console.Write(bool)""
+  IL_0007:  nop
+  IL_0008:  ret
+}
+");
         }
 
         [Fact]

@@ -189,7 +189,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
                 var syntaxTreeWithOriginalName = syntaxTree.WithChangedText(newFullText);
                 var documentWithOriginalName = document.WithSyntaxRoot(syntaxTreeWithOriginalName.GetRoot(cancellationToken));
 
-                Contract.Requires(newFullText.ToString() == documentWithOriginalName.GetTextAsync(cancellationToken).WaitAndGetResult(cancellationToken).ToString());
+                Contract.Requires(newFullText.ToString() == documentWithOriginalName.GetTextSynchronously(cancellationToken).ToString());
 #endif
 
                 // Apply the original name to all linked documents to construct a consistent solution

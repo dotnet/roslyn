@@ -2266,7 +2266,7 @@ public class Test
             compilation.VerifyIL("NullableTest.EqualEqual",
 @"
 {
-  // Code size      120 (0x78)
+  // Code size      112 (0x70)
   .maxstack  2
   .locals init (decimal? V_0)
   IL_0000:  ldc.i4.0
@@ -2280,31 +2280,27 @@ public class Test
   IL_001c:  ldloca.s   V_0
   IL_001e:  call       ""decimal decimal?.GetValueOrDefault()""
   IL_0023:  call       ""bool decimal.op_Equality(decimal, decimal)""
-  IL_0028:  brtrue.s   IL_002d
-  IL_002a:  ldc.i4.0
-  IL_002b:  br.s       IL_0034
-  IL_002d:  ldloca.s   V_0
-  IL_002f:  call       ""bool decimal?.HasValue.get""
-  IL_0034:  box        ""bool""
-  IL_0039:  ldc.i4.0
-  IL_003a:  box        ""bool""
-  IL_003f:  call       ""void Test.Eval(object, object)""
-  IL_0044:  ldsfld     ""decimal decimal.Zero""
-  IL_0049:  ldsfld     ""decimal? NullableTest.NULL""
-  IL_004e:  stloc.0
-  IL_004f:  ldloca.s   V_0
-  IL_0051:  call       ""decimal decimal?.GetValueOrDefault()""
-  IL_0056:  call       ""bool decimal.op_Equality(decimal, decimal)""
-  IL_005b:  brtrue.s   IL_0060
-  IL_005d:  ldc.i4.0
-  IL_005e:  br.s       IL_0067
-  IL_0060:  ldloca.s   V_0
-  IL_0062:  call       ""bool decimal?.HasValue.get""
-  IL_0067:  box        ""bool""
-  IL_006c:  ldc.i4.0
-  IL_006d:  box        ""bool""
-  IL_0072:  call       ""void Test.Eval(object, object)""
-  IL_0077:  ret
+  IL_0028:  ldloca.s   V_0
+  IL_002a:  call       ""bool decimal?.HasValue.get""
+  IL_002f:  and
+  IL_0030:  box        ""bool""
+  IL_0035:  ldc.i4.0
+  IL_0036:  box        ""bool""
+  IL_003b:  call       ""void Test.Eval(object, object)""
+  IL_0040:  ldsfld     ""decimal decimal.Zero""
+  IL_0045:  ldsfld     ""decimal? NullableTest.NULL""
+  IL_004a:  stloc.0
+  IL_004b:  ldloca.s   V_0
+  IL_004d:  call       ""decimal decimal?.GetValueOrDefault()""
+  IL_0052:  call       ""bool decimal.op_Equality(decimal, decimal)""
+  IL_0057:  ldloca.s   V_0
+  IL_0059:  call       ""bool decimal?.HasValue.get""
+  IL_005e:  and
+  IL_005f:  box        ""bool""
+  IL_0064:  ldc.i4.0
+  IL_0065:  box        ""bool""
+  IL_006a:  call       ""void Test.Eval(object, object)""
+  IL_006f:  ret
 }
 ");
         }

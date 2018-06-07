@@ -279,7 +279,7 @@ IDynamicMemberReferenceOperation (Member Name: ""GetValue"", Containing Type: nu
                 // CS0307: The property 'GetValue' cannot be used with type arguments
                 //             /*<bind>*/d.GetValue<int, C1>/*</bind>*/;
                 Diagnostic(ErrorCode.ERR_TypeArgsNotAllowed, "GetValue<int, C1>").WithArguments("GetValue", "property").WithLocation(9, 25),
-                // CS0201: Only assignment, call, increment, decrement, and new object expressions can be used as a statement
+                // CS0201: Only assignment, call, increment, decrement, await, and new object expressions can be used as a statement
                 //             /*<bind>*/d.GetValue<int, C1>/*</bind>*/;
                 Diagnostic(ErrorCode.ERR_IllegalStatement, "d.GetValue<int, C1>").WithLocation(9, 23)
             };

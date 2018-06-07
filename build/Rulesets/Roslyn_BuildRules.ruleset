@@ -21,12 +21,16 @@
     <Rule Id="CA1055" Action="None" />
     <Rule Id="CA1056" Action="None" />
     <Rule Id="CA1061" Action="None" /> <!-- "do not hide base class methods": currently violations in the compiler -->
+    <Rule Id="CA1062" Action="None" /> <!-- https://github.com/dotnet/roslyn/issues/26400: Enable rules CA1062, CA1303, CA1508, CA2100 and CA2215 for Roslyn.sln -->
+    <Rule Id="CA1063" Action="None" /> <!-- https://github.com/dotnet/roslyn/issues/25134: Enable rule CA1063 (Implement IDisposable correctly) for Roslyn.sln -->
     <Rule Id="CA1064" Action="None" />
     <Rule Id="CA1065" Action="None" />
     <Rule Id="CA1066" Action="None" />
     <Rule Id="CA1067" Action="Warning" />
     <Rule Id="CA1068" Action="Warning" />
+    <Rule Id="CA1303" Action="None" /> <!-- https://github.com/dotnet/roslyn/issues/26400: Enable rules CA1062, CA1303, CA1508, CA2100 and CA2215 for Roslyn.sln -->
     <Rule Id="CA1304" Action="None" />
+    <Rule Id="CA1508" Action="None" /> <!-- https://github.com/dotnet/roslyn/issues/26400: Enable rules CA1062, CA1303, CA1508, CA2100 and CA2215 for Roslyn.sln -->
     <Rule Id="CA1707" Action="None" />
     <Rule Id="CA1710" Action="None" />
     <Rule Id="CA1714" Action="None" />
@@ -44,11 +48,16 @@
     <Rule Id="CA1814" Action="None" /> <!-- prefer jagged arrays to multidimensional: a silly piece of advice -->
     <Rule Id="CA1815" Action="None" />
     <Rule Id="CA1821" Action="Warning" />
+    <Rule Id="CA1822" Action="None" /> <!-- https://github.com/dotnet/roslyn/issues/25132: Enable rule CA1822 (Mark members as static) on Roslyn.sln -->
     <Rule Id="CA1823" Action="None" /> <!-- https://github.com/dotnet/roslyn/issues/20404: Enable rule CA1823 (remove unused field) once we have a fixer for it -->
     <Rule Id="CA1824" Action="None" /> <!-- mark assemblies with NeutralResourcesLanguageAttribute -->
+    <Rule Id="CA2000" Action="None" /> <!-- https://github.com/dotnet/roslyn/issues/25880 -->
     <Rule Id="CA2007" Action="Warning" />
+    <Rule Id="CA2100" Action="None" /> <!-- https://github.com/dotnet/roslyn/issues/26400: Enable rules CA1062, CA1303, CA1508, CA2100 and CA2215 for Roslyn.sln -->
     <Rule Id="CA2211" Action="None" />
+    <Rule Id="CA2213" Action="None" /> <!-- https://github.com/dotnet/roslyn/issues/25880 -->
     <Rule Id="CA2214" Action="None" /> <!-- do not call overridable methods in constructors: done in various places -->
+    <Rule Id="CA2215" Action="None" /> <!-- https://github.com/dotnet/roslyn/issues/26400: Enable rules CA1062, CA1303, CA1508, CA2100 and CA2215 for Roslyn.sln -->
     <Rule Id="CA2218" Action="None" />
     <Rule Id="CA2222" Action="None" />
     <Rule Id="CA2224" Action="None" />
@@ -73,6 +82,7 @@
     <Rule Id="RS1012" Action="None" />
     <Rule Id="RS1013" Action="None" />
     <Rule Id="RS1014" Action="Warning" />
+    <Rule Id="RS1022" Action="None" /> <!-- https://github.com/dotnet/roslyn/issues/26420: Enable rule RS1022 for Roslyn.sln -->
   </Rules>
   <Rules AnalyzerId="Microsoft.Composition.Analyzers" RuleNamespace="Microsoft.Composition.Analyzers">
     <Rule Id="RS0006" Action="Error" />
@@ -121,7 +131,7 @@
     <Rule Id="RS0018" Action="Warning" />
   </Rules>
   <Rules AnalyzerId="XmlDocumentationComments.Analyzers" RuleNamespace="XmlDocumentationComments.Analyzers">
-    <Rule Id="RS0010" Action="Warning" />
+    <Rule Id="CA1200" Action="Warning" />
   </Rules>
   <Rules AnalyzerId="Microsoft.NetCore.Analyzers" RuleNamespace="Microsoft.NetCore.Analyzers">
     <Rule Id="CA9999" Action="None" /> <!-- We know the analyzers will fail during a bootstrap build -->

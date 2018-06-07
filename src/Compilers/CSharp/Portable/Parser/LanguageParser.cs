@@ -2316,7 +2316,7 @@ parse_member_name:;
                 if (!sawRef &&
                     identifierOrThisOpt != null &&
                     (typeParameterListOpt != null && typeParameterListOpt.ContainsDiagnostics
-                      || this.CurrentToken.Kind != SyntaxKind.OpenParenToken && this.CurrentToken.Kind != SyntaxKind.OpenBraceToken) &&
+                      || this.CurrentToken.Kind != SyntaxKind.OpenParenToken && this.CurrentToken.Kind != SyntaxKind.OpenBraceToken && this.CurrentToken.Kind != SyntaxKind.EqualsGreaterThanToken) &&
                     ReconsiderTypeAsAsyncModifier(ref modifiers, ref type, ref explicitInterfaceOpt, identifierOrThisOpt, typeParameterListOpt))
                 {
                     goto parse_member_name;
@@ -4884,7 +4884,7 @@ tryAgain:
 
         /// <summary>
         /// True if the given token is not really some contextual keyword.
-        /// This method is for use in executable code, as it treats `partial` as an identifier.
+        /// This method is for use in executable code, as it treats <c>partial</c> as an identifier.
         /// </summary>
         private bool IsTrueIdentifier(SyntaxToken token)
         {
@@ -8294,7 +8294,7 @@ tryAgain:
         }
 
         /// <summary>
-        /// Parse a single variable designation (e.g. `x`) or a wildcard designation (e.g. `_`)
+        /// Parse a single variable designation (e.g. <c>x</c>) or a wildcard designation (e.g. <c>_</c>)
         /// </summary>
         /// <returns></returns>
         private VariableDesignationSyntax ParseSimpleDesignation()

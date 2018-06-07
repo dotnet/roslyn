@@ -3,6 +3,7 @@
 Imports System.Threading.Tasks
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
+    <[UseExportProvider]>
     Public Class CSharpIntelliSenseCommandHandlerTests
         <WpfFact>
         Public Async Function TestOpenParenDismissesCompletionAndBringsUpSignatureHelp1() As Task

@@ -16,7 +16,8 @@ namespace Microsoft.CodeAnalysis.ReplaceDocCommentTextWithTag
 {
     internal abstract class AbstractReplaceDocCommentTextWithTagCodeRefactoringProvider : CodeRefactoringProvider
     {
-        protected abstract bool IsAnyKeyword(string text);
+        protected abstract bool IsInXMLAttribute(SyntaxToken token);
+        protected abstract bool IsKeyword(string text);
         protected abstract bool IsXmlTextToken(SyntaxToken token);
         protected abstract SyntaxNode ParseExpression(string text);
 
@@ -39,6 +40,11 @@ namespace Microsoft.CodeAnalysis.ReplaceDocCommentTextWithTag
                 return;
             }
 
+            if (IsInXMLAttribute(token))
+            {
+                return;
+            }
+
             var sourceText = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
 
             var singleWordSpan = ExpandSpan(sourceText, span, fullyQualifiedName: false);
@@ -48,8 +54,8 @@ namespace Microsoft.CodeAnalysis.ReplaceDocCommentTextWithTag
                 return;
             }
 
-            // First see if they're on a keyword. 
-            if (IsAnyKeyword(singleWordText))
+            // First see if they're on an appropriate keyword. 
+            if (IsKeyword(singleWordText))
             {
                 RegisterRefactoring(context, singleWordSpan, $@"<see langword=""{singleWordText}""/>");
                 return;
@@ -178,7 +184,7 @@ namespace Microsoft.CodeAnalysis.ReplaceDocCommentTextWithTag
                 startInclusive--;
             }
 
-            while (endExclusive < sourceText.Length && 
+            while (endExclusive < sourceText.Length &&
                    ShouldExpandSpanForwardOneCharacter(sourceText, endExclusive, fullyQualifiedName))
             {
                 endExclusive++;
@@ -229,7 +235,7 @@ namespace Microsoft.CodeAnalysis.ReplaceDocCommentTextWithTag
 
         private class MyCodeAction : CodeAction.DocumentChangeAction
         {
-            public MyCodeAction(string title, Func<CancellationToken, Task<Document>> createChangedDocument) 
+            public MyCodeAction(string title, Func<CancellationToken, Task<Document>> createChangedDocument)
                 : base(title, createChangedDocument)
             {
             }

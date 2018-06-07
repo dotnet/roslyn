@@ -5,12 +5,14 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.UnitTests.NavigateTo;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.VisualStudio.Composition;
 using Microsoft.VisualStudio.Language.NavigateTo.Interfaces;
 using Microsoft.VisualStudio.Text.PatternMatching;
 using Roslyn.Test.Utilities;
 using Xunit;
 
+#pragma warning disable CS0618 // MatchKind is obsolete
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.NavigateTo
 {
     public class InteractiveNavigateToTests : AbstractNavigateToTests
@@ -639,3 +641,4 @@ class C2
         }
     }
 }
+#pragma warning restore CS0618 // MatchKind is obsolete

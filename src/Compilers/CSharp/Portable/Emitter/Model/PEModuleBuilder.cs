@@ -42,7 +42,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
         private Dictionary<FieldSymbol, NamedTypeSymbol> _fixedImplementationTypes;
 
         private bool _needsGeneratedIsReadOnlyAttribute_Value;
-        
+        private bool _needsGeneratedIsUnmanagedAttribute_Value;
         private bool _needsGeneratedAttributes_IsFrozen;
 
         /// <summary>
@@ -75,7 +75,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             get
             {
                 _needsGeneratedAttributes_IsFrozen = true;
-                return Compilation.NeedsGeneratedIsUnmanagedAttribute;
+                return Compilation.NeedsGeneratedIsUnmanagedAttribute || _needsGeneratedIsUnmanagedAttribute_Value;
             }
         }
 
@@ -1159,6 +1159,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             BoundArgListOperator optArgList = null,
             bool needDeclaration = false)
         {
+            Debug.Assert(!methodSymbol.IsDefaultValueTypeConstructor());
             Debug.Assert(optArgList == null || (methodSymbol.IsVararg && !needDeclaration));
 
             Cci.IMethodReference unexpandedMethodRef = Translate(methodSymbol, syntaxNodeOpt, diagnostics, needDeclaration);
@@ -1502,6 +1503,22 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             if (Compilation.CheckIfIsReadOnlyAttributeShouldBeEmbedded(diagnosticsOpt: null, locationOpt: null))
             {
                 _needsGeneratedIsReadOnlyAttribute_Value = true;
+            }
+        }
+
+        internal void EnsureIsUnmanagedAttributeExists()
+        {
+            Debug.Assert(!_needsGeneratedAttributes_IsFrozen);
+
+            if (_needsGeneratedIsUnmanagedAttribute_Value || Compilation.NeedsGeneratedIsUnmanagedAttribute)
+            {
+                return;
+            }
+
+            // Don't report any errors. They should be reported during binding.
+            if (Compilation.CheckIfIsUnmanagedAttributeShouldBeEmbedded(diagnosticsOpt: null, locationOpt: null))
+            {
+                _needsGeneratedIsUnmanagedAttribute_Value = true;
             }
         }
     }

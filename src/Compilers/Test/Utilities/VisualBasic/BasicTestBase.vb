@@ -186,7 +186,7 @@ Public MustInherit Class BasicTestBase
 
         Dim assemblyName As String = Nothing
         Dim sourceTrees = ParseSourceXml(source, parseOptions, assemblyName)
-        Dim compilation = CreateEmptyCompilation(sourceTrees, allReferences, options, assemblyName)
+        Dim compilation = CreateEmptyCompilation(sourceTrees.ToArray(), allReferences, options, assemblyName:=assemblyName)
 
         Return MyBase.CompileAndVerifyCommon(
             compilation,
@@ -225,7 +225,7 @@ Public MustInherit Class BasicTestBase
             options = If(expectedOutput Is Nothing, TestOptions.ReleaseDll, TestOptions.ReleaseExe)
         End If
 
-        Dim compilation = CreateEmptyCompilation(source, allReferences, options, assemblyName, parseOptions)
+        Dim compilation = CreateEmptyCompilation(source, allReferences, options, parseOptions, assemblyName)
 
         Return MyBase.CompileAndVerifyCommon(
             compilation,
@@ -357,8 +357,7 @@ Public MustInherit Class BasicTestBase
     ''' &lt;/file&gt;
     ''' &lt;/compilation&gt;
     ''' </param>
-    Friend Function CompileWithCustomILSource(source As XElement,
-                                              ilSource As String,
+    Friend Function CompileWithCustomILSource(source As XElement, ilSource As String,
                                               Optional options As VisualBasicCompilationOptions = Nothing,
                                               Optional compilationVerifier As Action(Of VisualBasicCompilation) = Nothing,
                                               Optional expectedOutput As String = Nothing) As CompilationVerifier
@@ -385,6 +384,15 @@ Public MustInherit Class BasicTestBase
         Return CompileAndVerify(compilation, expectedOutput:=expectedOutput)
     End Function
 
+    Friend Overloads Function CompileAndVerifyFieldMarshal(source As String,
+                                                           expectedBlobs As Dictionary(Of String, Byte()),
+                                                           Optional getExpectedBlob As Func(Of String, PEAssembly, Byte()) = Nothing,
+                                                           Optional expectedSignatures As SignatureDescription() = Nothing,
+                                                           Optional isField As Boolean = True) As CompilationVerifier
+        Dim xmlSource = <compilation><field><%= source %></field></compilation>
+        Return CompileAndVerifyFieldMarshal(xmlSource, expectedBlobs, getExpectedBlob, expectedSignatures, isField)
+    End Function
+
     Friend Overloads Function CompileAndVerifyFieldMarshal(source As XElement,
                                                            expectedBlobs As Dictionary(Of String, Byte()),
                                                            Optional getExpectedBlob As Func(Of String, PEAssembly, Byte()) = Nothing,
@@ -407,25 +415,6 @@ Public MustInherit Class BasicTestBase
                                 options:=TestOptions.ReleaseDll,
                                 validator:=Sub(assembly) MetadataValidation.MarshalAsMetadataValidator(assembly, getExpectedBlob, isField),
                                 expectedSignatures:=expectedSignatures)
-    End Function
-
-    Protected Overrides ReadOnly Property CompilationOptionsReleaseDll As CompilationOptions
-        Get
-            Return TestOptions.ReleaseDll
-        End Get
-    End Property
-
-    Protected Overrides Function GetCompilationForEmit(
-        source As IEnumerable(Of String),
-        references As IEnumerable(Of MetadataReference),
-        options As CompilationOptions,
-        parseOptions As ParseOptions
-    ) As Compilation
-        Return VisualBasicCompilation.Create(
-            GetUniqueName(),
-            syntaxTrees:=source.Select(Function(t) VisualBasicSyntaxTree.ParseText(t, options:=DirectCast(parseOptions, VisualBasicParseOptions))),
-            references:=If(references IsNot Nothing, DefaultVbReferences.Concat(references), DefaultVbReferences),
-            options:=DirectCast(options, VisualBasicCompilationOptions))
     End Function
 
     Public Shared Function CreateSubmission(code As String,
@@ -466,7 +455,7 @@ Public MustInherit Class BasicTestBase
     End Function
 
     Public Shared Shadows Function GetPdbXml(source As XElement, Optional options As VisualBasicCompilationOptions = Nothing, Optional methodName As String = "") As XElement
-        Dim compilation = CreateCompilationWithMscorlib40(source, options)
+        Dim compilation = CreateCompilationWithMscorlib40(source, options:=options)
         compilation.VerifyDiagnostics()
         Return GetPdbXml(compilation, methodName)
     End Function
@@ -810,8 +799,9 @@ Public MustInherit Class BasicTestBase
 
         Dim fileName = "a.vb"
         Dim syntaxTree = Parse(source, fileName, parseOptions)
-        Dim defaultRefs = If(useLatestFrameworkReferences, LatestVbReferences, DefaultVbReferences)
-        Dim compilation = CreateCompilationWithMscorlib45AndVBRuntime({syntaxTree}, references:=defaultRefs.Append({ValueTupleRef, SystemRuntimeFacadeRef}), options:=If(compilationOptions, TestOptions.ReleaseDll))
+        Dim allReferences = TargetFrameworkUtil.Mscorlib45ExtendedReferences.Add(
+            If(useLatestFrameworkReferences, TestBase.MsvbRef_v4_0_30319_17929, TestBase.MsvbRef))
+        Dim compilation = CreateEmptyCompilation({syntaxTree}, references:=allReferences, options:=If(compilationOptions, TestOptions.ReleaseDll))
         Dim operationTree = GetOperationTreeForTest(Of TSyntaxNode)(compilation, fileName, which)
         Return (operationTree.tree, operationTree.syntax, operationTree.operation, compilation)
     End Function
@@ -869,10 +859,11 @@ Public MustInherit Class BasicTestBase
 
         Dim fileName = "a.vb"
         Dim syntaxTree = Parse(source, fileName, parseOptions)
-        Dim defaultRefs = If(useLatestFramework, LatestVbReferences, DefaultVbReferences)
-        Dim allReferences = defaultRefs.Concat({ValueTupleRef, SystemRuntimeFacadeRef})
+        Dim allReferences As IEnumerable(Of MetadataReference) = TargetFrameworkUtil.Mscorlib45ExtendedReferences.Add(
+            If(useLatestFramework, TestBase.MsvbRef_v4_0_30319_17929, TestBase.MsvbRef))
+
         allReferences = If(references IsNot Nothing, allReferences.Concat(references), allReferences)
-        Dim compilation = CreateCompilationWithMscorlib45AndVBRuntime({syntaxTree}, references:=allReferences, options:=If(compilationOptions, TestOptions.ReleaseDll))
+        Dim compilation = CreateEmptyCompilation({syntaxTree}, references:=allReferences, options:=If(compilationOptions, TestOptions.ReleaseDll))
         VerifyOperationTreeAndDiagnosticsForTest(Of TSyntaxNode)(compilation, fileName, expectedOperationTree, expectedDiagnostics, which, additionalOperationTreeVerifier)
     End Sub
 
