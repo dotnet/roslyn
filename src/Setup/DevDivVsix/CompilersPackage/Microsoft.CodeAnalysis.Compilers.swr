@@ -10,10 +10,10 @@ vs.nonCriticalProcesses
   vs.nonCriticalProcess name="VBCSCompiler" 
 
 folder InstallDir:\MSBuild\15.0\Bin\Roslyn
-    file source=$(OutputPath)\Exes\VBCSCompiler\net46\VBCSCompiler.exe vs.file.ngenArchitecture=all vs.file.ngenPriority=1
-    file source=$(OutputPath)\Exes\csc\net46\csc.exe vs.file.ngenArchitecture=all vs.file.ngenPriority=1
-    file source=$(OutputPath)\Exes\csi\net46\csi.exe vs.file.ngenArchitecture=all vs.file.ngenPriority=1
-    file source=$(OutputPath)\Exes\vbc\net46\vbc.exe vs.file.ngenArchitecture=all vs.file.ngenPriority=1
+    file source=$(OutputPath)\Exes\VBCSCompiler\net46\VBCSCompiler.exe vs.file.ngenArchitecture=all vs.file.ngenPriority=1 vs.file.ngenApplication="[installDir]\MSBuild\15.0\Bin\Roslyn\VBCSCompiler.exe"
+    file source=$(OutputPath)\Exes\csc\net46\csc.exe vs.file.ngenArchitecture=all vs.file.ngenPriority=1 vs.file.ngenApplication="[installDir]\MSBuild\15.0\Bin\Roslyn\csc.exe"
+    file source=$(OutputPath)\Exes\csi\net46\csi.exe vs.file.ngenArchitecture=all vs.file.ngenPriority=1 vs.file.ngenApplication="[installDir]\MSBuild\15.0\Bin\Roslyn\csi.exe"
+    file source=$(OutputPath)\Exes\vbc\net46\vbc.exe vs.file.ngenArchitecture=all vs.file.ngenPriority=1 vs.file.ngenApplication="[installDir]\MSBuild\15.0\Bin\Roslyn\vbc.exe"
 
     file source=$(OutputPath)\Exes\VBCSCompiler\net46\VBCSCompiler.exe.config
     file source=$(OutputPath)\Exes\csc\net46\csc.exe.config
@@ -28,40 +28,41 @@ folder InstallDir:\MSBuild\15.0\Bin\Roslyn
     file source=$(OutputPath)\Dlls\MSBuildTask\net46\Microsoft.VisualBasic.Core.targets
     file source=$(OutputPath)\Dlls\MSBuildTask\net46\Microsoft.CSharp.Core.targets
 
-    file source=$(OutputPath)\Dlls\Scripting\Microsoft.CodeAnalysis.Scripting.dll vs.file.ngenArchitecture=all
-    file source=$(OutputPath)\Dlls\CSharpScripting\Microsoft.CodeAnalysis.CSharp.Scripting.dll vs.file.ngenArchitecture=all
-    file source=$(OutputPath)\Dlls\CSharpCodeAnalysis\Microsoft.CodeAnalysis.CSharp.dll vs.file.ngenArchitecture=all
-    file source=$(OutputPath)\Dlls\MSBuildTask\net46\Microsoft.Build.Tasks.CodeAnalysis.dll vs.file.ngenArchitecture=all
-    file source=$(OutputPath)\Dlls\BasicCodeAnalysis\Microsoft.CodeAnalysis.VisualBasic.dll vs.file.ngenArchitecture=all
-    file source=$(OutputPath)\Dlls\CodeAnalysis\Microsoft.CodeAnalysis.dll vs.file.ngenArchitecture=all
-    file source=$(OutputPath)\Vsix\CompilerExtension\System.Collections.Immutable.dll vs.file.ngenArchitecture=all
-    file source=$(OutputPath)\Vsix\CompilerExtension\System.Reflection.Metadata.dll vs.file.ngenArchitecture=all
-    file source=$(OutputPath)\Exes\csi\net46\System.ValueTuple.dll vs.file.ngenArchitecture=all
+    file source=$(OutputPath)\Dlls\Scripting\Microsoft.CodeAnalysis.Scripting.dll vs.file.ngenArchitecture=all vs.file.ngenApplication="[installDir]\MSBuild\15.0\Bin\Roslyn\csi.exe"
+    file source=$(OutputPath)\Dlls\CSharpScripting\Microsoft.CodeAnalysis.CSharp.Scripting.dll vs.file.ngenArchitecture=all vs.file.ngenApplication="[installDir]\MSBuild\15.0\Bin\Roslyn\csi.exe"
 
-    file source=$(OutputPath)\Vsix\CompilerExtension\Microsoft.Win32.Primitives.dll vs.file.ngenArchitecture=all
-    file source=$(OutputPath)\Vsix\CompilerExtension\System.AppContext.dll vs.file.ngenArchitecture=all
-    file source=$(OutputPath)\Vsix\CompilerExtension\System.Console.dll vs.file.ngenArchitecture=all
-    file source=$(OutputPath)\Vsix\CompilerExtension\System.Diagnostics.DiagnosticSource.dll vs.file.ngenArchitecture=all
-    file source=$(OutputPath)\Vsix\CompilerExtension\System.Diagnostics.FileVersionInfo.dll vs.file.ngenArchitecture=all
-    file source=$(OutputPath)\Vsix\CompilerExtension\System.Diagnostics.StackTrace.dll vs.file.ngenArchitecture=all
-    file source=$(OutputPath)\Vsix\CompilerExtension\System.Globalization.Calendars.dll vs.file.ngenArchitecture=all
-    file source=$(OutputPath)\Vsix\CompilerExtension\System.IO.Compression.dll vs.file.ngenArchitecture=all
-    file source=$(OutputPath)\Vsix\CompilerExtension\System.IO.Compression.ZipFile.dll vs.file.ngenArchitecture=all
-    file source=$(OutputPath)\Vsix\CompilerExtension\System.IO.FileSystem.dll vs.file.ngenArchitecture=all
-    file source=$(OutputPath)\Vsix\CompilerExtension\System.IO.FileSystem.Primitives.dll vs.file.ngenArchitecture=all
-    file source=$(OutputPath)\Vsix\CompilerExtension\System.Net.Http.dll vs.file.ngenArchitecture=all
-    file source=$(OutputPath)\Vsix\CompilerExtension\System.Net.Sockets.dll vs.file.ngenArchitecture=all
-    file source=$(OutputPath)\Vsix\CompilerExtension\System.Runtime.InteropServices.RuntimeInformation.dll vs.file.ngenArchitecture=all
-    file source=$(OutputPath)\Vsix\CompilerExtension\System.Security.Cryptography.Algorithms.dll vs.file.ngenArchitecture=all
-    file source=$(OutputPath)\Vsix\CompilerExtension\System.Security.Cryptography.Encoding.dll vs.file.ngenArchitecture=all
-    file source=$(OutputPath)\Vsix\CompilerExtension\System.Security.Cryptography.Primitives.dll vs.file.ngenArchitecture=all
-    file source=$(OutputPath)\Vsix\CompilerExtension\System.Security.Cryptography.X509Certificates.dll vs.file.ngenArchitecture=all
-    file source=$(OutputPath)\Vsix\CompilerExtension\System.Text.Encoding.CodePages.dll vs.file.ngenArchitecture=all
-    file source=$(OutputPath)\Vsix\CompilerExtension\System.Threading.Tasks.Extensions.dll vs.file.ngenArchitecture=all
-    file source=$(OutputPath)\Vsix\CompilerExtension\System.Xml.ReaderWriter.dll vs.file.ngenArchitecture=all
-    file source=$(OutputPath)\Vsix\CompilerExtension\System.Xml.XmlDocument.dll vs.file.ngenArchitecture=all
-    file source=$(OutputPath)\Vsix\CompilerExtension\System.Xml.XPath.dll vs.file.ngenArchitecture=all
-    file source=$(OutputPath)\Vsix\CompilerExtension\System.Xml.XPath.XDocument.dll vs.file.ngenArchitecture=all
+    file source=$(OutputPath)\Dlls\CSharpCodeAnalysis\Microsoft.CodeAnalysis.CSharp.dll vs.file.ngenArchitecture=all vs.file.ngenApplication="[installDir]\MSBuild\15.0\Bin\Roslyn\VBCSCompiler.exe"
+    file source=$(OutputPath)\Dlls\MSBuildTask\net46\Microsoft.Build.Tasks.CodeAnalysis.dll vs.file.ngenArchitecture=all vs.file.ngenApplication="[installDir]\MSBuild\15.0\Bin\Roslyn\VBCSCompiler.exe"
+    file source=$(OutputPath)\Dlls\BasicCodeAnalysis\Microsoft.CodeAnalysis.VisualBasic.dll vs.file.ngenArchitecture=all vs.file.ngenApplication="[installDir]\MSBuild\15.0\Bin\Roslyn\VBCSCompiler.exe"
+    file source=$(OutputPath)\Dlls\CodeAnalysis\Microsoft.CodeAnalysis.dll vs.file.ngenArchitecture=all vs.file.ngenApplication="[installDir]\MSBuild\15.0\Bin\Roslyn\VBCSCompiler.exe"
+    file source=$(OutputPath)\Vsix\CompilerExtension\System.Collections.Immutable.dll vs.file.ngenArchitecture=all vs.file.ngenApplication="[installDir]\MSBuild\15.0\Bin\Roslyn\VBCSCompiler.exe"
+    file source=$(OutputPath)\Vsix\CompilerExtension\System.Reflection.Metadata.dll vs.file.ngenArchitecture=all vs.file.ngenApplication="[installDir]\MSBuild\15.0\Bin\Roslyn\VBCSCompiler.exe"
+    file source=$(OutputPath)\Exes\csi\net46\System.ValueTuple.dll vs.file.ngenArchitecture=all vs.file.ngenApplication="[installDir]\MSBuild\15.0\Bin\Roslyn\VBCSCompiler.exe"
+
+    file source=$(OutputPath)\Vsix\CompilerExtension\Microsoft.Win32.Primitives.dll vs.file.ngenArchitecture=all vs.file.ngenApplication="[installDir]\MSBuild\15.0\Bin\Roslyn\VBCSCompiler.exe"
+    file source=$(OutputPath)\Vsix\CompilerExtension\System.AppContext.dll vs.file.ngenArchitecture=all vs.file.ngenApplication="[installDir]\MSBuild\15.0\Bin\Roslyn\VBCSCompiler.exe"
+    file source=$(OutputPath)\Vsix\CompilerExtension\System.Console.dll vs.file.ngenArchitecture=all vs.file.ngenApplication="[installDir]\MSBuild\15.0\Bin\Roslyn\VBCSCompiler.exe"
+    file source=$(OutputPath)\Vsix\CompilerExtension\System.Diagnostics.DiagnosticSource.dll vs.file.ngenArchitecture=all vs.file.ngenApplication="[installDir]\MSBuild\15.0\Bin\Roslyn\VBCSCompiler.exe"
+    file source=$(OutputPath)\Vsix\CompilerExtension\System.Diagnostics.FileVersionInfo.dll vs.file.ngenArchitecture=all vs.file.ngenApplication="[installDir]\MSBuild\15.0\Bin\Roslyn\VBCSCompiler.exe"
+    file source=$(OutputPath)\Vsix\CompilerExtension\System.Diagnostics.StackTrace.dll vs.file.ngenArchitecture=all vs.file.ngenApplication="[installDir]\MSBuild\15.0\Bin\Roslyn\VBCSCompiler.exe"
+    file source=$(OutputPath)\Vsix\CompilerExtension\System.Globalization.Calendars.dll vs.file.ngenArchitecture=all vs.file.ngenApplication="[installDir]\MSBuild\15.0\Bin\Roslyn\VBCSCompiler.exe"
+    file source=$(OutputPath)\Vsix\CompilerExtension\System.IO.Compression.dll vs.file.ngenArchitecture=all vs.file.ngenApplication="[installDir]\MSBuild\15.0\Bin\Roslyn\VBCSCompiler.exe"
+    file source=$(OutputPath)\Vsix\CompilerExtension\System.IO.Compression.ZipFile.dll vs.file.ngenArchitecture=all vs.file.ngenApplication="[installDir]\MSBuild\15.0\Bin\Roslyn\VBCSCompiler.exe"
+    file source=$(OutputPath)\Vsix\CompilerExtension\System.IO.FileSystem.dll vs.file.ngenArchitecture=all vs.file.ngenApplication="[installDir]\MSBuild\15.0\Bin\Roslyn\VBCSCompiler.exe"
+    file source=$(OutputPath)\Vsix\CompilerExtension\System.IO.FileSystem.Primitives.dll vs.file.ngenArchitecture=all vs.file.ngenApplication="[installDir]\MSBuild\15.0\Bin\Roslyn\VBCSCompiler.exe"
+    file source=$(OutputPath)\Vsix\CompilerExtension\System.Net.Http.dll vs.file.ngenArchitecture=all vs.file.ngenApplication="[installDir]\MSBuild\15.0\Bin\Roslyn\VBCSCompiler.exe"
+    file source=$(OutputPath)\Vsix\CompilerExtension\System.Net.Sockets.dll vs.file.ngenArchitecture=all vs.file.ngenApplication="[installDir]\MSBuild\15.0\Bin\Roslyn\VBCSCompiler.exe"
+    file source=$(OutputPath)\Vsix\CompilerExtension\System.Runtime.InteropServices.RuntimeInformation.dll vs.file.ngenArchitecture=all vs.file.ngenApplication="[installDir]\MSBuild\15.0\Bin\Roslyn\VBCSCompiler.exe"
+    file source=$(OutputPath)\Vsix\CompilerExtension\System.Security.Cryptography.Algorithms.dll vs.file.ngenArchitecture=all vs.file.ngenApplication="[installDir]\MSBuild\15.0\Bin\Roslyn\VBCSCompiler.exe"
+    file source=$(OutputPath)\Vsix\CompilerExtension\System.Security.Cryptography.Encoding.dll vs.file.ngenArchitecture=all vs.file.ngenApplication="[installDir]\MSBuild\15.0\Bin\Roslyn\VBCSCompiler.exe"
+    file source=$(OutputPath)\Vsix\CompilerExtension\System.Security.Cryptography.Primitives.dll vs.file.ngenArchitecture=all vs.file.ngenApplication="[installDir]\MSBuild\15.0\Bin\Roslyn\VBCSCompiler.exe"
+    file source=$(OutputPath)\Vsix\CompilerExtension\System.Security.Cryptography.X509Certificates.dll vs.file.ngenArchitecture=all vs.file.ngenApplication="[installDir]\MSBuild\15.0\Bin\Roslyn\VBCSCompiler.exe"
+    file source=$(OutputPath)\Vsix\CompilerExtension\System.Text.Encoding.CodePages.dll vs.file.ngenArchitecture=all vs.file.ngenApplication="[installDir]\MSBuild\15.0\Bin\Roslyn\VBCSCompiler.exe"
+    file source=$(OutputPath)\Vsix\CompilerExtension\System.Threading.Tasks.Extensions.dll vs.file.ngenArchitecture=all vs.file.ngenApplication="[installDir]\MSBuild\15.0\Bin\Roslyn\VBCSCompiler.exe"
+    file source=$(OutputPath)\Vsix\CompilerExtension\System.Xml.ReaderWriter.dll vs.file.ngenArchitecture=all vs.file.ngenApplication="[installDir]\MSBuild\15.0\Bin\Roslyn\VBCSCompiler.exe"
+    file source=$(OutputPath)\Vsix\CompilerExtension\System.Xml.XmlDocument.dll vs.file.ngenArchitecture=all vs.file.ngenApplication="[installDir]\MSBuild\15.0\Bin\Roslyn\VBCSCompiler.exe"
+    file source=$(OutputPath)\Vsix\CompilerExtension\System.Xml.XPath.dll vs.file.ngenArchitecture=all vs.file.ngenApplication="[installDir]\MSBuild\15.0\Bin\Roslyn\VBCSCompiler.exe"
+    file source=$(OutputPath)\Vsix\CompilerExtension\System.Xml.XPath.XDocument.dll vs.file.ngenArchitecture=all vs.file.ngenApplication="[installDir]\MSBuild\15.0\Bin\Roslyn\VBCSCompiler.exe"
 
 folder InstallDir:\Common7\Tools\vsdevcmd\ext
     file source=$(RepoRoot)\src\Setup\MSBuildScripts\roslyn.bat
