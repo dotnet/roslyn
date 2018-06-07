@@ -482,7 +482,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                     var symbols = ArrayBuilder<NamedTypeSymbol>.GetInstance(interfaceImpls.Count);
                     var tokenDecoder = new MetadataDecoder(moduleSymbol, this);
 
-                    int i = 0;
                     foreach (var interfaceImpl in interfaceImpls)
                     {
                         EntityHandle interfaceHandle = moduleSymbol.Module.MetadataReader.GetInterfaceImplementation(interfaceImpl).Interface;
