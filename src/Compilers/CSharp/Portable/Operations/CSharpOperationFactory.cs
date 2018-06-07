@@ -85,6 +85,8 @@ namespace Microsoft.CodeAnalysis.Operations
                     return CreateBoundObjectInitializerMemberOperation((BoundObjectInitializerMember)boundNode);
                 case BoundKind.CollectionElementInitializer:
                     return CreateBoundCollectionElementInitializerOperation((BoundCollectionElementInitializer)boundNode);
+                case BoundKind.DynamicObjectInitializerMember:
+                    return CreateBoundDynamicObjectInitializerMemberOperation((BoundDynamicObjectInitializerMember)boundNode);
                 case BoundKind.DynamicMemberAccess:
                     return CreateBoundDynamicMemberAccessOperation((BoundDynamicMemberAccess)boundNode);
                 case BoundKind.DynamicCollectionElementInitializer:
@@ -623,14 +625,7 @@ namespace Microsoft.CodeAnalysis.Operations
 
             Lazy<IOperation> instance = memberSymbol?.IsStatic == true ?
                                             OperationFactory.NullOperation :
-                                            new Lazy<IOperation>(() =>
-                                                new InstanceReferenceExpression(
-                                                    referenceKind: InstanceReferenceKind.ImplicitReceiver,
-                                                    semanticModel: _semanticModel,
-                                                    syntax: boundObjectInitializerMember.Syntax,
-                                                    type: boundObjectInitializerMember.ReceiverType,
-                                                    constantValue: default(Optional<object>),
-                                                    isImplicit: true));
+                                            new Lazy<IOperation>(() => CreateImplicitReciever(boundObjectInitializerMember.Syntax, boundObjectInitializerMember.ReceiverType));
 
             SyntaxNode syntax = boundObjectInitializerMember.Syntax;
             ITypeSymbol type = boundObjectInitializerMember.Type;
@@ -697,6 +692,22 @@ namespace Microsoft.CodeAnalysis.Operations
                 default:
                     throw ExceptionUtilities.Unreachable;
             }
+        }
+
+        private IOperation CreateBoundDynamicObjectInitializerMemberOperation(BoundDynamicObjectInitializerMember boundDynamicObjectInitializerMember)
+        {
+            Lazy<IOperation> instanceRecevier = new Lazy<IOperation>(() =>
+                CreateImplicitReciever(boundDynamicObjectInitializerMember.Syntax, boundDynamicObjectInitializerMember.ReceiverType));
+
+            string memberName = boundDynamicObjectInitializerMember.MemberName;
+            ImmutableArray<ITypeSymbol> typeArguments = ImmutableArray<ITypeSymbol>.Empty;
+            ITypeSymbol containingType = boundDynamicObjectInitializerMember.ReceiverType;
+            SyntaxNode syntax = boundDynamicObjectInitializerMember.Syntax;
+            ITypeSymbol type = boundDynamicObjectInitializerMember.Type;
+            Optional<object> constantValue = ConvertToOptional(boundDynamicObjectInitializerMember.ConstantValue);
+            bool isImplicit = boundDynamicObjectInitializerMember.WasCompilerGenerated;
+
+            return new LazyDynamicMemberReferenceExpression(instanceRecevier, memberName, typeArguments, containingType, _semanticModel, syntax, type, constantValue, isImplicit);
         }
 
         private IOperation CreateBoundCollectionElementInitializerOperation(BoundCollectionElementInitializer boundCollectionElementInitializer)
@@ -1055,7 +1066,8 @@ namespace Microsoft.CodeAnalysis.Operations
         }
 
         private static bool IsMemberInitializer(BoundAssignmentOperator boundAssignmentOperator) =>
-            boundAssignmentOperator.Right?.Kind == BoundKind.ObjectInitializerExpression || boundAssignmentOperator.Right?.Kind == BoundKind.CollectionInitializerExpression;
+            boundAssignmentOperator.Right?.Kind == BoundKind.ObjectInitializerExpression ||
+            boundAssignmentOperator.Right?.Kind == BoundKind.CollectionInitializerExpression;
 
         private ISimpleAssignmentOperation CreateBoundAssignmentOperatorOperation(BoundAssignmentOperator boundAssignmentOperator)
         {
@@ -1077,13 +1089,16 @@ namespace Microsoft.CodeAnalysis.Operations
 
             Lazy<IOperation> target = new Lazy<IOperation>(() => {
                 // We can have bad expressions on the left, fall back to standard creation if that's this case
-                if (boundAssignmentOperator.Left.Kind == BoundKind.ObjectInitializerMember)
+                switch (boundAssignmentOperator.Left.Kind)
                 {
-                    return _cache.GetOrAdd(boundAssignmentOperator.Left, key => CreateBoundObjectInitializerMemberOperation((BoundObjectInitializerMember)key, isObjectOrCollectionInitializer: true));
-                }
-                else
-                {
-                    return Create(boundAssignmentOperator.Left);
+                    case BoundKind.ObjectInitializerMember:
+                        return _cache.GetOrAdd(boundAssignmentOperator.Left, key =>
+                            CreateBoundObjectInitializerMemberOperation((BoundObjectInitializerMember)key, isObjectOrCollectionInitializer: true));
+                    case BoundKind.DynamicObjectInitializerMember:
+                        return _cache.GetOrAdd(boundAssignmentOperator.Left, key =>
+                            CreateBoundDynamicObjectInitializerMemberOperation((BoundDynamicObjectInitializerMember)key));
+                    default:
+                        return Create(boundAssignmentOperator.Left);
                 }
             });
             Lazy<IObjectOrCollectionInitializerOperation> value = new Lazy<IObjectOrCollectionInitializerOperation>(() => (IObjectOrCollectionInitializerOperation)Create(boundAssignmentOperator.Right));

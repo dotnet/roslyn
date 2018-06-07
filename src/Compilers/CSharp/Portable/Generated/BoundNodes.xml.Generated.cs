@@ -4957,39 +4957,45 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal sealed partial class BoundDynamicObjectInitializerMember : BoundExpression
     {
-        public BoundDynamicObjectInitializerMember(SyntaxNode syntax, string memberName, TypeSymbol type, bool hasErrors)
+        public BoundDynamicObjectInitializerMember(SyntaxNode syntax, string memberName, TypeSymbol receiverType, TypeSymbol type, bool hasErrors)
             : base(BoundKind.DynamicObjectInitializerMember, syntax, type, hasErrors)
         {
 
             Debug.Assert(memberName != null, "Field 'memberName' cannot be null (use Null=\"allow\" in BoundNodes.xml to remove this check)");
+            Debug.Assert(receiverType != null, "Field 'receiverType' cannot be null (use Null=\"allow\" in BoundNodes.xml to remove this check)");
             Debug.Assert(type != null, "Field 'type' cannot be null (use Null=\"allow\" in BoundNodes.xml to remove this check)");
 
             this.MemberName = memberName;
+            this.ReceiverType = receiverType;
         }
 
-        public BoundDynamicObjectInitializerMember(SyntaxNode syntax, string memberName, TypeSymbol type)
+        public BoundDynamicObjectInitializerMember(SyntaxNode syntax, string memberName, TypeSymbol receiverType, TypeSymbol type)
             : base(BoundKind.DynamicObjectInitializerMember, syntax, type)
         {
 
             Debug.Assert(memberName != null, "Field 'memberName' cannot be null (use Null=\"allow\" in BoundNodes.xml to remove this check)");
+            Debug.Assert(receiverType != null, "Field 'receiverType' cannot be null (use Null=\"allow\" in BoundNodes.xml to remove this check)");
             Debug.Assert(type != null, "Field 'type' cannot be null (use Null=\"allow\" in BoundNodes.xml to remove this check)");
 
             this.MemberName = memberName;
+            this.ReceiverType = receiverType;
         }
 
 
         public string MemberName { get; }
+
+        public TypeSymbol ReceiverType { get; }
 
         public override BoundNode Accept(BoundTreeVisitor visitor)
         {
             return visitor.VisitDynamicObjectInitializerMember(this);
         }
 
-        public BoundDynamicObjectInitializerMember Update(string memberName, TypeSymbol type)
+        public BoundDynamicObjectInitializerMember Update(string memberName, TypeSymbol receiverType, TypeSymbol type)
         {
-            if (memberName != this.MemberName || type != this.Type)
+            if (memberName != this.MemberName || receiverType != this.ReceiverType || type != this.Type)
             {
-                var result = new BoundDynamicObjectInitializerMember(this.Syntax, memberName, type, this.HasErrors);
+                var result = new BoundDynamicObjectInitializerMember(this.Syntax, memberName, receiverType, type, this.HasErrors);
                 result.WasCompilerGenerated = this.WasCompilerGenerated;
                 return result;
             }
@@ -9418,8 +9424,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
         public override BoundNode VisitDynamicObjectInitializerMember(BoundDynamicObjectInitializerMember node)
         {
+            TypeSymbol receiverType = this.VisitType(node.ReceiverType);
             TypeSymbol type = this.VisitType(node.Type);
-            return node.Update(node.MemberName, type);
+            return node.Update(node.MemberName, receiverType, type);
         }
         public override BoundNode VisitCollectionInitializerExpression(BoundCollectionInitializerExpression node)
         {
@@ -10887,6 +10894,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return new TreeDumperNode("dynamicObjectInitializerMember", null, new TreeDumperNode[]
             {
                 new TreeDumperNode("memberName", node.MemberName, null),
+                new TreeDumperNode("receiverType", node.ReceiverType, null),
                 new TreeDumperNode("type", node.Type, null)
             }
             );

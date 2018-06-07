@@ -715,17 +715,26 @@ IMemberInitializerOperation (OperationKind.MemberInitializer, Type: dynamic) (Sy
       Initializers(3):
           ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: dynamic) (Syntax: 'X = 1')
             Left: 
-              IOperation:  (OperationKind.None, Type: null) (Syntax: 'X')
+              IDynamicMemberReferenceOperation (Member Name: ""X"", Containing Type: dynamic) (OperationKind.DynamicMemberReference, Type: dynamic) (Syntax: 'X')
+                Type Arguments(0)
+                Instance Receiver: 
+                  IInstanceReferenceOperation (ReferenceKind: ImplicitReceiver) (OperationKind.InstanceReference, Type: dynamic, IsImplicit) (Syntax: 'X')
             Right: 
               ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
           ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: dynamic) (Syntax: 'Y = 1')
             Left: 
-              IOperation:  (OperationKind.None, Type: null) (Syntax: 'Y')
+              IDynamicMemberReferenceOperation (Member Name: ""Y"", Containing Type: dynamic) (OperationKind.DynamicMemberReference, Type: dynamic) (Syntax: 'Y')
+                Type Arguments(0)
+                Instance Receiver: 
+                  IInstanceReferenceOperation (ReferenceKind: ImplicitReceiver) (OperationKind.InstanceReference, Type: dynamic, IsImplicit) (Syntax: 'Y')
             Right: 
               ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
           ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: dynamic) (Syntax: 'Z = 1')
             Left: 
-              IOperation:  (OperationKind.None, Type: null) (Syntax: 'Z')
+              IDynamicMemberReferenceOperation (Member Name: ""Z"", Containing Type: dynamic) (OperationKind.DynamicMemberReference, Type: dynamic) (Syntax: 'Z')
+                Type Arguments(0)
+                Instance Receiver: 
+                  IInstanceReferenceOperation (ReferenceKind: ImplicitReceiver) (OperationKind.InstanceReference, Type: dynamic, IsImplicit) (Syntax: 'Z')
             Right: 
               ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
 ";
@@ -9965,6 +9974,296 @@ Block[B4] - Block
                 IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: C1, IsImplicit) (Syntax: 'c')
               Right: 
                 IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: C1, IsInvalid, IsImplicit) (Syntax: 'new C1(i1)  ...  c1 ?? c2 }')
+
+    Next (Regular) Block[B5]
+Block[B5] - Exit
+    Predecessors: [B4]
+    Statements (0)
+";
+            VerifyFlowGraphAndDiagnosticsForTest<MethodDeclarationSyntax>(source, expectedFlowGraph, expectedDiagnostics);
+        }
+
+        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+        [Fact]
+        public void ObjectCreationFlow_68()
+        {
+            string source = @"
+public class MemberInitializerTest
+{
+    public int x, y;
+    /*<bind>*/public static void Main()
+    {
+        var i = new MemberInitializerTest { x = 0, y++ };
+    }/*</bind>*/
+}
+";
+            var expectedDiagnostics = new[] {
+                // file.cs(7,52): error CS0120: An object reference is required for the non-static field, method, or property 'MemberInitializerTest.y'
+                //         var i = new MemberInitializerTest { x = 0, y++ };
+                Diagnostic(ErrorCode.ERR_ObjectRequired, "y").WithArguments("MemberInitializerTest.y").WithLocation(7, 52),
+                // file.cs(7,52): error CS0747: Invalid initializer member declarator
+                //         var i = new MemberInitializerTest { x = 0, y++ };
+                Diagnostic(ErrorCode.ERR_InvalidInitializerElementInitializer, "y++").WithLocation(7, 52)
+            };
+
+            string expectedFlowGraph = @"
+Block[B0] - Entry
+    Statements (0)
+    Next (Regular) Block[B1]
+        Entering: {R1}
+
+.locals {R1}
+{
+    Locals: [MemberInitializerTest i]
+    Block[B1] - Block
+        Predecessors: [B0]
+        Statements (4)
+            IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsInvalid, IsImplicit) (Syntax: 'new MemberI ...  = 0, y++ }')
+              Value: 
+                IObjectCreationOperation (Constructor: MemberInitializerTest..ctor()) (OperationKind.ObjectCreation, Type: MemberInitializerTest, IsInvalid) (Syntax: 'new MemberI ...  = 0, y++ }')
+                  Arguments(0)
+                  Initializer: 
+                    null
+
+            ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32) (Syntax: 'x = 0')
+              Left: 
+                IFieldReferenceOperation: System.Int32 MemberInitializerTest.x (OperationKind.FieldReference, Type: System.Int32) (Syntax: 'x')
+                  Instance Receiver: 
+                    IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: MemberInitializerTest, IsInvalid, IsImplicit) (Syntax: 'new MemberI ...  = 0, y++ }')
+              Right: 
+                ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0) (Syntax: '0')
+
+            IIncrementOrDecrementOperation (Postfix) (OperationKind.Increment, Type: ?, IsInvalid) (Syntax: 'y++')
+              Target: 
+                IFieldReferenceOperation: System.Int32 MemberInitializerTest.y (OperationKind.FieldReference, Type: System.Int32, IsInvalid) (Syntax: 'y')
+                  Instance Receiver: 
+                    IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: MemberInitializerTest, IsInvalid, IsImplicit) (Syntax: 'y')
+
+            ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: MemberInitializerTest, IsInvalid, IsImplicit) (Syntax: 'i = new Mem ...  = 0, y++ }')
+              Left: 
+                ILocalReferenceOperation: i (IsDeclaration: True) (OperationKind.LocalReference, Type: MemberInitializerTest, IsInvalid, IsImplicit) (Syntax: 'i = new Mem ...  = 0, y++ }')
+              Right: 
+                IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: MemberInitializerTest, IsInvalid, IsImplicit) (Syntax: 'new MemberI ...  = 0, y++ }')
+
+        Next (Regular) Block[B2]
+            Leaving: {R1}
+}
+
+Block[B2] - Exit
+    Predecessors: [B1]
+    Statements (0)
+";
+            VerifyFlowGraphAndDiagnosticsForTest<MethodDeclarationSyntax>(source, expectedFlowGraph, expectedDiagnostics);
+        }
+
+        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+        [Fact]
+        public void ObjectCreationFlow_69()
+        {
+            string source = @"
+#pragma warning disable 0169
+class A
+{
+    A this[int x, int y]
+    {
+        get
+        {
+            return new A();
+        }
+    }
+
+    int X, Y, Z;
+
+    /*<bind>*/static void Main(A a, dynamic x, dynamic y)
+    {
+        a = new A {[x, y] = { X = 1, Y = 2, Z = 3 } };
+    }/*</bind>*/
+}
+";
+            var expectedDiagnostics = DiagnosticDescription.None;
+
+            string expectedFlowGraph = @"
+Block[B0] - Entry
+    Statements (0)
+    Next (Regular) Block[B1]
+Block[B1] - Block
+    Predecessors: [B0]
+    Statements (8)
+        IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'a')
+          Value: 
+            IParameterReferenceOperation: a (OperationKind.ParameterReference, Type: A) (Syntax: 'a')
+
+        IFlowCaptureOperation: 1 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'new A {[x,  ... , Z = 3 } }')
+          Value: 
+            IObjectCreationOperation (Constructor: A..ctor()) (OperationKind.ObjectCreation, Type: A) (Syntax: 'new A {[x,  ... , Z = 3 } }')
+              Arguments(0)
+              Initializer: 
+                null
+
+        IFlowCaptureOperation: 2 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'x')
+          Value: 
+            IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: dynamic) (Syntax: 'x')
+
+        IFlowCaptureOperation: 3 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'y')
+          Value: 
+            IParameterReferenceOperation: y (OperationKind.ParameterReference, Type: dynamic) (Syntax: 'y')
+
+        ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: dynamic) (Syntax: 'X = 1')
+          Left: 
+            IDynamicMemberReferenceOperation (Member Name: ""X"", Containing Type: dynamic) (OperationKind.DynamicMemberReference, Type: dynamic) (Syntax: 'X')
+              Type Arguments(0)
+              Instance Receiver: 
+                IDynamicIndexerAccessOperation (OperationKind.DynamicIndexerAccess, Type: dynamic) (Syntax: '[x, y]')
+                  Expression: 
+                    IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: A, IsImplicit) (Syntax: 'new A {[x,  ... , Z = 3 } }')
+                  Arguments(2):
+                      IFlowCaptureReferenceOperation: 2 (OperationKind.FlowCaptureReference, Type: dynamic, IsImplicit) (Syntax: 'x')
+                      IFlowCaptureReferenceOperation: 3 (OperationKind.FlowCaptureReference, Type: dynamic, IsImplicit) (Syntax: 'y')
+                  ArgumentNames(0)
+                  ArgumentRefKinds(0)
+          Right: 
+            ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
+
+        ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: dynamic) (Syntax: 'Y = 2')
+          Left: 
+            IDynamicMemberReferenceOperation (Member Name: ""Y"", Containing Type: dynamic) (OperationKind.DynamicMemberReference, Type: dynamic) (Syntax: 'Y')
+              Type Arguments(0)
+              Instance Receiver: 
+                IDynamicIndexerAccessOperation (OperationKind.DynamicIndexerAccess, Type: dynamic) (Syntax: '[x, y]')
+                  Expression: 
+                    IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: A, IsImplicit) (Syntax: 'new A {[x,  ... , Z = 3 } }')
+                  Arguments(2):
+                      IFlowCaptureReferenceOperation: 2 (OperationKind.FlowCaptureReference, Type: dynamic, IsImplicit) (Syntax: 'x')
+                      IFlowCaptureReferenceOperation: 3 (OperationKind.FlowCaptureReference, Type: dynamic, IsImplicit) (Syntax: 'y')
+                  ArgumentNames(0)
+                  ArgumentRefKinds(0)
+          Right: 
+            ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2) (Syntax: '2')
+
+        ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: dynamic) (Syntax: 'Z = 3')
+          Left: 
+            IDynamicMemberReferenceOperation (Member Name: ""Z"", Containing Type: dynamic) (OperationKind.DynamicMemberReference, Type: dynamic) (Syntax: 'Z')
+              Type Arguments(0)
+              Instance Receiver: 
+                IDynamicIndexerAccessOperation (OperationKind.DynamicIndexerAccess, Type: dynamic) (Syntax: '[x, y]')
+                  Expression: 
+                    IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: A, IsImplicit) (Syntax: 'new A {[x,  ... , Z = 3 } }')
+                  Arguments(2):
+                      IFlowCaptureReferenceOperation: 2 (OperationKind.FlowCaptureReference, Type: dynamic, IsImplicit) (Syntax: 'x')
+                      IFlowCaptureReferenceOperation: 3 (OperationKind.FlowCaptureReference, Type: dynamic, IsImplicit) (Syntax: 'y')
+                  ArgumentNames(0)
+                  ArgumentRefKinds(0)
+          Right: 
+            ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 3) (Syntax: '3')
+
+        IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'a = new A { ...  Z = 3 } };')
+          Expression: 
+            ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: A) (Syntax: 'a = new A { ... , Z = 3 } }')
+              Left: 
+                IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: A, IsImplicit) (Syntax: 'a')
+              Right: 
+                IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: A, IsImplicit) (Syntax: 'new A {[x,  ... , Z = 3 } }')
+
+    Next (Regular) Block[B2]
+Block[B2] - Exit
+    Predecessors: [B1]
+    Statements (0)
+";
+            VerifyFlowGraphAndDiagnosticsForTest<MethodDeclarationSyntax>(source, expectedFlowGraph, expectedDiagnostics);
+        }
+
+        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+        [Fact]
+        public void ObjectCreationFlow_70()
+        {
+            string source = @"
+#pragma warning disable 0169
+class A
+{
+    dynamic D { get; set; }
+
+    /*<bind>*/static void Main(A a, bool b)
+    {
+        a = new A { D = { X = 1, Y = b ? 2 : 3 } };
+    }/*</bind>*/
+}
+";
+            var expectedDiagnostics = DiagnosticDescription.None;
+
+            string expectedFlowGraph = @"
+Block[B0] - Entry
+    Statements (0)
+    Next (Regular) Block[B1]
+Block[B1] - Block
+    Predecessors: [B0]
+    Statements (4)
+        IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'a')
+          Value: 
+            IParameterReferenceOperation: a (OperationKind.ParameterReference, Type: A) (Syntax: 'a')
+
+        IFlowCaptureOperation: 1 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'new A { D = ... ? 2 : 3 } }')
+          Value: 
+            IObjectCreationOperation (Constructor: A..ctor()) (OperationKind.ObjectCreation, Type: A) (Syntax: 'new A { D = ... ? 2 : 3 } }')
+              Arguments(0)
+              Initializer: 
+                null
+
+        ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: dynamic) (Syntax: 'X = 1')
+          Left: 
+            IDynamicMemberReferenceOperation (Member Name: ""X"", Containing Type: dynamic) (OperationKind.DynamicMemberReference, Type: dynamic) (Syntax: 'X')
+              Type Arguments(0)
+              Instance Receiver: 
+                IPropertyReferenceOperation: dynamic A.D { get; set; } (OperationKind.PropertyReference, Type: dynamic) (Syntax: 'D')
+                  Instance Receiver: 
+                    IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: A, IsImplicit) (Syntax: 'new A { D = ... ? 2 : 3 } }')
+          Right: 
+            ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
+
+        IFlowCaptureOperation: 2 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'D')
+          Value: 
+            IPropertyReferenceOperation: dynamic A.D { get; set; } (OperationKind.PropertyReference, Type: dynamic) (Syntax: 'D')
+              Instance Receiver: 
+                IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: A, IsImplicit) (Syntax: 'new A { D = ... ? 2 : 3 } }')
+
+    Jump if False (Regular) to Block[B3]
+        IParameterReferenceOperation: b (OperationKind.ParameterReference, Type: System.Boolean) (Syntax: 'b')
+
+    Next (Regular) Block[B2]
+Block[B2] - Block
+    Predecessors: [B1]
+    Statements (1)
+        IFlowCaptureOperation: 3 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: '2')
+          Value: 
+            ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2) (Syntax: '2')
+
+    Next (Regular) Block[B4]
+Block[B3] - Block
+    Predecessors: [B1]
+    Statements (1)
+        IFlowCaptureOperation: 3 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: '3')
+          Value: 
+            ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 3) (Syntax: '3')
+
+    Next (Regular) Block[B4]
+Block[B4] - Block
+    Predecessors: [B2] [B3]
+    Statements (2)
+        ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: dynamic) (Syntax: 'Y = b ? 2 : 3')
+          Left: 
+            IDynamicMemberReferenceOperation (Member Name: ""Y"", Containing Type: dynamic) (OperationKind.DynamicMemberReference, Type: dynamic) (Syntax: 'Y')
+              Type Arguments(0)
+              Instance Receiver: 
+                IFlowCaptureReferenceOperation: 2 (OperationKind.FlowCaptureReference, Type: dynamic, IsImplicit) (Syntax: 'D')
+          Right: 
+            IFlowCaptureReferenceOperation: 3 (OperationKind.FlowCaptureReference, Type: System.Int32, IsImplicit) (Syntax: 'b ? 2 : 3')
+
+        IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'a = new A { ...  2 : 3 } };')
+          Expression: 
+            ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: A) (Syntax: 'a = new A { ... ? 2 : 3 } }')
+              Left: 
+                IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: A, IsImplicit) (Syntax: 'a')
+              Right: 
+                IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: A, IsImplicit) (Syntax: 'new A { D = ... ? 2 : 3 } }')
 
     Next (Regular) Block[B5]
 Block[B5] - Exit

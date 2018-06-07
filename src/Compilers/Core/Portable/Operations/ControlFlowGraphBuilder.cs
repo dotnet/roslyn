@@ -4718,14 +4718,25 @@ oneMoreTime:
             IOperation initializedInstance = new ObjectCreationExpression(operation.Constructor, initializer: null, visitedArgs, semanticModel: null, operation.Syntax, operation.Type,
                                                                           operation.ConstantValue, IsImplicit(operation));
 
-            initializedInstance = HandleObjectOrCollectionInitializer(operation.Initializer, initializedInstance);
-
-            return initializedInstance;
+            return HandleObjectOrCollectionInitializer(operation.Initializer, initializedInstance);
         }
 
         public override IOperation VisitTypeParameterObjectCreation(ITypeParameterObjectCreationOperation operation, int? captureIdForResult)
         {
             var initializedInstance = new TypeParameterObjectCreationExpression(initializer: null, semanticModel: null, operation.Syntax, operation.Type, operation.ConstantValue, IsImplicit(operation));
+            return HandleObjectOrCollectionInitializer(operation.Initializer, initializedInstance);
+        }
+
+        public override IOperation VisitDynamicObjectCreation(IDynamicObjectCreationOperation operation, int? captureIdForResult)
+        {
+            PushArray(operation.Arguments);
+            ImmutableArray<IOperation> visitedArguments = PopArray(operation.Arguments);
+
+            var hasDynamicArguments = (HasDynamicArgumentsExpression)operation;
+            IOperation initializedInstance = new DynamicObjectCreationExpression(visitedArguments, hasDynamicArguments.ArgumentNames, hasDynamicArguments.ArgumentRefKinds,
+                                                                                 initializer: null, semanticModel: null, operation.Syntax, operation.Type,
+                                                                                 operation.ConstantValue, IsImplicit(operation));
+
             return HandleObjectOrCollectionInitializer(operation.Initializer, initializedInstance);
         }
 
@@ -4773,41 +4784,19 @@ oneMoreTime:
                         AddStatement(handleSimpleAssignment((ISimpleAssignmentOperation)innerInitializer));
                         return;
 
-                    case OperationKind.Invocation:
-                    case OperationKind.DynamicInvocation:
-                        // PROTOTYPE(dataflow): Dynamic invocation needs adjustment in the OperationFactory to ensure that
-                        // dynamic member references are generated appropriately.
-                        AddStatement(Visit(innerInitializer));
-                        return;
-
-                    case OperationKind.Increment:
-                        // PROTOTYPE(dataflow): It looks like we can get here with an increment
-                        //                      See Microsoft.CodeAnalysis.CSharp.UnitTests.SemanticModelGetSemanticInfoTests.ObjectInitializer_InvalidElementInitializer_IdentifierNameSyntax
-                        //                      Just drop it for now to enable other test scenarios.
-                        return;
-
-                    case OperationKind.Literal:
-                        // PROTOTYPE(dataflow): See Microsoft.CodeAnalysis.VisualBasic.UnitTests.BindingErrorTests.BC30994ERR_AggrInitInvalidForObject
-                        //                      Just drop it for now to enable other test scenarios.
-                        return;
-
-                    case OperationKind.LocalReference:
-                        // PROTOTYPE(dataflow): See Microsoft.CodeAnalysis.VisualBasic.UnitTests.Semantics.IOperationTests.TestClone
-                        //                      Just drop it for now to enable other test scenarios.
-                        return;
-
-                    case OperationKind.BinaryOperator:
-                    case OperationKind.FieldReference:
-                        // PROTOTYPE(dataflow): See Microsoft.CodeAnalysis.VisualBasic.UnitTests.SimpleFlowTests.LogicalExpressionInErroneousObjectInitializer
-                        //                      Just drop it for now to enable other test scenarios.
-                        return;
-
-                    case OperationKind.Invalid:
-                        AddStatement(Visit(innerInitializer));
-                        return;
-
                     default:
-                        throw ExceptionUtilities.UnexpectedValue(innerInitializer.Kind);
+                        // This assert is to document the list of things we know are possible to go through the default handler. It's possible there
+                        // are other nodes that will go through here, and if a new test triggers this assert, it will likely be fine to just add
+                        // the node type to the assert. It's here merely to ensure that we think about whether that node type actually does need
+                        // special handling in the context of a collection or object initializer before just assuming that it's fine.
+#if DEBUG
+                        var validKinds = ImmutableArray.Create(OperationKind.Invocation, OperationKind.DynamicInvocation, OperationKind.Increment, OperationKind.Literal,
+                                                               OperationKind.LocalReference, OperationKind.BinaryOperator, OperationKind.FieldReference, OperationKind.Invalid);
+                        Debug.Assert(validKinds.Contains(innerInitializer.Kind));
+#endif
+
+                        AddStatement(Visit(innerInitializer));
+                        return;
                 }
             }
 
@@ -4818,9 +4807,6 @@ oneMoreTime:
                 if (!pushSuccess)
                 {
                     // Error case. We don't try any error recovery here, just return whatever the default visit would.
-
-                    // PROTOTYPE(dataflow): At the moment we can get here in other cases as well, see tryPushTarget
-                    // Debug.Assert(assignmentOperation.Target.Kind == OperationKind.Invalid);
                     return Visit(assignmentOperation);
                 }
 
@@ -4931,17 +4917,28 @@ oneMoreTime:
                         _evalStack.Push(Visit(arrayReference.ArrayReference));
                         return (success: true, indicies);
 
-                    case OperationKind.DynamicIndexerAccess: // PROTOTYPE(dataflow): For now handle as invalid case to enable other test scenarios
-                    case OperationKind.None: // PROTOTYPE(dataflow): For now handle as invalid case to enable other test scenarios.
-                                             //                      see Microsoft.CodeAnalysis.CSharp.UnitTests.IOperationTests.ObjectCreationWithDynamicMemberInitializer_01
-                    case OperationKind.Invalid:
-                        return (success: false, arguments: ImmutableArray<IOperation>.Empty);
+                    case OperationKind.DynamicIndexerAccess:
+                        var dynamicIndexer = (IDynamicIndexerAccessOperation)instance;
+                        ImmutableArray<IOperation> arguments = dynamicIndexer.Arguments.SelectAsArray(argument =>
+                        {
+                            int captureId = VisitAndCapture(argument);
+                            return (IOperation)GetCaptureReference(captureId, argument);
+                        });
+                        _evalStack.Push(Visit(dynamicIndexer.Operation));
+                        return (success: true, arguments);
+
+                    case OperationKind.DynamicMemberReference:
+                        var dynamicReference = (IDynamicMemberReferenceOperation)instance;
+                        _evalStack.Push(Visit(dynamicReference.Instance));
+                        return (success: true, arguments: ImmutableArray<IOperation>.Empty);
 
                     default:
-                        // PROTOTYPE(dataflow): Probably it will be more robust to handle all remaining cases as an invalid case.
-                        //                      Likely not worth it throwing for some edge error case. Asserting would be good though
-                        //                      so that tests could catch the things we though are impossible.
-                        throw ExceptionUtilities.UnexpectedValue(instance.Kind);
+                        // As in the assert in handleInitializer, this assert documents the operation kinds that we know go through this path,
+                        // and it is possible others go through here as well. If they are encountered, we simply need to ensure
+                        // that they don't have any interesting semantics in object or collection initialization contexts and add them to the
+                        // assert.
+                        Debug.Assert(instance.Kind == OperationKind.Invalid || instance.Kind == OperationKind.None);
+                        return (success: false, arguments: ImmutableArray<IOperation>.Empty);
                 }
             }
 
@@ -4966,8 +4963,22 @@ oneMoreTime:
                                                                propertyReference.Type, propertyReference.ConstantValue, IsImplicit(propertyReference));
                     case OperationKind.ArrayElementReference:
                         Debug.Assert(((IArrayElementReferenceOperation)originalTarget).Indices.Length == arguments.Length);
-                        return new ArrayElementReferenceExpression(instance, arguments, semanticModel: null, originalTarget.Syntax, originalTarget.Type, originalTarget.ConstantValue, IsImplicit(originalTarget));
+                        return new ArrayElementReferenceExpression(instance, arguments, semanticModel: null, originalTarget.Syntax, originalTarget.Type,
+                                                                   originalTarget.ConstantValue, IsImplicit(originalTarget));
+                    case OperationKind.DynamicIndexerAccess:
+                        var dynamicAccess = (HasDynamicArgumentsExpression)originalTarget;
+                        Debug.Assert(dynamicAccess.Arguments.Length == arguments.Length);
+                        return new DynamicIndexerAccessExpression(instance, arguments, dynamicAccess.ArgumentNames, dynamicAccess.ArgumentRefKinds, semanticModel: null,
+                                                                  dynamicAccess.Syntax, dynamicAccess.Type, dynamicAccess.ConstantValue, IsImplicit(dynamicAccess));
+                    case OperationKind.DynamicMemberReference:
+                        var dynamicReference = (IDynamicMemberReferenceOperation)originalTarget;
+                        Debug.Assert(arguments.IsEmpty);
+                        return new DynamicMemberReferenceExpression(instance, dynamicReference.MemberName, dynamicReference.TypeArguments,
+                                                                    dynamicReference.ContainingType, semanticModel: null, dynamicReference.Syntax,
+                                                                    dynamicReference.Type, dynamicReference.ConstantValue, IsImplicit(dynamicReference));
                     default:
+                        // Unlike in tryPushTarget, we assume that if this method is called, we were successful in pushing, so
+                        // this must be one of the explicitly handled kinds
                         throw ExceptionUtilities.UnexpectedValue(originalTarget.Kind);
                 }
             }
@@ -5885,30 +5896,10 @@ oneMoreTime:
             throw ExceptionUtilities.Unreachable;
         }
 
-        #region PROTOTYPE(dataflow): Naive implementation that simply clones nodes and erases SemanticModel, likely to change
-
-        private ImmutableArray<T> VisitArray<T>(ImmutableArray<T> nodes) where T : IOperation
-        {
-            // clone the array
-            return nodes.SelectAsArray(n => Visit(n));
-        }
-
         public override IOperation VisitArgument(IArgumentOperation operation, int? captureIdForResult)
         {
-            // PROTOTYPE(dataflow): All usages of this should be removed the following line uncommented when support is added for object creation, property reference, and raise events.
-            // throw ExceptionUtilities.Unreachable;
-            var baseArgument = (BaseArgument)operation;
-            return new ArgumentOperation(Visit(operation.Value), operation.ArgumentKind, operation.Parameter, baseArgument.InConversionConvertibleOpt, baseArgument.OutConversionConvertibleOpt, semanticModel: null, operation.Syntax, IsImplicit(operation));
+            throw ExceptionUtilities.Unreachable;
         }
 
-        public override IOperation VisitDynamicObjectCreation(IDynamicObjectCreationOperation operation, int? captureIdForResult)
-        {
-            return new DynamicObjectCreationExpression(VisitArray(operation.Arguments), ((HasDynamicArgumentsExpression)operation).ArgumentNames,
-                                                       ((HasDynamicArgumentsExpression)operation).ArgumentRefKinds,
-                                                       initializer: null, // PROTOTYPE(dataflow): Dropping initializer for now to enable test hook verification
-                                                       semanticModel: null, operation.Syntax, operation.Type, operation.ConstantValue, IsImplicit(operation));
-        }
-
-        #endregion
     }
 }
