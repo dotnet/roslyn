@@ -370,8 +370,6 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                     stringBuilder.Append("Methods:");
                     foreach (IMethodSymbol method in region.LocalFunctions)
                     {
-                        // PROTOTYPE(dataflow): For C# lambdas this prints [lambda expression], which is not very helpful if we want to tell lambdas apart.
-                        //                      That is how symbol display is implemented for C#.
                         stringBuilder.Append($" [{method.ToTestDisplayString()}]");
                     }
                     stringBuilder.AppendLine();
@@ -684,7 +682,7 @@ endRegion:
             }
         }
 
-        private class OperationTreeSerializer : OperationTreeVerifier
+        private sealed class OperationTreeSerializer : OperationTreeVerifier
         {
             private readonly ControlFlowGraph _graph;
             private readonly ControlFlowRegion _region;

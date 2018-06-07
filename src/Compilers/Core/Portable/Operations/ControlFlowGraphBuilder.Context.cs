@@ -9,6 +9,10 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
 {
     internal sealed partial class ControlFlowGraphBuilder
     {
+        /// <summary>
+        /// This structure is meant to capture a snapshot of the <see cref="ControlFlowGraphBuilder"/> state
+        /// that is needed to build graphs for lambdas and local functions.
+        /// </summary>
         internal struct Context
         {
             public readonly IOperation ImplicitInstance;

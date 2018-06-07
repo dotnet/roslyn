@@ -1302,18 +1302,18 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
             SpillEvalStack();
         }
 
-        private IOperation FinishVisitingStatement(IOperation originalOperaion, IOperation result = null)
+        private IOperation FinishVisitingStatement(IOperation originalOperation, IOperation result = null)
         {
-            Debug.Assert(((Operation)originalOperaion).SemanticModel != null, "Not an original node.");
-            Debug.Assert(_currentStatement == originalOperaion);
+            Debug.Assert(((Operation)originalOperation).SemanticModel != null, "Not an original node.");
+            Debug.Assert(_currentStatement == originalOperation);
             Debug.Assert(_evalStack.Count == 0);
 
-            if (_currentStatement == originalOperaion)
+            if (_currentStatement == originalOperation)
             {
                 return result;
             }
 
-            return result ?? MakeInvalidOperation(originalOperaion.Syntax, originalOperaion.Type, ImmutableArray<IOperation>.Empty);
+            return result ?? MakeInvalidOperation(originalOperation.Syntax, originalOperation.Type, ImmutableArray<IOperation>.Empty);
         }
 
         private void VisitStatements(ArrayBuilder<IOperation> statements)

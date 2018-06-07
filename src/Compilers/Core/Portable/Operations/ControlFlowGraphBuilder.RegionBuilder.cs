@@ -236,7 +236,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
             public ControlFlowRegion ToImmutableRegionAndFree(ArrayBuilder<BasicBlockBuilder> blocks,
                                                               ArrayBuilder<IMethodSymbol> localFunctions,
                                                               ImmutableDictionary<IMethodSymbol, (ControlFlowRegion region, ILocalFunctionOperation operation, int ordinal)>.Builder localFunctionsMap,
-                                                              ImmutableDictionary<IFlowAnonymousFunctionOperation, (ControlFlowRegion, int)>.Builder anonymousFunctionsMapOpt,
+                                                              ImmutableDictionary<IFlowAnonymousFunctionOperation, (ControlFlowRegion region, int ordinal)>.Builder anonymousFunctionsMapOpt,
                                                               ControlFlowRegion enclosing)
             {
 #if DEBUG
@@ -313,9 +313,10 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
                     Debug.Assert(block.Region == null);
                     block.Region = result;
 
+                    // Populate the map of IFlowAnonymousFunctionOperation nodes, if we have any
                     if (anonymousFunctionsMapOpt != null)
                     {
-                        (ImmutableDictionary<IFlowAnonymousFunctionOperation, (ControlFlowRegion, int)>.Builder map, ControlFlowRegion region) argument = (anonymousFunctionsMapOpt, result);
+                        (ImmutableDictionary<IFlowAnonymousFunctionOperation, (ControlFlowRegion region, int ordinal)>.Builder map, ControlFlowRegion region) argument = (anonymousFunctionsMapOpt, result);
 
                         if (block.HasStatements)
                         {
@@ -331,26 +332,26 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
             }
 
             private sealed class AnonymousFunctionsMapBuilder : 
-                OperationVisitor<(ImmutableDictionary<IFlowAnonymousFunctionOperation, (ControlFlowRegion, int)>.Builder map, ControlFlowRegion region), IOperation>
+                OperationVisitor<(ImmutableDictionary<IFlowAnonymousFunctionOperation, (ControlFlowRegion region, int ordinal)>.Builder map, ControlFlowRegion region), IOperation>
             {
                 public static readonly AnonymousFunctionsMapBuilder Instance = new AnonymousFunctionsMapBuilder();
 
                 public override IOperation VisitFlowAnonymousFunction(
                     IFlowAnonymousFunctionOperation operation, 
-                    (ImmutableDictionary<IFlowAnonymousFunctionOperation, (ControlFlowRegion, int)>.Builder map, ControlFlowRegion region) argument)
+                    (ImmutableDictionary<IFlowAnonymousFunctionOperation, (ControlFlowRegion region, int ordinal)>.Builder map, ControlFlowRegion region) argument)
                 {
                     argument.map.Add(operation, (argument.region, argument.map.Count));
                     return base.VisitFlowAnonymousFunction(operation, argument);
                 }
 
-                internal override IOperation VisitNoneOperation(IOperation operation, (ImmutableDictionary<IFlowAnonymousFunctionOperation, (ControlFlowRegion, int)>.Builder map, ControlFlowRegion region) argument)
+                internal override IOperation VisitNoneOperation(IOperation operation, (ImmutableDictionary<IFlowAnonymousFunctionOperation, (ControlFlowRegion region, int ordinal)>.Builder map, ControlFlowRegion region) argument)
                 {
                     return DefaultVisit(operation, argument);
                 }
 
                 public override IOperation DefaultVisit(
                     IOperation operation, 
-                    (ImmutableDictionary<IFlowAnonymousFunctionOperation, (ControlFlowRegion, int)>.Builder map, ControlFlowRegion region) argument)
+                    (ImmutableDictionary<IFlowAnonymousFunctionOperation, (ControlFlowRegion region, int ordinal)>.Builder map, ControlFlowRegion region) argument)
                 {
                     foreach (IOperation child in operation.Children)
                     {

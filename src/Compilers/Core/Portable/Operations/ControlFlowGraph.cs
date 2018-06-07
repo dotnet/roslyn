@@ -80,7 +80,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
         public ControlFlowRegion Root { get; }
 
         /// <summary>
-        /// Lambdas and local functions declared within <see cref="OriginalOperation"/>.
+        /// Local functions declared within <see cref="OriginalOperation"/>.
         /// </summary>
         public ImmutableArray<IMethodSymbol> LocalFunctions { get; }
 
