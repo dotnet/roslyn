@@ -2478,7 +2478,7 @@ oneMoreTime:
                     receiver = UnwrapNullableValue(receiver);
                 }
 
-                // PROTOTYPE(dataflow): It looks like there is a bug in IOperation tree around XmlMemberAccessExpressionSyntax,
+                // https://github.com/dotnet/roslyn/issues/27564: It looks like there is a bug in IOperation tree around XmlMemberAccessExpressionSyntax,
                 //                      a None operation is created and all children are dropped.
                 //                      See Microsoft.CodeAnalysis.VisualBasic.UnitTests.Semantics.ConditionalAccessTests.AnonymousTypeMemberName_01
                 //                      The following assert is triggered because of that. Disabling it for now.
