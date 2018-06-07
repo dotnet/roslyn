@@ -332,12 +332,9 @@ class C
 indent_size = 2
 ";
 
-            var versionStamp = VisualStudio.Workspace.GetLatestProjectVersion();
             VisualStudio.SolutionExplorer.AddFile(new ProjectUtils.Project(ProjectName), ".editorconfig", editorConfig, open: false);
 
             // Wait for CodingConventions library events to propagate to the workspace
-            VisualStudio.Workspace.WaitForNewProjectVersion(versionStamp, Helper.HangMitigatingTimeout);
-
             VisualStudio.WaitForApplicationIdle(CancellationToken.None);
             VisualStudio.Workspace.WaitForAllAsyncOperations(
                 FeatureAttribute.Workspace,
@@ -352,12 +349,9 @@ indent_size = 2
              * and verifies that the next Format Document operation adheres to the updated formatting.
              */
 
-            versionStamp = VisualStudio.Workspace.GetLatestProjectVersion();
             VisualStudio.SolutionExplorer.SetFileContents(new ProjectUtils.Project(ProjectName), ".editorconfig", editorConfig.Replace("2", "4"));
 
             // Wait for CodingConventions library events to propagate to the workspace
-            VisualStudio.Workspace.WaitForNewProjectVersion(versionStamp, Helper.HangMitigatingTimeout);
-
             VisualStudio.WaitForApplicationIdle(CancellationToken.None);
             VisualStudio.Workspace.WaitForAllAsyncOperations(
                 FeatureAttribute.Workspace,

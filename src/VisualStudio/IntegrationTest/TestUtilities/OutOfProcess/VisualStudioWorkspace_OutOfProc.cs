@@ -1,7 +1,5 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
-using System.Diagnostics;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
@@ -20,9 +18,6 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
             _instance = visualStudioInstance;
             _inProc = CreateInProcComponent<VisualStudioWorkspace_InProc>(visualStudioInstance);
         }
-
-        public string GetLatestProjectVersion()
-            => _inProc.GetLatestProjectVersion();
 
         public bool IsUseSuggestionModeOn()
             => _inProc.IsUseSuggestionModeOn();
@@ -56,25 +51,6 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
 
         public void WaitForAllAsyncOperations(params string[] featureNames)
             => _inProc.WaitForAllAsyncOperations(featureNames);
-
-        public void WaitForNewProjectVersion(string versionStamp, TimeSpan timeout)
-        {
-            var stopwatch = Stopwatch.StartNew();
-            while (true)
-            {
-                if (GetLatestProjectVersion() != versionStamp)
-                {
-                    return;
-                }
-
-                if (timeout >= TimeSpan.Zero && stopwatch.Elapsed >= timeout)
-                {
-                    throw new TimeoutException();
-                }
-
-                WaitForAllAsyncOperations(FeatureAttribute.Workspace);
-            }
-        }
 
         public void CleanUpWorkspace()
             => _inProc.CleanUpWorkspace();

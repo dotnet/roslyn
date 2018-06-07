@@ -5,6 +5,7 @@ using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.VisualStudio.CodingConventions;
 using Roslyn.Utilities;
@@ -49,6 +50,7 @@ namespace Microsoft.CodeAnalysis.Editor.Options
                 }
             }
 
+            var diagnosticAnalyzerService = ((IMefHostExportProvider)_workspace.Services.HostServices).GetExports<IDiagnosticAnalyzerService>().Single().Value;
             var foregroundNotificationService = ((IMefHostExportProvider)_workspace.Services.HostServices).GetExports<IForegroundNotificationService>().Single().Value;
             foregroundNotificationService.RegisterNotification(UpdateProject, _listener.BeginAsyncOperation(nameof(HandleCodingConventionsChangedAsync)), CancellationToken.None);
 
@@ -56,24 +58,19 @@ namespace Microsoft.CodeAnalysis.Editor.Options
 
             void UpdateProject()
             {
-                var compilationOptions = _workspace.CurrentSolution.GetProject(projectId)?.CompilationOptions;
-                if (compilationOptions == null)
+                if (!_workspace.CurrentSolution.ContainsProject(projectId))
                 {
+                    // The project or solution was closed before running this update.
                     return;
                 }
 
-                var parseOptions = _workspace.CurrentSolution.GetProject(projectId).ParseOptions;
-                if (parseOptions.Features.TryGetValue("EditorConfigWorkaround", out _))
-                {
-                    parseOptions = parseOptions.WithFeatures(parseOptions.Features.Where(feature => feature.Key != "EditorConfigWorkaround"));
-                }
-                else
-                {
-                    parseOptions = parseOptions.WithFeatures(parseOptions.Features.Concat(new[] { KeyValuePair.Create("EditorConfigWorkaround", "true") }));
-                }
+                // Send a notification that project options have changed. This ensures the options used by commands,
+                // e.g. Format Document, are correct following a change to .editorconfig. Unlike a change to compilation
+                // or parse options, this does not discard the syntax and semantics already gathered for the solution.
+                _workspace.OnProjectOptionsChanged(projectId);
 
-                _workspace.OnCompilationOptionsChanged(projectId, compilationOptions);
-                _workspace.OnParseOptionsChanged(projectId, parseOptions);
+                // Request diagnostics be run on the project again.
+                diagnosticAnalyzerService.Reanalyze(_workspace, SpecializedCollections.SingletonEnumerable(projectId));
             }
         }
     }

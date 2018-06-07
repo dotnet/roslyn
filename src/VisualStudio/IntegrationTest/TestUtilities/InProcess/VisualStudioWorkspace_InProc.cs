@@ -31,9 +31,6 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
         public static VisualStudioWorkspace_InProc Create()
             => new VisualStudioWorkspace_InProc();
 
-        public string GetLatestProjectVersion()
-            => _visualStudioWorkspace.CurrentSolution.GetLatestProjectVersion().ToString();
-
         public void SetOptionInfer(string projectName, bool value)
             => InvokeOnUIThread(() =>
             {

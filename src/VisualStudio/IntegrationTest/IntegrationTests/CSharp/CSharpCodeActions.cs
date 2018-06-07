@@ -1,6 +1,5 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
@@ -204,12 +203,9 @@ class C
 csharp_style_expression_bodied_properties = true:warning
 ";
 
-            var versionStamp = VisualStudio.Workspace.GetLatestProjectVersion();
             VisualStudio.SolutionExplorer.AddFile(new ProjectUtils.Project(ProjectName), ".editorconfig", editorConfig, open: false);
 
             // Wait for CodingConventions library events to propagate to the workspace
-            VisualStudio.Workspace.WaitForNewProjectVersion(versionStamp, Helper.HangMitigatingTimeout);
-
             VisualStudio.WaitForApplicationIdle(CancellationToken.None);
             VisualStudio.Workspace.WaitForAllAsyncOperations(
                 FeatureAttribute.Workspace,
@@ -235,12 +231,9 @@ csharp_style_expression_bodied_properties = true:warning
              * outcome for the modified .editorconfig style.
              */
 
-            versionStamp = VisualStudio.Workspace.GetLatestProjectVersion();
             VisualStudio.SolutionExplorer.SetFileContents(new ProjectUtils.Project(ProjectName), ".editorconfig", editorConfig.Replace("true:warning", "false:warning"));
 
             // Wait for CodingConventions library events to propagate to the workspace
-            VisualStudio.Workspace.WaitForNewProjectVersion(versionStamp, Helper.HangMitigatingTimeout);
-
             VisualStudio.WaitForApplicationIdle(CancellationToken.None);
             VisualStudio.Workspace.WaitForAllAsyncOperations(
                 FeatureAttribute.Workspace,
