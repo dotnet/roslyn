@@ -89,28 +89,32 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
         /// </summary>
         public ControlFlowGraph GetLocalFunctionControlFlowGraph(IMethodSymbol localFunction)
         {
-            // PROTOTYPE(dataflow): It looks like the indexing below will throw right exceptions on all invalid inputs.
-            //                      However, we should consider if we want to perform our own validation for the input.
-            //                      In any case, we need to add unit tests to cover behavior of this API with respect to
-            //                      an invalid input (including null).
+            if (localFunction is null)
+            {
+                throw new ArgumentNullException(nameof(localFunction));
+            }
 
-            (ControlFlowRegion enclosing, ILocalFunctionOperation operation, int ordinal) = _localFunctionsMap[localFunction];
-            Debug.Assert(localFunction == LocalFunctions[ordinal]);
+            if (!_localFunctionsMap.TryGetValue(localFunction, out (ControlFlowRegion enclosing, ILocalFunctionOperation operation, int ordinal) info))
+            {
+                throw new ArgumentOutOfRangeException(nameof(localFunction));
+            }
+
+            Debug.Assert(localFunction == LocalFunctions[info.ordinal]);
 
             if (_lazyLocalFunctionsGraphs == null)
             {
                 Interlocked.CompareExchange(ref _lazyLocalFunctionsGraphs, new ControlFlowGraph[LocalFunctions.Length], null);
             }
 
-            if (_lazyLocalFunctionsGraphs[ordinal] == null)
+            if (_lazyLocalFunctionsGraphs[info.ordinal] == null)
             {
-                Debug.Assert(localFunction == operation.Symbol);
-                ControlFlowGraph graph = ControlFlowGraphBuilder.Create(operation, enclosing, _captureIdDispenser);
-                Debug.Assert(graph.OriginalOperation == operation);
-                Interlocked.CompareExchange(ref _lazyLocalFunctionsGraphs[ordinal], graph, null);
+                Debug.Assert(localFunction == info.operation.Symbol);
+                ControlFlowGraph graph = ControlFlowGraphBuilder.Create(info.operation, info.enclosing, _captureIdDispenser);
+                Debug.Assert(graph.OriginalOperation == info.operation);
+                Interlocked.CompareExchange(ref _lazyLocalFunctionsGraphs[info.ordinal], graph, null);
             }
 
-            return _lazyLocalFunctionsGraphs[ordinal];
+            return _lazyLocalFunctionsGraphs[info.ordinal];
         }
 
         /// <summary>
@@ -118,27 +122,30 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
         /// </summary>
         public ControlFlowGraph GetAnonymousFunctionControlFlowGraph(IFlowAnonymousFunctionOperation anonymousFunction)
         {
-            // PROTOTYPE(dataflow): It looks like the indexing below will throw right exceptions on all invalid inputs.
-            //                      However, we should consider if we want to perform our own validation for the input.
-            //                      In any case, we need to add unit tests to cover behavior of this API with respect to
-            //                      an invalid input (including null).
+            if (anonymousFunction is null)
+            {
+                throw new ArgumentNullException(nameof(anonymousFunction));
+            }
 
-            (ControlFlowRegion enclosing, int ordinal) = _anonymousFunctionsMap[anonymousFunction];
+            if (!_anonymousFunctionsMap.TryGetValue(anonymousFunction, out (ControlFlowRegion enclosing, int ordinal) info))
+            {
+                throw new ArgumentOutOfRangeException(nameof(anonymousFunction));
+            }
 
             if (_lazyAnonymousFunctionsGraphs == null)
             {
                 Interlocked.CompareExchange(ref _lazyAnonymousFunctionsGraphs, new ControlFlowGraph[_anonymousFunctionsMap.Count], null);
             }
 
-            if (_lazyAnonymousFunctionsGraphs[ordinal] == null)
+            if (_lazyAnonymousFunctionsGraphs[info.ordinal] == null)
             {
                 var anonymous = (FlowAnonymousFunctionOperation)anonymousFunction;
-                ControlFlowGraph graph = ControlFlowGraphBuilder.Create(anonymous.Original, enclosing, _captureIdDispenser, in anonymous.Context);
+                ControlFlowGraph graph = ControlFlowGraphBuilder.Create(anonymous.Original, info.enclosing, _captureIdDispenser, in anonymous.Context);
                 Debug.Assert(graph.OriginalOperation == anonymous.Original);
-                Interlocked.CompareExchange(ref _lazyAnonymousFunctionsGraphs[ordinal], graph, null);
+                Interlocked.CompareExchange(ref _lazyAnonymousFunctionsGraphs[info.ordinal], graph, null);
             }
 
-            return _lazyAnonymousFunctionsGraphs[ordinal];
+            return _lazyAnonymousFunctionsGraphs[info.ordinal];
         }
     }
 }
