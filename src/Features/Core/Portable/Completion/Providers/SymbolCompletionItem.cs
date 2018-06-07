@@ -142,7 +142,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 
         private static ISymbol DecodeSymbol(string id, Compilation compilation)
         {
-            return SymbolKey.Resolve(id, compilation).GetAnySymbol();
+            return SymbolKey.From(id).Resolve(compilation).GetAnySymbol();
         }
 
         public static async Task<CompletionDescription> GetDescriptionAsync(

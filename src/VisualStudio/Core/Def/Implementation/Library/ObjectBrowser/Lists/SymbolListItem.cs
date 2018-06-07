@@ -67,7 +67,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectB
 
         public ISymbol ResolveSymbol(Compilation compilation)
         {
-            return _symbolKey.Resolve(compilation, ignoreAssemblyKey: false).Symbol;
+            return _symbolKey.Resolve(compilation, ignoreAssemblyNames: false).Symbol;
         }
     }
 }

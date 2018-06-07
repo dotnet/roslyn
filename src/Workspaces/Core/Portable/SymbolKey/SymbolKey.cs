@@ -14,6 +14,7 @@ namespace Microsoft.CodeAnalysis
     /// A <see cref="SymbolKey"/> is a lightweight identifier for a symbol that can be used to 
     /// resolve the "same" symbol across compilations.  Different symbols have different concepts 
     /// of "same-ness". Same-ness is recursively defined as follows:
+    /// </para>
     /// <list type="number">
     ///   <item>Two <see cref="IArrayTypeSymbol"/>s are the "same" if they have 
     ///         the "same" <see cref="IArrayTypeSymbol.ElementType"/> and 
@@ -73,9 +74,8 @@ namespace Microsoft.CodeAnalysis
     ///     </code>
     ///     The SymbolKey for both 'M' methods will be the same.  The SymbolKey will then resolve to both methods.
     /// </para>
-    /// </para>
     /// </summary>
-    internal partial struct SymbolKey
+    internal partial struct SymbolKey : IEquatable<SymbolKey>
     {
         private readonly static Func<ITypeSymbol, bool> s_typeIsNull = t => t == null;
 
@@ -113,46 +113,65 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
+        /// <summary>
+        /// Resolves this <see cref="SymbolKey"/> in the given <paramref name="compilation"/>.
+        /// </summary>
+        /// <param name="compilation">The <see cref="Compilation"/> to resolve this <see cref="SymbolKey"/> within.</param>
+        /// <param name="ignoreAssemblyNames">If <see langword="true"/>, assembly names will be ignored while resolving
+        /// this <see cref="SymbolKey"/>. The default value is false.</param>
+        /// <param name="cancellationToken">A cancellation token that can be used to cancel the process.</param>
         public SymbolKeyResolution Resolve(
-            Compilation compilation, 
-            bool ignoreAssemblyKey = false, bool resolveLocations = false,
+            Compilation compilation,
+            bool ignoreAssemblyNames = false,
             CancellationToken cancellationToken = default)
-        {
-            return Resolve(
-                _encodedSymbolData, compilation,
-                ignoreAssemblyKey, resolveLocations,
-                cancellationToken);
-        }
+            => ResolveCore(_encodedSymbolData, compilation, ignoreAssemblyNames, resolveLocations: false, cancellationToken);
 
         /// <summary>
-        /// Tries to resolve the provided <paramref name="encodedSymbolData"/> in the given 
-        /// <paramref name="compilation"/> to a matching symbol.  <paramref name="resolveLocations"/>
-        /// should only be given <see langword="true"/> if the symbol was produced from a compilation
-        /// that has the exact same source as the compilation we're resolving against.  Otherwise
-        /// the locations resolved may not actually be correct in the final compilation.
+        /// Resolves this <see cref="SymbolKey"/> in the given <paramref name="compilation"/>.
+        /// This should only be called if the symbol that this <see cref="SymbolKey"/> represents was produced
+        /// from a compilation that has the exact same source as the given <paramref name="compilation"/>.
+        /// Otherwise, the locations resolved may be incorrect in the final compilation.
         /// </summary>
-        public static SymbolKeyResolution Resolve(
-            string encodedSymbolData, Compilation compilation,
-            bool ignoreAssemblyKey = false, bool resolveLocations = false,
+        internal SymbolKeyResolution ResolveWithLocations(
+            Compilation compilation,
             CancellationToken cancellationToken = default)
+            => ResolveCore(_encodedSymbolData, compilation, ignoreAssemblyNames: false, resolveLocations: true, cancellationToken);
+
+        private static SymbolKeyResolution ResolveCore(
+            string encodedSymbolData,
+            Compilation compilation,
+            bool ignoreAssemblyNames, bool resolveLocations,
+            CancellationToken cancellationToken)
         {
             using (var reader = SymbolKeyReader.GetReader(
-                encodedSymbolData, compilation, ignoreAssemblyKey, resolveLocations, cancellationToken))
+                encodedSymbolData, compilation, ignoreAssemblyNames, resolveLocations, cancellationToken))
             {
                 var result = reader.ReadFirstSymbolKey();
-                Debug.Assert(reader.Position == encodedSymbolData.Length);
+                Debug.Assert(reader.Position == encodedSymbolData.Length, "Did not fully read encodedSymbolData");
                 return result;
             }
         }
 
+        public override bool Equals(object obj)
+            => obj is SymbolKey && Equals((SymbolKey)obj);
+
+        public bool Equals(SymbolKey other)
+            => string.Equals(_encodedSymbolData, other._encodedSymbolData);
+
+        public override int GetHashCode()
+            => unchecked(0x59354BD2 + _encodedSymbolData.GetHashCode());
+
         public override string ToString()
             => _encodedSymbolData;
 
-        private static bool Equals(Compilation compilation, string name1, string name2)
-            => Equals(compilation.IsCaseSensitive, name1, name2);
+        public static bool operator ==(SymbolKey key1, SymbolKey key2)
+            => key1.Equals(key2);
 
-        private static bool Equals(bool isCaseSensitive, string name1, string name2)
-            => string.Equals(name1, name2, isCaseSensitive ? StringComparison.Ordinal : StringComparison.OrdinalIgnoreCase);
+        public static bool operator !=(SymbolKey key1, SymbolKey key2)
+            => !(key1 == key2);
+
+        private static bool AreNamesEqual(Compilation compilation, string name1, string name2)
+            => string.Equals(name1, name2, compilation.IsCaseSensitive ? StringComparison.Ordinal : StringComparison.OrdinalIgnoreCase);
 
         private static bool ParameterRefKindsMatch(
             ImmutableArray<IParameterSymbol> parameters,

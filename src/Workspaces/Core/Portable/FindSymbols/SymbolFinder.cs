@@ -168,7 +168,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             {
                 var symbolId = symbol.GetSymbolKey();
                 var compilation = await project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
-                var result = symbolId.Resolve(compilation, ignoreAssemblyKey: true, cancellationToken: cancellationToken);
+                var result = symbolId.Resolve(compilation, ignoreAssemblyNames: true, cancellationToken: cancellationToken);
 
                 if (result.Symbol != null && InSource(result.Symbol))
                 {
@@ -222,7 +222,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             var key = symbol.GetSymbolKey();
 
             // We may be talking about different compilations.  So do not try to resolve locations.
-            return key.Resolve(compilation, resolveLocations: false, cancellationToken: cancellationToken).GetAllSymbols<TSymbol>();
+            return key.Resolve(compilation, cancellationToken: cancellationToken).GetAllSymbols<TSymbol>();
         }
     }
 }

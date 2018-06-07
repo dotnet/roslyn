@@ -30,7 +30,6 @@ using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Editor.OptionsExtensionMethods;
 using Roslyn.Utilities;
-using Microsoft.CodeAnalysis.GeneratedCodeRecognition;
 using Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Interop;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
@@ -319,7 +318,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
         public abstract bool IsOptionNode(SyntaxNode node);
         public abstract bool IsImportNode(SyntaxNode node);
 
-        public ISymbol ResolveSymbol(Microsoft.CodeAnalysis.Workspace workspace, ProjectId projectId, SymbolKey symbolId)
+        public ISymbol ResolveSymbol(Workspace workspace, ProjectId projectId, SymbolKey symbolId)
         {
             var project = workspace.CurrentSolution.GetProject(projectId);
 
@@ -328,7 +327,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
                 throw Exceptions.ThrowEFail();
             }
 
-            return symbolId.Resolve(project.GetCompilationAsync().Result).Symbol;
+            var compilation = project.GetCompilationAsync().Result;
+            return symbolId.Resolve(compilation).Symbol;
         }
 
         protected EnvDTE.CodeFunction CreateInternalCodeAccessorFunction(CodeModelState state, FileCodeModel fileCodeModel, SyntaxNode node)

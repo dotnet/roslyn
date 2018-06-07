@@ -76,7 +76,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.SymbolId
             Dim comparer = SymbolKey.GetComparer(ignoreCase:=False, ignoreAssemblyKeys:=False)
             Assert.True(comparer.Equals(sid, deserialized))
 
-            Dim symInfo = sid.Resolve(targetCompilation, (comparison And SymbolIdComparison.IgnoreAssemblyIds) = SymbolIdComparison.IgnoreAssemblyIds)
+            Dim symInfo = sid.Resolve(targetCompilation, ignoreAssemblyNames:=(comparison And SymbolIdComparison.IgnoreAssemblyIds) = SymbolIdComparison.IgnoreAssemblyIds)
             Return symInfo.Symbol
         End Function
 

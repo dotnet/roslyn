@@ -54,7 +54,7 @@ namespace Microsoft.CodeAnalysis
             {
                 var types = container.GetTypeMembers(GetName(metadataName), arity);
                 var result = InstantiateTypes(
-                    reader.Compilation, reader.IgnoreAssemblyKey, types, arity, typeArguments);
+                    reader.Compilation, types, arity, typeArguments);
 
                 return isUnboundGenericType
                     ? result.Select(t => t.ConstructUnboundGenericType())
@@ -71,12 +71,11 @@ namespace Microsoft.CodeAnalysis
 
             private static IEnumerable<INamedTypeSymbol> InstantiateTypes(
                 Compilation compilation,
-                bool ignoreAssemblyKey,
                 ImmutableArray<INamedTypeSymbol> types,
                 int arity,
                 ImmutableArray<SymbolKeyResolution> typeArgumentKeys)
             {
-                if (arity == 0 || typeArgumentKeys.IsDefault || typeArgumentKeys.IsEmpty)
+                if (arity == 0 || typeArgumentKeys.IsDefaultOrEmpty)
                 {
                     return types;
                 }

@@ -635,7 +635,7 @@ class C
                 // Ensure we don't crash getting these symbol keys.
                 var id = SymbolKey.Encode(symbol);
                 Assert.NotNull(id);
-                var found = SymbolKey.Resolve(id, compilation: compilation).GetAnySymbol();
+                var found = SymbolKey.From(id).Resolve(compilation).GetAnySymbol();
                 Assert.NotNull(found);
 
                 // note: we don't check that the symbols are equal.  That's because the compiler
@@ -676,7 +676,7 @@ class C
 
             // Validate that if the client does ask to resolve locations that we
             // do not crash if those locations cannot be found.
-            var found = SymbolKey.Resolve(id, compilation2, resolveLocations: true).GetAnySymbol();
+            var found = SymbolKey.From(id).ResolveWithLocations(compilation2).GetAnySymbol();
             Assert.NotNull(found);
 
             Assert.Equal(symbol.Name, found.Name);
@@ -713,7 +713,7 @@ class C
 
             // Validate that if the client does ask to resolve locations that we
             // do not crash if those locations cannot be found.
-            var found = SymbolKey.Resolve(id, compilation2, resolveLocations: true).GetAnySymbol();
+            var found = SymbolKey.From(id).ResolveWithLocations(compilation2).GetAnySymbol();
             Assert.NotNull(found);
 
             Assert.Equal(symbol.Name, found.Name);
@@ -735,7 +735,7 @@ class C
         {
             var id = SymbolKey.Encode(symbol);
             Assert.NotNull(id);
-            var found = SymbolKey.Resolve(id, compilation).GetAnySymbol();
+            var found = SymbolKey.From(id).Resolve(compilation).GetAnySymbol();
             Assert.NotNull(found);
 
             if (fnId != null)

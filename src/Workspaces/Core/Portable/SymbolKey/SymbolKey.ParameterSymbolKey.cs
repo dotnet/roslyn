@@ -32,12 +32,12 @@ namespace Microsoft.CodeAnalysis
                 if (container is IMethodSymbol method)
                 {
                     return method.Parameters.Where(
-                        p => SymbolKey.Equals(reader.Compilation, p.MetadataName, metadataName));
+                        p => SymbolKey.AreNamesEqual(reader.Compilation, p.MetadataName, metadataName));
                 }
                 else if (container is IPropertySymbol property)
                 {
                     return property.Parameters.Where(
-                        p => SymbolKey.Equals(reader.Compilation, p.MetadataName, metadataName));
+                        p => SymbolKey.AreNamesEqual(reader.Compilation, p.MetadataName, metadataName));
                 }
                 else if (container is IEventSymbol eventSymbol)
                 {
@@ -58,7 +58,7 @@ namespace Microsoft.CodeAnalysis
                     if (delegateInvoke != null)
                     {
                         return delegateInvoke.Parameters.Where(
-                            p => SymbolKey.Equals(reader.Compilation, p.MetadataName, metadataName));
+                            p => SymbolKey.AreNamesEqual(reader.Compilation, p.MetadataName, metadataName));
                     }
                 }
 

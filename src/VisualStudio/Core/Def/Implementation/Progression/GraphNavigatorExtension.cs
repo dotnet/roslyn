@@ -91,7 +91,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
             if (symbolId != null)
             {
                 var symbolNavigationService = _workspace.Services.GetService<ISymbolNavigationService>();
-                var symbol = symbolId.Value.Resolve(project.GetCompilationAsync(CancellationToken.None).WaitAndGetResult(CancellationToken.None)).Symbol;
+                var compilation = project.GetCompilationAsync(CancellationToken.None).WaitAndGetResult(CancellationToken.None);
+                var symbol = symbolId.Value.Resolve(compilation).Symbol;
 
                 // Do not allow third party navigation to types or constructors
                 if (symbol != null &&

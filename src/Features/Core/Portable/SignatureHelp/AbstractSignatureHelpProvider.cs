@@ -205,7 +205,7 @@ namespace Microsoft.CodeAnalysis.SignatureHelp
                     continue;
                 }
 
-                var expectedSymbol = symbolKey.Value.Resolve(compilation, ignoreAssemblyKey: true, cancellationToken: cancellationToken).Symbol;
+                var expectedSymbol = symbolKey.Value.Resolve(compilation, ignoreAssemblyNames: true, cancellationToken: cancellationToken).Symbol;
                 if (expectedSymbol == null)
                 {
                     finalItems.Add(item);

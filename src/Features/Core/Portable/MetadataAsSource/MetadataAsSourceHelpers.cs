@@ -82,7 +82,7 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
         {
             var location = symbolId.Resolve(
                 await generatedDocument.Project.GetCompilationAsync(cancellationToken).ConfigureAwait(false),
-                ignoreAssemblyKey: true, cancellationToken: cancellationToken)
+                ignoreAssemblyNames: true, cancellationToken: cancellationToken)
                 .GetAllSymbols()
                 .Select(s => s.Locations.Where(loc => loc.IsInSource).FirstOrDefault())
                 .WhereNotNull()

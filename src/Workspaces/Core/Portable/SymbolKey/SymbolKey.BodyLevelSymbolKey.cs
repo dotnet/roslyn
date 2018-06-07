@@ -106,7 +106,7 @@ namespace Microsoft.CodeAnalysis
 
                         if (symbol != null &&
                             symbol.Kind == kind &&
-                            SymbolKey.Equals(compilation, symbol.Name, localName))
+                            SymbolKey.AreNamesEqual(compilation, symbol.Name, localName))
                         {
                             yield return (symbol, ordinal++);
                         }

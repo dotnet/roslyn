@@ -25,22 +25,6 @@ namespace Microsoft.CodeAnalysis
         internal static IEnumerable<TType> GetAllSymbols<TType>(this SymbolKeyResolution resolution)
             => resolution.GetAllSymbols().OfType<TType>();
 
-        internal static IEnumerable<ISymbol> GetAllSymbols(this SymbolKeyResolution resolution)
-            => GetAllSymbolsWorker(resolution).Distinct();
-
-        private static IEnumerable<ISymbol> GetAllSymbolsWorker(SymbolKeyResolution resolution)
-        {
-            if (resolution.Symbol != null)
-            {
-                yield return resolution.Symbol;
-            }
-
-            foreach (var symbol in resolution.CandidateSymbols)
-            {
-                yield return symbol;
-            }
-        }
-
         internal static TSymbol GetFirstSymbol<TSymbol>(this SymbolKeyResolution resolution)
             where TSymbol : ISymbol
         {

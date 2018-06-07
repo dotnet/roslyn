@@ -52,9 +52,10 @@ namespace Microsoft.CodeAnalysis.Remote
             var compilation = await project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
 
             // The server and client should both be talking about the same compilation.  As such
-            // locations in symbols are save to resolve as we rehydrate the SymbolKey.
-            var symbol = SymbolKey.Resolve(
-                SymbolKeyData, compilation, resolveLocations: true, cancellationToken: cancellationToken).GetAnySymbol();
+            // locations in symbols are safe to resolve as we rehydrate the SymbolKey.
+            var symbol = SymbolKey.From(SymbolKeyData)
+                .ResolveWithLocations(compilation, cancellationToken)
+                .GetAnySymbol();
 
             if (symbol == null)
             {

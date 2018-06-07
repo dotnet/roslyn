@@ -83,7 +83,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SymbolId
             var comparer = SymbolKey.GetComparer(ignoreCase: false, ignoreAssemblyKeys: false);
             Assert.True(comparer.Equals(sid, deserialized));
 
-            var symInfo = sid.Resolve(targetCompilation, (comparison & SymbolKeyComparison.IgnoreAssemblyIds) == SymbolKeyComparison.IgnoreAssemblyIds);
+            var symInfo = sid.Resolve(targetCompilation, ignoreAssemblyNames: (comparison & SymbolKeyComparison.IgnoreAssemblyIds) == SymbolKeyComparison.IgnoreAssemblyIds);
             return symInfo.Symbol;
         }
 
