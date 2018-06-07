@@ -238,8 +238,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// Try parse a <see cref="LanguageVersion"/> from a string input, returning default if input was null.
         /// </summary>
-        [EditorBrowsable(EditorBrowsableState.Never)]
-        public static bool TryParse(this string version, out LanguageVersion result)
+        public static bool TryParse(string version, out LanguageVersion result)
         {
             if (version == null)
             {
