@@ -154,7 +154,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                                 }
                              };";
 
-            CompileAndVerify(text, WinRtRefs, expectedOutput: "#FF000000");
+            CompileAndVerify(text, WinRtRefs, targetFramework: TargetFramework.Empty, expectedOutput: "#FF000000");
         }
 
         /// <summary>
@@ -231,6 +231,7 @@ public class MyAttribute : System.Attribute
             CompileAndVerify(
                 source,
                 WinRtRefs.Concat(new[] { AssemblyMetadata.CreateFromImage(TestResources.WinRt.W1).GetReference() }),
+                targetFramework: TargetFramework.Empty,
                 symbolValidator: m =>
             {
                 var module = (PEModuleSymbol)m;

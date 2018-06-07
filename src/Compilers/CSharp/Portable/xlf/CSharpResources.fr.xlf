@@ -1323,8 +1323,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_IllegalStatement">
-        <source>Only assignment, call, increment, decrement, and new object expressions can be used as a statement</source>
-        <target state="translated">Seuls une assignation, un appel, un incrément, un décrément et des expressions d'objet new peuvent être utilisés comme instruction</target>
+        <source>Only assignment, call, increment, decrement, await, and new object expressions can be used as a statement</source>
+        <target state="needs-review-translation">Seuls une assignation, un appel, un incrément, un décrément et des expressions d'objet new peuvent être utilisés comme instruction</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadGetEnumerator">
@@ -1693,8 +1693,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_FriendRefNotEqualToThis">
-        <source>Friend access was granted by '{0}', but the public key of the output assembly does not match that specified by the attribute in the granting assembly.</source>
-        <target state="translated">Un accès Friend a été concédé par '{0}', mais la clé publique de l'assembly de sortie ne correspond pas à celle spécifiée par l'attribut concédant.</target>
+        <source>Friend access was granted by '{0}', but the public key of the output assembly ('{1}') does not match that specified by the InternalsVisibleTo attribute in the granting assembly.</source>
+        <target state="needs-review-translation">Un accès Friend a été concédé par '{0}', mais la clé publique de l'assembly de sortie ne correspond pas à celle spécifiée par l'attribut concédant.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_FriendRefSigningMismatch">
@@ -7361,7 +7361,7 @@ Pour supprimer l'avertissement, vous pouvez utiliser la commande /reference (dé
                               a part of
 -modulename:&lt;string&gt;          Specify the name of the source module
 </source>
-        <target state="translated">
+        <target state="needs-review-translation">
                               Options du compilateur Visual C#
 
                         - FICHIERS DE SORTIE -

@@ -1323,8 +1323,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_IllegalStatement">
-        <source>Only assignment, call, increment, decrement, and new object expressions can be used as a statement</source>
-        <target state="translated">В качестве оператора могут использоваться только выражения присваивания, вызова, инкремента, декремента и создания нового объекта</target>
+        <source>Only assignment, call, increment, decrement, await, and new object expressions can be used as a statement</source>
+        <target state="needs-review-translation">В качестве оператора могут использоваться только выражения присваивания, вызова, инкремента, декремента и создания нового объекта</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadGetEnumerator">
@@ -1693,8 +1693,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_FriendRefNotEqualToThis">
-        <source>Friend access was granted by '{0}', but the public key of the output assembly does not match that specified by the attribute in the granting assembly.</source>
-        <target state="translated">Дружественный доступ предоставлен "{0}", однако открытый ключ выходной сборки не соответствует ключу, определенному атрибутом предоставляющей сборки.</target>
+        <source>Friend access was granted by '{0}', but the public key of the output assembly ('{1}') does not match that specified by the InternalsVisibleTo attribute in the granting assembly.</source>
+        <target state="needs-review-translation">Дружественный доступ предоставлен "{0}", однако открытый ключ выходной сборки не соответствует ключу, определенному атрибутом предоставляющей сборки.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_FriendRefSigningMismatch">
@@ -7361,7 +7361,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
                               a part of
 -modulename:&lt;string&gt;          Specify the name of the source module
 </source>
-        <target state="translated">
+        <target state="needs-review-translation">
                               Параметры компилятора Visual C#
 
                         - ВЫХОДНЫЕ ФАЙЛЫ -

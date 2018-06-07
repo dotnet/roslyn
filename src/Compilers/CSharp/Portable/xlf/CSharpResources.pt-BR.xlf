@@ -1323,8 +1323,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_IllegalStatement">
-        <source>Only assignment, call, increment, decrement, and new object expressions can be used as a statement</source>
-        <target state="translated">Somente expressões de atribuição, chamada, incremento, diminuição e novo objeto podem ser usadas como uma instrução</target>
+        <source>Only assignment, call, increment, decrement, await, and new object expressions can be used as a statement</source>
+        <target state="needs-review-translation">Somente expressões de atribuição, chamada, incremento, diminuição e novo objeto podem ser usadas como uma instrução</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadGetEnumerator">
@@ -1693,8 +1693,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_FriendRefNotEqualToThis">
-        <source>Friend access was granted by '{0}', but the public key of the output assembly does not match that specified by the attribute in the granting assembly.</source>
-        <target state="translated">O acesso Friend foi concedido por "{0}", mas a chave pública do assembly de saída não corresponde àquela especificada pelo atributo no assembly de concessão.</target>
+        <source>Friend access was granted by '{0}', but the public key of the output assembly ('{1}') does not match that specified by the InternalsVisibleTo attribute in the granting assembly.</source>
+        <target state="needs-review-translation">O acesso Friend foi concedido por "{0}", mas a chave pública do assembly de saída não corresponde àquela especificada pelo atributo no assembly de concessão.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_FriendRefSigningMismatch">
@@ -7361,7 +7361,7 @@ Para incorporar informações de tipo de interoperabilidade para os dois assembl
                               a part of
 -modulename:&lt;string&gt;          Specify the name of the source module
 </source>
-        <target state="translated">
+        <target state="needs-review-translation">
                               Opções do Compilador do Visual C#
 
                         – ARQUIVOS DE SAÍDA –

@@ -1323,8 +1323,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_IllegalStatement">
-        <source>Only assignment, call, increment, decrement, and new object expressions can be used as a statement</source>
-        <target state="translated">Si possono usare come istruzioni solo le assegnazioni, le chiamate, gli incrementi, i decrementi e le nuove espressioni dell'oggetto</target>
+        <source>Only assignment, call, increment, decrement, await, and new object expressions can be used as a statement</source>
+        <target state="needs-review-translation">Si possono usare come istruzioni solo le assegnazioni, le chiamate, gli incrementi, i decrementi e le nuove espressioni dell'oggetto</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadGetEnumerator">
@@ -1693,8 +1693,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_FriendRefNotEqualToThis">
-        <source>Friend access was granted by '{0}', but the public key of the output assembly does not match that specified by the attribute in the granting assembly.</source>
-        <target state="translated">L'accesso a Friend è stato concesso da '{0}', ma la chiave pubblica dell'assembly di output non corrisponde a quella specificata dall'attributo nell'assembly che ha concesso l'accesso.</target>
+        <source>Friend access was granted by '{0}', but the public key of the output assembly ('{1}') does not match that specified by the InternalsVisibleTo attribute in the granting assembly.</source>
+        <target state="needs-review-translation">L'accesso a Friend è stato concesso da '{0}', ma la chiave pubblica dell'assembly di output non corrisponde a quella specificata dall'attributo nell'assembly che ha concesso l'accesso.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_FriendRefSigningMismatch">
@@ -7361,7 +7361,7 @@ Per rimuovere l'avviso, è invece possibile usare /reference (impostare la propr
                               a part of
 -modulename:&lt;string&gt;          Specify the name of the source module
 </source>
-        <target state="translated">
+        <target state="needs-review-translation">
                               Opzioni del compilatore Visual C#
 
                         - FILE DI OUTPUT -
