@@ -302,16 +302,9 @@ namespace BuildBoss
         /// </summary>
         private bool VerifySwrFile(TextWriter textWriter, List<string> dllFileNames)
         {
-            var excludedDlls = new[]
-            {
-                "Microsoft.DiaSymReader.Native.amd64.dll",      // native
-                "Microsoft.DiaSymReader.Native.x86.dll",        // native
-                "System.Net.Http.dll",                          // not loaded: https://github.com/dotnet/roslyn/pull/27537
-                "System.Diagnostics.DiagnosticSource.dll",      // not loaded: https://github.com/dotnet/roslyn/pull/27537
-            };
-
+            var nativeDlls = new[] { "Microsoft.DiaSymReader.Native.amd64.dll", "Microsoft.DiaSymReader.Native.x86.dll" };
             var map = dllFileNames
-                .Where(x => !excludedDlls.Contains(x, PathComparer))
+                .Where(x => !nativeDlls.Contains(x, PathComparer))
                 .ToDictionary(
                     keySelector: x => x,
                     elementSelector: _ => false,
