@@ -359,17 +359,17 @@
       </trans-unit>
       <trans-unit id="UpgradeMSBuildWorkspaceDescription">
         <source>MSBuildWorkspace has moved to the Microsoft.CodeAnalysis.Workspaces.MSBuild NuGet package and there are breaking API changes.</source>
-        <target state="new">MSBuildWorkspace has moved to the Microsoft.CodeAnalysis.Workspaces.MSBuild NuGet package and there are breaking API changes.</target>
+        <target state="translated">O MSBuildWorkspace foi movido para o pacote do NuGet Microsoft.CodeAnalysis.Workspaces.MSBuild e há alterações da falha da API.</target>
         <note />
       </trans-unit>
       <trans-unit id="UpgradeMSBuildWorkspaceMessage">
         <source>Please upgrade MSBuildWorkspace by adding a package reference to the Microsoft.CodeAnalysis.Workspaces.MSBuild NuGet package. See https://go.microsoft.com/fwlink/?linkid=874285 for details on using MSBuildWorkspace successfully.</source>
-        <target state="new">Please upgrade MSBuildWorkspace by adding a package reference to the Microsoft.CodeAnalysis.Workspaces.MSBuild NuGet package. See https://go.microsoft.com/fwlink/?linkid=874285 for details on using MSBuildWorkspace successfully.</target>
+        <target state="translated">Atualize o MSBuildWorkspace adicionando uma referência de pacote ao pacote Microsoft.CodeAnalysis.Workspaces.MSBuild NuGet. Confira https://go.microsoft.com/fwlink/?linkid=874285 para obter detalhes de como usar o MSBuildWorkspace com sucesso.</target>
         <note />
       </trans-unit>
       <trans-unit id="UpgradeMSBuildWorkspaceTitle">
         <source>Upgrade MSBuildWorkspace</source>
-        <target state="new">Upgrade MSBuildWorkspace</target>
+        <target state="translated">Atualizar o MSBuildWorkspace</target>
         <note />
       </trans-unit>
     </body>

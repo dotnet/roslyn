@@ -359,17 +359,17 @@
       </trans-unit>
       <trans-unit id="UpgradeMSBuildWorkspaceDescription">
         <source>MSBuildWorkspace has moved to the Microsoft.CodeAnalysis.Workspaces.MSBuild NuGet package and there are breaking API changes.</source>
-        <target state="new">MSBuildWorkspace has moved to the Microsoft.CodeAnalysis.Workspaces.MSBuild NuGet package and there are breaking API changes.</target>
+        <target state="translated">MSBuildWorkspace 已移至 Microsoft.CodeAnalysis.Workspaces.MSBuild NuGet 套件，且目前有最新的 API 變更。</target>
         <note />
       </trans-unit>
       <trans-unit id="UpgradeMSBuildWorkspaceMessage">
         <source>Please upgrade MSBuildWorkspace by adding a package reference to the Microsoft.CodeAnalysis.Workspaces.MSBuild NuGet package. See https://go.microsoft.com/fwlink/?linkid=874285 for details on using MSBuildWorkspace successfully.</source>
-        <target state="new">Please upgrade MSBuildWorkspace by adding a package reference to the Microsoft.CodeAnalysis.Workspaces.MSBuild NuGet package. See https://go.microsoft.com/fwlink/?linkid=874285 for details on using MSBuildWorkspace successfully.</target>
+        <target state="translated">請將套件參考新增至 Microsoft.CodeAnalysis.Workspaces.MSBuild NuGet 套件，來升級 MSBuildWorkspace。如需成功使用 MSBuildWorkspace 的詳細資料，請參閱 https://docs.microsoft.com/zh-tw/dotnet/csharp/roslyn-sdk/。</target>
         <note />
       </trans-unit>
       <trans-unit id="UpgradeMSBuildWorkspaceTitle">
         <source>Upgrade MSBuildWorkspace</source>
-        <target state="new">Upgrade MSBuildWorkspace</target>
+        <target state="translated">升級 MSBuildWorkspace</target>
         <note />
       </trans-unit>
     </body>
