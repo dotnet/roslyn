@@ -181,7 +181,6 @@ namespace Microsoft.CodeAnalysis.UseObjectInitializer
                 return typeMember is IPropertySymbol property &&
                     property.ExplicitInterfaceImplementations.Length > 0 &&
                     property.DeclaredAccessibility == Accessibility.Private;
-                
             }
 
             typeMember = member;
