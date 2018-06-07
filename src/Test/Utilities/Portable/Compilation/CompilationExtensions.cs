@@ -340,12 +340,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                 switch (root)
                 {
                     case IBlockOperation blockOperation:
-                        // PROTOTYPE(dataflow): It looks like blocks in script can have no parent and not represent complete code.
-                        //                      See Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen.GotoTests.OutOfScriptBlock
-                        //                      This creates problems, especially with inability to resolve branches. 
-                        //                      Need to figure out what to do for scripts, either we should disallow getting CFG for them,
-                        //                      or have a reliable way to check for completeness of the code given to us. 
-                        //                      Going to disable verification for scripts for now so that other scenarios could be verified.
+                        // https://github.com/dotnet/roslyn/issues/27593 tracks adding ControlFlowGraph support in script code.
                         if (blockOperation.Syntax.SyntaxTree.Options.Kind != SourceCodeKind.Script)
                         {
                             ControlFlowGraphVerifier.GetFlowGraph(compilation, ControlFlowGraphBuilder.Create(blockOperation));
@@ -361,10 +356,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                         break;
 
                     case IParameterInitializerOperation parameterInitializerOperation:
-                        // PROTOTYPE(dataflow): Parameter initializers in local functions can refer to locals outside.
-                        //                      This causes problems with graph verification because we are unable to locate a region
-                        //                      for them. See Microsoft.CodeAnalysis.CSharp.UnitTests.LocalFunctionTests.LocalFunctionParameterDefaultUsingConst
-                        //                      for example.
+                        // https://github.com/dotnet/roslyn/issues/27594 tracks adding support for getting ControlFlowGraph for parameter initializers for local functions.
                         if ((parameterInitializerOperation.Parameter.ContainingSymbol as IMethodSymbol)?.MethodKind != MethodKind.LocalFunction)
                         {
                             ControlFlowGraphVerifier.GetFlowGraph(compilation, ControlFlowGraphBuilder.Create(root));

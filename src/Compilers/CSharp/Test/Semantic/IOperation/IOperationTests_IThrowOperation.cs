@@ -1986,7 +1986,5 @@ Block[B5] - Exit [UnReachable]
 ";
             VerifyFlowGraphForTest<BlockSyntax>(compilation, expectedGraph);
         }
-
-        // PROTOTYPE(dataflow): Port these tests to VB
     }
 }

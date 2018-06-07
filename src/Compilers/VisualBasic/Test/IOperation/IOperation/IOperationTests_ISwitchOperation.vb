@@ -9272,5 +9272,79 @@ Block[B10] - Exit
 
             VerifyFlowGraphAndDiagnosticsForTest(Of MethodBlockSyntax)(source, expectedFlowGraph, expectedDiagnostics)
         End Sub
+
+        <CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)>
+        <Fact()>
+        Public Sub SwitchFlow_108()
+            Dim source =
+<compilation>
+    <file name="a.vb">
+        <![CDATA[
+Imports System
+Public NotInheritable Class C
+    Sub M(result As Boolean, input As C, other As C) 'BIND:"Sub M"
+        Select Case input
+            Case other
+                result = False
+        End Select
+    End Sub
+
+    Public Shared Operator =(x As C, y As C) As Boolean?
+        Return False
+    End Operator
+
+    Public Shared Operator <>(x As C, y As C) As Boolean?
+        Return True
+    End Operator
+End Class
+        ]]>
+    </file>
+</compilation>
+
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(source, parseOptions:=TestOptions.RegularWithFlowAnalysisFeature)
+            compilation.MakeMemberMissing(SpecialMember.System_Nullable_T_GetValueOrDefault)
+
+            compilation.AssertNoDiagnostics()
+
+            Dim expectedGraph = <![CDATA[
+Block[B0] - Entry
+    Statements (0)
+    Next (Regular) Block[B1]
+Block[B1] - Block
+    Predecessors: [B0]
+    Statements (1)
+        IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'input')
+          Value: 
+            IParameterReferenceOperation: input (OperationKind.ParameterReference, Type: C) (Syntax: 'input')
+
+    Jump if False (Regular) to Block[B3]
+        IInvalidOperation (OperationKind.Invalid, Type: System.Boolean, IsImplicit) (Syntax: 'other')
+          Children(1):
+              IBinaryOperation (BinaryOperatorKind.Equals, Checked) (OperatorMethod: Function C.op_Equality(x As C, y As C) As System.Nullable(Of System.Boolean)) (OperationKind.BinaryOperator, Type: System.Nullable(Of System.Boolean), IsImplicit) (Syntax: 'other')
+                Left: 
+                  IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: C, IsImplicit) (Syntax: 'input')
+                Right: 
+                  IParameterReferenceOperation: other (OperationKind.ParameterReference, Type: C) (Syntax: 'other')
+
+    Next (Regular) Block[B2]
+Block[B2] - Block
+    Predecessors: [B1]
+    Statements (1)
+        IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'result = False')
+          Expression: 
+            ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Boolean, IsImplicit) (Syntax: 'result = False')
+              Left: 
+                IParameterReferenceOperation: result (OperationKind.ParameterReference, Type: System.Boolean) (Syntax: 'result')
+              Right: 
+                ILiteralOperation (OperationKind.Literal, Type: System.Boolean, Constant: False) (Syntax: 'False')
+
+    Next (Regular) Block[B3]
+Block[B3] - Exit
+    Predecessors: [B1] [B2]
+    Statements (0)
+]]>.Value
+
+            VerifyFlowGraphForTest(Of MethodBlockSyntax)(compilation, expectedGraph)
+        End Sub
     End Class
 End Namespace

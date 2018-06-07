@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.Operations
     {
         /// <summary>
         /// Label associated with the case clause.
-        /// PROTOTYPE(dataflow): Similar property was added to the base interface, consider if we can remove this one.
+        /// https://github.com/dotnet/roslyn/issues/27602: Similar property was added to the base interface, consider if we can remove this one.
         /// </summary>
         new ILabelSymbol Label { get; }
 

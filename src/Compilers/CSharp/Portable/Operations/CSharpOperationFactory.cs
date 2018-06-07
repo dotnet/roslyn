@@ -1186,11 +1186,6 @@ namespace Microsoft.CodeAnalysis.Operations
                 (operatorKind == BinaryOperatorKind.ConditionalAnd || operatorKind == BinaryOperatorKind.ConditionalOr) &&
                 operatorMethod?.Parameters.Length == 1)
             {
-                // PROTOTYPE(dataflow): There is no IOperation test coverage for this code besides some Control Flow Graph tests.
-                // PROTOTYPE(dataflow): Note that sometimes a user-defined conversion can be used to convert left operand to Boolean instead.
-                //                      BoundBinaryOperator doesn't have that information, but it feels like it should be exposed by
-                //                      IBinaryOperation node. We could add another property for that, but internally share storage 
-                //                      with true/false operator.
                 unaryOperatorMethod = operatorMethod;
                 operatorMethod = null;
             }
@@ -1208,7 +1203,6 @@ namespace Microsoft.CodeAnalysis.Operations
 
         private IBinaryOperation CreateBoundUserDefinedConditionalLogicalOperator(BoundUserDefinedConditionalLogicalOperator boundBinaryOperator)
         {
-            // PROTOTYPE(dataflow): There is almost no IOperation test coverage for this code besides some Control Flow Graph tests.
             BinaryOperatorKind operatorKind = Helper.DeriveBinaryOperatorKind(boundBinaryOperator.OperatorKind);
             Lazy<IOperation> leftOperand = new Lazy<IOperation>(() => Create(boundBinaryOperator.Left));
             Lazy<IOperation> rightOperand = new Lazy<IOperation>(() => Create(boundBinaryOperator.Right));
