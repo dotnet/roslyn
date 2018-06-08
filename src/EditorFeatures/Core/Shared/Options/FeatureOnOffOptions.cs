@@ -60,16 +60,16 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Options
             storageLocations: new RoamingProfileStorageLocation(language => language == LanguageNames.VisualBasic ? "TextEditor.%LANGUAGE%.Specific.RenameTrackingPreview" : "TextEditor.%LANGUAGE%.Specific.Rename Tracking Preview"));
 
         /// <summary>
-        /// This option is currently used by Roslyn, but we might want to implement it in the 
-        /// future. Keeping the option while it's unimplemented allows all upgrade paths to 
+        /// This option is currently used by Roslyn, but we might want to implement it in the
+        /// future. Keeping the option while it's unimplemented allows all upgrade paths to
         /// maintain any customized value for this setting, even through versions that have not
         /// implemented this feature yet.
         /// </summary>
         public static readonly PerLanguageOption<bool> RenameTracking = new PerLanguageOption<bool>(nameof(FeatureOnOffOptions), nameof(RenameTracking), defaultValue: true);
 
         /// <summary>
-        /// This option is currently used by Roslyn, but we might want to implement it in the 
-        /// future. Keeping the option while it's unimplemented allows all upgrade paths to 
+        /// This option is currently used by Roslyn, but we might want to implement it in the
+        /// future. Keeping the option while it's unimplemented allows all upgrade paths to
         /// maintain any customized value for this setting, even through versions that have not
         /// implemented this feature yet.
         /// </summary>
