@@ -255,9 +255,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
                 // CONSIDER: Can we make parameter type computation lazy?
                 var typeSymbol = DynamicTypeDecoder.TransformType(type.TypeSymbol, countOfCustomModifiers, handle, moduleSymbol, refKind);
-                typeSymbol = TupleTypeDecoder.DecodeTupleTypesIfApplicable(typeSymbol, handle, moduleSymbol);
                 type = type.Update(typeSymbol, type.CustomModifiers);
-                type = NullableTypeDecoder.TransformOrEraseNullability(type, _handle, moduleSymbol, extraAnnotations);
+                type = TupleTypeDecoder.DecodeTupleTypesIfApplicable(type, handle, moduleSymbol);
+                type = NullableTypeDecoder.TransformOrEraseNullability(type, handle, moduleSymbol, extraAnnotations);
             }
 
             _type = type;

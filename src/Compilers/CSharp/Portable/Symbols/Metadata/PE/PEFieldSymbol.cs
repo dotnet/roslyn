@@ -212,12 +212,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 ImmutableArray<CustomModifier> customModifiersArray = CSharpCustomModifier.Convert(customModifiers);
 
                 typeSymbol = DynamicTypeDecoder.TransformType(typeSymbol, customModifiersArray.Length, _handle, moduleSymbol);
-                typeSymbol = TupleTypeDecoder.DecodeTupleTypesIfApplicable(typeSymbol, _handle, moduleSymbol);
 
                 TypeSymbolWithAnnotations type = TypeSymbolWithAnnotations.Create(typeSymbol, customModifiersArray);
                 // PROTOTYPE(NullableReferenceTypes): Avoid setting IsNullable in TypeSymbolWithAnnotations.Create
                 // only to undo that in TransformOrEraseNullability. Same comment applies to other uses of TransformOrEraseNullability.
                 type = NullableTypeDecoder.TransformOrEraseNullability(type, _handle, moduleSymbol);
+                type = TupleTypeDecoder.DecodeTupleTypesIfApplicable(type, _handle, moduleSymbol);
 
                 _lazyIsVolatile = isVolatile;
 

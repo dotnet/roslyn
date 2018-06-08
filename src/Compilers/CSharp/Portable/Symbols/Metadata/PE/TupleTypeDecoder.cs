@@ -71,8 +71,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             _namesIndex = elementNames.IsDefault ? 0 : elementNames.Length;
         }
 
-        public static TypeSymbol DecodeTupleTypesIfApplicable(
-            TypeSymbol metadataType,
+        public static TypeSymbolWithAnnotations DecodeTupleTypesIfApplicable(
+            TypeSymbolWithAnnotations metadataType,
             EntityHandle targetHandle,
             PEModuleSymbol containingModule)
         {
@@ -85,10 +85,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             // bad metadata
             if (hasTupleElementNamesAttribute && elementNames.IsDefaultOrEmpty)
             {
-                return new UnsupportedMetadataTypeSymbol();
+                return TypeSymbolWithAnnotations.Create(new UnsupportedMetadataTypeSymbol(), isNullableIfReferenceType: null);
             }
 
-            return DecodeTupleTypesInternal(metadataType, elementNames, hasTupleElementNamesAttribute);
+            var decoded = DecodeTupleTypesInternal(metadataType.TypeSymbol, elementNames, hasTupleElementNamesAttribute);
+            return TypeSymbolWithAnnotations.Create(decoded, isNullableIfReferenceType: metadataType.IsNullable, metadataType.CustomModifiers);
+        }
+
+        public static TypeSymbol DecodeTupleTypesIfApplicable(
+            TypeSymbol metadataType,
+            EntityHandle targetHandle,
+            PEModuleSymbol containingModule)
+        {
+            throw new NotImplementedException();
         }
 
         public static TypeSymbol DecodeTupleTypesIfApplicable(

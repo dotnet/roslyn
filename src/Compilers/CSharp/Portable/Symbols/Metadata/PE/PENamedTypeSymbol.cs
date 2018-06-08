@@ -457,8 +457,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                     {
                         TypeSymbol decodedType = new MetadataDecoder(moduleSymbol, this).GetTypeOfToken(token);
                         var result = (NamedTypeSymbol)DynamicTypeDecoder.TransformType(decodedType, 0, _handle, moduleSymbol);
-                        result = (NamedTypeSymbol)TupleTypeDecoder.DecodeTupleTypesIfApplicable(result, _handle, moduleSymbol);
-                        return DecodeNullable(result, _handle, moduleSymbol);
+                        return DecodeNullableAndTupleTypes(result, _handle, moduleSymbol);
                     }
                 }
                 catch (BadImageFormatException mrEx)
@@ -486,8 +485,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                     {
                         EntityHandle interfaceHandle = moduleSymbol.Module.MetadataReader.GetInterfaceImplementation(interfaceImpl).Interface;
                         TypeSymbol typeSymbol = tokenDecoder.GetTypeOfToken(interfaceHandle);
-
-                        typeSymbol = TupleTypeDecoder.DecodeTupleTypesIfApplicable(typeSymbol, interfaceImpl, moduleSymbol);
                         var result = typeSymbol as NamedTypeSymbol;
                         if (result is null)
                         {
@@ -495,7 +492,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                         }
                         else
                         {
-                            result = DecodeNullable(result, interfaceImpl, moduleSymbol);
+                            result = DecodeNullableAndTupleTypes(result, interfaceImpl, moduleSymbol);
                         }
                         symbols.Add(result);
                     }
@@ -511,7 +508,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             }
         }
 
-        private static NamedTypeSymbol DecodeNullable(NamedTypeSymbol type, EntityHandle handle, PEModuleSymbol moduleSymbol)
+        private static NamedTypeSymbol DecodeNullableAndTupleTypes(NamedTypeSymbol type, EntityHandle handle, PEModuleSymbol moduleSymbol)
         {
             // PROTOTYPE(NullableReferenceTypes): Should call NullableTypeDecoder.TransformOrEraseNullability
             // here (see StaticNullChecking.UnannotatedAssemblies_09) but TransformOrEraseNullability results in
@@ -520,7 +517,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             {
                 type = (NamedTypeSymbol)NullableTypeDecoder.TransformType(TypeSymbolWithAnnotations.Create(type), handle, moduleSymbol).TypeSymbol;
             }
-            return type;
+            // PROTOTYPE(NullableReferenceTypes): Shouldn't be necessary to wrap and unwrap TypeSymbol.
+            return (NamedTypeSymbol)TupleTypeDecoder.DecodeTupleTypesIfApplicable(TypeSymbolWithAnnotations.Create(type, isNullableIfReferenceType: null), handle, moduleSymbol).TypeSymbol;
         }
 
         public override NamedTypeSymbol ConstructedFrom

@@ -350,7 +350,7 @@ public class B2 : A<object?>
     }
 }";
             var comp2 = CreateCompilation(source2, parseOptions: TestOptions.Regular8, references: new[] { comp.EmitToImageReference() });
-            comp2.VerifyEmitDiagnostics(
+            comp2.VerifyDiagnostics(
                 // (8,14): warning CS8620: Nullability of reference types in argument of type 'B1' doesn't match target type 'A<object?>' for parameter 'y' in 'void C.F(A<object> x, A<object?> y)'.
                 //         F(x, x);
                 Diagnostic(ErrorCode.WRN_NullabilityMismatchInArgument, "x").WithArguments("B1", "A<object?>", "y", "void C.F(A<object> x, A<object?> y)").WithLocation(8, 14),
@@ -396,7 +396,7 @@ public class B : I<object?>
     }
 }";
             var comp2 = CreateCompilation(source2, parseOptions: TestOptions.Regular8, references: new[] { comp.EmitToImageReference() });
-            comp2.VerifyEmitDiagnostics(
+            comp2.VerifyDiagnostics(
                 // (8,14): warning CS8620: Nullability of reference types in argument of type 'A' doesn't match target type 'I<object?>' for parameter 'y' in 'void C.F(I<object> x, I<object?> y)'.
                 //         F(x, x);
                 Diagnostic(ErrorCode.WRN_NullabilityMismatchInArgument, "x").WithArguments("A", "I<object?>", "y", "void C.F(I<object> x, I<object?> y)").WithLocation(8, 14),
@@ -445,13 +445,13 @@ public class B : I<(object X, object? Y)>
     }
 }";
             var comp2 = CreateCompilation(source2, parseOptions: TestOptions.Regular8, references: new[] { comp.EmitToImageReference() });
-            comp2.VerifyEmitDiagnostics(
+            comp2.VerifyDiagnostics(
                 // (8,14): warning CS8620: Nullability of reference types in argument of type 'A' doesn't match target type 'I<(object, object?)>' for parameter 'b' in 'void C.F(I<(object, object)> a, I<(object, object?)> b)'.
                 //         F(a, a);
                 Diagnostic(ErrorCode.WRN_NullabilityMismatchInArgument, "a").WithArguments("A", "I<(object, object?)>", "b", "void C.F(I<(object, object)> a, I<(object, object?)> b)").WithLocation(8, 14),
-                // (9,14): warning CS8620: Nullability of reference types in argument of type 'B' doesn't match target type 'I<(object, object?)>' for parameter 'b' in 'void C.F(I<(object, object)> a, I<(object, object?)> b)'.
+                // (9,11): warning CS8620: Nullability of reference types in argument of type 'B' doesn't match target type 'I<(object, object)>' for parameter 'a' in 'void C.F(I<(object, object)> a, I<(object, object?)> b)'.
                 //         F(b, b);
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInArgument, "b").WithArguments("B", "I<(object, object?)>", "b", "void C.F(I<(object, object)> a, I<(object, object?)> b)").WithLocation(9, 14));
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInArgument, "b").WithArguments("B", "I<(object, object)>", "a", "void C.F(I<(object, object)> a, I<(object, object?)> b)").WithLocation(9, 11));
         }
 
         [Fact]
@@ -1091,6 +1091,186 @@ class C
                 // (5,16): error CS0518: Predefined type 'System.Runtime.CompilerServices.NullableAttribute' is not defined or imported
                 //         void L(object? x, object y) { }
                 Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "object? x").WithArguments("System.Runtime.CompilerServices.NullableAttribute").WithLocation(5, 16));
+        }
+
+        [Fact]
+        public void Tuples()
+        {
+            var source =
+@"public class A
+{
+    public static ((object?, object) _1, object? _2, object _3, ((object?, object), object?) _4) Nested;
+    public static (object? _1, object _2, object? _3, object _4, object? _5, object _6, object? _7, object _8, object? _9) Long;
+}";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
+            CompileAndVerify(comp, validator: assembly =>
+            {
+                var reader = assembly.GetMetadataReader();
+                var typeDef = GetTypeDefinitionByName(reader, "A");
+                var fieldDefs = typeDef.GetFields().Select(f => reader.GetFieldDefinition(f)).ToArray();
+
+                // Nested tuple
+                var field = fieldDefs.Single(f => reader.StringComparer.Equals(f.Name, "Nested"));
+                var customAttributes = field.GetCustomAttributes();
+                AssertAttributes(reader, customAttributes,
+                    "MemberReference:Void System.Runtime.CompilerServices.TupleElementNamesAttribute..ctor(String[])",
+                    "MethodDefinition:Void System.Runtime.CompilerServices.NullableAttribute..ctor(Boolean[])");
+                var customAttribute = reader.GetCustomAttribute(customAttributes.ElementAt(1));
+                AssertEx.Equal(ImmutableArray.Create(false, false, true, false, true, false, false, false, true, false, true), reader.ReadBoolArray(customAttribute.Value));
+
+                // Long tuple
+                field = fieldDefs.Single(f => reader.StringComparer.Equals(f.Name, "Long"));
+                customAttributes = field.GetCustomAttributes();
+                AssertAttributes(reader, customAttributes,
+                    "MemberReference:Void System.Runtime.CompilerServices.TupleElementNamesAttribute..ctor(String[])",
+                    "MethodDefinition:Void System.Runtime.CompilerServices.NullableAttribute..ctor(Boolean[])");
+                customAttribute = reader.GetCustomAttribute(customAttributes.ElementAt(1)); 
+                AssertEx.Equal(ImmutableArray.Create(false, true, false, true, false, true, false, true, false, false, true), reader.ReadBoolArray(customAttribute.Value));
+            });
+            var source2 =
+@"class B
+{
+    static void Main()
+    {
+        A.Nested._1.Item1.ToString(); // 1
+        A.Nested._1.Item2.ToString(); // 2
+        A.Nested._2.ToString(); // 3
+        A.Nested._3.ToString(); // 4
+        A.Nested._4.Item1.Item1.ToString(); // 5
+        A.Nested._4.Item1.Item2.ToString(); // 6
+        A.Nested._4.Item2.ToString(); // 7
+        A.Long._1.ToString(); // 1
+        A.Long._2.ToString(); // 2
+        A.Long._3.ToString(); // 3
+        A.Long._4.ToString(); // 4
+        A.Long._5.ToString(); // 5
+        A.Long._6.ToString(); // 6
+        A.Long._7.ToString(); // 7
+        A.Long._8.ToString(); // 8
+        A.Long._9.ToString(); // 9
+    }
+}";
+            var comp2 = CreateCompilation(source2, parseOptions: TestOptions.Regular8, references: new[] { comp.EmitToImageReference() });
+            comp2.VerifyDiagnostics(
+                // (5,9): warning CS8602: Possible dereference of a null reference.
+                //         A.Nested._1.Item1.ToString(); // 1
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "A.Nested._1.Item1").WithLocation(5, 9),
+                // (7,9): warning CS8602: Possible dereference of a null reference.
+                //         A.Nested._2.ToString(); // 3
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "A.Nested._2").WithLocation(7, 9),
+                // (9,9): warning CS8602: Possible dereference of a null reference.
+                //         A.Nested._4.Item1.Item1.ToString(); // 5
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "A.Nested._4.Item1.Item1").WithLocation(9, 9),
+                // (11,9): warning CS8602: Possible dereference of a null reference.
+                //         A.Nested._4.Item2.ToString(); // 7
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "A.Nested._4.Item2").WithLocation(11, 9),
+                // (12,9): warning CS8602: Possible dereference of a null reference.
+                //         A.Long._1.ToString(); // 1
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "A.Long._1").WithLocation(12, 9),
+                // (14,9): warning CS8602: Possible dereference of a null reference.
+                //         A.Long._3.ToString(); // 3
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "A.Long._3").WithLocation(14, 9),
+                // (16,9): warning CS8602: Possible dereference of a null reference.
+                //         A.Long._5.ToString(); // 5
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "A.Long._5").WithLocation(16, 9),
+                // (18,9): warning CS8602: Possible dereference of a null reference.
+                //         A.Long._7.ToString(); // 7
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "A.Long._7").WithLocation(18, 9),
+                // (20,9): warning CS8602: Possible dereference of a null reference.
+                //         A.Long._9.ToString(); // 9
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "A.Long._9").WithLocation(20, 9));
+        }
+
+        // DynamicAttribute and NullableAttribute formats should be aligned.
+        [Fact]
+        public void TuplesDynamic()
+        {
+            var source =
+@"#pragma warning disable 0067
+using System;
+public interface I<T> { }
+public class A<T> { }
+public class B :
+    A<(object? _1, (object _2, object? _3), object _4, object? _5, object _6, object? _7, object _8, object? _9)>,
+    I<(object? _1, (object _2, object? _3), object _4, object? _5, object _6, object? _7, object _8, object? _9)>
+{
+    public (dynamic? _1, (object _2, dynamic? _3), object _4, dynamic? _5, object _6, dynamic? _7, object _8, dynamic? _9) Field;
+    public event EventHandler<(dynamic? _1, (object _2, dynamic? _3), object _4, dynamic? _5, object _6, dynamic? _7, object _8, dynamic? _9)> Event;
+    public (dynamic? _1, (object _2, dynamic? _3), object _4, dynamic? _5, object _6, dynamic? _7, object _8, dynamic? _9) Method(
+        (dynamic? _1, (object _2, dynamic? _3), object _4, dynamic? _5, object _6, dynamic? _7, object _8, dynamic? _9) arg) => arg;
+    public (dynamic? _1, (object _2, dynamic? _3), object _4, dynamic? _5, object _6, dynamic? _7, object _8, dynamic? _9) Property { get; set; }
+}";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
+            CompileAndVerify(comp, validator: assembly =>
+            {
+                var reader = assembly.GetMetadataReader();
+                var typeDef = GetTypeDefinitionByName(reader, "B");
+                checkAttributesNoDynamic(typeDef.GetCustomAttributes(), addOne: true); // base type, add one for A<T>
+                var interfaceImpl = reader.GetInterfaceImplementation(typeDef.GetInterfaceImplementations().Single());
+                checkAttributesNoDynamic(interfaceImpl.GetCustomAttributes(), addOne: true); // interface, add one for I<T>
+                var field = typeDef.GetFields().Select(f => reader.GetFieldDefinition(f)).Single(f => reader.StringComparer.Equals(f.Name, "Field"));
+                checkAttributes(field.GetCustomAttributes());
+                var @event = typeDef.GetEvents().Select(e => reader.GetEventDefinition(e)).Single(e => reader.StringComparer.Equals(e.Name, "Event"));
+                checkAttributes(@event.GetCustomAttributes(), addOne: true); // add one for EventHandler<T>
+                var method = typeDef.GetMethods().Select(m => reader.GetMethodDefinition(m)).Single(m => reader.StringComparer.Equals(m.Name, "Method"));
+                var parameters = method.GetParameters().Select(p => reader.GetParameter(p)).ToArray();
+                checkAttributes(parameters[0].GetCustomAttributes()); // return type
+                checkAttributes(parameters[1].GetCustomAttributes()); // parameter
+                var property = typeDef.GetProperties().Select(p => reader.GetPropertyDefinition(p)).Single(p => reader.StringComparer.Equals(p.Name, "Property"));
+                checkAttributes(property.GetCustomAttributes());
+
+                void checkAttributes(CustomAttributeHandleCollection customAttributes, bool addOne = false)
+                {
+                    AssertAttributes(reader, customAttributes,
+                        "MemberReference:Void System.Runtime.CompilerServices.DynamicAttribute..ctor(Boolean[])",
+                        "MemberReference:Void System.Runtime.CompilerServices.TupleElementNamesAttribute..ctor(String[])",
+                        "MethodDefinition:Void System.Runtime.CompilerServices.NullableAttribute..ctor(Boolean[])");
+                    checkAttribute(reader.GetCustomAttribute(customAttributes.ElementAt(0)), addOne);
+                    checkAttribute(reader.GetCustomAttribute(customAttributes.ElementAt(2)), addOne);
+                }
+
+                void checkAttributesNoDynamic(CustomAttributeHandleCollection customAttributes, bool addOne = false)
+                {
+                    AssertAttributes(reader, customAttributes,
+                        "MemberReference:Void System.Runtime.CompilerServices.TupleElementNamesAttribute..ctor(String[])",
+                        "MethodDefinition:Void System.Runtime.CompilerServices.NullableAttribute..ctor(Boolean[])");
+                    checkAttribute(reader.GetCustomAttribute(customAttributes.ElementAt(1)), addOne);
+                }
+
+                void checkAttribute(CustomAttribute customAttribute, bool addOne)
+                {
+                    var expectedBits = ImmutableArray.Create(false, true, false, false, true, false, true, false, true, false, false, true);
+                    if (addOne)
+                    {
+                        expectedBits = ImmutableArray.Create(false).Concat(expectedBits);
+                    }
+                    AssertEx.Equal(expectedBits, reader.ReadBoolArray(customAttribute.Value));
+                }
+            });
+            var source2 =
+@"class C
+{
+    static void F(B b)
+    {
+        b.Field._8.ToString();
+        b.Field._9.ToString();
+        b.Method(default)._8.ToString();
+        b.Method(default)._9.ToString();
+        b.Property._8.ToString();
+        b.Property._9.ToString();
+    }
+}";
+            var comp2 = CreateCompilation(source2, parseOptions: TestOptions.Regular8, references: new[] { comp.EmitToImageReference() });
+            comp2.VerifyDiagnostics(
+                // (6,9): warning CS8602: Possible dereference of a null reference.
+                //         b.Field._9.ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "b.Field._9").WithLocation(6, 9),
+                // (8,9): warning CS8602: Possible dereference of a null reference.
+                //         b.Method(default)._9.ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "b.Method(default)._9").WithLocation(8, 9),
+                // (10,9): warning CS8602: Possible dereference of a null reference.
+                //         b.Property._9.ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "b.Property._9").WithLocation(10, 9));
         }
 
         private static void AssertNoNullableAttribute(ImmutableArray<CSharpAttributeData> attributes)

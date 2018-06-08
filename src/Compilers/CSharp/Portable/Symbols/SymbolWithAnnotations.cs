@@ -226,6 +226,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         // member signatures visible outside the assembly. Consider overriding, implementing, NoPIA embedding, etc.
         public static TypeSymbolWithAnnotations Create(TypeSymbol typeSymbol, bool? isNullableIfReferenceType)
         {
+            return Create(typeSymbol, isNullableIfReferenceType, ImmutableArray<CustomModifier>.Empty);
+        }
+
+        // PROTOTYPE(NullableReferenceTypes): Check we are not using this method on type references in
+        // member signatures visible outside the assembly. Consider overriding, implementing, NoPIA embedding, etc.
+        public static TypeSymbolWithAnnotations Create(TypeSymbol typeSymbol, bool? isNullableIfReferenceType, ImmutableArray<CustomModifier> customModifiers)
+        {
             if (typeSymbol is null)
             {
                 return null;
@@ -233,16 +240,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             if (isNullableIfReferenceType == null && typeSymbol.TypeKind == TypeKind.TypeParameter)
             {
-                return new NonLazyType(typeSymbol, isNullable: null, ImmutableArray<CustomModifier>.Empty);
+                return new NonLazyType(typeSymbol, isNullable: null, customModifiers);
             }
 
             if (isNullableIfReferenceType == false || !typeSymbol.IsReferenceType || typeSymbol.IsNullableType())
             {
-                return Create(typeSymbol);
+                return Create(typeSymbol, customModifiers);
             }
 
             bool? isNullable = typeSymbol.IsNullableType() ? true : isNullableIfReferenceType;
-            return new NonLazyType(typeSymbol, isNullable, ImmutableArray<CustomModifier>.Empty);
+            return new NonLazyType(typeSymbol, isNullable, customModifiers);
         }
 
         public TypeSymbolWithAnnotations AsNullableReferenceOrValueType(CSharpCompilation compilation, SyntaxReference nullableTypeSyntax)

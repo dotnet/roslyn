@@ -166,9 +166,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             // Dynamify object type if necessary
             originalPropertyType = originalPropertyType.AsDynamicIfNoPia(_containingType);
 
-            originalPropertyType = TupleTypeDecoder.DecodeTupleTypesIfApplicable(originalPropertyType, handle, moduleSymbol);
-
             var propertyType = TypeSymbolWithAnnotations.Create(originalPropertyType, typeCustomModifiers);
+            propertyType = TupleTypeDecoder.DecodeTupleTypesIfApplicable(propertyType, handle, moduleSymbol);
             propertyType = NullableTypeDecoder.TransformOrEraseNullability(propertyType, handle, moduleSymbol);
 
             _propertyType = propertyType;

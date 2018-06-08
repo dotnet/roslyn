@@ -614,7 +614,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             var returnType = paramInfo[0].Type.AsDynamicIfNoPia(_containingType);
 
             // Check for tuple type
-            returnType = TupleTypeDecoder.DecodeTupleTypesIfApplicable(returnType, paramInfo[0].Handle, moduleSymbol);
+            // PROTOTYPE(NullableReferenceTypes): Shouldn't be necessary to wrap and unwrap TypeSymbol.
+            returnType = TupleTypeDecoder.DecodeTupleTypesIfApplicable(TypeSymbolWithAnnotations.Create(returnType, isNullableIfReferenceType: null), paramInfo[0].Handle, moduleSymbol).TypeSymbol;
 
             paramInfo[0].Type = returnType;
 

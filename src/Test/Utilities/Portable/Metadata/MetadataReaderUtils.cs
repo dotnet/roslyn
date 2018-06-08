@@ -164,6 +164,28 @@ namespace Roslyn.Test.Utilities
             }
         }
 
+        public delegate T ReadBlobItemDelegate<T>(ref BlobReader blobReader);
+
+        public static ImmutableArray<T> ReadArray<T>(this MetadataReader reader, BlobHandle blobHandle, ReadBlobItemDelegate<T> readItem)
+        {
+            var blobReader = reader.GetBlobReader(blobHandle);
+            // Prolog
+            blobReader.ReadUInt16();
+            // Array size
+            int n = blobReader.ReadInt32();
+            var builder = ArrayBuilder<T>.GetInstance(n);
+            for (int i = 0; i < n; i++)
+            {
+                builder.Add(readItem(ref blobReader));
+            }
+            return builder.ToImmutableAndFree();
+        }
+
+        public static ImmutableArray<bool> ReadBoolArray(this MetadataReader reader, BlobHandle blobHandle)
+        {
+            return ReadArray(reader, blobHandle, (ref BlobReader blobReader) => blobReader.ReadBoolean());
+        }
+
         public static IEnumerable<CustomAttributeRow> GetCustomAttributeRows(this MetadataReader reader)
         {
             foreach (var handle in reader.CustomAttributes)
