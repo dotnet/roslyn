@@ -22,5 +22,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.QualifyMemberAccess
             ' or member is in object initialization context, it cannot be qualified.
             Return Not (node.IsKind(SyntaxKind.MyBaseExpression) OrElse node.IsKind(SyntaxKind.MyClassExpression) OrElse node.IsKind(SyntaxKind.ObjectCreationExpression))
         End Function
+
+        Protected Overrides Function GetLocation(operation As IOperation) As Location
+            Dim unaryExpressionSyntax As UnaryExpressionSyntax = TryCast(operation.Syntax, UnaryExpressionSyntax)
+            If unaryExpressionSyntax IsNot Nothing AndAlso unaryExpressionSyntax.OperatorToken.Kind() = SyntaxKind.AddressOfKeyword Then
+                Return unaryExpressionSyntax.Operand.GetLocation()
+            End If
+
+            Return operation.Syntax.GetLocation()
+        End Function
+
     End Class
 End Namespace

@@ -3657,7 +3657,7 @@ End Namespace
                     </file>
                 </compilation>
 
-            Dim comp1 = CreateCompilationWithMscorlib40(source1, TestOptions.ReleaseModule)
+            Dim comp1 = CreateCompilationWithMscorlib40(source1, options:=TestOptions.ReleaseModule)
 
             Dim source2 =
                 <compilation>
