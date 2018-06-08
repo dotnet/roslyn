@@ -7058,5 +7058,313 @@ Block[B5] - Exit
             VerifyFlowGraphAndDiagnosticsForTest(Of MethodBlockSyntax)(source, expectedGraph, expectedDiagnostics)
         End Sub
 
+        <CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)>
+        <Fact()>
+        Public Sub LogicalFlow_01()
+            Dim source = <![CDATA[
+Public Class Class1
+    Sub M(a As Boolean, b As Boolean, c As Boolean)'BIND:"Sub M(a As Boolean, b As Boolean, c As Boolean)"
+        a = b AndAlso (Not c)
+    End Sub
+End Class
+]]>.Value
+
+            Dim expectedDiagnostics = String.Empty
+
+            Dim expectedFlowGraph = <![CDATA[
+Block[B0] - Entry
+    Statements (0)
+    Next (Regular) Block[B1]
+Block[B1] - Block
+    Predecessors: [B0]
+    Statements (1)
+        IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'a')
+          Value: 
+            IParameterReferenceOperation: a (OperationKind.ParameterReference, Type: System.Boolean) (Syntax: 'a')
+
+    Jump if False (Regular) to Block[B3]
+        IParameterReferenceOperation: b (OperationKind.ParameterReference, Type: System.Boolean) (Syntax: 'b')
+
+    Next (Regular) Block[B2]
+Block[B2] - Block
+    Predecessors: [B1]
+    Statements (1)
+        IFlowCaptureOperation: 1 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: '(Not c)')
+          Value: 
+            IUnaryOperation (UnaryOperatorKind.Not, Checked) (OperationKind.UnaryOperator, Type: System.Boolean) (Syntax: 'Not c')
+              Operand: 
+                IParameterReferenceOperation: c (OperationKind.ParameterReference, Type: System.Boolean) (Syntax: 'c')
+
+    Next (Regular) Block[B4]
+Block[B3] - Block
+    Predecessors: [B1]
+    Statements (1)
+        IFlowCaptureOperation: 1 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'b')
+          Value: 
+            ILiteralOperation (OperationKind.Literal, Type: System.Boolean, Constant: False, IsImplicit) (Syntax: 'b')
+
+    Next (Regular) Block[B4]
+Block[B4] - Block
+    Predecessors: [B2] [B3]
+    Statements (1)
+        IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'a = b AndAlso (Not c)')
+          Expression: 
+            ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Boolean, IsImplicit) (Syntax: 'a = b AndAlso (Not c)')
+              Left: 
+                IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.Boolean, IsImplicit) (Syntax: 'a')
+              Right: 
+                IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: System.Boolean, IsImplicit) (Syntax: 'b AndAlso (Not c)')
+
+    Next (Regular) Block[B5]
+Block[B5] - Exit
+    Predecessors: [B4]
+    Statements (0)
+]]>.Value
+
+            VerifyFlowGraphAndDiagnosticsForTest(Of MethodBlockSyntax)(source, expectedFlowGraph, expectedDiagnostics)
+        End Sub
+
+        <CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)>
+        <Fact()>
+        Public Sub LogicalFlow_02()
+            Dim source = <![CDATA[
+Public Class C
+    Sub M(a As Boolean, b As Boolean, c As Boolean, d As Boolean) 'BIND:"Sub M"
+        a = b OrElse Not c AndAlso Not d
+    End Sub
+End Class
+]]>.Value
+
+            Dim expectedDiagnostics = String.Empty
+
+            Dim expectedFlowGraph = <![CDATA[
+Block[B0] - Entry
+    Statements (0)
+    Next (Regular) Block[B1]
+Block[B1] - Block
+    Predecessors: [B0]
+    Statements (1)
+        IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'a')
+          Value: 
+            IParameterReferenceOperation: a (OperationKind.ParameterReference, Type: System.Boolean) (Syntax: 'a')
+
+    Jump if True (Regular) to Block[B5]
+        IParameterReferenceOperation: b (OperationKind.ParameterReference, Type: System.Boolean) (Syntax: 'b')
+
+    Next (Regular) Block[B2]
+Block[B2] - Block
+    Predecessors: [B1]
+    Statements (0)
+    Jump if True (Regular) to Block[B4]
+        IParameterReferenceOperation: c (OperationKind.ParameterReference, Type: System.Boolean) (Syntax: 'c')
+
+    Next (Regular) Block[B3]
+Block[B3] - Block
+    Predecessors: [B2]
+    Statements (1)
+        IFlowCaptureOperation: 1 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'Not d')
+          Value: 
+            IUnaryOperation (UnaryOperatorKind.Not, Checked) (OperationKind.UnaryOperator, Type: System.Boolean) (Syntax: 'Not d')
+              Operand: 
+                IParameterReferenceOperation: d (OperationKind.ParameterReference, Type: System.Boolean) (Syntax: 'd')
+
+    Next (Regular) Block[B6]
+Block[B4] - Block
+    Predecessors: [B2]
+    Statements (1)
+        IFlowCaptureOperation: 1 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'Not c')
+          Value: 
+            ILiteralOperation (OperationKind.Literal, Type: System.Boolean, Constant: False, IsImplicit) (Syntax: 'Not c')
+
+    Next (Regular) Block[B6]
+Block[B5] - Block
+    Predecessors: [B1]
+    Statements (1)
+        IFlowCaptureOperation: 1 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'b')
+          Value: 
+            ILiteralOperation (OperationKind.Literal, Type: System.Boolean, Constant: True, IsImplicit) (Syntax: 'b')
+
+    Next (Regular) Block[B6]
+Block[B6] - Block
+    Predecessors: [B3] [B4] [B5]
+    Statements (1)
+        IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'a = b OrEls ... dAlso Not d')
+          Expression: 
+            ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Boolean, IsImplicit) (Syntax: 'a = b OrEls ... dAlso Not d')
+              Left: 
+                IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.Boolean, IsImplicit) (Syntax: 'a')
+              Right: 
+                IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: System.Boolean, IsImplicit) (Syntax: 'b OrElse No ... dAlso Not d')
+
+    Next (Regular) Block[B7]
+Block[B7] - Exit
+    Predecessors: [B6]
+    Statements (0)
+]]>.Value
+
+            VerifyFlowGraphAndDiagnosticsForTest(Of MethodBlockSyntax)(source, expectedFlowGraph, expectedDiagnostics)
+        End Sub
+
+        <CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)>
+        <Fact()>
+        Public Sub LogicalFlow_03()
+            Dim source = <![CDATA[
+Public Class C
+    Sub M(a As Boolean, b As Boolean, c As Boolean, d As Boolean) 'BIND:"Sub M"
+        a = b OrElse (Not c AndAlso Not d)
+    End Sub
+End Class
+]]>.Value
+
+            Dim expectedDiagnostics = String.Empty
+
+            Dim expectedFlowGraph = <![CDATA[
+Block[B0] - Entry
+    Statements (0)
+    Next (Regular) Block[B1]
+Block[B1] - Block
+    Predecessors: [B0]
+    Statements (1)
+        IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'a')
+          Value: 
+            IParameterReferenceOperation: a (OperationKind.ParameterReference, Type: System.Boolean) (Syntax: 'a')
+
+    Jump if True (Regular) to Block[B5]
+        IParameterReferenceOperation: b (OperationKind.ParameterReference, Type: System.Boolean) (Syntax: 'b')
+
+    Next (Regular) Block[B2]
+Block[B2] - Block
+    Predecessors: [B1]
+    Statements (0)
+    Jump if True (Regular) to Block[B4]
+        IParameterReferenceOperation: c (OperationKind.ParameterReference, Type: System.Boolean) (Syntax: 'c')
+
+    Next (Regular) Block[B3]
+Block[B3] - Block
+    Predecessors: [B2]
+    Statements (1)
+        IFlowCaptureOperation: 1 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'Not d')
+          Value: 
+            IUnaryOperation (UnaryOperatorKind.Not, Checked) (OperationKind.UnaryOperator, Type: System.Boolean) (Syntax: 'Not d')
+              Operand: 
+                IParameterReferenceOperation: d (OperationKind.ParameterReference, Type: System.Boolean) (Syntax: 'd')
+
+    Next (Regular) Block[B6]
+Block[B4] - Block
+    Predecessors: [B2]
+    Statements (1)
+        IFlowCaptureOperation: 1 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'Not c')
+          Value: 
+            ILiteralOperation (OperationKind.Literal, Type: System.Boolean, Constant: False, IsImplicit) (Syntax: 'Not c')
+
+    Next (Regular) Block[B6]
+Block[B5] - Block
+    Predecessors: [B1]
+    Statements (1)
+        IFlowCaptureOperation: 1 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'b')
+          Value: 
+            ILiteralOperation (OperationKind.Literal, Type: System.Boolean, Constant: True, IsImplicit) (Syntax: 'b')
+
+    Next (Regular) Block[B6]
+Block[B6] - Block
+    Predecessors: [B3] [B4] [B5]
+    Statements (1)
+        IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'a = b OrEls ... Also Not d)')
+          Expression: 
+            ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Boolean, IsImplicit) (Syntax: 'a = b OrEls ... Also Not d)')
+              Left: 
+                IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.Boolean, IsImplicit) (Syntax: 'a')
+              Right: 
+                IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: System.Boolean, IsImplicit) (Syntax: 'b OrElse (N ... Also Not d)')
+
+    Next (Regular) Block[B7]
+Block[B7] - Exit
+    Predecessors: [B6]
+    Statements (0)
+]]>.Value
+
+            VerifyFlowGraphAndDiagnosticsForTest(Of MethodBlockSyntax)(source, expectedFlowGraph, expectedDiagnostics)
+        End Sub
+
+        <CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)>
+        <Fact()>
+        Public Sub LogicalFlow_04()
+            Dim source = <![CDATA[
+Public Class C
+    Sub M(a As Boolean, b As Boolean, c As Boolean, d As Boolean) 'BIND:"Sub M"
+        a = b OrElse Not (c OrElse d)
+    End Sub
+End Class
+]]>.Value
+
+            Dim expectedDiagnostics = String.Empty
+
+            Dim expectedFlowGraph = <![CDATA[
+Block[B0] - Entry
+    Statements (0)
+    Next (Regular) Block[B1]
+Block[B1] - Block
+    Predecessors: [B0]
+    Statements (1)
+        IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'a')
+          Value: 
+            IParameterReferenceOperation: a (OperationKind.ParameterReference, Type: System.Boolean) (Syntax: 'a')
+
+    Jump if True (Regular) to Block[B5]
+        IParameterReferenceOperation: b (OperationKind.ParameterReference, Type: System.Boolean) (Syntax: 'b')
+
+    Next (Regular) Block[B2]
+Block[B2] - Block
+    Predecessors: [B1]
+    Statements (0)
+    Jump if True (Regular) to Block[B4]
+        IParameterReferenceOperation: c (OperationKind.ParameterReference, Type: System.Boolean) (Syntax: 'c')
+
+    Next (Regular) Block[B3]
+Block[B3] - Block
+    Predecessors: [B2]
+    Statements (1)
+        IFlowCaptureOperation: 1 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'd')
+          Value: 
+            IUnaryOperation (UnaryOperatorKind.Not) (OperationKind.UnaryOperator, Type: System.Boolean, IsImplicit) (Syntax: 'd')
+              Operand: 
+                IParameterReferenceOperation: d (OperationKind.ParameterReference, Type: System.Boolean) (Syntax: 'd')
+
+    Next (Regular) Block[B6]
+Block[B4] - Block
+    Predecessors: [B2]
+    Statements (1)
+        IFlowCaptureOperation: 1 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'c')
+          Value: 
+            ILiteralOperation (OperationKind.Literal, Type: System.Boolean, Constant: False, IsImplicit) (Syntax: 'c')
+
+    Next (Regular) Block[B6]
+Block[B5] - Block
+    Predecessors: [B1]
+    Statements (1)
+        IFlowCaptureOperation: 1 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'b')
+          Value: 
+            ILiteralOperation (OperationKind.Literal, Type: System.Boolean, Constant: True, IsImplicit) (Syntax: 'b')
+
+    Next (Regular) Block[B6]
+Block[B6] - Block
+    Predecessors: [B3] [B4] [B5]
+    Statements (1)
+        IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'a = b OrEls ... c OrElse d)')
+          Expression: 
+            ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Boolean, IsImplicit) (Syntax: 'a = b OrEls ... c OrElse d)')
+              Left: 
+                IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.Boolean, IsImplicit) (Syntax: 'a')
+              Right: 
+                IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: System.Boolean, IsImplicit) (Syntax: 'b OrElse No ... c OrElse d)')
+
+    Next (Regular) Block[B7]
+Block[B7] - Exit
+    Predecessors: [B6]
+    Statements (0)
+]]>.Value
+
+            VerifyFlowGraphAndDiagnosticsForTest(Of MethodBlockSyntax)(source, expectedFlowGraph, expectedDiagnostics)
+        End Sub
     End Class
 End Namespace
