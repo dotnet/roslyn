@@ -1242,7 +1242,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                 case OperationKind.OmittedArgument:
                 case OperationKind.DeclarationExpression:
                 case OperationKind.Discard:
-                    Assert.False(true);
+                    Assert.False(true, $"A {operation.Value.Kind} node should not be spilled or captured.");
                     break;
 
                 default:

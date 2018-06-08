@@ -1471,7 +1471,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
                 var afterIf = new BasicBlockBuilder(BasicBlockKind.Block);
                 IOperation result;
 
-                // Specialy handle cases with "throw" as operation.WhenTrue or operation.WhenFalse. We don't need to create an additional
+                // Specially handle cases with "throw" as operation.WhenTrue or operation.WhenFalse. We don't need to create an additional
                 // capture for the result because there won't be any result from the throwing branches.
                 if (operation.WhenTrue is IConversionOperation whenTrueConversion && whenTrueConversion.Operand.Kind == OperationKind.Throw)
                 {
