@@ -1687,8 +1687,6 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
 
         public override IOperation VisitUnaryOperator(IUnaryOperation operation, int? captureIdForResult)
         {
-            // PROTOTYPE(dataflow): ensure we properly detect logical Not
-            //                      For example, Microsoft.CodeAnalysis.CSharp.UnitTests.IOperationTests.Test_UnaryOperatorExpression_Type_LogicalNot_dynamic
             if (IsBooleanLogicalNot(operation))
             {
                 return VisitConditionalExpression(operation.Operand, sense: false, captureIdForResult, fallToTrueOpt: null, fallToFalseOpt: null);
