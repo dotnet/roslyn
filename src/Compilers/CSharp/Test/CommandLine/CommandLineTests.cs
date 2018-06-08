@@ -189,7 +189,7 @@ dotnet_diagnostic.cs0169.severity = suppress";
             var exitCode = cmd.Run(outWriter);
             Assert.Equal(1, exitCode);
             Assert.Equal(
-                $"error CS8501: Multiple analyzer configs cannot be in the same directory ('{dir.Path}').",
+                $"error CS8501: Multiple analyzer config files cannot be in the same directory ('{dir.Path}').",
                 outWriter.ToString().TrimEnd());
         }
 

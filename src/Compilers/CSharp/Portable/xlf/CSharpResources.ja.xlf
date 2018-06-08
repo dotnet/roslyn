@@ -3,8 +3,8 @@
   <file datatype="xml" source-language="en" target-language="ja" original="../CSharpResources.resx">
     <body>
       <trans-unit id="ERR_MultipleAnalyzerConfigsInSameDir">
-        <source>Multiple analyzer configs cannot be in the same directory ('{0}').</source>
-        <target state="new">Multiple analyzer configs cannot be in the same directory ('{0}').</target>
+        <source>Multiple analyzer config files cannot be in the same directory ('{0}').</source>
+        <target state="new">Multiple analyzer config files cannot be in the same directory ('{0}').</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_OutVariableCannotBeByRef">

@@ -6605,7 +6605,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Multiple analyzer configs cannot be in the same directory (&apos;{0}&apos;)..
+        ///   Looks up a localized string similar to Multiple analyzer config files cannot be in the same directory (&apos;{0}&apos;)..
         /// </summary>
         internal static string ERR_MultipleAnalyzerConfigsInSameDir {
             get {

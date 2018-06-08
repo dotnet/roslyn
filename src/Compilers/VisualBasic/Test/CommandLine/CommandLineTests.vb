@@ -147,7 +147,7 @@ dotnet_diagnostic.cs0169.severity = suppress"
             Dim exitCode = cmd.Run(outWriter)
             Assert.Equal(1, exitCode)
             Assert.Equal(
-                $"vbc : error BC42501: Multiple analyzer configs cannot be in the same directory ('{dir.Path}').",
+                $"vbc : error BC42501: Multiple analyzer config files cannot be in the same directory ('{dir.Path}').",
                 outWriter.ToString().TrimEnd())
         End Sub
 

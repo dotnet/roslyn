@@ -7423,7 +7423,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
-        '''  Looks up a localized string similar to Multiple analyzer configs cannot be in the same directory (&apos;{0}&apos;)..
+        '''  Looks up a localized string similar to Multiple analyzer config files cannot be in the same directory (&apos;{0}&apos;)..
         '''</summary>
         Friend ReadOnly Property ERR_MultipleAnalyzerConfigsInSameDir() As String
             Get

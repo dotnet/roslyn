@@ -5540,6 +5540,6 @@
     <value>Invalid severity in analyzer config file.</value>
   </data>
   <data name="ERR_MultipleAnalyzerConfigsInSameDir" xml:space="preserve">
-    <value>Multiple analyzer configs cannot be in the same directory ('{0}').</value>
+    <value>Multiple analyzer config files cannot be in the same directory ('{0}').</value>
   </data>
 </root>
