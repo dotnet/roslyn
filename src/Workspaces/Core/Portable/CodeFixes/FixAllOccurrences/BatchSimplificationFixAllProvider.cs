@@ -44,7 +44,9 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         /// <summary>
         /// Get node on which to add simplifier and formatter annotation for fixing the given diagnostic.
         /// </summary>
-        protected abstract SyntaxNode GetNodeToSimplify(SyntaxNode root, SemanticModel model, Diagnostic diagnostic, DocumentOptionSet options, out string codeActionEquivalenceKey, CancellationToken cancellationToken);
+        protected abstract SyntaxNode GetNodeToSimplify(
+            SyntaxNode root, SemanticModel model, Diagnostic diagnostic, 
+            DocumentOptionSet options, CancellationToken cancellationToken);
 
         private async Task<Document> AddSimplifierAnnotationsAsync(
             Document document, ImmutableArray<Diagnostic> diagnostics,
@@ -58,12 +60,14 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             var nodesToSimplify = new List<SyntaxNode>();
             foreach (var diagnostic in diagnostics)
             {
-                var node = GetNodeToSimplify(root, model, diagnostic, options,
-                    out var codeActionEquivalenceKey, cancellationToken);
-
-                if (node != null && fixAllState.CodeActionEquivalenceKey == codeActionEquivalenceKey)
+                if (diagnostic.Id == fixAllState.CodeActionEquivalenceKey)
                 {
-                    nodesToSimplify.Add(node);
+                    var node = GetNodeToSimplify(root, model, diagnostic, options, cancellationToken);
+
+                    if (node != null)
+                    {
+                        nodesToSimplify.Add(node);
+                    }
                 }
             }
 

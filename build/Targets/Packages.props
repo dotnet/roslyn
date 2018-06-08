@@ -26,7 +26,7 @@
     <MicrosoftBuildLocatorVersion>1.0.13</MicrosoftBuildLocatorVersion>
     <MicrosoftBuildRuntimeVersion>15.1.0-preview-000458-02</MicrosoftBuildRuntimeVersion>
     <MicrosoftBuildTasksCoreVersion>15.1.0-preview-000458-02</MicrosoftBuildTasksCoreVersion>
-    <MicrosoftCodeAnalysisAnalyzersVersion>1.1.0</MicrosoftCodeAnalysisAnalyzersVersion>
+    <MicrosoftCodeAnalysisAnalyzersVersion>2.6.1</MicrosoftCodeAnalysisAnalyzersVersion>
     <MicrosoftCodeAnalysisBuildTasksVersion>2.0.0-rc2-61102-09</MicrosoftCodeAnalysisBuildTasksVersion>
     <MicrosoftCodeAnalysisCommonVersion>1.0.1</MicrosoftCodeAnalysisCommonVersion>
     <MicrosoftCodeAnalysisCSharpVersion>1.0.1</MicrosoftCodeAnalysisCSharpVersion>
@@ -156,6 +156,7 @@
     <RoslynToolsMSBuildVersion>0.4.0-alpha</RoslynToolsMSBuildVersion>
     <RoslynToolsReferenceAssembliesVersion>0.1.3</RoslynToolsReferenceAssembliesVersion>
     <RoslynToolsSignToolVersion>1.0.0-beta2-dev3</RoslynToolsSignToolVersion>
+    <RoslynToolsBuildTasksVersion>1.0.0-beta2-62731-01</RoslynToolsBuildTasksVersion>
     <RoslynMicrosoftVisualStudioExtensionManagerVersion>0.0.4</RoslynMicrosoftVisualStudioExtensionManagerVersion>
     <StreamJsonRpcVersion>1.1.92</StreamJsonRpcVersion>
     <SystemAppContextVersion>4.3.0</SystemAppContextVersion>
@@ -230,7 +231,7 @@
     <SystemXmlXmlDocumentVersion>4.3.0</SystemXmlXmlDocumentVersion>
     <SystemXmlXmlSerializerVersion>4.3.0</SystemXmlXmlSerializerVersion>
     <SystemXmlXPathXDocumentVersion>4.3.0</SystemXmlXPathXDocumentVersion>
-    <SQLitePCLRawbundle_greenVersion>1.1.11</SQLitePCLRawbundle_greenVersion>
+    <SQLitePCLRawbundle_greenVersion>1.1.2</SQLitePCLRawbundle_greenVersion>
     <UIAComWrapperVersion>1.1.0.14</UIAComWrapperVersion>
     <MicrosoftVSSDKBuildToolsVersion>15.8.68-develop-g109a00ff</MicrosoftVSSDKBuildToolsVersion>
     <VSExternalAPIsCodingConventionsVersion>1.0.60704.2</VSExternalAPIsCodingConventionsVersion>
@@ -241,7 +242,7 @@
     <VSSDKComponentModelHostVersion>12.0.4</VSSDKComponentModelHostVersion>
     <VsWebsiteInteropVersion>8.0.0.0-alpha</VsWebsiteInteropVersion>
     <vswhereVersion>2.4.1</vswhereVersion>
-    <XliffTasksVersion>0.2.0-beta-62827-03</XliffTasksVersion>
+    <XliffTasksVersion>0.2.0-beta-63004-01</XliffTasksVersion>
     <xunitVersion>2.3.1</xunitVersion>
     <xunitanalyzersVersion>0.8.0</xunitanalyzersVersion>
     <xunitassertVersion>2.3.1</xunitassertVersion>
@@ -249,6 +250,30 @@
     <xunitrunnerconsoleVersion>2.3.1</xunitrunnerconsoleVersion>
     <xunitrunnerwpfVersion>1.0.51</xunitrunnerwpfVersion>
     <xunitrunnervisualstudioVersion>2.3.1</xunitrunnervisualstudioVersion>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <RestoreSources>
+      $(RestoreSources);
+      https://dotnet.myget.org/F/dotnet-coreclr/api/v3/index.json;
+      https://dotnet.myget.org/F/dotnet-core/api/v3/index.json;
+      https://dotnet.myget.org/F/dotnet-corefxtestdata/api/v3/index.json;
+      https://dotnet.myget.org/F/dotnet-buildtools/api/v3/index.json;
+      https://dotnet.myget.org/F/symreader/api/v3/index.json;
+      https://dotnet.myget.org/F/symreader-portable/api/v3/index.json;
+      https://dotnet.myget.org/F/symreader-converter/api/v3/index.json;
+      https://dotnet.myget.org/F/symreader-native/api/v3/index.json;
+      https://dotnet.myget.org/F/metadata-tools/api/v3/index.json;
+      https://dotnet.myget.org/F/interactive-window/api/v3/index.json;
+      https://dotnet.myget.org/F/roslyn-master-nightly/api/v3/index.json;
+      https://dotnet.myget.org/F/roslyn-tools/api/v3/index.json;
+      https://dotnet.myget.org/F/roslyn-analyzers/api/v3/index.json;
+      https://dotnet.myget.org/F/roslyn/api/v3/index.json;
+      https://myget.org/F/vs-devcore/api/v3/index.json;
+      https://myget.org/F/vs-editor/api/v3/index.json;
+      https://vside.myget.org/F/vssdk/api/v3/index.json;
+      https://vside.myget.org/F/vs-impl/api/v3/index.json;
+    </RestoreSources>
   </PropertyGroup>
 
 </Project>

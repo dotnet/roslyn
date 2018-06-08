@@ -61,6 +61,15 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to All C# Formatting Rules (indentation, wrapping and spacing).
+        /// </summary>
+        internal static string All_csharp_formatting_rules {
+            get {
+                return ResourceManager.GetString("All_csharp_formatting_rules", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to _Always add new line on enter.
         /// </summary>
         internal static string Always_add_new_line_on_enter {
@@ -214,11 +223,101 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Fix accessibility modifiers.
+        /// </summary>
+        internal static string Fix_accessibility_modifiers {
+            get {
+                return ResourceManager.GetString("Fix_accessibility_modifiers", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Fix add/remove braces.
+        /// </summary>
+        internal static string Fix_add_remove_braces {
+            get {
+                return ResourceManager.GetString("Fix_add_remove_braces", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Fix expression-bodied members.
+        /// </summary>
+        internal static string Fix_expression_bodied_members {
+            get {
+                return ResourceManager.GetString("Fix_expression_bodied_members", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Fix framework types (int vs Int32).
+        /// </summary>
+        internal static string Fix_framework_types {
+            get {
+                return ResourceManager.GetString("Fix_framework_types", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Fix implicit/explicit type.
+        /// </summary>
+        internal static string Fix_implicit_explicit_type {
+            get {
+                return ResourceManager.GetString("Fix_implicit_explicit_type", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Fix inline variable declarations.
+        /// </summary>
+        internal static string Fix_inline_variable_declarations {
+            get {
+                return ResourceManager.GetString("Fix_inline_variable_declarations", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Fix language features.
+        /// </summary>
+        internal static string Fix_language_features {
+            get {
+                return ResourceManager.GetString("Fix_language_features", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Fix object/collection initialization.
+        /// </summary>
+        internal static string Fix_object_collection_initialization {
+            get {
+                return ResourceManager.GetString("Fix_object_collection_initialization", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Fix this. qualification.
+        /// </summary>
+        internal static string Fix_this_qualification {
+            get {
+                return ResourceManager.GetString("Fix_this_qualification", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to For built-in types.
         /// </summary>
         internal static string For_built_in_types {
             get {
                 return ResourceManager.GetString("For_built_in_types", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Format Document Settings (Experiment) .
+        /// </summary>
+        internal static string Format_document_settings {
+            get {
+                return ResourceManager.GetString("Format_document_settings", resourceCulture);
             }
         }
         
@@ -646,6 +745,15 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Make readonly.
+        /// </summary>
+        internal static string Make_readonly {
+            get {
+                return ResourceManager.GetString("Make_readonly", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to _Move local declaration to the extracted method if it is not used elsewhere.
         /// </summary>
         internal static string Move_local_declaration_to_the_extracted_method_if_it_is_not_used_elsewhere {
@@ -970,11 +1078,11 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Prefer &apos;is null&apos; over &apos;object.ReferenceEquals(..., null)&apos;.
+        ///   Looks up a localized string similar to Prefer &apos;is null&apos; for reference equality checks.
         /// </summary>
-        internal static string Prefer_is_null_over_ReferenceEquals {
+        internal static string Prefer_is_null_for_reference_equality_checks {
             get {
-                return ResourceManager.GetString("Prefer_is_null_over_ReferenceEquals", resourceCulture);
+                return ResourceManager.GetString("Prefer_is_null_for_reference_equality_checks", resourceCulture);
             }
         }
         
@@ -1074,6 +1182,33 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp {
         internal static string Remove_spaces_before_and_after_binary_operators {
             get {
                 return ResourceManager.GetString("Remove_spaces_before_and_after_binary_operators", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Remove unnecessary casts.
+        /// </summary>
+        internal static string Remove_unnecessary_casts {
+            get {
+                return ResourceManager.GetString("Remove_unnecessary_casts", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Remove unnecessary usings.
+        /// </summary>
+        internal static string Remove_unnecessary_usings {
+            get {
+                return ResourceManager.GetString("Remove_unnecessary_usings", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Remove unused variables.
+        /// </summary>
+        internal static string Remove_unused_variables {
+            get {
+                return ResourceManager.GetString("Remove_unused_variables", resourceCulture);
             }
         }
         
@@ -1227,6 +1362,24 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp {
         internal static string Snippets_behavior {
             get {
                 return ResourceManager.GetString("Snippets_behavior", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Sort accessibility modifiers.
+        /// </summary>
+        internal static string Sort_accessibility_modifiers {
+            get {
+                return ResourceManager.GetString("Sort_accessibility_modifiers", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Sort usings.
+        /// </summary>
+        internal static string Sort_usings {
+            get {
+                return ResourceManager.GetString("Sort_usings", resourceCulture);
             }
         }
         
