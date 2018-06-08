@@ -2037,7 +2037,7 @@ Version utilisée dans : {2}</target>
       </trans-unit>
       <trans-unit id="Convert_to_conditional_expression">
         <source>Convert to conditional expression</source>
-        <target state="new">Convert to conditional expression</target>
+        <target state="translated">Convertir en expression conditionnelle</target>
         <note />
       </trans-unit>
     </body>

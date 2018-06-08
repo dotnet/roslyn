@@ -1134,6 +1134,11 @@ Voulez-vous continuer ?</target>
         <target state="translated">Interactif</target>
         <note />
       </trans-unit>
+      <trans-unit id="Paste_in_Interactive">
+        <source>Paste in Interactive</source>
+        <target state="translated">Coller en mode interactif</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Navigate_To_Highlight_Reference">
         <source>Navigate To Highlighted Reference</source>
         <target state="translated">Naviguer vers la référence en surbrillance</target>
@@ -1157,11 +1162,6 @@ Voulez-vous continuer ?</target>
       <trans-unit id="Smart_Token_Formatter">
         <source>Smart Token Formatter</source>
         <target state="translated">Formateur de jeton intelligent</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Paste_in_Interactive">
-        <source>Paste in Interactive</source>
-        <target state="translated">Coller en mode interactif</target>
         <note />
       </trans-unit>
     </body>

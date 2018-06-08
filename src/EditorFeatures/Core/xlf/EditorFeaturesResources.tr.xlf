@@ -1134,6 +1134,11 @@ Devam etmek istiyor musunuz?</target>
         <target state="translated">Etkileşimli</target>
         <note />
       </trans-unit>
+      <trans-unit id="Paste_in_Interactive">
+        <source>Paste in Interactive</source>
+        <target state="translated">Etkileşimli Pencereye Yapıştır</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Navigate_To_Highlight_Reference">
         <source>Navigate To Highlighted Reference</source>
         <target state="translated">Vurgulanan Başvuruya Git</target>
@@ -1157,11 +1162,6 @@ Devam etmek istiyor musunuz?</target>
       <trans-unit id="Smart_Token_Formatter">
         <source>Smart Token Formatter</source>
         <target state="translated">Akıllı Belirteç Biçimlendirici</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Paste_in_Interactive">
-        <source>Paste in Interactive</source>
-        <target state="translated">Etkileşimli Pencereye Yapıştır</target>
         <note />
       </trans-unit>
     </body>
