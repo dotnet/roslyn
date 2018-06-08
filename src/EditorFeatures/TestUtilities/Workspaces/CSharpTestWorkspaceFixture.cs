@@ -9,7 +9,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
     {
         protected override TestWorkspace CreateWorkspace()
         {
-            return TestWorkspace.CreateCSharp(
+            return TestWorkspace.CreateCSharp2(
                 new string[] { string.Empty, },
                 new CSharpParseOptions[] { new CSharpParseOptions(kind: SourceCodeKind.Regular), });
         }

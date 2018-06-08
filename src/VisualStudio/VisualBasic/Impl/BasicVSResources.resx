@@ -270,8 +270,8 @@
   <data name="Fade_out_unused_imports" xml:space="preserve">
     <value>Fade out unused imports</value>
   </data>
-  <data name="Prefer_Is_Nothing_over_ReferenceEquals" xml:space="preserve">
-    <value>Prefer 'Is Nothing' over 'Object.ReferenceEquals(..., Nothing)'</value>
+  <data name="Prefer_Is_Nothing_for_reference_equality_checks" xml:space="preserve">
+    <value>Prefer 'Is Nothing' for reference equality checks</value>
   </data>
   <data name="Separate_import_directive_groups" xml:space="preserve">
     <value>Separate import directive groups</value>

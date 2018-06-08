@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c)  Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information. -->
+<Project>
+
+  <PropertyGroup>
+    <MSBuildAllProjects>$(MSBuildAllProjects);$(MSBuildThisFileFullPath)</MSBuildAllProjects>
+  </PropertyGroup>
+
+  <!-- 
+    RepoToolset diff: 
+    Initialize DotNetPackageVersionPropsPath from PB_PackageVersionPropsUrl. This is done in Build.proj in RepoToolset and propagated to the build.
+  -->
+  <PropertyGroup>
+    <_PackageVersionOverridesPath Condition="'$(PB_PackageVersionPropsUrl)' != ''">$(ArtifactsToolsetDir)PackageVersionOverrides.props</_PackageVersionOverridesPath>
+    <DotNetPackageVersionPropsPath Condition="'$(DotNetPackageVersionPropsPath)' == ''">$(_PackageVersionOverridesPath)</DotNetPackageVersionPropsPath>
+  </PropertyGroup>
+
+  <Import Project="$(VersionsPropsPath)" />
+
+  <!-- RepoToolset diff: Default version values omitted -->
+
+  <!-- Version overrides -->
+  <Import Project="$(DotNetPackageVersionPropsPath)" Condition="'$(DotNetPackageVersionPropsPath)' != ''" />
+  <Import Project="$(FixedVersionsPropsPath)" Condition="'$(FixedVersionsPropsPath)' != ''"/>
+
+  <!-- RestoreSources overrides - defines DotNetRestoreSources variable if available -->
+  <Import Project="$(DotNetRestoreSourcePropsPath)" Condition="'$(DotNetRestoreSourcePropsPath)' != ''"/>
+
+  <!-- Force sources to DotNetRestoreSources if building offline, discard any sources set by the repo -->
+  <PropertyGroup Condition="'$(DotNetBuildOffline)' == 'true'">
+    <RestoreSources>$(DotNetRestoreSources)</RestoreSources>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(DotNetBuildOffline)' != 'true'">
+    <RestoreSources>
+      $(RestoreSources);
+      https://api.nuget.org/v3/index.json
+    </RestoreSources>
+
+    <!-- RepoToolset diff: Default restore sources omitted -->
+
+    <!-- Add externally defined NuGet package restore sources. This property is set by Build.proj. -->
+    <RestoreSources Condition="'$(PB_RestoreSource)' != ''">$(PB_RestoreSource);$(RestoreSources)</RestoreSources>
+    
+    <RestoreSources Condition="'$(DotNetRestoreSources)' != ''">$(DotNetRestoreSources);$(RestoreSources)</RestoreSources>
+  </PropertyGroup>
+</Project>

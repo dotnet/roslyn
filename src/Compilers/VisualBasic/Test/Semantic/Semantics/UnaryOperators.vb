@@ -663,7 +663,7 @@ End Class
     </file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlib40(source, TestOptions.ReleaseDll.WithOverflowChecks(True))
+            Dim compilation = CreateCompilationWithMscorlib40(source, options:=TestOptions.ReleaseDll.WithOverflowChecks(True))
 
             Dim tree As SyntaxTree = (From t In compilation.SyntaxTrees Where t.FilePath = "a.vb").Single()
             Dim semanticModel = compilation.GetSemanticModel(tree)
@@ -806,7 +806,7 @@ End Class
     </file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlib40(source, TestOptions.ReleaseDll.WithOverflowChecks(False))
+            Dim compilation = CreateCompilationWithMscorlib40(source, options:=TestOptions.ReleaseDll.WithOverflowChecks(False))
 
             Dim tree As SyntaxTree = (From t In compilation.SyntaxTrees Where t.FilePath = "a.vb").Single()
             Dim semanticModel = compilation.GetSemanticModel(tree)

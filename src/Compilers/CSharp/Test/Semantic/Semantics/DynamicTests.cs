@@ -40,7 +40,7 @@ public unsafe class C
         [Fact]
         public void ConversionClassification()
         {
-            var c = CreateCompilation("", new[] { CSharpRef, SystemCoreRef });
+            var c = CreateCompilation("", new[] { CSharpRef });
             HashSet<DiagnosticInfo> useSiteDiagnostics = null;
             var dynamicToObject = c.Conversions.ClassifyConversionFromType(DynamicTypeSymbol.Instance, c.GetSpecialType(SpecialType.System_Object), ref useSiteDiagnostics);
             var objectToDynamic = c.Conversions.ClassifyConversionFromType(c.GetSpecialType(SpecialType.System_Object), DynamicTypeSymbol.Instance, ref useSiteDiagnostics);
@@ -235,7 +235,7 @@ class C : B
     public override event Action<object> E { add { } remove { } }
 }
 ";
-            CreateCompilation(source, new[] { CSharpRef, SystemCoreRef }).VerifyDiagnostics();
+            CreateCompilation(source, new[] { CSharpRef }).VerifyDiagnostics();
         }
 
         [Fact]
@@ -258,7 +258,7 @@ class B : A
     public void I(ref object a) { }
 }
 ";
-            CreateCompilation(source, new[] { CSharpRef, SystemCoreRef }).VerifyDiagnostics(
+            CreateCompilation(source, new[] { CSharpRef }).VerifyDiagnostics(
                 // (13,17): warning CS0108: 'B.G(object)' hides inherited member 'A.G(dynamic)'. Use the new keyword if hiding was intended.
                 Diagnostic(ErrorCode.WRN_NewRequired, "G").WithArguments("B.G(object)", "A.G(dynamic)"),
                 // (14,17): warning CS0108: 'B.H(dynamic[])' hides inherited member 'A.H(params object[])'. Use the new keyword if hiding was intended.
@@ -3522,7 +3522,7 @@ class Program
     static T Goo<T>(Func<T, T> x) { throw null; }
 }
 ";
-            var verifier = CompileAndVerify(source, new[] { CSharpRef, SystemCoreRef }, options: TestOptions.DebugDll).VerifyDiagnostics();
+            var verifier = CompileAndVerify(source, new[] { CSharpRef }, options: TestOptions.DebugDll).VerifyDiagnostics();
 
             var tree = verifier.Compilation.SyntaxTrees.Single();
             var model = verifier.Compilation.GetSemanticModel(tree);
@@ -3571,7 +3571,7 @@ class Test
 }
 ";
 
-            var compilation2 = CreateCompilation(source2, new[] { reference.WithEmbedInteropTypes(true), CSharpRef, SystemCoreRef }, options: TestOptions.ReleaseExe);
+            var compilation2 = CreateCompilation(source2, new[] { reference.WithEmbedInteropTypes(true), CSharpRef }, options: TestOptions.ReleaseExe);
 
             CompileAndVerify(compilation2, expectedOutput: @"4");
         }
@@ -3594,7 +3594,7 @@ class Program
     }
 }
 ";
-            var compilation = CreateCompilation(source, new[] { CSharpRef, SystemCoreRef }, options: TestOptions.DebugDll);
+            var compilation = CreateCompilation(source, new[] { CSharpRef }, options: TestOptions.DebugDll);
             // crash happens during emit if not detected, so VerifyDiagnostics (no Emit) doesn't catch the crash.
             compilation.VerifyEmitDiagnostics(
                 // (7,25): error CS0154: The property or indexer 'Program.I.d' cannot be used in this context because it lacks the get accessor
@@ -3621,7 +3621,7 @@ class Program
     }
 }
 ";
-            var compilation = CreateCompilation(source, new[] { CSharpRef, SystemCoreRef }, options: TestOptions.DebugDll);
+            var compilation = CreateCompilation(source, new[] { CSharpRef }, options: TestOptions.DebugDll);
             compilation.VerifyEmitDiagnostics(
                 // (7,25): error CS0154: The property or indexer 'Program.I.this[string]' cannot be used in this context because it lacks the get accessor
                 //         System.Type t = i[null].GetType();
@@ -3799,7 +3799,7 @@ class Test
 ";
 
             var compilation1 = CreateCompilation(consumer1, options: TestOptions.ReleaseExe,
-                references: new MetadataReference[] { reference, CSharpRef, SystemCoreRef });
+                references: new MetadataReference[] { reference, CSharpRef });
 
             compilation1.VerifyDiagnostics(
                 // (11,18): error CS0120: An object reference is required for the non-static field, method, or property '_Worksheet.MRange(object, object)'
@@ -3822,7 +3822,7 @@ class Test
 ";
 
             var compilation2 = CreateCompilation(consumer2, options: TestOptions.ReleaseExe,
-                references: new MetadataReference[] { reference, CSharpRef, SystemCoreRef });
+                references: new MetadataReference[] { reference, CSharpRef });
 
             compilation2.VerifyDiagnostics(
                 // (10,18): error CS0120: An object reference is required for the non-static field, method, or property '_Worksheet.Range[object, object]'
@@ -3923,7 +3923,7 @@ class Test
 }";
 
             var compilation1 = CreateCompilation(consumer1, options: TestOptions.ReleaseExe,
-                references: new MetadataReference[] { reference, CSharpRef, SystemCoreRef });
+                references: new MetadataReference[] { reference, CSharpRef });
 
             CompileAndVerify(compilation1, expectedOutput: "MIndexer").VerifyDiagnostics();
 
@@ -3939,7 +3939,7 @@ class Test
 }";
 
             var compilation2 = CreateCompilation(consumer2, options: TestOptions.ReleaseExe,
-                references: new MetadataReference[] { reference, CSharpRef, SystemCoreRef });
+                references: new MetadataReference[] { reference, CSharpRef });
 
             compilation2.VerifyDiagnostics(
                 // (8,30): error CS1545: Property, indexer, or event 'WithIndexer.Indexer[object, object]' is not supported by the language; try directly calling accessor methods 'WithIndexer.get_Indexer(object, object)' or 'WithIndexer.set_Indexer(object, object, object)'
