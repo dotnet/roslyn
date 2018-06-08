@@ -303,7 +303,7 @@ namespace Roslyn.Test.Utilities
                 case HandleKind.TypeDefinition:
                     {
                         var type = reader.GetTypeDefinition((TypeDefinitionHandle)handle);
-                        return $"{reader.GetString(type.Namespace)}.{reader.GetString(type.Name)}";
+                        return getQualifiedName(type.Namespace, type.Name);
                     }
                 case HandleKind.MethodDefinition:
                     {
@@ -326,10 +326,20 @@ namespace Roslyn.Test.Utilities
                 case HandleKind.TypeReference:
                     {
                         var type = reader.GetTypeReference((TypeReferenceHandle)handle);
-                        return $"{reader.GetString(type.Namespace)}.{reader.GetString(type.Name)}";
+                        return getQualifiedName(type.Namespace, type.Name);
                     }
                 default:
                     return null;
+            }
+
+            string getQualifiedName(StringHandle leftHandle, StringHandle rightHandle)
+            {
+                string name = reader.GetString(rightHandle);
+                if (!leftHandle.IsNil)
+                {
+                    name = reader.GetString(leftHandle) + "." + name;
+                }
+                return name;
             }
         }
 
