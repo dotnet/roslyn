@@ -32,8 +32,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.ExtractInterface
             List<string> conflictingTypeNames,
             string defaultNamespace,
             string generatedNameTypeParameterSuffix,
-            string languageName,
-            ImmutableArray<SyntaxTrivia> fileBanner)
+            string languageName)
         {
             this.AllExtractableMembers = extractableMembers;
             this.DefaultInterfaceName = defaultInterfaceName;
@@ -47,8 +46,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.ExtractInterface
                     isCancelled: false,
                     includedMembers: ChosenMembers ?? AllExtractableMembers,
                     interfaceName: ChosenInterfaceName ?? defaultInterfaceName,
-                    fileName: ChosenFileName ?? defaultInterfaceName,
-                    fileBanner: fileBanner);
+                    fileName: ChosenFileName ?? defaultInterfaceName);
         }
     }
 }

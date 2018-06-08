@@ -13,15 +13,13 @@ namespace Microsoft.CodeAnalysis.ExtractInterface
         public IEnumerable<ISymbol> IncludedMembers { get; }
         public string InterfaceName { get; }
         public string FileName { get; }
-        public ImmutableArray<SyntaxTrivia> FileBanner { get; }
 
-        public ExtractInterfaceOptionsResult(bool isCancelled, IEnumerable<ISymbol> includedMembers, string interfaceName, string fileName, ImmutableArray<SyntaxTrivia> fileBanner)
+        public ExtractInterfaceOptionsResult(bool isCancelled, IEnumerable<ISymbol> includedMembers, string interfaceName, string fileName)
         {
             this.IsCancelled = isCancelled;
             this.IncludedMembers = includedMembers;
             this.InterfaceName = interfaceName;
             this.FileName = fileName;
-            this.FileBanner = fileBanner;
         }
 
         private ExtractInterfaceOptionsResult(bool isCancelled)

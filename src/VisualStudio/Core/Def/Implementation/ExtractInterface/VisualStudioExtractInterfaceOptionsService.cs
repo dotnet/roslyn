@@ -33,8 +33,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ExtractInterfac
             List<string> allTypeNames,
             string defaultNamespace,
             string generatedNameTypeParameterSuffix,
-            string languageName,
-            ImmutableArray<SyntaxTrivia> fileBanner)
+            string languageName)
         {
             var viewModel = new ExtractInterfaceDialogViewModel(
                 syntaxFactsService,
@@ -57,8 +56,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ExtractInterfac
                     isCancelled: false,
                     includedMembers: viewModel.MemberContainers.Where(c => c.IsChecked).Select(c => c.MemberSymbol),
                     interfaceName: viewModel.InterfaceName.Trim(),
-                    fileName: viewModel.FileName.Trim(),
-                    fileBanner: fileBanner);
+                    fileName: viewModel.FileName.Trim());
             }
             else
             {

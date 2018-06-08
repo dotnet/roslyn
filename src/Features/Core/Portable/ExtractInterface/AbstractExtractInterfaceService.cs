@@ -158,8 +158,10 @@ namespace Microsoft.CodeAnalysis.ExtractInterface
                 interfaceDocumentId,
                 cancellationToken);
 
-            var solutionWithFormattedInterfaceDocument = GetSolutionWithFormattedInterfaceDocument(unformattedInterfaceDocument, extractInterfaceOptions, cancellationToken);
-
+            var syntaxFactsService = refactoringResult.DocumentToExtractFrom.GetLanguageService<ISyntaxFactsService>();
+            var fileBanner = syntaxFactsService.GetFileBanner(refactoringResult.DocumentToExtractFrom.GetSyntaxRootSynchronously(cancellationToken));
+            var solutionWithFormattedInterfaceDocument = GetSolutionWithFormattedInterfaceDocument(unformattedInterfaceDocument, fileBanner, cancellationToken);
+            
             var completedSolution = GetSolutionWithOriginalTypeUpdated(
                 solutionWithFormattedInterfaceDocument,
                 documentIds,
@@ -245,8 +247,7 @@ namespace Microsoft.CodeAnalysis.ExtractInterface
                 conflictingTypeNames.ToList(),
                 containingNamespace,
                 generatedNameTypeParameterSuffix,
-                document.Project.Language,
-                fileBanner);
+                document.Project.Language);
         }
 
         private Document GetUnformattedInterfaceDocument(
@@ -273,10 +274,10 @@ namespace Microsoft.CodeAnalysis.ExtractInterface
             return unformattedInterfaceDocument;
         }
 
-        private static Solution GetSolutionWithFormattedInterfaceDocument(Document unformattedInterfaceDocument, ExtractInterfaceOptionsResult extractInterfaceOptions, CancellationToken cancellationToken)
+        private static Solution GetSolutionWithFormattedInterfaceDocument(Document unformattedInterfaceDocument, ImmutableArray<SyntaxTrivia> fileBanner, CancellationToken cancellationToken)
         {
             Solution solutionWithInterfaceDocument;
-            var formattedRoot = Formatter.Format(unformattedInterfaceDocument.GetSyntaxRootSynchronously(cancellationToken).WithPrependedLeadingTrivia(extractInterfaceOptions.FileBanner),
+            var formattedRoot = Formatter.Format(unformattedInterfaceDocument.GetSyntaxRootSynchronously(cancellationToken).WithPrependedLeadingTrivia(fileBanner),
                 unformattedInterfaceDocument.Project.Solution.Workspace, cancellationToken: cancellationToken);
             var rootToSimplify = formattedRoot.WithAdditionalAnnotations(Simplifier.Annotation);
             var finalInterfaceDocument = Simplifier.ReduceAsync(unformattedInterfaceDocument.WithSyntaxRoot(rootToSimplify), cancellationToken: cancellationToken).WaitAndGetResult(cancellationToken);
