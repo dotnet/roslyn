@@ -1,12 +1,9 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-Option Strict Off
 Imports Microsoft.CodeAnalysis.CodeStyle
-Imports Microsoft.CodeAnalysis.Diagnostics
-Imports Microsoft.CodeAnalysis.Options
-Imports Microsoft.CodeAnalysis.VisualBasic.CodeFixes.SimplifyTypeNames
+Imports Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics
 
-Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics.SimplifyTypeNames
+Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.SimplifyTypeNames
     Public Class SimplifyTypeNamesTests
         Inherits AbstractVisualBasicDiagnosticProviderBasedUserDiagnosticTest
 
@@ -60,9 +57,9 @@ End Class]]>
                                    <Document><![CDATA[
 Imports System
 Class Program
-    Private Shared Function F(x As Integer, y As System.Int16) As Integer
+    Private Shared Function F(x As Integer, y As Short) As Integer
         Dim i1 As Integer = 0
-        Dim s1 As System.Int16 = 0
+        Dim s1 As Short = 0
         Dim i2 As Integer = 0
         Return i1 + s1 + i2
     End Function
@@ -149,9 +146,9 @@ End Class]]>
                                    <Document><![CDATA[
 Imports System
 Class Program
-    Private Shared Function F(x As Integer, y As System.Int16) As Integer
+    Private Shared Function F(x As Integer, y As Short) As Integer
         Dim i1 As Integer = 0
-        Dim s1 As System.Int16 = 0
+        Dim s1 As Short = 0
         Dim i2 As Integer = 0
         Return i1 + s1 + i2
     End Function
@@ -160,9 +157,9 @@ End Class]]>
                                    <Document><![CDATA[
 Imports System
 Class Program
-    Private Shared Function F(x As Integer, y As System.Int16) As Integer
+    Private Shared Function F(x As Integer, y As Short) As Integer
         Dim i1 As Integer = 0
-        Dim s1 As System.Int16 = 0
+        Dim s1 As Short = 0
         Dim i2 As Integer = 0
         Return i1 + s1 + i2
     End Function
@@ -238,9 +235,9 @@ End Class]]>
                                    <Document><![CDATA[
 Imports System
 Class Program
-    Private Shared Function F(x As Integer, y As System.Int16) As Integer
+    Private Shared Function F(x As Integer, y As Short) As Integer
         Dim i1 As Integer = 0
-        Dim s1 As System.Int16 = 0
+        Dim s1 As Short = 0
         Dim i2 As Integer = 0
         Return i1 + s1 + i2
     End Function
@@ -249,9 +246,9 @@ End Class]]>
                                    <Document><![CDATA[
 Imports System
 Class Program
-    Private Shared Function F(x As Integer, y As System.Int16) As Integer
+    Private Shared Function F(x As Integer, y As Short) As Integer
         Dim i1 As Integer = 0
-        Dim s1 As System.Int16 = 0
+        Dim s1 As Short = 0
         Dim i2 As Integer = 0
         Return i1 + s1 + i2
     End Function
@@ -263,9 +260,9 @@ End Class]]>
                                    <Document><![CDATA[
 Imports System
 Class Program
-    Private Shared Function F(x As Integer, y As System.Int16) As Integer
+    Private Shared Function F(x As Integer, y As Short) As Integer
         Dim i1 As Integer = 0
-        Dim s1 As System.Int16 = 0
+        Dim s1 As Short = 0
         Dim i2 As Integer = 0
         Return i1 + s1 + i2
     End Function
@@ -787,6 +784,5 @@ End Class]]>
                 expectedMarkup:=expected,
                 options:=options)
         End Function
-
     End Class
 End Namespace

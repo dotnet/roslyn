@@ -793,7 +793,7 @@ Namespace ErrorTest
 End Namespace
 ]]>
                     </file>
-                </compilation>, TestOptions.ReleaseDll)
+                </compilation>, options:=TestOptions.ReleaseDll)
 
             Dim lib1Ref = New VisualBasicCompilationReference(lib1)
 
@@ -983,7 +983,7 @@ Namespace ErrorTest
 End Namespace
 ]]>
                     </file>
-                </compilation>, TestOptions.ReleaseDll)
+                </compilation>, options:=TestOptions.ReleaseDll)
 
             Dim lib1Ref = New VisualBasicCompilationReference(lib1)
 
@@ -1222,7 +1222,7 @@ Namespace ErrorTest
 End Namespace
 ]]>
                     </file>
-                </compilation>, TestOptions.ReleaseDll)
+                </compilation>, options:=TestOptions.ReleaseDll)
 
             Dim lib1Ref = New VisualBasicCompilationReference(lib1)
 
@@ -1359,7 +1359,7 @@ BC32044: Type argument 'C4' does not inherit from or implement the constraint ty
 Public Class Missing
 End Class]]>
                     </file>
-                </compilation>, TestOptions.ReleaseDll)
+                </compilation>, options:=TestOptions.ReleaseDll)
 
             Dim missingRef = New VisualBasicCompilationReference(missing)
 
