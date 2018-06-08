@@ -222,11 +222,6 @@
         <target state="translated">Il percorso della cartella nel disco non è stato trovato</target>
         <note />
       </trans-unit>
-      <trans-unit id="Error_while_reading_0_colon_1">
-        <source>Error while reading '{0}': {1}</source>
-        <target state="translated">Si è verificato un errore durante la lettura di '{0}': {1}</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Assembly">
         <source>Assembly </source>
         <target state="translated">Assembly </target>
@@ -1458,8 +1453,8 @@ L'opzione 'Caricamento leggero soluzioni' è abilitata per la soluzione corrente
         <note />
       </trans-unit>
       <trans-unit id="ErrorReadingFile">
-        <source>Error while reading a file</source>
-        <target state="translated">Si è verificato un errore durante la lettura di un file</target>
+        <source>Error while reading file '{0}': {1}</source>
+        <target state="translated">Si è verificato un errore durante la lettura del file '{0}': {1}</target>
         <note />
       </trans-unit>
       <trans-unit id="ModuleHasBeenUnloaded">
@@ -1523,29 +1518,29 @@ L'utente accetta le condizioni sopra riportate:</target>
         <target state="translated">Le impostazioni configurate qui si applicano solo al computer locale. Per configurare queste impostazioni in modo che siano associate alla soluzione, usare file con estensione editorconfig.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Snippet_Command_Handler">
-        <source>Snippet Command Handler</source>
-        <target state="new">Snippet Command Handler</target>
+      <trans-unit id="Sync_Class_View">
+        <source>Sync Class View</source>
+        <target state="translated">Sincronizza visualizzazione classi</target>
         <note />
       </trans-unit>
-      <trans-unit id="Sync_Class_View_Command_Handler">
-        <source>Sync Class View Command Handler</source>
-        <target state="new">Sync Class View Command Handler</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Manage_naming_styles">
-        <source>Manage naming styles</source>
-        <target state="new">Manage naming styles</target>
+      <trans-unit id="CantApplyChangesUnexpectedError">
+        <source>Can't apply changes -- unexpected error: '{0}'</source>
+        <target state="translated">Non è possibile applicare le modifiche. Errore imprevisto: '{0}'</target>
         <note />
       </trans-unit>
       <trans-unit id="Field_preferences_colon">
         <source>Field preferences:</source>
-        <target state="new">Field preferences:</target>
+        <target state="translated">Preferenze campi:</target>
         <note />
       </trans-unit>
       <trans-unit id="Prefer_readonly">
         <source>Prefer readonly</source>
-        <target state="new">Prefer readonly</target>
+        <target state="translated">Preferisci readonly</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Manage_naming_styles">
+        <source>Manage naming styles</source>
+        <target state="translated">Gestisci stili di denominazione</target>
         <note />
       </trans-unit>
       <trans-unit id="Analyzing_0">

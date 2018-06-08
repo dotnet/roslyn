@@ -2007,32 +2007,32 @@ This version used in: {2}</source>
       </trans-unit>
       <trans-unit id="Alias_ambiguous_type_0">
         <source>Alias ambiguous type '{0}'</source>
-        <target state="new">Alias ambiguous type '{0}'</target>
+        <target state="translated">별칭 모호한 형식 '{0}'</target>
         <note />
       </trans-unit>
       <trans-unit id="Warning_colon_Collection_was_modified_during_iteration">
         <source>Warning: Collection was modified during iteration.</source>
-        <target state="new">Warning: Collection was modified during iteration.</target>
+        <target state="translated">경고: 반복 중 컬렉션이 수정되었습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="Warning_colon_Iteration_variable_crossed_function_boundary">
         <source>Warning: Iteration variable crossed function boundary.</source>
-        <target state="new">Warning: Iteration variable crossed function boundary.</target>
+        <target state="translated">경고: 반복 변수가 함수 경계를 벗어났습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="Warning_colon_Collection_may_be_modified_during_iteration">
         <source>Warning: Collection may be modified during iteration.</source>
-        <target state="new">Warning: Collection may be modified during iteration.</target>
+        <target state="translated">경고: 반복 계산 중 컬렉션이 수정될 수 있습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="Add_readonly_modifier">
         <source>Add readonly modifier</source>
-        <target state="new">Add readonly modifier</target>
+        <target state="translated">읽기 전용 한정자 추가</target>
         <note />
       </trans-unit>
       <trans-unit id="Make_field_readonly">
         <source>Make field readonly</source>
-        <target state="new">Make field readonly</target>
+        <target state="translated">필드를 읽기 전용으로 만들기</target>
         <note />
       </trans-unit>
       <trans-unit id="Convert_to_conditional_expression">

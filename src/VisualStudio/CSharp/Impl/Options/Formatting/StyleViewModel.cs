@@ -719,19 +719,25 @@ using System;
 
 class Customer
 {{
-    void M1(string value)
+    void M1(string value1, string value2)
     {{
 //[
         // {ServicesVSResources.Prefer_colon}
-        if (value is null)
+        if (value1 is null)
+            return;
+
+        if (value2 is null)
             return;
 //]
     }}
-    void M2(string value)
+    void M2(string value1, string value2)
     {{
 //[
         // {ServicesVSResources.Over_colon}
-        if (object.ReferenceEquals(value, null))
+        if (object.ReferenceEquals(value1, null))
+            return;
+
+        if ((object)value2 == null)
             return;
 //]
     }}
@@ -1140,7 +1146,7 @@ class C
             CodeStyleItems.Add(new BooleanCodeStyleOptionViewModel(CSharpCodeStyleOptions.PreferConditionalDelegateCall, CSharpVSResources.Prefer_conditional_delegate_call, s_preferConditionalDelegateCall, s_preferConditionalDelegateCall, this, optionSet, nullCheckingGroupTitle));
             CodeStyleItems.Add(new BooleanCodeStyleOptionViewModel(CodeStyleOptions.PreferCoalesceExpression, ServicesVSResources.Prefer_coalesce_expression, s_preferCoalesceExpression, s_preferCoalesceExpression, this, optionSet, nullCheckingGroupTitle));
             CodeStyleItems.Add(new BooleanCodeStyleOptionViewModel(CodeStyleOptions.PreferNullPropagation, ServicesVSResources.Prefer_null_propagation, s_preferNullPropagation, s_preferNullPropagation, this, optionSet, nullCheckingGroupTitle));
-            CodeStyleItems.Add(new BooleanCodeStyleOptionViewModel(CodeStyleOptions.PreferIsNullCheckOverReferenceEqualityMethod, CSharpVSResources.Prefer_is_null_over_ReferenceEquals, s_preferIsNullOverReferenceEquals, s_preferIsNullOverReferenceEquals, this, optionSet, nullCheckingGroupTitle));
+            CodeStyleItems.Add(new BooleanCodeStyleOptionViewModel(CodeStyleOptions.PreferIsNullCheckOverReferenceEqualityMethod, CSharpVSResources.Prefer_is_null_for_reference_equality_checks, s_preferIsNullOverReferenceEquals, s_preferIsNullOverReferenceEquals, this, optionSet, nullCheckingGroupTitle));
 
             // Field preferences.
             CodeStyleItems.Add(new BooleanCodeStyleOptionViewModel(CodeStyleOptions.PreferReadonly, ServicesVSResources.Prefer_readonly, s_preferReadonly, s_preferReadonly, this, optionSet, fieldGroupTitle));
