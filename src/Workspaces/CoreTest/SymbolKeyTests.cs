@@ -633,7 +633,7 @@ class C
             foreach (var symbol in symbols)
             {
                 // Ensure we don't crash getting these symbol keys.
-                var id = SymbolKey.Encode(symbol);
+                var id = SymbolKey.GetEncodedSymbolData(symbol);
                 Assert.NotNull(id);
                 var found = SymbolKey.From(id).Resolve(compilation).GetAnySymbol();
                 Assert.NotNull(found);
@@ -671,7 +671,7 @@ class C
                 n => n is CSharp.Syntax.MethodDeclarationSyntax).Single();
 
             // Ensure we don't crash getting these symbol keys.
-            var id = SymbolKey.Encode(symbol);
+            var id = SymbolKey.GetEncodedSymbolData(symbol);
             Assert.NotNull(id);
 
             // Validate that if the client does ask to resolve locations that we
@@ -708,7 +708,7 @@ class C
                 n => n is CSharp.Syntax.MethodDeclarationSyntax).Single();
 
             // Ensure we don't crash getting these symbol keys.
-            var id = SymbolKey.Encode(symbol);
+            var id = SymbolKey.GetEncodedSymbolData(symbol);
             Assert.NotNull(id);
 
             // Validate that if the client does ask to resolve locations that we
@@ -733,7 +733,7 @@ class C
 
         private void TestRoundTrip(ISymbol symbol, Compilation compilation, Func<ISymbol, object> fnId = null)
         {
-            var id = SymbolKey.Encode(symbol);
+            var id = SymbolKey.GetEncodedSymbolData(symbol);
             Assert.NotNull(id);
             var found = SymbolKey.From(id).Resolve(compilation).GetAnySymbol();
             Assert.NotNull(found);

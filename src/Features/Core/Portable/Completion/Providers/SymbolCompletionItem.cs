@@ -81,7 +81,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 
         public static string EncodeSymbol(ISymbol symbol)
         {
-            return SymbolKey.Encode(symbol);
+            return SymbolKey.GetEncodedSymbolData(symbol);
         }
 
         public static bool HasSymbols(CompletionItem item)

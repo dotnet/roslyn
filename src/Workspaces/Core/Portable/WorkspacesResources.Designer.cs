@@ -504,6 +504,15 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Could not resolve symbol key because it does not contain encoded symbol data..
+        /// </summary>
+        internal static string Could_not_resolve_SymbolKey_because_it_does_not_contain_encoded_symbol_data {
+            get {
+                return ResourceManager.GetString("Could_not_resolve_SymbolKey_because_it_does_not_contain_encoded_symbol_data", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Cycle detected in extensions.
         /// </summary>
         internal static string Cycle_detected_in_extensions {

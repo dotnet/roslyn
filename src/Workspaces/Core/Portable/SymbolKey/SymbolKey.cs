@@ -79,11 +79,12 @@ namespace Microsoft.CodeAnalysis
     {
         private readonly static Func<ITypeSymbol, bool> s_typeIsNull = t => t == null;
 
-        private readonly string _encodedSymbolData;
+        public string EncodedSymbolData { get; }
+        public bool IsDefault => EncodedSymbolData == null;
 
         private SymbolKey(string encodedSymbolData)
         {
-            _encodedSymbolData = encodedSymbolData ?? throw new ArgumentNullException();
+            EncodedSymbolData = encodedSymbolData ?? throw new ArgumentNullException();
         }
 
         public static IEqualityComparer<SymbolKey> GetComparer(bool ignoreCase, bool ignoreAssemblyKeys)
@@ -99,12 +100,12 @@ namespace Microsoft.CodeAnalysis
         };
 
         public static SymbolKey From(ISymbol symbol, CancellationToken cancellationToken = default)
-            => new SymbolKey(Encode(symbol, cancellationToken));
+            => new SymbolKey(GetEncodedSymbolData(symbol, cancellationToken));
 
         public static SymbolKey From(string encodedSymbolData)
             => new SymbolKey(encodedSymbolData);
 
-        public static string Encode(ISymbol symbol, CancellationToken cancellationToken = default)
+        public static string GetEncodedSymbolData(ISymbol symbol, CancellationToken cancellationToken = default)
         {
             using (var writer = SymbolKeyWriter.GetWriter(cancellationToken))
             {
@@ -124,7 +125,7 @@ namespace Microsoft.CodeAnalysis
             Compilation compilation,
             bool ignoreAssemblyNames = false,
             CancellationToken cancellationToken = default)
-            => ResolveCore(_encodedSymbolData, compilation, ignoreAssemblyNames, resolveLocations: false, cancellationToken);
+            => ResolveCore(EncodedSymbolData, compilation, ignoreAssemblyNames, resolveLocations: false, cancellationToken);
 
         /// <summary>
         /// Resolves this <see cref="SymbolKey"/> in the given <paramref name="compilation"/>.
@@ -135,7 +136,7 @@ namespace Microsoft.CodeAnalysis
         internal SymbolKeyResolution ResolveWithLocations(
             Compilation compilation,
             CancellationToken cancellationToken = default)
-            => ResolveCore(_encodedSymbolData, compilation, ignoreAssemblyNames: false, resolveLocations: true, cancellationToken);
+            => ResolveCore(EncodedSymbolData, compilation, ignoreAssemblyNames: false, resolveLocations: true, cancellationToken);
 
         private static SymbolKeyResolution ResolveCore(
             string encodedSymbolData,
@@ -143,6 +144,11 @@ namespace Microsoft.CodeAnalysis
             bool ignoreAssemblyNames, bool resolveLocations,
             CancellationToken cancellationToken)
         {
+            if (encodedSymbolData == null)
+            {
+                throw new InvalidOperationException(WorkspacesResources.Could_not_resolve_SymbolKey_because_it_does_not_contain_encoded_symbol_data);
+            }
+
             using (var reader = SymbolKeyReader.GetReader(
                 encodedSymbolData, compilation, ignoreAssemblyNames, resolveLocations, cancellationToken))
             {
@@ -156,13 +162,13 @@ namespace Microsoft.CodeAnalysis
             => obj is SymbolKey && Equals((SymbolKey)obj);
 
         public bool Equals(SymbolKey other)
-            => string.Equals(_encodedSymbolData, other._encodedSymbolData);
+            => string.Equals(EncodedSymbolData, other.EncodedSymbolData);
 
         public override int GetHashCode()
-            => unchecked(0x59354BD2 + _encodedSymbolData.GetHashCode());
+            => unchecked(0x59354BD2 + EncodedSymbolData.GetHashCode());
 
         public override string ToString()
-            => _encodedSymbolData;
+            => EncodedSymbolData;
 
         public static bool operator ==(SymbolKey key1, SymbolKey key2)
             => key1.Equals(key2);
