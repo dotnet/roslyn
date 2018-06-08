@@ -6339,7 +6339,7 @@ class C
                 Diagnostic(RudeEditKind.InsertAroundActiveStatement, "finally", CSharpFeaturesResources.finally_clause));
         }
 
-        [Fact]
+        [Fact, WorkItem(23865, "https://github.com/dotnet/roslyn/issues/23865")]
         public void TryCatchFinally_Regions()
         {
             string src1 = @"
@@ -6402,6 +6402,103 @@ class C
             var edits = GetTopEdits(src1, src2);
             var active = GetActiveStatements(src1, src2);
 
+            // TODO: this is incorrect, we need to report a rude edit:
+            edits.VerifyRudeDiagnostics(active);
+        }
+
+        [Fact, WorkItem(23865, "https://github.com/dotnet/roslyn/issues/23865")]
+        public void TryCatchFinally2_Regions()
+        {
+            string src1 = @"
+class C
+{
+    static void Main(string[] args)
+    {
+        try
+        {    
+            try
+            {
+                try
+                {
+                    try
+                    {
+                        <AS:1>Goo();</AS:1>
+                    }
+                    <ER:1.3>catch 
+                    {
+                    }</ER:1.3>
+                }
+                <ER:1.2>catch (Exception)
+                {
+                }</ER:1.2>
+            }
+            <ER:1.1>finally
+            {
+            }</ER:1.1>
+        }
+        <ER:1.0>catch (IOException)
+        {
+            
+        }
+        finally
+        {
+            
+        }</ER:1.0>
+    }
+
+    static void Goo()
+    {
+        <AS:0>Console.WriteLine(1);</AS:0>
+    }
+}";
+            string src2 = @"
+class C
+{
+    static void Main(string[] args)
+    {
+        try
+        {    
+            try
+            {
+                try
+                {
+                    try
+                    {
+                        <AS:1>Goo();</AS:1>
+                    }
+                    <ER:1.3>catch 
+                    {
+
+                    }</ER:1.3>
+                }
+                <ER:1.2>catch (Exception)
+                {
+                }</ER:1.2>
+            }
+            <ER:1.1>finally
+            {
+            }</ER:1.1>
+        }
+        <ER:1.0>catch (IOException)
+        {
+            
+        }
+        finally
+        {
+            
+        }</ER:1.0>
+    }
+
+    static void Goo()
+    {
+        <AS:0>Console.WriteLine(1);</AS:0>
+    }
+}
+";
+            var edits = GetTopEdits(src1, src2);
+            var active = GetActiveStatements(src1, src2);
+
+            // TODO: this is incorrect, we need to report a rude edit since an ER span has been changed (empty line added):
             edits.VerifyRudeDiagnostics(active);
         }
 
@@ -8882,6 +8979,7 @@ class C
         <AS:1>Console.WriteLine(2);</AS:1> 
         <AS:2>Console.WriteLine(3);</AS:2> 
         <AS:3>Console.WriteLine(4);</AS:3> 
+        <AS:4>Console.WriteLine(5);</AS:4> 
     }
 }";
             string src2 = @"
@@ -8893,24 +8991,27 @@ class C
         <AS:1>Console.WriteLine(20);</AS:1> 
         <AS:2>Console.WriteLine(30);</AS:2> 
         <AS:3>Console.WriteLine(40);</AS:3> 
+        <AS:4>Console.WriteLine(50);</AS:4> 
     }
 }";
             var edits = GetTopEdits(src1, src2);
             var active = GetActiveStatements(src1, src2);
 
-            active.OldSpans[0] = new ActiveStatementSpan(ActiveStatementFlags.PartiallyExecuted | ActiveStatementFlags.LeafFrame, active.OldSpans[0].Span);
-            active.OldSpans[1] = new ActiveStatementSpan(ActiveStatementFlags.PartiallyExecuted, active.OldSpans[1].Span);
-            active.OldSpans[2] = new ActiveStatementSpan(ActiveStatementFlags.LeafFrame, active.OldSpans[2].Span);
-            active.OldSpans[3] = new ActiveStatementSpan(ActiveStatementFlags.None, active.OldSpans[3].Span);
+            active.OldStatements[0] = active.OldStatements[0].WithFlags(ActiveStatementFlags.PartiallyExecuted | ActiveStatementFlags.IsLeafFrame);
+            active.OldStatements[1] = active.OldStatements[1].WithFlags(ActiveStatementFlags.PartiallyExecuted | ActiveStatementFlags.IsNonLeafFrame);
+            active.OldStatements[2] = active.OldStatements[2].WithFlags(ActiveStatementFlags.IsLeafFrame);
+            active.OldStatements[3] = active.OldStatements[3].WithFlags(ActiveStatementFlags.IsNonLeafFrame);
+            active.OldStatements[4] = active.OldStatements[4].WithFlags(ActiveStatementFlags.IsNonLeafFrame | ActiveStatementFlags.IsLeafFrame);
 
             edits.VerifyRudeDiagnostics(active,
                 Diagnostic(RudeEditKind.PartiallyExecutedActiveStatementUpdate, "Console.WriteLine(10);"),
                 Diagnostic(RudeEditKind.ActiveStatementUpdate, "Console.WriteLine(20);"),
-                Diagnostic(RudeEditKind.ActiveStatementUpdate, "Console.WriteLine(40);"));
+                Diagnostic(RudeEditKind.ActiveStatementUpdate, "Console.WriteLine(40);"),
+                Diagnostic(RudeEditKind.ActiveStatementUpdate, "Console.WriteLine(50);"));
         }
 
         [Fact]
-        public void PartiallyExecutedActiveStatement_Deleted()
+        public void PartiallyExecutedActiveStatement_Deleted1()
         {
             string src1 = @"
 class C
@@ -8930,10 +9031,37 @@ class C
             var edits = GetTopEdits(src1, src2);
             var active = GetActiveStatements(src1, src2);
 
-            active.OldSpans[0] = new ActiveStatementSpan(ActiveStatementFlags.PartiallyExecuted | ActiveStatementFlags.LeafFrame, active.OldSpans[0].Span);
+            active.OldStatements[0] = active.OldStatements[0].WithFlags(ActiveStatementFlags.PartiallyExecuted | ActiveStatementFlags.IsLeafFrame);
 
             edits.VerifyRudeDiagnostics(active,
                 Diagnostic(RudeEditKind.PartiallyExecutedActiveStatementDelete, "{"));
+        }
+
+        [Fact]
+        public void PartiallyExecutedActiveStatement_Deleted2()
+        {
+            string src1 = @"
+class C
+{
+    public static void F()
+    {
+        <AS:0>Console.WriteLine(1);</AS:0> 
+    }
+}";
+            string src2 = @"
+class C
+{
+    public static void F()
+    { 
+    <AS:0>}</AS:0>
+}";
+            var edits = GetTopEdits(src1, src2);
+            var active = GetActiveStatements(src1, src2);
+
+            active.OldStatements[0] = active.OldStatements[0].WithFlags(ActiveStatementFlags.IsNonLeafFrame | ActiveStatementFlags.IsLeafFrame);
+
+            edits.VerifyRudeDiagnostics(active,
+                Diagnostic(RudeEditKind.DeleteActiveStatement, "{"));
         }
 
         #endregion

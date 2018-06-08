@@ -130,3 +130,4 @@ Example:
 
 - Visual Studio 2017 version 15.8: https://github.com/dotnet/roslyn/issues/22455 C# compiler will now produce errors if there was an "in" or an "out" argument to an "__arglist" call. "out" was always allowed, and "in" was introduced in 15.5.
 - Visual Studio 2017 version 15.8: https://github.com/dotnet/roslyn/issues/26418 C# compiler will now produce errors on out variable declarations that have "ref" or "ref readonly" ref kinds. Example: M(out ref int x);
+- Visual Studio 2017 version 15.8: https://github.com/dotnet/roslyn/issues/27047 The C# compiler will now produce diagnostics for operators marked as obsolete when they are used as part of a tuple comparison.
