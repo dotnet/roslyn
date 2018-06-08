@@ -112,6 +112,183 @@ class C2
         }
 
         [Fact]
+        public void UsingPatternSameSignatureAmbiguousTest()
+        {
+            var source = @"
+class C1
+{
+    public C1() { }
+    public void Dispose() { }
+    public void Dispose() { }
+}
+
+class C2
+{
+    static void Main()
+    {
+        using (C1 c = new C1())
+        {
+        }
+    }
+}";
+            CreateCompilation(source).VerifyDiagnostics(
+                // (6,17): error CS0111: Type 'C1' already defines a member called 'Dispose' with the same parameter types
+                //     public void Dispose() { }
+                Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "Dispose").WithArguments("Dispose", "C1").WithLocation(6, 17),
+                // (13,16): warning CS0278: 'C1' does not implement the 'disposable' pattern. 'C1.Dispose()' is ambiguous with 'C1.Dispose()'.
+                //         using (C1 c = new C1())
+                Diagnostic(ErrorCode.WRN_PatternIsAmbiguous, "C1 c = new C1()").WithArguments("C1", "disposable", "C1.Dispose()", "C1.Dispose()").WithLocation(13, 16),
+                // (13,16): error CS1674: 'C1': type used in a using statement must have a public void-returning Dispose() function.
+                //         using (C1 c = new C1())
+                Diagnostic(ErrorCode.ERR_NoConvToIDisp, "C1 c = new C1()").WithArguments("C1").WithLocation(13, 16)
+                );
+        }
+
+        [Fact]
+        public void UsingPatternAmbiguousOverloadTest()
+        {
+            var source = @"
+class C1
+{
+    public C1() { }
+    public void Dispose() { }
+    public bool Dispose() { return false; }
+}
+
+class C2
+{
+    static void Main()
+    {
+        using (C1 c = new C1())
+        {
+        }
+    }
+}";
+            CreateCompilation(source).VerifyDiagnostics(
+                // (6,17): error CS0111: Type 'C1' already defines a member called 'Dispose' with the same parameter types
+                //     public bool Dispose() { return false; }
+                Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "Dispose").WithArguments("Dispose", "C1").WithLocation(6, 17),
+                // (13,16): warning CS0278: 'C1' does not implement the 'disposable' pattern. 'C1.Dispose()' is ambiguous with 'C1.Dispose()'.
+                //         using (C1 c = new C1())
+                Diagnostic(ErrorCode.WRN_PatternIsAmbiguous, "C1 c = new C1()").WithArguments("C1", "disposable", "C1.Dispose()", "C1.Dispose()").WithLocation(13, 16),
+                // (13,16): error CS1674: 'C1': type used in a using statement must have a public void-returning Dispose() function.
+                //         using (C1 c = new C1())
+                Diagnostic(ErrorCode.ERR_NoConvToIDisp, "C1 c = new C1()").WithArguments("C1").WithLocation(13, 16)
+                );
+        }
+
+        [Fact]
+        public void UsingPatternDifferentParameterOverloadTest()
+        {
+            var source = @"
+class C1
+{
+    public C1() { }
+    public void Dispose() { }
+    public void Dispose(int x) { }
+}
+
+class C2
+{
+    static void Main()
+    {
+        using (C1 c = new C1())
+        {
+        }
+    }
+}";
+            // Shouldn't throw an error as the method signatures are different.
+            CreateCompilation(source).VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void UsingPatternInaccessibleAmbiguousTest()
+        {
+            var source = @"
+class C1
+{
+    public C1() { }
+    public void Dispose() { }
+    internal void Dispose() { }
+}
+
+class C2
+{
+    static void Main()
+    {
+        using (C1 c = new C1())
+        {
+        }
+    }
+}";
+            CreateCompilation(source).VerifyDiagnostics(
+                // (6,19): error CS0111: Type 'C1' already defines a member called 'Dispose' with the same parameter types
+                //     internal void Dispose() { }
+                Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "Dispose").WithArguments("Dispose", "C1").WithLocation(6, 19),
+                // (13,16): warning CS0278: 'C1' does not implement the 'disposable' pattern. 'C1.Dispose()' is ambiguous with 'C1.Dispose()'.
+                //         using (C1 c = new C1())
+                Diagnostic(ErrorCode.WRN_PatternIsAmbiguous, "C1 c = new C1()").WithArguments("C1", "disposable", "C1.Dispose()", "C1.Dispose()").WithLocation(13, 16),
+                // (13,16): error CS1674: 'C1': type used in a using statement must have a public void-returning Dispose() function.
+                //         using (C1 c = new C1())
+                Diagnostic(ErrorCode.ERR_NoConvToIDisp, "C1 c = new C1()").WithArguments("C1").WithLocation(13, 16)
+                );
+        }
+
+        [Fact]
+        public void UsingPatternInheritedTest()
+        {
+            var source = @"
+class C1
+{
+    public C1() { }
+    public void Dispose() { }
+}
+
+class C2 : C1
+{
+    internal void Dispose(int x) { } 
+}
+
+class C3
+{
+    static void Main()
+    {
+        using (C2 c = new C2())
+        {
+        }
+    }
+}";
+            CreateCompilation(source).VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void UsingPatternExtensionMethodTest()
+        {
+            var source = @"
+class C1
+{
+    public C1() { }
+    public void Dispose() { }
+}
+
+static class C2 
+{
+    public static void Dispose(this C1 c1) { }
+}
+
+class C3
+{
+    static void Main()
+    {
+        using (C1 c = new C1())
+        {
+        }
+    }
+}";
+            CreateCompilation(source).VerifyDiagnostics();
+        }
+
+        [Fact]
         public void UsingPatternWrongReturnTest()
         {
             var source = @"
