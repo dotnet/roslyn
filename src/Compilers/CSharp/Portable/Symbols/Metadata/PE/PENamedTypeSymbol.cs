@@ -488,7 +488,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                         var result = typeSymbol as NamedTypeSymbol;
                         if (result is null)
                         {
-                            result = new UnsupportedMetadataTypeSymbol(); // interface tmpList contains a bad type
+                            result = new UnsupportedMetadataTypeSymbol(); // interface list contains a bad type
                         }
                         else
                         {
@@ -517,8 +517,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             {
                 type = (NamedTypeSymbol)NullableTypeDecoder.TransformType(TypeSymbolWithAnnotations.Create(type), handle, moduleSymbol).TypeSymbol;
             }
-            // PROTOTYPE(NullableReferenceTypes): Shouldn't be necessary to wrap and unwrap TypeSymbol.
-            return (NamedTypeSymbol)TupleTypeDecoder.DecodeTupleTypesIfApplicable(TypeSymbolWithAnnotations.Create(type, isNullableIfReferenceType: null), handle, moduleSymbol).TypeSymbol;
+            return (NamedTypeSymbol)TupleTypeDecoder.DecodeTupleTypesIfApplicable(type, handle, moduleSymbol);
         }
 
         public override NamedTypeSymbol ConstructedFrom

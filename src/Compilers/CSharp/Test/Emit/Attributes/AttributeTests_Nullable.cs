@@ -432,6 +432,7 @@ public class B : I<(object X, object? Y)>
                     "MemberReference:Void System.Runtime.CompilerServices.TupleElementNamesAttribute..ctor(String[])",
                     "MethodDefinition:Void System.Runtime.CompilerServices.NullableAttribute..ctor(Boolean[])");
             });
+
             var source2 =
 @"class C
 {
@@ -452,7 +453,14 @@ public class B : I<(object X, object? Y)>
                 // (9,11): warning CS8620: Nullability of reference types in argument of type 'B' doesn't match target type 'I<(object, object)>' for parameter 'a' in 'void C.F(I<(object, object)> a, I<(object, object?)> b)'.
                 //         F(b, b);
                 Diagnostic(ErrorCode.WRN_NullabilityMismatchInArgument, "b").WithArguments("B", "I<(object, object)>", "a", "void C.F(I<(object, object)> a, I<(object, object?)> b)").WithLocation(9, 11));
+
+            var type = comp2.GetMember<NamedTypeSymbol>("A");
+            Assert.Equal("I<(System.Object X, System.Object Y)>", type.Interfaces()[0].ToTestDisplayString());
+            type = comp2.GetMember<NamedTypeSymbol>("B");
+            Assert.Equal("I<(System.Object X, System.Object? Y)>", type.Interfaces()[0].ToTestDisplayString());
         }
+
+        // PROTOTYPE(NullableReferenceTypes): Execute some of these same tests with feature disabled.
 
         [Fact]
         public void EmitAttribute_Constraint()
@@ -1190,9 +1198,10 @@ class C
 using System;
 public interface I<T> { }
 public class A<T> { }
-public class B :
+public class B<T> :
     A<(object? _1, (object _2, object? _3), object _4, object? _5, object _6, object? _7, object _8, object? _9)>,
     I<(object? _1, (object _2, object? _3), object _4, object? _5, object _6, object? _7, object _8, object? _9)>
+    where T : A<(object? _1, (object _2, object? _3), object _4, object? _5, object _6, object? _7, object _8, object? _9)>
 {
     public (dynamic? _1, (object _2, dynamic? _3), object _4, dynamic? _5, object _6, dynamic? _7, object _8, dynamic? _9) Field;
     public event EventHandler<(dynamic? _1, (object _2, dynamic? _3), object _4, dynamic? _5, object _6, dynamic? _7, object _8, dynamic? _9)> Event;
@@ -1204,18 +1213,28 @@ public class B :
             CompileAndVerify(comp, validator: assembly =>
             {
                 var reader = assembly.GetMetadataReader();
-                var typeDef = GetTypeDefinitionByName(reader, "B");
-                checkAttributesNoDynamic(typeDef.GetCustomAttributes(), addOne: true); // base type, add one for A<T>
+                var typeDef = GetTypeDefinitionByName(reader, "B`1");
+                // Base type
+                checkAttributesNoDynamic(typeDef.GetCustomAttributes(), addOne: true); // add one for A<T>
+                // Interface implementation
                 var interfaceImpl = reader.GetInterfaceImplementation(typeDef.GetInterfaceImplementations().Single());
-                checkAttributesNoDynamic(interfaceImpl.GetCustomAttributes(), addOne: true); // interface, add one for I<T>
+                checkAttributesNoDynamic(interfaceImpl.GetCustomAttributes(), addOne: true); // add one for I<T>
+                // Type parameter constraint type
+                var typeParameter = reader.GetGenericParameter(typeDef.GetGenericParameters()[0]);
+                var constraint = reader.GetGenericParameterConstraint(typeParameter.GetConstraints()[0]);
+                checkAttributesNoDynamic(constraint.GetCustomAttributes(), addOne: true); // add one for A<T>
+                // Field type
                 var field = typeDef.GetFields().Select(f => reader.GetFieldDefinition(f)).Single(f => reader.StringComparer.Equals(f.Name, "Field"));
                 checkAttributes(field.GetCustomAttributes());
+                // Event type
                 var @event = typeDef.GetEvents().Select(e => reader.GetEventDefinition(e)).Single(e => reader.StringComparer.Equals(e.Name, "Event"));
                 checkAttributes(@event.GetCustomAttributes(), addOne: true); // add one for EventHandler<T>
+                // Method return type and parameter type
                 var method = typeDef.GetMethods().Select(m => reader.GetMethodDefinition(m)).Single(m => reader.StringComparer.Equals(m.Name, "Method"));
                 var parameters = method.GetParameters().Select(p => reader.GetParameter(p)).ToArray();
                 checkAttributes(parameters[0].GetCustomAttributes()); // return type
                 checkAttributes(parameters[1].GetCustomAttributes()); // parameter
+                // Property type
                 var property = typeDef.GetProperties().Select(p => reader.GetPropertyDefinition(p)).Single(p => reader.StringComparer.Equals(p.Name, "Property"));
                 checkAttributes(property.GetCustomAttributes());
 
@@ -1247,10 +1266,11 @@ public class B :
                     AssertEx.Equal(expectedBits, reader.ReadBoolArray(customAttribute.Value));
                 }
             });
+
             var source2 =
 @"class C
 {
-    static void F(B b)
+    static void F(B<A<(object?, (object, object?), object, object?, object, object?, object, object?)>> b)
     {
         b.Field._8.ToString();
         b.Field._9.ToString();
@@ -1271,6 +1291,29 @@ public class B :
                 // (10,9): warning CS8602: Possible dereference of a null reference.
                 //         b.Property._9.ToString();
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "b.Property._9").WithLocation(10, 9));
+
+            var type = comp2.GetMember<NamedTypeSymbol>("B");
+            Assert.Equal(
+                "A<(System.Object _1, (System.Object _2, System.Object? _3), System.Object _4, System.Object _5, System.Object _6, System.Object _7, System.Object _8, System.Object? _9)>",
+                type.BaseTypeNoUseSiteDiagnostics.ToTestDisplayString());
+            Assert.Equal(
+                "I<(System.Object _1, (System.Object _2, System.Object? _3), System.Object _4, System.Object _5, System.Object _6, System.Object _7, System.Object _8, System.Object? _9)>",
+                type.Interfaces()[0].ToTestDisplayString());
+            Assert.Equal(
+                "A<(System.Object _1, (System.Object _2, System.Object? _3), System.Object _4, System.Object _5, System.Object _6, System.Object _7, System.Object _8, System.Object? _9)>",
+                type.TypeParameters[0].ConstraintTypes()[0].ToTestDisplayString());
+            Assert.Equal(
+                "(dynamic _1, (System.Object _2, dynamic? _3), System.Object _4, dynamic _5, System.Object _6, dynamic _7, System.Object _8, dynamic? _9)",
+                type.GetMember<FieldSymbol>("Field").Type.ToTestDisplayString());
+            Assert.Equal(
+                "System.EventHandler<(dynamic _1, (System.Object _2, dynamic? _3), System.Object _4, dynamic _5, System.Object _6, dynamic _7, System.Object _8, dynamic? _9)>",
+                type.GetMember<EventSymbol>("Event").Type.ToTestDisplayString());
+            Assert.Equal(
+                "(dynamic _1, (System.Object _2, dynamic? _3), System.Object _4, dynamic _5, System.Object _6, dynamic _7, System.Object _8, dynamic? _9) B<T>.Method((dynamic _1, (System.Object _2, dynamic? _3), System.Object _4, dynamic _5, System.Object _6, dynamic _7, System.Object _8, dynamic? _9) arg)",
+                type.GetMember<MethodSymbol>("Method").ToTestDisplayString());
+            Assert.Equal(
+                "(dynamic _1, (System.Object _2, dynamic? _3), System.Object _4, dynamic _5, System.Object _6, dynamic _7, System.Object _8, dynamic? _9) B<T>.Property { get; set; }",
+                type.GetMember<PropertySymbol>("Property").ToTestDisplayString());
         }
 
         private static void AssertNoNullableAttribute(ImmutableArray<CSharpAttributeData> attributes)

@@ -164,9 +164,9 @@ namespace Roslyn.Test.Utilities
             }
         }
 
-        public delegate T ReadBlobItemDelegate<T>(ref BlobReader blobReader);
+        private delegate T ReadBlobItemDelegate<T>(ref BlobReader blobReader);
 
-        public static ImmutableArray<T> ReadArray<T>(this MetadataReader reader, BlobHandle blobHandle, ReadBlobItemDelegate<T> readItem)
+        private static ImmutableArray<T> ReadArray<T>(this MetadataReader reader, BlobHandle blobHandle, ReadBlobItemDelegate<T> readItem)
         {
             var blobReader = reader.GetBlobReader(blobHandle);
             // Prolog
