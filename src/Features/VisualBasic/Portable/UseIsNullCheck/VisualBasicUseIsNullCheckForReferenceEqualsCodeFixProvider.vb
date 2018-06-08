@@ -7,8 +7,8 @@ Imports Microsoft.CodeAnalysis.UseIsNullCheck
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.UseIsNullCheck
     <ExportCodeFixProvider(LanguageNames.VisualBasic), [Shared]>
-    Friend Class VisualBasicUseIsNullCheckCodeFixProvider
-        Inherits AbstractUseIsNullCheckCodeFixProvider
+    Friend Class VisualBasicUseIsNullCheckForReferenceEqualsCodeFixProvider
+        Inherits AbstractUseIsNullCheckForReferenceEqualsCodeFixProvider
 
         Protected Overrides Function GetIsNullTitle() As String
             Return VBFeaturesResources.Use_Is_Nothing_check

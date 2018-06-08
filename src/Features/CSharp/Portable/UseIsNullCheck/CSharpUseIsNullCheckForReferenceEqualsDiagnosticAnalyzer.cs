@@ -7,9 +7,9 @@ using Microsoft.CodeAnalysis.UseIsNullCheck;
 namespace Microsoft.CodeAnalysis.CSharp.UseIsNullCheck
 {
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
-    internal class CSharpUseIsNullCheckDiagnosticAnalyzer : AbstractUseIsNullCheckDiagnosticAnalyzer<SyntaxKind>
+    internal class CSharpUseIsNullCheckForReferenceEqualsDiagnosticAnalyzer : AbstractUseIsNullCheckForReferenceEqualsDiagnosticAnalyzer<SyntaxKind>
     {
-        public CSharpUseIsNullCheckDiagnosticAnalyzer() 
+        public CSharpUseIsNullCheckForReferenceEqualsDiagnosticAnalyzer() 
             : base(CSharpFeaturesResources.Use_is_null_check)
         {
         }
