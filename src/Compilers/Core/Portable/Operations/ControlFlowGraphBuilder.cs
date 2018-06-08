@@ -5135,8 +5135,6 @@ oneMoreTime:
         {
             StartVisitingStatement(operation);
 
-            // PROTOTYPE(dataflow): Should we do anything special with attributes and parameter initializers?
-            //                      Should we also expose graphs for those only as "nested" graphs?
             _currentRegion.Add(operation.Symbol, operation);
             return FinishVisitingStatement(operation);
         }
