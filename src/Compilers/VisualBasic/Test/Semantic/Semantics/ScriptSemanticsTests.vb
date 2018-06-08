@@ -38,7 +38,7 @@ F(Function()
             Dim code = "System.Console.WriteLine(1)"
             Dim compilationUnit = VisualBasic.SyntaxFactory.ParseCompilationUnit(code, options:=New VisualBasicParseOptions(kind:=SourceCodeKind.Script))
             Dim syntaxTree = compilationUnit.SyntaxTree
-            Dim compilation = CreateCompilationWithMscorlib45({syntaxTree}, assemblyName:="Errors_01")
+            Dim compilation = CreateCompilationWithMscorlib45({syntaxTree}, assemblyName:="Errors_01", options:=TestOptions.ReleaseExe)
             Dim semanticModel = compilation.GetSemanticModel(syntaxTree, True)
             Dim node5 As MemberAccessExpressionSyntax = ErrorTestsGetNode(syntaxTree)
             Assert.Equal("WriteLine", node5.Name.ToString())
@@ -69,7 +69,7 @@ System.Console.WriteLine(1)
             )
 
             syntaxTree = SyntaxFactory.ParseSyntaxTree(code, options:=New VisualBasicParseOptions(kind:=SourceCodeKind.Script))
-            compilation = CreateCompilationWithMscorlib45AndVBRuntime({syntaxTree})
+            compilation = CreateCompilationWithMscorlib45AndVBRuntime({syntaxTree}, options:=TestOptions.ReleaseExe)
             semanticModel = compilation.GetSemanticModel(syntaxTree, True)
             node5 = ErrorTestsGetNode(syntaxTree)
             Assert.Equal("WriteLine", node5.Name.ToString())

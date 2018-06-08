@@ -81,8 +81,8 @@ namespace Microsoft.CodeAnalysis.Interactive
 
                     if (!initializationResult.Success)
                     {
-                        Host.ReportProcessExited(remoteService.Process);
                         remoteService.Dispose(joinThreads: false);
+                        Host.ReportProcessExited(remoteService.Process);
 
                         return default(InitializedRemoteService);
                     }

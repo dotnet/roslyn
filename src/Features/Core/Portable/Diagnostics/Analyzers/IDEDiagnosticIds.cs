@@ -58,7 +58,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         public const string AddAccessibilityModifiersDiagnosticId = "IDE0040";
 
-        public const string UseIsNullCheckForReferenceEqualsDiagnosticId = "IDE0041";
+        public const string UseIsNullCheckDiagnosticId = "IDE0041";
 
         public const string UseDeconstructionDiagnosticId = "IDE0042";
 
@@ -71,8 +71,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         public const string RemoveUnnecessaryParenthesesDiagnosticId = "IDE0047";
         public const string AddRequiredParenthesesDiagnosticId = "IDE0048";
-
-        public const string UseIsNullCheckForCastAndEqualityOperatorDiagnosticId = "IDE0049";
 
         // Analyzer error Ids
         public const string AnalyzerChangedId = "IDE1001";

@@ -14,6 +14,7 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.UseIsNullCheck;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.UseIsNullCheck
@@ -22,7 +23,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIsNullCheck
     internal class CSharpUseIsNullCheckForCastAndEqualityOperatorCodeFixProvider : SyntaxEditorBasedCodeFixProvider
     {
         public override ImmutableArray<string> FixableDiagnosticIds
-            => ImmutableArray.Create(IDEDiagnosticIds.UseIsNullCheckForCastAndEqualityOperatorDiagnosticId);
+            => ImmutableArray.Create(IDEDiagnosticIds.UseIsNullCheckDiagnosticId);
 
         public override Task RegisterCodeFixesAsync(CodeFixContext context)
         {
@@ -41,6 +42,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIsNullCheck
         {
             foreach (var diagnostic in diagnostics)
             {
+                if (diagnostic.Properties[UseIsNullConstants.Kind] != UseIsNullConstants.CastAndEqualityKey)
+                {
+                    continue;
+                }
+
                 var binary = (BinaryExpressionSyntax)diagnostic.Location.FindNode(getInnermostNodeForTie: true, cancellationToken: cancellationToken);
 
                 editor.ReplaceNode(

@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.UseIsNullCheck
         public const string UnconstrainedGeneric = nameof(UnconstrainedGeneric);
 
         public override ImmutableArray<string> FixableDiagnosticIds
-            => ImmutableArray.Create(IDEDiagnosticIds.UseIsNullCheckForReferenceEqualsDiagnosticId);
+            => ImmutableArray.Create(IDEDiagnosticIds.UseIsNullCheckDiagnosticId);
 
         protected abstract string GetIsNullTitle();
         protected abstract string GetIsNotNullTitle();
@@ -51,6 +51,11 @@ namespace Microsoft.CodeAnalysis.UseIsNullCheck
             // not there once their parent has been replaced.
             foreach (var diagnostic in diagnostics.OrderByDescending(d => d.Location.SourceSpan.Start))
             {
+                if (diagnostic.Properties[UseIsNullConstants.Kind] != UseIsNullConstants.ReferenceEqualsKey)
+                {
+                    continue;
+                }
+
                 var invocation = diagnostic.AdditionalLocations[0].FindNode(getInnermostNodeForTie: true, cancellationToken: cancellationToken);
                 var negate = diagnostic.Properties.ContainsKey(Negated);
                 var isUnconstrainedGeneric = diagnostic.Properties.ContainsKey(UnconstrainedGeneric);

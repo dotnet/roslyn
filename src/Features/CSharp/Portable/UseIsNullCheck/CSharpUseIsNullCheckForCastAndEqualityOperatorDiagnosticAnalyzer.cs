@@ -1,8 +1,10 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.UseIsNullCheck;
 
 namespace Microsoft.CodeAnalysis.CSharp.UseIsNullCheck
 {
@@ -10,8 +12,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIsNullCheck
     internal class CSharpUseIsNullCheckForCastAndEqualityOperatorDiagnosticAnalyzer
         : AbstractCodeStyleDiagnosticAnalyzer
     {
+        private static readonly ImmutableDictionary<string, string> s_properties =
+            ImmutableDictionary<string, string>.Empty.Add(UseIsNullConstants.Kind, UseIsNullConstants.CastAndEqualityKey);
+
         public CSharpUseIsNullCheckForCastAndEqualityOperatorDiagnosticAnalyzer()
-            : base(IDEDiagnosticIds.UseIsNullCheckForCastAndEqualityOperatorDiagnosticId,
+            : base(IDEDiagnosticIds.UseIsNullCheckDiagnosticId,
                    CSharpFeaturesResources.Use_is_null_check,
                    new LocalizableResourceString(nameof(FeaturesResources.Null_check_can_be_simplified), FeaturesResources.ResourceManager, typeof(FeaturesResources)))
         {
@@ -44,7 +49,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIsNullCheck
                 return;
             }
 
-            var option = optionSet.GetOption(CodeStyleOptions.PreferIsNullCheckOverCastAndEqualityOperator, semanticModel.Language);
+            var option = optionSet.GetOption(CodeStyleOptions.PreferIsNullCheckOverReferenceEqualityMethod, semanticModel.Language);
             if (!option.Value)
             {
                 return;
@@ -61,7 +66,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseIsNullCheck
             var severity = option.Notification.Value;
             context.ReportDiagnostic(
                 Diagnostic.Create(
-                    GetDescriptorWithSeverity(severity), binaryExpression.GetLocation()));
+                    GetDescriptorWithSeverity(severity), binaryExpression.GetLocation(), s_properties));
         }
 
         private static bool IsObjectCastAndNullCheck(

@@ -92,8 +92,8 @@ namespace Microsoft.CodeAnalysis.UnitTests.Interactive
             _synchronizedOutput = new SynchronizedStringWriter();
             _synchronizedErrorOutput = new SynchronizedStringWriter();
             ClearOutput();
-            _host.SetOutput(_synchronizedOutput);
-            _host.SetErrorOutput(_synchronizedErrorOutput);
+            _host.Output = _synchronizedOutput;
+            _host.ErrorOutput = _synchronizedErrorOutput;
         }
 
         private bool LoadReference(string reference)

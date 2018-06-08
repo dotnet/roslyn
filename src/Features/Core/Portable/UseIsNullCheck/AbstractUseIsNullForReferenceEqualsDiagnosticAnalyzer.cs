@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.UseIsNullCheck
         where TLanguageKindEnum : struct
     {
         protected AbstractUseIsNullCheckForReferenceEqualsDiagnosticAnalyzer(LocalizableString title)
-            : base(IDEDiagnosticIds.UseIsNullCheckForReferenceEqualsDiagnosticId,
+            : base(IDEDiagnosticIds.UseIsNullCheckDiagnosticId,
                    title,
                    new LocalizableResourceString(nameof(FeaturesResources.Null_check_can_be_simplified), FeaturesResources.ResourceManager, typeof(FeaturesResources)))
         {
@@ -110,7 +110,8 @@ namespace Microsoft.CodeAnalysis.UseIsNullCheck
                 return;
             }
 
-            var properties = ImmutableDictionary<string, string>.Empty;
+            var properties = ImmutableDictionary<string, string>.Empty.Add(
+                UseIsNullConstants.Kind, UseIsNullConstants.ReferenceEqualsKey);
 
             var genericParameterSymbol = GetGenericParameterSymbol(syntaxFacts, semanticModel, arguments[0], arguments[1], cancellationToken);
             if (genericParameterSymbol != null)
