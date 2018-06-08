@@ -1278,7 +1278,7 @@ class Program
     }
 }
 ";
-            CreateCompilation(source).VerifyDiagnostics(Diagnostic(ErrorCode.ERR_NoConvToIDisp, "res").WithArguments("Program.MyManagedClass"));
+            CreateCompilation(source).VerifyDiagnostics();
         }
 
         [Fact]
@@ -1301,7 +1301,7 @@ class Program
     }
 }
 ";
-            CreateCompilation(source).VerifyDiagnostics(Diagnostic(ErrorCode.ERR_NoConvToIDisp, "res").WithArguments("Program.MyManagedClass"));
+            CreateCompilation(source).VerifyDiagnostics();
         }
 
         // Implicit implement IDisposable
