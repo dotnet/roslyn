@@ -4,9 +4,11 @@ using System;
 using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
+using static Roslyn.Test.Utilities.TestHelpers;
 
 namespace Microsoft.CodeAnalysis.UnitTests
 {
@@ -65,9 +67,9 @@ my_prop = my_val");
         [Fact]
         public void EmptySection()
         {
-            var config = EditorConfig.Parse(@"
+            var config = ParseConfigFile(@"
 []
-my_prop = my_val", "");
+my_prop = my_val");
 
             var properties = config.GlobalSection.Properties;
             Assert.Equal(new[] { KeyValuePair.Create("my_prop", "my_val")}, properties);
@@ -371,99 +373,172 @@ RoOt = TruE");
         }
 
         [Fact]
-        public void CombineNonOverlapping()
+        public void EditorConfigToDiagnostics()
         {
-            var parent = EditorConfig.Parse(@"
+            var configs = ArrayBuilder<EditorConfig>.GetInstance();
+            configs.Add(EditorConfig.Parse(@"
 [*.cs]
-key1 = val1", @"C:\");
-            var nested = EditorConfig.Parse(@"
+dotnet_diagnostic.cs000.severity = suppress
+
 [*.vb]
-key2 = val1", @"C:\nested");
-            var combined = EditorConfig.Combine(nested, parent);
-            Assert.NotSame(parent, combined);
-            Assert.NotSame(nested, combined);
-            Assert.Equal(@"C:\nested", combined.Directory);
+dotnet_diagnostic.cs000.severity = error", "/"));
 
-            Assert.Equal("*.cs", combined.NamedSections[0].Name);
-            AssertEx.SetEqual(
-                parent.NamedSections[0].Properties,
-                combined.NamedSections[0].Properties);
+            var options = CommonCompiler.GetAnalyzerConfigOptions(
+                new[] { "/test.cs", "/test.vb", "/test" },
+                configs,
+                messageProvider: null,
+                diagnostics: null);
+            configs.Free();
 
-            Assert.Equal("*.vb", combined.NamedSections[1].Name);
-            AssertEx.SetEqual(
-                nested.NamedSections[0].Properties,
-                combined.NamedSections[1].Properties);
-            Assert.Equal(2, combined.NamedSections.Length);
+            Assert.Equal(new[] {
+                CreateImmutableDictionary(("cs000", ReportDiagnostic.Suppress)),
+                CreateImmutableDictionary(("cs000", ReportDiagnostic.Error)),
+                null
+            }, options);
         }
 
         [Fact]
-        public void DifferentPropertiesSameSection()
+        public void LaterSectionOverrides()
         {
-            var parent = EditorConfig.Parse(@"
+            var configs = ArrayBuilder<EditorConfig>.GetInstance();
+            configs.Add(EditorConfig.Parse(@"
 [*.cs]
-key1 = val", @"C:\");
-            var nested = EditorConfig.Parse(@"
-[*.cs]
-key2 = val", @"C:\nested");
-            var combined = EditorConfig.Combine(nested, parent);
-            Assert.NotSame(parent, combined);
-            Assert.NotSame(nested, combined);
-            Assert.Equal(@"C:\nested", combined.Directory);
+dotnet_diagnostic.cs000.severity = suppress
 
-            Assert.Equal("*.cs", combined.NamedSections[0].Name);
-            AssertEx.SetEqual(
-                new[] { KeyValuePair.Create("key1", "val"),
-                        KeyValuePair.Create("key2", "val")
-                }, combined.NamedSections[0].Properties);
+[test.*]
+dotnet_diagnostic.cs000.severity = error", "/"));
+
+            var options = CommonCompiler.GetAnalyzerConfigOptions(
+                new[] { "/test.cs", "/test.vb", "/test" },
+                configs,
+                messageProvider: null,
+                diagnostics: null);
+            configs.Free();
+
+            Assert.Equal(new[] {
+                CreateImmutableDictionary(("cs000", ReportDiagnostic.Error)),
+                CreateImmutableDictionary(("cs000", ReportDiagnostic.Error)),
+                null
+            }, options);
         }
 
         [Fact]
-        public void ConflictingProperties()
+        public void TwoSettingsSameSection()
         {
-            var parent = EditorConfig.Parse(@"
+            var configs = ArrayBuilder<EditorConfig>.GetInstance();
+            configs.Add(EditorConfig.Parse(@"
 [*.cs]
-key1 = val1
-key2 = val2", @"C:\");
-            var nested = EditorConfig.Parse(@"
-[*.cs]
-key1 = val3
-key3 = val4", @"C:\nested");
-            var combined = EditorConfig.Combine(nested, parent);
-            Assert.NotSame(parent, combined);
-            Assert.NotSame(nested, combined);
-            Assert.Equal(@"C:\nested", combined.Directory);
+dotnet_diagnostic.cs000.severity = suppress
+dotnet_diagnostic.cs001.severity = info", "/"));
 
-            Assert.Equal("*.cs", combined.NamedSections[0].Name);
-            AssertEx.SetEqual(
-                new[] { KeyValuePair.Create("key1", "val3"),
-                        KeyValuePair.Create("key2", "val2"),
-                        KeyValuePair.Create("key3", "val4")
-                }, combined.NamedSections[0].Properties);
-            Assert.Equal(1, combined.NamedSections.Length);
+            var options = CommonCompiler.GetAnalyzerConfigOptions(
+                new[] { "/test.cs" },
+                configs,
+                messageProvider: null,
+                diagnostics: null);
+            configs.Free();
+
+            Assert.Equal(new[]
+            {
+                CreateImmutableDictionary(
+                    ("cs000", ReportDiagnostic.Suppress),
+                    ("cs001", ReportDiagnostic.Info)),
+            }, options);
         }
 
         [Fact]
-        public void GlobalsNotInherited()
+        public void TwoSettingsDifferentSections()
         {
-            var parent = EditorConfig.Parse(@"
-root = true
-global = val", @"C:\");
-            Assert.True(parent.IsRoot);
+            var configs = ArrayBuilder<EditorConfig>.GetInstance();
+            configs.Add(EditorConfig.Parse(@"
+[*.cs]
+dotnet_diagnostic.cs000.severity = suppress
 
-            var nested = EditorConfig.Parse(@"
-global2 = val2", @"C:\nested");
-            Assert.False(nested.IsRoot);
+[test.*]
+dotnet_diagnostic.cs001.severity = info", "/"));
 
-            var combined = EditorConfig.Combine(nested, parent);
-            Assert.False(combined.IsRoot);
-            Assert.NotSame(parent, combined);
-            Assert.NotSame(nested, combined);
-            Assert.Equal(@"C:\nested", combined.Directory);
+            var options = CommonCompiler.GetAnalyzerConfigOptions(
+                new[] { "/test.cs" },
+                configs,
+                messageProvider: null,
+                diagnostics: null);
+            configs.Free();
 
-            AssertEx.SetEqual(
-                new[] { KeyValuePair.Create("global2", "val2"),
-                }, combined.GlobalSection.Properties);
-            Assert.Empty(combined.NamedSections);
+            Assert.Equal(new[]
+            {
+                CreateImmutableDictionary(
+                    ("cs000", ReportDiagnostic.Suppress),
+                    ("cs001", ReportDiagnostic.Info))
+            }, options);
+        }
+
+        [Fact]
+        public void MultipleEditorConfigs()
+        {
+            var configs = ArrayBuilder<EditorConfig>.GetInstance();
+            configs.Add(EditorConfig.Parse(@"
+[**/*]
+dotnet_diagnostic.cs000.severity = suppress
+
+[**test.*]
+dotnet_diagnostic.cs001.severity = info", "/"));
+            configs.Add(EditorConfig.Parse(@"
+[**]
+dotnet_diagnostic.cs000.severity = warn
+
+[test.cs]
+dotnet_diagnostic.cs001.severity = error", "/subdir/"));
+
+            var options = CommonCompiler.GetAnalyzerConfigOptions(
+                new[] { "/subdir/test.cs", "/subdir/test.vb" },
+                configs,
+                messageProvider: null,
+                diagnostics: null);
+            configs.Free();
+
+            Assert.Equal(new[]
+            {
+                CreateImmutableDictionary(
+                    ("cs000", ReportDiagnostic.Warn),
+                    ("cs001", ReportDiagnostic.Error)),
+                CreateImmutableDictionary(
+                    ("cs000", ReportDiagnostic.Warn),
+                    ("cs001", ReportDiagnostic.Info))
+            }, options);
+        }
+
+        [Fact]
+        public void InheritOuterConfig()
+        {
+            var configs = ArrayBuilder<EditorConfig>.GetInstance();
+            configs.Add(EditorConfig.Parse(@"
+[**/*]
+dotnet_diagnostic.cs000.severity = suppress
+
+[**test.cs]
+dotnet_diagnostic.cs001.severity = info", "/"));
+            configs.Add(EditorConfig.Parse(@"
+[test.cs]
+dotnet_diagnostic.cs001.severity = error", "/subdir/"));
+
+            var options = CommonCompiler.GetAnalyzerConfigOptions(
+                new[] { "/test.cs", "/subdir/test.cs", "/subdir/test.vb" },
+                configs,
+                messageProvider: null,
+                diagnostics: null);
+            configs.Free();
+
+            Assert.Equal(new[]
+            {
+                CreateImmutableDictionary(
+                    ("cs001", ReportDiagnostic.Info)),
+                CreateImmutableDictionary(
+                    ("cs000", ReportDiagnostic.Suppress),
+                    ("cs001", ReportDiagnostic.Error)),
+                CreateImmutableDictionary(
+                    ("cs000", ReportDiagnostic.Suppress))
+            }, options);
+
         }
     }
 }
