@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Json
         NegativeLiteral,
         Property,
         Constructor,
-        EmptyValue,
+        CommaValue,
 
         // Tokens
         EndOfFile,

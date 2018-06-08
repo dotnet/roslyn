@@ -16,6 +16,10 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Json
 
     internal partial struct JsonParser
     {
+        /// <summary>
+        /// Checks the superset-tree for constructs that aren't allowed in strict rfc8259
+        /// (https://tools.ietf.org/html/rfc8259) mode.
+        /// </summary>
         private static class StrictSyntaxChecker
         {
             private static EmbeddedDiagnostic? CheckChildren(JsonNode node)
@@ -55,6 +59,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Json
                 {
                     case JsonKind.MultiLineCommentTrivia:
                     case JsonKind.SingleLineCommentTrivia:
+                        // Strict mode doesn't allow comments at all.
                         return new EmbeddedDiagnostic(
                             WorkspacesResources.Comments_not_allowed,
                             GetSpan(trivia.VirtualChars));
@@ -75,6 +80,8 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Json
                             break;
 
                         default:
+                            // Strict mode only allows spaces and horizontal tabs.  Everything else
+                            // is illegal.
                             return new EmbeddedDiagnostic(
                                 WorkspacesResources.Illegal_whitespace_character,
                                 ch.Span);
@@ -105,7 +112,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Json
                 foreach (var child in sequence)
                 {
                     var childNode = child.Node;
-                    if (childNode.Kind != JsonKind.Property && childNode.Kind != JsonKind.EmptyValue)
+                    if (childNode.Kind != JsonKind.Property && childNode.Kind != JsonKind.CommaValue)
                     {
                         return new EmbeddedDiagnostic(
                             WorkspacesResources.Only_properties_allowed_in_an_object,
@@ -134,12 +141,13 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Json
 
             private static EmbeddedDiagnostic? CheckProperSeparation(JsonSequenceNode sequence)
             {
+                // Ensure that this sequence is actually a separated list.
                 for (int i = 0, n = sequence.ChildCount; i < n; i++)
                 {
                     var child = sequence.ChildAt(i).Node;
                     if (i % 2 == 0)
                     {
-                        if (child.Kind == JsonKind.EmptyValue)
+                        if (child.Kind == JsonKind.CommaValue)
                         {
                             return new EmbeddedDiagnostic(
                                 string.Format(WorkspacesResources._0_unexpected, ","),
@@ -148,7 +156,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Json
                     }
                     else
                     {
-                        if (child.Kind != JsonKind.EmptyValue)
+                        if (child.Kind != JsonKind.CommaValue)
                         {
                             return new EmbeddedDiagnostic(
                                 string.Format(WorkspacesResources._0_expected, ","),
@@ -176,7 +184,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Json
                         node.NameToken.GetSpan());
                 }
 
-                if (node.Value.Kind == JsonKind.EmptyValue)
+                if (node.Value.Kind == JsonKind.CommaValue)
                 {
                     return new EmbeddedDiagnostic(
                         WorkspacesResources.Value_required,
@@ -193,6 +201,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Json
                     case JsonKind.NaNLiteralToken:
                     case JsonKind.InfinityLiteralToken:
                     case JsonKind.UndefinedLiteralToken:
+                        // These are all json.net extensions.  Disallow them all.
                         return InvalidLiteral(node.LiteralToken);
                     case JsonKind.NumberToken:
                         return CheckNumber(node.LiteralToken);

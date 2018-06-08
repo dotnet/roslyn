@@ -22,6 +22,10 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Json
             EndOfFileToken = endOfFileToken;
         }
 
+        /// <summary>
+        /// For error recovery purposes, we support a sequence of nodes at the top level (even
+        /// though only a single node is actually allowed).
+        /// </summary>
         public JsonSequenceNode Sequence { get; }
         public JsonToken EndOfFileToken { get; }
 
@@ -240,10 +244,10 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Json
             => visitor.Visit(this);
     }
 
-    internal sealed class JsonEmptyValueNode : JsonValueNode
+    internal sealed class JsonCommaValueNode : JsonValueNode
     {
-        public JsonEmptyValueNode(JsonToken commaToken)
-            : base(JsonKind.EmptyValue)
+        public JsonCommaValueNode(JsonToken commaToken)
+            : base(JsonKind.CommaValue)
         {
             Debug.Assert(commaToken.Kind == JsonKind.CommaToken);
             CommaToken = commaToken;
