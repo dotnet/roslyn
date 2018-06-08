@@ -697,18 +697,19 @@ namespace Roslyn.Utilities
         /// 
         /// The more accurate way is to let the framework parse the path and throw on any errors.
         /// </summary>
-        /// <param name="path"></param>
-        /// <returns></returns>
-        public static bool IsValidFilePath(string path)
+        public static bool IsValidFilePath(string fullPath)
         {
             try
             {
-                if (string.IsNullOrEmpty(path))
+                if (string.IsNullOrEmpty(fullPath))
                 {
                     return false;
                 }
 
-                var fileInfo = new FileInfo(path);
+                // Uncomment when this is fixed: https://github.com/dotnet/roslyn/issues/19592
+                // Debug.Assert(IsAbsolute(fullPath));
+
+                var fileInfo = new FileInfo(fullPath);
                 return !string.IsNullOrEmpty(fileInfo.Name);
             }
             catch (Exception ex) when (

@@ -12,16 +12,12 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.SimplifyTypeNames
         {
             internal static new readonly SimplifyTypeNamesFixAllProvider Instance = new SimplifyTypeNamesFixAllProvider();
 
-            protected override SyntaxNode GetNodeToSimplify(SyntaxNode root, SemanticModel model, Diagnostic diagnostic, DocumentOptionSet options, out string codeActionId, CancellationToken cancellationToken)
+            protected override SyntaxNode GetNodeToSimplify(
+                SyntaxNode root, SemanticModel model, Diagnostic diagnostic, 
+                DocumentOptionSet options, CancellationToken cancellationToken)
             {
-                codeActionId = null;
-                var node = SimplifyTypeNamesCodeFixProvider.GetNodeToSimplify(root, model, diagnostic.Location.SourceSpan, options, out var diagnosticId, cancellationToken);
-                if (node != null)
-                {
-                    codeActionId = GetCodeActionId(diagnosticId, node.ToString());
-                }
-
-                return node;
+                return SimplifyTypeNamesCodeFixProvider.GetNodeToSimplify(
+                    root, model, diagnostic.Location.SourceSpan, options, out _, cancellationToken);
             }
         }
     }
