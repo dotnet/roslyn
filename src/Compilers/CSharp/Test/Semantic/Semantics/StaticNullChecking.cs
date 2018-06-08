@@ -19924,18 +19924,21 @@ class C<T>
     static void F(C<object>? x, C<object?> y)
     {
         var a1 = new[] { x, y }; // 1
-        var a2 = new[] { x!, y };
-        var a3 = new[] { x, y! }; // 2
+        var a2 = new[] { x!, y }; // 2
+        var a3 = new[] { x, y! }; // 3
         var a4 = new[] { x!, y! };
     }
 }";
+            // PROTOTYPE(NullableReferenceTypes): There should be a ErrorCode.WRN_NoBestNullabilityArrayElements warning on (2)
+            // since InferBestType fails.
+
             var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
                 // (6,29): warning CS8619: Nullability of reference types in value of type 'C<object?>' doesn't match target type 'C<object>'.
                 //         var a1 = new[] { x, y }; // 1
                 Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "y").WithArguments("C<object?>", "C<object>").WithLocation(6, 29),
                 // (8,29): warning CS8619: Nullability of reference types in value of type 'C<object?>' doesn't match target type 'C<object>'.
-                //         var a3 = new[] { x, y! }; // 2
+                //         var a3 = new[] { x, y! }; // 3
                 Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "y!").WithArguments("C<object?>", "C<object>").WithLocation(8, 29)
                 );
         }
@@ -20463,8 +20466,10 @@ class C
     {
         string? s;
         string t;
-        F(out s, out t);
-        F(out s!, out t!);
+        F(out s, out t); // warn
+        F(out s!, out t!); // ok
+        F(out (s!), out (t!)); // errors
+        F(out (s)!, out (t)!); // errors
     }
 }";
             var comp = CreateCompilation(
@@ -20472,8 +20477,20 @@ class C
                 parseOptions: TestOptions.Regular8,
                 options: TestOptions.ReleaseExe);
             comp.VerifyDiagnostics(
+                // (15,19): error CS1525: Invalid expression term ','
+                //         F(out (s)!, out (t)!); // errors
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, ",").WithArguments(",").WithLocation(15, 19),
+                // (15,29): error CS1525: Invalid expression term ')'
+                //         F(out (s)!, out (t)!); // errors
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, ")").WithArguments(")").WithLocation(15, 29),
+                // (15,16): error CS0118: 's' is a variable but is used like a type
+                //         F(out (s)!, out (t)!); // errors
+                Diagnostic(ErrorCode.ERR_BadSKknown, "s").WithArguments("s", "variable", "type").WithLocation(15, 16),
+                // (15,26): error CS0118: 't' is a variable but is used like a type
+                //         F(out (s)!, out (t)!); // errors
+                Diagnostic(ErrorCode.ERR_BadSKknown, "t").WithArguments("t", "variable", "type").WithLocation(15, 26),
                 // (12,22): warning CS8600: Converting null literal or possible null value to non-nullable type.
-                //         F(out s, out t);
+                //         F(out s, out t); // warn
                 Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "t").WithLocation(12, 22)
                 );
         }
