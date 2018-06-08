@@ -302,9 +302,14 @@ namespace BuildBoss
         /// </summary>
         private bool VerifySwrFile(TextWriter textWriter, List<string> dllFileNames)
         {
-            var nativeDlls = new[] { "Microsoft.DiaSymReader.Native.amd64.dll", "Microsoft.DiaSymReader.Native.x86.dll" };
+            var excludedDlls = new[]
+            {
+                "Microsoft.DiaSymReader.Native.amd64.dll",      // native
+                "Microsoft.DiaSymReader.Native.x86.dll",        // native
+            };
+
             var map = dllFileNames
-                .Where(x => !nativeDlls.Contains(x, PathComparer))
+                .Where(x => !excludedDlls.Contains(x, PathComparer))
                 .ToDictionary(
                     keySelector: x => x,
                     elementSelector: _ => false,

@@ -72,6 +72,11 @@
         <target state="new">Make readonly</target>
         <note />
       </trans-unit>
+      <trans-unit id="Prefer_is_null_for_reference_equality_checks">
+        <source>Prefer 'is null' for reference equality checks</source>
+        <target state="new">Prefer 'is null' for reference equality checks</target>
+        <note>'is null' is a C# string and should not be localized.</note>
+      </trans-unit>
       <trans-unit id="Remove_unnecessary_casts">
         <source>Remove unnecessary casts</source>
         <target state="new">Remove unnecessary casts</target>
@@ -760,11 +765,6 @@
       <trans-unit id="Fade_out_unused_usings">
         <source>Fade out unused usings</source>
         <target state="translated">Скрывать неиспользуемые директивы using</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Prefer_is_null_over_ReferenceEquals">
-        <source>Prefer 'is null' over 'object.ReferenceEquals(..., null)'</source>
-        <target state="translated">Предпочитать "is NULL" методу "object.ReferenceEquals(..., NULL)"</target>
         <note />
       </trans-unit>
       <trans-unit id="Report_invalid_placeholders_in_string_dot_format_calls">

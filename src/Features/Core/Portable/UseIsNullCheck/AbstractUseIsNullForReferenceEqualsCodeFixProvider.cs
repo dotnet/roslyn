@@ -15,7 +15,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.UseIsNullCheck
 {
-    internal abstract class AbstractUseIsNullCheckCodeFixProvider : SyntaxEditorBasedCodeFixProvider
+    internal abstract class AbstractUseIsNullCheckForReferenceEqualsCodeFixProvider : SyntaxEditorBasedCodeFixProvider
     {
         public const string Negated = nameof(Negated);
         public const string UnconstrainedGeneric = nameof(UnconstrainedGeneric);
@@ -46,8 +46,16 @@ namespace Microsoft.CodeAnalysis.UseIsNullCheck
         {
             var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
 
-            foreach (var diagnostic in diagnostics)
+            // Order in reverse so we process inner diagnostics before outer diagnostics.
+            // Otherwise, we won't be able to find the nodes we want to replace if they're
+            // not there once their parent has been replaced.
+            foreach (var diagnostic in diagnostics.OrderByDescending(d => d.Location.SourceSpan.Start))
             {
+                if (diagnostic.Properties[UseIsNullConstants.Kind] != UseIsNullConstants.ReferenceEqualsKey)
+                {
+                    continue;
+                }
+
                 var invocation = diagnostic.AdditionalLocations[0].FindNode(getInnermostNodeForTie: true, cancellationToken: cancellationToken);
                 var negate = diagnostic.Properties.ContainsKey(Negated);
                 var isUnconstrainedGeneric = diagnostic.Properties.ContainsKey(UnconstrainedGeneric);
