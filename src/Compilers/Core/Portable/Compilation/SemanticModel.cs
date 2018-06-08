@@ -6,6 +6,7 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Threading;
 using Microsoft.CodeAnalysis.FlowAnalysis;
+using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
 
@@ -94,7 +95,9 @@ namespace Microsoft.CodeAnalysis
         /// <param name="body">Root operation block, which must have a null parent.</param>
         public static ControlFlowGraph GetControlFlowGraph(Operations.IBlockOperation body)
         {
-            return GetControlFlowGraphCore(body, nameof(body));
+            VerifyArgumentForGetControlFlowGraph(body, nameof(body));
+
+            return GetControlFlowGraphCore(body);
         }
 
         /// <summary>
@@ -103,7 +106,9 @@ namespace Microsoft.CodeAnalysis
         /// <param name="initializer">Root field initializer operation, which must have a null parent.</param>
         public static ControlFlowGraph GetControlFlowGraph(Operations.IFieldInitializerOperation initializer)
         {
-            return GetControlFlowGraphCore(initializer, nameof(initializer));
+            VerifyArgumentForGetControlFlowGraph(initializer, nameof(initializer));
+
+            return GetControlFlowGraphCore(initializer);
         }
 
         /// <summary>
@@ -112,7 +117,9 @@ namespace Microsoft.CodeAnalysis
         /// <param name="initializer">Root property initializer operation, which must have a null parent.</param>
         public static ControlFlowGraph GetControlFlowGraph(Operations.IPropertyInitializerOperation initializer)
         {
-            return GetControlFlowGraphCore(initializer, nameof(initializer));
+            VerifyArgumentForGetControlFlowGraph(initializer, nameof(initializer));
+
+            return GetControlFlowGraphCore(initializer);
         }
 
         /// <summary>
@@ -121,7 +128,9 @@ namespace Microsoft.CodeAnalysis
         /// <param name="initializer">Root parameter initializer operation, which must have a null parent.</param>
         public static ControlFlowGraph GetControlFlowGraph(Operations.IParameterInitializerOperation initializer)
         {
-            return GetControlFlowGraphCore(initializer, nameof(initializer));
+            VerifyArgumentForGetControlFlowGraph(initializer, nameof(initializer));
+
+            return GetControlFlowGraphCore(initializer);
         }
 
         /// <summary>
@@ -130,7 +139,9 @@ namespace Microsoft.CodeAnalysis
         /// <param name="constructorBody">Root constructor body operation, which must have a null parent.</param>
         public static ControlFlowGraph GetControlFlowGraph(Operations.IConstructorBodyOperation constructorBody)
         {
-            return GetControlFlowGraphCore(constructorBody, nameof(constructorBody));
+            VerifyArgumentForGetControlFlowGraph(constructorBody, nameof(constructorBody));
+
+            return GetControlFlowGraphCore(constructorBody);
         }
 
         /// <summary>
@@ -139,17 +150,45 @@ namespace Microsoft.CodeAnalysis
         /// <param name="methodBody">Root method body operation, which must have a null parent.</param>
         public static ControlFlowGraph GetControlFlowGraph(Operations.IMethodBodyOperation methodBody)
         {
-            return GetControlFlowGraphCore(methodBody, nameof(methodBody));
+            VerifyArgumentForGetControlFlowGraph(methodBody, nameof(methodBody));
+
+            return GetControlFlowGraphCore(methodBody);
         }
 
-        private static ControlFlowGraph GetControlFlowGraphCore(IOperation operation, string argumentNameForException)
+        /// <summary>
+        /// Gets a <see cref="ControlFlowGraph"/> for the given executable code block <paramref name="rootOperation"/>.
+        /// </summary>
+        /// <param name="rootOperation">Root operation for an executable code block, which must have a null parent.</param>
+        public static ControlFlowGraph GetControlFlowGraph(IOperation rootOperation)
+        {
+            VerifyArgumentForGetControlFlowGraph(rootOperation, nameof(rootOperation));
+            VerifyRootOperationKindForGetControlFlowGraph(rootOperation, nameof(rootOperation));
+
+            return GetControlFlowGraphCore(rootOperation);
+        }
+
+        /// <summary>
+        /// Gets a <see cref="ControlFlowGraph"/> for the executable code block containing the given <paramref name="operation"/>.
+        /// </summary>
+        /// <param name="operation">Operation within an executable code block.</param>
+        public static ControlFlowGraph GetEnclosingControlFlowGraph(IOperation operation)
+        {
+            VerifyArgumentForGetControlFlowGraph(operation, nameof(operation), verifyRoot: false);
+
+            var rootOperation = operation.GetRootOperation();
+            VerifyRootOperationKindForGetControlFlowGraph(rootOperation, nameof(operation));
+
+            return GetControlFlowGraphCore(rootOperation);
+        }
+
+        private static void VerifyArgumentForGetControlFlowGraph(IOperation operation, string argumentNameForException, bool verifyRoot = true)
         {
             if (operation == null)
             {
                 throw new ArgumentNullException(argumentNameForException);
             }
 
-            if (operation.Parent != null)
+            if (verifyRoot && operation.Parent != null)
             {
                 throw new ArgumentException(CodeAnalysisResources.NotARootOperation, argumentNameForException);
             }
@@ -158,7 +197,22 @@ namespace Microsoft.CodeAnalysis
             {
                 throw new ArgumentException(CodeAnalysisResources.OperationHasNullSemanticModel, argumentNameForException);
             }
+        }
 
+        private static void VerifyRootOperationKindForGetControlFlowGraph(IOperation rootOperation, string argumentNameForException)
+        {
+            Debug.Assert(rootOperation.Parent == null);
+
+            if (!ControlFlowGraphBuilder.IsValidRootOperationKind(rootOperation))
+            {
+                throw new ArgumentException(
+                    string.Format(CodeAnalysisResources.UnsupportedRootOperationKind, rootOperation.Kind),
+                    nameof(argumentNameForException));
+            }
+        }
+
+        private static ControlFlowGraph GetControlFlowGraphCore(IOperation operation)
+        {
             if (!operation.Syntax.SyntaxTree.Options.Features.ContainsKey("flow-analysis"))
             {
                 throw new InvalidOperationException(CodeAnalysisResources.FlowAnalysisFeatureDisabled);

@@ -1059,7 +1059,7 @@ namespace Microsoft.CodeAnalysis {
         /// </summary>
         internal static string OperationHasNullSemanticModel {
             get {
-                return ResourceManager.GetString("OperationHasNoSemanticModel", resourceCulture);
+                return ResourceManager.GetString("OperationHasNullSemanticModel", resourceCulture);
             }
         }
         
@@ -1546,6 +1546,15 @@ namespace Microsoft.CodeAnalysis {
         internal static string UnsupportedHashAlgorithm {
             get {
                 return ResourceManager.GetString("UnsupportedHashAlgorithm", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Unsupported root operation kind &apos;{0}&apos;..
+        /// </summary>
+        internal static string UnsupportedRootOperationKind {
+            get {
+                return ResourceManager.GetString("UnsupportedRootOperationKind", resourceCulture);
             }
         }
         

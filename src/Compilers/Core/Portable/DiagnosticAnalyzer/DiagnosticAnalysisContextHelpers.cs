@@ -4,6 +4,8 @@ using System;
 using System.Collections.Immutable;
 using System.Reflection;
 using System.Runtime.CompilerServices;
+using Microsoft.CodeAnalysis.FlowAnalysis;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
@@ -147,6 +149,22 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             {
                 throw new ArgumentNullException(nameof(valueProvider));
             }
+        }
+
+        internal static ImmutableArray<ControlFlowGraph> GetControlFlowGraphs(ImmutableArray<IOperation> operationBlocks)
+        {
+            if (operationBlocks.IsEmpty)
+            {
+                return ImmutableArray<ControlFlowGraph>.Empty;
+            }
+
+            var builder = ArrayBuilder<ControlFlowGraph>.GetInstance(operationBlocks.Length);
+            foreach (IOperation operationBlock in operationBlocks)
+            {
+                builder.Add(SemanticModel.GetEnclosingControlFlowGraph(operationBlock));
+            }
+
+            return builder.ToImmutableAndFree();
         }
     }
 }

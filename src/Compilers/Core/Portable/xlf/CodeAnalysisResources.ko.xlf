@@ -7,7 +7,7 @@
         <target state="new">Given operation has a non-null parent.</target>
         <note />
       </trans-unit>
-      <trans-unit id="OperationHasNoSemanticModel">
+      <trans-unit id="OperationHasNullSemanticModel">
         <source>Given operation has a null semantic model.</source>
         <target state="new">Given operation has a null semantic model.</target>
         <note />
@@ -160,6 +160,11 @@
       <trans-unit id="GetMetadataMustReturnInstance">
         <source>{0}.GetMetadata() must return an instance of {1}.</source>
         <target state="translated">{0}.GetMetadata()는 {1}의 인스턴스를 반환해야 합니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="UnsupportedRootOperationKind">
+        <source>Unsupported root operation kind '{0}'.</source>
+        <target state="new">Unsupported root operation kind '{0}'.</target>
         <note />
       </trans-unit>
       <trans-unit id="Value_too_large_to_be_represented_as_a_30_bit_unsigned_integer">

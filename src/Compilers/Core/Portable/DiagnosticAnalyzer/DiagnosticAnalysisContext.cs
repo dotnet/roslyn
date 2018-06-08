@@ -3,7 +3,9 @@
 using System;
 using System.Collections.Immutable;
 using System.Threading;
+using Microsoft.CodeAnalysis.FlowAnalysis;
 using Microsoft.CodeAnalysis.Operations;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.Diagnostics
@@ -920,6 +922,14 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// <param name="action">Action to be executed at completion of semantic analysis of an <see cref="IOperation"/>.</param>
         /// <param name="operationKinds">Action will be executed only if an <see cref="IOperation"/>'s Kind matches one of the operation kind values.</param>
         public abstract void RegisterOperationAction(Action<OperationAnalysisContext> action, ImmutableArray<OperationKind> operationKinds);
+
+        /// <summary>
+        /// Gets an array of <see cref="ControlFlowGraph"/> for <see cref="OperationBlocks"/>.
+        /// </summary>
+        public ImmutableArray<ControlFlowGraph> GetControlFlowGraphs()
+        {
+            return DiagnosticAnalysisContextHelpers.GetControlFlowGraphs(OperationBlocks);
+        }
     }
 
     /// <summary>
@@ -986,6 +996,14 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             {
                 _reportDiagnostic(diagnostic);
             }
+        }
+
+        /// <summary>
+        /// Gets an array of <see cref="ControlFlowGraph"/> for <see cref="OperationBlocks"/>.
+        /// </summary>
+        public ImmutableArray<ControlFlowGraph> GetControlFlowGraphs()
+        {
+            return DiagnosticAnalysisContextHelpers.GetControlFlowGraphs(OperationBlocks);
         }
     }
 
@@ -1188,6 +1206,14 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             {
                 _reportDiagnostic(diagnostic);
             }
+        }
+
+        /// <summary>
+        /// Gets a <see cref="ControlFlowGraph"/> for the operation block containing the <see cref="Operation"/>.
+        /// </summary>
+        public ControlFlowGraph GetEnclosingControlFlowGraph()
+        {
+            return SemanticModel.GetEnclosingControlFlowGraph(Operation);
         }
     }
 }
