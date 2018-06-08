@@ -401,14 +401,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             ArrayBuilder<BoundPatternBinding> bindings)
         {
             Debug.Assert(input.Type.IsErrorType() || recursive.InputType.IsErrorType() || input.Type == recursive.InputType);
-            if (recursive.DeclaredType != null)
-            {
-                input = MakeConvertToType(input, recursive.Syntax, recursive.DeclaredType.Type, tests);
-            }
-            else
-            {
-                MakeCheckNotNull(input, recursive.Syntax, tests);
-            }
+            var inputType = recursive.DeclaredType?.Type ?? input.Type.StrippedType();
+            input = MakeConvertToType(input, recursive.Syntax, inputType, tests);
 
             if (!recursive.Deconstruction.IsDefault)
             {
@@ -428,10 +422,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                         MakeTestsAndBindings(output, pattern, tests, bindings);
                     }
                 }
-                else if (input.Type.IsTupleType)
+                else if (inputType.IsTupleType)
                 {
-                    ImmutableArray<FieldSymbol> elements = input.Type.TupleElements;
-                    ImmutableArray<TypeSymbol> elementTypes = input.Type.TupleElementTypes;
+                    ImmutableArray<FieldSymbol> elements = inputType.TupleElements;
+                    ImmutableArray<TypeSymbol> elementTypes = inputType.TupleElementTypes;
                     int count = Math.Min(elementTypes.Length, recursive.Deconstruction.Length);
                     for (int i = 0; i < count; i++)
                     {

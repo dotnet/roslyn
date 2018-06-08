@@ -1826,5 +1826,80 @@ True";
   IL_001e:  ret
 }");
         }
+
+        [Fact]
+        public void DeconstructNullableTuple_01()
+        {
+            var source =
+@"
+class C {
+    static int i = 3;
+    static (int,int)? GetNullableTuple() => (i++, i++);
+
+    static void Main() {
+        if (GetNullableTuple() is (int x1, int y1) tupl1)
+        {
+            System.Console.WriteLine($""x = {x1}, y = {y1}"");
+        }
+        if (GetNullableTuple() is (int x2, int y2) _)
+        {
+            System.Console.WriteLine($""x = {x2}, y = {y2}"");
+        }
+        switch (GetNullableTuple())
+        {
+            case (int x3, int y3) s:
+                System.Console.WriteLine($""x = {x3}, y = {y3}"");
+                break;
+        }
+    }
+}";
+            var compilation = CreateCompilation(source, options: TestOptions.DebugExe);
+            compilation.VerifyDiagnostics();
+            var expectedOutput = @"x = 3, y = 4
+x = 5, y = 6
+x = 7, y = 8";
+            var compVerifier = CompileAndVerify(compilation, expectedOutput: expectedOutput);
+        }
+
+        [Fact]
+        public void DeconstructNullable_01()
+        {
+            var source =
+@"
+class C {
+    static int i = 3;
+    static S? GetNullableTuple() => new S(i++, i++);
+
+    static void Main() {
+        if (GetNullableTuple() is (int x1, int y1) tupl1)
+        {
+            System.Console.WriteLine($""x = {x1}, y = {y1}"");
+        }
+        if (GetNullableTuple() is (int x2, int y2) _)
+        {
+            System.Console.WriteLine($""x = {x2}, y = {y2}"");
+        }
+        switch (GetNullableTuple())
+        {
+            case (int x3, int y3) s:
+                System.Console.WriteLine($""x = {x3}, y = {y3}"");
+                break;
+        }
+    }
+}
+struct S
+{
+    int x, y;
+    public S(int X, int Y) => (this.x, this.y) = (X, Y);
+    public void Deconstruct(out int X, out int Y) => (X, Y) = (x, y);
+}
+";
+            var compilation = CreateCompilation(source, options: TestOptions.DebugExe);
+            compilation.VerifyDiagnostics();
+            var expectedOutput = @"x = 3, y = 4
+x = 5, y = 6
+x = 7, y = 8";
+            var compVerifier = CompileAndVerify(compilation, expectedOutput: expectedOutput);
+        }
     }
 }
