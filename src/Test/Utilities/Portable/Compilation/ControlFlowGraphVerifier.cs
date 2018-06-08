@@ -752,6 +752,8 @@ endRegion:
                 case OperationKind.Empty:
                 case OperationKind.NameOf:
                 case OperationKind.AnonymousFunction:
+                case OperationKind.ObjectOrCollectionInitializer:
+                case OperationKind.LocalFunction:
                     return false;
 
                 case OperationKind.BinaryOperator:
@@ -773,7 +775,6 @@ endRegion:
                 case OperationKind.Invalid:
                 case OperationKind.YieldReturn:
                 case OperationKind.ExpressionStatement:
-                case OperationKind.LocalFunction:
                 case OperationKind.Stop:
                 case OperationKind.RaiseEvent:
                 case OperationKind.Literal:
@@ -829,9 +830,6 @@ endRegion:
                 case OperationKind.CaughtException:
                 case OperationKind.StaticLocalInitializationSemaphore:
                 case OperationKind.Discard:
-                case OperationKind.ObjectOrCollectionInitializer: // PROTOTYPE(dataflow): it looks like this node is leaking through in some error scenarios, at least for now.
-                                                                  // PROTOTYPE(dataflow): It looks like there is a bug in IOperation tree generation for non-error scenario in
-                                                                  //                      Microsoft.CodeAnalysis.CSharp.UnitTests.SemanticModelGetSemanticInfoTests.ObjectCreation3
                     return true;
             }
 

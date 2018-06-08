@@ -1471,7 +1471,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
                 var afterIf = new BasicBlockBuilder(BasicBlockKind.Block);
                 IOperation result;
 
-                // Specialy handle cases with "throw" as operation.WhenTrue or operation.WhenFalse. We don't need to create an additional
+                // Specially handle cases with "throw" as operation.WhenTrue or operation.WhenFalse. We don't need to create an additional
                 // capture for the result because there won't be any result from the throwing branches.
                 if (operation.WhenTrue is IConversionOperation whenTrueConversion && whenTrueConversion.Operand.Kind == OperationKind.Throw)
                 {
@@ -1723,8 +1723,6 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
 
         public override IOperation VisitUnaryOperator(IUnaryOperation operation, int? captureIdForResult)
         {
-            // PROTOTYPE(dataflow): ensure we properly detect logical Not
-            //                      For example, Microsoft.CodeAnalysis.CSharp.UnitTests.IOperationTests.Test_UnaryOperatorExpression_Type_LogicalNot_dynamic
             if (IsBooleanLogicalNot(operation))
             {
                 return VisitConditionalExpression(operation.Operand, sense: false, captureIdForResult, fallToTrueOpt: null, fallToFalseOpt: null);

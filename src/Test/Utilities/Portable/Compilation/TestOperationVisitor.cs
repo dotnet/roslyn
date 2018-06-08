@@ -1238,6 +1238,13 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                 case OperationKind.DefaultValue:
                 case OperationKind.FlowAnonymousFunction: // must be an error case like in Microsoft.CodeAnalysis.CSharp.UnitTests.ConditionalOperatorTests.TestBothUntyped unit-test
                     break;
+
+                case OperationKind.OmittedArgument:
+                case OperationKind.DeclarationExpression:
+                case OperationKind.Discard:
+                    Assert.False(true, $"A {operation.Value.Kind} node should not be spilled or captured.");
+                    break;
+
                 default:
                     // Only values can be spilled/captured
                     if (!operation.Value.ConstantValue.HasValue || operation.Value.ConstantValue.Value != null)
