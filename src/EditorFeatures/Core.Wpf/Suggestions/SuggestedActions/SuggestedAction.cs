@@ -6,12 +6,12 @@ using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
+using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Extensions;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text;
-using Microsoft.VisualStudio.Imaging;
 using Microsoft.VisualStudio.Imaging.Interop;
 using Microsoft.VisualStudio.Language.Intellisense;
 using Microsoft.VisualStudio.Text;
@@ -177,11 +177,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
         private void CreateLogProperties(Dictionary<string, object> map)
         {
             // set various correlation info
-            if (CodeAction is CodeFixes.FixSomeCodeAction fixSome)
+            if (CodeAction is FixSomeCodeAction fixSome)
             {
                 // fix all correlation info
-                map[CodeFixes.FixAllLogger.CorrelationId] = fixSome.FixAllState.CorrelationId;
-                map[CodeFixes.FixAllLogger.FixAllScope] = fixSome.FixAllState.Scope.ToString();
+                map[FixAllLogger.CorrelationId] = fixSome.FixAllState.CorrelationId;
+                map[FixAllLogger.FixAllScope] = fixSome.FixAllState.Scope.ToString();
             }
 
             if (TryGetTelemetryId(out Guid telemetryId))
