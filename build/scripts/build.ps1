@@ -133,12 +133,18 @@ function Process-Arguments() {
     $script:debug = -not $release
 }
 
-function Run-MSBuild([string]$projectFilePath, [string]$buildArgs = "", [string]$logFileName = "", [switch]$parallel = $true, [switch]$useDotnetBuild = $false) {
+function Run-MSBuild([string]$projectFilePath, [string]$buildArgs = "", [string]$logFileName = "", [switch]$parallel = $true, [switch]$useDotnetBuild = $false, [switch]$summary = $true) {
     # Because we override the C#/VB toolset to build against our LKG package, it is important
     # that we do not reuse MSBuild nodes from other jobs/builds on the machine. Otherwise,
     # we'll run into issues such as https://github.com/dotnet/roslyn/issues/6211.
     # MSBuildAdditionalCommandLineArgs=
-    $args = "/p:TreatWarningsAsErrors=true /warnaserror /nologo /nodeReuse:false /consoleloggerparameters:Verbosity=minimal;summary /p:Configuration=$buildConfiguration";
+    $args = "/p:TreatWarningsAsErrors=true /warnaserror /nologo /nodeReuse:false /p:Configuration=$buildConfiguration";
+
+    if ($summary) {
+        $args += " /consoleloggerparameters:Verbosity=minimal;summary"
+    } else {        
+        $args += " /consoleloggerparameters:Verbosity=minimal"
+    }
 
     if ($parallel) {
         $args += " /m"
@@ -181,21 +187,17 @@ function Run-MSBuild([string]$projectFilePath, [string]$buildArgs = "", [string]
 function Restore-Packages() {
     Write-Host "Restore using dotnet at $dotnet"
 
-    $all = @(
-        "Roslyn Toolset:build\ToolsetPackages\RoslynToolset.csproj",
-        "Roslyn:Roslyn.sln")
+    Write-Host "Restoring Roslyn Toolset"
+    $logFilePath = if ($binaryLog) { Join-Path $logsDir "Restore-RoslynToolset.binlog" } else { "" }
+    Restore-Project $dotnet "build\ToolsetPackages\RoslynToolset.csproj" $logFilePath
 
-    foreach ($cur in $all) {
-        $both = $cur.Split(':')
-        Write-Host "Restoring $($both[0])"
-        $projectFilePath = $both[1]
-        $projectFileName = [IO.Path]::GetFileNameWithoutExtension($projectFilePath)
-        $logFilePath = ""
-        if ($binaryLog) {
-            $logFilePath = Join-Path $logsDir "Restore-$($projectFileName).binlog"
-        }
-        Restore-Project $dotnet $both[1] $logFilePath
-    }
+    Write-Host "Restoring RepoToolset"
+    $logFilePath = if ($binaryLog) { Join-Path $logsDir "Restore-RepoToolset.binlog" } else { "" }
+    Run-MSBuild "build\Targets\RepoToolset\Build.proj" "/p:Restore=true /bl:$logFilePath" -summary:$false
+
+    Write-Host "Restoring Roslyn"
+    $logFilePath = if ($binaryLog) { Join-Path $logsDir "Restore-Roslyn.binlog" } else { "" }
+    Restore-Project $dotnet "Roslyn.sln" $logFilePath
 }
 
 # Create a bootstrap build of the compiler.  Returns the directory where the bootstrap build

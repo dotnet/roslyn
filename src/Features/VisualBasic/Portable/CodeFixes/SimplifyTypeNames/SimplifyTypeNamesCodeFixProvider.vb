@@ -60,32 +60,24 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.SimplifyTypeNames
                 Return
             End If
 
-            Dim id = GetCodeActionId(diagnosticId, node.ConvertToSingleLine().ToString())
-            Dim title = id
-            context.RegisterCodeFix(
-                New SimplifyTypeNameCodeAction(
-                    title,
-                    Function(c) SimplifyTypeNameAsync(document, node, c),
-                    id:=title),
+            Dim title = GetTitle(diagnosticId, node.ConvertToSingleLine().ToString())
+            context.RegisterCodeFix(New SimplifyTypeNameCodeAction(
+                title, Function(c) SimplifyTypeNameAsync(document, node, c), diagnosticId),
                 context.Diagnostics)
         End Function
 
-        Friend Shared Function GetCodeActionId(simplifyDiagnosticId As String, nodeText As String) As String
+        Private Shared Function GetTitle(simplifyDiagnosticId As String, nodeText As String) As String
             Select Case simplifyDiagnosticId
-                Case IDEDiagnosticIds.SimplifyNamesDiagnosticId
+                Case IDEDiagnosticIds.SimplifyNamesDiagnosticId,
+                     IDEDiagnosticIds.PreferIntrinsicPredefinedTypeInDeclarationsDiagnosticId
                     Return String.Format(VBFeaturesResources.Simplify_name_0, nodeText)
 
-                Case IDEDiagnosticIds.SimplifyMemberAccessDiagnosticId
+                Case IDEDiagnosticIds.SimplifyMemberAccessDiagnosticId,
+                     IDEDiagnosticIds.PreferIntrinsicPredefinedTypeInMemberAccessDiagnosticId
                     Return String.Format(VBFeaturesResources.Simplify_member_access_0, nodeText)
 
                 Case IDEDiagnosticIds.RemoveQualificationDiagnosticId
                     Return VBFeaturesResources.Remove_Me_qualification
-
-                Case IDEDiagnosticIds.PreferIntrinsicPredefinedTypeInDeclarationsDiagnosticId 'TODO use dedicated resource strings?
-                    Return String.Format(VBFeaturesResources.Simplify_name_0, nodeText)
-
-                Case IDEDiagnosticIds.PreferIntrinsicPredefinedTypeInMemberAccessDiagnosticId
-                    Return String.Format(VBFeaturesResources.Simplify_member_access_0, nodeText)
 
                 Case Else
                     Throw ExceptionUtilities.UnexpectedValue(simplifyDiagnosticId)
