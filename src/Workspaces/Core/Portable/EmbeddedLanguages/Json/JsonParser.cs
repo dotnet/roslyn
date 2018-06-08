@@ -36,7 +36,8 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Json
     /// example, a <see cref="JsonPropertyNode"/> (i.e. ```"x" = 0```) is a 'value'.  As such, it
     /// can show up in arrays (i.e.  ```["x" = 0, "y" = 1]```).  This is not legal, but it greatly
     /// simplifies parsing.  Effectively, we just have recursive list parsing, where we accept any
-    /// sort of value in any sort of context.  A later pass will then report errors.
+    /// sort of value in any sort of context.  A later pass will then report errors for the wrong
+    /// sorts of values showing up in incorrect contexts.
     /// </summary>
     internal partial struct JsonParser
     {
@@ -110,7 +111,13 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Json
 
             var root = new JsonCompilationUnit(arraySequence, _currentToken);
 
+            // We only report a single diagnostic when parsing out json.  This helps prevent lots of
+            // cascading errors from being reported.  First, we see if there are any diagnostics
+            // directly in tokens in the tree.  If not, we then check for any incorrect tree
+            // structure (that would be incorrect for both json.net or strict-mode).  If we don't
+            // run into any problems, we'll then perform specific json.net or strict-mode checks.
             var diagnostic = GetFirstDiagnostic(root) ?? CheckTopLevel(_lexer.Text, root);
+
             if (diagnostic == null)
             {
                 // We didn't have any diagnostics in the tree so far.  Do the json.net/strict checks
