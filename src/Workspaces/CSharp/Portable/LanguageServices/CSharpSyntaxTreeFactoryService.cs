@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.Collections.Immutable;
 using System.Composition;
 using System.IO;
 using System.Text;
@@ -62,7 +63,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             public override SyntaxTree CreateRecoverableTree(ProjectId cacheKey, string filePath, ParseOptions options, ValueSource<TextAndVersion> text, Encoding encoding, SyntaxNode root)
             {
                 System.Diagnostics.Debug.Assert(CanCreateRecoverableTree(root));
-                return RecoverableSyntaxTree.CreateRecoverableTree(this, cacheKey, filePath, options ?? GetDefaultParseOptions(), text, encoding, (CompilationUnitSyntax)root);
+                return RecoverableSyntaxTree.CreateRecoverableTree(
+                    this,
+                    cacheKey,
+                    filePath,
+                    options ?? GetDefaultParseOptions(),
+                    text,
+                    encoding,
+                    (CompilationUnitSyntax)root,
+                    diagnosticOptions: null);
             }
         }
     }
