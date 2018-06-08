@@ -102,9 +102,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.Json
           <Literal>
             <NumberToken>1</NumberToken>
           </Literal>
-          <EmptyValue>
+          <CommaValue>
             <CommaToken>,</CommaToken>
-          </EmptyValue>
+          </CommaValue>
           <Literal>
             <NumberToken>0</NumberToken>
           </Literal>
@@ -135,9 +135,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.Json
           <Literal>
             <NumberToken>0<Trivia><WhitespaceTrivia>\f</WhitespaceTrivia></Trivia></NumberToken>
           </Literal>
-          <EmptyValue>
+          <CommaValue>
             <CommaToken>,</CommaToken>
-          </EmptyValue>
+          </CommaValue>
           <Literal>
             <NumberToken>1</NumberToken>
           </Literal>
@@ -326,9 +326,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.Json
       <Array>
         <OpenBracketToken>[</OpenBracketToken>
         <Sequence>
-          <EmptyValue>
+          <CommaValue>
             <CommaToken>,</CommaToken>
-          </EmptyValue>
+          </CommaValue>
         </Sequence>
         <CloseBracketToken>]</CloseBracketToken>
       </Array>
@@ -354,9 +354,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.Json
           <Literal>
             <TrueLiteralToken>true</TrueLiteralToken>
           </Literal>
-          <EmptyValue>
+          <CommaValue>
             <CommaToken>,</CommaToken>
-          </EmptyValue>
+          </CommaValue>
         </Sequence>
         <CloseBracketToken>]</CloseBracketToken>
       </Array>
@@ -402,12 +402,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.Json
       <Array>
         <OpenBracketToken>[</OpenBracketToken>
         <Sequence>
-          <EmptyValue>
+          <CommaValue>
             <CommaToken>,</CommaToken>
-          </EmptyValue>
-          <EmptyValue>
+          </CommaValue>
+          <CommaValue>
             <CommaToken>,</CommaToken>
-          </EmptyValue>
+          </CommaValue>
         </Sequence>
         <CloseBracketToken>]</CloseBracketToken>
       </Array>
@@ -433,12 +433,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.Json
           <Literal>
             <TrueLiteralToken>true</TrueLiteralToken>
           </Literal>
-          <EmptyValue>
+          <CommaValue>
             <CommaToken>,</CommaToken>
-          </EmptyValue>
-          <EmptyValue>
+          </CommaValue>
+          <CommaValue>
             <CommaToken>,</CommaToken>
-          </EmptyValue>
+          </CommaValue>
         </Sequence>
         <CloseBracketToken>]</CloseBracketToken>
       </Array>
@@ -461,15 +461,15 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.Json
       <Array>
         <OpenBracketToken>[</OpenBracketToken>
         <Sequence>
-          <EmptyValue>
+          <CommaValue>
             <CommaToken>,</CommaToken>
-          </EmptyValue>
+          </CommaValue>
           <Literal>
             <TrueLiteralToken>true</TrueLiteralToken>
           </Literal>
-          <EmptyValue>
+          <CommaValue>
             <CommaToken>,</CommaToken>
-          </EmptyValue>
+          </CommaValue>
         </Sequence>
         <CloseBracketToken>]</CloseBracketToken>
       </Array>
@@ -492,12 +492,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.Json
       <Array>
         <OpenBracketToken>[</OpenBracketToken>
         <Sequence>
-          <EmptyValue>
+          <CommaValue>
             <CommaToken>,</CommaToken>
-          </EmptyValue>
-          <EmptyValue>
+          </CommaValue>
+          <CommaValue>
             <CommaToken>,</CommaToken>
-          </EmptyValue>
+          </CommaValue>
           <Literal>
             <TrueLiteralToken>true</TrueLiteralToken>
           </Literal>
@@ -1043,9 +1043,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.Json
               <NumberToken>1</NumberToken>
             </Literal>
           </Property>
-          <EmptyValue>
+          <CommaValue>
             <CommaToken>,</CommaToken>
-          </EmptyValue>
+          </CommaValue>
           <Property>
             <StringToken>'second'</StringToken>
             <ColonToken>:</ColonToken>
@@ -1053,9 +1053,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.Json
               <NumberToken>2</NumberToken>
             </Literal>
           </Property>
-          <EmptyValue>
+          <CommaValue>
             <CommaToken>,</CommaToken>
-          </EmptyValue>
+          </CommaValue>
           <Property>
             <StringToken>'third'</StringToken>
             <ColonToken>:</ColonToken>
@@ -1092,9 +1092,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.Json
               <NumberToken>1</NumberToken>
             </Literal>
           </Property>
-          <EmptyValue>
+          <CommaValue>
             <CommaToken>,</CommaToken>
-          </EmptyValue>
+          </CommaValue>
           <Property>
             <StringToken>""second""</StringToken>
             <ColonToken>:</ColonToken>
@@ -1102,9 +1102,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.Json
               <NumberToken>2</NumberToken>
             </Literal>
           </Property>
-          <EmptyValue>
+          <CommaValue>
             <CommaToken>,</CommaToken>
-          </EmptyValue>
+          </CommaValue>
           <Property>
             <StringToken>""third""</StringToken>
             <ColonToken>:</ColonToken>
@@ -1160,9 +1160,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.Json
               <NumberToken>0</NumberToken>
             </Literal>
           </Property>
-          <EmptyValue>
+          <CommaValue>
             <CommaToken>,<Trivia><WhitespaceTrivia> </WhitespaceTrivia></Trivia></CommaToken>
-          </EmptyValue>
+          </CommaValue>
           <Literal>
             <StringToken>'b'<Trivia><WhitespaceTrivia> </WhitespaceTrivia></Trivia></StringToken>
           </Literal>
@@ -1220,10 +1220,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.Json
               <StringToken>""A person""</StringToken>
             </Literal>
           </Property>
-          <EmptyValue>
+          <CommaValue>
             <CommaToken>,<Trivia><EndOfLineTrivia>
 </EndOfLineTrivia></Trivia></CommaToken>
-          </EmptyValue>
+          </CommaValue>
           <Property>
             <StringToken>
               <Trivia>
@@ -1234,10 +1234,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.Json
               <StringToken>""object""</StringToken>
             </Literal>
           </Property>
-          <EmptyValue>
+          <CommaValue>
             <CommaToken>,<Trivia><EndOfLineTrivia>
 </EndOfLineTrivia></Trivia></CommaToken>
-          </EmptyValue>
+          </CommaValue>
           <Property>
             <StringToken>
               <Trivia>
@@ -1271,10 +1271,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.Json
                   </Sequence>
                   <CloseBraceToken>}</CloseBraceToken>
                 </Object>
-                <EmptyValue>
+                <CommaValue>
                   <CommaToken>,<Trivia><EndOfLineTrivia>
 </EndOfLineTrivia></Trivia></CommaToken>
-                </EmptyValue>
+                </CommaValue>
                 <Property>
                   <StringToken>
                     <Trivia>
@@ -1295,10 +1295,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.Json
                           <StringToken>""array""</StringToken>
                         </Literal>
                       </Property>
-                      <EmptyValue>
+                      <CommaValue>
                         <CommaToken>,<Trivia><EndOfLineTrivia>
 </EndOfLineTrivia></Trivia></CommaToken>
-                      </EmptyValue>
+                      </CommaValue>
                       <Property>
                         <StringToken>
                           <Trivia>
@@ -1367,9 +1367,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.Json
               <NumberToken>0</NumberToken>
             </Literal>
           </Property>
-          <EmptyValue>
+          <CommaValue>
             <CommaToken>,<Trivia><WhitespaceTrivia> </WhitespaceTrivia></Trivia></CommaToken>
-          </EmptyValue>
+          </CommaValue>
           <Literal>
             <StringToken>""b""<Trivia><WhitespaceTrivia> </WhitespaceTrivia></Trivia></StringToken>
           </Literal>
@@ -1408,17 +1408,17 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.Json
           <Literal>
             <StringToken>""Small""</StringToken>
           </Literal>
-          <EmptyValue>
+          <CommaValue>
             <CommaToken>,<Trivia><EndOfLineTrivia>
 </EndOfLineTrivia></Trivia></CommaToken>
-          </EmptyValue>
+          </CommaValue>
           <Literal>
             <StringToken>""Medium""</StringToken>
           </Literal>
-          <EmptyValue>
+          <CommaValue>
             <CommaToken>,<Trivia><EndOfLineTrivia>
 </EndOfLineTrivia></Trivia></CommaToken>
-          </EmptyValue>
+          </CommaValue>
           <Literal>
             <StringToken>""Large""<Trivia><EndOfLineTrivia>
 </EndOfLineTrivia></Trivia></StringToken>
@@ -1426,9 +1426,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.Json
         </Sequence>
         <CloseBracketToken>]</CloseBracketToken>
       </Array>
-      <EmptyValue>
+      <CommaValue>
         <CommaToken>,</CommaToken>
-      </EmptyValue>
+      </CommaValue>
     </Sequence>
     <EndOfFile />
   </CompilationUnit>
@@ -1458,17 +1458,17 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.Json
           <Literal>
             <StringToken>""Small""</StringToken>
           </Literal>
-          <EmptyValue>
+          <CommaValue>
             <CommaToken>,<Trivia><EndOfLineTrivia>
 </EndOfLineTrivia></Trivia></CommaToken>
-          </EmptyValue>
+          </CommaValue>
           <Literal>
             <StringToken>""Medium""</StringToken>
           </Literal>
-          <EmptyValue>
+          <CommaValue>
             <CommaToken>,<Trivia><EndOfLineTrivia>
 </EndOfLineTrivia></Trivia></CommaToken>
-          </EmptyValue>
+          </CommaValue>
           <Literal>
             <StringToken>""Large""<Trivia><EndOfLineTrivia>
 </EndOfLineTrivia></Trivia></StringToken>
@@ -2174,13 +2174,13 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.Json
           <Property>
             <StringToken>'first'</StringToken>
             <ColonToken>:<Trivia><WhitespaceTrivia> </WhitespaceTrivia></Trivia></ColonToken>
-            <EmptyValue>
+            <CommaValue>
               <CommaToken />
-            </EmptyValue>
+            </CommaValue>
           </Property>
-          <EmptyValue>
+          <CommaValue>
             <CommaToken>,<Trivia><WhitespaceTrivia> </WhitespaceTrivia></Trivia></CommaToken>
-          </EmptyValue>
+          </CommaValue>
         </Sequence>
         <CloseBraceToken>}</CloseBraceToken>
       </Object>
@@ -2206,13 +2206,13 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.Json
           <Property>
             <StringToken>""first""</StringToken>
             <ColonToken>:<Trivia><WhitespaceTrivia> </WhitespaceTrivia></Trivia></ColonToken>
-            <EmptyValue>
+            <CommaValue>
               <CommaToken />
-            </EmptyValue>
+            </CommaValue>
           </Property>
-          <EmptyValue>
+          <CommaValue>
             <CommaToken>,<Trivia><WhitespaceTrivia> </WhitespaceTrivia></Trivia></CommaToken>
-          </EmptyValue>
+          </CommaValue>
         </Sequence>
         <CloseBraceToken>}</CloseBraceToken>
       </Object>
@@ -2300,9 +2300,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.Json
           <Property>
             <StringToken>'first'</StringToken>
             <ColonToken>:<Trivia><WhitespaceTrivia> </WhitespaceTrivia></Trivia></ColonToken>
-            <EmptyValue>
+            <CommaValue>
               <CommaToken />
-            </EmptyValue>
+            </CommaValue>
           </Property>
         </Sequence>
         <CloseBraceToken />
@@ -2331,9 +2331,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.Json
           <Property>
             <StringToken>""first""</StringToken>
             <ColonToken>:<Trivia><WhitespaceTrivia> </WhitespaceTrivia></Trivia></ColonToken>
-            <EmptyValue>
+            <CommaValue>
               <CommaToken />
-            </EmptyValue>
+            </CommaValue>
           </Property>
         </Sequence>
         <CloseBraceToken />
@@ -2442,9 +2442,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.Json
             </Sequence>
             <CloseBraceToken>}</CloseBraceToken>
           </Object>
-          <EmptyValue>
+          <CommaValue>
             <CommaToken>,</CommaToken>
-          </EmptyValue>
+          </CommaValue>
           <Object>
             <OpenBraceToken>{<Trivia><WhitespaceTrivia> </WhitespaceTrivia></Trivia></OpenBraceToken>
             <Sequence>
@@ -2458,32 +2458,32 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.Json
             </Sequence>
             <CloseBraceToken>}</CloseBraceToken>
           </Object>
-          <EmptyValue>
+          <CommaValue>
             <CommaToken>,</CommaToken>
-          </EmptyValue>
+          </CommaValue>
           <Literal>
             <NumberToken>1</NumberToken>
           </Literal>
-          <EmptyValue>
+          <CommaValue>
             <CommaToken>,</CommaToken>
-          </EmptyValue>
+          </CommaValue>
           <Literal>
             <NullLiteralToken>null</NullLiteralToken>
           </Literal>
-          <EmptyValue>
+          <CommaValue>
             <CommaToken>,</CommaToken>
-          </EmptyValue>
+          </CommaValue>
           <Array>
             <OpenBracketToken>[</OpenBracketToken>
             <Sequence />
             <CloseBracketToken>]</CloseBracketToken>
           </Array>
-          <EmptyValue>
+          <CommaValue>
             <CommaToken>,</CommaToken>
-          </EmptyValue>
-          <EmptyValue>
+          </CommaValue>
+          <CommaValue>
             <CommaToken>,</CommaToken>
-          </EmptyValue>
+          </CommaValue>
           <Literal>
             <StringToken>'string'</StringToken>
           </Literal>
@@ -2522,9 +2522,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.Json
             </Sequence>
             <CloseBraceToken>}</CloseBraceToken>
           </Object>
-          <EmptyValue>
+          <CommaValue>
             <CommaToken>,</CommaToken>
-          </EmptyValue>
+          </CommaValue>
           <Object>
             <OpenBraceToken>{<Trivia><WhitespaceTrivia> </WhitespaceTrivia></Trivia></OpenBraceToken>
             <Sequence>
@@ -2538,32 +2538,32 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.Json
             </Sequence>
             <CloseBraceToken>}</CloseBraceToken>
           </Object>
-          <EmptyValue>
+          <CommaValue>
             <CommaToken>,</CommaToken>
-          </EmptyValue>
+          </CommaValue>
           <Literal>
             <NumberToken>1</NumberToken>
           </Literal>
-          <EmptyValue>
+          <CommaValue>
             <CommaToken>,</CommaToken>
-          </EmptyValue>
+          </CommaValue>
           <Literal>
             <NullLiteralToken>null</NullLiteralToken>
           </Literal>
-          <EmptyValue>
+          <CommaValue>
             <CommaToken>,</CommaToken>
-          </EmptyValue>
+          </CommaValue>
           <Array>
             <OpenBracketToken>[</OpenBracketToken>
             <Sequence />
             <CloseBracketToken>]</CloseBracketToken>
           </Array>
-          <EmptyValue>
+          <CommaValue>
             <CommaToken>,</CommaToken>
-          </EmptyValue>
-          <EmptyValue>
+          </CommaValue>
+          <CommaValue>
             <CommaToken>,</CommaToken>
-          </EmptyValue>
+          </CommaValue>
           <Literal>
             <StringToken>""string""</StringToken>
           </Literal>
@@ -2604,9 +2604,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.Json
               <StringToken>'bc'</StringToken>
             </Literal>
           </Property>
-          <EmptyValue>
+          <CommaValue>
             <CommaToken>,</CommaToken>
-          </EmptyValue>
+          </CommaValue>
           <Property>
             <StringToken>'d'</StringToken>
             <ColonToken>:</ColonToken>
@@ -2652,9 +2652,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.Json
               <StringToken>""bc""</StringToken>
             </Literal>
           </Property>
-          <EmptyValue>
+          <CommaValue>
             <CommaToken>,</CommaToken>
-          </EmptyValue>
+          </CommaValue>
           <Property>
             <StringToken>""d""</StringToken>
             <ColonToken>:</ColonToken>
@@ -2710,10 +2710,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.Json
               <StringToken>'A person'</StringToken>
             </Literal>
           </Property>
-          <EmptyValue>
+          <CommaValue>
             <CommaToken>,<Trivia><EndOfLineTrivia>
 </EndOfLineTrivia></Trivia></CommaToken>
-          </EmptyValue>
+          </CommaValue>
           <Property>
             <StringToken>
               <Trivia>
@@ -2724,10 +2724,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.Json
               <StringToken>'object'</StringToken>
             </Literal>
           </Property>
-          <EmptyValue>
+          <CommaValue>
             <CommaToken>,<Trivia><EndOfLineTrivia>
 </EndOfLineTrivia></Trivia></CommaToken>
-          </EmptyValue>
+          </CommaValue>
           <Property>
             <StringToken>
               <Trivia>
@@ -2762,10 +2762,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.Json
                     <CloseBraceToken>}</CloseBraceToken>
                   </Object>
                 </Property>
-                <EmptyValue>
+                <CommaValue>
                   <CommaToken>,<Trivia><EndOfLineTrivia>
 </EndOfLineTrivia></Trivia></CommaToken>
-                </EmptyValue>
+                </CommaValue>
                 <Property>
                   <StringToken>
                     <Trivia>
@@ -2786,10 +2786,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.Json
                           <StringToken>'array'</StringToken>
                         </Literal>
                       </Property>
-                      <EmptyValue>
+                      <CommaValue>
                         <CommaToken>,<Trivia><EndOfLineTrivia>
 </EndOfLineTrivia></Trivia></CommaToken>
-                      </EmptyValue>
+                      </CommaValue>
                       <Property>
                         <StringToken>
                           <Trivia>
@@ -2876,10 +2876,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.Json
               <StringToken>""A person""</StringToken>
             </Literal>
           </Property>
-          <EmptyValue>
+          <CommaValue>
             <CommaToken>,<Trivia><EndOfLineTrivia>
 </EndOfLineTrivia></Trivia></CommaToken>
-          </EmptyValue>
+          </CommaValue>
           <Property>
             <StringToken>
               <Trivia>
@@ -2890,10 +2890,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.Json
               <StringToken>""object""</StringToken>
             </Literal>
           </Property>
-          <EmptyValue>
+          <CommaValue>
             <CommaToken>,<Trivia><EndOfLineTrivia>
 </EndOfLineTrivia></Trivia></CommaToken>
-          </EmptyValue>
+          </CommaValue>
           <Property>
             <StringToken>
               <Trivia>
@@ -2928,10 +2928,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.Json
                     <CloseBraceToken>}</CloseBraceToken>
                   </Object>
                 </Property>
-                <EmptyValue>
+                <CommaValue>
                   <CommaToken>,<Trivia><EndOfLineTrivia>
 </EndOfLineTrivia></Trivia></CommaToken>
-                </EmptyValue>
+                </CommaValue>
                 <Property>
                   <StringToken>
                     <Trivia>
@@ -2952,10 +2952,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.Json
                           <StringToken>""array""</StringToken>
                         </Literal>
                       </Property>
-                      <EmptyValue>
+                      <CommaValue>
                         <CommaToken>,<Trivia><EndOfLineTrivia>
 </EndOfLineTrivia></Trivia></CommaToken>
-                      </EmptyValue>
+                      </CommaValue>
                       <Property>
                         <StringToken>
                           <Trivia>
@@ -3020,9 +3020,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.Json
               <StringToken>''</StringToken>
             </Literal>
           </Property>
-          <EmptyValue>
+          <CommaValue>
             <CommaToken>,<Trivia><WhitespaceTrivia> </WhitespaceTrivia></Trivia></CommaToken>
-          </EmptyValue>
+          </CommaValue>
           <Property>
             <TextToken>B</TextToken>
             <ColonToken>:<Trivia><WhitespaceTrivia> </WhitespaceTrivia></Trivia></ColonToken>
@@ -3030,19 +3030,19 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.Json
               <NumberToken>1</NumberToken>
             </Literal>
           </Property>
-          <EmptyValue>
+          <CommaValue>
             <CommaToken>,<Trivia><WhitespaceTrivia> </WhitespaceTrivia></Trivia></CommaToken>
-          </EmptyValue>
+          </CommaValue>
           <Property>
             <TextToken>C</TextToken>
             <ColonToken>:<Trivia><WhitespaceTrivia> </WhitespaceTrivia></Trivia></ColonToken>
-            <EmptyValue>
+            <CommaValue>
               <CommaToken />
-            </EmptyValue>
+            </CommaValue>
           </Property>
-          <EmptyValue>
+          <CommaValue>
             <CommaToken>,<Trivia><WhitespaceTrivia> </WhitespaceTrivia></Trivia></CommaToken>
-          </EmptyValue>
+          </CommaValue>
           <Property>
             <TextToken>D</TextToken>
             <ColonToken>:<Trivia><WhitespaceTrivia> </WhitespaceTrivia></Trivia></ColonToken>
@@ -3050,9 +3050,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.Json
               <NumberToken>1.23</NumberToken>
             </Literal>
           </Property>
-          <EmptyValue>
+          <CommaValue>
             <CommaToken>,<Trivia><WhitespaceTrivia> </WhitespaceTrivia></Trivia></CommaToken>
-          </EmptyValue>
+          </CommaValue>
           <Property>
             <TextToken>E</TextToken>
             <ColonToken>:<Trivia><WhitespaceTrivia> </WhitespaceTrivia></Trivia></ColonToken>
@@ -3060,9 +3060,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.Json
               <NumberToken>3.45</NumberToken>
             </Literal>
           </Property>
-          <EmptyValue>
+          <CommaValue>
             <CommaToken>,<Trivia><WhitespaceTrivia> </WhitespaceTrivia></Trivia></CommaToken>
-          </EmptyValue>
+          </CommaValue>
           <Property>
             <TextToken>F</TextToken>
             <ColonToken>:<Trivia><WhitespaceTrivia> </WhitespaceTrivia></Trivia></ColonToken>
@@ -3099,9 +3099,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.Json
               <StringToken>""""</StringToken>
             </Literal>
           </Property>
-          <EmptyValue>
+          <CommaValue>
             <CommaToken>,<Trivia><WhitespaceTrivia> </WhitespaceTrivia></Trivia></CommaToken>
-          </EmptyValue>
+          </CommaValue>
           <Property>
             <StringToken>""B""</StringToken>
             <ColonToken>:<Trivia><WhitespaceTrivia> </WhitespaceTrivia></Trivia></ColonToken>
@@ -3109,9 +3109,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.Json
               <NumberToken>1</NumberToken>
             </Literal>
           </Property>
-          <EmptyValue>
+          <CommaValue>
             <CommaToken>,<Trivia><WhitespaceTrivia> </WhitespaceTrivia></Trivia></CommaToken>
-          </EmptyValue>
+          </CommaValue>
           <Property>
             <StringToken>""D""</StringToken>
             <ColonToken>:<Trivia><WhitespaceTrivia> </WhitespaceTrivia></Trivia></ColonToken>
@@ -3119,9 +3119,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.Json
               <NumberToken>1.23</NumberToken>
             </Literal>
           </Property>
-          <EmptyValue>
+          <CommaValue>
             <CommaToken>,<Trivia><WhitespaceTrivia> </WhitespaceTrivia></Trivia></CommaToken>
-          </EmptyValue>
+          </CommaValue>
           <Property>
             <StringToken>""E""</StringToken>
             <ColonToken>:<Trivia><WhitespaceTrivia> </WhitespaceTrivia></Trivia></ColonToken>
@@ -3129,9 +3129,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.Json
               <NumberToken>3.45</NumberToken>
             </Literal>
           </Property>
-          <EmptyValue>
+          <CommaValue>
             <CommaToken>,<Trivia><WhitespaceTrivia> </WhitespaceTrivia></Trivia></CommaToken>
-          </EmptyValue>
+          </CommaValue>
           <Property>
             <StringToken>""F""</StringToken>
             <ColonToken>:<Trivia><WhitespaceTrivia> </WhitespaceTrivia></Trivia></ColonToken>
@@ -3184,130 +3184,130 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.Json
                 <WhitespaceTrivia>  </WhitespaceTrivia>
               </Trivia>1</NumberToken>
           </Literal>
-          <EmptyValue>
+          <CommaValue>
             <CommaToken>,<Trivia><EndOfLineTrivia>
 </EndOfLineTrivia></Trivia></CommaToken>
-          </EmptyValue>
+          </CommaValue>
           <Literal>
             <NumberToken>
               <Trivia>
                 <WhitespaceTrivia>  </WhitespaceTrivia>
               </Trivia>0</NumberToken>
           </Literal>
-          <EmptyValue>
+          <CommaValue>
             <CommaToken>,<Trivia><EndOfLineTrivia>
 </EndOfLineTrivia></Trivia></CommaToken>
-          </EmptyValue>
+          </CommaValue>
           <Literal>
             <NumberToken>
               <Trivia>
                 <WhitespaceTrivia>  </WhitespaceTrivia>
               </Trivia>1.1</NumberToken>
           </Literal>
-          <EmptyValue>
+          <CommaValue>
             <CommaToken>,<Trivia><EndOfLineTrivia>
 </EndOfLineTrivia></Trivia></CommaToken>
-          </EmptyValue>
+          </CommaValue>
           <Literal>
             <NumberToken>
               <Trivia>
                 <WhitespaceTrivia>  </WhitespaceTrivia>
               </Trivia>0.0</NumberToken>
           </Literal>
-          <EmptyValue>
+          <CommaValue>
             <CommaToken>,<Trivia><EndOfLineTrivia>
 </EndOfLineTrivia></Trivia></CommaToken>
-          </EmptyValue>
+          </CommaValue>
           <Literal>
             <NumberToken>
               <Trivia>
                 <WhitespaceTrivia>  </WhitespaceTrivia>
               </Trivia>0.000000000001</NumberToken>
           </Literal>
-          <EmptyValue>
+          <CommaValue>
             <CommaToken>,<Trivia><EndOfLineTrivia>
 </EndOfLineTrivia></Trivia></CommaToken>
-          </EmptyValue>
+          </CommaValue>
           <Literal>
             <NumberToken>
               <Trivia>
                 <WhitespaceTrivia>  </WhitespaceTrivia>
               </Trivia>9999999999</NumberToken>
           </Literal>
-          <EmptyValue>
+          <CommaValue>
             <CommaToken>,<Trivia><EndOfLineTrivia>
 </EndOfLineTrivia></Trivia></CommaToken>
-          </EmptyValue>
+          </CommaValue>
           <Literal>
             <NumberToken>
               <Trivia>
                 <WhitespaceTrivia>  </WhitespaceTrivia>
               </Trivia>-9999999999</NumberToken>
           </Literal>
-          <EmptyValue>
+          <CommaValue>
             <CommaToken>,<Trivia><EndOfLineTrivia>
 </EndOfLineTrivia></Trivia></CommaToken>
-          </EmptyValue>
+          </CommaValue>
           <Literal>
             <NumberToken>
               <Trivia>
                 <WhitespaceTrivia>  </WhitespaceTrivia>
               </Trivia>9999999999999999999999999999999999999999999999999999999999999999999999</NumberToken>
           </Literal>
-          <EmptyValue>
+          <CommaValue>
             <CommaToken>,<Trivia><EndOfLineTrivia>
 </EndOfLineTrivia></Trivia></CommaToken>
-          </EmptyValue>
+          </CommaValue>
           <Literal>
             <NumberToken>
               <Trivia>
                 <WhitespaceTrivia>  </WhitespaceTrivia>
               </Trivia>-9999999999999999999999999999999999999999999999999999999999999999999999</NumberToken>
           </Literal>
-          <EmptyValue>
+          <CommaValue>
             <CommaToken>,<Trivia><EndOfLineTrivia>
 </EndOfLineTrivia></Trivia></CommaToken>
-          </EmptyValue>
+          </CommaValue>
           <Literal>
             <StringToken>
               <Trivia>
                 <WhitespaceTrivia>  </WhitespaceTrivia>
               </Trivia>'true'</StringToken>
           </Literal>
-          <EmptyValue>
+          <CommaValue>
             <CommaToken>,<Trivia><EndOfLineTrivia>
 </EndOfLineTrivia></Trivia></CommaToken>
-          </EmptyValue>
+          </CommaValue>
           <Literal>
             <StringToken>
               <Trivia>
                 <WhitespaceTrivia>  </WhitespaceTrivia>
               </Trivia>'TRUE'</StringToken>
           </Literal>
-          <EmptyValue>
+          <CommaValue>
             <CommaToken>,<Trivia><EndOfLineTrivia>
 </EndOfLineTrivia></Trivia></CommaToken>
-          </EmptyValue>
+          </CommaValue>
           <Literal>
             <StringToken>
               <Trivia>
                 <WhitespaceTrivia>  </WhitespaceTrivia>
               </Trivia>'false'</StringToken>
           </Literal>
-          <EmptyValue>
+          <CommaValue>
             <CommaToken>,<Trivia><EndOfLineTrivia>
 </EndOfLineTrivia></Trivia></CommaToken>
-          </EmptyValue>
+          </CommaValue>
           <Literal>
             <StringToken>
               <Trivia>
                 <WhitespaceTrivia>  </WhitespaceTrivia>
               </Trivia>'FALSE'</StringToken>
           </Literal>
-          <EmptyValue>
+          <CommaValue>
             <CommaToken>,<Trivia><EndOfLineTrivia>
 </EndOfLineTrivia></Trivia></CommaToken>
-          </EmptyValue>
+          </CommaValue>
           <Literal>
             <StringToken>
               <Trivia>
@@ -3322,10 +3322,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.Json
                 <WhitespaceTrivia>  </WhitespaceTrivia>
               </Trivia>''</StringToken>
           </Literal>
-          <EmptyValue>
+          <CommaValue>
             <CommaToken>,<Trivia><EndOfLineTrivia>
 </EndOfLineTrivia></Trivia></CommaToken>
-          </EmptyValue>
+          </CommaValue>
           <Literal>
             <NullLiteralToken>
               <Trivia>
@@ -3358,9 +3358,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.Json
           <Literal>
             <NumberToken>1<Trivia><MultiLineCommentTrivia>/*hi*/</MultiLineCommentTrivia></Trivia></NumberToken>
           </Literal>
-          <EmptyValue>
+          <CommaValue>
             <CommaToken>,</CommaToken>
-          </EmptyValue>
+          </CommaValue>
           <Literal>
             <NumberToken>2<Trivia><MultiLineCommentTrivia>/*hi*/</MultiLineCommentTrivia></Trivia></NumberToken>
           </Literal>
@@ -3447,15 +3447,15 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.Json
           <Literal>
             <NumberToken>0372</NumberToken>
           </Literal>
-          <EmptyValue>
+          <CommaValue>
             <CommaToken>,<Trivia><WhitespaceTrivia> </WhitespaceTrivia></Trivia></CommaToken>
-          </EmptyValue>
+          </CommaValue>
           <Literal>
             <NumberToken>0xFA</NumberToken>
           </Literal>
-          <EmptyValue>
+          <CommaValue>
             <CommaToken>,<Trivia><WhitespaceTrivia> </WhitespaceTrivia></Trivia></CommaToken>
-          </EmptyValue>
+          </CommaValue>
           <Literal>
             <NumberToken>0XFA</NumberToken>
           </Literal>
@@ -3505,10 +3505,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.Json
               <StringToken>'Apple'<Trivia><WhitespaceTrivia> </WhitespaceTrivia><MultiLineCommentTrivia>/*comment*/</MultiLineCommentTrivia></Trivia></StringToken>
             </Literal>
           </Property>
-          <EmptyValue>
+          <CommaValue>
             <CommaToken>,<Trivia><WhitespaceTrivia> </WhitespaceTrivia><MultiLineCommentTrivia>/*comment*/</MultiLineCommentTrivia><EndOfLineTrivia>
 </EndOfLineTrivia></Trivia></CommaToken>
-          </EmptyValue>
+          </CommaValue>
           <Property>
             <StringToken>
               <Trivia>
@@ -3519,10 +3519,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.Json
               <StringToken>'1'</StringToken>
             </Literal>
           </Property>
-          <EmptyValue>
+          <CommaValue>
             <CommaToken>,<Trivia><EndOfLineTrivia>
 </EndOfLineTrivia></Trivia></CommaToken>
-          </EmptyValue>
+          </CommaValue>
           <Property>
             <StringToken>
               <Trivia>
@@ -3533,10 +3533,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.Json
               <NumberToken>3.99</NumberToken>
             </Literal>
           </Property>
-          <EmptyValue>
+          <CommaValue>
             <CommaToken>,<Trivia><EndOfLineTrivia>
 </EndOfLineTrivia></Trivia></CommaToken>
-          </EmptyValue>
+          </CommaValue>
           <Property>
             <StringToken>
               <Trivia>
@@ -3553,20 +3553,20 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.Json
                       <WhitespaceTrivia>          </WhitespaceTrivia>
                     </Trivia>'Small'</StringToken>
                 </Literal>
-                <EmptyValue>
+                <CommaValue>
                   <CommaToken>,<Trivia><WhitespaceTrivia> </WhitespaceTrivia><MultiLineCommentTrivia>/*comment*/</MultiLineCommentTrivia><EndOfLineTrivia>
 </EndOfLineTrivia></Trivia></CommaToken>
-                </EmptyValue>
+                </CommaValue>
                 <Literal>
                   <StringToken>
                     <Trivia>
                       <WhitespaceTrivia>          </WhitespaceTrivia>
                     </Trivia>'Medium'<Trivia><WhitespaceTrivia> </WhitespaceTrivia><MultiLineCommentTrivia>/*comment*/</MultiLineCommentTrivia></Trivia></StringToken>
                 </Literal>
-                <EmptyValue>
+                <CommaValue>
                   <CommaToken>,<Trivia><EndOfLineTrivia>
 </EndOfLineTrivia></Trivia></CommaToken>
-                </EmptyValue>
+                </CommaValue>
                 <Literal>
                   <StringToken>
                     <Trivia>
@@ -3614,39 +3614,39 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.Json
           <Literal>
             <StringToken>''</StringToken>
           </Literal>
-          <EmptyValue>
+          <CommaValue>
             <CommaToken>,</CommaToken>
-          </EmptyValue>
+          </CommaValue>
           <Literal>
             <StringToken>''</StringToken>
           </Literal>
-          <EmptyValue>
+          <CommaValue>
             <CommaToken>,</CommaToken>
-          </EmptyValue>
+          </CommaValue>
           <Literal>
             <StringToken>''</StringToken>
           </Literal>
-          <EmptyValue>
+          <CommaValue>
             <CommaToken>,</CommaToken>
-          </EmptyValue>
+          </CommaValue>
           <Literal>
             <StringToken>''</StringToken>
           </Literal>
-          <EmptyValue>
+          <CommaValue>
             <CommaToken>,</CommaToken>
-          </EmptyValue>
+          </CommaValue>
           <Literal>
             <StringToken>''</StringToken>
           </Literal>
-          <EmptyValue>
+          <CommaValue>
             <CommaToken>,</CommaToken>
-          </EmptyValue>
+          </CommaValue>
           <Literal>
             <StringToken>''</StringToken>
           </Literal>
-          <EmptyValue>
+          <CommaValue>
             <CommaToken>,</CommaToken>
-          </EmptyValue>
+          </CommaValue>
           <Literal>
             <StringToken>''</StringToken>
           </Literal>
@@ -3675,39 +3675,39 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.Json
           <Literal>
             <StringToken>""""</StringToken>
           </Literal>
-          <EmptyValue>
+          <CommaValue>
             <CommaToken>,</CommaToken>
-          </EmptyValue>
+          </CommaValue>
           <Literal>
             <StringToken>""""</StringToken>
           </Literal>
-          <EmptyValue>
+          <CommaValue>
             <CommaToken>,</CommaToken>
-          </EmptyValue>
+          </CommaValue>
           <Literal>
             <StringToken>""""</StringToken>
           </Literal>
-          <EmptyValue>
+          <CommaValue>
             <CommaToken>,</CommaToken>
-          </EmptyValue>
+          </CommaValue>
           <Literal>
             <StringToken>""""</StringToken>
           </Literal>
-          <EmptyValue>
+          <CommaValue>
             <CommaToken>,</CommaToken>
-          </EmptyValue>
+          </CommaValue>
           <Literal>
             <StringToken>""""</StringToken>
           </Literal>
-          <EmptyValue>
+          <CommaValue>
             <CommaToken>,</CommaToken>
-          </EmptyValue>
+          </CommaValue>
           <Literal>
             <StringToken>""""</StringToken>
           </Literal>
-          <EmptyValue>
+          <CommaValue>
             <CommaToken>,</CommaToken>
-          </EmptyValue>
+          </CommaValue>
           <Literal>
             <StringToken>""""</StringToken>
           </Literal>
@@ -3755,69 +3755,69 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.Json
           <Literal>
             <FalseLiteralToken>false</FalseLiteralToken>
           </Literal>
-          <EmptyValue>
+          <CommaValue>
             <CommaToken>,<Trivia><WhitespaceTrivia> </WhitespaceTrivia></Trivia></CommaToken>
-          </EmptyValue>
+          </CommaValue>
           <Literal>
             <TrueLiteralToken>true</TrueLiteralToken>
           </Literal>
-          <EmptyValue>
+          <CommaValue>
             <CommaToken>,<Trivia><WhitespaceTrivia> </WhitespaceTrivia></Trivia></CommaToken>
-          </EmptyValue>
+          </CommaValue>
           <Literal>
             <TrueLiteralToken>true</TrueLiteralToken>
           </Literal>
-          <EmptyValue>
+          <CommaValue>
             <CommaToken>,<Trivia><WhitespaceTrivia> </WhitespaceTrivia></Trivia></CommaToken>
-          </EmptyValue>
+          </CommaValue>
           <Literal>
             <FalseLiteralToken>false</FalseLiteralToken>
           </Literal>
-          <EmptyValue>
+          <CommaValue>
             <CommaToken>,<Trivia><WhitespaceTrivia> </WhitespaceTrivia></Trivia></CommaToken>
-          </EmptyValue>
+          </CommaValue>
           <Literal>
             <StringToken>'test!'</StringToken>
           </Literal>
-          <EmptyValue>
+          <CommaValue>
             <CommaToken>,<Trivia><WhitespaceTrivia> </WhitespaceTrivia></Trivia></CommaToken>
-          </EmptyValue>
+          </CommaValue>
           <Literal>
             <NumberToken>1.11</NumberToken>
           </Literal>
-          <EmptyValue>
+          <CommaValue>
             <CommaToken>,<Trivia><WhitespaceTrivia> </WhitespaceTrivia></Trivia></CommaToken>
-          </EmptyValue>
+          </CommaValue>
           <Literal>
             <NumberToken>0e-10</NumberToken>
           </Literal>
-          <EmptyValue>
+          <CommaValue>
             <CommaToken>,<Trivia><WhitespaceTrivia> </WhitespaceTrivia></Trivia></CommaToken>
-          </EmptyValue>
+          </CommaValue>
           <Literal>
             <NumberToken>0E-10</NumberToken>
           </Literal>
-          <EmptyValue>
+          <CommaValue>
             <CommaToken>,<Trivia><WhitespaceTrivia> </WhitespaceTrivia></Trivia></CommaToken>
-          </EmptyValue>
+          </CommaValue>
           <Literal>
             <NumberToken>0.25e-5</NumberToken>
           </Literal>
-          <EmptyValue>
+          <CommaValue>
             <CommaToken>,<Trivia><WhitespaceTrivia> </WhitespaceTrivia></Trivia></CommaToken>
-          </EmptyValue>
+          </CommaValue>
           <Literal>
             <NumberToken>0.3e10</NumberToken>
           </Literal>
-          <EmptyValue>
+          <CommaValue>
             <CommaToken>,<Trivia><WhitespaceTrivia> </WhitespaceTrivia></Trivia></CommaToken>
-          </EmptyValue>
+          </CommaValue>
           <Literal>
             <NumberToken>6.0221418e23</NumberToken>
           </Literal>
-          <EmptyValue>
+          <CommaValue>
             <CommaToken>,<Trivia><WhitespaceTrivia> </WhitespaceTrivia></Trivia></CommaToken>
-          </EmptyValue>
+          </CommaValue>
           <Literal>
             <StringToken>'Purple\r \n monkey\'s:\tdishwasher'</StringToken>
           </Literal>
@@ -3846,69 +3846,69 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.Json
           <Literal>
             <FalseLiteralToken>false</FalseLiteralToken>
           </Literal>
-          <EmptyValue>
+          <CommaValue>
             <CommaToken>,<Trivia><WhitespaceTrivia> </WhitespaceTrivia></Trivia></CommaToken>
-          </EmptyValue>
+          </CommaValue>
           <Literal>
             <TrueLiteralToken>true</TrueLiteralToken>
           </Literal>
-          <EmptyValue>
+          <CommaValue>
             <CommaToken>,<Trivia><WhitespaceTrivia> </WhitespaceTrivia></Trivia></CommaToken>
-          </EmptyValue>
+          </CommaValue>
           <Literal>
             <TrueLiteralToken>true</TrueLiteralToken>
           </Literal>
-          <EmptyValue>
+          <CommaValue>
             <CommaToken>,<Trivia><WhitespaceTrivia> </WhitespaceTrivia></Trivia></CommaToken>
-          </EmptyValue>
+          </CommaValue>
           <Literal>
             <FalseLiteralToken>false</FalseLiteralToken>
           </Literal>
-          <EmptyValue>
+          <CommaValue>
             <CommaToken>,<Trivia><WhitespaceTrivia> </WhitespaceTrivia></Trivia></CommaToken>
-          </EmptyValue>
+          </CommaValue>
           <Literal>
             <StringToken>""test!""</StringToken>
           </Literal>
-          <EmptyValue>
+          <CommaValue>
             <CommaToken>,<Trivia><WhitespaceTrivia> </WhitespaceTrivia></Trivia></CommaToken>
-          </EmptyValue>
+          </CommaValue>
           <Literal>
             <NumberToken>1.11</NumberToken>
           </Literal>
-          <EmptyValue>
+          <CommaValue>
             <CommaToken>,<Trivia><WhitespaceTrivia> </WhitespaceTrivia></Trivia></CommaToken>
-          </EmptyValue>
+          </CommaValue>
           <Literal>
             <NumberToken>0e-10</NumberToken>
           </Literal>
-          <EmptyValue>
+          <CommaValue>
             <CommaToken>,<Trivia><WhitespaceTrivia> </WhitespaceTrivia></Trivia></CommaToken>
-          </EmptyValue>
+          </CommaValue>
           <Literal>
             <NumberToken>0E-10</NumberToken>
           </Literal>
-          <EmptyValue>
+          <CommaValue>
             <CommaToken>,<Trivia><WhitespaceTrivia> </WhitespaceTrivia></Trivia></CommaToken>
-          </EmptyValue>
+          </CommaValue>
           <Literal>
             <NumberToken>0.25e-5</NumberToken>
           </Literal>
-          <EmptyValue>
+          <CommaValue>
             <CommaToken>,<Trivia><WhitespaceTrivia> </WhitespaceTrivia></Trivia></CommaToken>
-          </EmptyValue>
+          </CommaValue>
           <Literal>
             <NumberToken>0.3e10</NumberToken>
           </Literal>
-          <EmptyValue>
+          <CommaValue>
             <CommaToken>,<Trivia><WhitespaceTrivia> </WhitespaceTrivia></Trivia></CommaToken>
-          </EmptyValue>
+          </CommaValue>
           <Literal>
             <NumberToken>6.0221418e23</NumberToken>
           </Literal>
-          <EmptyValue>
+          <CommaValue>
             <CommaToken>,<Trivia><WhitespaceTrivia> </WhitespaceTrivia></Trivia></CommaToken>
-          </EmptyValue>
+          </CommaValue>
           <Literal>
             <StringToken>""Purple\r \n monkey\'s:\tdishwasher""</StringToken>
           </Literal>
@@ -4125,9 +4125,9 @@ b""</StringToken>
           <Literal>
             <NumberToken>1</NumberToken>
           </Literal>
-          <EmptyValue>
+          <CommaValue>
             <CommaToken>,<Trivia><WhitespaceTrivia> </WhitespaceTrivia></Trivia></CommaToken>
-          </EmptyValue>
+          </CommaValue>
           <Literal>
             <NumberToken>2</NumberToken>
           </Literal>
@@ -4192,9 +4192,9 @@ b""</StringToken>
         <TextToken>A</TextToken>
         <OpenParenToken>(</OpenParenToken>
         <Sequence>
-          <EmptyValue>
+          <CommaValue>
             <CommaToken>,</CommaToken>
-          </EmptyValue>
+          </CommaValue>
         </Sequence>
         <CloseParenToken>)</CloseParenToken>
       </Constructor>
@@ -4222,9 +4222,9 @@ b""</StringToken>
           <Literal>
             <NumberToken>1</NumberToken>
           </Literal>
-          <EmptyValue>
+          <CommaValue>
             <CommaToken>,</CommaToken>
-          </EmptyValue>
+          </CommaValue>
         </Sequence>
         <CloseParenToken>)</CloseParenToken>
       </Constructor>
@@ -4249,9 +4249,9 @@ b""</StringToken>
         <TextToken>A</TextToken>
         <OpenParenToken>(</OpenParenToken>
         <Sequence>
-          <EmptyValue>
+          <CommaValue>
             <CommaToken>,</CommaToken>
-          </EmptyValue>
+          </CommaValue>
           <Literal>
             <NumberToken>1</NumberToken>
           </Literal>
@@ -4282,9 +4282,9 @@ b""</StringToken>
           <Literal>
             <NumberToken>1</NumberToken>
           </Literal>
-          <EmptyValue>
+          <CommaValue>
             <CommaToken>,</CommaToken>
-          </EmptyValue>
+          </CommaValue>
           <Literal>
             <NumberToken>1</NumberToken>
           </Literal>
@@ -4315,12 +4315,12 @@ b""</StringToken>
           <Literal>
             <NumberToken>1</NumberToken>
           </Literal>
-          <EmptyValue>
+          <CommaValue>
             <CommaToken>,</CommaToken>
-          </EmptyValue>
-          <EmptyValue>
+          </CommaValue>
+          <CommaValue>
             <CommaToken>,</CommaToken>
-          </EmptyValue>
+          </CommaValue>
           <Literal>
             <NumberToken>1</NumberToken>
           </Literal>
@@ -4410,12 +4410,12 @@ b""</StringToken>
               <NumberToken>0</NumberToken>
             </Literal>
           </Property>
-          <EmptyValue>
+          <CommaValue>
             <CommaToken>,</CommaToken>
-          </EmptyValue>
-          <EmptyValue>
+          </CommaValue>
+          <CommaValue>
             <CommaToken>,</CommaToken>
-          </EmptyValue>
+          </CommaValue>
           <Property>
             <TextToken>1</TextToken>
             <ColonToken>:</ColonToken>
