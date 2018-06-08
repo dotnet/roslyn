@@ -523,7 +523,7 @@ class Program
     [Obsolete(""Please do not use this method: "" + nameof(Program.Old), true)]
     static void Old() { }
 }";
-            CompileAndVerify(source, new[] { LinqAssemblyRef }, expectedOutput: @"
+            CompileAndVerify(source, expectedOutput: @"
 EntryMethodName
 Correct
 Correct");
@@ -657,7 +657,7 @@ class Program
                 source,
                 options: TestOptions.DebugExe,
                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp6)).VerifyDiagnostics(
-                    // (7,9): error CS0201: Only assignment, call, increment, decrement, and new object expressions can be used as a statement
+                    // (7,9): error CS0201: Only assignment, call, increment, decrement, await, and new object expressions can be used as a statement
                     //         nameof(N);
                     Diagnostic(ErrorCode.ERR_IllegalStatement, "nameof(N)").WithLocation(7, 9)
                 );
@@ -682,7 +682,7 @@ class Program
                     // (7,9): error CS8026: Feature 'nameof operator' is not available in C# 5. Please use language version 6 or greater.
                     //         nameof(N);
                     Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion5, "nameof(N)").WithArguments("nameof operator", "6").WithLocation(7, 9),
-                    // (7,9): error CS0201: Only assignment, call, increment, decrement, and new object expressions can be used as a statement
+                    // (7,9): error CS0201: Only assignment, call, increment, decrement, await, and new object expressions can be used as a statement
                     //         nameof(N);
                     Diagnostic(ErrorCode.ERR_IllegalStatement, "nameof(N)").WithLocation(7, 9)
                 );

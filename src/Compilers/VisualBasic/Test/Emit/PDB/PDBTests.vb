@@ -450,7 +450,7 @@ Class C
 End Class
 ]]></file>
 </compilation>
-            Dim compilation = CreateCompilationWithMscorlib40(source, TestOptions.DebugDll)
+            Dim compilation = CreateCompilationWithMscorlib40(source, options:=TestOptions.DebugDll)
             compilation.VerifyPdb("C..ctor",
 <symbols>
     <files>
@@ -509,7 +509,7 @@ Class C
 End Class
 ]]></file>
 </compilation>
-            Dim compilation = CreateCompilationWithMscorlib40(source, TestOptions.DebugDll)
+            Dim compilation = CreateCompilationWithMscorlib40(source, options:=TestOptions.DebugDll)
             compilation.VerifyPdb("C..ctor",
 <symbols>
     <files>
@@ -3820,7 +3820,7 @@ End Class
 ]]></file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlib40(source, TestOptions.DebugDll)
+            Dim compilation = CreateCompilationWithMscorlib40(source, options:=TestOptions.DebugDll)
 
             compilation.VerifyPdb("C..ctor",
 <symbols>

@@ -218,7 +218,7 @@ End Class
 ]]></file>
                            </compilation>
 
-            Dim compilation0 = CreateCompilationWithMscorlib40(sources0, TestOptions.DebugDll)
+            Dim compilation0 = CreateCompilationWithMscorlib40(sources0, options:=TestOptions.DebugDll)
             Dim compilation1 = compilation0.WithSource(sources1)
             Dim matcher = CreateMatcher(compilation1, compilation0)
             Dim elementType = compilation1.GetMember(Of TypeSymbol)("C.D")
@@ -250,7 +250,7 @@ End Class
 ]]></file>
                            </compilation>
 
-            Dim compilation0 = CreateCompilationWithMscorlib40(sources0, TestOptions.DebugDll)
+            Dim compilation0 = CreateCompilationWithMscorlib40(sources0, options:=TestOptions.DebugDll)
             Dim compilation1 = compilation0.WithSource(sources1)
             Dim matcher = CreateMatcher(compilation1, compilation0)
             Dim elementType = compilation1.GetMember(Of TypeSymbol)("C.D")
@@ -286,7 +286,7 @@ End Class
 ]]></file>
                            </compilation>
 
-            Dim compilation0 = CreateCompilationWithMscorlib40(sources0, TestOptions.DebugDll)
+            Dim compilation0 = CreateCompilationWithMscorlib40(sources0, options:=TestOptions.DebugDll)
             Dim compilation1 = compilation0.WithSource(sources1)
             Dim matcher = CreateMatcher(compilation1, compilation0)
             Dim member = compilation1.GetMember(Of FieldSymbol)("C.y")

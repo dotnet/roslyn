@@ -898,7 +898,7 @@
     <value>Property or indexer '{0}' cannot be assigned to -- it is read only</value>
   </data>
   <data name="ERR_IllegalStatement" xml:space="preserve">
-    <value>Only assignment, call, increment, decrement, and new object expressions can be used as a statement</value>
+    <value>Only assignment, call, increment, decrement, await, and new object expressions can be used as a statement</value>
   </data>
   <data name="ERR_BadGetEnumerator" xml:space="preserve">
     <value>foreach requires that the return type '{0}' of '{1}' must have a suitable public MoveNext method and public Current property</value>
@@ -1123,7 +1123,7 @@
     <value>Type does not implement the collection pattern; member has the wrong signature</value>
   </data>
   <data name="ERR_FriendRefNotEqualToThis" xml:space="preserve">
-    <value>Friend access was granted by '{0}', but the public key of the output assembly does not match that specified by the attribute in the granting assembly.</value>
+    <value>Friend access was granted by '{0}', but the public key of the output assembly ('{1}') does not match that specified by the InternalsVisibleTo attribute in the granting assembly.</value>
   </data>
   <data name="ERR_FriendRefSigningMismatch" xml:space="preserve">
     <value>Friend access was granted by '{0}', but the strong name signing state of the output assembly does not match that of the granting assembly.</value>

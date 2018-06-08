@@ -43,6 +43,73 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.NamingStyle
                 options: options.ClassNamesArePascalCase);
         }
 
+        [Theory, Trait(Traits.Feature, Traits.Features.NamingStyle)]
+        [InlineData("M_bar", "bar")]
+        [InlineData("S_bar", "bar")]
+        [InlineData("T_bar", "bar")]
+        [InlineData("_Bar", "bar", Skip = "https://github.com/dotnet/roslyn/issues/26588")]
+        [InlineData("__Bar", "bar", Skip = "https://github.com/dotnet/roslyn/issues/26588")]
+        [InlineData("M_s__t_Bar", "bar")]
+        [InlineData("m_bar", "bar", Skip = "https://github.com/dotnet/roslyn/issues/26588")]
+        [InlineData("s_bar", "bar", Skip = "https://github.com/dotnet/roslyn/issues/26588")]
+        [InlineData("t_bar", "bar", Skip = "https://github.com/dotnet/roslyn/issues/26588")]
+        [InlineData("_bar", "bar", Skip = "https://github.com/dotnet/roslyn/issues/26588")]
+        [InlineData("__bar", "bar", Skip = "https://github.com/dotnet/roslyn/issues/26588")]
+        [InlineData("m_s__t_Bar", "bar", Skip = "https://github.com/dotnet/roslyn/issues/26588")]
+        // Special cases to ensure empty identifiers are not produced
+        [InlineData("M_", "m_")]
+        [InlineData("M__", "_")]
+        [InlineData("S_", "s_")]
+        [InlineData("T_", "t_")]
+        [InlineData("M_S__T_", "t_")]
+        public async Task TestCamelCaseField_PrefixGetsStripped(string fieldName, string correctedName)
+        {
+            await TestInRegularAndScriptAsync(
+$@"class C
+{{
+    int [|{fieldName}|];
+}}",
+$@"class C
+{{
+    int [|{correctedName}|];
+}}",
+                options: options.FieldNamesAreCamelCase);
+        }
+
+        [Theory, Trait(Traits.Feature, Traits.Features.NamingStyle)]
+        [InlineData("M_bar", "_bar")]
+        [InlineData("S_bar", "_bar")]
+        [InlineData("T_bar", "_bar")]
+        [InlineData("_Bar", "_bar")]
+        [InlineData("__Bar", "_bar", Skip = "https://github.com/dotnet/roslyn/issues/26588")]
+        [InlineData("M_s__t_Bar", "_bar")]
+        [InlineData("m_bar", "_bar")]
+        [InlineData("s_bar", "_bar")]
+        [InlineData("t_bar", "_bar")]
+        [InlineData("bar", "_bar")]
+        [InlineData("__bar", "_bar", Skip = "https://github.com/dotnet/roslyn/issues/26588")]
+        [InlineData("__s_bar", "_bar", Skip = "https://github.com/dotnet/roslyn/issues/26588")]
+        [InlineData("m_s__t_Bar", "_bar")]
+        // Special cases to ensure empty identifiers are not produced
+        [InlineData("M_", "_m_")]
+        [InlineData("M__", "_")]
+        [InlineData("S_", "_s_")]
+        [InlineData("T_", "_t_")]
+        [InlineData("M_S__T_", "_t_")]
+        public async Task TestCamelCaseField_PrefixGetsStrippedBeforeAddition(string fieldName, string correctedName)
+        {
+            await TestInRegularAndScriptAsync(
+$@"class C
+{{
+    int [|{fieldName}|];
+}}",
+$@"class C
+{{
+    int [|{correctedName}|];
+}}",
+                options: options.FieldNamesAreCamelCaseWithUnderscore);
+        }
+
         [Fact, Trait(Traits.Feature, Traits.Features.NamingStyle)]
         public async Task TestPascalCaseMethod_CorrectName()
         {
@@ -107,6 +174,21 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.NamingStyle
         get
         {
             return 1;
+        }
+    }
+}", new TestParameters(options: options.MethodNamesArePascalCase));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.NamingStyle)]
+        public async Task TestPascalCaseMethod_LocalFunctionIsIgnored()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"class C
+{
+    void M()
+    {
+        void [|f|]()
+        {
         }
     }
 }", new TestParameters(options: options.MethodNamesArePascalCase));
@@ -695,6 +777,117 @@ class C
     }
 }",
                 options: options.LocalsAreCamelCaseConstantsAreUpperCase);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.NamingStyle)]
+        public async Task TestCamelCaseLocalFunctions()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    void M()
+    {
+        void [|F|]()
+        {
+        }
+    }
+}",
+@"class C
+{
+    void M()
+    {
+        void f()
+        {
+        }
+    }
+}",
+                options: options.LocalFunctionNamesAreCamelCase);
+        }
+ 
+        [Fact, Trait(Traits.Feature, Traits.Features.NamingStyle)]
+        public async Task TestCamelCaseLocalFunctions_MethodIsIgnored()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"class C
+{
+    void [|M|]()
+    {
+    }
+}", new TestParameters(options: options.LocalFunctionNamesAreCamelCase));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.NamingStyle)]
+        public async Task TestAsyncFunctions_AsyncMethod()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    async void [|M|]()
+    {
+    }
+}",
+@"class C
+{
+    async void MAsync()
+    {
+    }
+}",
+                options: options.AsyncFunctionNamesEndWithAsync);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.NamingStyle)]
+        public async Task TestAsyncFunctions_AsyncLocalFunction()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    void M()
+    {
+        async void [|F|]()
+        {
+        }
+    }
+}",
+@"class C
+{
+    void M()
+    {
+        async void FAsync()
+        {
+        }
+    }
+}",
+                options: options.AsyncFunctionNamesEndWithAsync);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.NamingStyle)]
+        public async Task TestAsyncFunctions_NonAsyncMethodIgnored()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"class C
+{
+    void [|M|]()
+    {
+        async void F()
+        {
+        }
+    }
+}", new TestParameters(options: options.AsyncFunctionNamesEndWithAsync));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.NamingStyle)]
+        public async Task TestAsyncFunctions_NonAsyncLocalFunctionIgnored()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"class C
+{
+    async void M()
+    {
+        void [|F|]()
+        {
+        }
+    }
+}", new TestParameters(options: options.AsyncFunctionNamesEndWithAsync));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.NamingStyle)]
