@@ -1460,7 +1460,7 @@ label1:
 }
 ";
 
-            var compilation = CreateCompilation(source, references: new[] { LinqAssemblyRef });
+            var compilation = CreateCompilation(source);
 
             var tree = compilation.SyntaxTrees.Single();
             var model = (Microsoft.CodeAnalysis.SemanticModel)(compilation.GetSemanticModel(tree));

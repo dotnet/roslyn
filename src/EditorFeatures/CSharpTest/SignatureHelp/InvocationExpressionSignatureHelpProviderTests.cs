@@ -206,6 +206,103 @@ class C
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        [WorkItem(26713, "https://github.com/dotnet/roslyn/issues/26713")]
+        public async Task TestDelegateParameterWithDocumentation_Invoke()
+        {
+            var markup = @"
+class C
+{
+    /// <param name=""a"">Parameter docs</param>
+    delegate void SomeDelegate(int a);
+
+    void M(SomeDelegate theDelegate)
+    {
+        [|theDelegate($$|]);
+    }
+}";
+
+            var expectedOrderedItems = new List<SignatureHelpTestItem>
+            {
+                new SignatureHelpTestItem("void SomeDelegate(int a)", parameterDocumentation: "Parameter docs", currentParameterIndex: 0),
+            };
+
+            await TestAsync(markup, expectedOrderedItems);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        [WorkItem(26713, "https://github.com/dotnet/roslyn/issues/26713")]
+        public async Task TestDelegateParameterWithDocumentation_Invoke2()
+        {
+            var markup = @"
+class C
+{
+    /// <param name=""a"">Parameter docs</param>
+    delegate void SomeDelegate(int a);
+
+    void M(SomeDelegate theDelegate)
+    {
+        [|theDelegate.Invoke($$|]);
+    }
+}";
+
+            var expectedOrderedItems = new List<SignatureHelpTestItem>
+            {
+                new SignatureHelpTestItem("void SomeDelegate.Invoke(int a)", parameterDocumentation: "Parameter docs", currentParameterIndex: 0),
+            };
+
+            await TestAsync(markup, expectedOrderedItems);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        [WorkItem(26713, "https://github.com/dotnet/roslyn/issues/26713")]
+        public async Task TestDelegateParameterWithDocumentation_BeginInvoke()
+        {
+            var markup = @"
+class C
+{
+    /// <param name=""a"">Parameter docs</param>
+    delegate void SomeDelegate(int a);
+
+    void M(SomeDelegate theDelegate)
+    {
+        [|theDelegate.BeginInvoke($$|]);
+    }
+}";
+
+            var expectedOrderedItems = new List<SignatureHelpTestItem>
+            {
+                new SignatureHelpTestItem("System.IAsyncResult SomeDelegate.BeginInvoke(int a, System.AsyncCallback callback, object @object)", parameterDocumentation: "Parameter docs", currentParameterIndex: 0)
+            };
+
+            await TestAsync(markup, expectedOrderedItems);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        [WorkItem(26713, "https://github.com/dotnet/roslyn/issues/26713")]
+        public async Task TestDelegateParameterWithDocumentation_BeginInvoke2()
+        {
+            var markup = @"
+class C
+{
+    /// <param name=""a"">Parameter docs</param>
+    /// <param name=""callback"">This should not be displayed</param>
+    delegate void SomeDelegate(int a);
+
+    void M(SomeDelegate theDelegate)
+    {
+        [|theDelegate.BeginInvoke(0, $$|]);
+    }
+}";
+
+            var expectedOrderedItems = new List<SignatureHelpTestItem>
+            {
+                new SignatureHelpTestItem("System.IAsyncResult SomeDelegate.BeginInvoke(int a, System.AsyncCallback callback, object @object)", parameterDocumentation: null, currentParameterIndex: 1)
+            };
+
+            await TestAsync(markup, expectedOrderedItems);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
         public async Task TestInvocationWithoutClosingParen()
         {
             var markup = @"
@@ -1589,7 +1686,7 @@ class C
             await TestSignatureHelpWithMscorlib45Async(markup, expectedOrderedItems, "C#");
         }
 
-        #endregion 
+        #endregion
 
         [WorkItem(13849, "DevDiv_Projects/Roslyn")]
         [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]

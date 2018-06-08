@@ -697,9 +697,9 @@
         <target state="translated">显示名称建议(_U)</target>
         <note />
       </trans-unit>
-      <trans-unit id="Event_Hookup_Command_Handler">
-        <source>Generate Event Subscription Command Handler</source>
-        <target state="new">Generate Event Subscription Command Handler</target>
+      <trans-unit id="Generate Event Subscription">
+        <source>Generate Event Subscription</source>
+        <target state="translated">生成事件订阅</target>
         <note />
       </trans-unit>
       <trans-unit id="In_arithmetic_binary_operators">

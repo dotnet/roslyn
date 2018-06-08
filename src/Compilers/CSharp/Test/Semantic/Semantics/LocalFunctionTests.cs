@@ -2658,7 +2658,7 @@ class Program
     // (10,17): error CS0127: Since 'Program.Main(string[])' returns void, a return keyword must not be followed by an object expression
     //                 return 2;
     Diagnostic(ErrorCode.ERR_RetNoObjectRequired, "return").WithArguments("Program.Main(string[])").WithLocation(10, 17),
-    // (13,20): error CS0201: Only assignment, call, increment, decrement, and new object expressions can be used as a statement
+    // (13,20): error CS0201: Only assignment, call, increment, decrement, await, and new object expressions can be used as a statement
     //         int Bar => 2;
     Diagnostic(ErrorCode.ERR_IllegalStatement, "2").WithLocation(13, 20),
     // (13,9): warning CS0162: Unreachable code detected
