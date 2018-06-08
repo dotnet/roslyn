@@ -422,7 +422,7 @@
        
        https://github.com/dotnet/core-setup/issues/3805
        -->
-  <Target Name="BeforeBuild" Condition="'$(MSBuildRuntimeType)' != 'Core'">
+  <Target Name="BeforeBuild" Condition="'$(MSBuildRuntimeType)' != 'Core' AND '$(OS)' == 'Windows_NT'">
     <ValidateBuildEnvironment
       MSBuildBinPath="$(MSBuildBinPath)"
       MSBuildMinimumFileVersion="15.3.409"
