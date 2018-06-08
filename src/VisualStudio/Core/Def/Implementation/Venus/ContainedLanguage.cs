@@ -44,14 +44,15 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
             uint itemid,
             TLanguageService languageService,
             SourceCodeKind sourceCodeKind,
-            IFormattingRule vbHelperFormattingRule = null)
+            IFormattingRule vbHelperFormattingRule = null,
+            Workspace workspace = null)
             : base(project)
         {
             this.BufferCoordinator = bufferCoordinator;
             this.ComponentModel = componentModel;
             _languageService = languageService;
 
-            this.Workspace = componentModel.GetService<VisualStudioWorkspace>();
+            this.Workspace = workspace ?? componentModel.GetService<VisualStudioWorkspace>();
 
             _editorAdaptersFactoryService = componentModel.GetService<IVsEditorAdaptersFactoryService>();
             _diagnosticAnalyzerService = componentModel.GetService<IDiagnosticAnalyzerService>();

@@ -1077,7 +1077,7 @@ End Class]]>.Value
             Dim fileName = "a.vb"
             Dim syntaxTree = Parse(source, fileName, options:=Nothing)
 
-            Dim compilation = CreateCompilationWithMscorlib45AndVBRuntime({syntaxTree}, DefaultVbReferences.Concat({ValueTupleRef, SystemRuntimeFacadeRef}))
+            Dim compilation = CreateEmptyCompilation({syntaxTree}, DefaultVbReferences.Concat({ValueTupleRef, SystemRuntimeFacadeRef}))
             Dim result = GetOperationAndSyntaxForTest(Of InvocationExpressionSyntax)(compilation, fileName)
 
             Dim expectedInKind = ConversionKind.Widening Or ConversionKind.UserDefined
@@ -1131,7 +1131,7 @@ End Class]]>.Value
             Dim fileName = "a.vb"
             Dim syntaxTree = Parse(source, fileName, options:=Nothing)
 
-            Dim compilation = CreateCompilationWithMscorlib45AndVBRuntime({syntaxTree}, DefaultVbReferences.Concat({ValueTupleRef, SystemRuntimeFacadeRef}))
+            Dim compilation = CreateEmptyCompilation({syntaxTree}, DefaultVbReferences.Concat({ValueTupleRef, SystemRuntimeFacadeRef}))
             Dim tree = (From t In compilation.SyntaxTrees Where t.FilePath = fileName).Single()
             Dim model = compilation.GetSemanticModel(tree)
 

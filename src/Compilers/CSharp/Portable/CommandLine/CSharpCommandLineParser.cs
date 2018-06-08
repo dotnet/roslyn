@@ -1796,7 +1796,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return null;
             }
 
-            if (fullPath == null || !PathUtilities.IsValidFilePath(fileName))
+            if (!PathUtilities.IsValidFilePath(fullPath))
             {
                 AddDiagnostic(diagnostics, ErrorCode.FTL_InvalidInputFileName, filePath);
                 return null;

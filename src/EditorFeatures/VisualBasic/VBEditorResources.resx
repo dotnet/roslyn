@@ -180,13 +180,7 @@
   <data name="Line_commit" xml:space="preserve">
     <value>Line commit</value>
   </data>
-  <data name="Commit_Command_Handler" xml:space="preserve">
-    <value>Line Commit Command Handler</value>
-  </data>
-  <data name="End_Construct_Command_Handler" xml:space="preserve">
-    <value>End Construct Command Handler</value>
-  </data>
-  <data name="Implement_Abstract_Class_Or_Interface_Command_Handler" xml:space="preserve">
-    <value>Implement Abstract Class Or Interface Command Handler</value>
+  <data name="Implement_Abstract_Class_Or_Interface" xml:space="preserve">
+    <value>Implement Abstract Class Or Interface</value>
   </data>
 </root>

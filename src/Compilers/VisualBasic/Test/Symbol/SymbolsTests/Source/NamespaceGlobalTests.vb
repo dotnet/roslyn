@@ -38,7 +38,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
                         Class C1        'RootNS.C1
                         End Class 
                     </file>
-                </compilation>, opt)
+                </compilation>, options:=opt)
 
             ' While the root namespace is empty it means Global is the container
             CompilationUtils.VerifyGlobalNamespace(compilation1, "a.vb", "Class1", "NS1.Class1")
@@ -95,7 +95,7 @@ Class A
                             End Class
                         End Namespace
                     </file>
-                </compilation>, opt)
+                </compilation>, options:=opt)
 
             ' While the root namespace is Global it means [Global] 
             Dim globalNS = compilation1.SourceModule.GlobalNamespace
@@ -116,7 +116,7 @@ Class A
                              </file>
                          </compilation>
             Dim compilation1 = CompilationUtils.CreateCompilationWithMscorlib40(source)
-            Dim compilation2 = CompilationUtils.CreateCompilationWithMscorlib40(source, New VisualBasicCompilationOptions(OutputKind.ConsoleApplication).WithRootNamespace("Global"))
+            Dim compilation2 = CompilationUtils.CreateCompilationWithMscorlib40(source, options:=New VisualBasicCompilationOptions(OutputKind.ConsoleApplication).WithRootNamespace("Global"))
             Dim globalNS1 = compilation1.SourceModule.GlobalNamespace.GetMembers().Single()
             Dim globalNS2 = compilation2.SourceModule.GlobalNamespace.GetMembers().Single()
             Assert.Equal("Global", globalNS1.Name)
