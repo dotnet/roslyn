@@ -215,7 +215,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Json.LanguageServices
                 VisitLiteral(node.TextToken);
             }
 
-            public void Visit(JsonEmptyValueNode node)
+            public void Visit(JsonCommaValueNode node)
             {
                 AddClassification(node.CommaToken, ClassificationTypeNames.JsonPunctuation);
             }
