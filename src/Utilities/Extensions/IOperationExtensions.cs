@@ -1,13 +1,12 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
-using System.Collections;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.FlowAnalysis;
 using Microsoft.CodeAnalysis.Operations;
 
 namespace Analyzer.Utilities.Extensions
@@ -335,17 +334,17 @@ namespace Analyzer.Utilities.Extensions
             foreach (var block in cfg.Blocks)
             {
                 var isCatchRegionBlock = false;
-                var currentRegion = block.Region;
+                var currentRegion = block.EnclosingRegion;
                 while (currentRegion != null)
                 {
                     switch (currentRegion.Kind)
                     {
-                        case ControlFlowGraph.RegionKind.Catch:
+                        case ControlFlowRegionKind.Catch:
                             isCatchRegionBlock = true;
                             break;
                     }
 
-                    currentRegion = currentRegion.Enclosing;
+                    currentRegion = currentRegion.EnclosingRegion;
                 }
 
                 if (isCatchRegionBlock)
@@ -437,73 +436,36 @@ namespace Analyzer.Utilities.Extensions
         public static bool IsLambdaOrLocalFunctionOrDelegateReference(this IMethodReferenceOperation operation)
             => operation.Method.IsLambdaOrLocalFunctionOrDelegate();
 
-        /// <summary>
-        /// Gets the <see cref="InstanceReferenceKind"/> for the given <paramref name="instance"/> operation.
-        /// </summary>
-        /// <remarks>
-        /// NOTE: Currently, we return incorrect <see cref="InstanceReferenceKind"/> for anonymous instance property reference
-        ///       due to https://github.com/dotnet/roslyn/issues/22736 (IPropertyReferenceExpressions in IAnonymousObjectCreationExpression are missing a receiver).
-        ///       Use <see cref="GetAnonymousObjectCreation(IPropertyReferenceOperation)"/> as a workaround.
-        /// </remarks>
-        public static InstanceReferenceKind GetInstanceReferenceKind(this IOperation instance)
+        public static ControlFlowGraph GetEnclosingControlFlowGraph(this IOperation operation)
         {
-            if (instance == null || instance.Kind != OperationKind.InstanceReference)
+            while(operation.Parent != null)
             {
-                return InstanceReferenceKind.None;
+                operation = operation.Parent;
             }
 
-            var text = instance.Syntax.ToString();
-
-            // Ignore case for VB by converting ToUpperInvariant.
-            if (instance.Language == LanguageNames.VisualBasic)
+            switch (operation)
             {
-                text = text.ToUpperInvariant();
+                case IBlockOperation blockOperation:
+                    return SemanticModel.GetControlFlowGraph(blockOperation);
+
+                case IMethodBodyOperation methodBodyOperation:
+                    return SemanticModel.GetControlFlowGraph(methodBodyOperation);
+
+                case IConstructorBodyOperation constructorBodyOperation:
+                    return SemanticModel.GetControlFlowGraph(constructorBodyOperation);
+
+                case IFieldInitializerOperation fieldInitializerOperation:
+                    return SemanticModel.GetControlFlowGraph(fieldInitializerOperation);
+
+                case IPropertyInitializerOperation propertyInitializerOperation:
+                    return SemanticModel.GetControlFlowGraph(propertyInitializerOperation);
+
+                case IParameterInitializerOperation parameterInitializerOperation:
+                    return SemanticModel.GetControlFlowGraph(parameterInitializerOperation);
+
+                default:
+                    throw new NotSupportedException($"Unexpected root operation kind: {operation.Kind.ToString()}");
             }
-
-            switch (text)
-            {
-                case "this":
-                    if (instance.Language == LanguageNames.CSharp)
-                    {
-                        return InstanceReferenceKind.This;
-                    }
-
-                    break;
-
-                case "ME":
-                    if (instance.Language == LanguageNames.VisualBasic)
-                    {
-                        return InstanceReferenceKind.This;
-                    }
-
-                    break;
-
-                case "base":
-                    if (instance.Language == LanguageNames.CSharp)
-                    {
-                        return InstanceReferenceKind.Base;
-                    }
-
-                    break;
-
-                case "MYBASE":
-                    if (instance.Language == LanguageNames.VisualBasic)
-                    {
-                        return InstanceReferenceKind.Base;
-                    }
-
-                    break;
-
-                case "MYCLASS":
-                    if (instance.Language == LanguageNames.VisualBasic)
-                    {
-                        return InstanceReferenceKind.MyClass;
-                    }
-
-                    break;
-            }
-
-            return InstanceReferenceKind.Creation;
         }
     }
 }

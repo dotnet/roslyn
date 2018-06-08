@@ -12,8 +12,8 @@
     <Compile Include="$(MSBuildThisFileDirectory)AbstractVersionCheckAnalyzer.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)CommonAccessibilityUtilities.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\BasicBlockExtensions.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Extensions\ControlFlowConditionKindExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\ControlFlowGraphExtensions.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)InstanceReferenceKind.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)DisposeMethodKind.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)HashUtilities.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)DiagnosticCategory.cs" />
