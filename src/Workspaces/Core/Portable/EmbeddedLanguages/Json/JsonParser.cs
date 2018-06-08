@@ -19,6 +19,31 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Json
     using JsonToken = EmbeddedSyntaxToken<JsonKind>;
     using JsonTrivia = EmbeddedSyntaxTrivia<JsonKind>;
 
+    /// <summary>
+    /// Parser used for reading in a sequence of <see cref="VirtualChar"/>s, and producing a <see
+    /// cref="JsonTree"/> out of it. Parsing will always succeed (except in the case of a
+    /// stack-overflow) and will consume the entire sequence of chars.  General roslyn syntax
+    /// principles are held to (i.e. immutable, fully representative, etc.).
+    ///
+    /// The parser always parses out the same tree regardless of input.  *However*, depending on the
+    /// flags passed to it, it may return a different set of *diagnostics*.  Specifically, the
+    /// parser supports json.net parsing and strict RFC8259 (https://tools.ietf.org/html/rfc8259).
+    /// As such, the parser supports a superset of both, but then does a pass at the end to produce
+    /// appropriate diagnostics.
+    ///
+    /// Note: the json structure we parse out is actually very simple.  It's effectively all lists
+    /// of <see cref="JsonValueNode"/> values.  We just treat almost everything as a 'value'.  For
+    /// example, a <see cref="JsonPropertyNode"/> (i.e. ```"x" = 0```) is a 'value'.  As such, it
+    /// can show up in arrays (i.e.  ```["x" = 0, "y" = 1]```).  This is not legal, but it greatly
+    /// simplifies parsing.  Effectively, we just have recursive list parsing, where we accept any
+    /// sort of value in any sort of context.  A later pass will then report errors for the wrong
+    /// sorts of values showing up in incorrect contexts.
+    ///
+    /// Note: We also treat commas (```,```) as being a 'value' on its own.  This simplifies parsing
+    /// by allowing us to not have to represent Lists and SeparatedLists.  It also helps model
+    /// things that are supported in json.net (like ```[1,,2]```).  Our post-parsing pass will
+    /// then ensure that these comma-values only show up in the right contexts.
+    /// </summary>
     internal partial struct JsonParser
     {
         private static readonly string _closeBracketExpected = string.Format(WorkspacesResources._0_expected, ']');
@@ -31,9 +56,9 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Json
         private int _recursionDepth;
 
         // Fields used to keep track of what types of json values we're in.  They're used for error
-        // recovery, specifically with respect to to encountering unexpected tokens while parsing
-        // out a sequence of values.  For example, if we have:  ```{ a: [1, 2, }```, we will mark
-        // that we're both in an object and in an array.  When we then encounter the errant ```}```,
+        // recovery, specifically with respect to encountering unexpected tokens while parsing out a
+        // sequence of values.  For example, if we have:  ```{ a: [1, 2, }```, we will mark that
+        // we're both in an object and in an array.  When we then encounter the errant ```}```,
         // we'll see that we were in an object, and thus should stop parsing out the sequence for
         // the array so that the ```}``` can be consume by the object we were in.  However, if we
         // just had ```[1, 2, }```, we would not be in an object, and we would just consume the
@@ -91,7 +116,13 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Json
 
             var root = new JsonCompilationUnit(arraySequence, _currentToken);
 
+            // We only report a single diagnostic when parsing out json.  This helps prevent lots of
+            // cascading errors from being reported.  First, we see if there are any diagnostics
+            // directly in tokens in the tree.  If not, we then check for any incorrect tree
+            // structure (that would be incorrect for both json.net or strict-mode).  If we don't
+            // run into any problems, we'll then perform specific json.net or strict-mode checks.
             var diagnostic = GetFirstDiagnostic(root) ?? CheckTopLevel(_lexer.Text, root);
+
             if (diagnostic == null)
             {
                 // We didn't have any diagnostics in the tree so far.  Do the json.net/strict checks
@@ -137,9 +168,10 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Json
 
             foreach (var child in compilationUnit.Sequence)
             {
-                if (child.IsNode && child.Node.Kind == JsonKind.EmptyValue)
+                // Commas should never show up in the top level sequence.
+                if (child.IsNode && child.Node.Kind == JsonKind.CommaValue)
                 {
-                    var emptyValue = (JsonEmptyValueNode)child.Node;
+                    var emptyValue = (JsonCommaValueNode)child.Node;
                     return new EmbeddedDiagnostic(
                         string.Format(WorkspacesResources._0_unexpected, ','),
                         emptyValue.CommaToken.GetSpan());
@@ -255,7 +287,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Json
                 case JsonKind.OpenBracketToken:
                     return ParseArray();
                 case JsonKind.CommaToken:
-                    return ParseEmptyValue();
+                    return ParseCommaValue();
                 default:
                     return ParseLiteralOrPropertyOrConstructor();
             }
@@ -289,13 +321,13 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Json
             {
                 return new JsonPropertyNode(
                     stringLiteralOrText, colonToken,
-                    new JsonEmptyValueNode(CreateMissingToken(JsonKind.CommaToken)));
+                    new JsonCommaValueNode(CreateMissingToken(JsonKind.CommaToken)));
             }
             else if (_currentToken.Kind == JsonKind.EndOfFile)
             {
                 return new JsonPropertyNode(
                     stringLiteralOrText, colonToken,
-                    new JsonEmptyValueNode(CreateMissingToken(JsonKind.CommaToken).AddDiagnosticIfNone(new EmbeddedDiagnostic(
+                    new JsonCommaValueNode(CreateMissingToken(JsonKind.CommaToken).AddDiagnosticIfNone(new EmbeddedDiagnostic(
                         WorkspacesResources.Missing_property_value,
                         GetTokenStartPositionSpan(_currentToken)))));
             }
@@ -303,6 +335,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Json
             var value = ParseValue();
             if (value.Kind == JsonKind.Property)
             {
+                // It's always illegal to have something like  ```"a" : "b" : 1```
                 var nestedProperty = (JsonPropertyNode)value;
                 value = new JsonPropertyNode(
                     nestedProperty.NameToken,
@@ -334,11 +367,15 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Json
                 return new JsonLiteralNode(token);
             }
 
+            // Look for constructors (a json.net extension).  We'll report them as an error
+            // in strict model.
             if (Matches(token, "new"))
             {
                 return ParseConstructor(token);
             }
 
+            // Check for certain literal values.  Some of these (like NaN) are json.net only.
+            // We'll check for these later in the strict-mode pass.
             Debug.Assert(token.VirtualChars.Length > 0);
             if (TryMatch(token, "NaN", JsonKind.NaNLiteralToken, out var newKind) ||
                 TryMatch(token, "true", JsonKind.TrueLiteralToken, out newKind) ||
@@ -433,8 +470,8 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Json
             return new JsonLiteralNode(numberToken);
         }
 
-        private JsonEmptyValueNode ParseEmptyValue()
-            => new JsonEmptyValueNode(ConsumeCurrentToken());
+        private JsonCommaValueNode ParseCommaValue()
+            => new JsonCommaValueNode(ConsumeCurrentToken());
 
         private JsonArrayNode ParseArray()
         {
