@@ -33,18 +33,18 @@ namespace Microsoft.CodeAnalysis.Operations
         /// </summary>
         IMethodSymbol OperatorMethod { get; }
         /// <summary>
-        /// <code>true</code> if this is a 'lifted' binary operator.  When there is an 
+        /// <see langword="true"/> if this is a 'lifted' binary operator.  When there is an 
         /// operator that is defined to work on a value type, 'lifted' operators are 
         /// created to work on the <see cref="System.Nullable{T}"/> versions of those
         /// value types.
         /// </summary>
         bool IsLifted { get; }
         /// <summary>
-        /// <code>true</code> if this is a 'checked' binary operator.
+        /// <see langword="true"/> if this is a 'checked' binary operator.
         /// </summary>
         bool IsChecked { get; }
         /// <summary>
-        /// <code>true</code> if the comparison is text based for string or object comparison in VB.
+        /// <see langword="true"/> if the comparison is text based for string or object comparison in VB.
         /// </summary>
         bool IsCompareText { get; }
     }

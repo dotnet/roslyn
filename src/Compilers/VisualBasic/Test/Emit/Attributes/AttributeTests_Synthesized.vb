@@ -2,6 +2,7 @@
 
 Imports System.Collections.Immutable
 Imports System.IO
+Imports System.Linq
 Imports System.Runtime.CompilerServices
 Imports Microsoft.CodeAnalysis.Emit
 Imports Microsoft.CodeAnalysis.Test.Utilities
@@ -9,14 +10,44 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Roslyn.Test.Utilities
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Semantics
+
+    ''' <summary>
+    ''' NYI: PEVerify currently fails for netmodules with error: "The module X was expected to contain an assembly manifest".
+    ''' Verification was disabled for net modules for now. Add it back once module support has been added.
+    ''' See tests having verify: !outputKind.IsNetModule()
+    ''' https://github.com/dotnet/roslyn/issues/23475
+    ''' TODO: Add tests for assembly attributes emitted into netmodules which suppress synthesized CompilationRelaxationsAttribute/RuntimeCompatibilityAttribute
+    ''' </summary>
     Public Class AttributeTests_Synthesized
         Inherits BasicTestBase
 
-#Region "CompilerGenerated, DebuggerBrowsable, DebuggerDisplay"
-
-        Private Shared Function GetDebuggerBrowsableState(attributes As ImmutableArray(Of SynthesizedAttributeData)) As DebuggerBrowsableState
-            Return DirectCast(attributes.Single(Function(a) a.AttributeClass.Name = "DebuggerBrowsableAttribute").ConstructorArguments(0).Value(), DebuggerBrowsableState)
+        Public Shared Function OptimizationLevelTheoryData() As IEnumerable(Of Object())
+            Dim result = New List(Of Object())
+            For Each level As OptimizationLevel In [Enum].GetValues(GetType(OptimizationLevel))
+                result.Add(New Object() {level})
+            Next
+            Return result
         End Function
+
+        Public Shared Function OutputKindTheoryData() As IEnumerable(Of Object())
+            Dim result = New List(Of Object())
+            For Each kind As OutputKind In [Enum].GetValues(GetType(OutputKind))
+                result.Add(New Object() {kind})
+            Next
+            Return result
+        End Function
+
+        Public Shared Function FullMatrixTheoryData() As IEnumerable(Of Object())
+            Dim result = New List(Of Object())
+            For Each kind As OutputKind In [Enum].GetValues(GetType(OutputKind))
+                For Each level As OptimizationLevel In [Enum].GetValues(GetType(OptimizationLevel))
+                    result.Add(New Object() {kind, level})
+                Next
+            Next
+            Return result
+        End Function
+
+#Region "CompilerGenerated, DebuggerBrowsable, DebuggerDisplay"
 
         <Fact, WorkItem(546956, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546956")>
         Public Sub PrivateImplementationDetails()
@@ -39,8 +70,9 @@ End Class
             AssertEx.SetEqual(expectedAttrs, actualAttrs)
         End Sub
 
-        <Fact>
-        Public Sub BackingFields()
+        <Theory>
+        <MemberData(NameOf(OptimizationLevelTheoryData))>
+        Public Sub BackingFields(optimizationLevel As OptimizationLevel)
             Dim source =
 <compilation>
     <file>
@@ -55,43 +87,47 @@ End Class
     </file>
 </compilation>
 
-            For Each options In {TestOptions.ReleaseDll, TestOptions.DebugDll}
-                Dim comp = CreateCompilationWithMscorlib40(source, options:=options)
+            Dim comp = CreateCompilationWithMscorlib40(source, options:=
+                                                     New VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary).
+                                                     WithOptimizationLevel(optimizationLevel).
+                                                     WithMetadataImportOptions(MetadataImportOptions.All))
 
-                Dim c = comp.GlobalNamespace.GetMember(Of NamedTypeSymbol)("C")
-                Dim p = c.GetMember(Of PropertySymbol)("P")
-                Dim e = c.GetMember(Of EventSymbol)("E")
-                Dim we = c.GetMember(Of PropertySymbol)("WE")
+            CompileAndVerify(comp, symbolValidator:=Sub(m As ModuleSymbol)
+                                                        Dim c = m.GlobalNamespace.GetTypeMember("C")
+                                                        Dim p = c.GetField("_P")
+                                                        Dim e = c.GetField("EEvent")
+                                                        Dim we = c.GetField("_WE")
 
-                ' Dev11 only emits DebuggerBrowsableAttribute and CompilerGeneratedAttribute for auto-property.
-                ' Roslyn emits these attributes for all backing fields.
-                Dim expected = If(options.OptimizationLevel = OptimizationLevel.Debug,
-                                {"CompilerGeneratedAttribute", "DebuggerBrowsableAttribute"},
-                                {"CompilerGeneratedAttribute"})
+                                                        ' Dev11 only emits DebuggerBrowsableAttribute and CompilerGeneratedAttribute for auto-property.
+                                                        ' Roslyn emits these attributes for all backing fields.
+                                                        Dim expected = If(optimizationLevel = OptimizationLevel.Debug,
+                                                                            {"CompilerGeneratedAttribute", "DebuggerBrowsableAttribute"},
+                                                                            {"CompilerGeneratedAttribute"})
 
-                Dim attrs = p.AssociatedField.GetSynthesizedAttributes()
-                AssertEx.SetEqual(expected, GetAttributeNames(attrs))
-                If options.OptimizationLevel = OptimizationLevel.Debug Then
-                    Assert.Equal(DebuggerBrowsableState.Never, GetDebuggerBrowsableState(attrs))
-                End If
+                                                        Dim attrs = p.GetAttributes()
+                                                        AssertEx.SetEqual(expected, GetAttributeNames(attrs))
+                                                        If optimizationLevel = OptimizationLevel.Debug Then
+                                                            Assert.Equal(DebuggerBrowsableState.Never, GetDebuggerBrowsableState(attrs))
+                                                        End If
 
-                attrs = e.AssociatedField.GetSynthesizedAttributes()
-                AssertEx.SetEqual(expected, GetAttributeNames(attrs))
-                If options.OptimizationLevel = OptimizationLevel.Debug Then
-                    Assert.Equal(DebuggerBrowsableState.Never, GetDebuggerBrowsableState(attrs))
-                End If
+                                                        attrs = e.GetAttributes()
+                                                        AssertEx.SetEqual(expected, GetAttributeNames(attrs))
+                                                        If optimizationLevel = OptimizationLevel.Debug Then
+                                                            Assert.Equal(DebuggerBrowsableState.Never, GetDebuggerBrowsableState(attrs))
+                                                        End If
 
-                attrs = we.AssociatedField.GetSynthesizedAttributes()
-                AssertEx.SetEqual(expected.Concat("AccessedThroughPropertyAttribute"), GetAttributeNames(attrs))
-                If options.OptimizationLevel = OptimizationLevel.Debug Then
-                    Assert.Equal(DebuggerBrowsableState.Never, GetDebuggerBrowsableState(attrs))
-                End If
-            Next
-
+                                                        attrs = we.GetAttributes()
+                                                        AssertEx.SetEqual(expected.Concat("AccessedThroughPropertyAttribute"), GetAttributeNames(attrs))
+                                                        If optimizationLevel = OptimizationLevel.Debug Then
+                                                            Assert.Equal(DebuggerBrowsableState.Never, GetDebuggerBrowsableState(attrs))
+                                                        End If
+                                                    End Sub)
         End Sub
 
-        <Fact, WorkItem(546899, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546899")>
-        Public Sub Accessors()
+        <Theory>
+        <MemberData(NameOf(OptimizationLevelTheoryData))>
+        <WorkItem(546899, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546899")>
+        Public Sub Accessors(optimizationLevel As OptimizationLevel)
             Dim source =
 <compilation>
     <file>
@@ -107,49 +143,54 @@ Public MustInherit Class C
 End Class
     </file>
 </compilation>
-            For Each options In {TestOptions.ReleaseDll, TestOptions.DebugDll}
-                Dim comp = CreateCompilationWithMscorlib40(source, options:=options)
 
-                Dim c = comp.GlobalNamespace.GetMember(Of NamedTypeSymbol)("C")
-                Dim p = c.GetMember(Of PropertySymbol)("P")
-                Dim q = c.GetMember(Of PropertySymbol)("Q")
-                Dim e = c.GetMember(Of EventSymbol)("E")
-                Dim we = c.GetMember(Of PropertySymbol)("WE")
+            Dim comp = CreateCompilationWithMscorlib40(source, options:=
+                                                     New VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary).
+                                                     WithOptimizationLevel(optimizationLevel).
+                                                     WithMetadataImportOptions(MetadataImportOptions.All))
 
-                ' Unlike Dev11 we don't emit DebuggerNonUserCode since the accessors have no debug info 
-                ' and they don't invoke any user code method that could throw an exception whose stack trace
-                ' should have the accessor frame hidden.
-                Dim expected = {"CompilerGeneratedAttribute"}
+            CompileAndVerify(comp, symbolValidator:=Sub(m As ModuleSymbol)
+                                                        Dim c = m.GlobalNamespace.GetTypeMember("C")
+                                                        Dim p = c.GetMember(Of PropertySymbol)("P")
+                                                        Dim q = c.GetMember(Of PropertySymbol)("Q")
+                                                        Dim e = c.GetMember(Of EventSymbol)("E")
+                                                        Dim we = c.GetMember(Of PropertySymbol)("WE")
 
-                Dim attrs = p.GetMethod.GetSynthesizedAttributes()
-                AssertEx.SetEqual(expected, GetAttributeNames(attrs))
+                                                        ' Unlike Dev11 we don't emit DebuggerNonUserCode since the accessors have no debug info 
+                                                        ' and they don't invoke any user code method that could throw an exception whose stack trace
+                                                        ' should have the accessor frame hidden.
+                                                        Dim expected = {"CompilerGeneratedAttribute"}
 
-                attrs = p.SetMethod.GetSynthesizedAttributes()
-                AssertEx.SetEqual(expected, GetAttributeNames(attrs))
+                                                        Dim attrs = p.GetMethod.GetAttributes()
+                                                        AssertEx.SetEqual(expected, GetAttributeNames(attrs))
 
-                attrs = q.GetMethod.GetSynthesizedAttributes()
-                AssertEx.SetEqual(New String() {}, GetAttributeNames(attrs))
+                                                        attrs = p.SetMethod.GetAttributes()
+                                                        AssertEx.SetEqual(expected, GetAttributeNames(attrs))
 
-                attrs = q.SetMethod.GetSynthesizedAttributes()
-                AssertEx.SetEqual(New String() {}, GetAttributeNames(attrs))
+                                                        attrs = q.GetMethod.GetAttributes()
+                                                        AssertEx.SetEqual(New String() {}, GetAttributeNames(attrs))
 
-                attrs = we.GetMethod.GetSynthesizedAttributes()
-                AssertEx.SetEqual(expected, GetAttributeNames(attrs))
+                                                        attrs = q.SetMethod.GetAttributes()
+                                                        AssertEx.SetEqual(New String() {}, GetAttributeNames(attrs))
 
-                attrs = we.SetMethod.GetSynthesizedAttributes()
-                AssertEx.SetEqual(expected, GetAttributeNames(attrs))
+                                                        attrs = we.GetMethod.GetAttributes()
+                                                        AssertEx.SetEqual(expected, GetAttributeNames(attrs))
 
-                attrs = e.AddMethod.GetSynthesizedAttributes()
-                AssertEx.SetEqual(expected, GetAttributeNames(attrs))
+                                                        attrs = we.SetMethod.GetAttributes()
+                                                        AssertEx.SetEqual(expected, GetAttributeNames(attrs))
 
-                attrs = e.RemoveMethod.GetSynthesizedAttributes()
-                AssertEx.SetEqual(expected, GetAttributeNames(attrs))
-            Next
+                                                        attrs = e.AddMethod.GetAttributes()
+                                                        AssertEx.SetEqual(expected, GetAttributeNames(attrs))
+
+                                                        attrs = e.RemoveMethod.GetAttributes()
+                                                        AssertEx.SetEqual(expected, GetAttributeNames(attrs))
+                                                    End Sub)
         End Sub
 
+        <Theory>
+        <MemberData(NameOf(OptimizationLevelTheoryData))>
         <WorkItem(543254, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543254")>
-        <Fact()>
-        Public Sub Constructors()
+        Public Sub Constructors(optimizationLevel As OptimizationLevel)
             Dim source =
 <compilation>
     <file>
@@ -170,31 +211,33 @@ Public Class C
 End Class
     </file>
 </compilation>
-            For Each options In {TestOptions.ReleaseDll, TestOptions.DebugDll}
-                Dim comp = CreateCompilationWithMscorlib40(source, options:=options.WithMetadataImportOptions(MetadataImportOptions.Internal))
 
-                CompileAndVerify(comp, symbolValidator:=
-                    Sub(m)
-                        Dim a = m.ContainingAssembly.GlobalNamespace.GetMember(Of NamedTypeSymbol)("A")
-                        Dim b = m.ContainingAssembly.GlobalNamespace.GetMember(Of NamedTypeSymbol)("B")
-                        Dim c = m.ContainingAssembly.GlobalNamespace.GetMember(Of NamedTypeSymbol)("C")
+            Dim comp = CreateCompilationWithMscorlib40(source, options:=
+                                                     New VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary).
+                                                     WithOptimizationLevel(optimizationLevel).
+                                                     WithMetadataImportOptions(MetadataImportOptions.All))
 
-                        Dim aAttrs = GetAttributeNames(a.InstanceConstructors.Single().GetAttributes())
-                        Dim bAttrs = GetAttributeNames(b.InstanceConstructors.Single().GetAttributes())
-                        Dim cAttrs = GetAttributeNames(c.InstanceConstructors.Single().GetAttributes())
+            CompileAndVerify(comp, symbolValidator:=Sub(m As ModuleSymbol)
+                                                        Dim a = m.ContainingAssembly.GlobalNamespace.GetMember(Of NamedTypeSymbol)("A")
+                                                        Dim b = m.ContainingAssembly.GlobalNamespace.GetMember(Of NamedTypeSymbol)("B")
+                                                        Dim c = m.ContainingAssembly.GlobalNamespace.GetMember(Of NamedTypeSymbol)("C")
 
-                        ' constructors that doesn't contain user code 
-                        Assert.Equal(0, aAttrs.Count())
+                                                        Dim aAttrs = GetAttributeNames(a.InstanceConstructors.Single().GetAttributes())
+                                                        Dim bAttrs = GetAttributeNames(b.InstanceConstructors.Single().GetAttributes())
+                                                        Dim cAttrs = GetAttributeNames(c.InstanceConstructors.Single().GetAttributes())
 
-                        ' constructors that contain user code 
-                        Assert.Equal(0, bAttrs.Count())
-                        Assert.Equal(0, cAttrs.Count())
-                    End Sub)
-            Next
+                                                        ' constructors that doesn't contain user code 
+                                                        Assert.Empty(aAttrs)
+
+                                                        ' constructors that contain user code 
+                                                        Assert.Empty(bAttrs)
+                                                        Assert.Empty(cAttrs)
+                                                    End Sub)
         End Sub
 
-        <Fact>
-        Public Sub Lambdas()
+        <Theory>
+        <MemberData(NameOf(OptimizationLevelTheoryData))>
+        Public Sub Lambdas(optimizationLevel As OptimizationLevel)
             Dim source =
 <compilation>
     <file>
@@ -206,45 +249,46 @@ Class C
         Dim d As Func(Of Integer, Integer, Integer) = Function(x, y) a*x+b*y 
     End Sub
 End Class
+
     </file>
 </compilation>
 
-            For Each options In {TestOptions.ReleaseDll, TestOptions.DebugDll}
-                Dim comp = CreateCompilationWithMscorlib40(source, options:=options)
+            Dim comp = CreateCompilationWithMscorlib40(source, options:=
+                                                     New VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary).
+                                                     WithOptimizationLevel(optimizationLevel))
 
-                CompileAndVerify(comp, symbolValidator:=
-                    Sub(m)
-                        Dim displayClass = m.ContainingAssembly.GetTypeByMetadataName("C+_Closure$__1-0")
+            CompileAndVerify(comp, symbolValidator:=Sub(m As ModuleSymbol)
+                                                        Dim displayClass = m.ContainingAssembly.GetTypeByMetadataName("C+_Closure$__1-0")
 
-                        Dim actual = GetAttributeNames(displayClass.GetAttributes())
-                        AssertEx.SetEqual({"CompilerGeneratedAttribute"}, actual)
+                                                        Dim actual = GetAttributeNames(displayClass.GetAttributes())
+                                                        AssertEx.SetEqual({"CompilerGeneratedAttribute"}, actual)
 
-                        Dim expected As String()
-                        For Each member In displayClass.GetMembers()
-                            actual = GetAttributeNames(member.GetAttributes())
+                                                        Dim expected As String()
+                                                        For Each member In displayClass.GetMembers()
+                                                            actual = GetAttributeNames(member.GetAttributes())
 
-                            Select Case member.Name
-                                Case ".ctor"
-                                    ' Dev11 emits DebuggerNonUserCodeAttribute, we don't
-                                    expected = New String() {}
+                                                            Select Case member.Name
+                                                                Case ".ctor"
+                                                                    ' Dev11 emits DebuggerNonUserCodeAttribute, we don't
+                                                                    expected = New String() {}
 
-                                Case "$VB$Local_a", "$VB$Local_b", "_Lambda$__1"
-                                    ' Dev11 emits CompilerGenerated attribute on the lambda, 
-                                    ' Roslyn doesn't since the containing class is already marked by this attribute
-                                    expected = New String() {}
+                                                                Case "$VB$Local_a", "$VB$Local_b", "_Lambda$__1"
+                                                                    ' Dev11 emits CompilerGenerated attribute on the lambda, 
+                                                                    ' Roslyn doesn't since the containing class is already marked by this attribute
+                                                                    expected = New String() {}
 
-                                Case Else
-                                    Throw TestExceptionUtilities.UnexpectedValue(member.Name)
+                                                                Case Else
+                                                                    Throw TestExceptionUtilities.UnexpectedValue(member.Name)
 
-                            End Select
-                            AssertEx.SetEqual(expected, actual)
-                        Next
-                    End Sub)
-            Next
+                                                            End Select
+                                                            AssertEx.SetEqual(expected, actual)
+                                                        Next
+                                                    End Sub)
         End Sub
 
-        <Fact>
-        Public Sub AnonymousDelegate()
+        <Theory>
+        <MemberData(NameOf(OptimizationLevelTheoryData))>
+        Public Sub AnonymousDelegate(optimizationLevel As OptimizationLevel)
             Dim source =
 <compilation>
     <file>
@@ -259,36 +303,37 @@ End Class
     </file>
 </compilation>
 
-            For Each options In {TestOptions.ReleaseDll, TestOptions.DebugDll}
-                Dim comp = CreateCompilationWithMscorlib40(source, options:=options.WithMetadataImportOptions(MetadataImportOptions.Internal))
+            Dim comp = CreateCompilationWithMscorlib40(source, options:=
+                                                     New VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary).
+                                                     WithOptimizationLevel(optimizationLevel).
+                                                     WithMetadataImportOptions(MetadataImportOptions.All))
 
-                CompileAndVerify(comp, symbolValidator:=
-                    Sub(m)
-                        Dim anonDelegate = m.ContainingAssembly.GetTypeByMetadataName("VB$AnonymousDelegate_0`3")
+            CompileAndVerify(comp, symbolValidator:=Sub(m As ModuleSymbol)
+                                                        Dim anonDelegate = m.ContainingAssembly.GetTypeByMetadataName("VB$AnonymousDelegate_0`3")
 
-                        Dim actual = GetAttributeNames(anonDelegate.GetAttributes())
-                        AssertEx.SetEqual({"CompilerGeneratedAttribute", "DebuggerDisplayAttribute"}, actual)
+                                                        Dim actual = GetAttributeNames(anonDelegate.GetAttributes())
+                                                        AssertEx.SetEqual({"CompilerGeneratedAttribute", "DebuggerDisplayAttribute"}, actual)
 
-                        Dim expected As String()
-                        For Each member In anonDelegate.GetMembers()
-                            actual = GetAttributeNames(member.GetAttributes())
+                                                        Dim expected As String()
+                                                        For Each member In anonDelegate.GetMembers()
+                                                            actual = GetAttributeNames(member.GetAttributes())
 
-                            Select Case member.Name
-                                Case ".ctor", "BeginInvoke", "EndInvoke", "Invoke"
-                                    ' Dev11 emits DebuggerNonUserCode, we don't
-                                    expected = New String() {}
-                                Case Else
-                                    Throw TestExceptionUtilities.UnexpectedValue(member.Name)
-                            End Select
+                                                            Select Case member.Name
+                                                                Case ".ctor", "BeginInvoke", "EndInvoke", "Invoke"
+                                                                    ' Dev11 emits DebuggerNonUserCode, we don't
+                                                                    expected = New String() {}
+                                                                Case Else
+                                                                    Throw TestExceptionUtilities.UnexpectedValue(member.Name)
+                                                            End Select
 
-                            AssertEx.SetEqual(expected, actual)
-                        Next
-                    End Sub)
-            Next
+                                                            AssertEx.SetEqual(expected, actual)
+                                                        Next
+                                                    End Sub)
         End Sub
 
-        <Fact>
-        Public Sub RelaxationStub1()
+        <Theory>
+        <MemberData(NameOf(OptimizationLevelTheoryData))>
+        Public Sub RelaxationStub1(optimizationLevel As OptimizationLevel)
             Dim source =
 <compilation>
     <file><![CDATA[
@@ -312,23 +357,24 @@ End Class
     </file>
 </compilation>
 
-            For Each options In {TestOptions.ReleaseDll, TestOptions.DebugDll}
-                Dim comp = CreateCompilationWithMscorlib40AndReferences(source, references:={SystemCoreRef}, options:=options)
+            Dim comp = CreateCompilationWithMscorlib40AndReferences(source,
+                                                                  references:={SystemCoreRef},
+                                                                  options:=New VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary, optimizationLevel:=optimizationLevel))
 
-                ' Dev11 emits DebuggerStepThrough, we emit DebuggerHidden and only in /debug:full mode
-                Dim expected = If(options.OptimizationLevel = OptimizationLevel.Debug,
+            ' Dev11 emits DebuggerStepThrough, we emit DebuggerHidden and only in /debug:full mode
+            Dim expected = If(optimizationLevel = OptimizationLevel.Debug,
                                "[System.Runtime.CompilerServices.CompilerGeneratedAttribute()] [System.Diagnostics.DebuggerHiddenAttribute()]",
                                "[System.Runtime.CompilerServices.CompilerGeneratedAttribute()]")
 
-                CompileAndVerify(comp, expectedSignatures:=
+            CompileAndVerify(comp, expectedSignatures:=
                 {
                     Signature("C", "_Lambda$__R0-1", ".method " + expected + " private specialname instance System.Void _Lambda$__R0-1(System.Int32 a0) cil managed")
                 })
-            Next
         End Sub
 
-        <Fact>
-        Public Sub RelaxationStub2()
+        <Theory>
+        <MemberData(NameOf(OptimizationLevelTheoryData))>
+        Public Sub RelaxationStub2(optimizationLevel As OptimizationLevel)
             Dim source =
 <compilation>
     <file><![CDATA[
@@ -341,20 +387,21 @@ End Class
     </file>
 </compilation>
 
-            For Each options In {TestOptions.ReleaseDll, TestOptions.DebugDll}
-                Dim comp = CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(source, references:={SystemCoreRef}, options:=options)
+            Dim comp = CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(source,
+                                                                  references:={SystemCoreRef},
+                                                                  options:=New VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary, optimizationLevel:=optimizationLevel))
 
-                ' Dev11 emits DebuggerStepThrough, we emit DebuggerHidden and only in /debug:full mode
-                Dim expected = If(options.OptimizationLevel = OptimizationLevel.Debug,
+            ' Dev11 emits DebuggerStepThrough, we emit DebuggerHidden and only in /debug:full mode
+            Dim expected = If(optimizationLevel = OptimizationLevel.Debug,
                                "[System.Runtime.CompilerServices.CompilerGeneratedAttribute()] [System.Diagnostics.DebuggerHiddenAttribute()]",
                                "[System.Runtime.CompilerServices.CompilerGeneratedAttribute()]")
 
-                CompileAndVerify(comp)
-            Next
+            CompileAndVerify(comp)
         End Sub
 
-        <Fact>
-        Public Sub AnonymousTypes()
+        <Theory>
+        <MemberData(NameOf(OptimizationLevelTheoryData))>
+        Public Sub AnonymousTypes(optimizationLevel As OptimizationLevel)
             Dim source =
 <compilation>
     <file>
@@ -365,11 +412,10 @@ Class C
 End Class
     </file>
 </compilation>
-            For Each options In {TestOptions.ReleaseDll, TestOptions.DebugDll}
+            Dim comp = CreateCompilationWithMscorlib40(source,
+                                                     options:=New VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary, optimizationLevel:=optimizationLevel))
 
-                Dim comp = CreateCompilationWithMscorlib40(source, options:=options)
-
-                CompileAndVerify(comp, symbolValidator:=
+            CompileAndVerify(comp, symbolValidator:=
                     Sub(m)
                         Dim anon = m.ContainingAssembly.GetTypeByMetadataName("VB$AnonymousType_0`2")
 
@@ -383,7 +429,7 @@ End Class
                             Select Case member.Name
                                 Case "$X", "$Y"
                                     ' Dev11 doesn't emit this attribute
-                                    If options.OptimizationLevel = OptimizationLevel.Debug Then
+                                    If optimizationLevel = OptimizationLevel.Debug Then
                                         expected = {"DebuggerBrowsableAttribute"}
                                     Else
                                         expected = New String() {}
@@ -395,7 +441,7 @@ End Class
 
                                 Case ".ctor", "ToString"
                                     ' Dev11 marks methods with DebuggerNonUserCodeAttribute
-                                    If options.OptimizationLevel = OptimizationLevel.Debug Then
+                                    If optimizationLevel = OptimizationLevel.Debug Then
                                         expected = {"DebuggerHiddenAttribute"}
                                     Else
                                         expected = New String() {}
@@ -408,11 +454,11 @@ End Class
                             AssertEx.SetEqual(expected, actual)
                         Next
                     End Sub)
-            Next
         End Sub
 
-        <Fact>
-        Public Sub AnonymousTypes_DebuggerDisplay()
+        <Theory>
+        <MemberData(NameOf(OptimizationLevelTheoryData))>
+        Public Sub AnonymousTypes_DebuggerDisplay(optimizationLevel As OptimizationLevel)
             Dim source =
 <compilation>
     <file>
@@ -435,7 +481,7 @@ End Class
     </file>
 </compilation>
 
-            Dim comp = CreateCompilationWithMscorlib40(source, options:=TestOptions.DebugDll)
+            Dim comp = CreateCompilationWithMscorlib40(source, options:=New VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary, optimizationLevel:=optimizationLevel))
             CompileAndVerify(comp, symbolValidator:=
                 Sub(m)
                     Dim assembly = m.ContainingAssembly
@@ -565,47 +611,31 @@ BC30662: Attribute 'DebuggerHiddenAttribute' cannot be applied to 'WE' because t
 
 #Region "CompilationRelaxationsAttribute, RuntimeCompatibilityAttribute"
 
-        Private Sub VerifyCompilationRelaxationsAttribute(attribute As VisualBasicAttributeData, sourceAssembly As SourceAssemblySymbol, isSynthesized As Boolean)
-            Dim sysNS = DirectCast(sourceAssembly.DeclaringCompilation.GlobalNamespace.GetMember("System"), NamespaceSymbol)
-            Dim runtimeNS = sysNS.GetNamespace("Runtime")
-            Dim compilerServicesNS = runtimeNS.GetNamespace("CompilerServices")
-
-            Dim compilationRelaxationsAttrType As NamedTypeSymbol = compilerServicesNS.GetTypeMember("CompilationRelaxationsAttribute")
-            Dim compilationRelaxationsCtor = DirectCast(sourceAssembly.DeclaringCompilation.GetWellKnownTypeMember(WellKnownMember.System_Runtime_CompilerServices_CompilationRelaxationsAttribute__ctorInt32), MethodSymbol)
-
-            Assert.Equal(compilationRelaxationsAttrType, attribute.AttributeClass)
-            Assert.Equal(compilationRelaxationsCtor, attribute.AttributeConstructor)
+        Private Sub VerifyCompilationRelaxationsAttribute(attribute As VisualBasicAttributeData, isSynthesized As Boolean)
+            Assert.Equal("System.Runtime.CompilerServices.CompilationRelaxationsAttribute", attribute.AttributeClass.ToTestDisplayString())
 
             Dim expectedArgValue As Integer = If(isSynthesized, CInt(CompilationRelaxations.NoStringInterning), 0)
             Assert.Equal(1, attribute.CommonConstructorArguments.Length)
             attribute.VerifyValue(Of Integer)(0, TypedConstantKind.Primitive, expectedArgValue)
 
-            Assert.Equal(0, attribute.CommonNamedArguments.Length)
+            Assert.Empty(attribute.CommonNamedArguments)
         End Sub
 
-        Private Sub VerifyRuntimeCompatibilityAttribute(attribute As VisualBasicAttributeData, sourceAssembly As SourceAssemblySymbol, isSynthesized As Boolean)
-            Dim sysNS = DirectCast(sourceAssembly.DeclaringCompilation.GlobalNamespace.GetMember("System"), NamespaceSymbol)
-            Dim runtimeNS = sysNS.GetNamespace("Runtime")
-            Dim compilerServicesNS = runtimeNS.GetNamespace("CompilerServices")
-
-            Dim runtimeCompatibilityAttrType As NamedTypeSymbol = compilerServicesNS.GetTypeMember("RuntimeCompatibilityAttribute")
-            Dim runtimeCompatibilityCtor = DirectCast(sourceAssembly.DeclaringCompilation.GetWellKnownTypeMember(WellKnownMember.System_Runtime_CompilerServices_RuntimeCompatibilityAttribute__ctor), MethodSymbol)
-
-            Assert.Equal(runtimeCompatibilityAttrType, attribute.AttributeClass)
-            Assert.Equal(runtimeCompatibilityCtor, attribute.AttributeConstructor)
-
-            Assert.Equal(0, attribute.CommonConstructorArguments.Length)
+        Private Sub VerifyRuntimeCompatibilityAttribute(attribute As VisualBasicAttributeData, isSynthesized As Boolean)
+            Assert.Equal("System.Runtime.CompilerServices.RuntimeCompatibilityAttribute", attribute.AttributeClass.ToTestDisplayString())
+            Assert.Empty(attribute.CommonConstructorArguments)
 
             If isSynthesized Then
                 Assert.Equal(1, attribute.CommonNamedArguments.Length)
                 attribute.VerifyNamedArgumentValue(Of Boolean)(0, "WrapNonExceptionThrows", TypedConstantKind.Primitive, True)
             Else
-                Assert.Equal(0, attribute.CommonNamedArguments.Length)
+                Assert.Empty(attribute.CommonNamedArguments)
             End If
         End Sub
 
-        <Fact>
-        Public Sub TestSynthesizedAssemblyAttributes_01()
+        <Theory>
+        <MemberData(NameOf(OutputKindTheoryData))>
+        Public Sub TestSynthesizedAssemblyAttributes_01(outputKind As OutputKind)
             ' Verify Synthesized CompilationRelaxationsAttribute
             ' Verify Synthesized RuntimeCompatibilityAttribute
 
@@ -620,28 +650,27 @@ End Class
                              </file>
                          </compilation>
 
-            For Each kind As OutputKind In [Enum].GetValues(GetType(OutputKind))
-                Dim compilation = CreateCompilationWithMscorlib40(source, options:=New VisualBasicCompilationOptions(kind, optimizationLevel:=OptimizationLevel.Release))
-                CompilationUtils.AssertNoErrors(compilation)
-                compilation.EmbeddedSymbolManager.MarkAllDeferredSymbolsAsReferenced(compilation)
+            CompileAndVerify(
+                CreateCompilationWithMscorlib40(source, options:=New VisualBasicCompilationOptions(outputKind, optimizationLevel:=OptimizationLevel.Release)),
+                verify:=If(outputKind.IsNetModule(), Verification.Skipped, Verification.Passes),
+                symbolValidator:=Sub(m As ModuleSymbol)
+                                     Dim attributes = m.ContainingAssembly.GetAttributes()
 
-                Dim sourceAssembly = DirectCast(compilation.Assembly, SourceAssemblySymbol)
-                Dim synthesizedAttributes = sourceAssembly.GetSynthesizedAttributes()
-
-                If kind <> OutputKind.NetModule Then
-                    ' Verify synthesized CompilationRelaxationsAttribute and RuntimeCompatibilityAttribute
-                    Assert.Equal(3, synthesizedAttributes.Length)
-                    VerifyCompilationRelaxationsAttribute(synthesizedAttributes(0), sourceAssembly, isSynthesized:=True)
-                    VerifyRuntimeCompatibilityAttribute(synthesizedAttributes(1), sourceAssembly, isSynthesized:=True)
-                    VerifyDebuggableAttribute(synthesizedAttributes(2), sourceAssembly, DebuggableAttribute.DebuggingModes.IgnoreSymbolStoreSequencePoints)
-                Else
-                    Assert.Equal(0, synthesizedAttributes.Length)
-                End If
-            Next
+                                     If outputKind <> OutputKind.NetModule Then
+                                         ' Verify synthesized CompilationRelaxationsAttribute and RuntimeCompatibilityAttribute
+                                         Assert.Equal(3, attributes.Length)
+                                         VerifyCompilationRelaxationsAttribute(attributes(0), isSynthesized:=True)
+                                         VerifyRuntimeCompatibilityAttribute(attributes(1), isSynthesized:=True)
+                                         VerifyDebuggableAttribute(attributes(2), DebuggableAttribute.DebuggingModes.IgnoreSymbolStoreSequencePoints)
+                                     Else
+                                         Assert.Empty(attributes)
+                                     End If
+                                 End Sub)
         End Sub
 
-        <Fact>
-        Public Sub TestSynthesizedAssemblyAttributes_02()
+        <Theory>
+        <MemberData(NameOf(OutputKindTheoryData))>
+        Public Sub TestSynthesizedAssemblyAttributes_02(outputKind As OutputKind)
             ' Verify Applied CompilationRelaxationsAttribute
             ' Verify Synthesized RuntimeCompatibilityAttribute
 
@@ -660,32 +689,30 @@ End Class
                              </file>
                          </compilation>
 
-            For Each kind As OutputKind In [Enum].GetValues(GetType(OutputKind))
-                Dim compilation = CreateCompilationWithMscorlib40(source, options:=New VisualBasicCompilationOptions(kind, optimizationLevel:=OptimizationLevel.Release))
-                CompilationUtils.AssertNoErrors(compilation)
-                compilation.EmbeddedSymbolManager.MarkAllDeferredSymbolsAsReferenced(compilation)
-
-                Dim sourceAssembly = DirectCast(compilation.Assembly, SourceAssemblySymbol)
-
-                ' Verify applied CompilationRelaxationsAttribute
-                Dim appliedAttributes = sourceAssembly.GetAttributes()
-                Assert.Equal(1, appliedAttributes.Length)
-                VerifyCompilationRelaxationsAttribute(appliedAttributes(0), sourceAssembly, isSynthesized:=False)
-
-                ' Verify synthesized RuntimeCompatibilityAttribute
-                Dim synthesizedAttributes = sourceAssembly.GetSynthesizedAttributes()
-                If kind <> OutputKind.NetModule Then
-                    Assert.Equal(2, synthesizedAttributes.Length)
-                    VerifyRuntimeCompatibilityAttribute(synthesizedAttributes(0), sourceAssembly, isSynthesized:=True)
-                    VerifyDebuggableAttribute(synthesizedAttributes(1), sourceAssembly, DebuggableAttribute.DebuggingModes.IgnoreSymbolStoreSequencePoints)
-                Else
-                    Assert.Equal(0, synthesizedAttributes.Length)
-                End If
-            Next
+            CompileAndVerify(
+                CreateCompilationWithMscorlib40(source, options:=New VisualBasicCompilationOptions(outputKind, optimizationLevel:=OptimizationLevel.Release)),
+                verify:=If(outputKind.IsNetModule(), Verification.Skipped, Verification.Passes),
+                sourceSymbolValidator:=Sub(m As ModuleSymbol)
+                                           Dim attributes = m.ContainingAssembly.GetAttributes()
+                                           VerifyCompilationRelaxationsAttribute(attributes.Single(), isSynthesized:=False)
+                                       End Sub,
+                symbolValidator:=Sub(m As ModuleSymbol)
+                                     ' Verify synthesized RuntimeCompatibilityAttribute
+                                     Dim attributes = m.ContainingAssembly.GetAttributes()
+                                     If outputKind.IsNetModule() Then
+                                         Assert.Empty(attributes)
+                                     Else
+                                         Assert.Equal(3, attributes.Length)
+                                         VerifyRuntimeCompatibilityAttribute(attributes(0), isSynthesized:=True)
+                                         VerifyDebuggableAttribute(attributes(1), DebuggableAttribute.DebuggingModes.IgnoreSymbolStoreSequencePoints)
+                                         VerifyCompilationRelaxationsAttribute(attributes(2), isSynthesized:=False)
+                                     End If
+                                 End Sub)
         End Sub
 
-        <Fact>
-        Public Sub TestSynthesizedAssemblyAttributes_03()
+        <Theory>
+        <MemberData(NameOf(OutputKindTheoryData))>
+        Public Sub TestSynthesizedAssemblyAttributes_03(outputKind As OutputKind)
             ' Verify Synthesized CompilationRelaxationsAttribute
             ' Verify Applied RuntimeCompatibilityAttribute
 
@@ -704,32 +731,30 @@ End Class
                              </file>
                          </compilation>
 
-            For Each kind As OutputKind In [Enum].GetValues(GetType(OutputKind))
-                Dim compilation = CreateCompilationWithMscorlib40(source, options:=New VisualBasicCompilationOptions(kind, optimizationLevel:=OptimizationLevel.Release))
-                CompilationUtils.AssertNoErrors(compilation)
-                compilation.EmbeddedSymbolManager.MarkAllDeferredSymbolsAsReferenced(compilation)
-
-                Dim sourceAssembly = DirectCast(compilation.Assembly, SourceAssemblySymbol)
-
-                ' Verify applied RuntimeCompatibilityAttribute
-                Dim appliedAttributes = sourceAssembly.GetAttributes()
-                Assert.Equal(1, appliedAttributes.Length)
-                VerifyRuntimeCompatibilityAttribute(appliedAttributes(0), sourceAssembly, isSynthesized:=False)
-
-                ' Verify synthesized CompilationRelaxationsAttribute
-                Dim synthesizedAttributes = sourceAssembly.GetSynthesizedAttributes()
-                If kind <> OutputKind.NetModule Then
-                    Assert.Equal(2, synthesizedAttributes.Length)
-                    VerifyCompilationRelaxationsAttribute(synthesizedAttributes(0), sourceAssembly, isSynthesized:=True)
-                    VerifyDebuggableAttribute(synthesizedAttributes(1), sourceAssembly, DebuggableAttribute.DebuggingModes.IgnoreSymbolStoreSequencePoints)
-                Else
-                    Assert.Equal(0, synthesizedAttributes.Length)
-                End If
-            Next
+            CompileAndVerify(
+                CreateCompilationWithMscorlib40(source, options:=New VisualBasicCompilationOptions(outputKind, optimizationLevel:=OptimizationLevel.Release)),
+                verify:=If(outputKind.IsNetModule(), Verification.Skipped, Verification.Passes),
+                sourceSymbolValidator:=Sub(m As ModuleSymbol)
+                                           Dim attributes = m.ContainingAssembly.GetAttributes()
+                                           VerifyRuntimeCompatibilityAttribute(attributes.Single(), isSynthesized:=False)
+                                       End Sub,
+                symbolValidator:=Sub(m As ModuleSymbol)
+                                     ' Verify synthesized RuntimeCompatibilityAttribute
+                                     Dim attributes = m.ContainingAssembly.GetAttributes()
+                                     If outputKind.IsNetModule() Then
+                                         Assert.Empty(attributes)
+                                     Else
+                                         Assert.Equal(3, attributes.Length)
+                                         VerifyCompilationRelaxationsAttribute(attributes(0), isSynthesized:=True)
+                                         VerifyDebuggableAttribute(attributes(1), DebuggableAttribute.DebuggingModes.IgnoreSymbolStoreSequencePoints)
+                                         VerifyRuntimeCompatibilityAttribute(attributes(2), isSynthesized:=False)
+                                     End If
+                                 End Sub)
         End Sub
 
-        <Fact>
-        Public Sub TestSynthesizedAssemblyAttributes_04()
+        <Theory>
+        <MemberData(NameOf(OutputKindTheoryData))>
+        Public Sub TestSynthesizedAssemblyAttributes_04(outputKind As OutputKind)
             ' Verify Applied CompilationRelaxationsAttribute
             ' Verify Applied RuntimeCompatibilityAttribute
 
@@ -749,37 +774,32 @@ End Class
                              </file>
                          </compilation>
 
-            For Each kind As OutputKind In [Enum].GetValues(GetType(OutputKind))
-                Dim compilation = CreateCompilationWithMscorlib40(source, options:=New VisualBasicCompilationOptions(kind, optimizationLevel:=OptimizationLevel.Release))
-                CompilationUtils.AssertNoErrors(compilation)
-                compilation.EmbeddedSymbolManager.MarkAllDeferredSymbolsAsReferenced(compilation)
-
-                Dim sourceAssembly = DirectCast(compilation.Assembly, SourceAssemblySymbol)
-
-                ' Verify applied CompilationRelaxationsAttribute and RuntimeCompatibilityAttribute
-                Dim appliedAttributes = sourceAssembly.GetAttributes()
-                Assert.Equal(2, appliedAttributes.Length)
-                VerifyCompilationRelaxationsAttribute(appliedAttributes(0), sourceAssembly, isSynthesized:=False)
-                VerifyRuntimeCompatibilityAttribute(appliedAttributes(1), sourceAssembly, isSynthesized:=False)
-
-                ' Verify no synthesized attributes
-                Dim synthesizedAttributes = sourceAssembly.GetSynthesizedAttributes()
-                If kind <> OutputKind.NetModule Then
-                    Assert.Equal(1, synthesizedAttributes.Length)
-                    VerifyDebuggableAttribute(synthesizedAttributes(0), sourceAssembly, DebuggableAttribute.DebuggingModes.IgnoreSymbolStoreSequencePoints)
-                Else
-                    Assert.Equal(0, synthesizedAttributes.Length)
-                End If
-            Next
+            CompileAndVerify(
+                CreateCompilationWithMscorlib40(source, options:=New VisualBasicCompilationOptions(outputKind, optimizationLevel:=OptimizationLevel.Release)),
+                verify:=If(outputKind.IsNetModule(), Verification.Skipped, Verification.Passes),
+                sourceSymbolValidator:=Sub(m As ModuleSymbol)
+                                           ' Verify applied CompilationRelaxationsAttribute and RuntimeCompatibilityAttribute
+                                           Dim attributes = m.ContainingAssembly.GetAttributes()
+                                           Assert.Equal(2, attributes.Length)
+                                           VerifyCompilationRelaxationsAttribute(attributes(0), isSynthesized:=False)
+                                           VerifyRuntimeCompatibilityAttribute(attributes(1), isSynthesized:=False)
+                                       End Sub,
+                symbolValidator:=Sub(m As ModuleSymbol)
+                                     ' Verify no synthesized attributes
+                                     Dim attributes = m.ContainingAssembly.GetAttributes()
+                                     If outputKind.IsNetModule() Then
+                                         Assert.Empty(attributes)
+                                     Else
+                                         Assert.Equal(3, attributes.Length)
+                                         VerifyDebuggableAttribute(attributes(0), DebuggableAttribute.DebuggingModes.IgnoreSymbolStoreSequencePoints)
+                                         VerifyCompilationRelaxationsAttribute(attributes(1), isSynthesized:=False)
+                                         VerifyRuntimeCompatibilityAttribute(attributes(2), isSynthesized:=False)
+                                     End If
+                                 End Sub)
         End Sub
 
         <Fact>
-        Public Sub TestSynthesizedAssemblyAttributes_05()
-            ' Verify module attributes don't suppress synthesized assembly attributes:
-
-            ' Synthesized CompilationRelaxationsAttribute
-            ' Synthesized RuntimeCompatibilityAttribute
-
+        Public Sub RuntimeCompatibilityAttributeCannotBeAppliedToModule()
             Dim source = <compilation>
                              <file name="a.vb">
                                  <![CDATA[
@@ -796,38 +816,65 @@ End Class
                              </file>
                          </compilation>
 
-            For Each kind As OutputKind In [Enum].GetValues(GetType(OutputKind))
-                Dim compilation = CreateCompilationWithMscorlib40(source, options:=New VisualBasicCompilationOptions(kind, optimizationLevel:=OptimizationLevel.Release))
-
-                Dim sourceAssembly = DirectCast(compilation.Assembly, SourceAssemblySymbol)
-
-                ' Verify no applied assembly attributes
-                Dim appliedAssemblyAttributes = sourceAssembly.GetAttributes()
-                Assert.Equal(0, appliedAssemblyAttributes.Length)
-
-                ' Verify applied module attributes
-                Dim appliedModuleAttributes = sourceAssembly.Modules(0).GetAttributes()
-                Assert.Equal(2, appliedModuleAttributes.Length)
-                VerifyCompilationRelaxationsAttribute(appliedModuleAttributes(0), sourceAssembly, isSynthesized:=False)
-                VerifyRuntimeCompatibilityAttribute(appliedModuleAttributes(1), sourceAssembly, isSynthesized:=False)
-
-                ' Verify synthesized assembly attributes
-                compilation.GetDeclarationDiagnostics()
-                compilation.EmbeddedSymbolManager.MarkAllDeferredSymbolsAsReferenced(compilation)
-                Dim synthesizedAssemblyAttributes = sourceAssembly.GetSynthesizedAttributes()
-                If kind <> OutputKind.NetModule Then
-                    Assert.Equal(3, synthesizedAssemblyAttributes.Length)
-                    VerifyCompilationRelaxationsAttribute(synthesizedAssemblyAttributes(0), sourceAssembly, isSynthesized:=True)
-                    VerifyRuntimeCompatibilityAttribute(synthesizedAssemblyAttributes(1), sourceAssembly, isSynthesized:=True)
-                    VerifyDebuggableAttribute(synthesizedAssemblyAttributes(2), sourceAssembly, DebuggableAttribute.DebuggingModes.IgnoreSymbolStoreSequencePoints)
-                Else
-                    Assert.Equal(0, synthesizedAssemblyAttributes.Length)
-                End If
-            Next
+            CreateCompilationWithMscorlib40(source, options:=TestOptions.ReleaseDll).VerifyDiagnostics(
+                 Diagnostic(ERRID.ERR_InvalidModuleAttribute1, "RuntimeCompatibilityAttribute").WithArguments("RuntimeCompatibilityAttribute").WithLocation(4, 10))
         End Sub
 
-        <Fact>
-        Public Sub TestSynthesizedAssemblyAttributes_06()
+        <Theory>
+        <MemberData(NameOf(OutputKindTheoryData))>
+        Public Sub TestSynthesizedAssemblyAttributes_05(outputKind As OutputKind)
+            ' Verify module attributes don't suppress synthesized assembly attributes:
+
+            ' Synthesized CompilationRelaxationsAttribute
+            ' Synthesized RuntimeCompatibilityAttribute
+
+            Dim source = <compilation>
+                             <file name="a.vb">
+                                 <![CDATA[
+Imports System.Runtime.CompilerServices
+
+<Module: CompilationRelaxationsAttribute(0)>
+
+Public Class Test
+	Public Shared Sub Main()
+	End Sub
+End Class
+]]>
+                             </file>
+                         </compilation>
+
+            CompileAndVerify(
+                CreateCompilationWithMscorlib40(source, options:=New VisualBasicCompilationOptions(outputKind, optimizationLevel:=OptimizationLevel.Release)),
+                verify:=If(outputKind.IsNetModule(), Verification.Skipped, Verification.Passes),
+                sourceSymbolValidator:=Sub(m As ModuleSymbol)
+                                           ' Verify no applied assembly attributes
+                                           Assert.Empty(m.ContainingAssembly.GetAttributes())
+
+                                           ' Verify applied module attributes
+                                           Dim moduleAttributes = m.GetAttributes()
+                                           VerifyCompilationRelaxationsAttribute(moduleAttributes.Single(), isSynthesized:=False)
+                                       End Sub,
+                symbolValidator:=Sub(m As ModuleSymbol)
+                                     ' Verify applied module attributes
+                                     Dim moduleAttributes = m.GetAttributes()
+                                     VerifyCompilationRelaxationsAttribute(moduleAttributes.Single(), isSynthesized:=False)
+
+                                     ' Verify synthesized assembly attributes
+                                     Dim assemblyAttributes = m.ContainingAssembly.GetAttributes()
+                                     If outputKind.IsNetModule() Then
+                                         Assert.Empty(assemblyAttributes)
+                                     Else
+                                         Assert.Equal(3, assemblyAttributes.Length)
+                                         VerifyCompilationRelaxationsAttribute(assemblyAttributes(0), isSynthesized:=True)
+                                         VerifyRuntimeCompatibilityAttribute(assemblyAttributes(1), isSynthesized:=True)
+                                         VerifyDebuggableAttribute(assemblyAttributes(2), DebuggableAttribute.DebuggingModes.IgnoreSymbolStoreSequencePoints)
+                                     End If
+                                 End Sub)
+        End Sub
+
+        <Theory>
+        <MemberData(NameOf(OutputKindTheoryData))>
+        Public Sub TestSynthesizedAssemblyAttributes_06(outputKind As OutputKind)
             ' Verify missing well-known attribute members generate diagnostics and suppress synthesizing CompilationRelaxationsAttribute and RuntimeCompatibilityAttribute.
 
             Dim source = <compilation>
@@ -855,51 +902,40 @@ End Class
                              </file>
                          </compilation>
 
-            For Each kind As OutputKind In [Enum].GetValues(GetType(OutputKind))
-                Dim compilation = CreateCompilationWithMscorlib40(source, options:=New VisualBasicCompilationOptions(kind))
+            Dim compilation = CreateCompilationWithMscorlib40(source, options:=New VisualBasicCompilationOptions(outputKind))
 
-                If kind <> OutputKind.NetModule Then
-                    CompilationUtils.AssertTheseDiagnostics(compilation,
+            If outputKind <> OutputKind.NetModule Then
+                CompilationUtils.AssertTheseDiagnostics(compilation,
 <expected>
 BC35000: Requested operation is not available because the runtime library function 'System.Runtime.CompilerServices.CompilationRelaxationsAttribute..ctor' is not defined.
 BC35000: Requested operation is not available because the runtime library function 'System.Runtime.CompilerServices.RuntimeCompatibilityAttribute..ctor' is not defined.
 BC35000: Requested operation is not available because the runtime library function 'System.Runtime.CompilerServices.RuntimeCompatibilityAttribute.WrapNonExceptionThrows' is not defined.
 </expected>)
-                Else
-                    CompilationUtils.AssertNoErrors(compilation)
-                    compilation.EmbeddedSymbolManager.MarkAllDeferredSymbolsAsReferenced(compilation)
+            Else
 
-                    ' Verify no synthesized assembly attributes
-                    Dim sourceAssembly = DirectCast(compilation.Assembly, SourceAssemblySymbol)
-                    Dim synthesizedAttributes = sourceAssembly.GetSynthesizedAttributes()
-                    Assert.Equal(0, synthesizedAttributes.Length)
-                End If
-            Next
+                CompileAndVerify(
+                    CreateCompilationWithMscorlib40(source, options:=New VisualBasicCompilationOptions(outputKind, optimizationLevel:=OptimizationLevel.Release)),
+                    verify:=If(outputKind.IsNetModule(), Verification.Skipped, Verification.Passes),
+                    symbolValidator:=Sub(m As ModuleSymbol)
+                                         ' Verify no synthesized assembly 
+                                         Dim attributes = m.ContainingAssembly.GetAttributes()
+                                         Assert.Empty(attributes)
+                                     End Sub)
+            End If
         End Sub
-
-        ' NYI: /addmodule support
-        ' TODO: Add tests for assembly attributes emitted into netmodules which suppress synthesized CompilationRelaxationsAttribute/RuntimeCompatibilityAttribute
 
 #End Region
 
 #Region "DebuggableAttribute"
-        Private Sub VerifyDebuggableAttribute(attribute As VisualBasicAttributeData, sourceAssembly As SourceAssemblySymbol, expectedDebuggingMode As DebuggableAttribute.DebuggingModes)
-            Dim sysNS = DirectCast(sourceAssembly.DeclaringCompilation.GlobalNamespace.GetMember("System"), NamespaceSymbol)
-            Dim diagnosticsNS = sysNS.GetNamespace("Diagnostics")
-
-            Dim debuggableAttributeType As NamedTypeSymbol = diagnosticsNS.GetTypeMember("DebuggableAttribute")
-            Dim debuggableAttributeCtor = DirectCast(sourceAssembly.DeclaringCompilation.GetWellKnownTypeMember(WellKnownMember.System_Diagnostics_DebuggableAttribute__ctorDebuggingModes), MethodSymbol)
-
-            Assert.Equal(debuggableAttributeType, attribute.AttributeClass)
-            Assert.Equal(debuggableAttributeCtor, attribute.AttributeConstructor)
-
+        Private Sub VerifyDebuggableAttribute(attribute As VisualBasicAttributeData, expectedDebuggingMode As DebuggableAttribute.DebuggingModes)
+            Assert.Equal("System.Diagnostics.DebuggableAttribute", attribute.AttributeClass.ToTestDisplayString())
             Assert.Equal(1, attribute.ConstructorArguments.Count)
             attribute.VerifyValue(0, TypedConstantKind.Enum, CInt(expectedDebuggingMode))
 
-            Assert.Equal(0, attribute.NamedArguments.Count)
+            Assert.Empty(attribute.NamedArguments)
         End Sub
 
-        Private Sub VerifySynthesizedDebuggableAttribute(attribute As VisualBasicAttributeData, sourceAssembly As SourceAssemblySymbol, optimizations As OptimizationLevel)
+        Private Sub VerifySynthesizedDebuggableAttribute(attribute As VisualBasicAttributeData, optimizations As OptimizationLevel)
             Dim expectedDebuggingMode = DebuggableAttribute.DebuggingModes.IgnoreSymbolStoreSequencePoints
 
             If optimizations = OptimizationLevel.Debug Then
@@ -909,86 +945,50 @@ BC35000: Requested operation is not available because the runtime library functi
                                         DebuggableAttribute.DebuggingModes.EnableEditAndContinue
             End If
 
-            VerifyDebuggableAttribute(attribute, sourceAssembly, expectedDebuggingMode)
+            VerifyDebuggableAttribute(attribute, expectedDebuggingMode)
         End Sub
 
-        Private Sub TestDebuggableAttributeCommon(
-            source As String,
-            validator As Action(Of VisualBasicCompilation),
-            includeMscorlibRef As Boolean,
-            compileAndVerifyFlag As Boolean,
-            outputKindFlag As OutputKind,
-            optimizations As OptimizationLevel)
-
-            Dim compOptions = New VisualBasicCompilationOptions(outputKindFlag, optimizationLevel:=optimizations, moduleName:="comp")
-            Dim syntaxTrees = {Parse(source)}
-            Dim refs As IEnumerable(Of MetadataReference) = If(includeMscorlibRef, SpecializedCollections.SingletonEnumerable(MscorlibRef), SpecializedCollections.EmptyEnumerable(Of MetadataReference)())
-            Dim comp = VisualBasicCompilation.Create("comp", syntaxTrees, refs, compOptions)
-
-            comp.GetDeclarationDiagnostics()
-            comp.EmbeddedSymbolManager.MarkAllDeferredSymbolsAsReferenced(comp)
-
-            validator(comp)
-
-            If compileAndVerifyFlag Then
-                ' NYI: /addmodule support
-                ' TODO: PEVerify currently fails for netmodules with error: "The module X was expected to contain an assembly manifest".
-                ' TODO: Remove the 'verify' named argument once /addmodule support has been added.
-                CompileAndVerify(comp, verify:=If(outputKindFlag <> OutputKind.NetModule, Verification.Passes, Verification.Skipped))
-            End If
-        End Sub
-
-        Private Sub TestDebuggableAttributeMatrix(source As String, validator As Action(Of VisualBasicCompilation), Optional includeMscorlibRef As Boolean = True, Optional compileAndVerify As Boolean = True)
-            For Each outputKind As OutputKind In [Enum].GetValues(GetType(OutputKind))
-                For Each optimizations As OptimizationLevel In [Enum].GetValues(GetType(OptimizationLevel))
-                    TestDebuggableAttributeCommon(source, validator, includeMscorlibRef, compileAndVerify, outputKind, optimizations)
-                Next
-            Next
-        End Sub
-
-        <Fact>
-        Public Sub TestDebuggableAttribute_01()
+        <Theory>
+        <MemberData(NameOf(FullMatrixTheoryData))>
+        Public Sub TestDebuggableAttribute_01(outputKind As OutputKind, optimizationLevel As OptimizationLevel)
             ' Verify Synthesized DebuggableAttribute
 
-            Dim source = <compilation>
-                             <file name="a.vb">
-                                 <![CDATA[
+            Dim source =
+            <![CDATA[
 Public Class Test
 	Public Shared Sub Main()
 	End Sub
 End Class
 ]]>
-                             </file>
-                         </compilation>
 
-            Dim validator As Action(Of VisualBasicCompilation) =
-                Sub(compilation As VisualBasicCompilation)
-                    Dim sourceAssembly = DirectCast(compilation.Assembly, SourceAssemblySymbol)
-                    Dim synthesizedAttributes = sourceAssembly.GetSynthesizedAttributes()
-                    Dim options As VisualBasicCompilationOptions = compilation.Options
+            Dim validator =
+                Sub(m As ModuleSymbol)
+                    Dim attributes = m.ContainingAssembly.GetAttributes()
 
-                    If Not options.OutputKind.IsNetModule() Then
+                    If Not outputKind.IsNetModule() Then
                         ' Verify synthesized DebuggableAttribute based on compilation options.
 
-                        Assert.Equal(3, synthesizedAttributes.Length)
-                        VerifyCompilationRelaxationsAttribute(synthesizedAttributes(0), sourceAssembly, isSynthesized:=True)
-                        VerifyRuntimeCompatibilityAttribute(synthesizedAttributes(1), sourceAssembly, isSynthesized:=True)
-                        VerifySynthesizedDebuggableAttribute(synthesizedAttributes(2), sourceAssembly, options.OptimizationLevel)
+                        Assert.Equal(3, attributes.Length)
+                        VerifyCompilationRelaxationsAttribute(attributes(0), isSynthesized:=True)
+                        VerifyRuntimeCompatibilityAttribute(attributes(1), isSynthesized:=True)
+                        VerifySynthesizedDebuggableAttribute(attributes(2), optimizationLevel)
                     Else
-                        Assert.Equal(0, synthesizedAttributes.Length)
+                        Assert.Empty(attributes)
                     End If
                 End Sub
 
-            TestDebuggableAttributeMatrix(source.Value, validator)
+            Dim compOptions = New VisualBasicCompilationOptions(outputKind, optimizationLevel:=optimizationLevel, moduleName:="comp")
+            Dim comp = VisualBasicCompilation.Create("comp", {Parse(source)}, {MscorlibRef}, compOptions)
+            CompileAndVerify(comp, verify:=If(outputKind <> OutputKind.NetModule, Verification.Passes, Verification.Skipped), symbolValidator:=validator)
         End Sub
 
-        <Fact>
-        Public Sub TestDebuggableAttribute_02()
+        <Theory>
+        <MemberData(NameOf(FullMatrixTheoryData))>
+        Public Sub TestDebuggableAttribute_02(outputKind As OutputKind, optimizationLevel As OptimizationLevel)
             ' Verify applied assembly DebuggableAttribute suppresses synthesized DebuggableAttribute
 
-            Dim source = <compilation>
-                             <file name="a.vb">
-                                 <![CDATA[
+            Dim source =
+            <![CDATA[
 Imports System.Diagnostics
 
 <Assembly: DebuggableAttribute(DebuggableAttribute.DebuggingModes.Default)>
@@ -998,41 +998,35 @@ Public Class Test
 	End Sub
 End Class
 ]]>
-                             </file>
-                         </compilation>
 
-            Dim validator As Action(Of VisualBasicCompilation) =
-                Sub(compilation As VisualBasicCompilation)
-                    Dim sourceAssembly = DirectCast(compilation.Assembly, SourceAssemblySymbol)
-                    Dim synthesizedAttributes = sourceAssembly.GetSynthesizedAttributes()
-                    Dim options As VisualBasicCompilationOptions = compilation.Options
+            Dim validator =
+                Sub(m As ModuleSymbol)
+                    Dim attributes = m.ContainingAssembly.GetAttributes()
 
-                    If Not options.OutputKind.IsNetModule() Then
+                    If Not outputKind.IsNetModule() Then
                         ' Verify no synthesized DebuggableAttribute.
 
-                        Assert.Equal(2, synthesizedAttributes.Length)
-                        VerifyCompilationRelaxationsAttribute(synthesizedAttributes(0), sourceAssembly, isSynthesized:=True)
-                        VerifyRuntimeCompatibilityAttribute(synthesizedAttributes(1), sourceAssembly, isSynthesized:=True)
+                        Assert.Equal(3, attributes.Length)
+                        VerifyCompilationRelaxationsAttribute(attributes(0), isSynthesized:=True)
+                        VerifyRuntimeCompatibilityAttribute(attributes(1), isSynthesized:=True)
+                        VerifyDebuggableAttribute(attributes(2), DebuggableAttribute.DebuggingModes.Default)
                     Else
-                        Assert.Equal(0, synthesizedAttributes.Length)
+                        Assert.Empty(attributes)
                     End If
-
-                    ' Verify applied Debuggable attribute
-                    Dim appliedAttributes = sourceAssembly.GetAttributes()
-                    Assert.Equal(1, appliedAttributes.Length)
-                    VerifyDebuggableAttribute(appliedAttributes(0), sourceAssembly, DebuggableAttribute.DebuggingModes.Default)
                 End Sub
 
-            TestDebuggableAttributeMatrix(source.Value, validator)
+            Dim compOptions = New VisualBasicCompilationOptions(outputKind, optimizationLevel:=optimizationLevel, moduleName:="comp")
+            Dim comp = VisualBasicCompilation.Create("comp", {Parse(source)}, {MscorlibRef}, compOptions)
+            CompileAndVerify(comp, verify:=If(outputKind <> OutputKind.NetModule, Verification.Passes, Verification.Skipped), symbolValidator:=validator)
         End Sub
 
-        <Fact>
-        Public Sub TestDebuggableAttribute_03()
+        <Theory>
+        <MemberData(NameOf(FullMatrixTheoryData))>
+        Public Sub TestDebuggableAttribute_03(outputKind As OutputKind, optimizationLevel As OptimizationLevel)
             ' Verify applied module DebuggableAttribute suppresses synthesized DebuggableAttribute
 
-            Dim source = <compilation>
-                             <file name="a.vb">
-                                 <![CDATA[
+            Dim source =
+            <![CDATA[
 Imports System.Diagnostics
 
 <Module: DebuggableAttribute(DebuggableAttribute.DebuggingModes.Default)>
@@ -1042,103 +1036,89 @@ Public Class Test
 	End Sub
 End Class
 ]]>
-                             </file>
-                         </compilation>
 
-            Dim validator As Action(Of VisualBasicCompilation) =
-                Sub(compilation As VisualBasicCompilation)
-                    Dim sourceAssembly = DirectCast(compilation.Assembly, SourceAssemblySymbol)
-                    Dim synthesizedAttributes = sourceAssembly.GetSynthesizedAttributes()
-                    Dim options As VisualBasicCompilationOptions = compilation.Options
+            Dim validator =
+                Sub(m As ModuleSymbol)
+                    Dim attributes = m.ContainingAssembly.GetAttributes()
 
-                    If Not options.OutputKind.IsNetModule() Then
+                    If Not outputKind.IsNetModule() Then
                         ' Verify no synthesized DebuggableAttribute.
 
-                        Assert.Equal(2, synthesizedAttributes.Length)
-                        VerifyCompilationRelaxationsAttribute(synthesizedAttributes(0), sourceAssembly, isSynthesized:=True)
-                        VerifyRuntimeCompatibilityAttribute(synthesizedAttributes(1), sourceAssembly, isSynthesized:=True)
+                        Assert.Equal(2, attributes.Length)
+                        VerifyCompilationRelaxationsAttribute(attributes(0), isSynthesized:=True)
+                        VerifyRuntimeCompatibilityAttribute(attributes(1), isSynthesized:=True)
                     Else
-                        Assert.Equal(0, synthesizedAttributes.Length)
+                        Assert.Empty(attributes)
                     End If
-
-                    ' Verify applied Debuggable attribute
-                    Dim appliedAttributes = sourceAssembly.Modules(0).GetAttributes()
-                    Assert.Equal(1, appliedAttributes.Length)
-                    VerifyDebuggableAttribute(appliedAttributes(0), sourceAssembly, DebuggableAttribute.DebuggingModes.Default)
                 End Sub
 
-            TestDebuggableAttributeMatrix(source.Value, validator)
+            Dim compOptions = New VisualBasicCompilationOptions(outputKind, optimizationLevel:=optimizationLevel, moduleName:="comp")
+            Dim comp = VisualBasicCompilation.Create("comp", {Parse(source)}, {MscorlibRef}, compOptions)
+            CompileAndVerify(comp, verify:=If(outputKind <> OutputKind.NetModule, Verification.Passes, Verification.Skipped), symbolValidator:=validator)
         End Sub
 
-        <Fact>
-        Public Sub TestDebuggableAttribute_04()
+        <Theory>
+        <MemberData(NameOf(FullMatrixTheoryData))>
+        Public Sub TestDebuggableAttribute_04(outputKind As OutputKind, optimizationLevel As OptimizationLevel)
             ' Applied <Module: DebuggableAttribute()> and <Assembly: DebuggableAttribute()>
             ' Verify no synthesized assembly DebuggableAttribute.
 
-            Dim source = <compilation>
-                             <file name="a.vb">
-                                 <![CDATA[
+            Dim source =
+            <![CDATA[
 Imports System.Diagnostics
 
 <Module: DebuggableAttribute(DebuggableAttribute.DebuggingModes.Default)>
 <Assembly: DebuggableAttribute(DebuggableAttribute.DebuggingModes.None)>
 
 Public Class Test
-	Public Shared Sub Main()
-	End Sub
+    Public Shared Sub Main()
+    End Sub
 End Class
-]]>
-                             </file>
-                         </compilation>
+        ]]>
 
-            Dim validator As Action(Of VisualBasicCompilation) =
-                Sub(compilation As VisualBasicCompilation)
-                    Dim sourceAssembly = DirectCast(compilation.Assembly, SourceAssemblySymbol)
-                    Dim synthesizedAttributes = sourceAssembly.GetSynthesizedAttributes()
-                    Dim options As VisualBasicCompilationOptions = compilation.Options
+            Dim validator =
+                Sub(m As ModuleSymbol)
+                    Dim assemblyAttributes = m.ContainingAssembly.GetAttributes()
 
-                    If Not options.OutputKind.IsNetModule() Then
+                    If Not outputKind.IsNetModule() Then
                         ' Verify no synthesized DebuggableAttribute.
 
-                        Assert.Equal(2, synthesizedAttributes.Length)
-                        VerifyCompilationRelaxationsAttribute(synthesizedAttributes(0), sourceAssembly, isSynthesized:=True)
-                        VerifyRuntimeCompatibilityAttribute(synthesizedAttributes(1), sourceAssembly, isSynthesized:=True)
+                        Assert.Equal(3, assemblyAttributes.Length)
+                        VerifyCompilationRelaxationsAttribute(assemblyAttributes(0), isSynthesized:=True)
+                        VerifyRuntimeCompatibilityAttribute(assemblyAttributes(1), isSynthesized:=True)
+                        VerifyDebuggableAttribute(assemblyAttributes(2), DebuggableAttribute.DebuggingModes.None)
                     Else
-                        Assert.Equal(0, synthesizedAttributes.Length)
+                        Assert.Empty(assemblyAttributes)
                     End If
 
                     ' Verify applied module Debuggable attribute
-                    Dim appliedAttributes = sourceAssembly.Modules(0).GetAttributes()
-                    Assert.Equal(1, appliedAttributes.Length)
-                    VerifyDebuggableAttribute(appliedAttributes(0), sourceAssembly, DebuggableAttribute.DebuggingModes.Default)
-
-                    ' Verify applied assembly Debuggable attribute
-                    appliedAttributes = sourceAssembly.GetAttributes()
-                    Assert.Equal(1, appliedAttributes.Length)
-                    VerifyDebuggableAttribute(appliedAttributes(0), sourceAssembly, DebuggableAttribute.DebuggingModes.None)
+                    Dim moduleAttributes = m.GetAttributes()
+                    VerifyDebuggableAttribute(moduleAttributes.Single(), DebuggableAttribute.DebuggingModes.Default)
                 End Sub
 
-            TestDebuggableAttributeMatrix(source.Value, validator)
+            Dim compOptions = New VisualBasicCompilationOptions(outputKind, optimizationLevel:=optimizationLevel, moduleName:="comp")
+            Dim comp = VisualBasicCompilation.Create("comp", {Parse(source)}, {MscorlibRef}, compOptions)
+            CompileAndVerify(comp, verify:=If(outputKind <> OutputKind.NetModule, Verification.Passes, Verification.Skipped), symbolValidator:=validator)
         End Sub
 
-        <Fact>
-        Public Sub TestDebuggableAttribute_MissingWellKnownTypeOrMember_01()
+        <Theory>
+        <MemberData(NameOf(FullMatrixTheoryData))>
+        Public Sub TestDebuggableAttribute_MissingWellKnownTypeOrMember_01(outputKind As OutputKind, optimizationLevel As OptimizationLevel)
             ' Missing Well-known type DebuggableAttribute generates no diagnostics and
             ' silently suppresses synthesized DebuggableAttribute.
 
-            Dim source = <compilation>
-                             <file name="a.vb">
-                                 <![CDATA[
+            Dim source =
+            <![CDATA[
 Public Class Test
-	Public Shared Sub Main()
-	End Sub
+    Public Shared Sub Main()
+    End Sub
 End Class
-]]>
-                             </file>
-                         </compilation>
+        ]]>
 
-            Dim validator As Action(Of VisualBasicCompilation) = Sub(compilation As VisualBasicCompilation)
-                                                                     CompilationUtils.AssertTheseDiagnostics(compilation,
+            Dim compOptions = New VisualBasicCompilationOptions(outputKind, optimizationLevel:=optimizationLevel, moduleName:="comp")
+            Dim comp = VisualBasicCompilation.Create("comp", {Parse(source)}, options:=compOptions)
+
+            CompilationUtils.AssertTheseDiagnostics(comp,
 <expected>
 BC30002: Type 'System.Void' is not defined.
 Public Class Test
@@ -1147,212 +1127,206 @@ BC31091: Import of type 'Object' from assembly or module 'comp' failed.
 Public Class Test
              ~~~~
 BC30002: Type 'System.Void' is not defined.
-	Public Shared Sub Main()
- ~~~~~~~~~~~~~~~~~~~~~~~~~
-</expected>)
-                                                                     Dim sourceAssembly = DirectCast(compilation.Assembly, SourceAssemblySymbol)
-                                                                     Dim synthesizedAttributes = sourceAssembly.GetSynthesizedAttributes()
-                                                                     Assert.Equal(0, synthesizedAttributes.Length)
-                                                                 End Sub
-
-            TestDebuggableAttributeMatrix(source.Value, validator, includeMscorlibRef:=False, compileAndVerify:=False)
+    Public Shared Sub Main()
+    ~~~~~~~~~~~~~~~~~~~~~~~~~
+        </expected>)
         End Sub
 
-        <Fact>
-        Public Sub TestDebuggableAttribute_MissingWellKnownTypeOrMember_02()
+        <Theory>
+        <MemberData(NameOf(FullMatrixTheoryData))>
+        Public Sub TestDebuggableAttribute_MissingWellKnownTypeOrMember_02(outputKind As OutputKind, optimizationLevel As OptimizationLevel)
             ' Missing Well-known type DebuggableAttribute.DebuggingModes generates no diagnostics and
             ' silently suppresses synthesized DebuggableAttribute.
 
-            Dim source = <compilation>
-                             <file name="a.vb">
-                                 <![CDATA[
-Imports System.Diagnostics
+            Dim source =
+            <![CDATA[
+        Imports System.Diagnostics
 
-Namespace System.Diagnostics
-	Public NotInheritable Class DebuggableAttribute
-		Inherits Attribute
-		Public Sub New(isJITTrackingEnabled As Boolean, isJITOptimizerDisabled As Boolean)
-		End Sub
-	End Class
-End Namespace
+        Namespace System.Diagnostics
+        	Public NotInheritable Class DebuggableAttribute
+        		Inherits Attribute
+        		Public Sub New(isJITTrackingEnabled As Boolean, isJITOptimizerDisabled As Boolean)
+        		End Sub
+        	End Class
+        End Namespace
 
-Public Class Test
-	Public Shared Sub Main()
-	End Sub
-End Class
-]]>
-                             </file>
-                         </compilation>
+        Public Class Test
+        	Public Shared Sub Main()
+        	End Sub
+        End Class
+        ]]>
 
-            Dim validator As Action(Of VisualBasicCompilation) = Sub(compilation As VisualBasicCompilation)
-                                                                     Dim sourceAssembly = DirectCast(compilation.Assembly, SourceAssemblySymbol)
-                                                                     Dim synthesizedAttributes = sourceAssembly.GetSynthesizedAttributes()
-                                                                     Dim options As VisualBasicCompilationOptions = compilation.Options
+            Dim validator =
+                Sub(m As ModuleSymbol)
+                    Dim attributes = m.ContainingAssembly.GetAttributes()
 
-                                                                     If Not options.OutputKind.IsNetModule() Then
-                                                                         ' Verify no synthesized DebuggableAttribute.
+                    If Not outputKind.IsNetModule() Then
+                        ' Verify no synthesized DebuggableAttribute.
 
-                                                                         Assert.Equal(2, synthesizedAttributes.Length)
-                                                                         VerifyCompilationRelaxationsAttribute(synthesizedAttributes(0), sourceAssembly, isSynthesized:=True)
-                                                                         VerifyRuntimeCompatibilityAttribute(synthesizedAttributes(1), sourceAssembly, isSynthesized:=True)
-                                                                     Else
-                                                                         Assert.Equal(0, synthesizedAttributes.Length)
-                                                                     End If
-                                                                 End Sub
+                        Assert.Equal(2, attributes.Length)
+                        VerifyCompilationRelaxationsAttribute(attributes(0), isSynthesized:=True)
+                        VerifyRuntimeCompatibilityAttribute(attributes(1), isSynthesized:=True)
+                    Else
+                        Assert.Empty(attributes)
+                    End If
+                End Sub
 
-            TestDebuggableAttributeMatrix(source.Value, validator)
+            Dim compOptions = New VisualBasicCompilationOptions(outputKind, optimizationLevel:=optimizationLevel, moduleName:="comp")
+            Dim comp = VisualBasicCompilation.Create("comp", {Parse(source)}, {MscorlibRef}, compOptions)
+            CompileAndVerify(comp, verify:=If(outputKind <> OutputKind.NetModule, Verification.Passes, Verification.Skipped), symbolValidator:=validator)
         End Sub
 
-        <Fact>
-        Public Sub TestDebuggableAttribute_MissingWellKnownTypeOrMember_03()
+        <Theory>
+        <MemberData(NameOf(FullMatrixTheoryData))>
+        Public Sub TestDebuggableAttribute_MissingWellKnownTypeOrMember_03(outputKind As OutputKind, optimizationLevel As OptimizationLevel)
             ' Inaccessible Well-known type DebuggableAttribute.DebuggingModes generates no diagnostics and
             ' silently suppresses synthesized DebuggableAttribute.
 
-            Dim source = <compilation>
-                             <file name="a.vb">
-                                 <![CDATA[
-Imports System.Diagnostics
+            Dim source =
+            <![CDATA[
+        Imports System.Diagnostics
 
-Namespace System.Diagnostics
-	Public NotInheritable Class DebuggableAttribute
-		Inherits Attribute
-		Public Sub New(isJITTrackingEnabled As Boolean, isJITOptimizerDisabled As Boolean)
-		End Sub
+        Namespace System.Diagnostics
+        	Public NotInheritable Class DebuggableAttribute
+        		Inherits Attribute
+        		Public Sub New(isJITTrackingEnabled As Boolean, isJITOptimizerDisabled As Boolean)
+        		End Sub
 
-		Private Enum DebuggingModes
-			None = 0
-			[Default] = 1
-			IgnoreSymbolStoreSequencePoints = 2
-			EnableEditAndContinue = 4
-			DisableOptimizations = 256
-		End Enum
-	End Class
-End Namespace
+        		Private Enum DebuggingModes
+        			None = 0
+        			[Default] = 1
+        			IgnoreSymbolStoreSequencePoints = 2
+        			EnableEditAndContinue = 4
+        			DisableOptimizations = 256
+        		End Enum
+        	End Class
+        End Namespace
 
-Public Class Test
-	Public Shared Sub Main()
-	End Sub
-End Class
-]]>
-                             </file>
-                         </compilation>
+        Public Class Test
+        	Public Shared Sub Main()
+        	End Sub
+        End Class
+        ]]>
 
-            Dim validator As Action(Of VisualBasicCompilation) = Sub(compilation As VisualBasicCompilation)
-                                                                     Dim sourceAssembly = DirectCast(compilation.Assembly, SourceAssemblySymbol)
-                                                                     Dim synthesizedAttributes = sourceAssembly.GetSynthesizedAttributes()
-                                                                     Dim options As VisualBasicCompilationOptions = compilation.Options
+            Dim validator =
+                Sub(m As ModuleSymbol)
+                    Dim attributes = m.ContainingAssembly.GetAttributes()
 
-                                                                     If Not options.OutputKind.IsNetModule() Then
-                                                                         ' Verify no synthesized DebuggableAttribute.
+                    If Not outputKind.IsNetModule() Then
+                        ' Verify no synthesized DebuggableAttribute.
 
-                                                                         Assert.Equal(2, synthesizedAttributes.Length)
-                                                                         VerifyCompilationRelaxationsAttribute(synthesizedAttributes(0), sourceAssembly, isSynthesized:=True)
-                                                                         VerifyRuntimeCompatibilityAttribute(synthesizedAttributes(1), sourceAssembly, isSynthesized:=True)
-                                                                     Else
-                                                                         Assert.Equal(0, synthesizedAttributes.Length)
-                                                                     End If
-                                                                 End Sub
+                        Assert.Equal(2, attributes.Length)
+                        VerifyCompilationRelaxationsAttribute(attributes(0), isSynthesized:=True)
+                        VerifyRuntimeCompatibilityAttribute(attributes(1), isSynthesized:=True)
+                    Else
+                        Assert.Empty(attributes)
+                    End If
+                End Sub
 
-            TestDebuggableAttributeMatrix(source.Value, validator)
+            Dim compOptions = New VisualBasicCompilationOptions(outputKind, optimizationLevel:=optimizationLevel, moduleName:="comp")
+            Dim comp = VisualBasicCompilation.Create("comp", {Parse(source)}, {MscorlibRef}, compOptions)
+            CompileAndVerify(comp, verify:=If(outputKind <> OutputKind.NetModule, Verification.Passes, Verification.Skipped), symbolValidator:=validator)
         End Sub
 
-        <Fact>
-        Public Sub TestDebuggableAttribute_MissingWellKnownTypeOrMember_04()
+        <Theory>
+        <MemberData(NameOf(FullMatrixTheoryData))>
+        Public Sub TestDebuggableAttribute_MissingWellKnownTypeOrMember_04(outputKind As OutputKind, optimizationLevel As OptimizationLevel)
             ' Struct Well-known type DebuggableAttribute.DebuggingModes (instead of enum) generates no diagnostics and
             ' silently suppresses synthesized DebuggableAttribute.
 
-            Dim source = <compilation>
-                             <file name="a.vb">
-                                 <![CDATA[
-Imports System.Diagnostics
+            Dim source =
+            <![CDATA[
+        Imports System.Diagnostics
 
-Namespace System.Diagnostics
-	Public NotInheritable Class DebuggableAttribute
-		Inherits Attribute
-		Public Sub New(isJITTrackingEnabled As Boolean, isJITOptimizerDisabled As Boolean)
-		End Sub
+        Namespace System.Diagnostics
+        	Public NotInheritable Class DebuggableAttribute
+        		Inherits Attribute
+        		Public Sub New(isJITTrackingEnabled As Boolean, isJITOptimizerDisabled As Boolean)
+        		End Sub
 
-		Public Structure DebuggingModes
-		End Structure
-	End Class
-End Namespace
+        		Public Structure DebuggingModes
+        		End Structure
+        	End Class
+        End Namespace
 
-Public Class Test
-	Public Shared Sub Main()
-	End Sub
-End Class
-]]>
-                             </file>
-                         </compilation>
+        Public Class Test
+        	Public Shared Sub Main()
+        	End Sub
+        End Class
+        ]]>
 
-            Dim validator As Action(Of VisualBasicCompilation) = Sub(compilation As VisualBasicCompilation)
-                                                                     Dim sourceAssembly = DirectCast(compilation.Assembly, SourceAssemblySymbol)
-                                                                     Dim synthesizedAttributes = sourceAssembly.GetSynthesizedAttributes()
-                                                                     Dim options As VisualBasicCompilationOptions = compilation.Options
+            Dim validator =
+                Sub(m As ModuleSymbol)
+                    Dim attributes = m.ContainingAssembly.GetAttributes()
 
-                                                                     If Not options.OutputKind.IsNetModule() Then
-                                                                         ' Verify no synthesized DebuggableAttribute.
+                    If Not outputKind.IsNetModule() Then
+                        ' Verify no synthesized DebuggableAttribute.
 
-                                                                         Assert.Equal(2, synthesizedAttributes.Length)
-                                                                         VerifyCompilationRelaxationsAttribute(synthesizedAttributes(0), sourceAssembly, isSynthesized:=True)
-                                                                         VerifyRuntimeCompatibilityAttribute(synthesizedAttributes(1), sourceAssembly, isSynthesized:=True)
-                                                                     Else
-                                                                         Assert.Equal(0, synthesizedAttributes.Length)
-                                                                     End If
-                                                                 End Sub
+                        Assert.Equal(2, attributes.Length)
+                        VerifyCompilationRelaxationsAttribute(attributes(0), isSynthesized:=True)
+                        VerifyRuntimeCompatibilityAttribute(attributes(1), isSynthesized:=True)
+                    Else
+                        Assert.Empty(attributes)
+                    End If
+                End Sub
 
-            TestDebuggableAttributeMatrix(source.Value, validator)
+            Dim compOptions = New VisualBasicCompilationOptions(outputKind, optimizationLevel:=optimizationLevel, moduleName:="comp")
+            Dim comp = VisualBasicCompilation.Create("comp", {Parse(source)}, {MscorlibRef}, compOptions)
+            CompileAndVerify(comp, verify:=If(outputKind <> OutputKind.NetModule, Verification.Passes, Verification.Skipped), symbolValidator:=validator)
         End Sub
 
-        <Fact>
-        Public Sub TestDebuggableAttribute_MissingWellKnownTypeOrMember_05()
+        <Theory>
+        <MemberData(NameOf(FullMatrixTheoryData))>
+        Public Sub TestDebuggableAttribute_MissingWellKnownTypeOrMember_05(outputKind As OutputKind, optimizationLevel As OptimizationLevel)
             ' Missing DebuggableAttribute constructor generates no diagnostics and
             ' silently suppresses synthesized DebuggableAttribute.
 
-            Dim source = <compilation>
-                             <file name="a.vb">
-                                 <![CDATA[
-Imports System.Diagnostics
+            Dim source =
+            <![CDATA[
+        Imports System.Diagnostics
 
-Namespace System.Diagnostics
-	Public NotInheritable Class DebuggableAttribute
-		Inherits Attribute
-		Public Enum DebuggingModes
-			None = 0
-			[Default] = 1
-			IgnoreSymbolStoreSequencePoints = 2
-			EnableEditAndContinue = 4
-			DisableOptimizations = 256
-		End Enum
-	End Class
-End Namespace
+        Namespace System.Diagnostics
+        	Public NotInheritable Class DebuggableAttribute
+        		Inherits Attribute
+        		Public Enum DebuggingModes
+        			None = 0
+        			[Default] = 1
+        			IgnoreSymbolStoreSequencePoints = 2
+        			EnableEditAndContinue = 4
+        			DisableOptimizations = 256
+        		End Enum
+        	End Class
+        End Namespace
 
-Public Class Test
-	Public Shared Sub Main()
-	End Sub
-End Class
-]]>
-                             </file>
-                         </compilation>
+        Public Class Test
+        	Public Shared Sub Main()
+        	End Sub
+        End Class
+        ]]>
 
-            Dim validator As Action(Of VisualBasicCompilation) = Sub(compilation As VisualBasicCompilation)
-                                                                     Dim sourceAssembly = DirectCast(compilation.Assembly, SourceAssemblySymbol)
-                                                                     Dim synthesizedAttributes = sourceAssembly.GetSynthesizedAttributes()
-                                                                     Dim options As VisualBasicCompilationOptions = compilation.Options
+            Dim validator =
+                Sub(m As ModuleSymbol)
+                    Dim attributes = m.ContainingAssembly.GetAttributes()
 
-                                                                     If Not options.OutputKind.IsNetModule() Then
-                                                                         ' Verify no synthesized DebuggableAttribute.
+                    If Not outputKind.IsNetModule() Then
+                        ' Verify no synthesized DebuggableAttribute.
 
-                                                                         Assert.Equal(2, synthesizedAttributes.Length)
-                                                                         VerifyCompilationRelaxationsAttribute(synthesizedAttributes(0), sourceAssembly, isSynthesized:=True)
-                                                                         VerifyRuntimeCompatibilityAttribute(synthesizedAttributes(1), sourceAssembly, isSynthesized:=True)
-                                                                     Else
-                                                                         Assert.Equal(0, synthesizedAttributes.Length)
-                                                                     End If
-                                                                 End Sub
+                        Assert.Equal(2, attributes.Length)
+                        VerifyCompilationRelaxationsAttribute(attributes(0), isSynthesized:=True)
+                        VerifyRuntimeCompatibilityAttribute(attributes(1), isSynthesized:=True)
+                    Else
+                        Assert.Empty(attributes)
+                    End If
+                End Sub
 
-            TestDebuggableAttributeMatrix(source.Value, validator)
+            Dim compOptions = New VisualBasicCompilationOptions(outputKind, optimizationLevel:=optimizationLevel, moduleName:="comp")
+            Dim comp = VisualBasicCompilation.Create("comp", {Parse(source)}, {MscorlibRef}, compOptions)
+            CompileAndVerify(comp, verify:=If(outputKind <> OutputKind.NetModule, Verification.Passes, Verification.Skipped), symbolValidator:=validator)
         End Sub
+
+        Private Shared Function GetDebuggerBrowsableState(attributes As ImmutableArray(Of VisualBasicAttributeData)) As DebuggerBrowsableState
+            Return DirectCast(attributes.Single(Function(a) a.AttributeClass.Name = "DebuggerBrowsableAttribute").ConstructorArguments(0).Value(), DebuggerBrowsableState)
+        End Function
 #End Region
 
 #Region "AsyncStateMachineAttribute"
@@ -1362,14 +1336,14 @@ End Class
             Dim source =
 <compilation>
     <file name="a.vb">
-Imports System.Threading.Tasks
+        Imports System.Threading.Tasks
 
-Class Test
-    Async Sub F()
-        Await Task.Delay(0)
-    End Sub
-End Class
-    </file>
+        Class Test
+            Async Sub F()
+                Await Task.Delay(0)
+            End Sub
+        End Class
+            </file>
 </compilation>
             Dim reference = CreateCompilationWithMscorlib45AndVBRuntime(source).EmitToImageReference()
             Dim comp = CreateCompilationWithMscorlib45AndVBRuntime(<compilation/>, {reference}, options:=TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.All))
@@ -1389,14 +1363,14 @@ End Class
             Dim source =
 <compilation>
     <file name="a.vb">
-Imports System.Threading.Tasks
+        Imports System.Threading.Tasks
 
-Class Test
-    Async Sub F()
-        Await Task.Delay(0)
-    End Sub
-End Class
-    </file>
+        Class Test
+            Async Sub F()
+                Await Task.Delay(0)
+            End Sub
+        End Class
+            </file>
 </compilation>
             Dim reference = CreateCompilationWithMscorlib45AndVBRuntime(source, options:=TestOptions.DebugDll).EmitToImageReference()
             Dim comp = CreateCompilationWithMscorlib45AndVBRuntime(<compilation/>, {reference}, options:=TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.All))
@@ -1416,17 +1390,17 @@ End Class
             Dim source =
 <compilation>
     <file name="a.vb">
-Imports System
-Imports System.Threading.Tasks
+        Imports System
+        Imports System.Threading.Tasks
 
-Class Test
-    Sub F()
-        Dim f As Action = Async Sub()
-                              Await Task.Delay(0)
-                          End Sub
-    End Sub
-End Class
-    </file>
+        Class Test
+            Sub F()
+                Dim f As Action = Async Sub()
+                                      Await Task.Delay(0)
+                                  End Sub
+            End Sub
+        End Class
+            </file>
 </compilation>
             Dim reference = CreateCompilationWithMscorlib45AndVBRuntime(source).EmitToImageReference()
             Dim comp = CreateCompilationWithMscorlib45AndVBRuntime(<compilation/>, {reference}, options:=TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.All))
@@ -1446,17 +1420,17 @@ End Class
             Dim source =
 <compilation>
     <file name="a.vb">
-Imports System
-Imports System.Threading.Tasks
+        Imports System
+        Imports System.Threading.Tasks
 
-Class Test
-    Sub F()
-        Dim f As Action = Async Sub()
-                              Await Task.Delay(0)
-                          End Sub
-    End Sub
-End Class
-    </file>
+        Class Test
+            Sub F()
+                Dim f As Action = Async Sub()
+                                      Await Task.Delay(0)
+                                  End Sub
+            End Sub
+        End Class
+            </file>
 </compilation>
             Dim reference = CreateCompilationWithMscorlib45AndVBRuntime(source, options:=TestOptions.DebugDll).EmitToImageReference()
             Dim comp = CreateCompilationWithMscorlib45AndVBRuntime(<compilation/>, {reference}, options:=TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.All))
@@ -1476,14 +1450,14 @@ End Class
             Dim source =
 <compilation>
     <file name="a.vb">
-Imports System.Threading.Tasks
+        Imports System.Threading.Tasks
 
-Class Test(Of T)
-    Async Sub F(Of U As Test(Of Integer))(arg As U) 
-        Await Task.Delay(0)
-    End Sub
-End Class
-    </file>
+        Class Test(Of T)
+            Async Sub F(Of U As Test(Of Integer))(arg As U) 
+                Await Task.Delay(0)
+            End Sub
+        End Class
+            </file>
 </compilation>
 
             Dim reference = CreateCompilationWithMscorlib45AndVBRuntime(source).EmitToImageReference()
@@ -1504,14 +1478,14 @@ End Class
             Dim source =
 <compilation>
     <file name="a.vb">
-Imports System.Threading.Tasks
+        Imports System.Threading.Tasks
 
-Public Class Test
-    Public Async Sub F()
-        Await Task.Delay(0)
-    End Sub
-End Class
-    </file>
+        Public Class Test
+            Public Async Sub F()
+                Await Task.Delay(0)
+            End Sub
+        End Class
+            </file>
 </compilation>
 
             Dim reference = CreateCompilationWithMscorlib45AndVBRuntime(source).EmitToImageReference(New EmitOptions(metadataOnly:=True))
@@ -1529,14 +1503,14 @@ End Class
             Dim source =
 <compilation>
     <file name="a.vb">
-Imports System.Threading.Tasks
+        Imports System.Threading.Tasks
 
-Public Class Test
-    Public Async Sub F()
-        Await Task.Delay(0)
-    End Sub
-End Class
-    </file>
+        Public Class Test
+            Public Async Sub F()
+                Await Task.Delay(0)
+            End Sub
+        End Class
+            </file>
 </compilation>
 
             Dim reference = CreateCompilationWithMscorlib45AndVBRuntime(source, options:=TestOptions.DebugDll).EmitToImageReference(New EmitOptions(metadataOnly:=True))
@@ -1552,68 +1526,69 @@ End Class
 
 #Region "IteratorStateMachineAttribute"
 
-        <Fact>
-        Public Sub IteratorStateMachineAttribute_Method()
+        <Theory>
+        <MemberData(NameOf(OptimizationLevelTheoryData))>
+        Public Sub IteratorStateMachineAttribute_Method(optimizationLevel As OptimizationLevel)
             Dim source =
 <compilation>
     <file name="a.vb">
-Imports System.Collections.Generic
+        Imports System.Collections.Generic
 
-Class Test
-    Iterator Function F() As IEnumerable(Of Integer)
-        Yield 0
-    End Function
-End Class
-    </file>
-</compilation>
-
-            For Each options In {TestOptions.DebugDll, TestOptions.ReleaseDll}
-                Dim reference = CreateCompilationWithMscorlib45AndVBRuntime(source, options:=options).EmitToImageReference()
-                Dim comp = CreateCompilationWithMscorlib45AndVBRuntime(<compilation/>, {reference}, options:=TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.All))
-
-                Dim stateMachine = comp.GetMember(Of NamedTypeSymbol)("Test.VB$StateMachine_1_F")
-                Dim iteratorMethod = comp.GetMember(Of MethodSymbol)("Test.F")
-
-                Dim iteratorMethodAttributes = iteratorMethod.GetAttributes()
-                AssertEx.SetEqual({"IteratorStateMachineAttribute"}, GetAttributeNames(iteratorMethodAttributes))
-
-                Dim attributeArg = DirectCast(iteratorMethodAttributes.Single().ConstructorArguments.Single().Value, NamedTypeSymbol)
-                Assert.Equal(attributeArg, stateMachine)
-            Next
-        End Sub
-
-        <Fact>
-        Public Sub IteratorStateMachineAttribute_Lambda()
-            Dim source =
-<compilation>
-    <file name="a.vb">
-Imports System
-Imports System.Collections.Generic
-
-Class Test
-    Sub F()
-        Dim f As Func(Of IEnumerable(Of Integer)) = 
-            Iterator Function() As IEnumerable(Of Integer)
+        Class Test
+            Iterator Function F() As IEnumerable(Of Integer)
                 Yield 0
             End Function
-    End Sub
-End Class
-    </file>
+        End Class
+            </file>
 </compilation>
-            For Each options In {TestOptions.DebugDll, TestOptions.ReleaseDll}
-                Dim reference = CreateCompilationWithMscorlib45AndVBRuntime(source, options:=options).EmitToImageReference()
-                Dim comp = CreateCompilationWithMscorlib45AndVBRuntime(<compilation/>, {reference}, options:=TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.All))
 
-                Dim stateMachine = comp.GetMember(Of NamedTypeSymbol)("Test._Closure$__.VB$StateMachine___Lambda$__1-0")
-                Dim iteratorMethod = comp.GetMember(Of MethodSymbol)("Test._Closure$__._Lambda$__1-0")
+            Dim options = New VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary, optimizationLevel:=optimizationLevel)
+            Dim reference = CreateCompilationWithMscorlib45AndVBRuntime(source, options:=options).EmitToImageReference()
+            Dim comp = CreateCompilationWithMscorlib45AndVBRuntime(<compilation/>, {reference}, options:=TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.All))
 
-                Dim iteratorMethodAttributes = iteratorMethod.GetAttributes()
-                AssertEx.SetEqual({"IteratorStateMachineAttribute"}, GetAttributeNames(iteratorMethodAttributes))
+            Dim stateMachine = comp.GetMember(Of NamedTypeSymbol)("Test.VB$StateMachine_1_F")
+            Dim iteratorMethod = comp.GetMember(Of MethodSymbol)("Test.F")
 
-                Dim smAttribute = iteratorMethodAttributes.Single(Function(a) a.AttributeClass.Name = "IteratorStateMachineAttribute")
-                Dim attributeArg = DirectCast(smAttribute.ConstructorArguments.First().Value, NamedTypeSymbol)
-                Assert.Equal(attributeArg, stateMachine)
-            Next
+            Dim iteratorMethodAttributes = iteratorMethod.GetAttributes()
+            AssertEx.SetEqual({"IteratorStateMachineAttribute"}, GetAttributeNames(iteratorMethodAttributes))
+
+            Dim attributeArg = DirectCast(iteratorMethodAttributes.Single().ConstructorArguments.Single().Value, NamedTypeSymbol)
+            Assert.Equal(attributeArg, stateMachine)
+        End Sub
+
+        <Theory>
+        <MemberData(NameOf(OptimizationLevelTheoryData))>
+        Public Sub IteratorStateMachineAttribute_Lambda(optimizationLevel As OptimizationLevel)
+            Dim source =
+<compilation>
+    <file name="a.vb">
+        Imports System
+        Imports System.Collections.Generic
+
+        Class Test
+            Sub F()
+                Dim f As Func(Of IEnumerable(Of Integer)) = 
+                    Iterator Function() As IEnumerable(Of Integer)
+                        Yield 0
+                    End Function
+            End Sub
+        End Class
+            </file>
+</compilation>
+
+            Dim options = New VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary, optimizationLevel:=optimizationLevel)
+            Dim reference = CreateCompilationWithMscorlib45AndVBRuntime(source, options:=options).EmitToImageReference()
+            Dim comp = CreateCompilationWithMscorlib45AndVBRuntime(<compilation/>, {reference}, options:=TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.All))
+
+            Dim stateMachine = comp.GetMember(Of NamedTypeSymbol)("Test._Closure$__.VB$StateMachine___Lambda$__1-0")
+            Dim iteratorMethod = comp.GetMember(Of MethodSymbol)("Test._Closure$__._Lambda$__1-0")
+
+            Dim iteratorMethodAttributes = iteratorMethod.GetAttributes()
+            AssertEx.SetEqual({"IteratorStateMachineAttribute"}, GetAttributeNames(iteratorMethodAttributes))
+
+            Dim smAttribute = iteratorMethodAttributes.Single(Function(a) a.AttributeClass.Name = "IteratorStateMachineAttribute")
+            Dim attributeArg = DirectCast(smAttribute.ConstructorArguments.First().Value, NamedTypeSymbol)
+            Assert.Equal(attributeArg, stateMachine)
         End Sub
 
         <Fact>
@@ -1621,15 +1596,15 @@ End Class
             Dim source =
 <compilation>
     <file name="a.vb">
-Imports System
-Imports System.Collections.Generic
+        Imports System
+        Imports System.Collections.Generic
 
-Class Test(Of T)
-    Iterator Function F(Of U As Test(Of Integer))(arg As U) As IEnumerable(Of Integer)
-        Yield 0
-    End Function
-End Class
-    </file>
+        Class Test(Of T)
+            Iterator Function F(Of U As Test(Of Integer))(arg As U) As IEnumerable(Of Integer)
+                Yield 0
+            End Function
+        End Class
+            </file>
 </compilation>
 
             Dim reference = CreateCompilationWithMscorlib45AndVBRuntime(source).EmitToImageReference()
@@ -1645,32 +1620,32 @@ End Class
             Assert.Equal(attributeStateMachineClass, stateMachine.ConstructUnboundGenericType())
         End Sub
 
-        <Fact>
-        Public Sub IteratorStateMachineAttribute_MetadataOnly()
+        <Theory>
+        <MemberData(NameOf(OptimizationLevelTheoryData))>
+        Public Sub IteratorStateMachineAttribute_MetadataOnly(optimizationLevel As OptimizationLevel)
             Dim source =
 <compilation>
     <file name="a.vb">
-Imports System
-Imports System.Collections.Generic
+        Imports System
+        Imports System.Collections.Generic
 
-Public Class Test
-    Public Iterator Function F() As IEnumerable(Of Integer)
-        Yield 0
-    End Function
-End Class
-    </file>
+        Public Class Test
+            Public Iterator Function F() As IEnumerable(Of Integer)
+                Yield 0
+            End Function
+        End Class
+            </file>
 </compilation>
 
-            For Each options In {TestOptions.DebugDll, TestOptions.ReleaseDll}
-                Dim reference = CreateCompilationWithMscorlib45AndVBRuntime(source, options:=options).EmitToImageReference(New EmitOptions(metadataOnly:=True))
-                Dim comp = CreateCompilationWithMscorlib45AndVBRuntime(<compilation/>, {reference}, options:=TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.All))
+            Dim options = New VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary, optimizationLevel:=optimizationLevel)
+            Dim reference = CreateCompilationWithMscorlib45AndVBRuntime(source, options:=options).EmitToImageReference(New EmitOptions(metadataOnly:=True))
+            Dim comp = CreateCompilationWithMscorlib45AndVBRuntime(<compilation/>, {reference}, options:=TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.All))
 
-                Assert.Empty(comp.GetMember(Of NamedTypeSymbol)("Test").GetMembers("VB$StateMachine_1_F"))
-                Dim iteratorMethod = comp.GetMember(Of MethodSymbol)("Test.F")
+            Assert.Empty(comp.GetMember(Of NamedTypeSymbol)("Test").GetMembers("VB$StateMachine_1_F"))
+            Dim iteratorMethod = comp.GetMember(Of MethodSymbol)("Test.F")
 
-                Dim iteratorMethodAttributes = iteratorMethod.GetAttributes()
-                Assert.Empty(GetAttributeNames(iteratorMethodAttributes))
-            Next
+            Dim iteratorMethodAttributes = iteratorMethod.GetAttributes()
+            Assert.Empty(GetAttributeNames(iteratorMethodAttributes))
         End Sub
 #End Region
 
@@ -1678,29 +1653,29 @@ End Class
         Public Sub SynthesizeAttributeWithUseSiteErrorFails()
 #Region "mslib"
             Dim mslibNoString = "
-Namespace System
-    Public Class [Object]
-    End Class
+        Namespace System
+            Public Class [Object]
+            End Class
 
-    Public Class Int32
-    End Class
+            Public Class Int32
+            End Class
 
-    Public Class ValueType
-    End Class
+            Public Class ValueType
+            End Class
 
-    Public Class Attribute
-    End Class
+            Public Class Attribute
+            End Class
 
-    Public Class Void
-    End Class
-End Namespace
-"
+            Public Class Void
+            End Class
+        End Namespace
+        "
             Dim mslib = mslibNoString & "
-Namespace System
-    Public Class [String]
-    End Class
-End Namespace
-"
+        Namespace System
+            Public Class [String]
+            End Class
+        End Namespace
+        "
 #End Region
             ' Build an mscorlib including String
             Dim mslibComp = CreateEmptyCompilation({Parse(mslib)}).VerifyDiagnostics()
@@ -1711,22 +1686,22 @@ End Namespace
             Dim mslibNoStringRef = mslibNoStringComp.EmitToImageReference()
 
             Dim diagLibSource = "
-Namespace System.Diagnostics
-    Public Class DebuggerDisplayAttribute
-            Inherits System.Attribute
+        Namespace System.Diagnostics
+            Public Class DebuggerDisplayAttribute
+                    Inherits System.Attribute
 
-        Public Sub New(s As System.String)
-        End Sub
+                Public Sub New(s As System.String)
+                End Sub
 
-        Public Property Type as System.String
-    End Class
-End Namespace
+                Public Property Type as System.String
+            End Class
+        End Namespace
 
-Namespace System.Runtime.CompilerServices
-    Public Class CompilerGeneratedAttribute
-    End Class
-End Namespace
-"
+        Namespace System.Runtime.CompilerServices
+            Public Class CompilerGeneratedAttribute
+            End Class
+        End Namespace
+        "
             ' Build Diagnostics referencing mscorlib with String
             Dim diagLibComp = CreateEmptyCompilation({Parse(diagLibSource)}, references:={mslibRef}).VerifyDiagnostics()
             Dim diagLibRef = diagLibComp.EmitToImageReference()

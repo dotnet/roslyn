@@ -146,6 +146,12 @@ function pack_all() {
     fi
 }
 
+function stop_processes {
+    echo "Killing running build processes..."
+    pkill -9 "dotnet" || true
+    pkill -9 "vbcscompiler" || true
+}
+
 if [[ "$build_in_docker" = true ]]
 then
     echo "Docker exec: $args"
@@ -184,6 +190,7 @@ then
     chmod -R 755 ${bootstrap_path}/microsoft.netcore.compilers
 
     dotnet clean Compilers.sln 
+    stop_processes
 fi
 
 if [[ "${use_bootstrap}" == true ]]

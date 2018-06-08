@@ -5,6 +5,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Commanding;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Extensions;
@@ -52,13 +53,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.ClassVi
                     return true;
                 }
 
-                var syntaxFactsService = document.Project.LanguageServices.GetService<ISyntaxFactsService>();
+                var syntaxFactsService = document.GetLanguageService<ISyntaxFactsService>();
                 if (syntaxFactsService == null)
                 {
                     return true;
                 }
 
-                var libraryService = document.Project.LanguageServices.GetService<ILibraryService>();
+                var libraryService = document.GetLanguageService<ILibraryService>();
                 if (libraryService == null)
                 {
                     return true;
