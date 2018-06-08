@@ -9305,6 +9305,12 @@ End Class
             compilation.MakeMemberMissing(SpecialMember.System_Nullable_T_GetValueOrDefault)
 
             compilation.AssertNoDiagnostics()
+            compilation.AssertTheseEmitDiagnostics(
+<errors>
+BC35000: Requested operation is not available because the runtime library function 'System.Nullable`1.GetValueOrDefault' is not defined.
+            Case other
+                 ~~~~~
+</errors>)
 
             Dim expectedGraph = <![CDATA[
 Block[B0] - Entry
