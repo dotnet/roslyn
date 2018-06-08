@@ -9,7 +9,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Outlining
         Inherits AbstractVisualBasicSyntaxNodeStructureProviderTests(Of MultiLineIfBlockSyntax)
 
         Friend Overrides Function CreateProvider() As AbstractSyntaxStructureProvider
-            Return New MultiLineIfBlockStructureProvider()
+            Return New MultiLineIfBlockStructureProvider(IncludeAdditionalInternalSpans:=True)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Outlining)>
@@ -17,29 +17,110 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Outlining
             Const code = "
 Class C
     Sub M()
-        {|span:If (True) $$
+        {|FullSpan:If (True) $$
         End If|}
     End Sub
 End Class
 "
 
             Await VerifyBlockSpansAsync(code,
-                Region("span", "If (True) ...", autoCollapse:=False))
+                Region("FullSpan", "If (True) ...", autoCollapse:=False))
         End Function
 
+        <Fact, Trait(Traits.Feature, Traits.Features.Outlining)>
+        Public Async Function TestIfBlock1a() As Task
+            Const code = "
+Class C
+    Sub M()
+        {|FullSpan:If (True)$$
+{|PreBlock:            '
+            Console.WriteLine()
+            '|}
+        End If|}
+    End Sub
+End Class
+"
+
+            Await VerifyBlockSpansAsync(code,
+                Region("FullSpan", "If (True) ...", autoCollapse:=False),
+                Region("PreBlock", "...", autoCollapse:=False))
+        End Function
         <Fact, Trait(Traits.Feature, Traits.Features.Outlining)>
         Public Async Function TestIfBlock2() As Task
             Const code = "
 Class C
     Sub M()
-        {|span:If (True) $$
-        ElseIf
-        End If|}    End Sub
+        {|FullSpan:If (True)
+{|PreBlock:             '$$
+            Console.WriteLine()
+            '|}
+        {|PostBlock:Else
+            '
+            Console.WriteLine()
+            '|}
+        End If|}
+    End Sub
 End Class
 "
 
             Await VerifyBlockSpansAsync(code,
-                Region("span", "If (True) ...", autoCollapse:=False))
+                Region("FullSpan", "If (True) ...", autoCollapse:=False),
+                Region("PreBlock", "...", autoCollapse:=False),
+                Region("PostBlock", "Else", autoCollapse:=False))
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.Outlining)>
+        Public Async Function TestIfBlock3() As Task
+            Const code = "
+Class C
+    Sub M()
+        {|FullSpan:If (True) $$
+{|PreBlock:            '
+            Console.WriteLine()
+            '|}
+        {|InnerBlock0:Else If
+            '
+            Console.WriteLine()
+            '|}
+        End If|}
+    End Sub
+End Class
+"
+
+            Await VerifyBlockSpansAsync(code,
+                Region("FullSpan", "If (True) ...", autoCollapse:=False),
+                Region("PreBlock", "...", autoCollapse:=False),
+                Region("InnerBlock0", "Else If", autoCollapse:=False))
+
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.Outlining)>
+        Public Async Function TestIfBlock4() As Task
+            Const code = "
+Class C
+    Sub M()
+        {|FullSpan:If (True) $$
+{|PreBlock:            '
+            Console.WriteLine()
+            '|}
+            {|InnerBlock0:Else If
+            '
+            Console.WriteLine()
+            '|}
+            {|PostBlock:Else
+            '
+            Console.WriteLine()
+            '|}
+        End If|}
+    End Sub
+End Class
+"
+
+            Await VerifyBlockSpansAsync(code,
+                Region("FullSpan", "If (True) ...", autoCollapse:=False),
+                Region("PreBlock", "...", autoCollapse:=False),
+                Region("InnerBlock0", "Else If", autoCollapse:=False),
+                Region("PostBlock", "Else", autoCollapse:=False))
         End Function
     End Class
 End Namespace

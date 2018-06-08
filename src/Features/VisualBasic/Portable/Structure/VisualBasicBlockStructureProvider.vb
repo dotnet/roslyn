@@ -59,7 +59,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Structure
             builder.Add(Of InterfaceStatementSyntax, TypeDeclarationStructureProvider, MetadataAsSource.MetadataTypeDeclarationStructureProvider)()
             builder.Add(Of MethodStatementSyntax, MethodDeclarationStructureProvider, MetadataAsSource.MetadataMethodDeclarationStructureProvider)()
             builder.Add(Of ModuleStatementSyntax, TypeDeclarationStructureProvider, MetadataAsSource.MetadataTypeDeclarationStructureProvider)()
-            builder.Add(Of MultiLineIfBlockSyntax, MultiLineIfBlockStructureProvider)()
+            builder.Add(GetType(MultiLineIfBlockSyntax), ImmutableArray.Create(Of AbstractSyntaxStructureProvider)(New MultiLineIfBlockStructureProvider(True)))
             builder.Add(Of MultiLineLambdaExpressionSyntax, MultilineLambdaStructureProvider)()
             builder.Add(Of NamespaceStatementSyntax, NamespaceDeclarationStructureProvider)()
             builder.Add(Of ObjectCollectionInitializerSyntax, ObjectCreationInitializerStructureProvider)
@@ -67,10 +67,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Structure
             builder.Add(Of OperatorStatementSyntax, OperatorDeclarationStructureProvider, MetadataAsSource.MetadataOperatorDeclarationStructureProvider)()
             builder.Add(Of PropertyStatementSyntax, PropertyDeclarationStructureProvider, MetadataAsSource.MetadataPropertyDeclarationStructureProvider)()
             builder.Add(Of RegionDirectiveTriviaSyntax, RegionDirectiveStructureProvider, MetadataAsSource.MetadataRegionDirectiveStructureProvider)()
-            builder.Add(Of SelectBlockSyntax, SelectBlockStructureProvider)
+            builder.Add(GetType(SelectBlockSyntax), ImmutableArray.Create(Of AbstractSyntaxStructureProvider)(New SelectBlockStructureProvider(True)))
             builder.Add(Of StructureStatementSyntax, TypeDeclarationStructureProvider, MetadataAsSource.MetadataTypeDeclarationStructureProvider)()
             builder.Add(Of SyncLockBlockSyntax, SyncLockBlockStructureProvider)
-            builder.Add(Of TryBlockSyntax, TryBlockStructureProvider)
+            builder.Add(GetType(TryBlockSyntax), ImmutableArray.Create(Of AbstractSyntaxStructureProvider)(New TryBlockStructureProvider(True)))
             builder.Add(Of UsingBlockSyntax, UsingBlockStructureProvider)
             builder.Add(Of WhileBlockSyntax, WhileBlockStructureProvider)
             builder.Add(Of WithBlockSyntax, WithBlockStructureProvider)
@@ -87,6 +87,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Structure
             Dim builder = ImmutableDictionary.CreateBuilder(Of Integer, ImmutableArray(Of AbstractSyntaxStructureProvider))()
 
             builder.Add(SyntaxKind.DisabledTextTrivia, ImmutableArray.Create(Of AbstractSyntaxStructureProvider)(New DisabledTextTriviaStructureProvider()))
+
+            builder.Add(SyntaxKind.CommentTrivia, ImmutableArray.Create(Of AbstractSyntaxStructureProvider)(New CommentTriviaStructureProvider()))
 
             Return builder.ToImmutable()
         End Function

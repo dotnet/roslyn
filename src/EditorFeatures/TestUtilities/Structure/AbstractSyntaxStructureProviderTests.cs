@@ -103,13 +103,21 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Structure
 
         internal static void AssertRegion(BlockSpan expected, BlockSpan actual)
         {
-            Assert.Equal(expected.TextSpan.Start, actual.TextSpan.Start);
-            Assert.Equal(expected.TextSpan.End, actual.TextSpan.End);
-            Assert.Equal(expected.HintSpan.Start, actual.HintSpan.Start);
-            Assert.Equal(expected.HintSpan.End, actual.HintSpan.End);
-            Assert.Equal(expected.BannerText, actual.BannerText);
-            Assert.Equal(expected.AutoCollapse, actual.AutoCollapse);
-            Assert.Equal(expected.IsDefaultCollapsed, actual.IsDefaultCollapsed);
+            Assert_TextSpan_Start(expected.TextSpan.Start, actual.TextSpan.Start);
+            Assert_TextSpan_End(expected.TextSpan.End, actual.TextSpan.End);
+            Assert_HintSpan_Start(expected.HintSpan.Start, actual.HintSpan.Start);
+            Assert_HintSpan_End(expected.HintSpan.End, actual.HintSpan.End);
+            Assert_BannerText(expected.BannerText, actual.BannerText);
+            Assert_AutoCollapse(expected.AutoCollapse, actual.AutoCollapse);
+            Assert_IsDefaultCollapsed(expected.IsDefaultCollapsed, actual.IsDefaultCollapsed);
         }
+
+        internal static void Assert_TextSpan_Start(int expected, int actual) => Assert.True(expected == actual, $".TextSpan.Start is different. (Expected:{expected}, Actual:{actual})");
+        internal static void Assert_TextSpan_End(int expected, int actual)=> Assert.True(expected == actual, $".TextSpan.End (Expected:{expected}, Actual:{actual})");
+        internal static void Assert_HintSpan_Start(int expected, int actual) => Assert.True(expected == actual, $".HintSpan.Start is different. (Expected:{expected}, Actual:{actual})");
+        internal static void Assert_HintSpan_End(int expected, int actual) => Assert.True(expected == actual, $".HintSpan.End is different. (Expected:{expected}, Actual:{actual})");
+        internal static void Assert_BannerText(string expected, string actual) => Assert.True(expected == actual, $".BannerText is different. (Expected:{expected}, Actual:{actual})");
+        internal static void Assert_AutoCollapse(bool expected, bool actual) => Assert.True(expected == actual, $".AutoCollapse is different. (Expected:{expected}, Actual:{actual})");
+        internal static void Assert_IsDefaultCollapsed(bool expected, bool actual) => Assert.True(expected == actual, $".IsDefaultCollapsed is different. (Expected:{expected}, Actual:{actual})");
     }
 }

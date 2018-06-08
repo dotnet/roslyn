@@ -9,7 +9,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Outlining
         Inherits AbstractVisualBasicSyntaxNodeStructureProviderTests(Of TryBlockSyntax)
 
         Friend Overrides Function CreateProvider() As AbstractSyntaxStructureProvider
-            Return New TryBlockStructureProvider()
+            Return New TryBlockStructureProvider(IncludeAdditionalInternalSpans:=True)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Outlining)>
@@ -17,15 +17,57 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Outlining
             Const code = "
 Class C
     Sub M()
-        {|span:Try $$
-        Catch (e As Exception)
+        {|span0:Try $$
+        Catch e As Exception
         End Try|}
     End Sub
 End Class
 "
 
-            Await VerifyBlockSpansAsync(code,
-                Region("span", "Try ...", autoCollapse:=False))
+            Dim regions = {
+                            Region("span0", "Try ...", autoCollapse:=False)
+                          }
+            Await VerifyBlockSpansAsync(code, regions)
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.Outlining)>
+        Public Async Function TestTryBlock1a() As Task
+            Const code = "
+Class C
+    Sub M()
+        {|span0:Try $$
+            ' Comment
+        Catch e As Exception
+        End Try|}
+    End Sub
+End Class
+"
+
+            Dim regions = {
+                            Region("span0", "Try ...", autoCollapse:=False)
+                          }
+            Await VerifyBlockSpansAsync(code, regions)
+        End Function
+        <Fact, Trait(Traits.Feature, Traits.Features.Outlining)>
+        Public Async Function TestTryBlock1b() As Task
+            Const code = "
+Class C
+    Sub M()
+        {|span0:Try $$
+{|span1:            ' Comment 0
+            Console.WriteLine(""TryBlock"")
+            ' Comment 1|}
+        Catch e As Exception
+        End Try|}
+    End Sub
+End Class
+"
+
+            Dim regions = {
+                            Region("span0", "Try ...", autoCollapse:=False),
+                            Region("span1", "...", autoCollapse:=False)
+                          }
+            Await VerifyBlockSpansAsync(code, regions)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Outlining)>
@@ -33,15 +75,68 @@ End Class
             Const code = "
 Class C
     Sub M()
-        {|span:Try $$
+        {|span0:Try $$
         Finally
         End Try|}
     End Sub
 End Class
 "
+            Dim regions = {
+                            Region("span0", "Try ...", autoCollapse:=False)
+                          }
+            Await VerifyBlockSpansAsync(code, regions)
 
-            Await VerifyBlockSpansAsync(code,
-                Region("span", "Try ...", autoCollapse:=False))
+        End Function
+        <Fact, Trait(Traits.Feature, Traits.Features.Outlining)>
+        Public Async Function TestTryBlock2a() As Task
+            Const code = "
+Class C
+    Sub M()
+        {|span0:Try $$
+        {|span1:Finally
+            'Comment 0
+            Console.WriteLine(""Finally Block"")
+            'Comment 1|}
+        End Try|}
+    End Sub
+End Class
+"
+            Dim regions = {
+                            Region("span0", "Try ...", autoCollapse:=False),
+                            Region("span1", "Finally", autoCollapse:=False)
+                          }
+            Await VerifyBlockSpansAsync(code, regions)
+
+        End Function
+        <Fact, Trait(Traits.Feature, Traits.Features.Outlining)>
+        Public Async Function TestTryBlock3() As Task
+            Const code = "
+Class C
+    Sub M()
+        {|span0:Try $$
+{|span1:            ' 
+            Console.WriteLine()
+            '|}
+        {|span2:Catch e As Exception
+            ' 
+            Console.WriteLine()
+            '|}
+        {|span3:Finally
+            ' 
+            Console.WriteLine()
+            '|}
+        End Try|}
+    End Sub
+End Class
+"
+            Dim regions = {
+                            Region("span0", "Try ...", autoCollapse:=False),
+                            Region("span1", "...", autoCollapse:=False),
+                            Region("span2", "Catch e As Exception", autoCollapse:=False),
+                            Region("span3", "Finally", autoCollapse:=False)
+                          }
+            Await VerifyBlockSpansAsync(code, regions)
+
         End Function
     End Class
 End Namespace

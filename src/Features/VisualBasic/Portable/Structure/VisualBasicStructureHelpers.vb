@@ -139,5 +139,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Structure
 
             Return blockNode.Span
         End Function
+
     End Module
 End Namespace

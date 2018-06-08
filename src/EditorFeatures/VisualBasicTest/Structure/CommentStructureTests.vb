@@ -7,7 +7,10 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Structure
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Outlining
     Public Class CommentTests
-        Inherits AbstractSyntaxStructureProviderTests
+        Inherits AbstractSyntaxTriviaStructureProviderTests
+        Friend Overrides Function CreateProvider() As AbstractSyntaxStructureProvider
+            Return New CommentTriviaStructureProvider()
+        End Function
 
         Protected Overrides ReadOnly Property LanguageName As String
             Get
@@ -15,26 +18,10 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Outlining
             End Get
         End Property
 
-        Friend Overrides Async Function GetBlockSpansWorkerAsync(document As Document, position As Integer) As Task(Of ImmutableArray(Of BlockSpan))
-            Dim root = Await document.GetSyntaxRootAsync()
-            Dim trivia = root.FindTrivia(position, findInsideTrivia:=True)
-
-            Dim token = trivia.Token
-
-            If token.LeadingTrivia.Contains(trivia) Then
-                Return CreateCommentsRegions(token.LeadingTrivia)
-            ElseIf token.TrailingTrivia.Contains(trivia) Then
-                Return CreateCommentsRegions(token.TrailingTrivia)
-            Else
-                Return Contract.FailWithReturn(Of ImmutableArray(Of BlockSpan))()
-            End If
-        End Function
-
         <Fact, Trait(Traits.Feature, Traits.Features.Outlining)>
         Public Async Function TestSimpleComment1() As Task
             Const code = "
-{|span:' $$Hello
-' VB!|}
+{|span:' $$Hello|}
 Class C1
 End Class
 "
@@ -85,5 +72,6 @@ End Class
             Await VerifyBlockSpansAsync(code,
                 Region("span", "' Hello ...", autoCollapse:=True))
         End Function
+
     End Class
 End Namespace
