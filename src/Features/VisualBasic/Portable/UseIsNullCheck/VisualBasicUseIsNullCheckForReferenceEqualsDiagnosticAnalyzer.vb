@@ -6,11 +6,11 @@ Imports Microsoft.CodeAnalysis.UseIsNullCheck
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.UseIsNullCheck
     <DiagnosticAnalyzer(LanguageNames.VisualBasic)>
-    Friend Class VisualBasicUseIsNullCheckDiagnosticAnalyzer
-        Inherits AbstractUseIsNullCheckDiagnosticAnalyzer(Of SyntaxKind)
+    Friend Class VisualBasicUseIsNullCheckForReferenceEqualsDiagnosticAnalyzer
+        Inherits AbstractUseIsNullCheckForReferenceEqualsDiagnosticAnalyzer(Of SyntaxKind)
 
         Public Sub New()
-            MyBase.New(VBFeaturesResources.use_is_nothing_check)
+            MyBase.New(VBFeaturesResources.Use_Is_Nothing_check)
         End Sub
 
         Protected Overrides Function IsLanguageVersionSupported(options As ParseOptions) As Boolean
