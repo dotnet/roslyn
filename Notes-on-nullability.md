@@ -66,7 +66,7 @@ If `type` is nullable, then the top-level null-state is nullable. (This is usefu
 
 Otherwise, the top-level nullability is passed through from `expr` and the type is from the cast `type`.
 
-You can only cast away nested nullability when there is an implicit conversion.
+Open issue: You can only cast away nested nullability when there is an implicit conversion.
 
 Open issue: suppression of warnings on mismatching nested nullability, should cast handle that scenario or `!`?
 
