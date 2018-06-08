@@ -306,8 +306,6 @@ namespace BuildBoss
             {
                 "Microsoft.DiaSymReader.Native.amd64.dll",      // native
                 "Microsoft.DiaSymReader.Native.x86.dll",        // native
-                "System.Net.Http.dll",                          // not loaded: https://github.com/dotnet/roslyn/pull/27537
-                "System.Diagnostics.DiagnosticSource.dll",      // not loaded: https://github.com/dotnet/roslyn/pull/27537
             };
 
             var map = dllFileNames
