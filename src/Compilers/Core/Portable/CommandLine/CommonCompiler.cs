@@ -246,6 +246,39 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
+        /// <summary>
+        /// Takes a list of paths to source files and a list of AnalyzeConfigs
+        /// and produces a resultant dictionary of diagnostic configurations
+        /// for each of the source paths. Source paths are matched by checking
+        /// if they are members of the language recognized by
+        /// <see cref="EditorConfig.Section.Name"/>s.
+        /// </summary>
+        /// <param name="sourcePaths">
+        /// Absolute, normalized paths to source files. These paths are expected
+        /// to be normalized using the same mechanism used to normalize the path
+        /// passed to the path paramater of 
+        /// <see cref="EditorConfig.Parse(string, string)"/>. Source files will
+        /// only be considered applicable for a given <see cref="EditorConfig"/>
+        /// if the config path is an ordinal prefix of the source path.
+        /// </param>
+        /// <param name="analyzerConfigs">
+        /// Parsed AnalyzerConfig files. The <see cref="EditorConfig.Directory"/>
+        /// must be an ordinal prefix of a source file path to be considered
+        /// applicable.
+        /// </param>
+        /// <param name="messageProvider">
+        /// Used to produce diagnostics.
+        /// </param>
+        /// <param name="diagnostics">
+        /// Any produced diagnostics are added to this bag.
+        /// </param>
+        /// <returns>
+        /// A list of diagnostic options, where the dictionary index corresponds
+        /// to the options for the source path at the same index. If there are
+        /// no diagnostic options for the given path, the entry is null. Otherwise,
+        /// the options are a map from diagnostic ID to diagnostic severity, and
+        /// correspond to options provided for <see cref="SyntaxTree.DiagnosticOptions"/>.
+        /// </returns>
         internal static ImmutableArray<ImmutableDictionary<string, ReportDiagnostic>> GetAnalyzerConfigOptions(
             IReadOnlyList<string> sourcePaths,
             ArrayBuilder<EditorConfig> analyzerConfigs,
@@ -332,27 +365,28 @@ namespace Microsoft.CodeAnalysis
                             key.Length - (DiagnosticOptionPrefix.Length + DiagnosticOptionSuffix.Length));
 
                         ReportDiagnostic? severity;
-                        if (CaseInsensitiveComparison.Equals(value, "default"))
+                        var comparer = StringComparer.OrdinalIgnoreCase;
+                        if (comparer.Equals(value, "default"))
                         {
                             severity = ReportDiagnostic.Default;
                         }
-                        else if (CaseInsensitiveComparison.Equals(value, "error"))
+                        else if (comparer.Equals(value, "error"))
                         {
                             severity = ReportDiagnostic.Error;
                         }
-                        else if (CaseInsensitiveComparison.Equals(value, "warn"))
+                        else if (comparer.Equals(value, "warn"))
                         {
                             severity = ReportDiagnostic.Warn;
                         }
-                        else if (CaseInsensitiveComparison.Equals(value, "info"))
+                        else if (comparer.Equals(value, "info"))
                         {
                             severity = ReportDiagnostic.Info;
                         }
-                        else if (CaseInsensitiveComparison.Equals(value, "hidden"))
+                        else if (comparer.Equals(value, "hidden"))
                         {
                             severity = ReportDiagnostic.Hidden;
                         }
-                        else if (CaseInsensitiveComparison.Equals(value, "suppress"))
+                        else if (comparer.Equals(value, "suppress"))
                         {
                             severity = ReportDiagnostic.Suppress;
                         }
