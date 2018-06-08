@@ -20,14 +20,14 @@ namespace Microsoft.CodeAnalysis.Symbols
             // 4) The SymbolId for the containing namespace symbol if this is not a global
             //    namespace.
 
-            public static void Create(INamespaceSymbol symbol, SymbolKeyWriter visitor)
+            public static void Create(INamespaceSymbol symbol, SymbolKeyWriter writer)
             {
-                visitor.WriteString(symbol.MetadataName);
+                writer.WriteString(symbol.MetadataName);
 
                 if (symbol.ContainingNamespace != null)
                 {
-                    visitor.WriteBoolean(false);
-                    visitor.WriteSymbolKey(symbol.ContainingNamespace);
+                    writer.WriteBoolean(false);
+                    writer.WriteSymbolKey(symbol.ContainingNamespace);
                 }
                 else
                 {
@@ -36,16 +36,16 @@ namespace Microsoft.CodeAnalysis.Symbols
                     switch (symbol.NamespaceKind)
                     {
                         case NamespaceKind.Module:
-                            visitor.WriteBoolean(false);
-                            visitor.WriteSymbolKey(symbol.ContainingModule);
+                            writer.WriteBoolean(false);
+                            writer.WriteSymbolKey(symbol.ContainingModule);
                             break;
                         case NamespaceKind.Assembly:
-                            visitor.WriteBoolean(false);
-                            visitor.WriteSymbolKey(symbol.ContainingAssembly);
+                            writer.WriteBoolean(false);
+                            writer.WriteSymbolKey(symbol.ContainingAssembly);
                             break;
                         case NamespaceKind.Compilation:
-                            visitor.WriteBoolean(true);
-                            visitor.WriteSymbolKey(null);
+                            writer.WriteBoolean(true);
+                            writer.WriteSymbolKey(null);
                             break;
                         default:
                             throw new NotImplementedException();

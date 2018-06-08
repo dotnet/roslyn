@@ -1,6 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 
 namespace Microsoft.CodeAnalysis.Symbols
@@ -22,8 +22,20 @@ namespace Microsoft.CodeAnalysis.Symbols
             return null;
         }
 
-        internal static IEnumerable<TType> GetAllSymbols<TType>(this SymbolKeyResolution resolution)
-            => resolution.GetAllSymbols().OfType<TType>();
+        internal static ImmutableArray<TType> GetAllSymbols<TType>(this SymbolKeyResolution resolution)
+        {
+            var result = ImmutableArray.CreateBuilder<TType>();
+
+            foreach (var symbol in resolution.GetAllSymbols())
+            {
+                if (symbol is TType typedSymbol)
+                {
+                    result.Add(typedSymbol);
+                }
+            }
+
+            return result.ToImmutable();
+        }
 
         internal static TSymbol GetFirstSymbol<TSymbol>(this SymbolKeyResolution resolution)
             where TSymbol : ISymbol

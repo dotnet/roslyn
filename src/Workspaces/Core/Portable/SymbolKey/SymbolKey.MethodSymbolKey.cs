@@ -11,12 +11,12 @@ namespace Microsoft.CodeAnalysis.Symbols
     {
         private static class ReducedExtensionMethodSymbolKey
         {
-            public static void Create(IMethodSymbol symbol, SymbolKeyWriter visitor)
+            public static void Create(IMethodSymbol symbol, SymbolKeyWriter writer)
             {
                 Debug.Assert(symbol.Equals(symbol.ConstructedFrom));
 
-                visitor.WriteSymbolKey(symbol.ReducedFrom);
-                visitor.WriteSymbolKey(symbol.ReceiverType);
+                writer.WriteSymbolKey(symbol.ReducedFrom);
+                writer.WriteSymbolKey(symbol.ReceiverType);
             }
 
             public static SymbolKeyResolution Resolve(SymbolKeyReader reader)

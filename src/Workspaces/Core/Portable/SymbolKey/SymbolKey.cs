@@ -170,7 +170,7 @@ namespace Microsoft.CodeAnalysis.Symbols
         public static bool operator !=(SymbolKey key1, SymbolKey key2)
             => !(key1 == key2);
 
-        private static bool AreNamesEqual(Compilation compilation, string name1, string name2)
+        private static bool NamesAreEqual(Compilation compilation, string name1, string name2)
             => string.Equals(name1, name2, compilation.IsCaseSensitive ? StringComparison.Ordinal : StringComparison.OrdinalIgnoreCase);
 
         private static bool ParameterRefKindsMatch(
@@ -194,6 +194,24 @@ namespace Microsoft.CodeAnalysis.Symbols
             }
 
             return true;
+        }
+
+        private static ImmutableArray<TSymbol> GetMembersWithName<TSymbol>(SymbolKeyResolution resolvedContainingType, string name)
+        {
+            var results = ImmutableArray.CreateBuilder<TSymbol>();
+
+            foreach (var containingType in resolvedContainingType.GetAllSymbols<INamedTypeSymbol>())
+            {
+                foreach (var member in containingType.GetMembers(name))
+                {
+                    if (member is TSymbol symbol)
+                    {
+                        results.Add(symbol);
+                    }
+                }
+            }
+
+            return results.ToImmutable();
         }
     }
 }

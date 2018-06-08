@@ -11,7 +11,7 @@ namespace Microsoft.CodeAnalysis.Symbols
     {
         private static class AnonymousTypeSymbolKey
         {
-            public static void Create(INamedTypeSymbol symbol, SymbolKeyWriter visitor)
+            public static void Create(INamedTypeSymbol symbol, SymbolKeyWriter writer)
             {
                 Debug.Assert(symbol.IsAnonymousType);
 
@@ -21,16 +21,16 @@ namespace Microsoft.CodeAnalysis.Symbols
                 var propertyIsReadOnly = properties.SelectAsArray(p => p.SetMethod == null);
                 var propertyLocations = properties.SelectAsArray(p => p.Locations.FirstOrDefault());
 
-                visitor.WriteSymbolKeyArray(propertyTypes);
-                visitor.WriteStringArray(propertyNames);
-                visitor.WriteBooleanArray(propertyIsReadOnly);
-                visitor.WriteLocationArray(propertyLocations);
+                writer.WriteSymbolKeyArray(propertyTypes);
+                writer.WriteStringArray(propertyNames);
+                writer.WriteBooleanArray(propertyIsReadOnly);
+                writer.WriteLocationArray(propertyLocations);
             }
 
             public static SymbolKeyResolution Resolve(SymbolKeyReader reader)
             {
-                var propertyTypeSymbols = reader.ReadSymbolKeyArray();
-                var propertyTypes = propertyTypeSymbols.Select(r => r.GetFirstSymbol<ITypeSymbol>()).ToImmutableArray();
+                var resolvedPropertyTypes = reader.ReadSymbolKeyArray();
+                var propertyTypes = resolvedPropertyTypes.SelectAsArray(r => r.GetFirstSymbol<ITypeSymbol>());
                 var propertyNames = reader.ReadStringArray();
                 var propertyIsReadOnly = reader.ReadBooleanArray();
                 var propertyLocations = reader.ReadLocationArray();
@@ -41,6 +41,7 @@ namespace Microsoft.CodeAnalysis.Symbols
                     {
                         var anonymousType = reader.Compilation.CreateAnonymousTypeSymbol(
                             propertyTypes, propertyNames, propertyIsReadOnly, propertyLocations);
+
                         return new SymbolKeyResolution(anonymousType);
                     }
                     catch (ArgumentException)
@@ -48,6 +49,9 @@ namespace Microsoft.CodeAnalysis.Symbols
                     }
                 }
 
+                // TODO(dustinca): Is object the best thing to return here? It seems reasonable for type inferrers,
+                // but I would expect symbol resolution to return a default SymbolKeyResolution if it couldn't be found.
+                // At the very least, it should include make this a candidate symbol and set a reason.
                 return new SymbolKeyResolution(reader.Compilation.ObjectType);
             }
         }

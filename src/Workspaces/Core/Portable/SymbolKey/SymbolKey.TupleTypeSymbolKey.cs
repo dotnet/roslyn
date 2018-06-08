@@ -13,7 +13,7 @@ namespace Microsoft.CodeAnalysis.Symbols
     {
         private static class TupleTypeSymbolKey
         {
-            public static void Create(INamedTypeSymbol symbol, SymbolKeyWriter visitor)
+            public static void Create(INamedTypeSymbol symbol, SymbolKeyWriter writer)
             {
                 Debug.Assert(symbol.IsTupleType);
 
@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.Symbols
                 var locations = ArrayBuilder<Location>.GetInstance();
 
                 var isError = symbol.TupleUnderlyingType.TypeKind == TypeKind.Error;
-                visitor.WriteBoolean(isError);
+                writer.WriteBoolean(isError);
 
                 if (isError)
                 {
@@ -32,11 +32,11 @@ namespace Microsoft.CodeAnalysis.Symbols
                         elementTypes.Add(element.Type);
                     }
 
-                    visitor.WriteSymbolKeyArray(elementTypes.ToImmutableAndFree());
+                    writer.WriteSymbolKeyArray(elementTypes.ToImmutableAndFree());
                 }
                 else
                 {
-                    visitor.WriteSymbolKey(symbol.TupleUnderlyingType);
+                    writer.WriteSymbolKey(symbol.TupleUnderlyingType);
                 }
 
                 foreach (var element in symbol.TupleElements)
@@ -45,8 +45,8 @@ namespace Microsoft.CodeAnalysis.Symbols
                     locations.Add(element.Locations.FirstOrDefault() ?? Location.None);
                 }
 
-                visitor.WriteStringArray(friendlyNames.ToImmutableAndFree());
-                visitor.WriteLocationArray(locations.ToImmutableAndFree());
+                writer.WriteStringArray(friendlyNames.ToImmutableAndFree());
+                writer.WriteLocationArray(locations.ToImmutableAndFree());
             }
 
             public static SymbolKeyResolution Resolve(SymbolKeyReader reader)

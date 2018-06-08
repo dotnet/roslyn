@@ -73,12 +73,21 @@ namespace Microsoft.CodeAnalysis.Symbols
                 return default;
             }
 
-            if (symbolArray.Length == 1)
+            return symbolArray.Length == 1
+                ? new SymbolKeyResolution(symbolArray[0])
+                : new SymbolKeyResolution(ImmutableArray.Create(symbolArray), CandidateReason.Ambiguous);
+        }
+
+        internal static SymbolKeyResolution Create(ImmutableArray<ISymbol> symbols)
+        {
+            if (symbols.IsDefaultOrEmpty)
             {
-                return new SymbolKeyResolution(symbolArray[0]);
+                return default;
             }
 
-            return new SymbolKeyResolution(ImmutableArray.Create(symbolArray), CandidateReason.Ambiguous);
+            return symbols.Length == 1
+                ? new SymbolKeyResolution(symbols[0])
+                : new SymbolKeyResolution(symbols, CandidateReason.Ambiguous);
         }
 
         public override bool Equals(object obj)

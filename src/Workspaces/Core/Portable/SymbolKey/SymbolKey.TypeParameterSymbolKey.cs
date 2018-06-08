@@ -9,10 +9,10 @@ namespace Microsoft.CodeAnalysis.Symbols
     {
         private static class TypeParameterSymbolKey
         {
-            public static void Create(ITypeParameterSymbol symbol, SymbolKeyWriter visitor)
+            public static void Create(ITypeParameterSymbol symbol, SymbolKeyWriter writer)
             {
-                visitor.WriteString(symbol.MetadataName);
-                visitor.WriteSymbolKey(symbol.ContainingSymbol);
+                writer.WriteString(symbol.MetadataName);
+                writer.WriteSymbolKey(symbol.ContainingSymbol);
             }
 
             public static SymbolKeyResolution Resolve(SymbolKeyReader reader)

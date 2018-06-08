@@ -1,4 +1,6 @@
-﻿using System.Linq;
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
+using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 
@@ -8,23 +10,23 @@ namespace Microsoft.CodeAnalysis.Symbols
     {
         private static class AliasSymbolKey
         {
-            public static void Create(IAliasSymbol symbol, SymbolKeyWriter visitor)
+            public static void Create(IAliasSymbol symbol, SymbolKeyWriter writer)
             {
-                visitor.WriteString(symbol.Name);
-                visitor.WriteSymbolKey(symbol.Target);
-                visitor.WriteString(symbol.DeclaringSyntaxReferences.FirstOrDefault()?.SyntaxTree.FilePath ?? "");
+                writer.WriteString(symbol.Name);
+                writer.WriteSymbolKey(symbol.Target);
+                writer.WriteString(symbol.DeclaringSyntaxReferences.FirstOrDefault()?.SyntaxTree.FilePath ?? "");
             }
 
             public static SymbolKeyResolution Resolve(SymbolKeyReader reader)
             {
                 var name = reader.ReadString();
-                var targetResolution = reader.ReadSymbolKey();
+                var resolvedTarget = reader.ReadSymbolKey();
                 var filePath = reader.ReadString();
 
                 var syntaxTree = reader.GetSyntaxTree(filePath);
                 if (syntaxTree != null)
                 {
-                    var target = targetResolution.GetAnySymbol();
+                    var target = resolvedTarget.GetAnySymbol();
                     if (target != null)
                     {
                         var semanticModel = reader.Compilation.GetSemanticModel(syntaxTree);

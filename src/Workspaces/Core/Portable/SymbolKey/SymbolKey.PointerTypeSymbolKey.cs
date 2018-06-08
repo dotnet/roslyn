@@ -8,9 +8,9 @@ namespace Microsoft.CodeAnalysis.Symbols
     {
         private static class PointerTypeSymbolKey
         {
-            public static void Create(IPointerTypeSymbol symbol, SymbolKeyWriter visitor)
+            public static void Create(IPointerTypeSymbol symbol, SymbolKeyWriter writer)
             {
-                visitor.WriteSymbolKey(symbol.PointedAtType);
+                writer.WriteSymbolKey(symbol.PointedAtType);
             }
 
             public static SymbolKeyResolution Resolve(SymbolKeyReader reader)

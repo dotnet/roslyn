@@ -8,9 +8,9 @@ namespace Microsoft.CodeAnalysis.Symbols
     {
         private static class ModuleSymbolKey
         {
-            public static void Create(IModuleSymbol symbol, SymbolKeyWriter visitor)
+            public static void Create(IModuleSymbol symbol, SymbolKeyWriter writer)
             {
-                visitor.WriteSymbolKey(symbol.ContainingSymbol);
+                writer.WriteSymbolKey(symbol.ContainingSymbol);
             }
 
             public static SymbolKeyResolution Resolve(SymbolKeyReader reader)

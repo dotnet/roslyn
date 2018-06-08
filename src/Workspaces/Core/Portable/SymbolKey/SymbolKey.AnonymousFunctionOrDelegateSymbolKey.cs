@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.Symbols
         /// </summary>
         private static class AnonymousFunctionOrDelegateSymbolKey
         {
-            public static void Create(ISymbol symbol, SymbolKeyWriter visitor)
+            public static void Create(ISymbol symbol, SymbolKeyWriter writer)
             {
                 Debug.Assert(symbol.IsAnonymousDelegateType() || symbol.IsAnonymousFunction());
 
@@ -26,8 +26,8 @@ namespace Microsoft.CodeAnalysis.Symbols
                 // symbol later, if it's an anonymous delegate, we'll first resolve to
                 // the anonymous-function, then use that anonymous-functoin to get at
                 // the synthesized anonymous delegate.
-                visitor.WriteBoolean(symbol.IsAnonymousDelegateType());
-                visitor.WriteLocation(symbol.Locations.FirstOrDefault());
+                writer.WriteBoolean(symbol.IsAnonymousDelegateType());
+                writer.WriteLocation(symbol.Locations.FirstOrDefault());
             }
 
             public static SymbolKeyResolution Resolve(SymbolKeyReader reader)
@@ -45,8 +45,9 @@ namespace Microsoft.CodeAnalysis.Symbols
                 var root = syntaxTree.GetRoot(reader.CancellationToken);
                 var node = root.FindNode(location.SourceSpan, getInnermostNodeForTie: true);
 
-                var symbol = semanticModel.GetSymbolInfo(node, reader.CancellationToken)
-                                          .GetAnySymbol();
+                var symbol = semanticModel
+                    .GetSymbolInfo(node, reader.CancellationToken)
+                    .GetAnySymbol();
 
                 // If this was a key for an anonymous delegate type, then go find the
                 // associated delegate for this lambda and return that instead of the 

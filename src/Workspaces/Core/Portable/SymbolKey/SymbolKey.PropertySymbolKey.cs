@@ -8,13 +8,13 @@ namespace Microsoft.CodeAnalysis.Symbols
     {
         private static class PropertySymbolKey
         {
-            public static void Create(IPropertySymbol symbol, SymbolKeyWriter visitor)
+            public static void Create(IPropertySymbol symbol, SymbolKeyWriter writer)
             {
-                visitor.WriteString(symbol.MetadataName);
-                visitor.WriteSymbolKey(symbol.ContainingSymbol);
-                visitor.WriteBoolean(symbol.IsIndexer);
-                visitor.WriteRefKindArray(symbol.Parameters);
-                visitor.WriteParameterTypesArray(symbol.OriginalDefinition.Parameters);
+                writer.WriteString(symbol.MetadataName);
+                writer.WriteSymbolKey(symbol.ContainingSymbol);
+                writer.WriteBoolean(symbol.IsIndexer);
+                writer.WriteRefKindArray(symbol.Parameters);
+                writer.WriteParameterTypesArray(symbol.OriginalDefinition.Parameters);
             }
 
             public static SymbolKeyResolution Resolve(SymbolKeyReader reader)

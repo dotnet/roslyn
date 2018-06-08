@@ -1,6 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using Roslyn.Utilities;
@@ -11,7 +11,7 @@ namespace Microsoft.CodeAnalysis.Symbols
     {
         private static class BodyLevelSymbolKey
         {
-            public static void Create(ISymbol symbol, SymbolKeyWriter visitor)
+            public static void Create(ISymbol symbol, SymbolKeyWriter writer)
             {
                 var containingSymbol = symbol.ContainingSymbol;
 
@@ -24,19 +24,24 @@ namespace Microsoft.CodeAnalysis.Symbols
                 var kind = symbol.Kind;
                 var localName = symbol.Name;
                 var ordinal = 0;
-                foreach (var possibleSymbol in EnumerateSymbols(compilation, containingSymbol, kind, localName, visitor.CancellationToken))
+
+                var symbols = GetSymbols(compilation, containingSymbol, kind, localName, writer.CancellationToken);
+
+                for (int i = 0; i < symbols.Length; i++)
                 {
-                    if (possibleSymbol.symbol.Equals(symbol))
+                    var possibleSymbol = symbols[i];
+
+                    if (possibleSymbol.Equals(symbol))
                     {
-                        ordinal = possibleSymbol.ordinal;
+                        ordinal = i;
                         break;
                     }
                 }
 
-                visitor.WriteString(localName);
-                visitor.WriteSymbolKey(containingSymbol);
-                visitor.WriteInteger(ordinal);
-                visitor.WriteInteger((int)kind);
+                writer.WriteString(localName);
+                writer.WriteSymbolKey(containingSymbol);
+                writer.WriteInteger(ordinal);
+                writer.WriteInteger((int)kind);
             }
 
             public static SymbolKeyResolution Resolve(SymbolKeyReader reader)
@@ -49,25 +54,22 @@ namespace Microsoft.CodeAnalysis.Symbols
                 var containingSymbol = containingSymbolResolution.Symbol;
                 if (containingSymbol != null)
                 {
-                    foreach (var symbol in EnumerateSymbols(
-                        reader.Compilation, containingSymbol, kind, localName, reader.CancellationToken))
+                    var symbols = GetSymbols(reader.Compilation, containingSymbol, kind, localName, reader.CancellationToken);
+                    if (ordinal < symbols.Length)
                     {
-                        if (symbol.ordinal == ordinal)
-                        {
-                            return new SymbolKeyResolution(symbol.symbol);
-                        }
+                        return new SymbolKeyResolution(symbols[ordinal]);
                     }
                 }
 
-                return new SymbolKeyResolution();
+                return default;
             }
 
-            private static IEnumerable<(ISymbol symbol, int ordinal)> EnumerateSymbols(
+            private static ImmutableArray<ISymbol> GetSymbols(
                 Compilation compilation, ISymbol containingSymbol,
                 SymbolKind kind, string localName,
                 CancellationToken cancellationToken)
             {
-                int ordinal = 0;
+                var result = ImmutableArray.CreateBuilder<ISymbol>();
 
                 foreach (var declaringLocation in containingSymbol.DeclaringSyntaxReferences)
                 {
@@ -105,12 +107,14 @@ namespace Microsoft.CodeAnalysis.Symbols
 
                         if (symbol != null &&
                             symbol.Kind == kind &&
-                            SymbolKey.AreNamesEqual(compilation, symbol.Name, localName))
+                            NamesAreEqual(compilation, symbol.Name, localName))
                         {
-                            yield return (symbol, ordinal++);
+                            result.Add(symbol);
                         }
                     }
                 }
+
+                return result.ToImmutable();
             }
         }
     }

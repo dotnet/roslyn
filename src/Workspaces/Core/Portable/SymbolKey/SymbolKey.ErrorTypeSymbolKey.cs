@@ -1,6 +1,5 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 
@@ -10,63 +9,67 @@ namespace Microsoft.CodeAnalysis.Symbols
     {
         private static class ErrorTypeSymbolKey
         {
-            public static void Create(INamedTypeSymbol symbol, SymbolKeyWriter visitor)
+            public static void Create(INamedTypeSymbol symbol, SymbolKeyWriter writer)
             {
-                visitor.WriteString(symbol.Name);
-                visitor.WriteSymbolKey(symbol.ContainingSymbol as INamespaceOrTypeSymbol);
-                visitor.WriteInteger(symbol.Arity);
+                writer.WriteString(symbol.Name);
+                writer.WriteSymbolKey(symbol.ContainingSymbol as INamespaceOrTypeSymbol);
+                writer.WriteInteger(symbol.Arity);
 
                 if (!symbol.Equals(symbol.ConstructedFrom))
                 {
-                    visitor.WriteSymbolKeyArray(symbol.TypeArguments);
+                    writer.WriteSymbolKeyArray(symbol.TypeArguments);
                 }
                 else
                 {
-                    visitor.WriteSymbolKeyArray(default(ImmutableArray<ITypeSymbol>));
+                    writer.WriteSymbolKeyArray(default(ImmutableArray<ITypeSymbol>));
                 }
             }
 
             public static SymbolKeyResolution Resolve(SymbolKeyReader reader)
             {
                 var name = reader.ReadString();
-                var containingSymbolResolution = reader.ReadSymbolKey();
+                var resolvedContainer = reader.ReadSymbolKey();
                 var arity = reader.ReadInteger();
-                var typeArgumentResolutions = reader.ReadSymbolKeyArray();
+                var resolvedTypeArguments = reader.ReadSymbolKeyArray();
 
-                var errorTypes = ResolveErrorTypes(reader, containingSymbolResolution, name, arity);
+                var errorTypes = ResolveErrorTypes(reader, resolvedContainer, name, arity);
 
-                if (typeArgumentResolutions.IsDefault)
+                if (resolvedTypeArguments.IsDefault)
                 {
                     return SymbolKeyResolution.Create(errorTypes);
                 }
 
-                var typeArguments = typeArgumentResolutions.Select(
-                    r => r.GetFirstSymbol<ITypeSymbol>()).ToArray();
+                var typeArguments = resolvedTypeArguments
+                    .SelectAsArray(r => r.GetFirstSymbol<ITypeSymbol>())
+                    .ToArray();
+
                 if (typeArguments.Any(s_typeIsNull))
                 {
                     return default;
                 }
 
-                return SymbolKeyResolution.Create(errorTypes.Select(t => t.Construct(typeArguments)));
+                return SymbolKeyResolution.Create(errorTypes.SelectAsArray(t => t.Construct(typeArguments)));
             }
 
-            private static IEnumerable<INamedTypeSymbol> ResolveErrorTypes(
-                SymbolKeyReader reader,
-                SymbolKeyResolution containingSymbolResolution, string name, int arity)
+            private static ImmutableArray<INamedTypeSymbol> ResolveErrorTypes(
+                SymbolKeyReader reader, SymbolKeyResolution resolvedContainer, string name, int arity)
             {
-                if (containingSymbolResolution.GetAnySymbol() == null)
+                var result = ImmutableArray.CreateBuilder<INamedTypeSymbol>();
+
+                if (resolvedContainer.GetAnySymbol() == null)
                 {
-                    yield return reader.Compilation.CreateErrorTypeSymbol(null, name, arity);
+                    result.Add(reader.Compilation.CreateErrorTypeSymbol(null, name, arity));
                 }
                 else
                 {
-                    foreach (var container in containingSymbolResolution.GetAllSymbols<INamespaceOrTypeSymbol>())
+                    foreach (var container in resolvedContainer.GetAllSymbols<INamespaceOrTypeSymbol>())
                     {
-                        yield return reader.Compilation.CreateErrorTypeSymbol(container, name, arity);
+                        result.Add(reader.Compilation.CreateErrorTypeSymbol(container, name, arity));
                     }
                 }
-            }
 
+                return result.ToImmutable();
+            }
         }
     }
 }

@@ -8,7 +8,7 @@ namespace Microsoft.CodeAnalysis.Symbols
         {
             private static readonly object instance = new object();
 
-            public static void Create(SymbolKeyWriter visitor)
+            public static void Create(SymbolKeyWriter writer)
             {
             }
 

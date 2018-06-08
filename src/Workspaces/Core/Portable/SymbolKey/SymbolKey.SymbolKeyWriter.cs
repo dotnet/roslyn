@@ -15,38 +15,7 @@ namespace Microsoft.CodeAnalysis.Symbols
 {
     internal partial struct SymbolKey
     {
-        private enum SymbolKeyType
-        {
-            Alias = 'A',
-            BodyLevel = 'B',
-            ConstructedMethod = 'C',
-            NamedType = 'D',
-            ErrorType = 'E',
-            Field = 'F',
-            DynamicType = 'I',
-            Method = 'M',
-            Namespace = 'N',
-            PointerType = 'O',
-            Parameter = 'P',
-            Property = 'Q',
-            ArrayType = 'R',
-            Assembly = 'S',
-            TupleType = 'T',
-            Module = 'U',
-            Event = 'V',
-            AnonymousType = 'W',
-            ReducedExtensionMethod = 'X',
-            TypeParameter = 'Y',
-            AnonymousFunctionOrDelegate = 'Z',
-
-            // Not to be confused with ArrayType.  This indicates an array of elements in the stream.
-            Array = '%',
-            Reference = '#',
-            Null = '!',
-            TypeParameterOrdinal = '@',
-        }
-
-        private class SymbolKeyWriter : SymbolVisitor<object>, IDisposable
+        private class SymbolKeyWriter : SymbolVisitor, IDisposable
         {
             private static readonly ObjectPool<SymbolKeyWriter> s_writerPool =
                 new ObjectPool<SymbolKeyWriter>(() => new SymbolKeyWriter());
@@ -65,7 +34,7 @@ namespace Microsoft.CodeAnalysis.Symbols
 
             private List<IMethodSymbol> _methodSymbolStack = new List<IMethodSymbol>();
 
-            internal int _nestingCount;
+            private int _nestingCount;
             private int _nextId;
 
             private SymbolKeyWriter()
@@ -115,9 +84,9 @@ namespace Microsoft.CodeAnalysis.Symbols
                 _nestingCount++;
             }
 
-            private void WriteType(SymbolKeyType type)
+            private void WriteType(char type)
             {
-                _stringBuilder.Append((char)type);
+                _stringBuilder.Append(type);
             }
 
             private void EndKey()
@@ -150,7 +119,7 @@ namespace Microsoft.CodeAnalysis.Symbols
                 }
 
                 int id;
-                var shouldWriteOrdinal = ShouldWriteTypeParameterOrdinal(symbol, out var methodIndex);
+                var shouldWriteOrdinal = ShouldWriteTypeParameterOrdinal(symbol, out _);
                 if (!shouldWriteOrdinal)
                 {
                     if (_symbolToId.TryGetValue(symbol, out id))
@@ -322,63 +291,55 @@ namespace Microsoft.CodeAnalysis.Symbols
                 EndKey();
             }
 
-            public override object VisitAlias(IAliasSymbol aliasSymbol)
+            public override void VisitAlias(IAliasSymbol aliasSymbol)
             {
                 WriteType(SymbolKeyType.Alias);
                 AliasSymbolKey.Create(aliasSymbol, this);
-                return null;
             }
 
-            public override object VisitArrayType(IArrayTypeSymbol arrayTypeSymbol)
+            public override void VisitArrayType(IArrayTypeSymbol arrayTypeSymbol)
             {
                 WriteType(SymbolKeyType.ArrayType);
                 ArrayTypeSymbolKey.Create(arrayTypeSymbol, this);
-                return null;
             }
 
-            public override object VisitAssembly(IAssemblySymbol assemblySymbol)
+            public override void VisitAssembly(IAssemblySymbol assemblySymbol)
             {
                 WriteType(SymbolKeyType.Assembly);
                 AssemblySymbolKey.Create(assemblySymbol, this);
-                return null;
             }
 
-            public override object VisitDynamicType(IDynamicTypeSymbol dynamicTypeSymbol)
+            public override void VisitDynamicType(IDynamicTypeSymbol dynamicTypeSymbol)
             {
                 WriteType(SymbolKeyType.DynamicType);
                 DynamicTypeSymbolKey.Create(this);
-                return null;
             }
 
-            public override object VisitField(IFieldSymbol fieldSymbol)
+            public override void VisitField(IFieldSymbol fieldSymbol)
             {
                 WriteType(SymbolKeyType.Field);
                 FieldSymbolKey.Create(fieldSymbol, this);
-                return null;
             }
 
-            public override object VisitLabel(ILabelSymbol labelSymbol)
+            public override void VisitLabel(ILabelSymbol labelSymbol)
             {
                 WriteType(SymbolKeyType.BodyLevel);
                 BodyLevelSymbolKey.Create(labelSymbol, this);
-                return null;
             }
 
-            public override object VisitLocal(ILocalSymbol localSymbol)
+            public override void VisitLocal(ILocalSymbol localSymbol)
             {
                 WriteType(SymbolKeyType.BodyLevel);
                 BodyLevelSymbolKey.Create(localSymbol, this);
-                return null;
             }
 
-            public override object VisitRangeVariable(IRangeVariableSymbol rangeVariableSymbol)
+            public override void VisitRangeVariable(IRangeVariableSymbol rangeVariableSymbol)
             {
                 WriteType(SymbolKeyType.BodyLevel);
                 BodyLevelSymbolKey.Create(rangeVariableSymbol, this);
-                return null;
             }
 
-            public override object VisitMethod(IMethodSymbol methodSymbol)
+            public override void VisitMethod(IMethodSymbol methodSymbol)
             {
                 if (!methodSymbol.Equals(methodSymbol.ConstructedFrom))
                 {
@@ -410,18 +371,15 @@ namespace Microsoft.CodeAnalysis.Symbols
                             break;
                     }
                 }
-
-                return null;
             }
 
-            public override object VisitModule(IModuleSymbol moduleSymbol)
+            public override void VisitModule(IModuleSymbol moduleSymbol)
             {
                 WriteType(SymbolKeyType.Module);
                 ModuleSymbolKey.Create(moduleSymbol, this);
-                return null;
             }
 
-            public override object VisitNamedType(INamedTypeSymbol namedTypeSymbol)
+            public override void VisitNamedType(INamedTypeSymbol namedTypeSymbol)
             {
                 if (namedTypeSymbol.TypeKind == TypeKind.Error)
                 {
@@ -451,46 +409,39 @@ namespace Microsoft.CodeAnalysis.Symbols
                     WriteType(SymbolKeyType.NamedType);
                     NamedTypeSymbolKey.Create(namedTypeSymbol, this);
                 }
-
-                return null;
             }
 
-            public override object VisitNamespace(INamespaceSymbol namespaceSymbol)
+            public override void VisitNamespace(INamespaceSymbol namespaceSymbol)
             {
                 WriteType(SymbolKeyType.Namespace);
                 NamespaceSymbolKey.Create(namespaceSymbol, this);
-                return null;
             }
 
-            public override object VisitParameter(IParameterSymbol parameterSymbol)
+            public override void VisitParameter(IParameterSymbol parameterSymbol)
             {
                 WriteType(SymbolKeyType.Parameter);
                 ParameterSymbolKey.Create(parameterSymbol, this);
-                return null;
             }
 
-            public override object VisitPointerType(IPointerTypeSymbol pointerTypeSymbol)
+            public override void VisitPointerType(IPointerTypeSymbol pointerTypeSymbol)
             {
                 WriteType(SymbolKeyType.PointerType);
                 PointerTypeSymbolKey.Create(pointerTypeSymbol, this);
-                return null;
             }
 
-            public override object VisitProperty(IPropertySymbol propertySymbol)
+            public override void VisitProperty(IPropertySymbol propertySymbol)
             {
                 WriteType(SymbolKeyType.Property);
                 PropertySymbolKey.Create(propertySymbol, this);
-                return null;
             }
 
-            public override object VisitEvent(IEventSymbol eventSymbol)
+            public override void VisitEvent(IEventSymbol eventSymbol)
             {
                 WriteType(SymbolKeyType.Event);
                 EventSymbolKey.Create(eventSymbol, this);
-                return null;
             }
 
-            public override object VisitTypeParameter(ITypeParameterSymbol typeParameterSymbol)
+            public override void VisitTypeParameter(ITypeParameterSymbol typeParameterSymbol)
             {
                 // If it's a reference to a method type parameter, and we're currently writing
                 // out a signture, then only write out the ordinal of type parameter.  This 
@@ -505,10 +456,9 @@ namespace Microsoft.CodeAnalysis.Symbols
                     WriteType(SymbolKeyType.TypeParameter);
                     TypeParameterSymbolKey.Create(typeParameterSymbol, this);
                 }
-                return null;
             }
 
-            public bool ShouldWriteTypeParameterOrdinal(ISymbol symbol, out int methodIndex)
+            private bool ShouldWriteTypeParameterOrdinal(ISymbol symbol, out int methodIndex)
             {
                 if (symbol.Kind == SymbolKind.TypeParameter)
                 {

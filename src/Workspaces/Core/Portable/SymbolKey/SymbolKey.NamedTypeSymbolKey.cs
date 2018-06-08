@@ -11,21 +11,21 @@ namespace Microsoft.CodeAnalysis.Symbols
     {
         private static class NamedTypeSymbolKey
         {
-            public static void Create(INamedTypeSymbol symbol, SymbolKeyWriter visitor)
+            public static void Create(INamedTypeSymbol symbol, SymbolKeyWriter writer)
             {
-                visitor.WriteString(symbol.MetadataName);
-                visitor.WriteSymbolKey(symbol.ContainingSymbol);
-                visitor.WriteInteger(symbol.Arity);
-                visitor.WriteInteger((int)symbol.TypeKind);
-                visitor.WriteBoolean(symbol.IsUnboundGenericType);
+                writer.WriteString(symbol.MetadataName);
+                writer.WriteSymbolKey(symbol.ContainingSymbol);
+                writer.WriteInteger(symbol.Arity);
+                writer.WriteInteger((int)symbol.TypeKind);
+                writer.WriteBoolean(symbol.IsUnboundGenericType);
 
                 if (!symbol.Equals(symbol.ConstructedFrom) && !symbol.IsUnboundGenericType)
                 {
-                    visitor.WriteSymbolKeyArray(symbol.TypeArguments);
+                    writer.WriteSymbolKeyArray(symbol.TypeArguments);
                 }
                 else
                 {
-                    visitor.WriteSymbolKeyArray(default(ImmutableArray<ITypeSymbol>));
+                    writer.WriteSymbolKeyArray(default(ImmutableArray<ITypeSymbol>));
                 }
             }
 

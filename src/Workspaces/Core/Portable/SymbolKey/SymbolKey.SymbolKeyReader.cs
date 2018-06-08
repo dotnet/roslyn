@@ -52,11 +52,6 @@ namespace Microsoft.CodeAnalysis.Symbols
                 CancellationToken = default;
             }
 
-            protected char Eat(SymbolKeyType type)
-            {
-                return Eat((char)type);
-            }
-
             protected char Eat(char c)
             {
                 Debug.Assert(Data[Position] == c);
@@ -116,7 +111,7 @@ namespace Microsoft.CodeAnalysis.Symbols
 
             protected TStringResult ReadStringNoSpace()
             {
-                if ((SymbolKeyType)Data[Position] == SymbolKeyType.Null)
+                if (Data[Position] == SymbolKeyType.Null)
                 {
                     Eat(SymbolKeyType.Null);
                     return CreateNullForString();
@@ -182,7 +177,7 @@ namespace Microsoft.CodeAnalysis.Symbols
             {
                 EatSpace();
 
-                if ((SymbolKeyType)Data[Position] == SymbolKeyType.Null)
+                if (Data[Position] == SymbolKeyType.Null)
                 {
                     Eat(SymbolKeyType.Null);
                     return default;
@@ -228,7 +223,7 @@ namespace Microsoft.CodeAnalysis.Symbols
                     {
                         _builder.Append(Eat(OpenParenChar));
 
-                        var type = (SymbolKeyType)Data[Position];
+                        var type = Data[Position];
                         _builder.Append(Eat(type));
                         if (type == SymbolKeyType.Assembly)
                         {
@@ -401,7 +396,7 @@ namespace Microsoft.CodeAnalysis.Symbols
                     EatSpace();
                 }
 
-                var type = (SymbolKeyType)Data[Position];
+                var type = Data[Position];
                 if (type == SymbolKeyType.Null)
                 {
                     Eat(type);
@@ -411,7 +406,7 @@ namespace Microsoft.CodeAnalysis.Symbols
                 EatOpenParen();
                 SymbolKeyResolution result;
 
-                type = (SymbolKeyType)Data[Position];
+                type = Data[Position];
                 Eat(type);
 
                 if (type == SymbolKeyType.Reference)
@@ -431,7 +426,7 @@ namespace Microsoft.CodeAnalysis.Symbols
                 return result;
             }
 
-            private SymbolKeyResolution ReadWorker(SymbolKeyType type)
+            private SymbolKeyResolution ReadWorker(char type)
             {
                 switch (type)
                 {
@@ -490,7 +485,7 @@ namespace Microsoft.CodeAnalysis.Symbols
             public Location ReadLocation()
             {
                 EatSpace();
-                if ((SymbolKeyType)Data[Position] == SymbolKeyType.Null)
+                if (Data[Position] == SymbolKeyType.Null)
                 {
                     Eat(SymbolKeyType.Null);
                     return null;

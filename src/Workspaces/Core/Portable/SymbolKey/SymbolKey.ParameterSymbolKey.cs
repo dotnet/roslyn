@@ -10,10 +10,10 @@ namespace Microsoft.CodeAnalysis.Symbols
     {
         private static class ParameterSymbolKey
         {
-            public static void Create(IParameterSymbol symbol, SymbolKeyWriter visitor)
+            public static void Create(IParameterSymbol symbol, SymbolKeyWriter writer)
             {
-                visitor.WriteString(symbol.MetadataName);
-                visitor.WriteSymbolKey(symbol.ContainingSymbol);
+                writer.WriteString(symbol.MetadataName);
+                writer.WriteSymbolKey(symbol.ContainingSymbol);
             }
 
             public static SymbolKeyResolution Resolve(SymbolKeyReader reader)
@@ -32,12 +32,12 @@ namespace Microsoft.CodeAnalysis.Symbols
                 if (container is IMethodSymbol method)
                 {
                     return method.Parameters.Where(
-                        p => SymbolKey.AreNamesEqual(reader.Compilation, p.MetadataName, metadataName));
+                        p => SymbolKey.NamesAreEqual(reader.Compilation, p.MetadataName, metadataName));
                 }
                 else if (container is IPropertySymbol property)
                 {
                     return property.Parameters.Where(
-                        p => SymbolKey.AreNamesEqual(reader.Compilation, p.MetadataName, metadataName));
+                        p => SymbolKey.NamesAreEqual(reader.Compilation, p.MetadataName, metadataName));
                 }
                 else if (container is IEventSymbol eventSymbol)
                 {
@@ -58,7 +58,7 @@ namespace Microsoft.CodeAnalysis.Symbols
                     if (delegateInvoke != null)
                     {
                         return delegateInvoke.Parameters.Where(
-                            p => SymbolKey.AreNamesEqual(reader.Compilation, p.MetadataName, metadataName));
+                            p => SymbolKey.NamesAreEqual(reader.Compilation, p.MetadataName, metadataName));
                     }
                 }
 

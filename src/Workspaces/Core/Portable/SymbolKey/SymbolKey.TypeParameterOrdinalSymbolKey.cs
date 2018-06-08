@@ -8,11 +8,11 @@ namespace Microsoft.CodeAnalysis.Symbols
     {
         private static class TypeParameterOrdinalSymbolKey
         {
-            public static void Create(ITypeParameterSymbol symbol, int methodIndex, SymbolKeyWriter visitor)
+            public static void Create(ITypeParameterSymbol symbol, int methodIndex, SymbolKeyWriter writer)
             {
                 Contract.ThrowIfFalse(symbol.TypeParameterKind == TypeParameterKind.Method);
-                visitor.WriteInteger(methodIndex);
-                visitor.WriteInteger(symbol.Ordinal);
+                writer.WriteInteger(methodIndex);
+                writer.WriteInteger(symbol.Ordinal);
             }
 
             public static SymbolKeyResolution Resolve(SymbolKeyReader reader)
