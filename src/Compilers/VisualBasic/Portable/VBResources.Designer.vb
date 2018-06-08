@@ -13810,7 +13810,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
-        '''  Looks up a localized string similar to The diagnostic &apos;{0}&apos; was given an invalid severity &apos;{1}&apos; in analyzer config file..
+        '''  Looks up a localized string similar to The diagnostic &apos;{0}&apos; was given an invalid severity &apos;{1}&apos; in the analyzer config file in directory &apos;{2}&apos;..
         '''</summary>
         Friend ReadOnly Property WRN_InvalidSeverityInAnalyzerConfig() As String
             Get

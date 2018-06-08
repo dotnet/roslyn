@@ -331,7 +331,7 @@ namespace Microsoft.CodeAnalysis
                             if (regexes[sectionIndex].IsMatch(relativePath))
                             {
                                 var section = config.NamedSections[sectionIndex];
-                                addDiagnosticOptions(section, optionsBuilder);
+                                addDiagnosticOptions(section, optionsBuilder, config.Directory);
                             }
                         }
                     }
@@ -349,7 +349,8 @@ namespace Microsoft.CodeAnalysis
 
             void addDiagnosticOptions(
                 EditorConfig.Section section,
-                ImmutableDictionary<string, ReportDiagnostic>.Builder builder)
+                ImmutableDictionary<string, ReportDiagnostic>.Builder builder,
+                string analyzerConfigDir)
             {
                 const string DiagnosticOptionPrefix = "dotnet_diagnostic.";
                 const string DiagnosticOptionSuffix = ".severity";
@@ -397,7 +398,8 @@ namespace Microsoft.CodeAnalysis
                                 messageProvider,
                                 messageProvider.WRN_InvalidSeverityInAnalyzerConfig,
                                 diagId,
-                                value));
+                                value,
+                                analyzerConfigDir));
                         }
 
                         if (severity.HasValue)
