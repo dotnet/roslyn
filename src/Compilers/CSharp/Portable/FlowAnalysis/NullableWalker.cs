@@ -1693,7 +1693,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     annotations &= ~FlowAnalysisAnnotations.AssertsFalse;
                 }
 
-                // We'll ignore AssertsTrue and AssertsFalse if both set in metadata
+                // We'll ignore AssertsTrue and AssertsFalse if both set
                 if ((annotations & FlowAnalysisAnnotations.AssertsTrue) != 0 &&
                      (annotations & FlowAnalysisAnnotations.AssertsFalse) != 0)
                 {
