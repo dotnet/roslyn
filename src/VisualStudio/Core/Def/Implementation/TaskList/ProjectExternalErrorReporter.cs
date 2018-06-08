@@ -26,19 +26,23 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
         private readonly ProjectId _projectId;
         private readonly string _errorCodePrefix;
 
-        private readonly VisualStudioWorkspaceImpl _workspace;
+        private readonly VisualStudioWorkspace _workspace;
         private readonly ExternalErrorDiagnosticUpdateSource _diagnosticProvider;
 
         public ProjectExternalErrorReporter(ProjectId projectId, string errorCodePrefix, IServiceProvider serviceProvider)
+            : this(projectId, errorCodePrefix, serviceProvider.GetMefService<VisualStudioWorkspace>(), serviceProvider.GetMefService<ExternalErrorDiagnosticUpdateSource>())
         {
+        }
+
+        public ProjectExternalErrorReporter(ProjectId projectId, string errorCodePrefix, VisualStudioWorkspace workspace, ExternalErrorDiagnosticUpdateSource diagnosticProvider)
+        {
+            Debug.Assert(workspace != null);
+            Debug.Assert(diagnosticProvider != null);
+
             _projectId = projectId;
             _errorCodePrefix = errorCodePrefix;
-
-            _workspace = serviceProvider.GetMefService<VisualStudioWorkspaceImpl>();
-            _diagnosticProvider = serviceProvider.GetMefService<ExternalErrorDiagnosticUpdateSource>();
-
-            Debug.Assert(_workspace != null);
-            Debug.Assert(_diagnosticProvider != null);
+            _workspace = workspace;
+            _diagnosticProvider = diagnosticProvider;
         }
 
         private bool CanHandle(string errorId)

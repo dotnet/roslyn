@@ -18,10 +18,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.C
     [Export(typeof(IWorkspaceProjectContextFactory))]
     internal partial class CPSProjectFactory : IWorkspaceProjectContextFactory
     {
-        private readonly IServiceProvider _serviceProvider;
+        private readonly VisualStudioProjectFactory _projectFactory;
         private readonly VisualStudioWorkspaceImpl _workspace;
         private readonly IProjectCodeModelFactory _projectCodeModelFactory;
-        private readonly VisualStudioProjectFactory _projectFactory;
+        private readonly ExternalErrorDiagnosticUpdateSource _externalErrorDiagnosticUpdateSource;
 
         private static readonly ImmutableDictionary<string, string> s_projectLanguageToErrorCodePrefixMap =
             ImmutableDictionary.CreateRange(StringComparer.OrdinalIgnoreCase, new[]
@@ -37,12 +37,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.C
             VisualStudioProjectFactory projectFactory,
             VisualStudioWorkspaceImpl workspace,
             IProjectCodeModelFactory projectCodeModelFactory,
-            [Import(typeof(SVsServiceProvider))] IServiceProvider serviceProvider)
+            ExternalErrorDiagnosticUpdateSource externalErrorDiagnosticUpdateSource)
         {
             _projectFactory = projectFactory;
             _workspace = workspace;
             _projectCodeModelFactory = projectCodeModelFactory;
-            _serviceProvider = serviceProvider;
+            _externalErrorDiagnosticUpdateSource = externalErrorDiagnosticUpdateSource;
         }
 
         IWorkspaceProjectContext IWorkspaceProjectContextFactory.CreateProjectContext(
@@ -59,12 +59,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.C
 
             if (s_projectLanguageToErrorCodePrefixMap.TryGetKey(languageName, out var prefix))
             {
-                errorReporter = new ProjectExternalErrorReporter(visualStudioProject.Id, prefix, _serviceProvider);
+                errorReporter = new ProjectExternalErrorReporter(visualStudioProject.Id, prefix, _workspace, _externalErrorDiagnosticUpdateSource);
             }
 
             return new CPSProject(visualStudioProject, _workspace, _projectCodeModelFactory, errorReporter);
         }
-        
+
         // TODO: this is a workaround. Factory has to be refactored so that all callers supply their own error reporters
         IWorkspaceProjectContext IWorkspaceProjectContextFactory.CreateProjectContext(
             string languageName,
