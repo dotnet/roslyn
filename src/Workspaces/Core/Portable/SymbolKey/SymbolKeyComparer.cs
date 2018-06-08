@@ -3,7 +3,7 @@
 using System;
 using System.Collections.Generic;
 
-namespace Microsoft.CodeAnalysis
+namespace Microsoft.CodeAnalysis.Symbols
 {
     internal partial class SymbolKeyComparer : IEqualityComparer<SymbolKey>
     {

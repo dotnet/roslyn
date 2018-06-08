@@ -2,10 +2,9 @@
 
 using System;
 using System.Collections.Immutable;
-using System.Linq;
 using System.Threading;
-using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.Navigation;
+using Microsoft.CodeAnalysis.Symbols;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.FindUsages

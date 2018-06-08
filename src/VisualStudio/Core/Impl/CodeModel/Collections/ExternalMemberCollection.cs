@@ -8,6 +8,7 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Interop;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Interop;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Utilities;
+using Microsoft.CodeAnalysis.Symbols;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Collections
 {
@@ -26,14 +27,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Colle
         }
 
         private readonly ProjectId _projectId;
-        private readonly SymbolKey _typeSymbolId;
+        private readonly SymbolKey _typeSymbolKey;
         private ImmutableArray<EnvDTE.CodeElement> _children;
 
         private ExternalMemberCollection(CodeModelState state, object parent, ProjectId projectId, ITypeSymbol typeSymbol)
             : base(state, parent)
         {
             _projectId = projectId;
-            _typeSymbolId = typeSymbol.GetSymbolKey();
+            _typeSymbolKey = typeSymbol.GetSymbolKey();
         }
 
         private ImmutableArray<EnvDTE.CodeElement> GetChildren()
@@ -47,7 +48,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Colle
                 }
 
                 var compilation = project.GetCompilationAsync().Result;
-                var typeSymbol = _typeSymbolId.Resolve(compilation).Symbol as ITypeSymbol;
+                var typeSymbol = _typeSymbolKey.Resolve(compilation).Symbol as ITypeSymbol;
                 if (typeSymbol == null)
                 {
                     throw Exceptions.ThrowEFail();

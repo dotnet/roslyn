@@ -15,7 +15,7 @@ using System.Linq;
 using System.Runtime.InteropServices;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Microsoft.CodeAnalysis.Text;
+using Microsoft.CodeAnalysis.Symbols;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Interop;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Utilities;
 
@@ -33,19 +33,19 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
 
         private readonly ParentHandle<object> _parentHandle;
         private readonly ProjectId _projectId;
-        private readonly SymbolKey _symbolId;
+        private readonly SymbolKey _symbolKey;
 
         private CodeTypeRef(CodeModelState state, object parent, ProjectId projectId, ITypeSymbol typeSymbol)
             : base(state)
         {
             _parentHandle = new ParentHandle<object>(parent);
             _projectId = projectId;
-            _symbolId = typeSymbol.GetSymbolKey();
+            _symbolKey = typeSymbol.GetSymbolKey();
         }
 
         internal ITypeSymbol LookupTypeSymbol()
         {
-            var typeSymbol = CodeModelService.ResolveSymbol(this.State.Workspace, _projectId, _symbolId) as ITypeSymbol;
+            var typeSymbol = CodeModelService.ResolveSymbol(this.State.Workspace, _projectId, _symbolKey) as ITypeSymbol;
 
             if (typeSymbol == null)
             {

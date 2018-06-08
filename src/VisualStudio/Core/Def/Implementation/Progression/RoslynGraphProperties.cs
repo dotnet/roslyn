@@ -3,7 +3,7 @@
 using System.Collections.Generic;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editing;
-using Microsoft.CodeAnalysis.Text;
+using Microsoft.CodeAnalysis.Symbols;
 using Microsoft.VisualStudio.GraphModel;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression

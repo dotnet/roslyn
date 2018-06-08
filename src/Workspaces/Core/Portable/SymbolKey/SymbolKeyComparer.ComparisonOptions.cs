@@ -2,7 +2,7 @@
 
 using System;
 
-namespace Microsoft.CodeAnalysis
+namespace Microsoft.CodeAnalysis.Symbols
 {
     internal partial class SymbolKeyComparer
     {

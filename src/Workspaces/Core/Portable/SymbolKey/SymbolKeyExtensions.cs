@@ -2,7 +2,7 @@
 
 using System.Threading;
 
-namespace Microsoft.CodeAnalysis
+namespace Microsoft.CodeAnalysis.Symbols
 {
     internal static class SymbolKeyExtensions
     {

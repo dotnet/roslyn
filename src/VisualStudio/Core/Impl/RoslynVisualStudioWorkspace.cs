@@ -12,6 +12,7 @@ using Microsoft.CodeAnalysis.Editor.Undo;
 using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Symbols;
 using Microsoft.VisualStudio.Composition;
 using Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Interop;
@@ -117,9 +118,9 @@ namespace Microsoft.VisualStudio.LanguageServices
             }
 
             var originalCompilation = project.GetCompilationAsync(cancellationToken).WaitAndGetResult(cancellationToken);
-            var symbolId = SymbolKey.From(symbol, cancellationToken);
+            var symbolKey = SymbolKey.From(symbol, cancellationToken);
             var currentCompilation = currentProject.GetCompilationAsync(cancellationToken).WaitAndGetResult(cancellationToken);
-            var symbolInfo = symbolId.Resolve(currentCompilation, cancellationToken: cancellationToken);
+            var symbolInfo = symbolKey.Resolve(currentCompilation, cancellationToken: cancellationToken);
 
             if (symbolInfo.Symbol == null)
             {

@@ -3,7 +3,7 @@
 using System.Collections.Generic;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 
-namespace Microsoft.CodeAnalysis
+namespace Microsoft.CodeAnalysis.Symbols
 {
     internal partial struct SymbolKey
     {

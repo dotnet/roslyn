@@ -7,11 +7,12 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.SymbolMapping;
+using Microsoft.CodeAnalysis.Symbols;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.MetadataAsSource
 {
-    [ExportWorkspaceServiceFactory(typeof(ISymbolMappingService), WorkspaceKind.MetadataAsSource)]
     [Shared]
+    [ExportWorkspaceServiceFactory(typeof(ISymbolMappingService), WorkspaceKind.MetadataAsSource)]
     internal class SymbolMappingServiceFactory : IWorkspaceServiceFactory
     {
         public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)

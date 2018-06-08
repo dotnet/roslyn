@@ -1,6 +1,5 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Runtime.InteropServices;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -8,6 +7,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Interop;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Interop;
+using Microsoft.CodeAnalysis.Symbols;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Collections
 {
@@ -26,14 +26,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Colle
         }
 
         private readonly ProjectId _projectId;
-        private readonly SymbolKey _namespaceSymbolId;
+        private readonly SymbolKey _namespaceSymbolKey;
         private ImmutableArray<EnvDTE.CodeElement> _children;
 
         internal ExternalNamespaceCollection(CodeModelState state, object parent, ProjectId projectId, INamespaceSymbol namespaceSymbol)
             : base(state, parent)
         {
             _projectId = projectId;
-            _namespaceSymbolId = namespaceSymbol.GetSymbolKey();
+            _namespaceSymbolKey = namespaceSymbol.GetSymbolKey();
         }
 
         private ImmutableArray<EnvDTE.CodeElement> GetChildren()
@@ -42,7 +42,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Colle
             {
                 var childrenBuilder = ArrayBuilder<EnvDTE.CodeElement>.GetInstance();
 
-                foreach (var child in ExternalNamespaceEnumerator.ChildrenOfNamespace(this.State, _projectId, _namespaceSymbolId))
+                foreach (var child in ExternalNamespaceEnumerator.ChildrenOfNamespace(this.State, _projectId, _namespaceSymbolKey))
                 {
                     childrenBuilder.Add(child);
                 }
@@ -88,7 +88,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Colle
 
         public override System.Collections.IEnumerator GetEnumerator()
         {
-            return ExternalNamespaceEnumerator.Create(this.State, _projectId, _namespaceSymbolId);
+            return ExternalNamespaceEnumerator.Create(this.State, _projectId, _namespaceSymbolKey);
         }
     }
 }

@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Symbols;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
@@ -78,9 +79,9 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
             return (INamedTypeSymbol)topLevelNamedType;
         }
 
-        public static async Task<Location> GetLocationInGeneratedSourceAsync(SymbolKey symbolId, Document generatedDocument, CancellationToken cancellationToken)
+        public static async Task<Location> GetLocationInGeneratedSourceAsync(SymbolKey symbolKey, Document generatedDocument, CancellationToken cancellationToken)
         {
-            var location = symbolId.Resolve(
+            var location = symbolKey.Resolve(
                 await generatedDocument.Project.GetCompilationAsync(cancellationToken).ConfigureAwait(false),
                 ignoreAssemblyNames: true, cancellationToken: cancellationToken)
                 .GetAllSymbols()

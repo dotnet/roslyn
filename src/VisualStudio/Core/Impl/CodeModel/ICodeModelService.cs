@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeGeneration;
+using Microsoft.CodeAnalysis.Symbols;
 using Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.InternalElements;
 using Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Interop;
 using Microsoft.VisualStudio.Text;
@@ -99,7 +100,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
         bool IsOptionNode(SyntaxNode node);
         bool IsImportNode(SyntaxNode node);
 
-        ISymbol ResolveSymbol(Microsoft.CodeAnalysis.Workspace workspace, ProjectId projectId, SymbolKey symbolId);
+        ISymbol ResolveSymbol(Workspace workspace, ProjectId projectId, SymbolKey symbolKey);
 
         string GetUnescapedName(string name);
 

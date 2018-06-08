@@ -1,9 +1,8 @@
 ﻿using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.Shared.Utilities;
-using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis
+namespace Microsoft.CodeAnalysis.Symbols
 {
     internal partial struct SymbolKey
     {

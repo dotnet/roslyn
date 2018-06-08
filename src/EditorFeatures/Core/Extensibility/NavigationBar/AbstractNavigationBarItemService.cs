@@ -7,6 +7,7 @@ using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Navigation;
 using Microsoft.CodeAnalysis.Notification;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Symbols;
 using Microsoft.VisualStudio.Text.Editor;
 using Roslyn.Utilities;
 

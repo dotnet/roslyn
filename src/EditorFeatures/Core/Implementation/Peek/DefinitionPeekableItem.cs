@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
+using Microsoft.CodeAnalysis.Symbols;
 using Microsoft.VisualStudio.Language.Intellisense;
 using Roslyn.Utilities;
 

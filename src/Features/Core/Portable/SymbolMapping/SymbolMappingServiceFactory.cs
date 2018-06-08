@@ -4,16 +4,17 @@ using System.Composition;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.Symbols;
 
 namespace Microsoft.CodeAnalysis.SymbolMapping
 {
     [ExportWorkspaceService(typeof(ISymbolMappingService), ServiceLayer.Default), Shared]
     internal class DefaultSymbolMappingService : ISymbolMappingService
     {
-        public async Task<SymbolMappingResult> MapSymbolAsync(Document document, SymbolKey symbolId, CancellationToken cancellationToken)
+        public async Task<SymbolMappingResult> MapSymbolAsync(Document document, SymbolKey symbolKey, CancellationToken cancellationToken)
         {
             var compilation = await document.Project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
-            var symbol = symbolId.Resolve(compilation, cancellationToken: cancellationToken).Symbol;
+            var symbol = symbolKey.Resolve(compilation, cancellationToken: cancellationToken).Symbol;
             if (symbol != null)
             {
                 return new SymbolMappingResult(document.Project, symbol);

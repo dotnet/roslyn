@@ -5,6 +5,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.FindSymbols;
+using Microsoft.CodeAnalysis.Symbols;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
@@ -39,7 +40,7 @@ namespace Microsoft.CodeAnalysis.Remote
         {
             return new SerializableSymbolAndProjectId
             {
-                SymbolKeyData = symbolAndProjectId.Symbol.GetSymbolKey().ToString(),
+                SymbolKeyData = SymbolKey.GetEncodedSymbolData(symbolAndProjectId.Symbol),
                 ProjectId = symbolAndProjectId.ProjectId
             };
         }

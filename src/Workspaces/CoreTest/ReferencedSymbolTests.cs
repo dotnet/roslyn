@@ -6,6 +6,7 @@ using System.Collections.Immutable;
 using System.Globalization;
 using System.Threading;
 using Microsoft.CodeAnalysis.FindSymbols;
+using Microsoft.CodeAnalysis.Symbols;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;

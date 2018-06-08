@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.Completion;
+using Microsoft.CodeAnalysis.Symbols;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.FindUsages

@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Symbols;
 using Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.ExternalElements;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Interop;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Utilities;
@@ -14,19 +15,19 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Colle
 {
     public sealed class ExternalNamespaceEnumerator : IEnumerator, ICloneable
     {
-        internal static IEnumerator Create(CodeModelState state, ProjectId projectId, SymbolKey namespaceSymbolId)
+        internal static IEnumerator Create(CodeModelState state, ProjectId projectId, SymbolKey namespaceSymbolKey)
         {
-            var newEnumerator = new ExternalNamespaceEnumerator(state, projectId, namespaceSymbolId);
+            var newEnumerator = new ExternalNamespaceEnumerator(state, projectId, namespaceSymbolKey);
             return (IEnumerator)ComAggregate.CreateAggregatedObject(newEnumerator);
         }
 
-        private ExternalNamespaceEnumerator(CodeModelState state, ProjectId projectId, SymbolKey namespaceSymbolId)
+        private ExternalNamespaceEnumerator(CodeModelState state, ProjectId projectId, SymbolKey namespaceSymbolKey)
         {
             _state = state;
             _projectId = projectId;
-            _namespaceSymbolId = namespaceSymbolId;
+            _namespaceSymbolId = namespaceSymbolKey;
 
-            _childEnumerator = ChildrenOfNamespace(state, projectId, namespaceSymbolId).GetEnumerator();
+            _childEnumerator = ChildrenOfNamespace(state, projectId, namespaceSymbolKey).GetEnumerator();
         }
 
         private readonly CodeModelState _state;

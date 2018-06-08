@@ -7,6 +7,7 @@ using System.Linq;
 using System.Threading;
 using System.Windows.Media;
 using Microsoft.CodeAnalysis.Editor.Implementation.CallHierarchy.Finders;
+using Microsoft.CodeAnalysis.Symbols;
 using Microsoft.VisualStudio.Language.CallHierarchy;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.CallHierarchy
