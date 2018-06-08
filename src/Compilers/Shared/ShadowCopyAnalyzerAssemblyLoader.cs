@@ -103,7 +103,7 @@ namespace Microsoft.CodeAnalysis
             return base.LoadImpl(shadowCopyPath);
         }
 
-        private string CopyFileAndResources(string fullPath, string assemblyDirectory)
+        private static string CopyFileAndResources(string fullPath, string assemblyDirectory)
         {
             string fileNameWithExtension = Path.GetFileName(fullPath);
             string shadowCopyPath = Path.Combine(assemblyDirectory, fileNameWithExtension);
@@ -137,7 +137,7 @@ namespace Microsoft.CodeAnalysis
             return shadowCopyPath;
         }
 
-        private void CopyFile(string originalPath, string shadowCopyPath)
+        private static void CopyFile(string originalPath, string shadowCopyPath)
         {
             var directory = Path.GetDirectoryName(shadowCopyPath);
             Directory.CreateDirectory(directory);
@@ -147,7 +147,7 @@ namespace Microsoft.CodeAnalysis
             ClearReadOnlyFlagOnFile(new FileInfo(shadowCopyPath));
         }
 
-        private void ClearReadOnlyFlagOnFiles(string directoryPath)
+        private static void ClearReadOnlyFlagOnFiles(string directoryPath)
         {
             DirectoryInfo directory = new DirectoryInfo(directoryPath);
 
@@ -157,7 +157,7 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
-        private void ClearReadOnlyFlagOnFile(FileInfo fileInfo)
+        private static void ClearReadOnlyFlagOnFile(FileInfo fileInfo)
         {
             try
             {
