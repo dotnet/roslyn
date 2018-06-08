@@ -1,7 +1,10 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
+using Microsoft.CodeAnalysis.FlowAnalysis;
 using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Xunit;
@@ -719,6 +722,56 @@ Block[B2] - Exit
             var expectedDiagnostics = DiagnosticDescription.None;
 
             VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedGraph, expectedDiagnostics);
+        }
+
+        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+        [Fact]
+        public void LambdaFlow_04()
+        {
+            string source = @"
+struct C
+{
+    void M(System.Action d1, System.Action<bool, bool> d2)
+/*<bind>*/{
+        d1 = () =>
+        {
+            d2 = (bool result1, bool input1) =>
+            {
+                result1 = input1;
+            
+            };
+        };
+
+        void local(bool result2, bool input2) => result2 = input2;
+    }/*</bind>*/
+}
+";
+
+            var compilation = CreateCompilation(source, parseOptions: TestOptions.Regular.WithFlowAnalysisFeature());
+
+            var tree = compilation.SyntaxTrees.Single();
+            var semanticModel = compilation.GetSemanticModel(tree);
+            var graphM = SemanticModel.GetControlFlowGraph((IMethodBodyOperation)semanticModel.GetOperation(tree.GetRoot().DescendantNodes().OfType<MethodDeclarationSyntax>().Single()));
+
+            Assert.NotNull(graphM);
+
+            IFlowAnonymousFunctionOperation lambdaD1 = getLambda(graphM);
+
+            Assert.Throws<ArgumentNullException>(() => graphM.GetLocalFunctionControlFlowGraph(null));
+            Assert.Throws<ArgumentOutOfRangeException>(() => graphM.GetLocalFunctionControlFlowGraph(lambdaD1.Symbol));
+
+            var graphD1 = graphM.GetAnonymousFunctionControlFlowGraph(lambdaD1);
+            Assert.NotNull(graphD1);
+
+            IFlowAnonymousFunctionOperation lambdaD2 = getLambda(graphD1);
+
+            Assert.Throws<ArgumentNullException>(() => graphM.GetAnonymousFunctionControlFlowGraph(null));
+            Assert.Throws<ArgumentOutOfRangeException>(() => graphM.GetAnonymousFunctionControlFlowGraph(lambdaD2));
+
+            IFlowAnonymousFunctionOperation getLambda(ControlFlowGraph graph)
+            {
+                return graph.Blocks.SelectMany(b => b.Operations.SelectMany(o => o.DescendantsAndSelf())).OfType<IFlowAnonymousFunctionOperation>().Single();
+            }
         }
     }
 }
