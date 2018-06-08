@@ -3118,6 +3118,21 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             Debug.Assert(lookupResult.IsClear);
 
+            MessageID messageID;
+            switch (methodName)
+            {
+                case WellKnownMemberNames.GetDisposeMethodName:
+                    messageID = MessageID.IDS_Disposable;
+                    break;
+                case WellKnownMemberNames.GetEnumeratorMethodName:
+                case WellKnownMemberNames.MoveNextMethodName:
+                case WellKnownMemberNames.CurrentPropertyName:
+                    messageID = MessageID.IDS_Collection;
+                    break;
+                default:
+                    throw ExceptionUtilities.UnexpectedValue(methodName);
+            }
+
             // Not using LookupOptions.MustBeInvocableMember because we don't want the corresponding lookup error.
             // We filter out non-methods below.
             HashSet<DiagnosticInfo> useSiteDiagnostics = null;
@@ -3136,7 +3151,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (!lookupResult.IsMultiViable)
             {
-                ReportPatternMemberLookupDiagnostics(lookupResult, patternType, methodName, syntaxExpr, warningsOnly, diagnostics);
+                ReportPatternMemberLookupDiagnostics(lookupResult, patternType, methodName, syntaxExpr, warningsOnly, diagnostics, messageID);
                 return null;
             }
 
@@ -3150,7 +3165,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     if (warningsOnly)
                     {
-                        ReportPatternWarning(diagnostics, patternType, member, syntaxExpr);
+                        ReportPatternWarning(diagnostics, patternType, member, syntaxExpr, messageID);
                     }
                     return null;
                 }
@@ -3166,8 +3181,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     candidateMethods.Add((MethodSymbol)member);
                 }
             }
-
-            MethodSymbol patternMethod = PerformPatternOverloadResolution(patternType, candidateMethods, syntaxExpr, warningsOnly, diagnostics, syntaxTree);
+            MethodSymbol patternMethod = PerformPatternOverloadResolution(patternType, candidateMethods, syntaxExpr, warningsOnly, diagnostics, syntaxTree, messageID);
 
             candidateMethods.Free();
 
@@ -3180,7 +3194,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private MethodSymbol PerformPatternOverloadResolution
             (TypeSymbol patternType, ArrayBuilder<MethodSymbol> candidateMethods,
             SyntaxNode syntaxExpression, bool warningsOnly, DiagnosticBag diagnostics,
-            SyntaxTree syntaxTree)
+            SyntaxTree syntaxTree, MessageID messageID)
         {
             ArrayBuilder<TypeSymbol> typeArguments = ArrayBuilder<TypeSymbol>.GetInstance();
             AnalyzedArguments arguments = AnalyzedArguments.GetInstance();
@@ -3208,8 +3222,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     if (warningsOnly)
                     {
-                        diagnostics.Add(ErrorCode.WRN_PatternStaticOrInaccessible, syntaxExpression.Location, patternType, MessageID.IDS_Collection.Localize(), result);
+                        diagnostics.Add(ErrorCode.WRN_PatternStaticOrInaccessible, syntaxExpression.Location, patternType, messageID.Localize(), result);
                     }
+                    result = null;
+                }
+                else if (messageID == MessageID.IDS_Disposable && !result.ReturnsVoid && warningsOnly)
+                {
+                    ReportPatternWarning(diagnostics, patternType, result, syntaxExpression, messageID);
                     result = null;
                 }
                 else if (result.CallsAreOmitted(syntaxTree))
@@ -3223,7 +3242,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 if (warningsOnly)
                 {
-                    diagnostics.Add(ErrorCode.WRN_PatternIsAmbiguous, syntaxExpression.Location, patternType, MessageID.IDS_Collection.Localize(),
+                    diagnostics.Add(ErrorCode.WRN_PatternIsAmbiguous, syntaxExpression.Location, patternType, messageID.Localize(),
                         overloadResolutionResult.Results[0].Member, overloadResolutionResult.Results[1].Member);
                 }
             }
@@ -3235,12 +3254,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             return result;
         }
 
-        private void ReportPatternWarning(DiagnosticBag diagnostics, TypeSymbol patternType, Symbol patternMemberCandidate, SyntaxNode expression)
+        private void ReportPatternWarning(DiagnosticBag diagnostics, TypeSymbol patternType, Symbol patternMemberCandidate, SyntaxNode expression, MessageID messageID)
         {
             HashSet<DiagnosticInfo> useSiteDiagnostics = null;
             if (this.IsAccessible(patternMemberCandidate, ref useSiteDiagnostics))
             {
-                diagnostics.Add(ErrorCode.WRN_PatternBadSignature, expression.Location, patternType, MessageID.IDS_Collection.Localize(), patternMemberCandidate);
+                diagnostics.Add(ErrorCode.WRN_PatternBadSignature, expression.Location, patternType, messageID.Localize(), patternMemberCandidate);
             }
 
             diagnostics.Add(expression, useSiteDiagnostics);
@@ -3254,13 +3273,17 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <param name="memberName">Name of looked up member.</param>
         /// <param name="warningsOnly">True if failures should result in warnings; false if they should result in errors.</param>
         /// <param name="diagnostics">Populated appropriately.</param>
-        internal void ReportPatternMemberLookupDiagnostics(LookupResult lookupResult, TypeSymbol patternType, string memberName, SyntaxNode expression, bool warningsOnly, DiagnosticBag diagnostics)
+        internal void ReportPatternMemberLookupDiagnostics(
+            LookupResult lookupResult, TypeSymbol patternType,
+            string memberName, SyntaxNode expression,
+            bool warningsOnly, DiagnosticBag diagnostics,
+            MessageID messageID)
         { 
             if (lookupResult.Symbols.Any())
             {
                 if (warningsOnly)
                 {
-                    ReportPatternWarning(diagnostics, patternType, lookupResult.Symbols.First(), expression);
+                    ReportPatternWarning(diagnostics, patternType, lookupResult.Symbols.First(), expression, messageID);
                 }
                 else
                 {

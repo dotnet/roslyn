@@ -81,7 +81,28 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (!iDisposableConversion.IsImplicit)
                 {
                     TypeSymbol expressionType = expressionOpt.Type;
-                    if ((object)expressionType == null || !expressionType.IsErrorType())
+                    MethodSymbol disposeMethod = expressionType == null ? null : SatisfiesDisposePattern(expressionOpt.Type, diagnostics);
+                    if ((object)disposeMethod != null)
+                    {
+                        if (!disposeMethod.ReturnsVoid)
+                        {
+                            Error(diagnostics, ErrorCode.WRN_PatternBadSignature, expressionSyntax, expressionType);
+                        }
+                        BoundStatement boundBody2 = originalBinder.BindPossibleEmbeddedStatement(_syntax.Statement, diagnostics);
+
+                        Debug.Assert(GetDeclaredLocalsForScope(_syntax) == this.Locals);
+                        return new BoundUsingStatement(
+                            _syntax,
+                            this.Locals,
+                            declarationsOpt,
+                            expressionOpt,
+                            Conversion.Identity,
+                            boundBody2,
+                            disposeMethod,
+                            hasErrors
+                            );
+                    }
+                    else if ((object)expressionType == null || !expressionType.IsErrorType())
                     {
                         Error(diagnostics, ErrorCode.ERR_NoConvToIDisp, expressionSyntax, expressionOpt.Display);
                     }
@@ -105,8 +126,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     iDisposableConversion = Conversion.ImplicitDynamic;
                 }
-                else if ((object)disposeMethod != null && disposeMethod.ReturnsVoid)
+                else if ((object)disposeMethod != null)
                 {
+                    if (!disposeMethod.ReturnsVoid)
+                    {
+                        Error(diagnostics, ErrorCode.WRN_PatternBadSignature, declarationSyntax);
+                        hasErrors = true;
+                    }
                     BoundStatement boundBody2 = originalBinder.BindPossibleEmbeddedStatement(_syntax.Statement, diagnostics);
 
                     Debug.Assert(GetDeclaredLocalsForScope(_syntax) == this.Locals);

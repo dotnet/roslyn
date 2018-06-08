@@ -834,7 +834,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 if (!lookupResult.IsSingleViable)
                 {
-                    ReportPatternMemberLookupDiagnostics(lookupResult, enumeratorType, CurrentPropertyName, _syntax.Expression, warningsOnly: false, diagnostics: diagnostics);
+                    ReportPatternMemberLookupDiagnostics(lookupResult, enumeratorType, CurrentPropertyName, _syntax.Expression, warningsOnly: false, diagnostics: diagnostics, MessageID.IDS_Collection);
                     return false;
                 }
 

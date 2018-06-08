@@ -112,6 +112,64 @@ class C2
         }
 
         [Fact]
+        public void UsingPatternWrongReturnTest()
+        {
+            var source = @"
+class C1
+{
+    public C1() { }
+    public bool Dispose() { return false; }
+}
+
+class C2
+{
+    static void Main()
+    {
+        using (C1 c = new C1())
+        {
+        }
+    }
+}";
+            CreateCompilation(source).VerifyDiagnostics(
+                // (12,16): warning CS0280: 'C1' does not implement the 'disposable' pattern. 'C1.Dispose()' has the wrong signature.
+                //         using (C1 c = new C1())
+                Diagnostic(ErrorCode.WRN_PatternBadSignature, "C1 c = new C1()").WithArguments("C1", "disposable", "C1.Dispose()").WithLocation(12, 16),
+                // (12,16): error CS1674: 'C1': type used in a using statement must have a public void-returning Dispose() function.
+                //         using (C1 c = new C1())
+                Diagnostic(ErrorCode.ERR_NoConvToIDisp, "C1 c = new C1()").WithArguments("C1").WithLocation(12, 16)
+                );
+        }
+
+        [Fact]
+        public void UsingPatternWrongAccessibilityTest()
+        {
+            var source = @"
+class C1
+{
+    public C1() { }
+    internal void Dispose() { }
+}
+
+class C2
+{
+    static void Main()
+    {
+        using (C1 c = new C1())
+        {
+        }
+    }
+}";
+            CreateCompilation(source).VerifyDiagnostics(
+                // (12,16): warning CS0279: 'C1' does not implement the 'disposable' pattern. 'C1.Dispose()' is either static or not public.
+                //         using (C1 c = new C1())
+                Diagnostic(ErrorCode.WRN_PatternStaticOrInaccessible, "C1 c = new C1()").WithArguments("C1", "disposable", "C1.Dispose()").WithLocation(12, 16),
+                // (12,16): error CS1674: 'C1': type used in a using statement must have a public void-returning Dispose() function.
+                //         using (C1 c = new C1())
+                Diagnostic(ErrorCode.ERR_NoConvToIDisp, "C1 c = new C1()").WithArguments("C1").WithLocation(12, 16)
+            );
+        }
+
+        [Fact]
         public void Lambda()
         {
             var source = @"
