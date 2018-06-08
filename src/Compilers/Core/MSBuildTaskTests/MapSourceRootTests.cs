@@ -135,9 +135,9 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
             };
 
             bool result = task.Execute();
-            AssertEx.AssertEqualToleratingWhitespaceDifferences(@"
-ERROR : SourceRoot paths are required to end with a slash or backslash: 'C:'
-ERROR : SourceRoot paths are required to end with a slash or backslash: 'C'
+            AssertEx.AssertEqualToleratingWhitespaceDifferences($@"
+ERROR : {string.Format(ErrorString.MapSourceRoots_PathMustEndWithSlashOrBackslash, "SourceRoot", "C:")}
+ERROR : {string.Format(ErrorString.MapSourceRoots_PathMustEndWithSlashOrBackslash, "SourceRoot", "C")}
 ", engine.Log);
 
             Assert.False(result);

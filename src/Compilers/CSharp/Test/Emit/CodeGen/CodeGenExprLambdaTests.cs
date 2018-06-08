@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
         /// <summary>
         /// Reference to an assembly that defines Expression Trees.
         /// </summary>
-        protected new static MetadataReference ExpressionAssemblyRef => SystemCoreRef_v46;
+        protected static MetadataReference ExpressionAssemblyRef => SystemCoreRef_v46;
 
 
         #region A string containing expression-tree dumping utilities

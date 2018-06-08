@@ -15419,7 +15419,7 @@ class C
         public int Length = 123;
     }
 ";
-            var comp = CompileAndVerify(source, expectedOutput: "321 123", references: new[] { SystemCoreRef, CSharpRef });
+            var comp = CompileAndVerify(source, expectedOutput: "321 123", references: new[] { CSharpRef });
         }
 
         #endregion
