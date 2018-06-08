@@ -38,8 +38,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ExtractInterfac
             List<string> allTypeNames,
             string defaultNamespace,
             string generatedNameTypeParameterSuffix,
-            string languageName,
-            ImmutableArray<SyntaxTrivia> fileBanner)
+            string languageName)
         {
             await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync();
 

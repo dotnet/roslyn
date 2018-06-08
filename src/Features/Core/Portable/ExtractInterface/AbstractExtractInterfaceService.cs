@@ -189,6 +189,10 @@ namespace Microsoft.CodeAnalysis.ExtractInterface
                 interfaceDocumentId,
                 cancellationToken).ConfigureAwait(false);
 
+            var syntaxFactsService = unformattedInterfaceDocument.GetLanguageService<ISyntaxFactsService>();
+            var syntaxRoot = await unformattedInterfaceDocument.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+            var fileBanner = syntaxFactsService.GetFileBanner(syntaxRoot);
+
             var completedUnformattedSolution = await GetSolutionWithOriginalTypeUpdatedAsync(
                 unformattedInterfaceDocument.Project.Solution,
                 symbolMapping.DocumentIds,
@@ -326,8 +330,7 @@ namespace Microsoft.CodeAnalysis.ExtractInterface
                 conflictingTypeNames.ToList(),
                 containingNamespace,
                 generatedNameTypeParameterSuffix,
-                document.Project.Language,
-                fileBanner);
+                document.Project.Language);
         }
 
         private async Task<Document> GetUnformattedInterfaceDocumentAsync(

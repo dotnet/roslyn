@@ -39,8 +39,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.ExtractInterface
             List<string> conflictingTypeNames,
             string defaultNamespace,
             string generatedNameTypeParameterSuffix,
-            string languageName,
-            ImmutableArray<SyntaxTrivia> fileBanner)
+            string languageName)
         {
             this.AllExtractableMembers = extractableMembers;
             this.DefaultInterfaceName = defaultInterfaceName;
