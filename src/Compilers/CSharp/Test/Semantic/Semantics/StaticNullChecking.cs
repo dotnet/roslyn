@@ -11939,8 +11939,9 @@ class C
         }
 
         /// <summary>
-        /// Inferred nullability of captured variables outside lambda
-        /// should be independent of inferred nullability inside lambda.
+        /// To track nullability of captured variables inside and outside a lambda,
+        /// the lambda should be considered executed at the location the lambda
+        /// is converted to a delegate.
         /// </summary>
         [Fact]
         public void Lambda_19()
@@ -11981,6 +11982,8 @@ class C
         z3.ToString();
     }
 }";
+            // PROTOTYPE(NullableReferenceTypes): For captured variables, the lambda should be
+            // considered executed at the location the lambda is converted to a delegate.
             var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
                 // (9,18): warning CS8600: Converting null literal or possible null value to non-nullable type.

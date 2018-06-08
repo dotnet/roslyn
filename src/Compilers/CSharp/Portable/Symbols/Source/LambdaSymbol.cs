@@ -174,7 +174,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return _refKind; }
         }
 
-        // Nullability reflects declared state not inferred state from flow analysis.
         public override TypeSymbolWithAnnotations ReturnType
         {
             get { return _returnType; }

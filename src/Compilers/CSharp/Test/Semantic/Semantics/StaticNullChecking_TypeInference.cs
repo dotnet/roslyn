@@ -1623,6 +1623,8 @@ class C
         if (y != null) F(() => y).ToString();
     }
 }";
+            // PROTOTYPE(NullableReferenceTypes): For captured variables, the lambda should be
+            // considered executed at the location the lambda is converted to a delegate.
             var comp = CreateCompilation(
                 source,
                 parseOptions: TestOptions.Regular8);

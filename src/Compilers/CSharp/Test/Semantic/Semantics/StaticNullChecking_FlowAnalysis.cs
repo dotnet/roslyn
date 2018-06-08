@@ -1647,6 +1647,8 @@ class C
         if (o != null) F(() => { return o; }).ToString();
     }
 }";
+            // PROTOTYPE(NullableReferenceTypes): For captured variables, the lambda should be
+            // considered executed at the location the lambda is converted to a delegate.
             var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
                 // (10,9): warning CS8602: Possible dereference of a null reference.
@@ -3334,6 +3336,8 @@ class C
         D<I<object>> b = () => y;
     }
 }";
+            // PROTOTYPE(NullableReferenceTypes): For captured variables, the lambda should be
+            // considered executed at the location the lambda is converted to a delegate.
             var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
                 // (8,29): warning CS8603: Possible null reference return.

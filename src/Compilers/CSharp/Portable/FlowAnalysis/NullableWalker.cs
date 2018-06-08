@@ -2171,6 +2171,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private VariableState GetVariableState()
         {
+            // PROTOTYPE(NullableReferenceTypes): To track nullability of captured variables inside and
+            // outside a lambda, the lambda should be considered executed at the location the lambda
+            // is converted to a delegate.
             return new VariableState(
                 _variableSlot.ToImmutableDictionary(),
                 ImmutableArray.Create(variableBySlot, start: 0, length: nextVariableSlot),
@@ -2640,6 +2643,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // (Compare with method group conversions which pass `requireIdentity: false`.)
                 if (IsNullabilityMismatch(invokeParameter.Type, unboundLambda.ParameterType(i), requireIdentity: true))
                 {
+                    // PROTOTYPE(NullableReferenceTypes): Consider using location of specific lambda parameter.
                     ReportStaticNullCheckingDiagnostics(ErrorCode.WRN_NullabilityMismatchInParameterTypeOfTargetDelegate, syntax,
                         unboundLambda.ParameterName(i),
                         unboundLambda.MessageID.Localize(),
