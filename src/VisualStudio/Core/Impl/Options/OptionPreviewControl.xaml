@@ -15,13 +15,14 @@
     <options:AbstractOptionPageControl.Resources>
         <DataTemplate DataType="{x:Type options:CheckBoxOptionViewModel}">
             <StackPanel Orientation="Horizontal">
-                <CheckBox x:Uid="OptionCheckBox" 
+                <CheckBox x:Uid="OptionCheckBox"
+                                        AutomationProperties.LabeledBy="{Binding ElementName=OptionText}"
                                         IsChecked="{Binding IsChecked, Mode=TwoWay}" 
                                         Width="Auto"
                                         Focusable="False"
                                         Margin="20, 0, 0, 0">
-                    <TextBlock Text="{Binding Description}" Foreground="{Binding Path=Foreground, RelativeSource={RelativeSource AncestorType={x:Type ListViewItem}}}"/>
                 </CheckBox>
+                <TextBlock Name="OptionText" Text="{Binding Description}" Foreground="{Binding Path=Foreground, RelativeSource={RelativeSource AncestorType={x:Type ListViewItem}}}"/>
             </StackPanel>
         </DataTemplate>
 
