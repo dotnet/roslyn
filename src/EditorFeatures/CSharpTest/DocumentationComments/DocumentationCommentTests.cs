@@ -38,9 +38,9 @@ class C
         [WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
         public void TypingCharacter_Class_NewLine()
         {
-            var code = "//$$\nclass C\n{\n}";
+            var code = "//$$\r\nclass C\r\n{\r\n}";
 
-            var expected = "/// <summary>\n/// $$\n/// </summary>\nclass C\n{\n}";
+            var expected = "/// <summary>\n/// $$\n/// </summary>\r\nclass C\r\n{\r\n}";
 
             VerifyTypingCharacter(code, expected, newLine: "\n");
 
