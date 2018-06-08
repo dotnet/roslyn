@@ -9,8 +9,6 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
     /// </summary>
     public interface IFlowCaptureReferenceOperation : IOperation
     {
-        // PROTOTYPE(dataflow): Finalize the design how capturing/referencing intermediate results is represented.
-        
         /// <summary>
         /// An id used to match references to the same intermediate result.
         /// </summary>

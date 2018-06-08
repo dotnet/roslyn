@@ -1188,8 +1188,9 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         {
             LogString(nameof(IAnonymousFunctionOperation));
 
-            // PROTOTYPE(dataflow): For C# this prints "lambda expression", which is not very helpful if we want to tell lambdas apart.
-            //                      That is how symbol display is implemented for C#.
+            // For C# this prints "lambda expression", which is not very helpful if we want to tell lambdas apart.
+            // That is how symbol display is implemented for C#.
+            // https://github.com/dotnet/roslyn/issues/22559#issuecomment-393667316 tracks improving the output.
             LogSymbol(operation.Symbol, header: " (Symbol");
             LogString(")");
             LogCommonPropertiesAndNewLine(operation);
@@ -1201,8 +1202,9 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         {
             LogString(nameof(IFlowAnonymousFunctionOperation));
 
-            // PROTOTYPE(dataflow): For C# this prints "lambda expression", which is not very helpful if we want to tell lambdas apart.
-            //                      That is how symbol display is implemented for C#.
+            // For C# this prints "lambda expression", which is not very helpful if we want to tell lambdas apart.
+            // That is how symbol display is implemented for C#.
+            // https://github.com/dotnet/roslyn/issues/22559#issuecomment-393667316 tracks improving the output.
             LogSymbol(operation.Symbol, header: " (Symbol");
             LogString(")");
             LogCommonPropertiesAndNewLine(operation);
@@ -1260,14 +1262,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         {
             LogString(nameof(IObjectCreationOperation));
 
-            // PROTOTYPE(dataflow): It looks like constructor can be null, when default constructor is used for a structure
-            //                      Apparently we don't have any targeted tests for this case. 
-            //                      Microsoft.CodeAnalysis.VisualBasic.UnitTests.Semantics.OperationAnalyzerTests.InvalidConstructorVisualBasic exposes this.
-            //                      Need to come up with the test and adjust serialization to make this situation clear.
-            if (operation.Constructor != null)
-            {
-                LogString($" (Constructor: {operation.Constructor.ToTestDisplayString()})");
-            }
+            LogString($" (Constructor: {operation.Constructor?.ToTestDisplayString() ?? "<null>"})");
 
             LogCommonPropertiesAndNewLine(operation);
 

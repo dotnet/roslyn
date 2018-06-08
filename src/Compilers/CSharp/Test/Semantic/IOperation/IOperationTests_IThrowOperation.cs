@@ -2313,7 +2313,5 @@ Block[B7] - Exit
 ";
             VerifyFlowGraphForTest<BlockSyntax>(compilation, expectedGraph);
         }
-
-        // PROTOTYPE(dataflow): Port these tests to VB
     }
 }

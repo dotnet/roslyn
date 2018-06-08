@@ -5,6 +5,7 @@ Imports Microsoft.CodeAnalysis.CommonDiagnosticAnalyzers
 Imports Microsoft.CodeAnalysis.Diagnostics
 Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.CodeAnalysis.UnitTests.Diagnostics
+Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Roslyn.Test.Utilities
 Imports Xunit
 
@@ -1841,6 +1842,16 @@ BC30389: 'C.S' is not accessible in this context because it is 'Protected'.
             ' Reuse ParamsArrayTestAnalyzer for this test.
             comp.VerifyAnalyzerDiagnostics({New ParamsArrayTestAnalyzer}, Nothing, Nothing, False,
                 Diagnostic(ParamsArrayTestAnalyzer.InvalidConstructorDescriptor.Id, "New C.S()").WithLocation(7, 11))
+
+            Dim tree = comp.SyntaxTrees.Single()
+            Dim node = tree.GetRoot().DescendantNodes().OfType(Of ObjectCreationExpressionSyntax)().Single()
+
+            comp.VerifyOperationTree(node, expectedOperationTree:=<![CDATA[
+IObjectCreationOperation (Constructor: <null>) (OperationKind.ObjectCreation, Type: C.S, IsInvalid) (Syntax: 'New C.S()')
+  Arguments(0)
+  Initializer: 
+    null
+]]>.Value)
         End Sub
 
         <Fact>

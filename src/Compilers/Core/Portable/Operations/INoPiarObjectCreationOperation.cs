@@ -13,7 +13,7 @@ namespace Microsoft.CodeAnalysis.Operations
     /// <remarks>
     /// This interface is reserved for implementation by its associated APIs. We reserve the right to
     /// change it in the future.
-    /// PROTOTYPE(dataflow): Figure out how to make this public. There is also almost no IOperation tests for scenarios involving this node.
+    /// https://github.com/dotnet/roslyn/issues/27601: Figure out how to make this public. There is also almost no IOperation tests for scenarios involving this node.
     /// </remarks>
     internal interface INoPiaObjectCreationOperation : IOperation
     {

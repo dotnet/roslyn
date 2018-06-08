@@ -815,7 +815,7 @@ namespace Microsoft.CodeAnalysis.Operations
 
         /// <summary>
         /// True/False operator method used for short circuiting.
-        /// PROTOTYPE(dataflow): figure out how to expose this information through public API
+        /// https://github.com/dotnet/roslyn/issues/27598 tracks exposing this information through public API
         /// </summary>
         public IMethodSymbol UnaryOperatorMethod { get; }
 
@@ -3748,7 +3748,8 @@ namespace Microsoft.CodeAnalysis.Operations
             return visitor.VisitCoalesce(this, argument);
         }
 
-        internal IConvertibleConversion ConvertibleValueConversion { get; } // PROTOTYPE(dataflow): add extension methods that expose language specific conversion information
+        // https://github.com/dotnet/roslyn/issues/27599 tracks adding extension methods that expose language specific conversion information
+        internal IConvertibleConversion ConvertibleValueConversion { get; }
         public CommonConversion ValueConversion => ConvertibleValueConversion.ToCommonConversion();
     }
 

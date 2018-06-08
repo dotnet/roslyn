@@ -1698,7 +1698,6 @@ Namespace Microsoft.CodeAnalysis.Operations
                                                     constantValue,
                                                     isImplicit)
             Else
-                ' PROTOTYPE(dataflow): This code path is not covered by unit-tests
                 Dim children = New Lazy(Of ImmutableArray(Of IOperation))(
                         Function()
                             Return ImmutableArray.Create(Of IOperation)(operand.Value)
