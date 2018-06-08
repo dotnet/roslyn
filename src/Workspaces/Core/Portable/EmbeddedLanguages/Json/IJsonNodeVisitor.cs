@@ -13,6 +13,6 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Json
         void Visit(JsonLiteralNode node);
         void Visit(JsonNegativeLiteralNode node);
         void Visit(JsonTextNode node);
-        void Visit(JsonEmptyValueNode node);
+        void Visit(JsonCommaValueNode node);
     }
 }

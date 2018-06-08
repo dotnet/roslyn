@@ -159,14 +159,16 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Json
 
             private static EmbeddedDiagnostic? CheckCommasBetweenSequenceElements(JsonSequenceNode node)
             {
+                // Json.net allows sequences of commas.  But after every non-comma value, you need
+                // a comma.
                 for (int i = 0, n = node.ChildCount - 1; i < n; i++)
                 {
                     var child = node.ChildAt(i).Node;
-                    if (child.Kind != JsonKind.EmptyValue)
+                    if (child.Kind != JsonKind.CommaValue)
                     {
                         var next = node.ChildAt(i + 1).Node;
 
-                        if (next.Kind != JsonKind.EmptyValue)
+                        if (next.Kind != JsonKind.CommaValue)
                         {
                             return new EmbeddedDiagnostic(
                                string.Format(WorkspacesResources._0_expected, ','),
@@ -195,7 +197,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Json
                     }
                     else
                     {
-                        if (child.Kind != JsonKind.EmptyValue)
+                        if (child.Kind != JsonKind.CommaValue)
                         {
                             return new EmbeddedDiagnostic(
                                string.Format(WorkspacesResources._0_expected, ','),
