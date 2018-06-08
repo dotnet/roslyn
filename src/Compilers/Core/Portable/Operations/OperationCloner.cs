@@ -336,7 +336,8 @@ namespace Microsoft.CodeAnalysis.Operations
 
         public override IOperation VisitFlowAnonymousFunction(IFlowAnonymousFunctionOperation operation, object argument)
         {
-            return new FlowAnonymousFunctionOperation(operation.Symbol, operation.Syntax, operation.Type, operation.ConstantValue, operation.IsImplicit);
+            var anonymous = (FlowAnonymousFunctionOperation)operation;
+            return new FlowAnonymousFunctionOperation(in anonymous.Context, anonymous.Original, operation.IsImplicit);
         }
 
         public override IOperation VisitDelegateCreation(IDelegateCreationOperation operation, object argument)

@@ -1506,45 +1506,35 @@ label:  ;
 Block[B0] - Entry
     Statements (0)
     Next (Regular) Block[B1]
-        Entering: {R1}
+Block[B1] - Block
+    Predecessors: [B0]
+    Statements (1)
+        IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null, IsInvalid) (Syntax: 'd = (bool i ... };')
+          Expression: 
+            ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Action<System.Boolean>, IsInvalid) (Syntax: 'd = (bool i ... }')
+              Left: 
+                IParameterReferenceOperation: d (OperationKind.ParameterReference, Type: System.Action<System.Boolean>) (Syntax: 'd')
+              Right: 
+                IDelegateCreationOperation (OperationKind.DelegateCreation, Type: System.Action<System.Boolean>, IsInvalid, IsImplicit) (Syntax: '(bool input ... }')
+                  Target: 
+                    IFlowAnonymousFunctionOperation (Symbol: lambda expression) (OperationKind.FlowAnonymousFunction, Type: null, IsInvalid) (Syntax: '(bool input ... }')
+                    {
+                        Block[B0#A0] - Entry
+                            Statements (0)
+                            Next (Regular) Block[B1#A0]
+                        Block[B1#A0] - Block
+                            Predecessors: [B0#A0]
+                            Statements (0)
+                            Jump if False (Error) to Block[null]
+                                IParameterReferenceOperation: input (OperationKind.ParameterReference, Type: System.Boolean) (Syntax: 'input')
 
-.locals {R1}
-{
-    Methods: [lambda expression]
-    Block[B1] - Block
-        Predecessors: [B0]
-        Statements (1)
-            IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null, IsInvalid) (Syntax: 'd = (bool i ... };')
-              Expression: 
-                ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Action<System.Boolean>, IsInvalid) (Syntax: 'd = (bool i ... }')
-                  Left: 
-                    IParameterReferenceOperation: d (OperationKind.ParameterReference, Type: System.Action<System.Boolean>) (Syntax: 'd')
-                  Right: 
-                    IDelegateCreationOperation (OperationKind.DelegateCreation, Type: System.Action<System.Boolean>, IsInvalid, IsImplicit) (Syntax: '(bool input ... }')
-                      Target: 
-                        IFlowAnonymousFunctionOperation (Symbol: lambda expression) (OperationKind.FlowAnonymousFunction, Type: null, IsInvalid) (Syntax: '(bool input ... }')
+                            Next (Regular) Block[B2#A0]
+                        Block[B2#A0] - Exit
+                            Predecessors: [B1#A0]
+                            Statements (0)
+                    }
 
-        Next (Regular) Block[B2]
-            Leaving: {R1}
-    
-    {   lambda expression
-    
-        Block[B0#0R1] - Entry
-            Statements (0)
-            Next (Regular) Block[B1#0R1]
-        Block[B1#0R1] - Block
-            Predecessors: [B0#0R1]
-            Statements (0)
-            Jump if False (Error) to Block[null]
-                IParameterReferenceOperation: input (OperationKind.ParameterReference, Type: System.Boolean) (Syntax: 'input')
-
-            Next (Regular) Block[B2#0R1]
-        Block[B2#0R1] - Exit
-            Predecessors: [B1#0R1]
-            Statements (0)
-    }
-}
-
+    Next (Regular) Block[B2]
 Block[B2] - Exit
     Predecessors: [B1]
     Statements (0)

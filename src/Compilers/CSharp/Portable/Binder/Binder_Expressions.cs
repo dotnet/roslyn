@@ -3930,7 +3930,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         // D = { ..., <identifier> = <expr>, ... }, where D : dynamic
                         var memberName = ((IdentifierNameSyntax)leftSyntax).Identifier.Text;
-                        boundLeft = new BoundDynamicObjectInitializerMember(leftSyntax, memberName, initializerType, hasErrors: false);
+                        boundLeft = new BoundDynamicObjectInitializerMember(leftSyntax, memberName, implicitReceiver.Type, initializerType, hasErrors: false);
                     }
                 }
                 else

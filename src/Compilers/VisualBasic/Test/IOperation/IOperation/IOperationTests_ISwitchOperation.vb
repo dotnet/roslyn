@@ -2332,75 +2332,64 @@ BC36635: Lambda expressions are not valid in the first expression of a 'Select C
 Block[B0] - Entry
     Statements (0)
     Next (Regular) Block[B1]
-        Entering: {R1}
+Block[B1] - Block
+    Predecessors: [B0]
+    Statements (1)
+        IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsInvalid, IsImplicit) (Syntax: 'Function() 1')
+          Value: 
+            IDelegateCreationOperation (OperationKind.DelegateCreation, Type: Function <generated method>() As System.Int32, IsInvalid, IsImplicit) (Syntax: 'Function() 1')
+              Target: 
+                IFlowAnonymousFunctionOperation (Symbol: Function () As System.Int32) (OperationKind.FlowAnonymousFunction, Type: null, IsInvalid) (Syntax: 'Function() 1')
+                {
+                    Block[B0#A0] - Entry
+                        Statements (0)
+                        Next (Regular) Block[B1#A0]
+                            Entering: {R1#A0}
 
-.locals {R1}
-{
-    Methods: [Function () As System.Int32]
-    Block[B1] - Block
-        Predecessors: [B0]
-        Statements (1)
-            IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsInvalid, IsImplicit) (Syntax: 'Function() 1')
-              Value: 
-                IDelegateCreationOperation (OperationKind.DelegateCreation, Type: Function <generated method>() As System.Int32, IsInvalid, IsImplicit) (Syntax: 'Function() 1')
-                  Target: 
-                    IFlowAnonymousFunctionOperation (Symbol: Function () As System.Int32) (OperationKind.FlowAnonymousFunction, Type: null, IsInvalid) (Syntax: 'Function() 1')
+                    .locals {R1#A0}
+                    {
+                        Locals: [<anonymous local> As System.Int32]
+                        Block[B1#A0] - Block
+                            Predecessors: [B0#A0]
+                            Statements (0)
+                            Next (Return) Block[B2#A0]
+                                ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1, IsInvalid) (Syntax: '1')
+                                Leaving: {R1#A0}
+                    }
 
-        Jump if False (Regular) to Block[B3]
-            IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Boolean, IsImplicit) (Syntax: 'other')
-              Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                (NarrowingValue)
-              Operand: 
-                IBinaryOperation (BinaryOperatorKind.ObjectValueEquals, Checked) (OperationKind.BinaryOperator, Type: System.Object, IsImplicit) (Syntax: 'other')
-                  Left: 
-                    IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Object, IsInvalid, IsImplicit) (Syntax: 'Function() 1')
-                      Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
-                        (WideningReference, DelegateRelaxationLevelWideningToNonLambda)
-                      Operand: 
-                        IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: Function <generated method>() As System.Int32, IsInvalid, IsImplicit) (Syntax: 'Function() 1')
-                  Right: 
-                    IParameterReferenceOperation: other (OperationKind.ParameterReference, Type: System.Object) (Syntax: 'other')
-            Leaving: {R1}
+                    Block[B2#A0] - Exit
+                        Predecessors: [B1#A0]
+                        Statements (0)
+                }
 
-        Next (Regular) Block[B2]
-    Block[B2] - Block
-        Predecessors: [B1]
-        Statements (1)
-            IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'result = false')
-              Expression: 
-                ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Boolean, IsImplicit) (Syntax: 'result = false')
-                  Left: 
-                    IParameterReferenceOperation: result (OperationKind.ParameterReference, Type: System.Boolean) (Syntax: 'result')
-                  Right: 
-                    ILiteralOperation (OperationKind.Literal, Type: System.Boolean, Constant: False) (Syntax: 'false')
+    Jump if False (Regular) to Block[B3]
+        IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Boolean, IsImplicit) (Syntax: 'other')
+          Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+            (NarrowingValue)
+          Operand: 
+            IBinaryOperation (BinaryOperatorKind.ObjectValueEquals, Checked) (OperationKind.BinaryOperator, Type: System.Object, IsImplicit) (Syntax: 'other')
+              Left: 
+                IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Object, IsInvalid, IsImplicit) (Syntax: 'Function() 1')
+                  Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
+                    (WideningReference, DelegateRelaxationLevelWideningToNonLambda)
+                  Operand: 
+                    IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: Function <generated method>() As System.Int32, IsInvalid, IsImplicit) (Syntax: 'Function() 1')
+              Right: 
+                IParameterReferenceOperation: other (OperationKind.ParameterReference, Type: System.Object) (Syntax: 'other')
 
-        Next (Regular) Block[B3]
-            Leaving: {R1}
-    
-    {   Function () As System.Int32
-    
-        Block[B0#0R1] - Entry
-            Statements (0)
-            Next (Regular) Block[B1#0R1]
-                Entering: {R1#0R1}
+    Next (Regular) Block[B2]
+Block[B2] - Block
+    Predecessors: [B1]
+    Statements (1)
+        IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'result = false')
+          Expression: 
+            ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Boolean, IsImplicit) (Syntax: 'result = false')
+              Left: 
+                IParameterReferenceOperation: result (OperationKind.ParameterReference, Type: System.Boolean) (Syntax: 'result')
+              Right: 
+                ILiteralOperation (OperationKind.Literal, Type: System.Boolean, Constant: False) (Syntax: 'false')
 
-        .locals {R1#0R1}
-        {
-            Locals: [<anonymous local> As System.Int32]
-            Block[B1#0R1] - Block
-                Predecessors: [B0#0R1]
-                Statements (0)
-                Next (Return) Block[B2#0R1]
-                    ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1, IsInvalid) (Syntax: '1')
-                    Leaving: {R1#0R1}
-        }
-
-        Block[B2#0R1] - Exit
-            Predecessors: [B1#0R1]
-            Statements (0)
-    }
-}
-
+    Next (Regular) Block[B3]
 Block[B3] - Exit
     Predecessors: [B1] [B2]
     Statements (0)
@@ -4380,75 +4369,64 @@ BC36635: Lambda expressions are not valid in the first expression of a 'Select C
 Block[B0] - Entry
     Statements (0)
     Next (Regular) Block[B1]
-        Entering: {R1}
+Block[B1] - Block
+    Predecessors: [B0]
+    Statements (1)
+        IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsInvalid, IsImplicit) (Syntax: 'Function() 1')
+          Value: 
+            IDelegateCreationOperation (OperationKind.DelegateCreation, Type: Function <generated method>() As System.Int32, IsInvalid, IsImplicit) (Syntax: 'Function() 1')
+              Target: 
+                IFlowAnonymousFunctionOperation (Symbol: Function () As System.Int32) (OperationKind.FlowAnonymousFunction, Type: null, IsInvalid) (Syntax: 'Function() 1')
+                {
+                    Block[B0#A0] - Entry
+                        Statements (0)
+                        Next (Regular) Block[B1#A0]
+                            Entering: {R1#A0}
 
-.locals {R1}
-{
-    Methods: [Function () As System.Int32]
-    Block[B1] - Block
-        Predecessors: [B0]
-        Statements (1)
-            IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsInvalid, IsImplicit) (Syntax: 'Function() 1')
-              Value: 
-                IDelegateCreationOperation (OperationKind.DelegateCreation, Type: Function <generated method>() As System.Int32, IsInvalid, IsImplicit) (Syntax: 'Function() 1')
-                  Target: 
-                    IFlowAnonymousFunctionOperation (Symbol: Function () As System.Int32) (OperationKind.FlowAnonymousFunction, Type: null, IsInvalid) (Syntax: 'Function() 1')
+                    .locals {R1#A0}
+                    {
+                        Locals: [<anonymous local> As System.Int32]
+                        Block[B1#A0] - Block
+                            Predecessors: [B0#A0]
+                            Statements (0)
+                            Next (Return) Block[B2#A0]
+                                ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1, IsInvalid) (Syntax: '1')
+                                Leaving: {R1#A0}
+                    }
 
-        Jump if False (Regular) to Block[B3]
-            IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Boolean, IsImplicit) (Syntax: '= other')
-              Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                (NarrowingValue)
-              Operand: 
-                IBinaryOperation (BinaryOperatorKind.ObjectValueEquals, Checked) (OperationKind.BinaryOperator, Type: System.Object, IsImplicit) (Syntax: '= other')
-                  Left: 
-                    IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Object, IsInvalid, IsImplicit) (Syntax: 'Function() 1')
-                      Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
-                        (WideningReference, DelegateRelaxationLevelWideningToNonLambda)
-                      Operand: 
-                        IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: Function <generated method>() As System.Int32, IsInvalid, IsImplicit) (Syntax: 'Function() 1')
-                  Right: 
-                    IParameterReferenceOperation: other (OperationKind.ParameterReference, Type: System.Object) (Syntax: 'other')
-            Leaving: {R1}
+                    Block[B2#A0] - Exit
+                        Predecessors: [B1#A0]
+                        Statements (0)
+                }
 
-        Next (Regular) Block[B2]
-    Block[B2] - Block
-        Predecessors: [B1]
-        Statements (1)
-            IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'result = false')
-              Expression: 
-                ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Boolean, IsImplicit) (Syntax: 'result = false')
-                  Left: 
-                    IParameterReferenceOperation: result (OperationKind.ParameterReference, Type: System.Boolean) (Syntax: 'result')
-                  Right: 
-                    ILiteralOperation (OperationKind.Literal, Type: System.Boolean, Constant: False) (Syntax: 'false')
+    Jump if False (Regular) to Block[B3]
+        IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Boolean, IsImplicit) (Syntax: '= other')
+          Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+            (NarrowingValue)
+          Operand: 
+            IBinaryOperation (BinaryOperatorKind.ObjectValueEquals, Checked) (OperationKind.BinaryOperator, Type: System.Object, IsImplicit) (Syntax: '= other')
+              Left: 
+                IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Object, IsInvalid, IsImplicit) (Syntax: 'Function() 1')
+                  Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
+                    (WideningReference, DelegateRelaxationLevelWideningToNonLambda)
+                  Operand: 
+                    IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: Function <generated method>() As System.Int32, IsInvalid, IsImplicit) (Syntax: 'Function() 1')
+              Right: 
+                IParameterReferenceOperation: other (OperationKind.ParameterReference, Type: System.Object) (Syntax: 'other')
 
-        Next (Regular) Block[B3]
-            Leaving: {R1}
-    
-    {   Function () As System.Int32
-    
-        Block[B0#0R1] - Entry
-            Statements (0)
-            Next (Regular) Block[B1#0R1]
-                Entering: {R1#0R1}
+    Next (Regular) Block[B2]
+Block[B2] - Block
+    Predecessors: [B1]
+    Statements (1)
+        IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'result = false')
+          Expression: 
+            ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Boolean, IsImplicit) (Syntax: 'result = false')
+              Left: 
+                IParameterReferenceOperation: result (OperationKind.ParameterReference, Type: System.Boolean) (Syntax: 'result')
+              Right: 
+                ILiteralOperation (OperationKind.Literal, Type: System.Boolean, Constant: False) (Syntax: 'false')
 
-        .locals {R1#0R1}
-        {
-            Locals: [<anonymous local> As System.Int32]
-            Block[B1#0R1] - Block
-                Predecessors: [B0#0R1]
-                Statements (0)
-                Next (Return) Block[B2#0R1]
-                    ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1, IsInvalid) (Syntax: '1')
-                    Leaving: {R1#0R1}
-        }
-
-        Block[B2#0R1] - Exit
-            Predecessors: [B1#0R1]
-            Statements (0)
-    }
-}
-
+    Next (Regular) Block[B3]
 Block[B3] - Exit
     Predecessors: [B1] [B2]
     Statements (0)
@@ -6169,75 +6147,64 @@ BC36635: Lambda expressions are not valid in the first expression of a 'Select C
 Block[B0] - Entry
     Statements (0)
     Next (Regular) Block[B1]
-        Entering: {R1}
+Block[B1] - Block
+    Predecessors: [B0]
+    Statements (1)
+        IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsInvalid, IsImplicit) (Syntax: 'Function() 1')
+          Value: 
+            IDelegateCreationOperation (OperationKind.DelegateCreation, Type: Function <generated method>() As System.Int32, IsInvalid, IsImplicit) (Syntax: 'Function() 1')
+              Target: 
+                IFlowAnonymousFunctionOperation (Symbol: Function () As System.Int32) (OperationKind.FlowAnonymousFunction, Type: null, IsInvalid) (Syntax: 'Function() 1')
+                {
+                    Block[B0#A0] - Entry
+                        Statements (0)
+                        Next (Regular) Block[B1#A0]
+                            Entering: {R1#A0}
 
-.locals {R1}
-{
-    Methods: [Function () As System.Int32]
-    Block[B1] - Block
-        Predecessors: [B0]
-        Statements (1)
-            IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsInvalid, IsImplicit) (Syntax: 'Function() 1')
-              Value: 
-                IDelegateCreationOperation (OperationKind.DelegateCreation, Type: Function <generated method>() As System.Int32, IsInvalid, IsImplicit) (Syntax: 'Function() 1')
-                  Target: 
-                    IFlowAnonymousFunctionOperation (Symbol: Function () As System.Int32) (OperationKind.FlowAnonymousFunction, Type: null, IsInvalid) (Syntax: 'Function() 1')
+                    .locals {R1#A0}
+                    {
+                        Locals: [<anonymous local> As System.Int32]
+                        Block[B1#A0] - Block
+                            Predecessors: [B0#A0]
+                            Statements (0)
+                            Next (Return) Block[B2#A0]
+                                ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1, IsInvalid) (Syntax: '1')
+                                Leaving: {R1#A0}
+                    }
 
-        Jump if False (Regular) to Block[B3]
-            IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Boolean, IsImplicit) (Syntax: '<> other')
-              Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                (NarrowingValue)
-              Operand: 
-                IBinaryOperation (BinaryOperatorKind.ObjectValueNotEquals, Checked) (OperationKind.BinaryOperator, Type: System.Object, IsImplicit) (Syntax: '<> other')
-                  Left: 
-                    IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Object, IsInvalid, IsImplicit) (Syntax: 'Function() 1')
-                      Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
-                        (WideningReference, DelegateRelaxationLevelWideningToNonLambda)
-                      Operand: 
-                        IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: Function <generated method>() As System.Int32, IsInvalid, IsImplicit) (Syntax: 'Function() 1')
-                  Right: 
-                    IParameterReferenceOperation: other (OperationKind.ParameterReference, Type: System.Object) (Syntax: 'other')
-            Leaving: {R1}
+                    Block[B2#A0] - Exit
+                        Predecessors: [B1#A0]
+                        Statements (0)
+                }
 
-        Next (Regular) Block[B2]
-    Block[B2] - Block
-        Predecessors: [B1]
-        Statements (1)
-            IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'result = false')
-              Expression: 
-                ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Boolean, IsImplicit) (Syntax: 'result = false')
-                  Left: 
-                    IParameterReferenceOperation: result (OperationKind.ParameterReference, Type: System.Boolean) (Syntax: 'result')
-                  Right: 
-                    ILiteralOperation (OperationKind.Literal, Type: System.Boolean, Constant: False) (Syntax: 'false')
+    Jump if False (Regular) to Block[B3]
+        IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Boolean, IsImplicit) (Syntax: '<> other')
+          Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+            (NarrowingValue)
+          Operand: 
+            IBinaryOperation (BinaryOperatorKind.ObjectValueNotEquals, Checked) (OperationKind.BinaryOperator, Type: System.Object, IsImplicit) (Syntax: '<> other')
+              Left: 
+                IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Object, IsInvalid, IsImplicit) (Syntax: 'Function() 1')
+                  Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
+                    (WideningReference, DelegateRelaxationLevelWideningToNonLambda)
+                  Operand: 
+                    IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: Function <generated method>() As System.Int32, IsInvalid, IsImplicit) (Syntax: 'Function() 1')
+              Right: 
+                IParameterReferenceOperation: other (OperationKind.ParameterReference, Type: System.Object) (Syntax: 'other')
 
-        Next (Regular) Block[B3]
-            Leaving: {R1}
-    
-    {   Function () As System.Int32
-    
-        Block[B0#0R1] - Entry
-            Statements (0)
-            Next (Regular) Block[B1#0R1]
-                Entering: {R1#0R1}
+    Next (Regular) Block[B2]
+Block[B2] - Block
+    Predecessors: [B1]
+    Statements (1)
+        IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'result = false')
+          Expression: 
+            ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Boolean, IsImplicit) (Syntax: 'result = false')
+              Left: 
+                IParameterReferenceOperation: result (OperationKind.ParameterReference, Type: System.Boolean) (Syntax: 'result')
+              Right: 
+                ILiteralOperation (OperationKind.Literal, Type: System.Boolean, Constant: False) (Syntax: 'false')
 
-        .locals {R1#0R1}
-        {
-            Locals: [<anonymous local> As System.Int32]
-            Block[B1#0R1] - Block
-                Predecessors: [B0#0R1]
-                Statements (0)
-                Next (Return) Block[B2#0R1]
-                    ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1, IsInvalid) (Syntax: '1')
-                    Leaving: {R1#0R1}
-        }
-
-        Block[B2#0R1] - Exit
-            Predecessors: [B1#0R1]
-            Statements (0)
-    }
-}
-
+    Next (Regular) Block[B3]
 Block[B3] - Exit
     Predecessors: [B1] [B2]
     Statements (0)
@@ -9022,26 +8989,70 @@ BC36635: Lambda expressions are not valid in the first expression of a 'Select C
 Block[B0] - Entry
     Statements (0)
     Next (Regular) Block[B1]
-        Entering: {R1}
+Block[B1] - Block
+    Predecessors: [B0]
+    Statements (1)
+        IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsInvalid, IsImplicit) (Syntax: 'Function() 1')
+          Value: 
+            IDelegateCreationOperation (OperationKind.DelegateCreation, Type: Function <generated method>() As System.Int32, IsInvalid, IsImplicit) (Syntax: 'Function() 1')
+              Target: 
+                IFlowAnonymousFunctionOperation (Symbol: Function () As System.Int32) (OperationKind.FlowAnonymousFunction, Type: null, IsInvalid) (Syntax: 'Function() 1')
+                {
+                    Block[B0#A0] - Entry
+                        Statements (0)
+                        Next (Regular) Block[B1#A0]
+                            Entering: {R1#A0}
 
-.locals {R1}
-{
-    Methods: [Function () As System.Int32]
-    Block[B1] - Block
-        Predecessors: [B0]
-        Statements (1)
-            IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsInvalid, IsImplicit) (Syntax: 'Function() 1')
-              Value: 
-                IDelegateCreationOperation (OperationKind.DelegateCreation, Type: Function <generated method>() As System.Int32, IsInvalid, IsImplicit) (Syntax: 'Function() 1')
-                  Target: 
-                    IFlowAnonymousFunctionOperation (Symbol: Function () As System.Int32) (OperationKind.FlowAnonymousFunction, Type: null, IsInvalid) (Syntax: 'Function() 1')
+                    .locals {R1#A0}
+                    {
+                        Locals: [<anonymous local> As System.Int32]
+                        Block[B1#A0] - Block
+                            Predecessors: [B0#A0]
+                            Statements (0)
+                            Next (Return) Block[B2#A0]
+                                ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1, IsInvalid) (Syntax: '1')
+                                Leaving: {R1#A0}
+                    }
 
-        Jump if True (Regular) to Block[B3]
+                    Block[B2#A0] - Exit
+                        Predecessors: [B1#A0]
+                        Statements (0)
+                }
+
+    Jump if True (Regular) to Block[B3]
+        IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Boolean, IsImplicit) (Syntax: 'other1 To other2')
+          Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+            (NarrowingValue)
+          Operand: 
+            IBinaryOperation (BinaryOperatorKind.GreaterThanOrEqual, Checked) (OperationKind.BinaryOperator, Type: System.Object, IsImplicit) (Syntax: 'other1 To other2')
+              Left: 
+                IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Object, IsInvalid, IsImplicit) (Syntax: 'Function() 1')
+                  Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
+                    (WideningReference, DelegateRelaxationLevelWideningToNonLambda)
+                  Operand: 
+                    IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: Function <generated method>() As System.Int32, IsInvalid, IsImplicit) (Syntax: 'Function() 1')
+              Right: 
+                IParameterReferenceOperation: other1 (OperationKind.ParameterReference, Type: System.Object) (Syntax: 'other1')
+
+    Next (Regular) Block[B2]
+Block[B2] - Block
+    Predecessors: [B1]
+    Statements (1)
+        IFlowCaptureOperation: 1 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'other1 To other2')
+          Value: 
+            ILiteralOperation (OperationKind.Literal, Type: System.Boolean, Constant: False, IsImplicit) (Syntax: 'other1 To other2')
+
+    Next (Regular) Block[B4]
+Block[B3] - Block
+    Predecessors: [B1]
+    Statements (1)
+        IFlowCaptureOperation: 1 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'other1 To other2')
+          Value: 
             IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Boolean, IsImplicit) (Syntax: 'other1 To other2')
               Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                 (NarrowingValue)
               Operand: 
-                IBinaryOperation (BinaryOperatorKind.GreaterThanOrEqual, Checked) (OperationKind.BinaryOperator, Type: System.Object, IsImplicit) (Syntax: 'other1 To other2')
+                IBinaryOperation (BinaryOperatorKind.LessThanOrEqual, Checked) (OperationKind.BinaryOperator, Type: System.Object, IsImplicit) (Syntax: 'other1 To other2')
                   Left: 
                     IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Object, IsInvalid, IsImplicit) (Syntax: 'Function() 1')
                       Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
@@ -9049,91 +9060,36 @@ Block[B0] - Entry
                       Operand: 
                         IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: Function <generated method>() As System.Int32, IsInvalid, IsImplicit) (Syntax: 'Function() 1')
                   Right: 
-                    IParameterReferenceOperation: other1 (OperationKind.ParameterReference, Type: System.Object) (Syntax: 'other1')
+                    IParameterReferenceOperation: other2 (OperationKind.ParameterReference, Type: System.Object) (Syntax: 'other2')
 
-        Next (Regular) Block[B2]
-    Block[B2] - Block
-        Predecessors: [B1]
-        Statements (1)
-            IFlowCaptureOperation: 1 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'other1 To other2')
-              Value: 
-                ILiteralOperation (OperationKind.Literal, Type: System.Boolean, Constant: False, IsImplicit) (Syntax: 'other1 To other2')
-
-        Next (Regular) Block[B4]
-    Block[B3] - Block
-        Predecessors: [B1]
-        Statements (1)
-            IFlowCaptureOperation: 1 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'other1 To other2')
-              Value: 
-                IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Boolean, IsImplicit) (Syntax: 'other1 To other2')
-                  Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                    (NarrowingValue)
-                  Operand: 
-                    IBinaryOperation (BinaryOperatorKind.LessThanOrEqual, Checked) (OperationKind.BinaryOperator, Type: System.Object, IsImplicit) (Syntax: 'other1 To other2')
-                      Left: 
-                        IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Object, IsInvalid, IsImplicit) (Syntax: 'Function() 1')
-                          Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
-                            (WideningReference, DelegateRelaxationLevelWideningToNonLambda)
-                          Operand: 
-                            IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: Function <generated method>() As System.Int32, IsInvalid, IsImplicit) (Syntax: 'Function() 1')
-                      Right: 
-                        IParameterReferenceOperation: other2 (OperationKind.ParameterReference, Type: System.Object) (Syntax: 'other2')
-
-        Next (Regular) Block[B4]
-    Block[B4] - Block
-        Predecessors: [B2] [B3]
-        Statements (0)
-        Jump if False (Regular) to Block[B6]
-            IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Boolean, IsImplicit) (Syntax: 'other1 To other2')
+    Next (Regular) Block[B4]
+Block[B4] - Block
+    Predecessors: [B2] [B3]
+    Statements (0)
+    Jump if False (Regular) to Block[B6]
+        IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Boolean, IsImplicit) (Syntax: 'other1 To other2')
+          Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+            (NarrowingValue)
+          Operand: 
+            IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Object, IsImplicit) (Syntax: 'other1 To other2')
               Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                (NarrowingValue)
+                (WideningValue)
               Operand: 
-                IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Object, IsImplicit) (Syntax: 'other1 To other2')
-                  Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                    (WideningValue)
-                  Operand: 
-                    IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: System.Boolean, IsImplicit) (Syntax: 'other1 To other2')
-            Leaving: {R1}
+                IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: System.Boolean, IsImplicit) (Syntax: 'other1 To other2')
 
-        Next (Regular) Block[B5]
-    Block[B5] - Block
-        Predecessors: [B4]
-        Statements (1)
-            IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'result = false')
-              Expression: 
-                ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Boolean, IsImplicit) (Syntax: 'result = false')
-                  Left: 
-                    IParameterReferenceOperation: result (OperationKind.ParameterReference, Type: System.Boolean) (Syntax: 'result')
-                  Right: 
-                    ILiteralOperation (OperationKind.Literal, Type: System.Boolean, Constant: False) (Syntax: 'false')
+    Next (Regular) Block[B5]
+Block[B5] - Block
+    Predecessors: [B4]
+    Statements (1)
+        IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'result = false')
+          Expression: 
+            ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Boolean, IsImplicit) (Syntax: 'result = false')
+              Left: 
+                IParameterReferenceOperation: result (OperationKind.ParameterReference, Type: System.Boolean) (Syntax: 'result')
+              Right: 
+                ILiteralOperation (OperationKind.Literal, Type: System.Boolean, Constant: False) (Syntax: 'false')
 
-        Next (Regular) Block[B6]
-            Leaving: {R1}
-    
-    {   Function () As System.Int32
-    
-        Block[B0#0R1] - Entry
-            Statements (0)
-            Next (Regular) Block[B1#0R1]
-                Entering: {R1#0R1}
-
-        .locals {R1#0R1}
-        {
-            Locals: [<anonymous local> As System.Int32]
-            Block[B1#0R1] - Block
-                Predecessors: [B0#0R1]
-                Statements (0)
-                Next (Return) Block[B2#0R1]
-                    ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1, IsInvalid) (Syntax: '1')
-                    Leaving: {R1#0R1}
-        }
-
-        Block[B2#0R1] - Exit
-            Predecessors: [B1#0R1]
-            Statements (0)
-    }
-}
-
+    Next (Regular) Block[B6]
 Block[B6] - Exit
     Predecessors: [B4] [B5]
     Statements (0)

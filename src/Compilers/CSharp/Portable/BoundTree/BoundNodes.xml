@@ -1386,6 +1386,7 @@
     <Field Name="Type" Type="TypeSymbol" Override="true" Null="disallow"/>
 
     <Field Name="MemberName" Type="string" Null="disallow"/>
+    <Field Name="ReceiverType" Type="TypeSymbol" Null="disallow" />
   </Node>
 
   <Node Name="BoundCollectionInitializerExpression" Base="BoundObjectInitializerExpressionBase">
