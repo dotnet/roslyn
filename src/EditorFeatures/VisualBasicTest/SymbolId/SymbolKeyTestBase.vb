@@ -73,7 +73,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.SymbolId
             Dim serialized = sid.ToString()
             Dim deserialized = SymbolKey.From(serialized)
 
-            Dim comparer = SymbolKey.GetComparer(ignoreCase:=False, ignoreAssemblyKeys:=False)
+            Dim comparer = SymbolKeyComparer.GetComparer(ignoreCase:=False, ignoreAssemblyKey:=False)
             Assert.True(comparer.Equals(sid, deserialized))
 
             Dim symInfo = sid.Resolve(targetCompilation, ignoreAssemblyNames:=(comparison And SymbolIdComparison.IgnoreAssemblyIds) = SymbolIdComparison.IgnoreAssemblyIds)
@@ -93,9 +93,9 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.SymbolId
                 "Compare")
 
             If expectEqual Then
-                Assert.[True](CodeAnalysis.SymbolKey.GetComparer(ignoreCase, ignoreAssemblyIds).Equals(sid2, sid1), message)
+                Assert.[True](SymbolKeyComparer.GetComparer(ignoreCase, ignoreAssemblyIds).Equals(sid2, sid1), message)
             Else
-                Assert.[False](CodeAnalysis.SymbolKey.GetComparer(ignoreCase, ignoreAssemblyIds).Equals(sid2, sid1), message)
+                Assert.[False](SymbolKeyComparer.GetComparer(ignoreCase, ignoreAssemblyIds).Equals(sid2, sid1), message)
             End If
         End Sub
 

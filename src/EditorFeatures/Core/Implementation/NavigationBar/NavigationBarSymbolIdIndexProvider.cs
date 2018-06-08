@@ -15,8 +15,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationBar
         public NavigationBarSymbolIdIndexProvider(bool caseSensitive)
         {
             _nextIds = new Dictionary<SymbolKey, int>(caseSensitive
-                ? SymbolKey.GetComparer(ignoreCase: true, ignoreAssemblyKeys: false)
-                : SymbolKey.GetComparer(ignoreCase: false, ignoreAssemblyKeys: false));
+                ? SymbolKeyComparer.GetComparer(ignoreCase: true, ignoreAssemblyKey: false)
+                : SymbolKeyComparer.GetComparer(ignoreCase: false, ignoreAssemblyKey: false));
         }
 
         public int GetIndexForSymbolId(SymbolKey id)

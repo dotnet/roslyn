@@ -36,7 +36,7 @@ namespace Microsoft.CodeAnalysis.SignatureHelp
                 return ReferenceEquals(this, obj) ||
                     (obj?.SymbolKey != null &&
                      this.SymbolKey != null &&
-                     CodeAnalysis.SymbolKey.GetComparer(ignoreCase: false, ignoreAssemblyKeys: false).Equals(this.SymbolKey.Value, obj.SymbolKey.Value));
+                     SymbolKeyComparer.GetComparer(ignoreCase: false, ignoreAssemblyKey: false).Equals(this.SymbolKey.Value, obj.SymbolKey.Value));
             }
 
             public override int GetHashCode()
@@ -46,7 +46,7 @@ namespace Microsoft.CodeAnalysis.SignatureHelp
                     return 0;
                 }
 
-                var comparer = CodeAnalysis.SymbolKey.GetComparer(ignoreCase: false, ignoreAssemblyKeys: false);
+                var comparer = SymbolKeyComparer.GetComparer(ignoreCase: false, ignoreAssemblyKey: false);
                 return comparer.GetHashCode(this.SymbolKey.Value);
             }
         }

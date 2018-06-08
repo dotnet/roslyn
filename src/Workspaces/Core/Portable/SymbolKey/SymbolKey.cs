@@ -87,17 +87,12 @@ namespace Microsoft.CodeAnalysis
             EncodedSymbolData = encodedSymbolData ?? throw new ArgumentNullException();
         }
 
-        public static IEqualityComparer<SymbolKey> GetComparer(bool ignoreCase, bool ignoreAssemblyKeys)
-        {
-            return SymbolKeyComparer.GetComparer(ignoreCase, ignoreAssemblyKeys);
-        }
-
-        private static readonly Func<string, string> s_removeAssemblyKeys = (string data) =>
+        internal static string RemoveAssemblyKeys(string data)
         {
             var reader = new RemoveAssemblySymbolKeysReader();
             reader.Initialize(data);
             return reader.RemoveAssemblySymbolKeys();
-        };
+        }
 
         public static SymbolKey From(ISymbol symbol, CancellationToken cancellationToken = default)
             => new SymbolKey(GetEncodedSymbolData(symbol, cancellationToken));

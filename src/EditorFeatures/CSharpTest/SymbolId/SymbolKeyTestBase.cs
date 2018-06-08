@@ -80,7 +80,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SymbolId
             // Verify that serialization works.
             var serialized = sid.ToString();
             var deserialized = SymbolKey.From(serialized);
-            var comparer = SymbolKey.GetComparer(ignoreCase: false, ignoreAssemblyKeys: false);
+            var comparer = SymbolKeyComparer.GetComparer(ignoreCase: false, ignoreAssemblyKey: false);
             Assert.True(comparer.Equals(sid, deserialized));
 
             var symInfo = sid.Resolve(targetCompilation, ignoreAssemblyNames: (comparison & SymbolKeyComparison.IgnoreAssemblyIds) == SymbolKeyComparison.IgnoreAssemblyIds);
@@ -102,7 +102,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SymbolId
                 ignoreAssemblyIds ? " IgnoreAssemblyIds " : " ",
                 "Compare");
 
-            var ret = SymbolKey.GetComparer(ignoreCase, ignoreAssemblyIds).Equals(sid2, sid1);
+            var ret = SymbolKeyComparer.GetComparer(ignoreCase, ignoreAssemblyIds).Equals(sid2, sid1);
             if (expectEqual)
             {
                 Assert.True(ret, message);

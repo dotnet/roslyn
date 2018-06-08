@@ -134,7 +134,10 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.NavigationBar
             Private ReadOnly _symbolIdComparer As IEqualityComparer(Of SymbolKey)
 
             Public Sub New(ignoreCase As Boolean)
-                _symbolIdComparer = If(ignoreCase, SymbolKey.GetComparer(ignoreCase:=True, ignoreAssemblyKeys:=False), SymbolKey.GetComparer(ignoreCase:=False, ignoreAssemblyKeys:=False))
+                _symbolIdComparer = If(
+                    ignoreCase,
+                    SymbolKeyComparer.GetComparer(ignoreCase:=True, ignoreAssemblyKey:=False),
+                    SymbolKeyComparer.GetComparer(ignoreCase:=False, ignoreAssemblyKey:=False))
             End Sub
 
             Public Function IEqualityComparer_Equals(x As NavigationBarSymbolItem, y As NavigationBarSymbolItem) As Boolean Implements IEqualityComparer(Of NavigationBarSymbolItem).Equals

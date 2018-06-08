@@ -72,7 +72,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.MetadataAsSource
                 var generatedCompilation = await generatedDocument.Project.GetCompilationAsync();
                 var generatedSymbol = generatedCompilation.Assembly.GetTypeByMetadataName(symbolName);
                 Assert.False(generatedSymbol.Locations.Where(loc => loc.IsInSource).IsEmpty());
-                Assert.True(SymbolKey.GetComparer(ignoreCase: true, ignoreAssemblyKeys: false).Equals(metadataSymbolId, generatedSymbol.GetSymbolKey()));
+                Assert.True(SymbolKeyComparer.GetComparer(ignoreCase: true, ignoreAssemblyKey: false).Equals(metadataSymbolId, generatedSymbol.GetSymbolKey()));
             }
         }
     }

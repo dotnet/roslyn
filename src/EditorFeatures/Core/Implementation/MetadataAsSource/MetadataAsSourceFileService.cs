@@ -528,7 +528,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.MetadataAsSource
 
         private class UniqueDocumentKey : IEquatable<UniqueDocumentKey>
         {
-            private static readonly IEqualityComparer<SymbolKey> s_symbolIdComparer = SymbolKey.GetComparer(ignoreCase: false, ignoreAssemblyKeys: true);
+            private static readonly IEqualityComparer<SymbolKey> s_symbolIdComparer = SymbolKeyComparer.GetComparer(ignoreCase: false, ignoreAssemblyKey: true);
 
             /// <summary>
             /// The path to the assembly. Null in the case of in-memory assemblies, where we then use assembly identity.

@@ -4,7 +4,7 @@ using System;
 
 namespace Microsoft.CodeAnalysis
 {
-    internal partial struct SymbolKey
+    internal partial class SymbolKeyComparer
     {
         private struct ComparisonOptions
         {
