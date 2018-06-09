@@ -10,6 +10,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions.LanguageServices
 {
+    using System;
     using RegexToken = EmbeddedSyntaxToken<RegexKind>;
 
     internal class RegexEmbeddedCompletionProvider : IEmbeddedCompletionProvider
@@ -125,20 +126,21 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions.LanguageSe
             EmbeddedCompletionContext context, RegexTree tree, SyntaxToken stringToken)
         {
             var position = context.Position;
-            var previousVirtualChar = tree.Text.FirstOrNullable(vc => vc.Span.Contains(position - 1));
-            if (previousVirtualChar == null)
+            var previousVirtualCharOpt = tree.Text.FirstOrNullable(vc => vc.Span.Contains(position - 1));
+            if (previousVirtualCharOpt == null)
             {
                 return;
             }
 
-            var result = FindToken(tree.Root, previousVirtualChar.Value);
+            var previousVirtualChar = previousVirtualCharOpt.Value;
+            var result = FindToken(tree.Root, previousVirtualChar);
             if (result == null)
             {
                 return;
             }
 
             var (parent, token) = result.Value;
-            var inCharacterClass = IsInCharacterClass(tree.Root, previousVirtualChar.Value, inCharacterClass: false);
+            var inCharacterClass = IsInCharacterClass(tree.Root, previousVirtualChar, inCharacterClass: false);
 
             if (token.Kind == RegexKind.BackslashToken)
             {
@@ -152,7 +154,28 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions.LanguageSe
                 return;
             }
 
-            if (token.Kind == RegexKind.OpenBraceToken) {
+            // see if we have ```\p{```.  If so, offer property categories
+            if (previousVirtualChar.Char == '{')
+            {
+                var index = tree.Text.IndexOf(previousVirtualChar);
+                if (index >= 2 && 
+                    tree.Text[index - 2].Char == '\\' &&
+                    tree.Text[index - 1].Char == 'p')
+                {
+                    var slashChar = tree.Text[index - 1];
+                    result = FindToken(tree.Root, slashChar);
+                    if (result == null)
+                    {
+                        return;
+                    }
+
+                    (parent, token) = result.Value;
+                    if (parent is RegexEscapeNode)
+                    {
+                        ProvideEscapeCategoryCompletions(context);
+                    }
+                }
+
                 // ProvideEscapeCategoryCompletions(context);
                 return;
             }
@@ -179,6 +202,16 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions.LanguageSe
             }
         }
 
+        private void ProvideEscapeCategoryCompletions(EmbeddedCompletionContext context)
+        {
+            foreach (var (name, desc) in RegexCharClass.EscapeCategories)
+            {
+                AddIfMissing(context, new EmbeddedCompletionItem(
+                    name, desc, new EmbeddedCompletionChange(
+                        new TextChange(new TextSpan(context.Position, 0), name), newPosition: null)));
+            }
+        }
+
         private void ProvideEscapeCompletions(
             EmbeddedCompletionContext context, SyntaxToken stringToken,
             bool inCharacterClass, RegexNode parentOpt)
@@ -193,15 +226,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions.LanguageSe
                 AddIfMissing(context, CreateEscapeItem(stringToken, @"\A", "", context, parentOpt));
                 AddIfMissing(context, CreateEscapeItem(stringToken, @"\b", "", context, parentOpt));
                 AddIfMissing(context, CreateEscapeItem(stringToken, @"\B", "", context, parentOpt));
-                AddIfMissing(context, CreateEscapeItem(stringToken, @"\d", "", context, parentOpt));
-                AddIfMissing(context, CreateEscapeItem(stringToken, @"\D", "", context, parentOpt));
                 AddIfMissing(context, CreateEscapeItem(stringToken, @"\G", "", context, parentOpt));
-                AddIfMissing(context, CreateEscapeItem(stringToken, @"\p{}", "", context, parentOpt, @"\p{".Length));
-                AddIfMissing(context, CreateEscapeItem(stringToken, @"\P{}", "", context, parentOpt, @"\p{".Length));
-                AddIfMissing(context, CreateEscapeItem(stringToken, @"\s", "", context, parentOpt));
-                AddIfMissing(context, CreateEscapeItem(stringToken, @"\S", "", context, parentOpt));
-                AddIfMissing(context, CreateEscapeItem(stringToken, @"\w", "", context, parentOpt));
-                AddIfMissing(context, CreateEscapeItem(stringToken, @"\W", "", context, parentOpt));
                 AddIfMissing(context, CreateEscapeItem(stringToken, @"\z", "", context, parentOpt));
                 AddIfMissing(context, CreateEscapeItem(stringToken, @"\Z", "", context, parentOpt));
 
@@ -222,19 +247,23 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions.LanguageSe
             AddIfMissing(context, CreateEscapeItem(stringToken, @"\x##", "", context, parentOpt, @"\x".Length, @"\x"));
             AddIfMissing(context, CreateEscapeItem(stringToken, @"\u####", "", context, parentOpt, @"\u".Length, @"\u"));
             AddIfMissing(context, CreateEscapeItem(stringToken, @"\c", "", context, parentOpt, @"\c".Length, @"\c"));
+
+            AddIfMissing(context, CreateEscapeItem(stringToken, @"\d", "", context, parentOpt));
+            AddIfMissing(context, CreateEscapeItem(stringToken, @"\D", "", context, parentOpt));
+            AddIfMissing(context, CreateEscapeItem(stringToken, @"\p{}", "", context, parentOpt, @"\p".Length, @"\p"));
+            AddIfMissing(context, CreateEscapeItem(stringToken, @"\P{}", "", context, parentOpt, @"\P".Length, @"\P"));
+            AddIfMissing(context, CreateEscapeItem(stringToken, @"\s", "", context, parentOpt));
+            AddIfMissing(context, CreateEscapeItem(stringToken, @"\S", "", context, parentOpt));
+            AddIfMissing(context, CreateEscapeItem(stringToken, @"\w", "", context, parentOpt));
+            AddIfMissing(context, CreateEscapeItem(stringToken, @"\W", "", context, parentOpt));
         }
 
         private void AddIfMissing(EmbeddedCompletionContext context, EmbeddedCompletionItem item)
         {
-            foreach (var existingItem in context.Items)
+            if (context.Names.Add(item.DisplayText))
             {
-                if (existingItem.DisplayText == item.DisplayText)
-                {
-                    return;
-                }
+                context.Items.Add(item);
             }
-
-            context.Items.Add(item);
         }
 
         private EmbeddedCompletionItem CreateEscapeItem(
@@ -265,7 +294,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions.LanguageSe
                 displayText, description, 
                 new EmbeddedCompletionChange(
                     new TextChange(replacementSpan, escapedInsertionText),
-                    newPosition, includesCommitCharacter: false));
+                    newPosition));
         }
 
         private (RegexNode parent, RegexToken Token)? FindToken(

@@ -129,6 +129,6 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
         }
 
         private CompletionChange Convert(EmbeddedCompletionChange change)
-            => CompletionChange.Create(change.TextChange, change.NewPosition, change.IncludesCommitCharacter);
+            => CompletionChange.Create(change.TextChange, change.NewPosition);
     }
 }

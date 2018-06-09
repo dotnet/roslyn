@@ -12,21 +12,18 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.LanguageServices
     {
         bool ShouldTriggerCompletion(SourceText text, int caretPosition, EmbeddedCompletionTrigger trigger, OptionSet options);
         Task ProvideCompletionsAsync(EmbeddedCompletionContext embeddedContext);
-        // Task<EmbeddedCompletionChange> GetChangeAsync(Document document, EmbeddedCompletionItem item2, char? commitKey, CancellationToken cancellationToken);
     }
 
     internal struct EmbeddedCompletionChange
     {
         public readonly TextChange TextChange;
         public readonly int? NewPosition;
-        public readonly bool IncludesCommitCharacter;
 
         public EmbeddedCompletionChange(
-            TextChange textChange, int? newPosition, bool includesCommitCharacter)
+            TextChange textChange, int? newPosition)
         {
             TextChange = textChange;
             NewPosition = newPosition;
-            IncludesCommitCharacter = includesCommitCharacter;
         }
     }
 
@@ -40,6 +37,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.LanguageServices
 
         public TextSpan CompletionListSpan;
         public readonly List<EmbeddedCompletionItem> Items = new List<EmbeddedCompletionItem>();
+        public readonly HashSet<string> Names = new HashSet<string>();
 
         public EmbeddedCompletionContext(
             Document document, int position, TextSpan completionListSpan,
