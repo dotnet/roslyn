@@ -2112,7 +2112,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
             SpillEvalStack();
             int captureId = captureIdForResult ?? _captureIdDispenser.GetNextId();
 
-            ref BasicBlockBuilder lazyFallThrough = ref stopSense ? ref fallToTrueOpt : ref fallToFalseOpt;
+            ref BasicBlockBuilder lazyFallThrough = ref stopValue ? ref fallToTrueOpt : ref fallToFalseOpt;
             bool newFallThroughBlock = (lazyFallThrough == null);
 
             VisitConditionalBranch(condition.LeftOperand, ref lazyFallThrough, stopSense);
@@ -2143,19 +2143,24 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
         {
             Debug.Assert(ITypeSymbolHelpers.IsBooleanType(condition.Type));
 
-            // PROTOTYPE(dataflow): Unwrap parenthesized and look for other places where it should happen
-            // PROTOTYPE(dataflow): Do not erase UnaryOperatorKind.Not if ProduceIsSense below will have to add it back.
+            IUnaryOperation lastUnary = null;
 
-            while (condition.Kind == OperationKind.UnaryOperator)
+            do
             {
-                var unOp = (IUnaryOperation)condition;
-                if (!IsBooleanLogicalNot(unOp))
+                switch (condition)
                 {
-                    break;
+                    case IParenthesizedOperation parenthesized:
+                        condition = parenthesized.Operand;
+                        continue;
+                    case IUnaryOperation unary when IsBooleanLogicalNot(unary):
+                        lastUnary = unary;
+                        condition = unary.Operand;
+                        sense = !sense;
+                        continue;
                 }
-                condition = unOp.Operand;
-                sense = !sense;
-            }
+
+                break;
+            } while (true);
 
             if (condition.Kind == OperationKind.BinaryOperator)
             {
@@ -2166,7 +2171,19 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
                 }
             }
 
-            return ProduceIsSense(Visit(condition), sense);
+            condition = Visit(condition);
+            if (!sense)
+            {
+                return lastUnary != null
+                    ? new UnaryOperatorExpression(lastUnary.OperatorKind, condition, lastUnary.IsLifted, lastUnary.IsChecked,
+                                                  lastUnary.OperatorMethod, semanticModel: null, lastUnary.Syntax,
+                                                  lastUnary.Type, lastUnary.ConstantValue, IsImplicit(lastUnary))
+                    : new UnaryOperatorExpression(UnaryOperatorKind.Not, condition, isLifted: false, isChecked: false,
+                                                  operatorMethod: null, semanticModel: null, condition.Syntax,
+                                                  condition.Type, constantValue: default, isImplicit: true);
+            }
+
+            return condition;
         }
 
         private static bool IsBooleanConditionalOperator(IBinaryOperation binOp)
@@ -2176,27 +2193,6 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
                    ITypeSymbolHelpers.IsBooleanType(binOp.Type) &&
                    ITypeSymbolHelpers.IsBooleanType(binOp.LeftOperand.Type) &&
                    ITypeSymbolHelpers.IsBooleanType(binOp.RightOperand.Type);
-        }
-
-        private IOperation ProduceIsSense(IOperation condition, bool sense)
-        {
-            Debug.Assert(ITypeSymbolHelpers.IsBooleanType(condition.Type));
-
-            if (!sense)
-            {
-                return new UnaryOperatorExpression(UnaryOperatorKind.Not,
-                                                   condition,
-                                                   isLifted: false,
-                                                   isChecked: false,
-                                                   operatorMethod: null,
-                                                   semanticModel: null,
-                                                   condition.Syntax,
-                                                   condition.Type,
-                                                   constantValue: default, // revert constant value if we have one.
-                                                   isImplicit: true);
-            }
-
-            return condition;
         }
 
         private void VisitConditionalBranch(IOperation condition, ref BasicBlockBuilder dest, bool sense)
