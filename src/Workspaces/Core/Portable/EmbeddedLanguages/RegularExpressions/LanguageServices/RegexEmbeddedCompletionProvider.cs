@@ -204,10 +204,17 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions.LanguageSe
 
         private void ProvideEscapeCategoryCompletions(EmbeddedCompletionContext context)
         {
-            foreach (var (name, desc) in RegexCharClass.EscapeCategories)
+            foreach (var (name, (shortDesc, longDesc)) in RegexCharClass.EscapeCategories)
             {
+                var displayText = name;
+                if (shortDesc != "")
+                {
+                    displayText += "  -  " + shortDesc;
+                }
+
                 AddIfMissing(context, new EmbeddedCompletionItem(
-                    name, desc, new EmbeddedCompletionChange(
+                    displayText, longDesc.Length > 0 ? longDesc : shortDesc,
+                    new EmbeddedCompletionChange(
                         new TextChange(new TextSpan(context.Position, 0), name), newPosition: null)));
             }
         }
