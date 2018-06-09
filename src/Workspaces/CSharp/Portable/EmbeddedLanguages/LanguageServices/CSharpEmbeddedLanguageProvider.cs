@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Composition;
+using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.EmbeddedLanguages.VirtualChars;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.EmbeddedLanguages.LanguageServices;
@@ -31,6 +32,14 @@ namespace Microsoft.CodeAnalysis.CSharp.EmbeddedLanguages.LanguageServices
                 stringLiteral.LeadingTrivia.AddRange(triviaList));
 
             editor.ReplaceNode(stringLiteral.Parent, stringLiteral.Parent.ReplaceToken(stringLiteral, newStringLiteral));
+        }
+
+        internal override string EscapeText(string text, SyntaxToken token)
+        {
+            Debug.Assert(token.Kind() == SyntaxKind.StringLiteralToken);
+            return token.IsVerbatimStringLiteral()
+                ? text
+                : text.Replace("\\", "\\\\");
         }
     }
 }

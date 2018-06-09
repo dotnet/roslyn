@@ -57,7 +57,15 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.LanguageServices
     internal class EmbeddedCompletionItem
     {
         public readonly string DisplayText;
+        public readonly string Description;
         public readonly EmbeddedCompletionChange Change;
+
+        public EmbeddedCompletionItem(string displayText, string description, EmbeddedCompletionChange change)
+        {
+            DisplayText = displayText;
+            Description = description;
+            Change = change;
+        }
     }
 
     internal struct EmbeddedCompletionTrigger

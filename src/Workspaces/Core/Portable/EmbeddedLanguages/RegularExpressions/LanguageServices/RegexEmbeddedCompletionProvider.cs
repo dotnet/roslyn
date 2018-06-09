@@ -3,19 +3,14 @@
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.EmbeddedLanguages.Common;
 using Microsoft.CodeAnalysis.EmbeddedLanguages.LanguageServices;
+using Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Text;
-using System;
-using Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars;
-using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions.LanguageServices
 {
-    using static EmbeddedSyntaxHelpers;
-
     using RegexToken = EmbeddedSyntaxToken<RegexKind>;
-    using RegexTrivia = EmbeddedSyntaxTrivia<RegexKind>;
 
     internal class RegexEmbeddedCompletionProvider : IEmbeddedCompletionProvider
     {
@@ -76,52 +71,71 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions.LanguageSe
             }
 
             var position = context.Position;
-            var tree = await _language.TryGetTreeAtPositionAsync(
+            var treeAndStringToken = await _language.TryGetTreeAndTokenAtPositionAsync(
                 context.Document, position, context.CancellationToken).ConfigureAwait(false);
-            if (tree == null)
+            if (treeAndStringToken == null)
             {
                 return;
             }
 
-            if (context.Trigger.Kind == EmbeddedCompletionTriggerKind.Invoke ||
-                context.Trigger.Kind == EmbeddedCompletionTriggerKind.InvokeAndCommitIfUnique)
+            if (context.Trigger.Kind != EmbeddedCompletionTriggerKind.Invoke &&
+                context.Trigger.Kind != EmbeddedCompletionTriggerKind.InvokeAndCommitIfUnique &&
+                context.Trigger.Kind != EmbeddedCompletionTriggerKind.Insertion)
             {
-                // User invoked completion explicitly.  If they're after the start of some
-                // construct, then just show the relevant constructs for what they're after 
-                // i.e. escapes if they're after a  \  or groupings if they're after a  (.
-                //
-                // If they're not after anything, then show all legal constructs for where
-                // they are.
-                var count = context.Items.Count;
-                ProvideCompletionsAfterInsertion(context);
-
-                if (count != context.Items.Count)
-                {
-                    // They were after some construct, and we added completion items for that
-                    // construct.  No need to do anything else at this point.
-                    return;
-                }
+                return;
             }
 
+            // First, act as if the user just inserted the previous character.  This will cause us
+            // to complete down to the set of relevant items based on that character. If we get
+            // anything, we're done and can just show the user those items.  If we have no items to
+            // add *and* the user was explicitly invoking completion, then just add the entire set
+            // of suggestions to help the user out.
+            var count = context.Items.Count;
+
+            ProvideCompletionsAfterInsertion(context, treeAndStringToken.Value.tree, treeAndStringToken.Value.token);
+
+            if (count != context.Items.Count)
+            {
+                // We added items.  Nothing else to do here.
+                return;
+            }
+
+            if (context.Trigger.Kind == EmbeddedCompletionTriggerKind.Insertion)
+            {
+                // The user was typing a character, and we had nothing to add for them.  Just bail
+                // out immediately as we cannot help in this circumstance.
+                return;
+            }
+
+            // We added no items, but the user explicitly asked for completion.  Add all the
+            // items we can to help them out.
+            // Otherwise, we want to provide all completions.
+        }
+
+        private void ProvideCompletionsAfterInsertion(
+            EmbeddedCompletionContext context, RegexTree tree, SyntaxToken stringToken)
+        {
+            var position = context.Position;
             var previousVirtualChar = tree.Text.FirstOrNullable(vc => vc.Span.Contains(position - 1));
             if (previousVirtualChar == null)
             {
                 return;
             }
 
-            var token = FindToken(tree.Root, previousVirtualChar.Value);
-            if (token == null)
+            var result = FindToken(tree.Root, previousVirtualChar.Value, inCharacterClass: false);
+            if (result == null)
             {
                 return;
             }
 
-            switch (token.Value.Kind)
+            var (parent, token, inCharacterClass) = result.Value;
+            switch (token.Kind)
             {
                 case RegexKind.BackslashToken:
-                    ProvideEscapeCompletions(context);
+                    ProvideEscapeCompletions(context, stringToken, parent, inCharacterClass);
                     return;
                 case RegexKind.OpenBracketToken:
-                    ProvideCharacterClassCompletions(context);
+                    // ProvideCharacterClassCompletions(context);
                     return;
                 case RegexKind.OpenParenToken:
                 case RegexKind.QuestionToken:
@@ -129,53 +143,117 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions.LanguageSe
                 case RegexKind.EqualsToken:
                 case RegexKind.SingleQuoteToken:
                 case RegexKind.ExclamationToken:
-                    ProvideGroupingCompletions(context);
+                    // ProvideGroupingCompletions(context);
                     return;
                 case RegexKind.OpenBraceToken:
-                    ProvideEscapeCategoryCompletions(context);
+                    // ProvideEscapeCategoryCompletions(context);
                     return;
                 case RegexKind.OptionsToken:
-                    ProvideOptionsCompletions(context);
+                    // ProvideOptionsCompletions(context, optionsT);
                     return;
             }
-
-            /*
-       case '\\': // any escape
-                case '[':  
-                case '^':  // character class
-                case '(':  // any group
-                case '?':  // (?
-                case '<':  // (?<
-                case '=':  // (?<=
-                case '\'': // (?'
-                case '!':  // (?<!
-                case '+': case '-':
-                case 'i': case 'I':
-                case 'm': case 'M':
-                case 'n': case 'N':
-                case 's': case 'S':
-                case 'x': case 'X': // (?options
-                    return true;      
-     */
         }
 
-        private RegexToken? FindToken(RegexNode node, VirtualChar ch)
+        private void ProvideEscapeCompletions(
+            EmbeddedCompletionContext context, SyntaxToken stringToken,
+            RegexNode parentOpt, bool inCharacterClass)
         {
-            foreach (var child in node)
+            if (parentOpt != null && !(parentOpt is RegexEscapeNode))
+            {
+                return;
+            }
+
+            if (!inCharacterClass)
+            {
+                AddIfMissing(context, CreateEscapeItem(stringToken, @"\A", "", context, parentOpt));
+                AddIfMissing(context, CreateEscapeItem(stringToken, @"\b", "", context, parentOpt));
+                AddIfMissing(context, CreateEscapeItem(stringToken, @"\B", "", context, parentOpt));
+                AddIfMissing(context, CreateEscapeItem(stringToken, @"\d", "", context, parentOpt));
+                AddIfMissing(context, CreateEscapeItem(stringToken, @"\D", "", context, parentOpt));
+                AddIfMissing(context, CreateEscapeItem(stringToken, @"\G", "", context, parentOpt));
+                AddIfMissing(context, CreateEscapeItem(stringToken, @"\p{}", "", context, parentOpt, @"\p{".Length));
+                AddIfMissing(context, CreateEscapeItem(stringToken, @"\P{}", "", context, parentOpt, @"\p{".Length));
+                AddIfMissing(context, CreateEscapeItem(stringToken, @"\s", "", context, parentOpt));
+                AddIfMissing(context, CreateEscapeItem(stringToken, @"\S", "", context, parentOpt));
+                AddIfMissing(context, CreateEscapeItem(stringToken, @"\w", "", context, parentOpt));
+                AddIfMissing(context, CreateEscapeItem(stringToken, @"\W", "", context, parentOpt));
+                AddIfMissing(context, CreateEscapeItem(stringToken, @"\z", "", context, parentOpt));
+                AddIfMissing(context, CreateEscapeItem(stringToken, @"\Z", "", context, parentOpt));
+
+                AddIfMissing(context, CreateEscapeItem(stringToken, @"\k<>", "", context, parentOpt, @"\k<".Length));
+                AddIfMissing(context, CreateEscapeItem(stringToken, @"\<>", "", context, parentOpt, @"\<".Length));
+                AddIfMissing(context, CreateEscapeItem(stringToken, @"\1-9", "", context, parentOpt, @"\".Length, @"\"));
+            }
+
+            AddIfMissing(context, CreateEscapeItem(stringToken, @"\a", "", context, parentOpt));
+            AddIfMissing(context, CreateEscapeItem(stringToken, @"\b", "", context, parentOpt));
+            AddIfMissing(context, CreateEscapeItem(stringToken, @"\e", "", context, parentOpt));
+            AddIfMissing(context, CreateEscapeItem(stringToken, @"\f", "", context, parentOpt));
+            AddIfMissing(context, CreateEscapeItem(stringToken, @"\n", "", context, parentOpt));
+            AddIfMissing(context, CreateEscapeItem(stringToken, @"\r", "carriage return", context, parentOpt));
+            AddIfMissing(context, CreateEscapeItem(stringToken, @"\t", "horizontal tab", context, parentOpt));
+            AddIfMissing(context, CreateEscapeItem(stringToken, @"\v", "vertical tab", context, parentOpt));
+
+            AddIfMissing(context, CreateEscapeItem(stringToken, @"\x##", "", context, parentOpt, @"\x".Length, @"\x"));
+            AddIfMissing(context, CreateEscapeItem(stringToken, @"\u####", "", context, parentOpt, @"\u".Length, @"\u"));
+            AddIfMissing(context, CreateEscapeItem(stringToken, @"\c", "", context, parentOpt, @"\c".Length, @"\c"));
+        }
+
+        private void AddIfMissing(EmbeddedCompletionContext context, EmbeddedCompletionItem item)
+        {
+            foreach (var existingItem in context.Items)
+            {
+                if (existingItem.DisplayText == item.DisplayText)
+                {
+                    return;
+                }
+            }
+
+            context.Items.Add(item);
+        }
+
+        private EmbeddedCompletionItem CreateEscapeItem(
+            SyntaxToken stringToken, string displayText, string description,
+            EmbeddedCompletionContext context, RegexNode parentOpt, 
+            int? positionOffset = null, string insertionText = null)
+        {
+            var replacementStart = parentOpt != null
+                ? parentOpt.GetSpan().Start
+                : context.Position;
+
+            var replacementSpan = TextSpan.FromBounds(replacementStart, context.Position);
+            var newPosition = replacementStart + positionOffset;
+
+            insertionText = _language.EscapeText(insertionText ?? displayText, stringToken);
+            if (description != "")
+            {
+                displayText += "  -  " + description;
+            }
+
+            return new EmbeddedCompletionItem(
+                displayText, description, 
+                new EmbeddedCompletionChange(
+                    new TextChange(replacementSpan, insertionText), newPosition, includesCommitCharacter: false));
+        }
+
+        private (RegexNode parent, RegexToken Token, bool inCharacterClass)? FindToken(
+            RegexNode parent, VirtualChar ch, bool inCharacterClass)
+        {
+            foreach (var child in parent)
             {
                 if (child.IsNode)
                 {
-                    var token = FindToken(child.Node, ch);
-                    if (token != null)
+                    var result = FindToken(child.Node, ch, inCharacterClass || child.Node is RegexBaseCharacterClassNode);
+                    if (result != null)
                     {
-                        return token;
+                        return result;
                     }
                 }
                 else
                 {
                     if (child.Token.VirtualChars.Contains(ch))
                     {
-                        return child.Token;
+                        return (parent, child.Token, inCharacterClass);
                     }
                 }
             }

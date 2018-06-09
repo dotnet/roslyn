@@ -35,5 +35,12 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.LanguageServices
         /// </summary>
         internal abstract void AddComment(
             SyntaxEditor editor, SyntaxToken stringLiteral, string commentContents);
+
+        /// <summary>
+        /// Escapes the provided text given the rules of the language for this specific token.
+        /// For example, in a normal c# string literal (```""```), this will escape backslashes.
+        /// However, in a verbatim string literal (```@""```) it will not.
+        /// </summary>
+        internal abstract string EscapeText(string text, SyntaxToken token);
     }
 }

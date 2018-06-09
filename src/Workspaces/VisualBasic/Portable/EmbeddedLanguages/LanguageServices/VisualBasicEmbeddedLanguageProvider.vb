@@ -35,5 +35,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EmbeddedLanguages.LanguageServices
 
             editor.ReplaceNode(containingStatement, newStatement)
         End Sub
+
+        Friend Overrides Function EscapeText(text As String, token As SyntaxToken) As String
+            Return text
+        End Function
     End Class
 End Namespace

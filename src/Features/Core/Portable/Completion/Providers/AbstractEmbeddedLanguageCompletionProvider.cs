@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.Collections.Immutable;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
@@ -12,8 +13,11 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 {
     internal abstract class AbstractEmbeddedLanguageCompletionProvider : CompletionProvider
     {
-        private static readonly ConditionalWeakTable<CompletionItem, EmbeddedCompletionItem> s_itemMap =
-            new ConditionalWeakTable<CompletionItem, EmbeddedCompletionItem>();
+        private const string StartKey = nameof(StartKey);
+        private const string LengthKey = nameof(LengthKey);
+        private const string NewTextKey = nameof(NewTextKey);
+        private const string NewPositionKey = nameof(NewPositionKey);
+        private const string DescriptionKey = nameof(DescriptionKey);
 
         // Always soft-select these completion items.  Also, never filter down.
         private static readonly CompletionItemRules s_rules =
@@ -69,10 +73,24 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                     {
                         foreach (var embeddedItem in embeddedContext.Items)
                         {
-                            var item = CompletionItem.Create(embeddedItem.DisplayText, rules: s_rules);
+                            var change = embeddedItem.Change;
+                            var textChange = change.TextChange;
+
+                            var properties = ImmutableDictionary.CreateBuilder<string, string>();
+                            properties.Add(StartKey, textChange.Span.Start.ToString());
+                            properties.Add(LengthKey, textChange.Span.Length.ToString());
+                            properties.Add(NewTextKey, textChange.NewText);
+                            properties.Add(DescriptionKey, embeddedItem.Description);
+
+                            if (change.NewPosition != null)
+                            {
+                                properties.Add(NewPositionKey, change.NewPosition.ToString());
+                            }
+
+                            var item = CompletionItem.Create(
+                                embeddedItem.DisplayText, properties: properties.ToImmutable(), rules: s_rules);
 
                             context.AddItem(item);
-                            s_itemMap.Add(item, embeddedItem);
                         }
 
                         context.CompletionListSpan = embeddedContext.CompletionListSpan;
@@ -83,17 +101,31 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             }
         }
 
-        public override Task<CompletionDescription> GetDescriptionAsync(Document document, CompletionItem item, CancellationToken cancellationToken)
-            => SpecializedTasks.Default<CompletionDescription>();
-
         public override Task<CompletionChange> GetChangeAsync(Document document, CompletionItem item, char? commitKey, CancellationToken cancellationToken)
         {
-            if (!s_itemMap.TryGetValue(item, out var embeddedItem))
+            if (!item.Properties.TryGetValue(StartKey, out var startString) ||
+                !item.Properties.TryGetValue(LengthKey, out var lengthString) ||
+                !item.Properties.TryGetValue(NewTextKey, out var newText))
             {
                 return SpecializedTasks.Default<CompletionChange>();
             }
 
-            return Task.FromResult(Convert(embeddedItem.Change));
+            item.Properties.TryGetValue(NewPositionKey, out var newPositionString);
+
+            return Task.FromResult(CompletionChange.Create(
+                new TextChange(new TextSpan(int.Parse(startString), int.Parse(lengthString)), newText),
+                newPositionString == null ? default(int?) : int.Parse(newPositionString)));
+        }
+
+        public override Task<CompletionDescription> GetDescriptionAsync(Document document, CompletionItem item, CancellationToken cancellationToken)
+        {
+            if (!item.Properties.TryGetValue(DescriptionKey, out var description))
+            {
+                return SpecializedTasks.Default<CompletionDescription>();
+            }
+
+            return Task.FromResult(CompletionDescription.Create(
+                ImmutableArray.Create(new TaggedText(TextTags.Text, description))));
         }
 
         private CompletionChange Convert(EmbeddedCompletionChange change)
