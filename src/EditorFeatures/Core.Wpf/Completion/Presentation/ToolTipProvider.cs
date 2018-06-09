@@ -69,11 +69,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.P
 
                 // Kick off the task to produce the new content.  When it completes, call back on
                 // the UI thread to update the display.
-                var getDescTask = item.GetDescriptionAsync(_cancellationTokenSource.Token);
-                if (getDescTask != null)
+                var getDescriptionTask = item.GetDescriptionAsync(_cancellationTokenSource.Token);
+                if (getDescriptionTask != null)
                 {
                     var scheduler = TaskScheduler.FromCurrentSynchronizationContext();
-                    getDescTask.ContinueWith(ProcessDescription, _cancellationTokenSource.Token,
+                    getDescriptionTask.ContinueWith(ProcessDescription, _cancellationTokenSource.Token,
                                             TaskContinuationOptions.OnlyOnRanToCompletion, scheduler);
                 }
 
