@@ -343,6 +343,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             return typeOpt ?? (object)"<null>";
         }
 
+        /// <summary>
+        /// Reports top-level nullability problem in assignment.
+        /// </summary>
         private bool ReportNullReferenceAssignmentIfNecessary(BoundExpression value, TypeSymbolWithAnnotations targetType, TypeSymbolWithAnnotations valueType, bool useLegacyWarnings)
         {
             Debug.Assert(value != null);
@@ -1427,6 +1430,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     return rightType;
                 }
+
                 GenerateConversionForConditionalOperator(node.RightOperand, rightType, leftType, reportMismatch: true);
                 return leftType;
             }
@@ -1971,34 +1975,49 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                     break;
                 case RefKind.Out:
-                    if (argument is BoundLocal local && local.DeclarationKind == BoundLocalDeclarationKind.WithInferredType)
                     {
-                        _variableTypes[local.LocalSymbol] = parameterType;
-                        resultType = parameterType;
-                    }
-                    if (!ReportNullReferenceAssignmentIfNecessary(argument, resultType, parameterType, useLegacyWarnings: UseLegacyWarnings(argument)))
-                    {
-                        HashSet<DiagnosticInfo> useSiteDiagnostics = null;
-                        if (!_conversions.HasIdentityOrImplicitReferenceConversion(parameterType.TypeSymbol, argumentType, ref useSiteDiagnostics))
+                        bool reportedWarning = false;
+                        if (argument is BoundLocal local && local.DeclarationKind == BoundLocalDeclarationKind.WithInferredType)
                         {
-                            ReportNullabilityMismatchInArgument(argument, argumentType, parameter, parameterType.TypeSymbol);
+                            _variableTypes[local.LocalSymbol] = parameterType;
+                            resultType = parameterType;
                         }
+                        if (argument.Kind != BoundKind.SuppressNullableWarningExpression)
+                        {
+                            reportedWarning = ReportNullReferenceAssignmentIfNecessary(argument, resultType, parameterType, useLegacyWarnings: UseLegacyWarnings(argument));
+                        }
+                        if (!reportedWarning)
+                        {
+                            HashSet<DiagnosticInfo> useSiteDiagnostics = null;
+                            if (!_conversions.HasIdentityOrImplicitReferenceConversion(parameterType.TypeSymbol, argumentType, ref useSiteDiagnostics))
+                            {
+                                ReportNullabilityMismatchInArgument(argument, argumentType, parameter, parameterType.TypeSymbol);
+                            }
+                        }
+                        // Set nullable state of argument to parameter type.
+                        TrackNullableStateForAssignment(argument, resultType, result.Slot, parameterType);
+                        break;
                     }
-                    // Set nullable state of argument to parameter type.
-                    TrackNullableStateForAssignment(argument, resultType, result.Slot, parameterType);
-                    break;
                 case RefKind.Ref:
-                    if (!ReportNullReferenceArgumentIfNecessary(argument, resultType, parameter, parameterType) &&
-                        !ReportNullReferenceAssignmentIfNecessary(argument, resultType, parameterType, useLegacyWarnings: UseLegacyWarnings(argument)))
                     {
-                        if ((object)argumentType != null && IsNullabilityMismatch(argumentType, parameterType.TypeSymbol))
+                        bool reportedWarning = false;
+                        if (argument.Kind != BoundKind.SuppressNullableWarningExpression)
                         {
-                            ReportNullabilityMismatchInArgument(argument, argumentType, parameter, parameterType.TypeSymbol);
+                            reportedWarning = ReportNullReferenceArgumentIfNecessary(argument, resultType, parameter, parameterType) ||
+                                ReportNullReferenceAssignmentIfNecessary(argument, resultType, parameterType, useLegacyWarnings: UseLegacyWarnings(argument));
                         }
+                        if (!reportedWarning)
+                        {
+                            if ((object)argumentType != null &&
+                                IsNullabilityMismatch(argumentType, parameterType.TypeSymbol))
+                            {
+                                ReportNullabilityMismatchInArgument(argument, argumentType, parameter, parameterType.TypeSymbol);
+                            }
+                        }
+                        // Set nullable state of argument to parameter type.
+                        TrackNullableStateForAssignment(argument, resultType, result.Slot, parameterType);
+                        break;
                     }
-                    // Set nullable state of argument to parameter type.
-                    TrackNullableStateForAssignment(argument, resultType, result.Slot, parameterType);
-                    break;
                 default:
                     throw ExceptionUtilities.UnexpectedValue(refKind);
             }
@@ -3414,14 +3433,14 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode VisitSuppressNullableWarningExpression(BoundSuppressNullableWarningExpression node)
         {
-            var result = base.VisitSuppressNullableWarningExpression(node);
+            base.VisitSuppressNullableWarningExpression(node);
 
             //if (this.State.Reachable) // PROTOTYPE(NullableReferenceTypes): Consider reachability?
             {
-                _result = _result.Type?.SetUnknownNullabilityForReferenceTypes();
+                _result = _result.Type?.WithTopLevelNonNullability();
             }
 
-            return result;
+            return null;
         }
 
         public override BoundNode VisitSizeOfOperator(BoundSizeOfOperator node)

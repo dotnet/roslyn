@@ -580,6 +580,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 this.SetUnknownNullabilityForReferenceTypes();
         }
 
+        public TypeSymbolWithAnnotations WithTopLevelNonNullability()
+        {
+            var typeSymbol = TypeSymbol;
+            if (IsNullable == false || !typeSymbol.IsReferenceType)
+            {
+                return this;
+            }
+
+            return new NonLazyType(typeSymbol, isNullable: false, CustomModifiers);
+         }
+
         public TypeSymbolWithAnnotations SetUnknownNullabilityForReferenceTypes()
         {
             var typeSymbol = TypeSymbol;

@@ -551,6 +551,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                     ((BoundTupleExpression)node).VisitAllElements((x, self) => self.VisitLvalue(x), this);
                     break;
 
+                case BoundKind.SuppressNullableWarningExpression:
+                    VisitLvalue(((BoundSuppressNullableWarningExpression)node).Expression);
+                    break;
+
                 default:
                     VisitRvalue(node);
                     break;

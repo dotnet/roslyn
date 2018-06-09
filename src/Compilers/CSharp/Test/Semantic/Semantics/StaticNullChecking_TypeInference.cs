@@ -595,13 +595,17 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics
     static void F(string? s)
     {
         var t = s!;
-        t.ToString();
+        t/*T:string!*/.ToString();
         t = null;
     }
 }";
 
             var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
-            comp.VerifyDiagnostics();
+            comp.VerifyDiagnostics(
+                // (7,13): warning CS8600: Converting null literal or possible null value to non-nullable type.
+                //         t = null;
+                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "null").WithLocation(7, 13));
+            comp.VerifyTypes();
 
             var tree = comp.SyntaxTrees[0];
             var model = comp.GetSemanticModel(tree);
