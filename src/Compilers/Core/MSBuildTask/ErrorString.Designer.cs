@@ -224,6 +224,15 @@ namespace Microsoft.CodeAnalysis.BuildTasks {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to File &quot;{0}&quot; could not be read: {1}.
+        /// </summary>
+        internal static string General_UnableToReadFile {
+            get {
+                return ResourceManager.GetString("General_UnableToReadFile", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to {0} contains duplicate items &apos;{1}&apos; with conflicting metadata &apos;{2}&apos;: &apos;{3}&apos; and &apos;{4}&apos;.
         /// </summary>
         internal static string MapSourceRoots_ContainsDuplicate {

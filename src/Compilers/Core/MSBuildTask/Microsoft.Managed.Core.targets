@@ -50,6 +50,14 @@
     </PropertyGroup>
   </Target>
 
+  <!-- Find .editorconfig files above the source files and produce an EditorConfigFiles output group. Files are later
+       passed to the compiler. -->
+  <Target Name="DiscoverEditorConfigFiles" Condition="'$(DiscoverEditorConfigFiles)' != 'false'" BeforeTargets="CoreCompile">
+    <DiscoverEditorConfigFiles InputFiles="@(Compile);@(AdditionalFile)">
+      <Output TaskParameter="EditorConfigFiles" ItemName="EditorConfigFiles" />
+    </DiscoverEditorConfigFiles>
+  </Target>
+
   <!--
     ========================
     DeterministicSourcePaths

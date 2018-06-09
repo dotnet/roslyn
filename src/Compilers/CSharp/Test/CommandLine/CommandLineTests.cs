@@ -8415,6 +8415,49 @@ using System.Diagnostics; // Unused.
             Assert.Equal(0, args.AdditionalFiles.Length);
         }
 
+
+        [Fact]
+        public void ParseEditorConfig()
+        {
+            var args = DefaultParse(new[] { "/analyzerconfig:.editorconfig", "a.cs" }, _baseDirectory);
+            args.Errors.Verify();
+            Assert.Equal(Path.Combine(_baseDirectory, ".editorconfig"), args.AnalyzerConfigPaths.Single());
+
+            args = DefaultParse(new[] { "/analyzerconfig:.editorconfig", "a.cs", "/analyzerconfig:subdir\\.editorconfig" }, _baseDirectory);
+            args.Errors.Verify();
+            Assert.Equal(2, args.AnalyzerConfigPaths.Length);
+            Assert.Equal(Path.Combine(_baseDirectory, ".editorconfig"), args.AnalyzerConfigPaths[0]);
+            Assert.Equal(Path.Combine(_baseDirectory, "subdir\\.editorconfig"), args.AnalyzerConfigPaths[1]);
+
+            args = DefaultParse(new[] { "/analyzerconfig:.editorconfig", "a.cs", "/analyzerconfig:.editorconfig" }, _baseDirectory);
+            args.Errors.Verify();
+            Assert.Equal(2, args.AnalyzerConfigPaths.Length);
+            Assert.Equal(Path.Combine(_baseDirectory, ".editorconfig"), args.AnalyzerConfigPaths[0]);
+            Assert.Equal(Path.Combine(_baseDirectory, ".editorconfig"), args.AnalyzerConfigPaths[1]);
+
+            args = DefaultParse(new[] { "/analyzerconfig:..\\.editorconfig", "a.cs" }, _baseDirectory);
+            args.Errors.Verify();
+            Assert.Equal(Path.Combine(_baseDirectory, "..\\.editorconfig"), args.AnalyzerConfigPaths.Single());
+
+            args = DefaultParse(new[] { "/analyzerconfig:.editorconfig;subdir\\.editorconfig", "a.cs" }, _baseDirectory);
+            args.Errors.Verify();
+            Assert.Equal(2, args.AnalyzerConfigPaths.Length);
+            Assert.Equal(Path.Combine(_baseDirectory, ".editorconfig"), args.AnalyzerConfigPaths[0]);
+            Assert.Equal(Path.Combine(_baseDirectory, "subdir\\.editorconfig"), args.AnalyzerConfigPaths[1]);
+
+            args = DefaultParse(new[] { "/analyzerconfig", "a.cs" }, _baseDirectory);
+            args.Errors.Verify(
+                // error CS2006: Command-line syntax error: Missing '<file list>' for 'analyzerconfig' option
+                Diagnostic(ErrorCode.ERR_SwitchNeedsString).WithArguments("<file list>", "analyzerconfig").WithLocation(1, 1));
+            Assert.Equal(0, args.AnalyzerConfigPaths.Length);
+
+            args = DefaultParse(new[] { "/analyzerconfig:", "a.cs" }, _baseDirectory);
+            args.Errors.Verify(
+                // error CS2006: Command-line syntax error: Missing '<file list>' for 'analyzerconfig' option
+                Diagnostic(ErrorCode.ERR_SwitchNeedsString).WithArguments("<file list>", "analyzerconfig").WithLocation(1, 1));
+            Assert.Equal(0, args.AnalyzerConfigPaths.Length);
+        }
+
         private static int OccurrenceCount(string source, string word)
         {
             var n = 0;

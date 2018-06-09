@@ -93,7 +93,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             List<ResourceDescription> managedResources = new List<ResourceDescription>();
             List<CommandLineSourceFile> sourceFiles = new List<CommandLineSourceFile>();
             List<CommandLineSourceFile> additionalFiles = new List<CommandLineSourceFile>();
-            var analyzerConfigFiles = ArrayBuilder<CommandLineSourceFile>.GetInstance();
+            var analyzerConfigPaths = ArrayBuilder<string>.GetInstance();
             List<CommandLineSourceFile> embeddedFiles = new List<CommandLineSourceFile>();
             bool sourceFilesSpecified = false;
             bool embedAllSourceFiles = false;
@@ -160,7 +160,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 string name, value;
                 if (optionsEnded || !TryParseOption(arg, out name, out value))
                 {
-                    sourceFiles.AddRange(ParseFileArgument(arg, baseDirectory, diagnostics));
+                    foreach (var path in ParseFileArgument(arg, baseDirectory, diagnostics))
+                    {
+                        sourceFiles.Add(ToCommandLineSourceFile(path));
+                    }
+
                     if (sourceFiles.Count > 0)
                     {
                         sourceFilesSpecified = true;
@@ -1156,7 +1160,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 continue;
                             }
 
-                            additionalFiles.AddRange(ParseSeparatedFileArgument(value, baseDirectory, diagnostics));
+                            foreach (var path in ParseSeparatedFileArgument(value, baseDirectory, diagnostics))
+                            {
+                                additionalFiles.Add(ToCommandLineSourceFile(path));
+                            }
                             continue;
 
                         case "analyzerconfig":
@@ -1166,7 +1173,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 continue;
                             }
 
-                            analyzerConfigFiles.AddRange(ParseSeparatedFileArgument(value, baseDirectory, diagnostics));
+                            analyzerConfigPaths.AddRange(ParseSeparatedFileArgument(value, baseDirectory, diagnostics));
                             continue;
 
                         case "embed":
@@ -1176,7 +1183,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 continue;
                             }
                             
-                            embeddedFiles.AddRange(ParseSeparatedFileArgument(value, baseDirectory, diagnostics));
+                            foreach (var path in ParseSeparatedFileArgument(value, baseDirectory, diagnostics))
+                            {
+                                embeddedFiles.Add(ToCommandLineSourceFile(path));
+                            }
                             continue;
                     }
                 }
@@ -1330,9 +1340,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             diagnostics.AddRange(options.Errors);
             diagnostics.AddRange(parseOptions.Errors);
 
-            var analyzerConfigPaths = analyzerConfigFiles.SelectAsArray(f => f.Path);
-            analyzerConfigFiles.Free();
-
             return new CSharpCommandLineArguments
             {
                 IsScriptRunner = IsScriptCommandLineParser,
@@ -1357,7 +1364,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 ChecksumAlgorithm = checksumAlgorithm,
                 MetadataReferences = metadataReferences.AsImmutable(),
                 AnalyzerReferences = analyzers.AsImmutable(),
-                AnalyzerConfigPaths = analyzerConfigPaths,
+                AnalyzerConfigPaths = analyzerConfigPaths.ToImmutableAndFree(),
                 AdditionalFiles = additionalFiles.AsImmutable(),
                 ReferencePaths = referencePaths,
                 SourcePaths = sourcePaths.AsImmutable(),

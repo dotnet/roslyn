@@ -115,7 +115,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim sourceFiles = New List(Of CommandLineSourceFile)()
             Dim hasSourceFiles = False
             Dim additionalFiles = New List(Of CommandLineSourceFile)()
-            Dim analyzerConfigFiles = ArrayBuilder(Of CommandLineSourceFile).GetInstance()
+            Dim analyzerConfigPaths = ArrayBuilder(Of String).GetInstance()
             Dim embeddedFiles = New List(Of CommandLineSourceFile)()
             Dim embedAllSourceFiles = False
             Dim codepage As Encoding = Nothing
@@ -188,7 +188,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Dim name As String = Nothing
                 Dim value As String = Nothing
                 If Not TryParseOption(arg, name, value) Then
-                    sourceFiles.AddRange(ParseFileArgument(arg, baseDirectory, diagnostics))
+                    For Each path In ParseFileArgument(arg, baseDirectory, diagnostics)
+                        sourceFiles.Add(ToCommandLineSourceFile(path))
+                    Next
                     hasSourceFiles = True
                     Continue For
                 End If
@@ -1167,7 +1169,9 @@ lVbRuntimePlus:
                                 Continue For
                             End If
 
-                            additionalFiles.AddRange(ParseSeparatedFileArgument(value, baseDirectory, diagnostics))
+                            For Each path In ParseSeparatedFileArgument(value, baseDirectory, diagnostics)
+                                additionalFiles.Add(ToCommandLineSourceFile(path))
+                            Next
                             Continue For
 
                         Case "analyzerconfig"
@@ -1177,7 +1181,7 @@ lVbRuntimePlus:
                                 Continue For
                             End If
 
-                            analyzerConfigFiles.AddRange(ParseSeparatedFileArgument(value, baseDirectory, diagnostics))
+                            analyzerConfigPaths.AddRange(ParseSeparatedFileArgument(value, baseDirectory, diagnostics))
                             Continue For
 
                         Case "embed"
@@ -1187,7 +1191,9 @@ lVbRuntimePlus:
                                 Continue For
                             End If
 
-                            embeddedFiles.AddRange(ParseSeparatedFileArgument(value, baseDirectory, diagnostics))
+                            For Each path In ParseSeparatedFileArgument(value, baseDirectory, diagnostics)
+                                embeddedFiles.Add(ToCommandLineSourceFile(path))
+                            Next
                             Continue For
                     End Select
                 End If
@@ -1384,9 +1390,6 @@ lVbRuntimePlus:
             ' If the script is passed without the `\i` option simply execute the script (`vbi script.vbx`).
             interactiveMode = interactiveMode Or (IsScriptCommandLineParser AndAlso sourceFiles.Count = 0)
 
-            Dim analyzerConfigPaths As ImmutableArray(Of String) = analyzerConfigFiles.SelectAsArray(Function(f) f.Path)
-            analyzerConfigFiles.Free()
-
             Return New VisualBasicCommandLineArguments With
             {
                 .IsScriptRunner = IsScriptCommandLineParser,
@@ -1407,7 +1410,7 @@ lVbRuntimePlus:
                 .MetadataReferences = metadataReferences.AsImmutable(),
                 .AnalyzerReferences = analyzers.AsImmutable(),
                 .AdditionalFiles = additionalFiles.AsImmutable(),
-                .AnalyzerConfigPaths = analyzerConfigPaths,
+                .AnalyzerConfigPaths = analyzerConfigPaths.ToImmutableAndFree(),
                 .ReferencePaths = searchPaths,
                 .SourcePaths = sourcePaths.AsImmutable(),
                 .KeyFileSearchPaths = keyFileSearchPaths.AsImmutable(),
