@@ -15,6 +15,12 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
         private static readonly ConditionalWeakTable<CompletionItem, EmbeddedCompletionItem> s_itemMap =
             new ConditionalWeakTable<CompletionItem, EmbeddedCompletionItem>();
 
+        // Always soft-select these completion items.  Also, never filter down.
+        private static readonly CompletionItemRules s_rules =
+            CompletionItemRules.Default.WithSelectionBehavior(CompletionItemSelectionBehavior.SoftSelection)
+                                       .WithFilterCharacterRule(CharacterSetModificationRule.Create(CharacterSetModificationKind.Replace, new char[] { }));                                    
+
+
         private readonly IEmbeddedLanguageProvider _languageProvider;
 
         protected AbstractEmbeddedLanguageCompletionProvider(IEmbeddedLanguageProvider languageProvider)
@@ -42,8 +48,6 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 
         private EmbeddedCompletionTrigger Convert(CompletionTrigger trigger)
             => new EmbeddedCompletionTrigger((EmbeddedCompletionTriggerKind)trigger.Kind, trigger.Character);
-
-        private static readonly CompletionItemRules s_rules = CompletionItemRules.Default.WithSelectionBehavior(CompletionItemSelectionBehavior.SoftSelection);
 
         public override async Task ProvideCompletionsAsync(CompletionContext context)
         {

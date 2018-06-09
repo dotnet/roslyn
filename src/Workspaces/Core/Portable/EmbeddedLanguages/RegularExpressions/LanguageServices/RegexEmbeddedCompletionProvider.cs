@@ -28,7 +28,8 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions.LanguageSe
 
         public bool ShouldTriggerCompletion(SourceText text, int caretPosition, EmbeddedCompletionTrigger trigger, OptionSet options)
         {
-            if (trigger.Kind == EmbeddedCompletionTriggerKind.Invoke)
+            if (trigger.Kind == EmbeddedCompletionTriggerKind.Invoke ||
+                trigger.Kind == EmbeddedCompletionTriggerKind.InvokeAndCommitIfUnique)
             {
                 return true;
             }
@@ -80,6 +81,26 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions.LanguageSe
             if (tree == null)
             {
                 return;
+            }
+
+            if (context.Trigger.Kind == EmbeddedCompletionTriggerKind.Invoke ||
+                context.Trigger.Kind == EmbeddedCompletionTriggerKind.InvokeAndCommitIfUnique)
+            {
+                // User invoked completion explicitly.  If they're after the start of some
+                // construct, then just show the relevant constructs for what they're after 
+                // i.e. escapes if they're after a  \  or groupings if they're after a  (.
+                //
+                // If they're not after anything, then show all legal constructs for where
+                // they are.
+                var count = context.Items.Count;
+                ProvideCompletionsAfterInsertion(context);
+
+                if (count != context.Items.Count)
+                {
+                    // They were after some construct, and we added completion items for that
+                    // construct.  No need to do anything else at this point.
+                    return;
+                }
             }
 
             var previousVirtualChar = tree.Text.FirstOrNullable(vc => vc.Span.Contains(position - 1));
