@@ -35,21 +35,11 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions.LanguageSe
                 return default;
             }
 
-            var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-            var token = root.FindToken(position);
-            var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
-            if (RegexPatternDetector.IsDefinitelyNotPattern(token, syntaxFacts))
-            {
-                return null;
-            }
-
-            var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-            var detector = RegexPatternDetector.TryGetOrCreate(semanticModel, _language);
-            var tree = detector?.TryParseRegexPattern(token, cancellationToken);
-
+            var tree = await _language.TryGetTreeAtPositionAsync(
+                document, position, cancellationToken).ConfigureAwait(false);
             if (tree == null)
             {
-                return null;
+                return default;
             }
 
             return GetMatchingBraces(tree, position);

@@ -34,5 +34,10 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.LanguageServices
         /// cref="DiagnosticAnalyzer"/>
         /// </summary>
         IEmbeddedCodeFixProvider CodeFixProvider { get; }
+
+        /// <summary>
+        /// An optional fix provider that can provider completion items.
+        /// </summary>
+        IEmbeddedCompletionProvider CompletionProvider { get; }
     }
 }

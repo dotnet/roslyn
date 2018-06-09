@@ -31,18 +31,8 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions.LanguageSe
                 return default;
             }
 
-            var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-            var token = root.FindToken(position);
-
-            if (RegexPatternDetector.IsDefinitelyNotPattern(token, _language.SyntaxFacts))
-            {
-                return default;
-            }
-
-            var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-            var detector = RegexPatternDetector.TryGetOrCreate(semanticModel, _language);
-            var tree = detector?.TryParseRegexPattern(token, cancellationToken);
-
+            var tree = await _language.TryGetTreeAtPositionAsync(
+                document, position, cancellationToken).ConfigureAwait(false);
             if (tree == null)
             {
                 return default;
