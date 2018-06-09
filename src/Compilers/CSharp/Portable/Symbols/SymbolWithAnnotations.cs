@@ -583,7 +583,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public TypeSymbolWithAnnotations WithTopLevelNonNullability()
         {
             var typeSymbol = TypeSymbol;
-            if (IsNullable == false || typeSymbol.IsNullableType() || !typeSymbol.IsReferenceType)
+            if (IsNullable == false || !typeSymbol.IsReferenceType)
             {
                 return this;
             }

@@ -6638,7 +6638,6 @@ public class List { public static List<T> Create<T>(T t) => throw null; }
 public class List<T> { }
 ", parseOptions: TestOptions.Regular8);
 
-            // PROTOTYPE(NullableReferenceTypes): should warn on F2(listNS)
             comp.VerifyTypes();
             comp.VerifyDiagnostics();
         }
