@@ -50,8 +50,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
             // Also note that if there's a missing token inside the expression, that's fine and we do offer 'when':
             // case (1 + ) |
 
-            // context.TargetToken does not include zero width so in case of a missing token, these will never be equal.
-            var lastToken = expressionOrPattern.GetLastToken(includeZeroWidth: true);
+            if (expressionOrPattern.GetLastToken(includeZeroWidth: true).IsMissing)
+            {
+                return false;
+            }
+
+            // There are zero width tokens that are not "missing" (inserted by the parser) because they are optional,
+            // such as the identifier in a recursive pattern. We want to ignore those now, so we exclude all zero width.
+
+            var lastToken = expressionOrPattern.GetLastToken(includeZeroWidth: false);
             if (lastToken == context.TargetToken)
             {
                 return true;
