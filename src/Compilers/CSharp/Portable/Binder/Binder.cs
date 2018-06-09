@@ -47,6 +47,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(next != null);
             // Mutually exclusive.
             Debug.Assert(!flags.Includes(BinderFlags.UncheckedRegion | BinderFlags.CheckedRegion));
+            // Mutually exclusive.
+            Debug.Assert(!flags.Includes(BinderFlags.NonNullTypesTrue | BinderFlags.NonNullTypesFalse));
             // Implied.
             Debug.Assert(!flags.Includes(BinderFlags.InNestedFinallyBlock) || flags.Includes(BinderFlags.InFinallyBlock | BinderFlags.InCatchBlock));
             _next = next;
@@ -210,6 +212,26 @@ namespace Microsoft.CodeAnalysis.CSharp
             get
             {
                 return Next.ContainingMemberOrLambda;
+            }
+        }
+
+        /// <summary>
+        /// Are we in a context where un-annotated types should be interpreted as non-null?
+        /// The binder flags are used to break cycles.
+        /// </summary>
+        internal bool NonNullTypes
+        {
+            get
+            {
+                if ((Flags & BinderFlags.NonNullTypesTrue) != 0)
+                {
+                    return true;
+                }
+                if ((Flags & BinderFlags.NonNullTypesFalse) != 0)
+                {
+                    return false;
+                }
+                return ContainingMember().NonNullTypes;
             }
         }
 

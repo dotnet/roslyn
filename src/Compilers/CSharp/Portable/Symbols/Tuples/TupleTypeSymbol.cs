@@ -1446,9 +1446,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             _underlyingType.AddNullableTransforms(transforms);
         }
 
-        internal override bool ApplyNullableTransforms(ImmutableArray<bool> transforms, ref int position, out TypeSymbol result)
+        internal override bool ApplyNullableTransforms(ImmutableArray<bool> transforms, bool useNonNullTypes, ref int position, out TypeSymbol result)
         {
-            if (_underlyingType.ApplyNullableTransforms(transforms, ref position, out TypeSymbol underlying))
+            if (_underlyingType.ApplyNullableTransforms(transforms, useNonNullTypes, ref position, out TypeSymbol underlying))
             {
                 result = this.WithUnderlyingType((NamedTypeSymbol)underlying);
                 return true;

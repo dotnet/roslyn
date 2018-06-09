@@ -44,6 +44,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// </summary>
         private readonly string _sourceName;
 
+        private readonly bool? _nonNullTypesFromAttributes;
+
         private string _lazyDocComment;
         private OverriddenOrHiddenMembersResult _lazyOverriddenOrHiddenMembers;
         private SynthesizedSealedPropertyAccessor _lazySynthesizedSealedAccessor;
@@ -69,38 +71,38 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             _syntaxRef = syntax.GetReference();
             _refKind = syntax.Type.GetRefKind();
 
-            SyntaxTokenList modifiers = syntax.Modifiers;
-            bodyBinder = bodyBinder.WithUnsafeRegionIfNecessary(modifiers);
-            bodyBinder = bodyBinder.WithAdditionalFlagsAndContainingMemberOrLambda(BinderFlags.SuppressConstraintChecks, this);
-
             bool modifierErrors;
+            SyntaxTokenList modifiers = syntax.Modifiers;
             _modifiers = MakeModifiers(modifiers, isExplicitInterfaceImplementation, isIndexer, location, diagnostics, out modifierErrors);
             this.CheckAccessibility(location, diagnostics);
 
             this.CheckModifiers(location, isIndexer, diagnostics);
 
-            if (isIndexer && !isExplicitInterfaceImplementation)
-            {
-                // Evaluate the attributes immediately in case the IndexerNameAttribute has been applied.
-                // NOTE: we want IsExplicitInterfaceImplementation, IsOverride, Locations, and the syntax reference
-                // to be initialized before we pass this symbol to LoadCustomAttributes.
+            // Evaluate the early attributes immediately in case the IndexerName or NonNullTypes attributes were applied.
 
-                // CONSIDER: none of the information from this early binding pass is cached.  Everything will
-                // be re-bound when someone calls GetAttributes.  If this gets to be a problem, we could
-                // always use the real attribute bag of this symbol and modify LoadAndValidateAttributes to
-                // handle partially filled bags.
-                CustomAttributesBag<CSharpAttributeData> temp = null;
-                LoadAndValidateAttributes(OneOrMany.Create(this.CSharpSyntaxNode.AttributeLists), ref temp, earlyDecodingOnly: true);
-                if (temp != null)
+            // NOTE: we want IsExplicitInterfaceImplementation, IsOverride, Locations, and the syntax reference
+            // to be initialized before we pass this symbol to LoadCustomAttributes.
+
+            // CONSIDER: none of the information from this early binding pass is cached.  Everything will
+            // be re-bound when someone calls GetAttributes.  If this gets to be a problem, we could
+            // always use the real attribute bag of this symbol and modify LoadAndValidateAttributes to
+            // handle partially filled bags.
+            CustomAttributesBag<CSharpAttributeData> temp = null;
+            LoadAndValidateAttributes(OneOrMany.Create(this.CSharpSyntaxNode.AttributeLists), ref temp, earlyDecodingOnly: true);
+            if (temp != null)
+            {
+                Debug.Assert(temp.IsEarlyDecodedWellKnownAttributeDataComputed);
+                var propertyData = (PropertyEarlyWellKnownAttributeData)temp.EarlyDecodedWellKnownAttributeData;
+                if (propertyData != null)
                 {
-                    Debug.Assert(temp.IsEarlyDecodedWellKnownAttributeDataComputed);
-                    var propertyData = (PropertyEarlyWellKnownAttributeData)temp.EarlyDecodedWellKnownAttributeData;
-                    if (propertyData != null)
-                    {
-                        _sourceName = propertyData.IndexerName;
-                    }
+                    _sourceName = propertyData.IndexerName;
+                    _nonNullTypesFromAttributes = propertyData.NonNullTypes;
                 }
             }
+
+            var nonNullTypesFlag = NonNullTypes ? BinderFlags.NonNullTypesTrue : BinderFlags.NonNullTypesFalse;
+            bodyBinder = bodyBinder.WithUnsafeRegionIfNecessary(modifiers);
+            bodyBinder = bodyBinder.WithAdditionalFlagsAndContainingMemberOrLambda(BinderFlags.SuppressConstraintChecks | nonNullTypesFlag, this);
 
             string aliasQualifierOpt;
             string memberName = ExplicitInterfaceHelpers.GetMemberNameAndInterfaceSymbol(bodyBinder, interfaceSpecifier, name, diagnostics, out _explicitInterfaceType, out aliasQualifierOpt);
@@ -273,7 +275,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     if (_lazyType.TypeSymbol.Equals(overriddenPropertyType.TypeSymbol, TypeCompareKind.IgnoreCustomModifiersAndArraySizesAndLowerBounds | TypeCompareKind.IgnoreDynamic))
                     {
                         _lazyType = _lazyType.Update(
-                            CustomModifierUtils.CopyTypeCustomModifiers(overriddenPropertyType.TypeSymbol, _lazyType.TypeSymbol, this.ContainingAssembly),
+                            CustomModifierUtils.CopyTypeCustomModifiers(overriddenPropertyType.TypeSymbol, _lazyType.TypeSymbol, this.ContainingAssembly, this.NonNullTypes),
                             overriddenPropertyType.CustomModifiers);
                     }
 
@@ -1204,6 +1206,23 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             bool hasAnyDiagnostics;
 
+            if (CSharpAttributeData.IsTargetEarlyAttribute(arguments.AttributeType, arguments.AttributeSyntax, AttributeDescription.NonNullTypesAttribute))
+            {
+                boundAttribute = arguments.Binder.GetAttribute(arguments.AttributeSyntax, arguments.AttributeType, out hasAnyDiagnostics);
+                if (!boundAttribute.HasErrors)
+                {
+                    bool nonNullTypes = boundAttribute.CommonConstructorArguments[0].DecodeValue<bool>(SpecialType.System_Boolean);
+                    arguments.GetOrCreateData<PropertyEarlyWellKnownAttributeData>().NonNullTypes = nonNullTypes;
+
+                    if (!hasAnyDiagnostics)
+                    {
+                        return boundAttribute;
+                    }
+                }
+
+                return null;
+             }
+
             if (CSharpAttributeData.IsTargetEarlyAttribute(arguments.AttributeType, arguments.AttributeSyntax, AttributeDescription.IndexerNameAttribute))
             {
                 boundAttribute = arguments.Binder.GetAttribute(arguments.AttributeSyntax, arguments.AttributeType, out hasAnyDiagnostics);
@@ -1265,7 +1284,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
             else if (attribute.IsTargetAttribute(this, AttributeDescription.SpecialNameAttribute))
             {
-                arguments.GetOrCreateData<PropertyWellKnownAttributeData>().HasSpecialNameAttribute = true;
+                arguments.GetOrCreateData<CommonPropertyWellKnownAttributeData>().HasSpecialNameAttribute = true;
             }
             else if (attribute.IsTargetAttribute(this, AttributeDescription.ExcludeFromCodeCoverageAttribute))
             {
@@ -1294,10 +1313,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             else if (attribute.IsTargetAttribute(this, AttributeDescription.TupleElementNamesAttribute))
             {
                 arguments.Diagnostics.Add(ErrorCode.ERR_ExplicitTupleElementNamesAttribute, arguments.AttributeSyntaxOpt.Location);
-            }
-            else if (attribute.IsTargetAttribute(this, AttributeDescription.NonNullTypesAttribute))
-            {
-                arguments.GetOrCreateData<PropertyWellKnownAttributeData>().NonNullTypes = attribute.GetConstructorArgument<bool>(0, SpecialType.System_Boolean);
             }
             else if (attribute.IsTargetAttribute(this, AttributeDescription.NullableAttribute))
             {
@@ -1520,8 +1535,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                var data = GetDecodedWellKnownAttributeData() as PropertyWellKnownAttributeData;
-                return data?.NonNullTypes ?? base.NonNullTypes;
+                return _nonNullTypesFromAttributes ?? base.NonNullTypes;
             }
         }
     }

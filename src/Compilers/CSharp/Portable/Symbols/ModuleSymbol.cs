@@ -329,6 +329,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal abstract bool HasAssemblyRuntimeCompatibilityAttribute { get; }
 
         // PROTOTYPE(NullableReferenceTypes): Remove property if all implementations return true.
+        // PROTOTYPE(NullableReferenceTypes): Consider consolidating property into NonNullTypes 
         internal abstract bool UtilizesNullableReferenceTypes { get; }
 
         /// <summary>

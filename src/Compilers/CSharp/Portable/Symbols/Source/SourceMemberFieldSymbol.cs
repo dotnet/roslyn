@@ -432,7 +432,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 binder = binder.WithContainingMemberOrLambda(this);
                 if (!ContainingType.IsScriptClass)
                 {
-                    type = binder.BindType(typeSyntax, diagnosticsForFirstDeclarator, nonNullTypes: this.NonNullTypes);
+                    type = binder.BindType(typeSyntax, diagnosticsForFirstDeclarator);
                 }
                 else
                 {

@@ -530,6 +530,22 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return null;
             }
 
+            if (CSharpAttributeData.IsTargetEarlyAttribute(arguments.AttributeType, arguments.AttributeSyntax, AttributeDescription.NonNullTypesAttribute))
+            {
+                boundAttribute = arguments.Binder.GetAttribute(arguments.AttributeSyntax, arguments.AttributeType, out hasAnyDiagnostics);
+                if (!boundAttribute.HasErrors)
+                {
+                    bool nonNullTypes = boundAttribute.CommonConstructorArguments[0].DecodeValue<bool>(SpecialType.System_Boolean);
+                    arguments.GetOrCreateData<CommonTypeEarlyWellKnownAttributeData>().NonNullTypes = nonNullTypes;
+                    if (!hasAnyDiagnostics)
+                    {
+                        return boundAttribute;
+                    }
+                }
+
+                return null;
+            }
+
             if (CSharpAttributeData.IsTargetEarlyAttribute(arguments.AttributeType, arguments.AttributeSyntax, AttributeDescription.CodeAnalysisEmbeddedAttribute))
             {
                 boundAttribute = arguments.Binder.GetAttribute(arguments.AttributeSyntax, arguments.AttributeType, out hasAnyDiagnostics);
@@ -743,10 +759,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 _lazyIsExplicitDefinitionOfNoPiaLocalType = ThreeState.True;
             }
-            else if (attribute.IsTargetAttribute(this, AttributeDescription.NonNullTypesAttribute))
-            {
-                arguments.GetOrCreateData<TypeWellKnownAttributeData>().NonNullTypes = attribute.GetConstructorArgument<bool>(0, SpecialType.System_Boolean);
-            }
             else if (attribute.IsTargetAttribute(this, AttributeDescription.NullableAttribute))
             {
                 // NullableAttribute should not be set explicitly.
@@ -927,8 +939,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                var data = GetDecodedWellKnownAttributeData();
-                return data?.NonNullTypes ?? base.NonNullTypes;
+                var data = GetEarlyDecodedWellKnownAttributeData();
+                return  data?.NonNullTypes ?? base.NonNullTypes;
             }
         }
 

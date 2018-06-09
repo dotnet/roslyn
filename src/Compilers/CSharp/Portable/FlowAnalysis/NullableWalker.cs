@@ -482,7 +482,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 if (useLegacyWarnings)
                 {
-                    ReportStaticNullCheckingDiagnostics(ErrorCode.WRN_ConvertingNullableToNonNullable, value.Syntax);
+                    ReportWarningW(value.Syntax);
                 }
                 else if (!ReportNullAsNonNullableReferenceIfNecessary(value))
                 {
@@ -536,7 +536,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 this.State[targetSlot] = isByRefTarget ?
                     // Since reference can point to the heap, we cannot assume the value is not null after this assignment,
-                    // regardless of what value is being assigned. 
+                    // regardless of what value is being assigned.
                     (targetType.IsNullable == true) ? (bool?)false : null :
                     !valueType?.IsNullable;
 
@@ -591,6 +591,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             return false;
+        }
+
+        private void ReportWarningW(SyntaxNode syntax)
+        {
+            ReportStaticNullCheckingDiagnostics(ErrorCode.WRN_ConvertingNullableToNonNullable, syntax);
         }
 
         private void ReportStaticNullCheckingDiagnostics(ErrorCode errorCode, SyntaxNode syntaxNode, params object[] arguments)
@@ -2643,7 +2648,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
                 if (reportNullable)
                 {
-                    ReportStaticNullCheckingDiagnostics(ErrorCode.WRN_ConvertingNullableToNonNullable, node.Syntax);
+                    ReportWarningW(node.Syntax);
                 }
             }
 
@@ -3439,7 +3444,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     TypeSymbolWithAnnotations result = ApplyConversion(node.IterationVariableType, operandOpt: null, conversion, destinationType.TypeSymbol, sourceType, checkConversion: false, fromExplicitCast: true, out bool canConvertNestedNullability);
                     if (destinationType.IsReferenceType && destinationType.IsNullable == false && sourceType.IsNullable == true)
                     {
-                        ReportStaticNullCheckingDiagnostics(ErrorCode.WRN_ConvertingNullableToNonNullable, node.IterationVariableType.Syntax);
+                        ReportWarningW(node.IterationVariableType.Syntax);
                     }
                     isNullableIfReferenceType = result.IsNullable;
                 }

@@ -90,7 +90,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             throw ExceptionUtilities.Unreachable;
         }
 
-        public static NamespaceOrTypeOrAliasSymbolWithAnnotations Create(CSharpCompilation compilation, Symbol symbol)
+        public static NamespaceOrTypeOrAliasSymbolWithAnnotations CreateNonNull(bool nonNullTypes, Symbol symbol)
         {
             if (symbol is null)
             {
@@ -104,7 +104,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 case SymbolKind.Alias:
                     return new AliasSymbolWithAnnotations((AliasSymbol)symbol);
                 default:
-                    return TypeSymbolWithAnnotations.Create(compilation, (TypeSymbol)symbol);
+                    return TypeSymbolWithAnnotations.CreateNonNull(nonNullTypes, (TypeSymbol)symbol);
             }
         }
 
@@ -135,14 +135,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     {
         public abstract NamespaceOrTypeSymbol NamespaceOrTypeSymbol { get; }
 
-        public static NamespaceOrTypeSymbolWithAnnotations Create(CSharpCompilation compilation, NamespaceOrTypeSymbol symbol)
+        public static NamespaceOrTypeSymbolWithAnnotations CreateNonNull(bool nonNullTypes, NamespaceOrTypeSymbol symbol)
         {
             switch (symbol.Kind)
             {
                 case SymbolKind.Namespace:
                     return new NamespaceSymbolWithAnnotations((NamespaceSymbol)symbol);
                 default:
-                    return TypeSymbolWithAnnotations.Create(compilation, (TypeSymbol)symbol);
+                    return TypeSymbolWithAnnotations.CreateNonNull(nonNullTypes, (TypeSymbol)symbol);
             }
         }
 
@@ -179,17 +179,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             miscellaneousOptions: SymbolDisplayMiscellaneousOptions.UseSpecialTypes | SymbolDisplayMiscellaneousOptions.IncludeNullableReferenceTypeModifier,
             compilerInternalOptions: SymbolDisplayCompilerInternalOptions.IncludeNonNullableTypeModifier);
 
-        internal static TypeSymbolWithAnnotations Create(CSharpCompilation compilation, TypeSymbol typeSymbol)
-        {
-            return Create(compilation.SourceModule, typeSymbol);
-        }
-
-        internal static TypeSymbolWithAnnotations Create(bool nonNullTypes, TypeSymbol typeSymbol)
+        internal static TypeSymbolWithAnnotations CreateNonNull(bool nonNullTypes, TypeSymbol typeSymbol)
         {
             return Create(typeSymbol, isNullableIfReferenceType: nonNullTypes ? (bool?)false : null);
         }
 
-        // PROTOTYPE: TODO remove this method?
         internal static TypeSymbolWithAnnotations Create(ModuleSymbol module, TypeSymbol typeSymbol)
         {
             return Create(typeSymbol, isNullableIfReferenceType: module.UtilizesNullableReferenceTypes ? (bool?)false : null);
@@ -303,6 +297,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// </summary>
         public abstract TypeSymbolWithAnnotations AsNullableReferenceType();
         public abstract TypeSymbolWithAnnotations AsNotNullableReferenceType();
+        public abstract TypeSymbolWithAnnotations AsObliviousReferenceType();
 
         public abstract TypeSymbolWithAnnotations WithModifiers(ImmutableArray<CustomModifier> customModifiers);
 
@@ -541,11 +536,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public void AddNullableTransforms(ArrayBuilder<bool> transforms)
         {
             var typeSymbol = TypeSymbol;
-            transforms.Add(IsNullable == true && !typeSymbol.IsNullableType() && typeSymbol.IsReferenceType);
+            transforms.Add(IsNullable == true && !typeSymbol.IsNullableType() && !typeSymbol.IsValueType);
             typeSymbol.AddNullableTransforms(transforms);
         }
 
-        public bool ApplyNullableTransforms(ImmutableArray<bool> transforms, ref int position, out TypeSymbolWithAnnotations result)
+        public bool ApplyNullableTransforms(ImmutableArray<bool> transforms, bool useNonNullTypes, ref int position, out TypeSymbolWithAnnotations result)
         {
             result = this;
 
@@ -567,7 +562,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             TypeSymbol oldTypeSymbol = TypeSymbol;
             TypeSymbol newTypeSymbol;
 
-            if (!oldTypeSymbol.ApplyNullableTransforms(transforms, ref position, out newTypeSymbol))
+            if (!oldTypeSymbol.ApplyNullableTransforms(transforms, useNonNullTypes, ref position, out newTypeSymbol))
             {
                 return false;
             }
@@ -577,13 +572,23 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 result = result.DoUpdate(newTypeSymbol, result.CustomModifiers);
             }
 
-            if (isNullable)
+            if (!result.IsValueType)
             {
-                result = result.AsNullableReferenceType();
-            }
-            else
-            {
-                result = result.AsNotNullableReferenceType();
+                if (isNullable)
+                {
+                    result = result.AsNullableReferenceType();
+                }
+                else
+                {
+                    if (useNonNullTypes)
+                    {
+                        result = result.AsNotNullableReferenceType();
+                    }
+                    else
+                    {
+                        result = result.AsObliviousReferenceType();
+                    }
+                }
             }
 
             return true;
@@ -698,6 +703,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     new NonLazyType(_typeSymbol, isNullable: false, _customModifiers);
             }
 
+            public override TypeSymbolWithAnnotations AsObliviousReferenceType()
+            {
+                return _isNullable == null ?
+                    this :
+                    new NonLazyType(_typeSymbol, isNullable: null, _customModifiers);
+            }
+
             // PROTOTYPE(NullableReferenceTypes): Move implementation to the base class.
             public override string ToDisplayString(SymbolDisplayFormat format)
             {
@@ -737,7 +749,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             public LazyNullableType(CSharpCompilation compilation, SyntaxReference nullableTypeSyntax, TypeSymbolWithAnnotations underlying)
             {
-                Debug.Assert(underlying.IsNullable == false);
+                Debug.Assert(underlying.IsNullable != true);
                 Debug.Assert(underlying.TypeKind == TypeKind.TypeParameter);
                 Debug.Assert(underlying.CustomModifiers.IsEmpty);
                 _compilation = compilation;
@@ -853,6 +865,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 Debug.Assert(!this.IsNullable == false);
                 return this;
+            }
+
+            public override TypeSymbolWithAnnotations AsObliviousReferenceType()
+            {
+                // AsObliviousReferenceType is used to produce a null-oblivious when applying a nullable transform
+                // in a context with [NonNullTypes(false)]. But that attribute only affects types that don't have
+                // a `?` annotation. Since LazyNullableType always results from a `?` annotation, this method is unreachable.
+                throw ExceptionUtilities.Unreachable;
             }
 
             public override TypeSymbolWithAnnotations SubstituteType(AbstractTypeMap typeMap)

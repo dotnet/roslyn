@@ -8,7 +8,7 @@ namespace Microsoft.CodeAnalysis.CSharp
     /// A specific location for binding.
     /// </summary>
     [Flags]
-    internal enum BinderFlags : uint
+    internal enum BinderFlags : ulong
     {
         None, // No specific location
         SuppressConstraintChecks = 1 << 0,
@@ -102,6 +102,18 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// This is a <see cref="ContextualAttributeBinder"/>, or has <see cref="ContextualAttributeBinder"/> as its parent.
         /// </summary>
         InContectualAttributeBinder = 1 << 29,
+
+        /// <summary>
+        /// Indicates a context with [NonNullTypes(true)], so unannotated reference types should be interpreted as non-null.
+        /// This flag is used to avoid cycles.
+        /// </summary>
+        NonNullTypesTrue = 1 << 30,
+
+        /// <summary>
+        /// Indicates a context with [NonNullTypes(false)], so unannotated reference types should be interpreted as null-oblivious.
+        /// This flag is used to avoid cycles.
+        /// </summary>
+        NonNullTypesFalse = (ulong)1 << 31,
 
         // Groups
 

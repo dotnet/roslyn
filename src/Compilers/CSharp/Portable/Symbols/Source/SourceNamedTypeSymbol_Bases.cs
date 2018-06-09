@@ -353,7 +353,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // Wrap base binder in a location-specific binder that will avoid generic constraint checks
             // (to avoid cycles if the constraint types are not bound yet). Instead, constraint checks
             // are handled by the caller.
-            baseBinder = baseBinder.WithAdditionalFlagsAndContainingMemberOrLambda(BinderFlags.SuppressConstraintChecks, this);
+            baseBinder = baseBinder.WithAdditionalFlagsAndContainingMemberOrLambda(BinderFlags.SuppressConstraintChecks | BinderFlags.NonNullTypesTrue, this); // PROTOTYPE(NullableReferenceTypes): breaking cycle with hard-coded mitigation
 
             int i = -1;
             foreach (var baseTypeSyntax in bases.Types)

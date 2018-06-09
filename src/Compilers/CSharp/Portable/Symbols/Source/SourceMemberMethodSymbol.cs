@@ -1056,6 +1056,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                     return null;
                 }
+                else if (CSharpAttributeData.IsTargetEarlyAttribute(arguments.AttributeType, arguments.AttributeSyntax, AttributeDescription.NonNullTypesAttribute))
+                {
+                    CSharpAttributeData boundAttribute = arguments.Binder.GetAttribute(arguments.AttributeSyntax, arguments.AttributeType, out hasAnyDiagnostics);
+                    if (!boundAttribute.HasErrors)
+                    {
+                        bool nonNullTypes = boundAttribute.CommonConstructorArguments[0].DecodeValue<bool>(SpecialType.System_Boolean);
+                        arguments.GetOrCreateData<CommonMethodEarlyWellKnownAttributeData>().NonNullTypes = nonNullTypes;
+                        if (!hasAnyDiagnostics)
+                        {
+                            return boundAttribute;
+                        }
+                    }
+
+                    return null;
+                }
                 else
                 {
                     CSharpAttributeData boundAttribute;
@@ -1201,10 +1216,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 {
                     arguments.Diagnostics.Add(ErrorCode.ERR_SecurityCriticalOrSecuritySafeCriticalOnAsync, arguments.AttributeSyntaxOpt.Location, arguments.AttributeSyntaxOpt.GetErrorDisplayName());
                 }
-            }
-            else if (attribute.IsTargetAttribute(this, AttributeDescription.NonNullTypesAttribute))
-            {
-                arguments.GetOrCreateData<MethodWellKnownAttributeData>().NonNullTypes = attribute.GetConstructorArgument<bool>(0, SpecialType.System_Boolean);
             }
             else
             {
@@ -1540,15 +1551,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 var data = GetDecodedWellKnownAttributeData();
                 return data != null && data.HasSpecialNameAttribute;
-            }
-        }
-
-        internal override bool NonNullTypes
-        {
-            get
-            {
-                var data = GetDecodedWellKnownAttributeData() as MethodWellKnownAttributeData;
-                return data?.NonNullTypes ?? base.NonNullTypes;
             }
         }
 

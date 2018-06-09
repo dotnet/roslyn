@@ -15,8 +15,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         /// <param name="enclosing">Next binder in the chain (enclosing).</param>
         /// <param name="symbol">Symbol to which the attribute was applied (e.g. a parameter).</param>
+        /// Nullability does not matter in this context. Setting NonNullTypesFalse to avoid cycles.
         public ContextualAttributeBinder(Binder enclosing, Symbol symbol)
-            : base(enclosing, enclosing.Flags | BinderFlags.InContectualAttributeBinder)
+            : base(enclosing, enclosing.Flags | BinderFlags.InContectualAttributeBinder | BinderFlags.NonNullTypesFalse)
         {
             _attributeTarget = symbol;
             _attributedMember = GetAttributedMember(symbol);

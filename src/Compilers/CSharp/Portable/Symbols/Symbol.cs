@@ -840,7 +840,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             get
             {
-                Debug.Assert(false);
+                Debug.Assert(false); // PROTOTYPE(NullableReferenceTypes): Can we reach this?
                 return false;
             }
         }

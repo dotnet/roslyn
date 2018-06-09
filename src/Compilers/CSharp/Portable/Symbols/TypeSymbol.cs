@@ -627,7 +627,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal abstract void AddNullableTransforms(ArrayBuilder<bool> transforms);
 
-        internal abstract bool ApplyNullableTransforms(ImmutableArray<bool> transforms, ref int position, out TypeSymbol result);
+        internal abstract bool ApplyNullableTransforms(ImmutableArray<bool> transforms, bool useNonNullTypes, ref int position, out TypeSymbol result);
 
         internal abstract TypeSymbol SetUnknownNullabilityForReferenceTypes();
 

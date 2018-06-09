@@ -28,6 +28,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private ImmutableArray<ParameterSymbol> _lazyParameters;
         private TypeSymbolWithAnnotations _lazyReturnType;
         private bool _lazyIsVararg;
+        private bool? _nonNullTypesFromAttributes;
 
         /// <summary>
         /// A collection of type parameter constraints, populated when
@@ -159,12 +160,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             SyntaxToken arglistToken;
 
+            // Force binding of early attributes to check for NonNullTypes attribute
+            BindNonNullTypesAttribute(syntax);
+
+            var nonNullTypesFlag = NonNullTypes ? BinderFlags.NonNullTypesTrue : BinderFlags.NonNullTypesFalse;
+
             // Constraint checking for parameter and return types must be delayed until
             // the method has been added to the containing type member list since
             // evaluating the constraints may depend on accessing this method from
             // the container (comparing this method to others to find overrides for
             // instance). Constraints are checked in AfterAddingTypeMembersChecks.
-            var signatureBinder = withTypeParamsBinder.WithAdditionalFlagsAndContainingMemberOrLambda(BinderFlags.SuppressConstraintChecks, this);
+            var signatureBinder = withTypeParamsBinder.WithAdditionalFlagsAndContainingMemberOrLambda(BinderFlags.SuppressConstraintChecks | nonNullTypesFlag, this);
 
             _lazyParameters = ParameterHelpers.MakeParameters(
                 signatureBinder, this, syntax.ParameterList, out arglistToken,
@@ -333,8 +339,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                     if ((object)overriddenMethod != null)
                     {
-                        CustomModifierUtils.CopyMethodCustomModifiers(overriddenMethod, this, out _lazyReturnType, 
-                                                                      out _lazyRefCustomModifiers, 
+                        CustomModifierUtils.CopyMethodCustomModifiers(overriddenMethod, this, out _lazyReturnType,
+                                                                      out _lazyRefCustomModifiers,
                                                                       out _lazyParameters, alsoCopyParamsModifier: true);
                     }
                 }
@@ -355,7 +361,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     Debug.Assert(_lazyExplicitInterfaceImplementations.IsDefault);
                     _lazyExplicitInterfaceImplementations = ImmutableArray.Create<MethodSymbol>(implementedMethod);
 
-                    CustomModifierUtils.CopyMethodCustomModifiers(implementedMethod, this, out _lazyReturnType, 
+                    CustomModifierUtils.CopyMethodCustomModifiers(implementedMethod, this, out _lazyReturnType,
                                                                   out _lazyRefCustomModifiers,
                                                                   out _lazyParameters, alsoCopyParamsModifier: false);
                     this.FindExplicitlyImplementedMemberVerification(implementedMethod, diagnostics);
@@ -371,6 +377,32 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             CheckModifiers(_hasAnyBody, location, diagnostics);
+        }
+
+        /// <summary>
+        /// Force binding of early attributes to check for NonNullTypes attribute
+        /// </summary>
+        private void BindNonNullTypesAttribute(MethodDeclarationSyntax syntax)
+        {
+            CustomAttributesBag<CSharpAttributeData> temp = null;
+            LoadAndValidateAttributes(OneOrMany.Create(syntax.AttributeLists), ref temp, earlyDecodingOnly: true);
+            if (temp != null)
+            {
+                Debug.Assert(temp.IsEarlyDecodedWellKnownAttributeDataComputed);
+                var methodData = (CommonMethodEarlyWellKnownAttributeData)temp.EarlyDecodedWellKnownAttributeData;
+                if (methodData != null)
+                {
+                    _nonNullTypesFromAttributes = methodData.NonNullTypes;
+                }
+            }
+        }
+
+        internal override bool NonNullTypes
+        {
+            get
+            {
+                return _nonNullTypesFromAttributes ?? base.NonNullTypes;
+            }
         }
 
         // This is also used for async lambdas.  Probably not the best place to locate this method, but where else could it go?
