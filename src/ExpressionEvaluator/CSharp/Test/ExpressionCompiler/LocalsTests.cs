@@ -3423,7 +3423,7 @@ class C
 }
 ";
             var libRef = CreateCompilation(libSource).EmitToImageReference();
-            var comp = CreateCompilation(source, new[] { SystemRef }, TestOptions.DebugDll);
+            var comp = CreateCompilation(source, options: TestOptions.DebugDll);
 
             WithRuntimeInstance(comp, new[] { MscorlibRef, SystemRef, SystemCoreRef, SystemXmlLinqRef, libRef }, runtime =>
             {
@@ -3578,7 +3578,7 @@ class C
 }
 ";
 
-            var comp = CreateCompilation(source, new[] { SystemCoreRef }, TestOptions.DebugDll);
+            var comp = CreateCompilation(source, options: TestOptions.DebugDll);
             WithRuntimeInstance(comp, runtime =>
             {
                 string typeName;
@@ -3674,7 +3674,7 @@ class C
 }
 ";
 
-            var comp = CreateCompilation(source, new[] { SystemCoreRef }, TestOptions.DebugDll);
+            var comp = CreateCompilation(source, options: TestOptions.DebugDll);
             WithRuntimeInstance(comp, runtime =>
             {
                 string typeName;
@@ -3746,7 +3746,7 @@ class C
 }
 ";
 
-            var comp = CreateCompilation(source, new[] { SystemCoreRef }, TestOptions.DebugDll);
+            var comp = CreateCompilation(source, options: TestOptions.DebugDll);
             WithRuntimeInstance(comp, runtime =>
             {
                 string typeName;
@@ -5067,15 +5067,16 @@ class C
                 {
                     {methodToken, debugInfo}
                 }.ToImmutableDictionary());
-            var context = EvaluationContext.CreateMethodContext(
-                default(CSharpMetadataContext),
+            var context = CreateMethodContext(
+                new AppDomain(),
                 blocks,
                 symReader,
                 moduleVersionId,
                 methodToken,
                 methodVersion: 1,
                 ilOffset: 0,
-                localSignatureToken: localSignatureToken);
+                localSignatureToken: localSignatureToken,
+                kind: MakeAssemblyReferencesKind.AllAssemblies);
 
             string typeName;
             var assembly = context.CompileGetLocals(locals, argumentsOnly: false, typeName: out typeName, testData: null);

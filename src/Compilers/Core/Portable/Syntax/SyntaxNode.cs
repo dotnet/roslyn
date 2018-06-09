@@ -1368,7 +1368,7 @@ namespace Microsoft.CodeAnalysis
             return token;
         }
 
-        internal static SyntaxTrivia GetTriviaFromSyntaxToken(int position, SyntaxToken token)
+        internal static SyntaxTrivia GetTriviaFromSyntaxToken(int position, in SyntaxToken token)
         {
             var span = token.Span;
             var trivia = new SyntaxTrivia();
@@ -1384,7 +1384,7 @@ namespace Microsoft.CodeAnalysis
             return trivia;
         }
 
-        internal static SyntaxTrivia GetTriviaThatContainsPosition(SyntaxTriviaList list, int position)
+        internal static SyntaxTrivia GetTriviaThatContainsPosition(in SyntaxTriviaList list, int position)
         {
             foreach (var trivia in list)
             {

@@ -67,12 +67,28 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
         private static readonly SymbolKindOrTypeKind _interface = new SymbolKindOrTypeKind(TypeKind.Interface);
         private static readonly SymbolKindOrTypeKind _enum = new SymbolKindOrTypeKind(TypeKind.Enum);
         private static readonly SymbolKindOrTypeKind _property = new SymbolKindOrTypeKind(SymbolKind.Property);
-        private static readonly SymbolKindOrTypeKind _method = new SymbolKindOrTypeKind(SymbolKind.Method);
+        private static readonly SymbolKindOrTypeKind _method = new SymbolKindOrTypeKind(MethodKind.Ordinary);
+        private static readonly SymbolKindOrTypeKind _localFunction = new SymbolKindOrTypeKind(MethodKind.LocalFunction);
         private static readonly SymbolKindOrTypeKind _field = new SymbolKindOrTypeKind(SymbolKind.Field);
         private static readonly SymbolKindOrTypeKind _event = new SymbolKindOrTypeKind(SymbolKind.Event);
         private static readonly SymbolKindOrTypeKind _delegate = new SymbolKindOrTypeKind(TypeKind.Delegate);
         private static readonly SymbolKindOrTypeKind _parameter = new SymbolKindOrTypeKind(SymbolKind.Parameter);
-        private static readonly ImmutableArray<SymbolKindOrTypeKind> _all = ImmutableArray.Create(_class, _struct, _interface, _enum, _property, _method, _field, _event, _delegate, _parameter);
+        private static readonly SymbolKindOrTypeKind _local = new SymbolKindOrTypeKind(SymbolKind.Local);
+        private static readonly ImmutableArray<SymbolKindOrTypeKind> _all =
+            ImmutableArray.Create(
+                _class,
+                _struct,
+                _interface,
+                _enum,
+                _property,
+                _method,
+                _localFunction,
+                _field,
+                _event,
+                _delegate,
+                _parameter,
+                _local);
+
         private static ImmutableArray<SymbolKindOrTypeKind> ParseSymbolKindList(string symbolSpecApplicableKinds)
         {
             if (symbolSpecApplicableKinds == null)
@@ -108,6 +124,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
                     case "method":
                         builder.Add(_method);
                         break;
+                    case "local_function":
+                        builder.Add(_localFunction);
+                        break;
                     case "field":
                         builder.Add(_field);
                         break;
@@ -119,6 +138,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
                         break;
                     case "parameter":
                         builder.Add(_parameter);
+                        break;
+                    case "local":
+                        builder.Add(_local);
                         break;
                     default:
                         break;

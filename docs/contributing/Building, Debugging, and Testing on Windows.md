@@ -11,24 +11,24 @@ Using the command line Roslyn can be developed using the following pattern:
 
 ## Recommended version of .NET Framework
 
-The minimal required version of .NET Framework is 4.6, however 4.7.1 is recommended for best developer experience. 
+The minimal required version of .NET Framework is 4.6, however 4.7.2 is recommended for best developer experience. 
 
-The projects in this repository are configured to build with Portable PDBs, which are supported in stack traces starting with .NET Framework 4.7.1. 
-If a stack trace is displayed on .NET Framework older than 4.7.1 (e.g. by xUnit when a test fails) it won't contain source and line information.
+The projects in this repository are configured to build with Portable PDBs, which are supported in stack traces starting with .NET Framework 4.7.2. 
+If a stack trace is displayed on .NET Framework older than 4.7.2 (e.g. by xUnit when a test fails) it won't contain source and line information.
 
-.NET Framework 4.7.1 is included in Windows 10 Fall Creators Update. It can also be installed from the [Microsoft Download Center](https://support.microsoft.com/en-us/help/4033344/the-net-framework-4-7-1-web-installer-for-windows).
+.NET Framework 4.7.2 is included in [Windows 10 April 2018 Update](https://blogs.windows.com/windowsexperience/2018/04/30/how-to-get-the-windows-10-april-2018-update/). It can also be installed from the [Microsoft Download Center](https://www.microsoft.com/net/download/dotnet-framework-runtime).
 
 ## Developing with Visual Studio 2017
 
-1. [Visual Studio 2017 Version 15.6 Preview 4](https://www.visualstudio.com/vs/preview/)
+1. [Visual Studio 2017 Version 15.7](https://www.visualstudio.com/vs/preview/)
     - Ensure C#, VB, MSBuild, .NET Core and Visual Studio Extensibility are included in the selected work loads
-    - Ensure Visual Studio is on Version "15.6 Preview 4" or greater
-1. [.NET Core SDK 2.1.300](https://www.microsoft.com/net/download/core) (if you don't see the 2.2 SDK binaries there yet, the current previews are: [Windows x64 installer](https://dotnetcli.blob.core.windows.net/dotnet/Sdk/2.1.300-preview2-008324/dotnet-sdk-2.1.300-preview2-008324-win-x64.exe), [Windows x86 installer](https://dotnetcli.blob.core.windows.net/dotnet/Sdk/2.1.300-preview2-008324/dotnet-sdk-2.1.300-preview2-008324-win-x86.exe))
+    - Ensure Visual Studio is on Version "15.7" or greater
+1. [.NET Core SDK 2.1.300](https://www.microsoft.com/net/download/core) (the current previews are: [Windows x64 installer](https://dotnetcli.blob.core.windows.net/dotnet/Sdk/2.1.300-rtm-008866/dotnet-sdk-2.1.300-rtm-008866-win-x64.exe), [Windows x86 installer](https://dotnetcli.blob.core.windows.net/dotnet/Sdk/2.1.300-rtm-008866/dotnet-sdk-2.1.300-rtm-008866-win-x86.exe))
 1. [PowerShell 3.0 or newer](https://docs.microsoft.com/en-us/powershell/scripting/setup/installing-windows-powershell). If you are on Windows 10, you are fine; you'll only need to upgrade if you're on Windows 7. The download link is under the "upgrading existing Windows PowerShell" heading.
 1. Run Restore.cmd
 1. Open Roslyn.sln
 
-If you already installed Visual Studio and need to add the necessary work loads or move to version 15.5:
+If you already installed Visual Studio and need to add the necessary work loads or move to version 15.7:
 do the following:
 
 - Run the Visual Studio Installer from your start menu. You can just search for "Visual Studio Installer". If you can't find it, it's typically located at "C:\Program Files (x86)\Microsoft Visual Studio\Installer\vs_installer.exe"
@@ -44,7 +44,7 @@ There are a number of options for running the core Roslyn unit tests:
 
 The Test.cmd script will run our unit test on already built binaries.  It can be passed the -build arguments to force a new build before running tests.  
 
-1. Run the "Developer Command Prompt for VS2015" from your start menu.
+1. Run the "Developer Command Prompt for VS2017" from your start menu.
 2. Navigate to the directory of your Git clone.
 3. Run `msbuild /v:m /m /nodereuse:false BuildAndTest.proj` in the command prompt.
 

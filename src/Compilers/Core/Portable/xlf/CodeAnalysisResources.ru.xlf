@@ -496,9 +496,9 @@
         <target state="translated">Образ среды предустановки не содержит управляемые метаданные.</target>
         <note />
       </trans-unit>
-      <trans-unit id="ChangesMustBeOrderedAndNotOverlapping">
-        <source>The changes must be ordered and not overlapping.</source>
-        <target state="translated">Изменения должны идти в строгом порядке и не накладываться.</target>
+      <trans-unit id="ChangesMustNotOverlap">
+        <source>The changes must not overlap.</source>
+        <target state="needs-review-translation">Изменения должны идти в строгом порядке и не накладываться.</target>
         <note />
       </trans-unit>
       <trans-unit id="DiagnosticIdCantBeNullOrWhitespace">

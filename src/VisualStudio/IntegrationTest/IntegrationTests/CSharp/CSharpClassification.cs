@@ -47,7 +47,7 @@ namespace ConsoleApplication1
             VisualStudio.Editor.PlaceCaret("Program");
             VisualStudio.Editor.Verify.CurrentTokenType(tokenType: "class name");
             VisualStudio.Editor.PlaceCaret("Main");
-            VisualStudio.Editor.Verify.CurrentTokenType(tokenType: "identifier");
+            VisualStudio.Editor.Verify.CurrentTokenType(tokenType: "method name");
             VisualStudio.Editor.PlaceCaret("Hello");
             VisualStudio.Editor.Verify.CurrentTokenType(tokenType: "string");
             VisualStudio.Editor.PlaceCaret("<summary", charsOffset: -1);
@@ -124,7 +124,7 @@ namespace ClassLibrary1
 
             VisualStudio.ExecuteCommand(WellKnownCommandNames.Build_SolutionConfigurations, argument: "Debug");
             VisualStudio.Editor.PlaceCaret("Goo");
-            VisualStudio.Editor.Verify.CurrentTokenType(tokenType: "identifier");
+            VisualStudio.Editor.Verify.CurrentTokenType(tokenType: "method name");
             VisualStudio.Editor.PlaceCaret("Bar");
             VisualStudio.Editor.Verify.CurrentTokenType(tokenType: "excluded code");
             VisualStudio.Editor.MoveCaret(0);
@@ -132,7 +132,7 @@ namespace ClassLibrary1
             VisualStudio.Editor.PlaceCaret("Goo");
             VisualStudio.Editor.Verify.CurrentTokenType(tokenType: "excluded code");
             VisualStudio.Editor.PlaceCaret("Bar");
-            VisualStudio.Editor.Verify.CurrentTokenType(tokenType: "identifier");
+            VisualStudio.Editor.Verify.CurrentTokenType(tokenType: "method name");
         }
     }
 }
