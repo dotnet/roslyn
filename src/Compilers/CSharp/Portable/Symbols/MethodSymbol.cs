@@ -939,7 +939,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// </remarks>
         internal abstract int CalculateLocalSyntaxOffset(int localPosition, SyntaxTree localTree);
 
-        internal override bool NullableOptOut
+        internal override bool NonNullTypes
         {
             get
             {
@@ -954,12 +954,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         var propertyOrEvent = AssociatedSymbol;
                         if ((object)propertyOrEvent != null)
                         {
-                            return propertyOrEvent.NullableOptOut;
+                            return propertyOrEvent.NonNullTypes;
                         }
                         break;
                 }
 
-                return ContainingType?.NullableOptOut == true;
+                return ContainingType?.NonNullTypes == true;
             }
         }
 

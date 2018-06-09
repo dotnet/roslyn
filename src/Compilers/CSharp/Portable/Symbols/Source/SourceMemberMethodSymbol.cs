@@ -1202,9 +1202,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     arguments.Diagnostics.Add(ErrorCode.ERR_SecurityCriticalOrSecuritySafeCriticalOnAsync, arguments.AttributeSyntaxOpt.Location, arguments.AttributeSyntaxOpt.GetErrorDisplayName());
                 }
             }
-            else if (attribute.IsTargetAttribute(this, AttributeDescription.NullableOptOutAttribute))
+            else if (attribute.IsTargetAttribute(this, AttributeDescription.NonNullTypesAttribute))
             {
-                arguments.GetOrCreateData<MethodWellKnownAttributeData>().NullableOptOut = attribute.GetConstructorArgument<bool>(0, SpecialType.System_Boolean);
+                arguments.GetOrCreateData<MethodWellKnownAttributeData>().NonNullTypes = attribute.GetConstructorArgument<bool>(0, SpecialType.System_Boolean);
             }
             else
             {
@@ -1543,12 +1543,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal override bool NullableOptOut
+        internal override bool NonNullTypes
         {
             get
             {
                 var data = GetDecodedWellKnownAttributeData() as MethodWellKnownAttributeData;
-                return data?.NullableOptOut ?? base.NullableOptOut;
+                return data?.NonNullTypes ?? base.NonNullTypes;
             }
         }
 

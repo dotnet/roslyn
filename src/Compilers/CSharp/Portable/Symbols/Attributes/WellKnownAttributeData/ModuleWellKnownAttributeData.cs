@@ -6,21 +6,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
     internal sealed class ModuleWellKnownAttributeData : CommonModuleWellKnownAttributeData
     {
-        #region NullableOptOutAttribute
+        #region NonNullTypesAttribute
 
-        private bool? _nullableOptOut;
-        public bool? NullableOptOut
+        private bool? _nonNullTypes;
+        public bool? NonNullTypes
         {
             get
             {
                 VerifySealed(expected: true);
-                return _nullableOptOut;
+                return _nonNullTypes;
             }
             set
             {
                 VerifySealed(expected: false);
                 Debug.Assert(value.HasValue);
-                _nullableOptOut = value;
+                _nonNullTypes = value;
                 SetDataStored();
             }
         }

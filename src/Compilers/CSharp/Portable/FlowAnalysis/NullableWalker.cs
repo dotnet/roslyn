@@ -446,6 +446,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                     VisitRvalue(node);
                     break;
             }
+
+            if (_callbackOpt != null)
+            {
+                _callbackOpt(node, _result.Type);
+            }
         }
 
         private Result VisitRvalueWithResult(BoundExpression node)
@@ -3311,7 +3316,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 new FormattedSymbol(parameter.ContainingSymbol, SymbolDisplayFormat.MinimallyQualifiedFormat));
         }
 
-        // PROTOTYPE(NullableReferenceTypes): If support for [NullableOptOut] or [NullableOptOutForAssembly]
+        // PROTOTYPE(NullableReferenceTypes): If support for [NonNullTypes] or [NullableOptOutForAssembly]
         // is re-enabled, we'll need to call this helper for method symbols before inferring nullability of
         // arguments to avoid warnings when nullability checking of the method is suppressed.
         // (See all uses of this helper for method symbols.)

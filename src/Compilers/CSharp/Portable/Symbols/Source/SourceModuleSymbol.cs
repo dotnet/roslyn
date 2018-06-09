@@ -520,9 +520,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 DecodeOneNullableOptOutForAssemblyAttribute(arguments.AttributeSyntaxOpt, attribute, arguments.Diagnostics);
             }
-            else if (attribute.IsTargetAttribute(this, AttributeDescription.NullableOptOutAttribute))
+            else if (attribute.IsTargetAttribute(this, AttributeDescription.NonNullTypesAttribute))
             {
-                arguments.GetOrCreateData<ModuleWellKnownAttributeData>().NullableOptOut = attribute.GetConstructorArgument<bool>(0, SpecialType.System_Boolean);
+                arguments.GetOrCreateData<ModuleWellKnownAttributeData>().NonNullTypes = attribute.GetConstructorArgument<bool>(0, SpecialType.System_Boolean);
             }
         }
 
@@ -587,12 +587,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return false;
         }
 
-        internal override bool NullableOptOut
+        internal override bool NonNullTypes
         {
             get
             {
                 var data = GetDecodedWellKnownAttributeData() as ModuleWellKnownAttributeData;
-                return data?.NullableOptOut ?? base.NullableOptOut;
+                return data?.NonNullTypes ?? base.NonNullTypes;
             }
         }
 

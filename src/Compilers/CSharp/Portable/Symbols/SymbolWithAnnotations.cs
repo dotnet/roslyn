@@ -184,6 +184,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return Create(compilation.SourceModule, typeSymbol);
         }
 
+        internal static TypeSymbolWithAnnotations Create(bool nonNullTypes, TypeSymbol typeSymbol)
+        {
+            return Create(typeSymbol, isNullableIfReferenceType: nonNullTypes ? (bool?)false : null);
+        }
+
+        // PROTOTYPE: TODO remove this method?
         internal static TypeSymbolWithAnnotations Create(ModuleSymbol module, TypeSymbol typeSymbol)
         {
             return Create(typeSymbol, isNullableIfReferenceType: module.UtilizesNullableReferenceTypes ? (bool?)false : null);

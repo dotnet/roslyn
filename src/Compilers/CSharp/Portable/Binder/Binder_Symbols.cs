@@ -246,9 +246,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         // Binds the given expression syntax as Type.
         // If the resulting symbol is an Alias to a Type, it unwraps the alias
         // and returns it's target type.
-        internal TypeSymbolWithAnnotations BindType(ExpressionSyntax syntax, DiagnosticBag diagnostics, ConsList<Symbol> basesBeingResolved = null)
+        internal TypeSymbolWithAnnotations BindType(ExpressionSyntax syntax, DiagnosticBag diagnostics, ConsList<Symbol> basesBeingResolved = null, bool nonNullTypes = true)
         {
-            var symbol = BindTypeOrAlias(syntax, diagnostics, basesBeingResolved);
+            var symbol = BindTypeOrAlias(syntax, diagnostics, basesBeingResolved, nonNullTypes);
             return (TypeSymbolWithAnnotations)UnwrapAlias(symbol, diagnostics, syntax, basesBeingResolved);
         }
 
@@ -257,6 +257,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         // the alias parameter, unwraps the alias and returns it's target type.
         internal TypeSymbolWithAnnotations BindType(ExpressionSyntax syntax, DiagnosticBag diagnostics, out AliasSymbol alias, ConsList<Symbol> basesBeingResolved = null)
         {
+            // PROTOTYPE: TODO remove default value
             var symbol = BindTypeOrAlias(syntax, diagnostics, basesBeingResolved);
             return (TypeSymbolWithAnnotations)UnwrapAlias(symbol, out alias, diagnostics, syntax, basesBeingResolved);
         }
@@ -264,11 +265,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         // Binds the given expression syntax as Type or an Alias to Type
         // and returns the resultant symbol.
         // NOTE: This method doesn't unwrap aliases.
-        internal NamespaceOrTypeOrAliasSymbolWithAnnotations BindTypeOrAlias(ExpressionSyntax syntax, DiagnosticBag diagnostics, ConsList<Symbol> basesBeingResolved = null)
+        internal NamespaceOrTypeOrAliasSymbolWithAnnotations BindTypeOrAlias(ExpressionSyntax syntax, DiagnosticBag diagnostics, ConsList<Symbol> basesBeingResolved = null, bool nonNullTypes = true)
         {
+            // PROTOTYPE: TODO remove default value
             Debug.Assert(diagnostics != null);
 
-            var symbol = BindNamespaceOrTypeOrAliasSymbol(syntax, diagnostics, basesBeingResolved, basesBeingResolved != null);
+            var symbol = BindNamespaceOrTypeOrAliasSymbol(syntax, diagnostics, basesBeingResolved, basesBeingResolved != null, nonNullTypes);
 
             // symbol must be a TypeSymbol or an Alias to a TypeSymbol
             if (symbol.IsType || 
@@ -332,7 +334,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             return UnwrapAlias(result, diagnostics, syntax, basesBeingResolved);
         }
 
-        internal NamespaceOrTypeOrAliasSymbolWithAnnotations BindNamespaceOrTypeOrAliasSymbol(ExpressionSyntax syntax, DiagnosticBag diagnostics, ConsList<Symbol> basesBeingResolved, bool suppressUseSiteDiagnostics)
+        // PROTOTYPE: TODO remove default value
+        internal NamespaceOrTypeOrAliasSymbolWithAnnotations BindNamespaceOrTypeOrAliasSymbol(ExpressionSyntax syntax, DiagnosticBag diagnostics, ConsList<Symbol> basesBeingResolved, bool suppressUseSiteDiagnostics, bool nonNullTypes = true)
         {
             switch (syntax.Kind())
             {
@@ -364,7 +367,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 case SyntaxKind.PredefinedType:
                     {
-                        return TypeSymbolWithAnnotations.Create(Compilation, BindPredefinedTypeSymbol((PredefinedTypeSyntax)syntax, diagnostics));
+                        return TypeSymbolWithAnnotations.Create(nonNullTypes, BindPredefinedTypeSymbol((PredefinedTypeSyntax)syntax, diagnostics));
                     }
 
                 case SyntaxKind.IdentifierName:

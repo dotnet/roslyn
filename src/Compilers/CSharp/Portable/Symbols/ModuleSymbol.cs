@@ -197,12 +197,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal override bool NullableOptOut
+        internal override bool NonNullTypes
         {
             get
             {
-                // We are in by default.
-                return false;
+                return this.UtilizesNullableReferenceTypes;
             }
         }
 

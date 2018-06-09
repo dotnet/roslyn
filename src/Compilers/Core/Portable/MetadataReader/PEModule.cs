@@ -2442,9 +2442,9 @@ namespace Microsoft.CodeAnalysis
             return TryExtractBoolArrayValueFromAttribute(info.Handle, out nullableTransforms);
         }
 
-        internal bool HasNullableOptOutAttribute(EntityHandle token, out bool value)
+        internal bool HasNonNullTypesAttribute(EntityHandle token, out bool value)
         {
-            AttributeInfo info = FindTargetAttribute(token, AttributeDescription.NullableOptOutAttribute);
+            AttributeInfo info = FindTargetAttribute(token, AttributeDescription.NonNullTypesAttribute);
             Debug.Assert(!info.HasValue || info.SignatureIndex == 0);
 
             if (info.HasValue && TryExtractValueFromAttribute(info.Handle, out value, s_attributeBooleanValueExtractor))
@@ -2452,7 +2452,7 @@ namespace Microsoft.CodeAnalysis
                 return true;
             }
 
-            value = false;
+            value = default;
             return false;
         }
 

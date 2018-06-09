@@ -154,10 +154,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal override bool NullableOptOut
+        internal override bool NonNullTypes
         {
             get
             {
+                // PROTOTYPE(NullableReferenceTypes): Can we reach this? Feels like defering to containing method would be better.
                 return false;
             }
         }

@@ -1093,7 +1093,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             if (((CSharpParseOptions)implementation.Locations[0].SourceTree?.Options)?.IsFeatureEnabled(MessageID.IDS_FeatureStaticNullChecking) == true &&
-                !implementation.NullableOptOut)
+                implementation.NonNullTypes)
             {
                 ImmutableArray<ParameterSymbol> implementationParameters = implementation.Parameters;
                 ImmutableArray<ParameterSymbol> definitionParameters = definition.ConstructIfGeneric(implementation.TypeParameters.SelectAsArray(TypeMap.AsTypeSymbolWithAnnotations)).Parameters;

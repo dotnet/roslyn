@@ -230,12 +230,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// </remarks>
         internal abstract ConstantValue ExplicitDefaultConstantValue { get; }
 
-        internal override bool NullableOptOut
+        internal override bool NonNullTypes
         {
             get
             {
                 Debug.Assert(IsDefinition);
-                return ContainingSymbol?.NullableOptOut == true;
+                return ContainingSymbol?.NonNullTypes == true;
             }
         }
 

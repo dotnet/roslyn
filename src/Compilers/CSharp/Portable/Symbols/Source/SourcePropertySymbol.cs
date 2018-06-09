@@ -1295,9 +1295,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 arguments.Diagnostics.Add(ErrorCode.ERR_ExplicitTupleElementNamesAttribute, arguments.AttributeSyntaxOpt.Location);
             }
-            else if (attribute.IsTargetAttribute(this, AttributeDescription.NullableOptOutAttribute))
+            else if (attribute.IsTargetAttribute(this, AttributeDescription.NonNullTypesAttribute))
             {
-                arguments.GetOrCreateData<PropertyWellKnownAttributeData>().NullableOptOut = attribute.GetConstructorArgument<bool>(0, SpecialType.System_Boolean);
+                arguments.GetOrCreateData<PropertyWellKnownAttributeData>().NonNullTypes = attribute.GetConstructorArgument<bool>(0, SpecialType.System_Boolean);
             }
             else if (attribute.IsTargetAttribute(this, AttributeDescription.NullableAttribute))
             {
@@ -1516,12 +1516,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return (syntax.Kind() == SyntaxKind.IndexerDeclaration) ? ((IndexerDeclarationSyntax)syntax).ParameterList : null;
         }
 
-        internal override bool NullableOptOut
+        internal override bool NonNullTypes
         {
             get
             {
                 var data = GetDecodedWellKnownAttributeData() as PropertyWellKnownAttributeData;
-                return data?.NullableOptOut ?? base.NullableOptOut;
+                return data?.NonNullTypes ?? base.NonNullTypes;
             }
         }
     }

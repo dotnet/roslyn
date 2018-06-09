@@ -141,12 +141,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal override bool NullableOptOut
+        internal override bool NonNullTypes
         {
             get
             {
                 var data = GetDecodedWellKnownAttributeData() as FieldWellKnownAttributeData;
-                return data?.NullableOptOut ?? base.NullableOptOut;
+                return data?.NonNullTypes ?? base.NonNullTypes;
             }
         }
     }

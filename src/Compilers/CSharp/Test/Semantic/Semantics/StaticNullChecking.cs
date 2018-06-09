@@ -9,7 +9,7 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
-using Xunit;
+using Xunit;/
 using static Microsoft.CodeAnalysis.CSharp.Symbols.FlowAnalysisAnnotations;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics
@@ -38,7 +38,7 @@ namespace System.Runtime.CompilerServices
 }
 ";
 
-        private const string NullableOptOutAttributesDefinition = @"
+        private const string NonNullTypesAttributesDefinition = @"
 namespace System.Runtime.CompilerServices
 {
     /// <summary>
@@ -53,6 +53,7 @@ namespace System.Runtime.CompilerServices
     }
 
     /// <summary>
+    /// PROTOTYPE(NullableReferenceTypes): TODO update comments
     /// Opt-out or opt into nullability warnings that could originate from source code and definition(s) ...
     /// </summary>
     [AttributeUsage(AttributeTargets.Module | // in this module. If nullable reference types feature is enabled, the warnings are opted into on the module level by default
@@ -66,9 +67,9 @@ namespace System.Runtime.CompilerServices
                     AttributeTargets.Property | // of this property
                     AttributeTargets.Struct, // in this structure
                     AllowMultiple = false)]
-    class NullableOptOutAttribute : Attribute
+    class NonNullTypesAttribute : Attribute
     {
-        public NullableOptOutAttribute(bool flag = true) { }
+        public NonNullTypesAttribute(bool flag = true) { }
     }
 }
 ";
@@ -848,6 +849,108 @@ public sealed class B : A<object>
 
             comp1 = CreateCompilation(source1, references: new[] { comp0.EmitToImageReference() }, parseOptions: TestOptions.Regular8);
             comp1.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void NonNullTypes_OnFields()
+        {
+            var obliviousLib = @"
+public class Oblivious
+{
+    public static string s;
+}
+";
+
+            var obliviousComp = CreateCompilation(obliviousLib, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular7);
+
+   var lib = @"
+public class External
+{
+    public static string s;
+    public static string? ns;
+}
+";
+
+            var libComp = CreateCompilation(lib, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular8);
+
+            var source = @"
+using System.Runtime.CompilerServices;
+
+[NonNullTypes(false)]
+public class OuterA
+{
+    [NonNullTypes(true)]
+    public class A
+    {
+        public static string s;
+        public static string? ns;
+    }
+}
+
+// NonNullTypes(true) by default
+public class B
+{
+    public static string s;
+    public static string? ns;
+}
+
+public class C
+{
+    [NonNullTypes]
+    public static string s;
+
+    [NonNullTypes]
+    public static string? ns;
+}
+
+[NonNullTypes(false)]
+public class Oblivious2
+{
+    public static string s;
+    public static string? ns;
+}
+
+class E
+{
+    public void M()
+    {
+        Oblivious.s /*T:string*/ = null;
+
+        External.s /*T:string!*/ = null; // warn 1
+        External.ns /*T:string?*/ = null;
+
+        OuterA.A.s /*T:string!*/ = null; // warn 2
+        OuterA.A.ns /*T:string?*/ = null;
+
+        B.s /*T:string!*/ = null; // warn 3
+        B.ns /*T:string?*/ = null;
+
+        C.s /*T:string!*/ = null; // warn 4
+        C.ns /*T:string?*/ = null;
+
+        Oblivious2.s /*T:string*/ = null;
+        Oblivious2.ns /*T:string?*/ = null;
+    }
+}
+";
+            var compilation = CreateCompilation(source + NonNullTypesAttributesDefinition, options: TestOptions.ReleaseDll,
+                parseOptions: TestOptions.Regular8, references: new[] { obliviousComp.EmitToImageReference(), libComp.EmitToImageReference() });
+
+            compilation.VerifyTypes();
+            compilation.VerifyDiagnostics(
+                // (44,36): warning CS8625: Cannot convert null literal to non-nullable reference or unconstrained type parameter.
+                //         External.s /*T:string!*/ = null; // warn 1
+                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(44, 36),
+                // (47,36): warning CS8625: Cannot convert null literal to non-nullable reference or unconstrained type parameter.
+                //         OuterA.A.s /*T:string!*/ = null; // warn 2
+                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(47, 36),
+                // (50,29): warning CS8625: Cannot convert null literal to non-nullable reference or unconstrained type parameter.
+                //         B.s /*T:string!*/ = null; // warn 3
+                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(50, 29),
+                // (53,29): warning CS8625: Cannot convert null literal to non-nullable reference or unconstrained type parameter.
+                //         C.s /*T:string!*/ = null; // warn 4
+                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(53, 29)
+                );
         }
 
         [Fact]
@@ -1862,17 +1965,17 @@ abstract class A
 
 class B1 : A
 {
-    [System.Runtime.CompilerServices.NullableOptOut]
+    [System.Runtime.CompilerServices.NonNullTypes(false)]
     public override event System.Action<string?> E1 {add {} remove{}}
-    [System.Runtime.CompilerServices.NullableOptOut]
+    [System.Runtime.CompilerServices.NonNullTypes(false)]
     public override event System.Action<string> E2 {add {} remove{}}
 }
 
 class B2 : A
 {
-    [System.Runtime.CompilerServices.NullableOptOut]
+    [System.Runtime.CompilerServices.NonNullTypes(false)]
     public override event System.Action<string?> E1; // 2
-    [System.Runtime.CompilerServices.NullableOptOut]
+    [System.Runtime.CompilerServices.NonNullTypes(false)]
     public override event System.Action<string> E2; // 2
 
     void Dummy()
@@ -1882,7 +1985,7 @@ class B2 : A
     }
 }
 ";
-            var compilation = CreateCompilation(new[] { source, NullableOptOutAttributesDefinition }, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular8);
+            var compilation = CreateCompilation(new[] { source, NonNullTypesAttributesDefinition }, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular8);
 
             compilation.VerifyDiagnostics();
         }
@@ -2197,19 +2300,19 @@ abstract class A1
 
 class B1 : A1
 {
-    [System.Runtime.CompilerServices.NullableOptOut]
+    [System.Runtime.CompilerServices.NonNullTypes(false)]
     public override string[] P1 {get; set;} 
-    [System.Runtime.CompilerServices.NullableOptOut]
+    [System.Runtime.CompilerServices.NonNullTypes(false)]
     public override string[]? P2 {get; set;} 
     
-    [System.Runtime.CompilerServices.NullableOptOut]
+    [System.Runtime.CompilerServices.NonNullTypes(false)]
     public override string[] this[int x] // 1
     {
         get {throw new System.NotImplementedException();}
         set {}
     } 
     
-    [System.Runtime.CompilerServices.NullableOptOut]
+    [System.Runtime.CompilerServices.NonNullTypes(false)]
     public override string[]? this[short x] // 2
     {
         get {throw new System.NotImplementedException();}
@@ -2217,7 +2320,7 @@ class B1 : A1
     } 
 }
 ";
-            var compilation = CreateCompilation(new[] { source, NullableOptOutAttributesDefinition }, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular8);
+            var compilation = CreateCompilation(new[] { source, NonNullTypesAttributesDefinition }, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular8);
 
             compilation.VerifyDiagnostics();
         }
@@ -2483,20 +2586,20 @@ abstract class A
 
 class B : A
 {
-    [System.Runtime.CompilerServices.NullableOptOut]
+    [System.Runtime.CompilerServices.NonNullTypes(false)]
     public override string?[] M1()
     {
         return new string?[] {};
     } 
 
-    [System.Runtime.CompilerServices.NullableOptOut]
+    [System.Runtime.CompilerServices.NonNullTypes(false)]
     public override S?[] M2<S>()
     {
         return new S?[] {};
     } 
 }
 ";
-            var compilation = CreateCompilation(new[] { source, NullableOptOutAttributesDefinition }, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular8);
+            var compilation = CreateCompilation(new[] { source, NonNullTypesAttributesDefinition }, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular8);
             compilation.VerifyDiagnostics();
         }
 
@@ -2636,9 +2739,9 @@ class B : IA
             }
         }
 
-        // PROTOTYPE(NullableReferenceTypes): Checking NullableOptOut can result in cycle
-        // when decoding attributes. See NullableOptOut_DecodeAttributeCycle_*.
-        [Fact(Skip = "TODO")]
+        // PROTOTYPE(NullableReferenceTypes): Checking NonNullTypes can result in cycle
+        // when decoding attributes. See NonNullTypes_DecodeAttributeCycle_*.
+        [Fact(Skip = "NonNullTypes")]
         public void Implementing_11()
         {
             var source = @"
@@ -2657,20 +2760,20 @@ interface IA
 
 class B : IA
 {
-    [System.Runtime.CompilerServices.NullableOptOut]
+    [System.Runtime.CompilerServices.NonNullTypes(false)]
     string?[] IA.M1()
     {
         return new string?[] {};
     } 
 
-    [System.Runtime.CompilerServices.NullableOptOut]
+    [System.Runtime.CompilerServices.NonNullTypes(false)]
     S?[] IA.M2<S>() 
     {
         return new S?[] {};
     } 
 }
 ";
-            var compilation = CreateCompilation(new[] { source, NullableOptOutAttributesDefinition }, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular8);
+            var compilation = CreateCompilation(new[] { source, NonNullTypesAttributesDefinition }, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular8);
 
             compilation.VerifyDiagnostics();
         }
@@ -2751,18 +2854,18 @@ abstract class A
 
 class B : A
 {
-    [System.Runtime.CompilerServices.NullableOptOut]
+    [System.Runtime.CompilerServices.NonNullTypes(false)]
     public override void M1(string?[] x)
     {
     } 
 
-    [System.Runtime.CompilerServices.NullableOptOut]
+    [System.Runtime.CompilerServices.NonNullTypes(false)]
     public override void M2<T>(T?[] x)
     {
     } 
 }
 ";
-            var compilation = CreateCompilation(new[] { source, NullableOptOutAttributesDefinition }, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular8);
+            var compilation = CreateCompilation(new[] { source, NonNullTypesAttributesDefinition }, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular8);
 
             compilation.VerifyDiagnostics();
         }
@@ -3332,7 +3435,7 @@ class C
 
 partial class C1
 {
-    [System.Runtime.CompilerServices.NullableOptOut]
+    [System.Runtime.CompilerServices.NonNullTypes(false)]
     partial void M1<T>(T x, T?[] y, System.Action<T> z, System.Action<T?[]?>?[]? u) where T : class;
 }
 
@@ -3341,7 +3444,7 @@ partial class C1
     partial void M1<T>(T? x, T[]? y, System.Action<T?> z, System.Action<T?[]?>?[]? u) where T : class
     { }
 }";
-            var compilation = CreateCompilation(new[] { source, NullableOptOutAttributesDefinition }, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular8);
+            var compilation = CreateCompilation(new[] { source, NonNullTypesAttributesDefinition }, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular8);
 
             compilation.VerifyDiagnostics();
         }
@@ -3364,11 +3467,11 @@ partial class C1
 
 partial class C1
 {
-    [System.Runtime.CompilerServices.NullableOptOut]
+    [System.Runtime.CompilerServices.NonNullTypes(false)]
     partial void M1<T>(T? x, T[]? y, System.Action<T?> z, System.Action<T?[]?>?[]? u) where T : class
     { }
 }";
-            var compilation = CreateCompilation(new[] { source, NullableOptOutAttributesDefinition }, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular8);
+            var compilation = CreateCompilation(new[] { source, NonNullTypesAttributesDefinition }, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular8);
 
             compilation.VerifyDiagnostics();
         }
@@ -21623,7 +21726,7 @@ public class C<T> {}
 
         // PROTOTYPE(NullableReferenceTypes): [NullableOptOutForAssembly] is disabled.
         // See CSharpCompilation.HaveNullableOptOutForAssembly.
-        [Fact(Skip = "[NullableOptOut] is disabled")]
+        [Fact(Skip = "[NonNullTypes(true)] is disabled")]
         public void OptOutFromAssembly_01()
         {
             var parseOptions = TestOptions.Regular8.WithNullCheckingFeature(NullableReferenceFlags.AllowAssemblyOptOut | NullableReferenceFlags.AllowMemberOptOut);
@@ -21650,7 +21753,7 @@ class C
 }
 ";
 
-            CSharpCompilation c = CreateCompilation(new[] { NullableOptOutAttributesDefinition, source },
+            CSharpCompilation c = CreateCompilation(new[] { NonNullTypesAttributesDefinition, source },
                                                                 parseOptions: parseOptions,
                                                                 references: new[] { c0.EmitToImageReference() });
 
@@ -21659,7 +21762,7 @@ class C
                                                      Assert.Equal("System.Runtime.CompilerServices.NullableAttribute", (((PEModuleSymbol)m).GetAttributes().Single().ToString()));
                                                  });
 
-            c = CreateCompilation(new[] { NullableOptOutAttributesDefinition, source },
+            c = CreateCompilation(new[] { NonNullTypesAttributesDefinition, source },
                                                                 parseOptions: parseOptions,
                                                                 references: new[] { c0.ToMetadataReference() });
 
@@ -21668,7 +21771,7 @@ class C
 
         // PROTOTYPE(NullableReferenceTypes): [NullableOptOutForAssembly] is disabled.
         // See CSharpCompilation.HaveNullableOptOutForAssembly.
-        [Fact(Skip = "[NullableOptOut] is disabled")]
+        [Fact(Skip = "[NonNullTypes(true)] is disabled")]
         public void OptOutFromAssembly_02()
         {
             var parseOptions = TestOptions.Regular8.WithNullCheckingFeature(NullableReferenceFlags.AllowAssemblyOptOut | NullableReferenceFlags.AllowMemberOptOut);
@@ -21714,13 +21817,13 @@ class C
                  Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "y2").WithLocation(17, 17)
             };
 
-            CSharpCompilation c = CreateCompilation(new[] { NullableOptOutAttributesDefinition, source },
+            CSharpCompilation c = CreateCompilation(new[] { NonNullTypesAttributesDefinition, source },
                                                                 parseOptions: parseOptions,
                                                                 references: new[] { c0.EmitToImageReference(), c1.EmitToImageReference() });
 
             c.VerifyDiagnostics(expected);
 
-            c = CreateCompilation(new[] { NullableOptOutAttributesDefinition, source },
+            c = CreateCompilation(new[] { NonNullTypesAttributesDefinition, source },
                                                                 parseOptions: parseOptions,
                                                                 references: new[] { c0.ToMetadataReference(), c1.ToMetadataReference() });
 
@@ -21729,7 +21832,7 @@ class C
 
         // PROTOTYPE(NullableReferenceTypes): [NullableOptOutForAssembly] is disabled.
         // See CSharpCompilation.HaveNullableOptOutForAssembly.
-        [Fact(Skip = "[NullableOptOut] is disabled")]
+        [Fact(Skip = "[NonNullTypes(true)] is disabled")]
         public void OptOutFromAssembly_03()
         {
             var parseOptions = TestOptions.Regular8.WithNullCheckingFeature(NullableReferenceFlags.AllowAssemblyOptOut | NullableReferenceFlags.AllowMemberOptOut);
@@ -21752,7 +21855,7 @@ class C
 }
 ";
 
-            CSharpCompilation c = CreateCompilation(new[] { NullableOptOutAttributesDefinition, source },
+            CSharpCompilation c = CreateCompilation(new[] { NonNullTypesAttributesDefinition, source },
                                                                 parseOptions: parseOptions);
 
             c.VerifyDiagnostics(
@@ -21771,8 +21874,8 @@ class C
                 );
         }
 
-        [Fact(Skip = "NullableOptOut does not control warnings")] // PROTOTYPE(NullableReferenceTypes): Update or remove test.
-        public void NullableOptOut_01()
+        [Fact(Skip = "NonNullTypes does not control warnings")] // PROTOTYPE(NullableReferenceTypes): Update or remove test.
+        public void NonNullTypes_01()
         {
             string lib = @"
 using System;
@@ -21804,19 +21907,19 @@ partial class C
         public event Action E1;
         public event Action? E2;
 
-        [System.Runtime.CompilerServices.NullableOptOut]
+        [System.Runtime.CompilerServices.NonNullTypes(false)]
         void Test11(Action? x11)
         {
             E1 = x11;
         }
 
-        [System.Runtime.CompilerServices.NullableOptOut]
+        [System.Runtime.CompilerServices.NonNullTypes(false)]
         void Test12(Action x12)
         {
             x12 = E1 ?? x12;
         }
 
-        [System.Runtime.CompilerServices.NullableOptOut]
+        [System.Runtime.CompilerServices.NonNullTypes(false)]
         void Test13(Action x13)
         {
             x13 = E2;
@@ -21832,7 +21935,7 @@ partial class C
 {
     partial class B 
     {
-        [System.Runtime.CompilerServices.NullableOptOut]
+        [System.Runtime.CompilerServices.NonNullTypes(false)]
         void Test21(CL0.CL1 c, Action? x21)
         {
             c.F1 = x21;
@@ -21840,7 +21943,7 @@ partial class C
             c.M3(x21);
         }
 
-        [System.Runtime.CompilerServices.NullableOptOut]
+        [System.Runtime.CompilerServices.NonNullTypes(false)]
         void Test22(CL0.CL1 c, Action x22)
         {
             x22 = c.F1 ?? x22;
@@ -21848,7 +21951,7 @@ partial class C
             x22 = c.M1() ?? x22;
         }
 
-        [System.Runtime.CompilerServices.NullableOptOut]
+        [System.Runtime.CompilerServices.NonNullTypes(false)]
         void Test23(CL0.CL1 c, Action x23)
         {
             x23 = c.F2;
@@ -21859,25 +21962,25 @@ partial class C
 }
 ";
 
-            CSharpCompilation c = CreateCompilation(new[] { NullableOptOutAttributesDefinition, lib, source1, source2 },
+            CSharpCompilation c = CreateCompilation(new[] { NonNullTypesAttributesDefinition, lib, source1, source2 },
                                                                 parseOptions: TestOptions.Regular8,
                                                                 options: TestOptions.ReleaseDll);
 
             c.VerifyDiagnostics();
 
-            CSharpCompilation c1 = CreateCompilation(new[] { NullableOptOutAttributesDefinition, lib },
+            CSharpCompilation c1 = CreateCompilation(new[] { NonNullTypesAttributesDefinition, lib },
                                                                 parseOptions: TestOptions.Regular8,
                                                                 options: TestOptions.ReleaseDll);
 
             c1.VerifyDiagnostics();
 
-            c = CreateCompilation(new[] { NullableOptOutAttributesDefinition, source2 }, new[] { c1.ToMetadataReference() },
+            c = CreateCompilation(new[] { NonNullTypesAttributesDefinition, source2 }, new[] { c1.ToMetadataReference() },
                                               parseOptions: TestOptions.Regular8,
                                               options: TestOptions.ReleaseDll);
 
             c.VerifyDiagnostics();
 
-            c = CreateCompilation(new[] { NullableOptOutAttributesDefinition, source2 }, new[] { c1.EmitToImageReference() },
+            c = CreateCompilation(new[] { NonNullTypesAttributesDefinition, source2 }, new[] { c1.EmitToImageReference() },
                                               parseOptions: TestOptions.Regular8,
                                               options: TestOptions.ReleaseDll);
 
@@ -21885,7 +21988,7 @@ partial class C
         }
 
         [Fact]
-        public void NullableOptOut_02()
+        public void NonNullTypes_02()
         {
             string moduleAttributes = @"
 [module:System.Runtime.CompilerServices.NullableOptOut(true)]
@@ -21994,7 +22097,7 @@ partial class C
 }
 ";
 
-            CSharpCompilation c = CreateCompilation(new[] { NullableOptOutAttributesDefinition, moduleAttributes, lib, source1, source2 },
+            CSharpCompilation c = CreateCompilation(new[] { NonNullTypesAttributesDefinition, moduleAttributes, lib, source1, source2 },
                                                                 parseOptions: TestOptions.Regular8,
                                                                 options: TestOptions.ReleaseDll);
 
@@ -22037,7 +22140,7 @@ partial class C
                 Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "c.M2()").WithLocation(31, 19)
                 );
 
-            CSharpCompilation c1 = CreateCompilation(new[] { NullableOptOutAttributesDefinition, moduleAttributes, lib },
+            CSharpCompilation c1 = CreateCompilation(new[] { NonNullTypesAttributesDefinition, moduleAttributes, lib },
                                                                 parseOptions: TestOptions.Regular8,
                                                                 options: TestOptions.ReleaseDll);
 
@@ -22073,23 +22176,23 @@ partial class C
                 Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "c.M2()").WithLocation(31, 19)
                 };
 
-            c = CreateCompilation(new[] { NullableOptOutAttributesDefinition, moduleAttributes, source2 }, new[] { c1.ToMetadataReference() },
+            c = CreateCompilation(new[] { NonNullTypesAttributesDefinition, moduleAttributes, source2 }, new[] { c1.ToMetadataReference() },
                                               parseOptions: TestOptions.Regular8,
                                               options: TestOptions.ReleaseDll);
 
             c.VerifyDiagnostics(expected);
 
-            c = CreateCompilation(new[] { NullableOptOutAttributesDefinition, moduleAttributes, source2 }, new[] { c1.EmitToImageReference() },
+            c = CreateCompilation(new[] { NonNullTypesAttributesDefinition, moduleAttributes, source2 }, new[] { c1.EmitToImageReference() },
                                               parseOptions: TestOptions.Regular8,
                                               options: TestOptions.ReleaseDll);
 
             c.VerifyDiagnostics(expected);
         }
 
-        // PROTOTYPE(NullableReferenceTypes): [NullableOptOut] is disabled.
+        // PROTOTYPE(NullableReferenceTypes): [NonNullTypes(true)] is disabled.
         // See CSharpCompilation.HaveNullableOptOutForDefinition.
-        [Fact(Skip = "[NullableOptOut] is disabled")]
-        public void NullableOptOut_03()
+        [Fact(Skip = "[NonNullTypes(true)] is disabled")]
+        public void NonNullTypes_03()
         {
             string moduleAttributes = @"
 [module:System.Runtime.CompilerServices.NullableOptOut(true)]
@@ -22185,7 +22288,7 @@ partial class C
 }
 ";
 
-            CSharpCompilation c = CreateCompilation(new[] { NullableOptOutAttributesDefinition, moduleAttributes, lib, source1, source2 },
+            CSharpCompilation c = CreateCompilation(new[] { NonNullTypesAttributesDefinition, moduleAttributes, lib, source1, source2 },
                                                                 parseOptions: TestOptions.Regular8,
                                                                 options: TestOptions.ReleaseDll);
 
@@ -22215,13 +22318,13 @@ partial class C
                 //             x22 = c.M1() ?? x22;
                 Diagnostic(ErrorCode.HDN_ExpressionIsProbablyNeverNull, "c.M1()").WithLocation(19, 19));
 
-            CSharpCompilation c1 = CreateCompilation(new[] { NullableOptOutAttributesDefinition, moduleAttributes, lib },
+            CSharpCompilation c1 = CreateCompilation(new[] { NonNullTypesAttributesDefinition, moduleAttributes, lib },
                                                                 parseOptions: TestOptions.Regular8,
                                                                 options: TestOptions.ReleaseDll);
 
             c1.VerifyDiagnostics();
 
-            c = CreateCompilation(new[] { NullableOptOutAttributesDefinition, moduleAttributes, source2 }, new[] { c1.ToMetadataReference() },
+            c = CreateCompilation(new[] { NonNullTypesAttributesDefinition, moduleAttributes, source2 }, new[] { c1.ToMetadataReference() },
                                               parseOptions: TestOptions.Regular8,
                                               options: TestOptions.ReleaseDll);
 
@@ -22245,7 +22348,7 @@ partial class C
                 //             x22 = c.M1() ?? x22;
                 Diagnostic(ErrorCode.HDN_ExpressionIsProbablyNeverNull, "c.M1()").WithLocation(19, 19));
 
-            c = CreateCompilation(new[] { NullableOptOutAttributesDefinition, moduleAttributes, source2 }, new[] { c1.EmitToImageReference() },
+            c = CreateCompilation(new[] { NonNullTypesAttributesDefinition, moduleAttributes, source2 }, new[] { c1.EmitToImageReference() },
                                               parseOptions: TestOptions.Regular8,
                                               options: TestOptions.ReleaseDll);
 
@@ -22270,8 +22373,8 @@ partial class C
                 Diagnostic(ErrorCode.HDN_ExpressionIsProbablyNeverNull, "c.M1()").WithLocation(19, 19));
         }
 
-        [Fact(Skip = "NullableOptOut does not control warnings")] // PROTOTYPE(NullableReferenceTypes): Update or remove test.
-        public void NullableOptOut_04()
+        [Fact(Skip = "NonNullTuples does not control warnings")] // PROTOTYPE(NullableReferenceTypes): Update or remove test.
+        public void NonNullTypes_04()
         {
             string moduleAttributes = @"
 [module:System.Runtime.CompilerServices.NullableOptOut(false)]
@@ -22367,33 +22470,33 @@ partial class C
 }
 ";
 
-            CSharpCompilation c = CreateCompilation(new[] { NullableOptOutAttributesDefinition, moduleAttributes, lib, source1, source2 },
+            CSharpCompilation c = CreateCompilation(new[] { NonNullTypesAttributesDefinition, moduleAttributes, lib, source1, source2 },
                                                                 parseOptions: TestOptions.Regular8,
                                                                 options: TestOptions.ReleaseDll);
 
             c.VerifyDiagnostics();
 
-            CSharpCompilation c1 = CreateCompilation(new[] { NullableOptOutAttributesDefinition, moduleAttributes, lib },
+            CSharpCompilation c1 = CreateCompilation(new[] { NonNullTypesAttributesDefinition, moduleAttributes, lib },
                                                                 parseOptions: TestOptions.Regular8,
                                                                 options: TestOptions.ReleaseDll);
 
             c1.VerifyDiagnostics();
 
-            c = CreateCompilation(new[] { NullableOptOutAttributesDefinition, moduleAttributes, source2 }, new[] { c1.ToMetadataReference() },
+            c = CreateCompilation(new[] { NonNullTypesAttributesDefinition, moduleAttributes, source2 }, new[] { c1.ToMetadataReference() },
                                               parseOptions: TestOptions.Regular8,
                                               options: TestOptions.ReleaseDll);
 
             c.VerifyDiagnostics();
 
-            c = CreateCompilation(new[] { NullableOptOutAttributesDefinition, moduleAttributes, source2 }, new[] { c1.EmitToImageReference() },
+            c = CreateCompilation(new[] { NonNullTypesAttributesDefinition, moduleAttributes, source2 }, new[] { c1.EmitToImageReference() },
                                               parseOptions: TestOptions.Regular8,
                                               options: TestOptions.ReleaseDll);
 
             c.VerifyDiagnostics();
         }
 
-        [Fact(Skip = "NullableOptOut does not control warnings")] // PROTOTYPE(NullableReferenceTypes): Update or remove test.
-        public void NullableOptOut_05()
+        [Fact(Skip = "NonNullTypes does not control warnings")] // PROTOTYPE(NullableReferenceTypes): Update or remove test.
+        public void NonNullTypes_05()
         {
             string moduleAttributes = @"
 [module:System.Runtime.CompilerServices.NullableOptOut(false)]
@@ -22491,33 +22594,33 @@ partial class C
 }
 ";
 
-            CSharpCompilation c = CreateCompilation(new[] { NullableOptOutAttributesDefinition, moduleAttributes, lib, source1, source2 },
+            CSharpCompilation c = CreateCompilation(new[] { NonNullTypesAttributesDefinition, moduleAttributes, lib, source1, source2 },
                                                                 parseOptions: TestOptions.Regular8,
                                                                 options: TestOptions.ReleaseDll);
 
             c.VerifyDiagnostics();
 
-            CSharpCompilation c1 = CreateCompilation(new[] { NullableOptOutAttributesDefinition, moduleAttributes, lib },
+            CSharpCompilation c1 = CreateCompilation(new[] { NonNullTypesAttributesDefinition, moduleAttributes, lib },
                                                                 parseOptions: TestOptions.Regular8,
                                                                 options: TestOptions.ReleaseDll);
 
             c1.VerifyDiagnostics();
 
-            c = CreateCompilation(new[] { NullableOptOutAttributesDefinition, moduleAttributes, source2 }, new[] { c1.ToMetadataReference() },
+            c = CreateCompilation(new[] { NonNullTypesAttributesDefinition, moduleAttributes, source2 }, new[] { c1.ToMetadataReference() },
                                               parseOptions: TestOptions.Regular8,
                                               options: TestOptions.ReleaseDll);
 
             c.VerifyDiagnostics();
 
-            c = CreateCompilation(new[] { NullableOptOutAttributesDefinition, moduleAttributes, source2 }, new[] { c1.EmitToImageReference() },
+            c = CreateCompilation(new[] { NonNullTypesAttributesDefinition, moduleAttributes, source2 }, new[] { c1.EmitToImageReference() },
                                               parseOptions: TestOptions.Regular8,
                                               options: TestOptions.ReleaseDll);
 
             c.VerifyDiagnostics();
         }
 
-        [Fact(Skip = "NullableOptOut does not control warnings")] // PROTOTYPE(NullableReferenceTypes): Update or remove test.
-        public void NullableOptOut_06()
+        [Fact(Skip = "NonNullTypes does not control warnings")] // PROTOTYPE(NullableReferenceTypes): Update or remove test.
+        public void NonNullTypes_06()
         {
             string moduleAttributes = @"
 [module:System.Runtime.CompilerServices.NullableOptOut(false)]
@@ -22621,33 +22724,33 @@ partial class C
 }
 ";
 
-            CSharpCompilation c = CreateCompilation(new[] { NullableOptOutAttributesDefinition, moduleAttributes, lib, source1, source2 },
+            CSharpCompilation c = CreateCompilation(new[] { NonNullTypesAttributesDefinition, moduleAttributes, lib, source1, source2 },
                                                                 parseOptions: TestOptions.Regular8,
                                                                 options: TestOptions.ReleaseDll);
 
             c.VerifyDiagnostics();
 
-            CSharpCompilation c1 = CreateCompilation(new[] { NullableOptOutAttributesDefinition, moduleAttributes, lib },
+            CSharpCompilation c1 = CreateCompilation(new[] { NonNullTypesAttributesDefinition, moduleAttributes, lib },
                                                                 parseOptions: TestOptions.Regular8,
                                                                 options: TestOptions.ReleaseDll);
 
             c1.VerifyDiagnostics();
 
-            c = CreateCompilation(new[] { NullableOptOutAttributesDefinition, moduleAttributes, source2 }, new[] { c1.ToMetadataReference() },
+            c = CreateCompilation(new[] { NonNullTypesAttributesDefinition, moduleAttributes, source2 }, new[] { c1.ToMetadataReference() },
                                               parseOptions: TestOptions.Regular8,
                                               options: TestOptions.ReleaseDll);
 
             c.VerifyDiagnostics();
 
-            c = CreateCompilation(new[] { NullableOptOutAttributesDefinition, moduleAttributes, source2 }, new[] { c1.EmitToImageReference() },
+            c = CreateCompilation(new[] { NonNullTypesAttributesDefinition, moduleAttributes, source2 }, new[] { c1.EmitToImageReference() },
                                               parseOptions: TestOptions.Regular8,
                                               options: TestOptions.ReleaseDll);
 
             c.VerifyDiagnostics();
         }
 
-        [Fact(Skip = "NullableOptOut does not control warnings")] // PROTOTYPE(NullableReferenceTypes): Update or remove test.
-        public void NullableOptOut_07()
+        [Fact(Skip = "NonNullTypes does not control warnings")] // PROTOTYPE(NullableReferenceTypes): Update or remove test.
+        public void NonNullTypes_07()
         {
             string moduleAttributes = @"
 [module:System.Runtime.CompilerServices.NullableOptOut(false)]
@@ -22742,33 +22845,33 @@ partial class C
 }
 ";
 
-            CSharpCompilation c = CreateCompilation(new[] { NullableOptOutAttributesDefinition, moduleAttributes, lib, source1, source2 },
+            CSharpCompilation c = CreateCompilation(new[] { NonNullTypesAttributesDefinition, moduleAttributes, lib, source1, source2 },
                                                                 parseOptions: TestOptions.Regular8,
                                                                 options: TestOptions.ReleaseDll);
 
             c.VerifyDiagnostics();
 
-            CSharpCompilation c1 = CreateCompilation(new[] { NullableOptOutAttributesDefinition, moduleAttributes, lib },
+            CSharpCompilation c1 = CreateCompilation(new[] { NonNullTypesAttributesDefinition, moduleAttributes, lib },
                                                                 parseOptions: TestOptions.Regular8,
                                                                 options: TestOptions.ReleaseDll);
 
             c1.VerifyDiagnostics();
 
-            c = CreateCompilation(new[] { NullableOptOutAttributesDefinition, moduleAttributes, source2 }, new[] { c1.ToMetadataReference() },
+            c = CreateCompilation(new[] { NonNullTypesAttributesDefinition, moduleAttributes, source2 }, new[] { c1.ToMetadataReference() },
                                               parseOptions: TestOptions.Regular8,
                                               options: TestOptions.ReleaseDll);
 
             c.VerifyDiagnostics();
 
-            c = CreateCompilation(new[] { NullableOptOutAttributesDefinition, moduleAttributes, source2 }, new[] { c1.EmitToImageReference() },
+            c = CreateCompilation(new[] { NonNullTypesAttributesDefinition, moduleAttributes, source2 }, new[] { c1.EmitToImageReference() },
                                               parseOptions: TestOptions.Regular8,
                                               options: TestOptions.ReleaseDll);
 
             c.VerifyDiagnostics();
         }
 
-        [Fact(Skip = "NullableOptOut does not control warnings")] // PROTOTYPE(NullableReferenceTypes): Update or remove test.
-        public void NullableOptOut_08()
+        [Fact(Skip = "NonNullTypes does not control warnings")] // PROTOTYPE(NullableReferenceTypes): Update or remove test.
+        public void NonNullTypes_08()
         {
             string moduleAttributes = @"
 [module:System.Runtime.CompilerServices.NullableOptOut(false)]
@@ -22861,33 +22964,33 @@ partial class C
 }
 ";
 
-            CSharpCompilation c = CreateCompilation(new[] { NullableOptOutAttributesDefinition, moduleAttributes, lib, source1, source2 },
+            CSharpCompilation c = CreateCompilation(new[] { NonNullTypesAttributesDefinition, moduleAttributes, lib, source1, source2 },
                                                                 parseOptions: TestOptions.Regular8,
                                                                 options: TestOptions.ReleaseDll);
 
             c.VerifyDiagnostics();
 
-            CSharpCompilation c1 = CreateCompilation(new[] { NullableOptOutAttributesDefinition, moduleAttributes, lib },
+            CSharpCompilation c1 = CreateCompilation(new[] { NonNullTypesAttributesDefinition, moduleAttributes, lib },
                                                                 parseOptions: TestOptions.Regular8,
                                                                 options: TestOptions.ReleaseDll);
 
             c1.VerifyDiagnostics();
 
-            c = CreateCompilation(new[] { NullableOptOutAttributesDefinition, moduleAttributes, source2 }, new[] { c1.ToMetadataReference() },
+            c = CreateCompilation(new[] { NonNullTypesAttributesDefinition, moduleAttributes, source2 }, new[] { c1.ToMetadataReference() },
                                               parseOptions: TestOptions.Regular8,
                                               options: TestOptions.ReleaseDll);
 
             c.VerifyDiagnostics();
 
-            c = CreateCompilation(new[] { NullableOptOutAttributesDefinition, moduleAttributes, source2 }, new[] { c1.EmitToImageReference() },
+            c = CreateCompilation(new[] { NonNullTypesAttributesDefinition, moduleAttributes, source2 }, new[] { c1.EmitToImageReference() },
                                               parseOptions: TestOptions.Regular8,
                                               options: TestOptions.ReleaseDll);
 
             c.VerifyDiagnostics();
         }
 
-        [Fact(Skip = "NullableOptOut does not control warnings")] // PROTOTYPE(NullableReferenceTypes): Update or remove test.
-        public void NullableOptOut_09()
+        [Fact(Skip = "NonNullTypes does not control warnings")] // PROTOTYPE(NullableReferenceTypes): Update or remove test.
+        public void NonNullTypes_09()
         {
             string moduleAttributes = @"
 [module:System.Runtime.CompilerServices.NullableOptOut(true)]
@@ -22978,33 +23081,33 @@ partial class C
 }
 ";
 
-            CSharpCompilation c = CreateCompilation(new[] { NullableOptOutAttributesDefinition, moduleAttributes, lib, source1, source2 },
+            CSharpCompilation c = CreateCompilation(new[] { NonNullTypesAttributesDefinition, moduleAttributes, lib, source1, source2 },
                                                                 parseOptions: TestOptions.Regular8,
                                                                 options: TestOptions.ReleaseDll);
 
             c.VerifyDiagnostics();
 
-            CSharpCompilation c1 = CreateCompilation(new[] { NullableOptOutAttributesDefinition, moduleAttributes, lib },
+            CSharpCompilation c1 = CreateCompilation(new[] { NonNullTypesAttributesDefinition, moduleAttributes, lib },
                                                                 parseOptions: TestOptions.Regular8,
                                                                 options: TestOptions.ReleaseDll);
 
             c1.VerifyDiagnostics();
 
-            c = CreateCompilation(new[] { NullableOptOutAttributesDefinition, moduleAttributes, source2 }, new[] { c1.ToMetadataReference() },
+            c = CreateCompilation(new[] { NonNullTypesAttributesDefinition, moduleAttributes, source2 }, new[] { c1.ToMetadataReference() },
                                               parseOptions: TestOptions.Regular8,
                                               options: TestOptions.ReleaseDll);
 
             c.VerifyDiagnostics();
 
-            c = CreateCompilation(new[] { NullableOptOutAttributesDefinition, moduleAttributes, source2 }, new[] { c1.EmitToImageReference() },
+            c = CreateCompilation(new[] { NonNullTypesAttributesDefinition, moduleAttributes, source2 }, new[] { c1.EmitToImageReference() },
                                               parseOptions: TestOptions.Regular8,
                                               options: TestOptions.ReleaseDll);
 
             c.VerifyDiagnostics();
         }
 
-        [Fact(Skip = "NullableOptOut does not control warnings")] // PROTOTYPE(NullableReferenceTypes): Update or remove test.
-        public void NullableOptOut_10()
+        [Fact(Skip = "NonNullTypes does not control warnings")] // PROTOTYPE(NullableReferenceTypes): Update or remove test.
+        public void NonNullTypes_10()
         {
             string moduleAttributes = @"
 [module:System.Runtime.CompilerServices.NullableOptOut(true)]
@@ -23103,7 +23206,7 @@ partial class C
 }
 ";
 
-            CSharpCompilation c = CreateCompilation(new[] { NullableOptOutAttributesDefinition, moduleAttributes, lib, source1, source2 },
+            CSharpCompilation c = CreateCompilation(new[] { NonNullTypesAttributesDefinition, moduleAttributes, lib, source1, source2 },
                                                                 parseOptions: TestOptions.Regular8,
                                                                 options: TestOptions.ReleaseDll);
 
@@ -23146,7 +23249,7 @@ partial class C
                  Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "c.M2()").WithLocation(31, 19)
                 );
 
-            CSharpCompilation c1 = CreateCompilation(new[] { NullableOptOutAttributesDefinition, moduleAttributes, lib },
+            CSharpCompilation c1 = CreateCompilation(new[] { NonNullTypesAttributesDefinition, moduleAttributes, lib },
                                                                 parseOptions: TestOptions.Regular8,
                                                                 options: TestOptions.ReleaseDll);
 
@@ -23182,21 +23285,21 @@ partial class C
                  Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "c.M2()").WithLocation(31, 19)
                 };
 
-            c = CreateCompilation(new[] { NullableOptOutAttributesDefinition, moduleAttributes, source2 }, new[] { c1.ToMetadataReference() },
+            c = CreateCompilation(new[] { NonNullTypesAttributesDefinition, moduleAttributes, source2 }, new[] { c1.ToMetadataReference() },
                                               parseOptions: TestOptions.Regular8,
                                               options: TestOptions.ReleaseDll);
 
             c.VerifyDiagnostics(expected);
 
-            c = CreateCompilation(new[] { NullableOptOutAttributesDefinition, moduleAttributes, source2 }, new[] { c1.EmitToImageReference() },
+            c = CreateCompilation(new[] { NonNullTypesAttributesDefinition, moduleAttributes, source2 }, new[] { c1.EmitToImageReference() },
                                               parseOptions: TestOptions.Regular8,
                                               options: TestOptions.ReleaseDll);
 
             c.VerifyDiagnostics(expected);
         }
 
-        [Fact(Skip = "NullableOptOut does not control warnings")] // PROTOTYPE(NullableReferenceTypes): Update or remove test.
-        public void NullableOptOut_11()
+        [Fact(Skip = "NonNullTypes does not control warnings")] // PROTOTYPE(NullableReferenceTypes): Update or remove test.
+        public void NonNullTypes_11()
         {
             string moduleAttributes = @"
 [module:System.Runtime.CompilerServices.NullableOptOut(true)]
@@ -23295,7 +23398,7 @@ partial class C
 }
 ";
 
-            CSharpCompilation c = CreateCompilation(new[] { NullableOptOutAttributesDefinition, moduleAttributes, lib, source1, source2 },
+            CSharpCompilation c = CreateCompilation(new[] { NonNullTypesAttributesDefinition, moduleAttributes, lib, source1, source2 },
                                                                 parseOptions: TestOptions.Regular8,
                                                                 options: TestOptions.ReleaseDll);
 
@@ -23338,7 +23441,7 @@ partial class C
                  Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "c.M2()").WithLocation(31, 19)
                 );
 
-            CSharpCompilation c1 = CreateCompilation(new[] { NullableOptOutAttributesDefinition, moduleAttributes, lib },
+            CSharpCompilation c1 = CreateCompilation(new[] { NonNullTypesAttributesDefinition, moduleAttributes, lib },
                                                                 parseOptions: TestOptions.Regular8,
                                                                 options: TestOptions.ReleaseDll);
 
@@ -23374,21 +23477,21 @@ partial class C
                  Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "c.M2()").WithLocation(31, 19)
                 };
 
-            c = CreateCompilation(new[] { NullableOptOutAttributesDefinition, moduleAttributes, source2 }, new[] { c1.ToMetadataReference() },
+            c = CreateCompilation(new[] { NonNullTypesAttributesDefinition, moduleAttributes, source2 }, new[] { c1.ToMetadataReference() },
                                               parseOptions: TestOptions.Regular8,
                                               options: TestOptions.ReleaseDll);
 
             c.VerifyDiagnostics(expected);
 
-            c = CreateCompilation(new[] { NullableOptOutAttributesDefinition, moduleAttributes, source2 }, new[] { c1.EmitToImageReference() },
+            c = CreateCompilation(new[] { NonNullTypesAttributesDefinition, moduleAttributes, source2 }, new[] { c1.EmitToImageReference() },
                                               parseOptions: TestOptions.Regular8,
                                               options: TestOptions.ReleaseDll);
 
             c.VerifyDiagnostics(expected);
         }
 
-        [Fact(Skip = "NullableOptOut does not control warnings")] // PROTOTYPE(NullableReferenceTypes): Update or remove test.
-        public void NullableOptOut_12()
+        [Fact(Skip = "NonNullTypes does not control warnings")] // PROTOTYPE(NullableReferenceTypes): Update or remove test.
+        public void NonNullTypes_12()
         {
             string moduleAttributes = @"
 [module:System.Runtime.CompilerServices.NullableOptOut(false)]
@@ -23487,7 +23590,7 @@ partial class C
 }
 ";
 
-            CSharpCompilation c = CreateCompilation(new[] { NullableOptOutAttributesDefinition, moduleAttributes, lib, source1, source2 },
+            CSharpCompilation c = CreateCompilation(new[] { NonNullTypesAttributesDefinition, moduleAttributes, lib, source1, source2 },
                                                                 parseOptions: TestOptions.Regular8,
                                                                 options: TestOptions.ReleaseDll);
 
@@ -23530,7 +23633,7 @@ partial class C
                  Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "c.M2()").WithLocation(31, 19)
                 );
 
-            CSharpCompilation c1 = CreateCompilation(new[] { NullableOptOutAttributesDefinition, moduleAttributes, lib },
+            CSharpCompilation c1 = CreateCompilation(new[] { NonNullTypesAttributesDefinition, moduleAttributes, lib },
                                                                 parseOptions: TestOptions.Regular8,
                                                                 options: TestOptions.ReleaseDll);
 
@@ -23566,28 +23669,28 @@ partial class C
                  Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "c.M2()").WithLocation(31, 19)
                 };
 
-            c = CreateCompilation(new[] { NullableOptOutAttributesDefinition, moduleAttributes, source2 }, new[] { c1.ToMetadataReference() },
+            c = CreateCompilation(new[] { NonNullTypesAttributesDefinition, moduleAttributes, source2 }, new[] { c1.ToMetadataReference() },
                                               parseOptions: TestOptions.Regular8,
                                               options: TestOptions.ReleaseDll);
 
             c.VerifyDiagnostics(expected);
 
-            c = CreateCompilation(new[] { NullableOptOutAttributesDefinition, moduleAttributes, source2 }, new[] { c1.EmitToImageReference() },
+            c = CreateCompilation(new[] { NonNullTypesAttributesDefinition, moduleAttributes, source2 }, new[] { c1.EmitToImageReference() },
                                               parseOptions: TestOptions.Regular8,
                                               options: TestOptions.ReleaseDll);
 
             c.VerifyDiagnostics(expected);
         }
 
-        [Fact(Skip = "NullableOptOut does not control warnings")] // PROTOTYPE(NullableReferenceTypes): Update or remove test.
-        public void NullableOptOut_13()
+        [Fact(Skip = "NonNullTypes does not control warnings")] // PROTOTYPE(NullableReferenceTypes): Update or remove test.
+        public void NonNullTypes_13()
         {
             string source = @"
 class C 
 {
     void Main() {}
 
-    [System.Runtime.CompilerServices.NullableOptOut]
+    [System.Runtime.CompilerServices.NonNullTypes(false)]
     string?[]? M1()
     {
         return null;
@@ -23600,7 +23703,7 @@ class C
         var x1 = M1()[0] ?? """";
     }
 
-    [System.Runtime.CompilerServices.NullableOptOut]
+    [System.Runtime.CompilerServices.NonNullTypes(false)]
     string[] M2()
     {
         return null;
@@ -23614,7 +23717,7 @@ class C
 }
 ";
 
-            CSharpCompilation c = CreateCompilation(new[] { NullableOptOutAttributesDefinition, source },
+            CSharpCompilation c = CreateCompilation(new[] { NonNullTypesAttributesDefinition, source },
                                                                 parseOptions: TestOptions.Regular8,
                                                                 options: TestOptions.ReleaseDll);
 
@@ -23622,15 +23725,15 @@ class C
                 );
         }
 
-        [Fact(Skip = "NullableOptOut does not control warnings")] // PROTOTYPE(NullableReferenceTypes): Update or remove test.
-        public void NullableOptOut_14()
+        [Fact(Skip = "NonNullTypes does not control warnings")] // PROTOTYPE(NullableReferenceTypes): Update or remove test.
+        public void NonNullTypes_14()
         {
             string source = @"
 class C 
 {
     void Main() {}
 
-    [System.Runtime.CompilerServices.NullableOptOut]
+    [System.Runtime.CompilerServices.NonNullTypes(false)]
     CL1<string?>? M1()
     {
         return null;
@@ -23643,7 +23746,7 @@ class C
         var x1 = M1().P1 ?? """";
     }
 
-    [System.Runtime.CompilerServices.NullableOptOut]
+    [System.Runtime.CompilerServices.NonNullTypes(false)]
     CL1<string> M2()
     {
         return null;
@@ -23685,7 +23788,7 @@ class CL1<T>
 }
 ";
 
-            CSharpCompilation c = CreateCompilation(new[] { NullableOptOutAttributesDefinition, source },
+            CSharpCompilation c = CreateCompilation(new[] { NonNullTypesAttributesDefinition, source },
                                                                 parseOptions: TestOptions.Regular8,
                                                                 options: TestOptions.ReleaseDll);
 
@@ -23702,8 +23805,8 @@ class CL1<T>
                 );
         }
 
-        [Fact(Skip = "NullableOptOut does not control warnings")] // PROTOTYPE(NullableReferenceTypes): Update or remove test.
-        public void NullableOptOut_15()
+        [Fact(Skip = "NonNullTypes does not control warnings")] // PROTOTYPE(NullableReferenceTypes): Update or remove test.
+        public void NonNullTypes_15()
         {
             string source = @"
 class C 
@@ -23737,7 +23840,7 @@ class CL3 : CL1<string?>
 
 class CL4<T> where T : class
 {
-    [System.Runtime.CompilerServices.NullableOptOut]
+    [System.Runtime.CompilerServices.NonNullTypes(false)]
     public virtual CL4<T?> M4()
     {
         return new CL4<T?>();
@@ -23761,7 +23864,7 @@ class CL6 : CL4<string?>
 }
 ";
 
-            CSharpCompilation c = CreateCompilation(new[] { NullableOptOutAttributesDefinition, source },
+            CSharpCompilation c = CreateCompilation(new[] { NonNullTypesAttributesDefinition, source },
                                                                 parseOptions: TestOptions.Regular8,
                                                                 options: TestOptions.ReleaseDll);
 
@@ -23781,8 +23884,8 @@ class CL6 : CL4<string?>
                 );
         }
 
-        [Fact(Skip = "NullableOptOut does not control warnings")] // PROTOTYPE(NullableReferenceTypes): Update or remove test.
-        public void NullableOptOut_16()
+        [Fact(Skip = "NonNullTypes does not control warnings")] // PROTOTYPE(NullableReferenceTypes): Update or remove test.
+        public void NonNullTypes_16()
         {
             string source = @"
 class C 
@@ -23813,7 +23916,7 @@ class CL3 : CL1<string?>
 
 class CL4<T> where T : class
 {
-    [System.Runtime.CompilerServices.NullableOptOut]
+    [System.Runtime.CompilerServices.NonNullTypes(false)]
     public virtual void M4(CL4<T?> x4)
     {
     }
@@ -23834,7 +23937,7 @@ class CL6 : CL4<string?>
 }
 ";
 
-            CSharpCompilation c = CreateCompilation(new[] { NullableOptOutAttributesDefinition, source },
+            CSharpCompilation c = CreateCompilation(new[] { NonNullTypesAttributesDefinition, source },
                                                                 parseOptions: TestOptions.Regular8,
                                                                 options: TestOptions.ReleaseDll);
 
@@ -23848,8 +23951,8 @@ class CL6 : CL4<string?>
                 );
         }
 
-        [Fact(Skip = "NullableOptOut does not control warnings")] // PROTOTYPE(NullableReferenceTypes): Update or remove test.
-        public void NullableOptOut_17()
+        [Fact(Skip = "NonNullTypes does not control warnings")] // PROTOTYPE(NullableReferenceTypes): Update or remove test.
+        public void NonNullTypes_17()
         {
             string source = @"
 class C 
@@ -23863,7 +23966,7 @@ class C
     }
 }
 
-[System.Runtime.CompilerServices.NullableOptOut]
+[System.Runtime.CompilerServices.NonNullTypes(false)]
 class CL0<T>
 {
     public static T M1()
@@ -23873,7 +23976,7 @@ class CL0<T>
 }
 ";
 
-            CSharpCompilation c = CreateCompilation(new[] { NullableOptOutAttributesDefinition, source },
+            CSharpCompilation c = CreateCompilation(new[] { NonNullTypesAttributesDefinition, source },
                                                                 parseOptions: TestOptions.Regular8,
                                                                 options: TestOptions.ReleaseDll);
 
@@ -23884,15 +23987,15 @@ class CL0<T>
                 );
         }
 
-        [Fact(Skip = "NullableOptOut does not control warnings")] // PROTOTYPE(NullableReferenceTypes): Update or remove test.
-        public void NullableOptOut_18()
+        [Fact(Skip = "NonNullTypes does not control warnings")] // PROTOTYPE(NullableReferenceTypes): Update or remove test.
+        public void NonNullTypes_18()
         {
             string source = @"
 class C 
 {
     void Main() {}
 
-    [System.Runtime.CompilerServices.NullableOptOut]
+    [System.Runtime.CompilerServices.NonNullTypes(false)]
     CL1<string?>? M1 { get; set; }
 
     void Test1()
@@ -23902,7 +24005,7 @@ class C
         var x1 = M1.P1 ?? """";
     }
 
-    [System.Runtime.CompilerServices.NullableOptOut]
+    [System.Runtime.CompilerServices.NonNullTypes(false)]
     CL1<string> M2 { get; set; }
 
     void Test2()
@@ -23935,7 +24038,7 @@ class CL1<T>
 }
 ";
 
-            CSharpCompilation c = CreateCompilation(new[] { NullableOptOutAttributesDefinition, source },
+            CSharpCompilation c = CreateCompilation(new[] { NonNullTypesAttributesDefinition, source },
                                                                 parseOptions: TestOptions.Regular8,
                                                                 options: TestOptions.ReleaseDll);
 
@@ -23952,8 +24055,8 @@ class CL1<T>
                 );
         }
 
-        [Fact(Skip = "NullableOptOut does not control warnings")] // PROTOTYPE(NullableReferenceTypes): Update or remove test.
-        public void NullableOptOut_19()
+        [Fact(Skip = "NonNullTypes does not control warnings")] // PROTOTYPE(NullableReferenceTypes): Update or remove test.
+        public void NonNullTypes_19()
         {
             string source = @"
 class C 
@@ -23967,14 +24070,14 @@ class C
     }
 }
 
-[System.Runtime.CompilerServices.NullableOptOut]
+[System.Runtime.CompilerServices.NonNullTypes(false)]
 class CL0<T>
 {
     public static T M1 { get; set; }
 }
 ";
 
-            CSharpCompilation c = CreateCompilation(new[] { NullableOptOutAttributesDefinition, source },
+            CSharpCompilation c = CreateCompilation(new[] { NonNullTypesAttributesDefinition, source },
                                                                 parseOptions: TestOptions.Regular8,
                                                                 options: TestOptions.ReleaseDll);
 
@@ -23985,15 +24088,15 @@ class CL0<T>
                 );
         }
 
-        [Fact(Skip = "NullableOptOut does not control warnings")] // PROTOTYPE(NullableReferenceTypes): Update or remove test.
-        public void NullableOptOut_20()
+        [Fact(Skip = "NonNullTypes does not control warnings")] // PROTOTYPE(NullableReferenceTypes): Update or remove test.
+        public void NonNullTypes_20()
         {
             string source = @"
 class C 
 {
     void Main() {}
 
-    [System.Runtime.CompilerServices.NullableOptOut]
+    [System.Runtime.CompilerServices.NonNullTypes(false)]
     CL1<string?>? M1;
 
     void Test1()
@@ -24003,7 +24106,7 @@ class C
         var x1 = M1.P1 ?? """";
     }
 
-    [System.Runtime.CompilerServices.NullableOptOut]
+    [System.Runtime.CompilerServices.NonNullTypes(false)]
     CL1<string> M2;
 
     void Test2()
@@ -24029,7 +24132,7 @@ class C
         var x4 = M4.P1 ?? """";
     }
 
-    [System.Runtime.CompilerServices.NullableOptOut]
+    [System.Runtime.CompilerServices.NonNullTypes(false)]
     void Assign()
     {
         M1 = null;
@@ -24045,7 +24148,7 @@ class CL1<T>
 }
 ";
 
-            CSharpCompilation c = CreateCompilation(new[] { NullableOptOutAttributesDefinition, source },
+            CSharpCompilation c = CreateCompilation(new[] { NonNullTypesAttributesDefinition, source },
                                                                 parseOptions: TestOptions.Regular8,
                                                                 options: TestOptions.ReleaseDll);
 
@@ -24062,8 +24165,8 @@ class CL1<T>
                 );
         }
 
-        [Fact(Skip = "NullableOptOut does not control warnings")] // PROTOTYPE(NullableReferenceTypes): Update or remove test.
-        public void NullableOptOut_21()
+        [Fact(Skip = "NonNullTypes does not control warnings")] // PROTOTYPE(NullableReferenceTypes): Update or remove test.
+        public void NonNullTypes_21()
         {
             string source = @"
 class C 
@@ -24077,14 +24180,14 @@ class C
     }
 }
 
-[System.Runtime.CompilerServices.NullableOptOut]
+[System.Runtime.CompilerServices.NonNullTypes(false)]
 class CL0<T>
 {
     public static T M1 = default(T);
 }
 ";
 
-            CSharpCompilation c = CreateCompilation(new[] { NullableOptOutAttributesDefinition, source },
+            CSharpCompilation c = CreateCompilation(new[] { NonNullTypesAttributesDefinition, source },
                                                                 parseOptions: TestOptions.Regular8,
                                                                 options: TestOptions.ReleaseDll);
 
@@ -24095,15 +24198,15 @@ class CL0<T>
                 );
         }
 
-        [Fact(Skip = "NullableOptOut does not control warnings")] // PROTOTYPE(NullableReferenceTypes): Update or remove test.
-        public void NullableOptOut_22()
+        [Fact(Skip = "NonNullTypes does not control warnings")] // PROTOTYPE(NullableReferenceTypes): Update or remove test.
+        public void NonNullTypes_22()
         {
             string source = @"
 class C 
 {
     void Main() {}
 
-    [System.Runtime.CompilerServices.NullableOptOut]
+    [System.Runtime.CompilerServices.NonNullTypes(false)]
     event System.Func<string?>? M1;
 
     void Test1()
@@ -24113,7 +24216,7 @@ class C
         var x1 = M1() ?? """";
     }
 
-    [System.Runtime.CompilerServices.NullableOptOut]
+    [System.Runtime.CompilerServices.NonNullTypes(false)]
     event System.Func<string> M2;
 
     void Test2()
@@ -24137,7 +24240,7 @@ class C
         var x4 = M4() ?? """";
     }
 
-    [System.Runtime.CompilerServices.NullableOptOut]
+    [System.Runtime.CompilerServices.NonNullTypes(false)]
     void Assign()
     {
         M1 = null;
@@ -24148,7 +24251,7 @@ class C
 }
 ";
 
-            CSharpCompilation c = CreateCompilation(new[] { NullableOptOutAttributesDefinition, source },
+            CSharpCompilation c = CreateCompilation(new[] { NonNullTypesAttributesDefinition, source },
                                                                 parseOptions: TestOptions.Regular8,
                                                                 options: TestOptions.ReleaseDll);
 
@@ -24162,15 +24265,15 @@ class C
                 );
         }
 
-        [Fact(Skip = "NullableOptOut does not control warnings")] // PROTOTYPE(NullableReferenceTypes): Update or remove test.
-        public void NullableOptOut_23()
+        [Fact(Skip = "NonNullTypes does not control warnings")] // PROTOTYPE(NullableReferenceTypes): Update or remove test.
+        public void NonNullTypes_23()
         {
             string source = @"
 class C 
 {
     void Main() {}
 
-    [System.Runtime.CompilerServices.NullableOptOut]
+    [System.Runtime.CompilerServices.NonNullTypes(false)]
     delegate void D1 (CL1<string?>? x1);
 
     void M1(D1 x1) {}
@@ -24182,7 +24285,7 @@ class C
         M1(c1 => {var x1 = c1.P1 ?? """";});
     }
 
-    [System.Runtime.CompilerServices.NullableOptOut]
+    [System.Runtime.CompilerServices.NonNullTypes(false)]
     delegate void D2(CL1<string> x2);
     
     void M2(D2 x2) {}
@@ -24245,7 +24348,7 @@ class CL1<T>
 }
 ";
 
-            CSharpCompilation c = CreateCompilation(new[] { NullableOptOutAttributesDefinition, source },
+            CSharpCompilation c = CreateCompilation(new[] { NonNullTypesAttributesDefinition, source },
                                                                 parseOptions: TestOptions.Regular8,
                                                                 options: TestOptions.ReleaseDll);
 
@@ -24271,8 +24374,8 @@ class CL1<T>
                 );
         }
 
-        [Fact(Skip = "NullableOptOut does not control warnings")] // PROTOTYPE(NullableReferenceTypes): Update or remove test.
-        public void NullableOptOut_24()
+        [Fact(Skip = "NonNullTypes does not control warnings")] // PROTOTYPE(NullableReferenceTypes): Update or remove test.
+        public void NonNullTypes_24()
         {
             string source = @"
 class C 
@@ -24293,7 +24396,7 @@ class C
         CL0<string?> v2 = b2 => {var x2 = b2 ?? """";};
     }
 
-    [System.Runtime.CompilerServices.NullableOptOut]
+    [System.Runtime.CompilerServices.NonNullTypes(false)]
     void M2(CL0<string?> x1) {}
 
     void Test3()
@@ -24302,7 +24405,7 @@ class C
         M2(b3 => {var x3 = b3 ?? """";});
     }
 
-    [System.Runtime.CompilerServices.NullableOptOut]
+    [System.Runtime.CompilerServices.NonNullTypes(false)]
     void M3(CL1<string?> x1) {}
 
     void Test4()
@@ -24319,7 +24422,7 @@ class C
         M4(b5 => {var x5 = b5 ?? """";});
     }
 
-    [System.Runtime.CompilerServices.NullableOptOut]
+    [System.Runtime.CompilerServices.NonNullTypes(false)]
     void M5(CL2<string?> x1) {}
 
     void Test6()
@@ -24329,16 +24432,16 @@ class C
     }
 }
 
-[System.Runtime.CompilerServices.NullableOptOut]
+[System.Runtime.CompilerServices.NonNullTypes(false)]
 delegate void CL0<T>(T x); 
 
-[System.Runtime.CompilerServices.NullableOptOut]
+[System.Runtime.CompilerServices.NonNullTypes(false)]
 delegate void CL1<T>(T? x) where T : class; 
 
 delegate void CL2<T>(T? x) where T : class; 
 ";
 
-            CSharpCompilation c = CreateCompilation(new[] { NullableOptOutAttributesDefinition, source },
+            CSharpCompilation c = CreateCompilation(new[] { NonNullTypesAttributesDefinition, source },
                                                                 parseOptions: TestOptions.Regular8,
                                                                 options: TestOptions.ReleaseDll);
 
@@ -24358,15 +24461,15 @@ delegate void CL2<T>(T? x) where T : class;
                 );
         }
 
-        [Fact(Skip = "NullableOptOut does not control warnings")] // PROTOTYPE(NullableReferenceTypes): Update or remove test.
-        public void NullableOptOut_25()
+        [Fact(Skip = "NonNullTypes does not control warnings")] // PROTOTYPE(NullableReferenceTypes): Update or remove test.
+        public void NonNullTypes_25()
         {
             string source = @"
 class C 
 {
     void Main() {}
 
-    [System.Runtime.CompilerServices.NullableOptOut]
+    [System.Runtime.CompilerServices.NonNullTypes(false)]
     delegate string D1 ();
 
     void M1(D1 x1) {}
@@ -24383,7 +24486,7 @@ class C
 
     delegate T D3<T> ();
 
-    [System.Runtime.CompilerServices.NullableOptOut]
+    [System.Runtime.CompilerServices.NonNullTypes(false)]
     void M3(D3<string> x3) {}
 
     void Test3()
@@ -24393,7 +24496,7 @@ class C
 }
 ";
 
-            CSharpCompilation c = CreateCompilation(new[] { NullableOptOutAttributesDefinition, source },
+            CSharpCompilation c = CreateCompilation(new[] { NonNullTypesAttributesDefinition, source },
                                                                 parseOptions: TestOptions.Regular8,
                                                                 options: TestOptions.ReleaseDll);
 
@@ -24401,8 +24504,8 @@ class C
                 );
         }
 
-        [Fact(Skip = "NullableOptOut does not control warnings")] // PROTOTYPE(NullableReferenceTypes): Update or remove test.
-        public void NullableOptOut_26()
+        [Fact(Skip = "NonNullTypes does not control warnings")] // PROTOTYPE(NullableReferenceTypes): Update or remove test.
+        public void NonNullTypes_26()
         {
             string source = @"
 class C 
@@ -24421,7 +24524,7 @@ class C
         CL0<string> x2 =() => null;
     }
 
-    [System.Runtime.CompilerServices.NullableOptOut]
+    [System.Runtime.CompilerServices.NonNullTypes(false)]
     void M2(D2 x2) {}
 
     void Test3()
@@ -24430,13 +24533,13 @@ class C
     }
 }
 
-[System.Runtime.CompilerServices.NullableOptOut]
+[System.Runtime.CompilerServices.NonNullTypes(false)]
 delegate T CL0<T>(); 
 
 delegate string D2();
 ";
 
-            CSharpCompilation c = CreateCompilation(new[] { NullableOptOutAttributesDefinition, source },
+            CSharpCompilation c = CreateCompilation(new[] { NonNullTypesAttributesDefinition, source },
                                                                 parseOptions: TestOptions.Regular8,
                                                                 options: TestOptions.ReleaseDll);
 
@@ -26643,15 +26746,15 @@ class C
                 Diagnostic(ErrorCode.WRN_NullReferenceReturn, "o").WithLocation(4, 35));
         }
 
-        // PROTOTYPE(NullableReferenceTypes): [NullableOptOut] is disabled.
+        // PROTOTYPE(NullableReferenceTypes): [NonNullTypes(true)] is disabled.
         // See CSharpCompilation.HaveNullableOptOutForDefinition.
-        [Fact(Skip = "[NullableOptOut] is disabled")]
+        [Fact(Skip = "[NonNullTypes(true)] is disabled")]
         public void AllowMemberOptOut()
         {
             var source =
 @"class C
 {
-    [System.Runtime.CompilerServices.NullableOptOut]
+    [System.Runtime.CompilerServices.NonNullTypes(false)]
     static void F(object o) { }
     static void G(object o) { }
     static void M(object? o)
@@ -26662,7 +26765,7 @@ class C
 }";
 
             var comp = CreateCompilation(
-                new[] { source, NullableOptOutAttributesDefinition },
+                new[] { source, NonNullTypesAttributesDefinition },
                 parseOptions: TestOptions.Regular8.WithNullCheckingFeature(NullableReferenceFlags.AllowMemberOptOut));
             comp.VerifyDiagnostics(
                 // (9,11): warning CS8604: Possible null reference argument for parameter 'o' in 'void C.G(object o)'.
@@ -26670,9 +26773,9 @@ class C
                 Diagnostic(ErrorCode.WRN_NullReferenceArgument, "o").WithArguments("o", "void C.G(object o)").WithLocation(9, 11));
 
             comp = CreateCompilation(
-                new[] { source, NullableOptOutAttributesDefinition },
+                new[] { source, NonNullTypesAttributesDefinition },
                 parseOptions: TestOptions.Regular8);
-            // PROTOTYPE(NullableReferenceTypes): Should warn that [NullableOptOut] is ignored.
+            // PROTOTYPE(NullableReferenceTypes): Should warn that [NonNullTypes(true)] is ignored.
             comp.VerifyDiagnostics(
                 // (8,11): warning CS8604: Possible null reference argument for parameter 'o' in 'void C.F(object o)'.
                 //         F(o);
@@ -26684,7 +26787,7 @@ class C
 
         // PROTOTYPE(NullableReferenceTypes): [NullableOptOutForAssembly] is disabled.
         // See CSharpCompilation.HaveNullableOptOutForAssembly.
-        [Fact(Skip = "[NullableOptOut] is disabled")]
+        [Fact(Skip = "[NonNullTypes(true)] is disabled")]
         public void AllowAssemblyOptOut()
         {
             var source0 =
@@ -26700,20 +26803,20 @@ class B
 }";
 
             var comp0 = CreateCompilation(
-                new[] { source0, NullableOptOutAttributesDefinition },
+                new[] { source0, NonNullTypesAttributesDefinition },
                 parseOptions: TestOptions.Regular8,
                 assemblyName: "A.dll");
             comp0.VerifyDiagnostics();
             var ref0 = comp0.EmitToImageReference();
 
             var comp1 = CreateCompilation(
-                new[] { source1, NullableOptOutAttributesDefinition },
+                new[] { source1, NonNullTypesAttributesDefinition },
                 parseOptions: TestOptions.Regular8.WithNullCheckingFeature(NullableReferenceFlags.AllowAssemblyOptOut),
                 references: new[] { ref0 });
             comp1.VerifyDiagnostics();
 
             comp1 = CreateCompilation(
-                new[] { source1, NullableOptOutAttributesDefinition },
+                new[] { source1, NonNullTypesAttributesDefinition },
                 parseOptions: TestOptions.Regular8,
                 references: new[] { ref0 });
             // PROTOTYPE(NullableReferenceTypes): Should warn that [NullableOptOutForAssembly] is ignored.
@@ -27322,7 +27425,7 @@ class C<T>
         }
 
         [Fact]
-        public void NullableOptOut_DecodeAttributeCycle_01()
+        public void NonNullTypes_DecodeAttributeCycle_01()
         {
             var source =
 @"using System.Runtime.InteropServices;
@@ -27342,7 +27445,7 @@ struct S : I
         }
 
         [Fact]
-        public void NullableOptOut_DecodeAttributeCycle_02()
+        public void NonNullTypes_DecodeAttributeCycle_02()
         {
             var source =
 @"[A(P)]

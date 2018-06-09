@@ -728,7 +728,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                 suppressAccessors = true; //we get really unhelpful errors from the accessor if the type is mismatched
                             }
                             else if (((CSharpParseOptions)overridingMemberLocation.SourceTree?.Options)?.IsFeatureEnabled(MessageID.IDS_FeatureStaticNullChecking) == true &&
-                                !overridingMember.NullableOptOut &&
+                                overridingMember.NonNullTypes &&
                                 (compilation = overridingMember.DeclaringCompilation) != null &&
                                 !overridingMemberType.Equals(compilation.GetTypeOrReturnTypeWithAdjustedNullableAnnotations(overriddenProperty), 
                                                              TypeCompareKind.AllIgnoreOptions | 
@@ -775,7 +775,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                 suppressAccessors = true; //we get really unhelpful errors from the accessor if the type is mismatched
                             }
                             else if (((CSharpParseOptions)overridingMemberLocation.SourceTree?.Options)?.IsFeatureEnabled(MessageID.IDS_FeatureStaticNullChecking) == true &&
-                                !overridingMember.NullableOptOut &&
+                                overridingMember.NonNullTypes &&
                                 (compilation = overridingMember.DeclaringCompilation) != null &&
                                 !overridingMemberType.Equals(compilation.GetTypeOrReturnTypeWithAdjustedNullableAnnotations(overriddenEvent), 
                                                              TypeCompareKind.AllIgnoreOptions | 
@@ -813,7 +813,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                             }
                             else if (((CSharpParseOptions)overridingMemberLocation.SourceTree?.Options)?.IsFeatureEnabled(MessageID.IDS_FeatureStaticNullChecking) == true &&
                                 !overridingMember.IsImplicitlyDeclared && !overridingMember.IsAccessor() &&
-                                !overridingMember.NullableOptOut &&
+                                overridingMember.NonNullTypes &&
                                 (compilation = overridingMember.DeclaringCompilation) != null &&
                                 !overridingMethod.ReturnType.Equals(compilation.GetTypeOrReturnTypeWithAdjustedNullableAnnotations(overriddenMethod), 
                                                                     TypeCompareKind.AllIgnoreOptions | 
@@ -826,7 +826,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                         if (((CSharpParseOptions)overridingMemberLocation.SourceTree?.Options)?.IsFeatureEnabled(MessageID.IDS_FeatureStaticNullChecking) == true &&
                             !overridingMember.IsImplicitlyDeclared && !overridingMember.IsAccessor() &&
-                            !overridingMember.NullableOptOut &&
+                            overridingMember.NonNullTypes &&
                             (compilation = overridingMember.DeclaringCompilation) != null)
                         {
                             ImmutableArray<ParameterSymbol> overridingParameters = overridingMember.GetParameters();

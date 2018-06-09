@@ -705,12 +705,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             }
         }
 
-        internal override bool NullableOptOut
+        internal override bool NonNullTypes
         {
             get
             {
-                bool optOut;
-                return _module.HasNullableOptOutAttribute(EntityHandle.ModuleDefinition, out optOut) ? optOut : base.NullableOptOut;
+                // The default for PE modules is [NonNullTypes(false)]
+                bool nonNullTypes;
+                return _module.HasNonNullTypesAttribute(EntityHandle.ModuleDefinition, out nonNullTypes) ? nonNullTypes : base.NonNullTypes;
             }
         }
     }

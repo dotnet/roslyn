@@ -1301,7 +1301,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal override bool NullableOptOut
+        internal override bool NonNullTypes
         {
             get
             {
@@ -1311,10 +1311,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 if ((object)container != null)
                 {
-                    return container.NullableOptOut;
+                    return container.NonNullTypes;
                 }
 
-                return ContainingModule?.NullableOptOut == true;
+                return ContainingModule?.NonNullTypes == true;
             }
         }
 

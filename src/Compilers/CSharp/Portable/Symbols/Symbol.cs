@@ -832,9 +832,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>
-        /// Is module/type/method/field/property/event/parameter definition opted out of nullable warnings. Not valid to call on non-definitions.
+        /// Is module/type/method/field/property/event/parameter definition opted-in/out of treating un-annotated types as non-null.
+        /// This is determined by the presence of the `[NonNullTypes]` attribute and whether the containing module utilizes nullable reference types.
+        /// Not valid to call on non-definitions.
         /// </summary>
-        internal virtual bool NullableOptOut
+        internal virtual bool NonNullTypes
         {
             get
             {
