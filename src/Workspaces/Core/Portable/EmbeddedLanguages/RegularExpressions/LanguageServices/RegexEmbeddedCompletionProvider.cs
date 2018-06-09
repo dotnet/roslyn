@@ -224,16 +224,23 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions.LanguageSe
             var replacementSpan = TextSpan.FromBounds(replacementStart, context.Position);
             var newPosition = replacementStart + positionOffset;
 
-            insertionText = _language.EscapeText(insertionText ?? displayText, stringToken);
+            insertionText = insertionText ?? displayText;
+            var escapedInsertionText = _language.EscapeText(insertionText, stringToken);
             if (description != "")
             {
                 displayText += "  -  " + description;
             }
 
+            if (escapedInsertionText != insertionText)
+            {
+                newPosition += escapedInsertionText.Length - insertionText.Length;
+            }
+
             return new EmbeddedCompletionItem(
                 displayText, description, 
                 new EmbeddedCompletionChange(
-                    new TextChange(replacementSpan, insertionText), newPosition, includesCommitCharacter: false));
+                    new TextChange(replacementSpan, escapedInsertionText),
+                    newPosition, includesCommitCharacter: false));
         }
 
         private (RegexNode parent, RegexToken Token, bool inCharacterClass)? FindToken(

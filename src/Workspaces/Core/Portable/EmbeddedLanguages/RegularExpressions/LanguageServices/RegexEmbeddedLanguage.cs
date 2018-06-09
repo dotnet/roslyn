@@ -61,6 +61,10 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions.LanguageSe
             var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
             var detector = RegexPatternDetector.TryGetOrCreate(semanticModel, this);
             var tree = detector?.TryParseRegexPattern(token, cancellationToken);
+            if (tree == null)
+            {
+                return null;
+            }
 
             return (tree, token);
         }
