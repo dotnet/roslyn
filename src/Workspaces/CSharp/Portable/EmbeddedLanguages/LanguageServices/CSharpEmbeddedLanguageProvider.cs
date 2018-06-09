@@ -14,7 +14,8 @@ namespace Microsoft.CodeAnalysis.CSharp.EmbeddedLanguages.LanguageServices
     {
         public static IEmbeddedLanguageProvider Instance = new CSharpEmbeddedLanguageProvider();
 
-        private CSharpEmbeddedLanguageProvider()
+        [ImportingConstructor]
+        public CSharpEmbeddedLanguageProvider()
             : base((int)SyntaxKind.StringLiteralToken,
                    CSharpSyntaxFactsService.Instance,
                    CSharpSemanticFactsService.Instance,

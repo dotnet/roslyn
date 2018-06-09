@@ -92,7 +92,8 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions.LanguageSe
             // of suggestions to help the user out.
             var count = context.Items.Count;
 
-            ProvideCompletionsAfterInsertion(context, treeAndStringToken.Value.tree, treeAndStringToken.Value.token);
+            var (tree, stringToken) = treeAndStringToken.Value;
+            ProvideCompletionsAfterInsertion(context, tree, stringToken);
 
             if (count != context.Items.Count)
             {
@@ -109,7 +110,15 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions.LanguageSe
 
             // We added no items, but the user explicitly asked for completion.  Add all the
             // items we can to help them out.
-            // Otherwise, we want to provide all completions.
+            var inCharacterClass = false;
+
+            var virtualChar = tree.Text.FirstOrNullable(vc => vc.Span.Contains(context.Position));
+            if (virtualChar != null)
+            {
+                inCharacterClass = IsInCharacterClass(tree.Root, virtualChar.Value, inCharacterClass: false);
+            }
+
+            ProvideEscapeCompletions(context, stringToken, inCharacterClass, parentOpt: null);
         }
 
         private void ProvideCompletionsAfterInsertion(
@@ -122,21 +131,40 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions.LanguageSe
                 return;
             }
 
-            var result = FindToken(tree.Root, previousVirtualChar.Value, inCharacterClass: false);
+            var result = FindToken(tree.Root, previousVirtualChar.Value);
             if (result == null)
             {
                 return;
             }
 
-            var (parent, token, inCharacterClass) = result.Value;
+            var (parent, token) = result.Value;
+            var inCharacterClass = IsInCharacterClass(tree.Root, previousVirtualChar.Value, inCharacterClass: false);
+
+            if (token.Kind == RegexKind.BackslashToken)
+            {
+                ProvideEscapeCompletions(context, stringToken, inCharacterClass, parent);
+                return;
+            }
+
+            if (token.Kind == RegexKind.OpenBracketToken)
+            {
+                // ProvideCharacterClassCompletions(context);
+                return;
+            }
+
+            if (token.Kind == RegexKind.OpenBraceToken) {
+                // ProvideEscapeCategoryCompletions(context);
+                return;
+            }
+
+            if (inCharacterClass)
+            {
+                // Nothing more to offer if we're in a character class.
+                return;
+            }
+
             switch (token.Kind)
             {
-                case RegexKind.BackslashToken:
-                    ProvideEscapeCompletions(context, stringToken, parent, inCharacterClass);
-                    return;
-                case RegexKind.OpenBracketToken:
-                    // ProvideCharacterClassCompletions(context);
-                    return;
                 case RegexKind.OpenParenToken:
                 case RegexKind.QuestionToken:
                 case RegexKind.LessThanToken:
@@ -144,9 +172,6 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions.LanguageSe
                 case RegexKind.SingleQuoteToken:
                 case RegexKind.ExclamationToken:
                     // ProvideGroupingCompletions(context);
-                    return;
-                case RegexKind.OpenBraceToken:
-                    // ProvideEscapeCategoryCompletions(context);
                     return;
                 case RegexKind.OptionsToken:
                     // ProvideOptionsCompletions(context, optionsT);
@@ -156,7 +181,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions.LanguageSe
 
         private void ProvideEscapeCompletions(
             EmbeddedCompletionContext context, SyntaxToken stringToken,
-            RegexNode parentOpt, bool inCharacterClass)
+            bool inCharacterClass, RegexNode parentOpt)
         {
             if (parentOpt != null && !(parentOpt is RegexEscapeNode))
             {
@@ -243,14 +268,14 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions.LanguageSe
                     newPosition, includesCommitCharacter: false));
         }
 
-        private (RegexNode parent, RegexToken Token, bool inCharacterClass)? FindToken(
-            RegexNode parent, VirtualChar ch, bool inCharacterClass)
+        private (RegexNode parent, RegexToken Token)? FindToken(
+            RegexNode parent, VirtualChar ch)
         {
             foreach (var child in parent)
             {
                 if (child.IsNode)
                 {
-                    var result = FindToken(child.Node, ch, inCharacterClass || child.Node is RegexBaseCharacterClassNode);
+                    var result = FindToken(child.Node, ch);
                     if (result != null)
                     {
                         return result;
@@ -260,12 +285,36 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions.LanguageSe
                 {
                     if (child.Token.VirtualChars.Contains(ch))
                     {
-                        return (parent, child.Token, inCharacterClass);
+                        return (parent, child.Token);
                     }
                 }
             }
 
             return null;
+        }
+
+        private bool IsInCharacterClass(RegexNode parent, VirtualChar ch, bool inCharacterClass)
+        {
+            foreach (var child in parent)
+            {
+                if (child.IsNode)
+                {
+                    var result = IsInCharacterClass(child.Node, ch, inCharacterClass || child.Node is RegexBaseCharacterClassNode);
+                    if (result)
+                    {
+                        return result;
+                    }
+                }
+                else
+                {
+                    if (child.Token.VirtualChars.Contains(ch))
+                    {
+                        return inCharacterClass;
+                    }
+                }
+            }
+
+            return false;
         }
     }
 }
