@@ -1348,7 +1348,7 @@ namespace Microsoft.CodeAnalysis {
                 return ResourceManager.GetString("regex_control_character_short", resourceCulture);
             }
         }
-        
+         
         /// <summary>
         ///   Looks up a localized string similar to \d matches any decimal digit. It is equivalent to the \p{Nd} regular expression pattern, which includes the standard decimal digits 0-9 as well as the decimal digits of a number of other character sets.
         ///

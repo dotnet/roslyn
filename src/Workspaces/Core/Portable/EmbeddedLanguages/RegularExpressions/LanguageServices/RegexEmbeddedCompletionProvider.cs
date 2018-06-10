@@ -278,12 +278,12 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions.LanguageSe
             AddIfMissing(context, CreateItem(stringToken, @"\u####", regex_unicode_escape_short, regex_unicode_escape_long, context, parentOpt, @"\u".Length, @"\u"));
             AddIfMissing(context, CreateItem(stringToken, @"\cX", regex_control_character_short, regex_control_character_long, context, parentOpt, @"\c".Length, @"\c"));
 
-            AddIfMissing(context, CreateItem(stringToken, @"\d", "", "", context, parentOpt));
-            AddIfMissing(context, CreateItem(stringToken, @"\D", "", "", context, parentOpt));
+            AddIfMissing(context, CreateItem(stringToken, @"\d", regex_decimal_digit_character_short, regex_decimal_digit_character_long, context, parentOpt));
+            AddIfMissing(context, CreateItem(stringToken, @"\D", regex_non_digit_character_short, regex_non_digit_character_long, context, parentOpt));
             AddIfMissing(context, CreateItem(stringToken, @"\p{}", regex_unicode_category_short, regex_unicode_category_long, context, parentOpt, @"\p".Length, @"\p"));
             AddIfMissing(context, CreateItem(stringToken, @"\P{}", regex_negative_unicode_category_short, regex_negative_unicode_category_long, context, parentOpt, @"\P".Length, @"\P"));
-            AddIfMissing(context, CreateItem(stringToken, @"\s", "", "", context, parentOpt));
-            AddIfMissing(context, CreateItem(stringToken, @"\S", "", "", context, parentOpt));
+            AddIfMissing(context, CreateItem(stringToken, @"\s", regex_white_space_character_short, regex_white_space_character_long, context, parentOpt));
+            AddIfMissing(context, CreateItem(stringToken, @"\S", regex_non_white_space_character_short, regex_non_white_space_character_long, context, parentOpt));
             AddIfMissing(context, CreateItem(stringToken, @"\w", regex_word_character_short, regex_word_character_long, context, parentOpt));
             AddIfMissing(context, CreateItem(stringToken, @"\W", regex_non_word_character_short, regex_non_word_character_long, context, parentOpt));
         }
