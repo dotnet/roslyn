@@ -219,16 +219,6 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
             MyBase.SendCommitUniqueCompletionListItem(Sub(a, n, c) handler.ExecuteCommand(a, n, c), Sub() Return)
         End Sub
 
-        Public Overloads Sub SendSelectCompletionItem(displayText As String)
-            Dim item = CurrentCompletionPresenterSession.CompletionItems.FirstOrDefault(Function(i) i.DisplayText = displayText)
-            Assert.NotNull(item)
-            CurrentCompletionPresenterSession.SetSelectedItem(item)
-        End Sub
-
-        Public Overloads Sub SendSelectCompletionItemThroughPresenterSession(item As Microsoft.CodeAnalysis.Completion.CompletionItem)
-            CurrentCompletionPresenterSession.SetSelectedItem(item)
-        End Sub
-
         Public Overloads Sub SendInsertSnippetCommand()
             ' Won't work
             Dim handler = DirectCast(EditorCompletionCommandHandler, VSCommanding.ICommandHandler(Of InsertSnippetCommandArgs))
@@ -276,10 +266,14 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
 
         End Function
 
-        Public Async Function AssertCompletionSession() As Task
+        Public Async Function AssertCompletionSession(Optional numberOfItems As Integer = 0) As Task
             Await WaitForAsynchronousOperationsAsync()
             Dim session = GetExportedValue(Of IAsyncCompletionBroker)().GetSession(TextView)
             Assert.NotNull(session)
+
+            If numberOfItems <> 0 Then
+                Assert.Equal(numberOfItems, session.GetComputedItems(CancellationToken.None).Items.Count())
+            End If
         End Function
 
         Public Async Function AssertLineTextAroundCaret(expectedTextBeforeCaret As String, expectedTextAfterCaret As String) As Task
