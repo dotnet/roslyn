@@ -16,6 +16,7 @@ Null-state of `local` is passed through from `expr`.
 
 Declared type of `local` has nullability from `expr`.
 
+Open issue: what is the state of `s` declared as `string s = obliviousString;`? (see [issue](https://github.com/dotnet/roslyn/issues/27686))
 
 ----
 ### Assignment
@@ -122,6 +123,18 @@ We will do some validation on constraints, so as to complain for nullability mis
 
 `T?` is disallowed for now.
 
+----
+### NonNullTypes
+The `[NonNullTypes(true)]` attribute is assume by default for source (when the language version is 8.0 or above). It means that reference types like `string` are interpreted to mean non-null string.
+The `[NonNullTypes(false)]` attribute causes reference types to be interpreted as oblivious instead.
+Note that the `NonNullTypes` only affects the interpretation of types, it does not directly affect the production of warnings.
+
+----
+### Warnings
+The nullability warnings are produced when using language version 8.0 (or above) and the nullability feature is turned on.
+Warnings can be suppressed by usual mechanisms.
+
+Open issue: what compiler flag and UI experience to turn the feature on?
 
 ----
 ### Null tests
@@ -134,10 +147,11 @@ No warning for testing something that is already expected to be non-null. This a
 #### Attribute annotations
 - `[EnsuresNotNull]`: `void ThrowsIfNull([EnsuresNotNull] object? o)`
 - `[NotNullWhenFalse]`: `bool IsNullOrEmpty([NotNullWhenFalse] string? s)`
-- `[EnsuresTrue]`: `void Debug.Assert([EnsuresTrue] bool condition)`
-- `[EnsuresFalse]`
+- `[AssertsTrue]`: `void Debug.Assert([AssertsTrue] bool condition)`
+- `[AssertsFalse]`
 - other attributes are being discussed: `[NotNullWhenTrue]` (for `TryGetValue`), null-in null-out, "trust me" fields, equality methods, ref parameters that only set
 
+Open issue: do those annotations apply as arguments are evaluated, or only once the method returns?
 
 ----
 ### Flow analysis
