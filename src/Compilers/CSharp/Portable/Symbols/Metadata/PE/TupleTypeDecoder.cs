@@ -240,9 +240,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             for (int i = typeArgs.Length - 1; i >= 0; i--)
             {
                 var typeArg = typeArgs[i];
-                var decoded = DecodeType(typeArg.TypeSymbol);
+                var decoded = DecodeTypeInternal(typeArg);
                 anyDecoded |= !ReferenceEquals(decoded, typeArg.TypeSymbol);
-                decodedArgs.Add(TypeSymbolWithAnnotations.Create(decoded, typeArg.CustomModifiers));
+                decodedArgs.Add(decoded);
             }
 
             if (!anyDecoded)
@@ -257,11 +257,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
         private ArrayTypeSymbol DecodeArrayType(ArrayTypeSymbol type)
         {
-            var elementType = type.ElementType.TypeSymbol;
-            var decodedElementType = DecodeType(elementType);
+            var elementType = type.ElementType;
+            var decodedElementType = DecodeTypeInternal(elementType);
             return ReferenceEquals(decodedElementType, elementType)
                 ? type
-                : type.WithElementType(TypeSymbolWithAnnotations.Create(decodedElementType, type.ElementType.CustomModifiers));
+                : type.WithElementType(decodedElementType);
+        }
+
+        private TypeSymbolWithAnnotations DecodeTypeInternal(TypeSymbolWithAnnotations typeWithAnnotations)
+        {
+            var type = typeWithAnnotations.TypeSymbol;
+            var decoded = DecodeType(type);
+            return ReferenceEquals(decoded, type) ?
+                typeWithAnnotations :
+                TypeSymbolWithAnnotations.Create(decoded, typeWithAnnotations.IsNullable, typeWithAnnotations.CustomModifiers);
         }
 
         private ImmutableArray<string> EatElementNamesIfAvailable(int numberOfElements)

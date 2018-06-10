@@ -212,6 +212,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                             continue;
                         }
 
+                        if (moduleSymbol.UtilizesNullableReferenceTypes)
+                        {
+                            typeSymbol = NullableTypeDecoder.TransformType(TypeSymbolWithAnnotations.Create(typeSymbol), constraintHandle, moduleSymbol).TypeSymbol;
+                        }
                         typeSymbol = TupleTypeDecoder.DecodeTupleTypesIfApplicable(typeSymbol, constraintHandle, moduleSymbol);
 
                         symbolsBuilder.Add(TypeSymbolWithAnnotations.Create(moduleSymbol, typeSymbol));

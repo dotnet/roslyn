@@ -1107,7 +1107,7 @@ class C
             var source =
 @"public class A
 {
-    public static ((object?, object) _1, object? _2, object _3, ((object?, object), object?) _4) Nested;
+    public static ((object?, object) _1, object? _2, object _3, ((object?[], object), object?) _4) Nested;
     public static (object? _1, object _2, object? _3, object _4, object? _5, object _6, object? _7, object _8, object? _9) Long;
 }";
             var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
@@ -1124,7 +1124,7 @@ class C
                     "MemberReference:Void System.Runtime.CompilerServices.TupleElementNamesAttribute..ctor(String[])",
                     "MethodDefinition:Void System.Runtime.CompilerServices.NullableAttribute..ctor(Boolean[])");
                 var customAttribute = reader.GetCustomAttribute(customAttributes.ElementAt(1));
-                AssertEx.Equal(ImmutableArray.Create(false, false, true, false, true, false, false, false, true, false, true), reader.ReadBoolArray(customAttribute.Value));
+                AssertEx.Equal(ImmutableArray.Create(false, false, true, false, true, false, false, false, false, true, false, true), reader.ReadBoolArray(customAttribute.Value));
 
                 // Long tuple
                 field = fieldDefs.Single(f => reader.StringComparer.Equals(f.Name, "Long"));
@@ -1135,26 +1135,28 @@ class C
                 customAttribute = reader.GetCustomAttribute(customAttributes.ElementAt(1)); 
                 AssertEx.Equal(ImmutableArray.Create(false, true, false, true, false, true, false, true, false, false, true), reader.ReadBoolArray(customAttribute.Value));
             });
+
             var source2 =
 @"class B
 {
     static void Main()
     {
         A.Nested._1.Item1.ToString(); // 1
-        A.Nested._1.Item2.ToString(); // 2
-        A.Nested._2.ToString(); // 3
-        A.Nested._3.ToString(); // 4
-        A.Nested._4.Item1.Item1.ToString(); // 5
-        A.Nested._4.Item1.Item2.ToString(); // 6
-        A.Nested._4.Item2.ToString(); // 7
-        A.Long._1.ToString(); // 1
-        A.Long._2.ToString(); // 2
-        A.Long._3.ToString(); // 3
-        A.Long._4.ToString(); // 4
-        A.Long._5.ToString(); // 5
-        A.Long._6.ToString(); // 6
-        A.Long._7.ToString(); // 7
-        A.Long._8.ToString(); // 8
+        A.Nested._1.Item2.ToString();
+        A.Nested._2.ToString(); // 2
+        A.Nested._3.ToString();
+        A.Nested._4.Item1.Item1.ToString();
+        A.Nested._4.Item1.Item1[0].ToString(); // 3
+        A.Nested._4.Item1.Item2.ToString();
+        A.Nested._4.Item2.ToString(); // 4
+        A.Long._1.ToString(); // 5
+        A.Long._2.ToString();
+        A.Long._3.ToString(); // 6
+        A.Long._4.ToString();
+        A.Long._5.ToString(); // 7
+        A.Long._6.ToString();
+        A.Long._7.ToString(); // 8
+        A.Long._8.ToString();
         A.Long._9.ToString(); // 9
     }
 }";
@@ -1164,29 +1166,37 @@ class C
                 //         A.Nested._1.Item1.ToString(); // 1
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "A.Nested._1.Item1").WithLocation(5, 9),
                 // (7,9): warning CS8602: Possible dereference of a null reference.
-                //         A.Nested._2.ToString(); // 3
+                //         A.Nested._2.ToString(); // 2
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "A.Nested._2").WithLocation(7, 9),
-                // (9,9): warning CS8602: Possible dereference of a null reference.
-                //         A.Nested._4.Item1.Item1.ToString(); // 5
-                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "A.Nested._4.Item1.Item1").WithLocation(9, 9),
-                // (11,9): warning CS8602: Possible dereference of a null reference.
-                //         A.Nested._4.Item2.ToString(); // 7
-                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "A.Nested._4.Item2").WithLocation(11, 9),
+                // (10,9): warning CS8602: Possible dereference of a null reference.
+                //         A.Nested._4.Item1.Item1[0].ToString(); // 3
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "A.Nested._4.Item1.Item1[0]").WithLocation(10, 9),
                 // (12,9): warning CS8602: Possible dereference of a null reference.
-                //         A.Long._1.ToString(); // 1
-                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "A.Long._1").WithLocation(12, 9),
-                // (14,9): warning CS8602: Possible dereference of a null reference.
-                //         A.Long._3.ToString(); // 3
-                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "A.Long._3").WithLocation(14, 9),
-                // (16,9): warning CS8602: Possible dereference of a null reference.
-                //         A.Long._5.ToString(); // 5
-                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "A.Long._5").WithLocation(16, 9),
-                // (18,9): warning CS8602: Possible dereference of a null reference.
-                //         A.Long._7.ToString(); // 7
-                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "A.Long._7").WithLocation(18, 9),
-                // (20,9): warning CS8602: Possible dereference of a null reference.
+                //         A.Nested._4.Item2.ToString(); // 4
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "A.Nested._4.Item2").WithLocation(12, 9),
+                // (13,9): warning CS8602: Possible dereference of a null reference.
+                //         A.Long._1.ToString(); // 5
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "A.Long._1").WithLocation(13, 9),
+                // (15,9): warning CS8602: Possible dereference of a null reference.
+                //         A.Long._3.ToString(); // 6
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "A.Long._3").WithLocation(15, 9),
+                // (17,9): warning CS8602: Possible dereference of a null reference.
+                //         A.Long._5.ToString(); // 7
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "A.Long._5").WithLocation(17, 9),
+                // (19,9): warning CS8602: Possible dereference of a null reference.
+                //         A.Long._7.ToString(); // 8
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "A.Long._7").WithLocation(19, 9),
+                // (21,9): warning CS8602: Possible dereference of a null reference.
                 //         A.Long._9.ToString(); // 9
-                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "A.Long._9").WithLocation(20, 9));
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "A.Long._9").WithLocation(21, 9));
+
+            var type = comp2.GetMember<NamedTypeSymbol>("A");
+            Assert.Equal(
+                "((System.Object?, System.Object) _1, System.Object? _2, System.Object _3, ((System.Object?[], System.Object), System.Object?) _4)",
+                type.GetMember<FieldSymbol>("Nested").Type.ToTestDisplayString());
+            Assert.Equal(
+                "(System.Object? _1, System.Object _2, System.Object? _3, System.Object _4, System.Object? _5, System.Object _6, System.Object? _7, System.Object _8, System.Object? _9)",
+                type.GetMember<FieldSymbol>("Long").Type.ToTestDisplayString());
         }
 
         // DynamicAttribute and NullableAttribute formats should be aligned.
@@ -1273,46 +1283,46 @@ public class B<T> :
     static void F(B<A<(object?, (object, object?), object, object?, object, object?, object, object?)>> b)
     {
         b.Field._8.ToString();
-        b.Field._9.ToString();
+        b.Field._9.ToString(); // 1
         b.Method(default)._8.ToString();
-        b.Method(default)._9.ToString();
+        b.Method(default)._9.ToString(); // 2
         b.Property._8.ToString();
-        b.Property._9.ToString();
+        b.Property._9.ToString(); // 3
     }
 }";
             var comp2 = CreateCompilation(source2, parseOptions: TestOptions.Regular8, references: new[] { comp.EmitToImageReference() });
             comp2.VerifyDiagnostics(
                 // (6,9): warning CS8602: Possible dereference of a null reference.
-                //         b.Field._9.ToString();
+                //         b.Field._9.ToString(); // 1
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "b.Field._9").WithLocation(6, 9),
                 // (8,9): warning CS8602: Possible dereference of a null reference.
-                //         b.Method(default)._9.ToString();
+                //         b.Method(default)._9.ToString(); // 2
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "b.Method(default)._9").WithLocation(8, 9),
                 // (10,9): warning CS8602: Possible dereference of a null reference.
-                //         b.Property._9.ToString();
+                //         b.Property._9.ToString(); // 3
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "b.Property._9").WithLocation(10, 9));
 
             var type = comp2.GetMember<NamedTypeSymbol>("B");
             Assert.Equal(
-                "A<(System.Object _1, (System.Object _2, System.Object? _3), System.Object _4, System.Object _5, System.Object _6, System.Object _7, System.Object _8, System.Object? _9)>",
+                "A<(System.Object? _1, (System.Object _2, System.Object? _3), System.Object _4, System.Object? _5, System.Object _6, System.Object? _7, System.Object _8, System.Object? _9)>",
                 type.BaseTypeNoUseSiteDiagnostics.ToTestDisplayString());
             Assert.Equal(
-                "I<(System.Object _1, (System.Object _2, System.Object? _3), System.Object _4, System.Object _5, System.Object _6, System.Object _7, System.Object _8, System.Object? _9)>",
+                "I<(System.Object? _1, (System.Object _2, System.Object? _3), System.Object _4, System.Object? _5, System.Object _6, System.Object? _7, System.Object _8, System.Object? _9)>",
                 type.Interfaces()[0].ToTestDisplayString());
             Assert.Equal(
-                "A<(System.Object _1, (System.Object _2, System.Object? _3), System.Object _4, System.Object _5, System.Object _6, System.Object _7, System.Object _8, System.Object? _9)>",
+                "A<(System.Object? _1, (System.Object _2, System.Object? _3), System.Object _4, System.Object? _5, System.Object _6, System.Object? _7, System.Object _8, System.Object? _9)>",
                 type.TypeParameters[0].ConstraintTypes()[0].ToTestDisplayString());
             Assert.Equal(
-                "(dynamic _1, (System.Object _2, dynamic? _3), System.Object _4, dynamic _5, System.Object _6, dynamic _7, System.Object _8, dynamic? _9)",
+                "(dynamic? _1, (System.Object _2, dynamic? _3), System.Object _4, dynamic? _5, System.Object _6, dynamic? _7, System.Object _8, dynamic? _9)",
                 type.GetMember<FieldSymbol>("Field").Type.ToTestDisplayString());
             Assert.Equal(
-                "System.EventHandler<(dynamic _1, (System.Object _2, dynamic? _3), System.Object _4, dynamic _5, System.Object _6, dynamic _7, System.Object _8, dynamic? _9)>",
+                "System.EventHandler<(dynamic? _1, (System.Object _2, dynamic? _3), System.Object _4, dynamic? _5, System.Object _6, dynamic? _7, System.Object _8, dynamic? _9)>",
                 type.GetMember<EventSymbol>("Event").Type.ToTestDisplayString());
             Assert.Equal(
-                "(dynamic _1, (System.Object _2, dynamic? _3), System.Object _4, dynamic _5, System.Object _6, dynamic _7, System.Object _8, dynamic? _9) B<T>.Method((dynamic _1, (System.Object _2, dynamic? _3), System.Object _4, dynamic _5, System.Object _6, dynamic _7, System.Object _8, dynamic? _9) arg)",
+                "(dynamic? _1, (System.Object _2, dynamic? _3), System.Object _4, dynamic? _5, System.Object _6, dynamic? _7, System.Object _8, dynamic? _9) B<T>.Method((dynamic? _1, (System.Object _2, dynamic? _3), System.Object _4, dynamic? _5, System.Object _6, dynamic? _7, System.Object _8, dynamic? _9) arg)",
                 type.GetMember<MethodSymbol>("Method").ToTestDisplayString());
             Assert.Equal(
-                "(dynamic _1, (System.Object _2, dynamic? _3), System.Object _4, dynamic _5, System.Object _6, dynamic _7, System.Object _8, dynamic? _9) B<T>.Property { get; set; }",
+                "(dynamic? _1, (System.Object _2, dynamic? _3), System.Object _4, dynamic? _5, System.Object _6, dynamic? _7, System.Object _8, dynamic? _9) B<T>.Property { get; set; }",
                 type.GetMember<PropertySymbol>("Property").ToTestDisplayString());
         }
 
