@@ -1350,6 +1350,26 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to \d matches any decimal digit. It is equivalent to the \p{Nd} regular expression pattern, which includes the standard decimal digits 0-9 as well as the decimal digits of a number of other character sets.
+        ///
+        ///If ECMAScript-compliant behavior is specified, \d is equivalent to [0-9].
+        /// </summary>
+        internal static string regex_decimal_digit_character_long {
+            get {
+                return ResourceManager.GetString("regex_decimal_digit_character_long", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to decimal-digit character.
+        /// </summary>
+        internal static string regex_decimal_digit_character_short {
+            get {
+                return ResourceManager.GetString("regex_decimal_digit_character_short", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The \z anchor specifies that a match must occur at the end of the input string. Like the $ language element, \z ignores the RegexOptions.Multiline option. Unlike the \Z language element, \z does not match a \n character at the end of a string. Therefore, it can only match the last line of the input string..
         /// </summary>
         internal static string regex_end_of_string_only_long {
@@ -1531,6 +1551,46 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to \D matches any non-digit character. It is equivalent to the \P{Nd} regular expression pattern.
+        ///
+        ///If ECMAScript-compliant behavior is specified, \D is equivalent to [^0-9].
+        /// </summary>
+        internal static string regex_non_digit_character_long {
+            get {
+                return ResourceManager.GetString("regex_non_digit_character_long", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to non-digit character.
+        /// </summary>
+        internal static string regex_non_digit_character_short {
+            get {
+                return ResourceManager.GetString("regex_non_digit_character_short", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to \S matches any non-white-space character. It is equivalent to the [^\f\n\r\t\v\x85\p{Z}] regular expression pattern, or the opposite of the regular expression pattern that is equivalent to \s, which matches white-space characters.
+        ///
+        ///If ECMAScript-compliant behavior is specified, \S is equivalent to [^ \f\n\r\t\v].
+        /// </summary>
+        internal static string regex_non_white_space_character_long {
+            get {
+                return ResourceManager.GetString("regex_non_white_space_character_long", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to non-white-space character.
+        /// </summary>
+        internal static string regex_non_white_space_character_short {
+            get {
+                return ResourceManager.GetString("regex_non_white_space_character_short", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The \B anchor specifies that the match must not occur on a word boundary. It is the opposite of the \b anchor..
         /// </summary>
         internal static string regex_non_word_boundary_long {
@@ -1708,6 +1768,34 @@ namespace Microsoft.CodeAnalysis {
         internal static string regex_vertical_tab_character_short {
             get {
                 return ResourceManager.GetString("regex_vertical_tab_character_short", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to \s matches any white-space character. It is equivalent to the escape sequences and Unicode categories listed in the following table.
+        ///
+        ///\f 	The form feed character, \u000C.
+        ///\n 	The newline character, \u000A.
+        ///\r 	The carriage return character, \u000D.
+        ///\t 	The tab character, \u0009.
+        ///\v 	The vertical tab character, \u000B.
+        ///\x85 	The ellipsis or NEXT LINE (NEL) character (…), \u0085.
+        ///\p{Z} 	Matches any separator character.
+        ///
+        ///If ECMAScript-compliant behavior is specified, \s is equivalent to [ \f\n\r\t\v].
+        /// </summary>
+        internal static string regex_white_space_character_long {
+            get {
+                return ResourceManager.GetString("regex_white_space_character_long", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to white-space character.
+        /// </summary>
+        internal static string regex_white_space_character_short {
+            get {
+                return ResourceManager.GetString("regex_white_space_character_short", resourceCulture);
             }
         }
         

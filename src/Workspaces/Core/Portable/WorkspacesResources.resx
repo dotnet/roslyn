@@ -796,6 +796,14 @@ If you use $ with the RegexOptions.Multiline option, the match can also occur at
   <data name="regex_control_character_short" xml:space="preserve">
     <value>control character</value>
   </data>
+  <data name="regex_decimal_digit_character_long" xml:space="preserve">
+    <value>\d matches any decimal digit. It is equivalent to the \p{Nd} regular expression pattern, which includes the standard decimal digits 0-9 as well as the decimal digits of a number of other character sets.
+
+If ECMAScript-compliant behavior is specified, \d is equivalent to [0-9]</value>
+  </data>
+  <data name="regex_decimal_digit_character_short" xml:space="preserve">
+    <value>decimal-digit character</value>
+  </data>
   <data name="regex_escape_character_long" xml:space="preserve">
     <value>Matches an escape character, \u001B</value>
   </data>
@@ -857,6 +865,22 @@ matches any character that does not belong to a Unicode general category or name
   </data>
   <data name="regex_new_line_character_short" xml:space="preserve">
     <value>new-line character</value>
+  </data>
+  <data name="regex_non_digit_character_long" xml:space="preserve">
+    <value>\D matches any non-digit character. It is equivalent to the \P{Nd} regular expression pattern.
+
+If ECMAScript-compliant behavior is specified, \D is equivalent to [^0-9]</value>
+  </data>
+  <data name="regex_non_digit_character_short" xml:space="preserve">
+    <value>non-digit character</value>
+  </data>
+  <data name="regex_non_white_space_character_long" xml:space="preserve">
+    <value>\S matches any non-white-space character. It is equivalent to the [^\f\n\r\t\v\x85\p{Z}] regular expression pattern, or the opposite of the regular expression pattern that is equivalent to \s, which matches white-space characters.
+
+If ECMAScript-compliant behavior is specified, \S is equivalent to [^ \f\n\r\t\v]</value>
+  </data>
+  <data name="regex_non_white_space_character_short" xml:space="preserve">
+    <value>non-white-space character</value>
   </data>
   <data name="regex_non_word_character_long" xml:space="preserve">
     <value>\W matches any non-word character. The \W language element is equivalent to the following character class:
@@ -926,6 +950,22 @@ matches any character that belongs to a Unicode general category or named block,
   </data>
   <data name="regex_vertical_tab_character_short" xml:space="preserve">
     <value>vertical-tab character</value>
+  </data>
+  <data name="regex_white_space_character_long" xml:space="preserve">
+    <value>\s matches any white-space character. It is equivalent to the escape sequences and Unicode categories listed in the following table.
+
+\f 	The form feed character, \u000C.
+\n 	The newline character, \u000A.
+\r 	The carriage return character, \u000D.
+\t 	The tab character, \u0009.
+\v 	The vertical tab character, \u000B.
+\x85 	The ellipsis or NEXT LINE (NEL) character (…), \u0085.
+\p{Z} 	Matches any separator character.
+
+If ECMAScript-compliant behavior is specified, \s is equivalent to [ \f\n\r\t\v]</value>
+  </data>
+  <data name="regex_white_space_character_short" xml:space="preserve">
+    <value>white-space character</value>
   </data>
   <data name="regex_word_character_long" xml:space="preserve">
     <value>\w matches any word character. A word character is a member of any of the Unicode categories listed in the following table.

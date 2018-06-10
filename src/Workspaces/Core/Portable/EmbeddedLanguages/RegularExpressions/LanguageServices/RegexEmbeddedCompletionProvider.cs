@@ -285,7 +285,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions.LanguageSe
             AddIfMissing(context, CreateItem(stringToken, @"\s", "", "", context, parentOpt));
             AddIfMissing(context, CreateItem(stringToken, @"\S", "", "", context, parentOpt));
             AddIfMissing(context, CreateItem(stringToken, @"\w", regex_word_character_short, regex_word_character_long, context, parentOpt));
-            AddIfMissing(context, CreateItem(stringToken, @"\W", "", "", context, parentOpt));
+            AddIfMissing(context, CreateItem(stringToken, @"\W", regex_non_word_character_short, regex_non_word_character_long, context, parentOpt));
         }
 
         private void AddIfMissing(EmbeddedCompletionContext context, EmbeddedCompletionItem item)

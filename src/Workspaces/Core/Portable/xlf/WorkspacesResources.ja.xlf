@@ -1007,6 +1007,20 @@
         <target state="new">control character</target>
         <note />
       </trans-unit>
+      <trans-unit id="regex_decimal_digit_character_long">
+        <source>\d matches any decimal digit. It is equivalent to the \p{Nd} regular expression pattern, which includes the standard decimal digits 0-9 as well as the decimal digits of a number of other character sets.
+
+If ECMAScript-compliant behavior is specified, \d is equivalent to [0-9]</source>
+        <target state="new">\d matches any decimal digit. It is equivalent to the \p{Nd} regular expression pattern, which includes the standard decimal digits 0-9 as well as the decimal digits of a number of other character sets.
+
+If ECMAScript-compliant behavior is specified, \d is equivalent to [0-9]</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="regex_decimal_digit_character_short">
+        <source>decimal-digit character</source>
+        <target state="new">decimal-digit character</target>
+        <note />
+      </trans-unit>
       <trans-unit id="regex_end_of_string_only_long">
         <source>The \z anchor specifies that a match must occur at the end of the input string. Like the $ language element, \z ignores the RegexOptions.Multiline option. Unlike the \Z language element, \z does not match a \n character at the end of a string. Therefore, it can only match the last line of the input string.</source>
         <target state="new">The \z anchor specifies that a match must occur at the end of the input string. Like the $ language element, \z ignores the RegexOptions.Multiline option. Unlike the \Z language element, \z does not match a \n character at the end of a string. Therefore, it can only match the last line of the input string.</target>
@@ -1155,6 +1169,34 @@ matches any character that does not belong to a Unicode general category or name
       <trans-unit id="regex_new_line_character_short">
         <source>new-line character</source>
         <target state="new">new-line character</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="regex_non_digit_character_long">
+        <source>\D matches any non-digit character. It is equivalent to the \P{Nd} regular expression pattern.
+
+If ECMAScript-compliant behavior is specified, \D is equivalent to [^0-9]</source>
+        <target state="new">\D matches any non-digit character. It is equivalent to the \P{Nd} regular expression pattern.
+
+If ECMAScript-compliant behavior is specified, \D is equivalent to [^0-9]</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="regex_non_digit_character_short">
+        <source>non-digit character</source>
+        <target state="new">non-digit character</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="regex_non_white_space_character_long">
+        <source>\S matches any non-white-space character. It is equivalent to the [^\f\n\r\t\v\x85\p{Z}] regular expression pattern, or the opposite of the regular expression pattern that is equivalent to \s, which matches white-space characters.
+
+If ECMAScript-compliant behavior is specified, \S is equivalent to [^ \f\n\r\t\v]</source>
+        <target state="new">\S matches any non-white-space character. It is equivalent to the [^\f\n\r\t\v\x85\p{Z}] regular expression pattern, or the opposite of the regular expression pattern that is equivalent to \s, which matches white-space characters.
+
+If ECMAScript-compliant behavior is specified, \S is equivalent to [^ \f\n\r\t\v]</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="regex_non_white_space_character_short">
+        <source>non-white-space character</source>
+        <target state="new">non-white-space character</target>
         <note />
       </trans-unit>
       <trans-unit id="regex_non_word_boundary_long">
@@ -1311,6 +1353,36 @@ matches any character that belongs to a Unicode general category or named block,
       <trans-unit id="regex_vertical_tab_character_short">
         <source>vertical-tab character</source>
         <target state="new">vertical-tab character</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="regex_white_space_character_long">
+        <source>\s matches any white-space character. It is equivalent to the escape sequences and Unicode categories listed in the following table.
+
+\f 	The form feed character, \u000C.
+\n 	The newline character, \u000A.
+\r 	The carriage return character, \u000D.
+\t 	The tab character, \u0009.
+\v 	The vertical tab character, \u000B.
+\x85 	The ellipsis or NEXT LINE (NEL) character (…), \u0085.
+\p{Z} 	Matches any separator character.
+
+If ECMAScript-compliant behavior is specified, \s is equivalent to [ \f\n\r\t\v]</source>
+        <target state="new">\s matches any white-space character. It is equivalent to the escape sequences and Unicode categories listed in the following table.
+
+\f 	The form feed character, \u000C.
+\n 	The newline character, \u000A.
+\r 	The carriage return character, \u000D.
+\t 	The tab character, \u0009.
+\v 	The vertical tab character, \u000B.
+\x85 	The ellipsis or NEXT LINE (NEL) character (…), \u0085.
+\p{Z} 	Matches any separator character.
+
+If ECMAScript-compliant behavior is specified, \s is equivalent to [ \f\n\r\t\v]</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="regex_white_space_character_short">
+        <source>white-space character</source>
+        <target state="new">white-space character</target>
         <note />
       </trans-unit>
       <trans-unit id="regex_word_boundary_long">
