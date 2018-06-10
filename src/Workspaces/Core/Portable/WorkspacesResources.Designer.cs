@@ -1336,6 +1336,15 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to comment.
+        /// </summary>
+        internal static string regex_comment {
+            get {
+                return ResourceManager.GetString("regex_comment", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The \G anchor specifies that a match must occur at the point where the previous match ended. When you use this anchor with the Regex.Matches or Match.NextMatch method, it ensures that all matches are contiguous..
         /// </summary>
         internal static string regex_contiguous_matches_long {
@@ -1388,6 +1397,24 @@ namespace Microsoft.CodeAnalysis {
         internal static string regex_decimal_digit_character_short {
             get {
                 return ResourceManager.GetString("regex_decimal_digit_character_short", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to A number sign (#) marks an x-mode comment, which starts at the unescaped # character at the end of the regular expression pattern and continues until the end of the line. To use this construct, you must either enable the x option (through inline options) or supply the RegexOptions.IgnorePatternWhitespace value to the option parameter when instantiating the Regex object or calling a static Regex method..
+        /// </summary>
+        internal static string regex_end_of_line_comment_long {
+            get {
+                return ResourceManager.GetString("regex_end_of_line_comment_long", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to end-of-line comment.
+        /// </summary>
+        internal static string regex_end_of_line_comment_short {
+            get {
+                return ResourceManager.GetString("regex_end_of_line_comment_short", resourceCulture);
             }
         }
         
@@ -1526,6 +1553,24 @@ namespace Microsoft.CodeAnalysis {
         internal static string regex_hexadecimal_escape_short {
             get {
                 return ResourceManager.GetString("regex_hexadecimal_escape_short", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The (?# comment) construct lets you include an inline comment in a regular expression. The regular expression engine does not use any part of the comment in pattern matching, although the comment is included in the string that is returned by the Regex.ToString method. The comment ends at the first closing parenthesis..
+        /// </summary>
+        internal static string regex_inline_comment_long {
+            get {
+                return ResourceManager.GetString("regex_inline_comment_long", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to inline comment.
+        /// </summary>
+        internal static string regex_inline_comment_short {
+            get {
+                return ResourceManager.GetString("regex_inline_comment_short", resourceCulture);
             }
         }
         

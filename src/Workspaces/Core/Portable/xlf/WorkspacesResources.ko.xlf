@@ -1017,6 +1017,11 @@ After you modify the regular expression in the following example to use the appr
         <target state="new">carriage-return character</target>
         <note />
       </trans-unit>
+      <trans-unit id="regex_comment">
+        <source>comment</source>
+        <target state="new">comment</target>
+        <note />
+      </trans-unit>
       <trans-unit id="regex_contiguous_matches_long">
         <source>The \G anchor specifies that a match must occur at the point where the previous match ended. When you use this anchor with the Regex.Matches or Match.NextMatch method, it ensures that all matches are contiguous.</source>
         <target state="new">The \G anchor specifies that a match must occur at the point where the previous match ended. When you use this anchor with the Regex.Matches or Match.NextMatch method, it ensures that all matches are contiguous.</target>
@@ -1049,6 +1054,16 @@ If ECMAScript-compliant behavior is specified, \d is equivalent to [0-9]</target
       <trans-unit id="regex_decimal_digit_character_short">
         <source>decimal-digit character</source>
         <target state="new">decimal-digit character</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="regex_end_of_line_comment_long">
+        <source>A number sign (#) marks an x-mode comment, which starts at the unescaped # character at the end of the regular expression pattern and continues until the end of the line. To use this construct, you must either enable the x option (through inline options) or supply the RegexOptions.IgnorePatternWhitespace value to the option parameter when instantiating the Regex object or calling a static Regex method.</source>
+        <target state="new">A number sign (#) marks an x-mode comment, which starts at the unescaped # character at the end of the regular expression pattern and continues until the end of the line. To use this construct, you must either enable the x option (through inline options) or supply the RegexOptions.IgnorePatternWhitespace value to the option parameter when instantiating the Regex object or calling a static Regex method.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="regex_end_of_line_comment_short">
+        <source>end-of-line comment</source>
+        <target state="new">end-of-line comment</target>
         <note />
       </trans-unit>
       <trans-unit id="regex_end_of_string_only_long">
@@ -1147,6 +1162,16 @@ The group options construct is not a capturing group. That is, although any port
       <trans-unit id="regex_hexadecimal_escape_short">
         <source>hexidecimal escape</source>
         <target state="new">hexidecimal escape</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="regex_inline_comment_long">
+        <source>The (?# comment) construct lets you include an inline comment in a regular expression. The regular expression engine does not use any part of the comment in pattern matching, although the comment is included in the string that is returned by the Regex.ToString method. The comment ends at the first closing parenthesis.</source>
+        <target state="new">The (?# comment) construct lets you include an inline comment in a regular expression. The regular expression engine does not use any part of the comment in pattern matching, although the comment is included in the string that is returned by the Regex.ToString method. The comment ends at the first closing parenthesis.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="regex_inline_comment_short">
+        <source>inline comment</source>
+        <target state="new">inline comment</target>
         <note />
       </trans-unit>
       <trans-unit id="regex_letter_uppercase">

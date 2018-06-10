@@ -1030,6 +1030,15 @@ After you modify the regular expression in the following example to use the appr
   <data name="regex_balancing_group_short" xml:space="preserve">
     <value>balancing group</value>
   </data>
+  <data name="regex_comment" xml:space="preserve">
+    <value>comment</value>
+  </data>
+  <data name="regex_end_of_line_comment_long" xml:space="preserve">
+    <value>A number sign (#) marks an x-mode comment, which starts at the unescaped # character at the end of the regular expression pattern and continues until the end of the line. To use this construct, you must either enable the x option (through inline options) or supply the RegexOptions.IgnorePatternWhitespace value to the option parameter when instantiating the Regex object or calling a static Regex method.</value>
+  </data>
+  <data name="regex_end_of_line_comment_short" xml:space="preserve">
+    <value>end-of-line comment</value>
+  </data>
   <data name="regex_group_options_long" xml:space="preserve">
     <value>The following grouping construct applies or disables the specified options within a subexpression:
 
@@ -1045,6 +1054,12 @@ The group options construct is not a capturing group. That is, although any port
   </data>
   <data name="regex_group_options_short" xml:space="preserve">
     <value>group options</value>
+  </data>
+  <data name="regex_inline_comment_long" xml:space="preserve">
+    <value>The (?# comment) construct lets you include an inline comment in a regular expression. The regular expression engine does not use any part of the comment in pattern matching, although the comment is included in the string that is returned by the Regex.ToString method. The comment ends at the first closing parenthesis.</value>
+  </data>
+  <data name="regex_inline_comment_short" xml:space="preserve">
+    <value>inline comment</value>
   </data>
   <data name="regex_name" xml:space="preserve">
     <value>name</value>

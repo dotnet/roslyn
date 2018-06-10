@@ -127,6 +127,8 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions.LanguageSe
         private void ProvideTopLevelCompletions(
             EmbeddedCompletionContext context, SyntaxToken stringToken)
         {
+            AddIfMissing(context, CreateItem(stringToken, "#", regex_end_of_line_comment_short, regex_end_of_line_comment_long, context, parentOpt: null));
+
             AddIfMissing(context, CreateItem(stringToken, "^", regex_start_of_string_or_line_short, regex_start_of_string_or_line_long, context, parentOpt: null));
             AddIfMissing(context, CreateItem(stringToken, "$", regex_end_of_string_or_line_short, regex_end_of_string_or_line_long, context, parentOpt: null));
             AddIfMissing(context, CreateItem(stringToken, ".", regex_any_character_group_short, regex_any_character_group_long, context, parentOpt: null));
@@ -221,6 +223,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions.LanguageSe
             AddIfMissing(context, CreateItem(stringToken, "(?<=" + regex_subexpression + ")", regex_zero_width_positive_lookbehind_assertion_short, regex_zero_width_positive_lookbehind_assertion_long, context, parentOpt, positionOffset: "(?<=".Length, insertionText: "(?<=)"));
             AddIfMissing(context, CreateItem(stringToken, "(?<!" + regex_subexpression + ")", regex_zero_width_negative_lookbehind_assertion_short, regex_zero_width_negative_lookbehind_assertion_long, context, parentOpt, positionOffset: "(?<!".Length, insertionText: "(?<!)"));
             AddIfMissing(context, CreateItem(stringToken, "(?>" + regex_subexpression + ")", regex_nonbacktracking_subexpression_short, regex_nonbacktracking_subexpression_long, context, parentOpt, positionOffset: "(?>".Length, insertionText: "(?>)"));
+            AddIfMissing(context, CreateItem(stringToken, "(?#" + regex_comment + ")", regex_inline_comment_short, regex_inline_comment_long, context, parentOpt, positionOffset: "(?#".Length, insertionText: "(?#)"));
         }
 
         private void ProvideCharacterClassCompletions(
