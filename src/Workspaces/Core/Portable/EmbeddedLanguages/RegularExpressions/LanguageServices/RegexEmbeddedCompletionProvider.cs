@@ -81,14 +81,18 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions.LanguageSe
                 return;
             }
 
+            var (tree, stringToken) = treeAndStringToken.Value;
+            if (position <= stringToken.SpanStart || position >= stringToken.Span.End)
+            {
+                return;
+            }
+
             // First, act as if the user just inserted the previous character.  This will cause us
             // to complete down to the set of relevant items based on that character. If we get
             // anything, we're done and can just show the user those items.  If we have no items to
             // add *and* the user was explicitly invoking completion, then just add the entire set
             // of suggestions to help the user out.
             var count = context.Items.Count;
-
-            var (tree, stringToken) = treeAndStringToken.Value;
             ProvideCompletionsAfterInsertion(context, tree, stringToken);
 
             if (count != context.Items.Count)
