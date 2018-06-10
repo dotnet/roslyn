@@ -340,7 +340,7 @@ End Class
             End Using
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact(Skip:="https://github.com/dotnet/roslyn/issues/27654"), Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function CommitCommentNoOpenAngle() As Task
 
             Using state = TestState.CreateVisualBasicTestState(
@@ -354,7 +354,7 @@ End Class
 
                 state.SendInvokeCompletionList()
                 Await state.AssertCompletionSession()
-                state.SendSelectCompletionItem("!--")
+                ' state.SendSelectCompletionItem("!--")
                 state.SendReturn()
                 Await state.AssertNoCompletionSession()
 
@@ -363,7 +363,7 @@ End Class
             End Using
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact(Skip:="https://github.com/dotnet/roslyn/issues/27654"), Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function InvokeWithOpenAngleCommitCommentOnCloseAngle() As Task
 
             Using state = TestState.CreateVisualBasicTestState(
@@ -377,7 +377,7 @@ End Class
 
                 state.SendTypeChars("<")
                 Await state.AssertCompletionSession()
-                state.SendSelectCompletionItem("!--")
+                ' state.SendSelectCompletionItem("!--")
                 state.SendTypeChars(">")
                 Await state.AssertNoCompletionSession()
 
@@ -386,7 +386,7 @@ End Class
             End Using
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact(Skip:="https://github.com/dotnet/roslyn/issues/27654"), Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function CommitCdataNoOpenAngle() As Task
 
             Using state = TestState.CreateVisualBasicTestState(
@@ -400,7 +400,7 @@ End Class
 
                 state.SendInvokeCompletionList()
                 Await state.AssertCompletionSession()
-                state.SendSelectCompletionItem("![CDATA[")
+                ' state.SendSelectCompletionItem("![CDATA[")
                 state.SendReturn()
                 Await state.AssertNoCompletionSession()
 
@@ -409,7 +409,7 @@ End Class
             End Using
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact(Skip:="https://github.com/dotnet/roslyn/issues/27654"), Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function InvokeWithOpenAngleCommitCdataOnCloseAngle() As Task
 
             Using state = TestState.CreateVisualBasicTestState(
@@ -423,7 +423,7 @@ End Class
 
                 state.SendTypeChars("<")
                 Await state.AssertCompletionSession()
-                state.SendSelectCompletionItem("![CDATA[")
+                ' state.SendSelectCompletionItem("![CDATA[")
                 state.SendTypeChars(">")
                 Await state.AssertNoCompletionSession()
 
@@ -600,47 +600,47 @@ End Class
             End Using
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact(Skip:="https://github.com/dotnet/roslyn/issues/27450"), Trait(Traits.Feature, Traits.Features.Completion)>
         Public Function InvokeWithNothingKeywordCommitSeeLangword() As Task
             Return InvokeWithKeywordCommitSeeLangword("Nothing")
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact(Skip:="https://github.com/dotnet/roslyn/issues/27450"), Trait(Traits.Feature, Traits.Features.Completion)>
         Public Function InvokeWithSharedKeywordCommitSeeLangword() As Task
             Return InvokeWithKeywordCommitSeeLangword("Shared")
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact(Skip:="https://github.com/dotnet/roslyn/issues/27450"), Trait(Traits.Feature, Traits.Features.Completion)>
         Public Function InvokeWithOverridableKeywordCommitSeeLangword() As Task
             Return InvokeWithKeywordCommitSeeLangword("Overridable", unique:=False)
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact(Skip:="https://github.com/dotnet/roslyn/issues/27450"), Trait(Traits.Feature, Traits.Features.Completion)>
         Public Function InvokeWithTrueKeywordCommitSeeLangword() As Task
             Return InvokeWithKeywordCommitSeeLangword("True")
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact(Skip:="https://github.com/dotnet/roslyn/issues/27450"), Trait(Traits.Feature, Traits.Features.Completion)>
         Public Function InvokeWithFalseKeywordCommitSeeLangword() As Task
             Return InvokeWithKeywordCommitSeeLangword("False")
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact(Skip:="https://github.com/dotnet/roslyn/issues/27450"), Trait(Traits.Feature, Traits.Features.Completion)>
         Public Function InvokeWithMustInheritKeywordCommitSeeLangword() As Task
             Return InvokeWithKeywordCommitSeeLangword("MustInherit")
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact(Skip:="https://github.com/dotnet/roslyn/issues/27450"), Trait(Traits.Feature, Traits.Features.Completion)>
         Public Function InvokeWithNotOverridableKeywordCommitSeeLangword() As Task
             Return InvokeWithKeywordCommitSeeLangword("NotOverridable")
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact(Skip:="https://github.com/dotnet/roslyn/issues/27450"), Trait(Traits.Feature, Traits.Features.Completion)>
         Public Function InvokeWithAsyncKeywordCommitSeeLangword() As Task
             Return InvokeWithKeywordCommitSeeLangword("Async")
         End Function
 
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact(Skip:="https://github.com/dotnet/roslyn/issues/27450"), Trait(Traits.Feature, Traits.Features.Completion)>
         Public Function InvokeWithAwaitKeywordCommitSeeLangword() As Task
             Return InvokeWithKeywordCommitSeeLangword("Await")
         End Function
@@ -1189,7 +1189,7 @@ End Class
         End Function
 
         <WorkItem(638653, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/638653")>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact(Skip:="https://github.com/dotnet/roslyn/issues/27439"), Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function AllowTypingSpace() As Task
             Using state = TestState.CreateVisualBasicTestState(
                 <Document><![CDATA[

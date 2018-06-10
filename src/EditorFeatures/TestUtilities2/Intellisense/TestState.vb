@@ -250,7 +250,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
             Assert.Null(Me.CurrentCompletionPresenterSession)
         End Function
 
-        Public Async Function AssertCompletionSession() As Task
+        Public Async Function AssertCompletionSession(Optional numberOfItems As Integer = 0) As Task
             Await WaitForAsynchronousOperationsAsync()
             Assert.NotNull(Me.CurrentCompletionPresenterSession)
         End Function
