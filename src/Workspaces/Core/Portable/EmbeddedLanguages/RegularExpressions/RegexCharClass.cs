@@ -28,53 +28,53 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
 
         private const string WordClass = "\u0000\u0000\u000A\u0000\u0002\u0004\u0005\u0003\u0001\u0006\u0009\u0013\u0000";
 
-        public static readonly ImmutableDictionary<string, (string shortDescription, string longDescription)> EscapeCategories = 
+        public static readonly Dictionary<string, (string shortDescription, string longDescription)> EscapeCategories =
             new Dictionary<string, (string, string)>
             {
                 // Others
-                { "Cc", ("", "") },
-                { "Cf", ("", "") },
-                { "Cn", ("", "") },
-                { "Co", ("", "") },
-                { "Cs", ("", "") },
-                { "C", ("", "") },
+                { "Cc", (regex_other_control, "") },
+                { "Cf", (regex_other_format, "") },
+                { "Cn", (regex_other_not_assigned, "") },
+                { "Co", (regex_other_private_use, "") },
+                { "Cs", (regex_other_surrogate, "") },
+                { "C", (regex_all_control_characters_short, regex_all_control_characters_long) },
                 // Letters
-                { "Ll", ("", "") },
-                { "Lm", ("", "") },
-                { "Lo", ("", "") },
-                { "Lt", ("", "") },
+                { "Ll", (regex_letter_lowercase, "") },
+                { "Lm", (regex_letter_modifier, "") },
+                { "Lo", (regex_letter_other, "") },
+                { "Lt", (regex_letter_titlecase, "") },
                 { "Lu", (regex_letter_uppercase, "") },
-                { "L", ("", "") },
+                { "L", (regex_all_letter_characters_short, regex_all_letter_characters_long) },
                 // Marks
-                { "Mc", ("", "") },
-                { "Me", ("", "") },
-                { "Mn", ("", "") },
-                { "M", ("", "") },
+                { "Mc", (regex_mark_spacing_combining, "") },
+                { "Me", (regex_mark_enclosing, "") },
+                { "Mn", (regex_mark_nonspacing, "") },
+                { "M", (regex_all_diacritic_marks_short, regex_all_diacritic_marks_long) },
                 // Numbers
-                { "Nd", ("", "") },
-                { "Nl", ("", "") },
-                { "No", ("", "") },
-                { "N", ("", "") },
+                { "Nd", (regex_number_decimal_digit, "") },
+                { "Nl", (regex_number_letter, "") },
+                { "No", (regex_number_other, "") },
+                { "N", (regex_all_numbers_short, regex_all_numbers_long) },
                 // Punctuation
-                { "Pc", ("", "") },
-                { "Pd", ("", "") },
-                { "Pe", ("", "") },
-                { "Po", ("", "") },
-                { "Ps", ("", "") },
-                { "Pf", ("", "") },
-                { "Pi", ("", "") },
-                { "P", ("", "") },
+                { "Pc", (regex_punctuation_connector, "") },
+                { "Pd", (regex_punctuation_dash, "") },
+                { "Pe", (regex_punctuation_close, "") },
+                { "Po", (regex_punctuation_other, "") },
+                { "Ps", (regex_punctuation_open, "") },
+                { "Pf", (regex_punctuation_final_quote, "") },
+                { "Pi", (regex_punctuation_initial_quote, "") },
+                { "P", (regex_all_punctuation_characters_short, regex_all_punctuation_characters_long) },
                 // Symbols
-                { "Sc", ("", "") },
-                { "Sk", ("", "") },
-                { "Sm", ("", "") },
-                { "So", ("", "") },
-                { "S", ("", "") },
+                { "Sc", (regex_symbol_currency, "") },
+                { "Sk", (regex_symbol_modifier, "") },
+                { "Sm", (regex_symbol_math, "") },
+                { "So", (regex_symbol_other, "") },
+                { "S", (regex_all_symbols_short, regex_all_symbols_long) },
                 // Separators
-                { "Zl", ("", "") },
-                { "Zp", ("", "") },
-                { "Zs", ("", "") },
-                { "Z", ("", "") },
+                { "Zl", (regex_separator_line, "") },
+                { "Zp", (regex_separator_paragraph, "") },
+                { "Zs", (regex_separator_space, "") },
+                { "Z", (regex_all_separator_characters_short, regex_all_separator_characters_long) },
 
                 { "IsAlphabeticPresentationForms", ("", "") },
                 { "IsArabic", ("", "") },
@@ -188,7 +188,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
                 { "_xmlD", ("", "") },
                 { "_xmlI", ("", "") },
                 {  "_xmlW", ("", "") },
-            }.ToImmutableDictionary();
+            };
 
         public static bool IsEscapeCategory(string value)
         {

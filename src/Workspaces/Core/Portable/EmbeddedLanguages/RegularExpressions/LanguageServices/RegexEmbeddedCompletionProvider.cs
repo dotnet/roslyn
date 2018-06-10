@@ -253,18 +253,30 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions.LanguageSe
 
         private void ProvideEscapeCategoryCompletions(EmbeddedCompletionContext context)
         {
+            var index = 0;
             foreach (var (name, (shortDesc, longDesc)) in RegexCharClass.EscapeCategories)
             {
                 var displayText = name;
+                if (displayText.StartsWith("_"))
+                {
+                    continue;
+                }
+
                 if (shortDesc != "")
                 {
                     displayText += "  -  " + shortDesc;
                 }
 
+                var sortText = index.ToString("0000");
+
                 AddIfMissing(context, new EmbeddedCompletionItem(
-                    displayText, longDesc.Length > 0 ? longDesc : shortDesc,
-                    new EmbeddedCompletionChange(
+                    displayText,
+                    longDesc.Length > 0 ? longDesc : shortDesc,
+                    sortText: sortText,
+                    change: new EmbeddedCompletionChange(
                         new TextChange(new TextSpan(context.Position, 0), name), newPosition: null)));
+
+                index++;
             }
         }
 

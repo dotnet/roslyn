@@ -88,7 +88,10 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                             }
 
                             var item = CompletionItem.Create(
-                                embeddedItem.DisplayText, properties: properties.ToImmutable(), rules: s_rules);
+                                embeddedItem.DisplayText,
+                                sortText: embeddedItem.SortText,
+                                properties: properties.ToImmutable(),
+                                rules: s_rules);
 
                             context.AddItem(item);
                         }

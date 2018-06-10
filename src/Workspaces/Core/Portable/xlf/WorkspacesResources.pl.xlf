@@ -947,6 +947,76 @@
         <target state="new">Unterminated (?#...) comment</target>
         <note />
       </trans-unit>
+      <trans-unit id="regex_all_control_characters_long">
+        <source>All control characters. This includes the Cc, Cf, Cs, Co, and Cn categories.</source>
+        <target state="new">All control characters. This includes the Cc, Cf, Cs, Co, and Cn categories.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="regex_all_control_characters_short">
+        <source>all control characters</source>
+        <target state="new">all control characters</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="regex_all_diacritic_marks_long">
+        <source>All diacritic marks. This includes the Mn, Mc, and Me categories.</source>
+        <target state="new">All diacritic marks. This includes the Mn, Mc, and Me categories.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="regex_all_diacritic_marks_short">
+        <source>all diacritic marks</source>
+        <target state="new">all diacritic marks</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="regex_all_letter_characters_long">
+        <source>All letter characters. This includes the Lu, Ll, Lt, Lm, and Lo characters.</source>
+        <target state="new">All letter characters. This includes the Lu, Ll, Lt, Lm, and Lo characters.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="regex_all_letter_characters_short">
+        <source>all letter characters</source>
+        <target state="new">all letter characters</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="regex_all_numbers_long">
+        <source>All numbers. This includes the Nd, Nl, and No categories.</source>
+        <target state="new">All numbers. This includes the Nd, Nl, and No categories.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="regex_all_numbers_short">
+        <source>all numbers</source>
+        <target state="new">all numbers</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="regex_all_punctuation_characters_long">
+        <source>All punctuation characters. This includes the Pc, Pd, Ps, Pe, Pi, Pf, and Po categories.</source>
+        <target state="new">All punctuation characters. This includes the Pc, Pd, Ps, Pe, Pi, Pf, and Po categories.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="regex_all_punctuation_characters_short">
+        <source>all punctuation characters</source>
+        <target state="new">all punctuation characters</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="regex_all_separator_characters_long">
+        <source>All separator characters. This includes the Zs, Zl, and Zp categories.</source>
+        <target state="new">All separator characters. This includes the Zs, Zl, and Zp categories.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="regex_all_separator_characters_short">
+        <source>all separator characters</source>
+        <target state="new">all separator characters</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="regex_all_symbols_long">
+        <source>All symbols. This includes the Sm, Sc, Sk, and So categories.</source>
+        <target state="new">All symbols. This includes the Sm, Sc, Sk, and So categories.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="regex_all_symbols_short">
+        <source>all symbols</source>
+        <target state="new">all symbols</target>
+        <note />
+      </trans-unit>
       <trans-unit id="regex_alternation_long">
         <source>You can use the vertical bar (|) character to match any one of a series of patterns, where the | character separates each pattern.
 
@@ -1261,9 +1331,44 @@ The group options construct is not a capturing group. That is, although any port
         <target state="new">inline comment</target>
         <note />
       </trans-unit>
+      <trans-unit id="regex_letter_lowercase">
+        <source>letter, lowercase</source>
+        <target state="new">letter, lowercase</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="regex_letter_modifier">
+        <source>letter, modifier</source>
+        <target state="new">letter, modifier</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="regex_letter_other">
+        <source>letter, other</source>
+        <target state="new">letter, other</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="regex_letter_titlecase">
+        <source>letter, titlecase</source>
+        <target state="new">letter, titlecase</target>
+        <note />
+      </trans-unit>
       <trans-unit id="regex_letter_uppercase">
-        <source>Letter, Uppercase</source>
-        <target state="new">Letter, Uppercase</target>
+        <source>letter, uppercase</source>
+        <target state="new">letter, uppercase</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="regex_mark_enclosing">
+        <source>mark, enclosing</source>
+        <target state="new">mark, enclosing</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="regex_mark_nonspacing">
+        <source>mark, nonspacing</source>
+        <target state="new">mark, nonspacing</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="regex_mark_spacing_combining">
+        <source>mark, spacing combining</source>
+        <target state="new">mark, spacing combining</target>
         <note />
       </trans-unit>
       <trans-unit id="regex_matched_subexpression_long">
@@ -1645,6 +1750,21 @@ If a regular expression includes nested grouping constructs, an outer noncapturi
         <target state="new">noncapturing group</target>
         <note />
       </trans-unit>
+      <trans-unit id="regex_number_decimal_digit">
+        <source>number, decimal digit</source>
+        <target state="new">number, decimal digit</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="regex_number_letter">
+        <source>number, letter</source>
+        <target state="new">number, letter</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="regex_number_other">
+        <source>number, other</source>
+        <target state="new">number, other</target>
+        <note />
+      </trans-unit>
       <trans-unit id="regex_numbered_backreference_long">
         <source>A numbered backreference uses the following syntax:
 
@@ -1687,6 +1807,31 @@ If the ambiguity is a problem, you can use the \k&lt;name&gt; notation, which is
         <target state="new">numbered backreference</target>
         <note />
       </trans-unit>
+      <trans-unit id="regex_other_control">
+        <source>other, control</source>
+        <target state="new">other, control</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="regex_other_format">
+        <source>other, format</source>
+        <target state="new">other, format</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="regex_other_not_assigned">
+        <source>other, not assigned</source>
+        <target state="new">other, not assigned</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="regex_other_private_use">
+        <source>other, private use</source>
+        <target state="new">other, private use</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="regex_other_surrogate">
+        <source>other, surrogate</source>
+        <target state="new">other, surrogate</target>
+        <note />
+      </trans-unit>
       <trans-unit id="regex_positive_character_group_long">
         <source>A positive character group specifies a list of characters, any one of which may appear in an input string for a match to occur. This list of characters may be specified individually, as a range, or both.
 
@@ -1721,6 +1866,56 @@ where firstCharacter is the character that begins the range and lastCharacter is
         <target state="new">positive character group</target>
         <note />
       </trans-unit>
+      <trans-unit id="regex_punctuation_close">
+        <source>punctuation, close</source>
+        <target state="new">punctuation, close</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="regex_punctuation_connector">
+        <source>punctuation, connector</source>
+        <target state="new">punctuation, connector</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="regex_punctuation_dash">
+        <source>punctuation, dash</source>
+        <target state="new">punctuation, dash</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="regex_punctuation_final_quote">
+        <source>punctuation, final quote</source>
+        <target state="new">punctuation, final quote</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="regex_punctuation_initial_quote">
+        <source>punctuation, initial quote</source>
+        <target state="new">punctuation, initial quote</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="regex_punctuation_open">
+        <source>punctuation, open</source>
+        <target state="new">punctuation, open</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="regex_punctuation_other">
+        <source>punctuation, other</source>
+        <target state="new">punctuation, other</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="regex_separator_line">
+        <source>separator, line</source>
+        <target state="new">separator, line</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="regex_separator_paragraph">
+        <source>separator, paragraph</source>
+        <target state="new">separator, paragraph</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="regex_separator_space">
+        <source>separator, space</source>
+        <target state="new">separator, space</target>
+        <note />
+      </trans-unit>
       <trans-unit id="regex_start_of_string_only_long">
         <source>The \A anchor specifies that a match must occur at the beginning of the input string. It is identical to the ^ anchor, except that \A ignores the RegexOptions.Multiline option. Therefore, it can only match the start of the first line in a multiline input string.</source>
         <target state="new">The \A anchor specifies that a match must occur at the beginning of the input string. It is identical to the ^ anchor, except that \A ignores the RegexOptions.Multiline option. Therefore, it can only match the start of the first line in a multiline input string.</target>
@@ -1744,6 +1939,26 @@ where firstCharacter is the character that begins the range and lastCharacter is
       <trans-unit id="regex_subexpression">
         <source>subexpression</source>
         <target state="new">subexpression</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="regex_symbol_currency">
+        <source>symbol, currency</source>
+        <target state="new">symbol, currency</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="regex_symbol_math">
+        <source>symbol, math</source>
+        <target state="new">symbol, math</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="regex_symbol_modifier">
+        <source>symbol, modifier</source>
+        <target state="new">symbol, modifier</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="regex_symbol_other">
+        <source>symbol, other</source>
+        <target state="new">symbol, other</target>
         <note />
       </trans-unit>
       <trans-unit id="regex_tab_character_long">

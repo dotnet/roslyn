@@ -823,7 +823,7 @@ If ECMAScript-compliant behavior is specified, \d is equivalent to [0-9]</value>
     <value>hexidecimal escape</value>
   </data>
   <data name="regex_letter_uppercase" xml:space="preserve">
-    <value>Letter, Uppercase</value>
+    <value>letter, uppercase</value>
   </data>
   <data name="regex_matched_subexpression_long" xml:space="preserve">
     <value>The following grouping construct captures a matched subexpression:
@@ -1273,5 +1273,134 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
   </data>
   <data name="regex_zero_width_positive_lookbehind_assertion_short" xml:space="preserve">
     <value>zero-width positive lookbehind assertion</value>
+  </data>
+  <data name="regex_all_control_characters_long" xml:space="preserve">
+    <value>All control characters. This includes the Cc, Cf, Cs, Co, and Cn categories.</value>
+  </data>
+  <data name="regex_all_control_characters_short" xml:space="preserve">
+    <value>all control characters</value>
+  </data>
+  <data name="regex_all_diacritic_marks_long" xml:space="preserve">
+    <value>All diacritic marks. This includes the Mn, Mc, and Me categories.</value>
+  </data>
+  <data name="regex_all_diacritic_marks_short" xml:space="preserve">
+    <value>all diacritic marks</value>
+  </data>
+  <data name="regex_all_letter_characters_long" xml:space="preserve">
+    <value>All letter characters. This includes the Lu, Ll, Lt, Lm, and Lo characters.</value>
+  </data>
+  <data name="regex_all_letter_characters_short" xml:space="preserve">
+    <value>all letter characters</value>
+  </data>
+  <data name="regex_all_numbers_long" xml:space="preserve">
+    <value>All numbers. This includes the Nd, Nl, and No categories.</value>
+  </data>
+  <data name="regex_all_numbers_short" xml:space="preserve">
+    <value>all numbers</value>
+  </data>
+  <data name="regex_all_punctuation_characters_long" xml:space="preserve">
+    <value>All punctuation characters. This includes the Pc, Pd, Ps, Pe, Pi, Pf, and Po categories.</value>
+  </data>
+  <data name="regex_all_punctuation_characters_short" xml:space="preserve">
+    <value>all punctuation characters</value>
+  </data>
+  <data name="regex_all_separator_characters_long" xml:space="preserve">
+    <value>All separator characters. This includes the Zs, Zl, and Zp categories.</value>
+  </data>
+  <data name="regex_all_separator_characters_short" xml:space="preserve">
+    <value>all separator characters</value>
+  </data>
+  <data name="regex_all_symbols_long" xml:space="preserve">
+    <value>All symbols. This includes the Sm, Sc, Sk, and So categories.</value>
+  </data>
+  <data name="regex_all_symbols_short" xml:space="preserve">
+    <value>all symbols</value>
+  </data>
+  <data name="regex_letter_lowercase" xml:space="preserve">
+    <value>letter, lowercase</value>
+  </data>
+  <data name="regex_letter_modifier" xml:space="preserve">
+    <value>letter, modifier</value>
+  </data>
+  <data name="regex_letter_other" xml:space="preserve">
+    <value>letter, other</value>
+  </data>
+  <data name="regex_letter_titlecase" xml:space="preserve">
+    <value>letter, titlecase</value>
+  </data>
+  <data name="regex_mark_enclosing" xml:space="preserve">
+    <value>mark, enclosing</value>
+  </data>
+  <data name="regex_mark_nonspacing" xml:space="preserve">
+    <value>mark, nonspacing</value>
+  </data>
+  <data name="regex_mark_spacing_combining" xml:space="preserve">
+    <value>mark, spacing combining</value>
+  </data>
+  <data name="regex_number_decimal_digit" xml:space="preserve">
+    <value>number, decimal digit</value>
+  </data>
+  <data name="regex_number_letter" xml:space="preserve">
+    <value>number, letter</value>
+  </data>
+  <data name="regex_number_other" xml:space="preserve">
+    <value>number, other</value>
+  </data>
+  <data name="regex_other_control" xml:space="preserve">
+    <value>other, control</value>
+  </data>
+  <data name="regex_other_format" xml:space="preserve">
+    <value>other, format</value>
+  </data>
+  <data name="regex_other_not_assigned" xml:space="preserve">
+    <value>other, not assigned</value>
+  </data>
+  <data name="regex_other_private_use" xml:space="preserve">
+    <value>other, private use</value>
+  </data>
+  <data name="regex_other_surrogate" xml:space="preserve">
+    <value>other, surrogate</value>
+  </data>
+  <data name="regex_punctuation_close" xml:space="preserve">
+    <value>punctuation, close</value>
+  </data>
+  <data name="regex_punctuation_connector" xml:space="preserve">
+    <value>punctuation, connector</value>
+  </data>
+  <data name="regex_punctuation_dash" xml:space="preserve">
+    <value>punctuation, dash</value>
+  </data>
+  <data name="regex_punctuation_final_quote" xml:space="preserve">
+    <value>punctuation, final quote</value>
+  </data>
+  <data name="regex_punctuation_initial_quote" xml:space="preserve">
+    <value>punctuation, initial quote</value>
+  </data>
+  <data name="regex_punctuation_open" xml:space="preserve">
+    <value>punctuation, open</value>
+  </data>
+  <data name="regex_punctuation_other" xml:space="preserve">
+    <value>punctuation, other</value>
+  </data>
+  <data name="regex_separator_line" xml:space="preserve">
+    <value>separator, line</value>
+  </data>
+  <data name="regex_separator_paragraph" xml:space="preserve">
+    <value>separator, paragraph</value>
+  </data>
+  <data name="regex_separator_space" xml:space="preserve">
+    <value>separator, space</value>
+  </data>
+  <data name="regex_symbol_currency" xml:space="preserve">
+    <value>symbol, currency</value>
+  </data>
+  <data name="regex_symbol_math" xml:space="preserve">
+    <value>symbol, math</value>
+  </data>
+  <data name="regex_symbol_modifier" xml:space="preserve">
+    <value>symbol, modifier</value>
+  </data>
+  <data name="regex_symbol_other" xml:space="preserve">
+    <value>symbol, other</value>
   </data>
 </root>

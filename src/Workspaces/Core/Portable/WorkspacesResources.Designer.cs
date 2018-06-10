@@ -1242,6 +1242,132 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to All control characters. This includes the Cc, Cf, Cs, Co, and Cn categories..
+        /// </summary>
+        internal static string regex_all_control_characters_long {
+            get {
+                return ResourceManager.GetString("regex_all_control_characters_long", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to all control characters.
+        /// </summary>
+        internal static string regex_all_control_characters_short {
+            get {
+                return ResourceManager.GetString("regex_all_control_characters_short", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to All diacritic marks. This includes the Mn, Mc, and Me categories..
+        /// </summary>
+        internal static string regex_all_diacritic_marks_long {
+            get {
+                return ResourceManager.GetString("regex_all_diacritic_marks_long", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to all diacritic marks.
+        /// </summary>
+        internal static string regex_all_diacritic_marks_short {
+            get {
+                return ResourceManager.GetString("regex_all_diacritic_marks_short", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to All letter characters. This includes the Lu, Ll, Lt, Lm, and Lo characters..
+        /// </summary>
+        internal static string regex_all_letter_characters_long {
+            get {
+                return ResourceManager.GetString("regex_all_letter_characters_long", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to all letter characters.
+        /// </summary>
+        internal static string regex_all_letter_characters_short {
+            get {
+                return ResourceManager.GetString("regex_all_letter_characters_short", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to All numbers. This includes the Nd, Nl, and No categories..
+        /// </summary>
+        internal static string regex_all_numbers_long {
+            get {
+                return ResourceManager.GetString("regex_all_numbers_long", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to all numbers.
+        /// </summary>
+        internal static string regex_all_numbers_short {
+            get {
+                return ResourceManager.GetString("regex_all_numbers_short", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to All punctuation characters. This includes the Pc, Pd, Ps, Pe, Pi, Pf, and Po categories..
+        /// </summary>
+        internal static string regex_all_punctuation_characters_long {
+            get {
+                return ResourceManager.GetString("regex_all_punctuation_characters_long", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to all punctuation characters.
+        /// </summary>
+        internal static string regex_all_punctuation_characters_short {
+            get {
+                return ResourceManager.GetString("regex_all_punctuation_characters_short", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to All separator characters. This includes the Zs, Zl, and Zp categories..
+        /// </summary>
+        internal static string regex_all_separator_characters_long {
+            get {
+                return ResourceManager.GetString("regex_all_separator_characters_long", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to all separator characters.
+        /// </summary>
+        internal static string regex_all_separator_characters_short {
+            get {
+                return ResourceManager.GetString("regex_all_separator_characters_short", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to All symbols. This includes the Sm, Sc, Sk, and So categories..
+        /// </summary>
+        internal static string regex_all_symbols_long {
+            get {
+                return ResourceManager.GetString("regex_all_symbols_long", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to all symbols.
+        /// </summary>
+        internal static string regex_all_symbols_short {
+            get {
+                return ResourceManager.GetString("regex_all_symbols_short", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to You can use the vertical bar (|) character to match any one of a series of patterns, where the | character separates each pattern.
         ///
         ///Like the positive character class, the | character can be used to match any one of a number of single characters.
@@ -1665,11 +1791,74 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Letter, Uppercase.
+        ///   Looks up a localized string similar to letter, lowercase.
+        /// </summary>
+        internal static string regex_letter_lowercase {
+            get {
+                return ResourceManager.GetString("regex_letter_lowercase", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to letter, modifier.
+        /// </summary>
+        internal static string regex_letter_modifier {
+            get {
+                return ResourceManager.GetString("regex_letter_modifier", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to letter, other.
+        /// </summary>
+        internal static string regex_letter_other {
+            get {
+                return ResourceManager.GetString("regex_letter_other", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to letter, titlecase.
+        /// </summary>
+        internal static string regex_letter_titlecase {
+            get {
+                return ResourceManager.GetString("regex_letter_titlecase", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to letter, uppercase.
         /// </summary>
         internal static string regex_letter_uppercase {
             get {
                 return ResourceManager.GetString("regex_letter_uppercase", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to mark, enclosing.
+        /// </summary>
+        internal static string regex_mark_enclosing {
+            get {
+                return ResourceManager.GetString("regex_mark_enclosing", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to mark, nonspacing.
+        /// </summary>
+        internal static string regex_mark_nonspacing {
+            get {
+                return ResourceManager.GetString("regex_mark_nonspacing", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to mark, spacing combining.
+        /// </summary>
+        internal static string regex_mark_spacing_combining {
+            get {
+                return ResourceManager.GetString("regex_mark_spacing_combining", resourceCulture);
             }
         }
         
@@ -2000,6 +2189,33 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to number, decimal digit.
+        /// </summary>
+        internal static string regex_number_decimal_digit {
+            get {
+                return ResourceManager.GetString("regex_number_decimal_digit", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to number, letter.
+        /// </summary>
+        internal static string regex_number_letter {
+            get {
+                return ResourceManager.GetString("regex_number_letter", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to number, other.
+        /// </summary>
+        internal static string regex_number_other {
+            get {
+                return ResourceManager.GetString("regex_number_other", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to A numbered backreference uses the following syntax:
         ///
         ///\ number
@@ -2018,6 +2234,51 @@ namespace Microsoft.CodeAnalysis {
         internal static string regex_numbered_backreference_short {
             get {
                 return ResourceManager.GetString("regex_numbered_backreference_short", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to other, control.
+        /// </summary>
+        internal static string regex_other_control {
+            get {
+                return ResourceManager.GetString("regex_other_control", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to other, format.
+        /// </summary>
+        internal static string regex_other_format {
+            get {
+                return ResourceManager.GetString("regex_other_format", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to other, not assigned.
+        /// </summary>
+        internal static string regex_other_not_assigned {
+            get {
+                return ResourceManager.GetString("regex_other_not_assigned", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to other, private use.
+        /// </summary>
+        internal static string regex_other_private_use {
+            get {
+                return ResourceManager.GetString("regex_other_private_use", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to other, surrogate.
+        /// </summary>
+        internal static string regex_other_surrogate {
+            get {
+                return ResourceManager.GetString("regex_other_surrogate", resourceCulture);
             }
         }
         
@@ -2042,6 +2303,96 @@ namespace Microsoft.CodeAnalysis {
         internal static string regex_positive_character_group_short {
             get {
                 return ResourceManager.GetString("regex_positive_character_group_short", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to punctuation, close.
+        /// </summary>
+        internal static string regex_punctuation_close {
+            get {
+                return ResourceManager.GetString("regex_punctuation_close", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to punctuation, connector.
+        /// </summary>
+        internal static string regex_punctuation_connector {
+            get {
+                return ResourceManager.GetString("regex_punctuation_connector", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to punctuation, dash.
+        /// </summary>
+        internal static string regex_punctuation_dash {
+            get {
+                return ResourceManager.GetString("regex_punctuation_dash", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to punctuation, final quote.
+        /// </summary>
+        internal static string regex_punctuation_final_quote {
+            get {
+                return ResourceManager.GetString("regex_punctuation_final_quote", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to punctuation, initial quote.
+        /// </summary>
+        internal static string regex_punctuation_initial_quote {
+            get {
+                return ResourceManager.GetString("regex_punctuation_initial_quote", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to punctuation, open.
+        /// </summary>
+        internal static string regex_punctuation_open {
+            get {
+                return ResourceManager.GetString("regex_punctuation_open", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to punctuation, other.
+        /// </summary>
+        internal static string regex_punctuation_other {
+            get {
+                return ResourceManager.GetString("regex_punctuation_other", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to separator, line.
+        /// </summary>
+        internal static string regex_separator_line {
+            get {
+                return ResourceManager.GetString("regex_separator_line", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to separator, paragraph.
+        /// </summary>
+        internal static string regex_separator_paragraph {
+            get {
+                return ResourceManager.GetString("regex_separator_paragraph", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to separator, space.
+        /// </summary>
+        internal static string regex_separator_space {
+            get {
+                return ResourceManager.GetString("regex_separator_space", resourceCulture);
             }
         }
         
@@ -2087,6 +2438,42 @@ namespace Microsoft.CodeAnalysis {
         internal static string regex_subexpression {
             get {
                 return ResourceManager.GetString("regex_subexpression", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to symbol, currency.
+        /// </summary>
+        internal static string regex_symbol_currency {
+            get {
+                return ResourceManager.GetString("regex_symbol_currency", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to symbol, math.
+        /// </summary>
+        internal static string regex_symbol_math {
+            get {
+                return ResourceManager.GetString("regex_symbol_math", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to symbol, modifier.
+        /// </summary>
+        internal static string regex_symbol_modifier {
+            get {
+                return ResourceManager.GetString("regex_symbol_modifier", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to symbol, other.
+        /// </summary>
+        internal static string regex_symbol_other {
+            get {
+                return ResourceManager.GetString("regex_symbol_other", resourceCulture);
             }
         }
         
