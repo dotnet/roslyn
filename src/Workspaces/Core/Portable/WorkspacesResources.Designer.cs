@@ -1448,6 +1448,15 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to base-group.
+        /// </summary>
+        internal static string regex_base_group {
+            get {
+                return ResourceManager.GetString("regex_base_group", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Matches a bell (alarm) character, \u0007.
         /// </summary>
         internal static string regex_bell_character_long {
@@ -1480,6 +1489,39 @@ namespace Microsoft.CodeAnalysis {
         internal static string regex_carriage_return_character_short {
             get {
                 return ResourceManager.GetString("regex_carriage_return_character_short", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to A character class defines a set of characters. Character class subtraction yields a set of characters that is the result of excluding the characters in one character class from another character class.
+        ///
+        ///A character class subtraction expression has the following form:
+        ///
+        ///[ base_group -[ excluded_group ]]
+        ///
+        ///The square brackets ([]) and hyphen (-) are mandatory. The base_group is a positive character group or a negative character group. The excluded_group component is another positive or negative character  [rest of string was truncated]&quot;;.
+        /// </summary>
+        internal static string regex_character_class_subtraction_long {
+            get {
+                return ResourceManager.GetString("regex_character_class_subtraction_long", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to character class subtraction.
+        /// </summary>
+        internal static string regex_character_class_subtraction_short {
+            get {
+                return ResourceManager.GetString("regex_character_class_subtraction_short", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to character-group.
+        /// </summary>
+        internal static string regex_character_group {
+            get {
+                return ResourceManager.GetString("regex_character_group", resourceCulture);
             }
         }
         
@@ -1689,6 +1731,15 @@ namespace Microsoft.CodeAnalysis {
         internal static string regex_escape_character_short {
             get {
                 return ResourceManager.GetString("regex_escape_character_short", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to excluded-group.
+        /// </summary>
+        internal static string regex_excluded_group {
+            get {
+                return ResourceManager.GetString("regex_excluded_group", resourceCulture);
             }
         }
         

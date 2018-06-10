@@ -1085,6 +1085,11 @@ After you modify the regular expression in the following example to use the appr
         <target state="new">balancing group</target>
         <note />
       </trans-unit>
+      <trans-unit id="regex_base_group">
+        <source>base-group</source>
+        <target state="new">base-group</target>
+        <note />
+      </trans-unit>
       <trans-unit id="regex_bell_character_long">
         <source>Matches a bell (alarm) character, \u0007</source>
         <target state="new">Matches a bell (alarm) character, \u0007</target>
@@ -1103,6 +1108,33 @@ After you modify the regular expression in the following example to use the appr
       <trans-unit id="regex_carriage_return_character_short">
         <source>carriage-return character</source>
         <target state="new">carriage-return character</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="regex_character_class_subtraction_long">
+        <source>A character class defines a set of characters. Character class subtraction yields a set of characters that is the result of excluding the characters in one character class from another character class.
+
+A character class subtraction expression has the following form:
+
+[ base_group -[ excluded_group ]]
+
+The square brackets ([]) and hyphen (-) are mandatory. The base_group is a positive character group or a negative character group. The excluded_group component is another positive or negative character group, or another character class subtraction expression (that is, you can nest character class subtraction expressions).</source>
+        <target state="new">A character class defines a set of characters. Character class subtraction yields a set of characters that is the result of excluding the characters in one character class from another character class.
+
+A character class subtraction expression has the following form:
+
+[ base_group -[ excluded_group ]]
+
+The square brackets ([]) and hyphen (-) are mandatory. The base_group is a positive character group or a negative character group. The excluded_group component is another positive or negative character group, or another character class subtraction expression (that is, you can nest character class subtraction expressions).</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="regex_character_class_subtraction_short">
+        <source>character class subtraction</source>
+        <target state="new">character class subtraction</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="regex_character_group">
+        <source>character-group</source>
+        <target state="new">character-group</target>
         <note />
       </trans-unit>
       <trans-unit id="regex_comment">
@@ -1264,6 +1296,11 @@ If you use $ with the RegexOptions.Multiline option, the match can also occur at
       <trans-unit id="regex_escape_character_short">
         <source>escape character</source>
         <target state="new">escape character</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="regex_excluded_group">
+        <source>excluded-group</source>
+        <target state="new">excluded-group</target>
         <note />
       </trans-unit>
       <trans-unit id="regex_expression">

@@ -251,8 +251,9 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions.LanguageSe
         private void ProvideCharacterClassCompletions(
             EmbeddedCompletionContext context, SyntaxToken stringToken, RegexNode parentOpt)
         {
-            AddIfMissing(context, CreateItem(stringToken, "[...]", regex_positive_character_group_short, regex_positive_character_group_long, context, parentOpt, positionOffset: "[".Length, insertionText: "[]"));
-            AddIfMissing(context, CreateItem(stringToken, "[^...]", regex_negative_character_group_short, regex_negative_character_group_long, context, parentOpt, positionOffset: "[^".Length, insertionText: "[^]"));
+            AddIfMissing(context, CreateItem(stringToken, "[  " + regex_character_group + "  ]", regex_positive_character_group_short, regex_positive_character_group_long, context, parentOpt, positionOffset: "[".Length, insertionText: "[]"));
+            AddIfMissing(context, CreateItem(stringToken, "[  " + regex_base_group + "  -[  " + regex_excluded_group + "  ]", regex_character_class_subtraction_short, regex_character_class_subtraction_short, context, parentOpt, positionOffset: "[".Length, insertionText: "[-[]]"));
+            AddIfMissing(context, CreateItem(stringToken, "[^  " + regex_character_group + "  ]", regex_negative_character_group_short, regex_negative_character_group_long, context, parentOpt, positionOffset: "[^".Length, insertionText: "[^]"));
         }
 
         private void ProvideEscapeCategoryCompletions(EmbeddedCompletionContext context)
@@ -404,7 +405,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions.LanguageSe
             {
                 if (child.IsNode)
                 {
-                    var result = IsInCharacterClass(child.Node, ch, inCharacterClass || child.Node is RegexBaseCharacterClassNode);
+                    var result = IsInCharacterClass(child.Node, ch, inCharacterClass || parent is RegexBaseCharacterClassNode);
                     if (result)
                     {
                         return result;

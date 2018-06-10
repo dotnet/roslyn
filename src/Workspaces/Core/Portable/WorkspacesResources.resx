@@ -1316,6 +1316,27 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
   <data name="regex_all_symbols_short" xml:space="preserve">
     <value>all symbols</value>
   </data>
+  <data name="regex_base_group" xml:space="preserve">
+    <value>base-group</value>
+  </data>
+  <data name="regex_character_class_subtraction_long" xml:space="preserve">
+    <value>A character class defines a set of characters. Character class subtraction yields a set of characters that is the result of excluding the characters in one character class from another character class.
+
+A character class subtraction expression has the following form:
+
+[ base_group -[ excluded_group ]]
+
+The square brackets ([]) and hyphen (-) are mandatory. The base_group is a positive character group or a negative character group. The excluded_group component is another positive or negative character group, or another character class subtraction expression (that is, you can nest character class subtraction expressions).</value>
+  </data>
+  <data name="regex_character_class_subtraction_short" xml:space="preserve">
+    <value>character class subtraction</value>
+  </data>
+  <data name="regex_character_group" xml:space="preserve">
+    <value>character-group</value>
+  </data>
+  <data name="regex_excluded_group" xml:space="preserve">
+    <value>excluded-group</value>
+  </data>
   <data name="regex_letter_lowercase" xml:space="preserve">
     <value>letter, lowercase</value>
   </data>
