@@ -784,6 +784,12 @@ If you use $ with the RegexOptions.Multiline option, the match can also occur at
   <data name="regex_carriage_return_character_short" xml:space="preserve">
     <value>carriage-return character</value>
   </data>
+  <data name="regex_control_character_long" xml:space="preserve">
+    <value>Matches an ASCII control character, where X is the letter of the control character. For example, \cC is CTRL-C.</value>
+  </data>
+  <data name="regex_control_character_short" xml:space="preserve">
+    <value>control character</value>
+  </data>
   <data name="regex_escape_character_long" xml:space="preserve">
     <value>Matches an escape character, \u001B</value>
   </data>
@@ -796,6 +802,12 @@ If you use $ with the RegexOptions.Multiline option, the match can also occur at
   <data name="regex_form_feed_character_short" xml:space="preserve">
     <value>form-feed character</value>
   </data>
+  <data name="regex_hexadecimal_escape_long" xml:space="preserve">
+    <value>Matches an ASCII character, where ## is a two-digit hexadecimal character code.</value>
+  </data>
+  <data name="regex_hexadecimal_escape_short" xml:space="preserve">
+    <value>hexidecimal escape</value>
+  </data>
   <data name="regex_new_line_character_long" xml:space="preserve">
     <value>Matches a new-line character, \u000A</value>
   </data>
@@ -807,6 +819,12 @@ If you use $ with the RegexOptions.Multiline option, the match can also occur at
   </data>
   <data name="regex_tab_character_short" xml:space="preserve">
     <value>tab character</value>
+  </data>
+  <data name="regex_unicode_escape_long" xml:space="preserve">
+    <value>Matches a UTF-16 code unit whose value is #### hexadecimal.</value>
+  </data>
+  <data name="regex_unicode_escape_short" xml:space="preserve">
+    <value>unicode escape</value>
   </data>
   <data name="regex_vertical_tab_character_long" xml:space="preserve">
     <value>Matches a vertical-tab character, \u000B</value>

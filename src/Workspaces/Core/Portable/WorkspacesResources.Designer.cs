@@ -1314,6 +1314,24 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Matches an ASCII control character, where X is the letter of the control character. For example, \cC is CTRL-C..
+        /// </summary>
+        internal static string regex_control_character_long {
+            get {
+                return ResourceManager.GetString("regex_control_character_long", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to control character.
+        /// </summary>
+        internal static string regex_control_character_short {
+            get {
+                return ResourceManager.GetString("regex_control_character_short", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The \z anchor specifies that a match must occur at the end of the input string. Like the $ language element, \z ignores the RegexOptions.Multiline option. Unlike the \Z language element, \z does not match a \n character at the end of a string. Therefore, it can only match the last line of the input string..
         /// </summary>
         internal static string regex_end_of_string_only_long {
@@ -1404,6 +1422,24 @@ namespace Microsoft.CodeAnalysis {
         internal static string regex_form_feed_character_short {
             get {
                 return ResourceManager.GetString("regex_form_feed_character_short", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Matches an ASCII character, where ## is a two-digit hexadecimal character code..
+        /// </summary>
+        internal static string regex_hexadecimal_escape_long {
+            get {
+                return ResourceManager.GetString("regex_hexadecimal_escape_long", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to hexidecimal escape.
+        /// </summary>
+        internal static string regex_hexadecimal_escape_short {
+            get {
+                return ResourceManager.GetString("regex_hexadecimal_escape_short", resourceCulture);
             }
         }
         
@@ -1503,6 +1539,24 @@ namespace Microsoft.CodeAnalysis {
         internal static string regex_tab_character_short {
             get {
                 return ResourceManager.GetString("regex_tab_character_short", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Matches a UTF-16 code unit whose value is #### hexadecimal..
+        /// </summary>
+        internal static string regex_unicode_escape_long {
+            get {
+                return ResourceManager.GetString("regex_unicode_escape_long", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to unicode escape.
+        /// </summary>
+        internal static string regex_unicode_escape_short {
+            get {
+                return ResourceManager.GetString("regex_unicode_escape_short", resourceCulture);
             }
         }
         

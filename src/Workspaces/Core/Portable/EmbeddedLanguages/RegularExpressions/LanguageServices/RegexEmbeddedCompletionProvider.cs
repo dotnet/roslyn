@@ -265,9 +265,9 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions.LanguageSe
             AddIfMissing(context, CreateItem(stringToken, @"\t", regex_tab_character_short, regex_tab_character_long, context, parentOpt));
             AddIfMissing(context, CreateItem(stringToken, @"\v", regex_vertical_tab_character_short, regex_vertical_tab_character_long, context, parentOpt));
 
-            AddIfMissing(context, CreateItem(stringToken, @"\x##", "", "", context, parentOpt, @"\x".Length, @"\x"));
-            AddIfMissing(context, CreateItem(stringToken, @"\u####", "", "", context, parentOpt, @"\u".Length, @"\u"));
-            AddIfMissing(context, CreateItem(stringToken, @"\c", "", "", context, parentOpt, @"\c".Length, @"\c"));
+            AddIfMissing(context, CreateItem(stringToken, @"\x##", regex_hexadecimal_escape_short, regex_hexadecimal_escape_long, context, parentOpt, @"\x".Length, @"\x"));
+            AddIfMissing(context, CreateItem(stringToken, @"\u####", regex_unicode_escape_short, regex_unicode_escape_long, context, parentOpt, @"\u".Length, @"\u"));
+            AddIfMissing(context, CreateItem(stringToken, @"\cX", regex_control_character_short, regex_control_character_long, context, parentOpt, @"\c".Length, @"\c"));
 
             AddIfMissing(context, CreateItem(stringToken, @"\d", "", "", context, parentOpt));
             AddIfMissing(context, CreateItem(stringToken, @"\D", "", "", context, parentOpt));

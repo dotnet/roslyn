@@ -987,6 +987,16 @@
         <target state="new">contiguous matches</target>
         <note />
       </trans-unit>
+      <trans-unit id="regex_control_character_long">
+        <source>Matches an ASCII control character, where X is the letter of the control character. For example, \cC is CTRL-C.</source>
+        <target state="new">Matches an ASCII control character, where X is the letter of the control character. For example, \cC is CTRL-C.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="regex_control_character_short">
+        <source>control character</source>
+        <target state="new">control character</target>
+        <note />
+      </trans-unit>
       <trans-unit id="regex_end_of_string_only_long">
         <source>The \z anchor specifies that a match must occur at the end of the input string. Like the $ language element, \z ignores the RegexOptions.Multiline option. Unlike the \Z language element, \z does not match a \n character at the end of a string. Therefore, it can only match the last line of the input string.</source>
         <target state="new">The \z anchor specifies that a match must occur at the end of the input string. Like the $ language element, \z ignores the RegexOptions.Multiline option. Unlike the \Z language element, \z does not match a \n character at the end of a string. Therefore, it can only match the last line of the input string.</target>
@@ -1043,6 +1053,16 @@ If you use $ with the RegexOptions.Multiline option, the match can also occur at
       <trans-unit id="regex_form_feed_character_short">
         <source>form-feed character</source>
         <target state="new">form-feed character</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="regex_hexadecimal_escape_long">
+        <source>Matches an ASCII character, where ## is a two-digit hexadecimal character code.</source>
+        <target state="new">Matches an ASCII character, where ## is a two-digit hexadecimal character code.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="regex_hexadecimal_escape_short">
+        <source>hexidecimal escape</source>
+        <target state="new">hexidecimal escape</target>
         <note />
       </trans-unit>
       <trans-unit id="regex_new_line_character_long">
