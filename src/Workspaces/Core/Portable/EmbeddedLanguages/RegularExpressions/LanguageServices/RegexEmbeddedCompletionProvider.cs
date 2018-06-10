@@ -268,10 +268,13 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions.LanguageSe
                 }
 
                 var sortText = index.ToString("0000");
+                var description = longDesc.Length > 0
+                    ? longDesc
+                    : string.Format(regex_unicode_general_category_0, name);
 
                 AddIfMissing(context, new EmbeddedCompletionItem(
                     displayText,
-                    longDesc.Length > 0 ? longDesc : shortDesc,
+                    description,
                     sortText: sortText,
                     change: new EmbeddedCompletionChange(
                         new TextChange(new TextSpan(context.Position, 0), name), newPosition: null)));

@@ -2532,6 +2532,15 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Unicode General Category: {0}.
+        /// </summary>
+        internal static string regex_unicode_general_category_0 {
+            get {
+                return ResourceManager.GetString("regex_unicode_general_category_0", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Matches a vertical-tab character, \u000B.
         /// </summary>
         internal static string regex_vertical_tab_character_long {

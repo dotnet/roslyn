@@ -2003,6 +2003,11 @@ matches any character that belongs to a Unicode general category or named block,
         <target state="new">unicode escape</target>
         <note />
       </trans-unit>
+      <trans-unit id="regex_unicode_general_category_0">
+        <source>Unicode General Category: {0}</source>
+        <target state="new">Unicode General Category: {0}</target>
+        <note />
+      </trans-unit>
       <trans-unit id="regex_vertical_tab_character_long">
         <source>Matches a vertical-tab character, \u000B</source>
         <target state="new">Matches a vertical-tab character, \u000B</target>

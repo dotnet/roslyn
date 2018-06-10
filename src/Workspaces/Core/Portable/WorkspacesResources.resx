@@ -1403,4 +1403,7 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
   <data name="regex_symbol_other" xml:space="preserve">
     <value>symbol, other</value>
   </data>
+  <data name="regex_unicode_general_category_0" xml:space="preserve">
+    <value>Unicode General Category: {0}</value>
+  </data>
 </root>
