@@ -121,6 +121,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions.LanguageSe
             }
 
             ProvideAnchorCompletions(context, stringToken, inCharacterClass);
+            ProvideCharacterClassCompletions(context, stringToken, parentOpt: null);
             ProvideEscapeCompletions(context, stringToken, inCharacterClass, parentOpt: null);
         }
 
@@ -164,7 +165,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions.LanguageSe
 
             if (token.Kind == RegexKind.OpenBracketToken)
             {
-                // ProvideCharacterClassCompletions(context);
+                ProvideCharacterClassCompletions(context, stringToken, parent);
                 return;
             }
 
@@ -214,6 +215,13 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions.LanguageSe
                     // ProvideOptionsCompletions(context, optionsT);
                     return;
             }
+        }
+
+        private void ProvideCharacterClassCompletions(
+            EmbeddedCompletionContext context, SyntaxToken stringToken, RegexNode parentOpt)
+        {
+            AddIfMissing(context, CreateItem(stringToken, "[]", regex_positive_character_group_short, regex_positive_character_group_long, context, parentOpt, positionOffset: "[".Length));
+            AddIfMissing(context, CreateItem(stringToken, "[^]", regex_negative_character_group_short, regex_negative_character_group_long, context, parentOpt, positionOffset: "[^".Length));
         }
 
         private void ProvideEscapeCategoryCompletions(EmbeddedCompletionContext context)

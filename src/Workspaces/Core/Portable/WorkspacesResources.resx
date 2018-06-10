@@ -808,11 +808,55 @@ If you use $ with the RegexOptions.Multiline option, the match can also occur at
   <data name="regex_hexadecimal_escape_short" xml:space="preserve">
     <value>hexidecimal escape</value>
   </data>
+  <data name="regex_negative_character_group_long" xml:space="preserve">
+    <value>A negative character group specifies a list of characters that must not appear in an input string for a match to occur. The list of characters may be specified individually, as a range, or both.
+
+The syntax for specifying a list of individual characters is as follows:
+
+[^character_group]
+
+where character_group is a list of the individual characters that cannot appear in the input string for a match to succeed. character_group can consist of any combination of one or more literal characters, escape characters, or character classes.
+
+The syntax for specifying a range of characters is as follows:
+
+[^firstCharacter-lastCharacter]
+
+where firstCharacter is the character that begins the range, and lastCharacter is the character that ends the range. A character range is a contiguous series of characters defined by specifying the first character in the series, a hyphen (-), and then the last character in the series. Two characters are contiguous if they have adjacent Unicode code points.
+
+Two or more character ranges can be concatenated. For example, to specify the range of decimal digits from "0" through "9", the range of lowercase letters from "a" through "f", and the range of uppercase letters from "A" through "F", use [0-9a-fA-F].
+
+The leading carat character (^) in a negative character group is mandatory and indicates the character group is a negative character group instead of a positive character group.
+
+Important
+
+A negative character group in a larger regular expression pattern is not a zero-width assertion. That is, after evaluating the negative character group, the regular expression engine advances one character in the input string.</value>
+  </data>
+  <data name="regex_negative_character_group_short" xml:space="preserve">
+    <value>negative character group</value>
+  </data>
   <data name="regex_new_line_character_long" xml:space="preserve">
     <value>Matches a new-line character, \u000A</value>
   </data>
   <data name="regex_new_line_character_short" xml:space="preserve">
     <value>new-line character</value>
+  </data>
+  <data name="regex_positive_character_group_long" xml:space="preserve">
+    <value>A positive character group specifies a list of characters, any one of which may appear in an input string for a match to occur. This list of characters may be specified individually, as a range, or both.
+
+The syntax for specifying a list of individual characters is as follows:
+
+[character_group]
+
+where character_group is a list of the individual characters that can appear in the input string for a match to succeed. character_group can consist of any combination of one or more literal characters, escape characters, or character classes.
+
+The syntax for specifying a range of characters is as follows:
+
+[firstCharacter-lastCharacter]  
+
+where firstCharacter is the character that begins the range and lastCharacter is the character that ends the range. A character range is a contiguous series of characters defined by specifying the first character in the series, a hyphen (-), and then the last character in the series. Two characters are contiguous if they have adjacent Unicode code points.</value>
+  </data>
+  <data name="regex_positive_character_group_short" xml:space="preserve">
+    <value>positive character group</value>
   </data>
   <data name="regex_tab_character_long" xml:space="preserve">
     <value>Matches a tab character, \u0009</value>

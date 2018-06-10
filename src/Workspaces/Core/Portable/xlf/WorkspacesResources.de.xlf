@@ -1065,6 +1065,56 @@ If you use $ with the RegexOptions.Multiline option, the match can also occur at
         <target state="new">hexidecimal escape</target>
         <note />
       </trans-unit>
+      <trans-unit id="regex_negative_character_group_long">
+        <source>A negative character group specifies a list of characters that must not appear in an input string for a match to occur. The list of characters may be specified individually, as a range, or both.
+
+The syntax for specifying a list of individual characters is as follows:
+
+[^character_group]
+
+where character_group is a list of the individual characters that cannot appear in the input string for a match to succeed. character_group can consist of any combination of one or more literal characters, escape characters, or character classes.
+
+The syntax for specifying a range of characters is as follows:
+
+[^firstCharacter-lastCharacter]
+
+where firstCharacter is the character that begins the range, and lastCharacter is the character that ends the range. A character range is a contiguous series of characters defined by specifying the first character in the series, a hyphen (-), and then the last character in the series. Two characters are contiguous if they have adjacent Unicode code points.
+
+Two or more character ranges can be concatenated. For example, to specify the range of decimal digits from "0" through "9", the range of lowercase letters from "a" through "f", and the range of uppercase letters from "A" through "F", use [0-9a-fA-F].
+
+The leading carat character (^) in a negative character group is mandatory and indicates the character group is a negative character group instead of a positive character group.
+
+Important
+
+A negative character group in a larger regular expression pattern is not a zero-width assertion. That is, after evaluating the negative character group, the regular expression engine advances one character in the input string.</source>
+        <target state="new">A negative character group specifies a list of characters that must not appear in an input string for a match to occur. The list of characters may be specified individually, as a range, or both.
+
+The syntax for specifying a list of individual characters is as follows:
+
+[^character_group]
+
+where character_group is a list of the individual characters that cannot appear in the input string for a match to succeed. character_group can consist of any combination of one or more literal characters, escape characters, or character classes.
+
+The syntax for specifying a range of characters is as follows:
+
+[^firstCharacter-lastCharacter]
+
+where firstCharacter is the character that begins the range, and lastCharacter is the character that ends the range. A character range is a contiguous series of characters defined by specifying the first character in the series, a hyphen (-), and then the last character in the series. Two characters are contiguous if they have adjacent Unicode code points.
+
+Two or more character ranges can be concatenated. For example, to specify the range of decimal digits from "0" through "9", the range of lowercase letters from "a" through "f", and the range of uppercase letters from "A" through "F", use [0-9a-fA-F].
+
+The leading carat character (^) in a negative character group is mandatory and indicates the character group is a negative character group instead of a positive character group.
+
+Important
+
+A negative character group in a larger regular expression pattern is not a zero-width assertion. That is, after evaluating the negative character group, the regular expression engine advances one character in the input string.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="regex_negative_character_group_short">
+        <source>negative character group</source>
+        <target state="new">negative character group</target>
+        <note />
+      </trans-unit>
       <trans-unit id="regex_new_line_character_long">
         <source>Matches a new-line character, \u000A</source>
         <target state="new">Matches a new-line character, \u000A</target>
@@ -1083,6 +1133,40 @@ If you use $ with the RegexOptions.Multiline option, the match can also occur at
       <trans-unit id="regex_non_word_boundary_short">
         <source>non-word boundary</source>
         <target state="new">non-word boundary</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="regex_positive_character_group_long">
+        <source>A positive character group specifies a list of characters, any one of which may appear in an input string for a match to occur. This list of characters may be specified individually, as a range, or both.
+
+The syntax for specifying a list of individual characters is as follows:
+
+[character_group]
+
+where character_group is a list of the individual characters that can appear in the input string for a match to succeed. character_group can consist of any combination of one or more literal characters, escape characters, or character classes.
+
+The syntax for specifying a range of characters is as follows:
+
+[firstCharacter-lastCharacter]  
+
+where firstCharacter is the character that begins the range and lastCharacter is the character that ends the range. A character range is a contiguous series of characters defined by specifying the first character in the series, a hyphen (-), and then the last character in the series. Two characters are contiguous if they have adjacent Unicode code points.</source>
+        <target state="new">A positive character group specifies a list of characters, any one of which may appear in an input string for a match to occur. This list of characters may be specified individually, as a range, or both.
+
+The syntax for specifying a list of individual characters is as follows:
+
+[character_group]
+
+where character_group is a list of the individual characters that can appear in the input string for a match to succeed. character_group can consist of any combination of one or more literal characters, escape characters, or character classes.
+
+The syntax for specifying a range of characters is as follows:
+
+[firstCharacter-lastCharacter]  
+
+where firstCharacter is the character that begins the range and lastCharacter is the character that ends the range. A character range is a contiguous series of characters defined by specifying the first character in the series, a hyphen (-), and then the last character in the series. Two characters are contiguous if they have adjacent Unicode code points.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="regex_positive_character_group_short">
+        <source>positive character group</source>
+        <target state="new">positive character group</target>
         <note />
       </trans-unit>
       <trans-unit id="regex_start_of_string_only_long">
@@ -1113,6 +1197,16 @@ If you use $ with the RegexOptions.Multiline option, the match can also occur at
       <trans-unit id="regex_tab_character_short">
         <source>tab character</source>
         <target state="new">tab character</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="regex_unicode_escape_long">
+        <source>Matches a UTF-16 code unit whose value is #### hexadecimal.</source>
+        <target state="new">Matches a UTF-16 code unit whose value is #### hexadecimal.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="regex_unicode_escape_short">
+        <source>unicode escape</source>
+        <target state="new">unicode escape</target>
         <note />
       </trans-unit>
       <trans-unit id="regex_vertical_tab_character_long">

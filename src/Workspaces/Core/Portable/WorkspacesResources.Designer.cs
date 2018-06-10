@@ -1453,6 +1453,30 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to A negative character group specifies a list of characters that must not appear in an input string for a match to occur. The list of characters may be specified individually, as a range, or both.
+        ///
+        ///The syntax for specifying a list of individual characters is as follows:
+        ///
+        ///[^character_group]
+        ///
+        ///where character_group is a list of the individual characters that cannot appear in the input string for a match to succeed. character_group can consist of any combination of one or more literal characters, escape cha [rest of string was truncated]&quot;;.
+        /// </summary>
+        internal static string regex_negative_character_group_long {
+            get {
+                return ResourceManager.GetString("regex_negative_character_group_long", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to negative character group.
+        /// </summary>
+        internal static string regex_negative_character_group_short {
+            get {
+                return ResourceManager.GetString("regex_negative_character_group_short", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Matches a new-line character, \u000A.
         /// </summary>
         internal static string regex_new_line_character_long {
@@ -1485,6 +1509,30 @@ namespace Microsoft.CodeAnalysis {
         internal static string regex_non_word_boundary_short {
             get {
                 return ResourceManager.GetString("regex_non_word_boundary_short", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to A positive character group specifies a list of characters, any one of which may appear in an input string for a match to occur. This list of characters may be specified individually, as a range, or both.
+        ///
+        ///The syntax for specifying a list of individual characters is as follows:
+        ///
+        ///[character_group]
+        ///
+        ///where character_group is a list of the individual characters that can appear in the input string for a match to succeed. character_group can consist of any combination of one or more literal characters, escap [rest of string was truncated]&quot;;.
+        /// </summary>
+        internal static string regex_positive_character_group_long {
+            get {
+                return ResourceManager.GetString("regex_positive_character_group_long", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to positive character group.
+        /// </summary>
+        internal static string regex_positive_character_group_short {
+            get {
+                return ResourceManager.GetString("regex_positive_character_group_short", resourceCulture);
             }
         }
         
