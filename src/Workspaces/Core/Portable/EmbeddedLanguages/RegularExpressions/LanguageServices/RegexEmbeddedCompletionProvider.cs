@@ -44,14 +44,8 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions.LanguageSe
             switch (ch)
             {
                 case '\\': // any escape
-                case '[':  
-                case '^':  // character class
+                case '[':  // character class
                 case '(':  // any group
-                case '?':  // (?
-                case '<':  // (?<
-                case '=':  // (?<=
-                case '\'': // (?'
-                case '!':  // (?<!
                 case '{':  // \p{
                 case '+': case '-':
                 case 'i': case 'I':
@@ -120,19 +114,19 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions.LanguageSe
                 inCharacterClass = IsInCharacterClass(tree.Root, virtualChar.Value, inCharacterClass: false);
             }
 
-            ProvideTopLevelCompletions(context, stringToken, inCharacterClass);
-            ProvideCharacterClassCompletions(context, stringToken, parentOpt: null);
             ProvideEscapeCompletions(context, stringToken, inCharacterClass, parentOpt: null);
+
+            if (!inCharacterClass)
+            {
+                ProvideTopLevelCompletions(context, stringToken);
+                ProvideCharacterClassCompletions(context, stringToken, parentOpt: null);
+                ProvideGroupingCompletions(context, stringToken, parentOpt: null);
+            }
         }
 
         private void ProvideTopLevelCompletions(
-            EmbeddedCompletionContext context, SyntaxToken stringToken, bool inCharacterClass)
+            EmbeddedCompletionContext context, SyntaxToken stringToken)
         {
-            if (inCharacterClass)
-            {
-                return;
-            }
-
             AddIfMissing(context, CreateItem(stringToken, "^", regex_start_of_string_or_line_short, regex_start_of_string_or_line_long, context, parentOpt: null));
             AddIfMissing(context, CreateItem(stringToken, "$", regex_end_of_string_or_line_short, regex_end_of_string_or_line_long, context, parentOpt: null));
             AddIfMissing(context, CreateItem(stringToken, ".", regex_any_character_group_short, regex_any_character_group_long, context, parentOpt: null));
@@ -161,12 +155,6 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions.LanguageSe
             if (token.Kind == RegexKind.BackslashToken)
             {
                 ProvideEscapeCompletions(context, stringToken, inCharacterClass, parent);
-                return;
-            }
-
-            if (token.Kind == RegexKind.OpenBracketToken)
-            {
-                ProvideCharacterClassCompletions(context, stringToken, parent);
                 return;
             }
 
@@ -204,18 +192,33 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions.LanguageSe
 
             switch (token.Kind)
             {
+                case RegexKind.OpenBracketToken:
+                    ProvideCharacterClassCompletions(context, stringToken, parent);
+                    return;
                 case RegexKind.OpenParenToken:
-                case RegexKind.QuestionToken:
-                case RegexKind.LessThanToken:
-                case RegexKind.EqualsToken:
-                case RegexKind.SingleQuoteToken:
-                case RegexKind.ExclamationToken:
-                    // ProvideGroupingCompletions(context);
+                    ProvideGroupingCompletions(context, stringToken, parent);
                     return;
                 case RegexKind.OptionsToken:
                     // ProvideOptionsCompletions(context, optionsT);
                     return;
             }
+        }
+
+        private void ProvideGroupingCompletions(
+            EmbeddedCompletionContext context, SyntaxToken stringToken, RegexNode parentOpt)
+        {
+            if (parentOpt != null && !(parentOpt is RegexGroupingNode))
+            {
+                return;
+            }
+
+            AddIfMissing(context, CreateItem(stringToken, "(" + regex_subexpression + ")", regex_matched_subexpression_short, regex_matched_subexpression_long, context, parentOpt, positionOffset: "(".Length, insertionText: "()"));
+            AddIfMissing(context, CreateItem(stringToken, "(?<" + regex_name + ">" + regex_subexpression + ")", regex_named_matched_subexpression_short, regex_named_matched_subexpression_long, context, parentOpt, positionOffset: "(?<".Length, insertionText: "(?<>)"));
+            AddIfMissing(context, CreateItem(stringToken, "(?<" + regex_name1 + "-" + regex_name2 + ">" + regex_subexpression + ")", regex_balancing_group_short, regex_balancing_group_long, context, parentOpt, positionOffset: "(?<".Length, insertionText: "(?<->)"));
+            AddIfMissing(context, CreateItem(stringToken, "(?:" + regex_subexpression + ")", regex_noncapturing_group_short, regex_noncapturing_group_long, context, parentOpt, positionOffset: "(?:".Length, insertionText: "(?:)"));
+            AddIfMissing(context, CreateItem(stringToken, "(?imnsx-imnsx:" + regex_subexpression + ")", regex_group_options_short, regex_group_options_long, context, parentOpt, positionOffset: "(?".Length, insertionText: "(?:)"));
+            AddIfMissing(context, CreateItem(stringToken, "(?!" + regex_subexpression + ")", regex_zero_width_negative_lookahead_assertion_short, regex_zero_width_negative_lookahead_assertion_long, context, parentOpt, positionOffset: "(?!".Length, insertionText: "(?!)"));
+            AddIfMissing(context, CreateItem(stringToken, "(?<=" + regex_subexpression + ")", regex_zero_width_negative_lookbehind_assertion_short, regex_zero_width_negative_lookbehind_assertion_long, context, parentOpt, positionOffset: "(?<=".Length, insertionText: "(?<=)"));
         }
 
         private void ProvideCharacterClassCompletions(

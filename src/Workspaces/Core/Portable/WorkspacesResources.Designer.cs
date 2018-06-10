@@ -1278,6 +1278,28 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to A balancing group definition deletes the definition of a previously defined group and stores, in the current group, the interval between the previously defined group and the current group. This grouping construct has the following format:
+        ///
+        ///(?&lt;name1-name2&gt;subexpression)  
+        ///
+        ///where name1 is the current group (optional), name2 is a previously defined group, and subexpression is any valid regular expression pattern. The balancing group definition deletes the definition of name2 and stores the interval between [rest of string was truncated]&quot;;.
+        /// </summary>
+        internal static string regex_balancing_group_long {
+            get {
+                return ResourceManager.GetString("regex_balancing_group_long", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to balancing group.
+        /// </summary>
+        internal static string regex_balancing_group_short {
+            get {
+                return ResourceManager.GetString("regex_balancing_group_short", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Matches a bell (alarm) character, \u0007.
         /// </summary>
         internal static string regex_bell_character_long {
@@ -1348,7 +1370,7 @@ namespace Microsoft.CodeAnalysis {
                 return ResourceManager.GetString("regex_control_character_short", resourceCulture);
             }
         }
-         
+        
         /// <summary>
         ///   Looks up a localized string similar to \d matches any decimal digit. It is equivalent to the \p{Nd} regular expression pattern, which includes the standard decimal digits 0-9 as well as the decimal digits of a number of other character sets.
         ///
@@ -1464,6 +1486,32 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The following grouping construct applies or disables the specified options within a subexpression:
+        ///
+        ///(?imnsx-imnsx: subexpression )
+        ///
+        ///where subexpression is any valid regular expression pattern. For example, (?i-s:) turns on case insensitivity and disables single-line mode.
+        ///
+        ///Note
+        ///
+        ///You can specify options that apply to an entire regular expression rather than a subexpression by using a System.Text.RegularExpressions.Regex class constructor or a static method. You can also specify inline options that ap [rest of string was truncated]&quot;;.
+        /// </summary>
+        internal static string regex_group_options_long {
+            get {
+                return ResourceManager.GetString("regex_group_options_long", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to group options.
+        /// </summary>
+        internal static string regex_group_options_short {
+            get {
+                return ResourceManager.GetString("regex_group_options_short", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Matches an ASCII character, where ## is a two-digit hexadecimal character code..
         /// </summary>
         internal static string regex_hexadecimal_escape_long {
@@ -1487,6 +1535,94 @@ namespace Microsoft.CodeAnalysis {
         internal static string Regex_issue_0 {
             get {
                 return ResourceManager.GetString("Regex_issue_0", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Letter, Uppercase.
+        /// </summary>
+        internal static string regex_letter_uppercase {
+            get {
+                return ResourceManager.GetString("regex_letter_uppercase", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The following grouping construct captures a matched subexpression:
+        ///
+        ///( subexpression )
+        ///
+        ///where subexpression is any valid regular expression pattern. Captures that use parentheses are numbered automatically from left to right based on the order of the opening parentheses in the regular expression, starting from one. The capture that is numbered zero is the text matched by the entire regular expression pattern.
+        ///
+        ///Note
+        ///
+        ///By default, the (subexpression) language element captures the matched subexpression.  [rest of string was truncated]&quot;;.
+        /// </summary>
+        internal static string regex_matched_subexpression_long {
+            get {
+                return ResourceManager.GetString("regex_matched_subexpression_long", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to matched subexpression.
+        /// </summary>
+        internal static string regex_matched_subexpression_short {
+            get {
+                return ResourceManager.GetString("regex_matched_subexpression_short", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to name.
+        /// </summary>
+        internal static string regex_name {
+            get {
+                return ResourceManager.GetString("regex_name", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to name1.
+        /// </summary>
+        internal static string regex_name1 {
+            get {
+                return ResourceManager.GetString("regex_name1", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to name2.
+        /// </summary>
+        internal static string regex_name2 {
+            get {
+                return ResourceManager.GetString("regex_name2", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The following grouping construct captures a matched subexpression and lets you access it by name or by number:
+        ///
+        ///(?&lt;name&gt;subexpression)  
+        ///
+        ///where name is a valid group name, and subexpression is any valid regular expression pattern. name must not contain any punctuation characters and cannot begin with a number.
+        ///
+        ///Note
+        ///
+        ///If the RegexOptions parameter of a regular expression pattern matching method includes the RegexOptions.ExplicitCapture flag, or if the n option is applied to this subexpression, the on [rest of string was truncated]&quot;;.
+        /// </summary>
+        internal static string regex_named_matched_subexpression_long {
+            get {
+                return ResourceManager.GetString("regex_named_matched_subexpression_long", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to named matched subexpression.
+        /// </summary>
+        internal static string regex_named_matched_subexpression_short {
+            get {
+                return ResourceManager.GetString("regex_named_matched_subexpression_short", resourceCulture);
             }
         }
         
@@ -1640,6 +1776,32 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The following grouping construct does not capture the substring that is matched by a subexpression:
+        ///
+        ///(?:subexpression)  
+        ///
+        ///where subexpression is any valid regular expression pattern. The noncapturing group construct is typically used when a quantifier is applied to a group, but the substrings captured by the group are of no interest.
+        ///
+        ///Note
+        ///
+        ///If a regular expression includes nested grouping constructs, an outer noncapturing group construct does not apply to the inner nested group constructs..
+        /// </summary>
+        internal static string regex_noncapturing_group_long {
+            get {
+                return ResourceManager.GetString("regex_noncapturing_group_long", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to noncapturing group.
+        /// </summary>
+        internal static string regex_noncapturing_group_short {
+            get {
+                return ResourceManager.GetString("regex_noncapturing_group_short", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to A positive character group specifies a list of characters, any one of which may appear in an input string for a match to occur. This list of characters may be specified individually, as a range, or both.
         ///
         ///The syntax for specifying a list of individual characters is as follows:
@@ -1696,6 +1858,15 @@ namespace Microsoft.CodeAnalysis {
         internal static string regex_start_of_string_or_line_short {
             get {
                 return ResourceManager.GetString("regex_start_of_string_or_line_short", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to subexpression.
+        /// </summary>
+        internal static string regex_subexpression {
+            get {
+                return ResourceManager.GetString("regex_subexpression", resourceCulture);
             }
         }
         
@@ -1845,6 +2016,78 @@ namespace Microsoft.CodeAnalysis {
         internal static string regex_word_character_short {
             get {
                 return ResourceManager.GetString("regex_word_character_short", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The following grouping construct defines a zero-width negative lookahead assertion:
+        ///
+        ///(?! subexpression )
+        ///
+        ///where subexpression is any regular expression pattern. For the match to be successful, the input string must not match the regular expression pattern in subexpression, although the matched string is not included in the match result.
+        ///
+        ///A zero-width negative lookahead assertion is typically used either at the beginning or at the end of a regular expression. At the beginning of a regular expression, i [rest of string was truncated]&quot;;.
+        /// </summary>
+        internal static string regex_zero_width_negative_lookahead_assertion_long {
+            get {
+                return ResourceManager.GetString("regex_zero_width_negative_lookahead_assertion_long", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to zero-width negative lookahead assertion.
+        /// </summary>
+        internal static string regex_zero_width_negative_lookahead_assertion_short {
+            get {
+                return ResourceManager.GetString("regex_zero_width_negative_lookahead_assertion_short", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The following grouping construct defines a zero-width positive lookahead assertion:
+        ///
+        ///(?= subexpression )
+        ///
+        ///where subexpression is any regular expression pattern. For a match to be successful, the input string must match the regular expression pattern in subexpression, although the matched substring is not included in the match result. A zero-width positive lookahead assertion does not backtrack.
+        ///
+        ///Typically, a zero-width positive lookahead assertion is found at the end of a regular expression pattern. I [rest of string was truncated]&quot;;.
+        /// </summary>
+        internal static string regex_zero_width_positive_lookahead_assertion_long {
+            get {
+                return ResourceManager.GetString("regex_zero_width_positive_lookahead_assertion_long", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to zero-width positive lookahead assertion.
+        /// </summary>
+        internal static string regex_zero_width_positive_lookahead_assertion_short {
+            get {
+                return ResourceManager.GetString("regex_zero_width_positive_lookahead_assertion_short", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The following grouping construct defines a zero-width positive lookbehind assertion:
+        ///
+        ///(?&lt;= subexpression )
+        ///
+        ///where subexpression is any regular expression pattern. For a match to be successful, subexpression must occur at the input string to the left of the current position, although subexpression is not included in the match result. A zero-width positive lookbehind assertion does not backtrack.
+        ///
+        ///Zero-width positive lookbehind assertions are typically used at the beginning of regular expressions. The p [rest of string was truncated]&quot;;.
+        /// </summary>
+        internal static string regex_zero_width_positive_lookbehind_assertion_long {
+            get {
+                return ResourceManager.GetString("regex_zero_width_positive_lookbehind_assertion_long", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to zero-width positive lookbehind assertion.
+        /// </summary>
+        internal static string regex_zero_width_positive_lookbehind_assertion_short {
+            get {
+                return ResourceManager.GetString("regex_zero_width_positive_lookbehind_assertion_short", resourceCulture);
             }
         }
         

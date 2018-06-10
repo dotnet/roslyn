@@ -822,6 +822,33 @@ If ECMAScript-compliant behavior is specified, \d is equivalent to [0-9]</value>
   <data name="regex_hexadecimal_escape_short" xml:space="preserve">
     <value>hexidecimal escape</value>
   </data>
+  <data name="regex_letter_uppercase" xml:space="preserve">
+    <value>Letter, Uppercase</value>
+  </data>
+  <data name="regex_matched_subexpression_long" xml:space="preserve">
+    <value>The following grouping construct captures a matched subexpression:
+
+( subexpression )
+
+where subexpression is any valid regular expression pattern. Captures that use parentheses are numbered automatically from left to right based on the order of the opening parentheses in the regular expression, starting from one. The capture that is numbered zero is the text matched by the entire regular expression pattern.
+
+Note
+
+By default, the (subexpression) language element captures the matched subexpression. But if the RegexOptions parameter of a regular expression pattern matching method includes the RegexOptions.ExplicitCapture flag, or if the n option is applied to this subexpression, the matched subexpression is not captured.
+
+You can access captured groups in four ways:
+
+    By using the backreference construct within the regular expression. The matched subexpression is referenced in the same regular expression by using the syntax \number, where number is the ordinal number of the captured subexpression.
+
+    By using the named backreference construct within the regular expression. The matched subexpression is referenced in the same regular expression by using the syntax \k&lt;name&gt;, where name is the name of a capturing group, or \k&lt;number&gt;, where number is the ordinal number of a capturing group. A capturing group has a default name that is identical to its ordinal number.
+
+    By using the $number replacement sequence in a Regex.Replace or Match.Result method call, where number is the ordinal number of the captured subexpression.
+
+    Programmatically, by using the GroupCollection object returned by the Match.Groups property. The member at position zero in the collection represents the entire regular expression match. Each subsequent member represents a matched subexpression.</value>
+  </data>
+  <data name="regex_matched_subexpression_short" xml:space="preserve">
+    <value>matched subexpression</value>
+  </data>
   <data name="regex_negative_character_group_long" xml:space="preserve">
     <value>A negative character group specifies a list of characters that must not appear in an input string for a match to occur. The list of characters may be specified individually, as a range, or both.
 
@@ -921,6 +948,9 @@ where firstCharacter is the character that begins the range and lastCharacter is
   <data name="regex_positive_character_group_short" xml:space="preserve">
     <value>positive character group</value>
   </data>
+  <data name="regex_subexpression" xml:space="preserve">
+    <value>subexpression</value>
+  </data>
   <data name="regex_tab_character_long" xml:space="preserve">
     <value>Matches a tab character, \u0009</value>
   </data>
@@ -983,5 +1013,124 @@ If ECMAScript-compliant behavior is specified, \w is equivalent to [a-zA-Z_0-9]<
   </data>
   <data name="regex_word_character_short" xml:space="preserve">
     <value>word character</value>
+  </data>
+  <data name="regex_balancing_group_long" xml:space="preserve">
+    <value>A balancing group definition deletes the definition of a previously defined group and stores, in the current group, the interval between the previously defined group and the current group. This grouping construct has the following format:
+
+(?&lt;name1-name2&gt;subexpression)  
+
+where name1 is the current group (optional), name2 is a previously defined group, and subexpression is any valid regular expression pattern. The balancing group definition deletes the definition of name2 and stores the interval between name2 and name1 in name1. If no name2 group is defined, the match backtracks. Because deleting the last definition of name2 reveals the previous definition of name2, this construct lets you use the stack of captures for group name2 as a counter for keeping track of nested constructs such as parentheses or opening and closing brackets.
+
+The balancing group definition uses name2 as a stack. The beginning character of each nested construct is placed in the group and in its Group.Captures collection. When the closing character is matched, its corresponding opening character is removed from the group, and the Captures collection is decreased by one. After the opening and closing characters of all nested constructs have been matched, name1 is empty.
+
+Note
+
+After you modify the regular expression in the following example to use the appropriate opening and closing character of a nested construct, you can use it to handle most nested constructs, such as mathematical expressions or lines of program code that include multiple nested method calls.</value>
+  </data>
+  <data name="regex_balancing_group_short" xml:space="preserve">
+    <value>balancing group</value>
+  </data>
+  <data name="regex_group_options_long" xml:space="preserve">
+    <value>The following grouping construct applies or disables the specified options within a subexpression:
+
+(?imnsx-imnsx: subexpression )
+
+where subexpression is any valid regular expression pattern. For example, (?i-s:) turns on case insensitivity and disables single-line mode.
+
+Note
+
+You can specify options that apply to an entire regular expression rather than a subexpression by using a System.Text.RegularExpressions.Regex class constructor or a static method. You can also specify inline options that apply after a specific point in a regular expression by using the (?imnsx-imnsx) language construct.
+
+The group options construct is not a capturing group. That is, although any portion of a string that is captured by subexpression is included in the match, it is not included in a captured group nor used to populate the GroupCollection object.</value>
+  </data>
+  <data name="regex_group_options_short" xml:space="preserve">
+    <value>group options</value>
+  </data>
+  <data name="regex_name" xml:space="preserve">
+    <value>name</value>
+  </data>
+  <data name="regex_name1" xml:space="preserve">
+    <value>name1</value>
+  </data>
+  <data name="regex_name2" xml:space="preserve">
+    <value>name2</value>
+  </data>
+  <data name="regex_named_matched_subexpression_long" xml:space="preserve">
+    <value>The following grouping construct captures a matched subexpression and lets you access it by name or by number:
+
+(?&lt;name&gt;subexpression)  
+
+where name is a valid group name, and subexpression is any valid regular expression pattern. name must not contain any punctuation characters and cannot begin with a number.
+
+Note
+
+If the RegexOptions parameter of a regular expression pattern matching method includes the RegexOptions.ExplicitCapture flag, or if the n option is applied to this subexpression, the only way to capture a subexpression is to explicitly name capturing groups.
+
+You can access named captured groups in the following ways:
+
+    By using the named backreference construct within the regular expression. The matched subexpression is referenced in the same regular expression by using the syntax \k&lt;name&gt;, where name is the name of the captured subexpression.
+
+    By using the backreference construct within the regular expression. The matched subexpression is referenced in the same regular expression by using the syntax \number, where number is the ordinal number of the captured subexpression. Named matched subexpressions are numbered consecutively from left to right after matched subexpressions.
+
+    By using the ${name} replacement sequence in a Regex.Replace or Match.Result method call, where name is the name of the captured subexpression.
+
+    By using the $number replacement sequence in a Regex.Replace or Match.Result method call, where number is the ordinal number of the captured subexpression.
+
+    Programmatically, by using the GroupCollection object returned by the Match.Groups property. The member at position zero in the collection represents the entire regular expression match. Each subsequent member represents a matched subexpression. Named captured groups are stored in the collection after numbered captured groups.
+
+    Programmatically, by providing the subexpression name to the GroupCollection object's indexer.</value>
+  </data>
+  <data name="regex_named_matched_subexpression_short" xml:space="preserve">
+    <value>named matched subexpression</value>
+  </data>
+  <data name="regex_noncapturing_group_long" xml:space="preserve">
+    <value>The following grouping construct does not capture the substring that is matched by a subexpression:
+
+(?:subexpression)  
+
+where subexpression is any valid regular expression pattern. The noncapturing group construct is typically used when a quantifier is applied to a group, but the substrings captured by the group are of no interest.
+
+Note
+
+If a regular expression includes nested grouping constructs, an outer noncapturing group construct does not apply to the inner nested group constructs.</value>
+  </data>
+  <data name="regex_noncapturing_group_short" xml:space="preserve">
+    <value>noncapturing group</value>
+  </data>
+  <data name="regex_zero_width_negative_lookahead_assertion_long" xml:space="preserve">
+    <value>The following grouping construct defines a zero-width negative lookahead assertion:
+
+(?! subexpression )
+
+where subexpression is any regular expression pattern. For the match to be successful, the input string must not match the regular expression pattern in subexpression, although the matched string is not included in the match result.
+
+A zero-width negative lookahead assertion is typically used either at the beginning or at the end of a regular expression. At the beginning of a regular expression, it can define a specific pattern that should not be matched when the beginning of the regular expression defines a similar but more general pattern to be matched. In this case, it is often used to limit backtracking. At the end of a regular expression, it can define a subexpression that cannot occur at the end of a match.</value>
+  </data>
+  <data name="regex_zero_width_negative_lookahead_assertion_short" xml:space="preserve">
+    <value>zero-width negative lookahead assertion</value>
+  </data>
+  <data name="regex_zero_width_positive_lookahead_assertion_long" xml:space="preserve">
+    <value>The following grouping construct defines a zero-width positive lookahead assertion:
+
+(?= subexpression )
+
+where subexpression is any regular expression pattern. For a match to be successful, the input string must match the regular expression pattern in subexpression, although the matched substring is not included in the match result. A zero-width positive lookahead assertion does not backtrack.
+
+Typically, a zero-width positive lookahead assertion is found at the end of a regular expression pattern. It defines a substring that must be found at the end of a string for a match to occur but that should not be included in the match. It is also useful for preventing excessive backtracking. You can use a zero-width positive lookahead assertion to ensure that a particular captured group begins with text that matches a subset of the pattern defined for that captured group. For example, if a capturing group matches consecutive word characters, you can use a zero-width positive lookahead assertion to require that the first character be an alphabetical uppercase character.</value>
+  </data>
+  <data name="regex_zero_width_positive_lookahead_assertion_short" xml:space="preserve">
+    <value>zero-width positive lookahead assertion</value>
+  </data>
+  <data name="regex_zero_width_positive_lookbehind_assertion_long" xml:space="preserve">
+    <value>The following grouping construct defines a zero-width positive lookbehind assertion:
+
+(?&lt;= subexpression )
+
+where subexpression is any regular expression pattern. For a match to be successful, subexpression must occur at the input string to the left of the current position, although subexpression is not included in the match result. A zero-width positive lookbehind assertion does not backtrack.
+
+Zero-width positive lookbehind assertions are typically used at the beginning of regular expressions. The pattern that they define is a precondition for a match, although it is not a part of the match result.</value>
+  </data>
+  <data name="regex_zero_width_positive_lookbehind_assertion_short" xml:space="preserve">
+    <value>zero-width positive lookbehind assertion</value>
   </data>
 </root>

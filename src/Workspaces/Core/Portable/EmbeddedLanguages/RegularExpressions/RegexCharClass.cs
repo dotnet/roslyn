@@ -7,6 +7,8 @@ using System.Text;
 
 namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
 {
+    using static WorkspacesResources;
+
     /// <summary>
     /// Minimal copy of https://github.com/dotnet/corefx/blob/master/src/System.Text.RegularExpressions/src/System/Text/RegularExpressions/RegexCharClass.cs
     /// Used to accurately determine if something is a WordChar according to the .Net regex engine.
@@ -41,7 +43,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
                 { "Lm", ("", "") },
                 { "Lo", ("", "") },
                 { "Lt", ("", "") },
-                { "Lu", ("", "") },
+                { "Lu", (regex_letter_uppercase, "") },
                 { "L", ("", "") },
                 // Marks
                 { "Mc", ("", "") },
