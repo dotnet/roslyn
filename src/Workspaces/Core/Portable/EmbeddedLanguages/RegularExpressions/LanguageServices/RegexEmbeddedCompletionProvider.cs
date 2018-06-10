@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.EmbeddedLanguages.Common;
 using Microsoft.CodeAnalysis.EmbeddedLanguages.LanguageServices;
@@ -7,7 +8,6 @@ using Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
-using System;
 
 namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions.LanguageServices
 {
@@ -120,12 +120,12 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions.LanguageSe
                 inCharacterClass = IsInCharacterClass(tree.Root, virtualChar.Value, inCharacterClass: false);
             }
 
-            ProvideAnchorCompletions(context, stringToken, inCharacterClass);
+            ProvideTopLevelCompletions(context, stringToken, inCharacterClass);
             ProvideCharacterClassCompletions(context, stringToken, parentOpt: null);
             ProvideEscapeCompletions(context, stringToken, inCharacterClass, parentOpt: null);
         }
 
-        private void ProvideAnchorCompletions(
+        private void ProvideTopLevelCompletions(
             EmbeddedCompletionContext context, SyntaxToken stringToken, bool inCharacterClass)
         {
             if (inCharacterClass)
@@ -135,6 +135,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions.LanguageSe
 
             AddIfMissing(context, CreateItem(stringToken, "^", regex_start_of_string_or_line_short, regex_start_of_string_or_line_long, context, parentOpt: null));
             AddIfMissing(context, CreateItem(stringToken, "$", regex_end_of_string_or_line_short, regex_end_of_string_or_line_long, context, parentOpt: null));
+            AddIfMissing(context, CreateItem(stringToken, ".", regex_any_character_group_short, regex_any_character_group_long, context, parentOpt: null));
         }
 
         private void ProvideCompletionsAfterInsertion(
@@ -279,11 +280,11 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions.LanguageSe
 
             AddIfMissing(context, CreateItem(stringToken, @"\d", "", "", context, parentOpt));
             AddIfMissing(context, CreateItem(stringToken, @"\D", "", "", context, parentOpt));
-            AddIfMissing(context, CreateItem(stringToken, @"\p{}", "", "", context, parentOpt, @"\p".Length, @"\p"));
-            AddIfMissing(context, CreateItem(stringToken, @"\P{}", "", "", context, parentOpt, @"\P".Length, @"\P"));
+            AddIfMissing(context, CreateItem(stringToken, @"\p{}", regex_unicode_category_short, regex_unicode_category_long, context, parentOpt, @"\p".Length, @"\p"));
+            AddIfMissing(context, CreateItem(stringToken, @"\P{}", regex_negative_unicode_category_short, regex_negative_unicode_category_long, context, parentOpt, @"\P".Length, @"\P"));
             AddIfMissing(context, CreateItem(stringToken, @"\s", "", "", context, parentOpt));
             AddIfMissing(context, CreateItem(stringToken, @"\S", "", "", context, parentOpt));
-            AddIfMissing(context, CreateItem(stringToken, @"\w", "", "", context, parentOpt));
+            AddIfMissing(context, CreateItem(stringToken, @"\w", regex_word_character_short, regex_word_character_long, context, parentOpt));
             AddIfMissing(context, CreateItem(stringToken, @"\W", "", "", context, parentOpt));
         }
 

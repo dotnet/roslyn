@@ -947,6 +947,16 @@
         <target state="new">Unterminated (?#...) comment</target>
         <note />
       </trans-unit>
+      <trans-unit id="regex_any_character_group_long">
+        <source>The period character (.) matches any character except \n (the newline character, \u000A).  If a regular expression pattern is modified by the RegexOptions.Singleline option, or if the portion of the pattern that contains the . character class is modified by the s option, . matches any character.</source>
+        <target state="new">The period character (.) matches any character except \n (the newline character, \u000A).  If a regular expression pattern is modified by the RegexOptions.Singleline option, or if the portion of the pattern that contains the . character class is modified by the s option, . matches any character.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="regex_any_character_group_short">
+        <source>any character</source>
+        <target state="new">any character</target>
+        <note />
+      </trans-unit>
       <trans-unit id="regex_backspace_character_long">
         <source>Matches a backspace character, \u0008</source>
         <target state="new">Matches a backspace character, \u0008</target>
@@ -1115,6 +1125,28 @@ A negative character group in a larger regular expression pattern is not a zero-
         <target state="new">negative character group</target>
         <note />
       </trans-unit>
+      <trans-unit id="regex_negative_unicode_category_long">
+        <source>The Unicode standard assigns each character a general category. For example, a particular character can be an uppercase letter (represented by the Lu category), a decimal digit (the Nd category), a math symbol (the Sm category), or a paragraph separator (the Zl category). Specific character sets in the Unicode standard also occupy a specific range or block of consecutive code points. For example, the basic Latin character set is found from \u0000 through \u007F, while the Arabic character set is found from \u0600 through \u06FF.
+
+The regular expression construct
+
+\P{ name }
+
+matches any character that does not belong to a Unicode general category or named block, where name is the category abbreviation or named block name.</source>
+        <target state="new">The Unicode standard assigns each character a general category. For example, a particular character can be an uppercase letter (represented by the Lu category), a decimal digit (the Nd category), a math symbol (the Sm category), or a paragraph separator (the Zl category). Specific character sets in the Unicode standard also occupy a specific range or block of consecutive code points. For example, the basic Latin character set is found from \u0000 through \u007F, while the Arabic character set is found from \u0600 through \u06FF.
+
+The regular expression construct
+
+\P{ name }
+
+matches any character that does not belong to a Unicode general category or named block, where name is the category abbreviation or named block name.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="regex_negative_unicode_category_short">
+        <source>negative unicode category</source>
+        <target state="new">negative unicode category</target>
+        <note />
+      </trans-unit>
       <trans-unit id="regex_new_line_character_long">
         <source>Matches a new-line character, \u000A</source>
         <target state="new">Matches a new-line character, \u000A</target>
@@ -1133,6 +1165,46 @@ A negative character group in a larger regular expression pattern is not a zero-
       <trans-unit id="regex_non_word_boundary_short">
         <source>non-word boundary</source>
         <target state="new">non-word boundary</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="regex_non_word_character_long">
+        <source>\W matches any non-word character. The \W language element is equivalent to the following character class:
+
+[^\p{Ll}\p{Lu}\p{Lt}\p{Lo}\p{Nd}\p{Pc}\p{Lm}]  
+
+In other words, it matches any character except for those in the Unicode categories listed in the following table.
+
+Ll 	Letter, Lowercase
+Lu 	Letter, Uppercase
+Lt 	Letter, Titlecase
+Lo 	Letter, Other
+Lm 	Letter, Modifier
+Mn 	Mark, Nonspacing
+Nd 	Number, Decimal Digit
+Pc 	Punctuation, Connector. This category includes ten characters, the most commonly used of which is the LOWLINE character (_), u+005F.
+
+If ECMAScript-compliant behavior is specified, \W is equivalent to [^a-zA-Z_0-9]</source>
+        <target state="new">\W matches any non-word character. The \W language element is equivalent to the following character class:
+
+[^\p{Ll}\p{Lu}\p{Lt}\p{Lo}\p{Nd}\p{Pc}\p{Lm}]  
+
+In other words, it matches any character except for those in the Unicode categories listed in the following table.
+
+Ll 	Letter, Lowercase
+Lu 	Letter, Uppercase
+Lt 	Letter, Titlecase
+Lo 	Letter, Other
+Lm 	Letter, Modifier
+Mn 	Mark, Nonspacing
+Nd 	Number, Decimal Digit
+Pc 	Punctuation, Connector. This category includes ten characters, the most commonly used of which is the LOWLINE character (_), u+005F.
+
+If ECMAScript-compliant behavior is specified, \W is equivalent to [^a-zA-Z_0-9]</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="regex_non_word_character_short">
+        <source>non-word character</source>
+        <target state="new">non-word character</target>
         <note />
       </trans-unit>
       <trans-unit id="regex_positive_character_group_long">
@@ -1199,6 +1271,28 @@ where firstCharacter is the character that begins the range and lastCharacter is
         <target state="new">tab character</target>
         <note />
       </trans-unit>
+      <trans-unit id="regex_unicode_category_long">
+        <source>The Unicode standard assigns each character a general category. For example, a particular character can be an uppercase letter (represented by the Lu category), a decimal digit (the Nd category), a math symbol (the Sm category), or a paragraph separator (the Zl category). Specific character sets in the Unicode standard also occupy a specific range or block of consecutive code points. For example, the basic Latin character set is found from \u0000 through \u007F, while the Arabic character set is found from \u0600 through \u06FF.
+
+The regular expression construct
+
+\p{ name }
+
+matches any character that belongs to a Unicode general category or named block, where name is the category abbreviation or named block name.</source>
+        <target state="new">The Unicode standard assigns each character a general category. For example, a particular character can be an uppercase letter (represented by the Lu category), a decimal digit (the Nd category), a math symbol (the Sm category), or a paragraph separator (the Zl category). Specific character sets in the Unicode standard also occupy a specific range or block of consecutive code points. For example, the basic Latin character set is found from \u0000 through \u007F, while the Arabic character set is found from \u0600 through \u06FF.
+
+The regular expression construct
+
+\p{ name }
+
+matches any character that belongs to a Unicode general category or named block, where name is the category abbreviation or named block name.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="regex_unicode_category_short">
+        <source>unicode category</source>
+        <target state="new">unicode category</target>
+        <note />
+      </trans-unit>
       <trans-unit id="regex_unicode_escape_long">
         <source>Matches a UTF-16 code unit whose value is #### hexadecimal.</source>
         <target state="new">Matches a UTF-16 code unit whose value is #### hexadecimal.</target>
@@ -1231,6 +1325,38 @@ The \b anchor is frequently used to ensure that a subexpression matches an entir
       <trans-unit id="regex_word_boundary_short">
         <source>word boundary</source>
         <target state="new">word boundary</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="regex_word_character_long">
+        <source>\w matches any word character. A word character is a member of any of the Unicode categories listed in the following table.
+
+Ll 	Letter, Lowercase
+Lu 	Letter, Uppercase
+Lt 	Letter, Titlecase
+Lo 	Letter, Other
+Lm 	Letter, Modifier
+Mn 	Mark, Nonspacing
+Nd 	Number, Decimal Digit
+Pc 	Punctuation, Connector. This category includes ten characters, the most commonly used of which is the LOWLINE character (_), u+005F.
+
+If ECMAScript-compliant behavior is specified, \w is equivalent to [a-zA-Z_0-9]</source>
+        <target state="new">\w matches any word character. A word character is a member of any of the Unicode categories listed in the following table.
+
+Ll 	Letter, Lowercase
+Lu 	Letter, Uppercase
+Lt 	Letter, Titlecase
+Lo 	Letter, Other
+Lm 	Letter, Modifier
+Mn 	Mark, Nonspacing
+Nd 	Number, Decimal Digit
+Pc 	Punctuation, Connector. This category includes ten characters, the most commonly used of which is the LOWLINE character (_), u+005F.
+
+If ECMAScript-compliant behavior is specified, \w is equivalent to [a-zA-Z_0-9]</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="regex_word_character_short">
+        <source>word character</source>
+        <target state="new">word character</target>
         <note />
       </trans-unit>
       <trans-unit id="x_y_range_in_reverse_order">

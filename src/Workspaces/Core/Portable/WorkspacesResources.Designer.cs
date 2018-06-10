@@ -1242,6 +1242,24 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The period character (.) matches any character except \n (the newline character, \u000A).  If a regular expression pattern is modified by the RegexOptions.Singleline option, or if the portion of the pattern that contains the . character class is modified by the s option, . matches any character..
+        /// </summary>
+        internal static string regex_any_character_group_long {
+            get {
+                return ResourceManager.GetString("regex_any_character_group_long", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to any character.
+        /// </summary>
+        internal static string regex_any_character_group_short {
+            get {
+                return ResourceManager.GetString("regex_any_character_group_short", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Matches a backspace character, \u0008.
         /// </summary>
         internal static string regex_backspace_character_long {
@@ -1477,6 +1495,24 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The Unicode standard assigns each character a general category. For example, a particular character can be an uppercase letter (represented by the Lu category), a decimal digit (the Nd category), a math symbol (the Sm category), or a paragraph separator (the Zl category). Specific character sets in the Unicode standard also occupy a specific range or block of consecutive code points. For example, the basic Latin character set is found from \u0000 through \u007F, while the Arabic character set is found from  [rest of string was truncated]&quot;;.
+        /// </summary>
+        internal static string regex_negative_unicode_category_long {
+            get {
+                return ResourceManager.GetString("regex_negative_unicode_category_long", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to negative unicode category.
+        /// </summary>
+        internal static string regex_negative_unicode_category_short {
+            get {
+                return ResourceManager.GetString("regex_negative_unicode_category_short", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Matches a new-line character, \u000A.
         /// </summary>
         internal static string regex_new_line_character_long {
@@ -1509,6 +1545,37 @@ namespace Microsoft.CodeAnalysis {
         internal static string regex_non_word_boundary_short {
             get {
                 return ResourceManager.GetString("regex_non_word_boundary_short", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to \W matches any non-word character. The \W language element is equivalent to the following character class:
+        ///
+        ///[^\p{Ll}\p{Lu}\p{Lt}\p{Lo}\p{Nd}\p{Pc}\p{Lm}]  
+        ///
+        ///In other words, it matches any character except for those in the Unicode categories listed in the following table.
+        ///
+        ///Ll 	Letter, Lowercase
+        ///Lu 	Letter, Uppercase
+        ///Lt 	Letter, Titlecase
+        ///Lo 	Letter, Other
+        ///Lm 	Letter, Modifier
+        ///Mn 	Mark, Nonspacing
+        ///Nd 	Number, Decimal Digit
+        ///Pc 	Punctuation, Connector. This category includes ten characters, the mos [rest of string was truncated]&quot;;.
+        /// </summary>
+        internal static string regex_non_word_character_long {
+            get {
+                return ResourceManager.GetString("regex_non_word_character_long", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to non-word character.
+        /// </summary>
+        internal static string regex_non_word_character_short {
+            get {
+                return ResourceManager.GetString("regex_non_word_character_short", resourceCulture);
             }
         }
         
@@ -1591,6 +1658,24 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The Unicode standard assigns each character a general category. For example, a particular character can be an uppercase letter (represented by the Lu category), a decimal digit (the Nd category), a math symbol (the Sm category), or a paragraph separator (the Zl category). Specific character sets in the Unicode standard also occupy a specific range or block of consecutive code points. For example, the basic Latin character set is found from \u0000 through \u007F, while the Arabic character set is found from  [rest of string was truncated]&quot;;.
+        /// </summary>
+        internal static string regex_unicode_category_long {
+            get {
+                return ResourceManager.GetString("regex_unicode_category_long", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to unicode category.
+        /// </summary>
+        internal static string regex_unicode_category_short {
+            get {
+                return ResourceManager.GetString("regex_unicode_category_short", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Matches a UTF-16 code unit whose value is #### hexadecimal..
         /// </summary>
         internal static string regex_unicode_escape_long {
@@ -1643,6 +1728,35 @@ namespace Microsoft.CodeAnalysis {
         internal static string regex_word_boundary_short {
             get {
                 return ResourceManager.GetString("regex_word_boundary_short", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to \w matches any word character. A word character is a member of any of the Unicode categories listed in the following table.
+        ///
+        ///Ll 	Letter, Lowercase
+        ///Lu 	Letter, Uppercase
+        ///Lt 	Letter, Titlecase
+        ///Lo 	Letter, Other
+        ///Lm 	Letter, Modifier
+        ///Mn 	Mark, Nonspacing
+        ///Nd 	Number, Decimal Digit
+        ///Pc 	Punctuation, Connector. This category includes ten characters, the most commonly used of which is the LOWLINE character (_), u+005F.
+        ///
+        ///If ECMAScript-compliant behavior is specified, \w is equivalent to [a-zA-Z_0-9].
+        /// </summary>
+        internal static string regex_word_character_long {
+            get {
+                return ResourceManager.GetString("regex_word_character_long", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to word character.
+        /// </summary>
+        internal static string regex_word_character_short {
+            get {
+                return ResourceManager.GetString("regex_word_character_short", resourceCulture);
             }
         }
         

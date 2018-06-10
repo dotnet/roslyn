@@ -766,6 +766,12 @@ If you use $ with the RegexOptions.Multiline option, the match can also occur at
   <data name="regex_end_of_string_or_line_short" xml:space="preserve">
     <value>end of string or line</value>
   </data>
+  <data name="regex_any_character_group_long" xml:space="preserve">
+    <value>The period character (.) matches any character except \n (the newline character, \u000A).  If a regular expression pattern is modified by the RegexOptions.Singleline option, or if the portion of the pattern that contains the . character class is modified by the s option, . matches any character.</value>
+  </data>
+  <data name="regex_any_character_group_short" xml:space="preserve">
+    <value>any character</value>
+  </data>
   <data name="regex_backspace_character_long" xml:space="preserve">
     <value>Matches a backspace character, \u0008</value>
   </data>
@@ -834,11 +840,44 @@ A negative character group in a larger regular expression pattern is not a zero-
   <data name="regex_negative_character_group_short" xml:space="preserve">
     <value>negative character group</value>
   </data>
+  <data name="regex_negative_unicode_category_long" xml:space="preserve">
+    <value>The Unicode standard assigns each character a general category. For example, a particular character can be an uppercase letter (represented by the Lu category), a decimal digit (the Nd category), a math symbol (the Sm category), or a paragraph separator (the Zl category). Specific character sets in the Unicode standard also occupy a specific range or block of consecutive code points. For example, the basic Latin character set is found from \u0000 through \u007F, while the Arabic character set is found from \u0600 through \u06FF.
+
+The regular expression construct
+
+\P{ name }
+
+matches any character that does not belong to a Unicode general category or named block, where name is the category abbreviation or named block name.</value>
+  </data>
+  <data name="regex_negative_unicode_category_short" xml:space="preserve">
+    <value>negative unicode category</value>
+  </data>
   <data name="regex_new_line_character_long" xml:space="preserve">
     <value>Matches a new-line character, \u000A</value>
   </data>
   <data name="regex_new_line_character_short" xml:space="preserve">
     <value>new-line character</value>
+  </data>
+  <data name="regex_non_word_character_long" xml:space="preserve">
+    <value>\W matches any non-word character. The \W language element is equivalent to the following character class:
+
+[^\p{Ll}\p{Lu}\p{Lt}\p{Lo}\p{Nd}\p{Pc}\p{Lm}]  
+
+In other words, it matches any character except for those in the Unicode categories listed in the following table.
+
+Ll 	Letter, Lowercase
+Lu 	Letter, Uppercase
+Lt 	Letter, Titlecase
+Lo 	Letter, Other
+Lm 	Letter, Modifier
+Mn 	Mark, Nonspacing
+Nd 	Number, Decimal Digit
+Pc 	Punctuation, Connector. This category includes ten characters, the most commonly used of which is the LOWLINE character (_), u+005F.
+
+If ECMAScript-compliant behavior is specified, \W is equivalent to [^a-zA-Z_0-9]</value>
+  </data>
+  <data name="regex_non_word_character_short" xml:space="preserve">
+    <value>non-word character</value>
   </data>
   <data name="regex_positive_character_group_long" xml:space="preserve">
     <value>A positive character group specifies a list of characters, any one of which may appear in an input string for a match to occur. This list of characters may be specified individually, as a range, or both.
@@ -864,6 +903,18 @@ where firstCharacter is the character that begins the range and lastCharacter is
   <data name="regex_tab_character_short" xml:space="preserve">
     <value>tab character</value>
   </data>
+  <data name="regex_unicode_category_long" xml:space="preserve">
+    <value>The Unicode standard assigns each character a general category. For example, a particular character can be an uppercase letter (represented by the Lu category), a decimal digit (the Nd category), a math symbol (the Sm category), or a paragraph separator (the Zl category). Specific character sets in the Unicode standard also occupy a specific range or block of consecutive code points. For example, the basic Latin character set is found from \u0000 through \u007F, while the Arabic character set is found from \u0600 through \u06FF.
+
+The regular expression construct
+
+\p{ name }
+
+matches any character that belongs to a Unicode general category or named block, where name is the category abbreviation or named block name.</value>
+  </data>
+  <data name="regex_unicode_category_short" xml:space="preserve">
+    <value>unicode category</value>
+  </data>
   <data name="regex_unicode_escape_long" xml:space="preserve">
     <value>Matches a UTF-16 code unit whose value is #### hexadecimal.</value>
   </data>
@@ -875,5 +926,22 @@ where firstCharacter is the character that begins the range and lastCharacter is
   </data>
   <data name="regex_vertical_tab_character_short" xml:space="preserve">
     <value>vertical-tab character</value>
+  </data>
+  <data name="regex_word_character_long" xml:space="preserve">
+    <value>\w matches any word character. A word character is a member of any of the Unicode categories listed in the following table.
+
+Ll 	Letter, Lowercase
+Lu 	Letter, Uppercase
+Lt 	Letter, Titlecase
+Lo 	Letter, Other
+Lm 	Letter, Modifier
+Mn 	Mark, Nonspacing
+Nd 	Number, Decimal Digit
+Pc 	Punctuation, Connector. This category includes ten characters, the most commonly used of which is the LOWLINE character (_), u+005F.
+
+If ECMAScript-compliant behavior is specified, \w is equivalent to [a-zA-Z_0-9]</value>
+  </data>
+  <data name="regex_word_character_short" xml:space="preserve">
+    <value>word character</value>
   </data>
 </root>
