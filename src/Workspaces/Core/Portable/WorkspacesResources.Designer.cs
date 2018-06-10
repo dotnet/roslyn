@@ -1776,6 +1776,30 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The following grouping construct represents a nonbacktracking subexpression (also known as a &quot;greedy&quot; subexpression):
+        ///
+        ///(?&gt; subexpression )
+        ///
+        ///where subexpression is any regular expression pattern.
+        ///
+        ///Ordinarily, if a regular expression includes an optional or alternative matching pattern and a match does not succeed, the regular expression engine can branch in multiple directions to match an input string with a pattern. If a match is not found when it takes the first branch, the regular expression engine  [rest of string was truncated]&quot;;.
+        /// </summary>
+        internal static string regex_nonbacktracking_subexpression_long {
+            get {
+                return ResourceManager.GetString("regex_nonbacktracking_subexpression_long", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to nonbacktracking subexpression.
+        /// </summary>
+        internal static string regex_nonbacktracking_subexpression_short {
+            get {
+                return ResourceManager.GetString("regex_nonbacktracking_subexpression_short", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The following grouping construct does not capture the substring that is matched by a subexpression:
         ///
         ///(?:subexpression)  
@@ -2040,6 +2064,30 @@ namespace Microsoft.CodeAnalysis {
         internal static string regex_zero_width_negative_lookahead_assertion_short {
             get {
                 return ResourceManager.GetString("regex_zero_width_negative_lookahead_assertion_short", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The following grouping construct defines a zero-width negative lookbehind assertion:
+        ///
+        ///(?&lt;! subexpression )
+        ///
+        ///where subexpression is any regular expression pattern. For a match to be successful, subexpression must not occur at the input string to the left of the current position. However, any substring that does not match subexpression is not included in the match result.
+        ///
+        ///Zero-width negative lookbehind assertions are typically used at the beginning of regular expressions. The pattern that they define p [rest of string was truncated]&quot;;.
+        /// </summary>
+        internal static string regex_zero_width_negative_lookbehind_assertion_long {
+            get {
+                return ResourceManager.GetString("regex_zero_width_negative_lookbehind_assertion_long", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to zero-width negative lookbehind assertion.
+        /// </summary>
+        internal static string regex_zero_width_negative_lookbehind_assertion_short {
+            get {
+                return ResourceManager.GetString("regex_zero_width_negative_lookbehind_assertion_short", resourceCulture);
             }
         }
         

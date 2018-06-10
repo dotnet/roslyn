@@ -218,7 +218,9 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions.LanguageSe
             AddIfMissing(context, CreateItem(stringToken, "(?:" + regex_subexpression + ")", regex_noncapturing_group_short, regex_noncapturing_group_long, context, parentOpt, positionOffset: "(?:".Length, insertionText: "(?:)"));
             AddIfMissing(context, CreateItem(stringToken, "(?imnsx-imnsx:" + regex_subexpression + ")", regex_group_options_short, regex_group_options_long, context, parentOpt, positionOffset: "(?".Length, insertionText: "(?:)"));
             AddIfMissing(context, CreateItem(stringToken, "(?!" + regex_subexpression + ")", regex_zero_width_negative_lookahead_assertion_short, regex_zero_width_negative_lookahead_assertion_long, context, parentOpt, positionOffset: "(?!".Length, insertionText: "(?!)"));
-            AddIfMissing(context, CreateItem(stringToken, "(?<=" + regex_subexpression + ")", regex_zero_width_negative_lookbehind_assertion_short, regex_zero_width_negative_lookbehind_assertion_long, context, parentOpt, positionOffset: "(?<=".Length, insertionText: "(?<=)"));
+            AddIfMissing(context, CreateItem(stringToken, "(?<=" + regex_subexpression + ")", regex_zero_width_positive_lookbehind_assertion_short, regex_zero_width_positive_lookbehind_assertion_long, context, parentOpt, positionOffset: "(?<=".Length, insertionText: "(?<=)"));
+            AddIfMissing(context, CreateItem(stringToken, "(?<!" + regex_subexpression + ")", regex_zero_width_negative_lookbehind_assertion_short, regex_zero_width_negative_lookbehind_assertion_long, context, parentOpt, positionOffset: "(?<!".Length, insertionText: "(?<!)"));
+            AddIfMissing(context, CreateItem(stringToken, "(?>" + regex_subexpression + ")", regex_nonbacktracking_subexpression_short, regex_nonbacktracking_subexpression_long, context, parentOpt, positionOffset: "(?>".Length, insertionText: "(?>)"));
         }
 
         private void ProvideCharacterClassCompletions(

@@ -1083,6 +1083,22 @@ You can access named captured groups in the following ways:
   <data name="regex_named_matched_subexpression_short" xml:space="preserve">
     <value>named matched subexpression</value>
   </data>
+  <data name="regex_nonbacktracking_subexpression_long" xml:space="preserve">
+    <value>The following grouping construct represents a nonbacktracking subexpression (also known as a "greedy" subexpression):
+
+(?&gt; subexpression )
+
+where subexpression is any regular expression pattern.
+
+Ordinarily, if a regular expression includes an optional or alternative matching pattern and a match does not succeed, the regular expression engine can branch in multiple directions to match an input string with a pattern. If a match is not found when it takes the first branch, the regular expression engine can back up or backtrack to the point where it took the first match and attempt the match using the second branch. This process can continue until all branches have been tried.
+
+The (?&gt;subexpression) language construct disables backtracking. The regular expression engine will match as many characters in the input string as it can. When no further match is possible, it will not backtrack to attempt alternate pattern matches. (That is, the subexpression matches only strings that would be matched by the subexpression alone; it does not attempt to match a string based on the subexpression and any subexpressions that follow it.)
+
+This option is recommended if you know that backtracking will not succeed. Preventing the regular expression engine from performing unnecessary searching improves performance.</value>
+  </data>
+  <data name="regex_nonbacktracking_subexpression_short" xml:space="preserve">
+    <value>nonbacktracking subexpression</value>
+  </data>
   <data name="regex_noncapturing_group_long" xml:space="preserve">
     <value>The following grouping construct does not capture the substring that is matched by a subexpression:
 
@@ -1108,6 +1124,18 @@ A zero-width negative lookahead assertion is typically used either at the beginn
   </data>
   <data name="regex_zero_width_negative_lookahead_assertion_short" xml:space="preserve">
     <value>zero-width negative lookahead assertion</value>
+  </data>
+  <data name="regex_zero_width_negative_lookbehind_assertion_long" xml:space="preserve">
+    <value>The following grouping construct defines a zero-width negative lookbehind assertion:
+
+(?&lt;! subexpression )
+
+where subexpression is any regular expression pattern. For a match to be successful, subexpression must not occur at the input string to the left of the current position. However, any substring that does not match subexpression is not included in the match result.
+
+Zero-width negative lookbehind assertions are typically used at the beginning of regular expressions. The pattern that they define precludes a match in the string that follows. They are also used to limit backtracking when the last character or characters in a captured group must not be one or more of the characters that match that group's regular expression pattern. For example, if a group captures all consecutive word characters, you can use a zero-width positive lookbehind assertion to require that the last character not be an underscore (_).</value>
+  </data>
+  <data name="regex_zero_width_negative_lookbehind_assertion_short" xml:space="preserve">
+    <value>zero-width negative lookbehind assertion</value>
   </data>
   <data name="regex_zero_width_positive_lookahead_assertion_long" xml:space="preserve">
     <value>The following grouping construct defines a zero-width positive lookahead assertion:
