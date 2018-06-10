@@ -1242,11 +1242,305 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Matches a backspace character, \u0008.
+        /// </summary>
+        internal static string regex_backspace_character_long {
+            get {
+                return ResourceManager.GetString("regex_backspace_character_long", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to backspace character.
+        /// </summary>
+        internal static string regex_backspace_character_short {
+            get {
+                return ResourceManager.GetString("regex_backspace_character_short", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Matches a bell (alarm) character, \u0007.
+        /// </summary>
+        internal static string regex_bell_character_long {
+            get {
+                return ResourceManager.GetString("regex_bell_character_long", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to bell character.
+        /// </summary>
+        internal static string regex_bell_character_short {
+            get {
+                return ResourceManager.GetString("regex_bell_character_short", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Matches a carriage-return character, \u000D.  Note that \r is not equivalent to the newline character, \n..
+        /// </summary>
+        internal static string regex_carriage_return_character_long {
+            get {
+                return ResourceManager.GetString("regex_carriage_return_character_long", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to carriage-return character.
+        /// </summary>
+        internal static string regex_carriage_return_character_short {
+            get {
+                return ResourceManager.GetString("regex_carriage_return_character_short", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The \G anchor specifies that a match must occur at the point where the previous match ended. When you use this anchor with the Regex.Matches or Match.NextMatch method, it ensures that all matches are contiguous..
+        /// </summary>
+        internal static string regex_contiguous_matches_long {
+            get {
+                return ResourceManager.GetString("regex_contiguous_matches_long", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to contiguous matches.
+        /// </summary>
+        internal static string regex_contiguous_matches_short {
+            get {
+                return ResourceManager.GetString("regex_contiguous_matches_short", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The \z anchor specifies that a match must occur at the end of the input string. Like the $ language element, \z ignores the RegexOptions.Multiline option. Unlike the \Z language element, \z does not match a \n character at the end of a string. Therefore, it can only match the last line of the input string..
+        /// </summary>
+        internal static string regex_end_of_string_only_long {
+            get {
+                return ResourceManager.GetString("regex_end_of_string_only_long", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to end of string only.
+        /// </summary>
+        internal static string regex_end_of_string_only_short {
+            get {
+                return ResourceManager.GetString("regex_end_of_string_only_short", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The \Z anchor specifies that a match must occur at the end of the input string, or before \n at the end of the input string. It is identical to the $ anchor, except that \Z ignores the RegexOptions.Multiline option. Therefore, in a multiline string, it can only match the end of the last line, or the last line before \n.
+        ///
+        ///Note that \Z matches \n but does not match \r\n (the CR/LF character combination). To match CR/LF, include \r?\Z in the regular expression pattern..
+        /// </summary>
+        internal static string regex_end_of_string_or_before_ending_newline_long {
+            get {
+                return ResourceManager.GetString("regex_end_of_string_or_before_ending_newline_long", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to end of string or before ending newline.
+        /// </summary>
+        internal static string regex_end_of_string_or_before_ending_newline_short {
+            get {
+                return ResourceManager.GetString("regex_end_of_string_or_before_ending_newline_short", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The $ anchor specifies that the preceding pattern must occur at the end of the input string, or before \n at the end of the input string.
+        ///
+        ///If you use $ with the RegexOptions.Multiline option, the match can also occur at the end of a line. Note that $ matches \n but does not match \r\n (the combination of carriage return and newline characters, or CR/LF). To match the CR/LF character combination, include \r?$ in the regular expression pattern..
+        /// </summary>
+        internal static string regex_end_of_string_or_line_long {
+            get {
+                return ResourceManager.GetString("regex_end_of_string_or_line_long", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to end of string or line.
+        /// </summary>
+        internal static string regex_end_of_string_or_line_short {
+            get {
+                return ResourceManager.GetString("regex_end_of_string_or_line_short", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Matches an escape character, \u001B.
+        /// </summary>
+        internal static string regex_escape_character_long {
+            get {
+                return ResourceManager.GetString("regex_escape_character_long", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to escape character.
+        /// </summary>
+        internal static string regex_escape_character_short {
+            get {
+                return ResourceManager.GetString("regex_escape_character_short", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Matches a form-feed character, \u000C.
+        /// </summary>
+        internal static string regex_form_feed_character_long {
+            get {
+                return ResourceManager.GetString("regex_form_feed_character_long", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to form-feed character.
+        /// </summary>
+        internal static string regex_form_feed_character_short {
+            get {
+                return ResourceManager.GetString("regex_form_feed_character_short", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Regex issue: {0}.
         /// </summary>
         internal static string Regex_issue_0 {
             get {
                 return ResourceManager.GetString("Regex_issue_0", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Matches a new-line character, \u000A.
+        /// </summary>
+        internal static string regex_new_line_character_long {
+            get {
+                return ResourceManager.GetString("regex_new_line_character_long", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to new-line character.
+        /// </summary>
+        internal static string regex_new_line_character_short {
+            get {
+                return ResourceManager.GetString("regex_new_line_character_short", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The \B anchor specifies that the match must not occur on a word boundary. It is the opposite of the \b anchor..
+        /// </summary>
+        internal static string regex_non_word_boundary_long {
+            get {
+                return ResourceManager.GetString("regex_non_word_boundary_long", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to non-word boundary.
+        /// </summary>
+        internal static string regex_non_word_boundary_short {
+            get {
+                return ResourceManager.GetString("regex_non_word_boundary_short", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The \A anchor specifies that a match must occur at the beginning of the input string. It is identical to the ^ anchor, except that \A ignores the RegexOptions.Multiline option. Therefore, it can only match the start of the first line in a multiline input string..
+        /// </summary>
+        internal static string regex_start_of_string_only_long {
+            get {
+                return ResourceManager.GetString("regex_start_of_string_only_long", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to start of string only.
+        /// </summary>
+        internal static string regex_start_of_string_only_short {
+            get {
+                return ResourceManager.GetString("regex_start_of_string_only_short", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The ^ anchor specifies that the following pattern must begin at the first character position of the string. If you use ^ with the RegexOptions.Multiline option, the match must occur at the beginning of each line..
+        /// </summary>
+        internal static string regex_start_of_string_or_line_long {
+            get {
+                return ResourceManager.GetString("regex_start_of_string_or_line_long", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to start of string or line.
+        /// </summary>
+        internal static string regex_start_of_string_or_line_short {
+            get {
+                return ResourceManager.GetString("regex_start_of_string_or_line_short", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Matches a tab character, \u0009.
+        /// </summary>
+        internal static string regex_tab_character_long {
+            get {
+                return ResourceManager.GetString("regex_tab_character_long", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to tab character.
+        /// </summary>
+        internal static string regex_tab_character_short {
+            get {
+                return ResourceManager.GetString("regex_tab_character_short", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Matches a vertical-tab character, \u000B.
+        /// </summary>
+        internal static string regex_vertical_tab_character_long {
+            get {
+                return ResourceManager.GetString("regex_vertical_tab_character_long", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to vertical-tab character.
+        /// </summary>
+        internal static string regex_vertical_tab_character_short {
+            get {
+                return ResourceManager.GetString("regex_vertical_tab_character_short", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The \b anchor specifies that the match must occur on a boundary between a word character (the \w language element) and a non-word character (the \W language element). Word characters consist of alphanumeric characters and underscores; a non-word character is any character that is not alphanumeric or an underscore. The match may also occur on a word boundary at the beginning or end of the string.
+        ///
+        ///The \b anchor is frequently used to ensure that a subexpression matches an entire word instead of just the beg [rest of string was truncated]&quot;;.
+        /// </summary>
+        internal static string regex_word_boundary_long {
+            get {
+                return ResourceManager.GetString("regex_word_boundary_long", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to word boundary.
+        /// </summary>
+        internal static string regex_word_boundary_short {
+            get {
+                return ResourceManager.GetString("regex_word_boundary_short", resourceCulture);
             }
         }
         

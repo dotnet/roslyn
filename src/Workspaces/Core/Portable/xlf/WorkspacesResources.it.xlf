@@ -947,6 +947,178 @@
         <target state="new">Unterminated (?#...) comment</target>
         <note />
       </trans-unit>
+      <trans-unit id="regex_backspace_character_long">
+        <source>Matches a backspace character, \u0008</source>
+        <target state="new">Matches a backspace character, \u0008</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="regex_backspace_character_short">
+        <source>backspace character</source>
+        <target state="new">backspace character</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="regex_bell_character_long">
+        <source>Matches a bell (alarm) character, \u0007</source>
+        <target state="new">Matches a bell (alarm) character, \u0007</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="regex_bell_character_short">
+        <source>bell character</source>
+        <target state="new">bell character</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="regex_carriage_return_character_long">
+        <source>Matches a carriage-return character, \u000D.  Note that \r is not equivalent to the newline character, \n.</source>
+        <target state="new">Matches a carriage-return character, \u000D.  Note that \r is not equivalent to the newline character, \n.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="regex_carriage_return_character_short">
+        <source>carriage-return character</source>
+        <target state="new">carriage-return character</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="regex_contiguous_matches_long">
+        <source>The \G anchor specifies that a match must occur at the point where the previous match ended. When you use this anchor with the Regex.Matches or Match.NextMatch method, it ensures that all matches are contiguous.</source>
+        <target state="new">The \G anchor specifies that a match must occur at the point where the previous match ended. When you use this anchor with the Regex.Matches or Match.NextMatch method, it ensures that all matches are contiguous.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="regex_contiguous_matches_short">
+        <source>contiguous matches</source>
+        <target state="new">contiguous matches</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="regex_end_of_string_only_long">
+        <source>The \z anchor specifies that a match must occur at the end of the input string. Like the $ language element, \z ignores the RegexOptions.Multiline option. Unlike the \Z language element, \z does not match a \n character at the end of a string. Therefore, it can only match the last line of the input string.</source>
+        <target state="new">The \z anchor specifies that a match must occur at the end of the input string. Like the $ language element, \z ignores the RegexOptions.Multiline option. Unlike the \Z language element, \z does not match a \n character at the end of a string. Therefore, it can only match the last line of the input string.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="regex_end_of_string_only_short">
+        <source>end of string only</source>
+        <target state="new">end of string only</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="regex_end_of_string_or_before_ending_newline_long">
+        <source>The \Z anchor specifies that a match must occur at the end of the input string, or before \n at the end of the input string. It is identical to the $ anchor, except that \Z ignores the RegexOptions.Multiline option. Therefore, in a multiline string, it can only match the end of the last line, or the last line before \n.
+
+Note that \Z matches \n but does not match \r\n (the CR/LF character combination). To match CR/LF, include \r?\Z in the regular expression pattern.</source>
+        <target state="new">The \Z anchor specifies that a match must occur at the end of the input string, or before \n at the end of the input string. It is identical to the $ anchor, except that \Z ignores the RegexOptions.Multiline option. Therefore, in a multiline string, it can only match the end of the last line, or the last line before \n.
+
+Note that \Z matches \n but does not match \r\n (the CR/LF character combination). To match CR/LF, include \r?\Z in the regular expression pattern.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="regex_end_of_string_or_before_ending_newline_short">
+        <source>end of string or before ending newline</source>
+        <target state="new">end of string or before ending newline</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="regex_end_of_string_or_line_long">
+        <source>The $ anchor specifies that the preceding pattern must occur at the end of the input string, or before \n at the end of the input string.
+
+If you use $ with the RegexOptions.Multiline option, the match can also occur at the end of a line. Note that $ matches \n but does not match \r\n (the combination of carriage return and newline characters, or CR/LF). To match the CR/LF character combination, include \r?$ in the regular expression pattern.</source>
+        <target state="new">The $ anchor specifies that the preceding pattern must occur at the end of the input string, or before \n at the end of the input string.
+
+If you use $ with the RegexOptions.Multiline option, the match can also occur at the end of a line. Note that $ matches \n but does not match \r\n (the combination of carriage return and newline characters, or CR/LF). To match the CR/LF character combination, include \r?$ in the regular expression pattern.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="regex_end_of_string_or_line_short">
+        <source>end of string or line</source>
+        <target state="new">end of string or line</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="regex_escape_character_long">
+        <source>Matches an escape character, \u001B</source>
+        <target state="new">Matches an escape character, \u001B</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="regex_escape_character_short">
+        <source>escape character</source>
+        <target state="new">escape character</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="regex_form_feed_character_long">
+        <source>Matches a form-feed character, \u000C</source>
+        <target state="new">Matches a form-feed character, \u000C</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="regex_form_feed_character_short">
+        <source>form-feed character</source>
+        <target state="new">form-feed character</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="regex_new_line_character_long">
+        <source>Matches a new-line character, \u000A</source>
+        <target state="new">Matches a new-line character, \u000A</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="regex_new_line_character_short">
+        <source>new-line character</source>
+        <target state="new">new-line character</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="regex_non_word_boundary_long">
+        <source>The \B anchor specifies that the match must not occur on a word boundary. It is the opposite of the \b anchor.</source>
+        <target state="new">The \B anchor specifies that the match must not occur on a word boundary. It is the opposite of the \b anchor.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="regex_non_word_boundary_short">
+        <source>non-word boundary</source>
+        <target state="new">non-word boundary</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="regex_start_of_string_only_long">
+        <source>The \A anchor specifies that a match must occur at the beginning of the input string. It is identical to the ^ anchor, except that \A ignores the RegexOptions.Multiline option. Therefore, it can only match the start of the first line in a multiline input string.</source>
+        <target state="new">The \A anchor specifies that a match must occur at the beginning of the input string. It is identical to the ^ anchor, except that \A ignores the RegexOptions.Multiline option. Therefore, it can only match the start of the first line in a multiline input string.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="regex_start_of_string_only_short">
+        <source>start of string only</source>
+        <target state="new">start of string only</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="regex_start_of_string_or_line_long">
+        <source>The ^ anchor specifies that the following pattern must begin at the first character position of the string. If you use ^ with the RegexOptions.Multiline option, the match must occur at the beginning of each line.</source>
+        <target state="new">The ^ anchor specifies that the following pattern must begin at the first character position of the string. If you use ^ with the RegexOptions.Multiline option, the match must occur at the beginning of each line.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="regex_start_of_string_or_line_short">
+        <source>start of string or line</source>
+        <target state="new">start of string or line</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="regex_tab_character_long">
+        <source>Matches a tab character, \u0009</source>
+        <target state="new">Matches a tab character, \u0009</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="regex_tab_character_short">
+        <source>tab character</source>
+        <target state="new">tab character</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="regex_vertical_tab_character_long">
+        <source>Matches a vertical-tab character, \u000B</source>
+        <target state="new">Matches a vertical-tab character, \u000B</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="regex_vertical_tab_character_short">
+        <source>vertical-tab character</source>
+        <target state="new">vertical-tab character</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="regex_word_boundary_long">
+        <source>The \b anchor specifies that the match must occur on a boundary between a word character (the \w language element) and a non-word character (the \W language element). Word characters consist of alphanumeric characters and underscores; a non-word character is any character that is not alphanumeric or an underscore. The match may also occur on a word boundary at the beginning or end of the string.
+
+The \b anchor is frequently used to ensure that a subexpression matches an entire word instead of just the beginning or end of a word.</source>
+        <target state="new">The \b anchor specifies that the match must occur on a boundary between a word character (the \w language element) and a non-word character (the \W language element). Word characters consist of alphanumeric characters and underscores; a non-word character is any character that is not alphanumeric or an underscore. The match may also occur on a word boundary at the beginning or end of the string.
+
+The \b anchor is frequently used to ensure that a subexpression matches an entire word instead of just the beginning or end of a word.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="regex_word_boundary_short">
+        <source>word boundary</source>
+        <target state="new">word boundary</target>
+        <note />
+      </trans-unit>
       <trans-unit id="x_y_range_in_reverse_order">
         <source>[x-y] range in reverse order</source>
         <target state="new">[x-y] range in reverse order</target>

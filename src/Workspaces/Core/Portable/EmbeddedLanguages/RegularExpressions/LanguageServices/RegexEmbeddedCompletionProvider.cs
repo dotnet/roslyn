@@ -7,10 +7,11 @@ using Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
+using System;
 
 namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions.LanguageServices
 {
-    using System;
+    using static WorkspacesResources;
     using RegexToken = EmbeddedSyntaxToken<RegexKind>;
 
     internal class RegexEmbeddedCompletionProvider : IEmbeddedCompletionProvider
@@ -119,7 +120,20 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions.LanguageSe
                 inCharacterClass = IsInCharacterClass(tree.Root, virtualChar.Value, inCharacterClass: false);
             }
 
+            ProvideAnchorCompletions(context, stringToken, inCharacterClass);
             ProvideEscapeCompletions(context, stringToken, inCharacterClass, parentOpt: null);
+        }
+
+        private void ProvideAnchorCompletions(
+            EmbeddedCompletionContext context, SyntaxToken stringToken, bool inCharacterClass)
+        {
+            if (inCharacterClass)
+            {
+                return;
+            }
+
+            AddIfMissing(context, CreateItem(stringToken, "^", regex_start_of_string_or_line_short, regex_start_of_string_or_line_long, context, parentOpt: null));
+            AddIfMissing(context, CreateItem(stringToken, "$", regex_end_of_string_or_line_short, regex_end_of_string_or_line_long, context, parentOpt: null));
         }
 
         private void ProvideCompletionsAfterInsertion(
@@ -230,39 +244,39 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions.LanguageSe
 
             if (!inCharacterClass)
             {
-                AddIfMissing(context, CreateEscapeItem(stringToken, @"\A", "", context, parentOpt));
-                AddIfMissing(context, CreateEscapeItem(stringToken, @"\b", "", context, parentOpt));
-                AddIfMissing(context, CreateEscapeItem(stringToken, @"\B", "", context, parentOpt));
-                AddIfMissing(context, CreateEscapeItem(stringToken, @"\G", "", context, parentOpt));
-                AddIfMissing(context, CreateEscapeItem(stringToken, @"\z", "", context, parentOpt));
-                AddIfMissing(context, CreateEscapeItem(stringToken, @"\Z", "", context, parentOpt));
+                AddIfMissing(context, CreateItem(stringToken, @"\A", regex_start_of_string_only_short, regex_start_of_string_only_long, context, parentOpt));
+                AddIfMissing(context, CreateItem(stringToken, @"\b", regex_word_boundary_short, regex_word_boundary_long, context, parentOpt));
+                AddIfMissing(context, CreateItem(stringToken, @"\B", regex_non_word_boundary_short, regex_non_word_boundary_long, context, parentOpt));
+                AddIfMissing(context, CreateItem(stringToken, @"\G", regex_contiguous_matches_short, regex_contiguous_matches_long, context, parentOpt));
+                AddIfMissing(context, CreateItem(stringToken, @"\z", regex_end_of_string_only_short, regex_end_of_string_only_long, context, parentOpt));
+                AddIfMissing(context, CreateItem(stringToken, @"\Z", regex_end_of_string_or_before_ending_newline_short, regex_end_of_string_or_before_ending_newline_long, context, parentOpt));
 
-                AddIfMissing(context, CreateEscapeItem(stringToken, @"\k<>", "", context, parentOpt, @"\k<".Length));
-                AddIfMissing(context, CreateEscapeItem(stringToken, @"\<>", "", context, parentOpt, @"\<".Length));
-                AddIfMissing(context, CreateEscapeItem(stringToken, @"\1-9", "", context, parentOpt, @"\".Length, @"\"));
+                AddIfMissing(context, CreateItem(stringToken, @"\k<>", "", "", context, parentOpt, @"\k<".Length));
+                AddIfMissing(context, CreateItem(stringToken, @"\<>", "", "", context, parentOpt, @"\<".Length));
+                AddIfMissing(context, CreateItem(stringToken, @"\1-9", "", "", context, parentOpt, @"\".Length, @"\"));
             }
 
-            AddIfMissing(context, CreateEscapeItem(stringToken, @"\a", "", context, parentOpt));
-            AddIfMissing(context, CreateEscapeItem(stringToken, @"\b", "", context, parentOpt));
-            AddIfMissing(context, CreateEscapeItem(stringToken, @"\e", "", context, parentOpt));
-            AddIfMissing(context, CreateEscapeItem(stringToken, @"\f", "", context, parentOpt));
-            AddIfMissing(context, CreateEscapeItem(stringToken, @"\n", "", context, parentOpt));
-            AddIfMissing(context, CreateEscapeItem(stringToken, @"\r", "carriage return", context, parentOpt));
-            AddIfMissing(context, CreateEscapeItem(stringToken, @"\t", "horizontal tab", context, parentOpt));
-            AddIfMissing(context, CreateEscapeItem(stringToken, @"\v", "vertical tab", context, parentOpt));
+            AddIfMissing(context, CreateItem(stringToken, @"\a", regex_bell_character_short, regex_bell_character_long, context, parentOpt));
+            AddIfMissing(context, CreateItem(stringToken, @"\b", regex_backspace_character_short, regex_backspace_character_long, context, parentOpt));
+            AddIfMissing(context, CreateItem(stringToken, @"\e", regex_escape_character_short, regex_escape_character_long, context, parentOpt));
+            AddIfMissing(context, CreateItem(stringToken, @"\f", regex_form_feed_character_short, regex_form_feed_character_long, context, parentOpt));
+            AddIfMissing(context, CreateItem(stringToken, @"\n", regex_new_line_character_short, regex_new_line_character_long, context, parentOpt));
+            AddIfMissing(context, CreateItem(stringToken, @"\r", regex_carriage_return_character_short, regex_carriage_return_character_long, context, parentOpt));
+            AddIfMissing(context, CreateItem(stringToken, @"\t", regex_tab_character_short, regex_tab_character_long, context, parentOpt));
+            AddIfMissing(context, CreateItem(stringToken, @"\v", regex_vertical_tab_character_short, regex_vertical_tab_character_long, context, parentOpt));
 
-            AddIfMissing(context, CreateEscapeItem(stringToken, @"\x##", "", context, parentOpt, @"\x".Length, @"\x"));
-            AddIfMissing(context, CreateEscapeItem(stringToken, @"\u####", "", context, parentOpt, @"\u".Length, @"\u"));
-            AddIfMissing(context, CreateEscapeItem(stringToken, @"\c", "", context, parentOpt, @"\c".Length, @"\c"));
+            AddIfMissing(context, CreateItem(stringToken, @"\x##", "", "", context, parentOpt, @"\x".Length, @"\x"));
+            AddIfMissing(context, CreateItem(stringToken, @"\u####", "", "", context, parentOpt, @"\u".Length, @"\u"));
+            AddIfMissing(context, CreateItem(stringToken, @"\c", "", "", context, parentOpt, @"\c".Length, @"\c"));
 
-            AddIfMissing(context, CreateEscapeItem(stringToken, @"\d", "", context, parentOpt));
-            AddIfMissing(context, CreateEscapeItem(stringToken, @"\D", "", context, parentOpt));
-            AddIfMissing(context, CreateEscapeItem(stringToken, @"\p{}", "", context, parentOpt, @"\p".Length, @"\p"));
-            AddIfMissing(context, CreateEscapeItem(stringToken, @"\P{}", "", context, parentOpt, @"\P".Length, @"\P"));
-            AddIfMissing(context, CreateEscapeItem(stringToken, @"\s", "", context, parentOpt));
-            AddIfMissing(context, CreateEscapeItem(stringToken, @"\S", "", context, parentOpt));
-            AddIfMissing(context, CreateEscapeItem(stringToken, @"\w", "", context, parentOpt));
-            AddIfMissing(context, CreateEscapeItem(stringToken, @"\W", "", context, parentOpt));
+            AddIfMissing(context, CreateItem(stringToken, @"\d", "", "", context, parentOpt));
+            AddIfMissing(context, CreateItem(stringToken, @"\D", "", "", context, parentOpt));
+            AddIfMissing(context, CreateItem(stringToken, @"\p{}", "", "", context, parentOpt, @"\p".Length, @"\p"));
+            AddIfMissing(context, CreateItem(stringToken, @"\P{}", "", "", context, parentOpt, @"\P".Length, @"\P"));
+            AddIfMissing(context, CreateItem(stringToken, @"\s", "", "", context, parentOpt));
+            AddIfMissing(context, CreateItem(stringToken, @"\S", "", "", context, parentOpt));
+            AddIfMissing(context, CreateItem(stringToken, @"\w", "", "", context, parentOpt));
+            AddIfMissing(context, CreateItem(stringToken, @"\W", "", "", context, parentOpt));
         }
 
         private void AddIfMissing(EmbeddedCompletionContext context, EmbeddedCompletionItem item)
@@ -273,8 +287,9 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions.LanguageSe
             }
         }
 
-        private EmbeddedCompletionItem CreateEscapeItem(
-            SyntaxToken stringToken, string displayText, string description,
+        private EmbeddedCompletionItem CreateItem(
+            SyntaxToken stringToken, string displayText, 
+            string shortDescription, string longDescription,
             EmbeddedCompletionContext context, RegexNode parentOpt, 
             int? positionOffset = null, string insertionText = null)
         {
@@ -287,9 +302,9 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions.LanguageSe
 
             insertionText = insertionText ?? displayText;
             var escapedInsertionText = _language.EscapeText(insertionText, stringToken);
-            if (description != "")
+            if (shortDescription != "")
             {
-                displayText += "  -  " + description;
+                displayText += "  -  " + shortDescription;
             }
 
             if (escapedInsertionText != insertionText)
@@ -298,7 +313,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions.LanguageSe
             }
 
             return new EmbeddedCompletionItem(
-                displayText, description, 
+                displayText, longDescription, 
                 new EmbeddedCompletionChange(
                     new TextChange(replacementSpan, escapedInsertionText),
                     newPosition));

@@ -712,4 +712,106 @@
   <data name="Regex_issue_0" xml:space="preserve">
     <value>Regex issue: {0}</value>
   </data>
+  <data name="regex_contiguous_matches_long" xml:space="preserve">
+    <value>The \G anchor specifies that a match must occur at the point where the previous match ended. When you use this anchor with the Regex.Matches or Match.NextMatch method, it ensures that all matches are contiguous.</value>
+  </data>
+  <data name="regex_contiguous_matches_short" xml:space="preserve">
+    <value>contiguous matches</value>
+  </data>
+  <data name="regex_end_of_string_only_long" xml:space="preserve">
+    <value>The \z anchor specifies that a match must occur at the end of the input string. Like the $ language element, \z ignores the RegexOptions.Multiline option. Unlike the \Z language element, \z does not match a \n character at the end of a string. Therefore, it can only match the last line of the input string.</value>
+  </data>
+  <data name="regex_end_of_string_only_short" xml:space="preserve">
+    <value>end of string only</value>
+  </data>
+  <data name="regex_end_of_string_or_before_ending_newline_long" xml:space="preserve">
+    <value>The \Z anchor specifies that a match must occur at the end of the input string, or before \n at the end of the input string. It is identical to the $ anchor, except that \Z ignores the RegexOptions.Multiline option. Therefore, in a multiline string, it can only match the end of the last line, or the last line before \n.
+
+Note that \Z matches \n but does not match \r\n (the CR/LF character combination). To match CR/LF, include \r?\Z in the regular expression pattern.</value>
+  </data>
+  <data name="regex_end_of_string_or_before_ending_newline_short" xml:space="preserve">
+    <value>end of string or before ending newline</value>
+  </data>
+  <data name="regex_non_word_boundary_long" xml:space="preserve">
+    <value>The \B anchor specifies that the match must not occur on a word boundary. It is the opposite of the \b anchor.</value>
+  </data>
+  <data name="regex_non_word_boundary_short" xml:space="preserve">
+    <value>non-word boundary</value>
+  </data>
+  <data name="regex_start_of_string_only_long" xml:space="preserve">
+    <value>The \A anchor specifies that a match must occur at the beginning of the input string. It is identical to the ^ anchor, except that \A ignores the RegexOptions.Multiline option. Therefore, it can only match the start of the first line in a multiline input string.</value>
+  </data>
+  <data name="regex_start_of_string_only_short" xml:space="preserve">
+    <value>start of string only</value>
+  </data>
+  <data name="regex_word_boundary_long" xml:space="preserve">
+    <value>The \b anchor specifies that the match must occur on a boundary between a word character (the \w language element) and a non-word character (the \W language element). Word characters consist of alphanumeric characters and underscores; a non-word character is any character that is not alphanumeric or an underscore. The match may also occur on a word boundary at the beginning or end of the string.
+
+The \b anchor is frequently used to ensure that a subexpression matches an entire word instead of just the beginning or end of a word.</value>
+  </data>
+  <data name="regex_word_boundary_short" xml:space="preserve">
+    <value>word boundary</value>
+  </data>
+  <data name="regex_start_of_string_or_line_long" xml:space="preserve">
+    <value>The ^ anchor specifies that the following pattern must begin at the first character position of the string. If you use ^ with the RegexOptions.Multiline option, the match must occur at the beginning of each line.</value>
+  </data>
+  <data name="regex_start_of_string_or_line_short" xml:space="preserve">
+    <value>start of string or line</value>
+  </data>
+  <data name="regex_end_of_string_or_line_long" xml:space="preserve">
+    <value>The $ anchor specifies that the preceding pattern must occur at the end of the input string, or before \n at the end of the input string.
+
+If you use $ with the RegexOptions.Multiline option, the match can also occur at the end of a line. Note that $ matches \n but does not match \r\n (the combination of carriage return and newline characters, or CR/LF). To match the CR/LF character combination, include \r?$ in the regular expression pattern.</value>
+  </data>
+  <data name="regex_end_of_string_or_line_short" xml:space="preserve">
+    <value>end of string or line</value>
+  </data>
+  <data name="regex_backspace_character_long" xml:space="preserve">
+    <value>Matches a backspace character, \u0008</value>
+  </data>
+  <data name="regex_backspace_character_short" xml:space="preserve">
+    <value>backspace character</value>
+  </data>
+  <data name="regex_bell_character_long" xml:space="preserve">
+    <value>Matches a bell (alarm) character, \u0007</value>
+  </data>
+  <data name="regex_bell_character_short" xml:space="preserve">
+    <value>bell character</value>
+  </data>
+  <data name="regex_carriage_return_character_long" xml:space="preserve">
+    <value>Matches a carriage-return character, \u000D.  Note that \r is not equivalent to the newline character, \n.</value>
+  </data>
+  <data name="regex_carriage_return_character_short" xml:space="preserve">
+    <value>carriage-return character</value>
+  </data>
+  <data name="regex_escape_character_long" xml:space="preserve">
+    <value>Matches an escape character, \u001B</value>
+  </data>
+  <data name="regex_escape_character_short" xml:space="preserve">
+    <value>escape character</value>
+  </data>
+  <data name="regex_form_feed_character_long" xml:space="preserve">
+    <value>Matches a form-feed character, \u000C</value>
+  </data>
+  <data name="regex_form_feed_character_short" xml:space="preserve">
+    <value>form-feed character</value>
+  </data>
+  <data name="regex_new_line_character_long" xml:space="preserve">
+    <value>Matches a new-line character, \u000A</value>
+  </data>
+  <data name="regex_new_line_character_short" xml:space="preserve">
+    <value>new-line character</value>
+  </data>
+  <data name="regex_tab_character_long" xml:space="preserve">
+    <value>Matches a tab character, \u0009</value>
+  </data>
+  <data name="regex_tab_character_short" xml:space="preserve">
+    <value>tab character</value>
+  </data>
+  <data name="regex_vertical_tab_character_long" xml:space="preserve">
+    <value>Matches a vertical-tab character, \u000B</value>
+  </data>
+  <data name="regex_vertical_tab_character_short" xml:space="preserve">
+    <value>vertical-tab character</value>
+  </data>
 </root>
