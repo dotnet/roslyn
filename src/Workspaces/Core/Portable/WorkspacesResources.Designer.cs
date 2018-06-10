@@ -1242,6 +1242,28 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to You can use the vertical bar (|) character to match any one of a series of patterns, where the | character separates each pattern.
+        ///
+        ///Like the positive character class, the | character can be used to match any one of a number of single characters.
+        ///
+        ///The | character can also be used to perform an either/or match with multiple characters or subexpressions, which can include any combination of character literals and regular expression language elements. (The character class does not provide this functionality [rest of string was truncated]&quot;;.
+        /// </summary>
+        internal static string regex_alternation_long {
+            get {
+                return ResourceManager.GetString("regex_alternation_long", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to alternation.
+        /// </summary>
+        internal static string regex_alternation_short {
+            get {
+                return ResourceManager.GetString("regex_alternation_short", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The period character (.) matches any character except \n (the newline character, \u000A).  If a regular expression pattern is modified by the RegexOptions.Singleline option, or if the portion of the pattern that contains the . character class is modified by the s option, . matches any character..
         /// </summary>
         internal static string regex_any_character_group_long {
@@ -1341,6 +1363,56 @@ namespace Microsoft.CodeAnalysis {
         internal static string regex_comment {
             get {
                 return ResourceManager.GetString("regex_comment", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to This language element attempts to match one of two patterns depending on whether it can match an initial pattern. Its syntax is:
+        ///
+        ///(?( expression ) yes | no )
+        ///
+        ///where expression is the initial pattern to match, yes is the pattern to match if expression is matched, and no is the optional pattern to match if expression is not matched. The regular expression engine treats expression as a zero-width assertion; that is, the regular expression engine does not advance in the input stream after it evaluates expre [rest of string was truncated]&quot;;.
+        /// </summary>
+        internal static string regex_conditional_expression_match_long {
+            get {
+                return ResourceManager.GetString("regex_conditional_expression_match_long", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to conditional expression match.
+        /// </summary>
+        internal static string regex_conditional_expression_match_short {
+            get {
+                return ResourceManager.GetString("regex_conditional_expression_match_short", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to This language element attempts to match one of two patterns depending on whether it has matched a specified capturing group. Its syntax is:
+        ///
+        ///(?( name ) yes | no )
+        ///
+        ///or
+        ///
+        ///(?( number ) yes | no )
+        ///
+        ///where name is the name and number is the number of a capturing group, yes is the expression to match if name or number has a match, and no is the optional expression to match if it does not.
+        ///
+        ///If name does not correspond to the name of a capturing group that is used in the regular expression pattern, the alte [rest of string was truncated]&quot;;.
+        /// </summary>
+        internal static string regex_conditional_group_match_long {
+            get {
+                return ResourceManager.GetString("regex_conditional_group_match_long", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to conditional group match.
+        /// </summary>
+        internal static string regex_conditional_group_match_short {
+            get {
+                return ResourceManager.GetString("regex_conditional_group_match_short", resourceCulture);
             }
         }
         
@@ -1495,6 +1567,15 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to expression.
+        /// </summary>
+        internal static string regex_expression {
+            get {
+                return ResourceManager.GetString("regex_expression", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Matches a form-feed character, \u000C.
         /// </summary>
         internal static string regex_form_feed_character_long {
@@ -1628,6 +1709,15 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to name-or-number.
+        /// </summary>
+        internal static string regex_name_or_number {
+            get {
+                return ResourceManager.GetString("regex_name_or_number", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to name1.
         /// </summary>
         internal static string regex_name1 {
@@ -1642,6 +1732,36 @@ namespace Microsoft.CodeAnalysis {
         internal static string regex_name2 {
             get {
                 return ResourceManager.GetString("regex_name2", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to A named backreference is defined by using the following syntax:
+        ///
+        ///\k&lt; name &gt;
+        ///
+        ///or:
+        ///
+        ///\k&lt; number &gt;
+        ///
+        ///where name is the name of a capturing group defined in the regular expression pattern. If name is not defined in the regular expression pattern, a parsing error occurs, and the regular expression engine throws an ArgumentException. 
+        ///
+        ///In a named backreference with \k, name can also be the string representation of a number.
+        ///
+        ///If name is the string representation of a number, and no capturing group has th [rest of string was truncated]&quot;;.
+        /// </summary>
+        internal static string regex_named_backreference_long {
+            get {
+                return ResourceManager.GetString("regex_named_backreference_long", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to named backreference.
+        /// </summary>
+        internal static string regex_named_backreference_short {
+            get {
+                return ResourceManager.GetString("regex_named_backreference_short", resourceCulture);
             }
         }
         
@@ -1728,6 +1848,15 @@ namespace Microsoft.CodeAnalysis {
         internal static string regex_new_line_character_short {
             get {
                 return ResourceManager.GetString("regex_new_line_character_short", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to no.
+        /// </summary>
+        internal static string regex_no {
+            get {
+                return ResourceManager.GetString("regex_no", resourceCulture);
             }
         }
         
@@ -1867,6 +1996,28 @@ namespace Microsoft.CodeAnalysis {
         internal static string regex_noncapturing_group_short {
             get {
                 return ResourceManager.GetString("regex_noncapturing_group_short", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to A numbered backreference uses the following syntax:
+        ///
+        ///\ number
+        ///
+        ///where number is the ordinal position of the capturing group in the regular expression. For example, \4 matches the contents of the fourth capturing group. If number is not defined in the regular expression pattern, a parsing error occurs, and the regular expression engine throws an ArgumentException. In addition, if number identifies a capturing group in a particular ordinal position, but that capturing group has been assigned a numeric name [rest of string was truncated]&quot;;.
+        /// </summary>
+        internal static string regex_numbered_backreference_long {
+            get {
+                return ResourceManager.GetString("regex_numbered_backreference_long", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to numbered backreference.
+        /// </summary>
+        internal static string regex_numbered_backreference_short {
+            get {
+                return ResourceManager.GetString("regex_numbered_backreference_short", resourceCulture);
             }
         }
         
@@ -2085,6 +2236,15 @@ namespace Microsoft.CodeAnalysis {
         internal static string regex_word_character_short {
             get {
                 return ResourceManager.GetString("regex_word_character_short", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to yes.
+        /// </summary>
+        internal static string regex_yes {
+            get {
+                return ResourceManager.GetString("regex_yes", resourceCulture);
             }
         }
         

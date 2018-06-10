@@ -136,6 +136,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions.LanguageSe
         {
             AddIfMissing(context, CreateItem(stringToken, "#", regex_end_of_line_comment_short, regex_end_of_line_comment_long, context, parentOpt: null));
 
+            AddIfMissing(context, CreateItem(stringToken, "|", regex_alternation_short, regex_alternation_long, context, parentOpt: null));
             AddIfMissing(context, CreateItem(stringToken, "^", regex_start_of_string_or_line_short, regex_start_of_string_or_line_long, context, parentOpt: null));
             AddIfMissing(context, CreateItem(stringToken, "$", regex_end_of_string_or_line_short, regex_end_of_string_or_line_long, context, parentOpt: null));
             AddIfMissing(context, CreateItem(stringToken, ".", regex_any_character_group_short, regex_any_character_group_long, context, parentOpt: null));
@@ -238,6 +239,9 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions.LanguageSe
             AddIfMissing(context, CreateItem(stringToken, "(?<!  " + regex_subexpression + "  )", regex_zero_width_negative_lookbehind_assertion_short, regex_zero_width_negative_lookbehind_assertion_long, context, parentOpt, positionOffset: "(?<!".Length, insertionText: "(?<!)"));
             AddIfMissing(context, CreateItem(stringToken, "(?>  " + regex_subexpression + "  )", regex_nonbacktracking_subexpression_short, regex_nonbacktracking_subexpression_long, context, parentOpt, positionOffset: "(?>".Length, insertionText: "(?>)"));
             AddIfMissing(context, CreateItem(stringToken, "(?#  " + regex_comment + "  )", regex_inline_comment_short, regex_inline_comment_long, context, parentOpt, positionOffset: "(?#".Length, insertionText: "(?#)"));
+
+            AddIfMissing(context, CreateItem(stringToken, "(?(  " + regex_expression + "  )  " + regex_yes + "  |  " + regex_no + "  )", regex_conditional_expression_match_short, regex_conditional_expression_match_long, context, parentOpt, positionOffset: "(?(".Length, insertionText: "(?()|)"));
+            AddIfMissing(context, CreateItem(stringToken, "(?(  " + regex_name_or_number + "  )  " + regex_yes + "  |  " + regex_no + "  )", regex_conditional_group_match_short, regex_conditional_group_match_long, context, parentOpt, positionOffset: "(?(".Length, insertionText: "(?()|)"));
         }
 
         private void ProvideCharacterClassCompletions(
@@ -282,9 +286,9 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions.LanguageSe
                 AddIfMissing(context, CreateItem(stringToken, @"\z", regex_end_of_string_only_short, regex_end_of_string_only_long, context, parentOpt));
                 AddIfMissing(context, CreateItem(stringToken, @"\Z", regex_end_of_string_or_before_ending_newline_short, regex_end_of_string_or_before_ending_newline_long, context, parentOpt));
 
-                AddIfMissing(context, CreateItem(stringToken, @"\k<>", "", "", context, parentOpt, @"\k<".Length));
-                AddIfMissing(context, CreateItem(stringToken, @"\<>", "", "", context, parentOpt, @"\<".Length));
-                AddIfMissing(context, CreateItem(stringToken, @"\1-9", "", "", context, parentOpt, @"\".Length, @"\"));
+                AddIfMissing(context, CreateItem(stringToken, @"\k<  " + regex_name_or_number + "  >", regex_named_backreference_short, regex_named_backreference_long, context, parentOpt, @"\k<".Length, insertionText: @"\k<>"));
+                // AddIfMissing(context, CreateItem(stringToken, @"\<>", "", "", context, parentOpt, @"\<".Length));
+                AddIfMissing(context, CreateItem(stringToken, @"\1-9", regex_numbered_backreference_short, regex_numbered_backreference_long, context, parentOpt, @"\".Length, @"\"));
             }
 
             AddIfMissing(context, CreateItem(stringToken, @"\a", regex_bell_character_short, regex_bell_character_long, context, parentOpt));

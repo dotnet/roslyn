@@ -1014,6 +1014,16 @@ If ECMAScript-compliant behavior is specified, \w is equivalent to [a-zA-Z_0-9]<
   <data name="regex_word_character_short" xml:space="preserve">
     <value>word character</value>
   </data>
+  <data name="regex_alternation_long" xml:space="preserve">
+    <value>You can use the vertical bar (|) character to match any one of a series of patterns, where the | character separates each pattern.
+
+Like the positive character class, the | character can be used to match any one of a number of single characters.
+
+The | character can also be used to perform an either/or match with multiple characters or subexpressions, which can include any combination of character literals and regular expression language elements. (The character class does not provide this functionality.)</value>
+  </data>
+  <data name="regex_alternation_short" xml:space="preserve">
+    <value>alternation</value>
+  </data>
   <data name="regex_balancing_group_long" xml:space="preserve">
     <value>A balancing group definition deletes the definition of a previously defined group and stores, in the current group, the interval between the previously defined group and the current group. This grouping construct has the following format:
 
@@ -1033,11 +1043,48 @@ After you modify the regular expression in the following example to use the appr
   <data name="regex_comment" xml:space="preserve">
     <value>comment</value>
   </data>
+  <data name="regex_conditional_expression_match_long" xml:space="preserve">
+    <value>This language element attempts to match one of two patterns depending on whether it can match an initial pattern. Its syntax is:
+
+(?( expression ) yes | no )
+
+where expression is the initial pattern to match, yes is the pattern to match if expression is matched, and no is the optional pattern to match if expression is not matched. The regular expression engine treats expression as a zero-width assertion; that is, the regular expression engine does not advance in the input stream after it evaluates expression. Therefore, this construct is equivalent to the following:
+
+(?(?= expression ) yes | no )
+
+where (?=expression) is a zero-width assertion construct. Because the regular expression engine interprets expression as an anchor (a zero-width assertion), expression must either be a zero-width assertion (for more information, see Anchors) or a subexpression that is also contained in yes. Otherwise, the yes pattern cannot be matched.
+
+Note
+
+If 'expression' is a named or numbered capturing group, the alternation construct is interpreted as a capture test. In other words, the regular expression engine does not attempt to match the captured substring, but instead tests for the presence or absence of the group.</value>
+  </data>
+  <data name="regex_conditional_expression_match_short" xml:space="preserve">
+    <value>conditional expression match</value>
+  </data>
+  <data name="regex_conditional_group_match_long" xml:space="preserve">
+    <value>This language element attempts to match one of two patterns depending on whether it has matched a specified capturing group. Its syntax is:
+
+(?( name ) yes | no )
+
+or
+
+(?( number ) yes | no )
+
+where name is the name and number is the number of a capturing group, yes is the expression to match if name or number has a match, and no is the optional expression to match if it does not.
+
+If name does not correspond to the name of a capturing group that is used in the regular expression pattern, the alternation construct is interpreted as an expression test, as explained in the previous section. Typically, this means that expression evaluates to false. If number does not correspond to a numbered capturing group that is used in the regular expression pattern, the regular expression engine throws an ArgumentException.</value>
+  </data>
+  <data name="regex_conditional_group_match_short" xml:space="preserve">
+    <value>conditional group match</value>
+  </data>
   <data name="regex_end_of_line_comment_long" xml:space="preserve">
     <value>A number sign (#) marks an x-mode comment, which starts at the unescaped # character at the end of the regular expression pattern and continues until the end of the line. To use this construct, you must either enable the x option (through inline options) or supply the RegexOptions.IgnorePatternWhitespace value to the option parameter when instantiating the Regex object or calling a static Regex method.</value>
   </data>
   <data name="regex_end_of_line_comment_short" xml:space="preserve">
     <value>end-of-line comment</value>
+  </data>
+  <data name="regex_expression" xml:space="preserve">
+    <value>expression</value>
   </data>
   <data name="regex_group_options_long" xml:space="preserve">
     <value>The following grouping construct applies or disables the specified options within a subexpression:
@@ -1070,6 +1117,26 @@ The group options construct is not a capturing group. That is, although any port
   <data name="regex_name2" xml:space="preserve">
     <value>name2</value>
   </data>
+  <data name="regex_named_backreference_long" xml:space="preserve">
+    <value>A named backreference is defined by using the following syntax:
+
+\k&lt; name &gt;
+
+or:
+
+\k&lt; number &gt;
+
+where name is the name of a capturing group defined in the regular expression pattern. If name is not defined in the regular expression pattern, a parsing error occurs, and the regular expression engine throws an ArgumentException. 
+
+In a named backreference with \k, name can also be the string representation of a number.
+
+If name is the string representation of a number, and no capturing group has that name, \k&lt;name&gt; is the same as the backreference \number, where number is the ordinal position of the capture.
+
+However, if name is the string representation of a number and the capturing group in that position has been explicitly assigned a numeric name, the regular expression parser cannot identify the capturing group by its ordinal position. Instead, it throws an ArgumentException.</value>
+  </data>
+  <data name="regex_named_backreference_short" xml:space="preserve">
+    <value>named backreference</value>
+  </data>
   <data name="regex_named_matched_subexpression_long" xml:space="preserve">
     <value>The following grouping construct captures a matched subexpression and lets you access it by name or by number:
 
@@ -1097,6 +1164,12 @@ You can access named captured groups in the following ways:
   </data>
   <data name="regex_named_matched_subexpression_short" xml:space="preserve">
     <value>named matched subexpression</value>
+  </data>
+  <data name="regex_name_or_number" xml:space="preserve">
+    <value>name-or-number</value>
+  </data>
+  <data name="regex_no" xml:space="preserve">
+    <value>no</value>
   </data>
   <data name="regex_nonbacktracking_subexpression_long" xml:space="preserve">
     <value>The following grouping construct represents a nonbacktracking subexpression (also known as a "greedy" subexpression):
@@ -1127,6 +1200,31 @@ If a regular expression includes nested grouping constructs, an outer noncapturi
   </data>
   <data name="regex_noncapturing_group_short" xml:space="preserve">
     <value>noncapturing group</value>
+  </data>
+  <data name="regex_numbered_backreference_long" xml:space="preserve">
+    <value>A numbered backreference uses the following syntax:
+
+\ number
+
+where number is the ordinal position of the capturing group in the regular expression. For example, \4 matches the contents of the fourth capturing group. If number is not defined in the regular expression pattern, a parsing error occurs, and the regular expression engine throws an ArgumentException. In addition, if number identifies a capturing group in a particular ordinal position, but that capturing group has been assigned a numeric name different than its ordinal position, the regular expression parser also throws an ArgumentException.
+
+Note the ambiguity between octal escape codes (such as \16) and \number backreferences that use the same notation. This ambiguity is resolved as follows:
+
+    The expressions \1 through \9 are always interpreted as backreferences, and not as octal codes.
+
+    If the first digit of a multidigit expression is 8 or 9 (such as \80 or \91), the expression as interpreted as a literal.
+
+    Expressions from \10 and greater are considered backreferences if there is a backreference corresponding to that number; otherwise, they are interpreted as octal codes.
+
+    If a regular expression contains a backreference to an undefined group number, a parsing error occurs, and the regular expression engine throws an ArgumentException.
+
+If the ambiguity is a problem, you can use the \k&lt;name&gt; notation, which is unambiguous and cannot be confused with octal character codes. Similarly, hexadecimal codes such as \xdd are unambiguous and cannot be confused with backreferences.</value>
+  </data>
+  <data name="regex_numbered_backreference_short" xml:space="preserve">
+    <value>numbered backreference</value>
+  </data>
+  <data name="regex_yes" xml:space="preserve">
+    <value>yes</value>
   </data>
   <data name="regex_zero_width_negative_lookahead_assertion_long" xml:space="preserve">
     <value>The following grouping construct defines a zero-width negative lookahead assertion:
