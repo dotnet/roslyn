@@ -3,6 +3,7 @@
 using System;
 using System.IO;
 using System.Text;
+using System.Text.RegularExpressions;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
@@ -66,7 +67,7 @@ namespace Microsoft.CodeAnalysis
                         return null;
                     case TokenKind.SimpleCharacter:
                         // Matches just this character
-                        sb.Append(lexer.EatCurrentCharacter());
+                        sb.Append(Regex.Escape(lexer.EatCurrentCharacter().ToString()));
                         break;
                     case TokenKind.Question:
                         // '?' matches any single character

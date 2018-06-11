@@ -285,7 +285,7 @@ RoOt = TruE");
         public void StarNameMatch()
         {
             string regex = EditorConfig.TryCompileSectionNameToRegEx("*.cs");
-            Assert.Equal("^.*/[^/]*.cs$", regex);
+            Assert.Equal("^.*/[^/]*\\.cs$", regex);
 
             Assert.Matches(regex, "/abc.cs");
             Assert.Matches(regex, "/123.cs");
@@ -302,10 +302,23 @@ RoOt = TruE");
         public void StarStarNameMatch()
         {
             string regex = EditorConfig.TryCompileSectionNameToRegEx("**.cs");
-            Assert.Equal("^.*/.*.cs$", regex);
+            Assert.Equal("^.*/.*\\.cs$", regex);
 
             Assert.Matches(regex, "/abc.cs");
             Assert.Matches(regex, "/dir/subpath.cs");
+        }
+
+        [Fact]
+        public void EscapeDot()
+        {
+            string regex = EditorConfig.TryCompileSectionNameToRegEx("...");
+            Assert.Equal("^.*/\\.\\.\\.$", regex);
+
+            Assert.Matches(regex, "/...");
+            Assert.Matches(regex, "/subdir/...");
+            Assert.DoesNotMatch(regex, "/aaa");
+            Assert.DoesNotMatch(regex, "/???");
+            Assert.DoesNotMatch(regex, "/abc");
         }
 
         [Fact]
