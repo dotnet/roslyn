@@ -71,13 +71,25 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             _namesIndex = elementNames.IsDefault ? 0 : elementNames.Length;
         }
 
+        // PROTOTYPE(NullableReferenceTypes): Share code with `TypeSymbolWithAnnotations` version below.
         public static TypeSymbol DecodeTupleTypesIfApplicable(
             TypeSymbol metadataType,
             EntityHandle targetHandle,
             PEModuleSymbol containingModule)
         {
-            // PROTOTYPE(NullableReferenceTypes): Shouldn't be necessary to wrap and unwrap TypeSymbol.
-            return DecodeTupleTypesIfApplicable(TypeSymbolWithAnnotations.Create(metadataType, isNullableIfReferenceType: null), targetHandle, containingModule).TypeSymbol;
+            ImmutableArray<string> elementNames;
+            var hasTupleElementNamesAttribute = containingModule
+                .Module
+                .HasTupleElementNamesAttribute(targetHandle, out elementNames);
+
+            // If we have the TupleElementNamesAttribute, but no names, that's
+            // bad metadata
+            if (hasTupleElementNamesAttribute && elementNames.IsDefaultOrEmpty)
+            {
+                return new UnsupportedMetadataTypeSymbol();
+            }
+
+            return DecodeTupleTypesInternal(metadataType, elementNames, hasTupleElementNamesAttribute);
         }
 
         public static TypeSymbolWithAnnotations DecodeTupleTypesIfApplicable(
