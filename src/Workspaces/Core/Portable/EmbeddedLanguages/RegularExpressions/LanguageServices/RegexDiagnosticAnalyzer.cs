@@ -13,7 +13,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions.LanguageSe
     /// </summary>
     internal class RegexDiagnosticAnalyzer : IEmbeddedDiagnosticAnalyzer
     {
-        public const string DiagnosticId = "RE001";
+        public const string DiagnosticId = "RE0001";
 
         private readonly RegexEmbeddedLanguage _language;
         private readonly DiagnosticDescriptor _descriptor;
