@@ -85,7 +85,7 @@ class C
 ";
 
             CreateCompilation(source).VerifyDiagnostics(
-                // (6,16): error CS1674: 'method group': type used in a using statement must be implicitly convertible to 'System.IDisposable'
+                // (6,16): error CS1674: 'method group': type used in a using statement must have a public void-returning Dispose() instance method.
                 Diagnostic(ErrorCode.ERR_NoConvToIDisp, "Main").WithArguments("method group"));
         }
 
@@ -138,7 +138,7 @@ class C2
                 // (13,16): warning CS0278: 'C1' does not implement the 'disposable' pattern. 'C1.Dispose()' is ambiguous with 'C1.Dispose()'.
                 //         using (C1 c = new C1())
                 Diagnostic(ErrorCode.WRN_PatternIsAmbiguous, "C1 c = new C1()").WithArguments("C1", "disposable", "C1.Dispose()", "C1.Dispose()").WithLocation(13, 16),
-                // (13,16): error CS1674: 'C1': type used in a using statement must have a public void-returning Dispose() function.
+                // (13,16): error CS1674: 'C1': type used in a using statement must have a public void-returning Dispose() instance method.
                 //         using (C1 c = new C1())
                 Diagnostic(ErrorCode.ERR_NoConvToIDisp, "C1 c = new C1()").WithArguments("C1").WithLocation(13, 16)
                 );
@@ -268,7 +268,6 @@ class C3
 class C1
 {
     public C1() { }
-    public void Dispose() { }
 }
 
 static class C2 
@@ -285,7 +284,12 @@ class C3
         }
     }
 }";
-            CreateCompilation(source).VerifyDiagnostics();
+            CreateCompilation(source).VerifyDiagnostics(
+
+                // (16,16): error CS1674: 'C1': type used in a using statement must have a public void-returning Dispose() instance method.
+                //         using (C1 c = new C1())
+                Diagnostic(ErrorCode.ERR_NoConvToIDisp, "C1 c = new C1()").WithArguments("C1").WithLocation(16, 16)
+                );
         }
 
         [Fact]
@@ -311,7 +315,7 @@ class C2
                 // (12,16): warning CS0280: 'C1' does not implement the 'disposable' pattern. 'C1.Dispose()' has the wrong signature.
                 //         using (C1 c = new C1())
                 Diagnostic(ErrorCode.WRN_PatternBadSignature, "C1 c = new C1()").WithArguments("C1", "disposable", "C1.Dispose()").WithLocation(12, 16),
-                // (12,16): error CS1674: 'C1': type used in a using statement must have a public void-returning Dispose() function.
+                // (12,16): error CS1674: 'C1': type used in a using statement must have a public void-returning Dispose() instance method.
                 //         using (C1 c = new C1())
                 Diagnostic(ErrorCode.ERR_NoConvToIDisp, "C1 c = new C1()").WithArguments("C1").WithLocation(12, 16)
                 );
@@ -340,7 +344,7 @@ class C2
                 // (12,16): warning CS0279: 'C1' does not implement the 'disposable' pattern. 'C1.Dispose()' is either static or not public.
                 //         using (C1 c = new C1())
                 Diagnostic(ErrorCode.WRN_PatternStaticOrInaccessible, "C1 c = new C1()").WithArguments("C1", "disposable", "C1.Dispose()").WithLocation(12, 16),
-                // (12,16): error CS1674: 'C1': type used in a using statement must have a public void-returning Dispose() function.
+                // (12,16): error CS1674: 'C1': type used in a using statement must have a public void-returning Dispose() instance method.
                 //         using (C1 c = new C1())
                 Diagnostic(ErrorCode.ERR_NoConvToIDisp, "C1 c = new C1()").WithArguments("C1").WithLocation(12, 16)
             );
@@ -362,7 +366,7 @@ class C
 ";
 
             CreateCompilation(source).VerifyDiagnostics(
-                // (6,16): error CS1674: 'lambda expression': type used in a using statement must be implicitly convertible to 'System.IDisposable'
+                // (6,16): error CS1674: 'lambda expression': type used in a using statement must have a public void-returning Dispose() instance method.
                 Diagnostic(ErrorCode.ERR_NoConvToIDisp, "x => x").WithArguments("lambda expression"));
         }
 
@@ -836,7 +840,7 @@ class C
     }
 }";
             CreateCompilation(source).VerifyDiagnostics(
-                // (16,16): error CS1674: 'T0': type used in a using statement must be implicitly convertible to 'System.IDisposable'
+                // (16,16): error CS1674: 'T0': type used in a using statement must have a public void-returning Dispose() instance method.
                 Diagnostic(ErrorCode.ERR_NoConvToIDisp, "t0").WithArguments("T0").WithLocation(16, 16));
         }
 

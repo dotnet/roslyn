@@ -560,7 +560,7 @@ IUsingOperation (OperationKind.Using, Type: null, IsInvalid) (Syntax: 'using (va
                   OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
-                // CS1674: 'C': type used in a using statement must be implicitly convertible to 'System.IDisposable'
+                // CS1674: 'C': type used in a using statement must have a public void-returning Dispose() instance method.
                 //         /*<bind>*/using (var c1 = new C())
                 Diagnostic(ErrorCode.ERR_NoConvToIDisp, "var c1 = new C()").WithArguments("C").WithLocation(9, 26)
             };
@@ -609,7 +609,7 @@ IUsingOperation (OperationKind.Using, Type: null, IsInvalid) (Syntax: 'using (c1
                   OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
-                // CS1674: 'C': type used in a using statement must be implicitly convertible to 'System.IDisposable'
+                // CS1674: 'C': type used in a using statement must have a public void-returning Dispose() instance method.
                 //         /*<bind>*/using (c1)
                 Diagnostic(ErrorCode.ERR_NoConvToIDisp, "c1").WithArguments("C").WithLocation(10, 26)
             };
