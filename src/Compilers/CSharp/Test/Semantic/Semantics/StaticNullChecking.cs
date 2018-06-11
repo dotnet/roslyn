@@ -10861,6 +10861,68 @@ class CL1<T>
         public void AnonymousTypes_05()
         {
             var source =
+@"interface I<T> { }
+interface IIn<in T> { }
+interface IOut<out T> { }
+class C
+{
+    static void F0(string x0, string? y0)
+    {
+        var a0 = new { F = x0 };
+        var b0 = new { F = y0 };
+        a0 = b0;
+        b0 = a0;
+    }
+    static void F1(I<string> x1, I<string?> y1)
+    {
+        var a1 = new { F = x1 };
+        var b1 = new { F = y1 };
+        a1 = b1;
+        b1 = a1;
+    }
+    static void F2(IIn<string> x2, IIn<string?> y2)
+    {
+        var a2 = new { F = x2 };
+        var b2 = new { F = y2 };
+        a2 = b2;
+        b2 = a2;
+    }
+    static void F3(IOut<string> x3, IOut<string?> y3)
+    {
+        var a3 = new { F = x3 };
+        var b3 = new { F = y3 };
+        a3 = b3;
+        b3 = a3;
+    }
+}";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
+            // PROTOTYPE(NullableReferenceTypes): Should report a warning for `a0 = b0`.
+            // PROTOTYPE(NullableReferenceTypes): Should not report a warning for `b3 = a3`.
+            comp.VerifyDiagnostics(
+                // (17,14): warning CS8619: Nullability of reference types in value of type '<anonymous type: I<string?> F>' doesn't match target type '<anonymous type: I<string> F>'.
+                //         a1 = b1;
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "b1").WithArguments("<anonymous type: I<string?> F>", "<anonymous type: I<string> F>").WithLocation(17, 14),
+                // (18,14): warning CS8619: Nullability of reference types in value of type '<anonymous type: I<string> F>' doesn't match target type '<anonymous type: I<string?> F>'.
+                //         b1 = a1;
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "a1").WithArguments("<anonymous type: I<string> F>", "<anonymous type: I<string?> F>").WithLocation(18, 14),
+                // (24,14): warning CS8619: Nullability of reference types in value of type '<anonymous type: IIn<string?> F>' doesn't match target type '<anonymous type: IIn<string> F>'.
+                //         a2 = b2;
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "b2").WithArguments("<anonymous type: IIn<string?> F>", "<anonymous type: IIn<string> F>").WithLocation(24, 14),
+                // (25,14): warning CS8619: Nullability of reference types in value of type '<anonymous type: IIn<string> F>' doesn't match target type '<anonymous type: IIn<string?> F>'.
+                //         b2 = a2;
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "a2").WithArguments("<anonymous type: IIn<string> F>", "<anonymous type: IIn<string?> F>").WithLocation(25, 14),
+                // (31,14): warning CS8619: Nullability of reference types in value of type '<anonymous type: IOut<string?> F>' doesn't match target type '<anonymous type: IOut<string> F>'.
+                //         a3 = b3;
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "b3").WithArguments("<anonymous type: IOut<string?> F>", "<anonymous type: IOut<string> F>").WithLocation(31, 14),
+                // (32,14): warning CS8619: Nullability of reference types in value of type '<anonymous type: IOut<string> F>' doesn't match target type '<anonymous type: IOut<string?> F>'.
+                //         b3 = a3;
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "a3").WithArguments("<anonymous type: IOut<string> F>", "<anonymous type: IOut<string?> F>").WithLocation(32, 14));
+        }
+
+        [Fact]
+        public void AnonymousTypes_06()
+        {
+            var source =
 @"class C
 {
     static void F(string x, string y)
@@ -10869,9 +10931,7 @@ class CL1<T>
         y = new { x, y = y }.y ?? y;
     }
 }";
-            var comp = CreateCompilation(
-                source,
-                parseOptions: TestOptions.Regular8);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
             // PROTOTYPE(NullableReferenceTypes): Should report ErrorCode.HDN_ExpressionIsProbablyNeverNull.
             // See comment in DataFlowPass.VisitAnonymousObjectCreationExpression.
             comp.VerifyDiagnostics();
@@ -11678,8 +11738,7 @@ class CL1
                 );
         }
 
-        // PROTOTYPE(NullableReferenceTypes): Calculate lamba conversion.
-        [Fact(Skip = "TODO")]
+        [Fact]
         public void Lambda_12()
         {
             CSharpCompilation c = CreateCompilation(@"
@@ -11719,35 +11778,34 @@ class CL1
 ", parseOptions: TestOptions.Regular8);
 
             c.VerifyDiagnostics(
-                 // (12,51): warning CS8600: Converting null literal or possible null value to non-nullable type.
-                 //         System.Action<CL1?> x1 = (CL1 p1) => p1 = M1();
-                 Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "M1()").WithLocation(12, 51),
-                 // (12,34): warning CS8622: Nullability of reference types in type of parameter 'p1' of 'lambda expression' doesn't match the target delegate 'Action<CL1?>'.
-                 //         System.Action<CL1?> x1 = (CL1 p1) => p1 = M1();
-                 Diagnostic(ErrorCode.WRN_NullabilityMismatchInParameterTypeOfTargetDelegate, "(CL1 p1) => p1 = M1()").WithArguments("p1", "lambda expression", "System.Action<CL1?>").WithLocation(12, 34),
-                 // (17,59): warning CS8600: Converting null literal or possible null value to non-nullable type.
-                 //         System.Action<CL1?> x2 = delegate (CL1 p2) { p2 = M1(); };
-                 Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "M1()").WithLocation(17, 59),
-                 // (17,34): warning CS8622: Nullability of reference types in type of parameter 'p2' of 'lambda expression' doesn't match the target delegate 'Action<CL1?>'.
-                 //         System.Action<CL1?> x2 = delegate (CL1 p2) { p2 = M1(); };
-                 Diagnostic(ErrorCode.WRN_NullabilityMismatchInParameterTypeOfTargetDelegate, "delegate (CL1 p2) { p2 = M1(); }").WithArguments("p2", "lambda expression", "System.Action<CL1?>").WithLocation(17, 34),
-                 // (24,34): warning CS8600: Converting null literal or possible null value to non-nullable type.
-                 //         D1 x3 = (CL1 p3) => p3 = M1();
-                 Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "M1()").WithLocation(24, 34),
-                 // (24,17): warning CS8622: Nullability of reference types in type of parameter 'p3' of 'lambda expression' doesn't match the target delegate 'C.D1'.
-                 //         D1 x3 = (CL1 p3) => p3 = M1();
-                 Diagnostic(ErrorCode.WRN_NullabilityMismatchInParameterTypeOfTargetDelegate, "(CL1 p3) => p3 = M1()").WithArguments("p3", "lambda expression", "C.D1").WithLocation(24, 17),
-                 // (29,42): warning CS8600: Converting null literal or possible null value to non-nullable type.
-                 //         D1 x4 = delegate (CL1 p4) { p4 = M1(); };
-                 Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "M1()").WithLocation(29, 42),
-                 // (29,17): warning CS8622: Nullability of reference types in type of parameter 'p4' of 'lambda expression' doesn't match the target delegate 'C.D1'.
-                 //         D1 x4 = delegate (CL1 p4) { p4 = M1(); };
-                 Diagnostic(ErrorCode.WRN_NullabilityMismatchInParameterTypeOfTargetDelegate, "delegate (CL1 p4) { p4 = M1(); }").WithArguments("p4", "lambda expression", "C.D1").WithLocation(29, 17)
+                // (12,51): warning CS8600: Converting null literal or possible null value to non-nullable type.
+                //         System.Action<CL1?> x1 = (CL1 p1) => p1 = M1();
+                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "M1()").WithLocation(12, 51),
+                // (12,34): warning CS8622: Nullability of reference types in type of parameter 'p1' of 'lambda expression' doesn't match the target delegate 'Action<CL1?>'.
+                //         System.Action<CL1?> x1 = (CL1 p1) => p1 = M1();
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInParameterTypeOfTargetDelegate, "(CL1 p1) => p1 = M1()").WithArguments("p1", "lambda expression", "System.Action<CL1?>").WithLocation(12, 34),
+                // (17,59): warning CS8600: Converting null literal or possible null value to non-nullable type.
+                //         System.Action<CL1?> x2 = delegate (CL1 p2) { p2 = M1(); };
+                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "M1()").WithLocation(17, 59),
+                // (17,34): warning CS8622: Nullability of reference types in type of parameter 'p2' of 'anonymous method' doesn't match the target delegate 'Action<CL1?>'.
+                //         System.Action<CL1?> x2 = delegate (CL1 p2) { p2 = M1(); };
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInParameterTypeOfTargetDelegate, "delegate (CL1 p2) { p2 = M1(); }").WithArguments("p2", "anonymous method", "System.Action<CL1?>").WithLocation(17, 34),
+                // (24,34): warning CS8600: Converting null literal or possible null value to non-nullable type.
+                //         D1 x3 = (CL1 p3) => p3 = M1();
+                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "M1()").WithLocation(24, 34),
+                // (24,17): warning CS8622: Nullability of reference types in type of parameter 'p3' of 'lambda expression' doesn't match the target delegate 'C.D1'.
+                //         D1 x3 = (CL1 p3) => p3 = M1();
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInParameterTypeOfTargetDelegate, "(CL1 p3) => p3 = M1()").WithArguments("p3", "lambda expression", "C.D1").WithLocation(24, 17),
+                // (29,42): warning CS8600: Converting null literal or possible null value to non-nullable type.
+                //         D1 x4 = delegate (CL1 p4) { p4 = M1(); };
+                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "M1()").WithLocation(29, 42),
+                // (29,17): warning CS8622: Nullability of reference types in type of parameter 'p4' of 'anonymous method' doesn't match the target delegate 'C.D1'.
+                //         D1 x4 = delegate (CL1 p4) { p4 = M1(); };
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInParameterTypeOfTargetDelegate, "delegate (CL1 p4) { p4 = M1(); }").WithArguments("p4", "anonymous method", "C.D1").WithLocation(29, 17)
                 );
         }
 
-        // PROTOTYPE(NullableReferenceTypes): Calculate lamba conversion.
-        [Fact(Skip = "TODO")]
+        [Fact]
         public void Lambda_13()
         {
             CSharpCompilation c = CreateCompilation(@"
@@ -11787,18 +11845,18 @@ class CL1
 ", parseOptions: TestOptions.Regular8);
 
             c.VerifyDiagnostics(
-                 // (12,33): warning CS8622: Nullability of reference types in type of parameter 'p1' of 'lambda expression' doesn't match the target delegate 'Action<CL1>'.
-                 //         System.Action<CL1> x1 = (CL1? p1) => p1 = M1();
-                 Diagnostic(ErrorCode.WRN_NullabilityMismatchInParameterTypeOfTargetDelegate, "(CL1? p1) => p1 = M1()").WithArguments("p1", "lambda expression", "System.Action<CL1>").WithLocation(12, 33),
-                 // (17,33): warning CS8622: Nullability of reference types in type of parameter 'p2' of 'lambda expression' doesn't match the target delegate 'Action<CL1>'.
-                 //         System.Action<CL1> x2 = delegate (CL1? p2) { p2 = M1(); };
-                 Diagnostic(ErrorCode.WRN_NullabilityMismatchInParameterTypeOfTargetDelegate, "delegate (CL1? p2) { p2 = M1(); }").WithArguments("p2", "lambda expression", "System.Action<CL1>").WithLocation(17, 33),
-                 // (24,17): warning CS8622: Nullability of reference types in type of parameter 'p3' of 'lambda expression' doesn't match the target delegate 'C.D1'.
-                 //         D1 x3 = (CL1? p3) => p3 = M1();
-                 Diagnostic(ErrorCode.WRN_NullabilityMismatchInParameterTypeOfTargetDelegate, "(CL1? p3) => p3 = M1()").WithArguments("p3", "lambda expression", "C.D1").WithLocation(24, 17),
-                 // (29,17): warning CS8622: Nullability of reference types in type of parameter 'p4' of 'lambda expression' doesn't match the target delegate 'C.D1'.
-                 //         D1 x4 = delegate (CL1? p4) { p4 = M1(); };
-                 Diagnostic(ErrorCode.WRN_NullabilityMismatchInParameterTypeOfTargetDelegate, "delegate (CL1? p4) { p4 = M1(); }").WithArguments("p4", "lambda expression", "C.D1").WithLocation(29, 17)
+                // (12,33): warning CS8622: Nullability of reference types in type of parameter 'p1' of 'lambda expression' doesn't match the target delegate 'Action<CL1>'.
+                //         System.Action<CL1> x1 = (CL1? p1) => p1 = M1();
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInParameterTypeOfTargetDelegate, "(CL1? p1) => p1 = M1()").WithArguments("p1", "lambda expression", "System.Action<CL1>").WithLocation(12, 33),
+                // (17,33): warning CS8622: Nullability of reference types in type of parameter 'p2' of 'anonymous method' doesn't match the target delegate 'Action<CL1>'.
+                //         System.Action<CL1> x2 = delegate (CL1? p2) { p2 = M1(); };
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInParameterTypeOfTargetDelegate, "delegate (CL1? p2) { p2 = M1(); }").WithArguments("p2", "anonymous method", "System.Action<CL1>").WithLocation(17, 33),
+                // (24,17): warning CS8622: Nullability of reference types in type of parameter 'p3' of 'lambda expression' doesn't match the target delegate 'C.D1'.
+                //         D1 x3 = (CL1? p3) => p3 = M1();
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInParameterTypeOfTargetDelegate, "(CL1? p3) => p3 = M1()").WithArguments("p3", "lambda expression", "C.D1").WithLocation(24, 17),
+                // (29,17): warning CS8622: Nullability of reference types in type of parameter 'p4' of 'anonymous method' doesn't match the target delegate 'C.D1'.
+                //         D1 x4 = delegate (CL1? p4) { p4 = M1(); };
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInParameterTypeOfTargetDelegate, "delegate (CL1? p4) { p4 = M1(); }").WithArguments("p4", "anonymous method", "C.D1").WithLocation(29, 17)
                 );
         }
 
@@ -11905,8 +11963,7 @@ class C
                 );
         }
 
-        // PROTOTYPE(NullableReferenceTypes): Calculate lamba conversion.
-        [Fact(Skip = "TODO")]
+        [Fact]
         public void Lambda_16()
         {
             CSharpCompilation c = CreateCompilation(@"
@@ -11941,8 +11998,7 @@ class CL1<T>
                 );
         }
 
-        // PROTOTYPE(NullableReferenceTypes): Calculate lamba conversion.
-        [Fact(Skip = "TODO")]
+        [Fact]
         public void Lambda_17()
         {
             CSharpCompilation c = CreateCompilation(@"
@@ -11977,6 +12033,102 @@ class CL1<T>
                  //         Expression<System.Action<CL1<string>>> x2 = (CL1<string?> p2) => System.Console.WriteLine();
                  Diagnostic(ErrorCode.WRN_NullabilityMismatchInParameterTypeOfTargetDelegate, "(CL1<string?> p2) => System.Console.WriteLine()").WithArguments("p2", "lambda expression", "System.Action<CL1<string>>").WithLocation(17, 53)
                 );
+        }
+
+        [Fact]
+        public void Lambda_18()
+        {
+            var source =
+@"delegate T D<T>(T t) where T : class;
+class C
+{
+    static void F()
+    {
+        var d1 = (D<string?>)((string s1) =>
+            {
+                s1 = null;
+                return s1;
+            });
+        var d2 = (D<string>)((string? s2) =>
+            {
+                s2.ToString();
+                return s2;
+            });
+    }
+}";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
+            comp.VerifyDiagnostics(
+                // (8,22): warning CS8600: Converting null literal or possible null value to non-nullable type.
+                //                 s1 = null;
+                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "null").WithLocation(8, 22),
+                // (13,17): warning CS8602: Possible dereference of a null reference.
+                //                 s2.ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "s2").WithLocation(13, 17),
+                // (14,24): warning CS8603: Possible null reference return.
+                //                 return s2;
+                Diagnostic(ErrorCode.WRN_NullReferenceReturn, "s2").WithLocation(14, 24));
+        }
+
+        /// <summary>
+        /// To track nullability of captured variables inside and outside a lambda,
+        /// the lambda should be considered executed at the location the lambda
+        /// is converted to a delegate.
+        /// </summary>
+        [Fact]
+        public void Lambda_19()
+        {
+            var source =
+@"using System;
+class C
+{
+    static void F1(object? x1, object y1)
+    {
+        object z1 = y1;
+        Action f = () =>
+        {
+            z1 = x1; // warning
+        };
+        f();
+        z1.ToString();
+    }
+    static void F2(object? x2, object y2)
+    {
+        object z2 = x2; // warning
+        Action f = () =>
+        {
+            z2 = y2;
+        };
+        f();
+        z2.ToString(); // warning
+    }
+    static void F3(object? x3, object y3)
+    {
+        object z3 = y3;
+        if (x3 == null) return;
+        Action f = () =>
+        {
+            z3 = x3; // warning
+        };
+        f();
+        z3.ToString();
+    }
+}";
+            // PROTOTYPE(NullableReferenceTypes): For captured variables, the lambda should be
+            // considered executed at the location the lambda is converted to a delegate.
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
+            comp.VerifyDiagnostics(
+                // (9,18): warning CS8600: Converting null literal or possible null value to non-nullable type.
+                //             z1 = x1; // warning
+                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "x1").WithLocation(9, 18),
+                // (16,21): warning CS8600: Converting null literal or possible null value to non-nullable type.
+                //         object z2 = x2; // warning
+                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "x2").WithLocation(16, 21),
+                // (22,9): warning CS8602: Possible dereference of a null reference.
+                //         z2.ToString(); // warning
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "z2").WithLocation(22, 9),
+                // (30,18): warning CS8600: Converting null literal or possible null value to non-nullable type.
+                //             z3 = x3; // warning
+                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "x3").WithLocation(30, 18));
         }
 
         [Fact]
@@ -12020,6 +12172,59 @@ class CL1<T>
                 // (5,27): warning CS8602: Possible dereference of a null reference.
                 //         var z = y => y ?? x.ToString();
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "x").WithLocation(5, 27));
+        }
+
+        /// <summary>
+        /// Inferred nullability of captured variables should be tracked across
+        /// local function invocations, as if the local function was inlined.
+        /// </summary>
+        [Fact]
+        public void LocalFunction_01()
+        {
+            var source =
+@"class C
+{
+    static void F1(object? x1, object y1)
+    {
+        object z1 = y1;
+        f();
+        z1.ToString(); // warning
+        void f()
+        {
+            z1 = x1; // warning
+        }
+    }
+    static void F2(object? x2, object y2)
+    {
+        object z2 = x2; // warning
+        f();
+        z2.ToString();
+        void f()
+        {
+            z2 = y2;
+        }
+    }
+    static void F3(object? x3, object y3)
+    {
+        object z3 = y3;
+        void f()
+        {
+            z3 = x3;
+        }
+        if (x3 == null) return;
+        f();
+        z3.ToString();
+    }
+}";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
+            // PROTOTYPE(NullableReferenceTypes): Should report warnings as indicated in source above.
+            comp.VerifyDiagnostics(
+                // (15,21): warning CS8600: Converting null literal or possible null value to non-nullable type.
+                //         object z2 = x2; // warning
+                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "x2").WithLocation(15, 21),
+                // (17,9): warning CS8602: Possible dereference of a null reference.
+                //         z2.ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "z2").WithLocation(17, 9));
         }
 
         // PROTOTYPE(NullableReferenceTypes): Report errors
@@ -14046,9 +14251,6 @@ class CL0<T>
                 // (12,37): warning CS8622: Nullability of reference types in type of parameter 'x' of 'void C.M1<string>(string x)' doesn't match the target delegate 'Action<string?>'.
                 //         System.Action<string?> u1 = M1<string>;
                 Diagnostic(ErrorCode.WRN_NullabilityMismatchInParameterTypeOfTargetDelegate, "M1<string>").WithArguments("x", "void C.M1<string>(string x)", "System.Action<string?>").WithLocation(12, 37),
-                // (17,36): warning CS8622: Nullability of reference types in type of parameter 'x' of 'void C.M1<string?>(string? x)' doesn't match the target delegate 'Action<string>'.
-                //         System.Action<string> u2 = M1<string?>;
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInParameterTypeOfTargetDelegate, "M1<string?>").WithArguments("x", "void C.M1<string?>(string? x)", "System.Action<string>").WithLocation(17, 36),
                 // (22,42): warning CS8622: Nullability of reference types in type of parameter 'x' of 'void C.M1<CL0<string>>(CL0<string> x)' doesn't match the target delegate 'Action<CL0<string?>>'.
                 //         System.Action<CL0<string?>> u3 = M1<CL0<string>>;
                 Diagnostic(ErrorCode.WRN_NullabilityMismatchInParameterTypeOfTargetDelegate, "M1<CL0<string>>").WithArguments("x", "void C.M1<CL0<string>>(CL0<string> x)", "System.Action<CL0<string?>>").WithLocation(22, 42),
@@ -14139,9 +14341,6 @@ class CL0<T>
 ", parseOptions: TestOptions.Regular8);
 
             c.VerifyDiagnostics(
-                // (12,35): warning CS8621: Nullability of reference types in return type of 'string C.M1<string>()' doesn't match the target delegate 'Func<string?>'.
-                //         System.Func<string?> u1 = M1<string>;
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInReturnTypeOfTargetDelegate, "M1<string>").WithArguments("string C.M1<string>()", "System.Func<string?>").WithLocation(12, 35),
                  // (17,34): warning CS8621: Nullability of reference types in return type of 'string? C.M1<string?>()' doesn't match the target delegate 'Func<string>'.
                  //         System.Func<string> u2 = M1<string?>;
                  Diagnostic(ErrorCode.WRN_NullabilityMismatchInReturnTypeOfTargetDelegate, "M1<string?>").WithArguments("string? C.M1<string?>()", "System.Func<string>").WithLocation(17, 34),
@@ -19077,8 +19276,7 @@ class C
                 Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "i").WithArguments("I<object>", "I<string?>").WithLocation(5, 42));
         }
 
-        // PROTOTYPE(NullableReferenceTypes): Conversions: Other
-        [Fact(Skip = "TODO")]
+        [Fact]
         public void Covariance_Delegate()
         {
             var source =
@@ -19114,8 +19312,7 @@ class C
                 Diagnostic(ErrorCode.WRN_NullabilityMismatchInParameterTypeOfTargetDelegate, "F3").WithArguments("o", "void C.F3(object o)", "D<string?>").WithLocation(17, 20));
         }
 
-        // PROTOTYPE(NullableReferenceTypes): Conversions: Other
-        [Fact(Skip = "TODO")]
+        [Fact]
         public void Contravariance_Delegate()
         {
             var source =
@@ -24049,6 +24246,28 @@ class C
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "a2.F").WithLocation(15, 13));
         }
 
+        [Fact]
+        public void SelectAnonymousType()
+        {
+            var source =
+@"using System.Collections.Generic;
+using System.Linq;
+class C
+{
+    int? E;
+    static void F(IEnumerable<C> c)
+    {
+        const int F = 0;
+        c.Select(o => new { E = o.E ?? F });
+    }
+}";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
+            comp.VerifyDiagnostics(
+                // (5,10): warning CS0649: Field 'C.E' is never assigned to, and will always have its default value 
+                //     int? E;
+                Diagnostic(ErrorCode.WRN_UnassignedInternalField, "E").WithArguments("C.E", "").WithLocation(5, 10));
+        }
+
         // PROTOTYPE(NullableReferenceTypes): Should report CS8600 for `T1 t = (T1)NullableObject();`
         // and `T3 t = (T3)NullableObject();`. (See VisitConversion which skips reporting because the
         // `object?` has an Unboxing conversion. Should report warning on unconverted operand
@@ -24436,6 +24655,21 @@ class C
                 // (5,35): error CS1968: Constraint cannot be a dynamic type 'I<dynamic>'
                 //     static void F2<T>() where T : I<dynamic?> { }
                 Diagnostic(ErrorCode.ERR_ConstructedDynamicTypeAsBound, "I<dynamic?>").WithArguments("I<dynamic?>").WithLocation(5, 35));
+        }
+
+        [Fact]
+        public void PartialClassConstraintMismatch()
+        {
+            var source =
+@"class A { }
+partial class B<T> where T : A { }
+partial class B<T> where T : A? { }";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
+            // PROTOTYPE(NullableReferenceTypes): Should report ErrorCode.ERR_PartialWrongConstraints.
+            comp.VerifyDiagnostics(
+                // (3,30): error CS0706: Invalid constraint type. A type used as a constraint must be an interface, a non-sealed class or a type parameter.
+                // partial class B<T> where T : A? { }
+                Diagnostic(ErrorCode.ERR_BadConstraintType, "A?").WithLocation(3, 30));
         }
 
         [Fact]

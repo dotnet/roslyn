@@ -1624,15 +1624,21 @@ class C
     {
         F(() => x).ToString();
         F(() => y).ToString();
+        if (y != null) F(() => y).ToString();
     }
 }";
+            // PROTOTYPE(NullableReferenceTypes): For captured variables, the lambda should be
+            // considered executed at the location the lambda is converted to a delegate.
             var comp = CreateCompilation(
                 source,
                 parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
                 // (10,9): warning CS8602: Possible dereference of a null reference.
                 //         F(() => y).ToString();
-                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "F(() => y)").WithLocation(10, 9));
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "F(() => y)").WithLocation(10, 9),
+                // (11,24): warning CS8602: Possible dereference of a null reference.
+                //         if (y != null) F(() => y).ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "F(() => y)").WithLocation(11, 24));
         }
 
         // Multiple returns, one of which is null.
@@ -2278,70 +2284,6 @@ class C
                 // (9,9): warning CS8602: Possible dereference of a null reference.
                 //         F(y ?? y).ToString();
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "F(y ?? y)").WithLocation(9, 9));
-        }
-
-        [Fact]
-        public void TypeInference_DelegateConversion_01()
-        {
-            var source =
-@"delegate T D<T>();
-class C
-{
-    static void F(object? o)
-    {
-        D<object?> d = () => o;
-        D<object> e = () => o;
-        if (o == null) return;
-        d = () => o;
-        e = () => o;
-    }
-}";
-            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
-            // PROTOTYPE(NullableReferenceTypes): Report WRN_NullabilityMismatchInReturnTypeOfTargetDelegate.
-            comp.VerifyDiagnostics(
-                //// (7,29): warning CS8621: Nullability of reference types in return type of 'lambda' doesn't match the target delegate 'D<object>'.
-                ////         D<object> e = () => o;
-                //Diagnostic(ErrorCode.WRN_NullabilityMismatchInReturnTypeOfTargetDelegate, "() => o").WithArguments("lambda", "D<object>").WithLocation(7, 29),
-                // (7,29): warning CS8603: Possible null reference return.
-                //         D<object> e = () => o;
-                Diagnostic(ErrorCode.WRN_NullReferenceReturn, "o").WithLocation(7, 29));
-        }
-
-        [Fact]
-        public void TypeInference_DelegateConversion_02()
-        {
-            var source =
-@"delegate T D<T>();
-class A<T>
-{
-    internal T M() => throw new System.NotImplementedException();
-}
-class B
-{
-    static A<T> F<T>(T t) => throw null;
-    static void G(object? o)
-    {
-        var x = F(o);
-        D<object?> d = x.M;
-        D<object> e = x.M;
-        if (o == null) return;
-        var y = F(o);
-        d = y.M;
-        e = y.M;
-    }
-}";
-            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
-            // PROTOTYPE(NullableReferenceTypes): Should report WRN_NullabilityMismatchInReturnTypeOfTargetDelegate for `e = x.M` rather than  `d = x.M`.
-            comp.VerifyDiagnostics(
-                // (12,24): warning CS8621: Nullability of reference types in return type of 'object A<object>.M()' doesn't match the target delegate 'D<object?>'.
-                //         D<object?> d = x.M;
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInReturnTypeOfTargetDelegate, "x.M").WithArguments("object A<object>.M()", "D<object?>").WithLocation(12, 24),
-                //// (13,23): warning CS8621: Nullability of reference types in return type of 'object? A<object?>.M()' doesn't match the target delegate 'D<object>'.
-                ////         D<object> e = x.M;
-                //Diagnostic(ErrorCode.WRN_NullabilityMismatchInReturnTypeOfTargetDelegate, "x.M").WithArguments("object? A<object?>.M()", "D<object>").WithLocation(13, 23),
-                // (16,13): warning CS8621: Nullability of reference types in return type of 'object A<object>.M()' doesn't match the target delegate 'D<object?>'.
-                //         d = y.M;
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInReturnTypeOfTargetDelegate, "y.M").WithArguments("object A<object>.M()", "D<object?>").WithLocation(16, 13));
         }
     }
 }

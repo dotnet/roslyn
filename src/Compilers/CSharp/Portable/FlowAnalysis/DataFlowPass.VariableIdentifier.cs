@@ -9,7 +9,7 @@ namespace Microsoft.CodeAnalysis.CSharp
     internal partial class DataFlowPassBase<TLocalState>
     {
         [DebuggerDisplay("{GetDebuggerDisplay(), nq}")]
-        protected struct VariableIdentifier : IEquatable<VariableIdentifier>
+        internal struct VariableIdentifier : IEquatable<VariableIdentifier>
         {
             public readonly Symbol Symbol;
             public readonly int ContainingSlot;

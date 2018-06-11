@@ -1084,7 +1084,7 @@
   <Node Name="BoundParameter" Base="BoundExpression">
     <!-- Non-null type is required for this node kind -->
     <Field Name="Type" Type="TypeSymbol" Override="true" Null="disallow"/>
-
+    
     <Field Name="ParameterSymbol" Type="ParameterSymbol"/>
   </Node>
 
@@ -1593,6 +1593,7 @@
   </Node>
 
   <Node Name="BoundLambda" Base="BoundExpression">
+    <Field Name="UnboundLambda" Type="UnboundLambda" Null="disallow" SkipInVisitor="true"/>
     <!-- LambdaSymbol may differ from Binder.MemberSymbol after rewriting. -->
     <Field Name="Symbol" Type="LambdaSymbol" Null="disallow"/>
     <Field Name="Type" Type="TypeSymbol" Override="true" Null="allow"/>

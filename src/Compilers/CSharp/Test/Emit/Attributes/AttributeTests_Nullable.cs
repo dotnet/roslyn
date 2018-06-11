@@ -941,10 +941,10 @@ class C
     }
 }";
             var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8, options: TestOptions.ReleaseModule);
-            comp.VerifyEmitDiagnostics(
-                // (9,14): error CS0518: Predefined type 'System.Runtime.CompilerServices.NullableAttribute' is not defined or imported
-                //         F(() =>
-                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "=>").WithArguments("System.Runtime.CompilerServices.NullableAttribute").WithLocation(9, 14));
+            // The lambda signature is emitted without a [Nullable] attribute because
+            // the return type is inferred from flow analysis, not from initial binding.
+            // As a result, there is no missing attribute warning.
+            comp.VerifyEmitDiagnostics();
         }
 
         [Fact]
