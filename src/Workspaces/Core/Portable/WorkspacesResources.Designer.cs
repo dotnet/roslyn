@@ -1914,6 +1914,120 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The +? quantifier matches the preceding element one or more times. It is equivalent to the {1,}? quantifier.
+        ///
+        ///A lazy quantifier tries to match an element as few times as possible..
+        /// </summary>
+        internal static string regex_match_one_or_more_times_lazy_long {
+            get {
+                return ResourceManager.GetString("regex_match_one_or_more_times_lazy_long", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to match one or more times (lazy).
+        /// </summary>
+        internal static string regex_match_one_or_more_times_lazy_short {
+            get {
+                return ResourceManager.GetString("regex_match_one_or_more_times_lazy_short", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The + quantifier matches the preceding element one or more times. It is equivalent to the {1,} quantifier. + is a greedy quantifier whose lazy equivalent is +?..
+        /// </summary>
+        internal static string regex_match_one_or_more_times_long {
+            get {
+                return ResourceManager.GetString("regex_match_one_or_more_times_long", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to match one or more times.
+        /// </summary>
+        internal static string regex_match_one_or_more_times_short {
+            get {
+                return ResourceManager.GetString("regex_match_one_or_more_times_short", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The *? quantifier matches the preceding element zero or more times. It is equivalent to the {0,}? quantifier.
+        ///
+        ///A lazy quantifier tries to match an element as few times as possible..
+        /// </summary>
+        internal static string regex_match_zero_or_more_times_lazy_long {
+            get {
+                return ResourceManager.GetString("regex_match_zero_or_more_times_lazy_long", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to match zero or more times (lazy).
+        /// </summary>
+        internal static string regex_match_zero_or_more_times_lazy_short {
+            get {
+                return ResourceManager.GetString("regex_match_zero_or_more_times_lazy_short", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The * quantifier matches the preceding element zero or more times. It is equivalent to the {0,} quantifier. * is a greedy quantifier whose lazy equivalent is *?..
+        /// </summary>
+        internal static string regex_match_zero_or_more_times_long {
+            get {
+                return ResourceManager.GetString("regex_match_zero_or_more_times_long", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to match zero or more times.
+        /// </summary>
+        internal static string regex_match_zero_or_more_times_short {
+            get {
+                return ResourceManager.GetString("regex_match_zero_or_more_times_short", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The ?? quantifier matches the preceding element zero or one time.  It is equivalent to the {0,1}? quantifier.
+        ///
+        ///A lazy quantifier tries to match an element as few times as possible..
+        /// </summary>
+        internal static string regex_match_zero_or_one_time_lazy_long {
+            get {
+                return ResourceManager.GetString("regex_match_zero_or_one_time_lazy_long", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to match zero or one time (lazy).
+        /// </summary>
+        internal static string regex_match_zero_or_one_time_lazy_short {
+            get {
+                return ResourceManager.GetString("regex_match_zero_or_one_time_lazy_short", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The ? quantifier matches the preceding element zero or one time. It is equivalent to the {0,1} quantifier. ? is a greedy quantifier whose lazy equivalent is ??..
+        /// </summary>
+        internal static string regex_match_zero_or_one_time_long {
+            get {
+                return ResourceManager.GetString("regex_match_zero_or_one_time_long", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to match zero or one time.
+        /// </summary>
+        internal static string regex_match_zero_or_one_time_short {
+            get {
+                return ResourceManager.GetString("regex_match_zero_or_one_time_short", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The following grouping construct captures a matched subexpression:
         ///
         ///( subexpression )

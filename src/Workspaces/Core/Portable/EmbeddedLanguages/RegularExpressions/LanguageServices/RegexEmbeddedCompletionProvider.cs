@@ -144,6 +144,15 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions.LanguageSe
             AddIfMissing(context, CreateItem(stringToken, "^", regex_start_of_string_or_line_short, regex_start_of_string_or_line_long, context, parentOpt: null));
             AddIfMissing(context, CreateItem(stringToken, "$", regex_end_of_string_or_line_short, regex_end_of_string_or_line_long, context, parentOpt: null));
             AddIfMissing(context, CreateItem(stringToken, ".", regex_any_character_group_short, regex_any_character_group_long, context, parentOpt: null));
+
+            AddIfMissing(context, CreateItem(stringToken, "*", regex_match_zero_or_more_times_short, regex_match_zero_or_more_times_long, context, parentOpt: null));
+            AddIfMissing(context, CreateItem(stringToken, "*?", regex_match_zero_or_more_times_lazy_short, regex_match_zero_or_more_times_lazy_long, context, parentOpt: null));
+
+            AddIfMissing(context, CreateItem(stringToken, "+", regex_match_one_or_more_times_short, regex_match_one_or_more_times_long, context, parentOpt: null));
+            AddIfMissing(context, CreateItem(stringToken, "+?", regex_match_one_or_more_times_lazy_short, regex_match_one_or_more_times_lazy_long, context, parentOpt: null));
+
+            AddIfMissing(context, CreateItem(stringToken, "?", regex_match_zero_or_one_time_short, regex_match_zero_or_one_time_long, context, parentOpt: null));
+            AddIfMissing(context, CreateItem(stringToken, "??", regex_match_zero_or_one_time_lazy_short, regex_match_zero_or_one_time_lazy_long, context, parentOpt: null));
         }
 
         private void ProvideCompletionsAfterInsertion(
