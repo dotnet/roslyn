@@ -196,7 +196,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             return disposeMethod;
         }
         
-
         internal override ImmutableArray<LocalSymbol> GetDeclaredLocalsForScope(SyntaxNode scopeDesignator)
         {
             if (_syntax == scopeDesignator)
