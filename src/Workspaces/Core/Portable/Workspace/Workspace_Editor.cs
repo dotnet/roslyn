@@ -725,5 +725,27 @@ namespace Microsoft.CodeAnalysis
 
             return newSolution.GetProject(oldProject.Id);
         }
+
+        /// <summary>
+        /// Update current solution as a result of option changes.
+        /// 
+        /// this is a temporary workaround until editorconfig becomes real part of roslyn solution snapshot.
+        /// until then, this will explicitly move current solution forward when such event happened
+        /// </summary>
+        internal void OnOptionChanged()
+        {
+            using (_serializationLock.DisposableWait())
+            {
+                var oldSolution = this.CurrentSolution;
+                var newSolution = this.SetCurrentSolution(oldSolution.WithOptionChanged());
+
+                // for now, this says whole solution is changed.
+                // in future, we probably going to just raise additional file changed event (for editconfig file) and then 
+                // let IOptionService.OptionChanged event to raise what option has changed.
+                // currently, since editorconfig file is not part of solution, we can't say which file is changed.
+                // 1 editorconfig file can affect multiple files in multiple projects so solution changed is easiest options for now.
+                this.RaiseWorkspaceChangedEventAsync(WorkspaceChangeKind.SolutionChanged, oldSolution, newSolution);
+            }
+        }
     }
 }
