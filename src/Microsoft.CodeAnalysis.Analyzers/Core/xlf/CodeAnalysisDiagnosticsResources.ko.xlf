@@ -359,17 +359,17 @@
       </trans-unit>
       <trans-unit id="UpgradeMSBuildWorkspaceDescription">
         <source>MSBuildWorkspace has moved to the Microsoft.CodeAnalysis.Workspaces.MSBuild NuGet package and there are breaking API changes.</source>
-        <target state="new">MSBuildWorkspace has moved to the Microsoft.CodeAnalysis.Workspaces.MSBuild NuGet package and there are breaking API changes.</target>
+        <target state="translated">MSBuildWorkspace가 Microsoft.CodeAnalysis.Workspaces.MSBuild NuGet 패키지로 이동되었으며 새로운 API 변경 내용이 있습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="UpgradeMSBuildWorkspaceMessage">
         <source>Please upgrade MSBuildWorkspace by adding a package reference to the Microsoft.CodeAnalysis.Workspaces.MSBuild NuGet package. See https://go.microsoft.com/fwlink/?linkid=874285 for details on using MSBuildWorkspace successfully.</source>
-        <target state="new">Please upgrade MSBuildWorkspace by adding a package reference to the Microsoft.CodeAnalysis.Workspaces.MSBuild NuGet package. See https://go.microsoft.com/fwlink/?linkid=874285 for details on using MSBuildWorkspace successfully.</target>
+        <target state="translated">Microsoft.CodeAnalysis.Workspaces.MSBuild NuGet 패키지에 패키지 참조를 추가하여 MSBuildWorkspace를 업그레이드하세요. 성공적인 MSBuildWorkspace 사용에 대한 자세한 내용은 https://go.microsoft.com/fwlink/?linkid=874285를 참조하세요.</target>
         <note />
       </trans-unit>
       <trans-unit id="UpgradeMSBuildWorkspaceTitle">
         <source>Upgrade MSBuildWorkspace</source>
-        <target state="new">Upgrade MSBuildWorkspace</target>
+        <target state="translated">MSBuildWorkspace 업그레이드</target>
         <note />
       </trans-unit>
     </body>
