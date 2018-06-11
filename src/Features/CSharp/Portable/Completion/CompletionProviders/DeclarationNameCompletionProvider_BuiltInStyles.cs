@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             return new NamingRule(
                 new SymbolSpecification(Guid.NewGuid(), "endswithasync", kinds, accessibilityList: default, modifiers),
                 new NamingStyles.NamingStyle(Guid.NewGuid(), prefix: "Get", suffix: "Async"),
-                DiagnosticSeverity.Info);
+                ReportDiagnostic.Info);
         }
 
         private static NamingRule CreateCamelCaseFieldsAndParametersRule()
@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             return new NamingRule(
                 new SymbolSpecification(Guid.NewGuid(), "camelcasefields", kinds, accessibilityList: default, modifiers: default),
                 new NamingStyles.NamingStyle(Guid.NewGuid(), capitalizationScheme: Capitalization.CamelCase),
-                DiagnosticSeverity.Info);
+                ReportDiagnostic.Info);
         }
 
         private static NamingRule CreateEndWithAsyncRule()
@@ -47,7 +47,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             return new NamingRule(
                 new SymbolSpecification(Guid.NewGuid(), "endswithasynct", kinds, accessibilityList: default, modifiers),
                 new NamingStyles.NamingStyle(Guid.NewGuid(), suffix: "Async"),
-                DiagnosticSeverity.Info);
+                ReportDiagnostic.Info);
         }
 
         private static NamingRule CreateMethodStartsWithGetRule()
@@ -56,7 +56,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             return new NamingRule(
                 new SymbolSpecification(Guid.NewGuid(), "startswithget", kinds, accessibilityList: default, modifiers: default),
                 new NamingStyles.NamingStyle(Guid.NewGuid(), prefix: "Get"),
-                DiagnosticSeverity.Info);
+                ReportDiagnostic.Info);
         }
     }
 }

@@ -11,10 +11,10 @@ namespace Microsoft.CodeAnalysis.CodeStyle
         /// <remarks>
         /// When user preferences are not yet set for a style, we fall back to the default value.
         /// One such default(s), is that the feature is turned on, so that codegen consumes it,
-        /// but with none enforcement, so that the user is not prompted about their usage.
+        /// but with silent enforcement, so that the user is not prompted about their usage.
         /// </remarks>
-        internal static readonly CodeStyleOption<bool> TrueWithNoneEnforcement = new CodeStyleOption<bool>(value: true, notification: NotificationOption.None);
-        internal static readonly CodeStyleOption<bool> FalseWithNoneEnforcement = new CodeStyleOption<bool>(value: false, notification: NotificationOption.None);
+        internal static readonly CodeStyleOption<bool> TrueWithSilentEnforcement = new CodeStyleOption<bool>(value: true, notification: NotificationOption.Silent);
+        internal static readonly CodeStyleOption<bool> FalseWithSilentEnforcement = new CodeStyleOption<bool>(value: false, notification: NotificationOption.Silent);
         internal static readonly CodeStyleOption<bool> TrueWithSuggestionEnforcement = new CodeStyleOption<bool>(value: true, notification: NotificationOption.Suggestion);
         internal static readonly CodeStyleOption<bool> FalseWithSuggestionEnforcement = new CodeStyleOption<bool>(value: false, notification: NotificationOption.Suggestion);
 
@@ -53,7 +53,7 @@ namespace Microsoft.CodeAnalysis.CodeStyle
         /// <summary>
         /// This option says if we should prefer keyword for Intrinsic Predefined Types in Declarations
         /// </summary>
-        public static readonly PerLanguageOption<CodeStyleOption<bool>> PreferIntrinsicPredefinedTypeKeywordInDeclaration = new PerLanguageOption<CodeStyleOption<bool>>(nameof(CodeStyleOptions), nameof(PreferIntrinsicPredefinedTypeKeywordInDeclaration), defaultValue: TrueWithNoneEnforcement,
+        public static readonly PerLanguageOption<CodeStyleOption<bool>> PreferIntrinsicPredefinedTypeKeywordInDeclaration = new PerLanguageOption<CodeStyleOption<bool>>(nameof(CodeStyleOptions), nameof(PreferIntrinsicPredefinedTypeKeywordInDeclaration), defaultValue: TrueWithSilentEnforcement,
             storageLocations: new OptionStorageLocation[]{
                 EditorConfigStorageLocation.ForBoolCodeStyleOption("dotnet_style_predefined_type_for_locals_parameters_members"),
                 new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.PreferIntrinsicPredefinedTypeKeywordInDeclaration.CodeStyle")});
@@ -61,7 +61,7 @@ namespace Microsoft.CodeAnalysis.CodeStyle
         /// <summary>
         /// This option says if we should prefer keyword for Intrinsic Predefined Types in Member Access Expression
         /// </summary>
-        public static readonly PerLanguageOption<CodeStyleOption<bool>> PreferIntrinsicPredefinedTypeKeywordInMemberAccess = new PerLanguageOption<CodeStyleOption<bool>>(nameof(CodeStyleOptions), nameof(PreferIntrinsicPredefinedTypeKeywordInMemberAccess), defaultValue: TrueWithNoneEnforcement,
+        public static readonly PerLanguageOption<CodeStyleOption<bool>> PreferIntrinsicPredefinedTypeKeywordInMemberAccess = new PerLanguageOption<CodeStyleOption<bool>>(nameof(CodeStyleOptions), nameof(PreferIntrinsicPredefinedTypeKeywordInMemberAccess), defaultValue: TrueWithSilentEnforcement,
             storageLocations: new OptionStorageLocation[]{
                 EditorConfigStorageLocation.ForBoolCodeStyleOption("dotnet_style_predefined_type_for_member_access"),
                 new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.PreferIntrinsicPredefinedTypeKeywordInMemberAccess.CodeStyle")});
@@ -145,7 +145,7 @@ namespace Microsoft.CodeAnalysis.CodeStyle
         internal static readonly PerLanguageOption<CodeStyleOption<bool>> PreferAutoProperties = new PerLanguageOption<CodeStyleOption<bool>>(
             nameof(CodeStyleOptions),
             nameof(PreferAutoProperties),
-            defaultValue: TrueWithNoneEnforcement,
+            defaultValue: TrueWithSilentEnforcement,
             storageLocations: new OptionStorageLocation[] {
                 EditorConfigStorageLocation.ForBoolCodeStyleOption("dotnet_style_prefer_auto_properties"),
                 new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.PreferAutoProperties") });
@@ -191,7 +191,7 @@ namespace Microsoft.CodeAnalysis.CodeStyle
                 new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.PreferConditionalExpressionOverReturn")});
 
         private static readonly CodeStyleOption<AccessibilityModifiersRequired> s_requireAccessibilityModifiersDefault =
-            new CodeStyleOption<AccessibilityModifiersRequired>(AccessibilityModifiersRequired.ForNonInterfaceMembers, NotificationOption.None);
+            new CodeStyleOption<AccessibilityModifiersRequired>(AccessibilityModifiersRequired.ForNonInterfaceMembers, NotificationOption.Silent);
 
         internal static readonly PerLanguageOption<CodeStyleOption<AccessibilityModifiersRequired>> RequireAccessibilityModifiers =
             new PerLanguageOption<CodeStyleOption<AccessibilityModifiersRequired>>(
@@ -216,7 +216,7 @@ namespace Microsoft.CodeAnalysis.CodeStyle
                 if (value == "never")
                 {
                     // If they provide 'never', they don't need a notification level.
-                    notificationOpt = notificationOpt ?? NotificationOption.None;
+                    notificationOpt = notificationOpt ?? NotificationOption.Silent;
                 }
 
                 if (notificationOpt != null)
@@ -239,25 +239,21 @@ namespace Microsoft.CodeAnalysis.CodeStyle
         }
 
         private static readonly CodeStyleOption<ParenthesesPreference> s_alwaysForClarityPreference =
-            new CodeStyleOption<ParenthesesPreference>(ParenthesesPreference.AlwaysForClarity, NotificationOption.None);
-
-        private static readonly CodeStyleOption<ParenthesesPreference> s_ignorePreference =
-            new CodeStyleOption<ParenthesesPreference>(ParenthesesPreference.Ignore, NotificationOption.None);
+            new CodeStyleOption<ParenthesesPreference>(ParenthesesPreference.AlwaysForClarity, NotificationOption.Silent);
 
         private static readonly CodeStyleOption<ParenthesesPreference> s_neverIfUnnecessaryPreference =
-            new CodeStyleOption<ParenthesesPreference>(ParenthesesPreference.NeverIfUnnecessary, NotificationOption.None);
+            new CodeStyleOption<ParenthesesPreference>(ParenthesesPreference.NeverIfUnnecessary, NotificationOption.Silent);
 
         private static PerLanguageOption<CodeStyleOption<ParenthesesPreference>> CreateParenthesesOption(
             string fieldName, CodeStyleOption<ParenthesesPreference> defaultValue, 
-            string styleName, bool allowIgnore, bool allowAlwaysForClarity)
+            string styleName)
         {
-            Debug.Assert(allowIgnore != allowAlwaysForClarity);
             return new PerLanguageOption<CodeStyleOption<ParenthesesPreference>>(
                 nameof(CodeStyleOptions), fieldName, defaultValue,
                 storageLocations: new OptionStorageLocation[]{
                     new EditorConfigStorageLocation<CodeStyleOption<ParenthesesPreference>>(
                         styleName,
-                        s => ParseParenthesesPreference(s, defaultValue, allowIgnore, allowAlwaysForClarity)),
+                        s => ParseParenthesesPreference(s, defaultValue)),
                     new RoamingProfileStorageLocation($"TextEditor.%LANGUAGE%.Specific.{fieldName}Preference")});
         }
 
@@ -265,47 +261,38 @@ namespace Microsoft.CodeAnalysis.CodeStyle
             CreateParenthesesOption(
                 nameof(ArithmeticBinaryParentheses),
                 s_alwaysForClarityPreference,
-                "dotnet_style_parentheses_in_arithmetic_binary_operators",
-                allowIgnore: false, allowAlwaysForClarity: true);
+                "dotnet_style_parentheses_in_arithmetic_binary_operators");
 
         internal static readonly PerLanguageOption<CodeStyleOption<ParenthesesPreference>> OtherBinaryParentheses =
             CreateParenthesesOption(
                 nameof(OtherBinaryParentheses),
                 s_alwaysForClarityPreference,
-                "dotnet_style_parentheses_in_other_binary_operators",
-                allowIgnore: false, allowAlwaysForClarity: true);
+                "dotnet_style_parentheses_in_other_binary_operators");
 
         internal static readonly PerLanguageOption<CodeStyleOption<ParenthesesPreference>> RelationalBinaryParentheses =
             CreateParenthesesOption(
                 nameof(RelationalBinaryParentheses),
-                s_ignorePreference,
-                "dotnet_style_parentheses_in_relational_binary_operators",
-                allowIgnore: true, allowAlwaysForClarity: false);
+                s_alwaysForClarityPreference,
+                "dotnet_style_parentheses_in_relational_binary_operators");
 
         internal static readonly PerLanguageOption<CodeStyleOption<ParenthesesPreference>> OtherParentheses =
             CreateParenthesesOption(
                 nameof(OtherParentheses),
                 s_neverIfUnnecessaryPreference,
-                "dotnet_style_parentheses_in_other_operators",
-                allowIgnore: true, allowAlwaysForClarity: false);
+                "dotnet_style_parentheses_in_other_operators");
 
         private static Optional<CodeStyleOption<ParenthesesPreference>> ParseParenthesesPreference(
-            string optionString, Optional<CodeStyleOption<ParenthesesPreference>> defaultValue, 
-            bool allowIgnore, bool allowAlwaysForClarity)
+            string optionString, Optional<CodeStyleOption<ParenthesesPreference>> defaultValue)
         {
             if (TryGetCodeStyleValueAndOptionalNotification(optionString,
                     out var value, out var notificationOpt))
             {
                 value.Trim();
-                notificationOpt = notificationOpt ?? NotificationOption.None;
+                notificationOpt = notificationOpt ?? NotificationOption.Silent;
 
                 switch (value)
                 {
-                // 'ignore' is only allowed for the "dotnet_style_parenthese_in_other_operators"
-                case "ignore" when allowIgnore:
-                    return new CodeStyleOption<ParenthesesPreference>(ParenthesesPreference.Ignore, NotificationOption.None);
-                // 'always_for_clarity' is not allowed for "dotnet_style_parenthese_in_other_operators";
-                case "always_for_clarity" when allowAlwaysForClarity:
+                case "always_for_clarity":
                     return new CodeStyleOption<ParenthesesPreference>(ParenthesesPreference.AlwaysForClarity, notificationOpt);
                 case "never_if_unnecessary":
                     return new CodeStyleOption<ParenthesesPreference>(ParenthesesPreference.NeverIfUnnecessary, notificationOpt);
