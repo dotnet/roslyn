@@ -1777,9 +1777,7 @@ namespace Microsoft.CodeAnalysis {
         ///
         ///where subexpression is any valid regular expression pattern. For example, (?i-s:) turns on case insensitivity and disables single-line mode.
         ///
-        ///Note
-        ///
-        ///You can specify options that apply to an entire regular expression rather than a subexpression by using a System.Text.RegularExpressions.Regex class constructor or a static method. You can also specify inline options that ap [rest of string was truncated]&quot;;.
+        ///The group options construct is not a capturing group. That is, although any portion of a string that is captured by subexpression is included in the match, it is not included in a captured group nor used to populate the GroupCollect [rest of string was truncated]&quot;;.
         /// </summary>
         internal static string regex_group_options_long {
             get {
@@ -1829,6 +1827,32 @@ namespace Microsoft.CodeAnalysis {
         internal static string regex_inline_comment_short {
             get {
                 return ResourceManager.GetString("regex_inline_comment_short", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to You can set or disable specific pattern matching options for the remainder of a regular expression by using the syntax
+        ///
+        ///(?imnsx-imnsx)  
+        ///
+        ///You list the options you want to enable after the question mark, and the options you want to disable after the minus sign. The following table describes each option.
+        ///
+        ///i 	Use case-insensitive matching.
+        ///m 	Use multiline mode, where ^ and $ match the beginning and end of each line (instead of the beginning and end of the input string).
+        ///s 	Use single-line mode, where  [rest of string was truncated]&quot;;.
+        /// </summary>
+        internal static string regex_inline_options_long {
+            get {
+                return ResourceManager.GetString("regex_inline_options_long", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to inline options.
+        /// </summary>
+        internal static string regex_inline_options_short {
+            get {
+                return ResourceManager.GetString("regex_inline_options_short", resourceCulture);
             }
         }
         

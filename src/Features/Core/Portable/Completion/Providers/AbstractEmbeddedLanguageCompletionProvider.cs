@@ -71,6 +71,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 
                     if (embeddedContext.Items.Count > 0)
                     {
+                        var index = 0;
                         foreach (var embeddedItem in embeddedContext.Items)
                         {
                             var change = embeddedItem.Change;
@@ -87,13 +88,18 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                                 properties.Add(NewPositionKey, change.NewPosition.ToString());
                             }
 
+                            // Keep everything sorted in the order the underlying embedded
+                            // language provided it.
+                            var sortText = index.ToString("0000");
+
                             var item = CompletionItem.Create(
                                 embeddedItem.DisplayText,
-                                sortText: embeddedItem.SortText,
+                                sortText: sortText,
                                 properties: properties.ToImmutable(),
                                 rules: s_rules);
 
                             context.AddItem(item);
+                            index++;
                         }
 
                         context.CompletionListSpan = embeddedContext.CompletionListSpan;

@@ -47,12 +47,6 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions.LanguageSe
                 case '[':  // character class
                 case '(':  // any group
                 case '{':  // \p{
-                case '+': case '-':
-                case 'i': case 'I':
-                case 'm': case 'M':
-                case 'n': case 'N':
-                case 's': case 'S':
-                case 'x': case 'X': // (?options
                     return true;
             }
 
@@ -138,8 +132,6 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions.LanguageSe
         private void ProvideTopLevelCompletions(
             EmbeddedCompletionContext context, SyntaxToken stringToken)
         {
-            AddIfMissing(context, CreateItem(stringToken, "#", regex_end_of_line_comment_short, regex_end_of_line_comment_long, context, parentOpt: null));
-
             AddIfMissing(context, CreateItem(stringToken, "|", regex_alternation_short, regex_alternation_long, context, parentOpt: null));
             AddIfMissing(context, CreateItem(stringToken, "^", regex_start_of_string_or_line_short, regex_start_of_string_or_line_long, context, parentOpt: null));
             AddIfMissing(context, CreateItem(stringToken, "$", regex_end_of_string_or_line_short, regex_end_of_string_or_line_long, context, parentOpt: null));
@@ -162,6 +154,8 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions.LanguageSe
 
             AddIfMissing(context, CreateItem(stringToken, "{m,n}", regex_match_between_m_and_n_times_short, regex_match_between_m_and_n_times_long, context, parentOpt: null, positionOffset: "{".Length, insertionText: "{,}"));
             AddIfMissing(context, CreateItem(stringToken, "{m,n}?", regex_match_between_m_and_n_times_lazy_short, regex_match_between_m_and_n_times_lazy_long, context, parentOpt: null, positionOffset: "{".Length, insertionText: "{,}?"));
+
+            AddIfMissing(context, CreateItem(stringToken, "#", regex_end_of_line_comment_short, regex_end_of_line_comment_long, context, parentOpt: null));
         }
 
         private void ProvideCompletionsAfterInsertion(
@@ -211,9 +205,6 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions.LanguageSe
                 case RegexKind.OpenParenToken:
                     ProvideGroupingCompletions(context, stringToken, parent);
                     return;
-                case RegexKind.OptionsToken:
-                    // ProvideOptionsCompletions(context, optionsT);
-                    return;
             }
         }
 
@@ -255,28 +246,30 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions.LanguageSe
             AddIfMissing(context, CreateItem(stringToken, $"(?<  {regex_name}  >  {regex_subexpression}  )", regex_named_matched_subexpression_short, regex_named_matched_subexpression_long, context, parentOpt, positionOffset: "(?<".Length, insertionText: "(?<>)"));
             AddIfMissing(context, CreateItem(stringToken, $"(?<  {regex_name1}  -  {regex_name2}  >  {regex_subexpression}  )", regex_balancing_group_short, regex_balancing_group_long, context, parentOpt, positionOffset: "(?<".Length, insertionText: "(?<->)"));
             AddIfMissing(context, CreateItem(stringToken, $"(?:  {regex_subexpression}  )", regex_noncapturing_group_short, regex_noncapturing_group_long, context, parentOpt, positionOffset: "(?:".Length, insertionText: "(?:)"));
-            AddIfMissing(context, CreateItem(stringToken, $"(?imnsx-imnsx:  {regex_subexpression}  )", regex_group_options_short, regex_group_options_long, context, parentOpt, positionOffset: "(?".Length, insertionText: "(?:)"));
+            AddIfMissing(context, CreateItem(stringToken, $"(?=  {regex_subexpression}  )", regex_zero_width_positive_lookahead_assertion_short, regex_zero_width_positive_lookahead_assertion_long, context, parentOpt, positionOffset: "(?=".Length, insertionText: "(?=)"));
             AddIfMissing(context, CreateItem(stringToken, $"(?!  {regex_subexpression}  )", regex_zero_width_negative_lookahead_assertion_short, regex_zero_width_negative_lookahead_assertion_long, context, parentOpt, positionOffset: "(?!".Length, insertionText: "(?!)"));
             AddIfMissing(context, CreateItem(stringToken, $"(?<=  {regex_subexpression}  )", regex_zero_width_positive_lookbehind_assertion_short, regex_zero_width_positive_lookbehind_assertion_long, context, parentOpt, positionOffset: "(?<=".Length, insertionText: "(?<=)"));
             AddIfMissing(context, CreateItem(stringToken, $"(?<!  {regex_subexpression}  )", regex_zero_width_negative_lookbehind_assertion_short, regex_zero_width_negative_lookbehind_assertion_long, context, parentOpt, positionOffset: "(?<!".Length, insertionText: "(?<!)"));
             AddIfMissing(context, CreateItem(stringToken, $"(?>  {regex_subexpression}  )", regex_nonbacktracking_subexpression_short, regex_nonbacktracking_subexpression_long, context, parentOpt, positionOffset: "(?>".Length, insertionText: "(?>)"));
-            AddIfMissing(context, CreateItem(stringToken, $"(?#  {regex_comment}  )", regex_inline_comment_short, regex_inline_comment_long, context, parentOpt, positionOffset: "(?#".Length, insertionText: "(?#)"));
 
             AddIfMissing(context, CreateItem(stringToken, $"(?(  {regex_expression}  )  {regex_yes}  |  {regex_no}  )", regex_conditional_expression_match_short, regex_conditional_expression_match_long, context, parentOpt, positionOffset: "(?(".Length, insertionText: "(?()|)"));
             AddIfMissing(context, CreateItem(stringToken, $"(?(  {regex_name_or_number}  )  {regex_yes}  |  {regex_no}  )", regex_conditional_group_match_short, regex_conditional_group_match_long, context, parentOpt, positionOffset: "(?(".Length, insertionText: "(?()|)"));
+
+            AddIfMissing(context, CreateItem(stringToken, $"(?#  {regex_comment}  )", regex_inline_comment_short, regex_inline_comment_long, context, parentOpt, positionOffset: "(?#".Length, insertionText: "(?#)"));
+            AddIfMissing(context, CreateItem(stringToken, $"(?imnsx-imnsx)", regex_inline_options_short, regex_inline_options_long, context, parentOpt, positionOffset: "(?".Length, insertionText: "(?)"));
+            AddIfMissing(context, CreateItem(stringToken, $"(?imnsx-imnsx:  {regex_subexpression}  )", regex_group_options_short, regex_group_options_long, context, parentOpt, positionOffset: "(?".Length, insertionText: "(?:)"));
         }
 
         private void ProvideCharacterClassCompletions(
             EmbeddedCompletionContext context, SyntaxToken stringToken, RegexNode parentOpt)
         {
             AddIfMissing(context, CreateItem(stringToken, $"[  {regex_character_group}  ]", regex_positive_character_group_short, regex_positive_character_group_long, context, parentOpt, positionOffset: "[".Length, insertionText: "[]"));
-            AddIfMissing(context, CreateItem(stringToken, $"[  {regex_base_group}  -[  {regex_excluded_group}  ]", regex_character_class_subtraction_short, regex_character_class_subtraction_long, context, parentOpt, positionOffset: "[".Length, insertionText: "[-[]]"));
             AddIfMissing(context, CreateItem(stringToken, $"[^  {regex_character_group}  ]", regex_negative_character_group_short, regex_negative_character_group_long, context, parentOpt, positionOffset: "[^".Length, insertionText: "[^]"));
+            AddIfMissing(context, CreateItem(stringToken, $"[  {regex_base_group}  -[  {regex_excluded_group}  ]", regex_character_class_subtraction_short, regex_character_class_subtraction_long, context, parentOpt, positionOffset: "[".Length, insertionText: "[-[]]"));
         }
 
         private void ProvideEscapeCategoryCompletions(EmbeddedCompletionContext context)
         {
-            var index = 0;
             foreach (var (name, (shortDesc, longDesc)) in RegexCharClass.EscapeCategories)
             {
                 var displayText = name;
@@ -290,7 +283,6 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions.LanguageSe
                     displayText += $"  -  {shortDesc}";
                 }
 
-                var sortText = index.ToString("0000");
                 var description = longDesc.Length > 0
                     ? longDesc
                     : string.Format(regex_unicode_general_category_0, name);
@@ -298,11 +290,8 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions.LanguageSe
                 AddIfMissing(context, new EmbeddedCompletionItem(
                     displayText,
                     description,
-                    sortText: sortText,
                     change: new EmbeddedCompletionChange(
                         new TextChange(new TextSpan(context.Position, 0), name), newPosition: null)));
-
-                index++;
             }
         }
 

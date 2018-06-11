@@ -57,15 +57,13 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.LanguageServices
         public readonly string DisplayText;
         public readonly string Description;
         public readonly EmbeddedCompletionChange Change;
-        public readonly string SortText;
 
         public EmbeddedCompletionItem(
-            string displayText, string description, EmbeddedCompletionChange change, string sortText = null)
+            string displayText, string description, EmbeddedCompletionChange change)
         {
             DisplayText = displayText;
             Description = description;
             Change = change;
-            SortText = sortText;
         }
     }
 

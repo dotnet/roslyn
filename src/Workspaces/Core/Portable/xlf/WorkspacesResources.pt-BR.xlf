@@ -1325,22 +1325,34 @@ If you use $ with the RegexOptions.Multiline option, the match can also occur at
 
 where subexpression is any valid regular expression pattern. For example, (?i-s:) turns on case insensitivity and disables single-line mode.
 
-Note
+The group options construct is not a capturing group. That is, although any portion of a string that is captured by subexpression is included in the match, it is not included in a captured group nor used to populate the GroupCollection object.
 
-You can specify options that apply to an entire regular expression rather than a subexpression by using a System.Text.RegularExpressions.Regex class constructor or a static method. You can also specify inline options that apply after a specific point in a regular expression by using the (?imnsx-imnsx) language construct.
+You can specify options that apply to an entire regular expression rather than a subexpression by using a Regex class constructor or a static method. You can also specify inline options that apply after a specific point in a regular expression by using the (?imnsx-imnsx) language construct.
 
-The group options construct is not a capturing group. That is, although any portion of a string that is captured by subexpression is included in the match, it is not included in a captured group nor used to populate the GroupCollection object.</source>
+These options, which are listed in the following table, can be included inline as part of the regular expression pattern, or they can be supplied to a Regex class constructor or static pattern matching method as a RegexOptions enumeration value.
+
+i 	Use case-insensitive matching.
+m 	Use multiline mode, where ^ and $ match the beginning and end of each line (instead of the beginning and end of the input string).
+s 	Use single-line mode, where the period (.) matches every character (instead of every character except \n).
+n 	Do not capture unnamed groups. The only valid captures are explicitly named or numbered groups of the form (?&lt;name&gt; subexpression).
+x 	Exclude unescaped white space from the pattern, and enable comments after a number sign (#).</source>
         <target state="new">The following grouping construct applies or disables the specified options within a subexpression:
 
 (?imnsx-imnsx: subexpression )
 
 where subexpression is any valid regular expression pattern. For example, (?i-s:) turns on case insensitivity and disables single-line mode.
 
-Note
+The group options construct is not a capturing group. That is, although any portion of a string that is captured by subexpression is included in the match, it is not included in a captured group nor used to populate the GroupCollection object.
 
-You can specify options that apply to an entire regular expression rather than a subexpression by using a System.Text.RegularExpressions.Regex class constructor or a static method. You can also specify inline options that apply after a specific point in a regular expression by using the (?imnsx-imnsx) language construct.
+You can specify options that apply to an entire regular expression rather than a subexpression by using a Regex class constructor or a static method. You can also specify inline options that apply after a specific point in a regular expression by using the (?imnsx-imnsx) language construct.
 
-The group options construct is not a capturing group. That is, although any portion of a string that is captured by subexpression is included in the match, it is not included in a captured group nor used to populate the GroupCollection object.</target>
+These options, which are listed in the following table, can be included inline as part of the regular expression pattern, or they can be supplied to a Regex class constructor or static pattern matching method as a RegexOptions enumeration value.
+
+i 	Use case-insensitive matching.
+m 	Use multiline mode, where ^ and $ match the beginning and end of each line (instead of the beginning and end of the input string).
+s 	Use single-line mode, where the period (.) matches every character (instead of every character except \n).
+n 	Do not capture unnamed groups. The only valid captures are explicitly named or numbered groups of the form (?&lt;name&gt; subexpression).
+x 	Exclude unescaped white space from the pattern, and enable comments after a number sign (#).</target>
         <note />
       </trans-unit>
       <trans-unit id="regex_group_options_short">
@@ -1366,6 +1378,36 @@ The group options construct is not a capturing group. That is, although any port
       <trans-unit id="regex_inline_comment_short">
         <source>inline comment</source>
         <target state="new">inline comment</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="regex_inline_options_long">
+        <source>You can set or disable specific pattern matching options for the remainder of a regular expression by using the syntax
+
+(?imnsx-imnsx)  
+
+You list the options you want to enable after the question mark, and the options you want to disable after the minus sign. The following table describes each option.
+
+i 	Use case-insensitive matching.
+m 	Use multiline mode, where ^ and $ match the beginning and end of each line (instead of the beginning and end of the input string).
+s 	Use single-line mode, where the period (.) matches every character (instead of every character except \n).
+n 	Do not capture unnamed groups. The only valid captures are explicitly named or numbered groups of the form (?&lt;name&gt; subexpression).
+x 	Exclude unescaped white space from the pattern, and enable comments after a number sign (#).</source>
+        <target state="new">You can set or disable specific pattern matching options for the remainder of a regular expression by using the syntax
+
+(?imnsx-imnsx)  
+
+You list the options you want to enable after the question mark, and the options you want to disable after the minus sign. The following table describes each option.
+
+i 	Use case-insensitive matching.
+m 	Use multiline mode, where ^ and $ match the beginning and end of each line (instead of the beginning and end of the input string).
+s 	Use single-line mode, where the period (.) matches every character (instead of every character except \n).
+n 	Do not capture unnamed groups. The only valid captures are explicitly named or numbered groups of the form (?&lt;name&gt; subexpression).
+x 	Exclude unescaped white space from the pattern, and enable comments after a number sign (#).</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="regex_inline_options_short">
+        <source>inline options</source>
+        <target state="new">inline options</target>
         <note />
       </trans-unit>
       <trans-unit id="regex_letter_lowercase">
