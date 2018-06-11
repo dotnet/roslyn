@@ -1676,16 +1676,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // Ignore NotNullWhenFalse that is inapplicable
                 annotations = removeInapplicableNotNullWhenSense(parameter, annotations, sense: false);
 
-                // AssertsTrue and AssertsFalse must be applied to a bool parameter
                 const FlowAnalysisAnnotations both = FlowAnalysisAnnotations.AssertsTrue | FlowAnalysisAnnotations.AssertsFalse;
                 if (parameter.Type.SpecialType != SpecialType.System_Boolean)
                 {
+                    // AssertsTrue and AssertsFalse must be applied to a bool parameter
                     annotations &= ~both;
                 }
-
-                // We'll ignore AssertsTrue and AssertsFalse if both set
-                if ((annotations & both) == both)
+                else if ((annotations & both) == both)
                 {
+                    // We'll ignore AssertsTrue and AssertsFalse if both set
                     annotations &= ~both;
                 }
 
