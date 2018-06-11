@@ -1,7 +1,9 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.ErrorLogger;
@@ -9,6 +11,7 @@ using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.VisualStudio.CodingConventions;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Options
 {
@@ -37,6 +40,11 @@ namespace Microsoft.CodeAnalysis.Editor.Options
 
             workspace.DocumentOpened += Workspace_DocumentOpened;
             workspace.DocumentClosed += Workspace_DocumentClosed;
+
+            // workaround until this is fixed.
+            // https://github.com/dotnet/roslyn/issues/26377
+            // otherwise, we will leak files in _openDocumentContexts
+            workspace.WorkspaceChanged += Workspace_WorkspaceChanged;
         }
 
         /// <summary>
@@ -53,13 +61,7 @@ namespace Microsoft.CodeAnalysis.Editor.Options
                 if (_openDocumentContexts.TryGetValue(e.Document.Id, out var contextTask))
                 {
                     _openDocumentContexts.Remove(e.Document.Id);
-
-                    // Ensure we dispose the context, which we'll do asynchronously
-                    contextTask.ContinueWith(
-                        t => t.Result.Dispose(),
-                        CancellationToken.None,
-                        TaskContinuationOptions.OnlyOnRanToCompletion,
-                        TaskScheduler.Default);
+                    ReleaseContext_NoLock(contextTask);
                 }
             }
         }
@@ -77,6 +79,58 @@ namespace Microsoft.CodeAnalysis.Editor.Options
                     return context;
                 }));
             }
+        }
+
+        private void Workspace_WorkspaceChanged(object sender, WorkspaceChangeEventArgs e)
+        {
+            switch (e.Kind)
+            {
+                case WorkspaceChangeKind.SolutionRemoved:
+                case WorkspaceChangeKind.SolutionCleared:
+                    ClearOpenFileCache();
+                    break;
+
+                case WorkspaceChangeKind.ProjectRemoved:
+                    ClearOpenFileCache(e.ProjectId);
+                    break;
+
+                default:
+                    break;
+            }
+        }
+
+        private void ClearOpenFileCache(ProjectId projectId = null)
+        {
+            lock (_gate)
+            {
+                var itemsToRemove = new List<DocumentId>();
+                foreach (var (documentId, contextTask) in _openDocumentContexts)
+                {
+                    if (projectId is null || documentId.ProjectId == projectId)
+                    {
+                        itemsToRemove.Add(documentId);
+                        ReleaseContext_NoLock(contextTask);
+                    }
+                }
+
+                // If any items were released due to the Clear operation, we need to remove them from the map.
+                foreach (var documentId in itemsToRemove)
+                {
+                    _openDocumentContexts.Remove(documentId);
+                }
+            }
+        }
+
+        private void ReleaseContext_NoLock(Task<ICodingConventionContext> contextTask)
+        {
+            Debug.Assert(Monitor.IsEntered(_gate));
+
+            // Ensure we dispose the context, which we'll do asynchronously
+            contextTask.ContinueWith(
+                t => t.Result.Dispose(),
+                CancellationToken.None,
+                TaskContinuationOptions.OnlyOnRanToCompletion,
+                TaskScheduler.Default);
         }
 
         public async Task<IDocumentOptions> GetOptionsForDocumentAsync(Document document, CancellationToken cancellationToken)
