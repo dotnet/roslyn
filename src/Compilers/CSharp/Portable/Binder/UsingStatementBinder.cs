@@ -128,11 +128,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
                 else if ((object)disposeMethod != null)
                 {
-                    if (!disposeMethod.ReturnsVoid)
-                    {
-                        Error(diagnostics, ErrorCode.WRN_PatternBadSignature, declarationSyntax);
-                        hasErrors = true;
-                    }
                     BoundStatement boundBody2 = originalBinder.BindPossibleEmbeddedStatement(_syntax.Statement, diagnostics);
 
                     Debug.Assert(GetDeclaredLocalsForScope(_syntax) == this.Locals);
@@ -192,6 +187,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             SyntaxNode exp = _syntax.Expression != null ? (SyntaxNode) _syntax.Expression : (SyntaxNode) _syntax.Declaration;
             MethodSymbol disposeMethod = FindPatternMethod(exprType, WellKnownMemberNames.DisposeMethodName, lookupResult, exp, warningsOnly: true, diagnostics: diagnostics, _syntax.SyntaxTree);
             lookupResult.Free();
+
+            if (!((object)disposeMethod is null) && !disposeMethod.ReturnsVoid)
+            {
+                Error(diagnostics, ErrorCode.WRN_PatternBadSignature, _syntax);
+                disposeMethod = null;
+            }
 
             return disposeMethod;
         }

@@ -3226,11 +3226,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                     result = null;
                 }
-                else if (messageID == MessageID.IDS_Disposable && !result.ReturnsVoid && warningsOnly)
-                {
-                    ReportPatternWarning(diagnostics, patternType, result, syntaxExpression, messageID);
-                    result = null;
-                }
                 else if (result.CallsAreOmitted(syntaxTree))
                 {
                     // Calls to this method are omitted in the current syntax tree, i.e it is either a partial method with no implementation part OR a conditional method whose condition is not true in this source file.
