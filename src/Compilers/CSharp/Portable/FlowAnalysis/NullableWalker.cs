@@ -60,25 +60,21 @@ namespace Microsoft.CodeAnalysis.CSharp
         private readonly Binder _binder;
         private readonly Conversions _conversions;
 
-        [Flags]
-        private enum MethodSignatureUse
-        {
-            None = 0,
-            ReturnType = 1,
-            ParameterTypes = 2,
-        }
+        /// <summary>
+        /// Use the return type and nullability from _methodSignatureOpt to calculate
+        /// return expression conversions. If false, the signature of _member is used instead.
+        /// </summary>
+        private readonly bool _useMethodSignatureReturnType;
 
         /// <summary>
-        /// Indicates whether to use the return type and nullability from _methodSignatureOpt to
-        /// calculate return expression conversions, and whether to use the parameter types and
-        /// nullability from _methodSignatureOpt for initial parameter state. If those fields are not
-        /// used from _methodSignatureOpt, the signature of _member is used instead in each case.
+        /// Use the the parameter types and nullability from _methodSignatureOpt for initial
+        /// parameter state.If false, the signature of _member is used instead.
         /// </summary>
-        private readonly MethodSignatureUse _methodSignatureUse;
+        private readonly bool _useMethodSignatureParameterTypes;
 
         /// <summary>
         /// Method signature used for return type or parameter types. Distinct from _member
-        /// signature when  _member is a lambda and type is inferred from MethodTypeInferrer.
+        /// signature when _member is a lambda and type is inferred from MethodTypeInferrer.
         /// </summary>
         private readonly MethodSymbol _methodSignatureOpt;
 
@@ -124,7 +120,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         private NullableWalker(
             CSharpCompilation compilation,
             MethodSymbol method,
-            MethodSignatureUse methodSignatureUse,
+            bool useMethodSignatureReturnType,
+            bool useMethodSignatureParameterTypes,
             MethodSymbol methodSignatureOpt,
             BoundNode node,
             ArrayBuilder<(RefKind, TypeSymbolWithAnnotations)> returnTypes,
@@ -146,7 +143,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             _binder = compilation.GetBinderFactory(node.SyntaxTree).GetBinder(node.Syntax);
             Debug.Assert(!_binder.Conversions.IncludeNullability);
             _conversions = _binder.Conversions.WithNullability(true);
-            _methodSignatureUse = (methodSignatureOpt is null) ? MethodSignatureUse.None : methodSignatureUse;
+            _useMethodSignatureReturnType = (object)methodSignatureOpt != null && useMethodSignatureReturnType;
+            _useMethodSignatureParameterTypes = (object)methodSignatureOpt != null && useMethodSignatureParameterTypes;
             _methodSignatureOpt = methodSignatureOpt;
             _returnTypes = returnTypes;
             if (initialState != null)
@@ -173,7 +171,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             ParameterSymbol methodThisParameter = MethodThisParameter;
             this.State = ReachableState();                   // entry point is reachable
             this.regionPlace = RegionPlace.Before;
-            EnterParameters();               // with parameters assigned
+            EnterParameters();                               // with parameters assigned
             if ((object)methodThisParameter != null)
             {
                 EnterParameter(methodThisParameter, methodThisParameter.Type);
@@ -194,7 +192,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 return;
             }
-            Analyze(compilation, method, node, diagnostics, methodSignatureUse: MethodSignatureUse.None, methodSignatureOpt: null, returnTypes: null, initialState: null, callbackOpt);
+            Analyze(compilation, method, node, diagnostics, useMethodSignatureReturnType: false, useMethodSignatureParameterTypes: false, methodSignatureOpt: null, returnTypes: null, initialState: null, callbackOpt);
         }
 
         internal static void Analyze(
@@ -205,9 +203,16 @@ namespace Microsoft.CodeAnalysis.CSharp
             ArrayBuilder<(RefKind, TypeSymbolWithAnnotations)> returnTypes,
             VariableState initialState)
         {
-            var methodSignatureUse = MethodSignatureUse.ReturnType |
-                (lambda.UnboundLambda.HasExplicitlyTypedParameterList ? MethodSignatureUse.None : MethodSignatureUse.ParameterTypes);
-            Analyze(compilation, lambda.Symbol, lambda.Body, diagnostics, methodSignatureUse, methodSignatureOpt: delegateInvokeMethod, returnTypes, initialState, callbackOpt: null);
+            Analyze(
+                compilation,
+                lambda.Symbol,
+                lambda.Body,
+                diagnostics,
+                useMethodSignatureReturnType: true,
+                useMethodSignatureParameterTypes: !lambda.UnboundLambda.HasExplicitlyTypedParameterList,
+                methodSignatureOpt: delegateInvokeMethod,
+                returnTypes, initialState,
+                callbackOpt: null);
         }
 
         private static void Analyze(
@@ -215,14 +220,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             MethodSymbol method,
             BoundNode node,
             DiagnosticBag diagnostics,
-            MethodSignatureUse methodSignatureUse,
+            bool useMethodSignatureReturnType,
+            bool useMethodSignatureParameterTypes,
             MethodSymbol methodSignatureOpt,
             ArrayBuilder<(RefKind, TypeSymbolWithAnnotations)> returnTypes,
             VariableState initialState,
             Action<BoundExpression, TypeSymbolWithAnnotations> callbackOpt)
         {
             Debug.Assert(diagnostics != null);
-            var walker = new NullableWalker(compilation, method, methodSignatureUse, methodSignatureOpt, node, returnTypes, initialState, callbackOpt);
+            var walker = new NullableWalker(compilation, method, useMethodSignatureReturnType, useMethodSignatureParameterTypes, methodSignatureOpt, node, returnTypes, initialState, callbackOpt);
             try
             {
                 bool badRegion = false;
@@ -716,7 +722,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         private void EnterParameters()
         {
             var methodParameters = ((MethodSymbol)_member).Parameters;
-            var signatureParameters = (_methodSignatureUse & MethodSignatureUse.ParameterTypes) == 0 ? default : _methodSignatureOpt.Parameters;
+            var signatureParameters = _useMethodSignatureParameterTypes ? _methodSignatureOpt.Parameters : default;
+            Debug.Assert(signatureParameters.IsDefault || signatureParameters.Length == methodParameters.Length);
             int n = methodParameters.Length;
             for (int i = 0; i < n; i++)
             {
@@ -875,7 +882,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private TypeSymbolWithAnnotations GetReturnType()
         {
             var method = (MethodSymbol)_member;
-            var returnType = ((_methodSignatureUse & MethodSignatureUse.ReturnType) == 0 ? method : _methodSignatureOpt).ReturnType;
+            var returnType = (_useMethodSignatureReturnType ? _methodSignatureOpt : method).ReturnType;
             Debug.Assert((object)returnType != LambdaSymbol.ReturnTypeIsBeingInferred);
             return method.IsGenericTaskReturningAsync(compilation) ?
                 ((NamedTypeSymbol)returnType.TypeSymbol).TypeArgumentsNoUseSiteDiagnostics.Single() :
@@ -2658,15 +2665,22 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 return true;
             }
-            var sourceType = source.TypeSymbol;
-            var destinationType = destination.TypeSymbol;
             if (requireIdentity)
             {
                 return source.Equals(destination, TypeCompareKind.AllIgnoreOptions) &&
                     !source.Equals(destination, TypeCompareKind.AllIgnoreOptions | TypeCompareKind.CompareNullableModifiersForReferenceTypes | TypeCompareKind.UnknownNullableModifierMatchesAny);
             }
+            var sourceType = source.TypeSymbol;
+            var destinationType = destination.TypeSymbol;
             HashSet<DiagnosticInfo> useSiteDiagnostics = null;
             return !_conversions.ClassifyImplicitConversionFromType(sourceType, destinationType, ref useSiteDiagnostics).Exists;
+        }
+
+        private static bool HasTopLevelNullabilityConversion(TypeSymbolWithAnnotations source, TypeSymbolWithAnnotations destination, bool requireIdentity)
+        {
+            return requireIdentity ?
+                ConversionsBase.HasTopLevelNullabilityIdentityConversion(source, destination) :
+                ConversionsBase.HasTopLevelNullabilityImplicitConversion(source, destination);
         }
 
         /// <summary>
@@ -2865,13 +2879,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 ReportStaticNullCheckingDiagnostics(ErrorCode.WRN_NullabilityMismatchInAssignment, node.Syntax, operandType.TypeSymbol, targetType);
             }
             return ApplyConversion(node, operandOpt: null, conversion, targetType, operandType, checkConversion: false, fromExplicitCast: false, out _);
-        }
-
-        private static bool HasTopLevelNullabilityConversion(TypeSymbolWithAnnotations source, TypeSymbolWithAnnotations destination, bool requireIdentity)
-        {
-            return requireIdentity ?
-                ConversionsBase.HasTopLevelNullabilityIdentityConversion(source, destination) :
-                ConversionsBase.HasTopLevelNullabilityImplicitConversion(source, destination);
         }
 
         public override BoundNode VisitDelegateCreationExpression(BoundDelegateCreationExpression node)

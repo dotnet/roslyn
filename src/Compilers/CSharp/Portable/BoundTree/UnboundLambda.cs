@@ -99,7 +99,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var delegateType = Type.GetDelegateType();
                 var compilation = Binder.Compilation;
                 var conversions = Binder.Conversions.WithNullability(includeNullability: true);
-                NullableWalker.Analyze(compilation, this, diagnostics, delegateInvokeMethod: delegateType?.DelegateInvokeMethod, returnTypes: returnTypes, initialState: nullableState);
+                NullableWalker.Analyze(compilation, lambda: this, diagnostics, delegateInvokeMethod: delegateType?.DelegateInvokeMethod, returnTypes: returnTypes, initialState: nullableState);
                 diagnostics.Free();
                 var inferredReturnType = InferReturnType(returnTypes, compilation, conversions, delegateType, Symbol.IsAsync);
                 returnTypes.Free();
