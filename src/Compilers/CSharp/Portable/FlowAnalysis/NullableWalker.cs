@@ -2297,7 +2297,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             // By using a generic BoundValuePlaceholder, we're losing inference in those cases.
             // PROTOTYPE(NullableReferenceTypes): Inference should be based on
             // unconverted arguments. Consider cases such as `default`, lambdas, tuples.
-            return arguments.ZipAsArray(argumentResults, (argument, result) => getArgumentForMethodTypeInference(argument, result));
+            int n = arguments.Length;
+            var builder = ArrayBuilder<BoundExpression>.GetInstance(n);
+            for (int i = 0; i < n; i++)
+            {
+                builder.Add(getArgumentForMethodTypeInference(arguments[i], argumentResults[i]));
+            }
+            return builder.ToImmutableAndFree();
 
             BoundExpression getArgumentForMethodTypeInference(BoundExpression argument, Result argumentResult)
             {
