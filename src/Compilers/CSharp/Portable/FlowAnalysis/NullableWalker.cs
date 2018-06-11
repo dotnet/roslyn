@@ -723,22 +723,14 @@ namespace Microsoft.CodeAnalysis.CSharp
         private void EnterParameters()
         {
             var methodParameters = ((MethodSymbol)_member).Parameters;
-            var signatureParameters = _useMethodSignatureParameterTypes ? _methodSignatureOpt.Parameters : default;
-            Debug.Assert(signatureParameters.IsDefault || signatureParameters.Length == methodParameters.Length);
+            var signatureParameters = _useMethodSignatureParameterTypes ? _methodSignatureOpt.Parameters : methodParameters;
+            Debug.Assert(signatureParameters.Length == methodParameters.Length);
             int n = methodParameters.Length;
             for (int i = 0; i < n; i++)
             {
                 var parameter = methodParameters[i];
-                TypeSymbolWithAnnotations parameterType;
-                if (signatureParameters.IsDefault)
-                {
-                    parameterType = parameter.Type;
-                }
-                else
-                {
-                    parameterType = signatureParameters[i].Type;
-                    _variableTypes[parameter] = parameterType;
-                }
+                var parameterType = signatureParameters[i].Type;
+                _variableTypes[parameter] = parameterType;
                 EnterParameter(parameter, parameterType);
             }
         }
@@ -2668,8 +2660,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             if (requireIdentity)
             {
-                return source.Equals(destination, TypeCompareKind.AllIgnoreOptions) &&
-                    !source.Equals(destination, TypeCompareKind.AllIgnoreOptions | TypeCompareKind.CompareNullableModifiersForReferenceTypes | TypeCompareKind.UnknownNullableModifierMatchesAny);
+                return IsNullabilityMismatch(source, destination);
             }
             var sourceType = source.TypeSymbol;
             var destinationType = destination.TypeSymbol;
