@@ -48,7 +48,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 int numDeclarations = declarations.Length;
                 for (int i = numDeclarations - 1; i >= 0; i--) //NB: inner-to-outer = right-to-left
                 {
-                    result = RewriteDeclarationUsingStatement(usingSyntax, declarations[i], result, idisposableConversion, node.MethodOpt);
+                    result = RewriteDeclarationUsingStatement(usingSyntax, declarations[i], result, idisposableConversion, node.DisposeMethodOpt);
                 }
 
                 // Declare all locals in a single, top-level block so that the scope is correct in the debugger
@@ -135,7 +135,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 expressionStatement = _instrumenter.InstrumentUsingTargetCapture(node, expressionStatement);
             }
 
-            BoundStatement tryFinally = RewriteUsingStatementTryFinally(usingSyntax, tryBlock, boundTemp, node.MethodOpt);
+            BoundStatement tryFinally = RewriteUsingStatementTryFinally(usingSyntax, tryBlock, boundTemp, node.DisposeMethodOpt);
 
             // { ResourceType temp = expr; try { ... } finally { ... } }
             return new BoundBlock(

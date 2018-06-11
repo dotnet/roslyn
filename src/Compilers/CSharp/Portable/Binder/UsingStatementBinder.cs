@@ -170,7 +170,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 expressionOpt,
                 iDisposableConversion,
                 boundBody,
-                methodOpt: null, // This ensures that a pattern-matched Dispose statement is not used.
+                disposeMethodOpt: null, // This ensures that a pattern-matched Dispose statement is not used.
                 hasErrors);
         }
 
