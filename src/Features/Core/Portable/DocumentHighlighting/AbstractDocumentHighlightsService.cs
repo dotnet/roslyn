@@ -103,7 +103,7 @@ namespace Microsoft.CodeAnalysis.DocumentHighlighting
                     var highlights = await highlighter.GetHighlightsAsync(
                         document, position, cancellationToken).ConfigureAwait(false);
 
-                    if (highlights.Length > 0)
+                    if (!highlights.IsDefaultOrEmpty)
                     {
                         var result = ArrayBuilder<HighlightSpan>.GetInstance();
                         foreach (var span in highlights)
