@@ -87,11 +87,6 @@
         <target state="translated">Visual Basic 서식 다시 적용</target>
         <note />
       </trans-unit>
-      <trans-unit id="Multiple_Types">
-        <source>&lt;Multiple Types&gt;</source>
-        <target state="translated">&lt;여러 형식&gt;</target>
-        <note />
-      </trans-unit>
       <trans-unit id="not_supported">
         <source>not supported</source>
         <target state="translated">지원되지 않음</target>

@@ -2052,7 +2052,7 @@ Essa versão é usada no: {2}</target>
       </trans-unit>
       <trans-unit id="Convert_to_conditional_expression">
         <source>Convert to conditional expression</source>
-        <target state="new">Convert to conditional expression</target>
+        <target state="translated">Converter em expressão condicional</target>
         <note />
       </trans-unit>
     </body>

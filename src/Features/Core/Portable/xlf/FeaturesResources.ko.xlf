@@ -2052,7 +2052,7 @@ This version used in: {2}</source>
       </trans-unit>
       <trans-unit id="Convert_to_conditional_expression">
         <source>Convert to conditional expression</source>
-        <target state="new">Convert to conditional expression</target>
+        <target state="translated">조건식으로 변환</target>
         <note />
       </trans-unit>
     </body>
