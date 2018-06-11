@@ -30,8 +30,7 @@ my_global_prop = my_global_val
 
 [*.cs]
 my_prop = my_val
-
-", "Z:\\bogus\\.editorconfig");
+", "/bogus/.editorconfig");
 
             Assert.Equal("", config.GlobalSection.Name);
             var properties = config.GlobalSection.Properties;
@@ -45,9 +44,19 @@ my_prop = my_val
             AssertEx.SetEqual(
                 new[] { KeyValuePair.Create("my_prop", "my_val")},
                 namedSections[0].Properties);
-            
             Assert.True(config.IsRoot);
+
+            Assert.Equal("/bogus", config.NormalizedDirectory);
+        }
+
+        [ConditionalFact(typeof(WindowsOnly))]
+        public void WindowsPath()
+        {
+            const string path = "Z:\\bogus\\.editorconfig";
+            var config = EditorConfig.Parse("", path);
+            
             Assert.Equal("Z:/bogus", config.NormalizedDirectory);
+            Assert.Equal(path, config.PathToFile);
         }
 
         [Fact]
