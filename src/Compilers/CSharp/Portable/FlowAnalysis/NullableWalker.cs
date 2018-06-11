@@ -61,14 +61,14 @@ namespace Microsoft.CodeAnalysis.CSharp
         private readonly Conversions _conversions;
 
         /// <summary>
-        /// Use the return type and nullability from _methodSignatureOpt to calculate
-        /// return expression conversions. If false, the signature of _member is used instead.
+        /// Use the return type and nullability from _methodSignatureOpt to calculate return
+        /// expression conversions. If false, the signature of _member is used instead.
         /// </summary>
         private readonly bool _useMethodSignatureReturnType;
 
         /// <summary>
         /// Use the the parameter types and nullability from _methodSignatureOpt for initial
-        /// parameter state.If false, the signature of _member is used instead.
+        /// parameter state. If false, the signature of _member is used instead.
         /// </summary>
         private readonly bool _useMethodSignatureParameterTypes;
 
