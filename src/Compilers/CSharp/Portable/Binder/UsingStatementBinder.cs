@@ -75,13 +75,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                 expressionOpt = this.BindTargetExpression(diagnostics, originalBinder);
 
                 HashSet<DiagnosticInfo> useSiteDiagnostics = null;
+                TypeSymbol expressionType = expressionOpt.Type;
+                MethodSymbol disposeMethod = expressionType == null ? null : SatisfiesDisposePattern(expressionOpt.Type, diagnostics);
                 iDisposableConversion = originalBinder.Conversions.ClassifyImplicitConversionFromExpression(expressionOpt, iDisposable, ref useSiteDiagnostics);
                 diagnostics.Add(expressionSyntax, useSiteDiagnostics);
 
                 if (!iDisposableConversion.IsImplicit)
                 {
-                    TypeSymbol expressionType = expressionOpt.Type;
-                    MethodSymbol disposeMethod = expressionType == null ? null : SatisfiesDisposePattern(expressionOpt.Type, diagnostics);
                     if ((object)disposeMethod != null)
                     {
                         if (!disposeMethod.ReturnsVoid)
@@ -175,7 +175,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 expressionOpt,
                 iDisposableConversion,
                 boundBody,
-                null, // This ensures that a pattern-matched Dispose statement is not used.
+                methodOpt: null, // This ensures that a pattern-matched Dispose statement is not used.
                 hasErrors);
         }
 
@@ -190,7 +190,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             LookupResult lookupResult = LookupResult.GetInstance();
             SyntaxNode exp = _syntax.Expression != null ? (SyntaxNode) _syntax.Expression : (SyntaxNode) _syntax.Declaration;
-            MethodSymbol disposeMethod = FindPatternMethod(exprType, WellKnownMemberNames.GetDisposeMethodName, lookupResult, exp, warningsOnly: true, diagnostics: diagnostics, _syntax.SyntaxTree);
+            MethodSymbol disposeMethod = FindPatternMethod(exprType, WellKnownMemberNames.DisposeMethodName, lookupResult, exp, warningsOnly: true, diagnostics: diagnostics, _syntax.SyntaxTree);
             lookupResult.Free();
 
             return disposeMethod;

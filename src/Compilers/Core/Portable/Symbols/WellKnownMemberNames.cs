@@ -307,6 +307,6 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// The required name for the <c>Dispose</c> method used in a Using statement.
         /// </summary>
-        public const string GetDisposeMethodName = "Dispose";
+        public const string DisposeMethodName = "Dispose";
     }
 }

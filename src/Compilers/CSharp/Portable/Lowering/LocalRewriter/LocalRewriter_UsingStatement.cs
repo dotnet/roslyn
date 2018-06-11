@@ -292,7 +292,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundExpression disposeCall;
 
             MethodSymbol disposeMethodSymbol;
-            if (methodOpt != null)
+            if (!(methodOpt is null))
             {
                 disposeCall = BoundCall.Synthesized(syntax, disposedExpression, methodOpt);
             }

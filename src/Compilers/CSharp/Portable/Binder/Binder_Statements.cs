@@ -3121,7 +3121,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             MessageID messageID;
             switch (methodName)
             {
-                case WellKnownMemberNames.GetDisposeMethodName:
+                case WellKnownMemberNames.DisposeMethodName:
                     messageID = MessageID.IDS_Disposable;
                     break;
                 case WellKnownMemberNames.GetEnumeratorMethodName:
@@ -3289,8 +3289,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     lookupResult.Clear();
 
-                HashSet<DiagnosticInfo> useSiteDiagnostics = null;
-                this.LookupMembersInType(
+                    HashSet<DiagnosticInfo> useSiteDiagnostics = null;
+                    this.LookupMembersInType(
                         lookupResult,
                         patternType,
                         memberName,
