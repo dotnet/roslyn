@@ -1,7 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System.Linq;
-using Roslyn.Utilities;
+using System.Collections.Immutable;
+using Microsoft.CodeAnalysis.PooledObjects;
 
 namespace Microsoft.CodeAnalysis.Symbols
 {
@@ -18,25 +18,42 @@ namespace Microsoft.CodeAnalysis.Symbols
             public static SymbolKeyResolution Resolve(SymbolKeyReader reader)
             {
                 var metadataName = reader.ReadString();
-                var containingSymbolResolution = reader.ReadSymbolKey();
+                var resolvedContainingSymbol = reader.ReadSymbolKey();
 
-                var result = containingSymbolResolution.GetAllSymbols()
-                    .SelectMany(s =>
-                    {
-                        if (s is INamedTypeSymbol namedType)
-                        {
-                            return namedType.TypeParameters.Where(p => p.MetadataName == metadataName);
-                        }
-                        else if (s is IMethodSymbol method)
-                        {
-                            return method.TypeParameters.Where(p => p.MetadataName == metadataName);
-                        }
-                        else
-                        {
-                            return SpecializedCollections.EmptyEnumerable<ITypeParameterSymbol>();
-                        }
-                    });
+                var result = GetTypeParameterSymbols(metadataName, resolvedContainingSymbol, reader.Compilation);
                 return SymbolKeyResolution.Create(result);
+            }
+
+            private static ImmutableArray<ITypeParameterSymbol> GetTypeParameterSymbols(string metadataName, SymbolKeyResolution resolvedContainingSymbol, Compilation compilation)
+            {
+                var result = ArrayBuilder<ITypeParameterSymbol>.GetInstance();
+
+                foreach (var container in resolvedContainingSymbol.GetAllSymbols())
+                {
+                    switch (container)
+                    {
+                        case INamedTypeSymbol namedTypeSymbol:
+                            AddTypeParameters(namedTypeSymbol.TypeParameters);
+                            break;
+                        case IMethodSymbol methodSymbol:
+                            AddTypeParameters(methodSymbol.TypeParameters);
+                            break;
+                    }
+                }
+
+                void AddTypeParameters(ImmutableArray<ITypeParameterSymbol> typeParameters)
+                {
+                    // TODO(dustinca): Should we check case-insensitively for VB here?
+                    foreach (var typeParameter in typeParameters)
+                    {
+                        if (NamesAreEqual(compilation, typeParameter.MetadataName, metadataName))
+                        {
+                            result.Add(typeParameter);
+                        }
+                    }
+                }
+
+                return result.ToImmutableAndFree();
             }
         }
     }

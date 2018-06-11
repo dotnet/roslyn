@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.Symbols
                 var metadataName = reader.ReadString();
                 var resolvedContainingType = reader.ReadSymbolKey();
 
-                var fields = GetMembersWithName<IFieldSymbol>(resolvedContainingType, metadataName);
+                var fields = reader.GetMembersWithName<IFieldSymbol>(resolvedContainingType, metadataName);
 
                 return SymbolKeyResolution.Create(fields);
             }

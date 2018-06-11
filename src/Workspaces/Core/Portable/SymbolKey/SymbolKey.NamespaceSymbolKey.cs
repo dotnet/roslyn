@@ -1,10 +1,9 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
-using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Diagnostics;
-using System.Linq;
-using Roslyn.Utilities;
+using Microsoft.CodeAnalysis.PooledObjects;
 
 namespace Microsoft.CodeAnalysis.Symbols
 {
@@ -57,39 +56,50 @@ namespace Microsoft.CodeAnalysis.Symbols
             {
                 var metadataName = reader.ReadString();
                 var isCompilationGlobalNamespace = reader.ReadBoolean();
-                var containingSymbolResolution = reader.ReadSymbolKey();
+                var resolvedContainingSymbol = reader.ReadSymbolKey();
 
                 if (isCompilationGlobalNamespace)
                 {
                     return new SymbolKeyResolution(reader.Compilation.GlobalNamespace);
                 }
 
-                var namespaces = containingSymbolResolution.GetAllSymbols().SelectMany(
-                    s => Resolve(s, metadataName));
+                var namespaces = GetNamespaceSymbols(resolvedContainingSymbol, metadataName);
 
                 return SymbolKeyResolution.Create(namespaces);
             }
 
-            private static IEnumerable<INamespaceSymbol> Resolve(ISymbol container, string metadataName)
+            private static ImmutableArray<INamespaceSymbol> GetNamespaceSymbols(SymbolKeyResolution resolvedContainingSymbol, string metadataName)
             {
-                if (container is IAssemblySymbol assembly)
+                var result = ArrayBuilder<INamespaceSymbol>.GetInstance();
+
+                foreach (var symbol in resolvedContainingSymbol.GetAllSymbols())
                 {
-                    Debug.Assert(metadataName == string.Empty);
-                    return SpecializedCollections.SingletonEnumerable(assembly.GlobalNamespace);
+                    switch (symbol)
+                    {
+                        case IAssemblySymbol assemblySymbol:
+                            Debug.Assert(metadataName == string.Empty);
+                            result.Add(assemblySymbol.GlobalNamespace);
+                            break;
+                        case IModuleSymbol moduleSymbol:
+                            Debug.Assert(metadataName == string.Empty);
+                            result.Add(moduleSymbol.GlobalNamespace);
+                            break;
+                        case INamespaceSymbol namespaceSymbol:
+                            foreach (var member in namespaceSymbol.GetMembers(metadataName))
+                            {
+                                if (member is INamespaceSymbol childNamespaceSymbol)
+                                {
+                                    result.Add(childNamespaceSymbol);
+                                }
+                            }
+
+                            break;
+                        default:
+                            return ImmutableArray<INamespaceSymbol>.Empty;
+                    }
                 }
-                else if (container is IModuleSymbol module)
-                {
-                    Debug.Assert(metadataName == string.Empty);
-                    return SpecializedCollections.SingletonEnumerable(module.GlobalNamespace);
-                }
-                else if (container is INamespaceSymbol namespaceSymbol)
-                {
-                    return namespaceSymbol.GetMembers(metadataName).OfType<INamespaceSymbol>();
-                }
-                else
-                {
-                    return SpecializedCollections.EmptyEnumerable<INamespaceSymbol>();
-                }
+
+                return result.ToImmutableAndFree();
             }
         }
     }

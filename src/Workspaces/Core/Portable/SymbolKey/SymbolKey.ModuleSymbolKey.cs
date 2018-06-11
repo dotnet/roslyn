@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System.Linq;
+using System.Collections.Immutable;
+using Microsoft.CodeAnalysis.PooledObjects;
 
 namespace Microsoft.CodeAnalysis.Symbols
 {
@@ -15,14 +16,25 @@ namespace Microsoft.CodeAnalysis.Symbols
 
             public static SymbolKeyResolution Resolve(SymbolKeyReader reader)
             {
-                var containingSymbolResolution = reader.ReadSymbolKey();
+                var resolvedContainingSymbol = reader.ReadSymbolKey();
 
-                // Don't check ModuleIds for equality because in practice, no-one uses them,
-                // and there is no way to set netmodule name programmatically using Roslyn
-                var modules = containingSymbolResolution.GetAllSymbols<IAssemblySymbol>()
-                    .SelectMany(a => a.Modules);
+                var modules = GetModuleSymbols(resolvedContainingSymbol);
 
                 return SymbolKeyResolution.Create(modules);
+            }
+
+            private static ImmutableArray<IModuleSymbol> GetModuleSymbols(SymbolKeyResolution resolvedContainingSymbol)
+            {
+                var result = ArrayBuilder<IModuleSymbol>.GetInstance();
+
+                foreach (var assemblySymbol in resolvedContainingSymbol.GetAllSymbols<IAssemblySymbol>())
+                {
+                    // Don't check ModuleIds for equality because in practice, no-one uses them,
+                    // and there is no way to set netmodule name programmatically using Roslyn
+                    result.AddRange(assemblySymbol.Modules);
+                }
+
+                return result.ToImmutableAndFree();
             }
         }
     }

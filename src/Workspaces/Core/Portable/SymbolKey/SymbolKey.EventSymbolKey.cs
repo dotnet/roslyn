@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.Symbols
                 var metadataName = reader.ReadString();
                 var resolvedContainingType = reader.ReadSymbolKey();
 
-                var events = GetMembersWithName<IEventSymbol>(resolvedContainingType, metadataName);
+                var events = reader.GetMembersWithName<IEventSymbol>(resolvedContainingType, metadataName);
 
                 return SymbolKeyResolution.Create(events);
             }

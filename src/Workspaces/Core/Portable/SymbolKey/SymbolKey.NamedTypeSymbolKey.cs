@@ -1,9 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Linq;
-using Roslyn.Utilities;
+using Microsoft.CodeAnalysis.PooledObjects;
 
 namespace Microsoft.CodeAnalysis.Symbols
 {
@@ -32,61 +30,43 @@ namespace Microsoft.CodeAnalysis.Symbols
             public static SymbolKeyResolution Resolve(SymbolKeyReader reader)
             {
                 var metadataName = reader.ReadString();
-                var containingSymbolResolution = reader.ReadSymbolKey();
+                var resolvedContainingSymbol = reader.ReadSymbolKey();
                 var arity = reader.ReadInteger();
                 var typeKind = (TypeKind)reader.ReadInteger();
                 var isUnboundGenericType = reader.ReadBoolean();
-                var typeArgumentsOpt = reader.ReadSymbolKeyArray();
+                var resolvedTypeArguments = reader.ReadSymbolKeyArray();
 
-                var types = containingSymbolResolution.GetAllSymbols<INamespaceOrTypeSymbol>().SelectMany(
-                    s => Resolve(reader, s, metadataName, arity, typeKind, isUnboundGenericType, typeArgumentsOpt));
+                var types = GetNamedTypeSymbols(reader, metadataName, resolvedContainingSymbol, arity, typeKind, isUnboundGenericType, resolvedTypeArguments);
+
                 return SymbolKeyResolution.Create(types);
             }
 
-            private static IEnumerable<INamedTypeSymbol> Resolve(
-                SymbolKeyReader reader,
-                INamespaceOrTypeSymbol container,
-                string metadataName,
-                int arity,
-                TypeKind typeKind,
-                bool isUnboundGenericType,
-                ImmutableArray<SymbolKeyResolution> typeArguments)
+            private static ImmutableArray<INamedTypeSymbol> GetNamedTypeSymbols(SymbolKeyReader reader, string metadataName, SymbolKeyResolution resolvedContainingSymbol, int arity, TypeKind typeKind, bool isUnboundGenericType, ImmutableArray<SymbolKeyResolution> resolvedTypeArguments)
             {
-                var types = container.GetTypeMembers(GetName(metadataName), arity);
-                var result = InstantiateTypes(
-                    reader.Compilation, types, arity, typeArguments);
+                var result = ArrayBuilder<INamedTypeSymbol>.GetInstance();
 
-                return isUnboundGenericType
-                    ? result.Select(t => t.ConstructUnboundGenericType())
-                    : result;
-            }
-
-            private static string GetName(string metadataName)
-            {
-                var index = metadataName.IndexOf('`');
-                return index > 0
-                    ? metadataName.Substring(0, index)
-                    : metadataName;
-            }
-
-            private static IEnumerable<INamedTypeSymbol> InstantiateTypes(
-                Compilation compilation,
-                ImmutableArray<INamedTypeSymbol> types,
-                int arity,
-                ImmutableArray<SymbolKeyResolution> typeArgumentKeys)
-            {
-                if (arity == 0 || typeArgumentKeys.IsDefaultOrEmpty)
+                foreach (var containingSymbol in resolvedContainingSymbol.GetAllSymbols<INamespaceOrTypeSymbol>())
                 {
-                    return types;
+                    var backtickIndex = metadataName.IndexOf('`');
+                    if (backtickIndex > 0)
+                    {
+                        metadataName = metadataName.Substring(0, backtickIndex);
+                    }
+
+                    var types = containingSymbol.GetTypeMembers(metadataName, arity);
+                    var constructedTypes = ConstructTypes(types, resolvedTypeArguments, arity);
+
+                    if (isUnboundGenericType)
+                    {
+                        result.AddRange(result.SelectAsArray(t => t.ConstructUnboundGenericType()));
+                    }
+                    else
+                    {
+                        result.AddRange(constructedTypes);
+                    }
                 }
 
-                // TODO(cyrusn): We're only accepting a type argument if it resolves unambiguously.
-                // However, we could consider the case where they resolve ambiguously and return
-                // different named type instances when that happens.
-                var typeArguments = typeArgumentKeys.Select(a => a.GetFirstSymbol<ITypeSymbol>()).ToArray();
-                return typeArguments.Any(s_typeIsNull)
-                    ? SpecializedCollections.EmptyEnumerable<INamedTypeSymbol>()
-                    : types.Select(t => t.Construct(typeArguments));
+                return result.ToImmutableAndFree();
             }
         }
     }

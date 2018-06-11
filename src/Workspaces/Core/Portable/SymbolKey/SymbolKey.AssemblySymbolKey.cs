@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Immutable;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.Symbols
@@ -27,7 +28,7 @@ namespace Microsoft.CodeAnalysis.Symbols
             private static ImmutableArray<IAssemblySymbol> GetAssemblySymbols(
                 string assemblyName, Compilation compilation, bool ignoreAssemblyKey)
             {
-                var result = ImmutableArray.CreateBuilder<IAssemblySymbol>();
+                var result = ArrayBuilder<IAssemblySymbol>.GetInstance();
 
                 if (ignoreAssemblyKey || compilation.Assembly.Identity.Name == assemblyName)
                 {
@@ -43,7 +44,7 @@ namespace Microsoft.CodeAnalysis.Symbols
                     }
                 }
 
-                return result.ToImmutable();
+                return result.ToImmutableAndFree();
             }
         }
     }

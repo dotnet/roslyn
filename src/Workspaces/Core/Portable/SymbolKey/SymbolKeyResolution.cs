@@ -1,7 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using Roslyn.Utilities;
@@ -59,26 +58,8 @@ namespace Microsoft.CodeAnalysis.Symbols
                 ? ImmutableArray.Create(this.Symbol)
                 : _candidateSymbols.NullToEmpty();
 
-        internal static SymbolKeyResolution Create(IEnumerable<ISymbol> symbols)
-        {
-            if (symbols == null)
-            {
-                return default;
-            }
-
-            var symbolArray = symbols.WhereNotNull().ToArray();
-
-            if (symbolArray.Length == 0)
-            {
-                return default;
-            }
-
-            return symbolArray.Length == 1
-                ? new SymbolKeyResolution(symbolArray[0])
-                : new SymbolKeyResolution(ImmutableArray.Create(symbolArray), CandidateReason.Ambiguous);
-        }
-
-        internal static SymbolKeyResolution Create(ImmutableArray<ISymbol> symbols)
+        internal static SymbolKeyResolution Create<TSymbol>(ImmutableArray<TSymbol> symbols)
+            where TSymbol : ISymbol
         {
             if (symbols.IsDefaultOrEmpty)
             {
@@ -87,7 +68,7 @@ namespace Microsoft.CodeAnalysis.Symbols
 
             return symbols.Length == 1
                 ? new SymbolKeyResolution(symbols[0])
-                : new SymbolKeyResolution(symbols, CandidateReason.Ambiguous);
+                : new SymbolKeyResolution(symbols.CastArray<ISymbol>(), CandidateReason.Ambiguous);
         }
 
         public override bool Equals(object obj)

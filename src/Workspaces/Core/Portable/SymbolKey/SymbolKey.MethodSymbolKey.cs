@@ -1,9 +1,9 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
+using Microsoft.CodeAnalysis.PooledObjects;
 
 namespace Microsoft.CodeAnalysis.Symbols
 {
@@ -21,15 +21,20 @@ namespace Microsoft.CodeAnalysis.Symbols
 
             public static SymbolKeyResolution Resolve(SymbolKeyReader reader)
             {
-                var reducedFromResolution = reader.ReadSymbolKey();
-                var receiverTypeResolution = reader.ReadSymbolKey();
+                var resolvedReducedFrom = reader.ReadSymbolKey();
+                var resolvedReceivedType = reader.ReadSymbolKey();
 
-                var q = from m in reducedFromResolution.GetAllSymbols<IMethodSymbol>()
-                        from t in receiverTypeResolution.GetAllSymbols<ITypeSymbol>()
-                        let r = m.ReduceExtensionMethod(t)
-                        select r;
+                var result = ArrayBuilder<IMethodSymbol>.GetInstance();
 
-                return SymbolKeyResolution.Create(q);
+                foreach (var methodSymbol in resolvedReducedFrom.GetAllSymbols<IMethodSymbol>())
+                {
+                    foreach (var typeSymbol in resolvedReceivedType.GetAllSymbols<ITypeSymbol>())
+                    {
+                        result.Add(methodSymbol.ReduceExtensionMethod(typeSymbol));
+                    }
+                }
+
+                return SymbolKeyResolution.Create(result.ToImmutableAndFree());
             }
         }
     }
@@ -46,21 +51,23 @@ namespace Microsoft.CodeAnalysis.Symbols
 
             public static SymbolKeyResolution Resolve(SymbolKeyReader reader)
             {
-                var constructedFromResolution = reader.ReadSymbolKey();
-                var typeArgumentResolutions = reader.ReadSymbolKeyArray();
+                var resolvedConstructedFrom = reader.ReadSymbolKey();
+                var resolvedTypeArguments = reader.ReadSymbolKeyArray();
 
-                Debug.Assert(!typeArgumentResolutions.IsDefault);
-                var typeArguments = typeArgumentResolutions.Select(
-                    r => r.GetFirstSymbol<ITypeSymbol>()).ToArray();
+                Debug.Assert(!resolvedTypeArguments.IsDefault);
+
+                var typeArguments = resolvedTypeArguments
+                    .SelectAsArray(r => r.GetFirstSymbol<ITypeSymbol>())
+                    .ToArray();
 
                 if (typeArguments.Any(s_typeIsNull))
                 {
                     return default;
                 }
 
-                var result = constructedFromResolution
+                var result = resolvedConstructedFrom
                     .GetAllSymbols<IMethodSymbol>()
-                    .Select(m => m.Construct(typeArguments));
+                    .SelectAsArray(m => m.Construct(typeArguments));
 
                 return SymbolKeyResolution.Create(result);
             }
@@ -106,7 +113,7 @@ namespace Microsoft.CodeAnalysis.Symbols
             public static SymbolKeyResolution Resolve(SymbolKeyReader reader)
             {
                 var metadataName = reader.ReadString();
-                var containingSymbolResolution = reader.ReadSymbolKey();
+                var resolvedContainingSymbol = reader.ReadSymbolKey();
                 var arity = reader.ReadInteger();
                 var isPartialMethodImplementationPart = reader.ReadBoolean();
                 var parameterRefKinds = reader.ReadRefKindArray();
@@ -121,9 +128,9 @@ namespace Microsoft.CodeAnalysis.Symbols
                 // point.
                 var beforeParametersPosition = reader.Position;
 
-                var result = new List<IMethodSymbol>();
+                var result = ArrayBuilder<IMethodSymbol>.GetInstance();
 
-                var namedTypes = containingSymbolResolution.GetAllSymbols<INamedTypeSymbol>();
+                var namedTypes = resolvedContainingSymbol.GetAllSymbols<INamedTypeSymbol>();
                 foreach (var namedType in namedTypes)
                 {
                     var method = Resolve(reader, metadataName, arity, isPartialMethodImplementationPart,
@@ -152,7 +159,7 @@ namespace Microsoft.CodeAnalysis.Symbols
                     reader.PopMethod(methodOpt: null);
                 }
 
-                return SymbolKeyResolution.Create(result);
+                return SymbolKeyResolution.Create(result.ToImmutableAndFree());
             }
 
             private static IMethodSymbol Resolve(
@@ -181,7 +188,7 @@ namespace Microsoft.CodeAnalysis.Symbols
             {
                 if (method.Arity == arity &&
                     method.MetadataName == metadataName &&
-                    ParameterRefKindsMatch(method.Parameters, parameterRefKinds))
+                    reader.ParameterRefKindsMatch(method.Parameters, parameterRefKinds))
                 {
                     // Method looks like a potential match.  It has the right arity, name and 
                     // refkinds match.  We now need to do the more complicated work of checking
@@ -216,8 +223,8 @@ namespace Microsoft.CodeAnalysis.Symbols
                 var originalParameterTypeResolutions = reader.ReadSymbolKeyArray();
                 var returnType = reader.ReadSymbolKey().GetFirstSymbol<ITypeSymbol>();
 
-                var originalParameterTypes = originalParameterTypeResolutions.Select(
-                    r => r.GetFirstSymbol<ITypeSymbol>()).ToArray();
+                var originalParameterTypes = originalParameterTypeResolutions
+                    .SelectAsArray(r => r.GetFirstSymbol<ITypeSymbol>());
 
                 if (!originalParameterTypes.Any(s_typeIsNull))
                 {

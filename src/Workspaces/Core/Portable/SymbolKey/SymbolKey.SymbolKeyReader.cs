@@ -336,7 +336,7 @@ namespace Microsoft.CodeAnalysis.Symbols
 
             internal bool ParameterTypesMatch(
                 ImmutableArray<IParameterSymbol> parameters,
-                ITypeSymbol[] originalParameterTypes)
+                ImmutableArray<ITypeSymbol> originalParameterTypes)
             {
                 if (parameters.Length != originalParameterTypes.Length)
                 {
@@ -358,6 +358,47 @@ namespace Microsoft.CodeAnalysis.Symbols
                 }
 
                 return true;
+            }
+
+            internal bool ParameterRefKindsMatch(
+                ImmutableArray<IParameterSymbol> parameters,
+                ImmutableArray<RefKind> refKinds)
+            {
+                if (parameters.Length != refKinds.Length)
+                {
+                    return false;
+                }
+
+                for (int i = 0; i < refKinds.Length; i++)
+                {
+                    // The ref-out distinction is not interesting for SymbolKey because you can't overload
+                    // based on the difference.
+                    if (!SymbolEquivalenceComparer.AreRefKindsEquivalent(
+                            refKinds[i], parameters[i].RefKind, distinguishRefFromOut: false))
+                    {
+                        return false;
+                    }
+                }
+
+                return true;
+            }
+
+            internal ImmutableArray<TSymbol> GetMembersWithName<TSymbol>(SymbolKeyResolution resolvedContainingType, string name)
+            {
+                var results = ArrayBuilder<TSymbol>.GetInstance();
+
+                foreach (var containingType in resolvedContainingType.GetAllSymbols<INamedTypeSymbol>())
+                {
+                    foreach (var member in containingType.GetMembers(name))
+                    {
+                        if (member is TSymbol symbol)
+                        {
+                            results.Add(symbol);
+                        }
+                    }
+                }
+
+                return results.ToImmutableAndFree();
             }
 
             public void PushMethod(IMethodSymbol methodOpt)

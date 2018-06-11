@@ -1,8 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System.Collections.Generic;
-using System.Linq;
-using Roslyn.Utilities;
+using System.Collections.Immutable;
+using Microsoft.CodeAnalysis.PooledObjects;
 
 namespace Microsoft.CodeAnalysis.Symbols
 {
@@ -19,50 +18,62 @@ namespace Microsoft.CodeAnalysis.Symbols
             public static SymbolKeyResolution Resolve(SymbolKeyReader reader)
             {
                 var metadataName = reader.ReadString();
-                var containingSymbolResolution = reader.ReadSymbolKey();
+                var resolvedContainingSymbol = reader.ReadSymbolKey();
 
-                var parameters = containingSymbolResolution.GetAllSymbols().SelectMany(
-                    s => Resolve(reader, s, metadataName));
+                var parameters = GetParameterSymbols(metadataName, resolvedContainingSymbol, reader.Compilation);
+
                 return SymbolKeyResolution.Create(parameters);
             }
 
-            private static IEnumerable<IParameterSymbol> Resolve(
-                SymbolKeyReader reader, ISymbol container, string metadataName)
+            private static ImmutableArray<IParameterSymbol> GetParameterSymbols(string metadataName, SymbolKeyResolution resolvedContainingSymbol, Compilation compilation)
             {
-                if (container is IMethodSymbol method)
-                {
-                    return method.Parameters.Where(
-                        p => SymbolKey.NamesAreEqual(reader.Compilation, p.MetadataName, metadataName));
-                }
-                else if (container is IPropertySymbol property)
-                {
-                    return property.Parameters.Where(
-                        p => SymbolKey.NamesAreEqual(reader.Compilation, p.MetadataName, metadataName));
-                }
-                else if (container is IEventSymbol eventSymbol)
-                {
-                    // Parameters can be owned by events in VB.  i.e. it's legal in VB to have:
-                    //
-                    //      Public Event E(a As Integer, b As Integer);
-                    //
-                    // In this case it's equivalent to:
-                    //
-                    //      Public Delegate UnutterableCompilerName(a As Integer, b As Integer)
-                    //      public Event E As UnutterableCompilerName
-                    //
-                    // So, in this case, to resolve the parameter, we go have to map the event,
-                    // then find the delegate it returns, then find the parameter in the delegate's
-                    // 'Invoke' method.
-                    var delegateInvoke = (eventSymbol.Type as INamedTypeSymbol)?.DelegateInvokeMethod;
+                var result = ArrayBuilder<IParameterSymbol>.GetInstance();
 
-                    if (delegateInvoke != null)
+                foreach (var containingSymbol in resolvedContainingSymbol.GetAllSymbols())
+                {
+                    if (containingSymbol is IMethodSymbol methodSymbol)
                     {
-                        return delegateInvoke.Parameters.Where(
-                            p => SymbolKey.NamesAreEqual(reader.Compilation, p.MetadataName, metadataName));
+                        AddParameters(methodSymbol.Parameters);
+                    }
+                    else if (containingSymbol is IPropertySymbol propertySymbol)
+                    {
+                        AddParameters(propertySymbol.Parameters);
+                    }
+                    else if (containingSymbol is IEventSymbol eventSymbol)
+                    {
+                        // Parameters can be owned by events in VB.  i.e. it's legal in VB to have:
+                        //
+                        //      Public Event E(a As Integer, b As Integer);
+                        //
+                        // In this case it's equivalent to:
+                        //
+                        //      Public Delegate UnutterableCompilerName(a As Integer, b As Integer)
+                        //      public Event E As UnutterableCompilerName
+                        //
+                        // So, in this case, to resolve the parameter, we go have to map the event,
+                        // then find the delegate it returns, then find the parameter in the delegate's
+                        // 'Invoke' method.
+                        var delegateInvoke = (eventSymbol.Type as INamedTypeSymbol)?.DelegateInvokeMethod;
+
+                        if (delegateInvoke != null)
+                        {
+                            AddParameters(delegateInvoke.Parameters);
+                        }
                     }
                 }
 
-                return SpecializedCollections.EmptyEnumerable<IParameterSymbol>();
+                void AddParameters(ImmutableArray<IParameterSymbol> parameters)
+                {
+                    foreach (var parameter in parameters)
+                    {
+                        if (NamesAreEqual(compilation, parameter.MetadataName, metadataName))
+                        {
+                            result.Add(parameter);
+                        }
+                    }
+                }
+
+                return result.ToImmutableAndFree();
             }
         }
     }

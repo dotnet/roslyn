@@ -3,7 +3,9 @@
 using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Linq;
 using System.Threading;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 
 namespace Microsoft.CodeAnalysis.Symbols
@@ -173,45 +175,23 @@ namespace Microsoft.CodeAnalysis.Symbols
         private static bool NamesAreEqual(Compilation compilation, string name1, string name2)
             => string.Equals(name1, name2, compilation.IsCaseSensitive ? StringComparison.Ordinal : StringComparison.OrdinalIgnoreCase);
 
-        private static bool ParameterRefKindsMatch(
-            ImmutableArray<IParameterSymbol> parameters,
-            ImmutableArray<RefKind> refKinds)
+        private static ImmutableArray<INamedTypeSymbol> ConstructTypes(ImmutableArray<INamedTypeSymbol> types, ImmutableArray<SymbolKeyResolution> resolvedTypeArguments, int arity)
         {
-            if (parameters.Length != refKinds.Length)
+            if (arity == 0 || resolvedTypeArguments.IsDefault)
             {
-                return false;
+                return types;
             }
 
-            for (int i = 0; i < refKinds.Length; i++)
+            var typeArguments = resolvedTypeArguments
+                .SelectAsArray(r => r.GetFirstSymbol<ITypeSymbol>())
+                .ToArray();
+
+            if (typeArguments.Any(s_typeIsNull))
             {
-                // The ref-out distinction is not interesting for SymbolKey because you can't overload
-                // based on the difference.
-                if (!SymbolEquivalenceComparer.AreRefKindsEquivalent(
-                        refKinds[i], parameters[i].RefKind, distinguishRefFromOut: false))
-                {
-                    return false;
-                }
+                return ImmutableArray<INamedTypeSymbol>.Empty;
             }
 
-            return true;
-        }
-
-        private static ImmutableArray<TSymbol> GetMembersWithName<TSymbol>(SymbolKeyResolution resolvedContainingType, string name)
-        {
-            var results = ImmutableArray.CreateBuilder<TSymbol>();
-
-            foreach (var containingType in resolvedContainingType.GetAllSymbols<INamedTypeSymbol>())
-            {
-                foreach (var member in containingType.GetMembers(name))
-                {
-                    if (member is TSymbol symbol)
-                    {
-                        results.Add(symbol);
-                    }
-                }
-            }
-
-            return results.ToImmutable();
+            return types.SelectAsArray(t => t.Construct(typeArguments));
         }
     }
 }

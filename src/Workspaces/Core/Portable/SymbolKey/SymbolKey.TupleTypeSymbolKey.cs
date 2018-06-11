@@ -62,9 +62,10 @@ namespace Microsoft.CodeAnalysis.Symbols
                     {
                         try
                         {
-                            var result = reader.Compilation.CreateTupleTypeSymbol(
+                            var tupleTypeSymbol = reader.Compilation.CreateTupleTypeSymbol(
                                 elementTypes, elementNames, elementLocations);
-                            return new SymbolKeyResolution(result);
+
+                            return new SymbolKeyResolution(tupleTypeSymbol);
                         }
                         catch (ArgumentException)
                         {
@@ -73,15 +74,21 @@ namespace Microsoft.CodeAnalysis.Symbols
                 }
                 else
                 {
-                    var underlyingTypeResolution = reader.ReadSymbolKey();
+                    var resolvedUnderlyingType = reader.ReadSymbolKey();
                     var elementNames = reader.ReadStringArray();
                     var elementLocations = ReadElementLocations(reader);
 
                     try
                     {
-                        var result = underlyingTypeResolution.GetAllSymbols<INamedTypeSymbol>().Select(
-                            t => reader.Compilation.CreateTupleTypeSymbol(t, elementNames, elementLocations));
-                        return SymbolKeyResolution.Create(result);
+                        var result = ArrayBuilder<INamedTypeSymbol>.GetInstance();
+
+                        foreach (var underlyingType in resolvedUnderlyingType.GetAllSymbols<INamedTypeSymbol>())
+                        {
+                            var tupleTypeSymbol = reader.Compilation.CreateTupleTypeSymbol(underlyingType, elementNames, elementLocations);
+                            result.Add(tupleTypeSymbol);
+                        }
+
+                        return SymbolKeyResolution.Create(result.ToImmutableAndFree());
                     }
                     catch (ArgumentException)
                     {

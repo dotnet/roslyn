@@ -1,6 +1,8 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.Collections.Immutable;
 using System.Linq;
+using Microsoft.CodeAnalysis.PooledObjects;
 
 namespace Microsoft.CodeAnalysis.Symbols
 {
@@ -20,28 +22,60 @@ namespace Microsoft.CodeAnalysis.Symbols
             public static SymbolKeyResolution Resolve(SymbolKeyReader reader)
             {
                 var metadataName = reader.ReadString();
-                var containingSymbolResolution = reader.ReadSymbolKey();
+                var resolvedContainingSymbol = reader.ReadSymbolKey();
                 var isIndexer = reader.ReadBoolean();
                 var refKinds = reader.ReadRefKindArray();
-                var originalParameterTypes = reader.ReadSymbolKeyArray().Select(
-                    r => r.GetFirstSymbol<ITypeSymbol>()).ToArray();
+                var originalParameterTypes = reader.ReadSymbolKeyArray()
+                    .SelectAsArray(r => r.GetFirstSymbol<ITypeSymbol>());
 
                 if (originalParameterTypes.Any(s_typeIsNull))
                 {
                     return default;
                 }
 
-                var properties = containingSymbolResolution.GetAllSymbols<INamedTypeSymbol>()
-                    .SelectMany(t => t.GetMembers())
-                    .OfType<IPropertySymbol>()
-                    .Where(p => p.Parameters.Length == refKinds.Length &&
-                                p.MetadataName == metadataName &&
-                                p.IsIndexer == isIndexer);
-                var matchingProperties = properties.Where(p =>
-                    ParameterRefKindsMatch(p.OriginalDefinition.Parameters, refKinds) &&
-                    reader.ParameterTypesMatch(p.OriginalDefinition.Parameters, originalParameterTypes));
+                var properties = GetPropertySymbols(reader, metadataName, resolvedContainingSymbol, isIndexer, refKinds, originalParameterTypes);
 
-                return SymbolKeyResolution.Create(matchingProperties);
+                return SymbolKeyResolution.Create(properties);
+            }
+
+            private static ImmutableArray<IPropertySymbol> GetPropertySymbols(
+                SymbolKeyReader reader,
+                string metadataName,
+                SymbolKeyResolution resolvedContainingSymbol,
+                bool isIndexer,
+                ImmutableArray<RefKind> refKinds,
+                ImmutableArray<ITypeSymbol> originalParameterTypes)
+            {
+                var result = ArrayBuilder<IPropertySymbol>.GetInstance();
+
+                foreach (var containingType in resolvedContainingSymbol.GetAllSymbols<INamedTypeSymbol>())
+                {
+                    foreach (var member in containingType.GetMembers())
+                    {
+                        if (member.MetadataName != metadataName)
+                        {
+                            continue;
+                        }
+
+                        if (member is IPropertySymbol property)
+                        {
+                            if (property.IsIndexer == isIndexer)
+                            {
+                                var parameters = property.OriginalDefinition.Parameters;
+
+                                if (!reader.ParameterRefKindsMatch(parameters, refKinds) ||
+                                    !reader.ParameterTypesMatch(parameters, originalParameterTypes))
+                                {
+                                    continue;
+                                }
+                            }
+
+                            result.Add(property);
+                        }
+                    }
+                }
+
+                return result.ToImmutableAndFree();
             }
         }
     }

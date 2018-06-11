@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System.Linq;
+using System.Collections.Immutable;
+using Microsoft.CodeAnalysis.PooledObjects;
 
 namespace Microsoft.CodeAnalysis.Symbols
 {
@@ -15,10 +16,22 @@ namespace Microsoft.CodeAnalysis.Symbols
 
             public static SymbolKeyResolution Resolve(SymbolKeyReader reader)
             {
-                var pointedAtTypeResolution = reader.ReadSymbolKey();
+                var resolvedPointedAtType = reader.ReadSymbolKey();
 
-                return SymbolKeyResolution.Create(pointedAtTypeResolution.GetAllSymbols<ITypeSymbol>()
-                    .Select(reader.Compilation.CreatePointerTypeSymbol));
+                var pointerTypeSymbols = GetPointerTypeSymbols(resolvedPointedAtType, reader.Compilation);
+                return SymbolKeyResolution.Create(pointerTypeSymbols);
+            }
+
+            private static ImmutableArray<IPointerTypeSymbol> GetPointerTypeSymbols(SymbolKeyResolution resolvedPointedAtType, Compilation compilation)
+            {
+                var result = ArrayBuilder<IPointerTypeSymbol>.GetInstance();
+
+                foreach (var pointedAtType in resolvedPointedAtType.GetAllSymbols<ITypeSymbol>())
+                {
+                    result.Add(compilation.CreatePointerTypeSymbol(pointedAtType));
+                }
+
+                return result.ToImmutableAndFree();
             }
         }
     }

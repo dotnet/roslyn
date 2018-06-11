@@ -3,6 +3,7 @@
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Symbols
@@ -69,7 +70,7 @@ namespace Microsoft.CodeAnalysis.Symbols
                 SymbolKind kind, string localName,
                 CancellationToken cancellationToken)
             {
-                var result = ImmutableArray.CreateBuilder<ISymbol>();
+                var result = ArrayBuilder<ISymbol>.GetInstance();
 
                 foreach (var declaringLocation in containingSymbol.DeclaringSyntaxReferences)
                 {
@@ -114,7 +115,7 @@ namespace Microsoft.CodeAnalysis.Symbols
                     }
                 }
 
-                return result.ToImmutable();
+                return result.ToImmutableAndFree();
             }
         }
     }

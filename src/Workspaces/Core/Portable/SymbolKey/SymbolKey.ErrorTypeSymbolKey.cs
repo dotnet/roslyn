@@ -2,6 +2,7 @@
 
 using System.Collections.Immutable;
 using System.Linq;
+using Microsoft.CodeAnalysis.PooledObjects;
 
 namespace Microsoft.CodeAnalysis.Symbols
 {
@@ -33,28 +34,15 @@ namespace Microsoft.CodeAnalysis.Symbols
                 var resolvedTypeArguments = reader.ReadSymbolKeyArray();
 
                 var errorTypes = ResolveErrorTypes(reader, resolvedContainer, name, arity);
+                var constructedTypes = ConstructTypes(errorTypes, resolvedTypeArguments, arity);
 
-                if (resolvedTypeArguments.IsDefault)
-                {
-                    return SymbolKeyResolution.Create(errorTypes);
-                }
-
-                var typeArguments = resolvedTypeArguments
-                    .SelectAsArray(r => r.GetFirstSymbol<ITypeSymbol>())
-                    .ToArray();
-
-                if (typeArguments.Any(s_typeIsNull))
-                {
-                    return default;
-                }
-
-                return SymbolKeyResolution.Create(errorTypes.SelectAsArray(t => t.Construct(typeArguments)));
+                return SymbolKeyResolution.Create(constructedTypes);
             }
 
             private static ImmutableArray<INamedTypeSymbol> ResolveErrorTypes(
                 SymbolKeyReader reader, SymbolKeyResolution resolvedContainer, string name, int arity)
             {
-                var result = ImmutableArray.CreateBuilder<INamedTypeSymbol>();
+                var result = ArrayBuilder<INamedTypeSymbol>.GetInstance();
 
                 if (resolvedContainer.GetAnySymbol() == null)
                 {
@@ -68,7 +56,7 @@ namespace Microsoft.CodeAnalysis.Symbols
                     }
                 }
 
-                return result.ToImmutable();
+                return result.ToImmutableAndFree();
             }
         }
     }
