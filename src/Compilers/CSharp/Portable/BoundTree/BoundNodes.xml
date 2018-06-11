@@ -809,6 +809,7 @@
   </Node>
 
   <Node Name="BoundSwitchSection" Base="BoundStatementList">
+    <Field Name="Locals" Type="ImmutableArray&lt;LocalSymbol&gt;"/>
     <Field Name="SwitchLabels" Type="ImmutableArray&lt;BoundSwitchLabel&gt;"/>
   </Node>
 
@@ -1286,7 +1287,7 @@
     <Field Name="Expanded" Type="bool"/>
     <Field Name="ArgsToParamsOpt" Type="ImmutableArray&lt;int&gt;" Null="allow"/>
     <Field Name="ConstantValueOpt" Type="ConstantValue" Null="allow"/>
-    <Field Name="InitializerExpressionOpt" Type="BoundExpression" Null="allow"/>
+    <Field Name="InitializerExpressionOpt" Type="BoundObjectInitializerExpressionBase" Null="allow"/>
 
     <!-- BinderOpt is added as a temporary solution for IOperation implementation and should probably be removed in the future -->
     <Field Name="BinderOpt" Type="Binder" Null="allow"/>
@@ -1339,7 +1340,7 @@
     <Field Name="Arguments" Type="ImmutableArray&lt;BoundExpression&gt;"/>
     <Field Name="ArgumentNamesOpt" Type="ImmutableArray&lt;string&gt;" Null="allow"/>
     <Field Name="ArgumentRefKindsOpt" Type="ImmutableArray&lt;RefKind&gt;" Null="allow"/>
-    <Field Name="InitializerExpressionOpt" Type="BoundExpression" Null="allow"/>
+    <Field Name="InitializerExpressionOpt" Type="BoundObjectInitializerExpressionBase" Null="allow"/>
     <Field Name="ApplicableMethods" Type="ImmutableArray&lt;MethodSymbol&gt;" />
   </Node>
 
@@ -1347,14 +1348,17 @@
     <!-- Non-null type is required for this node kind -->
     <Field Name="Type" Type="TypeSymbol" Override="true" Null="disallow"/>
     <Field Name="GuidString" Type="string" Null="allow"/>
-    <Field Name="InitializerExpressionOpt" Type="BoundExpression" Null="allow"/>
+    <Field Name="InitializerExpressionOpt" Type="BoundObjectInitializerExpressionBase" Null="allow"/>
   </Node>
-  
-  <Node Name="BoundObjectInitializerExpression" Base="BoundExpression">
+
+  <AbstractNode Name="BoundObjectInitializerExpressionBase" Base="BoundExpression">
     <!-- Non-null type is required for this node kind -->
     <Field Name="Type" Type="TypeSymbol" Override="true" Null="disallow"/>
 
     <Field Name="Initializers" Type="ImmutableArray&lt;BoundExpression&gt;"/>
+  </AbstractNode>
+
+  <Node Name="BoundObjectInitializerExpression" Base="BoundObjectInitializerExpressionBase">
   </Node>
   
   <Node Name="BoundObjectInitializerMember" Base="BoundExpression">
@@ -1382,13 +1386,10 @@
     <Field Name="Type" Type="TypeSymbol" Override="true" Null="disallow"/>
 
     <Field Name="MemberName" Type="string" Null="disallow"/>
+    <Field Name="ReceiverType" Type="TypeSymbol" Null="disallow" />
   </Node>
 
-  <Node Name="BoundCollectionInitializerExpression" Base="BoundExpression">
-    <!-- Non-null type is required for this node kind -->
-    <Field Name="Type" Type="TypeSymbol" Override="true" Null="disallow"/>
-
-    <Field Name="Initializers" Type="ImmutableArray&lt;BoundExpression&gt;"/>
+  <Node Name="BoundCollectionInitializerExpression" Base="BoundObjectInitializerExpressionBase">
   </Node>
 
   <Node Name="BoundCollectionElementInitializer" Base="BoundExpression">
@@ -1398,10 +1399,13 @@
     <!-- We don't hold on BoundCall directly since dynamic invocation isn't specified explicitly in the source. -->
     <Field Name="AddMethod" Type="MethodSymbol"/>
     <Field Name="Arguments" Type="ImmutableArray&lt;BoundExpression&gt;"/>
+    <!-- Used for IOperation to enable translating the initializer to a IDynamicInvocationOperation -->
+    <Field Name="ImplicitReceiverOpt" Type="BoundExpression" Null="allow" />
     <Field Name="Expanded" Type="bool"/>
     <Field Name="ArgsToParamsOpt" Type="ImmutableArray&lt;int&gt;" Null="allow"/>
     <Field Name="InvokedAsExtensionMethod" Type="bool"/>
     <Field Name="ResultKind" PropertyOverrides="true" Type="LookupResultKind"/>
+    <Field Name="BinderOpt" Type="Binder" Null="allow" />
   </Node>
 
   <Node Name="BoundDynamicCollectionElementInitializer" Base="BoundExpression">
@@ -1410,6 +1414,8 @@
     
     <!-- We don't hold on DynamicMethodInvocation directly since dynamic invocation isn't specified explicitly in the source. -->
     <Field Name="Arguments" Type="ImmutableArray&lt;BoundExpression&gt;"/>
+    <!-- Used for IOperation to enable translating the initializer to a IDynamicInvocationOperation -->
+    <Field Name="ImplicitReceiver" Type="BoundImplicitReceiver" />
 
     <!-- The set of applicable Add methods that may be invoked at runtime. Empty otherwise. -->
     <Field Name="ApplicableMethods" Type="ImmutableArray&lt;MethodSymbol&gt;" />
@@ -1446,7 +1452,7 @@
     <!-- Non-null type is required for this node kind -->
     <Field Name="Type" Type="TypeSymbol" Override="true" Null="disallow"/>
   
-    <Field Name="InitializerExpressionOpt" Type="BoundExpression" Null="allow"/>
+    <Field Name="InitializerExpressionOpt" Type="BoundObjectInitializerExpressionBase" Null="allow"/>
   </Node>
 
   <Node Name="BoundDelegateCreationExpression" Base="BoundExpression">
@@ -1619,7 +1625,7 @@
   <Node Name="BoundStringInsert" Base="BoundExpression">
     <Field Name="Value" Type="BoundExpression" Null="disallow"/>
     <Field Name="Alignment" Type="BoundExpression" Null="allow"/>
-    <Field Name="Format" Type="BoundExpression" Null="allow"/>
+    <Field Name="Format" Type="BoundLiteral" Null="allow"/>
   </Node>
   
   <Node Name="BoundIsPatternExpression" Base="BoundExpression">

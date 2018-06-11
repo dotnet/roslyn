@@ -347,7 +347,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         If Not errorsReported Then
                             ' There should not be any used temporaries or copy back expressions because arguments must
                             ' be constants and they cannot be passed byref. 
-                            boundArguments = PassArguments(node.Name, methodResult, boundArguments, diagnostics)
+                            Dim argumentInfo As (Arguments As ImmutableArray(Of BoundExpression), DefaultArguments As BitVector) = PassArguments(node.Name, methodResult, boundArguments, diagnostics)
+                            ' We don't do anything with the default parameter info currently, as we don't expose IOperations for
+                            ' Attributes. If that changes, we can add this info to the BoundAttribute node.
+                            boundArguments = argumentInfo.Arguments
 
                             Debug.Assert(Not boundArguments.Any(Function(a) a.Kind = BoundKind.ByRefArgumentWithCopyBack))
 
@@ -516,7 +519,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 End If
 
                 If propertySym IsNot Nothing Then
-                    lValue = New BoundPropertyAccess(identifierName, propertySym, Nothing, PropertyAccessKind.Set, Not isReadOnly, Nothing, ImmutableArray(Of BoundExpression).Empty, hasErrors)
+                    lValue = New BoundPropertyAccess(identifierName, propertySym, Nothing, PropertyAccessKind.Set, Not isReadOnly, Nothing, ImmutableArray(Of BoundExpression).Empty, defaultArguments:=BitVector.Null, hasErrors)
                     Debug.Assert(lValue.Type = fieldOrPropType)
                 ElseIf fieldSym IsNot Nothing Then
                     lValue = New BoundFieldAccess(identifierName, Nothing, fieldSym, True, fieldOrPropType, hasErrors)
