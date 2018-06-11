@@ -18,7 +18,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
     internal static class FlowAnalysisAnnotationsFacts
     {
-        // For EnsuresNotNull, you should set NotNullWhenTrue and NotNullWhenFalse
+        /// <summary>
+        /// For EnsuresNotNull, you should set NotNullWhenTrue and NotNullWhenFalse.
+        /// </summary>
         internal static FlowAnalysisAnnotations Create(bool notNullWhenTrue, bool notNullWhenFalse, bool assertsTrue, bool assertsFalse)
         {
             FlowAnalysisAnnotations value = None;

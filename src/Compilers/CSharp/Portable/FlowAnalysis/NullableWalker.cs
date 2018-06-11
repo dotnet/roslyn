@@ -295,9 +295,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             return base.MakeSlot(node);
         }
 
-        /// <summary>
-        /// If you will be needing StateWhenTrue and StateWhenFalse, set `keepSplit` to `true`.
-        /// </summary>
         private new void VisitLvalue(BoundExpression node)
         {
             switch (node.Kind)
@@ -1679,26 +1676,17 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // Ignore NotNullWhenFalse that is inapplicable
                 annotations = removeInapplicableNotNullWhenSense(parameter, annotations, sense: false);
 
-                // AssertsTrue must be applied to a bool parameter
-                if ((annotations & FlowAnalysisAnnotations.AssertsTrue) != 0 &&
-                    (parameter.Type.SpecialType != SpecialType.System_Boolean))
+                // AssertsTrue and AssertsFalse must be applied to a bool parameter
+                const FlowAnalysisAnnotations both = FlowAnalysisAnnotations.AssertsTrue | FlowAnalysisAnnotations.AssertsFalse;
+                if (parameter.Type.SpecialType != SpecialType.System_Boolean)
                 {
-                    annotations &= ~FlowAnalysisAnnotations.AssertsTrue;
-                }
-
-                // AssertsFalse must be applied to a bool parameter
-                if ((annotations & FlowAnalysisAnnotations.AssertsFalse) != 0 &&
-                    (parameter.Type.SpecialType != SpecialType.System_Boolean))
-                {
-                    annotations &= ~FlowAnalysisAnnotations.AssertsFalse;
+                    annotations &= ~both;
                 }
 
                 // We'll ignore AssertsTrue and AssertsFalse if both set
-                if ((annotations & FlowAnalysisAnnotations.AssertsTrue) != 0 &&
-                     (annotations & FlowAnalysisAnnotations.AssertsFalse) != 0)
+                if ((annotations & both) == both)
                 {
-                    annotations &= ~FlowAnalysisAnnotations.AssertsTrue;
-                    annotations &= ~FlowAnalysisAnnotations.AssertsFalse;
+                    annotations &= ~both;
                 }
 
                 return annotations;
@@ -1851,7 +1839,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var builder = ArrayBuilder<Result>.GetInstance(n);
             for (int i = 0; i < n; i++)
             {
-                VisitArgumentEvaluate(arguments, refKindsOpt, i, keepSplit: false);
+                VisitArgumentEvaluate(arguments, refKindsOpt, i, preserveConditionalState: false);
                 builder.Add(_result);
             }
 
@@ -1859,15 +1847,16 @@ namespace Microsoft.CodeAnalysis.CSharp
             return builder.ToImmutableAndFree();
         }
 
-        private void VisitArgumentEvaluate(ImmutableArray<BoundExpression> arguments, ImmutableArray<RefKind> refKindsOpt, int i, bool keepSplit)
+        private void VisitArgumentEvaluate(ImmutableArray<BoundExpression> arguments, ImmutableArray<RefKind> refKindsOpt, int i, bool preserveConditionalState)
         {
+            Debug.Assert(!IsConditionalState);
             RefKind refKind = GetRefKind(refKindsOpt, i);
             var argument = arguments[i];
             if (refKind != RefKind.Out)
             {
                 // PROTOTYPE(NullReferenceTypes): `ref` arguments should be treated as l-values
                 // for assignment. See `ref x3` in StaticNullChecking.PassingParameters_01.
-                if (keepSplit)
+                if (preserveConditionalState)
                 {
                     Visit(argument);
                     // No Unsplit
@@ -1886,7 +1875,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// Visit all the arguments for the purpose of computing the exit state of the method,
         /// given the annotations.
-        /// If there is any [NotNullWhenTrue/False] annotation, then we'll return a conditional state for the invocation.
+        /// If there is any [NotNullWhenTrue/False] annotation, then we'll return in a conditional state for the invocation.
         /// </summary>
         private void VisitArgumentsEvaluateHonoringAnnotations(
             ImmutableArray<BoundExpression> arguments,
@@ -1965,7 +1954,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             // Then unsplit it based on [AssertsTrue] or [AssertsFalse] attributes, or default Unsplit otherwise.
             void visitArgumentEvaluateAndUnsplit(int argumentIndex, bool assertsTrue, bool assertsFalse)
             {
-                VisitArgumentEvaluate(arguments, refKindsOpt, argumentIndex, keepSplit: true);
+                Debug.Assert(!IsConditionalState);
+                VisitArgumentEvaluate(arguments, refKindsOpt, argumentIndex, preserveConditionalState: true);
 
                 if (!this.IsConditionalState)
                 {

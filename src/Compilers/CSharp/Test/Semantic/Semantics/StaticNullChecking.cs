@@ -6760,6 +6760,25 @@ class C
         }
 
         [Fact]
+        public void AssertsTrue_RefOutInParameters()
+        {
+            CSharpCompilation c = CreateCompilation(@"
+using System.Runtime.CompilerServices;
+class C
+{
+    void Main(bool b)
+    {
+        MyAssert(ref b, out bool b2, in b);
+    }
+
+    void MyAssert([AssertsTrue] ref bool condition, [AssertsFalse] out bool condition2, [AssertsTrue] in bool condition3) => throw null;
+}
+" + AssertsTrueAttributeDefinition + AssertsFalseAttributeDefinition, parseOptions: TestOptions.Regular8);
+
+            c.VerifyDiagnostics();
+        }
+
+        [Fact]
         public void AssertsTrue_MethodWithReturnType()
         {
             CSharpCompilation c = CreateCompilation(@"
