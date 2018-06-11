@@ -92,6 +92,11 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         public static EditorConfig Parse(string text, string pathToFile)
         {
+            if (!Path.IsPathRooted(pathToFile))
+            {
+                throw new ArgumentException("Must be an absolute path", nameof(pathToFile));
+            }
+
             Section globalSection = null;
             var namedSectionBuilder = ImmutableArray.CreateBuilder<Section>();
 
