@@ -15,8 +15,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     internal enum AttributeAnnotations
     {
         None = 0,
-        NotNullWhenFalse,
-        EnsuresNotNull,
+        NotNullWhenTrue = 1 << 0,
+        NotNullWhenFalse = 1 << 1,
+        EnsuresNotNull = NotNullWhenTrue | NotNullWhenFalse,
     }
 
     // PROTOTYPE(NullableReferenceTypes): external annotations should be removed or fully designed/productized
@@ -165,35 +166,40 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// <summary>
         /// index 0 is used for return type
         /// other parameters follow
+        /// If there are no annotations on the member (not just that parameter), then returns null. The purpose is to ensure
+        /// that if some annotations are present on the member, then annotations win over the attributes on the member in all positions.
+        /// That could mean removing an attribute.
         /// </summary>
-        internal static (bool hasAny, AttributeAnnotations annotations) GetExtraAttributes(string key, int parameterIndex)
+        internal static AttributeAnnotations? TryGetExtraAttributes(string key, int parameterIndex)
         {
             if (key is null)
             {
-                return (false, default);
+                return null;
             }
 
             if (!Attributes.TryGetValue(key, out var extraAttributes))
             {
-                return (false, default);
+                return null;
             }
 
-            return (true, extraAttributes[parameterIndex + 1]);
+            return extraAttributes[parameterIndex + 1];
         }
     }
 
     internal static class ParameterAnnotationsExtensions
     {
-        internal static AttributeAnnotations With(this AttributeAnnotations value, bool notNullWhenFalse, bool ensuresNotNull)
+        // For EnsuresNotNull, you should set NotNullWhenTrue and NotNullWhenFalse
+        internal static AttributeAnnotations With(this AttributeAnnotations value,
+            bool notNullWhenTrue, bool notNullWhenFalse)
         {
             if (notNullWhenFalse)
             {
                 value |= NotNullWhenFalse;
             }
 
-            if (ensuresNotNull)
+            if (notNullWhenTrue)
             {
-                value |= EnsuresNotNull;
+                value |= NotNullWhenTrue;
             }
 
             return value;

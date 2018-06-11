@@ -49,10 +49,15 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Nullable
         a[0].ToString();
         var b = new[] { y };
         b[0].ToString();
+    }
+    static void F(object[] a, object?[] b)
+    {
         var c = new[] { a, b };
         c[0][0].ToString();
         var d = new[] { a, b! };
         d[0][0].ToString();
+        var e = new[] { b!, a };
+        e[0][0].ToString();
     }
 }";
             var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
@@ -60,9 +65,15 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Nullable
                 // (8,9): warning CS8602: Possible dereference of a null reference.
                 //         b[0].ToString();
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "b[0]").WithLocation(8, 9),
-                // (10,9): warning CS8602: Possible dereference of a null reference.
+                // (13,9): warning CS8602: Possible dereference of a null reference.
                 //         c[0][0].ToString();
-                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "c[0][0]").WithLocation(10, 9));
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "c[0][0]").WithLocation(13, 9),
+                // (15,9): warning CS8602: Possible dereference of a null reference.
+                //         d[0][0].ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "d[0][0]").WithLocation(15, 9),
+                // (17,9): warning CS8602: Possible dereference of a null reference.
+                //         e[0][0].ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "e[0][0]").WithLocation(17, 9));
         }
 
         [Fact]
@@ -1598,8 +1609,7 @@ class C
                 Diagnostic(ErrorCode.WRN_NullReferenceReturn, "x").WithLocation(15, 43));
         }
 
-        // PROTOTYPE(NullableReferenceTypes): Infer lambda return type nullability.
-        [Fact(Skip = "TODO")]
+        [Fact]
         public void LambdaReturnValue_03()
         {
             var source =
@@ -1608,7 +1618,7 @@ class C
 {
     static T F<T>(Func<T> f)
     {
-        return default(T);
+        throw null;
     }
     static void G(bool b, object x, string? y)
     {
@@ -1629,8 +1639,7 @@ class C
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "F(() => { if (b) return x; return y; })").WithLocation(14, 9));
         }
 
-        // PROTOTYPE(NullableReferenceTypes): Infer lambda return type nullability.
-        [Fact(Skip = "TODO")]
+        [Fact]
         public void LambdaReturnValue_04()
         {
             var source =
@@ -1639,23 +1648,35 @@ class C
 {
     static T F<T>(Func<T> f)
     {
-        return default(T);
+        throw null;
     }
     static void G(object? o)
     {
         F(() => o).ToString();
         if (o != null) F(() => o).ToString();
+        F(() => { return o; }).ToString();
+        if (o != null) F(() => { return o; }).ToString();
     }
 }";
+            // PROTOTYPE(NullableReferenceTypes): For captured variables, the lambda should be
+            // considered executed at the location the lambda is converted to a delegate.
             var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
                 // (10,9): warning CS8602: Possible dereference of a null reference.
                 //         F(() => o).ToString();
-                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "F(() => o)").WithLocation(10, 9));
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "F(() => o)").WithLocation(10, 9),
+                // (11,24): warning CS8602: Possible dereference of a null reference.
+                //         if (o != null) F(() => o).ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "F(() => o)").WithLocation(11, 24),
+                // (12,9): warning CS8602: Possible dereference of a null reference.
+                //         F(() => { return o; }).ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "F(() => { return o; })").WithLocation(12, 9),
+                // (13,24): warning CS8602: Possible dereference of a null reference.
+                //         if (o != null) F(() => { return o; }).ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "F(() => { return o; })").WithLocation(13, 24));
         }
 
-        // PROTOTYPE(NullableReferenceTypes): Infer lambda return type nullability.
-        [Fact(Skip = "TODO")]
+        [Fact]
         public void LambdaReturnValue_05()
         {
             var source =
@@ -1664,7 +1685,7 @@ class C
 {
     static T F<T>(Func<object?, T> f)
     {
-        return default(T);
+        throw null;
     }
     static void G()
     {
@@ -1673,6 +1694,55 @@ class C
 }";
             var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void LambdaReturnValue_06()
+        {
+            var source =
+@"using System;
+class C
+{
+    static U F<T, U>(Func<T, U> f, T t)
+    {
+        return f(t);
+    }
+    static void M(object? x)
+    {
+        F(y => F(z => z, y), x).ToString();
+    }
+}";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
+            comp.VerifyDiagnostics(
+                // (10,9): warning CS8602: Possible dereference of a null reference.
+                //         F(y => F(z => z, y), x).ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "F(y => F(z => z, y), x)").WithLocation(10, 9));
+        }
+
+        [Fact]
+        public void LambdaParameterValue()
+        {
+            var source =
+@"using System;
+class C
+{
+    static void F<T>(T t, Action<T> f)
+    {
+    }
+    static void G(object? x)
+    {
+        F(x, y => F(y, z => { y.ToString(); z.ToString(); }));
+        if (x != null) F(x, y => F(y, z => { y.ToString(); z.ToString(); }));
+    }
+}";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
+            comp.VerifyDiagnostics(
+                // (9,31): warning CS8602: Possible dereference of a null reference.
+                //         F(x, y => F(y, z => { y.ToString(); z.ToString(); }));
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "y").WithLocation(9, 31),
+                // (9,45): warning CS8602: Possible dereference of a null reference.
+                //         F(x, y => F(y, z => { y.ToString(); z.ToString(); }));
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "z").WithLocation(9, 45));
         }
 
         [Fact]
@@ -2742,8 +2812,7 @@ class C
         }
 
         // PROTOTYPE(NullableReferenceTypes): Update this method to use types from unannotated assemblies
-        // rather than `x!`, particularly because `x!` should result in IsNullable=false rather than IsNullable=null.
-        // PROTOTYPE(NullableReferenceTypes): Should report the same warnings (or no warnings) for { x, x! } and { x!, x }.
+        // rather than `x!`, particularly because `x!` results in IsNullable=false rather than IsNullable=null.
         [Fact]
         public void IdentityConversion_ArrayInitializer_IsNullableNull()
         {
@@ -2760,6 +2829,7 @@ class B
     {
         (new[] { x, x! })[0].ToString();
         (new[] { x!, x })[0].ToString();
+        (new[] { x!, x! })[0].ToString();
         (new[] { y, y! })[0].ToString();
         (new[] { y!, y })[0].ToString();
     }
@@ -2767,6 +2837,7 @@ class B
     {
         (new[] { z, z! })[0].F.ToString();
         (new[] { z!, z })[0].F.ToString();
+        (new[] { z!, z! })[0].F.ToString();
         (new[] { w, w! })[0].F.ToString();
         (new[] { w!, w })[0].F.ToString();
     }
@@ -2776,14 +2847,23 @@ class B
                 // (11,9): warning CS8602: Possible dereference of a null reference.
                 //         (new[] { x, x! })[0].ToString();
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "(new[] { x, x! })[0]").WithLocation(11, 9),
-                // (18,9): warning CS8602: Possible dereference of a null reference.
+                // (12,9): warning CS8602: Possible dereference of a null reference.
+                //         (new[] { x!, x })[0].ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "(new[] { x!, x })[0]").WithLocation(12, 9),
+                // (19,9): warning CS8602: Possible dereference of a null reference.
                 //         (new[] { z, z! })[0].F.ToString();
-                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "(new[] { z, z! })[0].F").WithLocation(18, 9));
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "(new[] { z, z! })[0].F").WithLocation(19, 9),
+                // (20,9): warning CS8602: Possible dereference of a null reference.
+                //         (new[] { z!, z })[0].F.ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "(new[] { z!, z })[0].F").WithLocation(20, 9),
+                // (21,9): warning CS8602: Possible dereference of a null reference.
+                //         (new[] { z!, z! })[0].F.ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "(new[] { z!, z! })[0].F").WithLocation(21, 9)
+                );
         }
 
         // PROTOTYPE(NullableReferenceTypes): Update this method to use types from unannotated assemblies
-        // rather than `x!`, particularly because `x!` should result in IsNullable=false rather than IsNullable=null.
-        // PROTOTYPE(NullableReferenceTypes): Should report the same warnings (or no warnings) for (x, x!) and (x!, x).
+        // rather than `x!`, particularly because `x!` results in IsNullable=false rather than IsNullable=null.
         [Fact]
         public void IdentityConversion_TypeInference_IsNullableNull()
         {
@@ -2821,9 +2901,15 @@ class B
                 // (12,9): warning CS8602: Possible dereference of a null reference.
                 //         F1(x, x!).ToString();
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "F1(x, x!)").WithLocation(12, 9),
+                // (13,9): warning CS8602: Possible dereference of a null reference.
+                //         F1(x!, x).ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "F1(x!, x)").WithLocation(13, 9),
                 // (23,9): warning CS8602: Possible dereference of a null reference.
                 //         F2(z, z!).ToString();
-                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "F2(z, z!)").WithLocation(23, 9));
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "F2(z, z!)").WithLocation(23, 9),
+                // (24,9): warning CS8602: Possible dereference of a null reference.
+                //         F2(z!, z).ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "F2(z!, z)").WithLocation(24, 9));
         }
 
         [Fact]
@@ -3163,37 +3249,26 @@ class C
     }
 }";
             var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
-            // PROTOTYPE(NullableReferenceTypes): Should not report WRN_NullabilityMismatchInParameterTypeOfTargetDelegate
-            // for `b = F<object>`, `e = F<IIn<object?>>`, `h = F<IOut<object>>`.
             comp.VerifyDiagnostics(
                 // (10,23): warning CS8621: Nullability of reference types in return type of 'object? C.F<object?>()' doesn't match the target delegate 'D<object>'.
                 //         D<object> a = F<object?>;
                 Diagnostic(ErrorCode.WRN_NullabilityMismatchInReturnTypeOfTargetDelegate, "F<object?>").WithArguments("object? C.F<object?>()", "D<object>").WithLocation(10, 23),
-                // (11,24): warning CS8621: Nullability of reference types in return type of 'object C.F<object>()' doesn't match the target delegate 'D<object?>'.
-                //         D<object?> b = F<object>;
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInReturnTypeOfTargetDelegate, "F<object>").WithArguments("object C.F<object>()", "D<object?>").WithLocation(11, 24),
                 // (12,26): warning CS8621: Nullability of reference types in return type of 'I<object?> C.F<I<object?>>()' doesn't match the target delegate 'D<I<object>>'.
                 //         D<I<object>> c = F<I<object?>>;
                 Diagnostic(ErrorCode.WRN_NullabilityMismatchInReturnTypeOfTargetDelegate, "F<I<object?>>").WithArguments("I<object?> C.F<I<object?>>()", "D<I<object>>").WithLocation(12, 26),
                 // (13,27): warning CS8621: Nullability of reference types in return type of 'I<object> C.F<I<object>>()' doesn't match the target delegate 'D<I<object?>>'.
                 //         D<I<object?>> d = F<I<object>>;
                 Diagnostic(ErrorCode.WRN_NullabilityMismatchInReturnTypeOfTargetDelegate, "F<I<object>>").WithArguments("I<object> C.F<I<object>>()", "D<I<object?>>").WithLocation(13, 27),
-                // (14,28): warning CS8621: Nullability of reference types in return type of 'IIn<object?> C.F<IIn<object?>>()' doesn't match the target delegate 'D<IIn<object>>'.
-                //         D<IIn<object>> e = F<IIn<object?>>;
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInReturnTypeOfTargetDelegate, "F<IIn<object?>>").WithArguments("IIn<object?> C.F<IIn<object?>>()", "D<IIn<object>>").WithLocation(14, 28),
                 // (15,29): warning CS8621: Nullability of reference types in return type of 'IIn<object> C.F<IIn<object>>()' doesn't match the target delegate 'D<IIn<object?>>'.
                 //         D<IIn<object?>> f = F<IIn<object>>;
                 Diagnostic(ErrorCode.WRN_NullabilityMismatchInReturnTypeOfTargetDelegate, "F<IIn<object>>").WithArguments("IIn<object> C.F<IIn<object>>()", "D<IIn<object?>>").WithLocation(15, 29),
                 // (16,29): warning CS8621: Nullability of reference types in return type of 'IOut<object?> C.F<IOut<object?>>()' doesn't match the target delegate 'D<IOut<object>>'.
                 //         D<IOut<object>> g = F<IOut<object?>>;
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInReturnTypeOfTargetDelegate, "F<IOut<object?>>").WithArguments("IOut<object?> C.F<IOut<object?>>()", "D<IOut<object>>").WithLocation(16, 29),
-                // (17,30): warning CS8621: Nullability of reference types in return type of 'IOut<object> C.F<IOut<object>>()' doesn't match the target delegate 'D<IOut<object?>>'.
-                //         D<IOut<object?>> h = F<IOut<object>>;
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInReturnTypeOfTargetDelegate, "F<IOut<object>>").WithArguments("IOut<object> C.F<IOut<object>>()", "D<IOut<object?>>").WithLocation(17, 30));
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInReturnTypeOfTargetDelegate, "F<IOut<object?>>").WithArguments("IOut<object?> C.F<IOut<object?>>()", "D<IOut<object>>").WithLocation(16, 29));
         }
 
         [Fact]
-        public void IdentityConversion_DelegateParameter()
+        public void IdentityConversion_DelegateParameter_01()
         {
             var source =
 @"delegate void D<T>(T t);
@@ -3216,12 +3291,7 @@ class C
     }
 }";
             var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
-            // PROTOTYPE(NullableReferenceTypes): Should not report WRN_NullabilityMismatchInParameterTypeOfTargetDelegate
-            // for `a = F<object?>`, `f = F<IIn<object>>`, `g = F<IOut<object?>>`.
             comp.VerifyDiagnostics(
-                // (10,23): warning CS8622: Nullability of reference types in type of parameter 't' of 'void C.F<object?>(object? t)' doesn't match the target delegate 'D<object>'.
-                //         D<object> a = F<object?>;
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInParameterTypeOfTargetDelegate, "F<object?>").WithArguments("t", "void C.F<object?>(object? t)", "D<object>").WithLocation(10, 23),
                 // (11,24): warning CS8622: Nullability of reference types in type of parameter 't' of 'void C.F<object>(object t)' doesn't match the target delegate 'D<object?>'.
                 //         D<object?> b = F<object>;
                 Diagnostic(ErrorCode.WRN_NullabilityMismatchInParameterTypeOfTargetDelegate, "F<object>").WithArguments("t", "void C.F<object>(object t)", "D<object?>").WithLocation(11, 24),
@@ -3234,15 +3304,39 @@ class C
                 // (14,28): warning CS8622: Nullability of reference types in type of parameter 't' of 'void C.F<IIn<object?>>(IIn<object?> t)' doesn't match the target delegate 'D<IIn<object>>'.
                 //         D<IIn<object>> e = F<IIn<object?>>;
                 Diagnostic(ErrorCode.WRN_NullabilityMismatchInParameterTypeOfTargetDelegate, "F<IIn<object?>>").WithArguments("t", "void C.F<IIn<object?>>(IIn<object?> t)", "D<IIn<object>>").WithLocation(14, 28),
-                // (15,29): warning CS8622: Nullability of reference types in type of parameter 't' of 'void C.F<IIn<object>>(IIn<object> t)' doesn't match the target delegate 'D<IIn<object?>>'.
-                //         D<IIn<object?>> f = F<IIn<object>>;
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInParameterTypeOfTargetDelegate, "F<IIn<object>>").WithArguments("t", "void C.F<IIn<object>>(IIn<object> t)", "D<IIn<object?>>").WithLocation(15, 29),
-                // (16,29): warning CS8622: Nullability of reference types in type of parameter 't' of 'void C.F<IOut<object?>>(IOut<object?> t)' doesn't match the target delegate 'D<IOut<object>>'.
-                //         D<IOut<object>> g = F<IOut<object?>>;
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInParameterTypeOfTargetDelegate, "F<IOut<object?>>").WithArguments("t", "void C.F<IOut<object?>>(IOut<object?> t)", "D<IOut<object>>").WithLocation(16, 29),
                 // (17,30): warning CS8622: Nullability of reference types in type of parameter 't' of 'void C.F<IOut<object>>(IOut<object> t)' doesn't match the target delegate 'D<IOut<object?>>'.
                 //         D<IOut<object?>> h = F<IOut<object>>;
                 Diagnostic(ErrorCode.WRN_NullabilityMismatchInParameterTypeOfTargetDelegate, "F<IOut<object>>").WithArguments("t", "void C.F<IOut<object>>(IOut<object> t)", "D<IOut<object?>>").WithLocation(17, 30));
+        }
+
+        [Fact]
+        public void IdentityConversion_DelegateParameter_02()
+        {
+            var source =
+@"delegate T D<T>();
+class A<T>
+{
+    internal T M() => throw new System.NotImplementedException();
+}
+class B
+{
+    static A<T> F<T>(T t) => throw null;
+    static void G(object? o)
+    {
+        var x = F(o);
+        D<object?> d = x.M;
+        D<object> e = x.M;
+        if (o == null) return;
+        var y = F(o);
+        d = y.M;
+        e = y.M;
+        d = (D<object?>)y.M;
+        e = (D<object>)y.M;
+    }
+}";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
+            // PROTOTYPE(NullableReferenceTypes): Should report WRN_NullabilityMismatchInReturnTypeOfTargetDelegate for `e = x.M`.
+            comp.VerifyDiagnostics();
         }
 
         [Fact]
@@ -3258,7 +3352,10 @@ class C
         D<object?> a = () => x;
         D<object> b = () => y;
         if (y == null) return;
-        D<object> c = () => y;
+        a = () => y;
+        b = () => y;
+        a = (D<object?>)(() => y);
+        b = (D<object>)(() => y);
     }
     static void F(I<object> x, I<object?> y)
     {
@@ -3266,17 +3363,25 @@ class C
         D<I<object>> b = () => y;
     }
 }";
+            // PROTOTYPE(NullableReferenceTypes): For captured variables, the lambda should be
+            // considered executed at the location the lambda is converted to a delegate.
             var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
                 // (8,29): warning CS8603: Possible null reference return.
                 //         D<object> b = () => y;
                 Diagnostic(ErrorCode.WRN_NullReferenceReturn, "y").WithLocation(8, 29),
-                // (14,33): warning CS8619: Nullability of reference types in value of type 'I<object>' doesn't match target type 'I<object?>'.
+                // (11,19): warning CS8603: Possible null reference return.
+                //         b = () => y;
+                Diagnostic(ErrorCode.WRN_NullReferenceReturn, "y").WithLocation(11, 19),
+                // (13,31): warning CS8603: Possible null reference return.
+                //         b = (D<object>)(() => y);
+                Diagnostic(ErrorCode.WRN_NullReferenceReturn, "y").WithLocation(13, 31),
+                // (17,33): warning CS8619: Nullability of reference types in value of type 'I<object>' doesn't match target type 'I<object?>'.
                 //         D<I<object?>> a = () => x;
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "x").WithArguments("I<object>", "I<object?>").WithLocation(14, 33),
-                // (15,32): warning CS8619: Nullability of reference types in value of type 'I<object?>' doesn't match target type 'I<object>'.
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "x").WithArguments("I<object>", "I<object?>").WithLocation(17, 33),
+                // (18,32): warning CS8619: Nullability of reference types in value of type 'I<object?>' doesn't match target type 'I<object>'.
                 //         D<I<object>> b = () => y;
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "y").WithArguments("I<object?>", "I<object>").WithLocation(15, 32));
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "y").WithArguments("I<object?>", "I<object>").WithLocation(18, 32));
         }
 
         [Fact]
@@ -3296,20 +3401,19 @@ class C
     }
 }";
             var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
-            // PROTOTYPE(NullableReferenceTypes): Report WRN_NullabilityMismatchInParameterTypeOfTargetDelegate.
-            comp.VerifyDiagnostics();
-                //// (7,24): warning CS8622: Nullability of reference types in type of parameter 'o' of 'lambda expression' doesn't match the target delegate 'D<object?>'.
-                ////         D<object?> a = (object o) => { };
-                //Diagnostic(ErrorCode.WRN_NullabilityMismatchInParameterTypeOfTargetDelegate, "(object o) => { }").WithArguments("o", "lambda expression", "D<object?>").WithLocation(7, 24),
-                //// (8,23): warning CS8622: Nullability of reference types in type of parameter 'o' of 'lambda expression' doesn't match the target delegate 'D<object>'.
-                ////         D<object> b = (object? o) => { };
-                //Diagnostic(ErrorCode.WRN_NullabilityMismatchInParameterTypeOfTargetDelegate, "(object? o) => { }").WithArguments("o", "lambda expression", "D<object>").WithLocation(8, 23),
-                //// (9,27): warning CS8622: Nullability of reference types in type of parameter 'o' of 'lambda expression' doesn't match the target delegate 'D<I<object?>>'.
-                ////         D<I<object?>> c = (I<object> o) => { };
-                //Diagnostic(ErrorCode.WRN_NullabilityMismatchInParameterTypeOfTargetDelegate, "(I<object> o) => { }").WithArguments("o", "lambda expression", "D<I<object?>>").WithLocation(9, 27),
-                //// (10,26): warning CS8622: Nullability of reference types in type of parameter 'o' of 'lambda expression' doesn't match the target delegate 'D<I<object>>'.
-                ////         D<I<object>> d = (I<object?> o) => { };
-                //Diagnostic(ErrorCode.WRN_NullabilityMismatchInParameterTypeOfTargetDelegate, "(I<object?> o) => { }").WithArguments("o", "lambda expression", "D<I<object>>").WithLocation(10, 26));
+            comp.VerifyDiagnostics(
+                // (7,24): warning CS8622: Nullability of reference types in type of parameter 'o' of 'lambda expression' doesn't match the target delegate 'D<object?>'.
+                //         D<object?> a = (object o) => { };
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInParameterTypeOfTargetDelegate, "(object o) => { }").WithArguments("o", "lambda expression", "D<object?>").WithLocation(7, 24),
+                // (8,23): warning CS8622: Nullability of reference types in type of parameter 'o' of 'lambda expression' doesn't match the target delegate 'D<object>'.
+                //         D<object> b = (object? o) => { };
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInParameterTypeOfTargetDelegate, "(object? o) => { }").WithArguments("o", "lambda expression", "D<object>").WithLocation(8, 23),
+                // (9,27): warning CS8622: Nullability of reference types in type of parameter 'o' of 'lambda expression' doesn't match the target delegate 'D<I<object?>>'.
+                //         D<I<object?>> c = (I<object> o) => { };
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInParameterTypeOfTargetDelegate, "(I<object> o) => { }").WithArguments("o", "lambda expression", "D<I<object?>>").WithLocation(9, 27),
+                // (10,26): warning CS8622: Nullability of reference types in type of parameter 'o' of 'lambda expression' doesn't match the target delegate 'D<I<object>>'.
+                //         D<I<object>> d = (I<object?> o) => { };
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInParameterTypeOfTargetDelegate, "(I<object?> o) => { }").WithArguments("o", "lambda expression", "D<I<object>>").WithLocation(10, 26));
         }
 
         [Fact]
@@ -3518,12 +3622,18 @@ class C
                 // (8,14): warning CS8619: Nullability of reference types in value of type 'B<object>' doesn't match target type 'A<object?>'.
                 //         y1 = x1;
                 Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "x1").WithArguments("B<object>", "A<object?>").WithLocation(8, 14),
+                // (9,14): warning CS8619: Nullability of reference types in value of type 'B<object>' doesn't match target type 'A<object?>'.
+                //         y1 = x1!;
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "x1!").WithArguments("B<object>", "A<object?>").WithLocation(9, 14),
                 // (13,24): warning CS8619: Nullability of reference types in value of type 'B<object?>' doesn't match target type 'A<object>'.
                 //         A<object> y2 = x2;
                 Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "x2").WithArguments("B<object?>", "A<object>").WithLocation(13, 24),
                 // (14,14): warning CS8619: Nullability of reference types in value of type 'B<object?>' doesn't match target type 'A<object>'.
                 //         y2 = x2;
                 Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "x2").WithArguments("B<object?>", "A<object>").WithLocation(14, 14),
+                // (15,14): warning CS8619: Nullability of reference types in value of type 'B<object?>' doesn't match target type 'A<object>'.
+                //         y2 = x2!;
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "x2!").WithArguments("B<object?>", "A<object>").WithLocation(15, 14),
                 // (19,25): warning CS8600: Converting null literal or possible null value to non-nullable type.
                 //         A<object?> y3 = x3;
                 Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "x3").WithLocation(19, 25),
@@ -3535,7 +3645,11 @@ class C
                 Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "x3").WithLocation(20, 14),
                 // (20,14): warning CS8619: Nullability of reference types in value of type 'B<object>' doesn't match target type 'A<object?>'.
                 //         y3 = x3;
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "x3").WithArguments("B<object>", "A<object?>").WithLocation(20, 14));
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "x3").WithArguments("B<object>", "A<object?>").WithLocation(20, 14),
+                // (21,14): warning CS8619: Nullability of reference types in value of type 'B<object>' doesn't match target type 'A<object?>'.
+                //         y3 = x3!;
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "x3!").WithArguments("B<object>", "A<object?>").WithLocation(21, 14)
+                );
         }
 
         [Fact]
@@ -3573,12 +3687,18 @@ class C
                 // (8,14): warning CS8619: Nullability of reference types in value of type 'IB<object>' doesn't match target type 'IA<object?>'.
                 //         y1 = x1;
                 Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "x1").WithArguments("IB<object>", "IA<object?>").WithLocation(8, 14),
+                // (9,14): warning CS8619: Nullability of reference types in value of type 'IB<object>' doesn't match target type 'IA<object?>'.
+                //         y1 = x1!;
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "x1!").WithArguments("IB<object>", "IA<object?>").WithLocation(9, 14),
                 // (13,25): warning CS8619: Nullability of reference types in value of type 'IB<object?>' doesn't match target type 'IA<object>'.
                 //         IA<object> y2 = x2;
                 Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "x2").WithArguments("IB<object?>", "IA<object>").WithLocation(13, 25),
                 // (14,14): warning CS8619: Nullability of reference types in value of type 'IB<object?>' doesn't match target type 'IA<object>'.
                 //         y2 = x2;
                 Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "x2").WithArguments("IB<object?>", "IA<object>").WithLocation(14, 14),
+                // (15,14): warning CS8619: Nullability of reference types in value of type 'IB<object?>' doesn't match target type 'IA<object>'.
+                //         y2 = x2!;
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "x2!").WithArguments("IB<object?>", "IA<object>").WithLocation(15, 14),
                 // (19,26): warning CS8600: Converting null literal or possible null value to non-nullable type.
                 //         IA<object?> y3 = x3;
                 Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "x3").WithLocation(19, 26),
@@ -3590,7 +3710,10 @@ class C
                 Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "x3").WithLocation(20, 14),
                 // (20,14): warning CS8619: Nullability of reference types in value of type 'IB<object>' doesn't match target type 'IA<object?>'.
                 //         y3 = x3;
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "x3").WithArguments("IB<object>", "IA<object?>").WithLocation(20, 14));
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "x3").WithArguments("IB<object>", "IA<object?>").WithLocation(20, 14),
+                // (21,14): warning CS8619: Nullability of reference types in value of type 'IB<object>' doesn't match target type 'IA<object?>'.
+                //         y3 = x3!;
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "x3!").WithArguments("IB<object>", "IA<object?>").WithLocation(21, 14));
         }
 
         [Fact]
