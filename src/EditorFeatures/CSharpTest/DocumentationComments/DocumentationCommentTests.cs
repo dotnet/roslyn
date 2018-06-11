@@ -36,6 +36,22 @@ class C
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
+        public void TypingCharacter_Class_NewLine()
+        {
+            var code = "//$$\r\nclass C\r\n{\r\n}";
+
+            var expected = "/// <summary>\n/// $$\n/// </summary>\r\nclass C\r\n{\r\n}";
+
+            VerifyTypingCharacter(code, expected, newLine: "\n");
+
+            code = "//$$\r\nclass C\r\n{\r\n}";
+
+            expected = "/// <summary>\r\n/// $$\r\n/// </summary>\r\nclass C\r\n{\r\n}";
+
+            VerifyTypingCharacter(code, expected, newLine: "\r\n");
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)]
         public void TypingCharacter_Class_AutoGenerateXmlDocCommentsOff()
         {
             var code =
