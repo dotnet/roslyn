@@ -190,7 +190,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (!((object)disposeMethod is null) && !disposeMethod.ReturnsVoid)
             {
-                Error(diagnostics, ErrorCode.WRN_PatternBadSignature, _syntax);
+                diagnostics.Add(ErrorCode.WRN_PatternBadSignature, exp.Location, exprType, MessageID.IDS_Disposable.Localize(), disposeMethod);
                 disposeMethod = null;
             }
 
