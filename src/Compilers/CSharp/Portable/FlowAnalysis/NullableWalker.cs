@@ -127,14 +127,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             ArrayBuilder<(RefKind, TypeSymbolWithAnnotations)> returnTypes,
             VariableState initialState,
             Action<BoundExpression, TypeSymbolWithAnnotations> callbackOpt)
-            : base(
-                  compilation,
-                  method,
-                  node,
-                  new EmptyStructTypeCache(compilation, dev12CompilerCompatibility: false),
-                  trackUnassignments: false,
-                  variableSlot: initialState?.VariableSlot,
-                  variableBySlot: (initialState is null) ? default : initialState.VariableBySlot)
+            : base(compilation, method, node, new EmptyStructTypeCache(compilation, dev12CompilerCompatibility: false), trackUnassignments: false)
         {
             _sourceAssembly = (method is null) ? null : (SourceAssemblySymbol)method.ContainingAssembly;
             _callbackOpt = callbackOpt;
@@ -149,6 +142,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             _returnTypes = returnTypes;
             if (initialState != null)
             {
+                var variableBySlot = initialState.VariableBySlot;
+                nextVariableSlot = variableBySlot.Length;
+                foreach (var (variable, slot) in initialState.VariableSlot)
+                {
+                    Debug.Assert(slot < nextVariableSlot);
+                    _variableSlot.Add(variable, slot);
+                }
+                this.variableBySlot = variableBySlot.ToArray();
                 foreach (var pair in initialState.VariableTypes)
                 {
                     _variableTypes.Add(pair.Key, pair.Value);

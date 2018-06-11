@@ -41,22 +41,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             Symbol member,
             BoundNode node,
             EmptyStructTypeCache emptyStructs,
-            bool trackUnassignments,
-            ImmutableDictionary<VariableIdentifier, int> variableSlot = null,
-            ImmutableArray<VariableIdentifier> variableBySlot = default)
+            bool trackUnassignments)
             : base(compilation, member, node, trackUnassignments: trackUnassignments)
         {
             _emptyStructTypeCache = emptyStructs;
-            if (variableSlot != null)
-            {
-                nextVariableSlot = variableBySlot.Length;
-                foreach (var (variable, slot) in variableSlot)
-                {
-                    Debug.Assert(slot < nextVariableSlot);
-                    _variableSlot.Add(variable, slot);
-                }
-                this.variableBySlot = variableBySlot.ToArray();
-            }
         }
 
         protected DataFlowPassBase(
