@@ -4,7 +4,7 @@
     <body>
       <trans-unit id="Always_for_clarity">
         <source>Always for clarity</source>
-        <target state="new">Always for clarity</target>
+        <target state="translated">Sempre para esclarecimento</target>
         <note />
       </trans-unit>
       <trans-unit id="Element_is_not_valid">
@@ -14,27 +14,27 @@
       </trans-unit>
       <trans-unit id="Ignore">
         <source>Ignore</source>
-        <target state="new">Ignore</target>
+        <target state="translated">Ignorar</target>
         <note />
       </trans-unit>
       <trans-unit id="In_other_operators">
         <source>In other operators</source>
-        <target state="new">In other operators</target>
+        <target state="translated">Em outros operadores</target>
         <note />
       </trans-unit>
       <trans-unit id="Keep_all_parentheses_in_colon">
         <source>Keep all parentheses in:</source>
-        <target state="new">Keep all parentheses in:</target>
+        <target state="translated">Mantenha todos os parênteses em:</target>
         <note />
       </trans-unit>
       <trans-unit id="Never_if_unnecessary">
         <source>Never if unnecessary</source>
-        <target state="new">Never if unnecessary</target>
+        <target state="translated">Nunca se desnecessário</target>
         <note />
       </trans-unit>
       <trans-unit id="Parentheses_preferences_colon">
         <source>Parentheses preferences:</source>
-        <target state="new">Parentheses preferences:</target>
+        <target state="translated">Preferências de parênteses:</target>
         <note />
       </trans-unit>
       <trans-unit id="You_must_select_at_least_one_member">
