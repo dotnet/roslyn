@@ -76,7 +76,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 HashSet<DiagnosticInfo> useSiteDiagnostics = null;
                 TypeSymbol expressionType = expressionOpt.Type;
-                MethodSymbol disposeMethod = expressionType == null ? null : SatisfiesDisposePattern(expressionOpt.Type, diagnostics);
+                MethodSymbol disposeMethod = expressionType == null ? null : TryFindDisposePattern(expressionOpt.Type, diagnostics);
                 iDisposableConversion = originalBinder.Conversions.ClassifyImplicitConversionFromExpression(expressionOpt, iDisposable, ref useSiteDiagnostics);
                 diagnostics.Add(expressionSyntax, useSiteDiagnostics);
 
@@ -120,7 +120,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 TypeSymbol declType = declarations[0].DeclaredType.Type;
 
-                MethodSymbol disposeMethod = SatisfiesDisposePattern(declType, diagnostics);
+                MethodSymbol disposeMethod = TryFindDisposePattern(declType, diagnostics);
 
                 if (declType.IsDynamic())
                 {
@@ -181,7 +181,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <param name="exprType">Type of the expression over which to iterate</param>
         /// <param name="diagnostics">Populated with warnings if there are near misses</param>
         /// <returns>True if a matching method is found (still need to verify return type).</returns>
-        private MethodSymbol SatisfiesDisposePattern(TypeSymbol exprType, DiagnosticBag diagnostics)
+        private MethodSymbol TryFindDisposePattern(TypeSymbol exprType, DiagnosticBag diagnostics)
         {
             LookupResult lookupResult = LookupResult.GetInstance();
             SyntaxNode exp = _syntax.Expression != null ? (SyntaxNode) _syntax.Expression : (SyntaxNode) _syntax.Declaration;
