@@ -1914,9 +1914,115 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The +? quantifier matches the preceding element one or more times. It is equivalent to the {1,}? quantifier.
-        ///
-        ///A lazy quantifier tries to match an element as few times as possible..
+        ///   Looks up a localized string similar to The {n,}? quantifier matches the preceding element at least n times, where n is any integer, but as few times as possible. It is the lazy counterpart of the greedy quantifier {n,}.
+        /// </summary>
+        internal static string regex_match_at_least_n_times_lazy_long {
+            get {
+                return ResourceManager.GetString("regex_match_at_least_n_times_lazy_long", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to match at least &apos;n&apos; times (lazy).
+        /// </summary>
+        internal static string regex_match_at_least_n_times_lazy_short {
+            get {
+                return ResourceManager.GetString("regex_match_at_least_n_times_lazy_short", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The {n,} quantifier matches the preceding element at least n times, where n is any integer. {n,} is a greedy quantifier whose lazy equivalent is {n,}?.
+        /// </summary>
+        internal static string regex_match_at_least_n_times_long {
+            get {
+                return ResourceManager.GetString("regex_match_at_least_n_times_long", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to match at least &apos;n&apos; times.
+        /// </summary>
+        internal static string regex_match_at_least_n_times_short {
+            get {
+                return ResourceManager.GetString("regex_match_at_least_n_times_short", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The {n,m}? quantifier matches the preceding element between n and m times, where n and m are integers, but as few times as possible. It is the lazy counterpart of the greedy quantifier {n,m}.
+        /// </summary>
+        internal static string regex_match_between_m_and_n_times_lazy_long {
+            get {
+                return ResourceManager.GetString("regex_match_between_m_and_n_times_lazy_long", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to match at least &apos;n&apos; times (lazy).
+        /// </summary>
+        internal static string regex_match_between_m_and_n_times_lazy_short {
+            get {
+                return ResourceManager.GetString("regex_match_between_m_and_n_times_lazy_short", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The {n,m} quantifier matches the preceding element at least n times, but no more than m times, where n and m are integers. {n,m} is a greedy quantifier whose lazy equivalent is {n,m}?.
+        /// </summary>
+        internal static string regex_match_between_m_and_n_times_long {
+            get {
+                return ResourceManager.GetString("regex_match_between_m_and_n_times_long", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to match between &apos;m&apos; and &apos;n&apos; times.
+        /// </summary>
+        internal static string regex_match_between_m_and_n_times_short {
+            get {
+                return ResourceManager.GetString("regex_match_between_m_and_n_times_short", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The {n}? quantifier matches the preceding element exactly n times, where n is any integer. It is the lazy counterpart of the greedy quantifier {n}+.
+        /// </summary>
+        internal static string regex_match_exactly_n_times_lazy_long {
+            get {
+                return ResourceManager.GetString("regex_match_exactly_n_times_lazy_long", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to match exactly &apos;n&apos; times (lazy).
+        /// </summary>
+        internal static string regex_match_exactly_n_times_lazy_short {
+            get {
+                return ResourceManager.GetString("regex_match_exactly_n_times_lazy_short", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The {n} quantifier matches the preceding element exactly n times, where n is any integer. {n} is a greedy quantifier whose lazy equivalent is {n}?.
+        /// </summary>
+        internal static string regex_match_exactly_n_times_long {
+            get {
+                return ResourceManager.GetString("regex_match_exactly_n_times_long", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to match exactly &apos;n&apos; times.
+        /// </summary>
+        internal static string regex_match_exactly_n_times_short {
+            get {
+                return ResourceManager.GetString("regex_match_exactly_n_times_short", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The +? quantifier matches the preceding element one or more times, but as few times as possible. It is the lazy counterpart of the greedy quantifier +.
         /// </summary>
         internal static string regex_match_one_or_more_times_lazy_long {
             get {
@@ -1952,9 +2058,7 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The *? quantifier matches the preceding element zero or more times. It is equivalent to the {0,}? quantifier.
-        ///
-        ///A lazy quantifier tries to match an element as few times as possible..
+        ///   Looks up a localized string similar to The *? quantifier matches the preceding element zero or more times, but as few times as possible. It is the lazy counterpart of the greedy quantifier *.
         /// </summary>
         internal static string regex_match_zero_or_more_times_lazy_long {
             get {
@@ -1990,9 +2094,7 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The ?? quantifier matches the preceding element zero or one time.  It is equivalent to the {0,1}? quantifier.
-        ///
-        ///A lazy quantifier tries to match an element as few times as possible..
+        ///   Looks up a localized string similar to The ?? quantifier matches the preceding element zero or one time, but as few times as possible. It is the lazy counterpart of the greedy quantifier ?.
         /// </summary>
         internal static string regex_match_zero_or_one_time_lazy_long {
             get {

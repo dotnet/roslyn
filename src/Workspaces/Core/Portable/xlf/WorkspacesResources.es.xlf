@@ -1408,13 +1408,69 @@ The group options construct is not a capturing group. That is, although any port
         <target state="new">mark, spacing combining</target>
         <note />
       </trans-unit>
+      <trans-unit id="regex_match_at_least_n_times_lazy_long">
+        <source>The {n,}? quantifier matches the preceding element at least n times, where n is any integer, but as few times as possible. It is the lazy counterpart of the greedy quantifier {n,}</source>
+        <target state="new">The {n,}? quantifier matches the preceding element at least n times, where n is any integer, but as few times as possible. It is the lazy counterpart of the greedy quantifier {n,}</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="regex_match_at_least_n_times_lazy_short">
+        <source>match at least 'n' times (lazy)</source>
+        <target state="new">match at least 'n' times (lazy)</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="regex_match_at_least_n_times_long">
+        <source>The {n,} quantifier matches the preceding element at least n times, where n is any integer. {n,} is a greedy quantifier whose lazy equivalent is {n,}?</source>
+        <target state="new">The {n,} quantifier matches the preceding element at least n times, where n is any integer. {n,} is a greedy quantifier whose lazy equivalent is {n,}?</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="regex_match_at_least_n_times_short">
+        <source>match at least 'n' times</source>
+        <target state="new">match at least 'n' times</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="regex_match_between_m_and_n_times_lazy_long">
+        <source>The {n,m}? quantifier matches the preceding element between n and m times, where n and m are integers, but as few times as possible. It is the lazy counterpart of the greedy quantifier {n,m}</source>
+        <target state="new">The {n,m}? quantifier matches the preceding element between n and m times, where n and m are integers, but as few times as possible. It is the lazy counterpart of the greedy quantifier {n,m}</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="regex_match_between_m_and_n_times_lazy_short">
+        <source>match at least 'n' times (lazy)</source>
+        <target state="new">match at least 'n' times (lazy)</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="regex_match_between_m_and_n_times_long">
+        <source>The {n,m} quantifier matches the preceding element at least n times, but no more than m times, where n and m are integers. {n,m} is a greedy quantifier whose lazy equivalent is {n,m}?</source>
+        <target state="new">The {n,m} quantifier matches the preceding element at least n times, but no more than m times, where n and m are integers. {n,m} is a greedy quantifier whose lazy equivalent is {n,m}?</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="regex_match_between_m_and_n_times_short">
+        <source>match between 'm' and 'n' times</source>
+        <target state="new">match between 'm' and 'n' times</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="regex_match_exactly_n_times_lazy_long">
+        <source>The {n}? quantifier matches the preceding element exactly n times, where n is any integer. It is the lazy counterpart of the greedy quantifier {n}+</source>
+        <target state="new">The {n}? quantifier matches the preceding element exactly n times, where n is any integer. It is the lazy counterpart of the greedy quantifier {n}+</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="regex_match_exactly_n_times_lazy_short">
+        <source>match exactly 'n' times (lazy)</source>
+        <target state="new">match exactly 'n' times (lazy)</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="regex_match_exactly_n_times_long">
+        <source>The {n} quantifier matches the preceding element exactly n times, where n is any integer. {n} is a greedy quantifier whose lazy equivalent is {n}?</source>
+        <target state="new">The {n} quantifier matches the preceding element exactly n times, where n is any integer. {n} is a greedy quantifier whose lazy equivalent is {n}?</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="regex_match_exactly_n_times_short">
+        <source>match exactly 'n' times</source>
+        <target state="new">match exactly 'n' times</target>
+        <note />
+      </trans-unit>
       <trans-unit id="regex_match_one_or_more_times_lazy_long">
-        <source>The +? quantifier matches the preceding element one or more times. It is equivalent to the {1,}? quantifier.
-
-A lazy quantifier tries to match an element as few times as possible.</source>
-        <target state="new">The +? quantifier matches the preceding element one or more times. It is equivalent to the {1,}? quantifier.
-
-A lazy quantifier tries to match an element as few times as possible.</target>
+        <source>The +? quantifier matches the preceding element one or more times, but as few times as possible. It is the lazy counterpart of the greedy quantifier +</source>
+        <target state="new">The +? quantifier matches the preceding element one or more times, but as few times as possible. It is the lazy counterpart of the greedy quantifier +</target>
         <note />
       </trans-unit>
       <trans-unit id="regex_match_one_or_more_times_lazy_short">
@@ -1433,12 +1489,8 @@ A lazy quantifier tries to match an element as few times as possible.</target>
         <note />
       </trans-unit>
       <trans-unit id="regex_match_zero_or_more_times_lazy_long">
-        <source>The *? quantifier matches the preceding element zero or more times. It is equivalent to the {0,}? quantifier.
-
-A lazy quantifier tries to match an element as few times as possible.</source>
-        <target state="new">The *? quantifier matches the preceding element zero or more times. It is equivalent to the {0,}? quantifier.
-
-A lazy quantifier tries to match an element as few times as possible.</target>
+        <source>The *? quantifier matches the preceding element zero or more times, but as few times as possible. It is the lazy counterpart of the greedy quantifier *</source>
+        <target state="new">The *? quantifier matches the preceding element zero or more times, but as few times as possible. It is the lazy counterpart of the greedy quantifier *</target>
         <note />
       </trans-unit>
       <trans-unit id="regex_match_zero_or_more_times_lazy_short">
@@ -1454,6 +1506,26 @@ A lazy quantifier tries to match an element as few times as possible.</target>
       <trans-unit id="regex_match_zero_or_more_times_short">
         <source>match zero or more times</source>
         <target state="new">match zero or more times</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="regex_match_zero_or_one_time_lazy_long">
+        <source>The ?? quantifier matches the preceding element zero or one time, but as few times as possible. It is the lazy counterpart of the greedy quantifier ?</source>
+        <target state="new">The ?? quantifier matches the preceding element zero or one time, but as few times as possible. It is the lazy counterpart of the greedy quantifier ?</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="regex_match_zero_or_one_time_lazy_short">
+        <source>match zero or one time (lazy)</source>
+        <target state="new">match zero or one time (lazy)</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="regex_match_zero_or_one_time_long">
+        <source>The ? quantifier matches the preceding element zero or one time. It is equivalent to the {0,1} quantifier. ? is a greedy quantifier whose lazy equivalent is ??.</source>
+        <target state="new">The ? quantifier matches the preceding element zero or one time. It is equivalent to the {0,1} quantifier. ? is a greedy quantifier whose lazy equivalent is ??.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="regex_match_zero_or_one_time_short">
+        <source>match zero or one time</source>
+        <target state="new">match zero or one time</target>
         <note />
       </trans-unit>
       <trans-unit id="regex_matched_subexpression_long">
