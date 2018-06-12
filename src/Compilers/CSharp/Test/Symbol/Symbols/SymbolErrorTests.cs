@@ -12390,6 +12390,9 @@ public partial class C
                 // (6,44): error CS0703: Inconsistent accessibility: constraint type 'IB<U, IA<T>>' is less accessible than 'A.B<T, U>'
                 //     public partial class B<T, U> where U : IB<U, IA<T>> { }
                 Diagnostic(ErrorCode.ERR_BadVisBound, "IB<U, IA<T>>").WithArguments("A.B<T, U>", "IB<U, IA<T>>").WithLocation(6, 44),
+                // (7,44): error CS0703: Inconsistent accessibility: constraint type 'IB<U, IA<T>>' is less accessible than 'A.B<T, U>'
+                //     public partial class B<T, U> where U : IB<U, IA<T>> { }
+                Diagnostic(ErrorCode.ERR_BadVisBound, "IB<U, IA<T>>").WithArguments("A.B<T, U>", "IB<U, IA<T>>").WithLocation(7, 44),
                 // (11,25): error CS0750: A partial method cannot have access modifiers or the virtual, abstract, override, new, sealed, or extern modifiers
                 //     public partial void M<T>() where T : IA<T>;
                 Diagnostic(ErrorCode.ERR_PartialMethodInvalidModifier, "M").WithLocation(11, 25),
