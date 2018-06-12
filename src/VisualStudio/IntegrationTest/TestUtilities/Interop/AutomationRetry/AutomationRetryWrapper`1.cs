@@ -32,6 +32,8 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.Interop.AutomationRet
             get;
         }
 
+        object IRetryWrapper.WrappedObject => AutomationObject;
+
         protected void Retry(Action<T> action)
         {
             Retry(obj =>

@@ -13,5 +13,9 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.Interop.AutomationRet
     [InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
     internal interface IRetryWrapper
     {
+        object WrappedObject
+        {
+            get;
+        }
     }
 }
