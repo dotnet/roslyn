@@ -1,6 +1,6 @@
 Nullable Reference Types
 =========
-Reference types may be nullable, non-nullable, or null-oblivious (abbreviated here to `?`, `!`, and `~`).
+Reference types may be nullable, non-nullable, or null-oblivious (abbreviated here as `?`, `!`, and `~`).
 
 ## Annotations
 In source, nullable reference types are annotated with `?`.
@@ -19,14 +19,14 @@ namespace System.Runtime.CompilerServices
     }
 }
 ```
-If annotations are enabled in a module, a `[module: Nullable]` attribute is included.
+If the feature is enabled, a `[module: Nullable]` attribute is emitted to the module.
 ```c#
 // C# representation of metadata
 [module: Nullable]
 [Nullable] string OptString; // string?
 [Nullable(new[] { true, true })] List<object> OptListOptElements; // List<object?>?
 ```
-`NullableAttribute` cannot be used explicitly in source so the type declaration can be synthesized by the compiler if it is not included in the compilation.
+The `NullableAttribute` type declaration is synthesized by the compiler if it is not included in the compilation.
 
 Unannotated reference types are non-nullable or null-oblivious depending whether the containing scope includes `[NonNullTypes]`.
 ```c#
@@ -43,7 +43,7 @@ If there is no `[NonNullTypes]` attribute in any containing scope, including the
 [NonNullTypes(false), Nullable(new[] { false, true })] string[] Oblivious; // string?[]~
 [NonNullTypes(true), Nullable(new[] { false, true })] string[] NotNull; // string?[]!
 ```
-`NonNullTypesAttribute` can be referenced in source so the type declaration must be provided explicitly to the compilation and should be defined in the framework.
+`NonNullTypesAttribute` is not synthesized by the compiler. If the attribute is used explicitly in source, the type declaration must be provided explicitly to the compilation. The type should be defined in the framework.
 
 ## Declaration warnings
 _Describe warnings reported for declarations in initial binding._
@@ -62,7 +62,8 @@ _Describe valid top-level and variance conversions._
 _Describe warnings from user-defined conversions._
 
 ### Assignment
-Nullability of the righthand side flows to the lefthand side unchanged. Warnings are reported for top-level and nested nullability mismatches.
+For `x = y`, the nullability of the converted type of `y` is used for `x`.
+Warnings are reported for top-level and nested nullability mismatches.
 ```c#
 notNull = maybeNull; // assigns ?; warning
 notNull = oblivious; // assigns ~, no warning
