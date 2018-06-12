@@ -709,62 +709,95 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim boundForEach = DirectCast(GetUpperBoundNode(node), BoundForEachStatement)
 
             If boundForEach IsNot Nothing Then
-                Dim enumeratorInfo = boundForEach.EnumeratorInfo
-
-                Dim getEnumerator As MethodSymbol = Nothing
-                If enumeratorInfo.GetEnumerator IsNot Nothing AndAlso enumeratorInfo.GetEnumerator.Kind = BoundKind.Call Then
-                    getEnumerator = DirectCast(enumeratorInfo.GetEnumerator, BoundCall).Method
-                End If
-
-                Dim moveNext As MethodSymbol = Nothing
-                If enumeratorInfo.MoveNext IsNot Nothing AndAlso enumeratorInfo.MoveNext.Kind = BoundKind.Call Then
-                    moveNext = DirectCast(enumeratorInfo.MoveNext, BoundCall).Method
-                End If
-
-                Dim current As PropertySymbol = Nothing
-                If enumeratorInfo.Current IsNot Nothing AndAlso enumeratorInfo.Current.Kind = BoundKind.PropertyAccess Then
-                    current = DirectCast(enumeratorInfo.Current, BoundPropertyAccess).PropertySymbol
-                End If
-
-
-                ' The batch compiler doesn't actually use this conversion, so we'll just compute it here.
-                ' It will usually be an identity conversion.
-                Dim currentConversion As Conversion = Nothing
-                Dim elementType As TypeSymbol = Nothing
-                If enumeratorInfo.CurrentPlaceholder IsNot Nothing Then
-                    elementType = enumeratorInfo.CurrentPlaceholder.Type
-                    currentConversion = New Conversion(Conversions.ClassifyConversion(current.Type, elementType, useSiteDiagnostics:=Nothing))
-                End If
-
-                Dim elementConversion As Conversion = Nothing
-                If enumeratorInfo.CurrentConversion IsNot Nothing AndAlso enumeratorInfo.CurrentConversion.Kind = BoundKind.Conversion Then
-                    ' NOTE: What VB calls the current conversion is used to convert the current placeholder to the iteration
-                    ' variable type.  In the terminology of the public API, this is a conversion from the element type to the
-                    ' iteration variable type, and is referred to as the element conversion.
-                    Dim boundConversion = DirectCast(enumeratorInfo.CurrentConversion, BoundConversion)
-                    elementConversion = New Conversion(KeyValuePair.Create(boundConversion.ConversionKind, TryCast(boundConversion.ExpressionSymbol, MethodSymbol)))
-                End If
-
-                Dim originalCollection As BoundExpression = boundForEach.Collection
-                If originalCollection.Kind = BoundKind.Conversion Then
-                    Dim conversion = DirectCast(originalCollection, BoundConversion)
-                    If Not conversion.ExplicitCastInCode Then
-                        originalCollection = conversion.Operand
-                    End If
-                End If
-
-                Return New ForEachStatementInfo(getEnumerator,
-                                                moveNext,
-                                                current,
-                                                If(enumeratorInfo.NeedToDispose OrElse (originalCollection.Type IsNot Nothing AndAlso originalCollection.Type.IsArrayType()),
-                                                   DirectCast(Compilation.GetSpecialTypeMember(SpecialMember.System_IDisposable__Dispose), MethodSymbol),
-                                                   Nothing),
-                                                elementType,
-                                                elementConversion,
-                                                currentConversion)
+                Return GetForEachStatementInfo(boundForEach, Compilation,
+                                               getEnumeratorArguments:=Nothing,
+                                               getEnumeratorDefaultArguments:=Nothing,
+                                               moveNextArguments:=Nothing,
+                                               moveNextDefaultArguments:=Nothing,
+                                               currentArguments:=Nothing,
+                                               currentDefaultArguments:=Nothing)
             Else
                 Return Nothing
             End If
+        End Function
+
+        Friend Overloads Shared Function GetForEachStatementInfo(
+            boundForEach As BoundForEachStatement,
+            compilation As VisualBasicCompilation,
+            <Out> ByRef getEnumeratorArguments As ImmutableArray(Of BoundExpression),
+            <Out> ByRef getEnumeratorDefaultArguments As BitVector,
+            <Out> ByRef moveNextArguments As ImmutableArray(Of BoundExpression),
+            <Out> ByRef moveNextDefaultArguments As BitVector,
+            <Out> ByRef currentArguments As ImmutableArray(Of BoundExpression),
+            <Out> ByRef currentDefaultArguments As BitVector
+        ) As ForEachStatementInfo
+            getEnumeratorArguments = Nothing
+            moveNextArguments = Nothing
+            currentArguments = Nothing
+
+            Dim enumeratorInfo = boundForEach.EnumeratorInfo
+
+            Dim getEnumerator As MethodSymbol = Nothing
+            If enumeratorInfo.GetEnumerator IsNot Nothing AndAlso enumeratorInfo.GetEnumerator.Kind = BoundKind.Call Then
+                Dim getEnumeratorCall As BoundCall = DirectCast(enumeratorInfo.GetEnumerator, BoundCall)
+                getEnumerator = getEnumeratorCall.Method
+                getEnumeratorArguments = getEnumeratorCall.Arguments
+                getEnumeratorDefaultArguments = getEnumeratorCall.DefaultArguments
+            End If
+
+            Dim moveNext As MethodSymbol = Nothing
+            If enumeratorInfo.MoveNext IsNot Nothing AndAlso enumeratorInfo.MoveNext.Kind = BoundKind.Call Then
+                Dim moveNextCall As BoundCall = DirectCast(enumeratorInfo.MoveNext, BoundCall)
+                moveNext = moveNextCall.Method
+                moveNextArguments = moveNextCall.Arguments
+                moveNextDefaultArguments = moveNextCall.DefaultArguments
+            End If
+
+            Dim current As PropertySymbol = Nothing
+            If enumeratorInfo.Current IsNot Nothing AndAlso enumeratorInfo.Current.Kind = BoundKind.PropertyAccess Then
+                Dim currentProperty As BoundPropertyAccess = DirectCast(enumeratorInfo.Current, BoundPropertyAccess)
+                current = currentProperty.PropertySymbol
+                currentArguments = currentProperty.Arguments
+                currentDefaultArguments = currentProperty.DefaultArguments
+            End If
+
+            ' The batch compiler doesn't actually use this conversion, so we'll just compute it here.
+            ' It will usually be an identity conversion.
+            Dim currentConversion As Conversion = Nothing
+            Dim elementConversion As Conversion = Nothing
+            Dim elementType As TypeSymbol = enumeratorInfo.ElementType
+
+            If elementType IsNot Nothing AndAlso Not elementType.IsErrorType() Then
+                If current IsNot Nothing AndAlso Not current.Type.IsErrorType() Then
+                    currentConversion = New Conversion(Conversions.ClassifyConversion(current.Type, elementType, useSiteDiagnostics:=Nothing))
+                End If
+
+                Dim boundCurrentConversion As BoundExpression = enumeratorInfo.CurrentConversion
+                If boundCurrentConversion IsNot Nothing AndAlso Not boundCurrentConversion.Type.IsErrorType() Then
+                    ' NOTE: What VB calls the current conversion is used to convert the current placeholder to the iteration
+                    ' variable type.  In the terminology of the public API, this is a conversion from the element type to the
+                    ' iteration variable type, and is referred to as the element conversion.
+                    elementConversion = New Conversion(Conversions.ClassifyConversion(elementType, boundCurrentConversion.Type, useSiteDiagnostics:=Nothing))
+                End If
+            End If
+
+            Dim originalCollection As BoundExpression = boundForEach.Collection
+            If originalCollection.Kind = BoundKind.Conversion Then
+                Dim conversion = DirectCast(originalCollection, BoundConversion)
+                If Not conversion.ExplicitCastInCode Then
+                    originalCollection = conversion.Operand
+                End If
+            End If
+
+            Return New ForEachStatementInfo(getEnumerator,
+                                            moveNext,
+                                            current,
+                                            If(enumeratorInfo.NeedToDispose OrElse (originalCollection.Type IsNot Nothing AndAlso originalCollection.Type.IsArrayType()),
+                                               DirectCast(compilation.GetSpecialTypeMember(SpecialMember.System_IDisposable__Dispose), MethodSymbol),
+                                               Nothing),
+                                            elementType,
+                                            elementConversion,
+                                            currentConversion)
         End Function
 
         Friend Overrides Function GetAttributeSymbolInfo(attribute As AttributeSyntax, Optional cancellationToken As CancellationToken = Nothing) As SymbolInfo
@@ -2307,7 +2340,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     If initialization IsNot Nothing Then
 #If DEBUG Then
                         Dim haveBindersInTheMap As Binder.AnonymousTypeFieldInitializerBinder = Nothing
-                        Debug.Assert(Not _semanticModel._guardedAnonymousTypeBinderMap.TryGetValue(initialization, haveBindersInTheMap) OrElse haveBindersInTheMap Is node.Binder)
+                        ' The assert below is disabled due to https://github.com/dotnet/roslyn/issues/27533, need to follow up
+                        'Debug.Assert(Not _semanticModel._guardedAnonymousTypeBinderMap.TryGetValue(initialization, haveBindersInTheMap) OrElse haveBindersInTheMap Is node.Binder)
 #End If
                         _semanticModel._guardedAnonymousTypeBinderMap(initialization) = node.Binder
                     End If

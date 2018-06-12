@@ -407,7 +407,7 @@ end class
 
 #Region "relational binary parentheses"
 
-        Private Shared ReadOnly s_relationalBinaryIgnore As String = $"
+        Private Shared ReadOnly s_relationalBinaryAlwaysForClarity As String = $"
 class C
     sub M()
 //[
@@ -468,7 +468,7 @@ end class
 
 #Region "other parentheses"
 
-        Private Shared ReadOnly s_otherParenthesesIgnore As String = $"
+        Private Shared ReadOnly s_otherParenthesesAlwaysForClarity As String = $"
 class C
     sub M()
 //[
@@ -575,25 +575,25 @@ End Class"
                 LanguageNames.VisualBasic, optionSet, CodeStyleOptions.ArithmeticBinaryParentheses,
                 BasicVSResources.In_arithmetic_binary_operators,
                 {s_arithmeticBinaryAlwaysForClarity, s_arithmeticBinaryNeverIfUnnecessary},
-                isIgnoreOption:=False)
+                defaultAddForClarity:=True)
 
             AddParenthesesOption(
                 LanguageNames.VisualBasic, optionSet, CodeStyleOptions.OtherBinaryParentheses,
                 BasicVSResources.In_other_binary_operators,
                 {s_otherBinaryAlwaysForClarity, s_otherBinaryNeverIfUnnecessary},
-                isIgnoreOption:=False)
+                defaultAddForClarity:=True)
 
             AddParenthesesOption(
                 LanguageNames.VisualBasic, optionSet, CodeStyleOptions.RelationalBinaryParentheses,
                 BasicVSResources.In_relational_binary_operators,
-                {s_relationalBinaryIgnore, s_relationalBinaryNeverIfUnnecessary},
-                isIgnoreOption:=True)
+                {s_relationalBinaryAlwaysForClarity, s_relationalBinaryNeverIfUnnecessary},
+                defaultAddForClarity:=True)
 
             AddParenthesesOption(
                 LanguageNames.VisualBasic, optionSet, CodeStyleOptions.OtherParentheses,
                 ServicesVSResources.In_other_operators,
-                {s_otherParenthesesIgnore, s_otherParenthesesNeverIfUnnecessary},
-                isIgnoreOption:=True)
+                {s_otherParenthesesAlwaysForClarity, s_otherParenthesesNeverIfUnnecessary},
+                defaultAddForClarity:=False)
         End Sub
     End Class
 End Namespace

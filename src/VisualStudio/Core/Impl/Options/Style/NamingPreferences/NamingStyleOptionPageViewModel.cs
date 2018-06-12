@@ -20,7 +20,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options.Style
 
         private readonly NotificationOptionViewModel[] _notifications = new[]
         {
-            new NotificationOptionViewModel(NotificationOption.None, KnownMonikers.None),
+            new NotificationOptionViewModel(NotificationOption.Silent, KnownMonikers.None),
             new NotificationOptionViewModel(NotificationOption.Suggestion, KnownMonikers.StatusInformation),
             new NotificationOptionViewModel(NotificationOption.Warning, KnownMonikers.StatusWarning),
             new NotificationOptionViewModel(NotificationOption.Error, KnownMonikers.StatusError)
@@ -44,7 +44,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options.Style
 
                 viewModel.SelectedSpecification = viewModel.Specifications.Single(s => s.ID == namingRule.SymbolSpecificationID);
                 viewModel.SelectedStyle= viewModel.NamingStyles.Single(s => s.ID == namingRule.NamingStyleID);
-                viewModel.SelectedNotificationPreference = viewModel.NotificationPreferences.Single(n => n.Notification.Value == namingRule.EnforcementLevel);
+                viewModel.SelectedNotificationPreference = viewModel.NotificationPreferences.Single(n => n.Notification.Severity == namingRule.EnforcementLevel);
                 
                 viewModels.Add(viewModel);
             }

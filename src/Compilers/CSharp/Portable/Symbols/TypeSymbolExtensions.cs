@@ -71,8 +71,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public static bool IsNullableType(this TypeSymbol type)
         {
-            var original = (TypeSymbol)type.OriginalDefinition;
-            return original.SpecialType == SpecialType.System_Nullable_T;
+            return type.OriginalDefinition.SpecialType == SpecialType.System_Nullable_T;
         }
 
         public static TypeSymbol GetNullableUnderlyingType(this TypeSymbol type)
