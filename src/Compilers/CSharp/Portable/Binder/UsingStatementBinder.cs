@@ -62,33 +62,30 @@ namespace Microsoft.CodeAnalysis.CSharp
             VariableDeclarationSyntax declarationSyntax = _syntax.Declaration;
 
             Debug.Assert((expressionSyntax == null) ^ (declarationSyntax == null)); // Can't have both or neither.
+
             bool hasErrors = false;
-
-            ImmutableArray<BoundLocalDeclaration> declarations;
-            originalBinder.BindForOrUsingOrFixedDeclarations(declarationSyntax, LocalDeclarationKind.UsingVariable, diagnostics, out declarations);
-            Debug.Assert(!declarations.IsEmpty);
-
-            BoundExpression expressionOpt = this.BindTargetExpression(diagnostics, originalBinder);
-            BoundMultipleLocalDeclarations declarationsOpt = new BoundMultipleLocalDeclarations(declarationSyntax, declarations);
-
-            TypeSymbol declType = declarations[0].DeclaredType.Type;
-            TypeSymbol expressionType = expressionOpt.Type;
-
-            MethodSymbol disposeMethod = expressionOpt.Type == null ?
-                TryFindDisposePatternMethod(declType, diagnostics) : 
-                TryFindDisposePatternMethod(expressionOpt.Type, diagnostics);
-
+            BoundMultipleLocalDeclarations declarationsOpt = null;
+            BoundExpression expressionOpt = null;
+            MethodSymbol disposeMethod = null;
             Conversion iDisposableConversion = Conversion.NoConversion;
             TypeSymbol iDisposable = this.Compilation.GetSpecialType(SpecialType.System_IDisposable); // no need for diagnostics, so use the Compilation version
             Debug.Assert((object)iDisposable != null);
 
             if (expressionSyntax != null)
             {
+                expressionOpt = this.BindTargetExpression(diagnostics, originalBinder);
+
                 HashSet<DiagnosticInfo> useSiteDiagnostics = null;
                 iDisposableConversion = originalBinder.Conversions.ClassifyImplicitConversionFromExpression(expressionOpt, iDisposable, ref useSiteDiagnostics);
                 diagnostics.Add(expressionSyntax, useSiteDiagnostics);
 
-                if (!iDisposableConversion.IsImplicit)
+                TypeSymbol expressionType = expressionOpt.Type;
+                if (!(expressionType is null))
+                {
+                    disposeMethod = TryFindDisposePatternMethod(expressionType, diagnostics);
+                }
+                
+                if (!iDisposableConversion.IsImplicit && (object)disposeMethod is null)
                 {
                     if ((object)expressionType == null || !expressionType.IsErrorType())
                     {
@@ -99,6 +96,17 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else
             {
+
+                ImmutableArray<BoundLocalDeclaration> declarations;
+                originalBinder.BindForOrUsingOrFixedDeclarations(declarationSyntax, LocalDeclarationKind.UsingVariable, diagnostics, out declarations);
+
+                Debug.Assert(!declarations.IsEmpty);
+
+                declarationsOpt = new BoundMultipleLocalDeclarations(declarationSyntax, declarations);
+
+                TypeSymbol declType = declarations[0].DeclaredType.Type;
+                disposeMethod = TryFindDisposePatternMethod(declType, diagnostics);
+
                 if (declType.IsDynamic())
                 {
                     iDisposableConversion = Conversion.ImplicitDynamic;
@@ -109,7 +117,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     iDisposableConversion = originalBinder.Conversions.ClassifyImplicitConversionFromType(declType, iDisposable, ref useSiteDiagnostics);
                     diagnostics.Add(declarationSyntax, useSiteDiagnostics);
 
-                    if (!iDisposableConversion.IsImplicit)
+                    if (!iDisposableConversion.IsImplicit && (object)disposeMethod is null)
                     {
                         if (!declType.IsErrorType())
                         {
@@ -131,7 +139,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 expressionOpt,
                 iDisposableConversion,
                 boundBody,
-                disposeMethod, // This ensures that a pattern-matched Dispose statement is not used.
+                disposeMethod,
                 hasErrors);
         }
 
