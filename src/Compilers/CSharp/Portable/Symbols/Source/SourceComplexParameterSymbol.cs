@@ -127,11 +127,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                                   && !HasCallerFilePathAttribute
                                                   && HasCallerMemberNameAttribute;
 
-        internal override AttributeAnnotations FlowAnalysisAnnotations
+        internal override FlowAnalysisAnnotations FlowAnalysisAnnotations
         {
             get
             {
-                AttributeAnnotations? annotations = TryGetExtraAttributeAnnotations();
+                FlowAnalysisAnnotations? annotations = TryGetExtraAttributeAnnotations();
                 if (annotations.HasValue)
                 {
                     // PROTOTYPE(NullableReferenceTypes): Make sure this is covered by test
@@ -141,9 +141,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 CommonParameterWellKnownAttributeData attributeData = GetDecodedWellKnownAttributeData();
                 bool hasEnsuresNotNull = attributeData?.HasEnsuresNotNullAttribute == true;
 
-                return AttributeAnnotations.None
-                    .With(notNullWhenTrue: hasEnsuresNotNull || attributeData?.HasNotNullWhenTrueAttribute == true,
-                        notNullWhenFalse: hasEnsuresNotNull || attributeData?.HasNotNullWhenFalseAttribute == true);
+                return FlowAnalysisAnnotationsFacts.Create(
+                    notNullWhenTrue: hasEnsuresNotNull || attributeData?.HasNotNullWhenTrueAttribute == true,
+                    notNullWhenFalse: hasEnsuresNotNull || attributeData?.HasNotNullWhenFalseAttribute == true,
+                    assertsTrue: attributeData?.HasAssertsTrueAttribute == true,
+                    assertsFalse: attributeData?.HasAssertsFalseAttribute == true);
             }
         }
 
@@ -636,6 +638,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             else if (attribute.IsTargetAttribute(this, AttributeDescription.EnsuresNotNullAttribute))
             {
                 arguments.GetOrCreateData<CommonParameterWellKnownAttributeData>().HasEnsuresNotNullAttribute = true;
+            }
+            else if (attribute.IsTargetAttribute(this, AttributeDescription.AssertsTrueAttribute))
+            {
+                arguments.GetOrCreateData<CommonParameterWellKnownAttributeData>().HasAssertsTrueAttribute = true;
+            }
+            else if (attribute.IsTargetAttribute(this, AttributeDescription.AssertsFalseAttribute))
+            {
+                arguments.GetOrCreateData<CommonParameterWellKnownAttributeData>().HasAssertsFalseAttribute = true;
             }
         }
 

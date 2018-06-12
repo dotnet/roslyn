@@ -151,9 +151,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return _originalParam.IsCallerMemberName; }
         }
 
-        internal override AttributeAnnotations FlowAnalysisAnnotations
+        internal override FlowAnalysisAnnotations FlowAnalysisAnnotations
         {
-            get { return AttributeAnnotations.None; }
+            get { return FlowAnalysisAnnotations.None; }
         }
 
         #endregion
