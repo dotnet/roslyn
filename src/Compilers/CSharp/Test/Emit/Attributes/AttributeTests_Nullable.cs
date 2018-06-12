@@ -481,6 +481,9 @@ public class B<T> where T : A<object?>
                 var constraint = reader.GetGenericParameterConstraint(typeParameter.GetConstraints()[0]);
                 AssertAttributes(reader, constraint.GetCustomAttributes(), "MethodDefinition:Void System.Runtime.CompilerServices.NullableAttribute..ctor(Boolean[])");
             });
+
+            var type = comp.GetMember<NamedTypeSymbol>("B");
+            Assert.Equal("A<System.Object?>", type.TypeParameters[0].ConstraintTypes()[0].ToTestDisplayString());
         }
 
         [Fact]

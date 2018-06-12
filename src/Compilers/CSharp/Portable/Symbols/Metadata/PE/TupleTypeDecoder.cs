@@ -109,8 +109,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 return TypeSymbolWithAnnotations.Create(new UnsupportedMetadataTypeSymbol(), isNullableIfReferenceType: null);
             }
 
-            var decoded = DecodeTupleTypesInternal(metadataType.TypeSymbol, elementNames, hasTupleElementNamesAttribute);
-            return TypeSymbolWithAnnotations.Create(decoded, isNullableIfReferenceType: metadataType.IsNullable, metadataType.CustomModifiers);
+            TypeSymbol type = metadataType.TypeSymbol;
+            TypeSymbol decoded = DecodeTupleTypesInternal(type, elementNames, hasTupleElementNamesAttribute);
+            return (object)decoded == (object)type ?
+                metadataType :
+                TypeSymbolWithAnnotations.Create(decoded, isNullableIfReferenceType: metadataType.IsNullable, metadataType.CustomModifiers);
         }
 
         public static TypeSymbol DecodeTupleTypesIfApplicable(
@@ -251,9 +254,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             // Visit the type arguments in reverse
             for (int i = typeArgs.Length - 1; i >= 0; i--)
             {
-                var typeArg = typeArgs[i];
-                var decoded = DecodeTypeInternal(typeArg);
-                anyDecoded |= !ReferenceEquals(decoded, typeArg.TypeSymbol);
+                TypeSymbolWithAnnotations typeArg = typeArgs[i];
+                TypeSymbolWithAnnotations decoded = DecodeTypeInternal(typeArg);
+                anyDecoded |= !ReferenceEquals(decoded, typeArg);
                 decodedArgs.Add(decoded);
             }
 
@@ -269,8 +272,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
         private ArrayTypeSymbol DecodeArrayType(ArrayTypeSymbol type)
         {
-            var elementType = type.ElementType;
-            var decodedElementType = DecodeTypeInternal(elementType);
+            TypeSymbolWithAnnotations elementType = type.ElementType;
+            TypeSymbolWithAnnotations decodedElementType = DecodeTypeInternal(elementType);
             return ReferenceEquals(decodedElementType, elementType)
                 ? type
                 : type.WithElementType(decodedElementType);
@@ -278,8 +281,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
         private TypeSymbolWithAnnotations DecodeTypeInternal(TypeSymbolWithAnnotations typeWithAnnotations)
         {
-            var type = typeWithAnnotations.TypeSymbol;
-            var decoded = DecodeType(type);
+            TypeSymbol type = typeWithAnnotations.TypeSymbol;
+            TypeSymbol decoded = DecodeType(type);
             return ReferenceEquals(decoded, type) ?
                 typeWithAnnotations :
                 TypeSymbolWithAnnotations.Create(decoded, typeWithAnnotations.IsNullable, typeWithAnnotations.CustomModifiers);
