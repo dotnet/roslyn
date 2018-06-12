@@ -257,7 +257,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                                             syntaxNodeOpt: (CSharpSyntaxNode)context.SyntaxNodeOpt,
                                                             diagnostics: context.Diagnostics);
 
-                yield return type.TypeSymbol.GetTypeRefWithAttributes(
+                yield return type.GetTypeRefWithAttributes(
                                                             moduleBeingBuilt,
                                                             this.DeclaringCompilation,
                                                             typeRef);

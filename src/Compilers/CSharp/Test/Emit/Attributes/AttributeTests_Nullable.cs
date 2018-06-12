@@ -471,6 +471,9 @@ public class B : I<(object X, object? Y)>
 }
 public class B<T> where T : A?
 {
+}
+public class C<T> where T : A
+{
 }";
             var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
             CompileAndVerify(comp, validator: assembly =>
@@ -479,9 +482,32 @@ public class B<T> where T : A?
                 var typeDef = GetTypeDefinitionByName(reader, "B`1");
                 var typeParameter = reader.GetGenericParameter(typeDef.GetGenericParameters()[0]);
                 var constraint = reader.GetGenericParameterConstraint(typeParameter.GetConstraints()[0]);
-                // PROTOTYPE(NullableReferenceTypes): TypeSymbolExtensions.GetTypeRefWithAttributes is not including top-level nullability.
+                AssertAttributes(reader, constraint.GetCustomAttributes(), "MethodDefinition:Void System.Runtime.CompilerServices.NullableAttribute..ctor()");
+                typeDef = GetTypeDefinitionByName(reader, "C`1");
+                typeParameter = reader.GetGenericParameter(typeDef.GetGenericParameters()[0]);
+                constraint = reader.GetGenericParameterConstraint(typeParameter.GetConstraints()[0]);
                 AssertAttributes(reader, constraint.GetCustomAttributes());
             });
+
+            var source2 =
+@"class Program
+{
+    static void Main()
+    {
+        new B<A?>();
+        new B<A>();
+        new C<A?>();
+        new C<A>();
+    }
+}";
+            var comp2 = CreateCompilation(source2, parseOptions: TestOptions.Regular8, references: new[] { comp.EmitToImageReference() });
+            // PROTOTYPE(NullableReferenceTypes): Report warning for `new C<A?>()`:
+            comp2.VerifyEmitDiagnostics();
+
+            var type = comp2.GetMember<NamedTypeSymbol>("B");
+            Assert.Equal("A?", type.TypeParameters[0].ConstraintTypesNoUseSiteDiagnostics[0].ToTestDisplayString());
+            type = comp2.GetMember<NamedTypeSymbol>("C");
+            Assert.Equal("A", type.TypeParameters[0].ConstraintTypesNoUseSiteDiagnostics[0].ToTestDisplayString());
         }
 
         [Fact]
@@ -519,7 +545,7 @@ public class B<T> where T : A<object?>
             comp2.VerifyDiagnostics();
 
             var type = comp2.GetMember<NamedTypeSymbol>("B");
-            Assert.Equal("A<System.Object?>", type.TypeParameters[0].ConstraintTypes()[0].ToTestDisplayString());
+            Assert.Equal("A<System.Object?>", type.TypeParameters[0].ConstraintTypesNoUseSiteDiagnostics[0].ToTestDisplayString());
         }
 
         // PROTOTYPE(NullableReferenceTypes): Test `class C<T> where T : class? { }`.
@@ -540,8 +566,7 @@ public class B<T> where T : A<object?>
                 var typeDef = GetTypeDefinitionByName(reader, "C`2");
                 var typeParameter = reader.GetGenericParameter(typeDef.GetGenericParameters()[1]);
                 var constraint = reader.GetGenericParameterConstraint(typeParameter.GetConstraints()[0]);
-                // PROTOTYPE(NullableReferenceTypes): TypeSymbolExtensions.GetTypeRefWithAttributes is not including top-level nullability.
-                AssertAttributes(reader, constraint.GetCustomAttributes());
+                AssertAttributes(reader, constraint.GetCustomAttributes(), "MethodDefinition:Void System.Runtime.CompilerServices.NullableAttribute..ctor()");
             });
 
             var source2 =
@@ -559,8 +584,7 @@ public class B<T> where T : A<object?>
             comp2.VerifyEmitDiagnostics();
 
             var type = comp2.GetMember<NamedTypeSymbol>("C");
-            // PROTOTYPE(NullableReferenceTypes): TypeSymbolExtensions.GetTypeRefWithAttributes is not including top-level nullability.
-            Assert.Equal("T", type.TypeParameters[1].ConstraintTypesNoUseSiteDiagnostics[0].ToTestDisplayString());
+            Assert.Equal("T?", type.TypeParameters[1].ConstraintTypesNoUseSiteDiagnostics[0].ToTestDisplayString());
         }
 
         [Fact]
@@ -1391,7 +1415,7 @@ public class B<T> :
                 type.Interfaces()[0].ToTestDisplayString());
             Assert.Equal(
                 "A<(System.Object? _1, (System.Object _2, System.Object? _3), System.Object _4, System.Object? _5, System.Object _6, System.Object? _7, System.Object _8, System.Object? _9)>",
-                type.TypeParameters[0].ConstraintTypes()[0].ToTestDisplayString());
+                type.TypeParameters[0].ConstraintTypesNoUseSiteDiagnostics[0].ToTestDisplayString());
             Assert.Equal(
                 "(dynamic? _1, (System.Object _2, dynamic? _3), System.Object _4, dynamic? _5, System.Object _6, dynamic? _7, System.Object _8, dynamic? _9)",
                 type.GetMember<FieldSymbol>("Field").Type.ToTestDisplayString());

@@ -212,14 +212,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                             continue;
                         }
 
+                        var type = TypeSymbolWithAnnotations.Create(typeSymbol, isNullableIfReferenceType: null);
                         if (moduleSymbol.UtilizesNullableReferenceTypes)
                         {
-                            // PROTOTYPE(NullableReferenceTypes): Not including top-level nullability.
-                            typeSymbol = NullableTypeDecoder.TransformType(TypeSymbolWithAnnotations.Create(typeSymbol), constraintHandle, moduleSymbol).TypeSymbol;
+                            type = NullableTypeDecoder.TransformType(type, constraintHandle, moduleSymbol);
                         }
-                        typeSymbol = TupleTypeDecoder.DecodeTupleTypesIfApplicable(typeSymbol, constraintHandle, moduleSymbol);
+                        type = TupleTypeDecoder.DecodeTupleTypesIfApplicable(type, constraintHandle, moduleSymbol);
 
-                        symbolsBuilder.Add(TypeSymbolWithAnnotations.Create(moduleSymbol, typeSymbol));
+                        symbolsBuilder.Add(type);
                     }
 
                     declaredConstraintTypes = symbolsBuilder.ToImmutableAndFree();
