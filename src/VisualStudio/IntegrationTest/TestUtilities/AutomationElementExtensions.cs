@@ -12,7 +12,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
 {
     public static class AutomationElementExtensions
     {
-        private const int UIA_E_ELEMENTNOTAVAILABLE = unchecked((int)0x80040201);
+        internal const int UIA_E_ELEMENTNOTAVAILABLE = unchecked((int)0x80040201);
 
         /// <summary>
         /// The number of times to retry a UI automation operation that failed with
