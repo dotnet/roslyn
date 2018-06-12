@@ -8534,7 +8534,7 @@
                                   Określ mapowanie nazw ścieżek źródłowych wyprowadzanych
                                   przez kompilator.
 /platform:&lt;ciąg&gt;                  Ogranicz platformy, na jakich można uruchomić ten kod; 
-                                  dozwolone wartości: x86, x64, Itanium, arm,
+                                  dozwolone wartości: x86, x64, Itanium, arm, arm64,
                                   AnyCPU32BitPreferred lub anycpu (wartość domyślna).
 /preferreduilang                  Określ nazwę preferowanego języka wyjściowego.
 /sdkpath:&lt;ścieżka&gt;                Lokalizacja katalogu zestawu .NET Framework SDK

@@ -1578,17 +1578,18 @@ namespace Microsoft.CodeAnalysis.CSharp
         WRN_TypeParameterSameAsOuterMethodTypeParameter = 8387,
         ERR_OutVariableCannotBeByRef = 8388,
 
-        // Note: you will need to re-generate compiler code after adding warnings (build\scripts\generate-compiler-code.cmd)
+        #region diagnostics introduced for C# 8.0
+        ERR_FeatureNotAvailableInVersion8 = 8400,
+        #endregion diagnostics introduced for C# 8.0
 
-        ERR_FeatureNotAvailableInVersion8_0 = 8399,
+        // Note: you will need to re-generate compiler code after adding warnings (build\scripts\generate-compiler-code.cmd)
 
         #region diagnostics introduced for recursive patterns
         // PROTOTYPE(patterns2): renumber these before committing
-        ERR_MissingPattern = 8400,
         ERR_InferredRecursivePatternType = 8401,
         ERR_WrongNumberOfSubpatterns = 8402,
         ERR_PropertyPatternNameMissing = 8403,
-        //ERR_FeatureIsUnimplemented = 8404,
+        ERR_MissingPattern = 8404,
         ERR_DefaultPattern = 8405,
         ERR_SwitchExpressionNoBestType = 8406,
         ERR_SingleElementPositionalPatternRequiresType = 8407,

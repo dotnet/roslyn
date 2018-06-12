@@ -385,7 +385,8 @@ class Variable
                 Await state.AssertSelectedCompletionItem(displayText:="Variable", isHardSelected:=True)
                 state.SendTypeChars(" ")
                 Assert.Contains("(Variable x, Variable ", state.GetLineTextFromCaretPosition(), StringComparison.Ordinal)
-                Await state.AssertNoCompletionSession()
+                Await state.AssertSelectedCompletionItem(displayText:="Variable", isHardSelected:=False)
+                Assert.True(state.CompletionItemsContainsAll({"variable"}))
             End Using
         End Function
 
@@ -1523,10 +1524,12 @@ class C
         End Function
 
         <WorkItem(544293, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544293")>
-        <WpfFact(Skip:="https://github.com/dotnet/roslyn/issues/26115"), Trait(Traits.Feature, Traits.Features.Completion)>
-        Public Async Function NoKeywordsOrSymbolsAfterNamedParameter() As Task
-            Using state = TestState.CreateCSharpTestState(
-                              <Document>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function NoKeywordsOrSymbolsAfterNamedParameterWithCSharp7() As Task
+            Using state = TestState.CreateTestStateFromWorkspace(
+                        <Workspace>
+                            <Project Language="C#" CommonReferences="true" LanguageVersion="7">
+                                <Document>
 class Goo
 {
     void Test()
@@ -1539,13 +1542,41 @@ class Goo
     {
     }
 }
-                              </Document>)
+                              </Document>
+                            </Project>
+                        </Workspace>)
 
                 state.SendTypeChars("a")
                 Await state.AssertCompletionSession()
                 Assert.True(state.CurrentCompletionPresenterSession.CompletionItems.Any(Function(i) i.DisplayText = "num:"))
                 Assert.False(state.CurrentCompletionPresenterSession.CompletionItems.Any(Function(i) i.DisplayText = "System"))
                 Assert.False(state.CurrentCompletionPresenterSession.CompletionItems.Any(Function(c) c.DisplayText = "int"))
+            End Using
+        End Function
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function KeywordsOrSymbolsAfterNamedParameter() As Task
+            Using state = TestState.CreateCSharpTestState(
+                                <Document>
+class Goo
+{
+    void Test()
+    {
+        object m = null;
+        Method(obj:m, $$
+    }
+
+    void Method(object obj, int num = 23, string str = "")
+    {
+    }
+}
+                              </Document>)
+
+                state.SendTypeChars("a")
+                Await state.AssertCompletionSession()
+                Assert.True(state.CurrentCompletionPresenterSession.CompletionItems.Any(Function(i) i.DisplayText = "num:"))
+                Assert.True(state.CurrentCompletionPresenterSession.CompletionItems.Any(Function(i) i.DisplayText = "System"))
+                Assert.True(state.CurrentCompletionPresenterSession.CompletionItems.Any(Function(c) c.DisplayText = "int"))
             End Using
         End Function
 

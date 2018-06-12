@@ -329,7 +329,7 @@ class Program
         System.Console.WriteLine(null != (x as Derived));
     }
 }";
-            var compilation = CreateCompilation(source, options: TestOptions.DebugExe, references: new[] { LinqAssemblyRef });
+            var compilation = CreateCompilation(source, options: TestOptions.DebugExe);
             compilation.VerifyDiagnostics();
             var expectedOutput =
 @"True

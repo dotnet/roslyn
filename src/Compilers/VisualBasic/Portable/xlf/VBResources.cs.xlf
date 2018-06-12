@@ -8534,7 +8534,7 @@
                                   Určuje mapování pro výstup zdrojových názvů cest
                                   kompilátorem.
 /platform:&lt;řetězec&gt;               Omezuje platformy, na kterých se dá tento kód
-                                  spustit: x86, x64, Itanium, arm,
+                                  spustit: x86, x64, Itanium, arm, arm64,
                                   AnyCPU32BitPreferred nebo anycpu (výchozí).
 /preferreduilang                  Určuje název upřednostňovaného výstupního jazyka.
 /sdkpath:&lt;cesta&gt;                  Umístění adresáře s .NET Framework SDK

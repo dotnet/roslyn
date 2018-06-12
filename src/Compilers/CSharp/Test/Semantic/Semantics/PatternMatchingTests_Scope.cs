@@ -1656,7 +1656,7 @@ public class X
     }
 }
 ";
-            var compilation = CreateCompilation(source, new[] { SystemCoreRef }, options: TestOptions.DebugExe);
+            var compilation = CreateCompilation(source, options: TestOptions.DebugExe);
             compilation.VerifyDiagnostics(
                 // (25,26): error CS0103: The name 'z2' does not exist in the current context
                 //                          z2;
@@ -1964,7 +1964,7 @@ public class X
     }
 }
 ";
-            var compilation = CreateCompilation(source, new[] { SystemCoreRef }, options: TestOptions.DebugExe);
+            var compilation = CreateCompilation(source, options: TestOptions.DebugExe);
             compilation.VerifyDiagnostics(
                 // (18,35): error CS0103: The name 'v4' does not exist in the current context
                 //                                   v4 
@@ -2100,7 +2100,7 @@ public class X
     }
 }
 ";
-            var compilation = CreateCompilation(source, new[] { SystemCoreRef }, options: TestOptions.DebugExe);
+            var compilation = CreateCompilation(source, options: TestOptions.DebugExe);
             compilation.VerifyDiagnostics(
                 // (16,47): error CS0128: A local variable or function named 'y1' is already defined in this scope
                 //         var res = from x1 in new[] { 1 is var y1 ? y1 : 0}
@@ -2226,7 +2226,7 @@ public class X
     }
 }
 ";
-            var compilation = CreateCompilation(source, new[] { SystemCoreRef }, options: TestOptions.DebugExe);
+            var compilation = CreateCompilation(source, options: TestOptions.DebugExe);
             compilation.VerifyDiagnostics(
                 // (26,47): error CS0128: A local variable or function named 'y1' is already defined in this scope
                 //                   from x1 in new[] { 1 is var y1 ? y1 : 0}
@@ -2324,7 +2324,7 @@ public class X
     }
 }
 ";
-            var compilation = CreateCompilation(source, new[] { SystemCoreRef }, options: TestOptions.DebugExe);
+            var compilation = CreateCompilation(source, options: TestOptions.DebugExe);
             compilation.VerifyDiagnostics(
                 // (18,47): error CS0128: A local variable named 'y3' is already defined in this scope
                 //                   join x3 in new[] { 3 is var y3 ? y3 : 0}
@@ -2378,7 +2378,7 @@ public class X
     }
 }
 ";
-            var compilation = CreateCompilation(source, new[] { SystemCoreRef }, options: TestOptions.DebugExe);
+            var compilation = CreateCompilation(source, options: TestOptions.DebugExe);
             compilation.VerifyDiagnostics(
                 // (19,24): error CS1931: The range variable 'y1' conflicts with a previous declaration of 'y1'
                 //                   from y1 in new[] { 1 }
@@ -2445,7 +2445,7 @@ public class X
     }
 }
 ";
-            var compilation = CreateCompilation(source, new[] { SystemCoreRef }, options: TestOptions.DebugExe);
+            var compilation = CreateCompilation(source, options: TestOptions.DebugExe);
             compilation.VerifyDiagnostics(
                 // (14,24): error CS1931: The range variable 'y1' conflicts with a previous declaration of 'y1'
                 //         var res = from y1 in new[] { 0 }
@@ -2584,7 +2584,7 @@ public class X
     }
 }
 ";
-            var compilation = CreateCompilation(source, new[] { SystemCoreRef }, options: TestOptions.DebugExe);
+            var compilation = CreateCompilation(source, options: TestOptions.DebugExe);
 
             // error CS0412 is misleading and reported due to preexisting bug https://github.com/dotnet/roslyn/issues/12052
             compilation.VerifyDiagnostics(
@@ -2686,7 +2686,7 @@ public class X
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, new[] { SystemCoreRef }, options: TestOptions.DebugExe);
+            var compilation = CreateCompilation(source, options: TestOptions.DebugExe);
             compilation.VerifyDiagnostics(
                 // (17,47): error CS0136: A local or parameter named 'y1' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
                 //                               where x1 is var y1

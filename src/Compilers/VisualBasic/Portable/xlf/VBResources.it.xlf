@@ -8534,7 +8534,7 @@
                                   Consente di specificare un mapping per i nomi di percorso di origine
                                   visualizzati dal compilatore.
 /platform:&lt;stringa&gt;                Limita le piattaforme su cui è possibile seguire questo codice. 
-                                  Il valore deve essere x86, x64, Itanium, arm,
+                                  Il valore deve essere x86, x64, Itanium, arm, arm64,
                                   AnyCPU32BitPreferred o anycpu (impostazione predefinita).
 /preferreduilang                  Consente di specificare il nome del linguaggio di output preferito.
 /sdkpath:&lt;percorso&gt;                   Percorso della directory di .NET Framework SDK 

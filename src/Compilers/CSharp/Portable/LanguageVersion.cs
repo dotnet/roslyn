@@ -184,7 +184,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case LanguageVersion.CSharp7_3:
                     return ErrorCode.ERR_FeatureNotAvailableInVersion7_3;
                 case LanguageVersion.CSharp8:
-                    return ErrorCode.ERR_FeatureNotAvailableInVersion8_0;
+                    return ErrorCode.ERR_FeatureNotAvailableInVersion8;
                 default:
                     throw ExceptionUtilities.UnexpectedValue(version);
             }

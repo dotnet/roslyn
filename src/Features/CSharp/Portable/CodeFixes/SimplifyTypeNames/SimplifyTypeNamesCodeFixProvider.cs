@@ -75,17 +75,14 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.SimplifyTypeNames
                 return;
             }
 
-            var id = GetCodeActionId(diagnosticId, node.ConvertToSingleLine().ToString());
-            var title = id;
-            var codeAction = new SimplifyTypeNameCodeAction(title,
-                    c => SimplifyTypeNameAsync(document, node, c),
-                    id);
+            var title = GetTitle(diagnosticId, node.ConvertToSingleLine().ToString());
+            var codeAction = new SimplifyTypeNameCodeAction(
+                title, c => SimplifyTypeNameAsync(document, node, c), diagnosticId);
 
             context.RegisterCodeFix(codeAction, context.Diagnostics);
         }
 
-        // internal for testing purpose
-        internal static string GetCodeActionId(string diagnosticId, string nodeText)
+        private static string GetTitle(string diagnosticId, string nodeText)
         {
             switch (diagnosticId)
             {

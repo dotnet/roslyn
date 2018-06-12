@@ -6664,7 +6664,7 @@ class Program
     }
 }
 ";
-            var comp = CreateCompilation(source, new[] { SystemCoreRef, CSharpRef }, TestOptions.ReleaseExe);
+            var comp = CreateCompilation(source, new[] { CSharpRef }, TestOptions.ReleaseExe);
             CompileAndVerify(comp, expectedOutput: @"A
 A");
         }
@@ -6711,7 +6711,7 @@ class Program
     }
 }
 ";
-            var comp = CreateCompilation(source, new[] { SystemCoreRef, CSharpRef }, TestOptions.ReleaseExe);
+            var comp = CreateCompilation(source, new[] { CSharpRef }, TestOptions.ReleaseExe);
             CompileAndVerifyException<Microsoft.CSharp.RuntimeBinder.RuntimeBinderException>(comp,
                 "Operator '|' is ambiguous on operands of type 'InputParameter' and 'InputParameter'");
         }

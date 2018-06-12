@@ -8534,7 +8534,7 @@
                                   Especificar una asignación para los nombres de ruta de acceso de origen
                                   producidos por el compilador.
 /platform:&lt;cadena&gt;                Limitar en qué plataformas se puede ejecutar este código. 
-                                  Debe ser x86, x64, Itanium, arm,
+                                  Debe ser x86, x64, Itanium, arm, arm64,
                                   AnyCPU32BitPreferred o anycpu (valor predeterminado).
 /preferreduilang                  Especificar el nombre del lenguaje de salida preferido.
 /sdkpath:&lt;ruta de acceso&gt;                   Ubicación del directorio de .NET Framework SDK 
