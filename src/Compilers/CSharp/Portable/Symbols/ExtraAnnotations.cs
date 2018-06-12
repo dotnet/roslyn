@@ -1,25 +1,15 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Text;
 using Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE;
 using Microsoft.CodeAnalysis.PooledObjects;
-using static Microsoft.CodeAnalysis.CSharp.Symbols.AttributeAnnotations;
+using static Microsoft.CodeAnalysis.CSharp.Symbols.FlowAnalysisAnnotations;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
-    [Flags]
-    internal enum AttributeAnnotations
-    {
-        None = 0,
-        NotNullWhenTrue = 1 << 0,
-        NotNullWhenFalse = 1 << 1,
-        EnsuresNotNull = NotNullWhenTrue | NotNullWhenFalse,
-    }
-
     // PROTOTYPE(NullableReferenceTypes): external annotations should be removed or fully designed/productized
     //  If we choose to stick with an ad-hoc key (rather than annotations as source or as PE/ref assembly),
     //  we should consider the assembly qualified name format used in metadata (with backticks and such).
@@ -44,12 +34,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 { "System.String System.String.Concat(System.String, System.String)", Array(Nullable(false), Nullable(true), Nullable(true)) },
             }.ToImmutableDictionary();
 
-        private static readonly ImmutableDictionary<string, ImmutableArray<AttributeAnnotations>> Attributes =
-            new Dictionary<string, ImmutableArray<AttributeAnnotations>>
+        private static readonly ImmutableDictionary<string, ImmutableArray<FlowAnalysisAnnotations>> Attributes =
+            new Dictionary<string, ImmutableArray<FlowAnalysisAnnotations>>
             {
                 { "System.Boolean System.String.IsNullOrEmpty(System.String)", Array(default, NotNullWhenFalse) },
                 { "System.Boolean System.String.IsNullOrWhiteSpace(System.String)", Array(default, NotNullWhenFalse) },
                 { "System.Boolean System.String.Contains(System.String)", Array(default, EnsuresNotNull) },
+                { "System.Void System.Diagnostics.Debug.Assert(System.Boolean)", Array(default, AssertsTrue) },
+                { "System.Void System.Diagnostics.Debug.Assert(System.Boolean, System.String)", Array(default, AssertsTrue, default) },
+                { "System.Void System.Diagnostics.Debug.Assert(System.Boolean, System.String, System.String)", Array(default, AssertsTrue, default, default) },
+                { "System.Void System.Diagnostics.Debug.Assert(System.Boolean, System.String, System.String, System.Object[])", Array(default, AssertsTrue, default, default, default) },
             }.ToImmutableDictionary();
 
         internal static string MakeMethodKey(PEMethodSymbol method, ParamInfo<TypeSymbol>[] paramInfo)
@@ -130,7 +124,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private static ImmutableArray<ImmutableArray<bool>> Array(params ImmutableArray<bool>[] values)
             => values.ToImmutableArray();
 
-        private static ImmutableArray<AttributeAnnotations> Array(params AttributeAnnotations[] values)
+        private static ImmutableArray<FlowAnalysisAnnotations> Array(params FlowAnalysisAnnotations[] values)
             => values.ToImmutableArray();
 
         private static ImmutableArray<bool> Nullable(params bool[] values)
@@ -170,7 +164,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// that if some annotations are present on the member, then annotations win over the attributes on the member in all positions.
         /// That could mean removing an attribute.
         /// </summary>
-        internal static AttributeAnnotations? TryGetExtraAttributes(string key, int parameterIndex)
+        internal static FlowAnalysisAnnotations? TryGetExtraAttributes(string key, int parameterIndex)
         {
             if (key is null)
             {
@@ -183,26 +177,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             return extraAttributes[parameterIndex + 1];
-        }
-    }
-
-    internal static class ParameterAnnotationsExtensions
-    {
-        // For EnsuresNotNull, you should set NotNullWhenTrue and NotNullWhenFalse
-        internal static AttributeAnnotations With(this AttributeAnnotations value,
-            bool notNullWhenTrue, bool notNullWhenFalse)
-        {
-            if (notNullWhenFalse)
-            {
-                value |= NotNullWhenFalse;
-            }
-
-            if (notNullWhenTrue)
-            {
-                value |= NotNullWhenTrue;
-            }
-
-            return value;
         }
     }
 }
