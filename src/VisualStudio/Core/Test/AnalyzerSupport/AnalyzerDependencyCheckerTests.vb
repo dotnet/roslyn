@@ -5,6 +5,7 @@ Imports System.FormattableString
 Imports System.IO
 Imports System.Text
 Imports Microsoft.CodeAnalysis
+Imports Microsoft.CodeAnalysis.CSharp
 Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.VisualStudio.LanguageServices.Implementation
 Imports Microsoft.Win32
@@ -15,26 +16,6 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests
     Public Class AnalyzerDependencyCheckerTests
         Inherits TestBase
 
-        Private Shared s_msbuildDirectory As String
-        Private Shared ReadOnly Property MSBuildDirectory As String
-            Get
-                If s_msbuildDirectory Is Nothing Then
-                    Dim vsVersion = If(Environment.GetEnvironmentVariable("VisualStudioVersion"), "14.0")
-                    Dim key = Registry.LocalMachine.OpenSubKey(Invariant($"SOFTWARE\Microsoft\MSBuild\ToolsVersions\{vsVersion}"), False)
-
-                    If key IsNot Nothing Then
-                        Dim toolsPath = key.GetValue("MSBuildToolsPath")
-                        If toolsPath IsNot Nothing Then
-                            s_msbuildDirectory = toolsPath.ToString()
-                        End If
-                    End If
-                End If
-
-                Return s_msbuildDirectory
-            End Get
-        End Property
-
-        Private Shared s_CSharpCompilerExecutable As String = If(MSBuildDirectory IsNot Nothing, Path.Combine(MSBuildDirectory, "csc.exe"), Nothing)
         Private Shared s_mscorlibDisplayName As String = "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089"
 
         Private Shared Function GetIgnorableAssemblyLists() As IEnumerable(Of IIgnorableAssemblyList)
@@ -44,7 +25,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests
             Return {New IgnorableAssemblyIdentityList({mscorlib})}
         End Function
 
-        <Fact(Skip:= "https://github.com/dotnet/roslyn/issues/16301")>
+        <Fact>
         <WorkItem(1064914, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1064914")>
         Public Sub ConflictsTest1()
             ' Dependency Graph:
@@ -61,7 +42,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests
 
         End Sub
 
-        <Fact(Skip:= "https://github.com/dotnet/roslyn/issues/16301")>
+        <Fact>
         <WorkItem(1064914, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1064914")>
         Public Sub ConflictsTest2()
             ' Dependency graph:
@@ -89,7 +70,7 @@ public class A
             End Using
         End Sub
 
-        <Fact(Skip:= "https://github.com/dotnet/roslyn/issues/16301")>
+        <Fact>
         <WorkItem(1064914, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1064914")>
         Public Sub ConflictsTest3()
             ' Dependency graph:
@@ -124,7 +105,7 @@ public class A
 
         End Sub
 
-        <Fact(Skip:= "https://github.com/dotnet/roslyn/issues/16301")>
+        <Fact>
         <WorkItem(1064914, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1064914")>
         Public Sub ConflictsTest4()
             ' Dependency graph:
@@ -165,7 +146,7 @@ public class C
             End Using
         End Sub
 
-        <Fact(Skip:= "https://github.com/dotnet/roslyn/issues/16301")>
+        <Fact>
         <WorkItem(1064914, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1064914")>
         Public Sub ConflictsTest5()
             ' Dependency graph:
@@ -208,7 +189,7 @@ public class C
             End Using
         End Sub
 
-        <Fact(Skip:= "https://github.com/dotnet/roslyn/issues/16301")>
+        <Fact>
         <WorkItem(1064914, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1064914")>
         Public Sub ConflictsTest6()
             ' Dependency graph:
@@ -250,7 +231,7 @@ public class B
             End Using
         End Sub
 
-        <Fact(Skip:= "https://github.com/dotnet/roslyn/issues/16301")>
+        <Fact>
         <WorkItem(1064914, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1064914")>
         Public Sub ConflictsTest7()
             ' Dependency graph:
@@ -292,7 +273,7 @@ public class B
             End Using
         End Sub
 
-        <Fact(Skip:= "https://github.com/dotnet/roslyn/issues/16301")>
+        <Fact>
         <WorkItem(1064914, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1064914")>
         Public Sub ConflictsTest8()
             ' Dependency graph:
@@ -353,7 +334,7 @@ public class C
             End Using
         End Sub
 
-        <Fact(Skip:= "https://github.com/dotnet/roslyn/issues/16301")>
+        <Fact>
         <WorkItem(1064914, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1064914")>
         Public Sub ConflictsTest9()
             ' Dependency graph:
@@ -424,7 +405,7 @@ public class D
             End Using
         End Sub
 
-        <Fact(Skip:= "https://github.com/dotnet/roslyn/issues/16301")>
+        <Fact>
         <WorkItem(1064914, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1064914")>
         Public Sub ConflictsTest10()
             ' Dependency graph:
@@ -505,7 +486,7 @@ public class E
             End Using
         End Sub
 
-        <Fact(Skip:= "https://github.com/dotnet/roslyn/issues/16301")>
+        <Fact>
         <WorkItem(1064914, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1064914")>
         Public Sub ConflictsTest11()
             ' Dependency graph:
@@ -557,7 +538,7 @@ public class B
             End Using
         End Sub
 
-        <Fact(Skip:= "https://github.com/dotnet/roslyn/issues/16301")>
+        <Fact>
         <WorkItem(1064914, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1064914")>
         Public Sub ConflictsTest12()
             ' Dependency graph:
@@ -615,7 +596,7 @@ public class B
             End Using
         End Sub
 
-        <Fact(Skip:= "https://github.com/dotnet/roslyn/issues/16301")>
+        <Fact>
         <WorkItem(1064914, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1064914")>
         Public Sub ConflictsTest13()
             ' Dependency graph:
@@ -674,7 +655,7 @@ public class B
             End Using
         End Sub
 
-        <Fact(Skip:= "https://github.com/dotnet/roslyn/issues/16301")>
+        <Fact>
         <WorkItem(1064914, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1064914")>
         Public Sub ConflictsTest14()
             ' Dependency graph:
@@ -746,8 +727,8 @@ public class D
                 Assert.Equal(expected:=3, actual:=results.Conflicts.Length)
             End Using
         End Sub
- 
-        <Fact(Skip:= "https://github.com/dotnet/roslyn/issues/16301")>
+
+        <Fact>
         Public Sub MissingTest1()
             ' Dependency Graph:
             '   A
@@ -762,7 +743,7 @@ public class D
             End Using
         End Sub
 
-        <Fact(Skip:= "https://github.com/dotnet/roslyn/issues/16301")>
+        <Fact>
         Public Sub MissingTest2()
             ' Dependency graph:
             '   A --> B*
@@ -898,17 +879,20 @@ public class A
             Dim tempOut = Path.Combine(directory.Path, libraryName + ".out")
             Dim libraryOut = Path.Combine(directory.Path, libraryName + ".dll")
 
-            Dim sb = New StringBuilder
-            For Each name In referenceNames
-                sb.Append(" /r:")
-                sb.Append(Path.Combine(directory.Path, name + ".dll"))
+            Dim syntaxTrees = {CSharpSyntaxTree.ParseText(fileContents, path:=sourceFile)}
+
+            Dim references = New List(Of PortableExecutableReference)
+            For Each referenceName In referenceNames
+                references.Add(PortableExecutableReference.CreateFromFile(Path.Combine(directory.Path, referenceName + ".dll")))
             Next
 
-            Dim references = sb.ToString()
+            references.Add(TestReferences.NetFx.v4_0_30319.mscorlib)
 
-            Dim arguments = $"/C ""{s_CSharpCompilerExecutable}"" /nologo /t:library /out:{libraryOut} {references} {sourceFile} > {tempOut}"
+            Dim compilation = CSharpCompilation.Create(libraryName, syntaxTrees, references, New CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary))
+            Dim emitResult = compilation.Emit(libraryOut)
 
-            Dim output = ProcessUtilities.RunAndGetOutput("cmd", arguments, expectedRetCode:=0)
+            Assert.Empty(emitResult.Diagnostics)
+            Assert.True(emitResult.Success)
 
             Return libraryOut
         End Function
