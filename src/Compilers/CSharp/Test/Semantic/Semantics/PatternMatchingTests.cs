@@ -3577,18 +3577,18 @@ unsafe struct S
 
             Assert.Equal("o.Equals is()", node.ToString());
 
-            // PROTOTYPE(patterns2): This broken syntax corresponds to a deconstruction pattern with zero elements, which is not yet supported in IOperation.
-//            compilation.VerifyOperationTree(node, expectedOperationTree:
-//@"
-//IIsPatternOperation (OperationKind.IsPattern, Type: System.Boolean, IsInvalid) (Syntax: 'o.Equals is()')
-//  Expression: 
-//    IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid, IsImplicit) (Syntax: 'o.Equals is()')
-//      Children(1):
-//          IOperation:  (OperationKind.None, Type: null, IsInvalid) (Syntax: 'o.Equals')
-//            Children(1):
-//                IParameterReferenceOperation: o (OperationKind.ParameterReference, Type: System.Object, IsInvalid) (Syntax: 'o')
-//  Pattern: 
-//");
+            // https://github.com/dotnet/roslyn/issues/27749 : This syntax corresponds to a deconstruction pattern with zero elements, which is not yet supported in IOperation.
+            //            compilation.VerifyOperationTree(node, expectedOperationTree:
+            //@"
+            //IIsPatternOperation (OperationKind.IsPattern, Type: System.Boolean, IsInvalid) (Syntax: 'o.Equals is()')
+            //  Expression: 
+            //    IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid, IsImplicit) (Syntax: 'o.Equals is()')
+            //      Children(1):
+            //          IOperation:  (OperationKind.None, Type: null, IsInvalid) (Syntax: 'o.Equals')
+            //            Children(1):
+            //                IParameterReferenceOperation: o (OperationKind.ParameterReference, Type: System.Object, IsInvalid) (Syntax: 'o')
+            //  Pattern: 
+            //");
         }
 
         [Fact, WorkItem(13383, "https://github.com/dotnet/roslyn/issues/13383")]

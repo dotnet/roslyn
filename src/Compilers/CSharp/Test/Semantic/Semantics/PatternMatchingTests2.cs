@@ -424,7 +424,7 @@ public class Point
         var r2 = b switch { (true ? true : true) => true, false => false };
     }
 }";
-            // PROTOTYPE(patterns2): This is admittedly poor syntax error recovery (for the line declaring r2),
+            // This is admittedly poor syntax error recovery (for the line declaring r2),
             // but this test demonstrates that it is a syntax error.
             CreatePatternCompilation(source).VerifyDiagnostics(
                 // (6,34): error CS1003: Syntax error, '=>' expected

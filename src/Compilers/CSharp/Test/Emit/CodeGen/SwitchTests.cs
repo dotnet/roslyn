@@ -7913,7 +7913,6 @@ public class Program
             compVerifier = CompileAndVerify(source,
                 options: TestOptions.DebugDll.WithOutputKind(OutputKind.ConsoleApplication),
                 expectedOutput: "1");
-            // PROTOTYPE(patterns2): This test is sensitive to the precise code generated, which is currently in flux.
             compVerifier.VerifyIL("Program.M",
 @"{
   // Code size       35 (0x23)
@@ -8875,7 +8874,7 @@ class Program
 @"using System;
 public class Generic<T>
 {
-    public enum Color { Red, Blue }
+    public enum Color { X0, X1, X2, Green, Blue, Red }
 }
 class Program
 {
@@ -8923,90 +8922,64 @@ Generic<long>.Color.Red
 Generic<dynamic>.Color.Blue
 None
 Generic<object>.Color.Red");
-            // PROTOTYPE(patterns2): This test is sensitive to the precise code generated, which is currently in flux.
-//            compVerifier.VerifyIL("Program.M2",
-//@"{
-//  // Code size      148 (0x94)
-//  .maxstack  2
-//  .locals init (object V_0,
-//                Generic<long>.Color V_1,
-//                Generic<object>.Color V_2,
-//                Generic<long>.Color V_3, //c
-//                object V_4,
-//                object V_5,
-//                int V_6,
-//                string V_7)
-//  IL_0000:  nop
-//  IL_0001:  ldarg.0
-//  IL_0002:  stloc.s    V_4
-//  IL_0004:  ldloc.s    V_4
-//  IL_0006:  stloc.0
-//  IL_0007:  ldloc.0
-//  IL_0008:  brtrue.s   IL_000c
-//  IL_000a:  br.s       IL_005c
-//  IL_000c:  ldloc.0
-//  IL_000d:  stloc.s    V_5
-//  IL_000f:  ldloc.s    V_5
-//  IL_0011:  isinst     ""Generic<long>.Color""
-//  IL_0016:  ldnull
-//  IL_0017:  cgt.un
-//  IL_0019:  dup
-//  IL_001a:  brtrue.s   IL_001f
-//  IL_001c:  ldc.i4.0
-//  IL_001d:  br.s       IL_0026
-//  IL_001f:  ldloc.s    V_5
-//  IL_0021:  unbox.any  ""Generic<long>.Color""
-//  IL_0026:  stloc.1
-//  IL_0027:  brfalse.s  IL_002b
-//  IL_0029:  br.s       IL_005e
-//  IL_002b:  ldloc.0
-//  IL_002c:  stloc.s    V_5
-//  IL_002e:  ldloc.s    V_5
-//  IL_0030:  isinst     ""Generic<object>.Color""
-//  IL_0035:  ldnull
-//  IL_0036:  cgt.un
-//  IL_0038:  dup
-//  IL_0039:  brtrue.s   IL_003e
-//  IL_003b:  ldc.i4.0
-//  IL_003c:  br.s       IL_0045
-//  IL_003e:  ldloc.s    V_5
-//  IL_0040:  unbox.any  ""Generic<object>.Color""
-//  IL_0045:  stloc.2
-//  IL_0046:  brfalse.s  IL_005c
-//  IL_0048:  ldloc.2
-//  IL_0049:  stloc.s    V_6
-//  IL_004b:  ldloc.s    V_6
-//  IL_004d:  brfalse.s  IL_0058
-//  IL_004f:  br.s       IL_0051
-//  IL_0051:  ldloc.s    V_6
-//  IL_0053:  ldc.i4.1
-//  IL_0054:  beq.s      IL_005a
-//  IL_0056:  br.s       IL_005c
-//  IL_0058:  br.s       IL_0076
-//  IL_005a:  br.s       IL_007f
-//  IL_005c:  br.s       IL_0088
-//  IL_005e:  ldloc.1
-//  IL_005f:  stloc.3
-//  IL_0060:  br.s       IL_0062
-//  IL_0062:  ldstr      ""Generic<long>.Color.""
-//  IL_0067:  ldloc.3
-//  IL_0068:  box        ""Generic<long>.Color""
-//  IL_006d:  call       ""string string.Concat(object, object)""
-//  IL_0072:  stloc.s    V_7
-//  IL_0074:  br.s       IL_0091
-//  IL_0076:  ldstr      ""Generic<object>.Color.Red""
-//  IL_007b:  stloc.s    V_7
-//  IL_007d:  br.s       IL_0091
-//  IL_007f:  ldstr      ""Generic<dynamic>.Color.Blue""
-//  IL_0084:  stloc.s    V_7
-//  IL_0086:  br.s       IL_0091
-//  IL_0088:  ldstr      ""None""
-//  IL_008d:  stloc.s    V_7
-//  IL_008f:  br.s       IL_0091
-//  IL_0091:  ldloc.s    V_7
-//  IL_0093:  ret
-//}"
-//            );
+            compVerifier.VerifyIL("Program.M2",
+@"{
+  // Code size      108 (0x6c)
+  .maxstack  2
+  .locals init (Generic<long>.Color V_0, //c
+                object V_1,
+                Generic<object>.Color V_2,
+                Generic<dynamic>.Color V_3,
+                object V_4,
+                string V_5)
+  IL_0000:  nop
+  IL_0001:  ldarg.0
+  IL_0002:  stloc.s    V_4
+  IL_0004:  ldloc.s    V_4
+  IL_0006:  stloc.1
+  IL_0007:  ldloc.1
+  IL_0008:  isinst     ""Generic<long>.Color""
+  IL_000d:  brfalse.s  IL_0018
+  IL_000f:  ldloc.1
+  IL_0010:  unbox.any  ""Generic<long>.Color""
+  IL_0015:  stloc.0
+  IL_0016:  br.s       IL_0038
+  IL_0018:  ldloc.1
+  IL_0019:  isinst     ""Generic<object>.Color""
+  IL_001e:  brfalse.s  IL_0060
+  IL_0020:  ldloc.1
+  IL_0021:  unbox.any  ""Generic<object>.Color""
+  IL_0026:  stloc.2
+  IL_0027:  ldloc.2
+  IL_0028:  ldc.i4.5
+  IL_0029:  beq.s      IL_004e
+  IL_002b:  ldloc.1
+  IL_002c:  unbox.any  ""Generic<dynamic>.Color""
+  IL_0031:  stloc.3
+  IL_0032:  ldloc.3
+  IL_0033:  ldc.i4.4
+  IL_0034:  beq.s      IL_0057
+  IL_0036:  br.s       IL_0060
+  IL_0038:  br.s       IL_003a
+  IL_003a:  ldstr      ""Generic<long>.Color.""
+  IL_003f:  ldloc.0
+  IL_0040:  box        ""Generic<long>.Color""
+  IL_0045:  call       ""string string.Concat(object, object)""
+  IL_004a:  stloc.s    V_5
+  IL_004c:  br.s       IL_0069
+  IL_004e:  ldstr      ""Generic<object>.Color.Red""
+  IL_0053:  stloc.s    V_5
+  IL_0055:  br.s       IL_0069
+  IL_0057:  ldstr      ""Generic<dynamic>.Color.Blue""
+  IL_005c:  stloc.s    V_5
+  IL_005e:  br.s       IL_0069
+  IL_0060:  ldstr      ""None""
+  IL_0065:  stloc.s    V_5
+  IL_0067:  br.s       IL_0069
+  IL_0069:  ldloc.s    V_5
+  IL_006b:  ret
+}"
+            );
         }
 
         [Fact, WorkItem(16129, "https://github.com/dotnet/roslyn/issues/16129")]

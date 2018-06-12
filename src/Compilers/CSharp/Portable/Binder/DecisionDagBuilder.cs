@@ -438,7 +438,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                         MakeTestsAndBindings(output, pattern, tests, bindings);
                     }
                 }
-                // PROTOTYPE(patterns2): Handle the ITuple case.
                 else
                 {
                     // This occurs in error cases.

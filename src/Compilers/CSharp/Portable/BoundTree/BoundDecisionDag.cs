@@ -39,9 +39,16 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 if (_reachableLabels == null)
                 {
-                    // PROTOTYPE(patterns2): avoid linq?
-                    _reachableLabels = new HashSet<LabelSymbol>(
-                        this.TopologicallySortedNodes.OfType<BoundLeafDecisionDagNode>().Select(d => d.Label));
+                    var result = new HashSet<LabelSymbol>();
+                    foreach (var node in this.TopologicallySortedNodes)
+                    {
+                        if (node is BoundLeafDecisionDagNode leaf)
+                        {
+                            result.Add(leaf.Label);
+                        }
+                    }
+
+                    _reachableLabels = result;
                 }
 
                 return _reachableLabels;
