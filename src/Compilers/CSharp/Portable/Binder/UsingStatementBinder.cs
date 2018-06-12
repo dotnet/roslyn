@@ -80,18 +80,23 @@ namespace Microsoft.CodeAnalysis.CSharp
                 diagnostics.Add(expressionSyntax, useSiteDiagnostics);
 
                 TypeSymbol expressionType = expressionOpt.Type;
-                if (!(expressionType is null))
-                {
-                    disposeMethod = TryFindDisposePatternMethod(expressionType, diagnostics);
-                }
                 
                 if (!iDisposableConversion.IsImplicit && (object)disposeMethod is null)
                 {
-                    if ((object)expressionType == null || !expressionType.IsErrorType())
+                    if (!(expressionType is null))
                     {
-                        Error(diagnostics, ErrorCode.ERR_NoConvToIDisp, expressionSyntax, expressionOpt.Display);
+                        disposeMethod = TryFindDisposePatternMethod(expressionType, diagnostics);
                     }
-                    hasErrors = true;
+                    if (disposeMethod is null)
+                    {
+                        if ((object)expressionType == null || !expressionType.IsErrorType())
+                        {
+                            Error(diagnostics, ErrorCode.ERR_NoConvToIDisp, expressionSyntax, expressionOpt.Display);
+                        } else
+                        {
+                            hasErrors = true;
+                        }
+                    }       
                 }
             }
             else
@@ -105,7 +110,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 declarationsOpt = new BoundMultipleLocalDeclarations(declarationSyntax, declarations);
 
                 TypeSymbol declType = declarations[0].DeclaredType.Type;
-                disposeMethod = TryFindDisposePatternMethod(declType, diagnostics);
 
                 if (declType.IsDynamic())
                 {
@@ -119,12 +123,18 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     if (!iDisposableConversion.IsImplicit && (object)disposeMethod is null)
                     {
-                        if (!declType.IsErrorType())
+                        disposeMethod = TryFindDisposePatternMethod(declType, diagnostics);
+                        if (disposeMethod is null)
                         {
-                            Error(diagnostics, ErrorCode.ERR_NoConvToIDisp, declarationSyntax, declType);
+                            if (!declType.IsErrorType())
+                            {
+                                Error(diagnostics, ErrorCode.ERR_NoConvToIDisp, declarationSyntax, declType);
+                            }
+                            else
+                            {
+                                hasErrors = true;
+                            }
                         }
-
-                        hasErrors = true;
                     }
                 }
             }
