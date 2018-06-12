@@ -28,14 +28,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
         private readonly Package _package;
         private readonly IComponentModel _componentModel;
         private Microsoft.VisualStudio.OLE.Interop.IServiceProvider _oleServiceProvider;
-        private readonly IWaitIndicator _waitIndicator;
         private bool _encoding;
 
-        protected AbstractEditorFactory(Package package)
+        protected AbstractEditorFactory(Package package, IComponentModel componentModel)
         {
             _package = package ?? throw new ArgumentNullException(nameof(package));
-            _componentModel = (IComponentModel)ServiceProvider.GetService(typeof(SComponentModel));
-            _waitIndicator = _componentModel.GetService<IWaitIndicator>();
+            _componentModel = componentModel;
         }
 
         protected IServiceProvider ServiceProvider
@@ -220,8 +218,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             // Is this being added from a template?
             if (((__EFNFLAGS)grfEFN & __EFNFLAGS.EFN_ClonedFromTemplate) != 0)
             {
+                var waitIndicator = _componentModel.GetService<IWaitIndicator>();
                 // TODO(cyrusn): Can this be cancellable?
-                _waitIndicator.Wait(
+                waitIndicator.Wait(
                     "Intellisense",
                     allowCancel: false,
                     action: c => FormatDocumentCreatedFromTemplate(pHier, itemid, pszMkDocument, c.CancellationToken));
