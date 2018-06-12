@@ -1,6 +1,6 @@
 Nullable Reference Types
 =========
-References to reference types may be nullable, non-nullable, or null-oblivious. (The document uses the shorthand `?`, `!`, and `~`.)
+Reference types may be nullable, non-nullable, or null-oblivious (abbreviated here to `?`, `!`, and `~`).
 
 ## Annotations
 In source, nullable reference types are annotated with `?`.
@@ -68,6 +68,7 @@ notNull = maybeNull; // assigns ?; warning
 notNull = oblivious; // assigns ~, no warning
 oblivious = maybeNull; // assigns ?, no warning
 ```
+The warning assigning `?` to `!` is a W warning if the target is a local.
 
 ### Local declarations
 Nullablilty follows from assignment.
@@ -113,7 +114,11 @@ var z = new [] { listOfNotNull, listOfMaybeNull, listOfOblivious }; // List<~>!,
 ```
 
 ### Null-coalescing operator
-_Describe_
+The top-level nullability of `x ?? y` is `!` if `x` is `!` and otherwise the top-level nullability of `y`.
+A warning is reported if there is a nested nullability mismatch between `x` and `y`.
 
 ## Type parameters
-_Describe_
+See [4/25/18](https://github.com/dotnet/csharplang/blob/master/meetings/2018/LDM-2018-04-25.md)
+
+## Compiler switch
+_Describe behavior when feature is disabled._
