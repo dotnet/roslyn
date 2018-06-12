@@ -6,14 +6,13 @@ Reference types may be nullable, non-nullable, or null-oblivious (abbreviated he
 In source, nullable reference types are annotated with `?`.
 ```c#
 string? OptString; // may be null
-List<object?>? OptListOptElements; // list may be null, elements may be null
+Dictionary<string, object?>? OptDictionaryOptValues; // dictionary may be null, values may be null
 ```
 In metadata, nullable reference types are annotated with a `[Nullable]` attribute.
 ```c#
 namespace System.Runtime.CompilerServices
 {
     [AttributeUsage(
-        AttributeTargets.Module |
         AttributeTargets.Class |
         AttributeTargets.Event | AttributeTargets.Field | AttributeTargets.GenericParameter | AttributeTargets.Property |
         AttributeTargets.Parameter | AttributeTargets.ReturnValue,
@@ -25,16 +24,16 @@ namespace System.Runtime.CompilerServices
     }
 }
 ```
-If the feature is enabled, a `[module: Nullable]` attribute is emitted to the module.
+The parameter-less constructor is emitted for simple type references with top-level nullability;
+the constructor with `bool[]` parameter is emitted for type references with nested types and nullability.
 ```c#
 // C# representation of metadata
-[module: Nullable]
 [Nullable] string OptString; // string?
-[Nullable(new[] { true, true })] List<object> OptListOptElements; // List<object?>?
+[Nullable(new[] { true, false, true })] Dictionary<string, object> OptDictionaryOptValues; // Dictionary<string!, object?>?
 ```
 The `NullableAttribute` type declaration is synthesized by the compiler if it is not included in the compilation.
 
-Unannotated reference types are non-nullable or null-oblivious depending whether the containing scope includes `[NonNullTypes]`.
+Unannotated reference types are non-nullable or null-oblivious depending on whether the containing scope includes `[NonNullTypes]`.
 ```c#
 namespace System.Runtime.CompilerServices
 {
@@ -47,7 +46,7 @@ namespace System.Runtime.CompilerServices
     }
 }
 ```
-If there is no `[NonNullTypes]` attribute in any containing scope, including the module, reference types are non-nullable.
+If there is no `[NonNullTypes]` attribute at any containing scope, including the module, reference types are null-oblivious.
 ```c#
 [NonNullTypes(false)] string[] Oblivious; // string~[]~
 [NonNullTypes(true)] string[] NotNull; // string![]!
@@ -74,8 +73,8 @@ _Describe warnings from user-defined conversions._
 
 ### Assignment
 For `x = y`, the nullability of the converted type of `y` is used for `x`.
-Warnings are reported for top-level and nested nullability mismatches.
-The warning assigning `?` to `!` is a W warning if the target is a local.
+Warnings are reported if there is a mismatch between top-level or nested nullability comparing the inferred nullability of `x` and the declared type of `y`.
+The warning is a W warning when assigning `?` to `!` and the target is a local.
 ```c#
 notNull = maybeNull; // assigns ?; warning
 notNull = oblivious; // assigns ~, no warning
@@ -112,14 +111,15 @@ var x = (string)maybeNull; // x is string?, W warning
 var y = (string)oblivious; // y is string~, no warning
 var z = (string?)notNull; // y is string?, no warning
 ```
-Explicit casts change nested nullability without warning.
+Explicit casts change nested nullability.
+_Should a warning be reported when there is not an implicit nullable conversion (for instance `(List<object>)new List<object?>()`)?_
 ```c#
 List<object?> x = ...;
 var y = (List<object>)x; // y is List<object!>!, no warning
 ```
 
 ### Array creation
-The _best type_ calculation uses the most relaxed nullability: `?` is more relaxed than `~` which is more relaxed than `!`. (If `T` is a reference type, `T` is a `T?`.)
+The _best type_ calculation uses the most relaxed nullability: `T!` is a `T~` is a `T?`.
 If there is no best nested nullability, a warning is reported.
 ```c#
 var w = new [] { notNull, oblivious }; //~[]!
