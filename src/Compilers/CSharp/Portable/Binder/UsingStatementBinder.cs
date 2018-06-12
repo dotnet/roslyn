@@ -62,47 +62,35 @@ namespace Microsoft.CodeAnalysis.CSharp
             VariableDeclarationSyntax declarationSyntax = _syntax.Declaration;
 
             Debug.Assert((expressionSyntax == null) ^ (declarationSyntax == null)); // Can't have both or neither.
-
             bool hasErrors = false;
-            BoundMultipleLocalDeclarations declarationsOpt = null;
-            BoundExpression expressionOpt = null;
+
+            ImmutableArray<BoundLocalDeclaration> declarations;
+            originalBinder.BindForOrUsingOrFixedDeclarations(declarationSyntax, LocalDeclarationKind.UsingVariable, diagnostics, out declarations);
+            Debug.Assert(!declarations.IsEmpty);
+
+            BoundExpression expressionOpt = this.BindTargetExpression(diagnostics, originalBinder);
+            BoundMultipleLocalDeclarations declarationsOpt = new BoundMultipleLocalDeclarations(declarationSyntax, declarations);
+
+            TypeSymbol declType = declarations[0].DeclaredType.Type;
+            TypeSymbol expressionType = expressionOpt.Type;
+
+            MethodSymbol disposeMethod = expressionOpt.Type == null ?
+                TryFindDisposePatternMethod(declType, diagnostics) : 
+                TryFindDisposePatternMethod(expressionOpt.Type, diagnostics);
+
             Conversion iDisposableConversion = Conversion.NoConversion;
             TypeSymbol iDisposable = this.Compilation.GetSpecialType(SpecialType.System_IDisposable); // no need for diagnostics, so use the Compilation version
             Debug.Assert((object)iDisposable != null);
 
             if (expressionSyntax != null)
             {
-                expressionOpt = this.BindTargetExpression(diagnostics, originalBinder);
-
                 HashSet<DiagnosticInfo> useSiteDiagnostics = null;
-                TypeSymbol expressionType = expressionOpt.Type;
-                MethodSymbol disposeMethod = expressionType == null ? null : TryFindDisposePattern(expressionOpt.Type, diagnostics);
                 iDisposableConversion = originalBinder.Conversions.ClassifyImplicitConversionFromExpression(expressionOpt, iDisposable, ref useSiteDiagnostics);
                 diagnostics.Add(expressionSyntax, useSiteDiagnostics);
 
                 if (!iDisposableConversion.IsImplicit)
                 {
-                    if ((object)disposeMethod != null)
-                    {
-                        if (!disposeMethod.ReturnsVoid)
-                        {
-                            Error(diagnostics, ErrorCode.WRN_PatternBadSignature, expressionSyntax, expressionType);
-                        }
-                        BoundStatement boundBody2 = originalBinder.BindPossibleEmbeddedStatement(_syntax.Statement, diagnostics);
-
-                        Debug.Assert(GetDeclaredLocalsForScope(_syntax) == this.Locals);
-                        return new BoundUsingStatement(
-                            _syntax,
-                            this.Locals,
-                            declarationsOpt,
-                            expressionOpt,
-                            Conversion.Identity,
-                            boundBody2,
-                            disposeMethod,
-                            hasErrors
-                            );
-                    }
-                    else if ((object)expressionType == null || !expressionType.IsErrorType())
+                    if ((object)expressionType == null || !expressionType.IsErrorType())
                     {
                         Error(diagnostics, ErrorCode.ERR_NoConvToIDisp, expressionSyntax, expressionOpt.Display);
                     }
@@ -111,36 +99,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else
             {
-                ImmutableArray<BoundLocalDeclaration> declarations;
-                originalBinder.BindForOrUsingOrFixedDeclarations(declarationSyntax, LocalDeclarationKind.UsingVariable, diagnostics, out declarations);
-
-                Debug.Assert(!declarations.IsEmpty);
-
-                declarationsOpt = new BoundMultipleLocalDeclarations(declarationSyntax, declarations);
-
-                TypeSymbol declType = declarations[0].DeclaredType.Type;
-
-                MethodSymbol disposeMethod = TryFindDisposePattern(declType, diagnostics);
-
                 if (declType.IsDynamic())
                 {
                     iDisposableConversion = Conversion.ImplicitDynamic;
-                }
-                else if ((object)disposeMethod != null)
-                {
-                    BoundStatement boundBody2 = originalBinder.BindPossibleEmbeddedStatement(_syntax.Statement, diagnostics);
-
-                    Debug.Assert(GetDeclaredLocalsForScope(_syntax) == this.Locals);
-                    return new BoundUsingStatement(
-                        _syntax,
-                        this.Locals,
-                        declarationsOpt,
-                        expressionOpt,
-                        Conversion.Identity,
-                        boundBody2,
-                        disposeMethod,
-                        hasErrors
-                        );
                 }
                 else
                 {
@@ -170,7 +131,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 expressionOpt,
                 iDisposableConversion,
                 boundBody,
-                disposeMethodOpt: null, // This ensures that a pattern-matched Dispose statement is not used.
+                disposeMethod, // This ensures that a pattern-matched Dispose statement is not used.
                 hasErrors);
         }
 
@@ -181,7 +142,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <param name="exprType">Type of the expression over which to iterate</param>
         /// <param name="diagnostics">Populated with warnings if there are near misses</param>
         /// <returns>True if a matching method is found (still need to verify return type).</returns>
-        private MethodSymbol TryFindDisposePattern(TypeSymbol exprType, DiagnosticBag diagnostics)
+        private MethodSymbol TryFindDisposePatternMethod(TypeSymbol exprType, DiagnosticBag diagnostics)
         {
             LookupResult lookupResult = LookupResult.GetInstance();
             SyntaxNode exp = _syntax.Expression != null ? (SyntaxNode) _syntax.Expression : (SyntaxNode) _syntax.Declaration;
