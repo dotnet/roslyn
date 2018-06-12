@@ -12,6 +12,12 @@ In metadata, nullable reference types are annotated with a `[Nullable]` attribut
 ```c#
 namespace System.Runtime.CompilerServices
 {
+    [AttributeUsage(
+        AttributeTargets.Module |
+        AttributeTargets.Class |
+        AttributeTargets.Event | AttributeTargets.Field | AttributeTargets.GenericParameter | AttributeTargets.Property |
+        AttributeTargets.Parameter | AttributeTargets.ReturnValue,
+        AllowMultiple = false)]
     public sealed class NullableAttribute : Attribute
     {
         public NullableAttribute() { }
@@ -32,6 +38,9 @@ Unannotated reference types are non-nullable or null-oblivious depending whether
 ```c#
 namespace System.Runtime.CompilerServices
 {
+    [AttributeUsage(
+        AttributeTargets.All,
+        AllowMultiple = false)]
     public sealed class NonNullTypesAttribute : Attribute
     {
         public NonNullTypesAttribute(bool enabled = true) { }
@@ -40,8 +49,10 @@ namespace System.Runtime.CompilerServices
 ```
 If there is no `[NonNullTypes]` attribute in any containing scope, including the module, reference types are non-nullable.
 ```c#
-[NonNullTypes(false), Nullable(new[] { false, true })] string[] Oblivious; // string?[]~
-[NonNullTypes(true), Nullable(new[] { false, true })] string[] NotNull; // string?[]!
+[NonNullTypes(false)] string[] Oblivious; // string~[]~
+[NonNullTypes(true)] string[] NotNull; // string![]!
+[NonNullTypes(false), Nullable(new[] { false, true })] string[] ObliviousMaybeNull; // string?[]~
+[NonNullTypes(true), Nullable(new[] { false, true })] string[] NotNullMaybeNull; // string?[]!
 ```
 `NonNullTypesAttribute` is not synthesized by the compiler. If the attribute is used explicitly in source, the type declaration must be provided explicitly to the compilation. The type should be defined in the framework.
 
@@ -49,7 +60,7 @@ If there is no `[NonNullTypes]` attribute in any containing scope, including the
 _Describe warnings reported for declarations in initial binding._
 
 ## Flow analysis
-Flow analysis is used to infer the nullability of variables within executable code. The inferred nullability of a variable is independent of it's declared nullability.
+Flow analysis is used to infer the nullability of variables within executable code. The inferred nullability of a variable is independent of the variable's declared nullability.
 
 ### Warnings
 _Describe set of warnings. Differentiate W warnings._
@@ -64,15 +75,15 @@ _Describe warnings from user-defined conversions._
 ### Assignment
 For `x = y`, the nullability of the converted type of `y` is used for `x`.
 Warnings are reported for top-level and nested nullability mismatches.
+The warning assigning `?` to `!` is a W warning if the target is a local.
 ```c#
 notNull = maybeNull; // assigns ?; warning
 notNull = oblivious; // assigns ~, no warning
 oblivious = maybeNull; // assigns ?, no warning
 ```
-The warning assigning `?` to `!` is a W warning if the target is a local.
 
 ### Local declarations
-Nullablilty follows from assignment.
+Nullablilty follows from assignment above. Assigning `?` to `!` is a W warning.
 ```c#
 string notNull = maybeNull; // assigns ?; warning
 ```
@@ -90,6 +101,8 @@ var x = optionalString!; // x is string!
 var y = obliviousString!; // y is string!
 var z = new [] { optionalString, obliviousString }!; // no change, z is string?[]!
 ```
+_Should `!` suppress warnings for nested nullability?_
+_Should `!!` be an error?_
 
 ### Explicit cast
 Explicit cast to `?` changes top-level nullability.
@@ -106,10 +119,11 @@ var y = (List<object>)x; // y is List<object!>!, no warning
 ```
 
 ### Array creation
-The _best type_ calculation uses the most relaxed nullability: `?` is more relaxed than `~` which is more relaxed than `!`.
+The _best type_ calculation uses the most relaxed nullability: `?` is more relaxed than `~` which is more relaxed than `!`. (If `T` is a reference type, `T` is a `T?`.)
 If there is no best nested nullability, a warning is reported.
 ```c#
-var x = new [] { notNull, maybeNull, oblivious }; // ~[]!
+var w = new [] { notNull, oblivious }; //~[]!
+var x = new [] { notNull, maybeNull, oblivious }; // ?[]!
 var y = new [] { enumerableOfNotNull, enumerableOfMaybeNull, enumerableOfOblivious }; // IEnumerable<?>!
 var z = new [] { listOfNotNull, listOfMaybeNull, listOfOblivious }; // List<~>!, warning
 ```
