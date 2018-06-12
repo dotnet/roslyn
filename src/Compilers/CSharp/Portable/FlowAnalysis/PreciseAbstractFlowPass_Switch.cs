@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private void VisitPatternSwitchBlock(BoundSwitchStatement node)
         {
             var initialState = State.Clone();
-            HashSet<LabelSymbol> reachableLabels = node.DecisionDag.ReachableLabels;
+            var reachableLabels = node.DecisionDag.ReachableLabels;
             foreach (var section in node.SwitchSections)
             {
                 foreach (var label in section.SwitchLabels)

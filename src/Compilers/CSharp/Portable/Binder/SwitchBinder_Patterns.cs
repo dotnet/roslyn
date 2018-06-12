@@ -74,7 +74,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundDecisionDag decisionDag,
             DiagnosticBag diagnostics)
         {
-            HashSet<LabelSymbol> reachableLabels = decisionDag.ReachableLabels;
+            var reachableLabels = decisionDag.ReachableLabels;
             bool isSubsumed(BoundPatternSwitchLabel switchLabel)
             {
                 return !reachableLabels.Contains(switchLabel.Label);
