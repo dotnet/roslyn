@@ -50,7 +50,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.Interop.AutomationRet
             {
                 try
                 {
-                    return action(AutomationObject);
+                    return WrapIfNecessary(action(AutomationObject));
                 }
                 catch (COMException e) when (e.ErrorCode == AutomationElementExtensions.UIA_E_ELEMENTNOTAVAILABLE)
                 {
@@ -68,8 +68,19 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.Interop.AutomationRet
             {
                 return obj;
             }
+            else if (obj is object[] objArray)
+            {
+                for (var i = 0; i < objArray.Length; i++)
+                {
+                    objArray[i] = WrapIfNecessary(objArray[i]);
+                }
 
-            return AutomationRetryWrapper.WrapIfNecessary(obj);
+                return obj;
+            }
+            else
+            {
+                return AutomationRetryWrapper.WrapIfNecessary(obj);
+            }
         }
 
         CustomQueryInterfaceResult ICustomQueryInterface.GetInterface(ref Guid iid, out IntPtr ppv)

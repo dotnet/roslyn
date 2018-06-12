@@ -11,7 +11,10 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.Interop.AutomationRet
         private static readonly Dictionary<Type, Func<object, object>> _wrapperFunctions =
             new Dictionary<Type, Func<object, object>>
             {
+                { typeof(IUIAutomationAndCondition), obj => new UIAutomationAndCondition((IUIAutomationAndCondition)obj).RuntimeCallableWrapper },
                 { typeof(IUIAutomationAnnotationPattern), obj => new UIAutomationAnnotationPattern((IUIAutomationAnnotationPattern)obj).RuntimeCallableWrapper },
+                { typeof(IUIAutomationBoolCondition), obj => new UIAutomationBoolCondition((IUIAutomationBoolCondition)obj).RuntimeCallableWrapper },
+                { typeof(IUIAutomationCondition), obj => new UIAutomationCondition((IUIAutomationCondition)obj).RuntimeCallableWrapper },
                 { typeof(IUIAutomationDockPattern), obj => new UIAutomationDockPattern((IUIAutomationDockPattern)obj).RuntimeCallableWrapper },
                 { typeof(IUIAutomationDragPattern), obj => new UIAutomationDragPattern((IUIAutomationDragPattern)obj).RuntimeCallableWrapper },
                 { typeof(IUIAutomationDropTargetPattern), obj => new UIAutomationDropTargetPattern((IUIAutomationDropTargetPattern)obj).RuntimeCallableWrapper },
@@ -22,7 +25,10 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.Interop.AutomationRet
                 { typeof(IUIAutomationItemContainerPattern), obj => new UIAutomationItemContainerPattern((IUIAutomationItemContainerPattern)obj).RuntimeCallableWrapper },
                 { typeof(IUIAutomationLegacyIAccessiblePattern), obj => new UIAutomationLegacyIAccessiblePattern((IUIAutomationLegacyIAccessiblePattern)obj).RuntimeCallableWrapper },
                 { typeof(IUIAutomationMultipleViewPattern), obj => new UIAutomationMultipleViewPattern((IUIAutomationMultipleViewPattern)obj).RuntimeCallableWrapper },
+                { typeof(IUIAutomationNotCondition), obj => new UIAutomationNotCondition((IUIAutomationNotCondition)obj).RuntimeCallableWrapper },
                 { typeof(IUIAutomationObjectModelPattern), obj => new UIAutomationObjectModelPattern((IUIAutomationObjectModelPattern)obj).RuntimeCallableWrapper },
+                { typeof(IUIAutomationOrCondition), obj => new UIAutomationOrCondition((IUIAutomationOrCondition)obj).RuntimeCallableWrapper },
+                { typeof(IUIAutomationPropertyCondition), obj => new UIAutomationPropertyCondition((IUIAutomationPropertyCondition)obj).RuntimeCallableWrapper },
                 { typeof(IUIAutomationRangeValuePattern), obj => new UIAutomationRangeValuePattern((IUIAutomationRangeValuePattern)obj).RuntimeCallableWrapper },
                 { typeof(IUIAutomationScrollItemPattern), obj => new UIAutomationScrollItemPattern((IUIAutomationScrollItemPattern)obj).RuntimeCallableWrapper },
                 { typeof(IUIAutomationScrollPattern), obj => new UIAutomationScrollPattern((IUIAutomationScrollPattern)obj).RuntimeCallableWrapper },
