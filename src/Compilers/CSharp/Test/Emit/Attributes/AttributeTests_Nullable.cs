@@ -463,44 +463,6 @@ public class B : I<(object X, object? Y)>
         // PROTOTYPE(NullableReferenceTypes): Execute some of these same tests with feature disabled.
 
         [Fact]
-        public void EmitAttribute_Constraint()
-        {
-            var source =
-@"public class A<T>
-{
-}
-public class B<T> where T : A<object?>
-{
-}";
-            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular8);
-            CompileAndVerify(comp, validator: assembly =>
-            {
-                var reader = assembly.GetMetadataReader();
-                var typeDef = GetTypeDefinitionByName(reader, "B`1");
-                var typeParameter = reader.GetGenericParameter(typeDef.GetGenericParameters()[0]);
-                var constraint = reader.GetGenericParameterConstraint(typeParameter.GetConstraints()[0]);
-                AssertAttributes(reader, constraint.GetCustomAttributes(), "MethodDefinition:Void System.Runtime.CompilerServices.NullableAttribute..ctor(Boolean[])");
-            });
-
-            var source2 =
-@"class Program
-{
-    static void Main()
-    {
-        new B<A<object?>>();
-        new B<A<object>>();
-    }
-}";
-            var comp2 = CreateCompilation(source2, parseOptions: TestOptions.Regular8, references: new[] { comp.EmitToImageReference() });
-            // PROTOTYPE(NullableReferenceTypes): Report warning for `new B<A<object>>()`:
-            // https://github.com/dotnet/roslyn/issues/27742.
-            comp2.VerifyDiagnostics();
-
-            var type = comp2.GetMember<NamedTypeSymbol>("B");
-            Assert.Equal("A<System.Object?>", type.TypeParameters[0].ConstraintTypes()[0].ToTestDisplayString());
-        }
-
-        [Fact]
         public void EmitAttribute_Constraint_01()
         {
             var source =
@@ -541,6 +503,23 @@ public class B<T> where T : A<object?>
                 var constraint = reader.GetGenericParameterConstraint(typeParameter.GetConstraints()[0]);
                 AssertAttributes(reader, constraint.GetCustomAttributes(), "MethodDefinition:Void System.Runtime.CompilerServices.NullableAttribute..ctor(Boolean[])");
             });
+
+            var source2 =
+@"class Program
+{
+    static void Main()
+    {
+        new B<A<object?>>();
+        new B<A<object>>();
+    }
+}";
+            var comp2 = CreateCompilation(source2, parseOptions: TestOptions.Regular8, references: new[] { comp.EmitToImageReference() });
+            // PROTOTYPE(NullableReferenceTypes): Report warning for `new B<A<object>>()`:
+            // https://github.com/dotnet/roslyn/issues/27742.
+            comp2.VerifyDiagnostics();
+
+            var type = comp2.GetMember<NamedTypeSymbol>("B");
+            Assert.Equal("A<System.Object?>", type.TypeParameters[0].ConstraintTypes()[0].ToTestDisplayString());
         }
 
         // PROTOTYPE(NullableReferenceTypes): Test `class C<T> where T : class? { }`.
