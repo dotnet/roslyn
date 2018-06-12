@@ -14,7 +14,8 @@ namespace System.Runtime.CompilerServices
 {
     [AttributeUsage(
         AttributeTargets.Class |
-        AttributeTargets.Event | AttributeTargets.Field | AttributeTargets.GenericParameter | AttributeTargets.Property |
+        AttributeTargets.GenericParameter |
+        AttributeTargets.Event | AttributeTargets.Field | AttributeTargets.Property |
         AttributeTargets.Parameter | AttributeTargets.ReturnValue,
         AllowMultiple = false)]
     public sealed class NullableAttribute : Attribute
@@ -28,8 +29,10 @@ The parameter-less constructor is emitted for simple type references with top-le
 the constructor with `bool[]` parameter is emitted for type references with nested types and nullability.
 ```c#
 // C# representation of metadata
-[Nullable] string OptString; // string?
-[Nullable(new[] { true, false, true })] Dictionary<string, object> OptDictionaryOptValues; // Dictionary<string!, object?>?
+[Nullable]
+string OptString; // string?
+[Nullable(new[] { true, false, true })]
+Dictionary<string, object> OptDictionaryOptValues; // Dictionary<string!, object?>?
 ```
 The `NullableAttribute` type declaration is synthesized by the compiler if it is not included in the compilation.
 
