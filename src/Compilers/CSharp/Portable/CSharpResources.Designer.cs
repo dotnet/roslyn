@@ -6983,7 +6983,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to &apos;{0}&apos;: type used in a using statement must have a public void-returning Dispose() instance method..
+        ///   Looks up a localized string similar to &apos;{0}&apos;: type used in a using statement must be implicitly convertible to &apos;System.IDisposable&apos; or have a public void-returning Dispose() instance method..
         /// </summary>
         internal static string ERR_NoConvToIDisp {
             get {

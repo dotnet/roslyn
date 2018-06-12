@@ -153,11 +153,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         private MethodSymbol TryFindDisposePatternMethod(TypeSymbol exprType, DiagnosticBag diagnostics)
         {
             LookupResult lookupResult = LookupResult.GetInstance();
-            SyntaxNode exp = _syntax.Expression != null ? (SyntaxNode) _syntax.Expression : (SyntaxNode) _syntax.Declaration;
+            SyntaxNode exp = _syntax.Expression != null ? (SyntaxNode)_syntax.Expression : (SyntaxNode)_syntax.Declaration;
             MethodSymbol disposeMethod = FindPatternMethod(exprType, WellKnownMemberNames.DisposeMethodName, lookupResult, exp, warningsOnly: true, diagnostics: diagnostics, _syntax.SyntaxTree);
             lookupResult.Free();
 
-            if (!((object)disposeMethod is null) && !disposeMethod.ReturnsVoid)
+            if (disposeMethod?.ReturnsVoid == false)
             {
                 diagnostics.Add(ErrorCode.WRN_PatternBadSignature, exp.Location, exprType, MessageID.IDS_Disposable.Localize(), disposeMethod);
                 disposeMethod = null;

@@ -3167,6 +3167,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         ReportPatternWarning(diagnostics, patternType, member, syntaxExpr, messageID);
                     }
+
                     return null;
                 }
 
@@ -3181,6 +3182,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     candidateMethods.Add((MethodSymbol)member);
                 }
             }
+
             MethodSymbol patternMethod = PerformPatternOverloadResolution(patternType, candidateMethods, syntaxExpr, warningsOnly, diagnostics, syntaxTree, messageID);
 
             candidateMethods.Free();
@@ -3191,8 +3193,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// The overload resolution portion of FindForEachPatternMethod.
         /// </summary>
-        private MethodSymbol PerformPatternOverloadResolution
-            (TypeSymbol patternType, ArrayBuilder<MethodSymbol> candidateMethods,
+        private MethodSymbol PerformPatternOverloadResolution(
+            TypeSymbol patternType, ArrayBuilder<MethodSymbol> candidateMethods,
             SyntaxNode syntaxExpression, bool warningsOnly, DiagnosticBag diagnostics,
             SyntaxTree syntaxTree, MessageID messageID)
         {
@@ -3224,12 +3226,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         diagnostics.Add(ErrorCode.WRN_PatternStaticOrInaccessible, syntaxExpression.Location, patternType, messageID.Localize(), result);
                     }
+
                     result = null;
                 }
                 else if (result.CallsAreOmitted(syntaxTree))
                 {
                     // Calls to this method are omitted in the current syntax tree, i.e it is either a partial method with no implementation part OR a conditional method whose condition is not true in this source file.
-                    // We don't want to want to allow this case, see StatementBinder::bindPatternToMethod.
+                    // We don't want to allow this case, see StatementBinder::bindPatternToMethod.
                     result = null;
                 }
             }
