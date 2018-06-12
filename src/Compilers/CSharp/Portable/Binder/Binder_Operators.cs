@@ -2138,7 +2138,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         // Basically a port of ExpressionBinder::isFixedExpression, which basically implements spec section 18.3.
         // Renamed because there are already too many things called "fixed".
         // NOTE: internal purely for testing purposes.
-        // CONSIDER: why is it used in product code? also, accessedLocalOrParameterOpt is not used anywhere!
         internal bool IsNonMoveableVariable(BoundExpression expr, out Symbol accessedLocalOrParameterOpt)
         {
             accessedLocalOrParameterOpt = null;
