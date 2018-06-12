@@ -1436,6 +1436,27 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
+        internal override bool ContainsNullableReferenceTypes()
+        {
+            return _elementTypes.Any(t => t.ContainsNullableReferenceTypes());
+        }
+
+        internal override void AddNullableTransforms(ArrayBuilder<bool> transforms)
+        {
+            _underlyingType.AddNullableTransforms(transforms);
+        }
+
+        internal override bool ApplyNullableTransforms(ImmutableArray<bool> transforms, ref int position, out TypeSymbol result)
+        {
+            if (_underlyingType.ApplyNullableTransforms(transforms, ref position, out TypeSymbol underlying))
+            {
+                result = this.WithUnderlyingType((NamedTypeSymbol)underlying);
+                return true;
+            }
+            result = this;
+            return false;
+        }
+
         internal override TypeSymbol SetUnknownNullabilityForReferenceTypes()
         {
             var underlyingType = (NamedTypeSymbol)_underlyingType.SetUnknownNullabilityForReferenceTypes();

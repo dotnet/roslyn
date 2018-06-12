@@ -1491,6 +1491,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             return TrySynthesizeIsByRefLikeAttribute();
         }
 
+        // PROTOTYPE(NullableReferenceTypes): Consider moving to CSharpCompilation
+        // next to SynthesizeDynamicAttribute and SynthesizeTupleNamesAttribute.
         /// <summary>
         /// Given a type <paramref name="type"/>, which is either a nullable reference type OR 
         /// is a constructed type with a nullable reference type present in its type argument tree,

@@ -21451,10 +21451,8 @@ public class F : C<F?>, I1<C<B?>>, I2<C<B>?>
                                     var f = ((PEModuleSymbol)m).GlobalNamespace.GetTypeMember("F");
                                     Assert.Equal("C<F?>", f.BaseType().ToTestDisplayString());
 
-                                    // PROTOTYPE(NullableReferenceTypes): Should we round-trip
-                                    // nullable modifiers for implemented interfaces too?
-                                    Assert.Equal("I1<C<B>>", f.Interfaces()[0].ToTestDisplayString());
-                                    Assert.Equal("I2<C<B>>", f.Interfaces()[1].ToTestDisplayString());
+                                    Assert.Equal("I1<C<B?>>", f.Interfaces()[0].ToTestDisplayString());
+                                    Assert.Equal("I2<C<B>?>", f.Interfaces()[1].ToTestDisplayString());
                                 });
         }
 
