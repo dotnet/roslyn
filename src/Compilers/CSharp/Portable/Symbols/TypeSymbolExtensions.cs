@@ -1557,7 +1557,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             var builder = ArrayBuilder<Cci.ICustomAttribute>.GetInstance();
             if (type.ContainsTupleNames())
             {
-                var attr = declaringCompilation.SynthesizeTupleNamesAttribute(type);
+                SynthesizedAttributeData attr = declaringCompilation.SynthesizeTupleNamesAttribute(type);
                 if (attr != null)
                 {
                     builder.Add(attr);
@@ -1566,7 +1566,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             if (type.ContainsNullableReferenceTypes())
             {
                 // PROTOTYPE(NullableReferenceTypes): Not including top-level nullability.
-                var attr = moduleBuilder.SynthesizeNullableAttribute(type, TypeSymbolWithAnnotations.Create(type, isNullableIfReferenceType: null));
+                SynthesizedAttributeData attr = moduleBuilder.SynthesizeNullableAttribute(type, TypeSymbolWithAnnotations.Create(type, isNullableIfReferenceType: null));
                 if (attr != null)
                 {
                     builder.Add(attr);

@@ -482,7 +482,20 @@ public class B<T> where T : A<object?>
                 AssertAttributes(reader, constraint.GetCustomAttributes(), "MethodDefinition:Void System.Runtime.CompilerServices.NullableAttribute..ctor(Boolean[])");
             });
 
-            var type = comp.GetMember<NamedTypeSymbol>("B");
+            var source2 =
+@"class Program
+{
+    static void Main()
+    {
+        new B<A<object?>>();
+        new B<A<object>>();
+    }
+}";
+            var comp2 = CreateCompilation(source2, parseOptions: TestOptions.Regular8, references: new[] { comp.EmitToImageReference() });
+            // PROTOTYPE(NullableReferenceTypes): Should report warning for `new B<A<object>>()`.
+            comp2.VerifyDiagnostics();
+
+            var type = comp2.GetMember<NamedTypeSymbol>("B");
             Assert.Equal("A<System.Object?>", type.TypeParameters[0].ConstraintTypes()[0].ToTestDisplayString());
         }
 

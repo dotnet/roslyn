@@ -457,7 +457,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                     {
                         TypeSymbol decodedType = new MetadataDecoder(moduleSymbol, this).GetTypeOfToken(token);
                         var result = (NamedTypeSymbol)DynamicTypeDecoder.TransformType(decodedType, 0, _handle, moduleSymbol);
-                        return DecodeNullableAndTupleTypes(result, _handle, moduleSymbol);
+                        return DecodeBaseAndInterfaceNullableAndTupleTypes(result, _handle, moduleSymbol);
                     }
                 }
                 catch (BadImageFormatException mrEx)
@@ -492,7 +492,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                         }
                         else
                         {
-                            result = DecodeNullableAndTupleTypes(result, interfaceImpl, moduleSymbol);
+                            result = DecodeBaseAndInterfaceNullableAndTupleTypes(result, interfaceImpl, moduleSymbol);
                         }
                         symbols.Add(result);
                     }
@@ -508,7 +508,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             }
         }
 
-        private static NamedTypeSymbol DecodeNullableAndTupleTypes(NamedTypeSymbol type, EntityHandle handle, PEModuleSymbol moduleSymbol)
+        private static NamedTypeSymbol DecodeBaseAndInterfaceNullableAndTupleTypes(NamedTypeSymbol type, EntityHandle handle, PEModuleSymbol moduleSymbol)
         {
             // PROTOTYPE(NullableReferenceTypes): Should call NullableTypeDecoder.TransformOrEraseNullability
             // here (see StaticNullChecking.UnannotatedAssemblies_09) but TransformOrEraseNullability results in
