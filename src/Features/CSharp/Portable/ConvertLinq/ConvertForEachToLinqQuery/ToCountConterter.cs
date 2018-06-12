@@ -12,8 +12,9 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertLinq.ConvertForEachToLinqQuery
         public ToCountConterter(
             ForEachInfo<ForEachStatementSyntax, StatementSyntax> forEachInfo,
             ExpressionSyntax selectExpression,
-            ExpressionSyntax modifyingExpression)
-            : base(forEachInfo, selectExpression, modifyingExpression) { }
+            ExpressionSyntax modifyingExpression,
+            SyntaxTrivia[] trivia)
+            : base(forEachInfo, selectExpression, modifyingExpression, trivia) { }
 
         protected override string MethodName => nameof(Enumerable.Count);
 
@@ -31,7 +32,6 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertLinq.ConvertForEachToLinqQuery
         ///  
         ///  Output:
         ///  counter += queryGenerated.Count();
-        // TODO comments?
         protected override StatementSyntax CreateDefaultStatement(QueryExpressionSyntax queryExpression, ExpressionSyntax expression)
             => SyntaxFactory.ExpressionStatement(
                 SyntaxFactory.AssignmentExpression(

@@ -15,24 +15,24 @@ namespace Microsoft.CodeAnalysis.ConvertLinq.ConvertForEachToLinqQuery
 
         public ImmutableArray<TStatement> Statements { get; }
 
-        public ImmutableArray<SyntaxTrivia> LeadingComments { get; }
+        public ImmutableArray<SyntaxToken> LeadingTokens { get; }
 
-        public ImmutableArray<SyntaxTrivia> TrailingComments { get; }
+        public ImmutableArray<SyntaxToken> TrailingTokens { get; }
 
         public ForEachInfo(
             TForEachStatement forEachStatement,
             IEnumerable<ExtendedSyntaxNode> convertingExtendedNodes,
             IEnumerable<SyntaxToken> identifiers,
             IEnumerable<TStatement> statements,
-            IEnumerable<SyntaxTrivia> leadingComments,
-            IEnumerable<SyntaxTrivia> trailingComments)
+            IEnumerable<SyntaxToken> leadingTokens,
+            IEnumerable<SyntaxToken> trailingTokens)
         {
             ForEachStatement = forEachStatement;
             ConvertingExtendedNodes = convertingExtendedNodes.ToImmutableArray();
             Identifiers = identifiers.ToImmutableArray();
             Statements = statements.ToImmutableArray();
-            LeadingComments = leadingComments.ToImmutableArray();
-            TrailingComments = trailingComments.ToImmutableArray();
+            LeadingTokens = leadingTokens.ToImmutableArray();
+            TrailingTokens = trailingTokens.ToImmutableArray();
         }
     }
 }

@@ -22,7 +22,7 @@ using System.Collections.Generic;
 using System.Linq;
 class Query
 {
-    public static void Main(string[] args)
+    public IEnumerable<int> void Main(string[] args)
     {
         List<int> c1 = new List<int>{1, 2, 3, 4, 5, 7};
         List<int> c2 = new List<int>{10, 30, 40, 50, 60, 70};
@@ -44,7 +44,7 @@ using System.Collections.Generic;
 using System.Linq;
 class Query
 {
-    public static void Main(string[] args)
+    public IEnumerable<int> void Main(string[] args)
     {
         List<int> c1 = new List<int>{1, 2, 3, 4, 5, 7};
         List<int> c2 = new List<int>{10, 30, 40, 50, 60, 70};
@@ -67,7 +67,7 @@ using System.Linq;
 
 class C
 {
-    void M()
+    IEnumerable<int> M()
     {
         [|foreach (var num in new int[] { 1, 2 })
         {
@@ -97,7 +97,7 @@ using System.Linq;
 
 class C
 {
-    void M()
+    IEnumerable<int> M()
     {
         return from num in new int[] { 1, 2 }
                let n1 = num + 1
@@ -2570,7 +2570,7 @@ class C
                  /* 33 */
             } // 34
               /* 35 */
-        }|] /* 36 /*/
+        }|] /* 36 */
           /* 37 */
         yield  /* 38 */ break/* 39*/; // 40
     }
@@ -2583,20 +2583,156 @@ class C
 {
     IEnumerable<int> M(IEnumerable<int> nums)
     {
-        return from x in nums
-               from int y in nums
-               where x > 2
-               select x * y;
+        return
+        // 25
+        // 1
+        from/* 3 *//* 2 *//* 4 */x /* 5 */ in/* 6 */nums/* 7 */// 8
+                                                               // 9
+                                                               /* 10 */
+        from/* 12 *//* 11 */int /* 13 */ y /* 14 */ in/* 15 */nums/* 16 *//* 17 */// 18
+                                                                                  // 19
+                                                                                  /*20 */
+        where/* 21 *//* 22 */x > 2/* 23 */// 24
+                                          /* 26 *//* 27 *//* 28 */
+        select x * y/* 29 *//* 31 */// 32
+                                    /* 33 */// 34
+                                            /* 35 *//* 36 */// 30
+                                                            /* 37 *//* 38 *//* 39*/// 40
+        ;
     }
 }";
 
             await TestInRegularAndScriptAsync(source, output);
         }
 
-        // TODO comments test for ToList
-        // TODO comments test for count
-        // TODO comments test for default
-        // TODO comments test for multiple variable declaration
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertForEachToQuery)]
+        public async Task CommentsToList()
+        {
+            string source = @"
+using System.Collections.Generic;
+using System.Linq;
+class C
+{
+    List<int> M(IEnumerable<int> nums)
+    {
+        /* 1 */ var /* 2 */ list /* 3 */ = /* 4 */ new List<int>(); // 5
+        /* 6 */ [|foreach /* 7 */ (/* 8 */ var /* 9 */ x /* 10 */ in /* 11 */ nums /* 12 */) // 13
+              /* 14 */{ // 15
+            /* 16 */var /* 17 */ y /* 18 */ = /* 19 */ x + 1 /* 20 */; //21
+            /* 22 */ list.Add(/* 23 */y /* 24 */) /* 25 */;//26
+        /*27*/} //28|]
+        /*29*/return /*30*/ list /*31*/; //32
+    }
+}";
+
+            string output = @"
+using System.Collections.Generic;
+using System.Linq;
+class C
+{
+    List<int> M(IEnumerable<int> nums)
+    {
+        /*29*/
+        return /*30*/ /* 1 *//* 2 *//* 3 *//* 4 */// 5
+                                                  /*31*/
+(
+/* 6 */from/* 8 *//* 7 *//* 9 */x /* 10 */ in/* 11 */nums/* 12 */// 13
+                                                                        /* 14 */// 15
+                                                                                /* 16 *//* 17 */
+              let y /* 18 */ = /* 19 */ x + 1/* 20 *///21
+              select y/* 24 *//*27*///28
+).ToList()/* 22 *//* 23 *//* 25 *///26
+; //32
+    }
+}";
+
+            await TestInRegularAndScriptAsync(source, output);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertForEachToQuery)]
+        public async Task CommentsCount()
+        {
+            string source = @"
+using System.Collections.Generic;
+using System.Linq;
+class C
+{
+    int M(IEnumerable<int> nums)
+    {
+        /* 1 */ var /* 2 */ c /* 3 */ = /* 4 */ 0; // 5
+        /* 6 */ [| foreach /* 7 */ (/* 8 */ var /* 9 */ x /* 10 */ in /* 11 */ nums /* 12 */) // 13
+        /* 14 */{ // 15
+            /* 16 */ c++ /* 17 */;//18
+        /*19*/}|] //20
+        /*21*/return /*22*/ c /*23*/; //24
+    }
+}";
+
+            string output = @"
+using System.Collections.Generic;
+using System.Linq;
+class C
+{
+    int M(IEnumerable<int> nums)
+    {
+        /*21*/
+        return /*22*/ /* 1 *//* 2 *//* 3 *//* 4 */// 5
+                                                  /*23*/
+(
+          /* 14 */// 15
+                  /* 6 */from/* 8 *//* 7 *//* 9 */x /* 10 */ in/* 11 */nums/* 12 */// 13
+       select x/* 10 *//*19*///20
+).Count()/* 16 *//* 17 *///18
+; //24
+    }
+}";
+
+            await TestInRegularAndScriptAsync(source, output);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertForEachToQuery)]
+        public async Task CommentsDefault()
+        {
+            string source = @"
+using System;
+using System.Collections.Generic;
+using System.Linq;
+class C
+{
+    void M(IEnumerable<int> nums)
+    {
+        [|/* 1 */ foreach /* 2 */(int /* 3 */ n1 /* 4 */in /* 5 */ nums /* 6 */)// 7
+        /* 8*/{// 9
+            /* 10 */int /* 11 */ a /* 12 */ = /* 13 */ n1 + n1 /* 14*/, /* 15 */ b /*16*/ = /*17*/ n1 * n1/*18*/;//19
+            /*20*/Console.WriteLine(a + b);//21
+        /*22*/}/*23*/|]
+    }
+}";
+
+            string output = @"
+using System;
+using System.Collections.Generic;
+using System.Linq;
+class C
+{
+    void M(IEnumerable<int> nums)
+    {
+        foreach (var (a /* 12 */ , b /*16*/ ) in
+/* 1 */from/* 2 */int /* 3 */ n1 /* 4 */in/* 5 */nums/* 6 */// 7
+                                                                                                            /* 8*/// 9
+                                                                                                                  /* 10 *//* 11 */
+                                                       let a /* 12 */ = /* 13 */ n1 + n1/* 14*//* 15 */
+                                                       let b /*16*/ = /*17*/ n1 * n1/*18*///19
+                                                       select (a /* 12 */ , b /*16*/ )/*22*//*23*/)
+        {
+            /*20*/
+            Console.WriteLine(a + b);//21
+        }
+    }
+}";
+
+            await TestInRegularAndScriptAsync(source, output);
+        }
 
         #endregion
 
@@ -2620,7 +2756,7 @@ class C
         }|]
     }
 }";
-            
+
             // Cannot convert expressions with preprocessor directives
             await TestMissingAsync(source);
         }

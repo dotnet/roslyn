@@ -26,9 +26,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertLinq.ConvertForEachToLinqQuery
             var convertingNodes = new List<ExtendedSyntaxNode>();
             var current = forEachStatement.Statement;
             IEnumerable<StatementSyntax> statementsCannotBeConverted = null;
-            var trailingComments = new List<SyntaxTrivia>();
-            // TODO shoild be filterted laters. should be renamed from comments to trivia
-            var currentLeadingComments = new List<SyntaxTrivia>();
+            var trailingTokens = new List<SyntaxToken>();
+            var currentLeadingTokens = new List<SyntaxToken>();
 
             // Setting statementsCannotBeConverted to anything means that we stop processing.
             while (statementsCannotBeConverted == null)
@@ -36,12 +35,9 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertLinq.ConvertForEachToLinqQuery
                 switch (current.Kind())
                 {
                     case SyntaxKind.Block:
-                        // TODO we're losing a lot of comments here by breaking the block
                         var block = (BlockSyntax)current;
-                        currentLeadingComments.AddRange(block.OpenBraceToken.LeadingTrivia);
-                        currentLeadingComments.AddRange(block.OpenBraceToken.TrailingTrivia);
-                        trailingComments.AddRange(block.CloseBraceToken.TrailingTrivia);
-                        trailingComments.AddRange(block.CloseBraceToken.LeadingTrivia);
+                        currentLeadingTokens.Add(block.OpenBraceToken);
+                        trailingTokens.Add(block.CloseBraceToken);
                         var array = block.Statements.ToArray();
                         if (array.Any())
                         {
@@ -73,8 +69,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertLinq.ConvertForEachToLinqQuery
                     case SyntaxKind.ForEachStatement:
                         var currentForEachStatement = (ForEachStatementSyntax)current;
                         identifiers.Add(currentForEachStatement.Identifier);
-                        convertingNodes.Add(new ExtendedSyntaxNode(currentForEachStatement, currentLeadingComments, Enumerable.Empty<SyntaxTrivia>()));
-                        currentLeadingComments = new List<SyntaxTrivia>();
+                        convertingNodes.Add(new ExtendedSyntaxNode(currentForEachStatement, currentLeadingTokens, Enumerable.Empty<SyntaxToken>()));
+                        currentLeadingTokens = new List<SyntaxToken>();
                         current = currentForEachStatement.Statement;
                         break;
 
@@ -82,8 +78,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertLinq.ConvertForEachToLinqQuery
                         var ifStatement = (IfStatementSyntax)current;
                         if (ifStatement.Else == null)
                         {
-                            convertingNodes.Add(new ExtendedSyntaxNode(ifStatement, currentLeadingComments, Enumerable.Empty<SyntaxTrivia>()));
-                            currentLeadingComments = new List<SyntaxTrivia>();
+                            convertingNodes.Add(new ExtendedSyntaxNode(ifStatement, currentLeadingTokens, Enumerable.Empty<SyntaxToken>()));
+                            currentLeadingTokens = new List<SyntaxToken>();
                             current = ifStatement.Statement;
                             break;
                         }
@@ -109,25 +105,27 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertLinq.ConvertForEachToLinqQuery
                 }
             }
 
-            // TODO should we reverse trailing comments?
-            return new ForEachInfo<ForEachStatementSyntax, StatementSyntax>(forEachStatement, convertingNodes, identifiers, statementsCannotBeConverted, currentLeadingComments, trailingComments);
+            // Trailing tokens are collected in the reverse order: from extrenal block down to internal ones. Reverse them.
+            trailingTokens.Reverse();
+
+            return new ForEachInfo<ForEachStatementSyntax, StatementSyntax>(forEachStatement, convertingNodes, identifiers, statementsCannotBeConverted, currentLeadingTokens, trailingTokens);
 
             void ProcessLocalDeclarationStatement(LocalDeclarationStatementSyntax localDeclarationStatement)
             {
-                // TODO either should be getleadetingcomments for node, or better filter trivial later when applying.
-                var localDeclarationLeadingComments = new IEnumerable<SyntaxTrivia>[] { currentLeadingComments, localDeclarationStatement.Declaration.Type.GetLeadingTrivia(), localDeclarationStatement.Declaration.GetTrailingTrivia() }.SelectMany(x => x);
-                var localDeclarationTrailingComments = new[] { localDeclarationStatement.SemicolonToken.LeadingTrivia, localDeclarationStatement.SemicolonToken.TrailingTrivia }.SelectMany(x => x);
+                var localDeclarationLeadingTrivia = new IEnumerable<SyntaxTrivia>[] { Helpers.GetTrivia(currentLeadingTokens), localDeclarationStatement.Declaration.Type.GetLeadingTrivia(), localDeclarationStatement.Declaration.Type.GetTrailingTrivia() }.SelectMany(x => x);
+                var localDeclarationTrailingTrivia = Helpers.GetTrivia(localDeclarationStatement.SemicolonToken);
+                var separators = localDeclarationStatement.Declaration.Variables.GetSeparators().ToArray();
                 for (int i = 0; i < localDeclarationStatement.Declaration.Variables.Count; i++)
                 {
                     var variable = localDeclarationStatement.Declaration.Variables[i];
                     convertingNodes.Add(new ExtendedSyntaxNode(
                         variable,
-                        i == 0 ? localDeclarationLeadingComments : Enumerable.Empty<SyntaxTrivia>(),
-                        i == localDeclarationStatement.Declaration.Variables.Count - 1 ? localDeclarationTrailingComments : Enumerable.Empty<SyntaxTrivia>()));
+                        i == 0 ? localDeclarationLeadingTrivia : separators[i - 1].TrailingTrivia,
+                        i == localDeclarationStatement.Declaration.Variables.Count - 1 ? (IEnumerable<SyntaxTrivia>)localDeclarationTrailingTrivia : separators[i].LeadingTrivia));
                     identifiers.Add(variable.Identifier);
                 }
 
-                currentLeadingComments = new List<SyntaxTrivia>();
+                currentLeadingTokens = new List<SyntaxToken>();
             }
         }
 
@@ -141,15 +139,19 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertLinq.ConvertForEachToLinqQuery
             switch (statementCannotBeConverted.Kind())
             {
                 case SyntaxKind.ExpressionStatement:
-                    var expression = ((ExpressionStatementSyntax)statementCannotBeConverted).Expression;
+                    var expresisonStatement = (ExpressionStatementSyntax)statementCannotBeConverted;
+                    var expression = expresisonStatement.Expression;
                     switch (expression.Kind())
                     {
                         case SyntaxKind.PostIncrementExpression:
                             // No matter what can be used as the last select statement for the case of Count. We use SyntaxFactory.IdentifierName(forEachStatement.Identifier).
+                            var postfixUnaryExpression = (PostfixUnaryExpressionSyntax)expression;
+                            var operand = postfixUnaryExpression.Operand;
                             converter = new ToCountConterter(
                                 forEachInfo,
-                                SyntaxFactory.IdentifierName(forEachInfo.ForEachStatement.Identifier), // TOOD comments
-                                ((PostfixUnaryExpressionSyntax)expression).Operand);
+                                SyntaxFactory.IdentifierName(forEachInfo.ForEachStatement.Identifier),
+                                operand,
+                                Helpers.GetTrivia(operand, postfixUnaryExpression.OperatorToken, expresisonStatement.SemicolonToken));
                             return true;
 
                         case SyntaxKind.InvocationExpression:
@@ -160,10 +162,16 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertLinq.ConvertForEachToLinqQuery
                                 methodSymbol.Name.Equals(nameof(IList.Add)) &&
                                 methodSymbol.Parameters.Length == 1)
                             {
+                                var selectExpression = invocationExpression.ArgumentList.Arguments.Single().Expression;
                                 converter = new ToToListConverter(
                                     forEachInfo,
-                                    invocationExpression.ArgumentList.Arguments.Single().Expression, // TODO comments
-                                    memberAccessExpression.Expression);
+                                    selectExpression,
+                                    memberAccessExpression.Expression,
+                                    Helpers.GetTrivia(
+                                        memberAccessExpression,
+                                        invocationExpression.ArgumentList.OpenParenToken, 
+                                        invocationExpression.ArgumentList.CloseParenToken, 
+                                        expresisonStatement.SemicolonToken));
                                 return true;
                             }
 
@@ -182,7 +190,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertLinq.ConvertForEachToLinqQuery
                         var lastStatement = statementsOnBlockWithForEach.Last();
                         if (yieldStatements.Count() == 1 && lastStatement == forEachInfo.ForEachStatement)
                         {
-                            converter = new YieldReturnConverter(forEachInfo, (YieldStatementSyntax)statementCannotBeConverted, nodeToDelete: null);
+                            converter = new YieldReturnConverter(forEachInfo, (YieldStatementSyntax)statementCannotBeConverted, yieldBreakStatement: null);
                             return true;
                         }
 
@@ -198,7 +206,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertLinq.ConvertForEachToLinqQuery
                             statementsOnBlockWithForEach.ElementAt(statementsOnBlockWithForEach.Count - 2) == forEachInfo.ForEachStatement)
                         {
                             // This removes the yield break.
-                            converter = new YieldReturnConverter(forEachInfo, (YieldStatementSyntax)statementCannotBeConverted, nodeToDelete: lastStatement);
+                            converter = new YieldReturnConverter(forEachInfo, (YieldStatementSyntax)statementCannotBeConverted, yieldBreakStatement: (YieldStatementSyntax)lastStatement);
                             return true;
                         }
                     }

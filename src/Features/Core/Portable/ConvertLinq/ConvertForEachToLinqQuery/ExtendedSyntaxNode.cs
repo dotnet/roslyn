@@ -12,6 +12,10 @@ namespace Microsoft.CodeAnalysis.ConvertLinq.ConvertForEachToLinqQuery
 
         public ImmutableArray<SyntaxTrivia> ExtraTrailingComments { get; }
 
+        public ExtendedSyntaxNode(SyntaxNode node, IEnumerable<SyntaxToken> extraLeadingTokens, IEnumerable<SyntaxToken> extraTrailingTokens)
+         : this(node, Helpers.GetTrivia(extraLeadingTokens), Helpers.GetTrivia(extraTrailingTokens))
+        { }
+
         public ExtendedSyntaxNode(SyntaxNode node, IEnumerable<SyntaxTrivia> extraLeadingComments, IEnumerable<SyntaxTrivia> extraTrailingComments)
         {
             Node = node;

@@ -13,8 +13,9 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertLinq.ConvertForEachToLinqQuery
         public ToToListConverter(
             ForEachInfo<ForEachStatementSyntax, StatementSyntax> forEachInfo,
             ExpressionSyntax selectExpression,
-            ExpressionSyntax modifyingExpression)
-            : base(forEachInfo, selectExpression, modifyingExpression) { }
+            ExpressionSyntax modifyingExpression,
+            SyntaxTrivia[] trivia)
+            : base(forEachInfo, selectExpression, modifyingExpression, trivia) { }
 
         protected override string MethodName => nameof(Enumerable.ToList);
 
@@ -37,7 +38,6 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertLinq.ConvertForEachToLinqQuery
         ///  
         ///  Output:
         ///  list.AddRange(queryGenerated);
-        // TODO comments?
         protected override StatementSyntax CreateDefaultStatement(QueryExpressionSyntax queryExpression, ExpressionSyntax expression)
             => SyntaxFactory.ExpressionStatement(
                 SyntaxFactory.InvocationExpression(

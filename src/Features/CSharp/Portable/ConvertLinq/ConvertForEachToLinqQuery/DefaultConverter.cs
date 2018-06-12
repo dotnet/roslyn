@@ -1,6 +1,5 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
@@ -25,8 +24,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertLinq.ConvertForEachToLinqQuery
 
             // If there is a single statement and it is a block, leave it as is.
             // Otherwise, wrap with a block.
-            // TODO comments?
-            var block = WrapWithBlockIfNecessary(_forEachInfo.Statements.Select(statement => statement.WithoutTrivia().WithTrailingTrivia(SyntaxFactory.ElasticEndOfLine(Environment.NewLine))));
+            var block = WrapWithBlockIfNecessary(_forEachInfo.Statements.Select(statement => statement.KeepCommentsAndAddElasticMarkers()));
 
             editor.ReplaceNode(_forEachInfo.ForEachStatement, CreateDefaultReplacementStatement(_forEachInfo, identifiersUsedInStatements, block).WithAdditionalAnnotations(Formatter.Annotation));
         }
@@ -40,18 +38,15 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertLinq.ConvertForEachToLinqQuery
             if (identifiersCount == 0)
             {
                 // Generate foreach(var _ ... select new {})
-                // TODO comments?
-                return SyntaxFactory.ForEachStatement(VarNameIdentifier, SyntaxFactory.Identifier("_"), CreateQueryExpression(forEachInfo, SyntaxFactory.AnonymousObjectCreationExpression()), block);
+                return SyntaxFactory.ForEachStatement(VarNameIdentifier, SyntaxFactory.Identifier("_"), CreateQueryExpression(forEachInfo, SyntaxFactory.AnonymousObjectCreationExpression(), Enumerable.Empty<SyntaxToken>(), Enumerable.Empty<SyntaxToken>()), block);
             }
             else if (identifiersCount == 1)
             {
                 // Generate foreach(var singleIdentifier from ... select singleIdentifier)
-                // TODO comments?
-                return SyntaxFactory.ForEachStatement(VarNameIdentifier, identifiers.Single(), CreateQueryExpression(forEachInfo, SyntaxFactory.IdentifierName(identifiers.Single())), block);
+                return SyntaxFactory.ForEachStatement(VarNameIdentifier, identifiers.Single(), CreateQueryExpression(forEachInfo, SyntaxFactory.IdentifierName(identifiers.Single()), Enumerable.Empty<SyntaxToken>(), Enumerable.Empty<SyntaxToken>()), block);
             }
             else
             {
-                // TODO comments?
                 var tupleForSelectExpression = SyntaxFactory.TupleExpression(SyntaxFactory.SeparatedList(identifiers.Select(identifier => SyntaxFactory.Argument(SyntaxFactory.IdentifierName(identifier)))));
                 var declaration = SyntaxFactory.DeclarationExpression(
                     VarNameIdentifier,
@@ -59,12 +54,10 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertLinq.ConvertForEachToLinqQuery
                         SyntaxFactory.SeparatedList<VariableDesignationSyntax>(identifiers.Select(identifier => SyntaxFactory.SingleVariableDesignation(identifier)))));
 
                 // Generate foreach(var (a,b) ... select (a, b))
-                // TODO comments?
-                return SyntaxFactory.ForEachVariableStatement(declaration, CreateQueryExpression(forEachInfo, tupleForSelectExpression), block);
+                return SyntaxFactory.ForEachVariableStatement(declaration, CreateQueryExpression(forEachInfo, tupleForSelectExpression, Enumerable.Empty<SyntaxToken>(), Enumerable.Empty<SyntaxToken>()), block);
             }
         }
 
-        // TODO comments?
         private static BlockSyntax WrapWithBlockIfNecessary(IEnumerable<StatementSyntax> statements)
             => (statements.Count() == 1 && statements.Single() is BlockSyntax block) ? block : SyntaxFactory.Block(statements);
     }

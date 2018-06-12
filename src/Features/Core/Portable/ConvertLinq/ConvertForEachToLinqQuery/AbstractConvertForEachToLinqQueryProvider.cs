@@ -70,8 +70,6 @@ namespace Microsoft.CodeAnalysis.ConvertLinq.ConvertForEachToLinqQuery
             }
 
             // Do not try to refactor queries with comments or conditional compilation in them.
-            // TODO directives can be in other statements we're processing, e.g. return or var just above; 
-            // TODO but also they can occur in the body we do not process, maybe we should allow this.
             if (forEachStatement.ContainsDirectives)
             {
                 return;
