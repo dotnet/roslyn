@@ -1771,26 +1771,22 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// For each argument, figure out if its corresponding parameter is annotated with NotNullWhenFalse or
         /// EnsuresNotNull.
         /// </summary>
-        private static ImmutableArray<AttributeAnnotations> GetAnnotations(int numArguments,
+        private static ImmutableArray<FlowAnalysisAnnotations> GetAnnotations(int numArguments,
             bool expanded, ImmutableArray<ParameterSymbol> parameters, ImmutableArray<int> argsToParamsOpt)
         {
-            ArrayBuilder<AttributeAnnotations> builder = null;
+            ArrayBuilder<FlowAnalysisAnnotations> builder = null;
 
             for (int i = 0; i < numArguments; i++)
             {
                 (ParameterSymbol parameter, _) = GetCorrespondingParameter(i, parameters, argsToParamsOpt, expanded);
-                AttributeAnnotations annotations = parameter?.FlowAnalysisAnnotations ?? AttributeAnnotations.None;
+                FlowAnalysisAnnotations annotations = parameter?.FlowAnalysisAnnotations ?? FlowAnalysisAnnotations.None;
 
-                // Ignore NotNullWhenTrue that is inapplicable
-                annotations = removeInapplicableNotNullWhenSense(parameter, annotations, sense: true);
+                annotations = removeInapplicableAnnotations(parameter, annotations);
 
-                // Ignore NotNullWhenFalse that is inapplicable
-                annotations = removeInapplicableNotNullWhenSense(parameter, annotations, sense: false);
-
-                if (annotations != AttributeAnnotations.None && builder == null)
+                if (annotations != FlowAnalysisAnnotations.None && builder == null)
                 {
-                    builder = ArrayBuilder<AttributeAnnotations>.GetInstance(numArguments);
-                    builder.AddMany(AttributeAnnotations.None, i);
+                    builder = ArrayBuilder<FlowAnalysisAnnotations>.GetInstance(numArguments);
+                    builder.AddMany(FlowAnalysisAnnotations.None, i);
                 }
 
                 if (builder != null)
@@ -1801,10 +1797,38 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             return builder == null ? default : builder.ToImmutableAndFree();
 
-            AttributeAnnotations removeInapplicableNotNullWhenSense(ParameterSymbol parameter, AttributeAnnotations annotations, bool sense)
+            FlowAnalysisAnnotations removeInapplicableAnnotations(ParameterSymbol parameter, FlowAnalysisAnnotations annotations)
             {
-                var whenSense = sense ? AttributeAnnotations.NotNullWhenTrue : AttributeAnnotations.NotNullWhenFalse;
-                var whenNotSense = sense ? AttributeAnnotations.NotNullWhenFalse : AttributeAnnotations.NotNullWhenTrue;
+                // Ignore NotNullWhenTrue that is inapplicable
+                annotations = removeInapplicableNotNullWhenSense(parameter, annotations, sense: true);
+
+                // Ignore NotNullWhenFalse that is inapplicable
+                annotations = removeInapplicableNotNullWhenSense(parameter, annotations, sense: false);
+
+                const FlowAnalysisAnnotations both = FlowAnalysisAnnotations.AssertsTrue | FlowAnalysisAnnotations.AssertsFalse;
+                if (parameter?.Type.SpecialType != SpecialType.System_Boolean)
+                {
+                    // AssertsTrue and AssertsFalse must be applied to a bool parameter
+                    annotations &= ~both;
+                }
+                else if ((annotations & both) == both)
+                {
+                    // We'll ignore AssertsTrue and AssertsFalse if both set
+                    annotations &= ~both;
+                }
+
+                return annotations;
+            }
+
+            FlowAnalysisAnnotations removeInapplicableNotNullWhenSense(ParameterSymbol parameter, FlowAnalysisAnnotations annotations, bool sense)
+            {
+                if (parameter is null)
+                {
+                    return annotations;
+                }
+
+                var whenSense = sense ? FlowAnalysisAnnotations.NotNullWhenTrue : FlowAnalysisAnnotations.NotNullWhenFalse;
+                var whenNotSense = sense ? FlowAnalysisAnnotations.NotNullWhenFalse : FlowAnalysisAnnotations.NotNullWhenTrue;
 
                 // NotNullWhenSense (without NotNullWhenNotSense) must be applied on a bool-returning member
                 if ((annotations & whenSense) != 0 &&
@@ -1915,7 +1939,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // We do a second pass through the arguments, ignoring any diagnostics produced, but honoring the annotations,
             // to get the proper result state.
-            ImmutableArray<AttributeAnnotations> annotations = GetAnnotations(arguments.Length, expanded, parameters, argsToParamsOpt);
+            ImmutableArray<FlowAnalysisAnnotations> annotations = GetAnnotations(arguments.Length, expanded, parameters, argsToParamsOpt);
 
             if (!annotations.IsDefault)
             {
@@ -1948,7 +1972,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var builder = ArrayBuilder<Result>.GetInstance(n);
             for (int i = 0; i < n; i++)
             {
-                VisitArgumentEvaluate(arguments, refKindsOpt, i);
+                VisitArgumentEvaluate(arguments, refKindsOpt, i, preserveConditionalState: false);
                 builder.Add(_result);
             }
 
@@ -1956,18 +1980,29 @@ namespace Microsoft.CodeAnalysis.CSharp
             return builder.ToImmutableAndFree();
         }
 
-        private void VisitArgumentEvaluate(ImmutableArray<BoundExpression> arguments, ImmutableArray<RefKind> refKindsOpt, int i)
+        private void VisitArgumentEvaluate(ImmutableArray<BoundExpression> arguments, ImmutableArray<RefKind> refKindsOpt, int i, bool preserveConditionalState)
         {
+            Debug.Assert(!IsConditionalState);
             RefKind refKind = GetRefKind(refKindsOpt, i);
             var argument = arguments[i];
             if (refKind != RefKind.Out)
             {
                 // PROTOTYPE(NullReferenceTypes): `ref` arguments should be treated as l-values
                 // for assignment. See `ref x3` in StaticNullChecking.PassingParameters_01.
-                VisitRvalue(argument);
+                if (preserveConditionalState)
+                {
+                    Visit(argument);
+                    // No Unsplit
+                }
+                else
+                {
+                    VisitRvalue(argument);
+                }
             }
             else
             {
+                // As far as we can tell, there is no scenario relevant to nullability analysis
+                // where splitting an L-value (for instance with a ref ternary) would affect the result.
                 VisitLvalue(argument);
             }
         }
@@ -1975,11 +2010,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// Visit all the arguments for the purpose of computing the exit state of the method,
         /// given the annotations.
+        /// If there is any [NotNullWhenTrue/False] annotation, then we'll return in a conditional state for the invocation.
         /// </summary>
         private void VisitArgumentsEvaluateHonoringAnnotations(
             ImmutableArray<BoundExpression> arguments,
             ImmutableArray<RefKind> refKindsOpt,
-            ImmutableArray<AttributeAnnotations> annotations)
+            ImmutableArray<FlowAnalysisAnnotations> annotations)
         {
             Debug.Assert(!IsConditionalState);
             Debug.Assert(annotations.Length == arguments.Length);
@@ -1987,24 +2023,28 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             for (int i = 0; i < arguments.Length; i++)
             {
+                FlowAnalysisAnnotations annotation = annotations[i];
+                bool assertsTrue = (annotation & FlowAnalysisAnnotations.AssertsTrue) != 0;
+                bool assertsFalse = (annotation & FlowAnalysisAnnotations.AssertsFalse) != 0;
+
                 if (this.IsConditionalState)
                 {
                     // We could be in a conditional state because of a conditional annotation (like NotNullWhenFalse)
                     // Then WhenTrue/False states correspond to the invocation returning true/false
 
-                    // We'll assume that we're in the unconditional state where the method returns true,
+                    // We'll first assume that we're in the unconditional state where the method returns true,
                     // then we'll repeat assuming the method returns false.
 
                     LocalState whenTrue = this.StateWhenTrue.Clone();
                     LocalState whenFalse = this.StateWhenFalse.Clone();
 
                     this.SetState(whenTrue);
-                    VisitArgumentEvaluate(arguments, refKindsOpt, i);
+                    visitArgumentEvaluateAndUnsplit(i, assertsTrue, assertsFalse);
                     Debug.Assert(!IsConditionalState);
                     whenTrue = this.State; // LocalState may be a struct
 
                     this.SetState(whenFalse);
-                    VisitArgumentEvaluate(arguments, refKindsOpt, i);
+                    visitArgumentEvaluateAndUnsplit(i, assertsTrue, assertsFalse);
                     Debug.Assert(!IsConditionalState);
                     whenFalse = this.State; // LocalState may be a struct
 
@@ -2012,7 +2052,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
                 else
                 {
-                    VisitArgumentEvaluate(arguments, refKindsOpt, i);
+                    visitArgumentEvaluateAndUnsplit(i, assertsTrue, assertsFalse);
                 }
 
                 var argument = arguments[i];
@@ -2027,9 +2067,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     continue;
                 }
 
-                AttributeAnnotations annotation = annotations[i];
-                bool notNullWhenTrue = (annotation & AttributeAnnotations.NotNullWhenTrue) != 0;
-                bool notNullWhenFalse = (annotation & AttributeAnnotations.NotNullWhenFalse) != 0;
+                bool notNullWhenTrue = (annotation & FlowAnalysisAnnotations.NotNullWhenTrue) != 0;
+                bool notNullWhenFalse = (annotation & FlowAnalysisAnnotations.NotNullWhenFalse) != 0;
                 // The WhenTrue/False states correspond to the invocation returning true/false
                 bool wasPreviouslySplit = this.IsConditionalState;
                 Split();
@@ -2045,6 +2084,31 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             _result = _invalidType;
+
+            // Evaluate an argument, potentially producing a split state.
+            // Then unsplit it based on [AssertsTrue] or [AssertsFalse] attributes, or default Unsplit otherwise.
+            void visitArgumentEvaluateAndUnsplit(int argumentIndex, bool assertsTrue, bool assertsFalse)
+            {
+                Debug.Assert(!IsConditionalState);
+                VisitArgumentEvaluate(arguments, refKindsOpt, argumentIndex, preserveConditionalState: true);
+
+                if (!this.IsConditionalState)
+                {
+                    return;
+                }
+                else if (assertsTrue)
+                {
+                    this.SetState(this.StateWhenTrue);
+                }
+                else if (assertsFalse)
+                {
+                    this.SetState(this.StateWhenFalse);
+                }
+                else
+                {
+                    this.Unsplit();
+                }
+            }
         }
 
         private void VisitArgumentConversions(

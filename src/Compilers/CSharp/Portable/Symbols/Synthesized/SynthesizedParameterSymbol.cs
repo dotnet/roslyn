@@ -115,9 +115,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return false; }
         }
 
-        internal override AttributeAnnotations FlowAnalysisAnnotations
+        internal override FlowAnalysisAnnotations FlowAnalysisAnnotations
         {
-            get { return AttributeAnnotations.None; }
+            get { return FlowAnalysisAnnotations.None; }
         }
 
         public override Symbol ContainingSymbol

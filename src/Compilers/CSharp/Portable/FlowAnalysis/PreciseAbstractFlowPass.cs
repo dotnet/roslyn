@@ -567,7 +567,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             // no need for it to be previously assigned: it is on the left.
         }
-        
+
         /// <summary>
         /// Visit a boolean condition expression.
         /// </summary>
@@ -903,7 +903,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
             else
-            { 
+            {
                 oldPending.PendingBranches.AddRange(this.PendingBranches);
             }
 
@@ -2847,7 +2847,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         private void VisitMethodBodies(BoundBlock blockBody, BoundBlock expressionBody)
-        { 
+        {
             if (blockBody == null)
             {
                 Visit(expressionBody);
