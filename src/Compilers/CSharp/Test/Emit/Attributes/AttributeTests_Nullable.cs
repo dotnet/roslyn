@@ -492,7 +492,8 @@ public class B<T> where T : A<object?>
     }
 }";
             var comp2 = CreateCompilation(source2, parseOptions: TestOptions.Regular8, references: new[] { comp.EmitToImageReference() });
-            // PROTOTYPE(NullableReferenceTypes): Should report warning for `new B<A<object>>()`.
+            // PROTOTYPE(NullableReferenceTypes): Report warning for `new B<A<object>>()`:
+            // https://github.com/dotnet/roslyn/issues/27742.
             comp2.VerifyDiagnostics();
 
             var type = comp2.GetMember<NamedTypeSymbol>("B");
