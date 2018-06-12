@@ -85,8 +85,29 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.Interop.AutomationRet
 
         CustomQueryInterfaceResult ICustomQueryInterface.GetInterface(ref Guid iid, out IntPtr ppv)
         {
-            ppv = IntPtr.Zero;
-            return CustomQueryInterfaceResult.NotHandled;
+            var unk = Marshal.GetIUnknownForObject(this);
+
+            if (iid == typeof(IRetryWrapper).GUID)
+            {
+                ppv = unk;
+                return CustomQueryInterfaceResult.Handled;
+            }
+
+            try
+            {
+                if (ErrorHandler.Succeeded(Marshal.QueryInterface(unk, ref iid, out ppv)))
+                {
+                    ppv = AutomationRetryWrapper.WrapNativeIfNecessary(iid, ppv);
+                    return CustomQueryInterfaceResult.Handled;
+                }
+
+                ppv = IntPtr.Zero;
+                return CustomQueryInterfaceResult.Failed;
+            }
+            finally
+            {
+                Marshal.Release(unk);
+            }
         }
     }
 }

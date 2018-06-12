@@ -5,6 +5,7 @@ using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
 using UIAutomationClient;
+using AutomationRetryWrapper = Microsoft.VisualStudio.IntegrationTest.Utilities.Interop.AutomationRetry.AutomationRetryWrapper;
 
 namespace Microsoft.VisualStudio.IntegrationTest.Utilities
 {
@@ -23,7 +24,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
             {
                 if (_automation == null)
                 {
-                    Interlocked.CompareExchange(ref _automation, new CUIAutomation8(), null);
+                    Interlocked.CompareExchange(ref _automation, AutomationRetryWrapper.WrapIfNecessary<IUIAutomation2>(new CUIAutomation8()), null);
                 }
 
                 return _automation;

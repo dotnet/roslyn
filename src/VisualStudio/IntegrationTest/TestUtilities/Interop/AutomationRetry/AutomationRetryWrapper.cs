@@ -2,6 +2,8 @@
 
 using System;
 using System.Collections.Generic;
+using System.Runtime.InteropServices;
+using Roslyn.Utilities;
 using UIAutomationClient;
 
 namespace Microsoft.VisualStudio.IntegrationTest.Utilities.Interop.AutomationRetry
@@ -67,23 +69,88 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.Interop.AutomationRet
                 { typeof(IUIAutomationVirtualizedItemPattern), obj => new UIAutomationVirtualizedItemPattern((IUIAutomationVirtualizedItemPattern)obj).RuntimeCallableWrapper },
                 { typeof(IUIAutomationWindowPattern), obj => new UIAutomationWindowPattern((IUIAutomationWindowPattern)obj).RuntimeCallableWrapper },
             };
+        private static readonly Dictionary<Guid, Func<IntPtr, IntPtr>> _nativeWrapperFunctions = new Dictionary<Guid, Func<IntPtr, IntPtr>>();
+
+        static AutomationRetryWrapper()
+        {
+            foreach (var (type, wrapperFunction) in _wrapperFunctions)
+            {
+                _nativeWrapperFunctions.Add(type.GUID, unk => Marshal.GetIUnknownForObject(wrapperFunction(Marshal.GetObjectForIUnknown(unk))));
+            }
+        }
 
         public static T WrapIfNecessary<T>(T value)
         {
-            if (!_wrapperFunctions.TryGetValue(typeof(T), out var wrapperFunction))
+            if (value == null)
             {
-                // Objects which are not recognized automation objects are not wrapped
-                return value;
+                return default;
             }
 
-            return (T)wrapperFunction(value);
+            if (_wrapperFunctions.TryGetValue(typeof(T), out var wrapperFunction))
+            {
+                return (T)wrapperFunction(value);
+            }
+
+            if (typeof(T) == typeof(object))
+            {
+                if (value is IUnknown unknown)
+                {
+                    return (T)new Unknown(unknown).RuntimeCallableWrapper;
+                }
+                else if (Marshal.IsComObject(value))
+                {
+                    var unk = Marshal.GetIUnknownForObject(value);
+                    try
+                    {
+                        return (T)new Unknown((IUnknown)Marshal.GetObjectForIUnknown(unk)).RuntimeCallableWrapper;
+                    }
+                    finally
+                    {
+                        Marshal.Release(unk);
+                    }
+                }
+            }
+
+            // Objects which are not recognized automation objects are not wrapped
+            return value;
+        }
+
+        public static IntPtr WrapNativeIfNecessary(in Guid guid, IntPtr unk)
+        {
+            if (unk == IntPtr.Zero)
+            {
+                return unk;
+            }
+
+            if (_nativeWrapperFunctions.TryGetValue(guid, out var wrapperFunction))
+            {
+                return wrapperFunction(unk);
+            }
+
+            return unk;
         }
 
         public static T Unwrap<T>(T automationObject)
         {
+            if (automationObject == null)
+            {
+                return default;
+            }
+
             if (automationObject is IRetryWrapper retryWrapper)
             {
                 return (T)retryWrapper.WrappedObject;
+            }
+
+            if (automationObject is object[] objArray)
+            {
+                var result = (object[])objArray.Clone();
+                for (var i = 0; i < result.Length; i++)
+                {
+                    result[i] = Unwrap(result[i]);
+                }
+
+                return (T)(object)result;
             }
 
             return automationObject;
