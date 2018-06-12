@@ -3114,25 +3114,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <returns>The desired method or null.</returns>
         internal MethodSymbol FindPatternMethod(TypeSymbol patternType, string methodName, LookupResult lookupResult,
                                                 SyntaxNode syntaxExpr, bool warningsOnly, DiagnosticBag diagnostics,
-                                                SyntaxTree syntaxTree)
+                                                SyntaxTree syntaxTree, MessageID messageID)
         {
             Debug.Assert(lookupResult.IsClear);
-
-            MessageID messageID;
-            switch (methodName)
-            {
-                case WellKnownMemberNames.DisposeMethodName:
-                    messageID = MessageID.IDS_Disposable;
-                    break;
-                case WellKnownMemberNames.GetEnumeratorMethodName:
-                case WellKnownMemberNames.MoveNextMethodName:
-                case WellKnownMemberNames.CurrentPropertyName:
-                    messageID = MessageID.IDS_Collection;
-                    break;
-                default:
-                    throw ExceptionUtilities.UnexpectedValue(methodName);
-            }
-
+            
             // Not using LookupOptions.MustBeInvocableMember because we don't want the corresponding lookup error.
             // We filter out non-methods below.
             HashSet<DiagnosticInfo> useSiteDiagnostics = null;
