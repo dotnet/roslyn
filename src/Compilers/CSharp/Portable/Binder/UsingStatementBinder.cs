@@ -81,7 +81,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 TypeSymbol expressionType = expressionOpt.Type;
                 
-                if (!iDisposableConversion.IsImplicit && (object)disposeMethod is null)
+                if (!iDisposableConversion.IsImplicit && disposeMethod is null)
                 {
                     if (!(expressionType is null))
                     {
@@ -89,13 +89,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                     if (disposeMethod is null)
                     {
-                        if ((object)expressionType == null || !expressionType.IsErrorType())
+                        if (expressionType is null || !expressionType.IsErrorType())
                         {
                             Error(diagnostics, ErrorCode.ERR_NoConvToIDisp, expressionSyntax, expressionOpt.Display);
-                        } else
-                        {
-                            hasErrors = true;
-                        }
+                        } 
+                        hasErrors = true;
                     }       
                 }
             }
@@ -121,7 +119,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     iDisposableConversion = originalBinder.Conversions.ClassifyImplicitConversionFromType(declType, iDisposable, ref useSiteDiagnostics);
                     diagnostics.Add(declarationSyntax, useSiteDiagnostics);
 
-                    if (!iDisposableConversion.IsImplicit && (object)disposeMethod is null)
+                    if (!iDisposableConversion.IsImplicit && disposeMethod is null)
                     {
                         disposeMethod = TryFindDisposePatternMethod(declType, diagnostics);
                         if (disposeMethod is null)
@@ -130,10 +128,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             {
                                 Error(diagnostics, ErrorCode.ERR_NoConvToIDisp, declarationSyntax, declType);
                             }
-                            else
-                            {
-                                hasErrors = true;
-                            }
+                            hasErrors = true;
                         }
                     }
                 }
