@@ -3226,7 +3226,7 @@ class C
         }
     }
 }").VerifyDiagnostics(
-                // (20,26): error CS8177: Async methods cannot have by reference locals
+                // (20,26): error CS8177: Async methods cannot have by-reference locals
                 //         foreach (ref int x in new E())
                 Diagnostic(ErrorCode.ERR_BadAsyncLocalType, "x").WithLocation(20, 26));
         }
@@ -3260,7 +3260,7 @@ class C
         }
     }
 }").VerifyDiagnostics(
-                // (20,35): error CS8177: Async methods cannot have by reference locals
+                // (20,35): error CS8177: Async methods cannot have by-reference locals
                 //         foreach (ref readonly int x in new E())
                 Diagnostic(ErrorCode.ERR_BadAsyncLocalType, "x").WithLocation(20, 35));
         }
@@ -3292,7 +3292,7 @@ class C
         }
     }
 }").VerifyDiagnostics(
-                // (18,26): error CS8176: Iterators cannot have by reference locals
+                // (18,26): error CS8176: Iterators cannot have by-reference locals
                 //         foreach (ref int x in new E())
                 Diagnostic(ErrorCode.ERR_BadIteratorLocalType, "x").WithLocation(18, 26));
         }
@@ -3324,7 +3324,7 @@ class C
         }
     }
 }").VerifyDiagnostics(
-                // (18,35): error CS8176: Iterators cannot have by reference locals
+                // (18,35): error CS8176: Iterators cannot have by-reference locals
                 //         foreach (ref readonly int x in new E())
                 Diagnostic(ErrorCode.ERR_BadIteratorLocalType, "x").WithLocation(18, 35));
         }

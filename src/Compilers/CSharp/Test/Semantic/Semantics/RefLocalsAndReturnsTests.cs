@@ -1114,7 +1114,7 @@ class C
     }
 }");
             comp.VerifyDiagnostics(
-                // (7,26): error CS8177: Async methods cannot have by reference locals
+                // (7,26): error CS8177: Async methods cannot have by-reference locals
                 //         ref readonly int x = ref (new int[1])[0];
                 Diagnostic(ErrorCode.ERR_BadAsyncLocalType, "x = ref (new int[1])[0]").WithLocation(7, 26));
         }
@@ -1134,7 +1134,7 @@ class C
     }
 }");
             comp.VerifyDiagnostics(
-                // (7,26): error CS8176: Iterators cannot have by reference locals
+                // (7,26): error CS8176: Iterators cannot have by-reference locals
                 //         ref readonly int x = ref (new int[1])[0];
                 Diagnostic(ErrorCode.ERR_BadIteratorLocalType, "x").WithLocation(7, 26));
         }
@@ -2601,10 +2601,10 @@ class TestClass
 }";
 
             CreateCompilation(code).VerifyDiagnostics(
-                // (13,21): error CS8176: Iterators cannot have by reference locals
+                // (13,21): error CS8176: Iterators cannot have by-reference locals
                 //             ref int z = ref x;
                 Diagnostic(ErrorCode.ERR_BadIteratorLocalType, "z").WithLocation(13, 21),
-                // (8,17): error CS8176: Iterators cannot have by reference locals
+                // (8,17): error CS8176: Iterators cannot have by-reference locals
                 //         ref int y = ref x;
                 Diagnostic(ErrorCode.ERR_BadIteratorLocalType, "y").WithLocation(8, 17));
         }
@@ -2628,10 +2628,10 @@ class TestClass
     }
 }";
             CreateCompilationWithMscorlib45(code).VerifyDiagnostics(
-                // (8,17): error CS8177: Async methods cannot have by reference locals
+                // (8,17): error CS8177: Async methods cannot have by-reference locals
                 //         ref int y = ref x;
                 Diagnostic(ErrorCode.ERR_BadAsyncLocalType, "y = ref x").WithLocation(8, 17),
-                // (11,21): error CS8177: Async methods cannot have by reference locals
+                // (11,21): error CS8177: Async methods cannot have by-reference locals
                 //             ref int z = ref x;
                 Diagnostic(ErrorCode.ERR_BadAsyncLocalType, "z = ref x").WithLocation(11, 21));
         }
@@ -2948,7 +2948,7 @@ class Program
 ";
 
             CreateCompilationWithMscorlib46(text).VerifyDiagnostics(
-                // (8,17): error CS8932: Async methods cannot have by reference locals
+                // (8,17): error CS8932: Async methods cannot have by-reference locals
                 //         ref int i = ref field;
                 Diagnostic(ErrorCode.ERR_BadAsyncLocalType, "i = ref field").WithLocation(8, 17),
                 // (6,23): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
@@ -2975,7 +2975,7 @@ class Program
 ";
 
             CreateCompilationWithMscorlib46(text).VerifyDiagnostics(
-                // (10,17): error CS8931: Iterators cannot have by reference locals
+                // (10,17): error CS8931: Iterators cannot have by-reference locals
                 //         ref int i = ref field;
                 Diagnostic(ErrorCode.ERR_BadIteratorLocalType, "i").WithLocation(10, 17));
         }
