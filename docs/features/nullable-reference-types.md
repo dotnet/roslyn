@@ -101,6 +101,7 @@ var y = obliviousString!; // y is string!
 var z = new [] { optionalString, obliviousString }!; // no change, z is string?[]!
 ```
 _Should `!` suppress warnings for nested nullability?_
+_Should `nonNull!` result in a warning for unnecessary `!`?_
 _Should `!!` be an error?_
 
 ### Explicit cast
