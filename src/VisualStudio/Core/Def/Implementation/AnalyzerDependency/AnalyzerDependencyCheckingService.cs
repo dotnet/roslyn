@@ -149,7 +149,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
 
         private Task<AnalyzerDependencyResults> GetConflictsAsync()
         {
-            ImmutableHashSet<string> currentAnalyzerPaths = _workspace.CurrentSolution
+            var currentAnalyzerPaths = _workspace.CurrentSolution
                 .Projects
                 .SelectMany(p => p.AnalyzerReferences)
                 .OfType<AnalyzerFileReference>()
@@ -167,10 +167,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
 
             _task = _task.SafeContinueWith(_ =>
             {
-                IEnumerable<AssemblyIdentity> loadedAssemblies = AppDomain.CurrentDomain.GetAssemblies().Select(assembly => AssemblyIdentity.FromAssemblyDefinition(assembly));
-                IgnorableAssemblyIdentityList loadedAssembliesList = new IgnorableAssemblyIdentityList(loadedAssemblies);
+                var loadedAssemblies = AppDomain.CurrentDomain.GetAssemblies().Select(assembly => AssemblyIdentity.FromAssemblyDefinition(assembly));
+                var loadedAssembliesList = new IgnorableAssemblyIdentityList(loadedAssemblies);
 
-                IIgnorableAssemblyList[] ignorableAssemblyLists = new[] { s_systemPrefixList, s_codeAnalysisPrefixList, s_explicitlyIgnoredAssemblyList, s_assembliesIgnoredByNameList, loadedAssembliesList };
+                var ignorableAssemblyLists = new[] { s_systemPrefixList, s_codeAnalysisPrefixList, s_explicitlyIgnoredAssemblyList, s_assembliesIgnoredByNameList, loadedAssembliesList };
                 return AnalyzerDependencyChecker.ComputeDependencyConflicts(currentAnalyzerPaths, ignorableAssemblyLists, _bindingRedirectionService, _cancellationTokenSource.Token);
             },
             TaskScheduler.Default);
@@ -202,7 +202,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
         {
             public AssemblyIdentity ApplyBindingRedirects(AssemblyIdentity originalIdentity)
             {
-                string redirectedAssemblyName = AppDomain.CurrentDomain.ApplyPolicy(originalIdentity.ToString());
+                var redirectedAssemblyName = AppDomain.CurrentDomain.ApplyPolicy(originalIdentity.ToString());
                 if (AssemblyIdentity.TryParseDisplayName(redirectedAssemblyName, out var redirectedAssemblyIdentity))
                 {
                     return redirectedAssemblyIdentity;
