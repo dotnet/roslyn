@@ -1815,15 +1815,11 @@ IAnonymousObjectCreationOperation (OperationKind.AnonymousObjectCreation, Type: 
             };
         }
 
-        private CSharpCompilation Compile(string source)
-        {
-            return (CSharpCompilation)GetCompilationForEmit(
-                new[] { source },
-                new MetadataReference[] { },
-                TestOptions.ReleaseDll,
-                TestOptions.Regular
-            );
-        }
+        private CSharpCompilation Compile(string source) =>
+            CreateCompilationWithMscorlib40(
+                source,
+                options: TestOptions.ReleaseDll,
+                parseOptions: TestOptions.Regular);
 
         private static List<TextSpan> ExtractTextIntervals(ref string source)
         {

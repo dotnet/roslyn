@@ -5631,7 +5631,7 @@ public class X
     }
 }
 ";
-            var compilation = CreateCompilation(source, references: new MetadataReference[] { CSharpRef, SystemCoreRef }, options: TestOptions.ReleaseExe);
+            var compilation = CreateCompilation(source, references: new MetadataReference[] { CSharpRef }, options: TestOptions.ReleaseExe);
             var comp = CompileAndVerify(compilation, expectedOutput: "roslyn");
         }
 

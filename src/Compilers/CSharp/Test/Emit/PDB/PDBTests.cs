@@ -3038,18 +3038,18 @@ class Student : Person { public double GPA; }
         <entry offset=""0x53"" startLine=""25"" startColumn=""17"" endLine=""25"" endColumn=""57"" document=""1"" />
         <entry offset=""0x72"" hidden=""true"" document=""1"" />
         <entry offset=""0x74"" startLine=""27"" startColumn=""17"" endLine=""27"" endColumn=""59"" document=""1"" />
-        <entry offset=""0x8e"" startLine=""29"" startColumn=""17"" endLine=""29"" endColumn=""43"" document=""1"" />
-        <entry offset=""0xa2"" startLine=""31"" startColumn=""5"" endLine=""31"" endColumn=""6"" document=""1"" />
+        <entry offset=""0x93"" startLine=""29"" startColumn=""17"" endLine=""29"" endColumn=""43"" document=""1"" />
+        <entry offset=""0xa7"" startLine=""31"" startColumn=""5"" endLine=""31"" endColumn=""6"" document=""1"" />
       </sequencePoints>
-      <scope startOffset=""0x0"" endOffset=""0xa5"">
+      <scope startOffset=""0x0"" endOffset=""0xaa"">
         <scope startOffset=""0x1d"" endOffset=""0x4f"">
           <local name=""s"" il_index=""0"" il_start=""0x1d"" il_end=""0x4f"" attributes=""0"" />
         </scope>
         <scope startOffset=""0x4f"" endOffset=""0x72"">
           <local name=""s"" il_index=""1"" il_start=""0x4f"" il_end=""0x72"" attributes=""0"" />
         </scope>
-        <scope startOffset=""0x72"" endOffset=""0x8e"">
-          <local name=""t"" il_index=""2"" il_start=""0x72"" il_end=""0x8e"" attributes=""0"" />
+        <scope startOffset=""0x72"" endOffset=""0x93"">
+          <local name=""t"" il_index=""2"" il_start=""0x72"" il_end=""0x93"" attributes=""0"" />
         </scope>
       </scope>
     </method>

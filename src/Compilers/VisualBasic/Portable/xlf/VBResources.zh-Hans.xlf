@@ -8534,7 +8534,7 @@
                                   按编译器指定源路径名称输出的
                                   映射。
 /platform:&lt;string&gt;                限制此代码可以在其上运行的平台；
-                                  必须是 x86、x64、Itanium、arm、
+                                  必须是 x86、x64、Itanium、arm、arm64、
                                   AnyCPU32BitPreferred 或 anycpu (默认)。
 /preferreduilang                  指定首选输出语言名称。
 /sdkpath:&lt;path&gt;                   .NET Framework SDK 目录的位置

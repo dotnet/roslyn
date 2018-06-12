@@ -237,7 +237,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' from the <see cref="CommonConversion"/> struct.
         ''' </remarks>
         Public Function ToCommonConversion() As CommonConversion
-            Return New CommonConversion(Exists, IsIdentity, IsNumeric, IsReference, MethodSymbol)
+            Return New CommonConversion(Exists, IsIdentity, IsNumeric, IsReference, IsWidening, MethodSymbol)
         End Function
 
         ''' <summary>
