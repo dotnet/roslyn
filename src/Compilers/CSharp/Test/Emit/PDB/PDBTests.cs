@@ -5309,7 +5309,7 @@ class C
     IL_001a:  ldloc.2
     IL_001b:  brfalse.s  IL_0024
     IL_001d:  ldloc.2
-    IL_001e:  callvirt   ""void System.IO.Stream.Dispose()""
+    IL_001e:  callvirt   ""void System.IDisposable.Dispose()""
     IL_0023:  nop
     // sequence point: <hidden>
     IL_0024:  endfinally
@@ -5404,7 +5404,7 @@ class C
     IL_001c:  ldloc.2
     IL_001d:  brfalse.s  IL_0026
     IL_001f:  ldloc.2
-    IL_0020:  callvirt   ""void System.IO.Stream.Dispose()""
+    IL_0020:  callvirt   ""void System.IDisposable.Dispose()""
     IL_0025:  nop
     // sequence point: <hidden>
     IL_0026:  endfinally
@@ -5469,7 +5469,7 @@ class C
     IL_0013:  ldloc.0
     IL_0014:  brfalse.s  IL_001d
     IL_0016:  ldloc.0
-    IL_0017:  callvirt   ""void System.IO.Stream.Dispose()""
+    IL_0017:  callvirt   ""void System.IDisposable.Dispose()""
     IL_001c:  nop
     // sequence point: <hidden>
     IL_001d:  endfinally
@@ -5529,7 +5529,7 @@ class C
     IL_0013:  ldloc.0
     IL_0014:  brfalse.s  IL_001d
     IL_0016:  ldloc.0
-    IL_0017:  callvirt   ""void System.IO.Stream.Dispose()""
+    IL_0017:  callvirt   ""void System.IDisposable.Dispose()""
     IL_001c:  nop
     // sequence point: <hidden>
     IL_001d:  endfinally
