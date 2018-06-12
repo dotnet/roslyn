@@ -153,7 +153,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return _underlyingParameter.IsCallerMemberName; }
         }
 
-        internal override AttributeAnnotations FlowAnalysisAnnotations
+        internal override FlowAnalysisAnnotations FlowAnalysisAnnotations
         {
             // PROTOTYPE(NullableReferenceTypes): Consider moving to leaf types
             get { return _underlyingParameter.FlowAnalysisAnnotations; }

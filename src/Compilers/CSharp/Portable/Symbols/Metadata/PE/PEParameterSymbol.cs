@@ -31,29 +31,31 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             IsCallerFilePath = 0x1 << 5,
             IsCallerLineNumber = 0x1 << 6,
             IsCallerMemberName = 0x1 << 7,
-            NotNullWhenFalse = 0x1 << 8,
-            EnsuresNotNull = 0x1 << 9,
+            NotNullWhenTrue = 0x1 << 8,
+            NotNullWhenFalse = 0x1 << 9,
+            AssertsTrue = 0x1 << 10,
+            AssertsFalse = 0x1 << 11,
         }
 
         private struct PackedFlags
         {
             // Layout:
-            // |.........|n|rr|cccccccccc|vvvvvvvvvv|
+            // |.....|n|rr|cccccccccccc|vvvvvvvvvvvv|
             // 
-            // v = decoded well known attribute values. 10 bits.
-            // c = completion states for well known attributes. 1 if given attribute has been decoded, 0 otherwise. 10 bits.
+            // v = decoded well known attribute values. 12 bits.
+            // c = completion states for well known attributes. 1 if given attribute has been decoded, 0 otherwise. 12 bits.
             // r = RefKind. 2 bits.
             // n = hasNameInMetadata. 1 bit.
 
             private const int WellKnownAttributeDataOffset = 0;
-            private const int WellKnownAttributeCompletionFlagOffset = 10;
-            private const int RefKindOffset = 20;
+            private const int WellKnownAttributeCompletionFlagOffset = 12;
+            private const int RefKindOffset = 24;
 
             private const int RefKindMask = 0x3;
-            private const int WellKnownAttributeDataMask = 0x3FF;
+            private const int WellKnownAttributeDataMask = 0xFFF;
             private const int WellKnownAttributeCompletionFlagMask = WellKnownAttributeDataMask;
 
-            private const int HasNameInMetadataBit = 0x1 << 22;
+            private const int HasNameInMetadataBit = 0x1 << 26;
 
             private const int AllWellKnownAttributesCompleteNoData = WellKnownAttributeCompletionFlagMask << WellKnownAttributeCompletionFlagOffset;
 
@@ -647,41 +649,54 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             }
         }
 
-        internal override AttributeAnnotations FlowAnalysisAnnotations
+        internal override FlowAnalysisAnnotations FlowAnalysisAnnotations
         {
             get
             {
+                const WellKnownAttributeFlags notNullWhenTrue = WellKnownAttributeFlags.NotNullWhenTrue;
                 const WellKnownAttributeFlags notNullWhenFalse = WellKnownAttributeFlags.NotNullWhenFalse;
-                const WellKnownAttributeFlags ensuresNotNull = WellKnownAttributeFlags.EnsuresNotNull;
+                const WellKnownAttributeFlags assertsTrue = WellKnownAttributeFlags.AssertsTrue;
+                const WellKnownAttributeFlags assertsFalse = WellKnownAttributeFlags.AssertsFalse;
 
                 // PROTOTYPE(NullableReferenceTypes): the flags could be packed more
-                if (!_packedFlags.TryGetWellKnownAttribute(notNullWhenFalse, out bool hasNotNullWhenFalse) ||
-                    !_packedFlags.TryGetWellKnownAttribute(ensuresNotNull, out bool hasEnsuresNotNull))
+                if (!_packedFlags.TryGetWellKnownAttribute(notNullWhenTrue, out bool hasNotNullWhenTrue) ||
+                    !_packedFlags.TryGetWellKnownAttribute(notNullWhenFalse, out bool hasNotNullWhenFalse) ||
+                    !_packedFlags.TryGetWellKnownAttribute(assertsTrue, out bool hasAssertsTrue) ||
+                    !_packedFlags.TryGetWellKnownAttribute(assertsFalse, out bool hasAssertsFalse))
                 {
-                    (bool memberHasAny, AttributeAnnotations annotations) = TryGetExtraAttributeAnnotations();
+                    FlowAnalysisAnnotations? annotations = TryGetExtraAttributeAnnotations();
 
-                    if (memberHasAny)
+                    if (annotations.HasValue)
                     {
                         // External annotations win, if any is present on the member
-                        hasNotNullWhenFalse = (annotations & AttributeAnnotations.NotNullWhenFalse) != 0;
-                        hasEnsuresNotNull = (annotations & AttributeAnnotations.EnsuresNotNull) != 0;
+                        hasNotNullWhenTrue = (annotations & FlowAnalysisAnnotations.NotNullWhenTrue) != 0;
+                        hasNotNullWhenFalse = (annotations & FlowAnalysisAnnotations.NotNullWhenFalse) != 0;
+                        hasAssertsTrue = (annotations & FlowAnalysisAnnotations.AssertsTrue) != 0;
+                        hasAssertsFalse = (annotations & FlowAnalysisAnnotations.AssertsFalse) != 0;
                     }
                     else
                     {
-                        hasNotNullWhenFalse = _moduleSymbol.Module.HasAttribute(_handle, AttributeDescription.NotNullWhenFalseAttribute);
-                        hasEnsuresNotNull = _moduleSymbol.Module.HasAttribute(_handle, AttributeDescription.EnsuresNotNullAttribute);
+                        bool hasEnsuresNotNull = _moduleSymbol.Module.HasAttribute(_handle, AttributeDescription.EnsuresNotNullAttribute);
+                        hasNotNullWhenTrue = hasEnsuresNotNull || _moduleSymbol.Module.HasAttribute(_handle, AttributeDescription.NotNullWhenTrueAttribute);
+                        hasNotNullWhenFalse = hasEnsuresNotNull || _moduleSymbol.Module.HasAttribute(_handle, AttributeDescription.NotNullWhenFalseAttribute);
+                        hasAssertsTrue = _moduleSymbol.Module.HasAttribute(_handle, AttributeDescription.AssertsTrueAttribute);
+                        hasAssertsFalse = _moduleSymbol.Module.HasAttribute(_handle, AttributeDescription.AssertsFalseAttribute);
                     }
 
+                    _packedFlags.SetWellKnownAttribute(notNullWhenTrue, hasNotNullWhenTrue);
                     _packedFlags.SetWellKnownAttribute(notNullWhenFalse, hasNotNullWhenFalse);
-                    _packedFlags.SetWellKnownAttribute(ensuresNotNull, hasEnsuresNotNull);
+                    _packedFlags.SetWellKnownAttribute(assertsTrue, hasAssertsTrue);
+                    _packedFlags.SetWellKnownAttribute(assertsFalse, hasAssertsFalse);
 
-                    if (memberHasAny)
+                    if (annotations.HasValue)
                     {
-                        return annotations;
+                        return annotations.Value;
                     }
                 }
 
-                return AttributeAnnotations.None.With(notNullWhenFalse: hasNotNullWhenFalse, ensuresNotNull: hasEnsuresNotNull);
+                return FlowAnalysisAnnotationsFacts.Create(
+                    notNullWhenTrue: hasNotNullWhenTrue, notNullWhenFalse: hasNotNullWhenFalse,
+                    assertsTrue: hasAssertsTrue, assertsFalse: hasAssertsFalse);
             }
         }
 

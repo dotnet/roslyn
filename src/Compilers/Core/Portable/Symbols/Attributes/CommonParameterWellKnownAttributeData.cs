@@ -110,7 +110,23 @@ namespace Microsoft.CodeAnalysis
         }
         #endregion
 
-        // PROTOTYPE(NullableReferenceTypes): Consider moving the attribute for nullability to C#-specific type
+        // PROTOTYPE(NullableReferenceTypes): Consider moving the attributes for nullability to C#-specific type
+        private bool _hasNotNullWhenTrueAttribute;
+        public bool HasNotNullWhenTrueAttribute
+        {
+            get
+            {
+                VerifySealed(expected: true);
+                return _hasNotNullWhenTrueAttribute;
+            }
+            set
+            {
+                VerifySealed(expected: false);
+                _hasNotNullWhenTrueAttribute = value;
+                SetDataStored();
+            }
+        }
+
         private bool _hasNotNullWhenFalseAttribute;
         public bool HasNotNullWhenFalseAttribute
         {
@@ -139,6 +155,38 @@ namespace Microsoft.CodeAnalysis
             {
                 VerifySealed(expected: false);
                 _hasEnsuresNotNullAttribute = value;
+                SetDataStored();
+            }
+        }
+
+        private bool _hasAssertsTrueAttribute;
+        public bool HasAssertsTrueAttribute
+        {
+            get
+            {
+                VerifySealed(expected: true);
+                return _hasAssertsTrueAttribute;
+            }
+            set
+            {
+                VerifySealed(expected: false);
+                _hasAssertsTrueAttribute = value;
+                SetDataStored();
+            }
+        }
+
+        private bool _hasAssertsFalseAttribute;
+        public bool HasAssertsFalseAttribute
+        {
+            get
+            {
+                VerifySealed(expected: true);
+                return _hasAssertsFalseAttribute;
+            }
+            set
+            {
+                VerifySealed(expected: false);
+                _hasAssertsFalseAttribute = value;
                 SetDataStored();
             }
         }

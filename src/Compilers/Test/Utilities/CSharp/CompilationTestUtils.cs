@@ -314,7 +314,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     method,
                     block,
                     diagnostics,
-                    (BoundExpression expr, TypeSymbolWithAnnotations exprType) => dictionary[expr.Syntax] = exprType);
+                    callbackOpt: (BoundExpression expr, TypeSymbolWithAnnotations exprType) => dictionary[expr.Syntax] = exprType);
                 diagnostics.Free();
                 var expectedTypes = annotations.SelectAsArray(annotation => annotation.Text);
                 var actualTypes = annotations.SelectAsArray(annotation => toDisplayString(annotation.Expression));

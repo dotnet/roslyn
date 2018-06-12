@@ -258,8 +258,11 @@ namespace Microsoft.CodeAnalysis
         private static readonly byte[][] s_signaturesOfOutAttribute = { s_signature_HasThis_Void };
         private static readonly byte[][] s_signaturesOfIsReadOnlyAttribute = { s_signature_HasThis_Void };
         private static readonly byte[][] s_signaturesOfIsUnmanagedAttribute = { s_signature_HasThis_Void };
+        private static readonly byte[][] s_signaturesOfNotNullWhenTrueAttribute = { s_signature_HasThis_Void };
         private static readonly byte[][] s_signaturesOfNotNullWhenFalseAttribute = { s_signature_HasThis_Void };
         private static readonly byte[][] s_signaturesOfEnsuresNotNullAttribute = { s_signature_HasThis_Void };
+        private static readonly byte[][] s_signaturesOfAssertsTrueAttribute = { s_signature_HasThis_Void };
+        private static readonly byte[][] s_signaturesOfAssertsFalseAttribute = { s_signature_HasThis_Void };
         private static readonly byte[][] s_signaturesOfFixedBufferAttribute = { s_signature_HasThis_Void_Type_Int32 };
         private static readonly byte[][] s_signaturesOfSuppressUnmanagedCodeSecurityAttribute = { s_signature_HasThis_Void };
         private static readonly byte[][] s_signaturesOfPrincipalPermissionAttribute = { s_signature_HasThis_Void_SecurityAction };
@@ -456,8 +459,11 @@ namespace Microsoft.CodeAnalysis
         internal static readonly AttributeDescription StructLayoutAttribute = new AttributeDescription("System.Runtime.InteropServices", "StructLayoutAttribute", s_signaturesOfStructLayoutAttribute);
         internal static readonly AttributeDescription FieldOffsetAttribute = new AttributeDescription("System.Runtime.InteropServices", "FieldOffsetAttribute", s_signaturesOfFieldOffsetAttribute);
         internal static readonly AttributeDescription FixedBufferAttribute = new AttributeDescription("System.Runtime.CompilerServices", "FixedBufferAttribute", s_signaturesOfFixedBufferAttribute);
+        internal static readonly AttributeDescription NotNullWhenTrueAttribute = new AttributeDescription("System.Runtime.CompilerServices", "NotNullWhenTrueAttribute", s_signaturesOfNotNullWhenTrueAttribute);
         internal static readonly AttributeDescription NotNullWhenFalseAttribute = new AttributeDescription("System.Runtime.CompilerServices", "NotNullWhenFalseAttribute", s_signaturesOfNotNullWhenFalseAttribute);
         internal static readonly AttributeDescription EnsuresNotNullAttribute = new AttributeDescription("System.Runtime.CompilerServices", "EnsuresNotNullAttribute", s_signaturesOfEnsuresNotNullAttribute);
+        internal static readonly AttributeDescription AssertsTrueAttribute = new AttributeDescription("System.Runtime.CompilerServices", "AssertsTrueAttribute", s_signaturesOfAssertsTrueAttribute);
+        internal static readonly AttributeDescription AssertsFalseAttribute = new AttributeDescription("System.Runtime.CompilerServices", "AssertsFalseAttribute", s_signaturesOfAssertsFalseAttribute);
         internal static readonly AttributeDescription MarshalAsAttribute = new AttributeDescription("System.Runtime.InteropServices", "MarshalAsAttribute", s_signaturesOfMarshalAsAttribute);
         internal static readonly AttributeDescription InAttribute = new AttributeDescription("System.Runtime.InteropServices", "InAttribute", s_signaturesOfInAttribute);
         internal static readonly AttributeDescription OutAttribute = new AttributeDescription("System.Runtime.InteropServices", "OutAttribute", s_signaturesOfOutAttribute);

@@ -82,13 +82,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return false; }
         }
 
-        internal override AttributeAnnotations FlowAnalysisAnnotations
+        internal override FlowAnalysisAnnotations FlowAnalysisAnnotations
         {
-            get
-            {
-                (_, AttributeAnnotations annotations) = TryGetExtraAttributeAnnotations();
-                return annotations;
-            }
+            get { return TryGetExtraAttributeAnnotations() ?? FlowAnalysisAnnotations.None; }
         }
 
         internal override MarshalPseudoCustomAttributeData MarshallingInformation
