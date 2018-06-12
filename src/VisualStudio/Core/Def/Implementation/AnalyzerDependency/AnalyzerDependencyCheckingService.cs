@@ -171,7 +171,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                 IgnorableAssemblyIdentityList loadedAssembliesList = new IgnorableAssemblyIdentityList(loadedAssemblies);
 
                 IIgnorableAssemblyList[] ignorableAssemblyLists = new[] { s_systemPrefixList, s_codeAnalysisPrefixList, s_explicitlyIgnoredAssemblyList, s_assembliesIgnoredByNameList, loadedAssembliesList };
-                return new AnalyzerDependencyChecker(currentAnalyzerPaths, ignorableAssemblyLists, _bindingRedirectionService).Run(_cancellationTokenSource.Token);
+                return AnalyzerDependencyChecker.ComputeDependencyConflicts(currentAnalyzerPaths, ignorableAssemblyLists, _bindingRedirectionService, _cancellationTokenSource.Token);
             },
             TaskScheduler.Default);
 
