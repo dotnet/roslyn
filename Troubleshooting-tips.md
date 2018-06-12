@@ -50,3 +50,12 @@ Such test can be debugged by opening `C:\Program Files\dotnet\dotnet.exe` as a p
 
 # Investigating squiggles in the IDE
 All the compiler diagnostics that appear as IDE squiggles are channeled through the `AnalyzeXYZ`methods in [CompilationAnalyzer](http://source.roslyn.io/#Microsoft.CodeAnalysis/DiagnosticAnalyzer/CompilerDiagnosticAnalyzer.CompilationAnalyzer.cs).
+
+# Verifying a Roslyn change in integration into the CLI
+I recently had to test a [Roslyn change](https://github.com/dotnet/roslyn/pull/27349) in integration into the CLI. Here are the steps:
+
+1. In roslyn enlistment ran: `powershell -noprofile -executionPolicy RemoteSigned -file build\scripts\build.ps1 -bootstrap -buildcoreclr`. That puts a valid MSBuild layout into "E:\code\roslyn\Binaries\Bootstrap\Microsoft.NETCore.Compilers\42.42.42.42\tools"
+1. Created a Net Core app project that had the stack overflow case. 
+1. In the sample code directory 
+    1. Ran `dotnet build` and verified no stack printed 
+    1. Ran ` dotnet build /p:RoslynTargetsPath=E:\code\roslyn\Binaries\Bootstrap\Microsoft.NETCore.Compilers\42.42.42.42\tools` and verified the stack trace was printed
