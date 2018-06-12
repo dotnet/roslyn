@@ -81,6 +81,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
+            // Add empty values for type parameters without constraint clauses.
+            for (int i = 0; i < n; i++)
+            {
+                if (results[i] == null)
+                {
+                    results[i] = TypeParameterConstraintClause.Empty;
+                }
+            }
+
             return results.ToImmutableAndFree();
         }
 
@@ -180,7 +189,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            return new TypeParameterConstraintClause(constraints, constraintTypes.ToImmutableAndFree(), syntaxBuilder.ToImmutableAndFree());
+            return TypeParameterConstraintClause.Create(constraints, constraintTypes.ToImmutableAndFree(), syntaxBuilder.ToImmutableAndFree());
         }
 
         /// <summary>

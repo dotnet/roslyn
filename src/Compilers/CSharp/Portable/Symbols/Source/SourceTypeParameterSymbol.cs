@@ -426,7 +426,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         protected override TypeParameterBounds ResolveBounds(ConsList<TypeParameterSymbol> inProgress, bool early, DiagnosticBag diagnostics)
         {
             var constraintClause = GetTypeParameterConstraintClause(early);
-            if (constraintClause == null)
+            if (constraintClause.IsEmpty)
             {
                 return null;
             }
@@ -441,10 +441,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private TypeParameterConstraintKind GetDeclaredConstraints()
         {
             var constraintClause = GetTypeParameterConstraintClause(early: true);
-            if (constraintClause == null)
-            {
-                return TypeParameterConstraintKind.None;
-            }
             return constraintClause.Constraints;
         }
     }
@@ -519,13 +515,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private TypeParameterConstraintClause GetTypeParameterConstraintClause(bool early)
         {
             var constraintClauses = _owner.GetTypeParameterConstraintClauses(early);
-            return constraintClauses.IsEmpty ? null : constraintClauses[Ordinal];
+            return constraintClauses.IsEmpty ? TypeParameterConstraintClause.Empty : constraintClauses[Ordinal];
         }
 
         protected override TypeParameterBounds ResolveBounds(ConsList<TypeParameterSymbol> inProgress, bool early, DiagnosticBag diagnostics)
         {
             var constraintClause = GetTypeParameterConstraintClause(early);
-            if (constraintClause == null)
+            if (constraintClause.IsEmpty)
             {
                 return null;
             }
@@ -540,10 +536,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal TypeParameterConstraintKind GetDeclaredConstraints()
         {
             var constraintClause = GetTypeParameterConstraintClause(early: true);
-            if (constraintClause == null)
-            {
-                return TypeParameterConstraintKind.None;
-            }
             return constraintClause.Constraints;
         }
     }

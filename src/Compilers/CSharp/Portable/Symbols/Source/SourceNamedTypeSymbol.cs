@@ -256,7 +256,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 currentClauses = _lazyTypeParameterConstraints;
             }
 
-            return (currentClauses.Length > 0) ? currentClauses[ordinal] : null;
+            return (currentClauses.Length > 0) ? currentClauses[ordinal] : TypeParameterConstraintClause.Empty;
         }
 
         private ImmutableArray<TypeParameterConstraintClause> MakeTypeParameterConstraintsEarly(DiagnosticBag diagnostics)
@@ -303,6 +303,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                 diagnostics.Add(ErrorCode.ERR_PartialWrongConstraints, Locations[0], this, typeParameters[i]);
                             }
                         }
+                        // Merge in the other partial declaration constraints so all
+                        // partial declarations can be checked in late step.
+                        results = results.ZipAsArray(constraints, (x, y) => x.AddPartialDeclaration(y));
                     }
                 }
             }

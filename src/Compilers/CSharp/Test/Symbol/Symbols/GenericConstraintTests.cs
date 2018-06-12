@@ -2053,6 +2053,93 @@ class C<T>
         }
 
         [Fact]
+        public void DuplicateConstraintDifferencesOnPartialMethod()
+        {
+            var source =
+@"interface I<T> { }
+partial class C<T>
+{
+    partial void F<U>() where U : T, T, I<T>;
+    partial void F<U>() where U : T, I<T>, I<T> { }
+}";
+            CreateCompilation(source).VerifyDiagnostics(
+                // (4,38): error CS0405: Duplicate constraint 'T' for type parameter 'U'
+                //     partial void F<U>() where U : T, T, I<T>;
+                Diagnostic(ErrorCode.ERR_DuplicateBound, "T").WithArguments("T", "U").WithLocation(4, 38),
+                // (5,44): error CS0405: Duplicate constraint 'I<T>' for type parameter 'U'
+                //     partial void F<U>() where U : T, I<T>, I<T> { }
+                Diagnostic(ErrorCode.ERR_DuplicateBound, "I<T>").WithArguments("I<T>", "U").WithLocation(5, 44));
+        }
+
+        [Fact]
+        public void ConstraintErrorMultiplePartialDeclarations_01()
+        {
+            var source =
+@"interface I { }
+class A { }
+sealed class B { }
+static class S { }
+partial class C<T> where T : S { }
+partial class C<T> where T : S { }
+partial class D<T> where T : A, I { }
+partial class D<T> where T : I, A { }
+partial class D<T> where T : I, A { }
+partial class E<T> where T : B { }
+partial class E<T> where T : I, B { }
+";
+            CreateCompilation(source).VerifyDiagnostics(
+                // (5,30): error CS0717: 'S': static classes cannot be used as constraints
+                // partial class C<T> where T : S { }
+                Diagnostic(ErrorCode.ERR_ConstraintIsStaticClass, "S").WithArguments("S").WithLocation(5, 30),
+                // (6,30): error CS0717: 'S': static classes cannot be used as constraints
+                // partial class C<T> where T : S { }
+                Diagnostic(ErrorCode.ERR_ConstraintIsStaticClass, "S").WithArguments("S").WithLocation(6, 30),
+                // (8,33): error CS0406: The class type constraint 'A' must come before any other constraints
+                // partial class D<T> where T : I, A { }
+                Diagnostic(ErrorCode.ERR_ClassBoundNotFirst, "A").WithArguments("A").WithLocation(8, 33),
+                // (9,33): error CS0406: The class type constraint 'A' must come before any other constraints
+                // partial class D<T> where T : I, A { }
+                Diagnostic(ErrorCode.ERR_ClassBoundNotFirst, "A").WithArguments("A").WithLocation(9, 33),
+                // (10,15): error CS0265: Partial declarations of 'E<T>' have inconsistent constraints for type parameter 'T'
+                // partial class E<T> where T : B { }
+                Diagnostic(ErrorCode.ERR_PartialWrongConstraints, "E").WithArguments("E<T>", "T").WithLocation(10, 15),
+                // (10,30): error CS0701: 'B' is not a valid constraint. A type used as a constraint must be an interface, a non-sealed class or a type parameter.
+                // partial class E<T> where T : B { }
+                Diagnostic(ErrorCode.ERR_BadBoundType, "B").WithArguments("B").WithLocation(10, 30),
+                // (11,33): error CS0701: 'B' is not a valid constraint. A type used as a constraint must be an interface, a non-sealed class or a type parameter.
+                // partial class E<T> where T : I, B { }
+                Diagnostic(ErrorCode.ERR_BadBoundType, "B").WithArguments("B").WithLocation(11, 33));
+        }
+
+        [Fact]
+        public void ConstraintErrorMultiplePartialDeclarations_02()
+        {
+            var source =
+@"sealed class A { }
+partial class B<T, U> where T : A where U : T { }
+partial class B<T, U> where T : A { }
+partial class C<T, U> where U : T { }
+partial class C<T, U> where T : A where U : T { }
+";
+            CreateCompilation(source).VerifyDiagnostics(
+                // (2,15): error CS0265: Partial declarations of 'B<T, U>' have inconsistent constraints for type parameter 'U'
+                // partial class B<T, U> where T : A where U : T { }
+                Diagnostic(ErrorCode.ERR_PartialWrongConstraints, "B").WithArguments("B<T, U>", "U").WithLocation(2, 15),
+                // (2,33): error CS0701: 'A' is not a valid constraint. A type used as a constraint must be an interface, a non-sealed class or a type parameter.
+                // partial class B<T, U> where T : A where U : T { }
+                Diagnostic(ErrorCode.ERR_BadBoundType, "A").WithArguments("A").WithLocation(2, 33),
+                // (3,33): error CS0701: 'A' is not a valid constraint. A type used as a constraint must be an interface, a non-sealed class or a type parameter.
+                // partial class B<T, U> where T : A { }
+                Diagnostic(ErrorCode.ERR_BadBoundType, "A").WithArguments("A").WithLocation(3, 33),
+                // (4,15): error CS0265: Partial declarations of 'C<T, U>' have inconsistent constraints for type parameter 'T'
+                // partial class C<T, U> where U : T { }
+                Diagnostic(ErrorCode.ERR_PartialWrongConstraints, "C").WithArguments("C<T, U>", "T").WithLocation(4, 15),
+                // (5,33): error CS0701: 'A' is not a valid constraint. A type used as a constraint must be an interface, a non-sealed class or a type parameter.
+                // partial class C<T, U> where T : A where U : T { }
+                Diagnostic(ErrorCode.ERR_BadBoundType, "A").WithArguments("A").WithLocation(5, 33));
+        }
+
+        [Fact]
         public void EffectiveBaseClass01()
         {
             var source =

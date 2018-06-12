@@ -385,10 +385,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             TypeParameterConstraintClause constraintClause,
             DiagnosticBag diagnostics)
         {
-            if (constraintClause == null)
-            {
-                return null;
-            }
             var constraintTypeBuilder = ArrayBuilder<TypeSymbolWithAnnotations>.GetInstance();
             var constraintTypes = constraintClause.ConstraintTypes;
             int n = constraintTypes.Length;
@@ -411,7 +407,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 constraintTypes = constraintTypeBuilder.ToImmutable();
             }
             constraintTypeBuilder.Free();
-            return new TypeParameterConstraintClause(constraintClause.Constraints, constraintTypes, default);
+            // Verify constraints on any other partial declarations.
+            foreach (var otherClause in constraintClause.OtherPartialDeclarations)
+            {
+                MakeTypeParameterConstraintsLate(containingSymbol, typeParameter, otherClause, diagnostics);
+            }
+            return TypeParameterConstraintClause.Create(constraintClause.Constraints, constraintTypes);
         }
 
         // Based on SymbolLoader::SetOverrideConstraints.
