@@ -32,14 +32,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
             ForegroundObject = new ForegroundThreadAffinitizedObject();
         }
 
-        protected void LoadComponentsInUIContextOnceSolutionFullyLoaded()
+        protected void LoadComponentsInUIContextOnceSolutionFullyLoaded(CancellationToken cancellationToken)
         {
             ForegroundObject.AssertIsForeground();
 
             if (KnownUIContexts.SolutionExistsAndFullyLoadedContext.IsActive)
             {
                 // if we are already in the right UI context, load it right away
-                LoadComponentsInUIContext();
+                LoadComponentsInUIContext(cancellationToken);
             }
             else
             {
@@ -58,10 +58,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
                 KnownUIContexts.SolutionExistsAndFullyLoadedContext.UIContextChanged -= OnSolutionExistsAndFullyLoadedContext;
 
                 // load components
-                LoadComponentsInUIContext();
+                LoadComponentsInUIContext(CancellationToken.None);
             }
         }
 
-        protected abstract void LoadComponentsInUIContext();
+        protected abstract void LoadComponentsInUIContext(CancellationToken cancellationToken);
     }
 }
