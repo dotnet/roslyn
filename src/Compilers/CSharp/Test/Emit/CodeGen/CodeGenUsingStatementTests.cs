@@ -477,7 +477,7 @@ After");
     IL_0021:  ldloc.0
     IL_0022:  brfalse.s  IL_002a
     IL_0024:  ldloc.0
-    IL_0025:  callvirt   ""void DisposableClass.Dispose()""
+    IL_0025:  callvirt   ""void System.IDisposable.Dispose()""
     IL_002a:  endfinally
   }
   IL_002b:  ldstr      ""After""
@@ -512,7 +512,7 @@ Disposing A
 After");
             verifier.VerifyIL("Test.Main", @"
 {
-  // Code size       53 (0x35)
+  // Code size       59 (0x3b)
   .maxstack  2
   .locals init (DisposableStruct V_0) //d
   IL_0000:  ldstr      ""Before""
@@ -524,17 +524,18 @@ After");
   {
     IL_0016:  ldstr      ""In""
     IL_001b:  call       ""void System.Console.WriteLine(string)""
-    IL_0020:  leave.s    IL_002a
+    IL_0020:  leave.s    IL_0030
   }
   finally
   {
     IL_0022:  ldloca.s   V_0
-    IL_0024:  call       ""void DisposableStruct.Dispose()""
-    IL_0029:  endfinally
+    IL_0024:  constrained. ""DisposableStruct""
+    IL_002a:  callvirt   ""void System.IDisposable.Dispose()""
+    IL_002f:  endfinally
   }
-  IL_002a:  ldstr      ""After""
-  IL_002f:  call       ""void System.Console.WriteLine(string)""
-  IL_0034:  ret
+  IL_0030:  ldstr      ""After""
+  IL_0035:  call       ""void System.Console.WriteLine(string)""
+  IL_003a:  ret
 }");
         }
 
@@ -730,7 +731,7 @@ After");
         IL_0037:  ldloc.2
         IL_0038:  brfalse.s  IL_0040
         IL_003a:  ldloc.2
-        IL_003b:  callvirt   ""void DisposableClass.Dispose()""
+        IL_003b:  callvirt   ""void System.IDisposable.Dispose()""
         IL_0040:  endfinally
       }
     }
@@ -739,7 +740,7 @@ After");
       IL_0041:  ldloc.1
       IL_0042:  brfalse.s  IL_004a
       IL_0044:  ldloc.1
-      IL_0045:  callvirt   ""void DisposableClass.Dispose()""
+      IL_0045:  callvirt   ""void System.IDisposable.Dispose()""
       IL_004a:  endfinally
     }
   }
@@ -748,7 +749,7 @@ After");
     IL_004b:  ldloc.0
     IL_004c:  brfalse.s  IL_0054
     IL_004e:  ldloc.0
-    IL_004f:  callvirt   ""void DisposableClass.Dispose()""
+    IL_004f:  callvirt   ""void System.IDisposable.Dispose()""
     IL_0054:  endfinally
   }
   IL_0055:  ldstr      ""After""
@@ -787,7 +788,7 @@ Disposing A
 After");
             verifier.VerifyIL("Test.Main", @"
 {
-  // Code size       91 (0x5b)
+  // Code size      109 (0x6d)
   .maxstack  2
   .locals init (DisposableStruct V_0, //d1
                 DisposableStruct V_1, //d2
@@ -811,31 +812,34 @@ After");
       {
         IL_002c:  ldstr      ""In""
         IL_0031:  call       ""void System.Console.WriteLine(string)""
-        IL_0036:  leave.s    IL_0050
+        IL_0036:  leave.s    IL_0062
       }
       finally
       {
         IL_0038:  ldloca.s   V_2
-        IL_003a:  call       ""void DisposableStruct.Dispose()""
-        IL_003f:  endfinally
+        IL_003a:  constrained. ""DisposableStruct""
+        IL_0040:  callvirt   ""void System.IDisposable.Dispose()""
+        IL_0045:  endfinally
       }
     }
     finally
     {
-      IL_0040:  ldloca.s   V_1
-      IL_0042:  call       ""void DisposableStruct.Dispose()""
-      IL_0047:  endfinally
+      IL_0046:  ldloca.s   V_1
+      IL_0048:  constrained. ""DisposableStruct""
+      IL_004e:  callvirt   ""void System.IDisposable.Dispose()""
+      IL_0053:  endfinally
     }
   }
   finally
   {
-    IL_0048:  ldloca.s   V_0
-    IL_004a:  call       ""void DisposableStruct.Dispose()""
-    IL_004f:  endfinally
+    IL_0054:  ldloca.s   V_0
+    IL_0056:  constrained. ""DisposableStruct""
+    IL_005c:  callvirt   ""void System.IDisposable.Dispose()""
+    IL_0061:  endfinally
   }
-  IL_0050:  ldstr      ""After""
-  IL_0055:  call       ""void System.Console.WriteLine(string)""
-  IL_005a:  ret
+  IL_0062:  ldstr      ""After""
+  IL_0067:  call       ""void System.Console.WriteLine(string)""
+  IL_006c:  ret
 }");
         }
 
@@ -893,7 +897,7 @@ After");
       IL_002c:  ldloc.1
       IL_002d:  brfalse.s  IL_0035
       IL_002f:  ldloc.1
-      IL_0030:  callvirt   ""void DisposableClass.Dispose()""
+      IL_0030:  callvirt   ""void System.IDisposable.Dispose()""
       IL_0035:  endfinally
     }
   }
@@ -902,7 +906,7 @@ After");
     IL_0036:  ldloc.0
     IL_0037:  brfalse.s  IL_003f
     IL_0039:  ldloc.0
-    IL_003a:  callvirt   ""void DisposableClass.Dispose()""
+    IL_003a:  callvirt   ""void System.IDisposable.Dispose()""
     IL_003f:  endfinally
   }
   IL_0040:  ldstr      ""After""
@@ -1017,7 +1021,7 @@ class Program
     IL_000e:  ldloc.0
     IL_000f:  brfalse.s  IL_0017
     IL_0011:  ldloc.0
-    IL_0012:  callvirt   ""void Program.MyManagedClass.Dispose()""
+    IL_0012:  callvirt   ""void System.IDisposable.Dispose()""
     IL_0017:  endfinally
   }
   IL_0018:  ret
