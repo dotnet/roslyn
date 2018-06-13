@@ -2741,7 +2741,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (node.Right is IdentifierNameSyntax name && name.Identifier.Text == "_")
             {
-                // PROTOTYPE(patterns2): Need compat council confirmation that this new warning in existing code is acceptable.
                 diagnostics.Add(ErrorCode.WRN_IsTypeNamedUnderscore, name.Location, alias ?? (Symbol)targetType);
             }
 

@@ -7,13 +7,19 @@ namespace Microsoft.CodeAnalysis.CSharp
 {
     internal partial class BoundDiscardPattern
     {
+        private DiscardSymbol _lazyDiscardSymbol;
+
         public DiscardSymbol DiscardSymbol
         {
             get
             {
-                // PROTOTYPE(patterns2): should cache the symbol so it always returns the same one.
-                Debug.Assert((object)this.InputType != null);
-                return new DiscardSymbol(this.InputType);
+                if (_lazyDiscardSymbol is null)
+                {
+                    Debug.Assert(!(this.InputType is null));
+                    _lazyDiscardSymbol = new DiscardSymbol(this.InputType);
+                }
+
+                return _lazyDiscardSymbol;
             }
         }
     }

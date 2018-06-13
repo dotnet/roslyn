@@ -65,7 +65,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             defaultLabel = new GeneratedLabelSymbol("default");
             decisionDag = DecisionDagBuilder.CreateDecisionDagForSwitchExpression(this.Compilation, node, boundInputExpression, switchArms, defaultLabel, diagnostics);
-            HashSet<LabelSymbol> reachableLabels = decisionDag.ReachableLabels;
+            var reachableLabels = decisionDag.ReachableLabels;
             foreach (BoundSwitchExpressionArm arm in switchArms)
             {
                 if (!reachableLabels.Contains(arm.Label))

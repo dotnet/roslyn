@@ -103,7 +103,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (localRewriter._needsSpilling && !loweredStatement.HasErrors)
                 {
                     // Move spill sequences to a top-level statement. This handles "lifting" await and the switch expression.
-                    // PROTOTYPE(patterns2): should this be something that the caller does? It isn't really a "local" rewrite.
                     var spilledStatement = SpillSequenceSpiller.Rewrite(loweredStatement, method, compilationState, diagnostics);
                     spilledStatement.CheckLocalsDefined();
                     loweredStatement = spilledStatement;

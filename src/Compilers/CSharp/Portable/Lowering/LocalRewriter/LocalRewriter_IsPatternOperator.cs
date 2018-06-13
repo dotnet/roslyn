@@ -74,7 +74,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     case var _:
                         {
                             var testExpression = LowerTest(test);
-                            if (testExpression != null) // PROTOTYPE(patterns2): could handle constant expressions more efficiently.
+                            if (testExpression != null)
                             {
                                 AddConjunct(testExpression);
                             }

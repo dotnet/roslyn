@@ -1585,7 +1585,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         // Note: you will need to re-generate compiler code after adding warnings (build\scripts\generate-compiler-code.cmd)
 
         #region diagnostics introduced for recursive patterns
-        // PROTOTYPE(patterns2): renumber these before committing
         ERR_InferredRecursivePatternType = 8401,
         ERR_WrongNumberOfSubpatterns = 8402,
         ERR_PropertyPatternNameMissing = 8403,

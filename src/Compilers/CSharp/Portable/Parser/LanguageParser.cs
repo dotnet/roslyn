@@ -7947,7 +7947,6 @@ tryAgain:
                 expression = parenExpression.Expression;
                 closeParen = parenExpression.CloseParenToken;
 
-                // PROTOTYPE(patterns2): Do we need to preserve any diagnostics that were attached directly to parenExpression?
                 Debug.Assert(parenExpression.GetDiagnostics().Length == 0);
             }
             else if (expression.Kind == SyntaxKind.TupleExpression)

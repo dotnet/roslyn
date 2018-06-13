@@ -6123,7 +6123,6 @@ namespace Microsoft.CodeAnalysis.Operations
         public ISymbol DeclaredSymbol { get; }
         public override IEnumerable<IOperation> Children
         {
-            // PROTOTYPE(patterns2): Need to define what else is needed to support the IOperation framework
             get
             {
                 yield break;

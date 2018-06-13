@@ -343,7 +343,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 // type of a declaration or recursive pattern, nor as a type in an is-type expression starting
                 // in C# 8. The binder will give a diagnostic if
                 // there is a usable symbol in scope by that name. You can always escape it, using `@_`.
-                // PROTOTYPE(patterns2): Should we use the "contextual keyword" infrastructure for this?
+                // https://github.com/dotnet/roslyn/issues/27750 Should we use the "contextual keyword" infrastructure for this?
                 return _syntaxFactory.DiscardPattern(this.EatToken(SyntaxKind.IdentifierToken));
             }
 
@@ -464,9 +464,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                     }
                     else
                     {
-                        // PROTOTYPE(patterns2): we parse it as a declaration pattern when we have simple designation, for compatibility.
-                        // PROTOTYPE(patterns2): can we change it to use a var pattern in all cases?
-                        // PROTOTYPE(patterns2): For example: return _syntaxFactory.VarPattern(varIdentifier, varDesignation);
                         return _syntaxFactory.DeclarationPattern(_syntaxFactory.IdentifierName(typeIdentifierToken), varDesignation);
                     }
                 }
@@ -653,17 +650,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
         private ExpressionSyntax ParseSwitchExpression(ExpressionSyntax leftOperand)
         {
-            // PROTOTYPE(patterns2): for better error recovery when an expression is typed on a line before
-            // a switch statement, we should check if the cases between the parens look like cases with
-            // arrows, and whether the
-            // switch keyword is on the same line as the end of the expression. If those are not satisfied,
-            // we should refuse to consume the switch token here and instead let a "missing semicolon"
-            // occur in a caller. For now we just put up with poor error recovery in that case.
+            // For better error recovery when an expression is typed on a line before a switch statement,
+            // the caller checks if the switch keyword is followed by an open curly brace. Only if it is
+            // would we attempt to parse it as a switch expression here.
             var governingExpression = leftOperand;
             var switchKeyword = this.EatToken();
             var openBrace = this.EatToken(SyntaxKind.OpenBraceToken);
             var arms = this.ParseSwitchExpressionArms();
-            // PROTOTYPE(patterns2): Should skip any unexpected tokens up through the close brace token.
             var closeBrace = this.EatToken(SyntaxKind.CloseBraceToken);
             var result = _syntaxFactory.SwitchExpression(governingExpression, switchKeyword, openBrace, arms, closeBrace);
             result = this.CheckFeatureAvailability(result, MessageID.IDS_FeatureRecursivePatterns);
@@ -672,12 +665,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
         private SeparatedSyntaxList<SwitchExpressionArmSyntax> ParseSwitchExpressionArms()
         {
-            // PROTOTYPE(patterns2): Error recovery here leaves much to be desired.
             var arms = _pool.AllocateSeparated<SwitchExpressionArmSyntax>();
 
             while (this.CurrentToken.Kind != SyntaxKind.CloseBraceToken)
             {
-                // Use a precedence that excludes lambdas, assignments, and a ternary which could have a
+                // We use a precedence that excludes lambdas, assignments, and a ternary which could have a
                 // lambda on the right, because we need the parser to leave the EqualsGreaterThanToken
                 // to be consumed by the switch arm. The strange side-effect of that is that the ternary
                 // expression is not permitted as a constant expression here; it would have to be parenthesized.

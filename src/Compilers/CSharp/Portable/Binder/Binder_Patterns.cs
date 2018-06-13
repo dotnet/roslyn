@@ -365,7 +365,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundTypeExpression boundDeclType = BindPatternType(typeSyntax, inputType, diagnostics, ref hasErrors, out bool isVar);
             if (typeSyntax.IsVar && !isVar)
             {
-                // PROTOTYPE(patterns2): For compatibility, we temporarily parse the var pattern with a simple designator as a declaration pattern.
+                // For compatibility, we parse the var pattern with a simple designator as a declaration pattern.
                 // So we implement the semantics of the var pattern here, forbidding "var" to bind to a user-declared type.
                 if (!hasErrors)
                 {
@@ -378,8 +378,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             TypeSymbol declType = boundDeclType.Type;
             BindPatternDesignation(node, node.Designation, declType, typeSyntax, diagnostics, ref hasErrors, out Symbol variableSymbol, out BoundExpression variableAccess);
-            // PROTOTYPE(patterns2): We could bind the "var" declaration pattern as a var pattern in preparation for changing the parser to parse it as a var pattern.
-            // PROTOTYPE(patterns2): Eventually we will want to remove "isVar" from the declaration pattern.
             return new BoundDeclarationPattern(node, variableSymbol, variableAccess, boundDeclType, isVar, inputType, hasErrors);
         }
 
@@ -616,8 +614,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                         );
                     patterns.Add(boundSubpattern);
                 }
-
-                // PROTOTYPE(patterns2): If no Deconstruct method is found, try casting to `ITuple`.
             }
 
             return patterns.ToImmutableAndFree();
@@ -667,7 +663,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.DiscardDesignation:
                     {
                         //return new BoundDiscardPattern(designation);
-                        // PROTOTYPE(patterns2): this should bind as a discard pattern, but for now we'll bind it as a declaration
+                        // https://github.com/dotnet/roslyn/issues/27751 : this should bind as a discard pattern, but for now we'll bind it as a declaration
                         // pattern for compatibility with the later phases of the compiler that do not yet handle the discard pattern.
                         var boundOperandType = new BoundTypeExpression(
                             syntax: node, aliasOpt: null, type: inputType); // fake a type expression for the variable's type
@@ -714,8 +710,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                             BoundExpression deconstruct = MakeDeconstructInvocationExpression(
                                 tupleDesignation.Variables.Count, inputPlaceholder, node, diagnostics, outPlaceholders: out ImmutableArray<BoundDeconstructValuePlaceholder> outPlaceholders);
                             deconstructMethod = deconstruct.ExpressionSymbol as MethodSymbol;
-                            // PROTOTYPE(patterns2): Set and check the deconstructMethod
-
                             for (int i = 0; i < tupleDesignation.Variables.Count; i++)
                             {
                                 var variable = tupleDesignation.Variables[i];
@@ -724,8 +718,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 BoundPattern pattern = BindVarDesignation(node, variable, elementType, isError, diagnostics);
                                 subPatterns.Add(new BoundSubpattern(variable, symbol: null, pattern));
                             }
-
-                            // PROTOTYPE(patterns2): If no Deconstruct method is found, try casting to `ITuple`.
                         }
 
                         return new BoundRecursivePattern(
@@ -830,8 +822,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case BoundKind.IndexerAccess:
                 case BoundKind.DynamicIndexerAccess:
                 case BoundKind.EventAccess:
-                    // PROTOTYPE(patterns2): we need to decide what kinds of members can be used in a property pattern.
-                    // For now we support fields and readable non-indexed properties.
                 default:
                     if (!hasErrors)
                     {

@@ -408,7 +408,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                      firstTest.Input == secondTest.Input &&
                      firstTest.Input.Type.IsValidV6SwitchGoverningType()))
                 {
-                    // PROTOTYPE(patterns2): Should optimize float, double, decimal value switches. For now use if-then-else
+                    // https://github.com/dotnet/roslyn/issues/12509 Could optimize float, double, decimal value switches. For now use if-then-else
                     return false;
                 }
 

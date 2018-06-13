@@ -17,8 +17,6 @@ namespace Microsoft.CodeAnalysis.Operations
         /// Symbol declared by the pattern.
         /// </summary>
         ISymbol DeclaredSymbol { get; }
-
-        // PROTOTYPE(patterns2): Need to define what else is needed for IOperation.
     }
 }
 

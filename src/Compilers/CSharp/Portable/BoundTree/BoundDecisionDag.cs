@@ -13,7 +13,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 {
     internal partial class BoundDecisionDag
     {
-        private HashSet<LabelSymbol> _reachableLabels;
+        private ImmutableHashSet<LabelSymbol> _reachableLabels;
         private ImmutableArray<BoundDecisionDagNode> _topologicallySortedNodes;
 
         private static ImmutableArray<BoundDecisionDagNode> Successors(BoundDecisionDagNode node)
@@ -33,15 +33,22 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        public HashSet<LabelSymbol> ReachableLabels
+        public ImmutableHashSet<LabelSymbol> ReachableLabels
         {
             get
             {
                 if (_reachableLabels == null)
                 {
-                    // PROTOTYPE(patterns2): avoid linq?
-                    _reachableLabels = new HashSet<LabelSymbol>(
-                        this.TopologicallySortedNodes.OfType<BoundLeafDecisionDagNode>().Select(d => d.Label));
+                    var result = ImmutableHashSet.CreateBuilder<LabelSymbol>();
+                    foreach (var node in this.TopologicallySortedNodes)
+                    {
+                        if (node is BoundLeafDecisionDagNode leaf)
+                        {
+                            result.Add(leaf.Label);
+                        }
+                    }
+
+                    _reachableLabels = result.ToImmutableHashSet();
                 }
 
                 return _reachableLabels;

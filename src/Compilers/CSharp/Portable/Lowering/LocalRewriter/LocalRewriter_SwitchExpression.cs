@@ -86,7 +86,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (node.DefaultLabel != null)
                 {
                     result.Add(_factory.Label(node.DefaultLabel));
-                    // PROTOTYPE(patterns2): Need a dedicated platform exception type to throw for input not matched.
+                    // https://github.com/dotnet/roslyn/issues/27747 Need a dedicated platform exception type to throw for input not matched.
                     result.Add(_factory.ThrowNull());
                 }
 

@@ -544,7 +544,6 @@ public class Program
     public void Deconstruct(out Program x, out Program y) => throw null;
 }
 ";
-            // PROTOTYPE(patterns2): Like for typing arguments in methods, we should fall back to best overload resolution candidate
             await VerifyNoItemsExistAsync(markup);
         }
 
@@ -565,7 +564,6 @@ public class Program
     public void Deconstruct(out Program x, out Program y) => throw null;
 }
 ";
-            // PROTOTYPE(patterns2): Like for typing arguments in methods, we should fall back to best overload resolution candidate
             await VerifyNoItemsExistAsync(markup);
         }
 
@@ -588,7 +586,6 @@ public class D
     public int P2 { get; set; }
 }
 ";
-            // PROTOTYPE(patterns2): Like for typing arguments in methods, we should fall back to best overload resolution candidate
             await VerifyNoItemsExistAsync(markup);
         }
 
