@@ -2,8 +2,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Runtime.InteropServices;
-using System.Threading;
 using UIAutomationClient;
 using AutomationElementIdentifiers = System.Windows.Automation.AutomationElementIdentifiers;
 using ControlType = System.Windows.Automation.ControlType;
@@ -12,21 +10,6 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
 {
     public static class AutomationElementExtensions
     {
-        private const int UIA_E_ELEMENTNOTAVAILABLE = unchecked((int)0x80040201);
-
-        /// <summary>
-        /// The number of times to retry a UI automation operation that failed with
-        /// <see cref="UIA_E_ELEMENTNOTAVAILABLE"/>, not counting the initial call. A value of 2 means the operation
-        /// will be attempted a total of three times.
-        /// </summary>
-        private const int AutomationRetryCount = 2;
-
-        /// <summary>
-        /// The delay between retrying a UI automation operation that failed with
-        /// <see cref="UIA_E_ELEMENTNOTAVAILABLE"/>.
-        /// </summary>
-        private static readonly TimeSpan AutomationRetryDelay = TimeSpan.FromMilliseconds(100);
-
         /// <summary>
         /// Given an <see cref="IUIAutomationElement"/>, returns a descendant with the automation ID specified by <paramref name="automationId"/>.
         /// Throws an <see cref="InvalidOperationException"/> if no such descendant is found.
@@ -111,9 +94,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
 
         public static T GetCurrentPattern<T>(this IUIAutomationElement element, int patternId)
         {
-            return RetryIfNotAvailable(
-                e => (T)element.GetCurrentPattern(patternId),
-                element);
+            return (T)element.GetCurrentPattern(patternId);
         }
 
         /// <summary>
@@ -126,9 +107,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
             var invokePattern = element.GetCurrentPattern<IUIAutomationInvokePattern>(UIA_PatternIds.UIA_InvokePatternId);
             if (invokePattern != null)
             {
-                RetryIfNotAvailable(
-                    pattern => pattern.Invoke(),
-                    invokePattern);
+                invokePattern.Invoke();
             }
             else
             {
@@ -146,9 +125,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
             var expandCollapsePattern = element.GetCurrentPattern<IUIAutomationExpandCollapsePattern>(UIA_PatternIds.UIA_ExpandCollapsePatternId);
             if (expandCollapsePattern != null)
             {
-                RetryIfNotAvailable(
-                    pattern => pattern.Expand(),
-                    expandCollapsePattern);
+                expandCollapsePattern.Expand();
             }
             else
             {
@@ -166,9 +143,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
             var expandCollapsePattern = element.GetCurrentPattern<IUIAutomationExpandCollapsePattern>(UIA_PatternIds.UIA_ExpandCollapsePatternId);
             if (expandCollapsePattern != null)
             {
-                RetryIfNotAvailable(
-                    pattern => pattern.Collapse(),
-                    expandCollapsePattern);
+                expandCollapsePattern.Collapse();
             }
             else
             {
@@ -186,9 +161,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
             var selectionItemPattern = element.GetCurrentPattern<IUIAutomationSelectionItemPattern>(UIA_PatternIds.UIA_SelectionItemPatternId);
             if (selectionItemPattern != null)
             {
-                RetryIfNotAvailable(
-                    pattern => pattern.Select(),
-                    selectionItemPattern);
+                selectionItemPattern.Select();
             }
             else
             {
@@ -206,9 +179,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
             var valuePattern = element.GetCurrentPattern<IUIAutomationValuePattern>(UIA_PatternIds.UIA_ValuePatternId);
             if (valuePattern != null)
             {
-                return RetryIfNotAvailable(
-                    pattern => pattern.CurrentValue,
-                    valuePattern);
+                return valuePattern.CurrentValue;
             }
             else
             {
@@ -226,9 +197,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
             var valuePattern = element.GetCurrentPattern<IUIAutomationValuePattern>(UIA_PatternIds.UIA_ValuePatternId);
             if (valuePattern != null)
             {
-                RetryIfNotAvailable(
-                    pattern => pattern.SetValue(value),
-                    valuePattern);
+                valuePattern.SetValue(value);
             }
             else
             {
@@ -305,9 +274,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
             var togglePattern = element.GetCurrentPattern<IUIAutomationTogglePattern>(UIA_PatternIds.UIA_TogglePatternId);
             if (togglePattern != null)
             {
-                return RetryIfNotAvailable(
-                    pattern => pattern.CurrentToggleState == ToggleState.ToggleState_On,
-                    togglePattern);
+                return togglePattern.CurrentToggleState == ToggleState.ToggleState_On;
             }
             else
             {
@@ -325,9 +292,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
             var togglePattern = element.GetCurrentPattern<IUIAutomationTogglePattern>(UIA_PatternIds.UIA_TogglePatternId);
             if (togglePattern != null)
             {
-                RetryIfNotAvailable(
-                    pattern => pattern.Toggle(),
-                    togglePattern);
+                togglePattern.Toggle();
             }
             else
             {
@@ -341,41 +306,6 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
         private static string GetNameForExceptionMessage(this IUIAutomationElement element)
         {
             return element.CurrentAutomationId ?? element.CurrentName ?? "<unnamed>";
-        }
-
-        private static void RetryIfNotAvailable<T>(Action<T> action, T state)
-        {
-            // NOTE: The loop termination condition if exceptions are thrown is in the exception filter
-            for (var i = 0; true; i++)
-            {
-                try
-                {
-                    action(state);
-                    return;
-                }
-                catch (COMException e) when (e.HResult == UIA_E_ELEMENTNOTAVAILABLE && i < AutomationRetryCount)
-                {
-                    Thread.Sleep(AutomationRetryDelay);
-                    continue;
-                }
-            }
-        }
-
-        private static TResult RetryIfNotAvailable<T, TResult>(Func<T, TResult> function, T state)
-        {
-            // NOTE: The loop termination condition if exceptions are thrown is in the exception filter
-            for (var i = 0; true; i++)
-            {
-                try
-                {
-                    return function(state);
-                }
-                catch (COMException e) when (e.HResult == UIA_E_ELEMENTNOTAVAILABLE && i < AutomationRetryCount)
-                {
-                    Thread.Sleep(AutomationRetryDelay);
-                    continue;
-                }
-            }
         }
     }
 }

@@ -24,12 +24,17 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
 
         protected override void Dispose(bool disposing)
         {
-            if (disposing)
+            try
             {
-                VisualStudio.ExecuteCommand(WellKnownCommandNames.Edit_SelectionCancel);
+                if (disposing && VisualStudio != null)
+                {
+                    VisualStudio.ExecuteCommand(WellKnownCommandNames.Edit_SelectionCancel);
+                }
             }
-
-            base.Dispose(disposing);
+            finally
+            {
+                base.Dispose(disposing);
+            }
         }
 
         [WpfFact]
