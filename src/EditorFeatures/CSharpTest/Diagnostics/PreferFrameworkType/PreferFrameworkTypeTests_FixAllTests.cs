@@ -412,9 +412,9 @@ class ProgramA3
 using System;
 class ProgramA
 {
-    private int x = 0;
-    private int y = 0;
-    private int z = 0;
+    private Int32 x = 0;
+    private Int32 y = 0;
+    private Int32 z = 0;
 
     private System.Int32 F(System.Int32 p1, System.Int16 p2)
     {
@@ -432,9 +432,9 @@ class ProgramA
 using System;
 class ProgramA2
 {
-    private int x = 0;
-    private int y = 0;
-    private int z = 0;
+    private Int32 x = 0;
+    private Int32 y = 0;
+    private Int32 z = 0;
 
     private System.Int32 F(System.Int32 p1, System.Int16 p2)
     {
@@ -454,9 +454,9 @@ class ProgramA2
 using System;
 class ProgramA3
 {
-    private int x = 0;
-    private int y = 0;
-    private int z = 0;
+    private Int32 x = 0;
+    private Int32 y = 0;
+    private Int32 z = 0;
 
     private System.Int32 F(System.Int32 p1, System.Int16 p2)
     {
