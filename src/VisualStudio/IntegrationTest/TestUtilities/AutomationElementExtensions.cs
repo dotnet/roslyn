@@ -2,8 +2,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Runtime.InteropServices;
-using System.Threading;
 using UIAutomationClient;
 using AutomationElementIdentifiers = System.Windows.Automation.AutomationElementIdentifiers;
 using ControlType = System.Windows.Automation.ControlType;
@@ -12,21 +10,6 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
 {
     public static class AutomationElementExtensions
     {
-        internal const int UIA_E_ELEMENTNOTAVAILABLE = unchecked((int)0x80040201);
-
-        /// <summary>
-        /// The number of times to retry a UI automation operation that failed with
-        /// <see cref="UIA_E_ELEMENTNOTAVAILABLE"/>, not counting the initial call. A value of 2 means the operation
-        /// will be attempted a total of three times.
-        /// </summary>
-        private const int AutomationRetryCount = 2;
-
-        /// <summary>
-        /// The delay between retrying a UI automation operation that failed with
-        /// <see cref="UIA_E_ELEMENTNOTAVAILABLE"/>.
-        /// </summary>
-        private static readonly TimeSpan AutomationRetryDelay = TimeSpan.FromMilliseconds(100);
-
         /// <summary>
         /// Given an <see cref="IUIAutomationElement"/>, returns a descendant with the automation ID specified by <paramref name="automationId"/>.
         /// Throws an <see cref="InvalidOperationException"/> if no such descendant is found.

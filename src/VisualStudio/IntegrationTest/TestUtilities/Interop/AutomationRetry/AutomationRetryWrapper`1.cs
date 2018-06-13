@@ -1,13 +1,28 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
-using System.Diagnostics;
 using System.Runtime.InteropServices;
+using System.Threading;
 
 namespace Microsoft.VisualStudio.IntegrationTest.Utilities.Interop.AutomationRetry
 {
     internal abstract class AutomationRetryWrapper<T> : IRetryWrapper, ICustomQueryInterface
     {
+        internal const int UIA_E_ELEMENTNOTAVAILABLE = unchecked((int)0x80040201);
+
+        /// <summary>
+        /// The number of times to retry a UI automation operation that failed with
+        /// <see cref="UIA_E_ELEMENTNOTAVAILABLE"/>, not counting the initial call. A value of 9 means the operation
+        /// will be attempted a total of ten times.
+        /// </summary>
+        private const int AutomationRetryCount = 9;
+
+        /// <summary>
+        /// The delay between retrying a UI automation operation that failed with
+        /// <see cref="UIA_E_ELEMENTNOTAVAILABLE"/>.
+        /// </summary>
+        private static readonly TimeSpan AutomationRetryDelay = TimeSpan.FromMilliseconds(100);
+
         private static readonly Guid IID_IManagedObject = new Guid("C3FCC19E-A970-11D2-8B5A-00A0C9B7C9C4");
 
         protected AutomationRetryWrapper(T automationObject)
@@ -53,21 +68,19 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.Interop.AutomationRet
             });
         }
 
-        protected TResult Retry<TResult>(Func<T, TResult> action)
+        protected TResult Retry<TResult>(Func<T, TResult> function)
         {
-            var stopwatch = Stopwatch.StartNew();
-            while (true)
+            // NOTE: The loop termination condition on failure is the exception not matching the exception filter
+            for (var i = 0; true; i++)
             {
                 try
                 {
-                    return WrapIfNecessary(action(AutomationObject));
+                    return WrapIfNecessary(function(AutomationObject));
                 }
-                catch (COMException e) when (e.ErrorCode == AutomationElementExtensions.UIA_E_ELEMENTNOTAVAILABLE)
+                catch (COMException e) when (e.HResult == UIA_E_ELEMENTNOTAVAILABLE && i < AutomationRetryCount)
                 {
-                    if (stopwatch.Elapsed < Helper.HangMitigatingTimeout)
-                        continue;
-
-                    throw;
+                    Thread.Sleep(AutomationRetryDelay);
+                    continue;
                 }
             }
         }
