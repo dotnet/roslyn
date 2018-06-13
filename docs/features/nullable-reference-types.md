@@ -70,6 +70,13 @@ _Describe set of warnings. Differentiate W warnings._
 ### Null tests
 _Describe the set of tests that affect flow state._
 
+## `default`
+`default(T)` is `T?` if `T` is a reference type. _Should `default(T?)` be an error?_
+```c#
+string? s = default(string); // assigns ?, no warning
+string t = default; // assigns ?, warning
+```
+
 ### Conversions
 _Describe valid top-level and variance conversions._
 _Describe warnings from user-defined conversions._
@@ -79,7 +86,7 @@ For `x = y`, the nullability of the converted type of `y` is used for `x`.
 Warnings are reported if there is a mismatch between top-level or nested nullability comparing the inferred nullability of `x` and the declared type of `y`.
 The warning is a W warning when assigning `?` to `!` and the target is a local.
 ```c#
-notNull = maybeNull; // assigns ?; warning
+notNull = maybeNull; // assigns ?, warning
 notNull = oblivious; // assigns ~, no warning
 oblivious = maybeNull; // assigns ?, no warning
 ```
@@ -87,7 +94,7 @@ oblivious = maybeNull; // assigns ?, no warning
 ### Local declarations
 Nullablilty follows from assignment above. Assigning `?` to `!` is a W warning.
 ```c#
-string notNull = maybeNull; // assigns ?; warning
+string notNull = maybeNull; // assigns ?, warning
 ```
 Nullability of `var` declarations is determined from flow analysis.
 ```c#
@@ -126,7 +133,7 @@ var y = (List<object>)x; // y is List<object!>!, no warning
 The _best type_ calculation uses the most relaxed nullability: `T!` is a `T~` is a `T?`.
 If there is no best nested nullability, a warning is reported.
 ```c#
-var w = new [] { notNull, oblivious }; //~[]!
+var w = new [] { notNull, oblivious }; // ~[]!
 var x = new [] { notNull, maybeNull, oblivious }; // ?[]!
 var y = new [] { enumerableOfNotNull, enumerableOfMaybeNull, enumerableOfOblivious }; // IEnumerable<?>!
 var z = new [] { listOfNotNull, listOfMaybeNull, listOfOblivious }; // List<~>!, warning
