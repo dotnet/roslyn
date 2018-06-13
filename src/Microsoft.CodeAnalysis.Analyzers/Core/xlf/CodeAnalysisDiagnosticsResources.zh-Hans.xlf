@@ -357,6 +357,21 @@
         <target state="translated">更改诊断分析器类型“{0}”以删除对类型“{1}”的所有直接访问</target>
         <note />
       </trans-unit>
+      <trans-unit id="UpgradeMSBuildWorkspaceDescription">
+        <source>MSBuildWorkspace has moved to the Microsoft.CodeAnalysis.Workspaces.MSBuild NuGet package and there are breaking API changes.</source>
+        <target state="translated">MSBuildWorkspace 已经转移到了 Microsoft.CodeAnalysis.Workspaces.MSBuild NuGet 包，并且存在中断的 API 更改。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="UpgradeMSBuildWorkspaceMessage">
+        <source>Please upgrade MSBuildWorkspace by adding a package reference to the Microsoft.CodeAnalysis.Workspaces.MSBuild NuGet package. See https://go.microsoft.com/fwlink/?linkid=874285 for details on using MSBuildWorkspace successfully.</source>
+        <target state="translated">请通过向 Microsoft.CodeAnalysis.Workspaces.MSBuild NuGet 包添加包引用来升级 MSBuildWorkspace。有关成功使用 MSBuildWorkspace 的详细信息，请参阅 https://go.microsoft.com/fwlink/?linkid=874285。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="UpgradeMSBuildWorkspaceTitle">
+        <source>Upgrade MSBuildWorkspace</source>
+        <target state="translated">升级 MSBuildWorkspace</target>
+        <note />
+      </trans-unit>
     </body>
   </file>
 </xliff>

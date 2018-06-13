@@ -234,7 +234,7 @@
       </trans-unit>
       <trans-unit id="OverrideGetFixAllProviderMessage">
         <source>'{0}' registers one or more code fixes, but does not override the method 'CodeFixProvider.GetFixAllProvider'. Override this method and provide a non-null FixAllProvider for FixAll support, potentially 'WellKnownFixAllProviders.BatchFixer', or 'null' to explicitly disable FixAll support.</source>
-        <target state="translated">'{0}' は 1 つ以上のコード修正プログラムを登録しますが、メソッド 'CodeFixProvider.GetFixAllProvider' を上書きしません。このメソッドを上書きして、NULL 以外の FixAllProvider ('WellKnownFixAllProviders.BatchFixer' など) を FixAll サポートのために提供するか、'null' を指定して FixAll サポートを明示的に無効にしてください。</target>
+        <target state="translated">'{0}' は 1 つ以上のコード修正プログラムを登録しますが、メソッド 'CodeFixProvider.GetFixAllProvider' をオーバーライドしません。このメソッドをオーバーライドして、NULL 以外の FixAllProvider ('WellKnownFixAllProviders.BatchFixer' など) を FixAll サポートのために提供するか、'null' を指定して FixAll サポートを明示的に無効にしてください。</target>
         <note />
       </trans-unit>
       <trans-unit id="OverrideGetFixAllProviderDescription">
@@ -244,7 +244,7 @@
       </trans-unit>
       <trans-unit id="OverrideGetFixAllProviderCodeFixTitle">
         <source>Override GetFixAllProvider.</source>
-        <target state="translated">GetFixAllProvider を上書きします。</target>
+        <target state="translated">GetFixAllProvider をオーバーライドします。</target>
         <note />
       </trans-unit>
       <trans-unit id="ProvideHelpUriInDescriptorMessage">
@@ -355,6 +355,21 @@
       <trans-unit id="DoNotUseTypesFromAssemblyRuleDirectMessage">
         <source>Change diagnostic analyzer type '{0}' to remove all direct accesses to type(s) '{1}'</source>
         <target state="translated">診断アナライザーの型 '{0}' を変更して、型 '{1}' へのすべての直接アクセスを削除します</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="UpgradeMSBuildWorkspaceDescription">
+        <source>MSBuildWorkspace has moved to the Microsoft.CodeAnalysis.Workspaces.MSBuild NuGet package and there are breaking API changes.</source>
+        <target state="translated">MSBuildWorkspace が Microsoft.CodeAnalysis.Workspaces.MSBuild NuGet パッケージに移動したため、ビルド ブレークを引き起こす API の変更が生じています。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="UpgradeMSBuildWorkspaceMessage">
+        <source>Please upgrade MSBuildWorkspace by adding a package reference to the Microsoft.CodeAnalysis.Workspaces.MSBuild NuGet package. See https://go.microsoft.com/fwlink/?linkid=874285 for details on using MSBuildWorkspace successfully.</source>
+        <target state="translated">MSBuildWorkspace をアップグレードして、Microsoft.CodeAnalysis.Workspaces.MSBuild NuGet パッケージに対するパッケージ参照を追加してください。MSBuildWorkspace を正しく使用するための詳細については、https://go.microsoft.com/fwlink/?linkid=874285 をご覧ください。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="UpgradeMSBuildWorkspaceTitle">
+        <source>Upgrade MSBuildWorkspace</source>
+        <target state="translated">MSBuildWorkspace のアップグレード</target>
         <note />
       </trans-unit>
     </body>

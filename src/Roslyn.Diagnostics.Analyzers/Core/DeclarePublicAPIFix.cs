@@ -68,16 +68,14 @@ namespace Roslyn.Diagnostics.Analyzers
 
         private static SourceText AddSymbolNamesToSourceText(SourceText sourceText, IEnumerable<string> newSymbolNames)
         {
-            HashSet<string> lines = GetLinesFromSourceText(sourceText);
+            List<string> lines = GetLinesFromSourceText(sourceText);
 
             foreach (string name in newSymbolNames)
             {
-                lines.Add(name);
+                InsertInList(lines, name);
             }
 
-            IOrderedEnumerable<string> sortedLines = lines.OrderBy(s => s, StringComparer.Ordinal);
-
-            SourceText newSourceText = sourceText.Replace(new TextSpan(0, sourceText.Length), string.Join(Environment.NewLine, sortedLines) + GetEndOfFileText(sourceText));
+            SourceText newSourceText = sourceText.Replace(new TextSpan(0, sourceText.Length), string.Join(Environment.NewLine, lines) + GetEndOfFileText(sourceText));
             return newSourceText;
         }
 
@@ -88,18 +86,16 @@ namespace Roslyn.Diagnostics.Analyzers
                 return sourceText;
             }
 
-            HashSet<string> lines = GetLinesFromSourceText(sourceText);
-            var newLines = lines.Where(line => !linesToRemove.Contains(line));
+            List<string> lines = GetLinesFromSourceText(sourceText);
+            IEnumerable<string> newLines = lines.Where(line => !linesToRemove.Contains(line));
 
-            IOrderedEnumerable<string> sortedLines = newLines.OrderBy(s => s, StringComparer.Ordinal);
-
-            SourceText newSourceText = sourceText.Replace(new TextSpan(0, sourceText.Length), string.Join(Environment.NewLine, sortedLines) + GetEndOfFileText(sourceText));
+            SourceText newSourceText = sourceText.Replace(new TextSpan(0, sourceText.Length), string.Join(Environment.NewLine, newLines) + GetEndOfFileText(sourceText));
             return newSourceText;
         }
 
-        private static HashSet<string> GetLinesFromSourceText(SourceText sourceText)
+        private static List<string> GetLinesFromSourceText(SourceText sourceText)
         {
-            var lines = new HashSet<string>();
+            var lines = new List<string>();
 
             foreach (TextLine textLine in sourceText.Lines)
             {
@@ -111,6 +107,23 @@ namespace Roslyn.Diagnostics.Analyzers
             }
 
             return lines;
+        }
+
+        /// <summary>
+        /// Insert name at the first suitable position
+        /// </summary>
+        private static void InsertInList(List<string> list, string name)
+        {
+            for (int i = 0; i < list.Count; i++)
+            {
+                if (string.Compare(name, list[i], StringComparison.Ordinal) < 0 )
+                {
+                    list.Insert(i, name);
+                    return;
+                }
+            }
+
+            list.Add(name);
         }
 
         /// <summary>

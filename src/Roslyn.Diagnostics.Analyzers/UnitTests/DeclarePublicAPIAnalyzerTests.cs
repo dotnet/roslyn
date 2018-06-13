@@ -1152,6 +1152,144 @@ C.Property.get -> int{expectedEndOfFile}";
             VerifyCSharpAdditionalFileFix(source, shippedText, unshippedText, fixedUnshippedText);
         }
 
+        [Fact]
+        public void MissingType_A()
+        {
+            var source = @"
+public class A { }
+public class B { }
+public class D { }
+";
+
+            var unshippedText = @"B
+B.B() -> void
+D
+D.D() -> void";
+
+            var expectedUnshippedText = @"A
+A.A() -> void
+B
+B.B() -> void
+D
+D.D() -> void";
+            VerifyCSharpAdditionalFileFix(source, shippedApiText: "", oldUnshippedApiText: unshippedText, newUnshippedApiText: expectedUnshippedText);
+        }
+
+        [Fact]
+        public void MissingType_C()
+        {
+            var source = @"
+public class B { }
+public class C { }
+public class D { }
+";
+
+            var unshippedText = @"B
+B.B() -> void
+D
+D.D() -> void";
+
+            var expectedUnshippedText = @"B
+B.B() -> void
+C
+C.C() -> void
+D
+D.D() -> void";
+            VerifyCSharpAdditionalFileFix(source, shippedApiText: "", oldUnshippedApiText: unshippedText, newUnshippedApiText: expectedUnshippedText);
+        }
+
+        [Fact]
+        public void MissingType_E()
+        {
+            var source = @"
+public class B { }
+public class D { }
+public class E { }
+";
+
+            var unshippedText = @"B
+B.B() -> void
+D
+D.D() -> void";
+
+            var expectedUnshippedText = @"B
+B.B() -> void
+D
+D.D() -> void
+E
+E.E() -> void";
+            VerifyCSharpAdditionalFileFix(source, shippedApiText: "", oldUnshippedApiText: unshippedText, newUnshippedApiText: expectedUnshippedText);
+        }
+
+        [Fact]
+        public void MissingType_Unordered_A()
+        {
+            var source = @"
+public class A { }
+public class B { }
+public class D { }
+";
+
+            var unshippedText = @"D
+D.D() -> void
+B
+B.B() -> void";
+
+            var expectedUnshippedText = @"A
+A.A() -> void
+D
+D.D() -> void
+B
+B.B() -> void";
+            VerifyCSharpAdditionalFileFix(source, shippedApiText: "", oldUnshippedApiText: unshippedText, newUnshippedApiText: expectedUnshippedText);
+        }
+
+        [Fact]
+        public void MissingType_Unordered_C()
+        {
+            var source = @"
+public class B { }
+public class C { }
+public class D { }
+";
+
+            var unshippedText = @"D
+D.D() -> void
+B
+B.B() -> void";
+
+            var expectedUnshippedText = @"C
+C.C() -> void
+D
+D.D() -> void
+B
+B.B() -> void";
+            VerifyCSharpAdditionalFileFix(source, shippedApiText: "", oldUnshippedApiText: unshippedText, newUnshippedApiText: expectedUnshippedText);
+        }
+
+        [Fact]
+        public void MissingType_Unordered_E()
+        {
+            var source = @"
+public class B { }
+public class D { }
+public class E { }
+";
+
+            var unshippedText = @"D
+D.D() -> void
+B
+B.B() -> void";
+
+            var expectedUnshippedText = @"D
+D.D() -> void
+B
+B.B() -> void
+E
+E.E() -> void";
+            VerifyCSharpAdditionalFileFix(source, shippedApiText: "", oldUnshippedApiText: unshippedText, newUnshippedApiText: expectedUnshippedText);
+        }
+
         #endregion
     }
 }

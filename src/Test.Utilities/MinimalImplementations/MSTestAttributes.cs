@@ -15,9 +15,17 @@ namespace Microsoft.VisualStudio.TestTools.UnitTesting
     }
 
     [AttributeUsage(AttributeTargets.Method, AllowMultiple=false)]
-    public sealed class TestMethodAttribute : Attribute
+    public class TestMethodAttribute : Attribute
     {
         public TestMethodAttribute()
+        {
+        }
+    }
+
+    [AttributeUsage(AttributeTargets.Method, AllowMultiple=false)]
+    public sealed class DataTestMethodAttribute : TestMethodAttribute
+    {
+        public DataTestMethodAttribute()
         {
         }
     }
@@ -44,8 +52,13 @@ Namespace Microsoft.VisualStudio.TestTools.UnitTesting
     End Class
 
     <AttributeUsageAttribute(AttributeTargets.Method, AllowMultiple := False)>
-    Public NotInheritable Class TestMethodAttribute
+    Public Class TestMethodAttribute
 	    Inherits Attribute
+    End Class
+
+    <AttributeUsageAttribute(AttributeTargets.Method, AllowMultiple := False)>
+    Public NotInheritable Class DataTestMethodAttribute
+	    Inherits TestMethodAttribute
     End Class
 
     <AttributeUsageAttribute(AttributeTargets.Method, AllowMultiple := False)>
