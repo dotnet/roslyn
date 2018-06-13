@@ -1425,7 +1425,7 @@ d.cs
             InlineData("bad", false, LanguageVersion.Default)]
         public void LanguageVersion_TryParseDisplayString(string input, bool success, LanguageVersion expected)
         {
-            Assert.Equal(success, input.TryParse(out var version));
+            Assert.Equal(success, LanguageVersionFacts.TryParse(input, out var version));
             Assert.Equal(expected, version);
 
             // The canary check is a reminder that this test needs to be updated when a language version is added
@@ -1437,7 +1437,7 @@ d.cs
         {
             var originalCulture = Thread.CurrentThread.CurrentCulture;
             Thread.CurrentThread.CurrentCulture = new CultureInfo("tr-TR", useUserOverride: false);
-            Assert.True("ISO-1".TryParse(out var version));
+            Assert.True(LanguageVersionFacts.TryParse("ISO-1", out var version));
             Assert.Equal(LanguageVersion.CSharp1, version);
             Thread.CurrentThread.CurrentCulture = originalCulture;
         }
