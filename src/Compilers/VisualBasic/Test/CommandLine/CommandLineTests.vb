@@ -1779,7 +1779,7 @@ End Module").Path
             InlineData("bad", False, LanguageVersion.Default)>
         Public Sub LanguageVersion_TryParseDisplayString(input As String, success As Boolean, expected As LanguageVersion)
             Dim version As LanguageVersion
-            Assert.Equal(success, input.TryParse(version))
+            Assert.Equal(success, TryParse(input, version))
             Assert.Equal(expected, version)
 
             ' The canary check is a reminder that this test needs to be updated when a language version is added
