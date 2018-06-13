@@ -41,6 +41,7 @@ namespace Roslyn.VisualStudio.IntegrationTests
             catch
             {
                 _messageFilter.Dispose();
+                _messageFilter = null;
                 throw;
             }
         }
@@ -86,7 +87,7 @@ namespace Roslyn.VisualStudio.IntegrationTests
             {
                 try
                 {
-                    _visualStudioContext.Dispose();
+                    _visualStudioContext?.Dispose();
                 }
                 finally
                 {

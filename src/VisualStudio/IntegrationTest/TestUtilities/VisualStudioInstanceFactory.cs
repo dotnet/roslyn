@@ -105,10 +105,19 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
         {
             ThrowExceptionIfAlreadyHasActiveContext();
 
-            bool shouldStartNewInstance = ShouldStartNewInstance(requiredPackageIds);
-            await UpdateCurrentlyRunningInstanceAsync(requiredPackageIds, shouldStartNewInstance).ConfigureAwait(false);
+            try
+            {
+                bool shouldStartNewInstance = ShouldStartNewInstance(requiredPackageIds);
+                await UpdateCurrentlyRunningInstanceAsync(requiredPackageIds, shouldStartNewInstance).ConfigureAwait(false);
 
-            return new VisualStudioInstanceContext(_currentlyRunningInstance, this);
+                return new VisualStudioInstanceContext(_currentlyRunningInstance, this);
+            }
+            catch
+            {
+                // Make sure the next test doesn't try to reuse the same instance
+                NotifyCurrentInstanceContextDisposed(canReuse: false);
+                throw;
+            }
         }
 
         internal void NotifyCurrentInstanceContextDisposed(bool canReuse)
