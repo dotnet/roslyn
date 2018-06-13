@@ -12,11 +12,6 @@
         <target state="translated">Das Element ist ungültig.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Ignore">
-        <source>Ignore</source>
-        <target state="translated">Ignorieren</target>
-        <note />
-      </trans-unit>
       <trans-unit id="In_other_operators">
         <source>In other operators</source>
         <target state="translated">In anderen Operatoren</target>

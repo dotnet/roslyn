@@ -122,29 +122,32 @@ namespace Microsoft.CodeAnalysis.Diagnostics.SimplifyTypeNames
 
             PerLanguageOption<CodeStyleOption<bool>> option;
             DiagnosticDescriptor descriptor;
+            ReportDiagnostic severity;
             switch (diagnosticId)
             {
                 case IDEDiagnosticIds.SimplifyNamesDiagnosticId:
                     descriptor = s_descriptorSimplifyNames;
+                    severity = descriptor.DefaultSeverity.ToReportDiagnostic();
                     break;
 
                 case IDEDiagnosticIds.SimplifyMemberAccessDiagnosticId:
                     descriptor = s_descriptorSimplifyMemberAccess;
+                    severity = descriptor.DefaultSeverity.ToReportDiagnostic();
                     break;
 
                 case IDEDiagnosticIds.RemoveQualificationDiagnosticId:
-                    descriptor = GetRemoveQualificationDiagnosticDescriptor(model, node, optionSet, cancellationToken);
+                    (descriptor, severity) = GetRemoveQualificationDiagnosticDescriptor(model, node, optionSet, cancellationToken);
                     break;
 
                 case IDEDiagnosticIds.PreferIntrinsicPredefinedTypeInDeclarationsDiagnosticId:
                     option = CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInDeclaration;
-                    descriptor = GetApplicablePredefinedTypeDiagnosticDescriptor(
+                    (descriptor, severity) = GetApplicablePredefinedTypeDiagnosticDescriptor(
                         IDEDiagnosticIds.PreferIntrinsicPredefinedTypeInDeclarationsDiagnosticId, option, optionSet);
                     break;
 
                 case IDEDiagnosticIds.PreferIntrinsicPredefinedTypeInMemberAccessDiagnosticId:
                     option = CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInMemberAccess;
-                    descriptor = GetApplicablePredefinedTypeDiagnosticDescriptor(
+                    (descriptor, severity) = GetApplicablePredefinedTypeDiagnosticDescriptor(
                         IDEDiagnosticIds.PreferIntrinsicPredefinedTypeInMemberAccessDiagnosticId, option, optionSet);
                     break;
 
@@ -161,49 +164,48 @@ namespace Microsoft.CodeAnalysis.Diagnostics.SimplifyTypeNames
             var builder = ImmutableDictionary.CreateBuilder<string, string>();
             builder["OptionName"] = nameof(CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInMemberAccess); // TODO: need the actual one
             builder["OptionLanguage"] = model.Language;
-            diagnostic = Diagnostic.Create(descriptor, tree.GetLocation(issueSpan), builder.ToImmutable());
+            diagnostic = DiagnosticHelper.Create(descriptor, tree.GetLocation(issueSpan), severity, additionalLocations: null, builder.ToImmutable());
             return true;
         }
 
-        private DiagnosticDescriptor GetApplicablePredefinedTypeDiagnosticDescriptor<T>(string id, PerLanguageOption<T> option, OptionSet optionSet) where T : CodeStyleOption<bool>
+        private (DiagnosticDescriptor descriptor, ReportDiagnostic severity) GetApplicablePredefinedTypeDiagnosticDescriptor<T>(string id, PerLanguageOption<T> option, OptionSet optionSet) where T : CodeStyleOption<bool>
         {
             var optionValue = optionSet.GetOption(option, GetLanguageName());
 
             DiagnosticDescriptor descriptor = null;
-            if (optionValue.Notification.Value != DiagnosticSeverity.Hidden)
+            if (optionValue.Notification.Severity.WithDefaultSeverity(DiagnosticSeverity.Hidden) < ReportDiagnostic.Hidden)
             {
-                descriptor = new DiagnosticDescriptor(id,
-                        s_localizableTitleSimplifyNames,
-                        s_localizableMessage,
-                        DiagnosticCategory.Style,
-                        optionValue.Notification.Value,
-                        isEnabledByDefault: true,
-                        customTags: DiagnosticCustomTags.Unnecessary);
+                switch (id)
+                {
+                case IDEDiagnosticIds.PreferIntrinsicPredefinedTypeInDeclarationsDiagnosticId:
+                    descriptor = s_descriptorPreferIntrinsicTypeInDeclarations;
+                    break;
+
+                case IDEDiagnosticIds.PreferIntrinsicPredefinedTypeInMemberAccessDiagnosticId:
+                    descriptor = s_descriptorPreferIntrinsicTypeInMemberAccess;
+                    break;
+
+                default:
+                    throw ExceptionUtilities.UnexpectedValue(id);
+                }
             }
 
-            return descriptor;
+            return (descriptor, optionValue.Notification.Severity);
         }
 
-        private DiagnosticDescriptor GetRemoveQualificationDiagnosticDescriptor(SemanticModel model, SyntaxNode node, OptionSet optionSet, CancellationToken cancellationToken)
+        private (DiagnosticDescriptor descriptor, ReportDiagnostic severity) GetRemoveQualificationDiagnosticDescriptor(SemanticModel model, SyntaxNode node, OptionSet optionSet, CancellationToken cancellationToken)
         {
             var symbolInfo = model.GetSymbolInfo(node, cancellationToken);
             if (symbolInfo.Symbol == null)
             {
-                return null;
+                return default;
             }
 
             var applicableOption = QualifyMembersHelpers.GetApplicableOptionFromSymbolKind(symbolInfo.Symbol.Kind);
             var optionValue = optionSet.GetOption(applicableOption, GetLanguageName());
-            var severity = optionValue.Notification.Value;
+            var severity = optionValue.Notification.Severity;
 
-            return new DiagnosticDescriptor(
-                IDEDiagnosticIds.RemoveQualificationDiagnosticId,
-                s_localizableTitleRemoveThisOrMe,
-                s_localizableMessage,
-                DiagnosticCategory.Style,
-                severity,
-                isEnabledByDefault: true,
-                customTags: DiagnosticCustomTags.Unnecessary);
+            return (s_descriptorRemoveThisOrMe, severity);
         }
 
         public DiagnosticAnalyzerCategory GetAnalyzerCategory()

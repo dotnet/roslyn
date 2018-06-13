@@ -270,6 +270,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return objCreation.Update(constructor,
                                       ImmutableArray.Create(Of BoundExpression)(
                                           VisitExpression(origArgument), secondArgument),
+                                      defaultArguments:=Nothing,
                                       Nothing,
                                       objCreation.Type)
         End Function

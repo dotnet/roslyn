@@ -374,7 +374,7 @@ class C
         S = s;
     }
 }", parameters: new TestParameters(options:
-    Option(CodeStyleOptions.PreferThrowExpression, CodeStyleOptions.FalseWithNoneEnforcement)));
+    Option(CodeStyleOptions.PreferThrowExpression, CodeStyleOptions.FalseWithSilentEnforcement)));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
@@ -1223,7 +1223,7 @@ class C
     }
 }",
     parameters: new TestParameters(options:
-        Option(CSharpCodeStyleOptions.PreferBraces, CodeStyleOptions.FalseWithNoneEnforcement)));
+        Option(CSharpCodeStyleOptions.PreferBraces, CodeStyleOptions.FalseWithSilentEnforcement)));
         }
 
         [WorkItem(19956, "https://github.com/dotnet/roslyn/issues/19956")]

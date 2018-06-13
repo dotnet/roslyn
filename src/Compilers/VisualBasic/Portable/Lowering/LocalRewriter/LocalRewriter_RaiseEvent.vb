@@ -62,6 +62,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                         raiseCallExpression.MethodGroupOpt,
                                                         tempAccess,
                                                         raiseCallExpression.Arguments,
+                                                        raiseCallExpression.DefaultArguments,
                                                         raiseCallExpression.ConstantValueOpt,
                                                         isLValue:=raiseCallExpression.IsLValue,
                                                         suppressObjectClone:=raiseCallExpression.SuppressObjectClone,
