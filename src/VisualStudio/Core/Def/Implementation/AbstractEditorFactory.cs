@@ -25,23 +25,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
     /// </summary>
     internal abstract partial class AbstractEditorFactory : IVsEditorFactory, IVsEditorFactoryNotify
     {
-        private readonly Package _package;
         private readonly IComponentModel _componentModel;
         private Microsoft.VisualStudio.OLE.Interop.IServiceProvider _oleServiceProvider;
         private bool _encoding;
 
-        protected AbstractEditorFactory(Package package, IComponentModel componentModel)
+        protected AbstractEditorFactory(IComponentModel componentModel)
         {
-            _package = package ?? throw new ArgumentNullException(nameof(package));
             _componentModel = componentModel;
-        }
-
-        protected IServiceProvider ServiceProvider
-        {
-            get
-            {
-                return _package;
-            }
         }
 
         protected abstract string ContentTypeName { get; }
@@ -138,7 +128,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
 
                     // We must create the WinForms designer here
                     const string LoaderName = "Microsoft.VisualStudio.Design.Serialization.CodeDom.VSCodeDomDesignerLoader";
-                    var designerService = (IVSMDDesignerService)ServiceProvider.GetService(typeof(SVSMDDesignerService));
+                    var designerService = (IVSMDDesignerService)_oleServiceProvider.QueryService<SVSMDDesignerService>();
                     var designerLoader = (IVSMDDesignerLoader)designerService.CreateDesignerLoader(LoaderName);
 
                     try

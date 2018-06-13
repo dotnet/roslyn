@@ -11,8 +11,8 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic
     Friend Class VisualBasicEditorFactory
         Inherits AbstractEditorFactory
 
-        Public Sub New(package As VisualBasicPackage, componentModel As IComponentModel)
-            MyBase.New(package, componentModel)
+        Public Sub New(componentModel As IComponentModel)
+            MyBase.New(componentModel)
         End Sub
 
         Protected Overrides ReadOnly Property ContentTypeName As String
