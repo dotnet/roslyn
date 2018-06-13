@@ -543,6 +543,24 @@ public class B<T> where T : A<object?>
                 // PROTOTYPE(NullableReferenceTypes): TypeSymbolExtensions.GetTypeRefWithAttributes is not including top-level nullability.
                 AssertAttributes(reader, constraint.GetCustomAttributes());
             });
+
+            var source2 =
+@"class Program
+{
+    static void Main()
+    {
+        new C<object?, string?>();
+        new C<object?, string>();
+        new C<object, string?>();
+        new C<object, string>();
+    }
+}";
+            var comp2 = CreateCompilation(source2, parseOptions: TestOptions.Regular8, references: new[] { comp.EmitToImageReference() });
+            comp2.VerifyEmitDiagnostics();
+
+            var type = comp2.GetMember<NamedTypeSymbol>("C");
+            // PROTOTYPE(NullableReferenceTypes): TypeSymbolExtensions.GetTypeRefWithAttributes is not including top-level nullability.
+            Assert.Equal("T", type.TypeParameters[1].ConstraintTypesNoUseSiteDiagnostics[0].ToTestDisplayString());
         }
 
         [Fact]
