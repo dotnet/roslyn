@@ -1521,6 +1521,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
         public static bool IsLocalVariableDeclarationContext(
             this SyntaxTree syntaxTree, int position, SyntaxToken tokenOnLeftOfPosition, CancellationToken cancellationToken)
         {
+            // cases:
+            //  const var
+            //  out var
+            //  for (var
+            //  foreach (var
+            //  foreach await (var
+            //  using (var
+            //  using await (var
+            //  from var
+            //  join var
+
             var token = tokenOnLeftOfPosition.GetPreviousTokenIfTouchingWord(position);
 
             // const |
@@ -1548,17 +1559,29 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
                 return true;
             }
 
-            // for ( |
-            // foreach ( |
-            // using ( |
             if (token.IsKind(SyntaxKind.OpenParenToken))
             {
+                // for ( |
+                // foreach ( |
+                // using ( |
                 var previous = token.GetPreviousToken(includeSkipped: true);
                 if (previous.IsKind(SyntaxKind.ForKeyword) ||
                     previous.IsKind(SyntaxKind.ForEachKeyword) ||
                     previous.IsKind(SyntaxKind.UsingKeyword))
                 {
                     return true;
+                }
+
+                // foreach await ( |
+                // using await ( |
+                if (previous.IsKind(SyntaxKind.AwaitKeyword))
+                {
+                    var secondPrevious = previous.GetPreviousToken(includeSkipped: true);
+                    if (secondPrevious.IsKind(SyntaxKind.ForEachKeyword, SyntaxKind.UsingKeyword))
+                    {
+                        return true;
+
+                    }
                 }
             }
 
@@ -2300,6 +2323,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
             }
 
             // foreach (var v in |
+            // foreach await (var v in |
             // from a in |
             // join b in |
             if (token.IsKind(SyntaxKind.InKeyword))
@@ -2387,8 +2411,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
             // todo: handle 'for' cases.
 
             // using ( |
-            if (token.IsKind(SyntaxKind.OpenParenToken) &&
-                token.GetPreviousToken(includeSkipped: true).IsKind(SyntaxKind.UsingKeyword))
+            // using await ( |
+            if (token.IsKind(SyntaxKind.OpenParenToken) && token.Parent.IsKind(SyntaxKind.UsingStatement))
             {
                 return true;
             }

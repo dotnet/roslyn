@@ -218,6 +218,11 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                              PdbToXmlOptions.ExcludeScopes,
                     methodName: sequencePoints);
 
+                if (actualPdbXml.StartsWith("<error>"))
+                {
+                    throw new Exception($"Failed to extract PDB information for method '{sequencePoints}'. PdbToXmlConverter returned:\r\n{actualPdbXml}");
+                }
+
                 markers = ILValidation.GetSequencePointMarkers(actualPdbXml, source);
             }
 

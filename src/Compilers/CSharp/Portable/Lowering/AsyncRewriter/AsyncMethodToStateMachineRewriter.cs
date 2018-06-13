@@ -268,15 +268,15 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             var expression = (BoundExpression)Visit(node.Expression);
             resultPlace = (BoundExpression)Visit(resultPlace);
-            MethodSymbol getAwaiter = VisitMethodSymbol(node.GetAwaiter);
-            MethodSymbol getResult = VisitMethodSymbol(node.GetResult);
-            MethodSymbol isCompletedMethod = ((object)node.IsCompleted != null) ? VisitMethodSymbol(node.IsCompleted.GetMethod) : null;
+            MethodSymbol getAwaiter = VisitMethodSymbol(node.AwaitableInfo.GetAwaiter);
+            MethodSymbol getResult = VisitMethodSymbol(node.AwaitableInfo.GetResult);
+            MethodSymbol isCompletedMethod = ((object)node.AwaitableInfo.IsCompleted != null) ? VisitMethodSymbol(node.AwaitableInfo.IsCompleted.GetMethod) : null;
             TypeSymbol type = VisitType(node.Type);
 
             // The awaiter temp facilitates EnC method remapping and thus have to be long-lived.
             // It transfers the awaiter objects from the old version of the MoveNext method to the new one.
-            Debug.Assert(node.Syntax.IsKind(SyntaxKind.AwaitExpression));
-            TypeSymbol awaiterType = node.IsDynamic ? DynamicTypeSymbol.Instance : getAwaiter.ReturnType;
+            Debug.Assert(node.Syntax.IsKind(SyntaxKind.AwaitExpression) || node.WasCompilerGenerated);
+            TypeSymbol awaiterType = node.AwaitableInfo.IsDynamic ? DynamicTypeSymbol.Instance : getAwaiter.ReturnType;
             var awaiterTemp = F.SynthesizedLocal(awaiterType, syntax: node.Syntax, kind: SynthesizedLocalKind.Awaiter);
 
             var awaitIfIncomplete = F.Block(
