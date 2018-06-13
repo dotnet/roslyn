@@ -24,14 +24,19 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
 
         protected override void Dispose(bool disposing)
         {
-            if (disposing)
+            try
             {
-                VisualStudio.Workspace.SetUseSuggestionMode(false);
-                VisualStudio.InteractiveWindow.ClearReplText();
-                VisualStudio.InteractiveWindow.Reset();
+                if (disposing && VisualStudio != null)
+                {
+                    VisualStudio.Workspace.SetUseSuggestionMode(false);
+                    VisualStudio.InteractiveWindow.ClearReplText();
+                    VisualStudio.InteractiveWindow.Reset();
+                }
             }
-
-            base.Dispose(disposing);
+            finally
+            {
+                base.Dispose(disposing);
+            }
         }
 
         [WpfFact]
