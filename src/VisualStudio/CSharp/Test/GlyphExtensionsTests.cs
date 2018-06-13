@@ -1,6 +1,9 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Globalization;
+using System.Linq;
+using System.Reflection;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.VisualStudio.Language.Intellisense;
@@ -167,6 +170,14 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Extensions
                 StandardGlyphGroup.GlyphGroupField,
                 SymbolKind.Property,
                 isWithEvents: true);
+        }
+
+        [Fact, WorkItem(26642, "https://github.com/dotnet/roslyn/issues/26642")]
+        public void TestNoReferenceToImageCatalog()
+        {
+            var editorsFeatureAssembly = typeof(Microsoft.CodeAnalysis.Editor.Shared.Extensions.GlyphExtensions).Assembly;
+            var dependencies = editorsFeatureAssembly.GetReferencedAssemblies();
+            Assert.Empty(dependencies.Where(a => a.FullName.Contains("Microsoft.VisualStudio.ImageCatalog")));
         }
 
         private void TestGlyph(
