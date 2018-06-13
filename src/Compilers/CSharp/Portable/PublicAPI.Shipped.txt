@@ -3658,7 +3658,6 @@ static Microsoft.CodeAnalysis.CSharp.CSharpSyntaxTree.ParseText(Microsoft.CodeAn
 static Microsoft.CodeAnalysis.CSharp.CSharpSyntaxTree.ParseText(string text, Microsoft.CodeAnalysis.CSharp.CSharpParseOptions options = null, string path = "", System.Text.Encoding encoding = null, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> Microsoft.CodeAnalysis.SyntaxTree
 static Microsoft.CodeAnalysis.CSharp.LanguageVersionFacts.MapSpecifiedToEffectiveVersion(this Microsoft.CodeAnalysis.CSharp.LanguageVersion version) -> Microsoft.CodeAnalysis.CSharp.LanguageVersion
 static Microsoft.CodeAnalysis.CSharp.LanguageVersionFacts.ToDisplayString(this Microsoft.CodeAnalysis.CSharp.LanguageVersion version) -> string
-static Microsoft.CodeAnalysis.CSharp.LanguageVersionFacts.TryParse(this string version, out Microsoft.CodeAnalysis.CSharp.LanguageVersion result) -> bool
 static Microsoft.CodeAnalysis.CSharp.SymbolDisplay.FormatLiteral(char c, bool quote) -> string
 static Microsoft.CodeAnalysis.CSharp.SymbolDisplay.FormatLiteral(string value, bool quote) -> string
 static Microsoft.CodeAnalysis.CSharp.SymbolDisplay.FormatPrimitive(object obj, bool quoteStrings, bool useHexadecimalNumbers) -> string
