@@ -164,9 +164,58 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
         }
 
         [Fact]
+        public void RootEditorConfigFileIsRootColon()
+        {
+            var tempFile = _tempDirectory.CreateFile(".editorconfig").WriteAllText("root : true");
+            Assert.True(DiscoverEditorConfigFiles.FileIsRootEditorConfig(tempFile.Path));
+        }
+
+        [Fact]
+        public void RootEditorConfigFileIsRootNoSpace()
+        {
+            var tempFile = _tempDirectory.CreateFile(".editorconfig").WriteAllText("root=true");
+            Assert.True(DiscoverEditorConfigFiles.FileIsRootEditorConfig(tempFile.Path));
+        }
+
+        [Fact]
+        public void MixCaseRootEditorConfigFileIsRoot()
+        {
+            var tempFile = _tempDirectory.CreateFile(".editorconfig").WriteAllText("RoOt = TrUE");
+            Assert.True(DiscoverEditorConfigFiles.FileIsRootEditorConfig(tempFile.Path));
+        }
+
+        [Fact]
+        public void RootEditorConfigFileIsRootCommentAfter()
+        {
+            var tempFile = _tempDirectory.CreateFile(".editorconfig").WriteAllText(" root = true # comment");
+            Assert.True(DiscoverEditorConfigFiles.FileIsRootEditorConfig(tempFile.Path));
+        }
+
+        [Fact]
+        public void RootEditorConfigFileIsRootCommentAfter2()
+        {
+            var tempFile = _tempDirectory.CreateFile(".editorconfig").WriteAllText(" root = true ; comment");
+            Assert.True(DiscoverEditorConfigFiles.FileIsRootEditorConfig(tempFile.Path));
+        }
+
+        [Fact]
         public void NonRootEditorConfigFileIsNotRoot()
         {
             var tempFile = _tempDirectory.CreateFile(".editorconfig").WriteAllText("root = false");
+            Assert.False(DiscoverEditorConfigFiles.FileIsRootEditorConfig(tempFile.Path));
+        }
+
+        [Fact]
+        public void NonRootEditorConfigFileIsNotRootMisspell()
+        {
+            var tempFile = _tempDirectory.CreateFile(".editorconfig").WriteAllText("roots = true");
+            Assert.False(DiscoverEditorConfigFiles.FileIsRootEditorConfig(tempFile.Path));
+        }
+
+        [Fact]
+        public void NonRootEditorConfigFileIsNotRootMisspell2()
+        {
+            var tempFile = _tempDirectory.CreateFile(".editorconfig").WriteAllText("root = tru");
             Assert.False(DiscoverEditorConfigFiles.FileIsRootEditorConfig(tempFile.Path));
         }
 

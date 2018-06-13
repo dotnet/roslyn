@@ -43,8 +43,6 @@ namespace Microsoft.CodeAnalysis.BuildTasks
             }
             catch (Exception ex)
             {
-                // We'll explicitly log friendly errors and then rethrow in the case of IO errors while reading the file system.
-                // We'll only print the raw exception if we didn't already log something nice.
                 if (!Log.HasLoggedErrors)
                 {
                     Log.LogErrorFromException(ex);
@@ -110,39 +108,98 @@ namespace Microsoft.CodeAnalysis.BuildTasks
             EditorConfigFiles = editorConfigFiles.ToArray();
         }
 
-        // These Regexes are the regexes from Microsoft.VisualStudio.CodingConventions.EditorConfig.
-        private static readonly Regex s_sectionMatcher = new Regex(@"^\s*\[(([^#;]|\\#|\\;)+)\]\s*([#;].*)?$", RegexOptions.Compiled);
-        private static readonly Regex s_propertyMatcher = new Regex(@"^\s*([\w\.\-_]+)\s*[=:]\s*(.*?)\s*([#;].*)?$", RegexOptions.Compiled);
-
         internal static bool FileIsRootEditorConfig(string editorConfigFilePath)
         {
             using (FileStream fileStream = OpenFile(editorConfigFilePath))
-            using (StreamReader reader = new StreamReader(fileStream))
+            using (var reader = new StreamReader(fileStream))
             {
                 string line;
                 while ((line = reader.ReadLine()) != null)
                 {
-                    // Once we're in a section, we don't need to go looking for root = true anymore
-                    if (s_sectionMatcher.IsMatch(line))
+                    int charIndex = skipSpaces(line, 0);
+                    if (charIndex < line.Length)
                     {
-                        return false;
-                    }
-
-                    var propMatches = s_propertyMatcher.Matches(line);
-                    if (propMatches.Count == 1 && propMatches[0].Groups.Count > 2)
-                    {
-                        var key = propMatches[0].Groups[1].Value;
-                        var value = propMatches[0].Groups[2].Value;
-
-                        if (key == "root")
+                        switch (line[charIndex])
                         {
-                            return value == "true";
+                            case '[':
+                                // Once we're in a section, we don't need to go looking for root = true anymore
+                                return false;
+
+                            case 'r':
+                            case 'R':
+                                // Check for case insensitive 'root = true'
+                                const string root = "root";
+                                const string trueLiteral = "true";
+                                if (matchesCaseInsensitiveAscii(line, charIndex, root))
+                                {
+                                    charIndex += root.Length;
+                                    charIndex = skipSpaces(line, charIndex);
+                                    if (charIndex < line.Length)
+                                    {
+                                        switch (line[charIndex])
+                                        {
+                                            case '=':
+                                            case ':':
+                                                charIndex = skipSpaces(line, charIndex + 1);
+                                                if (matchesCaseInsensitiveAscii(line, charIndex, trueLiteral))
+                                                {
+                                                    charIndex += trueLiteral.Length;
+                                                    charIndex = skipSpaces(line, charIndex);
+                                                    // Is the rest of the line empty or a comment?
+                                                    if (charIndex == line.Length ||
+                                                        line[charIndex] == '#' ||
+                                                        line[charIndex] == ';')
+                                                    {
+                                                        return true;
+                                                    }
+                                                }
+                                                break;
+                                        }
+                                    }
+                                }
+                                break;
+
+                            default:
+                                break;
                         }
                     }
                 }
             }
 
             return false;
+
+            int skipSpaces(string str, int startIndex)
+            {
+                for (int cur = startIndex; cur < str.Length; cur++)
+                {
+                    if (str[cur] != ' ')
+                    {
+                        return cur;
+                    }
+                }
+
+                return str.Length;
+            }
+
+            bool matchesCaseInsensitiveAscii(string str, int strIndex, string targetLower)
+            {
+                if (strIndex + targetLower.Length > str.Length)
+                {
+                    return false;
+                }
+
+                for (int targetIndex = 0; targetIndex < targetLower.Length; targetIndex++)
+                {
+                    char curChar = str[strIndex + targetIndex];
+                    char targetChar = targetLower[targetIndex];
+                    if (curChar != targetChar && curChar != (targetChar - 32))
+                    {
+                        return false;
+                    }
+                }
+
+                return true;
+            }
         }
 
         private static FileStream OpenFile(string editorConfigFilePath)
