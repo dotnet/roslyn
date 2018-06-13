@@ -3176,7 +3176,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>
-        /// The overload resolution portion of FindForEachPatternMethod.
+        /// The overload resolution portion of FindPatternMethod.
         /// </summary>
         private MethodSymbol PerformPatternOverloadResolution(
             TypeSymbol patternType, ArrayBuilder<MethodSymbol> candidateMethods,

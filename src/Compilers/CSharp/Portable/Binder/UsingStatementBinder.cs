@@ -81,7 +81,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 TypeSymbol expressionType = expressionOpt.Type;
                 
-                if (!iDisposableConversion.IsImplicit && disposeMethod is null)
+                if (!iDisposableConversion.IsImplicit)
                 {
                     if (!(expressionType is null))
                     {
@@ -119,7 +119,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     iDisposableConversion = originalBinder.Conversions.ClassifyImplicitConversionFromType(declType, iDisposable, ref useSiteDiagnostics);
                     diagnostics.Add(declarationSyntax, useSiteDiagnostics);
 
-                    if (!iDisposableConversion.IsImplicit && disposeMethod is null)
+                    if (!iDisposableConversion.IsImplicit)
                     {
                         disposeMethod = TryFindDisposePatternMethod(declType, diagnostics);
                         if (disposeMethod is null)
@@ -149,12 +149,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>
-        /// Checks for a Dispose method on exprType. Failing to satisfy the pattern is not an error -
-        /// it just means we have to check for an interface instead.
+        /// Checks for a Dispose method on exprType in the case that there is no explicit
+        /// IDisposable conversion.
         /// </summary>
         /// <param name="exprType">Type of the expression over which to iterate</param>
         /// <param name="diagnostics">Populated with warnings if there are near misses</param>
-        /// <returns>True if a matching method is found (still need to verify return type).</returns>
+        /// <returns>True if a matching method is found with correct return type.</returns>
         private MethodSymbol TryFindDisposePatternMethod(TypeSymbol exprType, DiagnosticBag diagnostics)
         {
             LookupResult lookupResult = LookupResult.GetInstance();

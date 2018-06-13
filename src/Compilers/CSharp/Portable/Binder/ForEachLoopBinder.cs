@@ -768,8 +768,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             LookupResult lookupResult = LookupResult.GetInstance();
             MethodSymbol getEnumeratorMethod = FindPatternMethod(collectionExprType, GetEnumeratorMethodName, lookupResult,
-                                                                _syntax.Expression, warningsOnly: true, diagnostics: diagnostics,
-                                                                _syntax.SyntaxTree, MessageID.IDS_Collection);
+                                                                 _syntax.Expression, warningsOnly: true, diagnostics: diagnostics,
+                                                                 _syntax.SyntaxTree, MessageID.IDS_Collection);
             lookupResult.Free();
 
             builder.GetEnumeratorMethod = getEnumeratorMethod;

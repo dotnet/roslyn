@@ -723,6 +723,33 @@ public class Program
             );
         }
 
+        [Fact]
+        public void NoInterfaceImp()
+        {
+            var text = @"
+public class Program
+{
+    static void Main(string[] args)
+    {
+        using (new S1())
+        {
+
+        }
+    }
+
+    public ref struct S1
+    {
+        public void Dispose() { }
+    }
+}
+";
+
+            CSharpCompilation comp = CreateCompilationWithMscorlibAndSpan(text);
+
+            comp.VerifyDiagnostics(
+            );
+        }
+
         [WorkItem(20226, "https://github.com/dotnet/roslyn/issues/20226")]
         [Fact]
         public void RefIteratorInAsync()
