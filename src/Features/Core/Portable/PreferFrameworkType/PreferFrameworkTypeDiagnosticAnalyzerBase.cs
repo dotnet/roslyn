@@ -13,11 +13,6 @@ namespace Microsoft.CodeAnalysis.PreferFrameworkType
         where TExpressionSyntax : SyntaxNode
         where TPredefinedTypeSyntax : TExpressionSyntax
     {
-        //private static readonly ImmutableDictionary<string, string> DeclarationsEquivalenceKey = ImmutableDictionary<string, string>.Empty.Add(
-        //    PreferFrameworkTypeCodeFixProvider.EquivalenceKey, PreferFrameworkTypeCodeFixProvider.DeclarationsEquivalenceKey);
-        //private static readonly ImmutableDictionary<string, string> MemberAccessEquivalenceKey = ImmutableDictionary<string, string>.Empty.Add(
-        //    PreferFrameworkTypeCodeFixProvider.EquivalenceKey, PreferFrameworkTypeCodeFixProvider.MemberAccessEquivalenceKey);
-
         protected PreferFrameworkTypeDiagnosticAnalyzerBase()
             : base(IDEDiagnosticIds.PreferBuiltInOrFrameworkTypeDiagnosticId,
                    new LocalizableResourceString(nameof(FeaturesResources.Use_framework_type), FeaturesResources.ResourceManager, typeof(FeaturesResources)),
