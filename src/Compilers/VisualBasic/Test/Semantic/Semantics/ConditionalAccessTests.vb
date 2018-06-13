@@ -9524,6 +9524,7 @@ BC30677: 'AddHandler' or 'RemoveHandler' statement event operand must be a dot-q
             Assert.False(info.CandidateSymbols.Any())
         End Sub
 
+        <CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)>
         <Fact(), WorkItem(4028, "https://github.com/dotnet/roslyn/issues/4028")>
         Public Sub ConditionalAccessToEvent_04()
 
@@ -9536,14 +9537,14 @@ Class TestClass
 
     Event TestEvent As Action
 
-    Shared Sub Test(receiver As TestClass)
+    Shared Sub Test(receiver As TestClass)'BIND:"Shared Sub Test(receiver As TestClass)"
         receiver?.TestEvent()
     End Sub
 End Class
     ]]></file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(compilationDef)
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(compilationDef, parseOptions:=TestOptions.RegularWithFlowAnalysisFeature)
 
             compilation.AssertTheseDiagnostics(<expected>
 BC32022: 'Public Event TestEvent As Action' is an event, and cannot be called directly. Use a 'RaiseEvent' statement to raise an event.
@@ -9577,6 +9578,52 @@ BC32022: 'Public Event TestEvent As Action' is an event, and cannot be called di
             info = model.GetSymbolInfo(access)
             Assert.Null(info.Symbol)
             Assert.False(info.CandidateSymbols.Any())
+
+            compilation.VerifyOperationTree(access, expectedOperationTree:=<![CDATA[
+IConditionalAccessOperation (OperationKind.ConditionalAccess, Type: System.Void, IsInvalid) (Syntax: 'receiver?.TestEvent()')
+  Operation: 
+    IParameterReferenceOperation: receiver (OperationKind.ParameterReference, Type: TestClass) (Syntax: 'receiver')
+  WhenNotNull: 
+    IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid) (Syntax: '.TestEvent()')
+      Children(1):
+          IEventReferenceOperation: Event TestClass.TestEvent As System.Action (OperationKind.EventReference, Type: System.Action, IsInvalid) (Syntax: '.TestEvent')
+            Instance Receiver: 
+              IConditionalAccessInstanceOperation (OperationKind.ConditionalAccessInstance, Type: TestClass, IsImplicit) (Syntax: 'receiver')
+]]>.Value)
+
+            VerifyFlowGraphForTest(Of MethodBlockSyntax)(compilation, expectedFlowGraph:=<![CDATA[
+Block[B0] - Entry
+    Statements (0)
+    Next (Regular) Block[B1]
+Block[B1] - Block
+    Predecessors: [B0]
+    Statements (1)
+        IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'receiver')
+          Value: 
+            IParameterReferenceOperation: receiver (OperationKind.ParameterReference, Type: TestClass) (Syntax: 'receiver')
+
+    Jump if True (Regular) to Block[B3]
+        IIsNullOperation (OperationKind.IsNull, Type: System.Boolean, IsImplicit) (Syntax: 'receiver')
+          Operand: 
+            IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: TestClass, IsImplicit) (Syntax: 'receiver')
+
+    Next (Regular) Block[B2]
+Block[B2] - Block
+    Predecessors: [B1]
+    Statements (1)
+        IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null, IsInvalid) (Syntax: 'receiver?.TestEvent()')
+          Expression: 
+            IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid) (Syntax: '.TestEvent()')
+              Children(1):
+                  IEventReferenceOperation: Event TestClass.TestEvent As System.Action (OperationKind.EventReference, Type: System.Action, IsInvalid) (Syntax: '.TestEvent')
+                    Instance Receiver: 
+                      IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: TestClass, IsImplicit) (Syntax: 'receiver')
+
+    Next (Regular) Block[B3]
+Block[B3] - Exit
+    Predecessors: [B1] [B2]
+    Statements (0)
+]]>.Value)
         End Sub
 
         <Fact(), WorkItem(4615, "https://github.com/dotnet/roslyn/issues/4615")>
