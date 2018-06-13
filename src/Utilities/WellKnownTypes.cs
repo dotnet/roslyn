@@ -412,6 +412,11 @@ namespace Analyzer.Utilities
             return compilation.GetTypeByMetadataName("Microsoft.VisualStudio.TestTools.UnitTesting.TestMethodAttribute");
         }
 
+        public static INamedTypeSymbol DataTestMethodAttribute(Compilation compilation)
+        {
+            return compilation.GetTypeByMetadataName("Microsoft.VisualStudio.TestTools.UnitTesting.DataTestMethodAttribute");
+        }
+
         public static INamedTypeSymbol ExpectedException(Compilation compilation)
         {
             return compilation.GetTypeByMetadataName("Microsoft.VisualStudio.TestTools.UnitTesting.ExpectedExceptionAttribute");

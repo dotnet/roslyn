@@ -357,6 +357,21 @@
         <target state="translated">Измените тип диагностического анализатора "{0}" и удалите из него все возможности прямого доступа к типам "{1}"</target>
         <note />
       </trans-unit>
+      <trans-unit id="UpgradeMSBuildWorkspaceDescription">
+        <source>MSBuildWorkspace has moved to the Microsoft.CodeAnalysis.Workspaces.MSBuild NuGet package and there are breaking API changes.</source>
+        <target state="translated">Класс MSBuildWorkspace перемещен в пакет NuGet Microsoft.CodeAnalysis.Workspaces.MSBuild, и в API внесены существенные изменения.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="UpgradeMSBuildWorkspaceMessage">
+        <source>Please upgrade MSBuildWorkspace by adding a package reference to the Microsoft.CodeAnalysis.Workspaces.MSBuild NuGet package. See https://go.microsoft.com/fwlink/?linkid=874285 for details on using MSBuildWorkspace successfully.</source>
+        <target state="translated">Обновите MSBuildWorkspace, добавив ссылку на пакет NuGet Microsoft.CodeAnalysis.Workspaces.MSBuild. Дополнительные сведения об использовании MSBuildWorkspace: https://go.microsoft.com/fwlink/?linkid=874285.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="UpgradeMSBuildWorkspaceTitle">
+        <source>Upgrade MSBuildWorkspace</source>
+        <target state="translated">Обновление MSBuildWorkspace</target>
+        <note />
+      </trans-unit>
     </body>
   </file>
 </xliff>

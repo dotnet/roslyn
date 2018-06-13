@@ -357,6 +357,21 @@
         <target state="translated">Změnou typu diagnostického analyzátoru {0} odeberte všechny přímé přístupy k typům {1}.</target>
         <note />
       </trans-unit>
+      <trans-unit id="UpgradeMSBuildWorkspaceDescription">
+        <source>MSBuildWorkspace has moved to the Microsoft.CodeAnalysis.Workspaces.MSBuild NuGet package and there are breaking API changes.</source>
+        <target state="translated">MSBuildWorkspace se přesunul do balíčku NuGet Microsoft.CodeAnalysis.Workspaces.MSBuild a v rozhraní API došlo ke změnám, které mohou způsobit nefunkčnost.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="UpgradeMSBuildWorkspaceMessage">
+        <source>Please upgrade MSBuildWorkspace by adding a package reference to the Microsoft.CodeAnalysis.Workspaces.MSBuild NuGet package. See https://go.microsoft.com/fwlink/?linkid=874285 for details on using MSBuildWorkspace successfully.</source>
+        <target state="translated">Upgradujte prosím MSBuildWorkspace přidáním odkazu na balíček do balíčku NuGet Microsoft.CodeAnalysis.Workspaces.MSBuild. Podrobnosti o úspěšném použití MSBuildWorkspace najdete zde: https://go.microsoft.com/fwlink/?linkid=874285.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="UpgradeMSBuildWorkspaceTitle">
+        <source>Upgrade MSBuildWorkspace</source>
+        <target state="translated">Upgradovat MSBuildWorkspace</target>
+        <note />
+      </trans-unit>
     </body>
   </file>
 </xliff>
