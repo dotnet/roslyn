@@ -83,7 +83,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
             RegisterMiscellaneousFilesWorkspaceInformation(_miscellaneousFilesWorkspace);
 
             this.Workspace = this.CreateWorkspace();
-            if (IsInIdeMode(this.Workspace))
+            if (await IsInIdeModeAsync(this.Workspace, cancellationToken).ConfigureAwait(true))
             {
                 // make sure solution crawler start once everything has been setup.
                 // this also should be started before any of workspace events start firing
@@ -98,10 +98,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
             // Ensure services that must be created on the UI thread have been.
             HACK_AbstractCreateServicesOnUiThread.CreateServicesOnUIThread(ComponentModel, RoslynLanguageName);
 
-            LoadComponentsInUIContextOnceSolutionFullyLoaded();
+            LoadComponentsInUIContextOnceSolutionFullyLoaded(cancellationToken);
         }
 
-        protected override void LoadComponentsInUIContext()
+        protected override void LoadComponentsInUIContext(CancellationToken cancellationToken)
         {
             ForegroundObject.AssertIsForeground();
 
@@ -146,23 +146,26 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
 
         protected override void Dispose(bool disposing)
         {
-            if (_miscellaneousFilesWorkspace != null)
+            if (disposing)
             {
-                _miscellaneousFilesWorkspace.StopSolutionCrawler();
-            }
+                if (_miscellaneousFilesWorkspace != null)
+                {
+                    _miscellaneousFilesWorkspace.StopSolutionCrawler();
+                }
 
-            if (IsInIdeMode(this.Workspace))
-            {
-                this.Workspace.StopSolutionCrawler();
+                if (ThreadHelper.JoinableTaskFactory.Run(() => IsInIdeModeAsync(this.Workspace, CancellationToken.None)))
+                {
+                    this.Workspace.StopSolutionCrawler();
 
-                DisableRemoteHostClientService();
-            }
+                    DisableRemoteHostClientService();
+                }
 
-            // If we've created the language service then tell it it's time to clean itself up now.
-            if (_languageService != null)
-            {
-                _languageService.TearDown();
-                _languageService = null;
+                // If we've created the language service then tell it it's time to clean itself up now.
+                if (_languageService != null)
+                {
+                    _languageService.TearDown();
+                    _languageService = null;
+                }
             }
 
             base.Dispose(disposing);
@@ -170,14 +173,16 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
 
         protected abstract string RoslynLanguageName { get; }
 
-        private bool IsInIdeMode(Workspace workspace)
+        private async Task<bool> IsInIdeModeAsync(Workspace workspace, CancellationToken cancellationToken)
         {
-            return workspace != null && !IsInCommandLineMode();
+            return workspace != null && !await IsInCommandLineModeAsync(cancellationToken).ConfigureAwait(true);
         }
 
-        private bool IsInCommandLineMode()
+        private async Task<bool> IsInCommandLineModeAsync(CancellationToken cancellationToken)
         {
-            var shell = (IVsShell)this.GetService(typeof(SVsShell));
+            await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
+
+            var shell = (IVsShell)await GetServiceAsync(typeof(SVsShell)).ConfigureAwait(true);
 
             if (ErrorHandler.Succeeded(shell.GetProperty((int)__VSSPROPID.VSSPROPID_IsInCommandLineMode, out var result)))
             {
