@@ -428,7 +428,7 @@ dotnet_diagnostic.cs000.severity = error", "/.editorconfig"));
 dotnet_diagnostic.cs000.severity = suppress
 
 [test.*]
-dotnet_diagnostic.cs000.severity = error", "/"));
+dotnet_diagnostic.cs000.severity = error", "/.editorconfig"));
 
             var options = CommonCompiler.GetAnalyzerConfigOptions(
                 new[] { "/test.cs", "/test.vb", "/test" },
@@ -451,7 +451,7 @@ dotnet_diagnostic.cs000.severity = error", "/"));
             configs.Add(EditorConfig.Parse(@"
 [*.cs]
 dotnet_diagnostic.cs000.severity = suppress
-dotnet_diagnostic.cs001.severity = info", "/"));
+dotnet_diagnostic.cs001.severity = info", "/.editorconfig"));
 
             var options = CommonCompiler.GetAnalyzerConfigOptions(
                 new[] { "/test.cs" },
@@ -477,7 +477,7 @@ dotnet_diagnostic.cs001.severity = info", "/"));
 dotnet_diagnostic.cs000.severity = suppress
 
 [test.*]
-dotnet_diagnostic.cs001.severity = info", "/"));
+dotnet_diagnostic.cs001.severity = info", "/.editorconfig"));
 
             var options = CommonCompiler.GetAnalyzerConfigOptions(
                 new[] { "/test.cs" },
@@ -503,13 +503,13 @@ dotnet_diagnostic.cs001.severity = info", "/"));
 dotnet_diagnostic.cs000.severity = suppress
 
 [**test.*]
-dotnet_diagnostic.cs001.severity = info", "/"));
+dotnet_diagnostic.cs001.severity = info", "/.editorconfig"));
             configs.Add(EditorConfig.Parse(@"
 [**]
 dotnet_diagnostic.cs000.severity = warn
 
 [test.cs]
-dotnet_diagnostic.cs001.severity = error", "/subdir/"));
+dotnet_diagnostic.cs001.severity = error", "/subdir/.editorconfig"));
 
             var options = CommonCompiler.GetAnalyzerConfigOptions(
                 new[] { "/subdir/test.cs", "/subdir/test.vb" },
@@ -538,10 +538,10 @@ dotnet_diagnostic.cs001.severity = error", "/subdir/"));
 dotnet_diagnostic.cs000.severity = suppress
 
 [**test.cs]
-dotnet_diagnostic.cs001.severity = info", "/"));
+dotnet_diagnostic.cs001.severity = info", "/.editorconfig"));
             configs.Add(EditorConfig.Parse(@"
 [test.cs]
-dotnet_diagnostic.cs001.severity = error", "/subdir/"));
+dotnet_diagnostic.cs001.severity = error", "/subdir/.editorconfig"));
 
             var options = CommonCompiler.GetAnalyzerConfigOptions(
                 new[] { "/test.cs", "/subdir/test.cs", "/subdir/test.vb" },
@@ -560,7 +560,44 @@ dotnet_diagnostic.cs001.severity = error", "/subdir/"));
                 CreateImmutableDictionary(
                     ("cs000", ReportDiagnostic.Suppress))
             }, options);
+        }
 
+        [ConditionalFact(typeof(WindowsOnly))]
+        public void WindowsRootConfig()
+        {
+            var configs = ArrayBuilder<EditorConfig>.GetInstance();
+            configs.Add(EditorConfig.Parse(@"
+[*.cs]
+dotnet_diagnostic.cs000.severity = suppress", "Z:\\.editorconfig"));
+
+            var options = CommonCompiler.GetAnalyzerConfigOptions(
+                new[] { "Z:\\test.cs" },
+                configs,
+                messageProvider: null,
+                diagnostics: null);
+            configs.Free();
+
+            Assert.Equal(new[]
+            {
+                CreateImmutableDictionary(
+                    ("cs000", ReportDiagnostic.Suppress))
+            }, options);
+        }
+
+        [Fact]
+        public void BadFilePaths()
+        {
+            Assert.Throws<ArgumentException>(() => EditorConfig.Parse("", "relativeDir/file"));
+            Assert.Throws<ArgumentException>(() => EditorConfig.Parse("", "/"));
+            Assert.Throws<ArgumentException>(() => EditorConfig.Parse("", "/subdir/"));
+        }
+
+        [ConditionalFact(typeof(WindowsOnly))]
+        public void BadWindowsFilePaths()
+        {
+            Assert.Throws<ArgumentException>(() => EditorConfig.Parse("", "Z:"));
+            Assert.Throws<ArgumentException>(() => EditorConfig.Parse("", "Z:\\"));
+            Assert.Throws<ArgumentException>(() => EditorConfig.Parse("", ":\\.editorconfig"));
         }
     }
 }

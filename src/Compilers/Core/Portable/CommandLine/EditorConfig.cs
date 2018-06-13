@@ -92,9 +92,9 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         public static EditorConfig Parse(string text, string pathToFile)
         {
-            if (!Path.IsPathRooted(pathToFile))
+            if (!Path.IsPathRooted(pathToFile) || string.IsNullOrEmpty(Path.GetFileName(pathToFile)))
             {
-                throw new ArgumentException("Must be an absolute path", nameof(pathToFile));
+                throw new ArgumentException("Must be an absolute path to an editorconfig file", nameof(pathToFile));
             }
 
             Section globalSection = null;

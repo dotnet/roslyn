@@ -42,10 +42,10 @@ namespace Microsoft.CodeAnalysis
             // name. Specifically, the editorconfig core parser says:
             // https://github.com/editorconfig/editorconfig-core-c/blob/5d3996811e962a717a7d7fdd0a941192382241a7/src/lib/editorconfig.c#L231
             //
-            //     Pattern would be: /dir/of/editorconfig/file[double_star]/[section] if
-            //     section does not contain '/', or /dir/of/editorconfig/file[section]
-            //     if section starts with a '/', or /dir/of/editorconfig/file/[section] if
-            //     section contains '/' but does not start with '/'.
+            //     Pattern would be: 
+            //     /dir/of/editorconfig/file[double_star]/[section] if section does not contain '/',
+            //     /dir/of/editorconfig/file[section] if section starts with a '/', or
+            //     /dir/of/editorconfig/file/[section] if section contains '/' but does not start with '/'.
 
             if (!sectionName.Contains("/"))
             {

@@ -317,10 +317,15 @@ namespace Microsoft.CodeAnalysis
                 {
                     if (normalizedPath.StartsWith(config.NormalizedDirectory, StringComparison.Ordinal))
                     {
-                        // Leave '/' if this is the root. Section regex expects a starting '/'
-                        string relativePath = config.NormalizedDirectory.Length > 1
-                            ? normalizedPath.Substring(config.NormalizedDirectory.Length)
-                            : normalizedPath; 
+                        int dirLength = config.NormalizedDirectory.Length;
+                        // Leave '/' if the normalized directory ends with a '/'. This can happen if
+                        // we're in a root directory (e.g. '/' or 'Z:/'). The section matching
+                        // always expects that the relative path start with a '/'. 
+                        if (config.NormalizedDirectory[dirLength - 1] == '/')
+                        {
+                            dirLength--;
+                        }
+                        string relativePath = normalizedPath.Substring(dirLength);
 
                         ImmutableArray<Regex> regexes = allRegexes[config];
                         for (int sectionIndex = 0; sectionIndex < regexes.Length; sectionIndex++)
