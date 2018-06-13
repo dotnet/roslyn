@@ -95,7 +95,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
         public static string ToTestDisplayString(this SymbolWithAnnotations symbol)
         {
-            return symbol.Symbol.ToDisplayString(SymbolDisplayFormat.TestFormat);
+            return symbol.ToDisplayString(SymbolDisplayFormat.TestFormat);
         }
     }
 }

@@ -11807,7 +11807,7 @@ class CL1
             var model = comp.GetSemanticModel(tree);
             var declarator = tree.GetRoot().DescendantNodes().OfType<VariableDeclaratorSyntax>().First();
             var symbol = (LocalSymbol)model.GetDeclaredSymbol(declarator);
-            Assert.Equal("System.String", symbol.Type.ToTestDisplayString());
+            Assert.Equal("System.String?", symbol.Type.ToTestDisplayString());
             Assert.Equal(true, symbol.Type.IsNullable);
         }
 
@@ -11838,7 +11838,7 @@ class CL1
             var model = comp.GetSemanticModel(tree);
             var declarator = tree.GetRoot().DescendantNodes().OfType<VariableDeclaratorSyntax>().First();
             var symbol = (LocalSymbol)model.GetDeclaredSymbol(declarator);
-            Assert.Equal("System.String", symbol.Type.ToTestDisplayString());
+            Assert.Equal("System.String?", symbol.Type.ToTestDisplayString());
             Assert.Equal(true, symbol.Type.IsNullable);
         }
 
@@ -11870,7 +11870,8 @@ class CL1
             var model = comp.GetSemanticModel(tree);
             var declarator = tree.GetRoot().DescendantNodes().OfType<VariableDeclaratorSyntax>().First();
             var symbol = (LocalSymbol)model.GetDeclaredSymbol(declarator);
-            Assert.Equal("System.String", symbol.Type.ToTestDisplayString());
+            // PROTOTYPE(NullableReferenceTypes): Type should be `string!`.
+            Assert.Equal("System.String?", symbol.Type.ToTestDisplayString());
             // PROTOTYPE(NullableReferenceTypes): IsNullable should be inferred nullable state: false.
             Assert.Equal(true, symbol.Type.IsNullable);
         }
@@ -11904,7 +11905,7 @@ class CL1
             var model = comp.GetSemanticModel(tree);
             var declarator = tree.GetRoot().DescendantNodes().OfType<VariableDeclaratorSyntax>().First();
             var symbol = (LocalSymbol)model.GetDeclaredSymbol(declarator);
-            Assert.Equal("System.String", symbol.Type.ToTestDisplayString());
+            Assert.Equal("System.String?", symbol.Type.ToTestDisplayString());
             Assert.Equal(true, symbol.Type.IsNullable);
         }
 
@@ -11936,7 +11937,7 @@ class CL1
             var model = comp.GetSemanticModel(tree);
             var declarator = tree.GetRoot().DescendantNodes().OfType<VariableDeclaratorSyntax>().First();
             var symbol = (LocalSymbol)model.GetDeclaredSymbol(declarator);
-            Assert.Equal("System.String", symbol.Type.ToTestDisplayString());
+            Assert.Equal("System.String?", symbol.Type.ToTestDisplayString());
             Assert.Equal(true, symbol.Type.IsNullable);
         }
 
@@ -11969,7 +11970,7 @@ class CL1
             var model = comp.GetSemanticModel(tree);
             var declarator = tree.GetRoot().DescendantNodes().OfType<VariableDeclaratorSyntax>().First();
             var symbol = (LocalSymbol)model.GetDeclaredSymbol(declarator);
-            Assert.Equal("System.String", symbol.Type.ToTestDisplayString());
+            Assert.Equal("System.String?", symbol.Type.ToTestDisplayString());
             Assert.Equal(true, symbol.Type.IsNullable);
         }
 
@@ -12003,7 +12004,7 @@ class CL1
             var model = comp.GetSemanticModel(tree);
             var declarator = tree.GetRoot().DescendantNodes().OfType<VariableDeclaratorSyntax>().First();
             var symbol = (LocalSymbol)model.GetDeclaredSymbol(declarator);
-            Assert.Equal("System.String", symbol.Type.ToTestDisplayString());
+            Assert.Equal("System.String?", symbol.Type.ToTestDisplayString());
             Assert.Equal(true, symbol.Type.IsNullable);
         }
 
@@ -17521,7 +17522,7 @@ class C
             var model = comp.GetSemanticModel(tree);
             var declarators = tree.GetRoot().DescendantNodes().OfType<VariableDeclaratorSyntax>().ToArray();
             var symbol = (LocalSymbol)model.GetDeclaredSymbol(declarators[0]);
-            Assert.Equal("System.String", symbol.Type.ToTestDisplayString());
+            Assert.Equal("System.String?", symbol.Type.ToTestDisplayString());
             Assert.Equal(true, symbol.Type.IsNullable);
             symbol = (LocalSymbol)model.GetDeclaredSymbol(declarators[1]);
             Assert.Equal("System.Int32", symbol.Type.ToTestDisplayString());
@@ -17555,15 +17556,14 @@ class C
             var model = comp.GetSemanticModel(tree);
             var declarators = tree.GetRoot().DescendantNodes().OfType<VariableDeclaratorSyntax>().ToArray();
             var symbol = (LocalSymbol)model.GetDeclaredSymbol(declarators[0]);
-            Assert.Equal("System.String", symbol.Type.ToTestDisplayString());
+            Assert.Equal("System.String?", symbol.Type.ToTestDisplayString());
             Assert.Equal(true, symbol.Type.IsNullable);
             symbol = (LocalSymbol)model.GetDeclaredSymbol(declarators[1]);
             Assert.Equal("System.Int32?", symbol.Type.ToTestDisplayString());
             Assert.Equal(true, symbol.Type.IsNullable);
         }
 
-        // PROTOTYPE(NullableReferenceTypes): Report CS0453 for T?.
-        [Fact(Skip = "CS0453")]
+        [Fact]
         public void Default_TUnconstrained()
         {
             var source =
@@ -17582,19 +17582,22 @@ class C
                 source,
                 parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
-                // (7,25): error CS0453: The type 'T' must be a non-nullable value type in order to use it as parameter 'T' in the generic type or method 'Nullable<T>'
-                //         var t = default(T?);
-                Diagnostic(ErrorCode.ERR_ValConstraintNotSatisfied, "T?").WithArguments("System.Nullable<T>", "T", "T").WithLocation(7, 25));
+                // (6,9): warning CS8602: Possible dereference of a null reference.
+                //         s.ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "s").WithLocation(6, 9),
+                // (8,9): warning CS8602: Possible dereference of a null reference.
+                //         t.ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "t").WithLocation(8, 9));
 
             var tree = comp.SyntaxTrees[0];
             var model = comp.GetSemanticModel(tree);
             var declarators = tree.GetRoot().DescendantNodes().OfType<VariableDeclaratorSyntax>().ToArray();
             var symbol = (LocalSymbol)model.GetDeclaredSymbol(declarators[0]);
             Assert.Equal("T", symbol.Type.ToTestDisplayString());
-            Assert.Equal(false, symbol.Type.IsNullable);
+            Assert.Equal(null, symbol.Type.IsNullable);
             symbol = (LocalSymbol)model.GetDeclaredSymbol(declarators[1]);
-            Assert.Equal("T?", symbol.Type.ToTestDisplayString());
-            Assert.Equal(true, symbol.Type.IsNullable);
+            Assert.Equal("T", symbol.Type.ToTestDisplayString());
+            Assert.Equal(null, symbol.Type.IsNullable);
         }
 
         [Fact]
@@ -17627,11 +17630,10 @@ class C
             var model = comp.GetSemanticModel(tree);
             var declarators = tree.GetRoot().DescendantNodes().OfType<VariableDeclaratorSyntax>().ToArray();
             var symbol = (LocalSymbol)model.GetDeclaredSymbol(declarators[0]);
-            Assert.Equal("T", symbol.Type.ToTestDisplayString());
+            Assert.Equal("T?", symbol.Type.ToTestDisplayString());
             Assert.Equal(true, symbol.Type.IsNullable);
             symbol = (LocalSymbol)model.GetDeclaredSymbol(declarators[1]);
-            // PROTOTYPE(NullableReferenceTypes): Should be "T?".
-            Assert.Equal("T", symbol.Type.ToTestDisplayString());
+            Assert.Equal("T?", symbol.Type.ToTestDisplayString());
             Assert.Equal(true, symbol.Type.IsNullable);
         }
 
@@ -17699,15 +17701,14 @@ class C
             var model = comp.GetSemanticModel(tree);
             var declarators = tree.GetRoot().DescendantNodes().OfType<VariableDeclaratorSyntax>().ToArray();
             var symbol = (LocalSymbol)model.GetDeclaredSymbol(declarators[0]);
-            Assert.Equal("System.String", symbol.Type.ToTestDisplayString());
+            Assert.Equal("System.String?", symbol.Type.ToTestDisplayString());
             Assert.Equal(true, symbol.Type.IsNullable);
             symbol = (LocalSymbol)model.GetDeclaredSymbol(declarators[1]);
             Assert.Equal("System.Int32?", symbol.Type.ToTestDisplayString());
             Assert.Equal(true, symbol.Type.IsNullable);
         }
 
-        // PROTOTYPE(NullableReferenceTypes): Report CS0453 for T?.
-        [Fact(Skip = "CS0453")]
+        [Fact]
         public void DefaultInferred_TUnconstrained()
         {
             var source =
@@ -17726,9 +17727,12 @@ class C
                 source,
                 parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
-                // (7,9): error CS0453: The type 'T' must be a non-nullable value type in order to use it as parameter 'T' in the generic type or method 'Nullable<T>'
-                //         T? t = default;
-                Diagnostic(ErrorCode.ERR_ValConstraintNotSatisfied, "T?").WithArguments("System.Nullable<T>", "T", "T").WithLocation(7, 9));
+                // (6,9): warning CS8602: Possible dereference of a null reference.
+                //         s.ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "s").WithLocation(6, 9),
+                // (8,9): warning CS8602: Possible dereference of a null reference.
+                //         t.ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "t").WithLocation(8, 9));
 
             var tree = comp.SyntaxTrees[0];
             var model = comp.GetSemanticModel(tree);
@@ -17777,8 +17781,7 @@ class C
             Assert.Equal("T", symbol.Type.ToTestDisplayString());
             Assert.Equal(false, symbol.Type.IsNullable);
             symbol = (LocalSymbol)model.GetDeclaredSymbol(declarators[1]);
-            // PROTOTYPE(NullableReferenceTypes): Should be "T?".
-            Assert.Equal("T", symbol.Type.ToTestDisplayString());
+            Assert.Equal("T?", symbol.Type.ToTestDisplayString());
             Assert.Equal(true, symbol.Type.IsNullable);
         }
 
@@ -26750,7 +26753,7 @@ class B
             var model = comp.GetSemanticModel(tree);
             var declarator = tree.GetRoot().DescendantNodes().OfType<VariableDeclaratorSyntax>().First();
             var symbol = (LocalSymbol)model.GetDeclaredSymbol(declarator);
-            Assert.Equal("System.String", symbol.Type.ToTestDisplayString());
+            Assert.Equal("System.String?", symbol.Type.ToTestDisplayString());
             Assert.Equal(true, symbol.Type.IsNullable);
         }
 
