@@ -110,5 +110,8 @@
   <ItemGroup>
     <PackageReference Include="System.Threading.Tasks.Extensions" Version="$(SystemThreadingTasksExtensionsVersion)" />
   </ItemGroup>
+  <ItemGroup>
+    <Folder Include="CodeFixes\PreferFrameworkType\" />
+  </ItemGroup>
   <Import Project="..\..\..\Compilers\Core\AnalyzerDriver\AnalyzerDriver.projitems" Label="Shared" />
 </Project>
